@@ -11,3 +11,33 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 <!-- tumwater:status:start -->
 _No status yet. The readme loop keeps this section up to date._
 <!-- tumwater:status:end -->
+
+## Reference screenshots
+
+`macos8.6-screenshots/` is the visual reference set for this theme: 28 images of **Mac OS 8.6**
+(released 1999-05-10), collected from the internet and used as the source of truth when matching
+menu bar, window chrome, widget metrics, icons and colour palette in the Plasma 6 port. They are
+reference material only — the theme does not ship them.
+
+| Surface | Count | Files |
+| --- | --- | --- |
+| Desktop | 5 | `desktop_betawiki.png`, `desktop_betawiki86b9.png`, `desktop_fandom.png`, `desktop_archiveorg.jpg`, `desktop_archiveorg8.6hd.png` |
+| Boot / splash | 5 | `boot_betawiki.png`, `boot2_betawiki.png`, `boot_archiveorg.jpg`, `bootwhite_archiveorg.jpg`, `splash_macbase.gif` |
+| Welcome / first boot / installer | 5 | `welcome_betawiki.png`, `welcome_tomo197707.png`, `firstboot_betawiki.png`, `setup_betawiki.png`, `setup_emaculation.png` |
+| About / System Profiler | 7 | `about_betawiki*.png` (3), `aboutsystem_betawiki*.png` (2), `systeminfo_betawiki.png`, `systemprofiler_betawiki.png` |
+| Finder / dialogs / apps | 3 | `finder_archiveorg.jpg`, `opendialog_macrumors86.jpg`, `apps_macrumors8.6.jpg` |
+| Photos of real hardware | 2 | `boot_powerbookphoto_macrumors.jpg`, `welcome_crtphoto_macrumors.jpg` |
+| Non-8.6 supplement | 1 | `sherlock_fandom.jpg` (Mac OS 8.5) |
+
+`sources.txt` records the origin URL and a version label for every file.
+
+- **Labels are evidence-based.** A file is labelled 8.6 only when the version string is legible in
+  the image itself (or the source states it). Beta/alpha builds (`8.6a3c2`, `8.6b3`, `8.6b9`,
+  `8.6b2c4L8`) and the 8.5 Sherlock supplement are marked as such — they show chrome that differs
+  from retail and must not be used as retail reference.
+- **Two entries are photographs**, not screenshots: real Macs running 8.6, useful for CRT
+  colour/gamma and physical bezel context only.
+- **Binary assets are stored with Git LFS** (see `.gitattributes`); run `git lfs install` after
+  cloning.
+- Images are third-party material kept for reference and attribution; copyright remains with the
+  original authors.

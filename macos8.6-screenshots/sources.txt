@@ -1,0 +1,53 @@
+# Mac OS 8.6 screenshot collection - provenance
+# Format: <filename> | <source URL> | <version label>
+# Labels are what the image itself shows (or the source explicitly states). Items that are
+# NOT retail Mac OS 8.6 are marked "supplement" / "beta" / "photo". See notes at end.
+about_betawiki.png | https://web.archive.org/web/20260503030908im_/https://betawiki.net/images/thumb/c/c9/MacOS-8.6-About.png/200px-MacOS-8.6-About.png | Mac OS 8.6 (About box, retail)
+about_betawiki86a3c2.png | https://web.archive.org/web/20230605222437im_/https://betawiki.net/images/thumb/e/e8/MacOS-8.6a3c2-About.png/200px-MacOS-8.6a3c2-About.png | Mac OS 8.6a3c2 alpha/beta (About box)
+about_betawiki86b9.png | https://web.archive.org/web/20230410232559im_/https://betawiki.net/images/thumb/1/16/MacOS-8.6b9-About.png/200px-MacOS-8.6b9-About.png | Mac OS 8.6b9 beta (About box)
+aboutsystem_betawiki.png | https://web.archive.org/web/20260401111624im_/https://betawiki.net/images/8/8f/MacOS-8.6b2c4L8-AboutSystem.png | Mac OS 8.6b2c4LB beta, Japanese (About This Computer)
+aboutsystem_betawiki86b3.png | https://web.archive.org/web/20220322032433im_/https://betawiki.net/images/thumb/d/d7/MacOS-8.6b3-AboutSystem.png/300px-MacOS-8.6b3-AboutSystem.png | Mac OS 8.6b3 beta (About This Computer)
+apps_macrumors8.6.jpg | https://forums.macrumors.com/attachments/picture-jpg.713935/ | Mac OS 8.6 (PowerBook G3 400MHz; Finder + Apple System Profiler + Launcher + About This Computer)
+boot2_betawiki.png | https://web.archive.org/web/20260503030908im_/https://betawiki.net/images/thumb/d/dd/MacOS-8.6-Boot2.png/240px-MacOS-8.6-Boot2.png | Mac OS 8.6 (boot screen)
+boot_archiveorg.jpg | https://archive.org/download/1998-apple-i-mac-booting-into-mac-os-8.6/1998-apple-i-mac-booting-into-mac-os-8.6.thumbs/1998_Apple_iMac_booting_into_MacOS_8.6_000035.jpg | Mac OS 8.6 (iMac boot video still)
+boot_betawiki.png | https://web.archive.org/web/20260503030908im_/https://betawiki.net/images/thumb/c/c5/MacOS-8.6-Boot.png/240px-MacOS-8.6-Boot.png | Mac OS 8.6 (boot screen)
+boot_powerbookphoto_macrumors.jpg | https://forums.macrumors.com/attachments/pismo-02-jpg.847569/ | Mac OS 8.6 - photo of PowerBook LCD, not a screenshot
+bootwhite_archiveorg.jpg | https://archive.org/download/1998-apple-i-mac-booting-into-mac-os-8.6/1998-apple-i-mac-booting-into-mac-os-8.6.thumbs/1998_Apple_iMac_booting_into_MacOS_8.6_000045.jpg | Mac OS 8.6 (iMac boot video still)
+desktop_archiveorg.jpg | https://archive.org/download/1998-apple-i-mac-booting-into-mac-os-8.6/1998-apple-i-mac-booting-into-mac-os-8.6.thumbs/1998_Apple_iMac_booting_into_MacOS_8.6_000080.jpg | Mac OS 8.6 (iMac boot video still, desktop)
+desktop_archiveorg8.6hd.png | https://archive.org/download/mac-os-8.6-hd.tar.gz/Screenshot.png | Mac OS 8.6 (desktop with Drive Setup / Disk First Aid / Disk Copy)
+desktop_betawiki.png | https://web.archive.org/web/20260503030908im_/http://betawiki.net/images/f/fe/MacOS-8.6-Desktop.png | Mac OS 8.6 (desktop, retail)
+desktop_betawiki86b9.png | https://web.archive.org/web/2024im_/https://betawiki.net/images/d/db/MacOS-8.6b9-Desktop.png | Mac OS 8.6b9 beta (desktop)
+desktop_fandom.png | https://static.wikia.nocookie.net/ipod/images/d/d9/1999_Mac_OS_8.6_%28Veronica%29.png/revision/latest?cb=20190310065516 | Mac OS 8.6 (desktop, English) - file page: https://apple.fandom.com/wiki/File:1999_Mac_OS_8.6_(Veronica)
+finder_archiveorg.jpg | https://archive.org/download/1998-apple-i-mac-booting-into-mac-os-8.6/1998-apple-i-mac-booting-into-mac-os-8.6.thumbs/1998_Apple_iMac_booting_into_MacOS_8.6_000085.jpg | Mac OS 8.6 (iMac boot video still, Finder)
+firstboot_betawiki.png | https://web.archive.org/web/20260503030908im_/http://betawiki.net/images/5/5a/MacOS-8.6-FirstBoot.png | Mac OS 8.6 (first boot / Setup Assistant)
+opendialog_macrumors86.jpg | https://forums.macrumors.com/attachments/5-1-jpg.1745504/ | Mac OS 8.6, Japanese (Open dialog)
+setup_betawiki.png | https://web.archive.org/web/20251205044512im_/https://betawiki.net/images/thumb/0/01/MacOS-8.6-Setup.PNG/240px-MacOS-8.6-Setup.PNG | Mac OS 8.6 (installer setup screen)
+setup_emaculation.png | https://i.ibb.co/Jv2kdH2/Screenshot-2019-06-03-at-13-24-11.png | Mac OS 8.6 (installer CD; posted on emaculation.com forums)
+sherlock_fandom.jpg | https://static.wikia.nocookie.net/ipod/images/5/52/Sherlock8.5.jpg/revision/latest?cb=20100819233512 | SUPPLEMENT: Mac OS 8.5 (Sherlock) - file page: https://apple.fandom.com/wiki/File:Sherlock8.5.jpg
+splash_macbase.gif | http://www3.macbase.or.jp/~kylyn/images/photo/040204/os86-3d.gif | Mac OS 8.6 (splash/startup graphic)
+systeminfo_betawiki.png | https://web.archive.org/web/2024im_/https://betawiki.net/images/7/7e/MacOS-8.6a3c2-AboutSystem.png | Mac OS 8.6a3c2 beta (About This Computer)
+systemprofiler_betawiki.png | https://web.archive.org/web/20260401111624im_/http://betawiki.net/images/1/10/MacOS-8.6b2c4L8-Info.png | Mac OS 8.6, Japanese (Apple System Profiler; window reads Finder 8.6 / System 8.6.2 日本語)
+welcome_betawiki.png | https://web.archive.org/web/20260228003859im_/https://betawiki.net/images/thumb/f/f5/MacOS-8.6-Welcome.png/240px-MacOS-8.6-Welcome.png | Mac OS 8.6 (welcome screen)
+welcome_crtphoto_macrumors.jpg | https://myslu.stlawu.edu/~jmil/physics/labs/104_lab/setup_manual/instructor/img/Magneto2-MacOS8.6.JPG | Mac OS 8.6 - photo of a CRT running 8.6, not a screenshot (St. Lawrence Univ. physics lab setup manual)
+welcome_tomo197707.png | https://livedoor.blogimg.jp/tomo197707/imgs/1/b/1bc3c421.png | Mac OS 8.6 (welcome screen, SheepShaver window on a Windows 9x host - not a bare screenshot)
+
+# Notes
+# 1. MacRumors attachments (713935, 1745504, 847569) come from thread
+#    https://forums.macrumors.com/threads/mac-os-8-6-findings-and-ramblings.2021922/
+#    The forum serves a recompressed JPEG rendition: byte size today differs from the copy
+#    saved here, but pixel dimensions are identical and `compare -metric RMSE` gives
+#    1.6-3.5% normalized error for 713935/1745504 - i.e. the same picture re-encoded, not a
+#    different image. 847569 is md5-identical (d2743fc4eaddcb65bb9577967fe0b230).
+# 2. desktop_fandom.png was served by Fandom as WebP and re-encoded to PNG with `convert -strip`
+#    (identical 2560x1442 geometry). sherlock_fandom.jpg is a WebP payload despite the .jpg
+#    extension, exactly as served.
+# 3. archive.org stills (000035/000045/000080/000085) are byte-exact matches (md5-verified)
+#    against the archive.org .thumbs renditions of item 1998-apple-i-mac-booting-into-mac-os-8.6.
+# 4. BetaWiki originals are behind a 403 for live fetches; all BetaWiki files here were pulled
+#    through the Wayback Machine image proxy (web.archive.org/web/<timestamp>im_/...).
+# 5. BetaWiki filenames can disagree with file contents. Every About/Info asset above was
+#    visually transcribed before labelling; none is labelled 8.6 unless the version string is
+#    legible in the image itself.
+# 6. Rejected and not included: it.wikipedia "Mac OS 8 screenshot.png" (no version string
+#    legible -> version-ambiguous) and winmac.emuunlim.com OS8.jpg (mock showing "Mac OS 8.8"
+#    on an "Intel Pentium" - not real Mac OS).
