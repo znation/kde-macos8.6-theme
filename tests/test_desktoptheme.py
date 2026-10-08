@@ -504,6 +504,41 @@ class TestButton(unittest.TestCase):
             with self.subTest(corner=name):
                 self.assertEqual(fills, colours, name)
 
+    def test_button_edge_pixels(self):
+        # `test_button_bevel_direction` reads only the first column of each
+        # horizontal band and the first row of each vertical one, so it pins
+        # the band order only while the band stays uniform along its axis: a
+        # rect narrowed to one pixel -- an outline or bevel missing along most
+        # of the edge -- still passes. The frame and lineedit edge tests pin
+        # every pixel; do the same for the button's normal/pressed bands.
+        slices = render_slices(ET.parse(BUTTON_SVG))
+        # (outer outline, bevel, inner face) for top/left, read from the
+        # slice's outer edge in; bottom/right mirror it, with the outline
+        # still on the outer edge and the bevel colour swapped.
+        outward = {
+            "normal": ("#000000", "#FFFFFF", "#DDDDDD"),
+            "pressed": ("#000000", "#999999", "#DDDDDD"),
+        }
+        mirrored = {
+            "normal": ("#DDDDDD", "#999999", "#000000"),
+            "pressed": ("#DDDDDD", "#FFFFFF", "#000000"),
+        }
+        for prefix in ("normal", "pressed"):
+            for side in ("top", "bottom", "left", "right"):
+                band = (outward if side in ("top", "left") else mirrored)[prefix]
+                if side in ("top", "bottom"):
+                    # Three 6px rows, one per band colour.
+                    expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
+                    points = ((x, y) for y in range(3) for x in range(6))
+                else:
+                    # Six 3px rows, each running outer to inner.
+                    expected = band * 6
+                    points = ((x, y) for y in range(6) for x in range(3))
+                pixels = slices[f"{prefix}-{side}"]
+                actual = tuple(pixels.get(point) for point in points)
+                with self.subTest(slice=f"{prefix}-{side}"):
+                    self.assertEqual(actual, expected, f"{prefix}-{side}")
+
     def test_button_center_tiles_are_face(self):
         # `test_button_colours` pins only the set of fills, so a centre tile
         # recoloured to another Platinum grey (#FFFFFF or #999999) passes it,
