@@ -1,2 +1,4 @@
 .tumwater/
 tumwater.json
+__pycache__/
+*.pyc

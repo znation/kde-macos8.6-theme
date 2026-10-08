@@ -43,3 +43,10 @@ reference material only — the theme does not ship them.
   cloning.
 - Images are third-party material kept for reference and attribution; copyright remains with the
   original authors.
+
+## Validating the reference set
+
+`sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run
+`python3 tools/check_references.py`: it fails if the record and the files on disk disagree (a
+missing file, an image with no entry, a malformed or duplicate entry).
+`python3 tools/check_references.py --self-test` exercises the checker itself.
