@@ -24,7 +24,8 @@ The verdict passes when every threshold set with ``--max-mae``/``--max-frac``
 is met; when neither is set it passes only when no pixel differs from the
 reference by more than ``--tolerance``.
 
-Exit status: 0 within tolerance, 1 outside tolerance, 2 usage or read error.
+Exit status: 0 when the comparison passes, 1 when it fails, 2 usage or
+read error.
 """
 
 from __future__ import annotations
@@ -397,7 +398,7 @@ def main(argv: list[str] | None = None) -> int:
         prog="fidelity",
         description="Measure a rendered PNG surface against a reference PNG.",
         epilog=(
-            "exit status: 0 within tolerance, 1 outside tolerance, "
+            "exit status: 0 when the comparison passes, 1 when it fails, "
             "2 usage or read error; passes when every --max-mae/--max-frac "
             "threshold set is met, and otherwise when no pixel differs "
             "beyond --tolerance"

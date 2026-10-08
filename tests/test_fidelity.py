@@ -456,7 +456,7 @@ class TestCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         help_text = " ".join(result.stdout.split())
         self.assertIn(
-            "exit status: 0 within tolerance, 1 outside tolerance, "
+            "exit status: 0 when the comparison passes, 1 when it fails, "
             "2 usage or read error",
             help_text,
         )
