@@ -64,10 +64,20 @@ def installed_plasma_dir(destdir, kind):
     """Directory `make install` writes a Plasma package family into.
 
     The Makefile installs under `$(DESTDIR)$(XDG_DATA_HOME)/plasma/<kind>`;
-    `kind` is `look-and-feel` or `desktoptheme`. A package's directory, or a
-    hidden `.staging`/`.old` sibling, is joined onto the result.
+    `kind` is `look-and-feel` or `desktoptheme`. `installed_package` joins a
+    package's own directory onto the result; a hidden `.staging`/`.old`
+    sibling is a different path, joined by the caller.
     """
     return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "plasma", kind)
+
+
+def installed_package(destdir, kind, package_id):
+    """Directory `make install` writes one Plasma package into.
+
+    The package family comes from `installed_plasma_dir`; the package's own
+    directory is that family joined with its id (`org.macos8.desktop`).
+    """
+    return os.path.join(installed_plasma_dir(destdir, kind), package_id)
 
 
 def shadow_command_env(destdir, name, script):

@@ -11,6 +11,7 @@ from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
     install,
+    installed_package,
     installed_plasma_dir,
     run,
     shadow_command_env,
@@ -243,7 +244,7 @@ class TestFrame(unittest.TestCase):
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             target = os.path.join(
-                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID,
+                installed_package(tmp, "desktoptheme", DTHEME_ID),
                 "widgets", "frame.svg",
             )
             self.assertTrue(os.path.isfile(target), target)
@@ -267,9 +268,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
-            installed = os.path.join(
-                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID
-            )
+            installed = installed_package(tmp, "desktoptheme", DTHEME_ID)
             for name in (
                 "metadata.json",
                 os.path.join("widgets", "panel-background.svg"),
@@ -298,9 +297,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
-            installed = os.path.join(
-                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID
-            )
+            installed = installed_package(tmp, "desktoptheme", DTHEME_ID)
             metadata = os.path.join(installed, "metadata.json")
             with open(metadata, "rb") as handle:
                 good = handle.read()
@@ -348,9 +345,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
-            installed = os.path.join(
-                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID
-            )
+            installed = installed_package(tmp, "desktoptheme", DTHEME_ID)
             metadata = os.path.join(installed, "metadata.json")
             with open(metadata, "rb") as handle:
                 good = handle.read()
