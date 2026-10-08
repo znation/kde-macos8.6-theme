@@ -426,7 +426,8 @@ def read_png(path: str | Path) -> Image:
     except OSError as exc:
         raise PngError(f"cannot read {path}: {exc}") from exc
     try:
-        if not stat.S_ISREG(os.fstat(fd).st_mode):
+        file_stat = os.fstat(fd)
+        if not stat.S_ISREG(file_stat.st_mode):
             raise PngError(f"cannot read {path}: not a regular file")
         # Read at most one byte past the cap: enough to detect an oversize
         # file without loading the rest of it.
@@ -439,9 +440,12 @@ def read_png(path: str | Path) -> Image:
         if fd >= 0:
             os.close(fd)
     if len(data) > _MAX_FILE_BYTES:
+        # fstat on the already-open fd names the file's size without a second
+        # path lookup, so an operator can see how far over the cap it is
+        # instead of only the cap itself.
         raise PngError(
-            f"cannot read {path}: file is larger than the "
-            f"{_MAX_FILE_BYTES}-byte limit"
+            f"cannot read {path}: file is {file_stat.st_size} bytes, larger "
+            f"than the {_MAX_FILE_BYTES}-byte limit"
         )
     try:
         return decode_png(data)

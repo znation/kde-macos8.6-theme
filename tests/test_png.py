@@ -575,6 +575,7 @@ class TestDecode(unittest.TestCase):
                 finally:
                     tracemalloc.stop()
         self.assertIn(str(limit), str(ctx.exception))
+        self.assertIn(f"{limit + 1} bytes", str(ctx.exception))
         self.assertLess(peak, limit + 1024 * 1024)
 
     def test_read_png_names_undecodable_file(self):
