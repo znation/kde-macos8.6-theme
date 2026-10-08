@@ -58,6 +58,16 @@ OTHER_SECTIONS = {
 
 RGB_RE = re.compile(r"^\d{1,3},\d{1,3},\d{1,3}$")
 
+# Every value KDE parses as an RGB triple: the semantic roles in each [Colors:*]
+# section, the [WM] window-decoration colours, and the base `Color` of the two
+# ColorEffects sections. The ColorEffects amounts/effects and the [KDE]/[General]
+# scalars are not colours and are covered by test_other_sections_and_keys.
+RGB_VALUES = (
+    [(section, key) for section in COLORS_SECTIONS for key in COLORS_KEYS]
+    + [(section, "Color") for section in ("ColorEffects:Disabled", "ColorEffects:Inactive")]
+    + [("WM", key) for key in OTHER_SECTIONS["WM"]]
+)
+
 
 def load_scheme():
     parser = configparser.ConfigParser(interpolation=None)
@@ -91,12 +101,11 @@ class TestStructure(unittest.TestCase):
                 )
 
     def test_color_values_are_rgb(self):
-        for section in COLORS_SECTIONS:
-            for key in COLORS_KEYS:
-                value = self.parser.get(section, key)
-                self.assertRegex(value, RGB_RE, f"{section}/{key}")
-                for component in value.split(","):
-                    self.assertLessEqual(int(component), 255, f"{section}/{key}")
+        for section, key in RGB_VALUES:
+            value = self.parser.get(section, key)
+            self.assertRegex(value, RGB_RE, f"{section}/{key}")
+            for component in value.split(","):
+                self.assertLessEqual(int(component), 255, f"{section}/{key}")
 
 
 class TestAnchors(unittest.TestCase):
