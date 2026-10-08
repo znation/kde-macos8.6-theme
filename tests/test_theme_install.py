@@ -48,6 +48,17 @@ def _short_subprocess_timeout(seconds=0.5):
 
 
 class TestSubprocessTimeout(unittest.TestCase):
+    def _assert_process_dies(self, pid, message):
+        """Assert process *pid* is gone within a short deadline.
+
+        A killed process can linger as a zombie until it is reaped, so poll
+        briefly instead of probing once.
+        """
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline and _process_alive(pid):
+            time.sleep(0.05)
+        self.assertFalse(_process_alive(pid), message)
+
     def test_install_times_out_when_make_hangs(self):
         with tempfile.TemporaryDirectory() as tmp:
             bindir = os.path.join(tmp, "fakebin")
@@ -98,16 +109,10 @@ class TestSubprocessTimeout(unittest.TestCase):
 
             with open(pidfile, encoding="utf-8") as handle:
                 grandchild = int(handle.read())
-            # A killed process can linger as a zombie until it is reaped, so
-            # poll briefly instead of probing once. The grandchild sleeps for
-            # five seconds, so it is still alive at this deadline exactly when
-            # the timeout failed to kill it.
-            deadline = time.monotonic() + 2.0
-            while time.monotonic() < deadline and _process_alive(grandchild):
-                time.sleep(0.05)
-            self.assertFalse(
-                _process_alive(grandchild),
-                "grandchild survived the timeout",
+            # The grandchild sleeps for five seconds, so it is still alive at
+            # the deadline exactly when the timeout failed to kill it.
+            self._assert_process_dies(
+                grandchild, "grandchild survived the timeout"
             )
 
     def test_finish_kills_a_hung_child(self):
@@ -126,11 +131,8 @@ class TestSubprocessTimeout(unittest.TestCase):
         with _short_subprocess_timeout():
             with self.assertRaises(subprocess.TimeoutExpired):
                 theme_install.finish(process)
-        deadline = time.monotonic() + 2.0
-        while time.monotonic() < deadline and _process_alive(process.pid):
-            time.sleep(0.05)
-        self.assertFalse(
-            _process_alive(process.pid), "child survived finish()'s timeout"
+        self._assert_process_dies(
+            process.pid, "child survived finish()'s timeout"
         )
 
     def test_running_kills_the_child_when_the_block_raises(self):
@@ -151,12 +153,7 @@ class TestSubprocessTimeout(unittest.TestCase):
             ) as process:
                 raise RuntimeError("poll failed")
         self.assertIsNotNone(process.poll())
-        deadline = time.monotonic() + 2.0
-        while time.monotonic() < deadline and _process_alive(process.pid):
-            time.sleep(0.05)
-        self.assertFalse(
-            _process_alive(process.pid), "running left the child alive"
-        )
+        self._assert_process_dies(process.pid, "running left the child alive")
 
     def test_running_leaves_a_finished_child_alone(self):
         """A child the caller already finished must not be touched again.
