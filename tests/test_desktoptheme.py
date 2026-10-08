@@ -9,7 +9,8 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from theme_install import ROOT, install, uninstall
+
 DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
@@ -100,17 +101,9 @@ class TestDefaultsWiring(unittest.TestCase):
 
 
 class TestInstall(unittest.TestCase):
-    def _install(self, tmp):
-        return subprocess.run(
-            ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-        )
-
     def test_make_install_copies_package_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = self._install(tmp)
+            result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = os.path.join(
                 tmp, "share", "plasma", "desktoptheme", DTHEME_ID
@@ -127,9 +120,9 @@ class TestInstall(unittest.TestCase):
 
     def test_make_install_is_repeatable(self):
         with tempfile.TemporaryDirectory() as tmp:
-            first = self._install(tmp)
+            first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
-            second = self._install(tmp)
+            second = install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
 
     def test_failed_reinstall_keeps_the_previous_package(self):
@@ -141,7 +134,7 @@ class TestInstall(unittest.TestCase):
         the old package intact.
         """
         with tempfile.TemporaryDirectory() as tmp:
-            first = self._install(tmp)
+            first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
             installed = os.path.join(
                 tmp, "share", "plasma", "desktoptheme", DTHEME_ID
@@ -194,28 +187,20 @@ class TestInstall(unittest.TestCase):
             with open(metadata, "rb") as handle:
                 self.assertEqual(handle.read(), good)
 
-    def _uninstall(self, tmp):
-        return subprocess.run(
-            ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-        )
-
     def test_make_uninstall_removes_the_installed_package(self):
         with tempfile.TemporaryDirectory() as tmp:
-            installed = self._install(tmp)
+            installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
             package = os.path.join(
                 tmp, "share", "plasma", "desktoptheme", DTHEME_ID
             )
             self.assertTrue(os.path.isdir(package), package)
 
-            removed = self._uninstall(tmp)
+            removed = uninstall(tmp)
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertFalse(os.path.exists(package), package)
 
-            again = self._uninstall(tmp)
+            again = uninstall(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)
 
 
@@ -226,13 +211,8 @@ class TestInstall(unittest.TestCase):
 class TestApplyDesktopTheme(unittest.TestCase):
     def test_apply_lists_and_selects_the_theme(self):
         with tempfile.TemporaryDirectory() as tmp:
-            install = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(install.returncode, 0, install.stderr)
+            installed = install(tmp)
+            self.assertEqual(installed.returncode, 0, installed.stderr)
             env = dict(
                 os.environ,
                 XDG_DATA_HOME=os.path.join(tmp, "share"),
