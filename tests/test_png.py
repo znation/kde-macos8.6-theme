@@ -52,6 +52,12 @@ class TestImage(unittest.TestCase):
 
 
 class TestDecode(unittest.TestCase):
+    def _decode_error(self, data):
+        """Assert decode_png rejects *data* and return the PngError message."""
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        return str(ctx.exception)
+
     def test_rgb_roundtrip(self):
         image, data = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 30))
         self.assertEqual(png.decode_png(data), image)
@@ -128,9 +134,7 @@ class TestDecode(unittest.TestCase):
         # entries and as bytes, matching the PLTE-length error.
         palette = bytes([255, 0, 0])  # one entry: index 0 only
         data = make_png(1, 1, [bytes([1])], color_type=3, palette=palette)
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        message = str(ctx.exception)
+        message = self._decode_error(data)
         self.assertIn("index 1", message)
         self.assertIn("1 entry", message)
         self.assertIn("3 bytes", message)
@@ -141,9 +145,7 @@ class TestDecode(unittest.TestCase):
         # palette passes silently as long as no pixel uses the bad entry.
         palette = bytes([255, 0, 0, 0])  # 4 bytes: index 1 is a partial entry
         data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        message = str(ctx.exception)
+        message = self._decode_error(data)
         self.assertIn("4 bytes", message)
         self.assertIn("multiple of 3", message)
 
@@ -153,9 +155,7 @@ class TestDecode(unittest.TestCase):
         # on the modulo alone) and must be reported with its actual size.
         palette = bytes(771)
         data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        message = str(ctx.exception)
+        message = self._decode_error(data)
         self.assertIn("771 bytes", message)
         self.assertIn("768", message)
 
@@ -164,10 +164,9 @@ class TestDecode(unittest.TestCase):
         # declares must name how many bytes arrived and how many were needed,
         # so a truncated file is distinguishable from other corruption.
         data = make_png(3, 3, [bytes(9)])
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
         self.assertIn(
-            "got 10 bytes, expected 30 for a 3x3 image", str(ctx.exception)
+            "got 10 bytes, expected 30 for a 3x3 image",
+            self._decode_error(data),
         )
 
     def test_rejects_png_without_image_data(self):
@@ -186,9 +185,7 @@ class TestDecode(unittest.TestCase):
         }
         for label, data in cases.items():
             with self.subTest(label=label):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.decode_png(data)
-                self.assertIn("no IDAT image data", str(ctx.exception))
+                self.assertIn("no IDAT image data", self._decode_error(data))
 
     def test_rejects_decompression_bomb_without_expanding_it(self):
         # A few KB of IDAT can expand to far more scanlines than the header
@@ -205,12 +202,11 @@ class TestDecode(unittest.TestCase):
         )
         tracemalloc.start()
         try:
-            with self.assertRaises(png.PngError) as ctx:
-                png.decode_png(data)
+            message = self._decode_error(data)
             peak = tracemalloc.get_traced_memory()[1]
         finally:
             tracemalloc.stop()
-        self.assertIn("more than the 4 bytes", str(ctx.exception))
+        self.assertIn("more than the 4 bytes", message)
         self.assertLess(peak, 4 * 1024 * 1024)
 
     def test_rejects_truncated_stream_that_hits_declared_size(self):
@@ -226,9 +222,7 @@ class TestDecode(unittest.TestCase):
             + _chunk(b"IDAT", truncated)
             + _chunk(b"IEND", b"")
         )
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        self.assertIn("truncated", str(ctx.exception))
+        self.assertIn("truncated", self._decode_error(data))
 
     def test_rejects_corrupt_deflate_stream(self):
         # The IDAT CRC covers the chunk bytes but says nothing about whether
@@ -244,9 +238,7 @@ class TestDecode(unittest.TestCase):
             + _chunk(b"IDAT", b"\xff\xff\xff\xff")
             + _chunk(b"IEND", b"")
         )
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        self.assertIn("corrupt PNG image data", str(ctx.exception))
+        self.assertIn("corrupt PNG image data", self._decode_error(data))
 
     def test_rejects_declared_image_over_pixel_limit(self):
         # A header may declare dimensions far larger than any screenshot; the
@@ -258,9 +250,7 @@ class TestDecode(unittest.TestCase):
             + _chunk(b"IDAT", zlib.compress(bytes(4)))
             + _chunk(b"IEND", b"")
         )
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        message = str(ctx.exception)
+        message = self._decode_error(data)
         self.assertIn("100000x100000", message)
         self.assertIn(str(png._MAX_PIXELS), message)
 
@@ -312,9 +302,7 @@ class TestDecode(unittest.TestCase):
             [bytes([1, 2, 3]), bytes([4, 5, 6]), bytes([7, 8, 9])],
             filter_types=[0, 0, 5],
         )
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        message = str(ctx.exception)
+        message = self._decode_error(data)
         self.assertIn("unsupported PNG filter type 5", message)
         self.assertIn("row 2", message)
 
@@ -331,9 +319,7 @@ class TestDecode(unittest.TestCase):
             + _chunk(b"IDAT", zlib.compress(b"\x00"))
             + _chunk(b"IEND", b"")
         )
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        self.assertIn("no IHDR", str(ctx.exception))
+        self.assertIn("no IHDR", self._decode_error(data))
 
     def test_rejects_ihdr_with_wrong_length(self):
         # IHDR is fixed at 13 bytes; any other length cannot be unpacked as
@@ -346,9 +332,7 @@ class TestDecode(unittest.TestCase):
             + _chunk(b"IHDR", b"\x00" * 12)
             + _chunk(b"IEND", b"")
         )
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        message = str(ctx.exception)
+        message = self._decode_error(data)
         self.assertIn("12 bytes", message)
         self.assertIn("expected 13", message)
 
@@ -357,9 +341,7 @@ class TestDecode(unittest.TestCase):
         # map an index to, so the failure must name the missing chunk instead
         # of indexing a None palette.
         data = make_png(1, 1, [bytes([0])], color_type=3, palette=None)
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        self.assertIn("no PLTE", str(ctx.exception))
+        self.assertIn("no PLTE", self._decode_error(data))
 
     def test_rejects_bad_chunk_crc(self):
         # Every PNG chunk carries a CRC over its type and payload; a mismatch
@@ -372,9 +354,7 @@ class TestDecode(unittest.TestCase):
         (ihdr_length,) = struct.unpack(">I", data[8:12])
         crc_offset = data.rindex(b"IHDR") + 4 + ihdr_length
         corrupted[crc_offset] ^= 0xFF
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(bytes(corrupted))
-        message = str(ctx.exception)
+        message = self._decode_error(bytes(corrupted))
         self.assertIn("IHDR", message)
         self.assertIn("CRC", message)
         self.assertIn(f"offset {data.rindex(b'IHDR') - 4}", message)
@@ -391,9 +371,7 @@ class TestDecode(unittest.TestCase):
         # Cutting the final CRC byte must name the chunk and the offset of the
         # missing CRC, so the user can find the truncation point.
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data[:-1])
-        message = str(ctx.exception)
+        message = self._decode_error(data[:-1])
         self.assertIn("truncated PNG chunk 'IEND' CRC", message)
         self.assertIn(f"offset {data.rindex(b'IEND') + 4}", message)
         self.assertIn("expected 4 bytes, got 3", message)
@@ -403,9 +381,7 @@ class TestDecode(unittest.TestCase):
         # the chunk, its offset, and the byte counts, not just say "truncated".
         ihdr = _chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
         data = _PNG_SIGNATURE + ihdr + struct.pack(">I", 100) + b"IDAT" + b"\x00\x01"
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        message = str(ctx.exception)
+        message = self._decode_error(data)
         self.assertIn("truncated PNG chunk 'IDAT'", message)
         self.assertIn("offset 33", message)
         self.assertIn("declared 100 payload bytes, only 2 present", message)
@@ -415,16 +391,12 @@ class TestDecode(unittest.TestCase):
         # the offending value tells the user which one to fix.
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         broken = with_ihdr_byte(data, 10, 1)
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(broken)
-        self.assertIn("compression method 1", str(ctx.exception))
+        self.assertIn("compression method 1", self._decode_error(broken))
 
     def test_rejects_unknown_filter_method(self):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         broken = with_ihdr_byte(data, 11, 1)
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(broken)
-        self.assertIn("filter method 1", str(ctx.exception))
+        self.assertIn("filter method 1", self._decode_error(broken))
 
     def test_rejects_unsupported_ihdr_fields(self):
         # IHDR's bit depth, color type, interlace flag and dimensions each
@@ -448,9 +420,7 @@ class TestDecode(unittest.TestCase):
         }
         for label, (broken, expected) in cases.items():
             with self.subTest(label=label):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.decode_png(broken)
-                self.assertIn(expected, str(ctx.exception))
+                self.assertIn(expected, self._decode_error(broken))
 
     def test_read_png_rejects_oversize_file_without_reading_it_all(self):
         # read_png reads the whole file before decode_png sees its header, so
