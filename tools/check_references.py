@@ -205,8 +205,8 @@ def check_references(directory: Path) -> list[str]:
 def _self_test() -> int:
     """Run the checker against small fixtures; return 0 when all behave."""
     cases = [
-        # (name, sources.txt contents or None to omit the file, files on disk,
-        #  substring expected in a problem)
+        # (name, sources.txt contents or None to omit the file, files on disk as
+        #  (filename, content) pairs, substring expected in a problem)
         ("clean", "good.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
          [("good.png", PNG_MAGIC)], None),
         ("missing sources file", None, [("good.png", PNG_MAGIC)],
@@ -246,10 +246,7 @@ def _self_test() -> int:
             root = Path(tmp)
             if sources_text is not None:
                 (root / SOURCES_NAME).write_text(sources_text, encoding="utf-8")
-            for image in images:
-                filename, content = (
-                    image if isinstance(image, tuple) else (image, b"")
-                )
+            for filename, content in images:
                 target = root / filename
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_bytes(content)
