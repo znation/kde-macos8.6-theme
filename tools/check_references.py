@@ -156,8 +156,10 @@ def _self_test() -> int:
             root = Path(tmp)
             (root / SOURCES_NAME).write_text(sources_text, encoding="utf-8")
             for image in images:
-                name, content = image if isinstance(image, tuple) else (image, b"")
-                (root / name).write_bytes(content)
+                filename, content = (
+                    image if isinstance(image, tuple) else (image, b"")
+                )
+                (root / filename).write_bytes(content)
             problems = check_references(root)
         if expected is None:
             if problems:
