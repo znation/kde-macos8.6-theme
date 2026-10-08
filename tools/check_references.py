@@ -314,9 +314,9 @@ def _self_test() -> int:
     # Argument handling: --help prints usage and exits 0; anything unrecognized
     # exits 2 rather than silently running the repository check on a typo.
     cli_cases = [
-        (["check_references.py", "--help"], 0, "usage:"),
-        (["check_references.py", "-h"], 0, "usage:"),
-        (["check_references.py", "--self-tests"], 2, "unknown argument"),
+        (["--help"], 0, "usage:"),
+        (["-h"], 0, "usage:"),
+        (["--self-tests"], 2, "unknown argument"),
     ]
     for argv, expected_code, needle in cli_cases:
         out, err = io.StringIO(), io.StringIO()
@@ -326,7 +326,7 @@ def _self_test() -> int:
         if code != expected_code or needle not in combined:
             failed = True
             print(
-                f"self-test cli {argv[1:]!r}: expected exit {expected_code} with {needle!r}, "
+                f"self-test cli {argv!r}: expected exit {expected_code} with {needle!r}, "
                 f"got exit {code}: {combined!r}"
             )
 
@@ -336,8 +336,15 @@ def _self_test() -> int:
     return 0
 
 
-def main(argv: list[str]) -> int:
-    args = argv[1:]
+def main(argv: list[str] | None = None) -> int:
+    """Run the checker; *argv* is the argument list without a program name.
+
+    Following ``argparse`` and the sibling ``tools/fidelity.py``, ``None``
+    reads ``sys.argv``. A caller that passes ``["--help"]`` gets usage instead
+    of having its first real argument silently dropped as a program name and
+    the repository check run instead.
+    """
+    args = list(sys.argv[1:] if argv is None else argv)
     if args == ["--self-test"]:
         return _self_test()
     if args in (["-h"], ["--help"]):
@@ -363,4 +370,4 @@ def main(argv: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    sys.exit(main())

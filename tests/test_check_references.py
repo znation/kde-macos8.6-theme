@@ -444,7 +444,7 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
         out, err = io.StringIO(), io.StringIO()
         with unittest.mock.patch.object(module, "REFERENCE_DIR", str(directory)):
             with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-                code = module.main(["check_references.py"])
+                code = module.main([])
         return code, out.getvalue(), err.getvalue()
 
     def test_clean_set_exits_zero(self):
@@ -468,6 +468,24 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
         self.assertIn("1 problem(s) in the reference set", err)
 
 
+class TestArgumentsExcludeProgramName(unittest.TestCase):
+    """``main`` takes the argument list without a program name.
+
+    This matches ``tools/fidelity.py`` and ``argparse.parse_args``. Under the
+    old convention a caller who passed ``["--help"]`` had the first real
+    argument dropped as a program name, so usage was not printed and the
+    repository check ran instead.
+    """
+
+    def test_help_as_first_argument_prints_usage(self):
+        module = load_checker()
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = module.main(["--help"])
+        self.assertEqual(code, 0)
+        self.assertIn("usage:", out.getvalue())
+
+
 class TestUnknownArgumentEscaping(unittest.TestCase):
     """An unrecognized argument must not print raw control bytes.
 
@@ -480,7 +498,7 @@ class TestUnknownArgumentEscaping(unittest.TestCase):
         module = load_checker()
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
-            code = module.main(["check_references.py", "evil\x1b[31m.png"])
+            code = module.main(["evil\x1b[31m.png"])
         self.assertEqual(code, 2)
         self.assertIn("unknown argument", err.getvalue())
         self.assertNotIn("\x1b", err.getvalue())
