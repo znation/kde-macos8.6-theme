@@ -469,5 +469,47 @@ class TestSymlinkEscape(unittest.TestCase):
         self.assertTrue(any("outside" in p for p in problems), problems)
 
 
+class TestAbsoluteUrl(unittest.TestCase):
+    """The source URL must be a well-formed absolute URL, not merely start
+    with something alpha-like before ``://``."""
+
+    def setUp(self):
+        self.is_absolute = load_checker()._is_absolute_url
+
+    def test_well_formed_urls_are_accepted(self):
+        for url in (
+            "https://example.test/x.png",
+            "http://example.test",
+            "git+ssh://example.test/repo",
+            "a.b-c+d://example.test",
+        ):
+            self.assertTrue(self.is_absolute(url), url)
+
+    def test_relative_and_schemeless_urls_are_rejected(self):
+        for url in (
+            "example.test/x.png",
+            "https://",
+            "://example.test",
+            "1http://example.test",
+        ):
+            self.assertFalse(self.is_absolute(url), url)
+
+    def test_malformed_scheme_is_rejected(self):
+        for url in (
+            "ht tp://example.test/x.png",
+            "ht!tp://example.test/x.png",
+            "ht\ttp://example.test/x.png",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+
+    def test_raw_whitespace_or_control_characters_are_rejected(self):
+        for url in (
+            "https://example.test/a b.png",
+            "https://example.test/a\tb.png",
+            "https://example.test/a\x01b.png",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+
+
 if __name__ == "__main__":
     unittest.main()

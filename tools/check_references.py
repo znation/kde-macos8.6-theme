@@ -67,14 +67,29 @@ def _looks_like_image(path: Path) -> bool:
     return head[:4] == b"RIFF" and head[8:12] == b"WEBP"
 
 
+# RFC 3986 scheme: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ). Any other
+# character (a space from a copy-paste, a stray "!") means the token is not a
+# scheme, however absolute the rest of the URL looks.
+_SCHEME_PUNCTUATION = frozenset("+-.")
+
+
 def _is_absolute_url(url: str) -> bool:
-    """Return True when *url* begins with a URI scheme and has a remainder.
+    """Return True when *url* is a well-formed absolute URL.
 
     A provenance source is an absolute URL, so a bare host or a relative path
     (``example.test/x.png``) is a broken citation even though it is non-empty.
+    The scheme must follow RFC 3986 (``ALPHA *( ALPHA / DIGIT / "+" / "-" /
+    "." )``) and the URL must contain no raw whitespace or control character,
+    which belong percent-encoded. Both rules catch broken citations that a
+    first-character-only scheme test accepts: ``ht!tp://x`` and
+    ``https://example.test/a b.png``.
     """
     scheme, sep, rest = url.partition("://")
-    return bool(sep and rest) and scheme.isascii() and scheme[:1].isalpha()
+    if not (sep and rest) or not scheme.isascii() or not scheme[:1].isalpha():
+        return False
+    if not all(ch.isalnum() or ch in _SCHEME_PUNCTUATION for ch in scheme):
+        return False
+    return all(ch.isprintable() and not ch.isspace() for ch in url)
 
 
 def _escape_controls(text: str) -> str:
@@ -244,6 +259,10 @@ def _self_test() -> int:
         ("missing file", "ghost.png | https://example.test/g.png | label\n", [],
          "ghost.png"),
         ("url with no scheme", "bad.png | example.test/b.png | label\n",
+         [("bad.png", PNG_MAGIC)], "absolute URL"),
+        ("url with a malformed scheme", "bad.png | ht!tp://example.test/b.png | label\n",
+         [("bad.png", PNG_MAGIC)], "absolute URL"),
+        ("url with raw whitespace", "bad.png | https://example.test/a b.png | label\n",
          [("bad.png", PNG_MAGIC)], "absolute URL"),
         ("path in filename", "sub/good.png | https://example.test/x | l\n",
          [("sub/good.png", PNG_MAGIC)], "bare filename"),
