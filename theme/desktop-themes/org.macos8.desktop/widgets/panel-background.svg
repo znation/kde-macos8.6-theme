@@ -2,9 +2,10 @@
 <!-- Mac OS 8.6 "Platinum" panel background.
 
      A square, opaque menu bar: #DDDDDD body, a 1px #FFFFFF highlight on the
-     outer top/left edge, a 1px #999999 shadow on the outer bottom/right edge
-     and a 1px #000000 rule under the bottom edge. The nine-slice contract is a
-     2px border around an 8px centre tile on a tight 12x12 canvas. -->
+     outer top/left edge, a 1px #999999 shadow on the outer right edge and the
+     inner bottom edge, and a 1px #000000 rule on the outer bottom edge. The
+     nine-slice contract is a 2px border around an 8px centre tile on a tight
+     12x12 canvas. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
   <!-- Nine-slice hints: tile size, border margins, and zero insets. -->
   <rect id="hint-tile-center" x="2" y="2" width="8" height="8" style="fill:#ff6600"/>
