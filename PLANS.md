@@ -5,7 +5,115 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 desktop theme package with the Platinum panel background
+
+**Planned 2026-10-07 by plan.**
+
+**Goal.** Ship the third installable artifact: a Plasma 6 desktop theme, `org.macos8.desktop`
+(`KPackageStructure: "Plasma/Theme"`), whose `widgets/panel-background.svg` renders the Mac OS 8.6
+Platinum menu bar, and wire it into the existing global theme so applying
+`org.macos8.desktop` also selects it. This is the first widget-theme step toward pixel-perfect UI.
+
+**Grounding.**
+- Plasma desktop themes live at `$XDG_DATA_DIRS/plasma/desktoptheme/<KPlugin.Id>/`: a
+  `metadata.json` plus `widgets/*.svg[z]`, optional `colors`, `plasmarc`, `opaque/`, `dialogs/`.
+  The system references are `/usr/share/plasma/desktoptheme/default/` (43 `widgets/*.svgz`) and
+  `/usr/share/plasma/desktoptheme/breeze-light/`, which ships **no `widgets/` at all** yet is an
+  enabled, selectable theme — so Plasma renders missing widgets from the `default` theme and a
+  partial theme is supported. `libPlasma.so.6` contains both the `.svgz` and `.svg` lookup
+  strings, so an uncompressed, diffable `.svg` works. This plan therefore ships only
+  `widgets/panel-background.svg`; every other widget keeps the Breeze default.
+- The global theme selects a desktop theme through `contents/defaults`
+  `[plasmarc][Theme] name=<id>` (Breeze uses `name=default`). Verified headless with a temp
+  `XDG_DATA_HOME`: `plasma-apply-desktoptheme --list-themes` lists the package and
+  `plasma-apply-desktoptheme org.macos8.desktop` exits 0 and writes `$XDG_CONFIG_HOME/plasmarc`
+  `[Theme] name=org.macos8.desktop`; no session is needed.
+- Palette sampled from `macos8.6-screenshots/desktop_betawiki.png` (top 20 rows at x=500) and
+  `desktop_archiveorg8.6hd.png`: body `#DDDDDD`, top/left highlight `#FFFFFF`, bottom/right shadow
+  `#999999`, bottom rule `#000000`. The body matches `theme/color-schemes/MacOS8.colors`
+  (`[Colors:Button] BackgroundNormal=221,221,221`).
+- Plasma's nine-slice contract: the SVG carries one element each with `id` `center`, `top`,
+  `bottom`, `left`, `right`, `topleft`, `topright`, `bottomleft`, `bottomright`, plus magic-coloured
+  hint rects `hint-tile-center`, `hint-{top,bottom,left,right}-margin` and
+  `hint-{top,bottom,left,right}-inset`. A hint's value is the rect's height for top/bottom and its
+  width for left/right (`zcat`
+  `/usr/share/plasma/desktoptheme/default/widgets/panel-background.svgz` to see the encoding).
+  `mask-*`/`shadow-*` only serve rounded corners and drop shadows; a square opaque bar omits them.
+
+**Approach.**
+1. A new package directory named `org.macos8.desktop` under `theme/desktop-themes/` (a new
+   sibling of `look-and-feel`). Inside it, `metadata.json` (new) — `KPackageStructure`
+   `"Plasma/Theme"`, `X-Plasma-API` `"5.0"` (the value `default` uses), and `KPlugin` with `Id`
+   `org.macos8.desktop`, `Name` `Mac OS 8.6`, `Description`, `Version` `0.1.0`, `License`
+   `GPL-2.0-or-later`, empty `Category`, one `Authors` entry.
+2. In that package's `widgets/` subdirectory, `panel-background.svg` (new) — a tight 12x12
+   canvas (no shadow space), 2px border, 8px centre tile: corners 2x2 at (0,0)/(8,0)/(0,8)/(8,8);
+   `top` 8x2 at (2,0), `bottom` 8x2 at (2,8), `left` 2x8 at (0,2), `right` 2x8 at (8,2), `center`
+   8x8 at (2,2). Fills: body `#DDDDDD`; outer 1px top/left `#FFFFFF`; outer 1px bottom/right
+   `#999999`; an extra 1px `#000000` rule along the bottom outer edge; corners take the adjacent
+   edge colour. Hint rects: `hint-tile-center` 8x8, each `hint-*-margin` 2x2, each `hint-*-inset`
+   zero-height/width at its edge. Author the Platinum shapes; use the decompressed default SVG only
+   as the element-ID/transform layout reference, not as artwork. No `class="ColorScheme-*"` hooks
+   (the palette is fixed), no `mask-*`, `shadow-*`, `thick-*`, or `<script>`.
+3. The look-and-feel package's `contents/defaults` (edit) — add a
+   `[plasmarc][Theme]` section with `name=org.macos8.desktop` after the existing
+   `[kdeglobals][General] ColorScheme=MacOS8`.
+4. A `test_desktoptheme.py` (new) under `tests/` — stdlib `unittest`, `json`, `configparser`,
+   `xml.etree.ElementTree`, `shutil`, `subprocess`, `tempfile`:
+   - `TestMetadata`: `KPackageStructure == "Plasma/Theme"`, `KPlugin.Id == "org.macos8.desktop"`,
+     `Name`, non-empty `Version`, `X-Plasma-API == "5.0"`.
+   - `TestPanelBackground`: `ET.parse` the SVG, collect every `id`, assert the nine slice ids and
+     all nine hint ids are present, assert the text contains `#FFFFFF`, `#DDDDDD`, `#999999`,
+     `#000000`, and assert no element tag ends in `script`.
+   - `TestDefaultsWiring`: parse the LNF `contents/defaults` (same `configparser` trick as
+     `tests/test_lookandfeel.py`) and assert `[plasmarc][Theme] name` equals the desktop theme's
+     `KPlugin.Id`.
+   - `TestInstall`: run `make install DESTDIR=<tmp> XDG_DATA_HOME=/share`; assert
+     `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/{metadata.json,widgets/panel-background.svg}`
+     are byte-identical to source and a second run exits 0.
+   - `TestApplyDesktopTheme` (`@unittest.skipUnless(shutil.which("plasma-apply-desktoptheme"), ...)`):
+     install into a temp prefix, run `plasma-apply-desktoptheme --list-themes` with
+     `XDG_DATA_HOME=<tmp>/share` and a fresh `XDG_CONFIG_HOME`, assert the output names
+     `org.macos8.desktop`; run `plasma-apply-desktoptheme org.macos8.desktop`, assert exit 0 and
+     `<tmp>/config/plasmarc` contains `[Theme] name=org.macos8.desktop`.
+   - `TestPackageValid` (`@unittest.skipUnless(shutil.which("kpackagetool6"), ...)`):
+     `kpackagetool6 -t Plasma/Theme -p <fresh tmp> -i` on the new package directory
+     exits 0 and leaves `<fresh tmp>/org.macos8.desktop/metadata.json`.
+5. `tests/test_lookandfeel.py` (edit) — `TestDefaults.test_only_the_color_scheme_key_is_set` now
+   fails because the defaults carry a second section; rewrite it to assert both sections
+   (`kdeglobals][General` with `ColorScheme`, `plasmarc][Theme` with `name`) and leave
+   `test_color_scheme_matches_the_scheme_file` unchanged.
+6. `Makefile` (edit) — add `DTHEME_ID := org.macos8.desktop`,
+   `DTHEME_PACKAGE := theme/desktop-themes/$(DTHEME_ID)`,
+   `DTHEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/desktoptheme`; extend `install` with
+   `install -d`, `rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID)`, `cp -r` (the same replace-not-merge
+   rule as the look-and-feel package).
+7. `README.md` (edit) — extend the `tumwater:status` block and the Installing section: the panel
+   background now ships, `plasma-apply-desktoptheme org.macos8.desktop` selects it, and the global
+   theme applies it via `[plasmarc][Theme]`.
+
+**Files touched.** New: `metadata.json` and `panel-background.svg` (in the package's `widgets/`) in
+the new `org.macos8.desktop` package under `theme/desktop-themes/`, plus `test_desktoptheme.py`
+under `tests/`. Edited: the look-and-feel package's `contents/defaults`,
+`tests/test_lookandfeel.py`, `Makefile`, `README.md`. No change to the color scheme.
+
+**Acceptance criteria.**
+- `make check` exits 0 with the new metadata, SVG-contract, defaults-wiring, install,
+  `plasma-apply-desktoptheme`, and `kpackagetool6` tests passing (the last two skipped only when
+  the tool is absent).
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/metadata.json` and
+  `widgets/panel-background.svg` byte-identical to source, and a second `make install` still exits
+  0.
+- `plasma-apply-desktoptheme --list-themes` with `XDG_DATA_HOME` pointed at the installed tree
+  lists `org.macos8.desktop`; applying it exits 0 and writes
+  `plasmarc [Theme] name=org.macos8.desktop`.
+- Manual smoke test (needs a Plasma session): a top panel renders `#DDDDDD` with a white top/left
+  highlight and a `#999999`+black bottom edge, and every other widget still renders Breeze.
+
+**Follow-ups (not planned here).** Further widget families (button, scrollbar, tooltip), the
+Platinum window decoration, an 8.6 splash, and the automated render/capture step (BUGS.md
+`## Open`) — the panel background gives the render harness its first real surface.
 
 ## Done
 
