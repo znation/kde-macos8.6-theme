@@ -7,7 +7,9 @@ import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import SCROLLBAR_SVG
 from svg_assertions import (
+    assert_center_tile_is,
     assert_corner_pixels,
+    assert_edge_band_pixels,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
@@ -59,28 +61,20 @@ class TestScrollbar(unittest.TestCase):
         # centre pixel is the trough fill, every edge slice's outer row/column
         # is black, and each square corner carries the two black outer edges.
         slices = render_slices(ET.parse(SCROLLBAR_SVG))
+        # Each edge slice reads top-to-bottom (horizontal) or left-to-right
+        # (vertical) in the slice's own coordinates, so the bottom/right bands
+        # are the mirrored top/left ones.
+        outward = (BLACK, TROUGH, TROUGH)
+        mirrored = (TROUGH, TROUGH, BLACK)
         for prefix in TROUGH_PREFIXES:
-            centre = slices[f"{prefix}-center"]
-            self.assertEqual(set(centre.values()), {TROUGH})
-            self.assertEqual(len(centre), 100)
-            top = slices[f"{prefix}-top"]
-            bottom = slices[f"{prefix}-bottom"]
-            left = slices[f"{prefix}-left"]
-            right = slices[f"{prefix}-right"]
-            for x in range(10):
-                self.assertEqual(top[(x, 0)], BLACK, f"{prefix}-top ({x},0)")
-                self.assertEqual(top[(x, 1)], TROUGH, f"{prefix}-top ({x},1)")
-                self.assertEqual(top[(x, 2)], TROUGH, f"{prefix}-top ({x},2)")
-                self.assertEqual(bottom[(x, 0)], TROUGH, f"{prefix}-bottom ({x},0)")
-                self.assertEqual(bottom[(x, 1)], TROUGH, f"{prefix}-bottom ({x},1)")
-                self.assertEqual(bottom[(x, 2)], BLACK, f"{prefix}-bottom ({x},2)")
-            for y in range(10):
-                self.assertEqual(left[(0, y)], BLACK, f"{prefix}-left (0,{y})")
-                self.assertEqual(left[(1, y)], TROUGH, f"{prefix}-left (1,{y})")
-                self.assertEqual(left[(2, y)], TROUGH, f"{prefix}-left (2,{y})")
-                self.assertEqual(right[(0, y)], TROUGH, f"{prefix}-right (0,{y})")
-                self.assertEqual(right[(1, y)], TROUGH, f"{prefix}-right (1,{y})")
-                self.assertEqual(right[(2, y)], BLACK, f"{prefix}-right (2,{y})")
+            assert_center_tile_is(
+                self, slices, f"{prefix}-center", TROUGH, size=10
+            )
+            for side in ("top", "bottom", "left", "right"):
+                band = outward if side in ("top", "left") else mirrored
+                assert_edge_band_pixels(
+                    self, slices, f"{prefix}-{side}", side, band, size=10
+                )
             assert_corner_pixels(
                 self, slices, f"{prefix}-topleft",
                 (BLACK, BLACK, BLACK, BLACK, TROUGH, TROUGH, BLACK, TROUGH, TROUGH),
@@ -108,28 +102,17 @@ class TestScrollbar(unittest.TestCase):
                 self.assertEqual(
                     pixels, slices["mouseover-" + name], name
                 )
+        outward = (BLACK, WHITE, FACE)
+        mirrored = (FACE, GREY, BLACK)
         for prefix in THUMB_PREFIXES:
-            centre = slices[f"{prefix}-center"]
-            self.assertEqual(set(centre.values()), {FACE})
-            self.assertEqual(len(centre), 100)
-            top = slices[f"{prefix}-top"]
-            bottom = slices[f"{prefix}-bottom"]
-            left = slices[f"{prefix}-left"]
-            right = slices[f"{prefix}-right"]
-            for x in range(10):
-                self.assertEqual(top[(x, 0)], BLACK, f"{prefix}-top ({x},0)")
-                self.assertEqual(top[(x, 1)], WHITE, f"{prefix}-top ({x},1)")
-                self.assertEqual(top[(x, 2)], FACE, f"{prefix}-top ({x},2)")
-                self.assertEqual(bottom[(x, 0)], FACE, f"{prefix}-bottom ({x},0)")
-                self.assertEqual(bottom[(x, 1)], GREY, f"{prefix}-bottom ({x},1)")
-                self.assertEqual(bottom[(x, 2)], BLACK, f"{prefix}-bottom ({x},2)")
-            for y in range(10):
-                self.assertEqual(left[(0, y)], BLACK, f"{prefix}-left (0,{y})")
-                self.assertEqual(left[(1, y)], WHITE, f"{prefix}-left (1,{y})")
-                self.assertEqual(left[(2, y)], FACE, f"{prefix}-left (2,{y})")
-                self.assertEqual(right[(0, y)], FACE, f"{prefix}-right (0,{y})")
-                self.assertEqual(right[(1, y)], GREY, f"{prefix}-right (1,{y})")
-                self.assertEqual(right[(2, y)], BLACK, f"{prefix}-right (2,{y})")
+            assert_center_tile_is(
+                self, slices, f"{prefix}-center", FACE, size=10
+            )
+            for side in ("top", "bottom", "left", "right"):
+                band = outward if side in ("top", "left") else mirrored
+                assert_edge_band_pixels(
+                    self, slices, f"{prefix}-{side}", side, band, size=10
+                )
             assert_corner_pixels(
                 self, slices, f"{prefix}-topleft",
                 (BLACK, BLACK, BLACK, BLACK, WHITE, WHITE, BLACK, WHITE, FACE),

@@ -163,22 +163,24 @@ def assert_slice_pixels(case, slices, name, expected):
         case.assertEqual(slices[name], expected, name)
 
 
-def assert_edge_band_pixels(case, slices, name, side, band):
+def assert_edge_band_pixels(case, slices, name, side, band, size=6):
     """Assert edge slice *name* paints *band* from its outer edge in.
 
-    A horizontal edge (*side* ``top``/``bottom``) is three 6px rows, one per
-    band colour; a vertical edge (*side* ``left``/``right``) is six 3px rows,
-    each running outer to inner. *band* is the three colours read from the
-    slice's outer edge in, so the expected sequence depends on the edge's
-    orientation -- the part the button, lineedit and frame edge tests each
-    otherwise recompute.
+    A horizontal edge (*side* ``top``/``bottom``) is three *size*-wide rows,
+    one per band colour; a vertical edge (*side* ``left``/``right``) is
+    *size* rows of three, each running outer to inner. *band* is the three
+    colours in the slice's own top-to-bottom (horizontal edge) or
+    left-to-right (vertical edge) order, so a bottom or right edge passes the
+    mirrored band -- the part the button, frame and lineedit edge tests each
+    otherwise recompute. *size* is the slice's length along the edge: 6 for
+    the button/frame/lineedit tiles, 10 for the scroll bar.
     """
     if side in ("top", "bottom"):
-        expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
-        points = ((x, y) for y in range(3) for x in range(6))
+        expected = (band[0],) * size + (band[1],) * size + (band[2],) * size
+        points = ((x, y) for y in range(3) for x in range(size))
     else:
-        expected = band * 6
-        points = ((x, y) for y in range(6) for x in range(3))
+        expected = band * size
+        points = ((x, y) for y in range(size) for x in range(3))
     pixels = slices[name]
     actual = tuple(pixels.get(point) for point in points)
     with case.subTest(slice=name):
