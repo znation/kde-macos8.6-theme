@@ -123,13 +123,15 @@ class TestDecode(unittest.TestCase):
     def test_palette_index_outside_plte_names_index_and_size(self):
         # A palette image whose pixel index has no PLTE entry must name the
         # offending index and the palette size, or the user cannot tell which
-        # pixel is bad or how short the palette is.
+        # pixel is bad or how short the palette is. The size is named both as
+        # entries and as bytes, matching the PLTE-length error.
         palette = bytes([255, 0, 0])  # one entry: index 0 only
         data = make_png(1, 1, [bytes([1])], color_type=3, palette=palette)
         with self.assertRaises(png.PngError) as ctx:
             png.decode_png(data)
         message = str(ctx.exception)
         self.assertIn("index 1", message)
+        self.assertIn("1 entry", message)
         self.assertIn("3 bytes", message)
 
     def test_palette_length_not_multiple_of_three(self):

@@ -230,12 +230,16 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
         entries = len(palette) // 3
         if max(samples, default=0) >= entries:
             # An out-of-range index must still name the first offending index
-            # and the palette size; the all-in-range case skips this scan.
+            # and the palette size; the all-in-range case skips this scan. The
+            # sibling PLTE-length error counts entries, so name the entry
+            # count here as well as the byte count.
+            entry_word = "entry" if entries == 1 else "entries"
             for index in samples:
                 if index >= entries:
                     raise PngError(
                         f"palette PNG index {index} is outside PLTE "
-                        f"(palette has {len(palette)} bytes)"
+                        f"(palette has {entries} {entry_word} in "
+                        f"{len(palette)} bytes)"
                     )
         # Expand indices at C speed: index a table of 3-byte entries and join,
         # instead of a Python loop concatenating a slice per pixel.
