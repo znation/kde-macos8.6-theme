@@ -133,6 +133,16 @@ class TestDecode(unittest.TestCase):
         with self.assertRaises(fidelity.FidelityError):
             fidelity.decode_png(b"not a png")
 
+    def test_read_png_names_undecodable_file(self):
+        # A decode failure must name the file it came from, so a two-input
+        # invocation can tell which of the candidate/reference was bad.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "broken.png"
+            path.write_bytes(b"not a png")
+            with self.assertRaises(fidelity.FidelityError) as ctx:
+                fidelity.read_png(path)
+            self.assertIn(str(path), str(ctx.exception))
+
 
 class TestCompare(unittest.TestCase):
     def test_identical_is_zero(self):
@@ -267,6 +277,29 @@ class TestCli(unittest.TestCase):
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
             self.assertIn("error", result.stderr)
             self.assertNotIn("Traceback", result.stderr)
+
+    def test_decode_error_names_offending_file(self):
+        # With two file inputs, the error must say which one could not be
+        # decoded; the message is otherwise identical for either ordering.
+        _, good = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "broken.png", b"not a png")
+            reference = self._write(tmpdir, "reference.png", good)
+            for first, second in ((candidate, reference), (reference, candidate)):
+                with self.subTest(first=first):
+                    result = subprocess.run(
+                        [sys.executable, str(TOOL), first, second],
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertEqual(
+                        result.returncode, 2, result.stdout + result.stderr
+                    )
+                    self.assertIn("error", result.stderr)
+                    self.assertNotIn("Traceback", result.stderr)
+                    self.assertIn(candidate, result.stderr)
+                    self.assertNotIn(reference, result.stderr)
 
     def test_missing_file_is_error(self):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))

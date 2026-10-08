@@ -195,7 +195,10 @@ def read_png(path: str | Path) -> Image:
         data = Path(path).read_bytes()
     except OSError as exc:
         raise FidelityError(f"cannot read {path}: {exc}") from exc
-    return decode_png(data)
+    try:
+        return decode_png(data)
+    except FidelityError as exc:
+        raise FidelityError(f"cannot decode {path}: {exc}") from exc
 
 
 def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
