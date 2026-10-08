@@ -367,6 +367,30 @@ class TestDecode(unittest.TestCase):
         with self.assertRaises(png.PngError):
             png.decode_png(b"not a png")
 
+    def test_names_the_format_of_a_non_png_image(self):
+        # A reference from the set is often a JPEG (and sherlock_fandom.jpg is
+        # a WebP payload), so a user can hand decode_png the wrong file. "not
+        # a PNG file" alone reads as a corrupt PNG; naming the actual format
+        # says which input was wrong.
+        cases = (
+            (b"\xff\xd8\xff\xe0" + b"\x00" * 8, "JPEG"),
+            (b"GIF89a" + b"\x00" * 6, "GIF"),
+            (b"GIF87a" + b"\x00" * 6, "GIF"),
+            (b"RIFF\x24\x00\x00\x00WEBPVP8 " + b"\x00" * 8, "WebP"),
+        )
+        for data, expected in cases:
+            with self.subTest(expected=expected):
+                message = self._decode_error(data)
+                self.assertIn("not a PNG file", message)
+                self.assertIn(expected, message)
+
+    def test_unknown_bytes_keep_the_bare_not_a_png_message(self):
+        # Only a known raster signature earns the format hint; arbitrary bytes
+        # must not be described as an image.
+        message = self._decode_error(b"not a png")
+        self.assertIn("not a PNG file", message)
+        self.assertNotIn("image", message)
+
     def test_rejects_png_without_ihdr(self):
         # A chunk stream that reaches IDAT/IEND with no IHDR leaves decode_png
         # with no dimensions or colour type; it must name the missing chunk

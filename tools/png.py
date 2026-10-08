@@ -21,6 +21,14 @@ from pathlib import Path
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
+# Signatures of the raster formats the reference set uses besides PNG. Handing
+# one of these to decode_png makes "not a PNG file" true but hides the
+# actionable fact: the input is a JPEG/GIF/WebP, so it is the wrong file, not a
+# corrupt PNG. tools/check_references.py carries the same signatures for its
+# whole-set check.
+_JPEG_MAGIC = b"\xff\xd8\xff"
+_GIF_MAGICS = (b"GIF87a", b"GIF89a")
+
 # The PNG spec caps a chunk's payload length at 2**31 - 1 bytes: the field is
 # 32-bit unsigned, but values with the high bit set are reserved. A file
 # declaring more is malformed; without this check the length is compared
@@ -364,9 +372,30 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     raise PngError(f"unsupported PNG color type {color_type}")
 
 
+def _other_image_format(data: bytes) -> str | None:
+    """Return the non-PNG raster format *data* starts with, or ``None``.
+
+    Names the formats the reference set uses besides PNG (JPEG, GIF and WebP)
+    so a decode failure can say which wrong file was passed instead of only
+    "not a PNG file". Bytes decide, never the extension.
+    """
+    if data.startswith(_JPEG_MAGIC):
+        return "JPEG"
+    if any(data.startswith(magic) for magic in _GIF_MAGICS):
+        return "GIF"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "WebP"
+    return None
+
+
 def decode_png(data: bytes) -> Image:
     """Decode an 8-bit, non-interlaced PNG into an :class:`Image`."""
     if not data.startswith(_PNG_SIGNATURE):
+        detected = _other_image_format(data)
+        if detected is not None:
+            raise PngError(
+                f"not a PNG file: the input is a {detected} image, not a PNG"
+            )
         raise PngError("not a PNG file")
     header = None
     palette = None
