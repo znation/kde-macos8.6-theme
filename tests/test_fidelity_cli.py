@@ -97,17 +97,12 @@ class TestCli(unittest.TestCase):
         self.assertNotIn("Traceback", result.stderr)
 
     def test_pass_and_fail(self):
-        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
-        changed = bytearray(a.rgb)
-        # Pixel (1, 0) is (20, 0, 60); raise its green channel so exactly one
-        # byte differs from the candidate.
-        changed[4] = 50
-        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
         with tempfile.TemporaryDirectory() as tmp:
             tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", a_png)
-            reference = self._write(tmpdir, "reference.png", a_png)
-            altered = self._write(tmpdir, "altered.png", b_png)
+            candidate, altered = self._write_altered_pair(tmpdir)
+            # The reference is byte-identical to the candidate, so this first
+            # run must pass before the altered copy is shown to fail.
+            reference = candidate
 
             same = self._run(candidate, reference)
             self.assertEqual(same.returncode, 0, same.stderr)
