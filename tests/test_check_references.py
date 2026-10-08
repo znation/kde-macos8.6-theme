@@ -224,13 +224,12 @@ class TestFilenameMustBeBare(unittest.TestCase):
         )
 
 
-class TestAbsoluteUrl(unittest.TestCase):
-    """A source entry must be a scheme followed by a remainder.
+class TestAbsoluteUrlSchemeShape(unittest.TestCase):
+    """A source entry must be a scheme followed by a non-empty remainder.
 
-    The built-in self-test rejects a URL with no scheme, but no test reaches
-    the empty-remainder or scheme-shape rejections; a rewrite could drop them
-    without any other test failing, letting a broken citation through as
-    provenance.
+    A scheme with nothing after it names no resource, and a bare host or
+    relative path has no scheme at all; both must be rejected so a broken
+    citation cannot pass as provenance.
     """
 
     def test_scheme_and_remainder_are_both_required(self):
@@ -474,7 +473,7 @@ class TestSymlinkEscape(unittest.TestCase):
         self.assertTrue(any("outside" in p for p in problems), problems)
 
 
-class TestAbsoluteUrl(unittest.TestCase):
+class TestAbsoluteUrlWellFormedness(unittest.TestCase):
     """The source URL must be a well-formed absolute URL, not merely start
     with something alpha-like before ``://``."""
 
