@@ -156,7 +156,22 @@ def check_references(directory: Path) -> list[str]:
     for path in listed:
         if path.name == SOURCES_NAME or not path.is_file():
             continue
-        if path.suffix.lower() in IMAGE_SUFFIXES and path.name not in entries:
+        if path.name in entries:
+            continue
+        # An image with no entry is undeclared whether or not its name marks
+        # it as one: the bytes are checked too, so a screenshot saved without
+        # an image extension (or a JPEG under a .bin name) is still caught.
+        # Files with an image extension are flagged even when their bytes are
+        # not an image, so a stray or half-downloaded file cannot hide behind
+        # its name.
+        try:
+            has_image_bytes = _looks_like_image(path)
+        except OSError as exc:
+            problems.append(
+                f"{_escape_controls(str(path))}: could not be read: {exc}"
+            )
+            continue
+        if path.suffix.lower() in IMAGE_SUFFIXES or has_image_bytes:
             problems.append(
                 f"{_escape_controls(str(path))}: image has no entry in {SOURCES_NAME}"
             )
@@ -181,6 +196,11 @@ def _self_test() -> int:
         ("path in filename", "sub/good.png | u | l\n",
          [("sub/good.png", PNG_MAGIC)], "bare filename"),
         ("undeclared image", "", [("extra.png", PNG_MAGIC)], "extra.png"),
+        # No image extension, but the bytes are a PNG: the scan must read the
+        # content, not trust the name, or this file drops out of provenance.
+        ("undeclared extensionless image", "", [("stray", PNG_MAGIC)], "stray"),
+        ("undeclared jpeg misnamed as data", "",
+         [("shot.bin", JPEG_MAGIC)], "shot.bin"),
         ("too few fields", "bad.png | https://example.test/b.png\n",
          [("bad.png", PNG_MAGIC)], "expected 3 fields"),
         ("empty field", "bad.png |  | label\n", [("bad.png", PNG_MAGIC)], "empty field"),
