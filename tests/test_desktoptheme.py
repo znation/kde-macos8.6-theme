@@ -219,6 +219,61 @@ class TestButton(unittest.TestCase):
             tag = element.tag.rsplit("}", 1)[-1]
             self.assertFalse(tag.endswith("script"), tag)
 
+    def test_button_bevel_direction(self):
+        # `test_button_colours` sees the same four fills whichever way the
+        # normal/pressed bevels run, so only the per-slice paint order pins
+        # the direction: normal is #FFFFFF inside top/left and #999999 inside
+        # bottom/right, and pressed is the exact inverse. Composite the edge
+        # slices (their rects) and read the corner paths' document order.
+        slices = render_slices(ET.parse(BUTTON_SVG))
+        # (outer outline, bevel, inner face), from the slice's outer edge in.
+        outward = {
+            "normal-top": ("#000000", "#FFFFFF", "#DDDDDD"),
+            "normal-bottom": ("#000000", "#999999", "#DDDDDD"),
+            "normal-left": ("#000000", "#FFFFFF", "#DDDDDD"),
+            "normal-right": ("#000000", "#999999", "#DDDDDD"),
+            "pressed-top": ("#000000", "#999999", "#DDDDDD"),
+            "pressed-bottom": ("#000000", "#FFFFFF", "#DDDDDD"),
+            "pressed-left": ("#000000", "#999999", "#DDDDDD"),
+            "pressed-right": ("#000000", "#FFFFFF", "#DDDDDD"),
+        }
+        for name, colours in outward.items():
+            pixels = slices[name]
+            horizontal = name.endswith(("top", "bottom"))
+            reversed_axis = name.endswith(("bottom", "right"))
+            for depth, colour in enumerate(colours):
+                local = 2 - depth if reversed_axis else depth
+                point = (0, local) if horizontal else (local, 0)
+                with self.subTest(slice=name, depth=depth):
+                    self.assertEqual(pixels.get(point), colour, name)
+
+        # The corner paths carry no rects, so `render_slices` cannot composite
+        # them; pin the order they are painted in instead: the black outline,
+        # the corner's bevel colour, then the face.
+        tree = ET.parse(BUTTON_SVG)
+        groups = {
+            el.get("id"): el for el in tree.iter()
+            if el.tag.rsplit("}", 1)[-1] == "g" and el.get("id")
+        }
+        corners = {
+            "normal-topleft": ("#000000", "#FFFFFF", "#DDDDDD"),
+            "normal-topright": ("#000000", "#FFFFFF", "#999999", "#DDDDDD"),
+            "normal-bottomleft": ("#000000", "#FFFFFF", "#999999", "#DDDDDD"),
+            "normal-bottomright": ("#000000", "#999999", "#DDDDDD"),
+            "pressed-topleft": ("#000000", "#999999", "#DDDDDD"),
+            "pressed-topright": ("#000000", "#999999", "#FFFFFF", "#DDDDDD"),
+            "pressed-bottomleft": ("#000000", "#999999", "#FFFFFF", "#DDDDDD"),
+            "pressed-bottomright": ("#000000", "#FFFFFF", "#DDDDDD"),
+        }
+        for name, colours in corners.items():
+            fills = tuple(
+                child.get("fill")
+                for child in groups[name]
+                if child.tag.rsplit("}", 1)[-1] == "path"
+            )
+            with self.subTest(corner=name):
+                self.assertEqual(fills, colours, name)
+
 
 class TestRadioButton(unittest.TestCase):
     def test_radiobutton_contract(self):
