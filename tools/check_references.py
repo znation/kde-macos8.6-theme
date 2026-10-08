@@ -4,7 +4,8 @@
 ``macos8.6-screenshots/sources.txt`` is the provenance record for the reference
 set: one ``<filename> | <source URL> | <version label>`` line per image. This
 script verifies that record against the files actually on disk, so a renamed or
-forgotten image cannot silently drop out of the evidence trail.
+forgotten image cannot silently drop out of the evidence trail. It also rejects
+unmaterialized Git LFS pointer files, which exist on disk but contain no image.
 
 Usage:
     python3 tools/check_references.py              # check the repository
@@ -21,6 +22,14 @@ REFERENCE_DIR = "macos8.6-screenshots"
 SOURCES_NAME = "sources.txt"
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 SEPARATOR = " | "
+# First line of a Git LFS pointer file; a real image never starts with this text.
+LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
+
+
+def _is_lfs_pointer(path: Path) -> bool:
+    """Return True when *path* is an unmaterialized Git LFS pointer, not data."""
+    with path.open("rb") as handle:
+        return handle.read(len(LFS_POINTER_MAGIC)) == LFS_POINTER_MAGIC
 
 
 def check_references(directory: Path) -> list[str]:
@@ -58,8 +67,14 @@ def check_references(directory: Path) -> list[str]:
             )
             continue
         entries[filename] = lineno
-        if not (directory / filename).is_file():
+        image = directory / filename
+        if not image.is_file():
             problems.append(f"{sources}:{lineno}: {filename!r} does not exist in {directory}/")
+        elif _is_lfs_pointer(image):
+            problems.append(
+                f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
+                "run `git lfs install && git lfs pull` to fetch the image"
+            )
 
     for path in sorted(directory.iterdir()):
         if path.name == SOURCES_NAME or not path.is_file():
@@ -83,6 +98,12 @@ def _self_test() -> int:
          "expected 3 fields"),
         ("empty field", "bad.png |  | label\n", ["bad.png"], "empty field"),
         ("duplicate", "dup.png | u | l\ndup.png | u | l\n", ["dup.png"], "duplicate"),
+        ("lfs pointer", "stub.png | u | l\n",
+         [("stub.png", b"version https://git-lfs.github.com/spec/v1\n"
+                       b"oid sha256:deadbeef\nsize 12345\n")],
+         "Git LFS pointer"),
+        ("binary image", "real.png | u | l\n",
+         [("real.png", b"\x89PNG\r\n\x1a\n")], None),
     ]
 
     failed = False
@@ -91,7 +112,8 @@ def _self_test() -> int:
             root = Path(tmp)
             (root / SOURCES_NAME).write_text(sources_text, encoding="utf-8")
             for image in images:
-                (root / image).write_bytes(b"")
+                name, content = image if isinstance(image, tuple) else (image, b"")
+                (root / name).write_bytes(content)
             problems = check_references(root)
         if expected is None:
             if problems:
