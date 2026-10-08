@@ -4,12 +4,13 @@ import configparser
 import math
 import os
 import re
+import shutil
 import subprocess
 import tempfile
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.6.colors")
+SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
 # configparser reads the KDE `[Colors:Header][Inactive]` header greedily, so the
 # section key includes the inner bracket pair.
@@ -110,6 +111,15 @@ class TestStructure(unittest.TestCase):
 
     def test_parses(self):
         self.assertTrue(self.parser.sections())
+
+    def test_cli_id_matches_filename_and_config_value(self):
+        """KDE lists a scheme by the filename before its first dot but resolves
+        a config value V to `<V>.colors`, so the two must agree or applying the
+        scheme breaks on the next start."""
+        cli_id = os.path.basename(SCHEME).split(".", 1)[0]
+        self.assertEqual(cli_id, self.parser.get("General", "ColorScheme"))
+        resolved = os.path.join(os.path.dirname(SCHEME), cli_id + ".colors")
+        self.assertTrue(os.path.isfile(resolved), resolved)
 
     def test_colors_sections_and_keys(self):
         for section in COLORS_SECTIONS:
@@ -214,11 +224,64 @@ class TestInstall(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = os.path.join(
-                tmp, "share", "color-schemes", "MacOS8.6.colors"
+                tmp, "share", "color-schemes", "MacOS8.colors"
             )
             self.assertTrue(os.path.isfile(installed), installed)
             with open(SCHEME, "rb") as source, open(installed, "rb") as target:
                 self.assertEqual(source.read(), target.read())
+
+
+@unittest.skipUnless(
+    shutil.which("plasma-apply-colorscheme"), "needs plasma-apply-colorscheme"
+)
+class TestRestartRoundTrip(unittest.TestCase):
+    """Applying the listed id must leave a config KDE resolves on restart.
+
+    `plasma-apply-colorscheme <id>` writes `[General] ColorScheme=<id>`; the next
+    start resolves that value to `<id>.colors`. A dotted filename makes the
+    listed id differ from the resolvable value, so the scheme falls back to
+    BreezeLight after a restart.
+    """
+
+    def test_applied_id_survives_restart(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            data = os.path.join(tmp, "data")
+            config = os.path.join(tmp, "config")
+            schemes = os.path.join(data, "color-schemes")
+            os.makedirs(schemes)
+            os.makedirs(config)
+            shutil.copy(SCHEME, os.path.join(schemes, os.path.basename(SCHEME)))
+            kdeglobals = os.path.join(config, "kdeglobals")
+            with open(kdeglobals, "w", encoding="utf-8") as handle:
+                handle.write("[General]\nColorScheme=BreezeLight\n")
+            env = dict(
+                os.environ,
+                XDG_DATA_HOME=data,
+                XDG_CONFIG_HOME=config,
+                XDG_DATA_DIRS=data + os.pathsep + "/usr/share",
+            )
+            cli_id = os.path.basename(SCHEME).split(".", 1)[0]
+            applied = subprocess.run(
+                ["plasma-apply-colorscheme", cli_id],
+                env=env,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(applied.returncode, 0, applied.stderr)
+            with open(kdeglobals, encoding="utf-8") as handle:
+                written = handle.read()
+            self.assertIn(f"ColorScheme={cli_id}", written)
+            restarted = subprocess.run(
+                ["plasma-apply-colorscheme"],
+                env=env,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotIn(
+                "Could not find",
+                restarted.stdout + restarted.stderr,
+                "applied scheme id did not resolve on restart",
+            )
 
 
 if __name__ == "__main__":

@@ -21,11 +21,12 @@ into.
   (`widgetStyle`, `ColorScheme`, `Theme`, cursor, decoration, splash); this project only has a
   color scheme, so the defaults set only `[kdeglobals][General] ColorScheme` and leave the rest at
   the user's current values instead of silently resetting them to Breeze.
-- The value must be `MacOS8.6`, not the CLI-visible `MacOS8`: KDE's scheme resolver turns the
-  config value into `<value>.colors`, and the file is `theme/color-schemes/MacOS8.6.colors`.
-  Verified by running `plasma-apply-colorscheme` with no argument against a temp `XDG_CONFIG_HOME`:
-  `ColorScheme=MacOS8.6` resolves, `ColorScheme=MacOS8` prints `Could not find color scheme
-  "MacOS8" falling back to BreezeLight`. See the companion BUGS.md entry on the dotted filename.
+- The value must be `MacOS8`, the CLI-visible id: KDE's scheme resolver turns the config value
+  into `<value>.colors`, and the file is `theme/color-schemes/MacOS8.colors` (renamed from the
+  dotted `MacOS8.6.colors`; see the Fixed BUGS.md entry). Verified by running
+  `plasma-apply-colorscheme` with no argument against a temp `XDG_CONFIG_HOME`:
+  `ColorScheme=MacOS8` resolves, `ColorScheme=MacOS8.6` prints `Could not find color scheme
+  "MacOS8.6" falling back to BreezeLight`.
 
 **Approach.**
 1. The package metadata manifest, `metadata.json` (new) — `KPackageStructure`
@@ -34,7 +35,7 @@ into.
    `Authors` entry; `X-Plasma-APIVersion` `"2"`; `Keywords`
    `"Desktop;Workspace;Appearance;Look and Feel;"`.
 2. `theme/look-and-feel/org.macos8.desktop/contents/defaults` (new) — exactly two lines,
-   `[kdeglobals][General]` and `ColorScheme=MacOS8.6`. No other sections or keys.
+   `[kdeglobals][General]` and `ColorScheme=MacOS8`. No other sections or keys.
 3. A new `test_lookandfeel.py` module under `tests/` — stdlib `unittest`, `json`, `configparser`, `shutil`,
    `subprocess`, `tempfile`:
    - `TestMetadata`: `json.load` the metadata and assert `KPackageStructure`,
@@ -43,7 +44,7 @@ into.
    - `TestDefaults`: parse `contents/defaults` with
      `configparser.ConfigParser(interpolation=None)` and `optionxform = str` (the section key is
      `kdeglobals][General`); assert that is the only section and `ColorScheme` its only option;
-     assert the value equals `theme/color-schemes/MacOS8.6.colors`'s `[General] ColorScheme` and
+     assert the value equals `theme/color-schemes/MacOS8.colors`'s `[General] ColorScheme` and
      that `theme/color-schemes/<value>.colors` exists (the cross-artifact invariant, which stays
      true if the scheme is later renamed).
    - `TestInstall`: run `make install DESTDIR=<tmp> XDG_DATA_HOME=/share`; assert
@@ -74,7 +75,7 @@ color scheme itself.
 - Manual smoke test (needs a Plasma session, so outside `make check`): with the package under
   `~/.local/share/plasma/look-and-feel/`, `lookandfeeltool -l` lists `org.macos8.desktop`, and
   `lookandfeeltool -a org.macos8.desktop` exits 0 and leaves `kdeglobals [General]
-  ColorScheme=MacOS8.6`, which `plasma-apply-colorscheme` resolves without the "Could not find"
+  ColorScheme=MacOS8`, which `plasma-apply-colorscheme` resolves without the "Could not find"
   warning.
 
 **Follow-ups (not planned here).** Desktop-theme widget SVGs, the Platinum window decoration, and
@@ -103,7 +104,7 @@ recorded as assertions in the test: `desktop_archiveorg8.6hd.png` (menu bar and 
 
 **Approach.**
 
-1. `theme/color-schemes/MacOS8.6.colors` (new) — an ini color scheme using the same key set as
+1. `theme/color-schemes/MacOS8.colors` (new) — an ini color scheme using the same key set as
    `/usr/share/color-schemes/BreezeLight.colors`, with sections `[ColorEffects:Disabled]`,
    `[ColorEffects:Inactive]`, `[Colors:Button]`, `[Colors:Complementary]`, `[Colors:Header]`,
    `[Colors:Header][Inactive]`, `[Colors:Selection]`, `[Colors:Tooltip]`, `[Colors:View]`,
@@ -119,7 +120,7 @@ recorded as assertions in the test: `desktop_archiveorg8.6hd.png` (menu bar and 
    `BackgroundNormal=tooltip`, `ForegroundNormal=black`, the rest as Window; semantic roles map to
    the tokens above. `[WM]` gets `activeBackground=activeBlend=platinum`,
    `activeForeground=black`, `inactiveBackground=inactiveBlend=platinum`,
-   `inactiveForeground=shadow`. `[General]` gets `ColorScheme=MacOS8.6`, `Name=Mac OS 8.6`,
+   `inactiveForeground=shadow`. `[General]` gets `ColorScheme=MacOS8`, `Name=Mac OS 8.6`,
    `shadeSortColumn=true`; `[KDE]` gets `contrast=4`; the `ColorEffects` sections copy
    BreezeLight with `Color=136,136,136` (Disabled) and `Color=136,136,136` (Inactive).
 2. `tests/test_colorscheme.py` (new) — stdlib `unittest` + `configparser` (`interpolation=None`).
@@ -129,32 +130,32 @@ recorded as assertions in the test: `desktop_archiveorg8.6hd.png` (menu bar and 
    255,255,255`, `Selection BackgroundNormal == 206,206,255`, `Tooltip BackgroundNormal ==
    255,255,204`, `Window ForegroundNormal == 0,0,0`). A `TestInstall` case runs
    `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` in a subprocess and asserts
-   `<tmp>/share/color-schemes/MacOS8.6.colors` is byte-identical to the source.
+   `<tmp>/share/color-schemes/MacOS8.colors` is byte-identical to the source.
 3. `Makefile` (new) — `check` runs `$(PYTHON) -m unittest discover -s tests -v`; `install` runs
-   `install -Dm644 theme/color-schemes/MacOS8.6.colors
-   $(DESTDIR)$(XDG_DATA_HOME)/color-schemes/MacOS8.6.colors`, with
+   `install -Dm644 theme/color-schemes/MacOS8.colors
+   $(DESTDIR)$(XDG_DATA_HOME)/color-schemes/MacOS8.colors`, with
    `XDG_DATA_HOME ?= $(HOME)/.local/share`.
 
-**Files touched.** `theme/color-schemes/MacOS8.6.colors`, `tests/test_colorscheme.py`, `Makefile`
+**Files touched.** `theme/color-schemes/MacOS8.colors`, `tests/test_colorscheme.py`, `Makefile`
 — all new; no existing file changes.
 
 **Acceptance criteria.**
 - `make check` exits 0 and the run reports the color-scheme structure, anchor, and install tests
   passing.
 - `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
-  `<tmp>/share/color-schemes/MacOS8.6.colors` byte-identical to the source file.
+  `<tmp>/share/color-schemes/MacOS8.colors` byte-identical to the source file.
 - Manual smoke test (needs a Plasma session, so outside `make check`): with the file copied to
   `~/.local/share/color-schemes/`, `plasma-apply-colorscheme --list-schemes` lists `MacOS8`, and
   `plasma-apply-colorscheme MacOS8` exits 0 with window/button faces `#DDDDDD` and view
   backgrounds `#FFFFFF`.
 
 **Implementation note (2026-10-07).** `plasma-apply-colorscheme` derives a scheme's ID from the
-part of its filename before the first dot, so `MacOS8.6.colors` is listed and selectable as
-`MacOS8`, not `MacOS8.6` (verified by running the tool against a temp `XDG_DATA_HOME` holding
-copies named `MacOS8.6.colors`, `MacOS86.colors`, and `Platinum.colors`: it printed `MacOS8`,
-`MacOS86`, and `Platinum`). The filename is kept as planned so the install path and the
-`[General] ColorScheme`/`Name` keys still read "Mac OS 8.6"; the smoke test uses the ID KDE
-actually exposes.
+part of its filename before the first dot, so the originally planned `MacOS8.6.colors` was listed
+and selectable as `MacOS8`, not `MacOS8.6` (verified by running the tool against a temp
+`XDG_DATA_HOME` holding copies named `MacOS8.6.colors`, `MacOS86.colors`, and `Platinum.colors`:
+it printed `MacOS8`, `MacOS86`, and `Platinum`). That mismatch made the applied id fail to
+resolve on restart, so the scheme was later renamed to `MacOS8.colors` with `ColorScheme=MacOS8`
+(see the Fixed BUGS.md entry); `Name` still reads "Mac OS 8.6".
 
 **Follow-ups (not planned here).** Wrap the scheme in a `look-and-feel` global-theme package,
 then build the Plasma desktop-theme widget SVGs and the Platinum window decoration.

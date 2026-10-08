@@ -134,7 +134,7 @@ ForegroundPositive=0,128,0
 ForegroundVisited=85,26,139
 
 [General]
-ColorScheme=MacOS8.6
+ColorScheme=MacOS8
 Name=Mac OS 8.6
 shadeSortColumn=true
 

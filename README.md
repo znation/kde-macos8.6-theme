@@ -17,9 +17,10 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 ## Installing
 
 The color scheme is the only installable artifact so far. `make install` copies
-`theme/color-schemes/MacOS8.6.colors` to `${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes/`;
+`theme/color-schemes/MacOS8.colors` to `${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes/`;
 Plasma lists it as `MacOS8` (KDE derives the scheme ID from the filename before the first dot).
-Select it in System Settings or with `plasma-apply-colorscheme MacOS8`. `make check` runs the test
+Select it in System Settings or with `plasma-apply-colorscheme MacOS8`; the dotless filename means
+the ID KDE writes into `kdeglobals` resolves again on the next start. `make check` runs the test
 suite.
 
 ## Reference screenshots
