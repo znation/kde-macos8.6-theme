@@ -64,13 +64,33 @@ def make_png(
     palette: bytes | None = None,
     filter_types: list[int] | None = None,
 ) -> bytes:
-    """Encode an 8-bit non-interlaced PNG from raw scanlines (test-only)."""
+    """Encode an 8-bit non-interlaced PNG from raw scanlines (test-only).
+
+    Every row must be exactly ``width * channels`` bytes and ``filter_types``,
+    when given, must have one entry per row. A mismatch is a bug in the caller
+    (a short row silently shifts every later scanline), so it is reported here
+    instead of surfacing later as a confusing decode error. Fewer rows than
+    ``height`` is allowed: a test builds a deliberately truncated IDAT that
+    way.
+    """
     channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[color_type]
     bpp = channels
-    filtered = bytearray()
-    prev = bytes(width * channels)
+    expected = width * channels
+    if filter_types is not None and len(filter_types) != len(rows):
+        raise ValueError(
+            f"make_png: filter_types has {len(filter_types)} entries for "
+            f"{len(rows)} rows"
+        )
     for index, row in enumerate(rows):
-        ftype = filter_types[index] if filter_types else 0
+        if len(row) != expected:
+            raise ValueError(
+                f"make_png: row {index} has {len(row)} bytes; a {width}-pixel "
+                f"color_type {color_type} row needs {expected}"
+            )
+    filtered = bytearray()
+    prev = bytes(expected)
+    for index, row in enumerate(rows):
+        ftype = filter_types[index] if filter_types is not None else 0
         filtered += bytes([ftype]) + _filter_line(ftype, row, prev, bpp)
         prev = row
     ihdr = struct.pack(">IIBBBBB", width, height, 8, color_type, 0, 0, 0)

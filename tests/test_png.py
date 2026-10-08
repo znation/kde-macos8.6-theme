@@ -65,6 +65,34 @@ class TestImage(unittest.TestCase):
                 self.assertIn(f"{width}x{height}", str(ctx.exception))
 
 
+class TestMakePng(unittest.TestCase):
+    def test_rejects_row_with_wrong_length(self):
+        # make_png's rows are raw scanlines: a row that is not width*channels
+        # bytes shifts every later scanline, and the fixture decodes with a
+        # length error that points at the decoder rather than the bad row. The
+        # helper must name the offending row and the expected length.
+        with self.assertRaises(ValueError) as ctx:
+            make_png(2, 1, [bytes([1, 2, 3])])
+        message = str(ctx.exception)
+        self.assertIn("row 0", message)
+        self.assertIn("3 bytes", message)
+        self.assertIn("needs 6", message)
+
+    def test_rejects_filter_types_length_mismatch(self):
+        # There is one filter type per row, so listing the wrong number is a
+        # fixture bug: a short list used to raise a bare IndexError and a long
+        # one was silently ignored.
+        with self.assertRaises(ValueError) as ctx:
+            make_png(1, 1, [bytes([0])], filter_types=[0, 0])
+        message = str(ctx.exception)
+        self.assertIn("2 entries", message)
+        self.assertIn("for 1 rows", message)
+
+    def test_accepts_exact_row_and_matching_filters(self):
+        data = make_png(1, 1, [bytes([7, 8, 9])], filter_types=[0])
+        self.assertEqual(png.decode_png(data).rgb, bytes([7, 8, 9]))
+
+
 class TestDecode(unittest.TestCase):
     def _decode_error(self, data):
         """Assert decode_png rejects *data* and return the PngError message."""
