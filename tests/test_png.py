@@ -12,8 +12,8 @@ import tempfile
 import tracemalloc
 import unittest
 import zlib
-from unittest import mock
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
