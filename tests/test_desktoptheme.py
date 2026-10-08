@@ -21,7 +21,7 @@ from theme_install import (
 DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
-SVG = os.path.join(PACKAGE, "widgets", "panel-background.svg")
+PANEL_SVG = os.path.join(PACKAGE, "widgets", "panel-background.svg")
 FRAME_SVG = os.path.join(PACKAGE, "widgets", "frame.svg")
 FRAME_PREFIXES = ("plain", "raised", "sunken")
 BUTTON_SVG = os.path.join(PACKAGE, "widgets", "button.svg")
@@ -153,7 +153,7 @@ class TestMetadata(unittest.TestCase):
 
 class TestPanelBackground(unittest.TestCase):
     def setUp(self):
-        self.tree = ET.parse(SVG)
+        self.tree = ET.parse(PANEL_SVG)
         self.ids = {el.get("id") for el in self.tree.iter() if el.get("id")}
 
     def test_nine_slice_ids_present(self):
