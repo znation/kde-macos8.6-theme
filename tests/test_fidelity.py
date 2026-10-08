@@ -81,6 +81,27 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(metrics.max_delta, 40)
         self.assertEqual((metrics.max_x, metrics.max_y), (2, 1))
 
+    def test_worst_delta_tie_and_differing_union(self):
+        # Ties on the worst delta resolve to the first pixel in scan order, in
+        # any channel; and a pixel with several channels over tolerance counts
+        # once in ``differing``.
+        a = fidelity.Image(3, 1, bytes(9))
+        b = fidelity.Image(
+            3,
+            1,
+            bytes(
+                [
+                    0, 10, 0,  # pixel 0: green reaches the maximum
+                    10, 0, 0,  # pixel 1: red ties it and must not win
+                    10, 10, 0,  # pixel 2: two channels differ
+                ]
+            ),
+        )
+        metrics = fidelity.compare(a, b, tolerance=5)
+        self.assertEqual(metrics.max_delta, 10)
+        self.assertEqual((metrics.max_x, metrics.max_y), (0, 0))
+        self.assertEqual(metrics.differing, 3)
+
     def test_tolerance_absorbs_small_deltas(self):
         a, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         b = fidelity.Image(1, 1, bytes([3, 0, 0]))

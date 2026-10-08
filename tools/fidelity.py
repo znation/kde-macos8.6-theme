@@ -29,6 +29,7 @@ import argparse
 import math
 import sys
 from dataclasses import dataclass
+from operator import sub
 
 if __package__:
     from tools.png import Image, PngError, read_png
@@ -38,6 +39,10 @@ else:  # run directly: python3 tools/fidelity.py
 
 class FidelityError(Exception):
     """A candidate and reference image could not be compared."""
+
+
+# value -> value squared, for summing squared per-channel deltas via a lookup.
+_SQUARES = [value * value for value in range(256)]
 
 
 @dataclass(frozen=True)
@@ -104,40 +109,61 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
             f"vs reference {reference.width}x{reference.height}"
         )
     pa, pb = candidate.rgb, reference.rgb
-    total_abs = 0
-    total_abs_r = 0
-    total_abs_g = 0
-    total_abs_b = 0
-    total_sq = 0
-    max_delta = 0
+    # Compare one channel at a time with C-level bytes operations: a strided
+    # slice picks a channel, ``map(sub)``/``map(abs)`` turn it into that
+    # channel's absolute deltas as a byte string, and integer sums feed the
+    # metrics.  The equivalent per-byte Python loop dominated runtime on
+    # screenshot-sized inputs (tens of millions of bytes).
+    dr = bytes(map(abs, map(sub, pa[0::3], pb[0::3])))
+    dg = bytes(map(abs, map(sub, pa[1::3], pb[1::3])))
+    db = bytes(map(abs, map(sub, pa[2::3], pb[2::3])))
+
+    total_abs_r = sum(dr)
+    total_abs_g = sum(dg)
+    total_abs_b = sum(db)
+    total_sq = (
+        sum(map(_SQUARES.__getitem__, dr))
+        + sum(map(_SQUARES.__getitem__, dg))
+        + sum(map(_SQUARES.__getitem__, db))
+    )
+
+    max_delta = max(max(dr), max(dg), max(db))
     max_x = 0
     max_y = 0
-    differing = 0
-    for i in range(0, len(pa), 3):
-        dr = pa[i] - pb[i]
-        dg = pa[i + 1] - pb[i + 1]
-        db = pa[i + 2] - pb[i + 2]
-        ar, ag, ab = abs(dr), abs(dg), abs(db)
-        total_abs += ar + ag + ab
-        total_abs_r += ar
-        total_abs_g += ag
-        total_abs_b += ab
-        total_sq += dr * dr + dg * dg + db * db
-        worst = max(ar, ag, ab)
-        if worst > max_delta:
-            max_delta = worst
-            pixel = i // 3
-            max_x = pixel % candidate.width
-            max_y = pixel // candidate.width
-        if worst > tolerance:
-            differing += 1
+    if max_delta:
+        # Locate the first pixel whose worst channel equals the maximum: the
+        # smallest per-channel offset at which any channel reaches max_delta.
+        # A channel's byte offset equals its pixel offset, because the three
+        # slices are the same length.
+        first = min(
+            offset
+            for offset in (
+                dr.find(max_delta),
+                dg.find(max_delta),
+                db.find(max_delta),
+            )
+            if offset != -1
+        )
+        max_x = first % candidate.width
+        max_y = first // candidate.width
+
+    # A pixel differs when any channel exceeds tolerance.  Translate each
+    # channel to a 0/1 flag byte, OR the three flag strings as one big integer,
+    # and popcount it, so a pixel with several differing channels counts once.
+    over = bytes(1 if value > tolerance else 0 for value in range(256))
+    differing = (
+        int.from_bytes(dr.translate(over), "little")
+        | int.from_bytes(dg.translate(over), "little")
+        | int.from_bytes(db.translate(over), "little")
+    ).bit_count()
+
     pixels = candidate.width * candidate.height
     channels = pixels * 3
     return Metrics(
         width=candidate.width,
         height=candidate.height,
         pixels=pixels,
-        mae=total_abs / channels,
+        mae=(total_abs_r + total_abs_g + total_abs_b) / channels,
         mae_r=total_abs_r / pixels,
         mae_g=total_abs_g / pixels,
         mae_b=total_abs_b / pixels,
