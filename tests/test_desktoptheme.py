@@ -459,6 +459,47 @@ class TestFrame(unittest.TestCase):
                 )
                 self.assertEqual(actual, expected, f"{prefix}-{name}")
 
+    def test_frame_plain_corners_are_flat(self):
+        # `test_frame_corner_bevels_turn_the_corner` pins only the raised and
+        # sunken corners, and `test_frame_edge_bevels` does not reach the
+        # corners, so a plain corner that copy-pasted a bevel from a
+        # neighbouring state leaves a #FFFFFF or #999999 pixel where the face
+        # should be and passes every existing test. Pin every plain-corner
+        # pixel: the face plus the 1px black outline on the two outer edges,
+        # with no bevel.
+        slices = render_slices(ET.parse(FRAME_SVG))
+        expected = {
+            "plain-topleft": (
+                "#000000", "#000000", "#000000",
+                "#000000", "#DDDDDD", "#DDDDDD",
+                "#000000", "#DDDDDD", "#DDDDDD",
+            ),
+            "plain-topright": (
+                "#000000", "#000000", "#000000",
+                "#DDDDDD", "#DDDDDD", "#000000",
+                "#DDDDDD", "#DDDDDD", "#000000",
+            ),
+            "plain-bottomleft": (
+                "#000000", "#DDDDDD", "#DDDDDD",
+                "#000000", "#DDDDDD", "#DDDDDD",
+                "#000000", "#000000", "#000000",
+            ),
+            "plain-bottomright": (
+                "#DDDDDD", "#DDDDDD", "#000000",
+                "#DDDDDD", "#DDDDDD", "#000000",
+                "#000000", "#000000", "#000000",
+            ),
+        }
+        for name, colours in expected.items():
+            pixels = slices[name]
+            actual = tuple(
+                pixels.get((x, y))
+                for y in range(3)
+                for x in range(3)
+            )
+            with self.subTest(corner=name):
+                self.assertEqual(actual, colours, name)
+
     def test_frame_edge_bevels(self):
         # `test_frame_corner_bevels_turn_the_corner` pins only the raised and
         # sunken corners; the edge slices carry the same bevel along the frame
