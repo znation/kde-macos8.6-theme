@@ -326,9 +326,17 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
         if palette is None:
             raise PngError("palette PNG has no PLTE chunk")
         entries = len(palette) // 3
-        if max(samples, default=0) >= entries:
+        # Expand indices at C speed: index a table of 3-byte entries and join,
+        # instead of a Python loop concatenating a slice per pixel. An
+        # out-of-range index raises IndexError from that lookup, so the
+        # all-in-range case -- the common one -- needs no separate pass to
+        # validate every index before expanding it.
+        table = [palette[i * 3 : i * 3 + 3] for i in range(entries)]
+        try:
+            return b"".join(map(table.__getitem__, samples))
+        except IndexError:
             # An out-of-range index must still name the first offending index
-            # and the palette size; the all-in-range case skips this scan. The
+            # and the palette size; only this failure path scans for it. The
             # sibling PLTE-length error counts entries, so name the entry
             # count here as well as the byte count.
             entry_word = "entry" if entries == 1 else "entries"
@@ -338,11 +346,8 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
                         f"palette PNG index {index} is outside PLTE "
                         f"(palette has {entries} {entry_word} in "
                         f"{len(palette)} bytes)"
-                    )
-        # Expand indices at C speed: index a table of 3-byte entries and join,
-        # instead of a Python loop concatenating a slice per pixel.
-        table = [palette[i * 3 : i * 3 + 3] for i in range(entries)]
-        return b"".join(map(table.__getitem__, samples))
+                    ) from None
+            raise
     raise PngError(f"unsupported PNG color type {color_type}")
 
 

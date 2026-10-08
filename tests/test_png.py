@@ -329,6 +329,17 @@ class TestDecode(unittest.TestCase):
         self.assertIn("2 entries", message)
         self.assertIn("6 bytes", message)
 
+    def test_palette_names_first_out_of_range_index_after_valid_pixels(self):
+        # The table lookup fails only at the offending pixel, so an image whose
+        # valid prefix expands before the bad index must still report the first
+        # bad index and the palette size, not a different one.
+        palette = bytes([255, 0, 0, 0, 255, 0])  # two entries: indices 0 and 1
+        rows = [bytes([0, 1, 0, 2, 1])]  # index 2 is the first bad one
+        data = make_png(5, 1, rows, color_type=3, palette=palette)
+        message = self._decode_error(data)
+        self.assertIn("index 2", message)
+        self.assertIn("2 entries", message)
+
     def test_palette_length_not_multiple_of_three(self):
         # A PLTE whose length is not a multiple of 3 ends in a partial RGB
         # entry. Index 0 would still decode, so without this check a malformed
