@@ -60,6 +60,20 @@ def _escape_controls(text: str) -> str:
     )
 
 
+class _ArgumentParser(argparse.ArgumentParser):
+    """ArgumentParser whose error diagnostics escape control characters.
+
+    argparse formats some of its own errors (notably ``unrecognized
+    arguments: ...``) from raw argv. The documented workflow fills argv from a
+    shell glob over the contributor-owned screenshot directory, so those bytes
+    never pass through ``main``'s escaping of the candidate and reference
+    paths; escaping the message here closes that gap at the output boundary.
+    """
+
+    def error(self, message: str) -> None:
+        super().error(_escape_controls(message))
+
+
 @dataclass(frozen=True)
 class Metrics:
     """Per-pixel difference between two equally sized images.
@@ -287,7 +301,7 @@ def _tolerance(value: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
+    parser = _ArgumentParser(
         prog="fidelity",
         description="Measure a rendered PNG surface against a reference PNG.",
         epilog=(

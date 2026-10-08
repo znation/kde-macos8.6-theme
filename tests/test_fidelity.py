@@ -457,6 +457,20 @@ class TestCli(unittest.TestCase):
         self.assertNotIn("\x1b", result.stdout)
         self.assertIn("\\u001b", result.stdout)
 
+    def test_usage_error_escapes_control_characters_in_arguments(self):
+        # argparse builds its own "unrecognized arguments: ..." diagnostic from
+        # raw argv, so it bypasses main()'s escaping of the candidate and
+        # reference paths. A shell glob over the contributor-owned screenshot
+        # directory can put an ESC-bearing name there as an extra positional
+        # argument, which must not print the raw byte to the terminal.
+        reference = self._solid_reference()
+        extra = "evil\x1b[31m.png"
+        result = self._run(reference, reference, extra)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("unrecognized arguments", result.stderr)
+        self.assertNotIn("\x1b", result.stderr)
+        self.assertIn("\\u001b", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
