@@ -300,5 +300,45 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
         self.assertIn("1 problem(s) in the reference set", err)
 
 
+class TestSymlinkEscape(unittest.TestCase):
+    """A checked-in symlink must not make the checker read outside the directory.
+
+    The reference directory is contributor-supplied, and git stores symlinks.
+    A ``sources.txt`` symlink to a private file would make the checker read
+    that file and print its lines as diagnostics, disclosing a file outside
+    the reference set.
+    """
+
+    def test_sources_symlink_outside_directory_is_not_read(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ref = root / "ref"
+            ref.mkdir()
+            secret = root / "secret.txt"
+            secret.write_text("SECRET_TOKEN_abc123\n", encoding="utf-8")
+            os.symlink(secret, ref / module.SOURCES_NAME)
+            problems = module.check_references(ref)
+        joined = "\n".join(problems)
+        self.assertNotIn("SECRET_TOKEN_abc123", joined)
+        self.assertTrue(any("outside" in p for p in problems), problems)
+
+    def test_declared_image_symlink_outside_directory_is_reported(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ref = root / "ref"
+            ref.mkdir()
+            outside = root / "outside.png"
+            outside.write_bytes(module.PNG_MAGIC + b"secret")
+            (ref / module.SOURCES_NAME).write_text(
+                "link.png | https://example.test/l.png | label\n",
+                encoding="utf-8",
+            )
+            os.symlink(outside, ref / "link.png")
+            problems = module.check_references(ref)
+        self.assertTrue(any("outside" in p for p in problems), problems)
+
+
 if __name__ == "__main__":
     unittest.main()

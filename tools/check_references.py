@@ -79,6 +79,21 @@ def _escape_controls(text: str) -> str:
     )
 
 
+def _resolves_within(directory: Path, path: Path) -> bool:
+    """Return True when *path* resolves to a location inside *directory*.
+
+    The reference directory is contributor-supplied, and a checked-in symlink
+    can point anywhere on the machine: a ``sources.txt`` symlink to a private
+    file would make the checker read that file and print its lines as
+    diagnostics. Resolving both paths keeps every read inside the reference
+    directory even when a symlink tries to leave it.
+    """
+    try:
+        return path.resolve().is_relative_to(directory.resolve())
+    except OSError:
+        return False
+
+
 def check_references(directory: Path) -> list[str]:
     """Return a list of human-readable problems in *directory*.
 
@@ -86,6 +101,8 @@ def check_references(directory: Path) -> list[str]:
     has exactly one entry, and every entry has the three expected fields.
     """
     sources = directory / SOURCES_NAME
+    if not _resolves_within(directory, sources):
+        return [f"{sources}: points outside {directory}/ (a symlink escape)"]
     if not sources.is_file():
         return [f"{sources}: missing sources file"]
 
@@ -128,6 +145,12 @@ def check_references(directory: Path) -> list[str]:
             continue
         entries[filename] = lineno
         image = directory / filename
+        if not _resolves_within(directory, image):
+            problems.append(
+                f"{sources}:{lineno}: {filename!r} points outside "
+                f"{directory}/ (a symlink escape)"
+            )
+            continue
         if not image.is_file():
             problems.append(f"{sources}:{lineno}: {filename!r} does not exist in {directory}/")
             continue
