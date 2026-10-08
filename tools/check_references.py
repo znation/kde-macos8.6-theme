@@ -10,10 +10,13 @@ unmaterialized Git LFS pointer files, which exist on disk but contain no image.
 Usage:
     python3 tools/check_references.py              # check the repository
     python3 tools/check_references.py --self-test  # exercise the checks
+    python3 tools/check_references.py --help       # show usage
 """
 
 from __future__ import annotations
 
+import contextlib
+import io
 import sys
 import tempfile
 from pathlib import Path
@@ -24,6 +27,16 @@ IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 SEPARATOR = " | "
 # First line of a Git LFS pointer file; a real image never starts with this text.
 LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
+
+USAGE = """\
+usage: check_references.py [--self-test | --help]
+
+Check that macos8.6-screenshots/sources.txt matches the images on disk.
+
+options:
+  --self-test  run the checker's own fixtures instead of the repository
+  -h, --help   show this message and exit
+"""
 
 
 def _is_lfs_pointer(path: Path) -> bool:
@@ -123,15 +136,42 @@ def _self_test() -> int:
             failed = True
             print(f"self-test {name!r}: no problem mentioning {expected!r}; got {problems}")
 
+    # Argument handling: --help prints usage and exits 0; anything unrecognized
+    # exits 2 rather than silently running the repository check on a typo.
+    cli_cases = [
+        (["check_references.py", "--help"], 0, "usage:"),
+        (["check_references.py", "-h"], 0, "usage:"),
+        (["check_references.py", "--self-tests"], 2, "unknown argument"),
+    ]
+    for argv, expected_code, needle in cli_cases:
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            code = main(argv)
+        combined = out.getvalue() + err.getvalue()
+        if code != expected_code or needle not in combined:
+            failed = True
+            print(
+                f"self-test cli {argv[1:]!r}: expected exit {expected_code} with {needle!r}, "
+                f"got exit {code}: {combined!r}"
+            )
+
     if failed:
         return 1
-    print(f"self-test: {len(cases)} cases passed")
+    print(f"self-test: {len(cases) + len(cli_cases)} cases passed")
     return 0
 
 
 def main(argv: list[str]) -> int:
-    if "--self-test" in argv[1:]:
+    args = argv[1:]
+    if args == ["--self-test"]:
         return _self_test()
+    if args in (["-h"], ["--help"]):
+        print(USAGE, end="")
+        return 0
+    if args:
+        print(f"error: unknown argument(s): {' '.join(args)}", file=sys.stderr)
+        print(USAGE, end="", file=sys.stderr)
+        return 2
 
     directory = Path(__file__).resolve().parent.parent / REFERENCE_DIR
     problems = check_references(directory)
