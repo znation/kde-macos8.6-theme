@@ -20,6 +20,26 @@ from tools import fidelity_metrics  # noqa: E402
 from png_fixtures import rgb_image  # noqa: E402
 
 
+def assert_matches_oracle(case, actual, reference, *, arity, min_length=0):
+    """Check a packed-integer routine against a naive per-byte oracle.
+
+    ``actual`` and ``reference`` each take ``arity`` byte strings and return
+    equal results.  Every length from ``min_length`` to 39, then the
+    63/64/65, 255/256/257 and 1000 boundaries, is exercised on eight random
+    blocks so a borrow, carry, or bit-slice bug shows up across byte positions.
+    """
+    rng = random.Random(0)
+    lengths = list(range(min_length, 40)) + [63, 64, 65, 255, 256, 257, 1000]
+    for length in lengths:
+        for _ in range(8):
+            args = [
+                bytes(rng.randrange(256) for _ in range(length))
+                for _ in range(arity)
+            ]
+            with case.subTest(length=length):
+                case.assertEqual(actual(*args), reference(*args))
+
+
 class TestAbsDiff(unittest.TestCase):
     """The packed-integer byte differ must agree with the per-byte form."""
 
@@ -28,16 +48,9 @@ class TestAbsDiff(unittest.TestCase):
         return bytes(abs(x - y) for x, y in zip(a, b))
 
     def test_matches_per_byte_reference(self):
-        rng = random.Random(0)
-        lengths = list(range(0, 40)) + [63, 64, 65, 255, 256, 257, 1000]
-        for length in lengths:
-            for _ in range(8):
-                a = bytes(rng.randrange(256) for _ in range(length))
-                b = bytes(rng.randrange(256) for _ in range(length))
-                with self.subTest(length=length):
-                    self.assertEqual(
-                        fidelity_metrics._abs_diff(a, b), self._reference(a, b)
-                    )
+        assert_matches_oracle(
+            self, fidelity_metrics._abs_diff, self._reference, arity=2
+        )
 
     def test_extreme_values(self):
         # 0/255 is where a borrow or carry would show up first, for both an
@@ -61,16 +74,9 @@ class TestSumSquares(unittest.TestCase):
         return sum(value * value for value in channel)
 
     def test_matches_per_byte_reference(self):
-        rng = random.Random(0)
-        lengths = list(range(0, 40)) + [63, 64, 65, 255, 256, 257, 1000]
-        for length in lengths:
-            for _ in range(8):
-                channel = bytes(rng.randrange(256) for _ in range(length))
-                with self.subTest(length=length):
-                    self.assertEqual(
-                        fidelity_metrics._sum_squares(channel),
-                        self._reference(channel),
-                    )
+        assert_matches_oracle(
+            self, fidelity_metrics._sum_squares, self._reference, arity=1
+        )
 
     def test_every_byte_value(self):
         # A single square can spill into the high byte (255*255 == 65025), so
@@ -93,15 +99,13 @@ class TestMaxByteIndex(unittest.TestCase):
         return data.find(max(data))
 
     def test_matches_max_and_find(self):
-        rng = random.Random(0)
-        lengths = list(range(1, 40)) + [63, 64, 65, 255, 256, 257, 1000]
-        for length in lengths:
-            for _ in range(8):
-                data = bytes(rng.randrange(256) for _ in range(length))
-                with self.subTest(length=length):
-                    self.assertEqual(
-                        fidelity_metrics._max_byte_index(data), self._reference(data)
-                    )
+        assert_matches_oracle(
+            self,
+            fidelity_metrics._max_byte_index,
+            self._reference,
+            arity=1,
+            min_length=1,
+        )
 
     def test_edges_and_ties(self):
         cases = (
