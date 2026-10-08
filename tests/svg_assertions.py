@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import math
 import re
-import xml.etree.ElementTree as ET
 
 
 SLICE_IDS = [
