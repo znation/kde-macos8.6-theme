@@ -225,10 +225,9 @@ class TestInstall(unittest.TestCase):
     def test_failed_reinstall_keeps_the_previous_scheme(self):
         """A copy that dies partway must not truncate the installed scheme.
 
-        `install` writes straight to the destination, so a copy interrupted by
-        a kill or a full disk leaves a truncated `.colors` Plasma cannot parse;
-        stage the copy and rename it in so a failure leaves the old scheme
-        intact.
+        `make install` stages the scheme as a hidden sibling and renames it
+        in, so a copy that fails or is interrupted leaves the working installed
+        scheme intact.
         """
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
