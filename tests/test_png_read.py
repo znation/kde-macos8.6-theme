@@ -103,6 +103,39 @@ class TestReadPng(unittest.TestCase):
         self.assertIn("cannot read", message)
         self.assertIn("Input/output error", message)
 
+    def test_read_png_closes_the_fd_when_fstat_fails(self):
+        # os.fstat runs on the open fd before os.fdopen takes ownership; if it
+        # raises, the fd is still open and the finally block must close it, or
+        # every failed read leaks a descriptor. The except converts the raw
+        # OSError into a PngError naming the file, so the fidelity CLI stays
+        # on its exit-2 path instead of tracing back.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "unstattable.png"
+            path.write_bytes(b"x")
+            real_close = png.os.close
+            closed_fds = []
+
+            def recording_close(fd):
+                closed_fds.append(fd)
+                return real_close(fd)
+
+            with mock.patch.object(
+                png.os, "fstat", side_effect=OSError(5, "Input/output error")
+            ):
+                with mock.patch.object(png.os, "close", recording_close):
+                    with self.assertRaises(png.PngError) as ctx:
+                        png.read_png(path)
+
+        message = str(ctx.exception)
+        self.assertIn(str(path), message)
+        self.assertIn("cannot read", message)
+        self.assertIn("Input/output error", message)
+        # The finally block closed exactly the fd os.open handed out, so it is
+        # no longer a valid descriptor.
+        self.assertEqual(len(closed_fds), 1)
+        with self.assertRaises(OSError):
+            os.fstat(closed_fds[0])
+
     def test_read_png_rejects_a_fifo_instead_of_blocking(self):
         # open() on a FIFO blocks until a writer appears, and read() on a pipe
         # whose writer never sends or closes blocks forever; the byte cap
