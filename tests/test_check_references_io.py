@@ -5,7 +5,10 @@ surface as a problem line rather than a traceback, and a checked-in symlink
 must not let it read outside the reference directory.
 """
 
+import os
+import tempfile
 import unittest
+from pathlib import Path
 
 from check_references_fixtures import (
     load_checker,
@@ -174,6 +177,29 @@ class TestSymlinkEscape(unittest.TestCase):
         joined = "\n".join(problems)
         self.assertIn("outside", joined, problems)
         self.assertNotIn("image has no entry", joined, problems)
+
+
+class TestUndeclaredDanglingImageSymlink(unittest.TestCase):
+    """A dangling symlink named like an image is reported, not skipped.
+
+    ``Path.is_file()`` follows the link and returns False when the target is
+    gone, so the undeclared-image scan used to skip a ``*.png`` symlink whose
+    target was deleted. The set then looked consistent although a ``.png``
+    name on disk had no provenance entry. The checker must report the name
+    without opening it (opening a FIFO or device would block).
+    """
+
+    def test_dangling_image_symlink_is_reported(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+            os.symlink(root / "gone.png", root / "dangling.png")
+            problems = module.check_references(root)
+        self.assertTrue(
+            any("dangling.png" in p and "no entry" in p for p in problems),
+            problems,
+        )
 
 
 class TestResolveFailureIsFailClosed(unittest.TestCase):

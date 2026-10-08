@@ -211,9 +211,22 @@ def check_references(directory: Path) -> list[str]:
         return problems
 
     for path in listed:
-        if path.name == SOURCES_NAME or not path.is_file():
+        if path.name == SOURCES_NAME:
             continue
         if path.name in entries:
+            continue
+        if not path.is_file():
+            # A non-regular entry is normally a directory and is skipped, but
+            # a name that looks like an image is still an unexplained
+            # reference-set entry: a dangling symlink or a symlink loop named
+            # *.png, whose bytes cannot be sniffed. Report it by name rather
+            # than let the set look consistent. Do not open it -- opening a
+            # FIFO or device would block.
+            if path.suffix.lower() in IMAGE_SUFFIXES:
+                problems.append(
+                    f"{escape_controls(str(path))}: image has no entry in "
+                    f"{SOURCES_NAME}"
+                )
             continue
         # A symlink can point anywhere on the machine, so refuse to read one
         # that resolves outside the reference directory; the declared-entry
