@@ -198,7 +198,7 @@ types 0/2/3/4/6) with only the standard library, crops a reference to a surface 
 objective metrics — mean absolute error, RMSE, worst per-channel delta, and differing-pixel
 fraction — exiting non-zero when the result is outside the requested tolerance. `tools/png.py`
 holds the decoder, `tools/fidelity_metrics.py` the comparison math, and `tools/fidelity.py` the CLI.
-`tests/test_png.py` covers decoding (palette plus every PNG filter type);
+`tests/test_png_decode.py` covers decoding (palette plus every PNG filter type);
 `tests/test_fidelity_metrics.py` covers the metrics and cropping, and
 `tests/test_fidelity_cli.py` covers the CLI pass/fail paths. Producing the candidate PNG (the Plasma
 render step) is still missing and is tracked as its own Open entry above.
