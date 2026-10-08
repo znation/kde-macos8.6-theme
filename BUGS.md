@@ -105,7 +105,10 @@ unset budget, and the README's Fidelity section and the `--help` epilog document
 `tests/test_fidelity.py` adds `TestCli.test_tolerance_is_the_default_gate` (a candidate whose worst
 delta equals `--tolerance` passes and one above it fails) and
 `TestCli.test_explicit_budget_replaces_default_gate` (`--max-mae` alone is the criterion); both
-fail before the change and pass after.
+fail before the change and pass after. A coverage pass (2026-10-08) added
+`TestCli.test_max_frac_budget_is_the_verdict` (`--max-frac` alone is the criterion; its generous
+case fails before the fix) and `TestCli.test_both_budgets_must_be_met` (with both budgets set,
+either unmet budget fails the run, pinning the conjunction rather than `any()`).
 
 **Validation gap:** none — the existing suite had no case for it, but a deterministic scratch repro
 built from the shipped `png_fixtures` confirmed the failure offline, so nothing was missing.

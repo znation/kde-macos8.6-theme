@@ -379,6 +379,61 @@ class TestCli(unittest.TestCase):
             self.assertEqual(tight.returncode, 1, tight.stdout + tight.stderr)
             self.assertIn("FAIL", tight.stdout)
 
+    def test_max_frac_budget_is_the_verdict(self):
+        # --max-frac is a budget on its own: with no --max-mae, the verdict is
+        # the differing-pixel fraction against the threshold, not the default
+        # no-differing-pixel gate. The candidate differs at 1 of 9 pixels
+        # (fraction 1/9, about 0.111).
+        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
+        changed = bytearray(a.rgb)
+        changed[4] = 50  # pixel (1, 0) green: 0 -> 50
+        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "candidate.png", a_png)
+            altered = self._write(tmpdir, "altered.png", b_png)
+
+            generous = self._run(candidate, altered, "--max-frac", "0.12")
+            self.assertEqual(
+                generous.returncode, 0, generous.stdout + generous.stderr
+            )
+            self.assertIn("PASS", generous.stdout)
+
+            tight = self._run(candidate, altered, "--max-frac", "0.10")
+            self.assertEqual(tight.returncode, 1, tight.stdout + tight.stderr)
+            self.assertIn("FAIL", tight.stdout)
+
+    def test_both_budgets_must_be_met(self):
+        # --max-mae and --max-frac are both budgets: when both are set the run
+        # passes only when each is met, so one generous and one tight budget
+        # fails. If the verdict used any() instead of all(), each mixed case
+        # here would pass and hide a budget that is not being enforced.
+        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
+        changed = bytearray(a.rgb)
+        changed[4] = 50  # pixel (1, 0) green: 0 -> 50; MAE 50/27, frac 1/9
+        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "candidate.png", a_png)
+            altered = self._write(tmpdir, "altered.png", b_png)
+
+            both = self._run(
+                candidate, altered, "--max-mae", "2", "--max-frac", "0.12"
+            )
+            self.assertEqual(both.returncode, 0, both.stdout + both.stderr)
+            self.assertIn("PASS", both.stdout)
+
+            for extra in (
+                ("--max-mae", "2", "--max-frac", "0.10"),  # frac fails
+                ("--max-mae", "1", "--max-frac", "0.12"),  # mae fails
+            ):
+                with self.subTest(extra=extra):
+                    result = self._run(candidate, altered, *extra)
+                    self.assertEqual(
+                        result.returncode, 1, result.stdout + result.stderr
+                    )
+                    self.assertIn("FAIL", result.stdout)
+
     def test_reports_worst_delta_location(self):
         a, a_png = rgb_image(2, 1, lambda x, y: (0, 0, 0))
         changed = bytearray(a.rgb)
