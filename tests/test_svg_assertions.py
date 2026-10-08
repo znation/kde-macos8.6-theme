@@ -93,6 +93,39 @@ class TestPathArcs(unittest.TestCase):
         arcs = list(path_arcs("M1,1 A2,2 0 0 1 3,3 Z"))
         self.assertEqual(arcs, [((1.0, 1.0), (2.0, 2.0, 0, 1), (3.0, 3.0))])
 
+    def test_z_returns_to_the_subpath_start(self):
+        # `Z` closes the current subpath, so SVG moves the current point back
+        # to that subpath's start. Ignoring it leaves the current point at the
+        # last L/A endpoint, and an arc after `Z` is reconstructed from the
+        # wrong start (a misplaced corner would still pass the pixel test).
+        arcs = list(path_arcs("M1,1 L5,1 Z A2,2 0 0 1 9,5"))
+        self.assertEqual(arcs, [((1.0, 1.0), (2.0, 2.0, 0, 1), (9.0, 5.0))])
+
+    def test_z_does_not_leak_into_the_next_subpath(self):
+        # A later `M` starts a new subpath, so the `Z` before it must not reset
+        # the current point the new subpath's arc starts from.
+        arcs = list(path_arcs("M1,1 L5,1 Z M7,7 A2,2 0 0 1 9,9"))
+        self.assertEqual(arcs, [((7.0, 7.0), (2.0, 2.0, 0, 1), (9.0, 9.0))])
+
+    def test_rejects_unsupported_path_commands(self):
+        # H/V/C/Q/S/T and lowercase relative commands are not parsed. Before
+        # the guard they folded into the preceding command's number body and
+        # were read as extra coordinates (or raised a bare unpack error on a
+        # later command), so pin the named rejection instead.
+        for d in (
+            "M0,0 H5",
+            "M0,0 V5",
+            "M0,0 C1,1 2,2 3,3",
+            "M0,0 Q1,1 2,2",
+            "m0,0 l5,5",
+        ):
+            with self.subTest(d=d):
+                with self.assertRaises(ValueError) as caught:
+                    list(path_arcs(d))
+                self.assertIn(
+                    "unsupported SVG path command", str(caught.exception)
+                )
+
 
 class TestArcCenter(unittest.TestCase):
     def test_flags_select_the_side_of_the_chord(self):

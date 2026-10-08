@@ -215,10 +215,25 @@ def assert_center_tile_is(case, slices, name, colour, size):
 
 
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
+_PATH_LETTER = re.compile(r"[A-Za-z]")
+_SUPPORTED_PATH_COMMANDS = frozenset("MALZ")
 
 
 def _path_commands(d):
-    """Yield (command, numbers) for each command letter in an SVG path *d*."""
+    """Yield (command, numbers) for each command letter in an SVG path *d*.
+
+    Only the M/A/L/Z commands the widget artwork uses are interpreted. Any
+    other letter -- H/V/C/Q/S/T, a lowercase relative command, or an exponent
+    marker -- would otherwise fold into the preceding command's number body
+    and be silently misread (or raise on a later tuple unpack), so name it and
+    fail instead.
+    """
+    unsupported = sorted(set(_PATH_LETTER.findall(d)) - _SUPPORTED_PATH_COMMANDS)
+    if unsupported:
+        raise ValueError(
+            f"unsupported SVG path command {', '.join(unsupported)} in {d!r}; "
+            "this helper reads only M, A, L and Z"
+        )
     for letter, body in _PATH_COMMAND.findall(d):
         yield letter, [float(n) for n in re.findall(r"-?\d+(?:\.\d+)?", body)]
 
@@ -228,12 +243,19 @@ def path_arcs(d):
 
     Only the M/A/L/Z commands the button corner paths use are interpreted; an
     `A` command advances the current point to its endpoint, and `Z` closes the
-    subpath without moving it.
+    subpath and returns the current point to the subpath start, as SVG
+    requires, so an arc after `Z` starts where the closed subpath began.
     """
     x = y = 0.0
+    subpath_start = (0.0, 0.0)
     for command, numbers in _path_commands(d):
-        if command in ("M", "L"):
+        if command == "M":
             x, y = numbers
+            subpath_start = (x, y)
+        elif command == "L":
+            x, y = numbers
+        elif command == "Z":
+            x, y = subpath_start
         elif command == "A":
             rx, ry, _rotation, large_arc, sweep, nx, ny = numbers
             yield (x, y), (rx, ry, int(large_arc), int(sweep)), (nx, ny)
