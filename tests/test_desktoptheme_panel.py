@@ -8,8 +8,8 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import PANEL_SVG
 from svg_assertions import (
     HINT_IDS,
-    SLICE_IDS,
     assert_no_script_elements,
+    assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
     rect_geometry,
@@ -42,8 +42,7 @@ class TestPanelBackground(unittest.TestCase):
         self.ids = attribute_values(self.tree, "id")
 
     def test_nine_slice_ids_present(self):
-        for name in SLICE_IDS:
-            self.assertIn(name, self.ids, name)
+        assert_slice_ids_present(self, self.tree, [""])
 
     def test_hint_ids_present(self):
         for name in HINT_IDS:

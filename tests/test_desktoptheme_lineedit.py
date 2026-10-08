@@ -7,10 +7,10 @@ import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import LINEEDIT_SVG
 from svg_assertions import (
-    SLICE_IDS,
     assert_corner_pixels,
     assert_edge_band_pixels,
     assert_no_script_elements,
+    assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
     rect_geometry,
@@ -20,13 +20,7 @@ from svg_assertions import (
 
 class TestLineEdit(unittest.TestCase):
     def test_lineedit_slice_ids(self):
-        tree = ET.parse(LINEEDIT_SVG)
-        ids = attribute_values(tree, "id")
-        for name in SLICE_IDS:
-            self.assertIn(f"base-{name}", ids, name)
-        for side in ("top", "bottom", "left", "right"):
-            self.assertIn(f"base-hint-{side}-margin", ids, side)
-        self.assertIn("hint-tile-center", ids)
+        assert_slice_ids_present(self, ET.parse(LINEEDIT_SVG), ["base"])
 
     def test_lineedit_hint_geometry(self):
         # `test_lineedit_slice_ids` pins only the hint ids, so a margin or

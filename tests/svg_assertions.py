@@ -45,6 +45,26 @@ def attribute_values(tree, name):
     return {element.get(name) for element in tree.iter() if element.get(name)}
 
 
+def assert_slice_ids_present(case, tree, prefixes):
+    """Assert each state's nine-slice, margin-hint and centre ids are present.
+
+    *prefixes* lists each state prefix in *tree* -- ``("plain", "raised",
+    "sunken")`` for frame, ``["base"]`` for lineedit, ``[""]`` for an
+    unprefixed SVG. Every state must carry all nine ``SLICE_IDS`` and the four
+    margin hints KSvg reads to size the nine-slice; the shared
+    ``hint-tile-center`` is checked once. *case* is the calling
+    ``unittest.TestCase``.
+    """
+    ids = attribute_values(tree, "id")
+    for prefix in prefixes:
+        sep = "-" if prefix else ""
+        for name in SLICE_IDS:
+            case.assertIn(f"{prefix}{sep}{name}", ids, name)
+        for side in ("top", "bottom", "left", "right"):
+            case.assertIn(f"{prefix}{sep}hint-{side}-margin", ids, side)
+    case.assertIn("hint-tile-center", ids)
+
+
 def groups_with_id(tree):
     """Yield each id-bearing `<g>` element in *tree*.
 

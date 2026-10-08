@@ -9,6 +9,7 @@ from desktoptheme_paths import LISTITEM_SVG
 from svg_assertions import (
     SLICE_IDS,
     assert_no_script_elements,
+    assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
     rect_geometry,
@@ -18,14 +19,7 @@ from svg_assertions import (
 
 class TestListItem(unittest.TestCase):
     def test_listitem_slice_ids(self):
-        tree = ET.parse(LISTITEM_SVG)
-        ids = attribute_values(tree, "id")
-        for prefix in ("normal", "pressed"):
-            for name in SLICE_IDS:
-                self.assertIn(f"{prefix}-{name}", ids, name)
-            for side in ("top", "bottom", "left", "right"):
-                self.assertIn(f"{prefix}-hint-{side}-margin", ids, side)
-        self.assertIn("hint-tile-center", ids)
+        assert_slice_ids_present(self, ET.parse(LISTITEM_SVG), ("normal", "pressed"))
 
     def test_listitem_hint_geometry(self):
         # `test_listitem_slice_ids` pins only the hint ids, so a margin or

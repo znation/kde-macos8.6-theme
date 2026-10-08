@@ -9,12 +9,11 @@ import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import DTHEME_ID, FRAME_SVG
 from svg_assertions import (
-    SLICE_IDS,
     assert_corner_pixels,
     assert_edge_band_pixels,
     assert_no_script_elements,
+    assert_slice_ids_present,
     assert_tiles_placed_by_margins,
-    attribute_values,
     rect_geometry,
     render_slices,
 )
@@ -80,13 +79,7 @@ CORNER_PIXELS = {
 class TestFrame(unittest.TestCase):
     def test_frame_svg_contract(self):
         tree = ET.parse(FRAME_SVG)
-        ids = attribute_values(tree, "id")
-        for prefix in FRAME_PREFIXES:
-            for name in SLICE_IDS:
-                self.assertIn(f"{prefix}-{name}", ids, name)
-            for side in ("top", "bottom", "left", "right"):
-                self.assertIn(f"{prefix}-hint-{side}-margin", ids, side)
-        self.assertIn("hint-tile-center", ids)
+        assert_slice_ids_present(self, tree, FRAME_PREFIXES)
         # Read the raw file for the palette: the frame's hints deliberately
         # avoid the Platinum colours, so every hit here comes from the artwork.
         with open(FRAME_SVG, encoding="utf-8") as handle:
