@@ -255,6 +255,17 @@ class TestDecode(unittest.TestCase):
         self.assertIn("1 entry", message)
         self.assertIn("3 bytes", message)
 
+    def test_palette_index_outside_multi_entry_plte_counts_entries(self):
+        # The same out-of-range diagnostic on a palette with more than one
+        # entry must say "entries", not the singular "entry": the message
+        # counts the palette so the user can see how short it is.
+        palette = bytes([255, 0, 0, 0, 255, 0])  # two entries: indices 0 and 1
+        data = make_png(1, 1, [bytes([2])], color_type=3, palette=palette)
+        message = self._decode_error(data)
+        self.assertIn("index 2", message)
+        self.assertIn("2 entries", message)
+        self.assertIn("6 bytes", message)
+
     def test_palette_length_not_multiple_of_three(self):
         # A PLTE whose length is not a multiple of 3 ends in a partial RGB
         # entry. Index 0 would still decode, so without this check a malformed
