@@ -1,6 +1,5 @@
 """Validate the org.macos8.desktop Plasma desktop theme package."""
 
-import configparser
 import json
 import os
 import shutil
@@ -9,8 +8,8 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
+from kde_config import read as read_kde_config
 from theme_install import ROOT, install, uninstall
-
 DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
@@ -90,10 +89,7 @@ class TestPanelBackground(unittest.TestCase):
 
 class TestDefaultsWiring(unittest.TestCase):
     def test_defaults_select_the_desktop_theme(self):
-        parser = configparser.ConfigParser(interpolation=None)
-        parser.optionxform = str
-        with open(LNF_DEFAULTS, encoding="utf-8") as handle:
-            parser.read_file(handle)
+        parser = read_kde_config(LNF_DEFAULTS)
         self.assertEqual(
             parser.get(PLASMA_SECTION, "name"),
             load_metadata()["KPlugin"]["Id"],
@@ -232,9 +228,7 @@ class TestApplyDesktopTheme(unittest.TestCase):
                 text=True,
             )
             self.assertEqual(applied.returncode, 0, applied.stderr)
-            parser = configparser.ConfigParser(interpolation=None)
-            parser.optionxform = str
-            parser.read(os.path.join(tmp, "config", "plasmarc"))
+            parser = read_kde_config(os.path.join(tmp, "config", "plasmarc"))
             self.assertEqual(parser.get("Theme", "name"), DTHEME_ID)
 
 
