@@ -257,5 +257,48 @@ class TestControlCharactersInFilenames(unittest.TestCase):
         self.assertIn("\\u000a", joined)
 
 
+class TestRepositoryCheckEntryPoint(unittest.TestCase):
+    """``main`` with no arguments runs the repository reference check.
+
+    The built-in self-test drives only ``--help`` and unknown-argument
+    handling, and ``make check`` does not run the opt-in
+    ``make check-references``, so the exit status of the repository check was
+    unverified: a regression that returned 0 on a broken set would let a
+    missing or undeclared image pass silently.
+    """
+
+    def _run_no_args(self, module, directory):
+        out, err = io.StringIO(), io.StringIO()
+        with unittest.mock.patch.object(module, "REFERENCE_DIR", str(directory)):
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                code = module.main(["check_references.py"])
+        return code, out.getvalue(), err.getvalue()
+
+    def test_clean_set_exits_zero(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text(
+                "good.png | https://example.test/g.png | label\n",
+                encoding="utf-8",
+            )
+            (root / "good.png").write_bytes(module.PNG_MAGIC)
+            code, out, err = self._run_no_args(module, root)
+        self.assertEqual(code, 0, out + err)
+        self.assertIn("reference set is consistent", out)
+        self.assertEqual(err, "")
+
+    def test_broken_set_exits_one_and_names_each_problem(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+            (root / "extra.png").write_bytes(module.PNG_MAGIC)
+            code, out, err = self._run_no_args(module, root)
+        self.assertEqual(code, 1, out + err)
+        self.assertIn("extra.png", err)
+        self.assertIn("1 problem(s) in the reference set", err)
+
+
 if __name__ == "__main__":
     unittest.main()
