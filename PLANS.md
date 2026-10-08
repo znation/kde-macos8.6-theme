@@ -13,9 +13,11 @@ _None yet._
 
 **Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button,
 checkmarks, and text-field plans: it adds one widget file to the existing
-`org.macos8.desktop` desktop-theme package and a `TestListItem` class plus one `TestInstall`
-tuple entry to `tests/test_desktoptheme.py`. It does not touch `button.svg`, `frame.svg`,
-`radiobutton.svg`, `checkmarks.svg`, `lineedit.svg`, or `panel-background.svg`.
+`org.macos8.desktop` desktop-theme package, a new `test_desktoptheme_listitem.py` module beside the existing
+`tests/test_desktoptheme_lineedit.py` with the `TestListItem` class, and one `TestInstall` tuple
+entry in `tests/test_desktoptheme.py`. It does not touch
+`button.svg`, `frame.svg`, `radiobutton.svg`, `checkmarks.svg`, `lineedit.svg`, or
+`panel-background.svg`.
 
 **Goal.** Ship `widgets/listitem.svg` in the `org.macos8.desktop` desktop theme so
 `PlasmaComponents.ItemDelegate` (and the applet `PlasmaExtras.ListItem`) draw the Platinum flat
@@ -74,11 +76,16 @@ selection row instead of Breeze's rounded gradient, and so the theme stops inher
      outline).
    No `hover-*`, `section-*`, `separator`, `focus-*`, `class="ColorScheme-*"`,
    `currentColor`, or `<script>`, and no element outside the 12x12 canvas.
-2. `tests/test_desktoptheme.py` (edit):
-   - Add `LISTITEM_SVG = os.path.join(PACKAGE, "widgets", "listitem.svg")` beside
-     `LINEEDIT_SVG`.
-   - Add `("listitem.svg", LISTITEM_SVG, 12, 12)` to `SVG_CANVASES`.
-   - Add `class TestListItem` beside `TestLineEdit`:
+2. `tests/desktoptheme_paths.py` (edit): add
+   `LISTITEM_SVG = os.path.join(PACKAGE, "widgets", "listitem.svg")` beside `LINEEDIT_SVG`.
+3. `tests/test_desktoptheme.py` (edit): add `("listitem.svg", LISTITEM_SVG, 12, 12)` to
+   `SVG_CANVASES`, and add `os.path.join("widgets", "listitem.svg")` to
+   `TestInstall.INSTALLED_FILES` (the byte-identity tuple the lifecycle cases iterate).
+4. New `test_desktoptheme_listitem.py` beside `tests/test_desktoptheme_lineedit.py` with
+   `class TestListItem`, importing
+   `LISTITEM_SVG` from `desktoptheme_paths` and `SLICE_IDS`, `attribute_values`,
+   `render_slices`, `assert_tiles_placed_by_margins`, and `assert_no_script_elements` from
+   `svg_assertions`:
      - `test_listitem_slice_ids`: parse; assert the id set contains every
        `{normal,pressed}-{slice}` id for the nine `SLICE_IDS`, plus `hint-tile-center` and the
        four `{prefix}-hint-{side}-margin` ids for both prefixes.
@@ -92,16 +99,15 @@ selection row instead of Breeze's rounded gradient, and so the theme stops inher
      - `test_listitem_tiles_placed_by_margins`:
        `assert_tiles_placed_by_margins(self, self.tree, ["normal", "pressed"])`.
      - `test_no_script_elements`.
-   - Add `os.path.join("widgets", "listitem.svg")` to `TestInstall.INSTALLED_FILES` (the
-     byte-identity tuple the lifecycle cases iterate).
-3. `README.md` (edit): add "list item" to the `tumwater:status` block's desktop-theme widget
+5. `README.md` (edit): add "list item" to the `tumwater:status` block's desktop-theme widget
    parenthetical, and `widgets/listitem.svg` (the flat #CCCCFF selection row for list and
    applet item delegates) to the Installing section's desktop-theme sentence.
 
-**Files touched.** New: `listitem.svg` in the package's `widgets/` subdirectory. Edited:
-`tests/test_desktoptheme.py` (`LISTITEM_SVG`, `SVG_CANVASES`, `TestListItem`, `TestInstall`
-`INSTALLED_FILES`), `README.md`. No change to the color scheme, the look-and-feel package, the
-Makefile, or the other widgets.
+**Files touched.** New: `listitem.svg` in the package's `widgets/` subdirectory and
+`test_desktoptheme_listitem.py` beside `tests/test_desktoptheme_lineedit.py`. Edited:
+`tests/desktoptheme_paths.py` (`LISTITEM_SVG`),
+`tests/test_desktoptheme.py` (`SVG_CANVASES`, `TestInstall` `INSTALLED_FILES`), `README.md`. No
+change to the color scheme, the look-and-feel package, the Makefile, or the other widgets.
 
 **Acceptance criteria.**
 - `make check` exits 0 with `TestListItem` passing and the extended `TestInstall` byte-identity
