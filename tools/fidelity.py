@@ -204,9 +204,15 @@ def read_png(path: str | Path) -> Image:
 def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
     """Return the ``width x height`` region of ``image`` at ``(x, y)``."""
     if x < 0 or y < 0 or width <= 0 or height <= 0:
-        raise FidelityError("crop rectangle must have positive size and origin")
+        raise FidelityError(
+            f"crop rectangle must have positive size and origin: "
+            f"x={x} y={y} w={width} h={height}"
+        )
     if x + width > image.width or y + height > image.height:
-        raise FidelityError("crop rectangle falls outside the image")
+        raise FidelityError(
+            f"crop rectangle x={x} y={y} w={width} h={height} falls outside "
+            f"the {image.width}x{image.height} image"
+        )
     rows = []
     for row in range(y, y + height):
         start = (row * image.width + x) * 3

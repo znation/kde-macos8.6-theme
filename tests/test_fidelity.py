@@ -191,6 +191,25 @@ class TestCompare(unittest.TestCase):
         with self.assertRaises(fidelity.FidelityError):
             fidelity.crop(image, 1, 1, 2, 2)
 
+    def test_crop_nonpositive_rect_error_names_values(self):
+        # The message must echo the rejected rectangle so a CLI user can see
+        # which of x/y/w/h was wrong without re-deriving it from the input.
+        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        with self.assertRaises(fidelity.FidelityError) as caught:
+            fidelity.crop(image, 0, 0, 0, 2)
+        message = str(caught.exception)
+        self.assertIn("x=0 y=0 w=0 h=2", message)
+
+    def test_crop_out_of_bounds_error_names_rect_and_image(self):
+        # The message must name both the offending rectangle and the image it
+        # was measured against, since neither is otherwise visible.
+        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        with self.assertRaises(fidelity.FidelityError) as caught:
+            fidelity.crop(image, 3, 3, 2, 2)
+        message = str(caught.exception)
+        self.assertIn("x=3 y=3 w=2 h=2", message)
+        self.assertIn("4x4", message)
+
 
 class TestCli(unittest.TestCase):
     def _write(self, directory: Path, name: str, data: bytes) -> str:
