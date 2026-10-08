@@ -16,6 +16,9 @@ from tools import png
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
+# color_type -> channels per pixel at bit depth 8, mirroring tools/png.py's set.
+_CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
+
 
 def _chunk(ctype: bytes, payload: bytes) -> bytes:
     return (
@@ -69,11 +72,19 @@ def make_png(
     Every row must be exactly ``width * channels`` bytes and ``filter_types``,
     when given, must have one entry per row. A mismatch is a bug in the caller
     (a short row silently shifts every later scanline), so it is reported here
-    instead of surfacing later as a confusing decode error. Fewer rows than
-    ``height`` is allowed: a test builds a deliberately truncated IDAT that
-    way.
+    instead of surfacing later as a confusing decode error. ``color_type``
+    must be one of the supported PNG types (0, 2, 3, 4 or 6); anything else is
+    reported the same way. Fewer rows than ``height`` is allowed: a test
+    builds a deliberately truncated IDAT that way.
     """
-    channels = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}[color_type]
+    channels = _CHANNELS.get(color_type)
+    if channels is None:
+        # An unknown color type is a fixture bug; the dict lookup used to
+        # escape as a bare KeyError that named only the number.
+        raise ValueError(
+            f"make_png: unsupported color_type {color_type}; expected one of "
+            f"{sorted(_CHANNELS)}"
+        )
     bpp = channels
     expected = width * channels
     if filter_types is not None and len(filter_types) != len(rows):

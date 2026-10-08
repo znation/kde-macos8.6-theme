@@ -88,6 +88,15 @@ class TestMakePng(unittest.TestCase):
         self.assertIn("2 entries", message)
         self.assertIn("for 1 rows", message)
 
+    def test_rejects_unsupported_color_type(self):
+        # An unknown color type is a fixture bug too; the dict lookup used to
+        # escape as a bare KeyError that named only the number.
+        with self.assertRaises(ValueError) as ctx:
+            make_png(1, 1, [bytes([0])], color_type=5)
+        message = str(ctx.exception)
+        self.assertIn("color_type 5", message)
+        self.assertIn("[0, 2, 3, 4, 6]", message)
+
     def test_accepts_exact_row_and_matching_filters(self):
         data = make_png(1, 1, [bytes([7, 8, 9])], filter_types=[0])
         self.assertEqual(png.decode_png(data).rgb, bytes([7, 8, 9]))
