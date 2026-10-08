@@ -100,7 +100,11 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             "http://example.test",
             "git+ssh://example.test/repo",
             "a.b-c+d://example.test",
-            # file:// is the one scheme whose authority may be empty.
+            # A host is what follows any userinfo and precedes any port.
+            "https://@example.test/x.png",
+            "https://user@example.test/x.png",
+            "https://user:pass@example.test:8080/x.png",
+            # file:// is the one scheme whose host may be empty.
             "file:///tmp/x.png",
             "file://host/tmp/x.png",
         ):
@@ -127,6 +131,32 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
         ):
             self.assertFalse(self.is_absolute(url), repr(url))
         self.assertTrue(self.is_absolute("file:///x.png"))
+
+    def test_urls_with_an_authority_but_no_host_are_rejected(self):
+        # A non-empty authority can still name no host: ``user@`` is userinfo
+        # and ``:8080`` is a port, each leaving the host empty, so the
+        # citation points nowhere even though the scheme is valid.
+        for url in (
+            "https://@/x.png",
+            "https://user@/x.png",
+            "https://:8080/x.png",
+            "https://user@:80/x.png",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+
+    def test_no_host_problem_names_the_host_not_the_scheme(self):
+        # The scheme is valid, so a diagnostic that blames it sends the reader
+        # after the wrong fix; it must point at the missing host instead.
+        module = load_checker()
+        problems = check_references_in(
+            module,
+            "bad.png | https://user@/a.png | label\n",
+            {"bad.png": module.PNG_MAGIC},
+        )
+        assert_problem(self, problems, "must name a host")
+        self.assertFalse(
+            any("absolute URL" in line for line in problems), problems
+        )
 
     def test_malformed_scheme_is_rejected(self):
         for url in (

@@ -78,10 +78,10 @@ def _looks_like_image(path: Path) -> bool:
 # scheme, however absolute the rest of the URL looks.
 _SCHEME_PUNCTUATION = frozenset("+-.")
 
-# Schemes whose authority may legitimately be empty: ``file:///path`` names no
-# host, while a network scheme with an empty authority (``https:///path``) is a
+# Schemes whose host may legitimately be empty: ``file:///path`` names no
+# host, while a network scheme with an empty host (``https:///path``) is a
 # citation with nowhere to point.
-_SCHEMES_ALLOWING_EMPTY_AUTHORITY = frozenset({"file"})
+_SCHEMES_ALLOWING_EMPTY_HOST = frozenset({"file"})
 
 
 def _url_problem(url: str) -> str | None:
@@ -94,7 +94,8 @@ def _url_problem(url: str) -> str | None:
     (which belong percent-encoded), and the authority between ``://`` and the
     path must name a host unless the scheme is ``file``. The rules catch broken
     citations that a first-character-only scheme test accepts: ``ht!tp://x``,
-    ``https://example.test/a b.png`` and ``https:///image.png``.
+    ``https://example.test/a b.png``, ``https:///image.png`` and
+    ``https://user@/image.png``.
 
     The failures are returned separately because the fix differs: a URL with no
     (or a malformed) scheme needs a source, one whose scheme is fine but which
@@ -115,10 +116,13 @@ def _url_problem(url: str) -> str | None:
         )
     if not all(ch.isprintable() and not ch.isspace() for ch in url):
         return "must not contain whitespace or control characters; percent-encode them"
-    # The authority runs to the first ``/``, ``?`` or ``#``; an empty one means
-    # ``scheme:///...`` or ``scheme://?query``, which names no host at all.
+    # The authority runs to the first ``/``, ``?`` or ``#``. Its host is what
+    # remains after any ``userinfo@`` prefix and ``:port`` suffix, so an
+    # authority that is empty, or holds only userinfo or only a port, names no
+    # host at all (``scheme:///path``, ``scheme://@/path``, ``scheme://:80/p``).
     authority = rest.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
-    if not authority and scheme.lower() not in _SCHEMES_ALLOWING_EMPTY_AUTHORITY:
+    host = authority.rsplit("@", 1)[-1].split(":", 1)[0]
+    if not host and scheme.lower() not in _SCHEMES_ALLOWING_EMPTY_HOST:
         return (
             "must name a host between the scheme and the path "
             "(only file:// URLs may omit it), "
@@ -359,6 +363,12 @@ def _self_test() -> int:
         # An empty authority (``https:///b.png``) names no host, so the citation
         # points nowhere; only file:// may legitimately omit it.
         ("url with an empty authority", "bad.png | https:///b.png | label\n",
+         [("bad.png", PNG_MAGIC)],
+         ["must name a host", "bad.png: image has no entry"]),
+        # An authority can be non-empty yet still name no host: ``user@`` is
+        # userinfo and ``:8080`` is a port, each with an empty host.
+        ("url with an authority but no host",
+         "bad.png | https://user@/b.png | label\n",
          [("bad.png", PNG_MAGIC)],
          ["must name a host", "bad.png: image has no entry"]),
         ("path in filename", "sub/good.png | https://example.test/x | l\n",
