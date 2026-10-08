@@ -1,10 +1,12 @@
 """The shared install harness and the Makefile paths it drives.
 
-Every `make` / `plasma-apply-*` / `kpackagetool6` call the tests make goes
-through `theme_install.run`, which applies `SUBPROCESS_TIMEOUT`; a fake `make`
-that never exits must raise `subprocess.TimeoutExpired` instead of stalling
-`make check` forever. The Makefile also has to survive a `DESTDIR` or
-`XDG_DATA_HOME` that contains whitespace, so its recipe words are quoted.
+`theme_install.run` is the suite's timeout runner: the tests route their `make`
+/ `plasma-apply-*` / `kpackagetool6` calls through it, so a fake `make` that
+never exits raises `subprocess.TimeoutExpired` instead of stalling `make check`
+forever. (One lock test starts `make install` directly, bounding it with its
+own deadline and `communicate(timeout=...)`.) The Makefile also has to survive
+a `DESTDIR` or `XDG_DATA_HOME` that contains whitespace, so its recipe words
+are quoted.
 """
 
 import os
