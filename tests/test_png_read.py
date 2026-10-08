@@ -77,6 +77,32 @@ class TestReadPng(unittest.TestCase):
             self.assertIn("Git LFS pointer", message)
             self.assertIn("git lfs pull", message)
 
+    def test_read_png_names_a_read_failure(self):
+        # A read() that fails after a successful open (a disk error) must be
+        # reported as a PngError naming the file, not leak the raw OSError:
+        # the fidelity CLI catches only PngError and FidelityError, so a leak
+        # would crash it with a traceback instead of its exit-2 read-error
+        # path. Patch fdopen to hand back the real handle with a failing read.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "unreadable.png"
+            path.write_bytes(b"x")
+            real_fdopen = png.os.fdopen
+
+            def failing_fdopen(fd, *args, **kwargs):
+                handle = real_fdopen(fd, *args, **kwargs)
+                handle.read = mock.Mock(
+                    side_effect=OSError(5, "Input/output error")
+                )
+                return handle
+
+            with mock.patch.object(png.os, "fdopen", failing_fdopen):
+                with self.assertRaises(png.PngError) as ctx:
+                    png.read_png(path)
+        message = str(ctx.exception)
+        self.assertIn(str(path), message)
+        self.assertIn("cannot read", message)
+        self.assertIn("Input/output error", message)
+
     def test_read_png_rejects_a_fifo_instead_of_blocking(self):
         # open() on a FIFO blocks until a writer appears, and read() on a pipe
         # whose writer never sends or closes blocks forever; the byte cap
