@@ -6,6 +6,7 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
+import random
 import subprocess
 import sys
 import tempfile
@@ -26,6 +27,39 @@ from png_fixtures import (  # noqa: E402
 from theme_install import run  # noqa: E402
 
 TOOL = REPO_ROOT / "tools" / "fidelity.py"
+
+
+class TestAbsDiff(unittest.TestCase):
+    """The packed-integer byte differ must agree with the per-byte form."""
+
+    @staticmethod
+    def _reference(a: bytes, b: bytes) -> bytes:
+        return bytes(abs(x - y) for x, y in zip(a, b))
+
+    def test_matches_per_byte_reference(self):
+        rng = random.Random(0)
+        lengths = list(range(0, 40)) + [63, 64, 65, 255, 256, 257, 1000]
+        for length in lengths:
+            for _ in range(8):
+                a = bytes(rng.randrange(256) for _ in range(length))
+                b = bytes(rng.randrange(256) for _ in range(length))
+                with self.subTest(length=length):
+                    self.assertEqual(
+                        fidelity._abs_diff(a, b), self._reference(a, b)
+                    )
+
+    def test_extreme_values(self):
+        # 0/255 is where a borrow or carry would show up first, for both an
+        # even and an odd byte count.
+        for length in (1, 2, 7):
+            for x in (0, 255):
+                for y in (0, 255):
+                    a = bytes([x]) * length
+                    b = bytes([y]) * length
+                    with self.subTest(length=length, x=x, y=y):
+                        self.assertEqual(
+                            fidelity._abs_diff(a, b), self._reference(a, b)
+                        )
 
 
 class TestCompare(unittest.TestCase):
