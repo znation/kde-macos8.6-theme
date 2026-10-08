@@ -43,7 +43,9 @@ class PackageMetadata:
         self.assertEqual(plugin["Name"], "Mac OS 8.6")
 
     def test_plugin_version(self):
-        self.assertTrue(self.metadata["KPlugin"].get("Version"))
+        version = self.metadata["KPlugin"].get("Version")
+        self.assertIsInstance(version, str, "KPlugin.Version")
+        self.assertTrue(version.strip(), "KPlugin.Version must not be blank")
 
     def test_plasma_api_version(self):
         self.assertEqual(
