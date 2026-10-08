@@ -27,6 +27,8 @@ from __future__ import annotations
 import argparse
 import math
 import sys
+from collections.abc import Callable
+from typing import TypeVar
 
 if __package__:
     from tools.fidelity_metrics import (
@@ -106,17 +108,60 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
     return x, y, width, height
 
 
-def _finite_float(value: str, option: str) -> float:
+_Number = TypeVar("_Number", int, float)
+
+
+def _plain_number(
+    value: str,
+    option: str,
+    noun: str,
+    article: str,
+    parse: Callable[[str], _Number],
+) -> _Number:
+    """Return ``parse(value)``, rejecting Python-only numeric text.
+
+    ``int()``/``float()`` accept forms a command-line number should not --
+    underscore digit separators, non-ASCII decimal digits and surrounding
+    whitespace -- so the text is checked before parsing. *noun* names the
+    value in the diagnostics ("number" for a float option, "integer" for an
+    int one) and *article* is its indefinite article ("a" or "an"); *parse*
+    is the stdlib constructor whose ``ValueError`` becomes the option-named
+    rejection.
+    """
     if not _is_plain_ascii_number(value):
         raise argparse.ArgumentTypeError(
-            f"{option} must be a plain ASCII number: {value!r}"
+            f"{option} must be a plain ASCII {noun}: {value!r}"
         )
     try:
-        number = float(value)
+        return parse(value)
     except ValueError as exc:
         raise argparse.ArgumentTypeError(
-            f"{option} must be a number: {value!r}"
+            f"{option} must be {article} {noun}: {value!r}"
         ) from exc
+
+
+def _channel_amount(
+    value: str, number: _Number, option: str, noun: str
+) -> _Number:
+    """Return *number* once it is a valid 0-255 per-channel *noun*.
+
+    A per-channel delta or mean can never be negative or exceed 255, so a
+    value outside that range would silently disable the metric; both bounds
+    are rejected with an option-named diagnostic.
+    """
+    if number < 0:
+        raise argparse.ArgumentTypeError(
+            f"{option} must not be negative: {value!r}"
+        )
+    if number > 255:
+        raise argparse.ArgumentTypeError(
+            f"{option} must be at most 255 (a per-channel {noun}): {value!r}"
+        )
+    return number
+
+
+def _finite_float(value: str, option: str) -> float:
+    number = _plain_number(value, option, "number", "a", float)
     if not math.isfinite(number):
         raise argparse.ArgumentTypeError(f"{option} must be finite: {value!r}")
     return number
@@ -124,15 +169,7 @@ def _finite_float(value: str, option: str) -> float:
 
 def _max_mae(value: str) -> float:
     number = _finite_float(value, "--max-mae")
-    if number < 0:
-        raise argparse.ArgumentTypeError(
-            f"--max-mae must not be negative: {value!r}"
-        )
-    if number > 255:
-        raise argparse.ArgumentTypeError(
-            f"--max-mae must be at most 255 (a per-channel mean): {value!r}"
-        )
-    return number
+    return _channel_amount(value, number, "--max-mae", "mean")
 
 
 def _max_frac(value: str) -> float:
@@ -145,25 +182,8 @@ def _max_frac(value: str) -> float:
 
 
 def _tolerance(value: str) -> int:
-    if not _is_plain_ascii_number(value):
-        raise argparse.ArgumentTypeError(
-            f"--tolerance must be a plain ASCII integer: {value!r}"
-        )
-    try:
-        number = int(value)
-    except ValueError as exc:
-        raise argparse.ArgumentTypeError(
-            f"--tolerance must be an integer: {value!r}"
-        ) from exc
-    if number < 0:
-        raise argparse.ArgumentTypeError(
-            f"--tolerance must not be negative: {value!r}"
-        )
-    if number > 255:
-        raise argparse.ArgumentTypeError(
-            f"--tolerance must be at most 255 (a per-channel delta): {value!r}"
-        )
-    return number
+    number = _plain_number(value, "--tolerance", "integer", "an", int)
+    return _channel_amount(value, number, "--tolerance", "delta")
 
 
 def main(argv: list[str] | None = None) -> int:
