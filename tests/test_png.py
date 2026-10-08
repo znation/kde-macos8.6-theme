@@ -73,6 +73,15 @@ class TestDecode(unittest.TestCase):
         data = make_png(2, 1, rows, color_type=3, palette=palette)
         self.assertEqual(png.decode_png(data).rgb, bytes([255, 0, 0, 0, 255, 0]))
 
+    def test_palette_full_table_expands_every_index(self):
+        # The table-driven expansion must map each index to its PLTE entry,
+        # including the last one (255).
+        palette = bytes(v for i in range(256) for v in (i, i ^ 0xFF, (i * 7) & 0xFF))
+        rows = [bytes([0, 1, 254, 255])]
+        data = make_png(4, 1, rows, color_type=3, palette=palette)
+        expected = b"".join(palette[i * 3 : i * 3 + 3] for i in (0, 1, 254, 255))
+        self.assertEqual(png.decode_png(data).rgb, expected)
+
     def test_palette_index_outside_plte_names_index_and_size(self):
         # A palette image whose pixel index has no PLTE entry must name the
         # offending index and the palette size, or the user cannot tell which

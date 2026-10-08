@@ -206,16 +206,20 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     if color_type == 3:  # palette
         if palette is None:
             raise PngError("palette PNG has no PLTE chunk")
-        out = bytearray()
-        for index in samples:
-            base = index * 3
-            if base + 3 > len(palette):
-                raise PngError(
-                    f"palette PNG index {index} is outside PLTE "
-                    f"(palette has {len(palette)} bytes)"
-                )
-            out += palette[base : base + 3]
-        return bytes(out)
+        entries = len(palette) // 3
+        if max(samples, default=0) >= entries:
+            # An out-of-range index must still name the first offending index
+            # and the palette size; the all-in-range case skips this scan.
+            for index in samples:
+                if index >= entries:
+                    raise PngError(
+                        f"palette PNG index {index} is outside PLTE "
+                        f"(palette has {len(palette)} bytes)"
+                    )
+        # Expand indices at C speed: index a table of 3-byte entries and join,
+        # instead of a Python loop concatenating a slice per pixel.
+        table = [palette[i * 3 : i * 3 + 3] for i in range(entries)]
+        return b"".join(map(table.__getitem__, samples))
     raise PngError(f"unsupported PNG color type {color_type}")
 
 
