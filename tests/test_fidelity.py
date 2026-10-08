@@ -139,6 +139,18 @@ class TestDecode(unittest.TestCase):
         data = make_png(2, 1, rows, color_type=3, palette=palette)
         self.assertEqual(fidelity.decode_png(data).rgb, bytes([255, 0, 0, 0, 255, 0]))
 
+    def test_palette_index_outside_plte_names_index_and_size(self):
+        # A palette image whose pixel index has no PLTE entry must name the
+        # offending index and the palette size, or the user cannot tell which
+        # pixel is bad or how short the palette is.
+        palette = bytes([255, 0, 0])  # one entry: index 0 only
+        data = make_png(1, 1, [bytes([1])], color_type=3, palette=palette)
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(data)
+        message = str(ctx.exception)
+        self.assertIn("index 1", message)
+        self.assertIn("3 bytes", message)
+
     def test_grayscale_and_rgba(self):
         gray = make_png(2, 1, [bytes([7, 200])], color_type=0)
         self.assertEqual(fidelity.decode_png(gray).rgb, bytes([7, 7, 7, 200, 200, 200]))

@@ -162,7 +162,10 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
         for index in samples:
             base = index * 3
             if base + 3 > len(palette):
-                raise FidelityError("palette PNG index is outside PLTE")
+                raise FidelityError(
+                    f"palette PNG index {index} is outside PLTE "
+                    f"(palette has {len(palette)} bytes)"
+                )
             out += palette[base : base + 3]
         return bytes(out)
     raise FidelityError(f"unsupported PNG color type {color_type}")
