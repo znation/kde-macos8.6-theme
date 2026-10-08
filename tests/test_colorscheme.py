@@ -222,6 +222,68 @@ class TestInstall(unittest.TestCase):
             with open(SCHEME, "rb") as source, open(installed, "rb") as target:
                 self.assertEqual(source.read(), target.read())
 
+    def test_failed_reinstall_keeps_the_previous_scheme(self):
+        """A copy that dies partway must not truncate the installed scheme.
+
+        `install` writes straight to the destination, so a copy interrupted by
+        a kill or a full disk leaves a truncated `.colors` Plasma cannot parse;
+        stage the copy and rename it in so a failure leaves the old scheme
+        intact.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            first = install(tmp)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            installed = os.path.join(
+                tmp, "share", "color-schemes", "MacOS8.colors"
+            )
+            with open(installed, "rb") as handle:
+                good = handle.read()
+
+            # Shadow `install` so the scheme copy writes part of the file then
+            # dies, like a killed or out-of-space install would. Directory
+            # creation (`install -d`) still passes through to the real tool.
+            real_install = shutil.which("install")
+            bindir = os.path.join(tmp, "fakebin")
+            os.makedirs(bindir)
+            fake_install = os.path.join(bindir, "install")
+            with open(fake_install, "w", encoding="utf-8") as handle:
+                handle.write(
+                    "#!/bin/sh\n"
+                    'case "$1" in\n'
+                    '  -d) exec "%s" "$@";;\n'
+                    "  -D*)\n"
+                    "    for last; do :; done\n"
+                    '    mkdir -p "$(dirname "$last")"\n'
+                    '    printf partial > "$last"\n'
+                    "    exit 1;;\n"
+                    "esac\n"
+                    'exec "%s" "$@"\n' % (real_install, real_install)
+                )
+            os.chmod(fake_install, 0o755)
+
+            env = dict(os.environ)
+            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
+            result = subprocess.run(
+                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertFalse(
+                os.path.exists(
+                    os.path.join(
+                        tmp, "share", "color-schemes",
+                        ".MacOS8.colors.staging",
+                    )
+                ),
+                "staging file leaked after a failed install",
+            )
+            self.assertTrue(os.path.isfile(installed), installed)
+            with open(installed, "rb") as handle:
+                self.assertEqual(handle.read(), good)
+
     def test_make_install_names_the_scheme_after_its_source_basename(self):
         # KDE derives the scheme id from the installed filename, so install must
         # follow the source basename: a hardcoded destination name would install

@@ -28,7 +28,13 @@ check-references:
 	$(PYTHON) tools/check_references.py
 
 install:
-	install -Dm644 $(COLOR_SCHEME) $(INSTALL_DIR)/$(COLOR_SCHEME_NAME)
+# Stage the scheme as a hidden sibling and rename it in, so a copy that fails
+# or is interrupted cannot truncate the working installed scheme. The rename
+# replaces atomically, and the EXIT trap removes the staging file on failure.
+	@staging='$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging'; \
+	trap 'rm -f "$$staging"' EXIT; \
+	install -Dm644 $(COLOR_SCHEME) "$$staging" && \
+	mv "$$staging" $(INSTALL_DIR)/$(COLOR_SCHEME_NAME)
 	install -d $(LNF_INSTALL_DIR)
 # Stage the package as a sibling, then swap it in with a rename, so a copy that
 # fails or is interrupted cannot leave a partial package installed or delete the
