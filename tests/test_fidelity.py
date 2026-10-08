@@ -209,8 +209,10 @@ class TestDecode(unittest.TestCase):
     def test_grayscale_and_rgba(self):
         gray = make_png(2, 1, [bytes([7, 200])], color_type=0)
         self.assertEqual(fidelity.decode_png(gray).rgb, bytes([7, 7, 7, 200, 200, 200]))
-        rgba = make_png(1, 1, [bytes([1, 2, 3, 4])], color_type=6)
-        self.assertEqual(fidelity.decode_png(rgba).rgb, bytes([1, 2, 3]))
+        # Two pixels so dropping the alpha byte is checked across a stride
+        # rather than only at the first pixel.
+        rgba = make_png(2, 1, [bytes([1, 2, 3, 4, 5, 6, 7, 8])], color_type=6)
+        self.assertEqual(fidelity.decode_png(rgba).rgb, bytes([1, 2, 3, 5, 6, 7]))
 
     def test_rejects_non_png(self):
         with self.assertRaises(fidelity.FidelityError):

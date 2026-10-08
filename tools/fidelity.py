@@ -159,9 +159,12 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     if color_type == 2:  # truecolor RGB
         return samples
     if color_type == 6:  # truecolor + alpha, alpha ignored
-        return bytes(
-            b for i in range(0, len(samples), 4) for b in samples[i : i + 3]
-        )
+        # Drop every 4th (alpha) byte with one C-level slice deletion; a
+        # per-pixel Python generator here costs tens of millions of bytecode
+        # steps on a megapixel image.
+        out = bytearray(samples)
+        del out[3::4]
+        return bytes(out)
     if color_type == 0:  # grayscale
         return bytes(b for g in samples for b in (g, g, g))
     if color_type == 4:  # grayscale + alpha, alpha ignored
