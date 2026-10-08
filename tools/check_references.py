@@ -126,7 +126,11 @@ def check_references(directory: Path) -> list[str]:
         return [f"{sources}: missing sources file"]
 
     try:
-        sources_text = sources.read_text(encoding="utf-8")
+        # utf-8-sig strips a leading UTF-8 BOM that an editor may have added.
+        # The BOM is invisible, so decoding as plain UTF-8 folds it into the
+        # first filename and the check reports a phantom missing file instead
+        # of the real one, which then looks undeclared.
+        sources_text = sources.read_text(encoding="utf-8-sig")
     except OSError as exc:
         return [f"{sources}: could not be read: {exc}"]
     except UnicodeDecodeError as exc:
@@ -285,6 +289,11 @@ def _self_test() -> int:
         #  one substring per problem the checker must report -- exactly that many,
         #  each matched by a distinct problem)
         ("clean", "good.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
+         [("good.png", PNG_MAGIC)], None),
+        # An editor-added UTF-8 BOM is invisible: stripping it keeps the first
+        # entry readable instead of folding the BOM into its filename.
+        ("utf-8 BOM before the first entry",
+         "\ufeffgood.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
          [("good.png", PNG_MAGIC)], None),
         ("missing sources file", None, [("good.png", PNG_MAGIC)],
          ["missing sources file"]),
