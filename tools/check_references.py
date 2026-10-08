@@ -99,6 +99,12 @@ def check_references(directory: Path) -> list[str]:
         if not filename or not url or not label:
             problems.append(f"{sources}:{lineno}: empty field in entry: {line!r}")
             continue
+        if Path(filename).name != filename or filename in (".", ".."):
+            problems.append(
+                f"{sources}:{lineno}: {filename!r} must be a bare filename in "
+                f"{directory}/, not a path"
+            )
+            continue
         if filename in entries:
             problems.append(
                 f"{sources}:{lineno}: duplicate entry for {filename!r} "
@@ -155,6 +161,8 @@ def _self_test() -> int:
          [("good.png", PNG_MAGIC)], None),
         ("missing file", "ghost.png | https://example.test/g.png | label\n", [],
          "ghost.png"),
+        ("path in filename", "sub/good.png | u | l\n",
+         [("sub/good.png", PNG_MAGIC)], "bare filename"),
         ("undeclared image", "", [("extra.png", PNG_MAGIC)], "extra.png"),
         ("too few fields", "bad.png | https://example.test/b.png\n",
          [("bad.png", PNG_MAGIC)], "expected 3 fields"),
@@ -183,7 +191,9 @@ def _self_test() -> int:
                 filename, content = (
                     image if isinstance(image, tuple) else (image, b"")
                 )
-                (root / filename).write_bytes(content)
+                target = root / filename
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(content)
             problems = check_references(root)
         if expected is None:
             if problems:

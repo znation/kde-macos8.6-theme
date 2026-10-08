@@ -123,5 +123,39 @@ class TestUnreadableDirectory(unittest.TestCase):
         )
 
 
+class TestFilenameMustBeBare(unittest.TestCase):
+    def test_nested_filename_is_rejected_even_when_the_file_exists(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text(
+                "sub/good.png | https://example.test/g.png | label\n",
+                encoding="utf-8",
+            )
+            (root / "sub").mkdir()
+            (root / "sub" / "good.png").write_bytes(module.PNG_MAGIC)
+            problems = module.check_references(root)
+        self.assertTrue(
+            any("sub/good.png" in p and "bare filename" in p for p in problems),
+            problems,
+        )
+
+    def test_parent_traversal_is_rejected_even_when_the_file_exists(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "refs"
+            root.mkdir()
+            (root / module.SOURCES_NAME).write_text(
+                "../escape.png | https://example.test/e.png | label\n",
+                encoding="utf-8",
+            )
+            (root.parent / "escape.png").write_bytes(module.PNG_MAGIC)
+            problems = module.check_references(root)
+        self.assertTrue(
+            any("../escape.png" in p and "bare filename" in p for p in problems),
+            problems,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
