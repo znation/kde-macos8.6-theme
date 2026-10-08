@@ -30,6 +30,7 @@ BUTTON_MARGIN_HINTS = (
     "hint-top-margin", "hint-bottom-margin",
     "hint-left-margin", "hint-right-margin",
 )
+RADIOBUTTON_SVG = os.path.join(PACKAGE, "widgets", "radiobutton.svg")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"
@@ -207,6 +208,32 @@ class TestButton(unittest.TestCase):
             self.assertFalse(tag.endswith("script"), tag)
 
 
+class TestRadioButton(unittest.TestCase):
+    def test_radiobutton_contract(self):
+        tree = ET.parse(RADIOBUTTON_SVG)
+        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        for name in ("normal", "symbol", "hint-size"):
+            self.assertIn(name, ids, name)
+        fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
+        self.assertEqual(fills, {"#FFFFFF", "#000000"})
+        for element in tree.iter():
+            tag = element.tag.rsplit("}", 1)[-1]
+            self.assertFalse(tag.endswith("script"), tag)
+
+    def test_radiobutton_geometry(self):
+        # The black ring is a filled circle under the white face, so the two
+        # normal circles must stay r=8 over r=7 (a 1px outline), and the
+        # selected dot must stay r=3 (a 6x6 symbol).
+        tree = ET.parse(RADIOBUTTON_SVG)
+        by_id = {el.get("id"): el for el in tree.iter() if el.get("id")}
+        circles = [
+            el for el in by_id["normal"]
+            if el.tag.rsplit("}", 1)[-1] == "circle"
+        ]
+        self.assertEqual([float(el.get("r")) for el in circles], [8, 7])
+        self.assertEqual(float(by_id["symbol"].get("r")), 3)
+
+
 class TestFrame(unittest.TestCase):
     def test_frame_svg_contract(self):
         tree = ET.parse(FRAME_SVG)
@@ -273,6 +300,7 @@ class TestInstall(unittest.TestCase):
                 "metadata.json",
                 os.path.join("widgets", "panel-background.svg"),
                 os.path.join("widgets", "button.svg"),
+                os.path.join("widgets", "radiobutton.svg"),
             ):
                 source = os.path.join(PACKAGE, name)
                 target = os.path.join(installed, name)

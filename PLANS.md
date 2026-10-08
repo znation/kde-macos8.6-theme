@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 Platinum radio button widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum radio button widget for the desktop theme (done 2026-10-07)
 
 **Planned 2026-10-07 by plan.** Independent of the done frame and button plans: it adds one widget
 file to the existing `org.macos8.desktop` desktop-theme package and a `TestRadioButton` class plus
@@ -94,8 +98,6 @@ color scheme, the look-and-feel package, the Makefile, or the other widgets.
 **Follow-up (not planned here).** `widgets/checkmarks.svg` for the checkbox/radio glyph overlays,
 `widgets/actionbutton.svg` for `RoundButton`/`Dial`/`RoundShadow`, then `scrollbar`, `listitem`,
 and `background`.
-
-## Done
 
 ### Mac OS 8.6 Platinum frame widget for the desktop theme (done 2026-10-07)
 

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" radio button.
+
+     The unselected and selected states of PlasmaComponents.RadioButton: a
+     #FFFFFF face with a 1px #000000 outline, and a #000000 centre dot when
+     selected. The outline is a black filled circle under a white filled
+     circle, so the ring stays crisp with no stroke antialiasing. Mac OS 8.6
+     radios have no hover highlight, focus ring, or drop shadow, so those
+     elements are deliberately absent.
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="16" viewBox="0 0 48 16">
+  <!-- Unselected: 16x16 face, black outline under the white fill. -->
+  <g id="normal">
+    <circle cx="8" cy="8" r="8" fill="#000000"/>
+    <circle cx="8" cy="8" r="7" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Selected: the 6x6 black centre dot. -->
+  <circle id="symbol" cx="40" cy="8" r="3" fill="#000000"/>
+
+  <!-- Geometry hint: a 16x16 circle. KSvg reads its size, not its colour. -->
+  <circle id="hint-size" cx="24" cy="8" r="8" style="fill:#ff00ff"/>
+</svg>
