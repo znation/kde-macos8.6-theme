@@ -129,6 +129,26 @@ def with_ihdr_byte(data: bytes, offset: int, value: int) -> bytes:
     return data[:start] + bytes(payload) + crc + data[start + length + 4 :]
 
 
+def png_with_idat(
+    payload: bytes, width: int = 1, height: int = 1
+) -> bytes:
+    """Return a minimal 8-bit RGB PNG whose IDAT holds *payload* verbatim.
+
+    Tests that reach a decode failure past a valid IHDR -- a decompression
+    bomb, a truncated or corrupt deflate stream, an oversized declared image --
+    need control over the raw IDAT bytes, which ``make_png`` does not expose.
+    The IHDR declares ``width`` x ``height`` and the stream is closed with
+    IEND.
+    """
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    return (
+        _PNG_SIGNATURE
+        + _chunk(b"IHDR", ihdr)
+        + _chunk(b"IDAT", payload)
+        + _chunk(b"IEND", b"")
+    )
+
+
 def rgb_image(
     width: int, height: int, pixel: Callable[[int, int], tuple[int, int, int]]
 ) -> tuple[png.Image, bytes]:

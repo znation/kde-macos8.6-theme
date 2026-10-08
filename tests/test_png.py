@@ -28,6 +28,7 @@ from png_fixtures import (  # noqa: E402
     _chunk,
     _paeth,
     make_png,
+    png_with_idat,
     rgb_image,
     with_ihdr_byte,
 )
@@ -246,13 +247,7 @@ class TestDecode(unittest.TestCase):
         # materializing the whole stream (a decompression bomb).
         declared = 4  # 1x1 RGB: one filter byte + three channels
         bomb = bytes(declared) + bytes(16 * 1024 * 1024)
-        ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"IHDR", ihdr)
-            + _chunk(b"IDAT", zlib.compress(bomb))
-            + _chunk(b"IEND", b"")
-        )
+        data = png_with_idat(zlib.compress(bomb))
         tracemalloc.start()
         try:
             message = self._decode_error(data)
@@ -267,14 +262,8 @@ class TestDecode(unittest.TestCase):
         # declared byte count. Accepting it would silently drop the adler32
         # check that zlib.decompress performed before this change.
         raw = bytes([0, 1, 2, 3])  # 1x1 RGB: filter byte + three channels
-        ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
         truncated = zlib.compress(raw)[:-4]  # drop the trailing adler32
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"IHDR", ihdr)
-            + _chunk(b"IDAT", truncated)
-            + _chunk(b"IEND", b"")
-        )
+        data = png_with_idat(truncated)
         self.assertIn("truncated", self._decode_error(data))
 
     def test_rejects_corrupt_deflate_stream(self):
@@ -284,24 +273,14 @@ class TestDecode(unittest.TestCase):
         # become a PngError naming the corruption, not leak a raw zlib.error
         # past decode_png and read_png (which would print a traceback from the
         # CLI instead of a clean "fidelity: error:" line).
-        ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"IHDR", ihdr)
-            + _chunk(b"IDAT", b"\xff\xff\xff\xff")
-            + _chunk(b"IEND", b"")
-        )
+        data = png_with_idat(b"\xff\xff\xff\xff")
         self.assertIn("corrupt PNG image data", self._decode_error(data))
 
     def test_rejects_declared_image_over_pixel_limit(self):
         # A header may declare dimensions far larger than any screenshot; the
         # pixel limit must reject it before zlib decompresses anything.
-        ihdr = struct.pack(">IIBBBBB", 100_000, 100_000, 8, 2, 0, 0, 0)
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"IHDR", ihdr)
-            + _chunk(b"IDAT", zlib.compress(bytes(4)))
-            + _chunk(b"IEND", b"")
+        data = png_with_idat(
+            zlib.compress(bytes(4)), width=100_000, height=100_000
         )
         message = self._decode_error(data)
         self.assertIn("100000x100000", message)
