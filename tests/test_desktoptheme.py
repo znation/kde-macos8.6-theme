@@ -24,6 +24,7 @@ from desktoptheme_paths import (
     PACKAGE,
     PANEL_SVG,
     RADIOBUTTON_SVG,
+    SCROLLBAR_SVG,
 )
 from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
@@ -39,15 +40,16 @@ from theme_install import install, run, shadow_command_env
 PLASMA_SECTION = "plasmarc][Theme"
 
 
-# Each widget SVG's root canvas. The four nine-slice widgets share a tight
-# 12x12 canvas; checkmarks is two stacked 16x16 cells and radiobutton two
-# side-by-side, so their canvases are 16x32 and 48x16.
+# Each widget SVG's root canvas. Five nine-slice widgets share a tight 12x12
+# canvas and the scrollbar is 16x16; checkmarks is two stacked 16x16 cells and
+# radiobutton two side-by-side, so their canvases are 16x32 and 48x16.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 12),
     ("frame.svg", FRAME_SVG, 12, 12),
     ("button.svg", BUTTON_SVG, 12, 12),
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
     ("listitem.svg", LISTITEM_SVG, 12, 12),
+    ("scrollbar.svg", SCROLLBAR_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
 )
@@ -94,6 +96,7 @@ class TestInstall(
         os.path.join("widgets", "checkmarks.svg"),
         os.path.join("widgets", "lineedit.svg"),
         os.path.join("widgets", "listitem.svg"),
+        os.path.join("widgets", "scrollbar.svg"),
     )
 
     def reinstall_failure_env(self, tmp):

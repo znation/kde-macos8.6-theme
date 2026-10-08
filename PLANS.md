@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 Platinum scroll bar widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum scroll bar widget for the desktop theme (done 2026-10-08)
 
 **Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button,
 checkmarks, text-field, and list-item plans: it adds one widget file to the existing
@@ -134,8 +138,6 @@ scheme, the look-and-feel package, the Makefile, or the other widgets.
 **Follow-up (not planned here).** `widgets/background.svg` for dialog/popup/applet
 backgrounds: the same SVG serves `Menu` (white in Mac OS 8.6) and `Dialog`/applet
 containers (grey), so it needs a decision before it can be planned.
-
-## Done
 
 ### Mac OS 8.6 Platinum list item widget for the desktop theme (done 2026-10-08)
 
