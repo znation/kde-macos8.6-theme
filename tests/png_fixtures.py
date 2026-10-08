@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import struct
 import zlib
+from collections.abc import Callable
 
 from tools import png
 
@@ -96,7 +97,14 @@ def with_ihdr_byte(data: bytes, offset: int, value: int) -> bytes:
     return data[:start] + bytes(payload) + crc + data[start + length + 4 :]
 
 
-def rgb_image(width: int, height: int, pixel) -> tuple[png.Image, bytes]:
+def rgb_image(
+    width: int, height: int, pixel: Callable[[int, int], tuple[int, int, int]]
+) -> tuple[png.Image, bytes]:
+    """Return an RGB image and its PNG bytes.
+
+    The ``pixel`` callback is called with ``(x, y)`` and returns an
+    ``(r, g, b)`` triple for that coordinate.
+    """
     rows = []
     for y in range(height):
         row = bytearray()
