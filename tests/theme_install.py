@@ -60,6 +60,16 @@ def uninstall(destdir, extra=(), env=None):
     return _run("uninstall", destdir, extra, env)
 
 
+def installed_plasma_dir(destdir, kind):
+    """Directory `make install` writes a Plasma package family into.
+
+    The Makefile installs under `$(DESTDIR)$(XDG_DATA_HOME)/plasma/<kind>`;
+    `kind` is `look-and-feel` or `desktoptheme`. A package's directory, or a
+    hidden `.staging`/`.old` sibling, is joined onto the result.
+    """
+    return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "plasma", kind)
+
+
 def shadow_command_env(destdir, name, script):
     """Write `script` as an executable `name` in `<destdir>/fakebin`.
 

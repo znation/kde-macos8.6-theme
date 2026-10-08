@@ -7,7 +7,14 @@ import tempfile
 import unittest
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, run, shadow_command_env, uninstall
+from theme_install import (
+    ROOT,
+    install,
+    installed_plasma_dir,
+    run,
+    shadow_command_env,
+    uninstall,
+)
 
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
@@ -89,7 +96,7 @@ class TestInstall(unittest.TestCase):
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = os.path.join(
-                tmp, "share", "plasma", "look-and-feel", LNF_ID
+                installed_plasma_dir(tmp, "look-and-feel"), LNF_ID
             )
             for name in ("metadata.json", os.path.join("contents", "defaults")):
                 source = os.path.join(PACKAGE, name)
@@ -109,7 +116,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            parent = os.path.join(tmp, "share", "plasma", "look-and-feel")
+            parent = installed_plasma_dir(tmp, "look-and-feel")
             package = os.path.join(parent, LNF_ID)
             self.assertTrue(os.path.isdir(package), package)
 
@@ -150,7 +157,7 @@ class TestInstall(unittest.TestCase):
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
             installed = os.path.join(
-                tmp, "share", "plasma", "look-and-feel", LNF_ID
+                installed_plasma_dir(tmp, "look-and-feel"), LNF_ID
             )
             metadata = os.path.join(installed, "metadata.json")
             with open(metadata, "rb") as handle:
@@ -174,7 +181,7 @@ class TestInstall(unittest.TestCase):
             self.assertFalse(
                 os.path.exists(
                     os.path.join(
-                        tmp, "share", "plasma", "look-and-feel",
+                        installed_plasma_dir(tmp, "look-and-feel"),
                         "." + LNF_ID + ".staging",
                     )
                 ),
@@ -196,7 +203,7 @@ class TestInstall(unittest.TestCase):
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
             installed = os.path.join(
-                tmp, "share", "plasma", "look-and-feel", LNF_ID
+                installed_plasma_dir(tmp, "look-and-feel"), LNF_ID
             )
             metadata = os.path.join(installed, "metadata.json")
             with open(metadata, "rb") as handle:
@@ -220,7 +227,7 @@ class TestInstall(unittest.TestCase):
             )
             result = install(tmp, env=env)
             self.assertNotEqual(result.returncode, 0, result.stdout)
-            parent = os.path.join(tmp, "share", "plasma", "look-and-feel")
+            parent = installed_plasma_dir(tmp, "look-and-feel")
             for leaked in (
                 "." + LNF_ID + ".staging",
                 "." + LNF_ID + ".old",
@@ -239,7 +246,7 @@ class TestInstall(unittest.TestCase):
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
             stale = os.path.join(
-                tmp, "share", "plasma", "look-and-feel", LNF_ID,
+                installed_plasma_dir(tmp, "look-and-feel"), LNF_ID,
                 "contents", "removed.qml",
             )
             with open(stale, "w", encoding="utf-8") as handle:

@@ -8,7 +8,14 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, run, shadow_command_env, uninstall
+from theme_install import (
+    ROOT,
+    install,
+    installed_plasma_dir,
+    run,
+    shadow_command_env,
+    uninstall,
+)
 
 DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
@@ -238,7 +245,7 @@ class TestFrame(unittest.TestCase):
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             target = os.path.join(
-                tmp, "share", "plasma", "desktoptheme", DTHEME_ID,
+                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID,
                 "widgets", "frame.svg",
             )
             self.assertTrue(os.path.isfile(target), target)
@@ -263,7 +270,7 @@ class TestInstall(unittest.TestCase):
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = os.path.join(
-                tmp, "share", "plasma", "desktoptheme", DTHEME_ID
+                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID
             )
             for name in (
                 "metadata.json",
@@ -294,7 +301,7 @@ class TestInstall(unittest.TestCase):
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
             installed = os.path.join(
-                tmp, "share", "plasma", "desktoptheme", DTHEME_ID
+                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID
             )
             metadata = os.path.join(installed, "metadata.json")
             with open(metadata, "rb") as handle:
@@ -322,7 +329,7 @@ class TestInstall(unittest.TestCase):
             self.assertFalse(
                 os.path.exists(
                     os.path.join(
-                        tmp, "share", "plasma", "desktoptheme",
+                        installed_plasma_dir(tmp, "desktoptheme"),
                         "." + DTHEME_ID + ".staging",
                     )
                 ),
@@ -344,7 +351,7 @@ class TestInstall(unittest.TestCase):
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
             installed = os.path.join(
-                tmp, "share", "plasma", "desktoptheme", DTHEME_ID
+                installed_plasma_dir(tmp, "desktoptheme"), DTHEME_ID
             )
             metadata = os.path.join(installed, "metadata.json")
             with open(metadata, "rb") as handle:
@@ -368,7 +375,7 @@ class TestInstall(unittest.TestCase):
             )
             result = install(tmp, env=env)
             self.assertNotEqual(result.returncode, 0, result.stdout)
-            parent = os.path.join(tmp, "share", "plasma", "desktoptheme")
+            parent = installed_plasma_dir(tmp, "desktoptheme")
             for leaked in (
                 "." + DTHEME_ID + ".staging",
                 "." + DTHEME_ID + ".old",
@@ -385,7 +392,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            parent = os.path.join(tmp, "share", "plasma", "desktoptheme")
+            parent = installed_plasma_dir(tmp, "desktoptheme")
             package = os.path.join(parent, DTHEME_ID)
             self.assertTrue(os.path.isdir(package), package)
 
