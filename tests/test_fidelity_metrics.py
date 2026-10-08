@@ -209,6 +209,18 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(fidelity_metrics.compare(a, b, tolerance=3).differing, 0)
         self.assertEqual(fidelity_metrics.compare(a, b, tolerance=2).differing, 1)
 
+    def test_tolerance_outside_channel_range_raises(self):
+        # A per-channel delta is a byte, so a tolerance above 255 can never be
+        # exceeded (every pixel reads as within tolerance) and a negative one
+        # is exceeded by every pixel; either silently inverts the verdict, so
+        # the entry point names the rejected value instead of acting on it.
+        image, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        for tolerance in (-1, 256, "5"):
+            with self.subTest(tolerance=tolerance):
+                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+                    fidelity_metrics.compare(image, image, tolerance=tolerance)
+                self.assertIn(repr(tolerance), str(caught.exception))
+
     def test_size_mismatch_raises(self):
         a, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
         b, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))

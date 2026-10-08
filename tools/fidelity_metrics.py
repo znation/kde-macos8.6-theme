@@ -181,8 +181,18 @@ def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
 def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     """Compare a candidate image against a reference image.
 
-    Both must be the same size; ``tolerance`` is a per-channel delta.
+    Both must be the same size; ``tolerance`` is a per-channel delta in the
+    range 0-255.  A delta is a byte, so a tolerance outside that range cannot
+    be meaningful: above 255 no pixel ever exceeds it (the ``differing``
+    metric silently reads zero) and below 0 every pixel does.  The command
+    line rejects both as usage errors; this is the same bound for a caller
+    that uses the comparison directly.
     """
+    if not isinstance(tolerance, int) or not 0 <= tolerance <= 255:
+        raise FidelityError(
+            f"tolerance must be a per-channel delta between 0 and 255: "
+            f"{tolerance!r}"
+        )
     if candidate.width != reference.width or candidate.height != reference.height:
         raise FidelityError(
             f"size mismatch: candidate {candidate.width}x{candidate.height} "
