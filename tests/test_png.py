@@ -208,6 +208,45 @@ class TestDecode(unittest.TestCase):
         with self.assertRaises(png.PngError):
             png.decode_png(b"not a png")
 
+    def test_rejects_png_without_ihdr(self):
+        # A chunk stream that reaches IDAT/IEND with no IHDR leaves decode_png
+        # with no dimensions or colour type; it must name the missing chunk
+        # rather than unpacking None or decoding against defaults.
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"IDAT", zlib.compress(b"\x00"))
+            + _chunk(b"IEND", b"")
+        )
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        self.assertIn("no IHDR", str(ctx.exception))
+
+    def test_rejects_ihdr_with_wrong_length(self):
+        # IHDR is fixed at 13 bytes; any other length cannot be unpacked as
+        # width/height/depth/colour/compression/filter/interlace, so it must be
+        # rejected by length, naming the actual and expected sizes. The CLI test
+        # test_fidelity.TestCli.test_malformed_png_is_error already drives this
+        # guard end-to-end; this test pins the message it does not assert.
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"IHDR", b"\x00" * 12)
+            + _chunk(b"IEND", b"")
+        )
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        message = str(ctx.exception)
+        self.assertIn("12 bytes", message)
+        self.assertIn("expected 13", message)
+
+    def test_palette_color_type_without_plte_names_missing_chunk(self):
+        # Color type 3 indexes a PLTE table; without one there is no colour to
+        # map an index to, so the failure must name the missing chunk instead
+        # of indexing a None palette.
+        data = make_png(1, 1, [bytes([0])], color_type=3, palette=None)
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        self.assertIn("no PLTE", str(ctx.exception))
+
     def test_rejects_bad_chunk_crc(self):
         # Every PNG chunk carries a CRC over its type and payload; a mismatch
         # means a corrupted header or palette, which would otherwise decode to
