@@ -59,6 +59,24 @@ class TestEscapeControls(unittest.TestCase):
                     "\\u%04x" % codepoint,
                 )
 
+    def test_astral_non_printables_use_the_eight_digit_escape(self):
+        # Format characters above the BMP (the TAG block, the musical-symbol
+        # format characters) are not printable, but a \uXXXX escape holds
+        # only four hex digits: escaping them as \uXXXXX would be ill-formed
+        # and ambiguous with the digits that follow, so they use \UXXXXXXXX.
+        for codepoint in (0x1D173, 0xE0001, 0xE0020, 0x110BD):
+            with self.subTest(codepoint=codepoint):
+                self.assertEqual(
+                    terminal.escape_controls(chr(codepoint)),
+                    "\\U%08x" % codepoint,
+                )
+
+    def test_mixed_bmp_and_astral_controls_use_their_own_escapes(self):
+        self.assertEqual(
+            terminal.escape_controls("a\x1b" + chr(0xE0001) + "b"),
+            "a\\u001b\\U000e0001b",
+        )
+
     def test_mixed_text_escapes_only_the_control_characters(self):
         self.assertEqual(
             terminal.escape_controls("a\nb\x1bc"),
