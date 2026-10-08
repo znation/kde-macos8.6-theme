@@ -18,6 +18,26 @@ from check_references_fixtures import (
 )
 
 
+def assert_url_problem_not_the_scheme(case, url, *needles):
+    """Assert a malformed *url* is reported for *needles*, not for its scheme.
+
+    Every URL passed here has a valid scheme and fails for some other reason
+    (a missing host, a raw space), so a diagnostic that blames the scheme
+    sends the reader after the wrong fix: the reported problems must name
+    *needles* and none may mention an absolute URL.
+    """
+    module = load_checker()
+    problems = check_references_in(
+        module,
+        f"bad.png | {url} | label\n",
+        {"bad.png": module.PNG_MAGIC},
+    )
+    assert_problem(case, problems, *needles)
+    case.assertFalse(
+        any("absolute URL" in line for line in problems), problems
+    )
+
+
 class TestFilenameMustBeBare(unittest.TestCase):
     """A sources.txt entry must name a bare file in the directory.
 
@@ -145,17 +165,8 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             self.assertFalse(self.is_absolute(url), repr(url))
 
     def test_no_host_problem_names_the_host_not_the_scheme(self):
-        # The scheme is valid, so a diagnostic that blames it sends the reader
-        # after the wrong fix; it must point at the missing host instead.
-        module = load_checker()
-        problems = check_references_in(
-            module,
-            "bad.png | https://user@/a.png | label\n",
-            {"bad.png": module.PNG_MAGIC},
-        )
-        assert_problem(self, problems, "must name a host")
-        self.assertFalse(
-            any("absolute URL" in line for line in problems), problems
+        assert_url_problem_not_the_scheme(
+            self, "https://user@/a.png", "must name a host"
         )
 
     def test_malformed_scheme_is_rejected(self):
@@ -175,31 +186,13 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             self.assertFalse(self.is_absolute(url), repr(url))
 
     def test_raw_whitespace_problem_names_the_whitespace_not_the_scheme(self):
-        # The URL's scheme is valid, so a diagnostic that blames the scheme
-        # sends the reader after the wrong fix; it must point at the space.
-        module = load_checker()
-        problems = check_references_in(
-            module,
-            "bad.png | https://example.test/a b.png | label\n",
-            {"bad.png": module.PNG_MAGIC},
-        )
-        assert_problem(self, problems, "whitespace or control")
-        self.assertFalse(
-            any("absolute URL" in line for line in problems), problems
+        assert_url_problem_not_the_scheme(
+            self, "https://example.test/a b.png", "whitespace or control"
         )
 
     def test_empty_authority_problem_names_the_host_not_the_scheme(self):
-        # The scheme is valid, so a diagnostic that blames it sends the reader
-        # after the wrong fix; it must point at the missing host instead.
-        module = load_checker()
-        problems = check_references_in(
-            module,
-            "bad.png | https:///a.png | label\n",
-            {"bad.png": module.PNG_MAGIC},
-        )
-        assert_problem(self, problems, "must name a host")
-        self.assertFalse(
-            any("absolute URL" in line for line in problems), problems
+        assert_url_problem_not_the_scheme(
+            self, "https:///a.png", "must name a host"
         )
 
 
