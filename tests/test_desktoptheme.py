@@ -152,6 +152,16 @@ class TestMetadata(unittest.TestCase):
     def test_plasma_api_version(self):
         self.assertEqual(self.metadata.get("X-Plasma-API"), "5.0")
 
+    def test_plugin_description_and_license_are_non_empty(self):
+        # Description is shown in System Settings and License is the package's
+        # legal metadata; a blank or non-string value installs cleanly but
+        # misreports the package, so pin both here.
+        plugin = self.metadata["KPlugin"]
+        for key in ("Description", "License"):
+            value = plugin.get(key)
+            self.assertIsInstance(value, str, key)
+            self.assertTrue(value.strip(), f"KPlugin.{key} must not be blank")
+
 
 class TestPanelBackground(unittest.TestCase):
     def setUp(self):

@@ -62,6 +62,16 @@ class TestMetadata(unittest.TestCase):
     def test_keywords_non_empty(self):
         self.assertTrue(self.metadata.get("Keywords"))
 
+    def test_plugin_description_and_license_are_non_empty(self):
+        # Description is shown in System Settings and License is the package's
+        # legal metadata; a blank or non-string value installs cleanly but
+        # misreports the package, so pin both here.
+        plugin = self.metadata["KPlugin"]
+        for key in ("Description", "License"):
+            value = plugin.get(key)
+            self.assertIsInstance(value, str, key)
+            self.assertTrue(value.strip(), f"KPlugin.{key} must not be blank")
+
 
 class TestDefaults(unittest.TestCase):
     def setUp(self):
