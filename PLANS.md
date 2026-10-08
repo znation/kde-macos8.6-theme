@@ -92,7 +92,7 @@ look-and-feel package, or the Makefile.
 `listitem`); the frame establishes the multi-state nine-slice pattern those need. The button widget
 is planned separately below.
 
-### Mac OS 8.6 Platinum button widget for the desktop theme
+### Mac OS 8.6 Platinum button widget for the desktop theme (done 2026-10-07)
 
 **Planned 2026-10-07 by plan.** Independent of the frame plan above: it adds a second widget file to
 the existing `org.macos8.desktop` desktop-theme package (created by the done panel-background

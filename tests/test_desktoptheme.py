@@ -16,6 +16,13 @@ METADATA = os.path.join(PACKAGE, "metadata.json")
 SVG = os.path.join(PACKAGE, "widgets", "panel-background.svg")
 FRAME_SVG = os.path.join(PACKAGE, "widgets", "frame.svg")
 FRAME_PREFIXES = ("plain", "raised", "sunken")
+BUTTON_SVG = os.path.join(PACKAGE, "widgets", "button.svg")
+BUTTON_PREFIXES = ("normal", "pressed", "focus")
+BUTTON_HINTS = (
+    "hint-tile-center",
+    "hint-top-margin", "hint-bottom-margin",
+    "hint-left-margin", "hint-right-margin",
+)
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"
@@ -165,6 +172,35 @@ class TestPanelBackground(unittest.TestCase):
             self.assertFalse(tag.endswith("script"), tag)
 
 
+class TestButton(unittest.TestCase):
+    def test_button_slice_ids(self):
+        tree = ET.parse(BUTTON_SVG)
+        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        for prefix in BUTTON_PREFIXES:
+            for name in SLICE_IDS:
+                self.assertIn(f"{prefix}-{name}", ids, name)
+            for hint in BUTTON_HINTS:
+                if hint != "hint-tile-center":
+                    self.assertIn(f"{prefix}-{hint}", ids, hint)
+        self.assertIn("hint-tile-center", ids)
+
+    def test_button_colours(self):
+        # Read the parsed artwork's fill attributes, not the raw file: the
+        # header comment and the hint rects (which set colour through `style`)
+        # would otherwise make a text search pass without any Platinum grey.
+        tree = ET.parse(BUTTON_SVG)
+        fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
+        self.assertEqual(
+            fills, {"#FFFFFF", "#DDDDDD", "#999999", "#000000"}
+        )
+
+    def test_no_script_elements(self):
+        tree = ET.parse(BUTTON_SVG)
+        for element in tree.iter():
+            tag = element.tag.rsplit("}", 1)[-1]
+            self.assertFalse(tag.endswith("script"), tag)
+
+
 class TestFrame(unittest.TestCase):
     def test_frame_svg_contract(self):
         tree = ET.parse(FRAME_SVG)
@@ -232,6 +268,7 @@ class TestInstall(unittest.TestCase):
             for name in (
                 "metadata.json",
                 os.path.join("widgets", "panel-background.svg"),
+                os.path.join("widgets", "button.svg"),
             ):
                 source = os.path.join(PACKAGE, name)
                 target = os.path.join(installed, name)

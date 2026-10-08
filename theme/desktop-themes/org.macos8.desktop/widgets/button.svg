@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" push button.
+
+     The normal/pressed states of PlasmaComponents.Button, ToolButton,
+     CheckBox/RadioButton indicators, DialogButtonBox and the applet buttons
+     built on them: a #DDDDDD rounded face with a 1px #000000 outline and a 1px
+     bevel inside it, #FFFFFF on top/left and #999999 on bottom/right when
+     normal, swapped when pressed. Each corner is a quarter-round of radius 3;
+     the bevel turns the corner, so a mixed corner (topright/bottomleft) carries
+     both adjacent bevel colours split at the 45 degree diagonal.
+
+     The `focus` state is a 1px #000000 rounded ring in the outer pixel of a 2px
+     border, transparent inside, matching the default theme's 2px focus margins
+     so ButtonFocus draws it 1-2px outside the button outline.
+
+     Nine-slice contract: a 3px border around a 6px centre tile on a tight 12x12
+     canvas for normal/pressed, and a 2px border around an 8px centre for focus.
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="normal-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="normal-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="focus-hint-top-margin" x="2" y="0" width="8" height="2" style="fill:#ff00ff"/>
+  <rect id="focus-hint-bottom-margin" x="2" y="10" width="8" height="2" style="fill:#ff00ff"/>
+  <rect id="focus-hint-left-margin" x="0" y="2" width="2" height="8" style="fill:#ff00ff"/>
+  <rect id="focus-hint-right-margin" x="10" y="2" width="2" height="8" style="fill:#ff00ff"/>
+
+  <!-- Normal: white highlight inside the top/left border, grey shadow inside
+       the bottom/right. -->
+  <g id="normal-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="normal-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="normal-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#FFFFFF"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="normal-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#999999"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="normal-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="normal-topleft">
+    <path d="M0,3 A3,3 0 0 1 3,0 L3,3 Z" fill="#000000"/>
+    <path d="M1,3 A2,2 0 0 1 3,1 L3,3 Z" fill="#FFFFFF"/>
+    <path d="M2,3 A1,1 0 0 1 3,2 L3,3 Z" fill="#DDDDDD"/>
+  </g>
+  <g id="normal-topright" transform="translate(9,0)">
+    <path d="M0,0 A3,3 0 0 1 3,3 L0,3 Z" fill="#000000"/>
+    <path d="M0,1 A2,2 0 0 1 2,3 L0,3 Z" fill="#FFFFFF"/>
+    <path d="M1.414,1.586 A2,2 0 0 1 2,3 L1,3 A1,1 0 0 0 0.707,2.293 Z" fill="#999999"/>
+    <path d="M0,2 A1,1 0 0 1 1,3 L0,3 Z" fill="#DDDDDD"/>
+  </g>
+  <g id="normal-bottomleft" transform="translate(0,9)">
+    <path d="M3,3 A3,3 0 0 1 0,0 L3,0 Z" fill="#000000"/>
+    <path d="M3,2 A2,2 0 0 1 1,0 L3,0 Z" fill="#FFFFFF"/>
+    <path d="M3,2 A2,2 0 0 1 1.586,1.414 L2.293,0.707 A1,1 0 0 0 3,1 Z" fill="#999999"/>
+    <path d="M3,1 A1,1 0 0 1 2,0 L3,0 Z" fill="#DDDDDD"/>
+  </g>
+  <g id="normal-bottomright" transform="translate(9,9)">
+    <path d="M3,0 A3,3 0 0 1 0,3 L0,0 Z" fill="#000000"/>
+    <path d="M2,0 A2,2 0 0 1 0,2 L0,0 Z" fill="#999999"/>
+    <path d="M1,0 A1,1 0 0 1 0,1 L0,0 Z" fill="#DDDDDD"/>
+  </g>
+
+  <!-- Pressed: the normal bevel inverted, grey shadow inside top/left and white
+       highlight inside bottom/right. -->
+  <g id="pressed-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="pressed-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="pressed-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#999999"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="pressed-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#FFFFFF"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="pressed-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="pressed-topleft">
+    <path d="M0,3 A3,3 0 0 1 3,0 L3,3 Z" fill="#000000"/>
+    <path d="M1,3 A2,2 0 0 1 3,1 L3,3 Z" fill="#999999"/>
+    <path d="M2,3 A1,1 0 0 1 3,2 L3,3 Z" fill="#DDDDDD"/>
+  </g>
+  <g id="pressed-topright" transform="translate(9,0)">
+    <path d="M0,0 A3,3 0 0 1 3,3 L0,3 Z" fill="#000000"/>
+    <path d="M0,1 A2,2 0 0 1 2,3 L0,3 Z" fill="#999999"/>
+    <path d="M1.414,1.586 A2,2 0 0 1 2,3 L1,3 A1,1 0 0 0 0.707,2.293 Z" fill="#FFFFFF"/>
+    <path d="M0,2 A1,1 0 0 1 1,3 L0,3 Z" fill="#DDDDDD"/>
+  </g>
+  <g id="pressed-bottomleft" transform="translate(0,9)">
+    <path d="M3,3 A3,3 0 0 1 0,0 L3,0 Z" fill="#000000"/>
+    <path d="M3,2 A2,2 0 0 1 1,0 L3,0 Z" fill="#999999"/>
+    <path d="M3,2 A2,2 0 0 1 1.586,1.414 L2.293,0.707 A1,1 0 0 0 3,1 Z" fill="#FFFFFF"/>
+    <path d="M3,1 A1,1 0 0 1 2,0 L3,0 Z" fill="#DDDDDD"/>
+  </g>
+  <g id="pressed-bottomright" transform="translate(9,9)">
+    <path d="M3,0 A3,3 0 0 1 0,3 L0,0 Z" fill="#000000"/>
+    <path d="M2,0 A2,2 0 0 1 0,2 L0,0 Z" fill="#FFFFFF"/>
+    <path d="M1,0 A1,1 0 0 1 0,1 L0,0 Z" fill="#DDDDDD"/>
+  </g>
+
+  <!-- Focus: a 1px black ring in the outer pixel of a 2px border, transparent
+       in the inner pixel and the centre. -->
+  <g id="focus-top" transform="translate(2,0)">
+    <rect width="8" height="1" fill="#000000"/>
+  </g>
+  <g id="focus-bottom" transform="translate(2,10)">
+    <rect y="1" width="8" height="1" fill="#000000"/>
+  </g>
+  <g id="focus-left" transform="translate(0,2)">
+    <rect width="1" height="8" fill="#000000"/>
+  </g>
+  <g id="focus-right" transform="translate(10,2)">
+    <rect x="1" width="1" height="8" fill="#000000"/>
+  </g>
+  <g id="focus-center" transform="translate(2,2)"/>
+  <g id="focus-topleft">
+    <path d="M0,2 A2,2 0 0 1 2,0 L2,1 A1,1 0 0 0 1,2 Z" fill="#000000"/>
+  </g>
+  <g id="focus-topright" transform="translate(10,0)">
+    <path d="M0,0 A2,2 0 0 1 2,2 L1,2 A1,1 0 0 0 0,1 Z" fill="#000000"/>
+  </g>
+  <g id="focus-bottomleft" transform="translate(0,10)">
+    <path d="M2,2 A2,2 0 0 1 0,0 L1,0 A1,1 0 0 0 2,1 Z" fill="#000000"/>
+  </g>
+  <g id="focus-bottomright" transform="translate(10,10)">
+    <path d="M2,0 A2,2 0 0 1 0,2 L0,1 A1,1 0 0 0 1,0 Z" fill="#000000"/>
+  </g>
+</svg>
