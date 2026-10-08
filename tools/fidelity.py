@@ -176,12 +176,28 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     )
 
 
+def _is_plain_ascii_number(value: str) -> bool:
+    """Return True when *value* is ASCII numeric text with no Python extras.
+
+    ``int()``/``float()`` accept forms a command-line number should not:
+    underscore digit separators (``1_0`` is 10), non-ASCII decimal digits
+    (``\u0661\u0662`` is 12), and surrounding whitespace. Each silently turns
+    a stray character into a different value, so the CLI checks the text
+    before parsing it.
+    """
+    return value.isascii() and "_" not in value and value == value.strip()
+
+
 def _parse_crop(value: str) -> tuple[int, int, int, int]:
     parts = value.split(",")
     if len(parts) != 4:
         raise argparse.ArgumentTypeError(f"crop must be X,Y,W,H: {value!r}")
     numbers: list[int] = []
     for part in parts:
+        if not _is_plain_ascii_number(part):
+            raise argparse.ArgumentTypeError(
+                f"crop values must be plain ASCII integers: {part!r}"
+            )
         try:
             numbers.append(int(part))
         except ValueError as exc:
@@ -196,6 +212,10 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
 
 
 def _finite_float(value: str, option: str) -> float:
+    if not _is_plain_ascii_number(value):
+        raise argparse.ArgumentTypeError(
+            f"{option} must be a plain ASCII number: {value!r}"
+        )
     try:
         number = float(value)
     except ValueError as exc:
@@ -230,6 +250,10 @@ def _max_frac(value: str) -> float:
 
 
 def _tolerance(value: str) -> int:
+    if not _is_plain_ascii_number(value):
+        raise argparse.ArgumentTypeError(
+            f"--tolerance must be a plain ASCII integer: {value!r}"
+        )
     try:
         number = int(value)
     except ValueError as exc:

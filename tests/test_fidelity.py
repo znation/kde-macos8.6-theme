@@ -343,6 +343,30 @@ class TestCli(unittest.TestCase):
                 self.assertIn("error", result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
 
+    def test_python_literal_numeric_args_rejected(self):
+        # int()/float() accept underscore digit separators, non-ASCII decimal
+        # digits and surrounding whitespace, so --tolerance 1_0 silently means
+        # 10 and --max-frac ١ means 1. A command-line number is plain ASCII
+        # text; each of these must be a usage error naming the rejection, not
+        # a value that quietly changes the argument.
+        reference = self._solid_reference()
+        base = [reference, reference]
+        for extra in (
+            ["--tolerance", "1_0"],
+            ["--tolerance", " 255 "],
+            ["--max-mae", "1_0.5"],
+            ["--max-frac", "\u0661"],
+            ["--crop", "1_0,0,1,1"],
+            ["--crop", "\u0661,0,1,1"],
+        ):
+            with self.subTest(extra=extra):
+                result = self._run(*base, *extra)
+                self.assertEqual(
+                    result.returncode, 2, result.stdout + result.stderr
+                )
+                self.assertIn("plain ASCII", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
+
     def test_malformed_crop_is_usage_error(self):
         # A bad --crop must be rejected as a usage error before either image is
         # read, and the message must name the offending value so the user does
