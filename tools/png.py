@@ -21,6 +21,12 @@ _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 # color_type -> channels per pixel at bit depth 8
 _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 
+# Cap on declared pixels. A PNG's IDAT can be arbitrarily smaller than the
+# scanlines it expands to, so a few KB can demand gigabytes (a decompression
+# bomb). 64 MP is far above any screenshot this tool compares and still bounds
+# one decode to a few hundred MB.
+_MAX_PIXELS = 64_000_000
+
 
 class PngError(Exception):
     """A PNG file could not be read or decoded."""
@@ -188,17 +194,40 @@ def decode_png(data: bytes) -> Image:
         raise PngError(f"unsupported PNG color type {color_type}")
     if width == 0 or height == 0:
         raise PngError("PNG has zero width or height")
+    channels = _CHANNELS[color_type]
+    # Bound the work by the header before zlib sees any data: reject an image
+    # too large to be a screenshot, then decompress at most the exact unfiltered
+    # byte count the header declares, so an oversized stream cannot be expanded.
+    if width * height > _MAX_PIXELS:
+        raise PngError(
+            f"PNG declares {width}x{height} ({width * height} pixels), larger "
+            f"than the {_MAX_PIXELS}-pixel limit"
+        )
+    expected_raw = height * (width * channels + 1)
     if not idat:
         # A PNG truncated before its IDAT chunk, or one whose IDAT is empty,
         # reaches zlib with no compressed data; zlib then reports an opaque
         # "incomplete or truncated stream" that names neither the chunk nor
         # the missing data.
         raise PngError("PNG has no IDAT image data")
+    decompressor = zlib.decompressobj()
     try:
-        raw = zlib.decompress(bytes(idat))
+        raw = decompressor.decompress(bytes(idat), expected_raw)
     except zlib.error as exc:
         raise PngError(f"corrupt PNG image data: {exc}") from exc
-    channels = _CHANNELS[color_type]
+    if decompressor.unconsumed_tail:
+        raise PngError(
+            f"PNG image data decompresses to more than the {expected_raw} bytes "
+            f"its {width}x{height} header declares"
+        )
+    if not decompressor.eof:
+        # A stream cut before its end marker can still yield exactly
+        # expected_raw bytes; without this the adler32 trailer that
+        # zlib.decompress used to verify would be dropped silently.
+        raise PngError(
+            "PNG image data is truncated: the compressed stream ends before "
+            "its final block"
+        )
     samples = _unfilter(raw, width, height, channels)
     return Image(width, height, _to_rgb(color_type, samples, palette))
 

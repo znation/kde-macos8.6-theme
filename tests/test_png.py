@@ -9,7 +9,9 @@ from __future__ import annotations
 import struct
 import sys
 import tempfile
+import tracemalloc
 import unittest
+import zlib
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -116,6 +118,62 @@ class TestDecode(unittest.TestCase):
                 with self.assertRaises(png.PngError) as ctx:
                     png.decode_png(data)
                 self.assertIn("no IDAT image data", str(ctx.exception))
+
+    def test_rejects_decompression_bomb_without_expanding_it(self):
+        # A few KB of IDAT can expand to far more scanlines than the header
+        # declares. Decoding must stop at the declared size instead of
+        # materializing the whole stream (a decompression bomb).
+        declared = 4  # 1x1 RGB: one filter byte + three channels
+        bomb = bytes(declared) + bytes(16 * 1024 * 1024)
+        ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"IHDR", ihdr)
+            + _chunk(b"IDAT", zlib.compress(bomb))
+            + _chunk(b"IEND", b"")
+        )
+        tracemalloc.start()
+        try:
+            with self.assertRaises(png.PngError) as ctx:
+                png.decode_png(data)
+            peak = tracemalloc.get_traced_memory()[1]
+        finally:
+            tracemalloc.stop()
+        self.assertIn("more than the 4 bytes", str(ctx.exception))
+        self.assertLess(peak, 4 * 1024 * 1024)
+
+    def test_rejects_truncated_stream_that_hits_declared_size(self):
+        # A stream cut before its end marker can still yield exactly the
+        # declared byte count. Accepting it would silently drop the adler32
+        # check that zlib.decompress performed before this change.
+        raw = bytes([0, 1, 2, 3])  # 1x1 RGB: filter byte + three channels
+        ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+        truncated = zlib.compress(raw)[:-4]  # drop the trailing adler32
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"IHDR", ihdr)
+            + _chunk(b"IDAT", truncated)
+            + _chunk(b"IEND", b"")
+        )
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        self.assertIn("truncated", str(ctx.exception))
+
+    def test_rejects_declared_image_over_pixel_limit(self):
+        # A header may declare dimensions far larger than any screenshot; the
+        # pixel limit must reject it before zlib decompresses anything.
+        ihdr = struct.pack(">IIBBBBB", 100_000, 100_000, 8, 2, 0, 0, 0)
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"IHDR", ihdr)
+            + _chunk(b"IDAT", zlib.compress(bytes(4)))
+            + _chunk(b"IEND", b"")
+        )
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        message = str(ctx.exception)
+        self.assertIn("100000x100000", message)
+        self.assertIn(str(png._MAX_PIXELS), message)
 
     def test_grayscale_and_rgba(self):
         gray = make_png(2, 1, [bytes([7, 200])], color_type=0)
