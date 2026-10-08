@@ -302,6 +302,15 @@ class TestCli(unittest.TestCase):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         return self._write(Path(tmp.name), "reference.png", data)
 
+    def _assert_usage_error(
+        self, result: subprocess.CompletedProcess, *needles: str
+    ) -> None:
+        """Assert *result* is a clean exit-2 usage error naming *needles*."""
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        for needle in needles:
+            self.assertIn(needle, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
     def test_pass_and_fail(self):
         a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
         changed = bytearray(a.rgb)
@@ -531,9 +540,7 @@ class TestCli(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             candidate = self._write(Path(tmp), "broken.png", short_ihdr)
             result = self._run(candidate, reference)
-            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-            self.assertIn("error", result.stderr)
-            self.assertNotIn("Traceback", result.stderr)
+            self._assert_usage_error(result, "error")
 
     def test_decode_error_names_offending_file(self):
         # With two file inputs, the error must say which one could not be
@@ -544,11 +551,7 @@ class TestCli(unittest.TestCase):
             for first, second in ((candidate, reference), (reference, candidate)):
                 with self.subTest(first=first):
                     result = self._run(first, second)
-                    self.assertEqual(
-                        result.returncode, 2, result.stdout + result.stderr
-                    )
-                    self.assertIn("error", result.stderr)
-                    self.assertNotIn("Traceback", result.stderr)
+                    self._assert_usage_error(result, "error")
                     self.assertIn(candidate, result.stderr)
                     self.assertNotIn(reference, result.stderr)
 
@@ -576,11 +579,7 @@ class TestCli(unittest.TestCase):
         ):
             with self.subTest(extra=extra):
                 result = self._run(*base, *extra)
-                self.assertEqual(
-                    result.returncode, 2, result.stdout + result.stderr
-                )
-                self.assertIn("error", result.stderr)
-                self.assertNotIn("Traceback", result.stderr)
+                self._assert_usage_error(result, "error")
 
     def test_python_literal_numeric_args_rejected(self):
         # int()/float() accept underscore digit separators, non-ASCII decimal
@@ -600,11 +599,7 @@ class TestCli(unittest.TestCase):
         ):
             with self.subTest(extra=extra):
                 result = self._run(*base, *extra)
-                self.assertEqual(
-                    result.returncode, 2, result.stdout + result.stderr
-                )
-                self.assertIn("plain ASCII", result.stderr)
-                self.assertNotIn("Traceback", result.stderr)
+                self._assert_usage_error(result, "plain ASCII")
 
     def test_non_numeric_threshold_is_usage_error(self):
         # _is_plain_ascii_number accepts any ASCII text without separators or
@@ -618,13 +613,9 @@ class TestCli(unittest.TestCase):
         for option, value in (("--max-mae", "abc"), ("--max-frac", "abc")):
             with self.subTest(option=option):
                 result = self._run(*base, option, value)
-                self.assertEqual(
-                    result.returncode, 2, result.stdout + result.stderr
+                self._assert_usage_error(
+                    result, f"{option} must be a number: {value!r}"
                 )
-                self.assertIn(
-                    f"{option} must be a number: {value!r}", result.stderr
-                )
-                self.assertNotIn("Traceback", result.stderr)
 
     def test_malformed_crop_is_usage_error(self):
         # A bad --crop must be rejected as a usage error before either image is
@@ -643,12 +634,9 @@ class TestCli(unittest.TestCase):
             ):
                 with self.subTest(extra=extra):
                     result = self._run(*base, *extra)
-                    self.assertEqual(
-                        result.returncode, 2, result.stdout + result.stderr
+                    self._assert_usage_error(
+                        result, expected, "argument --crop:"
                     )
-                    self.assertIn(expected, result.stderr)
-                    self.assertIn("argument --crop:", result.stderr)
-                    self.assertNotIn("Traceback", result.stderr)
 
     def test_tolerance_above_channel_range_rejected(self):
         # A per-channel delta is at most 255, so a larger tolerance can never
@@ -657,11 +645,7 @@ class TestCli(unittest.TestCase):
         for value in ("256", "1000"):
             with self.subTest(value=value):
                 result = self._run(reference, reference, "--tolerance", value)
-                self.assertEqual(
-                    result.returncode, 2, result.stdout + result.stderr
-                )
-                self.assertIn("255", result.stderr)
-                self.assertNotIn("Traceback", result.stderr)
+                self._assert_usage_error(result, "255")
 
     def test_max_mae_above_channel_range_rejected(self):
         # Mean absolute error averages per-channel deltas, so it can never
@@ -670,11 +654,7 @@ class TestCli(unittest.TestCase):
         for value in ("255.5", "256", "1e9"):
             with self.subTest(value=value):
                 result = self._run(reference, reference, "--max-mae", value)
-                self.assertEqual(
-                    result.returncode, 2, result.stdout + result.stderr
-                )
-                self.assertIn("255", result.stderr)
-                self.assertNotIn("Traceback", result.stderr)
+                self._assert_usage_error(result, "255")
 
     def test_valid_numeric_boundaries_accepted(self):
         reference = self._solid_reference()
