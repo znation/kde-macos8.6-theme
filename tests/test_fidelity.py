@@ -23,6 +23,7 @@ from png_fixtures import (  # noqa: E402
     make_png,
     rgb_image,
 )
+from theme_install import run  # noqa: E402
 
 TOOL = REPO_ROOT / "tools" / "fidelity.py"
 
@@ -178,7 +179,7 @@ class TestCompare(unittest.TestCase):
 class TestCli(unittest.TestCase):
     def _run(self, *args: str) -> subprocess.CompletedProcess:
         """Run the fidelity CLI with *args* and capture its output."""
-        return subprocess.run(
+        return run(
             [sys.executable, str(TOOL), *args],
             capture_output=True,
             text=True,

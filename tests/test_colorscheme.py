@@ -4,12 +4,11 @@ import math
 import os
 import re
 import shutil
-import subprocess
 import tempfile
 import unittest
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, shadow_command_env, uninstall
+from theme_install import ROOT, install, run, shadow_command_env, uninstall
 
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
@@ -370,7 +369,7 @@ class TestRestartRoundTrip(unittest.TestCase):
                 XDG_DATA_DIRS=data + os.pathsep + "/usr/share",
             )
             cli_id = os.path.basename(SCHEME).split(".", 1)[0]
-            applied = subprocess.run(
+            applied = run(
                 ["plasma-apply-colorscheme", cli_id],
                 env=env,
                 capture_output=True,
@@ -380,7 +379,7 @@ class TestRestartRoundTrip(unittest.TestCase):
             with open(kdeglobals, encoding="utf-8") as handle:
                 written = handle.read()
             self.assertIn(f"ColorScheme={cli_id}", written)
-            restarted = subprocess.run(
+            restarted = run(
                 ["plasma-apply-colorscheme"],
                 env=env,
                 capture_output=True,

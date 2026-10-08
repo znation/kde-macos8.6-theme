@@ -3,13 +3,12 @@
 import json
 import os
 import shutil
-import subprocess
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, shadow_command_env, uninstall
+from theme_install import ROOT, install, run, shadow_command_env, uninstall
 
 DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
@@ -376,7 +375,7 @@ class TestApplyDesktopTheme(unittest.TestCase):
                 XDG_DATA_HOME=os.path.join(tmp, "share"),
                 XDG_CONFIG_HOME=os.path.join(tmp, "config"),
             )
-            listed = subprocess.run(
+            listed = run(
                 ["plasma-apply-desktoptheme", "--list-themes"],
                 env=env,
                 capture_output=True,
@@ -384,7 +383,7 @@ class TestApplyDesktopTheme(unittest.TestCase):
             )
             self.assertEqual(listed.returncode, 0, listed.stderr)
             self.assertIn(DTHEME_ID, listed.stdout)
-            applied = subprocess.run(
+            applied = run(
                 ["plasma-apply-desktoptheme", DTHEME_ID],
                 env=env,
                 capture_output=True,
@@ -399,7 +398,7 @@ class TestApplyDesktopTheme(unittest.TestCase):
 class TestPackageValid(unittest.TestCase):
     def test_kpackagetool6_installs_package(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run(
+            result = run(
                 [
                     "kpackagetool6", "-t", "Plasma/Theme",
                     "-p", tmp, "-i", PACKAGE,

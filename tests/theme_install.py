@@ -13,9 +13,25 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # The data home inside each test's throwaway DESTDIR.
 XDG_DATA_HOME = "/share"
 
+# Hard limit for every child process the test suite starts, so a `make`,
+# `plasma-apply-*` or `kpackagetool6` that never exits fails the test instead of
+# stalling `make check` forever.
+SUBPROCESS_TIMEOUT = 60
+
+
+def run(argv, **kwargs):
+    """Run `argv` under the suite's subprocess timeout.
+
+    Every subprocess the tests start goes through here, so a child that outlives
+    `SUBPROCESS_TIMEOUT` raises `subprocess.TimeoutExpired` rather than hanging
+    the suite. The constant is read at call time, so a test can patch it.
+    """
+    kwargs.setdefault("timeout", SUBPROCESS_TIMEOUT)
+    return subprocess.run(argv, **kwargs)
+
 
 def _run(target, destdir, extra=(), env=None):
-    return subprocess.run(
+    return run(
         [
             "make", target, f"DESTDIR={destdir}", f"XDG_DATA_HOME={XDG_DATA_HOME}",
             *extra,

@@ -3,12 +3,11 @@
 import json
 import os
 import shutil
-import subprocess
 import tempfile
 import unittest
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, shadow_command_env, uninstall
+from theme_install import ROOT, install, run, shadow_command_env, uninstall
 
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
@@ -236,7 +235,7 @@ class TestInstall(unittest.TestCase):
 class TestPackageValid(unittest.TestCase):
     def test_kpackagetool6_installs_package(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run(
+            result = run(
                 [
                     "kpackagetool6", "-t", "Plasma/LookAndFeel",
                     "-p", tmp, "-i", PACKAGE,
