@@ -24,6 +24,8 @@ depends on the Platinum color scheme and the widget/decoration packages landing 
 **Next step:** Once theme code exists, add a bounded, non-interactive render-and-capture script
 (fixed surface size) that writes the candidate PNG this tool consumes, and wire it into `make check`.
 
+**Refused 2026-10-07 by bugfix: the only theme artifact is the color scheme — no widget/decoration package exists to render and no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
+
 ## Fixed
 
 ### No objective fidelity check for "pixel-perfect" (structural risk, found 2026-10-07; fixed 2026-10-07)
