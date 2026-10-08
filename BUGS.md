@@ -61,6 +61,25 @@ face (`Window`/`Button`/`Header`), view background and chrome foreground at reco
 points, so those anchors are tied to the reference image. The selection anchor (JPEG source) and
 the tooltip anchor (no recorded source) remain pinned only by `TestAnchors`.
 
+### Selection and tooltip palette anchors are still not re-derivable (found 2026-10-07)
+
+**Symptom:** The face/view/chrome anchors now re-derive from the retail PNGs (see the palette-anchor
+entry above), but the selection anchor (`206,206,255`) and tooltip anchor (`255,255,204`) still live
+only as hard-coded strings in `tests/test_colorscheme.py`'s `TestAnchors`.
+
+**How to reproduce:** `TestReferenceAnchors` checks only its recorded sample points; the selection
+and tooltip anchors have no entry there, so their only check is the hard-coded string in
+`TestAnchors` — the self-referential gap this entry records.
+
+**Suspected cause:** The selection anchor's recorded source (`opendialog_macrumors86.jpg`) is a
+JPEG, which the repository cannot decode; the tooltip token has no recorded sample point at all.
+
+**Next step:** Record a sample point for the tooltip token in a retail reference the repository can
+decode, and either add a JPEG decoder for the selection source or find a PNG reference that shows
+a selection highlight, then add both anchors to `TestReferenceAnchors`.
+
+This is the remainder of the palette-anchor entry above.
+
 ## Fixed
 
 ### `--tolerance` does not gate the fidelity exit status; README documents no pass threshold (found 2026-10-07; fixed 2026-10-07)
