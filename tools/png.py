@@ -11,6 +11,8 @@ Raises :class:`PngError` for a malformed or unsupported PNG.
 
 from __future__ import annotations
 
+import os
+import stat
 import struct
 import zlib
 from collections.abc import Iterator
@@ -30,11 +32,11 @@ _MAX_PIXELS = 64_000_000
 
 # Cap on the bytes read_png will load from disk. decode_png bounds the decoded
 # image by _MAX_PIXELS, but read_png reads the whole file before decode_png
-# sees the header, and a path can name a stream with no end (e.g. /dev/zero)
-# or a file far larger than any screenshot, so without a read cap a few bytes
-# of argv can demand unbounded memory. 512 MiB is generous for
-# screenshot-sized inputs while keeping one read on the same order as the
-# decoder's own worst-case allocation for the largest image it accepts.
+# sees the header, and a path can name a file far larger than any screenshot,
+# so without a read cap a few bytes of argv can demand unbounded memory. 512
+# MiB is generous for screenshot-sized inputs while keeping one read on the
+# same order as the decoder's own worst-case allocation for the largest image
+# it accepts.
 _MAX_FILE_BYTES = 512 * 1024 * 1024
 
 
@@ -399,14 +401,29 @@ def decode_png(data: bytes) -> Image:
 
 def read_png(path: str | Path) -> Image:
     """Read and decode the PNG at *path*, naming it in any :class:`PngError`."""
+    # Open with O_NONBLOCK so a path naming a pipe (FIFO) cannot block in
+    # open() waiting for a writer; a regular file is unaffected. The byte cap
+    # below bounds memory but not time: read() on a pipe whose writer stays
+    # open without sending data blocks forever. Reject any non-regular file
+    # (pipe, device) outright. fstat on the open fd also avoids a stat/open
+    # race where a regular file is swapped for a FIFO between the two.
     try:
+        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+    except OSError as exc:
+        raise PngError(f"cannot read {path}: {exc}") from exc
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise PngError(f"cannot read {path}: not a regular file")
         # Read at most one byte past the cap: enough to detect an oversize
-        # file without loading the rest of it (or waiting forever on a stream
-        # that never ends).
-        with open(path, "rb") as handle:
+        # file without loading the rest of it.
+        with os.fdopen(fd, "rb") as handle:
+            fd = -1
             data = handle.read(_MAX_FILE_BYTES + 1)
     except OSError as exc:
         raise PngError(f"cannot read {path}: {exc}") from exc
+    finally:
+        if fd >= 0:
+            os.close(fd)
     if len(data) > _MAX_FILE_BYTES:
         raise PngError(
             f"cannot read {path}: file is larger than the "

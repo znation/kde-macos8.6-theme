@@ -6,8 +6,10 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
+import os
 import random
 import struct
+import subprocess
 import sys
 import tempfile
 import tracemalloc
@@ -475,9 +477,8 @@ class TestDecode(unittest.TestCase):
 
     def test_read_png_rejects_oversize_file_without_reading_it_all(self):
         # read_png reads the whole file before decode_png sees its header, so
-        # an oversize file (or an endless stream such as /dev/zero) would be
-        # loaded into memory first. The read must stop at the cap. Patch the
-        # cap down so the fixture stays small.
+        # an oversize file would be loaded into memory first. The read must
+        # stop at the cap. Patch the cap down so the fixture stays small.
         limit = 4096
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "oversize.png"
@@ -502,6 +503,33 @@ class TestDecode(unittest.TestCase):
             with self.assertRaises(png.PngError) as ctx:
                 png.read_png(path)
             self.assertIn(str(path), str(ctx.exception))
+
+    def test_read_png_rejects_a_fifo_instead_of_blocking(self):
+        # open() on a FIFO blocks until a writer appears, and read() on a pipe
+        # whose writer never sends or closes blocks forever; the byte cap
+        # bounds neither wait. read_png must reject a non-regular file. Run it
+        # in a child, since a direct call would hang this test, and require it
+        # to exit before the timeout.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            fifo = Path(tmp) / "pipe.png"
+            os.mkfifo(fifo)
+            child = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "import sys; sys.path.insert(0, sys.argv[1]); import png; "
+                    "png.read_png(sys.argv[2])",
+                    str(REPO_ROOT / "tools"),
+                    str(fifo),
+                ],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        self.assertNotEqual(child.returncode, 0)
+        self.assertIn("not a regular file", child.stderr)
 
 
 class TestUnfilterLanes(unittest.TestCase):
