@@ -13,7 +13,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
-    groups_with_id,
+    elements_by_id,
     local_name,
     path_arcs,
     rect_geometry,
@@ -102,7 +102,7 @@ class TestButton(unittest.TestCase):
         # them; pin the order they are painted in instead: the black outline,
         # the corner's bevel colour, then the face.
         tree = ET.parse(BUTTON_SVG)
-        groups = {el.get("id"): el for el in groups_with_id(tree)}
+        by_id = elements_by_id(tree)
         corners = {
             "normal-topleft": ("#000000", "#FFFFFF", "#DDDDDD"),
             "normal-topright": ("#000000", "#FFFFFF", "#999999", "#DDDDDD"),
@@ -116,7 +116,7 @@ class TestButton(unittest.TestCase):
         for name, colours in corners.items():
             fills = tuple(
                 child.get("fill")
-                for child in groups[name]
+                for child in by_id[name]
                 if local_name(child) == "path"
             )
             with self.subTest(corner=name):
@@ -147,11 +147,11 @@ class TestButton(unittest.TestCase):
             "focus-bottomright": ((0, 0), (2, 1)),
         }
         tree = ET.parse(BUTTON_SVG)
-        groups = {el.get("id"): el for el in groups_with_id(tree)}
+        by_id = elements_by_id(tree)
         for name, (center, radii) in expected.items():
             entries = [
                 entry
-                for path in groups[name]
+                for path in by_id[name]
                 if local_name(path) == "path"
                 for entry in path_arcs(path.get("d"))
             ]
@@ -229,7 +229,7 @@ class TestButton(unittest.TestCase):
         # The rounded corners are paths, so `render_slices` cannot composite
         # them; pin that each carries exactly the one black ring path.
         tree = ET.parse(BUTTON_SVG)
-        groups = {el.get("id"): el for el in groups_with_id(tree)}
+        by_id = elements_by_id(tree)
         for name in (
             "focus-topleft", "focus-topright",
             "focus-bottomleft", "focus-bottomright",
@@ -237,7 +237,7 @@ class TestButton(unittest.TestCase):
             with self.subTest(corner=name):
                 self.assertEqual(
                     [
-                        child.get("fill") for child in groups[name]
+                        child.get("fill") for child in by_id[name]
                         if local_name(child) == "path"
                     ],
                     ["#000000"],

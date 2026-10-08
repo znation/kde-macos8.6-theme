@@ -9,6 +9,7 @@ from desktoptheme_paths import RADIOBUTTON_SVG
 from svg_assertions import (
     assert_no_script_elements,
     attribute_values,
+    elements_by_id,
     local_name,
 )
 
@@ -32,7 +33,7 @@ class TestRadioButton(unittest.TestCase):
         # (black face, white ring) or a circle nudged off-centre would
         # otherwise pass.
         tree = ET.parse(RADIOBUTTON_SVG)
-        by_id = {el.get("id"): el for el in tree.iter() if el.get("id")}
+        by_id = elements_by_id(tree)
         circles = [
             el for el in by_id["normal"]
             if local_name(el) == "circle"

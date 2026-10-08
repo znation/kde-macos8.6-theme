@@ -9,6 +9,7 @@ from desktoptheme_paths import CHECKMARKS_SVG
 from svg_assertions import (
     assert_no_script_elements,
     attribute_values,
+    elements_by_id,
     local_name,
 )
 
@@ -32,7 +33,7 @@ class TestCheckmarks(unittest.TestCase):
         # would stretch to the 16x16 cell; pin the group, the rect, and the
         # glyph so that scaling cannot creep back in.
         tree = ET.parse(CHECKMARKS_SVG)
-        by_id = {el.get("id"): el for el in tree.iter() if el.get("id")}
+        by_id = elements_by_id(tree)
 
         checkbox = by_id["checkbox"]
         self.assertEqual(local_name(checkbox), "g")

@@ -77,6 +77,21 @@ def groups_with_id(tree):
             yield element
 
 
+def elements_by_id(tree):
+    """Return {id: element} for every id-bearing element in *tree*.
+
+    Unlike `groups_with_id`, this keeps non-`<g>` elements, so a caller can
+    read a `<circle>` or `<path>` by id -- radiobutton's selection dot and
+    hint circle, checkmarks' glyphs. The ids in these SVGs are unique; if two
+    elements shared one, the later in document order would win.
+    """
+    return {
+        element.get("id"): element
+        for element in tree.iter()
+        if element.get("id")
+    }
+
+
 def assert_no_script_elements(case, tree):
     """Assert *tree* holds no ``<script>`` element.
 
