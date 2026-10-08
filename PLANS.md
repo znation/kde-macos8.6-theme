@@ -88,10 +88,108 @@ look-and-feel package, or the Makefile.
   application-menu sidebar render a #DDDDDD face with a #000000 outline and #FFFFFF top/left +
   #999999 bottom/right bevels; every other widget still renders Breeze.
 
-**Follow-up (not planned here).** The button widget (`widgets/button`, consumed by
-`RaisedButtonBackground`/`FlatButtonBackground`/`ButtonHover`/`ButtonFocus`/`ButtonShadow` and
-`CheckIndicator`), then `scrollbar`/`tooltip`; the frame establishes the multi-state nine-slice
-pattern those need.
+**Follow-up (not planned here).** `scrollbar`/`tooltip` and the menu widgets (`background`,
+`listitem`); the frame establishes the multi-state nine-slice pattern those need. The button widget
+is planned separately below.
+
+### Mac OS 8.6 Platinum button widget for the desktop theme
+
+**Planned 2026-10-07 by plan.** Independent of the frame plan above: it adds a second widget file to
+the existing `org.macos8.desktop` desktop-theme package (created by the done panel-background
+plan) and a `TestButton` class to the existing `tests/test_desktoptheme.py`; it does not touch the
+frame SVG and does not require the frame plan to land first.
+
+**Goal.** Ship `widgets/button.svg` in the `org.macos8.desktop` desktop theme so the Platinum push
+button replaces Breeze for the most-used control: `PlasmaComponents.Button`, `ToolButton`,
+`CheckBox`/`RadioButton` indicators, `DialogButtonBox`, and every applet button built on them.
+
+**Grounding.**
+- Consumers verified in the installed Plasma 6.3.6 QML under
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/`:
+  `private/RaisedButtonBackground.qml` draws prefixes `"normal"`, `"pressed"`, and
+  `["focus-background", "normal"]`; `private/ButtonHover.qml` draws `"hover"`;
+  `private/ButtonFocus.qml` draws `flat ? ["toolbutton-focus", "focus"] : "focus"`;
+  `private/FlatButtonBackground.qml` draws `["toolbutton-hover", "normal"]` and
+  `["toolbutton-pressed", "pressed"]`; `private/ButtonShadow.qml` draws `"shadow"`;
+  `CheckIndicator.qml` draws `"normal"` plus the separate `widgets/checkmarks` glyph.
+- The default `button.svgz` id contract (parsed from
+  `zcat /usr/share/plasma/desktoptheme/default/widgets/button.svgz`) is, per prefix,
+  `{prefix}-{center,top,bottom,left,right,topleft,topright,bottomleft,bottomright}` plus
+  `{prefix}-hint-{top,bottom,left,right}-margin` (the margin is the hint path's bounding-box height
+  for top/bottom and its width for left/right), plus one `hint-tile-center`. Its `normal`, `pressed`,
+  and `focus` hint margins are all 2px.
+- The prefix fallbacks are QML arrays, so the file need not ship every prefix: a missing `hover`
+  makes `ButtonHover` draw nothing, a missing `shadow` makes `ButtonShadow` draw nothing, and missing
+  `toolbutton-*`/`focus-background` fall back to `normal`/`pressed`/`focus`. `mask-normal-*` is
+  referenced by no PlasmaComponents consumer (`grep -rn mask` over that tree returns nothing).
+- Palette from `theme/color-schemes/MacOS8.colors` (`[Colors:Button] BackgroundNormal=221,221,221`
+  #DDDDDD, `ForegroundNormal=0,0,0` #000000) and the bevels the panel-background/frame plans use
+  (#FFFFFF top/left, #999999 bottom/right). A histogram of the button strip of
+  `macos8.6-screenshots/opendialog_macrumors86.jpg` (`convert ... -crop 364x50+0+156 ... histogram`)
+  shows those four greys (#FFFFFF, ~#DEDEDE, ~#9D9D9D, #000000).
+- This plan specifies the Platinum push button as a rounded rectangle with a 1px #000000 outline, a
+  1px #FFFFFF inner top/left bevel, a 1px #999999 inner bottom/right bevel, and a #DDDDDD face; the
+  pressed state inverts the bevel. The theme has no hover highlight and no drop shadow, so `hover`
+  and `shadow` are intentionally omitted (see the fallback bullet above).
+
+**Approach.**
+1. New file `button.svg` in the package's `widgets/` subdirectory — a 12x12 canvas with a 3px border
+   and 6px centre tile for `normal`/`pressed`, matching the panel-background and frame grid. Corners
+   are quarter-rounds of radius 3 inside the 3x3 corner slices; the SVG's own alpha is the shape.
+   - Slice geometry: `topleft`/`topright`/`bottomleft`/`bottomright` 3x3 at (0,0)/(9,0)/(0,9)/(9,9);
+     `top`/`bottom` 6x3 at (3,0)/(3,9); `left`/`right` 3x6 at (0,3)/(9,3); `center` 6x6 at (3,3).
+     Hint rects: `{prefix}-hint-top-margin` height 3, `-bottom-margin` height 3, `-left-margin`
+     width 3, `-right-margin` width 3, and `hint-tile-center` 6x6; give them any opaque colour with
+     the `style` attribute (KSvg reads the geometry, not the colour).
+   - `normal`: 1px #000000 outer outline, 1px #FFFFFF inside the top and left edges, 1px #999999
+     inside the bottom and right edges, #DDDDDD face. Corners carry the two adjacent bevel colours so
+     the bevel turns the corner (e.g. `topleft` #FFFFFF, `bottomright` #999999).
+   - `pressed`: same outline and face with the bevel inverted — 1px #999999 inside top/left and 1px
+     #FFFFFF inside bottom/right.
+2. Add a `focus` prefix on the same 12x12 canvas but with a 2px border and 8px centre, matching the
+   default theme's 2px focus margins: a 1px #000000 rounded ring in the outer 1px of the border,
+   transparent in the inner 1px and the centre. `ButtonFocus` expands its item by its margins, so this
+   draws a ring 1-2px outside the button outline (the Platinum default-button ring). Ship its four
+   `focus-hint-*-margin` ids and `hint-tile-center`.
+   - No `hover-*`, `shadow-*`, `toolbutton-*`, `focus-background-*`, or `mask-*` ids; no `class=`
+     attribute, no `<script>`, and no fill outside the 12x12 canvas. Because `hover` is absent, a
+     hovered raised button is pixel-identical to an idle one, and a hovered flat/tool button shows the
+     `normal` fallback.
+3. `tests/test_desktoptheme.py` (edit) — add a `TestButton` class beside `TestPanelBackground`:
+   - `BUTTON_PREFIXES = ("normal", "pressed", "focus")` and
+     `BUTTON_HINTS = ("hint-tile-center", "hint-top-margin", "hint-bottom-margin",
+     "hint-left-margin", "hint-right-margin")`.
+   - `test_button_slice_ids`: parse `widgets/button.svg`; for each prefix assert all nine
+     `{prefix}-{slice}` ids and all four `{prefix}-hint-{side}-margin` ids are present; assert
+     `hint-tile-center` is present.
+   - `test_button_colours`: assert the parsed `fill` attribute set equals
+     `{"#FFFFFF", "#DDDDDD", "#999999", "#000000"}` (parse attributes, not raw text; the hint
+     rects use `style`, so they are excluded).
+   - `test_no_script_elements`: no element tag ends in `script`.
+   - Extend `TestInstall.test_make_install_copies_package_byte_for_byte`'s tuple with
+     `os.path.join("widgets", "button.svg")`, so the install byte-identity check covers the new file.
+4. `README.md` (edit) — add the button widget to the `tumwater:status` block's desktop-theme
+   sentence.
+
+**Files touched.** New: `widgets/button.svg` in the `org.macos8.desktop` package. Edited:
+`tests/test_desktoptheme.py` (new `TestButton`, one tuple line), `README.md`. No Makefile,
+color-scheme, or look-and-feel change: the Makefile's `cp -r` already copies new widget files.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestButton` passing and the extended `TestInstall` byte-identity assertion.
+- The button SVG parses and contains the nine slice ids and four hint-margin ids for `normal`,
+  `pressed`, and `focus`, plus `hint-tile-center`; its parsed `fill` values are exactly the four
+  Platinum greys.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/button.svg` byte-identical to source.
+- Manual smoke test (needs a Plasma session): `PlasmaComponents.Button` and `ToolButton` render a
+  #DDDDDD rounded face with a #000000 outline and #FFFFFF top/left + #999999 bottom/right bevels;
+  pressing inverts the bevel; a focused button shows the black outer ring; hovering changes nothing;
+  `CheckBox`/`RadioButton` indicators get the Platinum face (their `widgets/checkmarks` glyph stays
+  Breeze and is out of scope here).
+
+**Follow-up (not planned here).** `widgets/checkmarks.svg` for the Platinum checkbox/radio glyphs,
+plus `scrollbar`/`listitem`/`background`.
 
 ### Mac OS 8.6 desktop theme package with the Platinum panel background (done 2026-10-07)
 
