@@ -14,6 +14,8 @@ DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
 SVG = os.path.join(PACKAGE, "widgets", "panel-background.svg")
+FRAME_SVG = os.path.join(PACKAGE, "widgets", "frame.svg")
+FRAME_PREFIXES = ("plain", "raised", "sunken")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"
@@ -33,6 +35,82 @@ HINT_IDS = [
     "hint-top-inset", "hint-bottom-inset",
     "hint-left-inset", "hint-right-inset",
 ]
+
+# Every pixel of each raised/sunken 3x3 corner slice, row-major in slice-local
+# coordinates. The bevel must turn the corner: the edge bevel colours continue
+# into the corner and meet there. A corner that stops the bevel one pixel short
+# leaves a face-coloured (#DDDDDD) notch where the side tile shows highlight or
+# shadow, so pinning the pixels makes that defect fail the suite.
+CORNER_PIXELS = {
+    "raised": {
+        "topleft": (
+            "#000000", "#000000", "#000000",
+            "#000000", "#FFFFFF", "#FFFFFF",
+            "#000000", "#FFFFFF", "#DDDDDD",
+        ),
+        "topright": (
+            "#000000", "#000000", "#000000",
+            "#FFFFFF", "#999999", "#000000",
+            "#DDDDDD", "#999999", "#000000",
+        ),
+        "bottomleft": (
+            "#000000", "#FFFFFF", "#DDDDDD",
+            "#000000", "#999999", "#999999",
+            "#000000", "#000000", "#000000",
+        ),
+        "bottomright": (
+            "#DDDDDD", "#999999", "#000000",
+            "#999999", "#999999", "#000000",
+            "#000000", "#000000", "#000000",
+        ),
+    },
+    "sunken": {
+        "topleft": (
+            "#000000", "#000000", "#000000",
+            "#000000", "#999999", "#999999",
+            "#000000", "#999999", "#DDDDDD",
+        ),
+        "topright": (
+            "#000000", "#000000", "#000000",
+            "#999999", "#FFFFFF", "#000000",
+            "#DDDDDD", "#FFFFFF", "#000000",
+        ),
+        "bottomleft": (
+            "#000000", "#999999", "#DDDDDD",
+            "#000000", "#FFFFFF", "#FFFFFF",
+            "#000000", "#000000", "#000000",
+        ),
+        "bottomright": (
+            "#DDDDDD", "#FFFFFF", "#000000",
+            "#FFFFFF", "#FFFFFF", "#000000",
+            "#000000", "#000000", "#000000",
+        ),
+    },
+}
+
+
+def render_slices(tree):
+    """Composite each id-bearing <g> of the frame into a {(x, y): fill} map.
+
+    Coordinates are slice-local: the groups are pure translations, so a
+    slice's appearance is its rects painted in document order, with a later
+    rect overriding an earlier one as KSvg composites one nine-slice tile.
+    """
+    slices = {}
+    for group in tree.iter():
+        if group.tag.rsplit("}", 1)[-1] != "g" or not group.get("id"):
+            continue
+        pixels = {}
+        for rect in group:
+            if rect.tag.rsplit("}", 1)[-1] != "rect":
+                continue
+            x = int(rect.get("x", 0))
+            y = int(rect.get("y", 0))
+            for dx in range(int(rect.get("width"))):
+                for dy in range(int(rect.get("height"))):
+                    pixels[(x + dx, y + dy)] = rect.get("fill")
+        slices[group.get("id")] = pixels
+    return slices
 
 
 def load_metadata():
@@ -85,6 +163,63 @@ class TestPanelBackground(unittest.TestCase):
         for element in self.tree.iter():
             tag = element.tag.rsplit("}", 1)[-1]
             self.assertFalse(tag.endswith("script"), tag)
+
+
+class TestFrame(unittest.TestCase):
+    def test_frame_svg_contract(self):
+        tree = ET.parse(FRAME_SVG)
+        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        for prefix in FRAME_PREFIXES:
+            for name in SLICE_IDS:
+                self.assertIn(f"{prefix}-{name}", ids, name)
+            for side in ("top", "bottom", "left", "right"):
+                self.assertIn(f"{prefix}-hint-{side}-margin", ids, side)
+        self.assertIn("hint-tile-center", ids)
+        # Read the raw file for the palette: the frame's hints deliberately
+        # avoid the Platinum colours, so every hit here comes from the artwork.
+        with open(FRAME_SVG, encoding="utf-8") as handle:
+            text = handle.read()
+        for colour in ("#DDDDDD", "#FFFFFF", "#999999", "#000000"):
+            self.assertIn(colour, text)
+        for element in tree.iter():
+            tag = element.tag.rsplit("}", 1)[-1]
+            self.assertFalse(tag.endswith("script"), tag)
+
+    def test_frame_corner_bevels_turn_the_corner(self):
+        slices = render_slices(ET.parse(FRAME_SVG))
+        for prefix, corners in CORNER_PIXELS.items():
+            for name, expected in corners.items():
+                pixels = slices[f"{prefix}-{name}"]
+                actual = tuple(
+                    pixels.get((x, y))
+                    for y in range(3)
+                    for x in range(3)
+                )
+                self.assertEqual(actual, expected, f"{prefix}-{name}")
+
+    def test_frame_installed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            result = subprocess.run(
+                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            target = os.path.join(
+                tmp, "share", "plasma", "desktoptheme", DTHEME_ID,
+                "widgets", "frame.svg",
+            )
+            self.assertTrue(os.path.isfile(target), target)
+            with open(FRAME_SVG, "rb") as source, open(target, "rb") as installed:
+                self.assertEqual(source.read(), installed.read())
+            again = subprocess.run(
+                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(again.returncode, 0, again.stderr)
 
 
 class TestDefaultsWiring(unittest.TestCase):

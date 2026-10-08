@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 Platinum frame widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum frame widget for the desktop theme (done 2026-10-07)
 
 **Planned 2026-10-07 by plan.** Requires the desktop theme package from the panel-background plan
 above (its `org.macos8.desktop` directory under `theme/desktop-themes/` and its `test_desktoptheme.py`
@@ -88,8 +92,6 @@ look-and-feel package, or the Makefile.
 `RaisedButtonBackground`/`FlatButtonBackground`/`ButtonHover`/`ButtonFocus`/`ButtonShadow` and
 `CheckIndicator`), then `scrollbar`/`tooltip`; the frame establishes the multi-state nine-slice
 pattern those need.
-
-## Done
 
 ### Mac OS 8.6 desktop theme package with the Platinum panel background (done 2026-10-07)
 

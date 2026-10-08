@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" frame.
+
+     The raised/plain/sunken border Plasma draws for PlasmaComponents.Frame,
+     GroupBox, the kicker application-menu sidebar and applet FrameSvg
+     consumers. Square corners, an opaque #DDDDDD face, a 1px #000000 outer
+     border and a 1px bevel inside it: #FFFFFF top/left and #999999
+     bottom/right when raised, swapped when sunken, absent when plain.
+
+     The nine-slice contract is a 3px border around a 6px centre tile on a
+     tight 12x12 canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="plain-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="plain-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="plain-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="plain-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="raised-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="raised-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="raised-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="raised-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="sunken-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="sunken-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="sunken-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="sunken-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+
+  <!-- Plain: face and a 1px black outline, no bevel. -->
+  <g id="plain-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="plain-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="plain-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="plain-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="plain-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="plain-topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="plain-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="plain-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="plain-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+
+  <!-- Raised: white highlight inside the top/left border, grey shadow inside
+       the bottom/right. -->
+  <g id="raised-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="raised-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="raised-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#FFFFFF"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="raised-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#999999"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="raised-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="raised-topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="1" width="1" height="2" fill="#FFFFFF"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="raised-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="0" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="1" width="1" height="2" fill="#999999"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="raised-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="3" fill="#FFFFFF"/>
+    <rect x="1" y="1" width="2" height="1" fill="#999999"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="raised-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="0" y="1" width="2" height="1" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="3" fill="#999999"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+
+  <!-- Sunken: the raised bevel inverted, grey shadow inside top/left and
+       white highlight inside bottom/right. -->
+  <g id="sunken-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="sunken-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="sunken-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#999999"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="sunken-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#FFFFFF"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="sunken-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="sunken-topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="2" height="1" fill="#999999"/>
+    <rect x="1" y="1" width="1" height="2" fill="#999999"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="sunken-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="0" y="1" width="2" height="1" fill="#999999"/>
+    <rect x="1" y="1" width="1" height="2" fill="#FFFFFF"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="sunken-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="3" fill="#999999"/>
+    <rect x="1" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="sunken-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="0" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="3" fill="#FFFFFF"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+</svg>
