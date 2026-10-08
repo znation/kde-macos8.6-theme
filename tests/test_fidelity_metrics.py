@@ -52,6 +52,19 @@ class TestAbsDiff(unittest.TestCase):
             self, fidelity_metrics._abs_diff, self._reference, arity=2
         )
 
+    def test_unequal_lengths_raise(self):
+        # A shorter b would silently drop bytes and a longer one would
+        # overflow to_bytes; name both lengths instead.
+        for a, b in (
+            (b"\x01\x02\x03", b"\x01\x02"),
+            (b"\x01", b"\x01\x02\x03"),
+        ):
+            with self.subTest(a=a, b=b):
+                with self.assertRaisesRegex(
+                    ValueError, r"_abs_diff\(\) requires equal-length"
+                ):
+                    fidelity_metrics._abs_diff(a, b)
+
     def test_extreme_values(self):
         # 0/255 is where a borrow or carry would show up first, for both an
         # even and an odd byte count.

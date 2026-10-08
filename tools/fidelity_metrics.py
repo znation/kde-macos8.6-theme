@@ -86,7 +86,16 @@ def _abs_diff(a: bytes, b: bytes) -> bytes:
     and the absolute value is selected from the two per-lane differences.  On
     screenshot-sized inputs it is ~2.7x faster than the ``map()`` form and
     returns byte-identical output.
+
+    Both byte strings must be the same length; a mismatch is a caller bug
+    that would otherwise yield a silently truncated or overflowing result, so
+    it raises ``ValueError`` naming both lengths.
     """
+    if len(a) != len(b):
+        raise ValueError(
+            f"_abs_diff() requires equal-length byte strings: "
+            f"len(a)={len(a)} len(b)={len(b)}"
+        )
     length = len(a)
     if length == 0:
         return b""

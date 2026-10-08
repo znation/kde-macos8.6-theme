@@ -159,7 +159,16 @@ def _byte_add(a: bytes, b: bytes) -> bytes:
     every per-byte sum below 256, so no byte can carry, and XORing back the
     bit-7 difference restores the top bit.  The result equals
     ``bytes((x + y) & 0xFF for x, y in zip(a, b))`` at C speed.
+
+    Both byte strings must be the same length; a mismatch is a caller bug
+    that would otherwise yield a silently truncated or overflowing result, so
+    it raises ``ValueError`` naming both lengths.
     """
+    if len(a) != len(b):
+        raise ValueError(
+            f"_byte_add() requires equal-length byte strings: "
+            f"len(a)={len(a)} len(b)={len(b)}"
+        )
     length = len(a)
     if length == 0:
         return b""
