@@ -109,9 +109,10 @@ CORNER_PIXELS = {
 
 
 def render_slices(tree):
-    """Composite each id-bearing <g> of the frame into a {(x, y): fill} map.
+    """Composite each id-bearing <g> of a nine-slice SVG into a {(x, y): fill} map.
 
-    Coordinates are slice-local: the groups are pure translations, so a
+    The frame's corner slices and the button's edge slices are both read this
+    way. Coordinates are slice-local: the groups are pure translations, so a
     slice's appearance is its rects painted in document order, with a later
     rect overriding an earlier one as KSvg composites one nine-slice tile.
     """
