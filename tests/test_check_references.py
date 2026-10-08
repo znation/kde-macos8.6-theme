@@ -77,6 +77,38 @@ class TestUnreadableImage(unittest.TestCase):
         )
 
 
+class TestUnreadableUndeclaredImage(unittest.TestCase):
+    """An unreadable file with no sources entry is reported, not raised.
+
+    The undeclared-image scan reads each unlisted file's leading bytes to
+    decide whether it is an image, so a permission-denied stray in the
+    reference directory must surface as a problem line instead of aborting
+    the whole check with a traceback. This is the unlisted counterpart of
+    ``TestUnreadableImage`` (which covers a file named in ``sources.txt``).
+    """
+
+    def test_unreadable_undeclared_file_is_reported_not_raised(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+            stray = root / "stray.bin"
+            stray.write_bytes(module.PNG_MAGIC)
+            real_open = Path.open
+
+            def deny_stray(self, *args, **kwargs):
+                if self == stray:
+                    raise PermissionError(13, "Permission denied", str(self))
+                return real_open(self, *args, **kwargs)
+
+            with unittest.mock.patch.object(Path, "open", deny_stray):
+                problems = module.check_references(root)
+        self.assertTrue(
+            any("stray.bin" in p and "could not be read" in p for p in problems),
+            problems,
+        )
+
+
 class TestUnreadableSources(unittest.TestCase):
     def test_unreadable_sources_file_is_reported_not_raised(self):
         module = load_checker()
