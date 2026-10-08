@@ -10,6 +10,7 @@ a `DESTDIR` or `XDG_DATA_HOME` that contains whitespace, so its recipe words
 are quoted.
 """
 
+import contextlib
 import os
 import subprocess
 import sys
@@ -30,6 +31,22 @@ def _process_alive(pid):
     return True
 
 
+@contextlib.contextmanager
+def _short_subprocess_timeout(seconds=0.5):
+    """Temporarily shorten `theme_install.SUBPROCESS_TIMEOUT` for one block.
+
+    Each timeout test cuts the suite's 60-second budget to a fraction of a
+    second; the global must be restored even when the body raises, or every
+    later subprocess call in the suite would time out.
+    """
+    original = theme_install.SUBPROCESS_TIMEOUT
+    theme_install.SUBPROCESS_TIMEOUT = seconds
+    try:
+        yield
+    finally:
+        theme_install.SUBPROCESS_TIMEOUT = original
+
+
 class TestSubprocessTimeout(unittest.TestCase):
     def test_install_times_out_when_make_hangs(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -42,13 +59,9 @@ class TestSubprocessTimeout(unittest.TestCase):
 
             env = {"PATH": bindir + os.pathsep + os.environ.get("PATH", "")}
             with unittest.mock.patch.dict(os.environ, env):
-                original = theme_install.SUBPROCESS_TIMEOUT
-                theme_install.SUBPROCESS_TIMEOUT = 0.5
-                try:
+                with _short_subprocess_timeout():
                     with self.assertRaises(subprocess.TimeoutExpired):
                         theme_install.install(tmp)
-                finally:
-                    theme_install.SUBPROCESS_TIMEOUT = original
 
     def test_timeout_kills_grandchildren(self):
         """A timeout must kill the whole make/flock/make chain, not just make.
@@ -79,13 +92,9 @@ class TestSubprocessTimeout(unittest.TestCase):
                 PATH=bindir + os.pathsep + os.environ.get("PATH", ""),
                 GRANDCHILD_PIDFILE=pidfile,
             )
-            original = theme_install.SUBPROCESS_TIMEOUT
-            theme_install.SUBPROCESS_TIMEOUT = 0.5
-            try:
+            with _short_subprocess_timeout():
                 with self.assertRaises(subprocess.TimeoutExpired):
                     theme_install.install(tmp, env=env)
-            finally:
-                theme_install.SUBPROCESS_TIMEOUT = original
 
             with open(pidfile, encoding="utf-8") as handle:
                 grandchild = int(handle.read())
@@ -114,13 +123,9 @@ class TestSubprocessTimeout(unittest.TestCase):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        original = theme_install.SUBPROCESS_TIMEOUT
-        theme_install.SUBPROCESS_TIMEOUT = 0.5
-        try:
+        with _short_subprocess_timeout():
             with self.assertRaises(subprocess.TimeoutExpired):
                 theme_install.finish(process)
-        finally:
-            theme_install.SUBPROCESS_TIMEOUT = original
         deadline = time.monotonic() + 2.0
         while time.monotonic() < deadline and _process_alive(process.pid):
             time.sleep(0.05)
