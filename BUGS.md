@@ -28,6 +28,44 @@ once an offline render path is available, and wire it into `make check`.
 
 **Refused 2026-10-07 by bugfix: no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
 
+### `--tolerance` does not gate the fidelity exit status; README documents no pass threshold (found 2026-10-07)
+
+**Symptom:** README's "Fidelity checking" section says the tool exits non-zero "when the result is
+outside the requested tolerance" and documents only `--crop`. Requesting a tolerance with
+`--tolerance N` on a candidate whose worst channel delta is exactly `N` still exits 1 (FAIL),
+because the verdict also requires `mae <= --max-mae` and `frac_differing <= --max-frac`, both
+defaulting to 0 and neither mentioned in the README. The tool's own `--help` epilog ("0 within
+tolerance") has the same contradiction, so a first-time user cannot make a within-tolerance
+comparison pass from the documentation alone.
+
+**How to reproduce:**
+
+```
+cd <repo>
+python3 - <<'PY'
+import sys; sys.path[:0] = ['.', 'tests']
+from png_fixtures import make_png, rgb_image
+ref, ref_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
+open('/tmp/ref.png', 'wb').write(ref_png)
+c = bytearray(ref.rgb); c[4] = 50  # pixel (1,0) green: 0 -> 50
+open('/tmp/cand.png', 'wb').write(make_png(3, 3, [bytes(c[i:i+9]) for i in range(0, 27, 9)]))
+PY
+python3 tools/fidelity.py /tmp/cand.png /tmp/ref.png --tolerance 50
+```
+
+Expected: exit 0 (PASS) — the worst channel delta, 50, is within the requested `--tolerance 50`
+and the tool reports `differing pixels: 0 / 9`. Actual: exit 1 (FAIL), printing
+`FAIL: max-mae=0.0000 max-frac=0.000000 tolerance=50`.
+
+**Suspected cause:** `main` computes `ok = metrics.mae <= args.max_mae and
+metrics.frac_differing <= args.max_frac`; `--tolerance` only feeds `compare(tolerance=...)`, which
+affects the differing-pixel count, not `mae`. The README and the help epilog present `--tolerance`
+as the pass/fail knob when it is not.
+
+**Next step:** Document `--tolerance`, `--max-mae` and `--max-frac` in the README's fidelity
+section (including that the default is byte-exact), or make the verdict honor `--tolerance` when no
+`--max-mae`/`--max-frac` is given.
+
 ### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07)
 
 **Symptom:** `tests/test_colorscheme.py`'s `TestAnchors` pins the Platinum palette (Window/Button/
