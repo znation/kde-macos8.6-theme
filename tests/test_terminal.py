@@ -83,6 +83,21 @@ class TestEscapeControls(unittest.TestCase):
             "a\\u000ab\\u001bc",
         )
 
+    def test_literal_backslash_is_doubled(self):
+        # A path may contain a literal backslash (a legal filename byte on
+        # POSIX). Doubling it keeps the escape sequences unambiguous.
+        self.assertEqual(terminal.escape_controls("a\\b"), "a\\\\b")
+
+    def test_escape_text_and_a_real_control_do_not_print_alike(self):
+        # A filename that literally holds the six characters \u001b must not
+        # render identically to a filename holding an ESC, or an operator
+        # reading a diagnostic cannot tell which file the tool reported.
+        self.assertEqual(terminal.escape_controls("\\u001b"), "\\\\u001b")
+        self.assertNotEqual(
+            terminal.escape_controls("\\u001b"),
+            terminal.escape_controls("\x1b"),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

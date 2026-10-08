@@ -13,12 +13,17 @@ from __future__ import annotations
 def _escape(ch: str) -> str:
     """Return *ch*, or its visible escape when it is not printable.
 
-    A printable character is returned unchanged. A non-printable one is
-    escaped as ``\\uXXXX`` when it lies in the Basic Multilingual Plane and
-    as ``\\UXXXXXXXX`` when it is above it, so every escape is well-formed:
-    a five- or six-digit ``\\u`` escape for an astral character would be
-    ambiguous with the four hex digits that follow it.
+    A printable character is returned unchanged, except a literal backslash:
+    doubling it (``\\\\``) keeps a printed escape sequence unambiguous, so a
+    name that literally contains the six characters ``\\u001b`` cannot be
+    mistaken for the escaped ESC it would otherwise resemble. A non-printable
+    character is escaped as ``\\uXXXX`` when it lies in the Basic Multilingual
+    Plane and as ``\\UXXXXXXXX`` when it is above it, so every escape is
+    well-formed: a five- or six-digit ``\\u`` escape for an astral character
+    would be ambiguous with the four hex digits that follow it.
     """
+    if ch == "\\":
+        return "\\\\"
     if ch.isprintable():
         return ch
     codepoint = ord(ch)
@@ -33,6 +38,8 @@ def escape_controls(text: str) -> str:
     Every non-printable character becomes a visible escape -- ``\\uXXXX``
     for a Basic Multilingual Plane codepoint, ``\\UXXXXXXXX`` above it -- so
     a path carrying an ESC or newline is shown literally instead of being
-    interpreted by the terminal.
+    interpreted by the terminal. A literal backslash is doubled, so a name
+    that contains the escape text itself (``\\u001b``) reads differently from
+    the ESC that escapes to the same characters.
     """
     return "".join(_escape(ch) for ch in text)
