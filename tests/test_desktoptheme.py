@@ -447,8 +447,17 @@ class TestCheckmarks(unittest.TestCase):
             [radio_rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
             ["0", "16", "16", "16", "none"],
         )
-        self.assertEqual(float(radio_circles[0].get("r")), 3)
-        self.assertEqual(radio_circles[0].get("fill"), "#000000")
+        # The dot must stay centred in the bottom 16x16 cell at (8, 24) so
+        # the fallback indicator draws concentric with the radio face; the
+        # contract test only checks the fill set, so a dot nudged off-centre
+        # would otherwise pass. Pin its centre with its radius and fill.
+        self.assertEqual(
+            (float(radio_circles[0].get("cx")),
+             float(radio_circles[0].get("cy")),
+             float(radio_circles[0].get("r")),
+             radio_circles[0].get("fill")),
+            (8, 24, 3, "#000000"),
+        )
 
 
 class TestFrame(unittest.TestCase):
