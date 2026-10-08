@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import struct
 import zlib
+from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -50,7 +51,7 @@ class Image:
     rgb: bytes
 
 
-def _iter_chunks(data: bytes):
+def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     pos = len(_PNG_SIGNATURE)
     while pos + 8 <= len(data):
         (length,) = struct.unpack(">I", data[pos : pos + 4])
