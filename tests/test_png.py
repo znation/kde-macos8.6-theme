@@ -105,6 +105,42 @@ class TestMakePng(unittest.TestCase):
         self.assertEqual(png.decode_png(data).rgb, bytes([7, 8, 9]))
 
 
+class TestWithIhdrByte(unittest.TestCase):
+    def test_rejects_out_of_range_offset(self):
+        # A negative offset indexes from the end of the IHDR payload and would
+        # silently edit a different field; one past the end raised a bare
+        # IndexError. Both must name the offset and the payload's size.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        for offset in (-1, 13, 100):
+            with self.subTest(offset=offset):
+                with self.assertRaises(ValueError) as ctx:
+                    with_ihdr_byte(data, offset, 0)
+                message = str(ctx.exception)
+                self.assertIn(f"offset {offset}", message)
+                self.assertIn("0 <= offset < 13", message)
+
+    def test_rejects_value_out_of_byte_range(self):
+        # A value above 255 raised a bare bytearray ValueError that named the
+        # range but not the argument; a negative value did the same.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        for value in (-1, 256, 1000):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError) as ctx:
+                    with_ihdr_byte(data, 8, value)
+                message = str(ctx.exception)
+                self.assertIn(f"value {value}", message)
+                self.assertIn("0 <= value <= 255", message)
+
+    def test_accepts_the_last_ihdr_byte(self):
+        # offset 12 is the interlace field, the last valid offset; the bound
+        # must not reject it.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        broken = with_ihdr_byte(data, 12, 1)
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(broken)
+        self.assertIn("interlaced", str(ctx.exception))
+
+
 class TestDecode(unittest.TestCase):
     def _decode_error(self, data):
         """Assert decode_png rejects *data* and return the PngError message."""

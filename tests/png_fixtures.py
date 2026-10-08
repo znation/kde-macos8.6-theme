@@ -117,12 +117,26 @@ def with_ihdr_byte(data: bytes, offset: int, value: int) -> bytes:
     """Return *data* with one IHDR payload byte replaced and the CRC fixed.
 
     ``offset`` is relative to the IHDR payload, so 10 selects the compression
-    method, 11 the filter method, and 12 the interlace method.
+    method, 11 the filter method, and 12 the interlace method. ``offset`` must
+    lie in the payload and ``value`` must be a byte; a negative ``offset``
+    would otherwise index from the end and silently rewrite a different field,
+    and the other out-of-range cases used to escape as a bare ``IndexError``
+    or ``ValueError`` naming neither the argument nor the valid range.
     """
     start = len(_PNG_SIGNATURE) + 8  # skip signature, length, and "IHDR"
     length = struct.unpack(
         ">I", data[len(_PNG_SIGNATURE) : len(_PNG_SIGNATURE) + 4]
     )[0]
+    if not 0 <= offset < length:
+        raise ValueError(
+            f"with_ihdr_byte: offset {offset} is outside the IHDR payload "
+            f"(expected 0 <= offset < {length})"
+        )
+    if not 0 <= value <= 255:
+        raise ValueError(
+            f"with_ihdr_byte: value {value} is not a byte "
+            "(expected 0 <= value <= 255)"
+        )
     payload = bytearray(data[start : start + length])
     payload[offset] = value
     crc = struct.pack(">I", zlib.crc32(b"IHDR" + bytes(payload)) & 0xFFFFFFFF)
