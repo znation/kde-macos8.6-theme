@@ -116,6 +116,21 @@ class TestInstall(unittest.TestCase):
             second = self._install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
 
+    def test_make_install_prunes_files_removed_from_the_package(self):
+        """A reinstall must replace the package, not merge into the old one."""
+        with tempfile.TemporaryDirectory() as tmp:
+            first = self._install(tmp)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            stale = os.path.join(
+                tmp, "share", "plasma", "look-and-feel", LNF_ID,
+                "contents", "removed.qml",
+            )
+            with open(stale, "w", encoding="utf-8") as handle:
+                handle.write("// deleted from the package\n")
+            second = self._install(tmp)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertFalse(os.path.exists(stale), stale)
+
 
 @unittest.skipUnless(shutil.which("kpackagetool6"), "needs kpackagetool6")
 class TestPackageValid(unittest.TestCase):

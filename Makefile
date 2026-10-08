@@ -22,4 +22,7 @@ check-references:
 install:
 	install -Dm644 $(COLOR_SCHEME) $(INSTALL_DIR)/MacOS8.colors
 	install -d $(LNF_INSTALL_DIR)
+# Replace the package rather than merging: `cp -r` would leave files that were
+# deleted from $(LNF_PACKAGE) behind, so a reinstall could keep loading stale QML.
+	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID)
 	cp -r $(LNF_PACKAGE) $(LNF_INSTALL_DIR)/
