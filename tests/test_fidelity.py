@@ -415,6 +415,32 @@ class TestCli(unittest.TestCase):
                     self.assertIn("255", result.stderr)
                     self.assertNotIn("Traceback", result.stderr)
 
+    def test_max_mae_above_channel_range_rejected(self):
+        # Mean absolute error averages per-channel deltas, so it can never
+        # exceed 255; a larger threshold would silently always pass.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        with tempfile.TemporaryDirectory() as tmp:
+            reference = self._write(Path(tmp), "reference.png", data)
+            for value in ("255.5", "256", "1e9"):
+                with self.subTest(value=value):
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(TOOL),
+                            reference,
+                            reference,
+                            "--max-mae",
+                            value,
+                        ],
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertEqual(
+                        result.returncode, 2, result.stdout + result.stderr
+                    )
+                    self.assertIn("255", result.stderr)
+                    self.assertNotIn("Traceback", result.stderr)
+
     def test_valid_numeric_boundaries_accepted(self):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         with tempfile.TemporaryDirectory() as tmp:

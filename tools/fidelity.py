@@ -300,6 +300,10 @@ def _max_mae(value: str) -> float:
         raise argparse.ArgumentTypeError(
             f"--max-mae must not be negative: {value!r}"
         )
+    if number > 255:
+        raise argparse.ArgumentTypeError(
+            f"--max-mae must be at most 255 (a per-channel mean): {value!r}"
+        )
     return number
 
 
@@ -353,7 +357,7 @@ def main(argv: list[str] | None = None) -> int:
         "--max-mae",
         type=_max_mae,
         default=0.0,
-        help="fail when mean absolute error exceeds this (default 0)",
+        help="fail when mean absolute error exceeds this (0-255, default 0)",
     )
     parser.add_argument(
         "--max-frac",
