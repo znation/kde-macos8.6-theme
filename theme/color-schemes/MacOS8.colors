@@ -1,8 +1,8 @@
 # Mac OS 8.6 "Platinum" color scheme for KDE Plasma 6.
 # Palette anchors sampled from the reference screenshots in macos8.6-screenshots/,
-# except [Colors:Tooltip] BackgroundNormal: it is the classic Platinum
-# pale-yellow token and the reference set has no Mac OS 8.6 tooltip/balloon
-# screenshot, so it is not reference-derived.
+# except [Colors:Tooltip] BackgroundNormal: it is a KDE-required semantic role
+# whose value is the classic Platinum pale-yellow token and the reference set
+# has no Mac OS 8.6 tooltip/balloon screenshot, so it is not reference-derived.
 
 [ColorEffects:Disabled]
 Color=136,136,136
@@ -94,6 +94,9 @@ ForegroundNormal=0,0,0
 ForegroundPositive=0,128,0
 ForegroundVisited=85,26,139
 
+# KDE requires a tooltip role, but no Mac OS 8.6 reference in the set shows a
+# tooltip. BackgroundNormal is the classic Platinum pale-yellow (255,255,204),
+# not an anchor sampled from a screenshot.
 [Colors:Tooltip]
 BackgroundAlternate=221,221,221
 BackgroundNormal=255,255,204

@@ -778,8 +778,11 @@ resolve on restart, so the scheme was later renamed to `MacOS8.colors` with `Col
 **Implementation note (2026-10-08).** The selection token was planned as `206,206,255`, sampled
 from the lossy `opendialog_macrumors86.jpg`; grounding the anchor in the lossless retail
 `firstboot_betawiki.png` showed the selection fill is `204,204,255`, so the scheme was corrected
-(see the Fixed BUGS.md entry). The tooltip token (`255,255,204`) still has no reference screenshot
-and remains pinned only by the test.
+(see the Fixed BUGS.md entry). `[Colors:Tooltip] BackgroundNormal` is the one palette token with
+no Mac OS 8.6 reference in the set: it is a KDE-required semantic role whose value (`255,255,204`)
+comes from the classic Platinum palette, not a sampled anchor, and
+`theme/color-schemes/MacOS8.colors` and `tests/test_colorscheme.py` say so explicitly (decision
+2026-10-08, QUESTIONS.md).
 
 **Follow-ups (not planned here).** Wrap the scheme in a `look-and-feel` global-theme package,
 then build the Plasma desktop-theme widget SVGs and the Platinum window decoration.

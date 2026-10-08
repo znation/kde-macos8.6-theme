@@ -213,12 +213,11 @@ class TestStructure(unittest.TestCase):
 
 
 class TestAnchors(unittest.TestCase):
-    """The palette anchors, reference-sampled except the tooltip token.
+    """The palette anchors sampled from the retail reference screenshots.
 
-    Every value here except ``[Colors:Tooltip] BackgroundNormal`` was sampled
-    from a retail screenshot; the tooltip is the classic Platinum pale-yellow
-    token and the reference set holds no Mac OS 8.6 tooltip/balloon image, so
-    ``TestReferenceAnchors`` cannot ground it and it stays pinned here alone.
+    ``[Colors:Tooltip]`` is the exception: it is a KDE-required semantic role
+    whose value comes from the classic Platinum palette, and no Mac OS 8.6
+    reference in the set shows a tooltip, so it is not a sampled anchor.
     """
 
     def setUp(self):
@@ -238,6 +237,8 @@ class TestAnchors(unittest.TestCase):
         self.assert_value("Colors:Selection", "BackgroundNormal", "204,204,255")
 
     def test_tooltip_background(self):
+        # KDE-required semantic role; classic Platinum pale-yellow, not sampled
+        # from a reference screenshot (no tooltip appears in the set).
         self.assert_value("Colors:Tooltip", "BackgroundNormal", "255,255,204")
 
     def test_window_foreground(self):
@@ -253,8 +254,9 @@ class TestReferenceAnchors(unittest.TestCase):
     from a retail PNG (``desktop_archiveorg8.6hd.png`` for the face/view/chrome
     anchors, ``firstboot_betawiki.png`` for the selection anchor) and is
     asserted against the scheme's own value, so the file and the reference image
-    must agree. The tooltip anchor has no reference screenshot in the set, so it
-    stays pinned by ``TestAnchors`` alone.
+    must agree. ``[Colors:Tooltip]`` has no reference screenshot in the set: it
+    is a KDE-required semantic role whose value comes from the classic Platinum
+    palette, so it stays pinned by ``TestAnchors`` alone.
     """
 
     @classmethod

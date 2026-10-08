@@ -1,10 +1,15 @@
 # Questions
 
-Open questions loops have posted for a human decision — each with context, the options, and the
-loop's recommendation. Answer by moving an entry to ## Answered with your decision (or tell the
-director). Loops never block on their own questions; they check here at the start of each tick.
+Open questions loops have posted for a human decision — each with context, the
+options, and the loop's recommendation. Answer by moving an entry to ## Answered with your decision
+(or tell the director). Loops never block on their own questions; they check here at the start of
+each tick.
 
 ## Open
+
+_None yet._
+
+## Answered
 
 ### How should the tooltip palette anchor be grounded?
 
@@ -31,12 +36,10 @@ screenshots", whose next step needs a reference image the repo does not have.
 could not source one it could visually verify. Otherwise option 2: the tooltip is the one palette
 token with no Mac OS 8.6 ground truth, and saying so is better than an unverifiable anchor.
 
-**Actioned (2026-10-08) by bugfix.** With no retail 8.6 tooltip screenshot available, the loop
-applied option 2: the scheme header and the `TestAnchors` docstring now state that
-`[Colors:Tooltip]` is the classic Platinum pale-yellow token with no reference in the set, and
-`TestProvenanceNote` pins that exception. The BUGS.md entry moved to Fixed. A human who can supply
-a retail balloon screenshot can still re-ground the anchor (option 1) and reopen the entry.
-
-## Answered
-
-_None yet._
+**Decision (2026-10-08):** Option 2. With no retail 8.6 tooltip screenshot available, keep
+`[Colors:Tooltip] BackgroundNormal=255,255,204` but drop the claim that it is sampled: record
+`[Colors:Tooltip]` as a KDE-required semantic role whose value comes from the classic Platinum
+palette, with no Mac OS 8.6 reference in the set. Applied in this tick:
+`theme/color-schemes/MacOS8.colors`, `tests/test_colorscheme.py`, and the color-scheme plan's
+implementation note in `PLANS.md` now say so; the BUGS.md entry moved to Fixed. A human who can
+supply a retail balloon screenshot can still re-ground the anchor (option 1) and reopen the entry.

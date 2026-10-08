@@ -53,10 +53,12 @@ a tooltip.
 (BetaWiki's archived Mac OS 8.6 page holds only the already-collected images; the archive.org item
 behind `desktop_archiveorg8.6hd.png` holds a single screenshot). The scheme header had claimed
 every palette anchor was sampled, which was false for the tooltip. Following the recommendation in
-QUESTIONS.md, that claim was dropped: the header now names `[Colors:Tooltip]` as the classic
-Platinum pale-yellow token with no Mac OS 8.6 reference in the set, `TestAnchors`'s docstring says
-the same, and `TestProvenanceNote` pins the header's exception. The value stays pinned in
-`TestAnchors`; it is just no longer presented as reference-derived.
+QUESTIONS.md, that claim was dropped: `[Colors:Tooltip]` is now documented in
+`theme/color-schemes/MacOS8.colors` and `tests/test_colorscheme.py` as a KDE-required semantic role
+whose value comes from the classic Platinum palette, with no Mac OS 8.6 reference in the set; the
+color-scheme implementation note in `PLANS.md` records the same, and `TestProvenanceNote` pins the
+header's exception. The value stays pinned in `TestAnchors`; it is just no longer presented as
+reference-derived.
 
 **Validation gap:** no-observability — the ungrounded tooltip anchor passed the suite's
 hard-coded assertion, so the gap surfaced only by decoding the reference set by hand.
@@ -77,8 +79,8 @@ test fails: `(204, 204, 255) != (206, 206, 255)`.
 **Fix:** Corrected `[Colors:Selection] BackgroundNormal`/`BackgroundAlternate` to `204,204,255` in
 `theme/color-schemes/MacOS8.colors`, updated `TestAnchors`, and added
 `TestReferenceAnchors.test_selection_background`, which decodes `firstboot_betawiki.png` with
-`tools/png.py` and asserts the selection fill at `(200, 63)`. The tooltip anchor remains ungrounded
-(see the palette-anchor entry above).
+`tools/png.py` and asserts the selection fill at `(200, 63)`. The tooltip token is not a sampled
+anchor (see the Fixed palette-anchor entry above).
 
 **Validation gap:** unclear-invariant — confirming the bug meant deciding which reference was
 authoritative, because the lossless retail PNG (`204,204,255`) disagreed with the value hand-sampled
