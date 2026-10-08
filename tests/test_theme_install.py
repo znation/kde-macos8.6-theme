@@ -51,9 +51,7 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
             result = theme_install.install(destdir)
             self.assertEqual(result.returncode, 0, result.stderr)
 
-            scheme = os.path.join(
-                destdir, "share", "color-schemes", "MacOS8.colors"
-            )
+            scheme = theme_install.installed_color_scheme(destdir)
             self.assertTrue(os.path.isfile(scheme), scheme)
             lnf = os.path.join(
                 theme_install.installed_plasma_dir(destdir, "look-and-feel"),

@@ -80,6 +80,27 @@ def installed_package(destdir, kind, package_id):
     return os.path.join(installed_plasma_dir(destdir, kind), package_id)
 
 
+def installed_color_scheme_dir(destdir):
+    """Directory `make install` writes the color scheme into.
+
+    The Makefile installs the scheme under
+    `$(DESTDIR)$(XDG_DATA_HOME)/color-schemes`, the non-Plasma sibling of
+    `installed_plasma_dir`'s families. A scheme's own filename (and a hidden
+    `.staging` sibling) is a different path, joined by the caller.
+    """
+    return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "color-schemes")
+
+
+def installed_color_scheme(destdir, name="MacOS8.colors"):
+    """Path `make install` writes a color scheme file to.
+
+    The directory comes from `installed_color_scheme_dir`; the file is that
+    directory joined with the scheme's source basename (`MacOS8.colors` by
+    default, or a renamed source passed as `COLOR_SCHEME`).
+    """
+    return os.path.join(installed_color_scheme_dir(destdir), name)
+
+
 def shadow_command_env(destdir, name, script):
     """Write `script` as an executable `name` in `<destdir>/fakebin`.
 

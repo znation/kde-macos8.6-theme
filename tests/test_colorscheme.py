@@ -8,7 +8,15 @@ import tempfile
 import unittest
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, run, shadow_command_env, uninstall
+from theme_install import (
+    ROOT,
+    install,
+    installed_color_scheme,
+    installed_color_scheme_dir,
+    run,
+    shadow_command_env,
+    uninstall,
+)
 
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
@@ -214,9 +222,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
-            installed = os.path.join(
-                tmp, "share", "color-schemes", "MacOS8.colors"
-            )
+            installed = installed_color_scheme(tmp)
             self.assertTrue(os.path.isfile(installed), installed)
             with open(SCHEME, "rb") as source, open(installed, "rb") as target:
                 self.assertEqual(source.read(), target.read())
@@ -231,9 +237,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
-            installed = os.path.join(
-                tmp, "share", "color-schemes", "MacOS8.colors"
-            )
+            installed = installed_color_scheme(tmp)
             with open(installed, "rb") as handle:
                 good = handle.read()
 
@@ -260,7 +264,7 @@ class TestInstall(unittest.TestCase):
             self.assertFalse(
                 os.path.exists(
                     os.path.join(
-                        tmp, "share", "color-schemes",
+                        installed_color_scheme_dir(tmp),
                         ".MacOS8.colors.staging",
                     )
                 ),
@@ -279,16 +283,12 @@ class TestInstall(unittest.TestCase):
             shutil.copy(SCHEME, source)
             result = install(tmp, extra=[f"COLOR_SCHEME={source}"])
             self.assertEqual(result.returncode, 0, result.stderr)
-            installed = os.path.join(
-                tmp, "share", "color-schemes", "Platinum.colors"
-            )
+            installed = installed_color_scheme(tmp, "Platinum.colors")
             self.assertTrue(os.path.isfile(installed), installed)
             with open(source, "rb") as original, open(installed, "rb") as copy:
                 self.assertEqual(original.read(), copy.read())
             self.assertFalse(
-                os.path.exists(
-                    os.path.join(tmp, "share", "color-schemes", "MacOS8.colors")
-                ),
+                os.path.exists(installed_color_scheme(tmp)),
                 "the old hardcoded name should not be installed",
             )
 
@@ -300,7 +300,7 @@ class TestInstall(unittest.TestCase):
             shutil.copy(SCHEME, source)
             installed = install(tmp, extra=[f"COLOR_SCHEME={source}"])
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            schemes = os.path.join(tmp, "share", "color-schemes")
+            schemes = installed_color_scheme_dir(tmp)
             renamed = os.path.join(schemes, "Platinum.colors")
             self.assertTrue(os.path.isfile(renamed), renamed)
             decoy = os.path.join(schemes, "MacOS8.colors")
@@ -322,7 +322,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            schemes = os.path.join(tmp, "share", "color-schemes")
+            schemes = installed_color_scheme_dir(tmp)
             other = os.path.join(schemes, "Other.colors")
             with open(other, "w", encoding="utf-8") as handle:
                 handle.write("[General]\nName=Other\n")
