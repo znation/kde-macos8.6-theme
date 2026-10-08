@@ -17,6 +17,7 @@ from theme_install import (
     installed_color_scheme_dir,
     run,
     shadow_command_env,
+    staging_sibling,
     uninstall,
 )
 
@@ -331,9 +332,8 @@ class TestInstall(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertFalse(
                 os.path.exists(
-                    os.path.join(
-                        installed_color_scheme_dir(tmp),
-                        ".MacOS8.colors.staging",
+                    staging_sibling(
+                        installed_color_scheme_dir(tmp), "MacOS8.colors"
                     )
                 ),
                 "staging file leaked after a failed install",
@@ -395,7 +395,7 @@ class TestInstall(unittest.TestCase):
 
             # SIGKILL cannot be trapped, so an install killed mid-copy leaves
             # the hidden staging file behind. `uninstall` must remove it too.
-            staging = os.path.join(schemes, ".MacOS8.colors.staging")
+            staging = staging_sibling(schemes, "MacOS8.colors")
             with open(staging, "w", encoding="utf-8") as handle:
                 handle.write("[General]\nName=Partial\n")
 

@@ -15,7 +15,9 @@ from theme_install import (
     install,
     installed_package,
     installed_plasma_dir,
+    old_sibling,
     shadow_command_env,
+    staging_sibling,
 )
 
 
@@ -32,9 +34,8 @@ class FailedInstallPreservesPackage:
     PACKAGE_ID = None
 
     def _staging_path(self, tmp):
-        return os.path.join(
-            installed_plasma_dir(tmp, self.KIND),
-            "." + self.PACKAGE_ID + ".staging",
+        return staging_sibling(
+            installed_plasma_dir(tmp, self.KIND), self.PACKAGE_ID
         )
 
     def _snapshot(self, tmp):
@@ -90,9 +91,8 @@ class FailedInstallPreservesPackage:
 
             # Reproduce the kill window: the working package was moved aside,
             # but the staged copy was never renamed into place.
-            old = os.path.join(
-                installed_plasma_dir(tmp, self.KIND),
-                "." + self.PACKAGE_ID + ".old",
+            old = old_sibling(
+                installed_plasma_dir(tmp, self.KIND), self.PACKAGE_ID
             )
             os.rename(installed, old)
 
@@ -137,11 +137,11 @@ class FailedInstallPreservesPackage:
             self.assertNotEqual(result.returncode, 0, result.stdout)
             parent = installed_plasma_dir(tmp, self.KIND)
             for leaked in (
-                "." + self.PACKAGE_ID + ".staging",
-                "." + self.PACKAGE_ID + ".old",
+                staging_sibling(parent, self.PACKAGE_ID),
+                old_sibling(parent, self.PACKAGE_ID),
             ):
                 self.assertFalse(
-                    os.path.exists(os.path.join(parent, leaked)),
-                    f"{leaked} leaked after a failed swap",
+                    os.path.exists(leaked),
+                    f"{os.path.basename(leaked)} leaked after a failed swap",
                 )
             self._assert_package_intact(installed, metadata, good)

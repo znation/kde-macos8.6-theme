@@ -65,8 +65,8 @@ def installed_plasma_dir(destdir, kind):
 
     The Makefile installs under `$(DESTDIR)$(XDG_DATA_HOME)/plasma/<kind>`;
     `kind` is `look-and-feel` or `desktoptheme`. `installed_package` joins a
-    package's own directory onto the result; a hidden `.staging`/`.old`
-    sibling is a different path, joined by the caller.
+    package's own directory onto the result; `staging_sibling`/`old_sibling`
+    build a hidden sibling of that directory.
     """
     return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "plasma", kind)
 
@@ -85,8 +85,9 @@ def installed_color_scheme_dir(destdir):
 
     The Makefile installs the scheme under
     `$(DESTDIR)$(XDG_DATA_HOME)/color-schemes`, the non-Plasma sibling of
-    `installed_plasma_dir`'s families. A scheme's own filename (and a hidden
-    `.staging` sibling) is a different path, joined by the caller.
+    `installed_plasma_dir`'s families. `installed_color_scheme` joins a
+    scheme's filename onto the result; `staging_sibling` builds its hidden
+    sibling.
     """
     return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "color-schemes")
 
@@ -99,6 +100,24 @@ def installed_color_scheme(destdir, name="MacOS8.colors"):
     default, or a renamed source passed as `COLOR_SCHEME`).
     """
     return os.path.join(installed_color_scheme_dir(destdir), name)
+
+
+def staging_sibling(parent, name):
+    """Hidden path `make install` copies `name` into before swapping it in.
+
+    The Makefile stages the artifact as `parent/.<name>.staging` and renames it
+    into place, so a test that simulates a killed install builds the same path.
+    """
+    return os.path.join(parent, "." + name + ".staging")
+
+
+def old_sibling(parent, name):
+    """Hidden path `make install` moves the working `name` aside to.
+
+    The Makefile moves the artifact to `parent/.<name>.old` during the swap and
+    removes it after the rename, so a killed install can leave it behind.
+    """
+    return os.path.join(parent, "." + name + ".old")
 
 
 def assert_files_identical(case, source, target, msg=None):

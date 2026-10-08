@@ -19,8 +19,10 @@ from theme_install import (
     install,
     installed_package,
     installed_plasma_dir,
+    old_sibling,
     run,
     shadow_command_env,
+    staging_sibling,
     uninstall,
 )
 
@@ -226,8 +228,8 @@ class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
             # window leaves a hidden staging directory and the moved-aside old
             # package behind. `uninstall` must remove those leftovers too.
             leaked = [
-                os.path.join(parent, "." + LNF_ID + ".staging"),
-                os.path.join(parent, "." + LNF_ID + ".old"),
+                staging_sibling(parent, LNF_ID),
+                old_sibling(parent, LNF_ID),
             ]
             for path in leaked:
                 os.makedirs(path)
