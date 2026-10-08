@@ -45,6 +45,21 @@ class FidelityError(Exception):
 _SQUARES = [value * value for value in range(256)]
 
 
+def _escape_controls(text: str) -> str:
+    """Render *text* with control characters escaped for terminal output.
+
+    The documented workflow passes a reference file from
+    ``macos8.6-screenshots/`` on the command line, so the path can carry a
+    contributor-supplied filename; a shell glob hands it to this tool
+    unchanged. Printed raw, an ESC or newline in that name would drive the
+    operator's terminal or forge an extra output line, so every control
+    character becomes a visible ``\\uXXXX`` escape before the path is shown.
+    """
+    return "".join(
+        ch if ch.isprintable() else f"\\u{ord(ch):04x}" for ch in text
+    )
+
+
 @dataclass(frozen=True)
 class Metrics:
     """Per-pixel difference between two equally sized images.
@@ -315,12 +330,18 @@ def main(argv: list[str] | None = None) -> int:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
     except (PngError, FidelityError) as exc:
-        print(f"fidelity: error: {exc}", file=sys.stderr)
+        print(f"fidelity: error: {_escape_controls(str(exc))}", file=sys.stderr)
         return 2
 
     ok = metrics.mae <= args.max_mae and metrics.frac_differing <= args.max_frac
-    print(f"candidate: {args.candidate}  {candidate.width}x{candidate.height}")
-    print(f"reference: {args.reference}  {reference.width}x{reference.height}")
+    print(
+        f"candidate: {_escape_controls(args.candidate)}  "
+        f"{candidate.width}x{candidate.height}"
+    )
+    print(
+        f"reference: {_escape_controls(args.reference)}  "
+        f"{reference.width}x{reference.height}"
+    )
     print(f"pixels compared: {metrics.pixels}")
     print(f"mean absolute error: {metrics.mae:.4f}")
     print(

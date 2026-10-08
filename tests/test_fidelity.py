@@ -432,6 +432,30 @@ class TestCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("PASS", result.stdout)
 
+    def test_error_message_escapes_control_characters_in_path(self):
+        # read_png embeds the path in its error message, and the documented
+        # workflow hands this tool a reference file from the contributor-owned
+        # screenshot directory, so a missing name carrying an ESC must not
+        # print the raw byte to the terminal.
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = str(Path(tmp) / "evil\x1b[31m.png")
+            result = self._run(missing, missing)
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertNotIn("\x1b", result.stderr)
+        self.assertIn("\\u001b", result.stderr)
+
+    def test_success_output_escapes_control_characters_in_paths(self):
+        # The success lines name both paths; a shell glob over the reference
+        # directory passes a contributor-supplied filename through unchanged.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "evil\x1b]0;pwned\x07.png"
+            _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+            path.write_bytes(data)
+            result = self._run(str(path), str(path))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertNotIn("\x1b", result.stdout)
+        self.assertIn("\\u001b", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
