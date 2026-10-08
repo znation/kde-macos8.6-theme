@@ -7,6 +7,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from install_failure_cases import FailedInstallPreservesPackage
+from install_lifecycle_cases import InstallLifecycleCases
 from kde_config import read as read_kde_config
 from package_metadata import PackageMetadata, load_metadata
 from theme_install import (
@@ -14,12 +15,8 @@ from theme_install import (
     assert_files_identical,
     install,
     installed_package,
-    installed_plasma_dir,
-    old_sibling,
     run,
     shadow_command_env,
-    staging_sibling,
-    uninstall,
 )
 
 DTHEME_ID = "org.macos8.desktop"
@@ -569,9 +566,19 @@ class TestDefaultsWiring(unittest.TestCase):
         )
 
 
-class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
+class TestInstall(
+    FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
+):
     KIND = "desktoptheme"
     PACKAGE_ID = DTHEME_ID
+    PACKAGE_DIR = PACKAGE
+    INSTALLED_FILES = (
+        "metadata.json",
+        os.path.join("widgets", "panel-background.svg"),
+        os.path.join("widgets", "button.svg"),
+        os.path.join("widgets", "radiobutton.svg"),
+        os.path.join("widgets", "checkmarks.svg"),
+    )
 
     def reinstall_failure_env(self, tmp):
         # Shadow `cp` with a fake that fails only when copying the desktop
@@ -591,63 +598,6 @@ class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
             "esac\n"
             f'exec "{real_cp}" "$@"\n',
         )
-
-    def test_make_install_copies_package_byte_for_byte(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(tmp)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            installed = installed_package(tmp, "desktoptheme", DTHEME_ID)
-            for name in (
-                "metadata.json",
-                os.path.join("widgets", "panel-background.svg"),
-                os.path.join("widgets", "button.svg"),
-                os.path.join("widgets", "radiobutton.svg"),
-                os.path.join("widgets", "checkmarks.svg"),
-            ):
-                source = os.path.join(PACKAGE, name)
-                target = os.path.join(installed, name)
-                assert_files_identical(self, source, target, name)
-
-    def test_make_install_is_repeatable(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            second = install(tmp)
-            self.assertEqual(second.returncode, 0, second.stderr)
-
-    def test_make_uninstall_removes_the_installed_package(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
-            parent = installed_plasma_dir(tmp, "desktoptheme")
-            package = os.path.join(parent, DTHEME_ID)
-            self.assertTrue(os.path.isdir(package), package)
-
-            # SIGKILL cannot be trapped, so an install killed in the swap
-            # window leaves a hidden staging directory and the moved-aside old
-            # package behind. `uninstall` must remove those leftovers too.
-            leaked = [
-                staging_sibling(parent, DTHEME_ID),
-                old_sibling(parent, DTHEME_ID),
-            ]
-            for path in leaked:
-                os.makedirs(path)
-                with open(
-                    os.path.join(path, "metadata.json"), "w", encoding="utf-8"
-                ) as handle:
-                    handle.write("{}")
-
-            removed = uninstall(tmp)
-            self.assertEqual(removed.returncode, 0, removed.stderr)
-            self.assertFalse(os.path.exists(package), package)
-            for path in leaked:
-                self.assertFalse(
-                    os.path.exists(path),
-                    f"{path} leaked after uninstall",
-                )
-
-            again = uninstall(tmp)
-            self.assertEqual(again.returncode, 0, again.stderr)
 
 
 @unittest.skipUnless(

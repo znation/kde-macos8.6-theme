@@ -10,20 +10,16 @@ import time
 import unittest
 
 from install_failure_cases import FailedInstallPreservesPackage
+from install_lifecycle_cases import InstallLifecycleCases
 from package_metadata import PackageMetadata
 import theme_install
 from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
-    assert_files_identical,
     install,
     installed_package,
-    installed_plasma_dir,
-    old_sibling,
     run,
     shadow_command_env,
-    staging_sibling,
-    uninstall,
 )
 
 LNF_ID = "org.macos8.desktop"
@@ -82,9 +78,13 @@ class TestDefaults(unittest.TestCase):
         )
 
 
-class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
+class TestInstall(
+    FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
+):
     KIND = "look-and-feel"
     PACKAGE_ID = LNF_ID
+    PACKAGE_DIR = PACKAGE
+    INSTALLED_FILES = ("metadata.json", os.path.join("contents", "defaults"))
 
     def reinstall_failure_env(self, tmp):
         # Shadow `cp` with a fake that writes part of the tree, then fails,
@@ -100,23 +100,6 @@ class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
             'printf partial > "$dest/metadata.json"\n'
             'exit 1\n',
         )
-
-    def test_make_install_copies_package_byte_for_byte(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(tmp)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            installed = installed_package(tmp, "look-and-feel", LNF_ID)
-            for name in ("metadata.json", os.path.join("contents", "defaults")):
-                source = os.path.join(PACKAGE, name)
-                target = os.path.join(installed, name)
-                assert_files_identical(self, source, target, name)
-
-    def test_make_install_is_repeatable(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            second = install(tmp)
-            self.assertEqual(second.returncode, 0, second.stderr)
 
     @unittest.skipUnless(shutil.which("flock"), "needs flock")
     def test_make_install_waits_for_an_overlapping_install(self):
@@ -216,40 +199,6 @@ class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertIn("lock", result.stderr)
             self.assertFalse(os.path.exists(package), package)
-
-    def test_make_uninstall_removes_the_installed_package(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
-            parent = installed_plasma_dir(tmp, "look-and-feel")
-            package = os.path.join(parent, LNF_ID)
-            self.assertTrue(os.path.isdir(package), package)
-
-            # SIGKILL cannot be trapped, so an install killed in the swap
-            # window leaves a hidden staging directory and the moved-aside old
-            # package behind. `uninstall` must remove those leftovers too.
-            leaked = [
-                staging_sibling(parent, LNF_ID),
-                old_sibling(parent, LNF_ID),
-            ]
-            for path in leaked:
-                os.makedirs(path)
-                with open(
-                    os.path.join(path, "metadata.json"), "w", encoding="utf-8"
-                ) as handle:
-                    handle.write("{}")
-
-            removed = uninstall(tmp)
-            self.assertEqual(removed.returncode, 0, removed.stderr)
-            self.assertFalse(os.path.exists(package), package)
-            for path in leaked:
-                self.assertFalse(
-                    os.path.exists(path),
-                    f"{path} leaked after uninstall",
-                )
-
-            again = uninstall(tmp)
-            self.assertEqual(again.returncode, 0, again.stderr)
 
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
