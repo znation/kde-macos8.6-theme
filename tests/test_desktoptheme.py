@@ -459,6 +459,53 @@ class TestFrame(unittest.TestCase):
                 )
                 self.assertEqual(actual, expected, f"{prefix}-{name}")
 
+    def test_frame_edge_bevels(self):
+        # `test_frame_corner_bevels_turn_the_corner` pins only the raised and
+        # sunken corners; the edge slices carry the same bevel along the frame
+        # and are otherwise checked by id alone, so a raised top painted with
+        # the shadow colour (or a plain edge that grew a bevel) passes every
+        # existing test. Pin each edge's pixels from its outer edge in, and
+        # each state's centre tile to the face.
+        slices = render_slices(ET.parse(FRAME_SVG))
+        # (outer outline, bevel, inner face) read from the slice's outer edge
+        # inward; plain has no bevel, so its middle band is the face.
+        outward = {
+            "plain": ("#000000", "#DDDDDD", "#DDDDDD"),
+            "raised": ("#000000", "#FFFFFF", "#DDDDDD"),
+            "sunken": ("#000000", "#999999", "#DDDDDD"),
+        }
+        # The bottom/right edges mirror the top/left: the outline stays on the
+        # outer edge while the bevel colour swaps sides.
+        mirrored = {
+            "plain": ("#DDDDDD", "#DDDDDD", "#000000"),
+            "raised": ("#DDDDDD", "#999999", "#000000"),
+            "sunken": ("#DDDDDD", "#FFFFFF", "#000000"),
+        }
+        for prefix in FRAME_PREFIXES:
+            for side in ("top", "bottom", "left", "right"):
+                band = (
+                    outward if side in ("top", "left") else mirrored
+                )[prefix]
+                horizontal = side in ("top", "bottom")
+                if horizontal:
+                    # Three 6px rows, one per band colour.
+                    expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
+                    points = ((x, y) for y in range(3) for x in range(6))
+                else:
+                    # Six 3px rows, each running outer to inner.
+                    expected = band * 6
+                    points = ((x, y) for y in range(6) for x in range(3))
+                pixels = slices[f"{prefix}-{side}"]
+                actual = tuple(pixels.get(point) for point in points)
+                with self.subTest(slice=f"{prefix}-{side}"):
+                    self.assertEqual(actual, expected, f"{prefix}-{side}")
+            # The centre tile is one body rect, so every pixel is the face.
+            with self.subTest(slice=f"{prefix}-center"):
+                self.assertEqual(
+                    slices[f"{prefix}-center"],
+                    {(x, y): "#DDDDDD" for y in range(6) for x in range(6)},
+                )
+
     def test_frame_installed(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
