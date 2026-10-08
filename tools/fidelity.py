@@ -66,13 +66,21 @@ class Metrics:
     frac_differing: float
 
 
-def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
-    """Return the ``width x height`` region of ``image`` at ``(x, y)``."""
+def _crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
+    """Return why ``(x, y, width, height)`` is not a valid crop rectangle."""
     if x < 0 or y < 0 or width <= 0 or height <= 0:
-        raise FidelityError(
+        return (
             f"crop rectangle must have positive size and origin: "
             f"x={x} y={y} w={width} h={height}"
         )
+    return None
+
+
+def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
+    """Return the ``width x height`` region of ``image`` at ``(x, y)``."""
+    problem = _crop_rect_problem(x, y, width, height)
+    if problem is not None:
+        raise FidelityError(problem)
     if x + width > image.width or y + height > image.height:
         raise FidelityError(
             f"crop rectangle x={x} y={y} w={width} h={height} falls outside "
@@ -155,11 +163,9 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
                 f"crop values must be integers: {part!r}"
             ) from exc
     x, y, width, height = numbers
-    if x < 0 or y < 0 or width <= 0 or height <= 0:
-        raise argparse.ArgumentTypeError(
-            f"crop rectangle must have positive size and origin: "
-            f"x={x} y={y} w={width} h={height}"
-        )
+    problem = _crop_rect_problem(x, y, width, height)
+    if problem is not None:
+        raise argparse.ArgumentTypeError(problem)
     return x, y, width, height
 
 
