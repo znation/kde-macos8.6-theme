@@ -80,6 +80,32 @@ def _paeth(a: int, b: int, c: int) -> int:
     return c
 
 
+_PAETH_DELTA: bytes | None = None
+
+
+def _paeth_delta_table() -> bytes:
+    """Paeth predictor deltas, indexed by ``(a - c, b - c)``.
+
+    With ``a``, ``b`` and ``c`` the left, above and above-left bytes,
+    ``_paeth`` returns ``c + delta`` where ``delta`` depends only on the two
+    differences.  The 511x511 table (row stride 512) turns each byte of a
+    Paeth-filtered row into one lookup instead of a ``_paeth`` call with its
+    three ``abs`` calls.  Built on first use, so a decode with no Paeth rows
+    never pays for it.
+    """
+    global _PAETH_DELTA
+    table = _PAETH_DELTA
+    if table is None:
+        table = bytearray(511 * 512)
+        for da in range(-255, 256):
+            base = (da + 255) << 9
+            for db in range(-255, 256):
+                table[base + db + 255] = _paeth(da, db, 0) & 0xFF
+        table = bytes(table)
+        _PAETH_DELTA = table
+    return table
+
+
 def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
     stride = width * channels
     expected = height * (stride + 1)
@@ -108,10 +134,16 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
                 a = line[i - channels] if i >= channels else 0
                 line[i] = (line[i] + ((a + prev[i]) >> 1)) & 0xFF
         elif ftype == 4:
-            for i in range(stride):
-                a = line[i - channels] if i >= channels else 0
-                c = prev[i - channels] if i >= channels else 0
-                line[i] = (line[i] + _paeth(a, prev[i], c)) & 0xFF
+            table = _paeth_delta_table()
+            # The first pixel of a row has no left or above-left neighbour;
+            # _paeth(0, b, 0) is just b.
+            for i in range(channels):
+                line[i] = (line[i] + prev[i]) & 0xFF
+            for i in range(channels, stride):
+                upleft = prev[i - channels]
+                da = line[i - channels] - upleft + 255
+                db = prev[i] - upleft + 255
+                line[i] = (line[i] + upleft + table[(da << 9) + db]) & 0xFF
         elif ftype != 0:
             raise PngError(f"unsupported PNG filter type {ftype}")
         out[dst : dst + stride] = line
