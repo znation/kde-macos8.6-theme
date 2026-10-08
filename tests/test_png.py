@@ -67,6 +67,23 @@ class TestDecode(unittest.TestCase):
         image = png.decode_png(data)
         self.assertEqual(image.rgb, b"".join(rows))
 
+    def test_grayscale_all_filter_types(self):
+        # Color-type-0 grayscale is a single channel, so it exercises the
+        # one-channel Paeth path: a wrong first-pixel or carried-left value
+        # would scramble the row rather than fail loudly.
+        rows = [
+            bytes([1, 2, 3, 4, 5]),
+            bytes([10, 20, 30, 40, 50]),
+            bytes([200, 150, 100, 50, 25]),
+            bytes([0, 255, 0, 255, 0]),
+            bytes([17, 34, 51, 68, 85]),
+        ]
+        data = make_png(5, 5, rows, color_type=0, filter_types=[0, 1, 2, 3, 4])
+        expected = b"".join(
+            bytes(b for g in row for b in (g, g, g)) for row in rows
+        )
+        self.assertEqual(png.decode_png(data).rgb, expected)
+
     def test_palette(self):
         palette = bytes([255, 0, 0, 0, 255, 0])
         rows = [bytes([0, 1])]
