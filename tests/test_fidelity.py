@@ -344,8 +344,10 @@ class TestCli(unittest.TestCase):
     def test_pass_and_fail(self):
         a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
         changed = bytearray(a.rgb)
-        changed[4] = 0
-        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 9, 3)])
+        # Pixel (1, 0) is (20, 0, 60); raise its green channel so exactly one
+        # byte differs from the candidate.
+        changed[4] = 50
+        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
         with tempfile.TemporaryDirectory() as tmp:
             tmpdir = Path(tmp)
             candidate = self._write(tmpdir, "candidate.png", a_png)
@@ -367,6 +369,8 @@ class TestCli(unittest.TestCase):
             )
             self.assertEqual(different.returncode, 1, different.stderr)
             self.assertIn("FAIL", different.stdout)
+            self.assertIn("differing pixels: 1 / 9", different.stdout)
+            self.assertIn("max channel delta: 50 at (1, 0)", different.stdout)
 
     def test_reports_worst_delta_location(self):
         a, a_png = rgb_image(2, 1, lambda x, y: (0, 0, 0))
