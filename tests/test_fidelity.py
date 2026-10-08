@@ -88,6 +88,22 @@ def make_png(
     return out
 
 
+def with_ihdr_byte(data: bytes, offset: int, value: int) -> bytes:
+    """Return *data* with one IHDR payload byte replaced and the CRC fixed.
+
+    ``offset`` is relative to the IHDR payload, so 10 selects the compression
+    method, 11 the filter method, and 12 the interlace method.
+    """
+    start = len(_PNG_SIGNATURE) + 8  # skip signature, length, and "IHDR"
+    length = struct.unpack(
+        ">I", data[len(_PNG_SIGNATURE) : len(_PNG_SIGNATURE) + 4]
+    )[0]
+    payload = bytearray(data[start : start + length])
+    payload[offset] = value
+    crc = struct.pack(">I", zlib.crc32(b"IHDR" + bytes(payload)) & 0xFFFFFFFF)
+    return data[:start] + bytes(payload) + crc + data[start + length + 4 :]
+
+
 def rgb_image(width: int, height: int, pixel) -> tuple[fidelity.Image, bytes]:
     rows = []
     for y in range(height):
@@ -150,6 +166,22 @@ class TestDecode(unittest.TestCase):
         with self.assertRaises(fidelity.FidelityError) as ctx:
             fidelity.decode_png(data[:-1])
         self.assertIn("CRC", str(ctx.exception))
+
+    def test_rejects_unknown_compression_method(self):
+        # The IHDR compression and filter methods are separate fields; naming
+        # the offending value tells the user which one to fix.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        broken = with_ihdr_byte(data, 10, 1)
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(broken)
+        self.assertIn("compression method 1", str(ctx.exception))
+
+    def test_rejects_unknown_filter_method(self):
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        broken = with_ihdr_byte(data, 11, 1)
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(broken)
+        self.assertIn("filter method 1", str(ctx.exception))
 
     def test_read_png_names_undecodable_file(self):
         # A decode failure must name the file it came from, so a two-input

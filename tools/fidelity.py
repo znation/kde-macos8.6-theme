@@ -197,8 +197,12 @@ def decode_png(data: bytes) -> Image:
         raise FidelityError(f"unsupported PNG bit depth {depth} (need 8)")
     if interlace != 0:
         raise FidelityError("interlaced PNG is not supported")
-    if compression != 0 or filt != 0:
-        raise FidelityError("unsupported PNG compression or filter method")
+    if compression != 0:
+        raise FidelityError(
+            f"unsupported PNG compression method {compression} (need 0)"
+        )
+    if filt != 0:
+        raise FidelityError(f"unsupported PNG filter method {filt} (need 0)")
     if color_type not in _CHANNELS:
         raise FidelityError(f"unsupported PNG color type {color_type}")
     if width == 0 or height == 0:
