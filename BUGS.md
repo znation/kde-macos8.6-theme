@@ -80,9 +80,9 @@ their provenance, but no code compared a captured surface against the retail-lab
 types 0/2/3/4/6) with only the standard library, crops a reference to a surface region, and reports
 objective metrics — mean absolute error, RMSE, worst per-channel delta, and differing-pixel
 fraction — exiting non-zero when the result is outside the requested tolerance.
-`tests/test_fidelity.py` covers decoding (palette plus every PNG filter type), the metrics, cropping,
-and the CLI pass/fail paths. Producing the candidate PNG (the Plasma render step) is still missing
-and is tracked as its own Open entry above.
+`tests/test_png.py` covers decoding (palette plus every PNG filter type); `tests/test_fidelity.py`
+covers the metrics, cropping, and the CLI pass/fail paths. Producing the candidate PNG (the Plasma
+render step) is still missing and is tracked as its own Open entry above.
 
 **Validation gap:** unclear-invariant — "pixel-perfect" had no numeric definition and the repo had
 no comparison path, so the objective metric and threshold had to be defined before the gap could be
