@@ -41,6 +41,24 @@ class TestCli(unittest.TestCase):
         path.write_bytes(data)
         return str(path)
 
+    def _write_altered_pair(self, directory: Path) -> tuple[str, str]:
+        """Write a 3x3 candidate and a one-pixel-altered copy of it.
+
+        Pixel (1, 0) of the candidate is (20, 0, 60); the altered copy raises
+        its green channel to 50, so exactly one of the 27 bytes differs by 50
+        (MAE 50/27, differing fraction 1/9). Returns the two paths.
+        """
+        surface, png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
+        changed = bytearray(surface.rgb)
+        changed[4] = 50
+        altered_png = make_png(
+            3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)]
+        )
+        return (
+            self._write(directory, "candidate.png", png),
+            self._write(directory, "altered.png", altered_png),
+        )
+
     def _solid_reference(self) -> str:
         """Write a 1x1 black PNG to a temp dir removed when the test ends."""
         tmp = tempfile.TemporaryDirectory()
@@ -86,14 +104,8 @@ class TestCli(unittest.TestCase):
         # mean absolute error is non-zero, because no aggregate budget is set
         # by default. Before the fix, --max-mae defaulted to 0 and forced a
         # FAIL here.
-        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
-        changed = bytearray(a.rgb)
-        changed[4] = 50  # pixel (1, 0) green: 0 -> 50
-        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", a_png)
-            altered = self._write(tmpdir, "altered.png", b_png)
+            candidate, altered = self._write_altered_pair(Path(tmp))
 
             within = self._run(candidate, altered, "--tolerance", "50")
             self.assertEqual(within.returncode, 0, within.stdout + within.stderr)
@@ -115,14 +127,8 @@ class TestCli(unittest.TestCase):
         # constraint on top of the default all-pixels-within-tolerance gate:
         # the candidate has a 50-level pixel but passes when its MAE (50/27,
         # about 1.85) is within the budget.
-        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
-        changed = bytearray(a.rgb)
-        changed[4] = 50  # pixel (1, 0) green: 0 -> 50
-        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", a_png)
-            altered = self._write(tmpdir, "altered.png", b_png)
+            candidate, altered = self._write_altered_pair(Path(tmp))
 
             generous = self._run(candidate, altered, "--max-mae", "2")
             self.assertEqual(
@@ -139,14 +145,8 @@ class TestCli(unittest.TestCase):
         # the differing-pixel fraction against the threshold, not the default
         # no-differing-pixel gate. The candidate differs at 1 of 9 pixels
         # (fraction 1/9, about 0.111).
-        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
-        changed = bytearray(a.rgb)
-        changed[4] = 50  # pixel (1, 0) green: 0 -> 50
-        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", a_png)
-            altered = self._write(tmpdir, "altered.png", b_png)
+            candidate, altered = self._write_altered_pair(Path(tmp))
 
             generous = self._run(candidate, altered, "--max-frac", "0.12")
             self.assertEqual(
@@ -163,14 +163,8 @@ class TestCli(unittest.TestCase):
         # passes only when each is met, so one generous and one tight budget
         # fails. If the verdict used any() instead of all(), each mixed case
         # here would pass and hide a budget that is not being enforced.
-        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
-        changed = bytearray(a.rgb)
-        changed[4] = 50  # pixel (1, 0) green: 0 -> 50; MAE 50/27, frac 1/9
-        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", a_png)
-            altered = self._write(tmpdir, "altered.png", b_png)
+            candidate, altered = self._write_altered_pair(Path(tmp))
 
             both = self._run(
                 candidate, altered, "--max-mae", "2", "--max-frac", "0.12"
