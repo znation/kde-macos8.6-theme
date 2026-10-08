@@ -376,6 +376,10 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="fidelity",
         description="Measure a rendered PNG surface against a reference PNG.",
+        epilog=(
+            "exit status: 0 within tolerance, 1 outside tolerance, "
+            "2 usage or read error"
+        ),
     )
     parser.add_argument("candidate", help="rendered surface image (PNG)")
     parser.add_argument("reference", help="reference image (PNG)")

@@ -360,6 +360,23 @@ class TestCli(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("PASS", result.stdout)
 
+    def test_help_documents_exit_status(self):
+        # --help must state what each exit status means; the module docstring
+        # promises the legend, and a caller scripting the tool cannot tell a
+        # tolerance FAIL (1) from a usage or read error (2) without it.
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "--help"],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        help_text = " ".join(result.stdout.split())
+        self.assertIn(
+            "exit status: 0 within tolerance, 1 outside tolerance, "
+            "2 usage or read error",
+            help_text,
+        )
+
     def test_malformed_png_is_error(self):
         # A PNG whose IHDR payload is not the 13 bytes the spec requires must
         # fail with the tool's clean error path (exit 2), not a struct.error
