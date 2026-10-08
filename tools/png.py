@@ -27,6 +27,15 @@ _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 # one decode to a few hundred MB.
 _MAX_PIXELS = 64_000_000
 
+# Cap on the bytes read_png will load from disk. decode_png bounds the decoded
+# image by _MAX_PIXELS, but read_png reads the whole file before decode_png
+# sees the header, and a path can name a stream with no end (e.g. /dev/zero)
+# or a file far larger than any screenshot, so without a read cap a few bytes
+# of argv can demand unbounded memory. 512 MiB is generous for
+# screenshot-sized inputs while keeping one read on the same order as the
+# decoder's own worst-case allocation for the largest image it accepts.
+_MAX_FILE_BYTES = 512 * 1024 * 1024
+
 
 class PngError(Exception):
     """A PNG file could not be read or decoded."""
@@ -266,9 +275,18 @@ def decode_png(data: bytes) -> Image:
 
 def read_png(path: str | Path) -> Image:
     try:
-        data = Path(path).read_bytes()
+        # Read at most one byte past the cap: enough to detect an oversize
+        # file without loading the rest of it (or waiting forever on a stream
+        # that never ends).
+        with open(path, "rb") as handle:
+            data = handle.read(_MAX_FILE_BYTES + 1)
     except OSError as exc:
         raise PngError(f"cannot read {path}: {exc}") from exc
+    if len(data) > _MAX_FILE_BYTES:
+        raise PngError(
+            f"cannot read {path}: file is larger than the "
+            f"{_MAX_FILE_BYTES}-byte limit"
+        )
     try:
         return decode_png(data)
     except PngError as exc:

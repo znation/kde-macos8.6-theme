@@ -12,6 +12,7 @@ import tempfile
 import tracemalloc
 import unittest
 import zlib
+from unittest import mock
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -283,6 +284,26 @@ class TestDecode(unittest.TestCase):
                 with self.assertRaises(png.PngError) as ctx:
                     png.decode_png(broken)
                 self.assertIn(expected, str(ctx.exception))
+
+    def test_read_png_rejects_oversize_file_without_reading_it_all(self):
+        # read_png reads the whole file before decode_png sees its header, so
+        # an oversize file (or an endless stream such as /dev/zero) would be
+        # loaded into memory first. The read must stop at the cap. Patch the
+        # cap down so the fixture stays small.
+        limit = 4096
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "oversize.png"
+            path.write_bytes(b"\x00" * (limit + 1))
+            with mock.patch.object(png, "_MAX_FILE_BYTES", limit):
+                tracemalloc.start()
+                try:
+                    with self.assertRaises(png.PngError) as ctx:
+                        png.read_png(path)
+                    peak = tracemalloc.get_traced_memory()[1]
+                finally:
+                    tracemalloc.stop()
+        self.assertIn(str(limit), str(ctx.exception))
+        self.assertLess(peak, limit + 1024 * 1024)
 
     def test_read_png_names_undecodable_file(self):
         # A decode failure must name the file it came from, so a two-input
