@@ -37,6 +37,7 @@ BUTTON_MARGIN_HINTS = (
 RADIOBUTTON_SVG = os.path.join(PACKAGE, "widgets", "radiobutton.svg")
 CHECKMARKS_SVG = os.path.join(PACKAGE, "widgets", "checkmarks.svg")
 LINEEDIT_SVG = os.path.join(PACKAGE, "widgets", "lineedit.svg")
+LISTITEM_SVG = os.path.join(PACKAGE, "widgets", "listitem.svg")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"
@@ -350,6 +351,7 @@ SVG_CANVASES = (
     ("frame.svg", FRAME_SVG, 12, 12),
     ("button.svg", BUTTON_SVG, 12, 12),
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
+    ("listitem.svg", LISTITEM_SVG, 12, 12),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
 )
@@ -891,6 +893,50 @@ class TestLineEdit(unittest.TestCase):
         assert_no_script_elements(self, ET.parse(LINEEDIT_SVG))
 
 
+class TestListItem(unittest.TestCase):
+    def test_listitem_slice_ids(self):
+        tree = ET.parse(LISTITEM_SVG)
+        ids = attribute_values(tree, "id")
+        for prefix in ("normal", "pressed"):
+            for name in SLICE_IDS:
+                self.assertIn(f"{prefix}-{name}", ids, name)
+            for side in ("top", "bottom", "left", "right"):
+                self.assertIn(f"{prefix}-hint-{side}-margin", ids, side)
+        self.assertIn("hint-tile-center", ids)
+
+    def test_listitem_selection_is_flat_selection_colour(self):
+        # Every pressed slice must be the flat selection fill, so the
+        # selection cannot silently gain a bevel or the grey button face.
+        slices = render_slices(ET.parse(LISTITEM_SVG))
+        for name in SLICE_IDS:
+            for point, colour in slices[f"pressed-{name}"].items():
+                self.assertEqual(colour, "#CCCCFF", f"pressed-{name} {point}")
+
+    def test_listitem_normal_has_no_fill(self):
+        # An unselected row paints nothing perceptible: the normal rects carry
+        # no `fill` attribute and a 0.01 opacity, so only their margins apply.
+        tree = ET.parse(LISTITEM_SVG)
+        slices = render_slices(tree)
+        for name in SLICE_IDS:
+            for point, colour in slices[f"normal-{name}"].items():
+                self.assertIsNone(colour, f"normal-{name} {point}")
+        self.assertEqual(attribute_values(tree, "fill-opacity"), {"0.01"})
+
+    def test_listitem_colours(self):
+        # The hints and normal slices use `style`, so the parsed `fill` set is
+        # exactly the selection fill.
+        tree = ET.parse(LISTITEM_SVG)
+        self.assertEqual(attribute_values(tree, "fill"), {"#CCCCFF"})
+
+    def test_listitem_tiles_placed_by_margins(self):
+        assert_tiles_placed_by_margins(
+            self, ET.parse(LISTITEM_SVG), ["normal", "pressed"]
+        )
+
+    def test_no_script_elements(self):
+        assert_no_script_elements(self, ET.parse(LISTITEM_SVG))
+
+
 class TestFrame(unittest.TestCase):
     def test_frame_svg_contract(self):
         tree = ET.parse(FRAME_SVG)
@@ -1066,6 +1112,7 @@ class TestInstall(
         os.path.join("widgets", "radiobutton.svg"),
         os.path.join("widgets", "checkmarks.svg"),
         os.path.join("widgets", "lineedit.svg"),
+        os.path.join("widgets", "listitem.svg"),
     )
 
     def reinstall_failure_env(self, tmp):

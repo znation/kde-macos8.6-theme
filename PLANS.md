@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 Platinum list item widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum list item widget for the desktop theme (done 2026-10-08)
 
 **Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button,
 checkmarks, and text-field plans: it adds one widget file to the existing
@@ -117,8 +121,6 @@ Makefile, or the other widgets.
 **Follow-up (not planned here).** `widgets/scrollbar.svg` (constrained: the ScrollBar QML
 shows its track only while hovered and computes but never uses `arrowPresent`, so the Mac arrow
 buttons cannot be drawn) and `widgets/background.svg` for dialog/applet backgrounds.
-
-## Done
 
 ### Mac OS 8.6 Platinum text field widget for the desktop theme (done 2026-10-08)
 

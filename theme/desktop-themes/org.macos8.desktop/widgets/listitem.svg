@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" list item.
+
+     The flat selection row Plasma draws behind PlasmaComponents.ItemDelegate
+     (components/private/DefaultListItemBackground.qml) and the applet
+     PlasmaExtras.ListItem. Mac OS 8.6 has no hover highlight, no section
+     headers and no row separators, so only the `normal` and `pressed`
+     prefixes exist: a hovered or sectioned row stays pixel-identical to a
+     normal one and ToolBar draws no separator.
+
+     `pressed` (the selected/highlighted row) is a flat #CCCCFF rectangle with
+     square corners, no bevel and no outline. The unselected `normal` slices
+     paint nothing perceptible: a nine-slice element with no rendered content
+     has no bounding box for KSvg to read margins from, so they carry
+     style="fill:#FFFFFF" fill-opacity="0.01" geometry that contributes the 3px
+     margins while painting effectively nothing.
+
+     The nine-slice contract is a 3px border around a 6px centre tile on a
+     tight 12x12 canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="normal-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="normal-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+
+  <!-- Normal: an unselected row paints the view background, so every slice is
+       a transparent 0.01-opacity placeholder that only carries the margins. -->
+  <g id="normal-top" transform="translate(3,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-left" transform="translate(0,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-right" transform="translate(9,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-center" transform="translate(3,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topleft">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topright" transform="translate(9,0)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+
+  <!-- Pressed: the flat #CCCCFF selection fill, square corners, no bevel. -->
+  <g id="pressed-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-topleft">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+</svg>
