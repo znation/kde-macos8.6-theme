@@ -5,8 +5,9 @@
 set: one ``<filename> | <source URL> | <version label>`` line per image. This
 script verifies that record against the files actually on disk, so a renamed or
 forgotten image cannot silently drop out of the evidence trail. It also rejects
-unmaterialized Git LFS pointer files and files whose bytes are not a known image
-format, such as an HTML error page saved under an image name.
+unmaterialized Git LFS pointer files, files whose bytes are not a known image
+format (such as an HTML error page saved under an image name), and source URLs
+that are not absolute (a bare host or relative path is a broken citation).
 
 Usage:
     python3 tools/check_references.py              # check the repository
@@ -66,6 +67,16 @@ def _looks_like_image(path: Path) -> bool:
     return head[:4] == b"RIFF" and head[8:12] == b"WEBP"
 
 
+def _is_absolute_url(url: str) -> bool:
+    """Return True when *url* begins with a URI scheme and has a remainder.
+
+    A provenance source is an absolute URL, so a bare host or a relative path
+    (``example.test/x.png``) is a broken citation even though it is non-empty.
+    """
+    scheme, sep, rest = url.partition("://")
+    return bool(sep and rest) and scheme.isascii() and scheme[:1].isalpha()
+
+
 def _escape_controls(text: str) -> str:
     """Render *text* with control characters escaped for terminal output.
 
@@ -98,7 +109,8 @@ def check_references(directory: Path) -> list[str]:
     """Return a list of human-readable problems in *directory*.
 
     An empty list means every source entry names an existing image, every image
-    has exactly one entry, and every entry has the three expected fields.
+    has exactly one entry, and every entry has the three expected fields with an
+    absolute source URL.
     """
     sources = directory / SOURCES_NAME
     if not _resolves_within(directory, sources):
@@ -138,6 +150,12 @@ def check_references(directory: Path) -> list[str]:
             problems.append(
                 f"{sources}:{lineno}: {filename!r} contains a NUL byte and "
                 "cannot name a file"
+            )
+            continue
+        if not _is_absolute_url(url):
+            problems.append(
+                f"{sources}:{lineno}: source URL {url!r} must be an absolute "
+                "URL with a scheme, e.g. https://example.test/image.png"
             )
             continue
         if Path(filename).name != filename or filename in (".", ".."):
@@ -221,11 +239,13 @@ def _self_test() -> int:
         ("missing sources file", None, [("good.png", PNG_MAGIC)],
          "missing sources file"),
         ("comments and blank lines",
-         "# provenance\n\ngood.png | u | l\n# trailing note\n",
+         "# provenance\n\ngood.png | https://example.test/x | l\n# trailing note\n",
          [("good.png", PNG_MAGIC)], None),
         ("missing file", "ghost.png | https://example.test/g.png | label\n", [],
          "ghost.png"),
-        ("path in filename", "sub/good.png | u | l\n",
+        ("url with no scheme", "bad.png | example.test/b.png | label\n",
+         [("bad.png", PNG_MAGIC)], "absolute URL"),
+        ("path in filename", "sub/good.png | https://example.test/x | l\n",
          [("sub/good.png", PNG_MAGIC)], "bare filename"),
         ("undeclared image", "", [("extra.png", PNG_MAGIC)], "extra.png"),
         # No image extension, but the bytes are a PNG: the scan must read the
@@ -236,16 +256,18 @@ def _self_test() -> int:
         ("too few fields", "bad.png | https://example.test/b.png\n",
          [("bad.png", PNG_MAGIC)], "expected 3 fields"),
         ("empty field", "bad.png |  | label\n", [("bad.png", PNG_MAGIC)], "empty field"),
-        ("duplicate", "dup.png | u | l\ndup.png | u | l\n",
+        ("duplicate",
+         "dup.png | https://example.test/x | l\n"
+         "dup.png | https://example.test/x | l\n",
          [("dup.png", PNG_MAGIC)], "duplicate"),
-        ("lfs pointer", "stub.png | u | l\n",
+        ("lfs pointer", "stub.png | https://example.test/x | l\n",
          [("stub.png", b"version https://git-lfs.github.com/spec/v1\n"
                        b"oid sha256:deadbeef\nsize 12345\n")],
          "Git LFS pointer"),
-        ("non-image payload", "fake.png | u | l\n",
+        ("non-image payload", "fake.png | https://example.test/x | l\n",
          [("fake.png", b"<!DOCTYPE html>\n<html>404 Not Found</html>\n")],
          "not a PNG, JPEG, GIF or WebP image"),
-        ("webp with jpg name", "shot.jpg | u | l\n",
+        ("webp with jpg name", "shot.jpg | https://example.test/x | l\n",
          [("shot.jpg", b"RIFF\x24\x00\x00\x00WEBPVP8 ")], None),
     ]
 
