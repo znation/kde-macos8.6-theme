@@ -13,6 +13,7 @@ from svg_assertions import (
     assert_no_script_elements,
     assert_tiles_placed_by_margins,
     attribute_values,
+    rect_geometry,
     render_slices,
 )
 
@@ -26,6 +27,22 @@ class TestLineEdit(unittest.TestCase):
         for side in ("top", "bottom", "left", "right"):
             self.assertIn(f"base-hint-{side}-margin", ids, side)
         self.assertIn("hint-tile-center", ids)
+
+    def test_lineedit_hint_geometry(self):
+        # `test_lineedit_slice_ids` pins only the hint ids, so a margin or
+        # centre hint with the wrong position or size passes it while KSvg
+        # lays the field out wrong. Pin every hint: a 3px border around a 6px
+        # centre tile on the 12x12 canvas.
+        self.assertEqual(
+            rect_geometry(ET.parse(LINEEDIT_SVG)),
+            {
+                "hint-tile-center": ("3", "3", "6", "6"),
+                "base-hint-top-margin": ("3", "0", "6", "3"),
+                "base-hint-bottom-margin": ("3", "9", "6", "3"),
+                "base-hint-left-margin": ("0", "3", "3", "6"),
+                "base-hint-right-margin": ("9", "3", "3", "6"),
+            },
+        )
 
     def test_lineedit_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the

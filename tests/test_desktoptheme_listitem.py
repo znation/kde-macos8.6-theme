@@ -11,6 +11,7 @@ from svg_assertions import (
     assert_no_script_elements,
     assert_tiles_placed_by_margins,
     attribute_values,
+    rect_geometry,
     render_slices,
 )
 
@@ -25,6 +26,21 @@ class TestListItem(unittest.TestCase):
             for side in ("top", "bottom", "left", "right"):
                 self.assertIn(f"{prefix}-hint-{side}-margin", ids, side)
         self.assertIn("hint-tile-center", ids)
+
+    def test_listitem_hint_geometry(self):
+        # `test_listitem_slice_ids` pins only the hint ids, so a margin or
+        # centre hint with the wrong position or size passes it while KSvg
+        # lays the row out wrong. Pin every hint: normal and pressed share a
+        # 3px border around a 6px centre tile on the 12x12 canvas.
+        expected = {"hint-tile-center": ("3", "3", "6", "6")}
+        for prefix in ("normal", "pressed"):
+            expected.update({
+                f"{prefix}-hint-top-margin": ("3", "0", "6", "3"),
+                f"{prefix}-hint-bottom-margin": ("3", "9", "6", "3"),
+                f"{prefix}-hint-left-margin": ("0", "3", "3", "6"),
+                f"{prefix}-hint-right-margin": ("9", "3", "3", "6"),
+            })
+        self.assertEqual(rect_geometry(ET.parse(LISTITEM_SVG)), expected)
 
     def test_listitem_selection_is_flat_selection_colour(self):
         # Every pressed slice must be the flat selection fill, so the
