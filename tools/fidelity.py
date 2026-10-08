@@ -242,13 +242,17 @@ def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
     return Image(width, height, b"".join(rows))
 
 
-def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
-    """Compare two equally sized images. ``tolerance`` is a per-channel delta."""
-    if a.width != b.width or a.height != b.height:
+def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
+    """Compare a candidate image against a reference image.
+
+    Both must be the same size; ``tolerance`` is a per-channel delta.
+    """
+    if candidate.width != reference.width or candidate.height != reference.height:
         raise FidelityError(
-            f"size mismatch: {a.width}x{a.height} vs {b.width}x{b.height}"
+            f"size mismatch: candidate {candidate.width}x{candidate.height} "
+            f"vs reference {reference.width}x{reference.height}"
         )
-    pa, pb = a.rgb, b.rgb
+    pa, pb = candidate.rgb, reference.rgb
     total_abs = 0
     total_abs_r = 0
     total_abs_g = 0
@@ -272,15 +276,15 @@ def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
         if worst > max_delta:
             max_delta = worst
             pixel = i // 3
-            max_x = pixel % a.width
-            max_y = pixel // a.width
+            max_x = pixel % candidate.width
+            max_y = pixel // candidate.width
         if worst > tolerance:
             differing += 1
-    pixels = a.width * a.height
+    pixels = candidate.width * candidate.height
     channels = pixels * 3
     return Metrics(
-        width=a.width,
-        height=a.height,
+        width=candidate.width,
+        height=candidate.height,
         pixels=pixels,
         mae=total_abs / channels,
         mae_r=total_abs_r / pixels,

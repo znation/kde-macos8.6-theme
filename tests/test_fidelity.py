@@ -225,8 +225,11 @@ class TestCompare(unittest.TestCase):
     def test_size_mismatch_raises(self):
         a, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
         b, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with self.assertRaises(fidelity.FidelityError):
+        with self.assertRaises(fidelity.FidelityError) as caught:
             fidelity.compare(a, b)
+        message = str(caught.exception)
+        self.assertIn("candidate 2x2", message)
+        self.assertIn("reference 1x1", message)
 
     def test_crop_extracts_region(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x, y, 0))
