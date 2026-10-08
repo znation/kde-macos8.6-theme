@@ -329,6 +329,62 @@ def assert_tiles_placed_by_margins(case, tree, prefixes):
     case.assertEqual(origins, expected)
 
 
+def assert_slices_stay_within_their_tiles(case, tree, prefixes):
+    """Assert no nine-slice tile paints outside the region its hints define.
+
+    A margin hint names a border: for a horizontal edge its height is the
+    border's thickness, and for a vertical edge its width is. The edge tile
+    spans the canvas between the two opposite borders, so the top tile is
+    ``canvas_width - left_border - right_border`` wide and ``top_border``
+    tall (and so on); the centre is the canvas inside all four borders.
+    `render_slices` reports each slice in its group's local coordinates, so
+    the tile region starts at the local origin and this only needs the sizes.
+    `render_slices` composites every rect a slice's group holds, so a rect
+    wider or taller than its tile spills into the adjacent canvas region;
+    KSvg samples that region into the neighbouring tile, yet the per-slice
+    pixel tests read only points inside the tile and pass. Fail on any
+    painted point outside the region. *prefixes* lists each state prefix in
+    *tree* (pass ``[""]`` for an unprefixed SVG).
+    """
+    slices = render_slices(tree)
+    hints = rect_geometry(tree)
+    for prefix in prefixes:
+        sep = "-" if prefix else ""
+        top = hints[f"{prefix}{sep}hint-top-margin"]
+        bottom = hints[f"{prefix}{sep}hint-bottom-margin"]
+        left = hints[f"{prefix}{sep}hint-left-margin"]
+        right = hints[f"{prefix}{sep}hint-right-margin"]
+        left_w, right_w = int(left[2]), int(right[2])
+        top_h, bottom_h = int(top[3]), int(bottom[3])
+        # The right/bottom margin rects reach the canvas edge, so their far
+        # edge is the canvas size (the same tie `assert_root_canvas` makes).
+        canvas_w = int(right[0]) + right_w
+        canvas_h = int(bottom[1]) + bottom_h
+        edge_w = canvas_w - left_w - right_w
+        edge_h = canvas_h - top_h - bottom_h
+        # (width, height) of each tile region.
+        regions = {
+            "top": (edge_w, top_h),
+            "bottom": (edge_w, bottom_h),
+            "left": (left_w, edge_h),
+            "right": (right_w, edge_h),
+            "center": (edge_w, edge_h),
+            "topleft": (left_w, top_h),
+            "topright": (right_w, top_h),
+            "bottomleft": (left_w, bottom_h),
+            "bottomright": (right_w, bottom_h),
+        }
+        for name, (width, height) in regions.items():
+            region = {
+                (px, py) for py in range(height) for px in range(width)
+            }
+            slice_id = f"{prefix}{sep}{name}"
+            with case.subTest(slice=slice_id):
+                case.assertEqual(
+                    set(slices[slice_id]) - region, set(), slice_id
+                )
+
+
 def assert_root_canvas(case, tree, width, height):
     """Assert *tree*'s root <svg> declares a *width* x *height* canvas 1:1.
 

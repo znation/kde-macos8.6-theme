@@ -14,6 +14,7 @@ from svg_assertions import (
     assert_edge_band_pixels,
     assert_no_script_elements,
     assert_slice_ids_present,
+    assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     rect_geometry,
     render_slices,
@@ -110,6 +111,15 @@ class TestFrame(unittest.TestCase):
         # wrong canvas region and still passes. Pin every state's tile origins
         # against its margin hints.
         assert_tiles_placed_by_margins(self, ET.parse(FRAME_SVG), FRAME_PREFIXES)
+
+    def test_frame_tiles_stay_within_their_margins(self):
+        # The edge/corner pixel tests composite each slice but read only points
+        # inside its tile, so an oversized rect spilling into the neighbouring
+        # canvas region -- which KSvg samples into that adjacent tile --
+        # passes. Pin every slice to the tile region its hints define.
+        assert_slices_stay_within_their_tiles(
+            self, ET.parse(FRAME_SVG), FRAME_PREFIXES
+        )
 
     def test_frame_corner_bevels_turn_the_corner(self):
         slices = render_slices(ET.parse(FRAME_SVG))

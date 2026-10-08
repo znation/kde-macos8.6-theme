@@ -12,6 +12,7 @@ from svg_assertions import (
     assert_edge_band_pixels,
     assert_no_script_elements,
     assert_slice_ids_present,
+    assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
     rect_geometry,
@@ -105,6 +106,15 @@ class TestLineEdit(unittest.TestCase):
         # so a `base-*` group translated off its slice would still pass. Pin
         # every tile's origin against the base margin hints.
         assert_tiles_placed_by_margins(self, ET.parse(LINEEDIT_SVG), ["base"])
+
+    def test_lineedit_tiles_stay_within_their_margins(self):
+        # The pixel tests read only points inside each tile, so an oversized
+        # rect spilling into the neighbouring canvas region -- which KSvg
+        # samples into that adjacent tile -- passes. Pin every slice to the
+        # tile region its hints define.
+        assert_slices_stay_within_their_tiles(
+            self, ET.parse(LINEEDIT_SVG), ["base"]
+        )
 
     def test_no_script_elements(self):
         assert_no_script_elements(self, ET.parse(LINEEDIT_SVG))

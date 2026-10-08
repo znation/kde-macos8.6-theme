@@ -13,6 +13,7 @@ from svg_assertions import (
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slice_pixels,
+    assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
     elements_by_id,
@@ -58,6 +59,15 @@ class TestButton(unittest.TestCase):
         # its slice would draw from the wrong canvas region. Focus uses a 2px
         # border, so its centre sits at (2,2), not the shared hint's (3,3).
         assert_tiles_placed_by_margins(self, ET.parse(BUTTON_SVG), BUTTON_PREFIXES)
+
+    def test_button_tiles_stay_within_their_margins(self):
+        # The edge/corner/centre pixel tests read only points inside each tile,
+        # so a rect wider or taller than its tile spills into the neighbouring
+        # canvas region -- which KSvg samples into that adjacent tile -- and
+        # still passes. Pin every slice to the tile region its hints define.
+        assert_slices_stay_within_their_tiles(
+            self, ET.parse(BUTTON_SVG), BUTTON_PREFIXES
+        )
 
     def test_button_colours(self):
         # Read the parsed artwork's fill attributes, not the raw file: the

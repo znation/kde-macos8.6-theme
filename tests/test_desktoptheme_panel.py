@@ -12,6 +12,7 @@ from svg_assertions import (
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slice_pixels,
+    assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
     pixel_map,
@@ -76,6 +77,13 @@ class TestPanelBackground(unittest.TestCase):
         # draws from the wrong canvas region and still passes. Pin each tile's
         # origin against the margins that size the menu bar's nine-slice.
         assert_tiles_placed_by_margins(self, self.tree, [""])
+
+    def test_panel_background_tiles_stay_within_their_margins(self):
+        # `test_panel_background_pixels` reads only points inside each tile, so
+        # an oversized rect spilling into the neighbouring canvas region --
+        # which KSvg samples into that adjacent tile -- passes. Pin every
+        # slice to the tile region its hints define.
+        assert_slices_stay_within_their_tiles(self, self.tree, [""])
 
     def test_platinum_colours_present(self):
         # Read the parsed artwork's fill attributes, not the raw file: the
