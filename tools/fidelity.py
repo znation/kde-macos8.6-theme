@@ -260,13 +260,20 @@ def _is_plain_ascii_number(value: str) -> bool:
     underscore digit separators (``1_0`` is 10), non-ASCII decimal digits
     (``\u0661\u0662`` is 12), and surrounding whitespace. Each silently turns
     a stray character into a different value, so the CLI checks the text
-    before parsing it.
+    before parsing it. Callers that parse a structured value (the crop
+    rectangle) strip each field first, so this whitespace rule applies to the
+    scalar options.
     """
     return value.isascii() and "_" not in value and value == value.strip()
 
 
 def _parse_crop(value: str) -> tuple[int, int, int, int]:
-    parts = value.split(",")
+    # Strip each field before the plain-number check: whitespace around a
+    # comma-separated field ("0, 0, 10, 10") is the conventional way to write
+    # the rectangle, not a stray character that changes the value, so accept
+    # it here. The scalar options still reject surrounding whitespace through
+    # _is_plain_ascii_number, where it signals a quoting mistake.
+    parts = [part.strip() for part in value.split(",")]
     if len(parts) != 4:
         raise argparse.ArgumentTypeError(f"crop must be X,Y,W,H: {value!r}")
     numbers: list[int] = []

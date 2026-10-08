@@ -299,6 +299,30 @@ class TestCli(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("PASS", result.stdout)
 
+    def test_crop_accepts_whitespace_between_fields(self):
+        # A comma-separated rectangle is conventionally written with a space
+        # after each comma ("0, 0, 10, 10"); that whitespace is formatting,
+        # not a value, so --crop must accept it. The scalar options still
+        # reject surrounding whitespace (test_python_literal_numeric_args_rejected).
+        surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+        rows = [
+            bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            bytes([0, 0, 0] + list(surface.rgb[0:6]) + [0, 0, 0]),
+            bytes([0, 0, 0] + list(surface.rgb[6:12]) + [0, 0, 0]),
+            bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+        ]
+        full_png = make_png(4, 4, rows)
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "surface.png", surface_png)
+            reference = self._write(tmpdir, "full.png", full_png)
+            tight = self._run(candidate, reference, "--crop", "1,1,2,2")
+            spaced = self._run(candidate, reference, "--crop", "1, 1, 2, 2")
+        self.assertEqual(tight.returncode, 0, tight.stdout + tight.stderr)
+        self.assertEqual(spaced.returncode, 0, spaced.stdout + spaced.stderr)
+        # Identical output proves the spaced form selects the same rectangle.
+        self.assertEqual(spaced.stdout, tight.stdout)
+
     def test_help_documents_exit_status(self):
         # --help must state what each exit status means; the module docstring
         # promises the legend, and a caller scripting the tool cannot tell a
