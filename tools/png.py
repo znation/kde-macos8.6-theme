@@ -75,6 +75,17 @@ def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     while pos + 8 <= len(data):
         (length,) = struct.unpack(">I", data[pos : pos + 4])
         ctype = data[pos + 4 : pos + 8]
+        # The PNG spec restricts a chunk type to four ASCII letters, and the
+        # first byte alone decides whether the chunk is critical. A type with
+        # a digit, space or non-ASCII byte is not a valid code: without this
+        # check such a chunk is not recognized as critical (its first byte is
+        # not an uppercase letter) and falls through decode_png's ancillary
+        # branch, silently skipping malformed framing. Reject it by name.
+        if not ctype.isalpha():
+            raise PngError(
+                f"invalid PNG chunk type {_chunk_name(ctype)} at offset "
+                f"{pos}: chunk types are four ASCII letters"
+            )
         payload = data[pos + 8 : pos + 8 + length]
         if len(payload) != length:
             raise PngError(

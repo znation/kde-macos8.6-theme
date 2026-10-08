@@ -229,6 +229,25 @@ class TestDecode(unittest.TestCase):
         self.assertIn("unknown critical PNG chunk", message)
         self.assertIn("'XYZW'", message)
 
+    def test_rejects_chunk_type_that_is_not_four_ascii_letters(self):
+        # A PNG chunk type must be four ASCII letters, and the first byte
+        # alone decides criticality. A type carrying a digit, space or
+        # non-ASCII byte is not a valid code; because its first byte is not an
+        # uppercase letter it used to fall through as an unknown *ancillary*
+        # chunk and be ignored. Reject it by name instead of silently skipping
+        # malformed framing.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        for ctype in (b"ab1d", b"a bd", b"ab\xffd"):
+            with self.subTest(ctype=ctype):
+                message = self._decode_error(
+                    data[:ihdr_end] + _chunk(ctype, b"\x00") + data[ihdr_end:]
+                )
+                self.assertIn("invalid PNG chunk type", message)
+                self.assertIn("four ASCII letters", message)
+                if ctype.isascii():
+                    self.assertIn(repr(ctype.decode("ascii")), message)
+
     def test_ignored_ancillary_chunk_still_has_its_crc_checked(self):
         # Ignoring a chunk's contents must not skip its integrity check: a
         # corrupt ancillary chunk means the file is damaged and could hide a
