@@ -121,6 +121,10 @@ class TestInstall(
             # before starting the install, so the install can never win a race
             # for the lock the test means to hold.
             lock_fd = os.open(data_home, os.O_RDONLY)
+            # `start` below can raise before the body's unlock runs (a missing
+            # `make`), so close the fd as cleanup as well; without it the fd
+            # and its flock would leak for the rest of the suite.
+            self.addCleanup(os.close, lock_fd)
             fcntl.flock(lock_fd, fcntl.LOCK_EX)
             # Shadow `flock` so the install records the moment it reaches the
             # lock step. The test waits for that record instead of guessing
@@ -134,7 +138,10 @@ class TestInstall(
                 f": > {shlex.quote(invoked)}\n"
                 f"exec {shlex.quote(real_flock)} \"$@\"\n",
             )
-            proc = theme_install.start(
+            # `running` kills the install's whole process group if the poll
+            # below raises, so an abandoned install cannot keep running and
+            # holding the data-home lock after the test has failed.
+            with theme_install.running(
                 [
                     "make", "install",
                     f"DESTDIR={tmp}",
@@ -145,21 +152,22 @@ class TestInstall(
                 stderr=subprocess.PIPE,
                 text=True,
                 env=env,
-            )
-            try:
-                deadline = time.monotonic() + theme_install.SUBPROCESS_TIMEOUT
-                while (
-                    not os.path.exists(invoked)
-                    and proc.poll() is None
-                    and time.monotonic() < deadline
-                ):
-                    time.sleep(0.05)
-                reached_lock = os.path.exists(invoked)
-                wrote = os.path.exists(package)
-            finally:
-                fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                os.close(lock_fd)
-            _, err = theme_install.finish(proc)
+            ) as proc:
+                try:
+                    deadline = time.monotonic() + theme_install.SUBPROCESS_TIMEOUT
+                    while (
+                        not os.path.exists(invoked)
+                        and proc.poll() is None
+                        and time.monotonic() < deadline
+                    ):
+                        time.sleep(0.05)
+                    reached_lock = os.path.exists(invoked)
+                    wrote = os.path.exists(package)
+                finally:
+                    # Release the lock before `finish` waits, or the blocked
+                    # install would only time out.
+                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                _, err = theme_install.finish(proc)
             self.assertTrue(
                 reached_lock, "install did not take the data-home lock"
             )

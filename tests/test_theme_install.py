@@ -3,8 +3,9 @@
 `theme_install.run` is the suite's timeout runner: the tests route their `make`
 / `plasma-apply-*` / `kpackagetool6` calls through it, so a fake `make` that
 never exits raises `subprocess.TimeoutExpired` instead of stalling `make check`
-forever. (One lock test starts `make install` directly, bounding it with its
-own deadline and `communicate(timeout=...)`.) The Makefile also has to survive
+forever. (One lock test starts `make install` itself to poll it, then finishes
+it through `theme_install.running`, which kills the child if the poll raises.)
+The Makefile also has to survive
 a `DESTDIR` or `XDG_DATA_HOME` that contains whitespace, so its recipe words
 are quoted.
 """
@@ -126,6 +127,46 @@ class TestSubprocessTimeout(unittest.TestCase):
         self.assertFalse(
             _process_alive(process.pid), "child survived finish()'s timeout"
         )
+
+    def test_running_kills_the_child_when_the_block_raises(self):
+        """An abandoned started child must be killed, not left running.
+
+        `test_lookandfeel` starts `make install`, polls it, and only then
+        finishes it. If the poll raises -- the operator interrupts `make
+        check`, or the poll itself fails -- the child and its `flock`
+        descendants would keep running and holding the data-home lock after
+        the test has failed. `running` kills the child's process group on the
+        way out whatever happens.
+        """
+        with self.assertRaises(RuntimeError):
+            with theme_install.running(
+                [sys.executable, "-c", "import time; time.sleep(30)"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            ) as process:
+                raise RuntimeError("poll failed")
+        self.assertIsNotNone(process.poll())
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline and _process_alive(process.pid):
+            time.sleep(0.05)
+        self.assertFalse(
+            _process_alive(process.pid), "running left the child alive"
+        )
+
+    def test_running_leaves_a_finished_child_alone(self):
+        """A child the caller already finished must not be touched again.
+
+        The lock test calls `finish` inside the `running` block, so `running`
+        must see the exited child and do nothing; re-signalling or waiting on
+        it would fail the normal path.
+        """
+        with theme_install.running(
+            [sys.executable, "-c", "pass"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as process:
+            theme_install.finish(process)
+        self.assertEqual(process.returncode, 0)
 
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):

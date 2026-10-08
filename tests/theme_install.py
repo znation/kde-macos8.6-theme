@@ -5,6 +5,7 @@ tests in `test_colorscheme`, `test_lookandfeel` and `test_desktoptheme` pass a
 throwaway `DESTDIR` and inspect the result there.
 """
 
+import contextlib
 import os
 import signal
 import subprocess
@@ -72,6 +73,35 @@ def finish(process, timeout=None):
         raise subprocess.TimeoutExpired(
             process.args, timeout, output=stdout, stderr=stderr
         ) from None
+
+
+@contextlib.contextmanager
+def running(argv, **kwargs):
+    """Start `argv` and guarantee its process group is killed when the block exits.
+
+    `start`/`finish` is enough when the two calls are adjacent, but the lock
+    test starts `make install`, polls it, and only then finishes it. Anything
+    that raises between the start and the finish -- a poll that fails, or the
+    operator interrupting `make check` -- would skip `finish` and leave the
+    child, its descendants, and the data-home lock they hold alive after the
+    test has failed. This context manager kills a still-running child with its
+    whole process group on the way out whatever happens; a caller that reached
+    `finish` first leaves nothing to kill, so the normal path is unaffected.
+
+    Yields the `Popen`; `kwargs` are as for `start`.
+    """
+    process = start(argv, **kwargs)
+    try:
+        yield process
+    finally:
+        if process.poll() is None:
+            _kill_process_group(process)
+            process.wait()
+            # `finish` drains and closes the pipes; a child killed here never
+            # reached it, so close the read ends instead of leaking them.
+            for stream in (process.stdin, process.stdout, process.stderr):
+                if stream is not None:
+                    stream.close()
 
 
 def run(argv, **kwargs):
