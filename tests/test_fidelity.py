@@ -448,6 +448,32 @@ class TestCli(unittest.TestCase):
                     self.assertIn("error", result.stderr)
                     self.assertNotIn("Traceback", result.stderr)
 
+    def test_malformed_crop_is_usage_error(self):
+        # A bad --crop must be rejected as a usage error before either image is
+        # read, and the message must name the offending value so the user does
+        # not have to re-derive which field was wrong. Both paths are
+        # nonexistent: a crop that reached the comparison would instead fail as
+        # a read error, without argparse's "argument --crop:" prefix.
+        with tempfile.TemporaryDirectory() as tmp:
+            missing = str(Path(tmp) / "missing.png")
+            base = [sys.executable, str(TOOL), missing, missing]
+            for extra, expected in (
+                (["--crop", "1,2,3"], "1,2,3"),
+                (["--crop", "a,2,3,4"], "'a'"),
+                (["--crop", "0,0,0,2"], "x=0 y=0 w=0 h=2"),
+                (["--crop=-1,0,2,2"], "x=-1 y=0 w=2 h=2"),
+            ):
+                with self.subTest(extra=extra):
+                    result = subprocess.run(
+                        base + extra, capture_output=True, text=True
+                    )
+                    self.assertEqual(
+                        result.returncode, 2, result.stdout + result.stderr
+                    )
+                    self.assertIn(expected, result.stderr)
+                    self.assertIn("argument --crop:", result.stderr)
+                    self.assertNotIn("Traceback", result.stderr)
+
     def test_tolerance_above_channel_range_rejected(self):
         # A per-channel delta is at most 255, so a larger tolerance can never
         # mark a pixel as differing and would silently disable that metric.

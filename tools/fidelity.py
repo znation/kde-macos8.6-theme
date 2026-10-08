@@ -302,11 +302,21 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
 def _parse_crop(value: str) -> tuple[int, int, int, int]:
     parts = value.split(",")
     if len(parts) != 4:
-        raise argparse.ArgumentTypeError("crop must be X,Y,W,H")
-    try:
-        x, y, width, height = (int(part) for part in parts)
-    except ValueError as exc:
-        raise argparse.ArgumentTypeError("crop values must be integers") from exc
+        raise argparse.ArgumentTypeError(f"crop must be X,Y,W,H: {value!r}")
+    numbers: list[int] = []
+    for part in parts:
+        try:
+            numbers.append(int(part))
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(
+                f"crop values must be integers: {part!r}"
+            ) from exc
+    x, y, width, height = numbers
+    if x < 0 or y < 0 or width <= 0 or height <= 0:
+        raise argparse.ArgumentTypeError(
+            f"crop rectangle must have positive size and origin: "
+            f"x={x} y={y} w={width} h={height}"
+        )
     return x, y, width, height
 
 
