@@ -243,6 +243,31 @@ class TestCli(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("PASS", result.stdout)
 
+    def test_malformed_png_is_error(self):
+        # A PNG whose IHDR payload is not the 13 bytes the spec requires must
+        # fail with the tool's clean error path (exit 2), not a struct.error
+        # traceback from the unpack in decode_png.
+        _, good = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        short_ihdr = (
+            _PNG_SIGNATURE
+            + _chunk(
+                b"IHDR", b"\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00"
+            )
+            + _chunk(b"IEND", b"")
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "broken.png", short_ihdr)
+            reference = self._write(tmpdir, "reference.png", good)
+            result = subprocess.run(
+                [sys.executable, str(TOOL), candidate, reference],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+            self.assertIn("error", result.stderr)
+            self.assertNotIn("Traceback", result.stderr)
+
     def test_missing_file_is_error(self):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         with tempfile.TemporaryDirectory() as tmp:

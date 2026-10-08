@@ -163,6 +163,10 @@ def decode_png(data: bytes) -> Image:
             break
     if header is None:
         raise FidelityError("PNG has no IHDR chunk")
+    if len(header) != 13:
+        raise FidelityError(
+            f"IHDR chunk has {len(header)} bytes, expected 13"
+        )
     width, height, depth, color_type, compression, filt, interlace = struct.unpack(
         ">IIBBBBB", header
     )
