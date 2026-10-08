@@ -14,6 +14,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
+    nine_slice_margins,
     rect_geometry,
     render_slices,
 )
@@ -45,12 +46,7 @@ class TestScrollbar(unittest.TestCase):
             "hint-scrollbar-size": ("0", "0", "16", "16"),
         }
         for prefix in PREFIXES:
-            expected.update({
-                f"{prefix}-hint-top-margin": ("3", "0", "10", "3"),
-                f"{prefix}-hint-bottom-margin": ("3", "13", "10", "3"),
-                f"{prefix}-hint-left-margin": ("0", "3", "3", "10"),
-                f"{prefix}-hint-right-margin": ("13", "3", "3", "10"),
-            })
+            expected.update(nine_slice_margins(prefix, 3, 10))
         self.assertEqual(rect_geometry(ET.parse(SCROLLBAR_SVG)), expected)
 
     def test_scrollbar_tiles_placed_by_margins(self):

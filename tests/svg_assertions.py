@@ -301,6 +301,34 @@ def rect_geometry(tree):
     return geometry
 
 
+def nine_slice_margins(prefix, border, size):
+    """Return the four margin-hint rects of a centred nine-slice tile.
+
+    A nine-slice SVG whose *size*-square centre tile is inset by a *border*
+    on every side declares four margin hints, each naming an edge tile's
+    canvas region as ``(x, y, width, height)``. The tile is centred, so the
+    canvas is ``size + 2 * border`` square and the bottom/right hints start
+    at ``size + border``. *prefix* is the state prefix (``""`` for an
+    unprefixed SVG). The shared ``hint-tile-center`` is not included: some
+    SVGs share one centre hint across states, so each caller pins it itself.
+    """
+    sep = "-" if prefix else ""
+    return {
+        f"{prefix}{sep}hint-top-margin": (
+            str(border), "0", str(size), str(border)
+        ),
+        f"{prefix}{sep}hint-bottom-margin": (
+            str(border), str(size + border), str(size), str(border)
+        ),
+        f"{prefix}{sep}hint-left-margin": (
+            "0", str(border), str(border), str(size)
+        ),
+        f"{prefix}{sep}hint-right-margin": (
+            str(size + border), str(border), str(border), str(size)
+        ),
+    }
+
+
 _TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")
 
 

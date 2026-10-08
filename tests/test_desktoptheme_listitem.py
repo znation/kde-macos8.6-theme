@@ -13,6 +13,7 @@ from svg_assertions import (
     assert_slice_pixels,
     assert_tiles_placed_by_margins,
     attribute_values,
+    nine_slice_margins,
     pixel_map,
     rect_geometry,
     render_slices,
@@ -30,12 +31,7 @@ class TestListItem(unittest.TestCase):
         # 3px border around a 6px centre tile on the 12x12 canvas.
         expected = {"hint-tile-center": ("3", "3", "6", "6")}
         for prefix in ("normal", "pressed"):
-            expected.update({
-                f"{prefix}-hint-top-margin": ("3", "0", "6", "3"),
-                f"{prefix}-hint-bottom-margin": ("3", "9", "6", "3"),
-                f"{prefix}-hint-left-margin": ("0", "3", "3", "6"),
-                f"{prefix}-hint-right-margin": ("9", "3", "3", "6"),
-            })
+            expected.update(nine_slice_margins(prefix, 3, 6))
         self.assertEqual(rect_geometry(ET.parse(LISTITEM_SVG)), expected)
 
     def test_listitem_selection_is_flat_selection_colour(self):

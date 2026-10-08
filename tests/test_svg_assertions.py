@@ -18,6 +18,7 @@ from svg_assertions import (
     arc_center,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    nine_slice_margins,
     path_arcs,
     render_slices,
     tile_origins,
@@ -164,6 +165,42 @@ class TestTileOrigins(unittest.TestCase):
         # so the caller's equality check fails loudly instead of reading a
         # misplaced group as sitting at the origin.
         self.assertEqual(origins["unknown"], "matrix(1,0,0,1,9,9)")
+
+
+class TestNineSliceMargins(unittest.TestCase):
+    def test_derives_the_four_margins_from_a_centred_tile(self):
+        # KSvg reads these four hint rects to size the nine-slice, so a wrong
+        # coordinate here would make every widget test pin the wrong layout.
+        # Pin a 3px-border/6px-tile layout and a differently sized one, plus
+        # the unprefixed form (``""``) whose values match the _HINTS fixture
+        # above (a 4px border around a 4px tile on the 12x12 canvas).
+        self.assertEqual(
+            nine_slice_margins("normal", 3, 6),
+            {
+                "normal-hint-top-margin": ("3", "0", "6", "3"),
+                "normal-hint-bottom-margin": ("3", "9", "6", "3"),
+                "normal-hint-left-margin": ("0", "3", "3", "6"),
+                "normal-hint-right-margin": ("9", "3", "3", "6"),
+            },
+        )
+        self.assertEqual(
+            nine_slice_margins("focus", 2, 8),
+            {
+                "focus-hint-top-margin": ("2", "0", "8", "2"),
+                "focus-hint-bottom-margin": ("2", "10", "8", "2"),
+                "focus-hint-left-margin": ("0", "2", "2", "8"),
+                "focus-hint-right-margin": ("10", "2", "2", "8"),
+            },
+        )
+        self.assertEqual(
+            nine_slice_margins("", 4, 4),
+            {
+                "hint-top-margin": ("4", "0", "4", "4"),
+                "hint-bottom-margin": ("4", "8", "4", "4"),
+                "hint-left-margin": ("0", "4", "4", "4"),
+                "hint-right-margin": ("8", "4", "4", "4"),
+            },
+        )
 
 
 class TestRenderSlices(unittest.TestCase):

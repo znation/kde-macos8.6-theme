@@ -16,6 +16,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    nine_slice_margins,
     rect_geometry,
     render_slices,
 )
@@ -97,12 +98,7 @@ class TestFrame(unittest.TestCase):
         # the shared centre tile.
         expected = {"hint-tile-center": ("3", "3", "6", "6")}
         for prefix in FRAME_PREFIXES:
-            expected.update({
-                f"{prefix}-hint-top-margin": ("3", "0", "6", "3"),
-                f"{prefix}-hint-bottom-margin": ("3", "9", "6", "3"),
-                f"{prefix}-hint-left-margin": ("0", "3", "3", "6"),
-                f"{prefix}-hint-right-margin": ("9", "3", "3", "6"),
-            })
+            expected.update(nine_slice_margins(prefix, 3, 6))
         self.assertEqual(rect_geometry(ET.parse(FRAME_SVG)), expected)
 
     def test_frame_tiles_placed_by_margins(self):

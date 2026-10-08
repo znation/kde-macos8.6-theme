@@ -18,6 +18,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     elements_by_id,
+    nine_slice_margins,
     path_arcs,
     rect_geometry,
     render_slices,
@@ -39,18 +40,8 @@ class TestButton(unittest.TestCase):
         # shared centre tile.
         expected = {"hint-tile-center": ("3", "3", "6", "6")}
         for prefix in ("normal", "pressed"):
-            expected.update({
-                f"{prefix}-hint-top-margin": ("3", "0", "6", "3"),
-                f"{prefix}-hint-bottom-margin": ("3", "9", "6", "3"),
-                f"{prefix}-hint-left-margin": ("0", "3", "3", "6"),
-                f"{prefix}-hint-right-margin": ("9", "3", "3", "6"),
-            })
-        expected.update({
-            "focus-hint-top-margin": ("2", "0", "8", "2"),
-            "focus-hint-bottom-margin": ("2", "10", "8", "2"),
-            "focus-hint-left-margin": ("0", "2", "2", "8"),
-            "focus-hint-right-margin": ("10", "2", "2", "8"),
-        })
+            expected.update(nine_slice_margins(prefix, 3, 6))
+        expected.update(nine_slice_margins("focus", 2, 8))
         self.assertEqual(rect_geometry(ET.parse(BUTTON_SVG)), expected)
 
     def test_button_tiles_placed_by_margins(self):

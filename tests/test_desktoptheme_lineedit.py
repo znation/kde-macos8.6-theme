@@ -15,6 +15,7 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
+    nine_slice_margins,
     rect_geometry,
     render_slices,
 )
@@ -33,10 +34,7 @@ class TestLineEdit(unittest.TestCase):
             rect_geometry(ET.parse(LINEEDIT_SVG)),
             {
                 "hint-tile-center": ("3", "3", "6", "6"),
-                "base-hint-top-margin": ("3", "0", "6", "3"),
-                "base-hint-bottom-margin": ("3", "9", "6", "3"),
-                "base-hint-left-margin": ("0", "3", "3", "6"),
-                "base-hint-right-margin": ("9", "3", "3", "6"),
+                **nine_slice_margins("base", 3, 6),
             },
         )
 
