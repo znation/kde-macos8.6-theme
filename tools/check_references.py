@@ -342,7 +342,10 @@ def main(argv: list[str]) -> int:
         print(USAGE, end="")
         return 0
     if args:
-        print(f"error: unknown argument(s): {' '.join(args)}", file=sys.stderr)
+        print(
+            f"error: unknown argument(s): {_escape_controls(' '.join(args))}",
+            file=sys.stderr,
+        )
         print(USAGE, end="", file=sys.stderr)
         return 2
 

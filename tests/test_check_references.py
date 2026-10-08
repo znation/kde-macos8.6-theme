@@ -433,6 +433,25 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
         self.assertIn("1 problem(s) in the reference set", err)
 
 
+class TestUnknownArgumentEscaping(unittest.TestCase):
+    """An unrecognized argument must not print raw control bytes.
+
+    The usage diagnostic joins argv, and a shell glob over the contributor-owned
+    screenshot directory can put an ESC-bearing name there, so the message must
+    escape it like every other path the tools print.
+    """
+
+    def test_unknown_argument_escapes_control_characters(self):
+        module = load_checker()
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code = module.main(["check_references.py", "evil\x1b[31m.png"])
+        self.assertEqual(code, 2)
+        self.assertIn("unknown argument", err.getvalue())
+        self.assertNotIn("\x1b", err.getvalue())
+        self.assertIn("\\u001b", err.getvalue())
+
+
 class TestSymlinkEscape(unittest.TestCase):
     """A checked-in symlink must not make the checker read outside the directory.
 
