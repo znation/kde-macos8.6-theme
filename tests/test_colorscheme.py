@@ -11,6 +11,7 @@ import unittest
 from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
+    assert_files_identical,
     install,
     installed_color_scheme,
     installed_color_scheme_dir,
@@ -292,9 +293,7 @@ class TestInstall(unittest.TestCase):
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = installed_color_scheme(tmp)
-            self.assertTrue(os.path.isfile(installed), installed)
-            with open(SCHEME, "rb") as source, open(installed, "rb") as target:
-                self.assertEqual(source.read(), target.read())
+            assert_files_identical(self, SCHEME, installed)
 
     def test_failed_reinstall_keeps_the_previous_scheme(self):
         """A copy that dies partway must not truncate the installed scheme.
@@ -353,9 +352,7 @@ class TestInstall(unittest.TestCase):
             result = install(tmp, extra=[f"COLOR_SCHEME={source}"])
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = installed_color_scheme(tmp, "Platinum.colors")
-            self.assertTrue(os.path.isfile(installed), installed)
-            with open(source, "rb") as original, open(installed, "rb") as copy:
-                self.assertEqual(original.read(), copy.read())
+            assert_files_identical(self, source, installed)
             self.assertFalse(
                 os.path.exists(installed_color_scheme(tmp)),
                 "the old hardcoded name should not be installed",

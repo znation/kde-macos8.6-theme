@@ -15,6 +15,7 @@ import theme_install
 from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
+    assert_files_identical,
     install,
     installed_package,
     installed_plasma_dir,
@@ -134,9 +135,7 @@ class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
             for name in ("metadata.json", os.path.join("contents", "defaults")):
                 source = os.path.join(PACKAGE, name)
                 target = os.path.join(installed, name)
-                self.assertTrue(os.path.isfile(target), target)
-                with open(source, "rb") as a, open(target, "rb") as b:
-                    self.assertEqual(a.read(), b.read(), name)
+                assert_files_identical(self, source, target, name)
 
     def test_make_install_is_repeatable(self):
         with tempfile.TemporaryDirectory() as tmp:

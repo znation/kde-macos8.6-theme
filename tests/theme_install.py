@@ -101,6 +101,18 @@ def installed_color_scheme(destdir, name="MacOS8.colors"):
     return os.path.join(installed_color_scheme_dir(destdir), name)
 
 
+def assert_files_identical(case, source, target, msg=None):
+    """Assert *target* exists and is byte-identical to *source*.
+
+    *case* is the calling ``unittest.TestCase``; its assertions report the
+    mismatch. *msg* labels the comparison, defaulting to *target*. The install
+    tests use this to pin that a copy is byte-for-byte, not merely present.
+    """
+    case.assertTrue(os.path.isfile(target), target)
+    with open(source, "rb") as original, open(target, "rb") as copy:
+        case.assertEqual(original.read(), copy.read(), msg or target)
+
+
 def shadow_command_env(destdir, name, script):
     """Write `script` as an executable `name` in `<destdir>/fakebin`.
 
