@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 Platinum text field widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum text field widget for the desktop theme (done 2026-10-08)
 
 **Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button, and
 checkmarks plans: it adds one widget file to the existing `org.macos8.desktop` desktop-theme
@@ -93,8 +97,8 @@ sunken white text field instead of the Breeze rounded field, and so the theme st
      - `test_lineedit_face_is_white`: `render_slices(ET.parse(LINEEDIT_SVG))` gives `base-center`
        every pixel #FFFFFF, so the field cannot silently become the grey frame face.
      - `test_no_script_elements`: no element tag ends in `script`.
-   - Add `os.path.join("widgets", "lineedit.svg")` to the tuple in
-     `TestInstall.test_make_install_copies_package_byte_for_byte`.
+   - Add `os.path.join("widgets", "lineedit.svg")` to `TestInstall.INSTALLED_FILES` (the
+     byte-identity tuple the lifecycle cases iterate).
 3. `README.md` (edit): add "text field" to the `tumwater:status` block's desktop-theme widget
    parenthetical, and `widgets/lineedit.svg` (the white sunken field for
    `TextField`/`TextArea`/`SpinBox`) to the Installing section's desktop-theme sentence.
@@ -118,8 +122,6 @@ color scheme, the look-and-feel package, the Makefile, or the other widgets.
 
 **Follow-up (not planned here).** `widgets/actionbutton.svg` for `RoundButton`/`Dial`/`RoundShadow`,
 `widgets/scrollbar.svg`, then `listitem` and `background`.
-
-## Done
 
 ### Mac OS 8.6 Platinum checkmarks widget for the desktop theme (done 2026-10-08)
 

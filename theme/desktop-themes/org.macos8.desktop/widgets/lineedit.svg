@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" text field.
+
+     The sunken white field Plasma draws for PlasmaComponents.TextField,
+     TextArea, SpinBox and the editable ComboBox. Square corners, an opaque
+     #FFFFFF face, a 1px #000000 outer border and the frame's sunken bevel
+     inside it: #999999 top/left shadow, #FFFFFF bottom/right highlight.
+
+     Only the `base` prefix is defined. Mac OS 8.6 text fields have no hover
+     highlight and no focus ring (the blinking caret is the focus cue), so a
+     hovered or focused field stays pixel-identical to an idle one; the
+     consumers gate their `hover`/`focus`/`focusframe` overlays on opacity and
+     missing prefixes simply render nothing.
+
+     The nine-slice contract is a 3px border around a 6px centre tile on a
+     tight 12x12 canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="base-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="base-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="base-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="base-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+
+  <!-- Base: white face with the sunken bevel (grey shadow inside top/left,
+       white highlight inside bottom/right) and a 1px black outline. -->
+  <g id="base-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#FFFFFF"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="base-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#FFFFFF"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="base-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#FFFFFF"/>
+    <rect x="1" width="1" height="6" fill="#999999"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="base-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#FFFFFF"/>
+    <rect x="1" width="1" height="6" fill="#FFFFFF"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="base-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#FFFFFF"/>
+  </g>
+  <g id="base-topleft">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect x="1" y="1" width="2" height="1" fill="#999999"/>
+    <rect x="1" y="1" width="1" height="2" fill="#999999"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="base-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="2" height="1" fill="#999999"/>
+    <rect x="1" y="1" width="1" height="2" fill="#FFFFFF"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="base-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="3" fill="#999999"/>
+    <rect x="1" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="base-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="3" fill="#FFFFFF"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+</svg>

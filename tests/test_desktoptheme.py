@@ -33,6 +33,7 @@ BUTTON_MARGIN_HINTS = (
 )
 RADIOBUTTON_SVG = os.path.join(PACKAGE, "widgets", "radiobutton.svg")
 CHECKMARKS_SVG = os.path.join(PACKAGE, "widgets", "checkmarks.svg")
+LINEEDIT_SVG = os.path.join(PACKAGE, "widgets", "lineedit.svg")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"
@@ -460,6 +461,40 @@ class TestCheckmarks(unittest.TestCase):
         )
 
 
+class TestLineEdit(unittest.TestCase):
+    def test_lineedit_slice_ids(self):
+        tree = ET.parse(LINEEDIT_SVG)
+        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        for name in SLICE_IDS:
+            self.assertIn(f"base-{name}", ids, name)
+        for side in ("top", "bottom", "left", "right"):
+            self.assertIn(f"base-hint-{side}-margin", ids, side)
+        self.assertIn("hint-tile-center", ids)
+
+    def test_lineedit_colours(self):
+        # The hints use `style`, so the parsed `fill` set is exactly the
+        # artwork palette: white face/highlight, grey shadow, black outline.
+        tree = ET.parse(LINEEDIT_SVG)
+        fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
+        self.assertEqual(fills, {"#FFFFFF", "#999999", "#000000"})
+
+    def test_lineedit_face_is_white(self):
+        # The field must not silently become the grey frame face: pin the
+        # centre tile to #FFFFFF so a copy of frame.svg's sunken geometry
+        # fails here.
+        slices = render_slices(ET.parse(LINEEDIT_SVG))
+        self.assertEqual(
+            slices["base-center"],
+            {(x, y): "#FFFFFF" for y in range(6) for x in range(6)},
+        )
+
+    def test_no_script_elements(self):
+        tree = ET.parse(LINEEDIT_SVG)
+        for element in tree.iter():
+            tag = local_name(element)
+            self.assertFalse(tag.endswith("script"), tag)
+
+
 class TestFrame(unittest.TestCase):
     def test_frame_svg_contract(self):
         tree = ET.parse(FRAME_SVG)
@@ -614,6 +649,7 @@ class TestInstall(
         os.path.join("widgets", "button.svg"),
         os.path.join("widgets", "radiobutton.svg"),
         os.path.join("widgets", "checkmarks.svg"),
+        os.path.join("widgets", "lineedit.svg"),
     )
 
     def reinstall_failure_env(self, tmp):
