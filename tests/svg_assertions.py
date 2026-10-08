@@ -309,8 +309,8 @@ def nine_slice_margins(prefix, border, size):
     canvas region as ``(x, y, width, height)``. The tile is centred, so the
     canvas is ``size + 2 * border`` square and the bottom/right hints start
     at ``size + border``. *prefix* is the state prefix (``""`` for an
-    unprefixed SVG). The shared ``hint-tile-center`` is not included: some
-    SVGs share one centre hint across states, so each caller pins it itself.
+    unprefixed SVG). The shared ``hint-tile-center`` is not included; use
+    `nine_slice_hint_geometry` when every state shares one centred tile.
     """
     sep = "-" if prefix else ""
     return {
@@ -327,6 +327,24 @@ def nine_slice_margins(prefix, border, size):
             str(size + border), str(border), str(border), str(size)
         ),
     }
+
+
+def nine_slice_hint_geometry(prefixes, border, size):
+    """Return the full hint geometry of a centred nine-slice SVG.
+
+    Every state in these SVGs shares one ``hint-tile-center`` -- the
+    *size*-square centre tile at ``(border, border)`` -- so it is pinned once
+    alongside each state's four margin hints from `nine_slice_margins`.
+    *prefixes* lists every state prefix (pass ``[""]`` for an unprefixed
+    SVG). Callers whose SVG declares extra hints (an inset band, a track
+    size) merge those in themselves.
+    """
+    geometry = {
+        "hint-tile-center": (str(border), str(border), str(size), str(size))
+    }
+    for prefix in prefixes:
+        geometry.update(nine_slice_margins(prefix, border, size))
+    return geometry
 
 
 _TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")

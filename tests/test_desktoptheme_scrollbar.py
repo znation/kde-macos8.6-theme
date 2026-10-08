@@ -14,7 +14,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
-    nine_slice_margins,
+    nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
 )
@@ -41,12 +41,8 @@ class TestScrollbar(unittest.TestCase):
         # the bar out wrong. Pin every hint: the four prefixes share a 3px
         # border around a 10px centre tile on the 16x16 canvas, and
         # `hint-scrollbar-size` names the 16px track.
-        expected = {
-            "hint-tile-center": ("3", "3", "10", "10"),
-            "hint-scrollbar-size": ("0", "0", "16", "16"),
-        }
-        for prefix in PREFIXES:
-            expected.update(nine_slice_margins(prefix, 3, 10))
+        expected = nine_slice_hint_geometry(PREFIXES, 3, 10)
+        expected["hint-scrollbar-size"] = ("0", "0", "16", "16")
         self.assertEqual(rect_geometry(ET.parse(SCROLLBAR_SVG)), expected)
 
     def test_scrollbar_tiles_placed_by_margins(self):

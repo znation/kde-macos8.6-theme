@@ -18,6 +18,7 @@ from svg_assertions import (
     arc_center,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
     render_slices,
@@ -199,6 +200,34 @@ class TestNineSliceMargins(unittest.TestCase):
                 "hint-bottom-margin": ("4", "8", "4", "4"),
                 "hint-left-margin": ("0", "4", "4", "4"),
                 "hint-right-margin": ("8", "4", "4", "4"),
+            },
+        )
+
+
+class TestNineSliceHintGeometry(unittest.TestCase):
+    def test_pins_the_shared_centre_plus_every_state_s_margins(self):
+        # Every widget's hint-geometry test compares this helper's dict against
+        # the SVG's parsed hints, so a wrong centre coordinate here would make
+        # them all pin the wrong layout. The unprefixed 4px-border/4px-tile
+        # layout must match the _HINTS fixture exactly.
+        self.assertEqual(
+            nine_slice_hint_geometry([""], 4, 4),
+            {
+                "hint-tile-center": ("4", "4", "4", "4"),
+                "hint-top-margin": ("4", "0", "4", "4"),
+                "hint-bottom-margin": ("4", "8", "4", "4"),
+                "hint-left-margin": ("0", "4", "4", "4"),
+                "hint-right-margin": ("8", "4", "4", "4"),
+            },
+        )
+        # Several states share the one centre hint, so the helper must merge
+        # each prefix's margins beside it without dropping the earlier ones.
+        self.assertEqual(
+            nine_slice_hint_geometry(("normal", "pressed"), 3, 6),
+            {
+                "hint-tile-center": ("3", "3", "6", "6"),
+                **nine_slice_margins("normal", 3, 6),
+                **nine_slice_margins("pressed", 3, 6),
             },
         )
 

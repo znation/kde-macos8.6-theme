@@ -18,6 +18,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     elements_by_id,
+    nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
     rect_geometry,
@@ -38,9 +39,7 @@ class TestButton(unittest.TestCase):
         # geometry to lay out the nine-slice, and normal/pressed use a 3px
         # border while focus uses 2px, so pin every state's margins and the
         # shared centre tile.
-        expected = {"hint-tile-center": ("3", "3", "6", "6")}
-        for prefix in ("normal", "pressed"):
-            expected.update(nine_slice_margins(prefix, 3, 6))
+        expected = nine_slice_hint_geometry(("normal", "pressed"), 3, 6)
         expected.update(nine_slice_margins("focus", 2, 8))
         self.assertEqual(rect_geometry(ET.parse(BUTTON_SVG)), expected)
 

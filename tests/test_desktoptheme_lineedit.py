@@ -15,7 +15,7 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
-    nine_slice_margins,
+    nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
 )
@@ -32,10 +32,7 @@ class TestLineEdit(unittest.TestCase):
         # centre tile on the 12x12 canvas.
         self.assertEqual(
             rect_geometry(ET.parse(LINEEDIT_SVG)),
-            {
-                "hint-tile-center": ("3", "3", "6", "6"),
-                **nine_slice_margins("base", 3, 6),
-            },
+            nine_slice_hint_geometry(["base"], 3, 6),
         )
 
     def test_lineedit_colours(self):

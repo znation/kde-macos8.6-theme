@@ -13,7 +13,7 @@ from svg_assertions import (
     assert_slice_pixels,
     assert_tiles_placed_by_margins,
     attribute_values,
-    nine_slice_margins,
+    nine_slice_hint_geometry,
     pixel_map,
     rect_geometry,
     render_slices,
@@ -29,10 +29,10 @@ class TestListItem(unittest.TestCase):
         # centre hint with the wrong position or size passes it while KSvg
         # lays the row out wrong. Pin every hint: normal and pressed share a
         # 3px border around a 6px centre tile on the 12x12 canvas.
-        expected = {"hint-tile-center": ("3", "3", "6", "6")}
-        for prefix in ("normal", "pressed"):
-            expected.update(nine_slice_margins(prefix, 3, 6))
-        self.assertEqual(rect_geometry(ET.parse(LISTITEM_SVG)), expected)
+        self.assertEqual(
+            rect_geometry(ET.parse(LISTITEM_SVG)),
+            nine_slice_hint_geometry(("normal", "pressed"), 3, 6),
+        )
 
     def test_listitem_selection_is_flat_selection_colour(self):
         # Every pressed slice must be the flat selection fill, so the
