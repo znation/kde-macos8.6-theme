@@ -28,6 +28,33 @@ once an offline render path is available, and wire it into `make check`.
 
 **Refused 2026-10-07 by bugfix: no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
 
+### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07)
+
+**Symptom:** `tests/test_colorscheme.py`'s `TestAnchors` pins the Platinum palette (Window/Button/
+Header face `221,221,221`, view `255,255,255`, selection `206,206,255`, tooltip `255,255,204`,
+chrome `0,0,0`) and PLANS.md attributes each value to a named retail screenshot
+(`desktop_archiveorg8.6hd.png`, `desktop_fandom.png`, `opendialog_macrumors86.jpg`), but no code
+reads those images' pixels. The test compares the scheme file to hard-coded strings, so a wrong
+anchor or a swapped reference image passes unnoticed: the image-to-value chain lives only in prose.
+
+**How to reproduce:** Search `tests/` and `tools/` for code that reads pixel data from
+`macos8.6-screenshots/`. Only `tools/check_references.py` opens that directory, and only for
+provenance (the file exists, is a materialized image of an accepted format), never pixel values.
+Edit an expected string in `TestAnchors` to any other in-range value and `make check` still passes.
+
+**Suspected cause:** The palette was sampled by hand with ImageMagick while planning; neither the
+sample coordinates nor a re-derivation step were recorded, so the assertions check the scheme
+against itself rather than against the reference set. `tools/fidelity.py` compares a candidate PNG
+against a reference, but nothing points it at the shipped references or the scheme constants.
+
+**Next step:** Record the sample point behind each anchor and add a check that decodes the
+retail-labelled PNG references with `tools/png.py` and asserts the scheme's anchor values at those
+points. The selection anchor's source (`opendialog_macrumors86.jpg`) is a JPEG, which the repo
+cannot decode yet, so cover the PNG-sourced anchors first.
+
+This complements the Open render/capture entry above: that one covers producing the candidate
+surface, this one covers the ground truth it is measured against.
+
 ## Fixed
 
 ### `plasma-apply-colorscheme` writes a scheme ID that does not survive a restart (found 2026-10-07; fixed 2026-10-07)
