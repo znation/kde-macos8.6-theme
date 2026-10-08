@@ -151,6 +151,7 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(metrics.mae, 0.0)
         self.assertEqual(metrics.rmse, 0.0)
         self.assertEqual(metrics.max_delta, 0)
+        self.assertEqual((metrics.max_x, metrics.max_y), (0, 0))
         self.assertEqual(metrics.differing, 0)
         self.assertEqual(metrics.frac_differing, 0.0)
 
@@ -166,6 +167,17 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(metrics.max_delta, 10)
         self.assertEqual(metrics.differing, 1)
         self.assertEqual(metrics.frac_differing, 0.25)
+
+    def test_worst_delta_location(self):
+        # max_x/max_y must locate the pixel carrying the worst channel delta,
+        # so a failing comparison can be inspected at the right coordinate.
+        a, _ = rgb_image(3, 2, lambda x, y: (0, 0, 0))
+        changed = bytearray(a.rgb)
+        changed[15] = 40  # red channel of pixel (2, 1)
+        b = fidelity.Image(a.width, a.height, bytes(changed))
+        metrics = fidelity.compare(a, b)
+        self.assertEqual(metrics.max_delta, 40)
+        self.assertEqual((metrics.max_x, metrics.max_y), (2, 1))
 
     def test_tolerance_absorbs_small_deltas(self):
         a, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
@@ -243,6 +255,23 @@ class TestCli(unittest.TestCase):
             )
             self.assertEqual(different.returncode, 1, different.stderr)
             self.assertIn("FAIL", different.stdout)
+
+    def test_reports_worst_delta_location(self):
+        a, a_png = rgb_image(2, 1, lambda x, y: (0, 0, 0))
+        changed = bytearray(a.rgb)
+        changed[3] = 50  # red channel of pixel (1, 0)
+        b_png = make_png(2, 1, [bytes(changed)])
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "candidate.png", a_png)
+            altered = self._write(tmpdir, "altered.png", b_png)
+            result = subprocess.run(
+                [sys.executable, str(TOOL), candidate, altered],
+                capture_output=True,
+                text=True,
+            )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("max channel delta: 50 at (1, 0)", result.stdout)
 
     def test_crop_region_passes(self):
         surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))

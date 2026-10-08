@@ -4,8 +4,9 @@ The project's acceptance bar is "pixel-perfect", but a rendered surface cannot
 be confirmed against its Mac OS 8.6 reference without a repeatable measurement.
 This tool supplies that measurement: it decodes two PNG images, compares them
 pixel by pixel, and reports objective difference metrics -- mean absolute error
-(MAE), root-mean-square error (RMSE), the worst per-channel delta, and the
-fraction of pixels whose worst channel differs by more than a tolerance.
+(MAE), root-mean-square error (RMSE), the worst per-channel delta and the
+coordinate where it occurs, and the fraction of pixels whose worst channel
+differs by more than a tolerance.
 
 Only PNG is read, so the harness crops a reference screenshot to a surface and
 saves it as PNG before comparing. The tool uses only the Python standard
@@ -51,7 +52,11 @@ class Image:
 
 @dataclass(frozen=True)
 class Metrics:
-    """Per-pixel difference between two equally sized images."""
+    """Per-pixel difference between two equally sized images.
+
+    ``max_x``/``max_y`` locate the first pixel whose worst channel delta equals
+    ``max_delta``; both are 0 when the images are identical.
+    """
 
     width: int
     height: int
@@ -59,6 +64,8 @@ class Metrics:
     mae: float
     rmse: float
     max_delta: int
+    max_x: int
+    max_y: int
     differing: int
     frac_differing: float
 
@@ -230,6 +237,8 @@ def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
     total_abs = 0
     total_sq = 0
     max_delta = 0
+    max_x = 0
+    max_y = 0
     differing = 0
     for i in range(0, len(pa), 3):
         dr = pa[i] - pb[i]
@@ -241,6 +250,9 @@ def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
         worst = max(ar, ag, ab)
         if worst > max_delta:
             max_delta = worst
+            pixel = i // 3
+            max_x = pixel % a.width
+            max_y = pixel // a.width
         if worst > tolerance:
             differing += 1
     pixels = a.width * a.height
@@ -252,6 +264,8 @@ def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
         mae=total_abs / channels,
         rmse=(total_sq / channels) ** 0.5,
         max_delta=max_delta,
+        max_x=max_x,
+        max_y=max_y,
         differing=differing,
         frac_differing=differing / pixels,
     )
@@ -361,7 +375,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"pixels compared: {metrics.pixels}")
     print(f"mean absolute error: {metrics.mae:.4f}")
     print(f"RMSE: {metrics.rmse:.4f}")
-    print(f"max channel delta: {metrics.max_delta}")
+    print(
+        f"max channel delta: {metrics.max_delta} "
+        f"at ({metrics.max_x}, {metrics.max_y})"
+    )
     print(
         f"differing pixels: {metrics.differing} / {metrics.pixels} "
         f"({metrics.frac_differing:.6f})"
