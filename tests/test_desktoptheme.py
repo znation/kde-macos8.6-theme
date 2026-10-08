@@ -147,6 +147,18 @@ def attribute_values(tree, name):
     return {element.get(name) for element in tree.iter() if element.get(name)}
 
 
+def groups_with_id(tree):
+    """Yield each id-bearing `<g>` element in *tree*.
+
+    Every nine-slice slice, hint and focus group is a `<g id=...>`; the
+    contract tests read those groups by id, so the tag-and-id filter lives
+    here rather than in each caller.
+    """
+    for element in tree.iter():
+        if local_name(element) == "g" and element.get("id"):
+            yield element
+
+
 def assert_no_script_elements(case, tree):
     """Assert *tree* holds no ``<script>`` element.
 
@@ -168,9 +180,7 @@ def render_slices(tree):
     rect overriding an earlier one as KSvg composites one nine-slice tile.
     """
     slices = {}
-    for group in tree.iter():
-        if local_name(group) != "g" or not group.get("id"):
-            continue
+    for group in groups_with_id(tree):
         pixels = {}
         for rect in group:
             if local_name(rect) != "rect":
@@ -216,9 +226,7 @@ def tile_origins(tree):
     transform directly. A group with no transform sits at the origin.
     """
     origins = {}
-    for group in tree.iter():
-        if local_name(group) != "g" or not group.get("id"):
-            continue
+    for group in groups_with_id(tree):
         transform = group.get("transform")
         match = None if transform is None else _TRANSLATE.fullmatch(transform.strip())
         if transform is None:
@@ -476,10 +484,7 @@ class TestButton(unittest.TestCase):
         # them; pin the order they are painted in instead: the black outline,
         # the corner's bevel colour, then the face.
         tree = ET.parse(BUTTON_SVG)
-        groups = {
-            el.get("id"): el for el in tree.iter()
-            if local_name(el) == "g" and el.get("id")
-        }
+        groups = {el.get("id"): el for el in groups_with_id(tree)}
         corners = {
             "normal-topleft": ("#000000", "#FFFFFF", "#DDDDDD"),
             "normal-topright": ("#000000", "#FFFFFF", "#999999", "#DDDDDD"),
@@ -533,10 +538,7 @@ class TestButton(unittest.TestCase):
         # The rounded corners are paths, so `render_slices` cannot composite
         # them; pin that each carries exactly the one black ring path.
         tree = ET.parse(BUTTON_SVG)
-        groups = {
-            el.get("id"): el for el in tree.iter()
-            if local_name(el) == "g" and el.get("id")
-        }
+        groups = {el.get("id"): el for el in groups_with_id(tree)}
         for name in (
             "focus-topleft", "focus-topright",
             "focus-bottomleft", "focus-bottomright",
