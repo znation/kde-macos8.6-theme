@@ -60,9 +60,11 @@ install:
 
 # Remove only the artifacts `install` copied: the parent directories are shared
 # (other color schemes, other look-and-feel/desktop-theme packages), so leave
-# them and everything else in them alone. `rm -f`/`rm -rf` make a repeated run a
-# no-op.
+# them and everything else in them alone. The hidden `.staging`/`.old` siblings
+# are install's own temporary state: an install killed by SIGKILL cannot run its
+# EXIT trap, so remove them here too instead of leaking them past uninstall.
+# `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
-	rm -f $(INSTALL_DIR)/$(COLOR_SCHEME_NAME)
-	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID)
-	rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID)
+	rm -f $(INSTALL_DIR)/$(COLOR_SCHEME_NAME) $(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging
+	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID) $(LNF_INSTALL_DIR)/.$(LNF_ID).staging $(LNF_INSTALL_DIR)/.$(LNF_ID).old
+	rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) $(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging $(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old

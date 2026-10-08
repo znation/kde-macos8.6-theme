@@ -348,14 +348,32 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            package = os.path.join(
-                tmp, "share", "plasma", "desktoptheme", DTHEME_ID
-            )
+            parent = os.path.join(tmp, "share", "plasma", "desktoptheme")
+            package = os.path.join(parent, DTHEME_ID)
             self.assertTrue(os.path.isdir(package), package)
+
+            # SIGKILL cannot be trapped, so an install killed in the swap
+            # window leaves a hidden staging directory and the moved-aside old
+            # package behind. `uninstall` must remove those leftovers too.
+            leaked = [
+                os.path.join(parent, "." + DTHEME_ID + ".staging"),
+                os.path.join(parent, "." + DTHEME_ID + ".old"),
+            ]
+            for path in leaked:
+                os.makedirs(path)
+                with open(
+                    os.path.join(path, "metadata.json"), "w", encoding="utf-8"
+                ) as handle:
+                    handle.write("{}")
 
             removed = uninstall(tmp)
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertFalse(os.path.exists(package), package)
+            for path in leaked:
+                self.assertFalse(
+                    os.path.exists(path),
+                    f"{path} leaked after uninstall",
+                )
 
             again = uninstall(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)

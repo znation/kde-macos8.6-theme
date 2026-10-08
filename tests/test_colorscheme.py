@@ -327,11 +327,21 @@ class TestInstall(unittest.TestCase):
             with open(other, "w", encoding="utf-8") as handle:
                 handle.write("[General]\nName=Other\n")
 
+            # SIGKILL cannot be trapped, so an install killed mid-copy leaves
+            # the hidden staging file behind. `uninstall` must remove it too.
+            staging = os.path.join(schemes, ".MacOS8.colors.staging")
+            with open(staging, "w", encoding="utf-8") as handle:
+                handle.write("[General]\nName=Partial\n")
+
             removed = uninstall(tmp)
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertFalse(
                 os.path.exists(os.path.join(schemes, "MacOS8.colors")),
                 "the installed scheme should be gone",
+            )
+            self.assertFalse(
+                os.path.exists(staging),
+                "the staging file leaked after uninstall",
             )
             self.assertTrue(os.path.isfile(other), other)
 
