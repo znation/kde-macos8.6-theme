@@ -68,9 +68,10 @@ def assert_slice_ids_present(case, tree, prefixes):
 def groups_with_id(tree):
     """Yield each id-bearing `<g>` element in *tree*.
 
-    Every nine-slice slice, hint and focus group is a `<g id=...>`; the
-    contract tests read those groups by id, so the tag-and-id filter lives
-    here rather than in each caller.
+    Every nine-slice slice, hint and focus group is a `<g id=...>`. The
+    group-only filter lives here for `render_slices` and `tile_origins`,
+    which composite and place whole groups; `elements_by_id` is the general
+    id map for callers that must reach a non-`<g>` element.
     """
     for element in tree.iter():
         if local_name(element) == "g" and element.get("id"):
