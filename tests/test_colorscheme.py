@@ -62,8 +62,8 @@ RGB_RE = re.compile(r"^\d{1,3},\d{1,3},\d{1,3}$")
 # Every value KDE parses as an RGB triple: the semantic roles in each [Colors:*]
 # section, the [WM] window-decoration colours, and the base `Color` of the two
 # ColorEffects sections. The amounts and booleans have their own range/format
-# tests below; the effect selectors and the [KDE] scalar are checked only for
-# presence by test_other_sections_and_keys.
+# tests below; the effect selectors have their own integer test, and the [KDE]
+# scalar is checked only for presence by test_other_sections_and_keys.
 RGB_VALUES = (
     [(section, key) for section in COLORS_SECTIONS for key in COLORS_KEYS]
     + [(section, "Color") for section in ("ColorEffects:Disabled", "ColorEffects:Inactive")]
@@ -76,6 +76,15 @@ EFFECT_AMOUNTS = [
     (section, key)
     for section in ("ColorEffects:Disabled", "ColorEffects:Inactive")
     for key in ("ColorAmount", "ContrastAmount", "IntensityAmount")
+]
+
+# KDE reads these as integer selectors into its ColorEffect/ContrastEffect/
+# IntensityEffect enums; a non-integer value is silently treated as a default,
+# so a typo would quietly change how disabled/inactive colours are derived.
+EFFECT_SELECTORS = [
+    (section, key)
+    for section in ("ColorEffects:Disabled", "ColorEffects:Inactive")
+    for key in ("ColorEffect", "ContrastEffect", "IntensityEffect")
 ]
 
 # KDE boolean spellings, lower-cased for comparison.
@@ -137,6 +146,15 @@ class TestStructure(unittest.TestCase):
             )
             self.assertGreaterEqual(amount, 0.0, f"{section}/{key}")
             self.assertLessEqual(amount, 1.0, f"{section}/{key}")
+
+    def test_coloreffects_selectors_are_nonnegative_integers(self):
+        for section, key in EFFECT_SELECTORS:
+            value = self.parser.get(section, key)
+            try:
+                selector = int(value)
+            except ValueError:
+                self.fail(f"{section}/{key} is not an integer: {value!r}")
+            self.assertGreaterEqual(selector, 0, f"{section}/{key} = {value!r}")
 
     def test_boolean_values_use_kde_spellings(self):
         for section, key in BOOLEAN_VALUES:
