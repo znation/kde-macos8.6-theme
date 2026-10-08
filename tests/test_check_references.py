@@ -206,6 +206,44 @@ class TestFilenameMustBeBare(unittest.TestCase):
         )
 
 
+class TestAbsoluteUrl(unittest.TestCase):
+    """A source entry must be a scheme followed by a remainder.
+
+    The built-in self-test rejects a URL with no scheme, but no test reaches
+    the empty-remainder or scheme-shape rejections; a rewrite could drop them
+    without any other test failing, letting a broken citation through as
+    provenance.
+    """
+
+    def test_scheme_and_remainder_are_both_required(self):
+        module = load_checker()
+        self.assertTrue(module._is_absolute_url("https://example.test/x"))
+        # A scheme with nothing after it names no resource.
+        self.assertFalse(module._is_absolute_url("https://"))
+        # A bare host or relative path has no scheme at all.
+        self.assertFalse(module._is_absolute_url("example.test/x"))
+
+    def test_scheme_must_start_with_an_ascii_letter(self):
+        module = load_checker()
+        # RFC 3986: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ).
+        self.assertTrue(module._is_absolute_url("h2://example.test/x"))
+        self.assertTrue(module._is_absolute_url("svn+ssh://example.test/x"))
+        self.assertFalse(module._is_absolute_url("1http://example.test/x"))
+        self.assertFalse(module._is_absolute_url("h\u00e9llo://example.test/x"))
+        self.assertFalse(module._is_absolute_url("://example.test/x"))
+
+    def test_empty_remainder_is_reported_by_the_checker(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text(
+                "good.png | https:// | label\n", encoding="utf-8"
+            )
+            (root / "good.png").write_bytes(module.PNG_MAGIC)
+            problems = module.check_references(root)
+        self.assertTrue(any("absolute URL" in p for p in problems), problems)
+
+
 class TestAcceptedImageFormats(unittest.TestCase):
     """The checker must accept every raster format the reference set uses.
 
