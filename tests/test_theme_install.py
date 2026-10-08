@@ -12,10 +12,20 @@ are quoted.
 import os
 import subprocess
 import tempfile
+import time
 import unittest
 import unittest.mock
 
 import theme_install
+
+
+def _process_alive(pid):
+    """Return True while a process with *pid* still exists."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    return True
 
 
 class TestSubprocessTimeout(unittest.TestCase):
@@ -37,6 +47,57 @@ class TestSubprocessTimeout(unittest.TestCase):
                         theme_install.install(tmp)
                 finally:
                     theme_install.SUBPROCESS_TIMEOUT = original
+
+    def test_timeout_kills_grandchildren(self):
+        """A timeout must kill the whole make/flock/make chain, not just make.
+
+        `make install` runs `flock ... make _install`, so the process the suite
+        starts has descendants that survive when only the direct child is
+        killed -- still running against the throwaway DESTDIR and still
+        holding the data-home lock. The fake make backgrounds a long sleep and
+        records its pid, so the test can tell whether that descendant outlived
+        the timeout.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            pidfile = os.path.join(tmp, "grandchild.pid")
+            bindir = os.path.join(tmp, "fakebin")
+            os.makedirs(bindir)
+            fake_make = os.path.join(bindir, "make")
+            with open(fake_make, "w", encoding="utf-8") as handle:
+                handle.write(
+                    "#!/bin/sh\n"
+                    "sleep 5 &\n"
+                    'echo "$!" > "$GRANDCHILD_PIDFILE"\n'
+                    "exec sleep 5\n"
+                )
+            os.chmod(fake_make, 0o755)
+
+            env = dict(
+                os.environ,
+                PATH=bindir + os.pathsep + os.environ.get("PATH", ""),
+                GRANDCHILD_PIDFILE=pidfile,
+            )
+            original = theme_install.SUBPROCESS_TIMEOUT
+            theme_install.SUBPROCESS_TIMEOUT = 0.5
+            try:
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    theme_install.install(tmp, env=env)
+            finally:
+                theme_install.SUBPROCESS_TIMEOUT = original
+
+            with open(pidfile, encoding="utf-8") as handle:
+                grandchild = int(handle.read())
+            # A killed process can linger as a zombie until it is reaped, so
+            # poll briefly instead of probing once. The grandchild sleeps for
+            # five seconds, so it is still alive at this deadline exactly when
+            # the timeout failed to kill it.
+            deadline = time.monotonic() + 2.0
+            while time.monotonic() < deadline and _process_alive(grandchild):
+                time.sleep(0.05)
+            self.assertFalse(
+                _process_alive(grandchild),
+                "grandchild survived the timeout",
+            )
 
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):

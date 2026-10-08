@@ -6,6 +6,7 @@ throwaway `DESTDIR` and inspect the result there.
 """
 
 import os
+import signal
 import subprocess
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,15 +20,59 @@ XDG_DATA_HOME = "/share"
 SUBPROCESS_TIMEOUT = 60
 
 
+def _kill_process_group(process):
+    """SIGKILL *process* and every process in its group, tolerating races.
+
+    The child is started in its own session, so its pid is its process-group
+    id; killing the group reaps the descendants a shell left behind. A
+    `ProcessLookupError` means the child already exited and there is nothing
+    left to signal, which is not an error here.
+    """
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+    except OSError:
+        process.kill()
+
+
 def run(argv, **kwargs):
     """Run `argv` under the suite's subprocess timeout.
 
     This is the suite's timeout runner: a child that outlives
     `SUBPROCESS_TIMEOUT` raises `subprocess.TimeoutExpired` rather than hanging
     the suite. The constant is read at call time, so a test can patch it.
+
+    The child starts a new session, so a timeout kills its whole process
+    group rather than only the direct child. `make install` runs
+    `flock ... make _install`: `subprocess.run`'s timeout SIGKILLs only the
+    outer `make`, so the inner make and flock survive as orphans -- still
+    running against the throwaway DESTDIR and still holding the data-home
+    lock. `capture_output` is expanded here because `Popen` does not take it
+    directly, and the second `communicate` is bounded so a descendant that
+    escapes the group cannot stall the suite.
     """
-    kwargs.setdefault("timeout", SUBPROCESS_TIMEOUT)
-    return subprocess.run(argv, **kwargs)
+    timeout = kwargs.pop("timeout", SUBPROCESS_TIMEOUT)
+    if kwargs.pop("capture_output", False):
+        kwargs.setdefault("stdout", subprocess.PIPE)
+        kwargs.setdefault("stderr", subprocess.PIPE)
+    kwargs["start_new_session"] = True
+    process = subprocess.Popen(argv, **kwargs)
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        _kill_process_group(process)
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # A descendant left the process group (for example by calling
+            # setsid) and still holds the pipes. The direct child is dead;
+            # report the timeout rather than block on the escaped descendant.
+            raise subprocess.TimeoutExpired(process.args, timeout) from None
+        raise subprocess.TimeoutExpired(
+            process.args, timeout, output=stdout, stderr=stderr
+        ) from None
+    return subprocess.CompletedProcess(
+        process.args, process.returncode, stdout, stderr
+    )
 
 
 def _run(target, destdir, extra=(), env=None):
