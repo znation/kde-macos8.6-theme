@@ -9,10 +9,18 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-implementation: no Plasma 6 theme package has landed yet — the repository holds the Mac OS 8.6 reference set (`macos8.6-screenshots/`, 28 images with provenance in `sources.txt`) and the project docs.
+Pre-alpha: the first artifact has landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, with a `make check` harness and reference/fidelity tooling; no widget, window-decoration, or look-and-feel package exists yet.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
+
+## Installing
+
+The color scheme is the only installable artifact so far. `make install` copies
+`theme/color-schemes/MacOS8.6.colors` to `${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes/`;
+Plasma lists it as `MacOS8` (KDE derives the scheme ID from the filename before the first dot).
+Select it in System Settings or with `plasma-apply-colorscheme MacOS8`. `make check` runs the test
+suite.
 
 ## Reference screenshots
 
@@ -51,3 +59,11 @@ reference material only — the theme does not ship them.
 missing file, an unmaterialized Git LFS pointer, a file whose bytes are not a PNG/JPEG/GIF/WebP
 image, an image with no entry, a malformed or duplicate entry).
 `python3 tools/check_references.py --self-test` exercises the checker itself.
+
+## Fidelity checking
+
+`python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
+reference screenshot and reports mean absolute error, RMSE, worst per-channel delta, and the
+fraction of differing pixels, exiting non-zero when the result is outside the requested tolerance.
+Pass `--crop X,Y,W,H` to select a surface region of the reference. Producing the candidate render
+is not yet automated (see BUGS.md).
