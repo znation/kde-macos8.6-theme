@@ -107,6 +107,24 @@ CORNER_PIXELS = {
     },
 }
 
+# Every pixel of each panel-background edge/corner slice, row-major in
+# slice-local coordinates (the centre tile is checked separately). The menu-bar
+# bevel must run the right way: #FFFFFF on the outer top/left edge, #999999 on
+# the inner bottom edge and the outer right edge, and the #000000 rule on the
+# outer bottom edge. `test_platinum_colours_present` sees the same four fills
+# whichever way the bevel runs, so only pinning the pixels catches a swapped
+# highlight/shadow or the black rule moved to the wrong edge.
+PANEL_EDGE_PIXELS = {
+    "top": (8, 2, ("#FFFFFF",) * 8 + ("#DDDDDD",) * 8),
+    "bottom": (8, 2, ("#999999",) * 8 + ("#000000",) * 8),
+    "left": (2, 8, ("#FFFFFF", "#DDDDDD") * 8),
+    "right": (2, 8, ("#DDDDDD", "#999999") * 8),
+    "topleft": (2, 2, ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#DDDDDD")),
+    "topright": (2, 2, ("#FFFFFF", "#999999", "#DDDDDD", "#999999")),
+    "bottomleft": (2, 2, ("#999999", "#999999", "#000000", "#000000")),
+    "bottomright": (2, 2, ("#999999", "#999999", "#000000", "#000000")),
+}
+
 
 def local_name(element):
     """Return *element*'s tag without its `{namespace}` prefix.
@@ -197,6 +215,25 @@ class TestPanelBackground(unittest.TestCase):
         self.assertEqual(
             fills, {"#FFFFFF", "#DDDDDD", "#999999", "#000000"}
         )
+
+    def test_panel_background_pixels(self):
+        # `test_platinum_colours_present` pins only the set of fills, so a
+        # highlight/shadow swap or a rule on the wrong edge passes it. Read
+        # each edge/corner slice's pixels in paint order instead.
+        slices = render_slices(self.tree)
+        for name, (width, height, expected) in PANEL_EDGE_PIXELS.items():
+            pixels = slices[name]
+            actual = tuple(
+                pixels.get((x, y))
+                for y in range(height)
+                for x in range(width)
+            )
+            with self.subTest(slice=name):
+                self.assertEqual(actual, expected, name)
+        # The centre tile is one body rect, so every pixel is the same face.
+        center = slices["center"]
+        self.assertEqual(set(center.values()), {"#DDDDDD"})
+        self.assertEqual(len(center), 8 * 8)
 
     def test_no_script_elements(self):
         for element in self.tree.iter():
