@@ -100,6 +100,9 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             "http://example.test",
             "git+ssh://example.test/repo",
             "a.b-c+d://example.test",
+            # file:// is the one scheme whose authority may be empty.
+            "file:///tmp/x.png",
+            "file://host/tmp/x.png",
         ):
             self.assertTrue(self.is_absolute(url), url)
 
@@ -111,6 +114,19 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             "1http://example.test",
         ):
             self.assertFalse(self.is_absolute(url), url)
+
+    def test_urls_with_an_empty_authority_are_rejected(self):
+        # The scheme is valid, but ``://`` with no host names nowhere for the
+        # citation to point; only file:// may omit the authority.
+        for url in (
+            "https:///x.png",
+            "http:///x.png",
+            "https://?q",
+            "https://#frag",
+            "git+ssh:///repo",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+        self.assertTrue(self.is_absolute("file:///x.png"))
 
     def test_malformed_scheme_is_rejected(self):
         for url in (
@@ -138,6 +154,20 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             {"bad.png": module.PNG_MAGIC},
         )
         assert_problem(self, problems, "whitespace or control")
+        self.assertFalse(
+            any("absolute URL" in line for line in problems), problems
+        )
+
+    def test_empty_authority_problem_names_the_host_not_the_scheme(self):
+        # The scheme is valid, so a diagnostic that blames it sends the reader
+        # after the wrong fix; it must point at the missing host instead.
+        module = load_checker()
+        problems = check_references_in(
+            module,
+            "bad.png | https:///a.png | label\n",
+            {"bad.png": module.PNG_MAGIC},
+        )
+        assert_problem(self, problems, "must name a host")
         self.assertFalse(
             any("absolute URL" in line for line in problems), problems
         )

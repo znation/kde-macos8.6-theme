@@ -78,6 +78,11 @@ def _looks_like_image(path: Path) -> bool:
 # scheme, however absolute the rest of the URL looks.
 _SCHEME_PUNCTUATION = frozenset("+-.")
 
+# Schemes whose authority may legitimately be empty: ``file:///path`` names no
+# host, while a network scheme with an empty authority (``https:///path``) is a
+# citation with nowhere to point.
+_SCHEMES_ALLOWING_EMPTY_AUTHORITY = frozenset({"file"})
+
 
 def _url_problem(url: str) -> str | None:
     """Return why *url* is not a well-formed absolute URL, or None when it is.
@@ -85,16 +90,17 @@ def _url_problem(url: str) -> str | None:
     A provenance source is an absolute URL, so a bare host or a relative path
     (``example.test/x.png``) is a broken citation even though it is non-empty.
     The scheme must follow RFC 3986 (``ALPHA *( ALPHA / DIGIT / "+" / "-" /
-    "." )``) and the URL must contain no raw whitespace or control character,
-    which belong percent-encoded. Both rules catch broken citations that a
-    first-character-only scheme test accepts: ``ht!tp://x`` and
-    ``https://example.test/a b.png``.
+    "." )``), the URL must contain no raw whitespace or control character
+    (which belong percent-encoded), and the authority between ``://`` and the
+    path must name a host unless the scheme is ``file``. The rules catch broken
+    citations that a first-character-only scheme test accepts: ``ht!tp://x``,
+    ``https://example.test/a b.png`` and ``https:///image.png``.
 
-    The two failures are returned separately because the fix differs: a URL
-    with no (or a malformed) scheme needs a source, while one whose scheme is
-    fine but which carries a space or control character only needs that
-    character percent-encoded. Blaming the scheme for the latter sends the
-    reader after the wrong thing.
+    The failures are returned separately because the fix differs: a URL with no
+    (or a malformed) scheme needs a source, one whose scheme is fine but which
+    carries a space or control character only needs that character
+    percent-encoded, and one with an empty authority needs a host. Blaming the
+    scheme for the latter two sends the reader after the wrong thing.
     """
     scheme, sep, rest = url.partition("://")
     if (
@@ -109,6 +115,15 @@ def _url_problem(url: str) -> str | None:
         )
     if not all(ch.isprintable() and not ch.isspace() for ch in url):
         return "must not contain whitespace or control characters; percent-encode them"
+    # The authority runs to the first ``/``, ``?`` or ``#``; an empty one means
+    # ``scheme:///...`` or ``scheme://?query``, which names no host at all.
+    authority = rest.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
+    if not authority and scheme.lower() not in _SCHEMES_ALLOWING_EMPTY_AUTHORITY:
+        return (
+            "must name a host between the scheme and the path "
+            "(only file:// URLs may omit it), "
+            "e.g. https://example.test/image.png"
+        )
     return None
 
 
@@ -341,6 +356,11 @@ def _self_test() -> int:
          "bad.png | https://example.test/a\x01b.png | label\n",
          [("bad.png", PNG_MAGIC)],
          ["whitespace or control", "bad.png: image has no entry"]),
+        # An empty authority (``https:///b.png``) names no host, so the citation
+        # points nowhere; only file:// may legitimately omit it.
+        ("url with an empty authority", "bad.png | https:///b.png | label\n",
+         [("bad.png", PNG_MAGIC)],
+         ["must name a host", "bad.png: image has no entry"]),
         ("path in filename", "sub/good.png | https://example.test/x | l\n",
          [("sub/good.png", PNG_MAGIC)], ["bare filename"]),
         ("undeclared image", "", [("extra.png", PNG_MAGIC)], ["extra.png"]),
