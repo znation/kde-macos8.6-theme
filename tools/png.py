@@ -74,7 +74,9 @@ def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
         actual = zlib.crc32(ctype + payload) & 0xFFFFFFFF
         if actual != expected:
             raise PngError(
-                f"PNG chunk {ctype.decode('ascii', 'replace')!r} has a bad CRC"
+                f"PNG chunk {ctype.decode('ascii', 'replace')!r} at offset {pos} "
+                f"has a bad CRC: stored 0x{expected:08x}, computed "
+                f"0x{actual:08x}"
             )
         yield ctype, payload
         pos += 12 + length

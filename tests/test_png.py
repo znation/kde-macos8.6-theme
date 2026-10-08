@@ -322,14 +322,28 @@ class TestDecode(unittest.TestCase):
     def test_rejects_bad_chunk_crc(self):
         # Every PNG chunk carries a CRC over its type and payload; a mismatch
         # means a corrupted header or palette, which would otherwise decode to
-        # silently wrong pixels and poison the comparison.
+        # silently wrong pixels and poison the comparison. The failure must
+        # name the chunk, its offset, and both CRC values, so the corruption
+        # can be located without re-deriving them by hand.
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         corrupted = bytearray(data)
-        corrupted[29] ^= 0xFF  # first byte of the IHDR chunk's CRC
+        (ihdr_length,) = struct.unpack(">I", data[8:12])
+        crc_offset = data.rindex(b"IHDR") + 4 + ihdr_length
+        corrupted[crc_offset] ^= 0xFF
         with self.assertRaises(png.PngError) as ctx:
             png.decode_png(bytes(corrupted))
-        self.assertIn("IHDR", str(ctx.exception))
-        self.assertIn("CRC", str(ctx.exception))
+        message = str(ctx.exception)
+        self.assertIn("IHDR", message)
+        self.assertIn("CRC", message)
+        self.assertIn(f"offset {data.rindex(b'IHDR') - 4}", message)
+        self.assertIn(
+            f"stored 0x{int.from_bytes(corrupted[crc_offset:crc_offset + 4], 'big'):08x}",
+            message,
+        )
+        self.assertIn(
+            f"computed 0x{int.from_bytes(data[crc_offset:crc_offset + 4], 'big'):08x}",
+            message,
+        )
 
     def test_rejects_truncated_chunk_crc(self):
         # Cutting the final CRC byte must name the chunk and the offset of the
