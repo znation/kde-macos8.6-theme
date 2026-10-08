@@ -689,6 +689,71 @@ class TestLineEdit(unittest.TestCase):
             {(x, y): "#FFFFFF" for y in range(6) for x in range(6)},
         )
 
+    def test_lineedit_edge_bevels_are_sunken(self):
+        # `test_lineedit_colours` sees the same three fills whichever way the
+        # bevel runs, so only the per-slice paint order pins the sunken
+        # direction: the #999999 shadow sits inside the top/left outline and
+        # the #FFFFFF highlight inside the bottom/right, with the white face
+        # innermost. A swap (a raised field) passes every existing test.
+        slices = render_slices(ET.parse(LINEEDIT_SVG))
+        # (outer outline, bevel, inner face) read from the slice's outer edge in.
+        outward = ("#000000", "#999999", "#FFFFFF")
+        # The bottom/right edges mirror the top/left: the outline stays on the
+        # outer edge while the bevel colour swaps sides.
+        mirrored = ("#FFFFFF", "#FFFFFF", "#000000")
+        for side in ("top", "bottom", "left", "right"):
+            band = outward if side in ("top", "left") else mirrored
+            if side in ("top", "bottom"):
+                # Three 6px rows, one per band colour.
+                expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
+                points = ((x, y) for y in range(3) for x in range(6))
+            else:
+                # Six 3px rows, each running outer to inner.
+                expected = band * 6
+                points = ((x, y) for y in range(6) for x in range(3))
+            pixels = slices[f"base-{side}"]
+            actual = tuple(pixels.get(point) for point in points)
+            with self.subTest(slice=f"base-{side}"):
+                self.assertEqual(actual, expected, f"base-{side}")
+
+    def test_lineedit_corner_bevels_turn_the_corner(self):
+        # The edge bevel must continue into the corner and meet there; a
+        # corner that stops one pixel short leaves a white face-coloured
+        # notch where the edge tile shows shadow or highlight. Pin every
+        # pixel of each corner slice.
+        slices = render_slices(ET.parse(LINEEDIT_SVG))
+        expected = {
+            "base-topleft": (
+                "#000000", "#000000", "#000000",
+                "#000000", "#999999", "#999999",
+                "#000000", "#999999", "#FFFFFF",
+            ),
+            "base-topright": (
+                "#000000", "#000000", "#000000",
+                "#999999", "#FFFFFF", "#000000",
+                "#FFFFFF", "#FFFFFF", "#000000",
+            ),
+            "base-bottomleft": (
+                "#000000", "#999999", "#FFFFFF",
+                "#000000", "#FFFFFF", "#FFFFFF",
+                "#000000", "#000000", "#000000",
+            ),
+            "base-bottomright": (
+                "#FFFFFF", "#FFFFFF", "#000000",
+                "#FFFFFF", "#FFFFFF", "#000000",
+                "#000000", "#000000", "#000000",
+            ),
+        }
+        for name, colours in expected.items():
+            pixels = slices[name]
+            actual = tuple(
+                pixels.get((x, y))
+                for y in range(3)
+                for x in range(3)
+            )
+            with self.subTest(corner=name):
+                self.assertEqual(actual, colours, name)
+
     def test_lineedit_tiles_placed_by_margins(self):
         # `test_lineedit_face_is_white` composites `base-center` slice-local,
         # so a `base-*` group translated off its slice would still pass. Pin
