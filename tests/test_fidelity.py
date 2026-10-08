@@ -151,6 +151,30 @@ class TestDecode(unittest.TestCase):
         self.assertIn("index 1", message)
         self.assertIn("3 bytes", message)
 
+    def test_palette_length_not_multiple_of_three(self):
+        # A PLTE whose length is not a multiple of 3 ends in a partial RGB
+        # entry. Index 0 would still decode, so without this check a malformed
+        # palette passes silently as long as no pixel uses the bad entry.
+        palette = bytes([255, 0, 0, 0])  # 4 bytes: index 1 is a partial entry
+        data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(data)
+        message = str(ctx.exception)
+        self.assertIn("4 bytes", message)
+        self.assertIn("multiple of 3", message)
+
+    def test_palette_longer_than_256_entries(self):
+        # The PNG spec caps PLTE at 256 entries (768 bytes); 771 bytes is 257
+        # entries (a whole multiple of 3, so the length check cannot reject it
+        # on the modulo alone) and must be reported with its actual size.
+        palette = bytes(771)
+        data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(data)
+        message = str(ctx.exception)
+        self.assertIn("771 bytes", message)
+        self.assertIn("768", message)
+
     def test_truncated_image_data_names_actual_and_expected(self):
         # An IDAT that decompresses to fewer scanlines than IHDR's height
         # declares must name how many bytes arrived and how many were needed,

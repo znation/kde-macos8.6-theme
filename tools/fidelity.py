@@ -193,6 +193,11 @@ def decode_png(data: bytes) -> Image:
         if ctype == b"IHDR":
             header = payload
         elif ctype == b"PLTE":
+            if len(payload) % 3 or not 3 <= len(payload) <= 768:
+                raise FidelityError(
+                    f"PLTE chunk is {len(payload)} bytes; expected a multiple "
+                    "of 3 between 3 and 768 (1-256 palette entries)"
+                )
             palette = payload
         elif ctype == b"IDAT":
             idat += payload
