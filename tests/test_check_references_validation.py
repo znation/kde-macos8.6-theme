@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from check_references_fixtures import (
+    assert_problem,
     check_references_in,
     load_checker,
     reference_set,
@@ -33,10 +34,7 @@ class TestFilenameMustBeBare(unittest.TestCase):
             {"sub/good.png": module.PNG_MAGIC},
         ) as root:
             problems = module.check_references(root)
-        self.assertTrue(
-            any("sub/good.png" in p and "bare filename" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, "sub/good.png", "bare filename")
 
     def test_parent_traversal_is_rejected_even_when_the_file_exists(self):
         module = load_checker()
@@ -49,10 +47,7 @@ class TestFilenameMustBeBare(unittest.TestCase):
             )
             (root.parent / "escape.png").write_bytes(module.PNG_MAGIC)
             problems = module.check_references(root)
-        self.assertTrue(
-            any("../escape.png" in p and "bare filename" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, "../escape.png", "bare filename")
 
 
 class TestAbsoluteUrlSchemeShape(unittest.TestCase):
@@ -89,7 +84,7 @@ class TestAbsoluteUrlSchemeShape(unittest.TestCase):
             )
             (root / "good.png").write_bytes(module.PNG_MAGIC)
             problems = module.check_references(root)
-        self.assertTrue(any("absolute URL" in p for p in problems), problems)
+        assert_problem(self, problems, "absolute URL")
 
 
 class TestAbsoluteUrlWellFormedness(unittest.TestCase):
@@ -174,12 +169,8 @@ class TestAcceptedImageFormats(unittest.TestCase):
         problems = self._problems_for(
             module, "sound.png", b"RIFF\x24\x00\x00\x00WAVEfmt "
         )
-        self.assertTrue(
-            any(
-                "sound.png" in p and "not a PNG, JPEG, GIF or WebP" in p
-                for p in problems
-            ),
-            problems,
+        assert_problem(
+            self, problems, "sound.png", "not a PNG, JPEG, GIF or WebP"
         )
 
 
@@ -200,13 +191,7 @@ class TestUndeclaredImageExtension(unittest.TestCase):
 
     def _assert_undeclared(self, module, filename):
         problems = self._problems_for(module, filename)
-        self.assertTrue(
-            any(
-                filename in p and "image has no entry" in p
-                for p in problems
-            ),
-            problems,
-        )
+        assert_problem(self, problems, filename, "image has no entry")
 
     def test_stray_png_extension_without_image_bytes_is_undeclared(self):
         module = load_checker()
@@ -262,10 +247,7 @@ class TestNullByteFilename(unittest.TestCase):
             module,
             b"bad\x00name.png | https://example.test/b.png | label\n",
         )
-        self.assertTrue(
-            any("bad\\x00name.png" in p and "NUL" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, "bad\\x00name.png", "NUL")
 
 
 if __name__ == "__main__":

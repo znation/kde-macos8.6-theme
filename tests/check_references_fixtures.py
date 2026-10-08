@@ -3,8 +3,9 @@
 The checker is a script rather than an installed package, so these helpers
 load it from its path and build throwaway reference directories for it to
 check. ``test_check_references_io``, ``test_check_references_validation`` and
-``test_check_references_cli`` each import the pieces they use, so the loading
-and fixture construction live here once instead of in each module.
+``test_check_references_cli`` each import the pieces they use, so the loading,
+fixture construction and shared problem assertion live here once instead of in
+each module.
 """
 
 import contextlib
@@ -102,3 +103,16 @@ def path_method_raises(method, path, error_type, errno, message):
 
     with unittest.mock.patch.object(Path, method, raises_for):
         yield
+
+
+def assert_problem(case, problems, *needles):
+    """Assert at least one problem line contains every given substring.
+
+    The checker reports each problem as a full diagnostic line; a test names
+    the fragments that identify the expected problem, and the whole list is
+    passed as the failure message so a regression prints what was reported.
+    """
+    case.assertTrue(
+        any(all(needle in line for needle in needles) for line in problems),
+        problems,
+    )

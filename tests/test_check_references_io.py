@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from check_references_fixtures import (
+    assert_problem,
     load_checker,
     path_method_raises,
     reference_set,
@@ -38,10 +39,7 @@ class TestUnreadableImage(unittest.TestCase):
                 "open", image, PermissionError, 13, "Permission denied"
             ):
                 problems = module.check_references(root)
-        self.assertTrue(
-            any("locked.png" in p and "could not be read" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, "locked.png", "could not be read")
 
 
 class TestUnreadableUndeclaredImage(unittest.TestCase):
@@ -62,10 +60,7 @@ class TestUnreadableUndeclaredImage(unittest.TestCase):
                 "open", stray, PermissionError, 13, "Permission denied"
             ):
                 problems = module.check_references(root)
-        self.assertTrue(
-            any("stray.bin" in p and "could not be read" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, "stray.bin", "could not be read")
 
 
 class TestUnreadableSources(unittest.TestCase):
@@ -88,10 +83,7 @@ class TestUnreadableSources(unittest.TestCase):
                 "read_text", sources, PermissionError, 13, "Permission denied"
             ):
                 problems = module.check_references(root)
-        self.assertTrue(
-            any(str(sources) in p and "could not be read" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, str(sources), "could not be read")
 
 
 class TestUndecodableSources(unittest.TestCase):
@@ -106,9 +98,7 @@ class TestUndecodableSources(unittest.TestCase):
         ) as root:
             sources = root / module.SOURCES_NAME
             problems = module.check_references(root)
-        self.assertTrue(
-            any(str(sources) in p and "UTF-8" in p for p in problems), problems
-        )
+        assert_problem(self, problems, str(sources), "UTF-8")
 
 
 class TestUnreadableDirectory(unittest.TestCase):
@@ -125,9 +115,7 @@ class TestUnreadableDirectory(unittest.TestCase):
                 "iterdir", root, PermissionError, 13, "Permission denied"
             ):
                 problems = module.check_references(root)
-        self.assertTrue(
-            any("could not be listed" in p for p in problems), problems
-        )
+        assert_problem(self, problems, "could not be listed")
 
 
 class TestSymlinkEscape(unittest.TestCase):
@@ -147,7 +135,7 @@ class TestSymlinkEscape(unittest.TestCase):
             problems = module.check_references(ref)
         joined = "\n".join(problems)
         self.assertNotIn("SECRET_TOKEN_abc123", joined)
-        self.assertTrue(any("outside" in p for p in problems), problems)
+        assert_problem(self, problems, "outside")
 
     def test_declared_image_symlink_outside_directory_is_reported(self):
         module = load_checker()
@@ -158,7 +146,7 @@ class TestSymlinkEscape(unittest.TestCase):
             "link.png | https://example.test/l.png | label\n",
         ) as ref:
             problems = module.check_references(ref)
-        self.assertTrue(any("outside" in p for p in problems), problems)
+        assert_problem(self, problems, "outside")
 
     def test_undeclared_image_symlink_outside_directory_is_not_read(self):
         """The undeclared-file scan must not sniff a symlink's outside target.
@@ -196,10 +184,7 @@ class TestUndeclaredDanglingImageSymlink(unittest.TestCase):
             (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
             os.symlink(root / "gone.png", root / "dangling.png")
             problems = module.check_references(root)
-        self.assertTrue(
-            any("dangling.png" in p and "no entry" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, "dangling.png", "no entry")
 
 
 class TestResolveFailureIsFailClosed(unittest.TestCase):
@@ -230,10 +215,7 @@ class TestResolveFailureIsFailClosed(unittest.TestCase):
                 "Too many levels of symbolic links",
             ):
                 problems = module.check_references(root)
-        self.assertTrue(
-            any(str(sources) in p and "outside" in p for p in problems),
-            problems,
-        )
+        assert_problem(self, problems, str(sources), "outside")
 
 
 if __name__ == "__main__":
