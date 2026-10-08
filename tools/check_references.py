@@ -104,15 +104,21 @@ def check_references(directory: Path) -> list[str]:
         image = directory / filename
         if not image.is_file():
             problems.append(f"{sources}:{lineno}: {filename!r} does not exist in {directory}/")
-        elif _is_lfs_pointer(image):
+            continue
+        try:
+            if _is_lfs_pointer(image):
+                problems.append(
+                    f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
+                    "run `git lfs install && git lfs pull` to fetch the image"
+                )
+            elif not _looks_like_image(image):
+                problems.append(
+                    f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
+                    "it may be an HTML error page or a truncated download"
+                )
+        except OSError as exc:
             problems.append(
-                f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
-                "run `git lfs install && git lfs pull` to fetch the image"
-            )
-        elif not _looks_like_image(image):
-            problems.append(
-                f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
-                "it may be an HTML error page or a truncated download"
+                f"{sources}:{lineno}: {filename!r} could not be read: {exc}"
             )
 
     for path in sorted(directory.iterdir()):

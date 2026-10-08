@@ -4,7 +4,10 @@ import contextlib
 import importlib.util
 import io
 import os
+import tempfile
 import unittest
+import unittest.mock
+from pathlib import Path
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHECKER = os.path.join(ROOT, "tools", "check_references.py")
@@ -29,6 +32,32 @@ class TestSelfTestDiagnostics(unittest.TestCase):
         printed = out.getvalue()
         self.assertIn("self-test 'undeclared image'", printed)
         self.assertNotIn("self-test 'extra.png'", printed)
+
+
+class TestUnreadableImage(unittest.TestCase):
+    def test_unreadable_image_is_reported_not_raised(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text(
+                "locked.png | https://example.test/l.png | label\n",
+                encoding="utf-8",
+            )
+            image = root / "locked.png"
+            image.write_bytes(module.PNG_MAGIC)
+            real_open = Path.open
+
+            def deny_locked(self, *args, **kwargs):
+                if self == image:
+                    raise PermissionError(13, "Permission denied", str(self))
+                return real_open(self, *args, **kwargs)
+
+            with unittest.mock.patch.object(Path, "open", deny_locked):
+                problems = module.check_references(root)
+        self.assertTrue(
+            any("locked.png" in p and "could not be read" in p for p in problems),
+            problems,
+        )
 
 
 if __name__ == "__main__":
