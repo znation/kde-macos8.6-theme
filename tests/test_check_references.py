@@ -53,6 +53,8 @@ def check_references_in(module, sources, files=()):
 
 
 class TestSelfTestDiagnostics(unittest.TestCase):
+    """The self-test's failure output names the failing case, not its image."""
+
     def test_failure_names_the_case_not_the_last_image(self):
         module = load_checker()
         # Force every fixture to fail so _self_test prints its diagnostics.
@@ -84,6 +86,13 @@ class TestSelfTestPasses(unittest.TestCase):
 
 
 class TestUnreadableImage(unittest.TestCase):
+    """A permission-denied image named in sources.txt is reported, not raised.
+
+    The checker reads each declared image's leading bytes to confirm it is a
+    raster, so an unreadable file must become a problem line rather than
+    abort the whole check with a traceback.
+    """
+
     def test_unreadable_image_is_reported_not_raised(self):
         module = load_checker()
         with reference_set(
@@ -137,6 +146,13 @@ class TestUnreadableUndeclaredImage(unittest.TestCase):
 
 
 class TestUnreadableSources(unittest.TestCase):
+    """An unreadable sources.txt is reported, not raised.
+
+    The provenance record can be present but unreadable (a permissions
+    problem, say); the checker must return a problem line rather than let the
+    OSError escape and abort the check.
+    """
+
     def test_unreadable_sources_file_is_reported_not_raised(self):
         module = load_checker()
         with reference_set(
@@ -161,6 +177,8 @@ class TestUnreadableSources(unittest.TestCase):
 
 
 class TestUndecodableSources(unittest.TestCase):
+    """A sources.txt that is not valid UTF-8 is reported, not raised."""
+
     def test_non_utf8_sources_is_reported_not_raised(self):
         module = load_checker()
         # Latin-1 e-acute: a corrupt download or an editor that saved the
@@ -176,6 +194,12 @@ class TestUndecodableSources(unittest.TestCase):
 
 
 class TestUnreadableDirectory(unittest.TestCase):
+    """A reference directory that cannot be listed is reported, not raised.
+
+    The undeclared-image scan lists the directory, so a listing failure must
+    surface as a problem line instead of a traceback.
+    """
+
     def test_unreadable_directory_is_reported_not_raised(self):
         module = load_checker()
         with reference_set(module, "") as root:
@@ -194,6 +218,13 @@ class TestUnreadableDirectory(unittest.TestCase):
 
 
 class TestFilenameMustBeBare(unittest.TestCase):
+    """A sources.txt entry must name a bare file in the directory.
+
+    A nested path or ``..`` traversal can reach a file outside the reference
+    directory even when that file exists, so the entry is rejected on its
+    shape rather than on whether it resolves.
+    """
+
     def test_nested_filename_is_rejected_even_when_the_file_exists(self):
         module = load_checker()
         with reference_set(
