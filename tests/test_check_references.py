@@ -523,6 +523,41 @@ class TestSymlinkEscape(unittest.TestCase):
         self.assertTrue(any("outside" in p for p in problems), problems)
 
 
+class TestResolveFailureIsFailClosed(unittest.TestCase):
+    """A path that cannot be resolved must be treated as escaping the directory.
+
+    ``_resolves_within`` calls ``Path.resolve()`` to keep every read inside the
+    reference directory, and resolving can raise ``OSError`` on a filesystem
+    failure. The containment check must fail closed: an unresolvable path is
+    not assumed to be inside the directory, so the checker reports it instead
+    of letting the ``OSError`` escape and abort the run with a traceback.
+    ``Path.resolve()`` does not raise for a real symlink loop on this runtime,
+    so the branch is driven by making the resolution itself raise.
+    """
+
+    def test_unresolvable_sources_path_is_reported_not_raised(self):
+        module = load_checker()
+        with reference_set(
+            module,
+            "good.png | https://example.test/g.png | label\n",
+            {"good.png": module.PNG_MAGIC},
+        ) as root:
+            sources = root / module.SOURCES_NAME
+            real_resolve = Path.resolve
+
+            def fail_sources(self, *args, **kwargs):
+                if self == sources:
+                    raise OSError(40, "Too many levels of symbolic links", str(self))
+                return real_resolve(self, *args, **kwargs)
+
+            with unittest.mock.patch.object(Path, "resolve", fail_sources):
+                problems = module.check_references(root)
+        self.assertTrue(
+            any(str(sources) in p and "outside" in p for p in problems),
+            problems,
+        )
+
+
 class TestAbsoluteUrlWellFormedness(unittest.TestCase):
     """The source URL must be a well-formed absolute URL, not merely start
     with something alpha-like before ``://``."""
