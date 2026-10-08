@@ -216,6 +216,35 @@ class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
                 os.path.isfile(os.path.join(package, "metadata.json"))
             )
 
+    @unittest.skipUnless(shutil.which("flock"), "needs flock")
+    def test_make_install_gives_up_on_a_held_lock(self):
+        """A lock held by a live process must not hang a later install.
+
+        flock releases the data-home lock when its holder dies, but a holder
+        that stays alive -- stopped with SIGSTOP, or blocked in the kernel --
+        keeps it. The lock wait is bounded, so a later install gives up with a
+        diagnostic naming the lock instead of waiting forever, and writes
+        nothing.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            data_home = os.path.join(tmp, "share")
+            os.makedirs(data_home)
+            package = os.path.join(
+                data_home, "plasma", "look-and-feel", LNF_ID
+            )
+            lock_fd = os.open(data_home, os.O_RDONLY)
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            try:
+                # FLOCK_TIMEOUT=0 makes the bounded wait expire immediately,
+                # so the test does not spend the default 60s proving the bound.
+                result = install(tmp, extra=["FLOCK_TIMEOUT=0"])
+            finally:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                os.close(lock_fd)
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertIn("lock", result.stderr)
+            self.assertFalse(os.path.exists(package), package)
+
     def test_make_uninstall_removes_the_installed_package(self):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)

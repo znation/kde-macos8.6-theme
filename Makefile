@@ -59,9 +59,23 @@ check-references:
 # exclusive lock over the data home; flock releases the lock when the holder
 # dies, so a SIGKILLed run cannot leave the lock stuck the way a lock
 # directory would.
+#
+# The wait for that lock is bounded. A holder that stays alive -- stopped with
+# SIGSTOP, or blocked in the kernel -- keeps the lock, so without a bound every
+# later install/uninstall would wait forever. flock exits with
+# FLOCK_CONFLICT_EXIT when the bounded wait expires, a status distinct from
+# make's own error status, so the recipe can name the cause. FLOCK_TIMEOUT is a
+# make variable so a caller can shorten it (the tests do) or lengthen it.
+FLOCK_TIMEOUT ?= 60
+FLOCK_CONFLICT_EXIT := 75
+
+# Run the internal target $(1) under the data-home lock, naming $(2) when the
+# bounded wait expires instead of letting the command's own failure be blamed.
+run_locked = flock -w $(FLOCK_TIMEOUT) -E $(FLOCK_CONFLICT_EXIT) "$(DATA_HOME)" $(MAKE) --no-print-directory $(1) || { status=$$?; if [ $$status -eq $(FLOCK_CONFLICT_EXIT) ]; then echo "$(2): gave up after $(FLOCK_TIMEOUT)s waiting for the $(DATA_HOME) lock; another install or uninstall holds it" >&2; fi; exit $$status; }
+
 install:
 	@install -d "$(DATA_HOME)"
-	@flock "$(DATA_HOME)" $(MAKE) --no-print-directory _install
+	@$(call run_locked,_install,install)
 
 _install:
 # Stage the scheme as a hidden sibling and rename it in, so a copy that fails
@@ -84,7 +98,7 @@ _install:
 # `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
 	@install -d "$(DATA_HOME)"
-	@flock "$(DATA_HOME)" $(MAKE) --no-print-directory _uninstall
+	@$(call run_locked,_uninstall,uninstall)
 
 _uninstall:
 	rm -f "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)" "$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging"
