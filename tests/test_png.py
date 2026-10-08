@@ -258,6 +258,32 @@ class TestDecode(unittest.TestCase):
             png.decode_png(broken)
         self.assertIn("filter method 1", str(ctx.exception))
 
+    def test_rejects_unsupported_ihdr_fields(self):
+        # IHDR's bit depth, color type, interlace flag and dimensions each
+        # change how scanlines are interpreted. If a guard regressed, a 16-bit
+        # or interlaced image would be silently decoded as 8-bit non-interlaced
+        # (wrong pixels), an unknown color type would KeyError in _CHANNELS, and
+        # a zero dimension would produce a degenerate image. Each must be
+        # rejected by name before any scanline work.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        cases = {
+            # offset 8 is the bit-depth field.
+            "bit depth 16": (with_ihdr_byte(data, 8, 16), "bit depth 16"),
+            # offset 9 is the color-type field; 5 is outside the supported set.
+            "color type 5": (with_ihdr_byte(data, 9, 5), "color type 5"),
+            # offset 12 is the interlace field.
+            "interlaced": (with_ihdr_byte(data, 12, 1), "interlaced"),
+            # offset 3 is the last width byte; the 1x1 image's width becomes 0.
+            "zero width": (with_ihdr_byte(data, 3, 0), "zero width or height"),
+            # offset 7 is the last height byte.
+            "zero height": (with_ihdr_byte(data, 7, 0), "zero width or height"),
+        }
+        for label, (broken, expected) in cases.items():
+            with self.subTest(label=label):
+                with self.assertRaises(png.PngError) as ctx:
+                    png.decode_png(broken)
+                self.assertIn(expected, str(ctx.exception))
+
     def test_read_png_names_undecodable_file(self):
         # A decode failure must name the file it came from, so a two-input
         # invocation can tell which of the candidate/reference was bad.
