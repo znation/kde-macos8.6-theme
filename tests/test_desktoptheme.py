@@ -7,6 +7,7 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
+from install_failure_cases import FailedInstallPreservesPackage
 from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
@@ -290,7 +291,29 @@ class TestDefaultsWiring(unittest.TestCase):
         )
 
 
-class TestInstall(unittest.TestCase):
+class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
+    KIND = "desktoptheme"
+    PACKAGE_ID = DTHEME_ID
+
+    def reinstall_failure_env(self, tmp):
+        # Shadow `cp` with a fake that fails only when copying the desktop
+        # theme (the look-and-feel copy must still succeed), writing part of
+        # the tree then dying like a killed or out-of-space `cp` would.
+        real_cp = shutil.which("cp")
+        return shadow_command_env(
+            tmp,
+            "cp",
+            "#!/bin/sh\n"
+            'case "$2" in\n'
+            "  */desktop-themes/*)\n"
+            '    dest="$3/$(basename "$2")"\n'
+            '    mkdir -p "$dest"\n'
+            '    printf partial > "$dest/metadata.json"\n'
+            "    exit 1;;\n"
+            "esac\n"
+            f'exec "{real_cp}" "$@"\n',
+        )
+
     def test_make_install_copies_package_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
@@ -314,100 +337,6 @@ class TestInstall(unittest.TestCase):
             self.assertEqual(first.returncode, 0, first.stderr)
             second = install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
-
-    def test_failed_reinstall_keeps_the_previous_package(self):
-        """A copy that dies partway must not delete or damage the working install.
-
-        `make install` copies into a sibling staging directory and swaps it in
-        with a rename, so a copy that fails or is interrupted leaves the working
-        desktop theme installed.
-        """
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed = installed_package(tmp, "desktoptheme", DTHEME_ID)
-            metadata = os.path.join(installed, "metadata.json")
-            with open(metadata, "rb") as handle:
-                good = handle.read()
-
-            # Shadow `cp` with a fake that fails only when copying the desktop
-            # theme (the look-and-feel copy must still succeed), writing part of
-            # the tree then dying like a killed or out-of-space `cp` would.
-            real_cp = shutil.which("cp")
-            env = shadow_command_env(
-                tmp,
-                "cp",
-                "#!/bin/sh\n"
-                'case "$2" in\n'
-                "  */desktop-themes/*)\n"
-                '    dest="$3/$(basename "$2")"\n'
-                '    mkdir -p "$dest"\n'
-                '    printf partial > "$dest/metadata.json"\n'
-                "    exit 1;;\n"
-                "esac\n"
-                f'exec "{real_cp}" "$@"\n',
-            )
-            result = install(tmp, env=env)
-            self.assertNotEqual(result.returncode, 0, result.stdout)
-            self.assertFalse(
-                os.path.exists(
-                    os.path.join(
-                        installed_plasma_dir(tmp, "desktoptheme"),
-                        "." + DTHEME_ID + ".staging",
-                    )
-                ),
-                "staging directory leaked after a failed install",
-            )
-            self.assertTrue(os.path.isdir(installed), installed)
-            with open(metadata, "rb") as handle:
-                self.assertEqual(handle.read(), good)
-
-    def test_failed_swap_keeps_the_previous_package(self):
-        """A rename that fails after the old package is moved aside restores it.
-
-        `make install` moves the working desktop theme to a hidden sibling
-        before renaming the staged copy into place. If that final rename fails,
-        the EXIT trap must move the old package back, so a failed swap leaves
-        the working theme rather than deleting it.
-        """
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed = installed_package(tmp, "desktoptheme", DTHEME_ID)
-            metadata = os.path.join(installed, "metadata.json")
-            with open(metadata, "rb") as handle:
-                good = handle.read()
-
-            # Shadow `mv` so only the final rename of the staged desktop theme
-            # into place fails (the look-and-feel rename must still succeed),
-            # like an IO error or a kill in the swap window would.
-            real_mv = shutil.which("mv")
-            env = shadow_command_env(
-                tmp,
-                "mv",
-                "#!/bin/sh\n"
-                'case "$2" in\n'
-                f"  */plasma/desktoptheme/{DTHEME_ID})\n"
-                '    case "$1" in\n'
-                f"      */.{DTHEME_ID}.staging) exit 1;;\n"
-                "    esac;;\n"
-                "esac\n"
-                f'exec "{real_mv}" "$@"\n',
-            )
-            result = install(tmp, env=env)
-            self.assertNotEqual(result.returncode, 0, result.stdout)
-            parent = installed_plasma_dir(tmp, "desktoptheme")
-            for leaked in (
-                "." + DTHEME_ID + ".staging",
-                "." + DTHEME_ID + ".old",
-            ):
-                self.assertFalse(
-                    os.path.exists(os.path.join(parent, leaked)),
-                    f"{leaked} leaked after a failed swap",
-                )
-            self.assertTrue(os.path.isdir(installed), installed)
-            with open(metadata, "rb") as handle:
-                self.assertEqual(handle.read(), good)
 
     def test_make_uninstall_removes_the_installed_package(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -6,6 +6,7 @@ import shutil
 import tempfile
 import unittest
 
+from install_failure_cases import FailedInstallPreservesPackage
 from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
@@ -91,7 +92,25 @@ class TestDefaults(unittest.TestCase):
         )
 
 
-class TestInstall(unittest.TestCase):
+class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
+    KIND = "look-and-feel"
+    PACKAGE_ID = LNF_ID
+
+    def reinstall_failure_env(self, tmp):
+        # Shadow `cp` with a fake that writes part of the tree, then fails,
+        # simulating a copy killed or out of space halfway through.
+        return shadow_command_env(
+            tmp,
+            "cp",
+            '#!/bin/sh\n'
+            '# Copy part of the tree, then die, like a killed `cp` would.\n'
+            'src="$2"\n'
+            'dest="$3/$(basename "$src")"\n'
+            'mkdir -p "$dest"\n'
+            'printf partial > "$dest/metadata.json"\n'
+            'exit 1\n',
+        )
+
     def test_make_install_copies_package_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
@@ -144,96 +163,6 @@ class TestInstall(unittest.TestCase):
 
             again = uninstall(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)
-
-    def test_failed_reinstall_keeps_the_previous_package(self):
-        """A copy that dies partway must not delete or damage the working install.
-
-        `make install` copies into a sibling staging directory and swaps it in
-        with a rename, so a copy that fails or is interrupted leaves the working
-        package installed.
-        """
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed = installed_package(tmp, "look-and-feel", LNF_ID)
-            metadata = os.path.join(installed, "metadata.json")
-            with open(metadata, "rb") as handle:
-                good = handle.read()
-
-            # Shadow `cp` with a fake that writes part of the tree, then fails,
-            # simulating a copy killed or out of space halfway through.
-            env = shadow_command_env(
-                tmp,
-                "cp",
-                '#!/bin/sh\n'
-                '# Copy part of the tree, then die, like a killed `cp` would.\n'
-                'src="$2"\n'
-                'dest="$3/$(basename "$src")"\n'
-                'mkdir -p "$dest"\n'
-                'printf partial > "$dest/metadata.json"\n'
-                'exit 1\n',
-            )
-            result = install(tmp, env=env)
-            self.assertNotEqual(result.returncode, 0, result.stdout)
-            self.assertFalse(
-                os.path.exists(
-                    os.path.join(
-                        installed_plasma_dir(tmp, "look-and-feel"),
-                        "." + LNF_ID + ".staging",
-                    )
-                ),
-                "staging directory leaked after a failed install",
-            )
-            self.assertTrue(os.path.isdir(installed), installed)
-            with open(metadata, "rb") as handle:
-                self.assertEqual(handle.read(), good)
-
-    def test_failed_swap_keeps_the_previous_package(self):
-        """A rename that fails after the old package is moved aside restores it.
-
-        `make install` moves the working package to a hidden sibling before
-        renaming the staged copy into place. If that final rename fails, the
-        EXIT trap must move the old package back, so a failed swap leaves the
-        working install rather than deleting it.
-        """
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed = installed_package(tmp, "look-and-feel", LNF_ID)
-            metadata = os.path.join(installed, "metadata.json")
-            with open(metadata, "rb") as handle:
-                good = handle.read()
-
-            # Shadow `mv` so only the final rename of the staged look-and-feel
-            # package into place fails, like an IO error or a kill in the swap
-            # window would; every other rename passes through.
-            real_mv = shutil.which("mv")
-            env = shadow_command_env(
-                tmp,
-                "mv",
-                "#!/bin/sh\n"
-                'case "$2" in\n'
-                f"  */plasma/look-and-feel/{LNF_ID})\n"
-                '    case "$1" in\n'
-                f"      */.{LNF_ID}.staging) exit 1;;\n"
-                "    esac;;\n"
-                "esac\n"
-                f'exec "{real_mv}" "$@"\n',
-            )
-            result = install(tmp, env=env)
-            self.assertNotEqual(result.returncode, 0, result.stdout)
-            parent = installed_plasma_dir(tmp, "look-and-feel")
-            for leaked in (
-                "." + LNF_ID + ".staging",
-                "." + LNF_ID + ".old",
-            ):
-                self.assertFalse(
-                    os.path.exists(os.path.join(parent, leaked)),
-                    f"{leaked} leaked after a failed swap",
-                )
-            self.assertTrue(os.path.isdir(installed), installed)
-            with open(metadata, "rb") as handle:
-                self.assertEqual(handle.read(), good)
 
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
