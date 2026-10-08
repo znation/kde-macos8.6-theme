@@ -315,7 +315,14 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
     if len(parts) != 4:
         raise argparse.ArgumentTypeError(f"crop must be X,Y,W,H: {value!r}")
     numbers: list[int] = []
-    for part in parts:
+    for position, part in enumerate(parts, 1):
+        if not part:
+            # A blank field ("1,,3,4") is the common typo; without this it
+            # falls through to int('') and is reported as "must be integers:
+            # ''", which names the empty string but not the missing field.
+            raise argparse.ArgumentTypeError(
+                f"crop field {position} is empty: {value!r}"
+            )
         if not _is_plain_ascii_number(part):
             raise argparse.ArgumentTypeError(
                 f"crop values must be plain ASCII integers: {part!r}"
