@@ -116,6 +116,30 @@ class TestInstall(unittest.TestCase):
             second = self._install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
 
+    def _uninstall(self, tmp):
+        return subprocess.run(
+            ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+
+    def test_make_uninstall_removes_the_installed_package(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            installed = self._install(tmp)
+            self.assertEqual(installed.returncode, 0, installed.stderr)
+            package = os.path.join(
+                tmp, "share", "plasma", "look-and-feel", LNF_ID
+            )
+            self.assertTrue(os.path.isdir(package), package)
+
+            removed = self._uninstall(tmp)
+            self.assertEqual(removed.returncode, 0, removed.stderr)
+            self.assertFalse(os.path.exists(package), package)
+
+            again = self._uninstall(tmp)
+            self.assertEqual(again.returncode, 0, again.stderr)
+
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
         with tempfile.TemporaryDirectory() as tmp:

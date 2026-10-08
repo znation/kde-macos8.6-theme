@@ -25,8 +25,9 @@ first dot). Select it in System Settings or with `plasma-apply-colorscheme MacOS
 filename means the ID KDE writes into `kdeglobals` resolves again on the next start.
 
 The global theme applies that same scheme as one selection: `lookandfeeltool -a
-org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). `make check` runs the
-test suite.
+org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). `make uninstall` removes
+the two installed artifacts, leaving the shared `color-schemes/` and `look-and-feel/` directories
+and anything else in them in place. `make check` runs the test suite.
 
 ## Reference screenshots
 

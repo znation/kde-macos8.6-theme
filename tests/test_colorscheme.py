@@ -230,6 +230,41 @@ class TestInstall(unittest.TestCase):
             with open(SCHEME, "rb") as source, open(installed, "rb") as target:
                 self.assertEqual(source.read(), target.read())
 
+    def test_make_uninstall_removes_only_the_scheme_it_installed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            installed = subprocess.run(
+                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(installed.returncode, 0, installed.stderr)
+            schemes = os.path.join(tmp, "share", "color-schemes")
+            other = os.path.join(schemes, "Other.colors")
+            with open(other, "w", encoding="utf-8") as handle:
+                handle.write("[General]\nName=Other\n")
+
+            removed = subprocess.run(
+                ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(removed.returncode, 0, removed.stderr)
+            self.assertFalse(
+                os.path.exists(os.path.join(schemes, "MacOS8.colors")),
+                "the installed scheme should be gone",
+            )
+            self.assertTrue(os.path.isfile(other), other)
+
+            again = subprocess.run(
+                ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(again.returncode, 0, again.stderr)
+
 
 @unittest.skipUnless(
     shutil.which("plasma-apply-colorscheme"), "needs plasma-apply-colorscheme"
