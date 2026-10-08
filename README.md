@@ -9,7 +9,9 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-_No status yet. The readme loop keeps this section up to date._
+Pre-implementation: no Plasma 6 theme package has landed yet — the repository holds the Mac OS 8.6 reference set (`macos8.6-screenshots/`, 28 images with provenance in `sources.txt`) and the project docs.
+
+Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
 
 ## Reference screenshots
