@@ -19,6 +19,20 @@ from tools import terminal  # noqa: E402
 
 
 class TestEscapeControls(unittest.TestCase):
+    def assert_escapes(self, codepoints, escape):
+        """Assert every codepoint escapes to exactly ``escape % codepoint``.
+
+        The escape format is passed in rather than derived from the
+        codepoint: the BMP and astral tests must independently pin the
+        four- and eight-digit forms, so the helper must not choose one.
+        """
+        for codepoint in codepoints:
+            with self.subTest(codepoint=codepoint):
+                self.assertEqual(
+                    terminal.escape_controls(chr(codepoint)),
+                    escape % codepoint,
+                )
+
     def test_empty_string_is_unchanged(self):
         self.assertEqual(terminal.escape_controls(""), "")
 
@@ -41,35 +55,20 @@ class TestEscapeControls(unittest.TestCase):
         codepoints = (
             list(range(0x00, 0x20)) + [0x7F] + list(range(0x80, 0xA0))
         )
-        for codepoint in codepoints:
-            with self.subTest(codepoint=codepoint):
-                self.assertEqual(
-                    terminal.escape_controls(chr(codepoint)),
-                    "\\u%04x" % codepoint,
-                )
+        self.assert_escapes(codepoints, "\\u%04x")
 
     def test_format_and_bidi_controls_are_escaped(self):
         # Zero-width and bidi-override characters are non-printable: left raw
         # they can reorder or hide the diagnostic text on a terminal, so they
         # must be escaped too, not only the C0 controls.
-        for codepoint in (0x200B, 0x202E):
-            with self.subTest(codepoint=codepoint):
-                self.assertEqual(
-                    terminal.escape_controls(chr(codepoint)),
-                    "\\u%04x" % codepoint,
-                )
+        self.assert_escapes((0x200B, 0x202E), "\\u%04x")
 
     def test_astral_non_printables_use_the_eight_digit_escape(self):
         # Format characters above the BMP (the TAG block, the musical-symbol
         # format characters) are not printable, but a \uXXXX escape holds
         # only four hex digits: escaping them as \uXXXXX would be ill-formed
         # and ambiguous with the digits that follow, so they use \UXXXXXXXX.
-        for codepoint in (0x1D173, 0xE0001, 0xE0020, 0x110BD):
-            with self.subTest(codepoint=codepoint):
-                self.assertEqual(
-                    terminal.escape_controls(chr(codepoint)),
-                    "\\U%08x" % codepoint,
-                )
+        self.assert_escapes((0x1D173, 0xE0001, 0xE0020, 0x110BD), "\\U%08x")
 
     def test_mixed_bmp_and_astral_controls_use_their_own_escapes(self):
         self.assertEqual(
