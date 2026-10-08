@@ -275,6 +275,22 @@ class TestCli(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("PASS", result.stdout)
 
+    def test_crop_rectangle_is_echoed_for_reproducibility(self):
+        # The reference line prints the cropped size, which does not say where
+        # the crop came from, so a transcript cannot be replayed without the
+        # rectangle. A run without --crop must not print the line at all.
+        reference = self._solid_reference()
+        uncropped = self._run(reference, reference)
+        with tempfile.TemporaryDirectory() as tmp:
+            candidate, padded = self._write_padded_surface_pair(Path(tmp))
+            cropped = self._run(candidate, padded, "--crop", "1,1,2,2")
+        self.assertEqual(cropped.returncode, 0, cropped.stdout + cropped.stderr)
+        self.assertIn("reference crop: 1,1,2,2", cropped.stdout)
+        self.assertEqual(
+            uncropped.returncode, 0, uncropped.stdout + uncropped.stderr
+        )
+        self.assertNotIn("reference crop:", uncropped.stdout)
+
     def test_crop_accepts_whitespace_between_fields(self):
         # A comma-separated rectangle is conventionally written with a space
         # after each comma ("0, 0, 10, 10"); that whitespace is formatting,

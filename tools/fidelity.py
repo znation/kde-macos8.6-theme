@@ -265,6 +265,13 @@ def main(argv: list[str] | None = None) -> int:
         f"reference: {escape_controls(args.reference)}  "
         f"{reference.width}x{reference.height}"
     )
+    if args.crop is not None:
+        # The reference line names the cropped size but not the rectangle it
+        # came from, so a transcript could not be replayed without the
+        # original --crop argument. Echo it; the fields are plain ints from
+        # _parse_crop, so no escaping is needed.
+        x, y, width, height = args.crop
+        print(f"reference crop: {x},{y},{width},{height}")
     print(f"pixels compared: {metrics.pixels}")
     print(f"mean absolute error: {metrics.mae:.4f}")
     print(
