@@ -1,6 +1,7 @@
 """Validate the org.macos8.desktop Plasma desktop theme package."""
 
 import os
+import re
 import shutil
 import tempfile
 import unittest
@@ -191,6 +192,70 @@ def rect_geometry(tree):
     return geometry
 
 
+_TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")
+
+
+def tile_origins(tree):
+    """Return {id: (x, y)} for every id-bearing <g> in *tree*.
+
+    KSvg composites a nine-slice tile from the canvas region its group's
+    `transform` names, so a group translated off its slice draws the tile from
+    the wrong pixels. `render_slices` reads each group's rects slice-local and
+    ignores the transform, so the pixel tests cannot see this; read the
+    transform directly. A group with no transform sits at the origin.
+    """
+    origins = {}
+    for group in tree.iter():
+        if local_name(group) != "g" or not group.get("id"):
+            continue
+        transform = group.get("transform")
+        match = None if transform is None else _TRANSLATE.fullmatch(transform.strip())
+        if transform is None:
+            origins[group.get("id")] = (0, 0)
+        elif match:
+            origins[group.get("id")] = (int(match.group(1)), int(match.group(2)))
+        else:
+            # Keep the raw text so a transform this test cannot parse fails
+            # loudly instead of silently reading as the origin.
+            origins[group.get("id")] = transform
+    return origins
+
+
+def assert_tiles_placed_by_margins(case, tree, prefixes):
+    """Assert every nine-slice tile group sits where its margin hints place it.
+
+    A margin hint names a border: its width/height is the border's thickness
+    and its outer coordinate is where the edge tile starts. Deriving each
+    tile's origin from those hints pins the artwork against the layout KSvg
+    reads, so a group translated to the wrong canvas region fails even though
+    `render_slices` ignores transforms. *prefixes* lists each state prefix in
+    *tree* (pass ``[""]`` for an unprefixed SVG).
+    """
+    origins = tile_origins(tree)
+    hints = rect_geometry(tree)
+    expected = {}
+    for prefix in prefixes:
+        sep = "-" if prefix else ""
+        top = hints[f"{prefix}{sep}hint-top-margin"]
+        bottom = hints[f"{prefix}{sep}hint-bottom-margin"]
+        left = hints[f"{prefix}{sep}hint-left-margin"]
+        right = hints[f"{prefix}{sep}hint-right-margin"]
+        border_x = int(left[0]) + int(left[2])
+        border_y = int(top[1]) + int(top[3])
+        expected.update({
+            f"{prefix}{sep}top": (int(top[0]), int(top[1])),
+            f"{prefix}{sep}bottom": (int(bottom[0]), int(bottom[1])),
+            f"{prefix}{sep}left": (int(left[0]), int(left[1])),
+            f"{prefix}{sep}right": (int(right[0]), int(right[1])),
+            f"{prefix}{sep}center": (border_x, border_y),
+            f"{prefix}{sep}topleft": (int(left[0]), int(top[1])),
+            f"{prefix}{sep}topright": (int(right[0]), int(top[1])),
+            f"{prefix}{sep}bottomleft": (int(left[0]), int(bottom[1])),
+            f"{prefix}{sep}bottomright": (int(right[0]), int(bottom[1])),
+        })
+    case.assertEqual(origins, expected)
+
+
 class TestMetadata(PackageMetadata, unittest.TestCase):
     METADATA_PATH = METADATA
     PACKAGE_STRUCTURE = "Plasma/Theme"
@@ -230,6 +295,13 @@ class TestPanelBackground(unittest.TestCase):
                 "hint-right-inset": ("12", "2", "0", "8"),
             },
         )
+
+    def test_panel_background_tiles_placed_by_margins(self):
+        # `test_panel_background_pixels` composites each slice from its rects
+        # but ignores the group's translate, so a group moved off its slice
+        # draws from the wrong canvas region and still passes. Pin each tile's
+        # origin against the margins that size the menu bar's nine-slice.
+        assert_tiles_placed_by_margins(self, self.tree, [""])
 
     def test_platinum_colours_present(self):
         # Read the parsed artwork's fill attributes, not the raw file: the
@@ -295,6 +367,13 @@ class TestButton(unittest.TestCase):
             "focus-hint-right-margin": ("10", "2", "2", "8"),
         })
         self.assertEqual(rect_geometry(ET.parse(BUTTON_SVG)), expected)
+
+    def test_button_tiles_placed_by_margins(self):
+        # `test_button_hint_geometry` pins the margins but not the artwork's
+        # `transform`s, and `render_slices` ignores them; a tile translated off
+        # its slice would draw from the wrong canvas region. Focus uses a 2px
+        # border, so its centre sits at (2,2), not the shared hint's (3,3).
+        assert_tiles_placed_by_margins(self, ET.parse(BUTTON_SVG), BUTTON_PREFIXES)
 
     def test_button_colours(self):
         # Read the parsed artwork's fill attributes, not the raw file: the
@@ -552,6 +631,12 @@ class TestLineEdit(unittest.TestCase):
             {(x, y): "#FFFFFF" for y in range(6) for x in range(6)},
         )
 
+    def test_lineedit_tiles_placed_by_margins(self):
+        # `test_lineedit_face_is_white` composites `base-center` slice-local,
+        # so a `base-*` group translated off its slice would still pass. Pin
+        # every tile's origin against the base margin hints.
+        assert_tiles_placed_by_margins(self, ET.parse(LINEEDIT_SVG), ["base"])
+
     def test_no_script_elements(self):
         assert_no_script_elements(self, ET.parse(LINEEDIT_SVG))
 
@@ -588,6 +673,13 @@ class TestFrame(unittest.TestCase):
                 f"{prefix}-hint-right-margin": ("9", "3", "3", "6"),
             })
         self.assertEqual(rect_geometry(ET.parse(FRAME_SVG)), expected)
+
+    def test_frame_tiles_placed_by_margins(self):
+        # The pixel tests composite each slice from its rects but ignore the
+        # group's translate, so a tile translated off its slice draws from the
+        # wrong canvas region and still passes. Pin every state's tile origins
+        # against its margin hints.
+        assert_tiles_placed_by_margins(self, ET.parse(FRAME_SVG), FRAME_PREFIXES)
 
     def test_frame_corner_bevels_turn_the_corner(self):
         slices = render_slices(ET.parse(FRAME_SVG))
