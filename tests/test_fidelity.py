@@ -402,6 +402,26 @@ class TestCli(unittest.TestCase):
                 self.assertIn("plain ASCII", result.stderr)
                 self.assertNotIn("Traceback", result.stderr)
 
+    def test_non_numeric_threshold_is_usage_error(self):
+        # _is_plain_ascii_number accepts any ASCII text without separators or
+        # surrounding space, so a word such as "abc" passes it and reaches
+        # float(). Without _finite_float's ValueError handler argparse would
+        # still exit 2, but with its generic "invalid <type> value" fallback
+        # that names neither the option nor the value; the threshold must
+        # instead report which option was not a number.
+        reference = self._solid_reference()
+        base = [reference, reference]
+        for option, value in (("--max-mae", "abc"), ("--max-frac", "abc")):
+            with self.subTest(option=option):
+                result = self._run(*base, option, value)
+                self.assertEqual(
+                    result.returncode, 2, result.stdout + result.stderr
+                )
+                self.assertIn(
+                    f"{option} must be a number: {value!r}", result.stderr
+                )
+                self.assertNotIn("Traceback", result.stderr)
+
     def test_malformed_crop_is_usage_error(self):
         # A bad --crop must be rejected as a usage error before either image is
         # read, and the message must name the offending value so the user does
