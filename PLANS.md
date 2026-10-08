@@ -5,7 +5,99 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 Platinum checkmarks widget for the desktop theme
+
+**Planned 2026-10-08 by plan.** Independent of the done frame, button, and radio-button plans: it
+adds one widget file to the existing `org.macos8.desktop` desktop-theme package and a
+`TestCheckmarks` class plus one `TestInstall` tuple entry to `tests/test_desktoptheme.py`. It does
+not touch `button.svg`, `frame.svg`, `radiobutton.svg`, or `panel-background.svg`.
+
+**Goal.** Ship `widgets/checkmarks.svg` in the `org.macos8.desktop` desktop theme so
+`PlasmaComponents.CheckBox` draws the Platinum black checkmark over its face instead of the Breeze
+glyph, and so the theme stops inheriting `widgets/checkmarks.svgz` from the default theme. It is
+the glyph half of the `CheckBox`/`RadioButton` indicators the button and radio-button plans left on
+Breeze glyphs.
+
+**Grounding.**
+- `CheckIndicator.qml` (installed at
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/CheckIndicator.qml`, 72 lines) is
+  the `indicator:` of `CheckBox.qml`. Its root is a `KSvg.FrameSvgItem` with
+  `imagePath: "widgets/button"`, `prefix: "normal"`, `implicitWidth`/`implicitHeight`
+  `Kirigami.Units.iconSizes.small` (16px), and it overlays a `KSvg.SvgItem` anchored to fill the
+  root whose `svg` is `KSvg.Svg { imagePath: "widgets/checkmarks" }` with `elementId: "checkbox"`.
+- The overlay's `opacity` is 1 when `control.checkState == Qt.Checked`, 0.5 when
+  `Qt.PartiallyChecked`, and 0 when unchecked (and `control.checked ? 1 : 0` for a non-`CheckBox`
+  `AbstractButton`). So `checkbox` is a checked-only overlay drawn on top of the button face: the
+  file supplies the glyph, not the box.
+- `RadioIndicator.qml`'s fallback `compatibilityComponent` draws `widgets/actionbutton` plus a
+  `KSvg.SvgItem` on `widgets/checkmarks` with `elementId: "radiobutton"`; the modern
+  `radiobuttonComponent` is selected instead now that the theme ships `widgets/radiobutton.svg`.
+  `radiobutton` is included so the file is a complete replacement for the inherited Breeze
+  `checkmarks.svgz`, which carries exactly `checkbox` and `radiobutton`.
+- `KSvg.Svg` resolves a theme file the current theme lacks to the default theme, and
+  `find /usr/share/plasma/desktoptheme -name 'checkmarks.svg*'` returns only
+  `default/widgets/checkmarks.svgz`, so today the theme inherits the Breeze glyph (a translucent
+  `ColorScheme-ButtonFocus` rounded rect plus a dark `ColorScheme-Text` check) over the Platinum
+  button face.
+- The default `checkmarks.svgz` (parsed from
+  `zcat /usr/share/plasma/desktoptheme/default/widgets/checkmarks.svgz`) is a 16x32 canvas:
+  `checkbox` occupies the top 16x16 cell and `radiobutton` the bottom 16x16 cell (a circle r=7.5
+  plus a dot r=3 at cy=24). Its check path is `M 3.5,8.5 6.5,11.5 l 6,-6` stroked 2px.
+- Palette is the `#000000` the button/radio plans pin (`[Colors:Window]`/`[Colors:Button]`
+  foreground in `theme/color-schemes/MacOS8.colors`). Mac OS 8.6 has no partial state, so no third
+  element is needed.
+- **Known limitation (not fixable here).** The checkbox *face* stays `widgets/button` `normal` —
+  the `#DDDDDD` rounded face — because `CheckIndicator.qml` hardcodes that `imagePath`; a desktop
+  theme cannot override a component's `imagePath`. The checked overlay therefore draws the glyph on
+  the Platinum button face, not on a white square. The `radiobutton` fallback face is likewise
+  `widgets/actionbutton` (unshipped, so Breeze).
+
+**Approach.**
+1. New file `widgets/checkmarks.svg` in the `org.macos8.desktop` package: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="32" viewBox="0 0 16 32">` with a
+   comment naming the widget, its consumers, and the checked-only overlay contract.
+   - `<path id="checkbox" d="M 3.5,8.5 L 6.5,11.5 L 12.5,5.5" fill="none" stroke="#000000"
+     stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>` — the 2px black check
+     in the top cell (the default theme's check shape, with `currentColor` resolved to `#000000`).
+   - `<circle id="radiobutton" cx="8" cy="24" r="3" fill="#000000"/>` — the compatibility dot
+     in the bottom cell.
+   No `hint-size`/`hint-tile-center` (no consumer reads them), no `class="ColorScheme-*"`, no
+   `currentColor`, no `<script>`, and no fill outside the 16x32 canvas.
+2. `tests/test_desktoptheme.py` (edit):
+   - Add `CHECKMARKS_SVG = os.path.join(PACKAGE, "widgets", "checkmarks.svg")` beside
+     `RADIOBUTTON_SVG`.
+   - Add `class TestCheckmarks` beside `TestRadioButton`:
+     - `test_checkmarks_contract`: `ET.parse` the file; assert ids `checkbox` and `radiobutton` are
+       present; assert the parsed `stroke` attributes are exactly `{"#000000"}`; assert the parsed
+       `fill` attributes are exactly `{"none", "#000000"}`; assert no element tag ends in `script`.
+     - `test_checkmarks_geometry`: assert the `checkbox` element's tag is `path`, its `d` is exactly
+       `"M 3.5,8.5 L 6.5,11.5 L 12.5,5.5"`, and its `stroke-width` is `"2"`; assert the
+       `radiobutton` element's tag is `circle` with `r == 3` and `fill == "#000000"`.
+   - Add `os.path.join("widgets", "checkmarks.svg")` to the tuple in
+     `TestInstall.test_make_install_copies_package_byte_for_byte`.
+3. `README.md` (edit): extend the `tumwater:status` sentence that enumerates the desktop theme's
+   widgets with "and whose `widgets/checkmarks.svg` provides the Platinum checkbox checkmark (a 2px
+   black check drawn over the face when checked)".
+
+**Files touched.** New: `checkmarks.svg` in the package's `widgets/` subdirectory. Edited:
+`tests/test_desktoptheme.py` (`TestCheckmarks`, `TestInstall` tuple), `README.md`. No change to the
+color scheme, the look-and-feel package, the Makefile, or the other widgets.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestCheckmarks` passing.
+- The checkmarks SVG parses and contains `checkbox` and `radiobutton`; `checkbox` is a `path` with
+  the pinned `d`, `stroke-width="2"`, and `stroke="#000000"`; `radiobutton` is a `circle` with
+  `r=3` and `fill="#000000"`.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/checkmarks.svg` byte-identical to
+  source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a checked `PlasmaComponents.CheckBox` draws a black
+  2px check over the Platinum face with no Breeze blue tint, unchecking hides it, and every other
+  widget is unchanged.
+
+**Follow-up (not planned here).** `widgets/actionbutton.svg` for `RoundButton`/`Dial`/`RoundShadow`,
+and the checkbox-face mismatch noted above (a Plasma 6.3 `CheckIndicator.qml` constraint, not a
+missing SVG), then `scrollbar`, `listitem`, and `background`.
 
 ## Done
 
