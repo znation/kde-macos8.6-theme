@@ -80,6 +80,8 @@ def check_references(directory: Path) -> list[str]:
         sources_text = sources.read_text(encoding="utf-8")
     except OSError as exc:
         return [f"{sources}: could not be read: {exc}"]
+    except UnicodeDecodeError as exc:
+        return [f"{sources}: not valid UTF-8 text: {exc}"]
 
     problems: list[str] = []
     entries: dict[str, int] = {}

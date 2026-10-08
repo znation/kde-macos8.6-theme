@@ -103,6 +103,23 @@ class TestUnreadableSources(unittest.TestCase):
         )
 
 
+class TestUndecodableSources(unittest.TestCase):
+    def test_non_utf8_sources_is_reported_not_raised(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            sources = root / module.SOURCES_NAME
+            # Latin-1 e-acute: a corrupt download or an editor that saved the
+            # provenance record in a non-UTF-8 encoding.
+            sources.write_bytes(
+                b"caf\xe9.png | https://example.test/x.png | label\n"
+            )
+            problems = module.check_references(root)
+        self.assertTrue(
+            any(str(sources) in p and "UTF-8" in p for p in problems), problems
+        )
+
+
 class TestUnreadableDirectory(unittest.TestCase):
     def test_unreadable_directory_is_reported_not_raised(self):
         module = load_checker()
