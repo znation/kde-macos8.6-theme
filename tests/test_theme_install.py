@@ -47,6 +47,26 @@ def _short_subprocess_timeout(seconds=0.5):
         theme_install.SUBPROCESS_TIMEOUT = original
 
 
+def _fake_make_env(tmp, script, **extra):
+    """Install an executable fake `make` in *tmp* and return an environment.
+
+    The fake `make` runs *script*; the returned environment prepends the fake
+    bin directory to PATH so `theme_install`'s `make` subprocesses pick it up.
+    *extra* adds further variables (the descendant test passes its pid file).
+    """
+    bindir = os.path.join(tmp, "fakebin")
+    os.makedirs(bindir)
+    fake_make = os.path.join(bindir, "make")
+    with open(fake_make, "w", encoding="utf-8") as handle:
+        handle.write(script)
+    os.chmod(fake_make, 0o755)
+    return dict(
+        os.environ,
+        PATH=bindir + os.pathsep + os.environ.get("PATH", ""),
+        **extra,
+    )
+
+
 class TestSubprocessTimeout(unittest.TestCase):
     def _assert_process_dies(self, pid, message):
         """Assert process *pid* is gone within a short deadline.
@@ -61,14 +81,7 @@ class TestSubprocessTimeout(unittest.TestCase):
 
     def test_install_times_out_when_make_hangs(self):
         with tempfile.TemporaryDirectory() as tmp:
-            bindir = os.path.join(tmp, "fakebin")
-            os.makedirs(bindir)
-            fake_make = os.path.join(bindir, "make")
-            with open(fake_make, "w", encoding="utf-8") as handle:
-                handle.write("#!/bin/sh\nexec sleep 5\n")
-            os.chmod(fake_make, 0o755)
-
-            env = {"PATH": bindir + os.pathsep + os.environ.get("PATH", "")}
+            env = _fake_make_env(tmp, "#!/bin/sh\nexec sleep 5\n")
             with unittest.mock.patch.dict(os.environ, env):
                 with _short_subprocess_timeout():
                     with self.assertRaises(subprocess.TimeoutExpired):
@@ -86,21 +99,12 @@ class TestSubprocessTimeout(unittest.TestCase):
         """
         with tempfile.TemporaryDirectory() as tmp:
             pidfile = os.path.join(tmp, "grandchild.pid")
-            bindir = os.path.join(tmp, "fakebin")
-            os.makedirs(bindir)
-            fake_make = os.path.join(bindir, "make")
-            with open(fake_make, "w", encoding="utf-8") as handle:
-                handle.write(
-                    "#!/bin/sh\n"
-                    "sleep 5 &\n"
-                    'echo "$!" > "$GRANDCHILD_PIDFILE"\n'
-                    "exec sleep 5\n"
-                )
-            os.chmod(fake_make, 0o755)
-
-            env = dict(
-                os.environ,
-                PATH=bindir + os.pathsep + os.environ.get("PATH", ""),
+            env = _fake_make_env(
+                tmp,
+                "#!/bin/sh\n"
+                "sleep 5 &\n"
+                'echo "$!" > "$GRANDCHILD_PIDFILE"\n'
+                "exec sleep 5\n",
                 GRANDCHILD_PIDFILE=pidfile,
             )
             with _short_subprocess_timeout():
