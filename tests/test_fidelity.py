@@ -142,6 +142,13 @@ class TestCli(unittest.TestCase):
         path.write_bytes(data)
         return str(path)
 
+    def _solid_reference(self) -> str:
+        """Write a 1x1 black PNG to a temp dir removed when the test ends."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        return self._write(Path(tmp.name), "reference.png", data)
+
     def test_pass_and_fail(self):
         a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
         changed = bytearray(a.rgb)
@@ -227,7 +234,6 @@ class TestCli(unittest.TestCase):
         # A PNG whose IHDR payload is not the 13 bytes the spec requires must
         # fail with the tool's clean error path (exit 2), not a struct.error
         # traceback from the unpack in decode_png.
-        _, good = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         short_ihdr = (
             _PNG_SIGNATURE
             + _chunk(
@@ -235,10 +241,9 @@ class TestCli(unittest.TestCase):
             )
             + _chunk(b"IEND", b"")
         )
+        reference = self._solid_reference()
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "broken.png", short_ihdr)
-            reference = self._write(tmpdir, "reference.png", good)
+            candidate = self._write(Path(tmp), "broken.png", short_ihdr)
             result = self._run(candidate, reference)
             self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
             self.assertIn("error", result.stderr)
@@ -247,11 +252,9 @@ class TestCli(unittest.TestCase):
     def test_decode_error_names_offending_file(self):
         # With two file inputs, the error must say which one could not be
         # decoded; the message is otherwise identical for either ordering.
-        _, good = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        reference = self._solid_reference()
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "broken.png", b"not a png")
-            reference = self._write(tmpdir, "reference.png", good)
+            candidate = self._write(Path(tmp), "broken.png", b"not a png")
             for first, second in ((candidate, reference), (reference, candidate)):
                 with self.subTest(first=first):
                     result = self._run(first, second)
@@ -264,38 +267,34 @@ class TestCli(unittest.TestCase):
                     self.assertNotIn(reference, result.stderr)
 
     def test_missing_file_is_error(self):
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with tempfile.TemporaryDirectory() as tmp:
-            reference = self._write(Path(tmp), "reference.png", data)
-            result = self._run("/nonexistent.png", reference)
-            self.assertEqual(result.returncode, 2)
-            self.assertIn("error", result.stderr)
+        reference = self._solid_reference()
+        result = self._run("/nonexistent.png", reference)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("error", result.stderr)
 
     def test_invalid_numeric_args_are_usage_errors(self):
         # Negative/NaN thresholds silently invert the verdict (a negative
         # tolerance makes every pixel differ, a NaN max-mae always fails), so
         # they must be rejected as usage errors rather than acted on.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with tempfile.TemporaryDirectory() as tmp:
-            reference = self._write(Path(tmp), "reference.png", data)
-            base = [reference, reference]
-            for extra in (
-                ["--tolerance", "-1"],
-                ["--tolerance", "1.5"],
-                ["--max-mae", "-1"],
-                ["--max-mae", "nan"],
-                ["--max-mae", "inf"],
-                ["--max-frac", "-0.1"],
-                ["--max-frac", "1.5"],
-                ["--max-frac", "nan"],
-            ):
-                with self.subTest(extra=extra):
-                    result = self._run(*base, *extra)
-                    self.assertEqual(
-                        result.returncode, 2, result.stdout + result.stderr
-                    )
-                    self.assertIn("error", result.stderr)
-                    self.assertNotIn("Traceback", result.stderr)
+        reference = self._solid_reference()
+        base = [reference, reference]
+        for extra in (
+            ["--tolerance", "-1"],
+            ["--tolerance", "1.5"],
+            ["--max-mae", "-1"],
+            ["--max-mae", "nan"],
+            ["--max-mae", "inf"],
+            ["--max-frac", "-0.1"],
+            ["--max-frac", "1.5"],
+            ["--max-frac", "nan"],
+        ):
+            with self.subTest(extra=extra):
+                result = self._run(*base, *extra)
+                self.assertEqual(
+                    result.returncode, 2, result.stdout + result.stderr
+                )
+                self.assertIn("error", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
 
     def test_malformed_crop_is_usage_error(self):
         # A bad --crop must be rejected as a usage error before either image is
@@ -324,49 +323,43 @@ class TestCli(unittest.TestCase):
     def test_tolerance_above_channel_range_rejected(self):
         # A per-channel delta is at most 255, so a larger tolerance can never
         # mark a pixel as differing and would silently disable that metric.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with tempfile.TemporaryDirectory() as tmp:
-            reference = self._write(Path(tmp), "reference.png", data)
-            for value in ("256", "1000"):
-                with self.subTest(value=value):
-                    result = self._run(reference, reference, "--tolerance", value)
-                    self.assertEqual(
-                        result.returncode, 2, result.stdout + result.stderr
-                    )
-                    self.assertIn("255", result.stderr)
-                    self.assertNotIn("Traceback", result.stderr)
+        reference = self._solid_reference()
+        for value in ("256", "1000"):
+            with self.subTest(value=value):
+                result = self._run(reference, reference, "--tolerance", value)
+                self.assertEqual(
+                    result.returncode, 2, result.stdout + result.stderr
+                )
+                self.assertIn("255", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
 
     def test_max_mae_above_channel_range_rejected(self):
         # Mean absolute error averages per-channel deltas, so it can never
         # exceed 255; a larger threshold would silently always pass.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with tempfile.TemporaryDirectory() as tmp:
-            reference = self._write(Path(tmp), "reference.png", data)
-            for value in ("255.5", "256", "1e9"):
-                with self.subTest(value=value):
-                    result = self._run(reference, reference, "--max-mae", value)
-                    self.assertEqual(
-                        result.returncode, 2, result.stdout + result.stderr
-                    )
-                    self.assertIn("255", result.stderr)
-                    self.assertNotIn("Traceback", result.stderr)
+        reference = self._solid_reference()
+        for value in ("255.5", "256", "1e9"):
+            with self.subTest(value=value):
+                result = self._run(reference, reference, "--max-mae", value)
+                self.assertEqual(
+                    result.returncode, 2, result.stdout + result.stderr
+                )
+                self.assertIn("255", result.stderr)
+                self.assertNotIn("Traceback", result.stderr)
 
     def test_valid_numeric_boundaries_accepted(self):
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with tempfile.TemporaryDirectory() as tmp:
-            reference = self._write(Path(tmp), "reference.png", data)
-            result = self._run(
-                reference,
-                reference,
-                "--tolerance",
-                "255",
-                "--max-mae",
-                "255",
-                "--max-frac",
-                "1",
-            )
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn("PASS", result.stdout)
+        reference = self._solid_reference()
+        result = self._run(
+            reference,
+            reference,
+            "--tolerance",
+            "255",
+            "--max-mae",
+            "255",
+            "--max-frac",
+            "1",
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS", result.stdout)
 
 
 if __name__ == "__main__":
