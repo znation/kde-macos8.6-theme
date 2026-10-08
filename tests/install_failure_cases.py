@@ -73,6 +73,33 @@ class FailedInstallPreservesPackage:
             f'exec "{real_mv}" "$@"\n',
         )
 
+    def test_reinstall_after_killed_swap_recovers_the_old_package(self):
+        """A SIGKILL mid-swap leaves the package absent and its bytes in `.old`.
+
+        `make install` moves the working package to a hidden sibling, then
+        renames the staged copy into place; a SIGKILL between the two renames
+        runs neither the trap nor the final rename, so the package is absent
+        and `.old` holds the only copy. The next install must move `.old` back
+        before it removes anything, so a copy that then fails leaves the last
+        working package installed rather than deleting it.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            first = install(tmp)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            installed, metadata, good = self._snapshot(tmp)
+
+            # Reproduce the kill window: the working package was moved aside,
+            # but the staged copy was never renamed into place.
+            old = os.path.join(
+                installed_plasma_dir(tmp, self.KIND),
+                "." + self.PACKAGE_ID + ".old",
+            )
+            os.rename(installed, old)
+
+            result = install(tmp, env=self.reinstall_failure_env(tmp))
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self._assert_package_intact(installed, metadata, good)
+
     def test_failed_reinstall_keeps_the_previous_package(self):
         """A copy that dies partway must not delete or damage the working install.
 

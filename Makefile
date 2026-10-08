@@ -25,11 +25,16 @@ DTHEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/desktoptheme
 # first: the swap is then a rename either way, and if the final rename fails the
 # EXIT trap moves the old package back. A reinstall still replaces rather than
 # merges, so files deleted from the package source do not stay behind as stale
-# QML. $(1) is the package id, $(2) its source directory, $(3) the install dir.
+# QML. A SIGKILL between the two renames cannot run the trap, leaving the
+# package absent and its bytes in `.old`; the recovery below moves `.old` back
+# before anything is removed, so the next install (or a copy that fails) leaves
+# the last working package installed instead of deleting it. $(1) is the
+# package id, $(2) its source directory, $(3) the install dir.
 define install_package
 	@staging='$(3)/.$(1).staging'; \
 	old='$(3)/.$(1).old'; \
 	trap 'rm -rf "$$staging"; if [ ! -e "$(3)/$(1)" ] && [ -e "$$old" ]; then mv "$$old" "$(3)/$(1)"; fi' EXIT; \
+	if [ ! -e "$(3)/$(1)" ] && [ -e "$$old" ]; then mv "$$old" "$(3)/$(1)"; fi && \
 	rm -rf "$$staging" "$$old" && \
 	cp -r "$(2)" "$$staging" && \
 	if [ -e "$(3)/$(1)" ]; then mv "$(3)/$(1)" "$$old"; fi && \
