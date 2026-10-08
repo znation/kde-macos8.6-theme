@@ -26,10 +26,17 @@ check-references:
 install:
 	install -Dm644 $(COLOR_SCHEME) $(INSTALL_DIR)/MacOS8.colors
 	install -d $(LNF_INSTALL_DIR)
-# Replace the package rather than merging: `cp -r` would leave files that were
-# deleted from $(LNF_PACKAGE) behind, so a reinstall could keep loading stale QML.
-	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID)
-	cp -r $(LNF_PACKAGE) $(LNF_INSTALL_DIR)/
+# Stage the package as a sibling, then swap it in with a rename, so a copy that
+# fails or is interrupted cannot leave a partial package installed or delete the
+# working one. The rename also replaces rather than merges, so a reinstall drops
+# files deleted from $(LNF_PACKAGE) instead of keeping stale QML. The EXIT trap
+# removes the staging directory on the failure path.
+	@staging='$(LNF_INSTALL_DIR)/.$(LNF_ID).staging'; \
+	trap 'rm -rf "$$staging"' EXIT; \
+	rm -rf "$$staging" && \
+	cp -r $(LNF_PACKAGE) "$$staging" && \
+	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID) && \
+	mv "$$staging" $(LNF_INSTALL_DIR)/$(LNF_ID)
 	install -d $(DTHEME_INSTALL_DIR)
 # Same replace-not-merge rule as the look-and-feel package above.
 	rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID)

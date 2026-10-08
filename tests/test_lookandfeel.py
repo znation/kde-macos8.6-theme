@@ -129,6 +129,63 @@ class TestInstall(unittest.TestCase):
             again = uninstall(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)
 
+    def test_failed_reinstall_keeps_the_previous_package(self):
+        """A copy that dies partway must not delete or damage the working install.
+
+        `make install` replaces the package in place. If the copy fails after
+        the old package was removed, Plasma is left with a partial theme; stage
+        the copy and swap it in so a failure leaves the old package intact.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            first = install(tmp)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            installed = os.path.join(
+                tmp, "share", "plasma", "look-and-feel", LNF_ID
+            )
+            metadata = os.path.join(installed, "metadata.json")
+            with open(metadata, "rb") as handle:
+                good = handle.read()
+
+            # Shadow `cp` with a fake that writes part of the tree, then fails,
+            # simulating a copy killed or out of space halfway through.
+            bindir = os.path.join(tmp, "fakebin")
+            os.makedirs(bindir)
+            fake_cp = os.path.join(bindir, "cp")
+            with open(fake_cp, "w", encoding="utf-8") as handle:
+                handle.write(
+                    '#!/bin/sh\n'
+                    '# Copy part of the tree, then die, like a killed `cp` would.\n'
+                    'src="$2"\n'
+                    'dest="$3/$(basename "$src")"\n'
+                    'mkdir -p "$dest"\n'
+                    'printf partial > "$dest/metadata.json"\n'
+                    'exit 1\n'
+                )
+            os.chmod(fake_cp, 0o755)
+
+            env = dict(os.environ)
+            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
+            result = subprocess.run(
+                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertFalse(
+                os.path.exists(
+                    os.path.join(
+                        tmp, "share", "plasma", "look-and-feel",
+                        "." + LNF_ID + ".staging",
+                    )
+                ),
+                "staging directory leaked after a failed install",
+            )
+            self.assertTrue(os.path.isdir(installed), installed)
+            with open(metadata, "rb") as handle:
+                self.assertEqual(handle.read(), good)
+
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
         with tempfile.TemporaryDirectory() as tmp:
