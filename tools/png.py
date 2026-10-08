@@ -2,9 +2,9 @@
 
 Decodes 8-bit, non-interlaced PNG images (color types 0, 2, 3, 4 and 6) into
 tightly packed RGB bytes, using only the Python standard library. The fidelity
-comparison in ``tools/fidelity.py`` is the only consumer today; keeping the
-reader separate lets a future capture or render step read PNGs without pulling
-in the comparison and CLI layers.
+comparison in ``tools/fidelity_metrics.py`` and the CLI in ``tools/fidelity.py``
+are the consumers today; keeping the reader separate lets a future capture or
+render step read PNGs without pulling in the comparison and CLI layers.
 
 Raises :class:`PngError` for a malformed or unsupported PNG.
 """

@@ -1,5 +1,5 @@
-"""Tests for tools/fidelity.py's comparison metrics -- compare, crop, and the
-packed-integer helpers behind them.
+"""Tests for tools/fidelity_metrics.py's comparison metrics -- compare, crop,
+and the packed-integer helpers behind them.
 
 Run with the project's check harness (stdlib unittest):
     python3 -m unittest discover -s tests -v
@@ -16,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from tools import fidelity  # noqa: E402
+from tools import fidelity_metrics  # noqa: E402
 from png_fixtures import rgb_image  # noqa: E402
 
 
@@ -36,7 +36,7 @@ class TestAbsDiff(unittest.TestCase):
                 b = bytes(rng.randrange(256) for _ in range(length))
                 with self.subTest(length=length):
                     self.assertEqual(
-                        fidelity._abs_diff(a, b), self._reference(a, b)
+                        fidelity_metrics._abs_diff(a, b), self._reference(a, b)
                     )
 
     def test_extreme_values(self):
@@ -49,7 +49,7 @@ class TestAbsDiff(unittest.TestCase):
                     b = bytes([y]) * length
                     with self.subTest(length=length, x=x, y=y):
                         self.assertEqual(
-                            fidelity._abs_diff(a, b), self._reference(a, b)
+                            fidelity_metrics._abs_diff(a, b), self._reference(a, b)
                         )
 
 
@@ -68,7 +68,7 @@ class TestSumSquares(unittest.TestCase):
                 channel = bytes(rng.randrange(256) for _ in range(length))
                 with self.subTest(length=length):
                     self.assertEqual(
-                        fidelity._sum_squares(channel),
+                        fidelity_metrics._sum_squares(channel),
                         self._reference(channel),
                     )
 
@@ -77,10 +77,10 @@ class TestSumSquares(unittest.TestCase):
         # exercise every value, both alone and repeated enough to carry.
         channel = bytes(range(256))
         self.assertEqual(
-            fidelity._sum_squares(channel), self._reference(channel)
+            fidelity_metrics._sum_squares(channel), self._reference(channel)
         )
         self.assertEqual(
-            fidelity._sum_squares(b"\xff" * 1000),
+            fidelity_metrics._sum_squares(b"\xff" * 1000),
             self._reference(b"\xff" * 1000),
         )
 
@@ -100,7 +100,7 @@ class TestMaxByteIndex(unittest.TestCase):
                 data = bytes(rng.randrange(256) for _ in range(length))
                 with self.subTest(length=length):
                     self.assertEqual(
-                        fidelity._max_byte_index(data), self._reference(data)
+                        fidelity_metrics._max_byte_index(data), self._reference(data)
                     )
 
     def test_edges_and_ties(self):
@@ -116,18 +116,18 @@ class TestMaxByteIndex(unittest.TestCase):
         for data in cases:
             with self.subTest(data=data[:8]):
                 self.assertEqual(
-                    fidelity._max_byte_index(data), self._reference(data)
+                    fidelity_metrics._max_byte_index(data), self._reference(data)
                 )
 
     def test_empty_raises(self):
         with self.assertRaises(ValueError):
-            fidelity._max_byte_index(b"")
+            fidelity_metrics._max_byte_index(b"")
 
 
 class TestCompare(unittest.TestCase):
     def test_identical_is_zero(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x * 5, y * 5, 100))
-        metrics = fidelity.compare(image, image)
+        metrics = fidelity_metrics.compare(image, image)
         self.assertEqual(metrics.mae, 0.0)
         self.assertEqual(metrics.mae_r, 0.0)
         self.assertEqual(metrics.mae_g, 0.0)
@@ -142,8 +142,8 @@ class TestCompare(unittest.TestCase):
         a, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
         changed = bytearray(a.rgb)
         changed[0] = 10  # one red channel on the first pixel
-        b = fidelity.Image(a.width, a.height, bytes(changed))
-        metrics = fidelity.compare(a, b)
+        b = fidelity_metrics.Image(a.width, a.height, bytes(changed))
+        metrics = fidelity_metrics.compare(a, b)
         self.assertEqual(metrics.pixels, 4)
         self.assertAlmostEqual(metrics.mae, 10 / 12)
         self.assertAlmostEqual(metrics.mae_r, 10 / 4)
@@ -161,7 +161,7 @@ class TestCompare(unittest.TestCase):
         cast = bytes(
             a.rgb[i] + (5 if i % 3 == 0 else 0) for i in range(len(a.rgb))
         )
-        metrics = fidelity.compare(a, fidelity.Image(a.width, a.height, cast))
+        metrics = fidelity_metrics.compare(a, fidelity_metrics.Image(a.width, a.height, cast))
         self.assertAlmostEqual(metrics.mae_r, 5.0)
         self.assertEqual(metrics.mae_g, 0.0)
         self.assertEqual(metrics.mae_b, 0.0)
@@ -173,8 +173,8 @@ class TestCompare(unittest.TestCase):
         a, _ = rgb_image(3, 2, lambda x, y: (0, 0, 0))
         changed = bytearray(a.rgb)
         changed[15] = 40  # red channel of pixel (2, 1)
-        b = fidelity.Image(a.width, a.height, bytes(changed))
-        metrics = fidelity.compare(a, b)
+        b = fidelity_metrics.Image(a.width, a.height, bytes(changed))
+        metrics = fidelity_metrics.compare(a, b)
         self.assertEqual(metrics.max_delta, 40)
         self.assertEqual((metrics.max_x, metrics.max_y), (2, 1))
 
@@ -182,8 +182,8 @@ class TestCompare(unittest.TestCase):
         # Ties on the worst delta resolve to the first pixel in scan order, in
         # any channel; and a pixel with several channels over tolerance counts
         # once in ``differing``.
-        a = fidelity.Image(3, 1, bytes(9))
-        b = fidelity.Image(
+        a = fidelity_metrics.Image(3, 1, bytes(9))
+        b = fidelity_metrics.Image(
             3,
             1,
             bytes(
@@ -194,29 +194,29 @@ class TestCompare(unittest.TestCase):
                 ]
             ),
         )
-        metrics = fidelity.compare(a, b, tolerance=5)
+        metrics = fidelity_metrics.compare(a, b, tolerance=5)
         self.assertEqual(metrics.max_delta, 10)
         self.assertEqual((metrics.max_x, metrics.max_y), (0, 0))
         self.assertEqual(metrics.differing, 3)
 
     def test_tolerance_absorbs_small_deltas(self):
         a, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        b = fidelity.Image(1, 1, bytes([3, 0, 0]))
-        self.assertEqual(fidelity.compare(a, b, tolerance=3).differing, 0)
-        self.assertEqual(fidelity.compare(a, b, tolerance=2).differing, 1)
+        b = fidelity_metrics.Image(1, 1, bytes([3, 0, 0]))
+        self.assertEqual(fidelity_metrics.compare(a, b, tolerance=3).differing, 0)
+        self.assertEqual(fidelity_metrics.compare(a, b, tolerance=2).differing, 1)
 
     def test_size_mismatch_raises(self):
         a, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
         b, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        with self.assertRaises(fidelity.FidelityError) as caught:
-            fidelity.compare(a, b)
+        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+            fidelity_metrics.compare(a, b)
         message = str(caught.exception)
         self.assertIn("candidate 2x2", message)
         self.assertIn("reference 1x1", message)
 
     def test_crop_extracts_region(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x, y, 0))
-        region = fidelity.crop(image, 1, 2, 2, 2)
+        region = fidelity_metrics.crop(image, 1, 2, 2, 2)
         self.assertEqual(region.width, 2)
         self.assertEqual(region.height, 2)
         self.assertEqual(region.rgb, bytes([1, 2, 0, 2, 2, 0, 1, 3, 0, 2, 3, 0]))
@@ -226,7 +226,7 @@ class TestCompare(unittest.TestCase):
         # borders is inside the image: x + width == image.width is valid. An
         # off-by-one (>= instead of >) would reject this legitimate crop.
         image, _ = rgb_image(4, 4, lambda x, y: (x, y, 0))
-        region = fidelity.crop(image, 1, 1, 3, 3)
+        region = fidelity_metrics.crop(image, 1, 1, 3, 3)
         self.assertEqual((region.width, region.height), (3, 3))
         self.assertEqual(
             region.rgb,
@@ -243,21 +243,21 @@ class TestCompare(unittest.TestCase):
         # Selecting the entire surface is the degenerate crop; it must be
         # accepted and preserve every pixel in order.
         image, _ = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 7))
-        region = fidelity.crop(image, 0, 0, 3, 2)
+        region = fidelity_metrics.crop(image, 0, 0, 3, 2)
         self.assertEqual((region.width, region.height), (3, 2))
         self.assertEqual(region.rgb, image.rgb)
 
     def test_crop_out_of_bounds_raises(self):
         image, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
-        with self.assertRaises(fidelity.FidelityError):
-            fidelity.crop(image, 1, 1, 2, 2)
+        with self.assertRaises(fidelity_metrics.FidelityError):
+            fidelity_metrics.crop(image, 1, 1, 2, 2)
 
     def test_crop_nonpositive_rect_error_names_values(self):
         # The message must echo the rejected rectangle so a CLI user can see
         # which of x/y/w/h was wrong without re-deriving it from the input.
         image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
-        with self.assertRaises(fidelity.FidelityError) as caught:
-            fidelity.crop(image, 0, 0, 0, 2)
+        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+            fidelity_metrics.crop(image, 0, 0, 0, 2)
         message = str(caught.exception)
         self.assertIn("x=0 y=0 w=0 h=2", message)
 
@@ -265,8 +265,8 @@ class TestCompare(unittest.TestCase):
         # The message must name both the offending rectangle and the image it
         # was measured against, since neither is otherwise visible.
         image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
-        with self.assertRaises(fidelity.FidelityError) as caught:
-            fidelity.crop(image, 3, 3, 2, 2)
+        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+            fidelity_metrics.crop(image, 3, 3, 2, 2)
         message = str(caught.exception)
         self.assertIn("x=3 y=3 w=2 h=2", message)
         self.assertIn("4x4", message)
