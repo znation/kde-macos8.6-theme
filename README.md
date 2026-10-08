@@ -22,8 +22,9 @@ into `plasma/look-and-feel/`, and the `org.macos8.desktop` desktop theme into
 `plasma/desktoptheme/`.
 
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
-first dot). Select it in System Settings or with `plasma-apply-colorscheme MacOS8`; the dotless
-filename means the ID KDE writes into `kdeglobals` resolves again on the next start.
+first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
+`plasma-apply-colorscheme MacOS8`; because the filename stem is exactly `MacOS8`, the scheme
+resolves again on the next start.
 
 The global theme applies that same scheme as one selection: `lookandfeeltool -a
 org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). The desktop theme can be
