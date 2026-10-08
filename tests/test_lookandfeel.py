@@ -1,12 +1,17 @@
 """Validate the org.macos8.desktop look-and-feel global theme package."""
 
+import fcntl
 import json
 import os
+import shlex
 import shutil
+import subprocess
 import tempfile
+import time
 import unittest
 
 from install_failure_cases import FailedInstallPreservesPackage
+import theme_install
 from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
@@ -139,6 +144,76 @@ class TestInstall(FailedInstallPreservesPackage, unittest.TestCase):
             self.assertEqual(first.returncode, 0, first.stderr)
             second = install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
+
+    @unittest.skipUnless(shutil.which("flock"), "needs flock")
+    def test_make_install_waits_for_an_overlapping_install(self):
+        """A second install must wait for the first, not clobber its staging.
+
+        `install` stages under fixed hidden names in the data home, so two
+        overlapping runs would share them. It takes an exclusive lock over the
+        data home, so while another process holds that lock a new install makes
+        no changes, then completes once the lock is released.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            data_home = os.path.join(tmp, "share")
+            os.makedirs(data_home)
+            package = os.path.join(
+                data_home, "plasma", "look-and-feel", LNF_ID
+            )
+            real_flock = shutil.which("flock")
+            # Hold the same kernel lock the `flock` in the Makefile takes,
+            # before starting the install, so the install can never win a race
+            # for the lock the test means to hold.
+            lock_fd = os.open(data_home, os.O_RDONLY)
+            fcntl.flock(lock_fd, fcntl.LOCK_EX)
+            # Shadow `flock` so the install records the moment it reaches the
+            # lock step. The test waits for that record instead of guessing
+            # with a sleep, so an install that skips the lock is caught when it
+            # exits without one, however slow the host is.
+            invoked = os.path.join(tmp, "flock-invoked")
+            env = shadow_command_env(
+                tmp,
+                "flock",
+                "#!/bin/sh\n"
+                f": > {shlex.quote(invoked)}\n"
+                f"exec {shlex.quote(real_flock)} \"$@\"\n",
+            )
+            proc = subprocess.Popen(
+                [
+                    "make", "install",
+                    f"DESTDIR={tmp}",
+                    f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                ],
+                cwd=ROOT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env=env,
+            )
+            try:
+                deadline = time.monotonic() + theme_install.SUBPROCESS_TIMEOUT
+                while (
+                    not os.path.exists(invoked)
+                    and proc.poll() is None
+                    and time.monotonic() < deadline
+                ):
+                    time.sleep(0.05)
+                reached_lock = os.path.exists(invoked)
+                wrote = os.path.exists(package)
+            finally:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                os.close(lock_fd)
+            _, err = proc.communicate(timeout=theme_install.SUBPROCESS_TIMEOUT)
+            self.assertTrue(
+                reached_lock, "install did not take the data-home lock"
+            )
+            self.assertFalse(
+                wrote, "install wrote the package while the lock was held"
+            )
+            self.assertEqual(proc.returncode, 0, err)
+            self.assertTrue(
+                os.path.isfile(os.path.join(package, "metadata.json"))
+            )
 
     def test_make_uninstall_removes_the_installed_package(self):
         with tempfile.TemporaryDirectory() as tmp:

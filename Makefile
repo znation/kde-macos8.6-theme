@@ -1,6 +1,9 @@
 PYTHON ?= python3
 XDG_DATA_HOME ?= $(HOME)/.local/share
 
+# The data home doubles as the install/uninstall lock (see `install` below).
+DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
+
 COLOR_SCHEME := theme/color-schemes/MacOS8.colors
 # KDE derives the scheme id from the installed filename, so install under the
 # source's own basename: renaming the scheme then moves the id with it instead
@@ -34,7 +37,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: check check-references install uninstall
+.PHONY: check check-references install uninstall _install _uninstall
 
 check:
 	$(PYTHON) -m unittest discover -s tests -v
@@ -45,7 +48,17 @@ check-references:
 	$(PYTHON) tools/check_references.py --self-test
 	$(PYTHON) tools/check_references.py
 
+# `install` and `uninstall` share fixed hidden `.staging`/`.old` names under
+# the data home, so overlapping runs can clobber each other's staging, and an
+# uninstall can delete an install's in-flight staging. Serialize them on an
+# exclusive lock over the data home; flock releases the lock when the holder
+# dies, so a SIGKILLed run cannot leave the lock stuck the way a lock
+# directory would.
 install:
+	@install -d "$(DATA_HOME)"
+	@flock "$(DATA_HOME)" $(MAKE) --no-print-directory _install
+
+_install:
 # Stage the scheme as a hidden sibling and rename it in, so a copy that fails
 # or is interrupted cannot truncate the working installed scheme. The rename
 # replaces atomically, and the EXIT trap removes the staging file on failure.
@@ -65,6 +78,10 @@ install:
 # EXIT trap, so remove them here too instead of leaking them past uninstall.
 # `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
+	@install -d "$(DATA_HOME)"
+	@flock "$(DATA_HOME)" $(MAKE) --no-print-directory _uninstall
+
+_uninstall:
 	rm -f "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)" "$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging"
 	rm -rf "$(LNF_INSTALL_DIR)/$(LNF_ID)" "$(LNF_INSTALL_DIR)/.$(LNF_ID).staging" "$(LNF_INSTALL_DIR)/.$(LNF_ID).old"
 	rm -rf "$(DTHEME_INSTALL_DIR)/$(DTHEME_ID)" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old"
