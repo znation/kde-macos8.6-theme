@@ -274,6 +274,7 @@ def decode_png(data: bytes) -> Image:
 
 
 def read_png(path: str | Path) -> Image:
+    """Read and decode the PNG at *path*, naming it in any :class:`PngError`."""
     try:
         # Read at most one byte past the cap: enough to detect an oversize
         # file without loading the rest of it (or waiting forever on a stream
