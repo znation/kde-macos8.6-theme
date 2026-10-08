@@ -128,10 +128,9 @@ class TestInstall(unittest.TestCase):
     def test_failed_reinstall_keeps_the_previous_package(self):
         """A copy that dies partway must not delete or damage the working install.
 
-        `make install` removes the installed package before copying the new one.
-        If the copy fails after that removal, Plasma is left with a partial or
-        missing desktop theme; stage the copy and swap it in so a failure leaves
-        the old package intact.
+        `make install` copies into a sibling staging directory and swaps it in
+        with a rename, so a copy that fails or is interrupted leaves the working
+        desktop theme installed.
         """
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)

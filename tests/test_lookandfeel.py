@@ -125,9 +125,9 @@ class TestInstall(unittest.TestCase):
     def test_failed_reinstall_keeps_the_previous_package(self):
         """A copy that dies partway must not delete or damage the working install.
 
-        `make install` replaces the package in place. If the copy fails after
-        the old package was removed, Plasma is left with a partial theme; stage
-        the copy and swap it in so a failure leaves the old package intact.
+        `make install` copies into a sibling staging directory and swaps it in
+        with a rename, so a copy that fails or is interrupted leaves the working
+        package installed.
         """
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
