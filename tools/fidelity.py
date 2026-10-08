@@ -23,6 +23,7 @@ Exit status: 0 within tolerance, 1 outside tolerance, 2 usage or read error.
 from __future__ import annotations
 
 import argparse
+import math
 import struct
 import sys
 import zlib
@@ -258,6 +259,50 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
     return x, y, width, height
 
 
+def _finite_float(value: str, option: str) -> float:
+    try:
+        number = float(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            f"{option} must be a number: {value!r}"
+        ) from exc
+    if not math.isfinite(number):
+        raise argparse.ArgumentTypeError(f"{option} must be finite: {value!r}")
+    return number
+
+
+def _max_mae(value: str) -> float:
+    number = _finite_float(value, "--max-mae")
+    if number < 0:
+        raise argparse.ArgumentTypeError(
+            f"--max-mae must not be negative: {value!r}"
+        )
+    return number
+
+
+def _max_frac(value: str) -> float:
+    number = _finite_float(value, "--max-frac")
+    if not 0.0 <= number <= 1.0:
+        raise argparse.ArgumentTypeError(
+            f"--max-frac must be between 0 and 1: {value!r}"
+        )
+    return number
+
+
+def _tolerance(value: str) -> int:
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            f"--tolerance must be an integer: {value!r}"
+        ) from exc
+    if number < 0:
+        raise argparse.ArgumentTypeError(
+            f"--tolerance must not be negative: {value!r}"
+        )
+    return number
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="fidelity",
@@ -273,19 +318,19 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--tolerance",
-        type=int,
+        type=_tolerance,
         default=0,
         help="per-channel delta at or below which a pixel is not 'differing'",
     )
     parser.add_argument(
         "--max-mae",
-        type=float,
+        type=_max_mae,
         default=0.0,
         help="fail when mean absolute error exceeds this (default 0)",
     )
     parser.add_argument(
         "--max-frac",
-        type=float,
+        type=_max_frac,
         default=0.0,
         help="fail when the differing-pixel fraction exceeds this (default 0)",
     )

@@ -280,6 +280,57 @@ class TestCli(unittest.TestCase):
             self.assertEqual(result.returncode, 2)
             self.assertIn("error", result.stderr)
 
+    def test_invalid_numeric_args_are_usage_errors(self):
+        # Negative/NaN thresholds silently invert the verdict (a negative
+        # tolerance makes every pixel differ, a NaN max-mae always fails), so
+        # they must be rejected as usage errors rather than acted on.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        with tempfile.TemporaryDirectory() as tmp:
+            reference = self._write(Path(tmp), "reference.png", data)
+            base = [sys.executable, str(TOOL), reference, reference]
+            for extra in (
+                ["--tolerance", "-1"],
+                ["--tolerance", "1.5"],
+                ["--max-mae", "-1"],
+                ["--max-mae", "nan"],
+                ["--max-mae", "inf"],
+                ["--max-frac", "-0.1"],
+                ["--max-frac", "1.5"],
+                ["--max-frac", "nan"],
+            ):
+                with self.subTest(extra=extra):
+                    result = subprocess.run(
+                        base + extra, capture_output=True, text=True
+                    )
+                    self.assertEqual(
+                        result.returncode, 2, result.stdout + result.stderr
+                    )
+                    self.assertIn("error", result.stderr)
+                    self.assertNotIn("Traceback", result.stderr)
+
+    def test_valid_numeric_boundaries_accepted(self):
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        with tempfile.TemporaryDirectory() as tmp:
+            reference = self._write(Path(tmp), "reference.png", data)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(TOOL),
+                    reference,
+                    reference,
+                    "--tolerance",
+                    "255",
+                    "--max-mae",
+                    "255",
+                    "--max-frac",
+                    "1",
+                ],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("PASS", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
