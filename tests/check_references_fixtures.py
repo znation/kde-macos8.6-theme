@@ -56,6 +56,23 @@ def reference_set(module, sources, files=()):
 
 
 @contextlib.contextmanager
+def good_reference(module):
+    """Yield a reference directory holding one consistent declared image.
+
+    ``sources.txt`` names ``good.png`` and the directory holds a file whose
+    bytes begin with ``module.PNG_MAGIC``, so the checker reports no problem
+    for it. Tests that drive one specific failure against a known-good set
+    start from this directory.
+    """
+    with reference_set(
+        module,
+        "good.png | https://example.test/g.png | label\n",
+        {"good.png": module.PNG_MAGIC},
+    ) as root:
+        yield root
+
+
+@contextlib.contextmanager
 def symlinked_reference(module, link_name, target, sources=None):
     """Yield a reference directory holding one symlink that escapes it.
 

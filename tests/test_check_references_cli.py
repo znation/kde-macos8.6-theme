@@ -10,7 +10,7 @@ import io
 import unittest
 import unittest.mock
 
-from check_references_fixtures import load_checker, reference_set
+from check_references_fixtures import good_reference, load_checker, reference_set
 
 
 class TestSelfTestDiagnostics(unittest.TestCase):
@@ -96,11 +96,7 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
 
     def test_clean_set_exits_zero(self):
         module = load_checker()
-        with reference_set(
-            module,
-            "good.png | https://example.test/g.png | label\n",
-            {"good.png": module.PNG_MAGIC},
-        ) as root:
+        with good_reference(module) as root:
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 0, out + err)
         self.assertIn("reference set is consistent", out)

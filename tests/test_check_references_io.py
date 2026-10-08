@@ -12,6 +12,7 @@ from pathlib import Path
 
 from check_references_fixtures import (
     assert_problem,
+    good_reference,
     load_checker,
     path_method_raises,
     reference_set,
@@ -73,11 +74,7 @@ class TestUnreadableSources(unittest.TestCase):
 
     def test_unreadable_sources_file_is_reported_not_raised(self):
         module = load_checker()
-        with reference_set(
-            module,
-            "good.png | https://example.test/g.png | label\n",
-            {"good.png": module.PNG_MAGIC},
-        ) as root:
+        with good_reference(module) as root:
             sources = root / module.SOURCES_NAME
             with path_method_raises(
                 "read_text", sources, PermissionError, 13, "Permission denied"
@@ -201,11 +198,7 @@ class TestResolveFailureIsFailClosed(unittest.TestCase):
 
     def test_unresolvable_sources_path_is_reported_not_raised(self):
         module = load_checker()
-        with reference_set(
-            module,
-            "good.png | https://example.test/g.png | label\n",
-            {"good.png": module.PNG_MAGIC},
-        ) as root:
+        with good_reference(module) as root:
             sources = root / module.SOURCES_NAME
             with path_method_raises(
                 "resolve",
