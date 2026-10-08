@@ -1,6 +1,7 @@
 """Validate the Mac OS 8.6 Platinum color scheme and its install path."""
 
 import configparser
+import math
 import os
 import re
 import subprocess
@@ -60,13 +61,30 @@ RGB_RE = re.compile(r"^\d{1,3},\d{1,3},\d{1,3}$")
 
 # Every value KDE parses as an RGB triple: the semantic roles in each [Colors:*]
 # section, the [WM] window-decoration colours, and the base `Color` of the two
-# ColorEffects sections. The ColorEffects amounts/effects and the [KDE]/[General]
-# scalars are not colours and are covered by test_other_sections_and_keys.
+# ColorEffects sections. The amounts and booleans have their own range/format
+# tests below; the effect selectors and the [KDE] scalar are checked only for
+# presence by test_other_sections_and_keys.
 RGB_VALUES = (
     [(section, key) for section in COLORS_SECTIONS for key in COLORS_KEYS]
     + [(section, "Color") for section in ("ColorEffects:Disabled", "ColorEffects:Inactive")]
     + [("WM", key) for key in OTHER_SECTIONS["WM"]]
 )
+
+# KDE reads these as qreal amounts in [0, 1]; a value outside that range silently
+# changes how disabled/inactive colours are derived.
+EFFECT_AMOUNTS = [
+    (section, key)
+    for section in ("ColorEffects:Disabled", "ColorEffects:Inactive")
+    for key in ("ColorAmount", "ContrastAmount", "IntensityAmount")
+]
+
+# KDE boolean spellings, lower-cased for comparison.
+KDE_BOOLEANS = frozenset({"true", "false", "1", "0", "on", "off"})
+BOOLEAN_VALUES = [
+    ("ColorEffects:Inactive", "ChangeSelectionColor"),
+    ("ColorEffects:Inactive", "Enable"),
+    ("General", "shadeSortColumn"),
+]
 
 
 def load_scheme():
@@ -106,6 +124,26 @@ class TestStructure(unittest.TestCase):
             self.assertRegex(value, RGB_RE, f"{section}/{key}")
             for component in value.split(","):
                 self.assertLessEqual(int(component), 255, f"{section}/{key}")
+
+    def test_coloreffects_amounts_are_in_range(self):
+        for section, key in EFFECT_AMOUNTS:
+            value = self.parser.get(section, key)
+            try:
+                amount = float(value)
+            except ValueError:
+                self.fail(f"{section}/{key} is not a number: {value!r}")
+            self.assertTrue(
+                math.isfinite(amount), f"{section}/{key} is not finite: {value!r}"
+            )
+            self.assertGreaterEqual(amount, 0.0, f"{section}/{key}")
+            self.assertLessEqual(amount, 1.0, f"{section}/{key}")
+
+    def test_boolean_values_use_kde_spellings(self):
+        for section, key in BOOLEAN_VALUES:
+            value = self.parser.get(section, key)
+            self.assertIn(
+                value.lower(), KDE_BOOLEANS, f"{section}/{key} = {value!r}"
+            )
 
 
 class TestAnchors(unittest.TestCase):
