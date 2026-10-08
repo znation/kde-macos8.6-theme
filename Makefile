@@ -26,11 +26,11 @@ DTHEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/desktoptheme
 define install_package
 	@staging='$(3)/.$(1).staging'; \
 	old='$(3)/.$(1).old'; \
-	trap 'rm -rf "$$staging"; if [ ! -e $(3)/$(1) ] && [ -e "$$old" ]; then mv "$$old" $(3)/$(1); fi' EXIT; \
+	trap 'rm -rf "$$staging"; if [ ! -e "$(3)/$(1)" ] && [ -e "$$old" ]; then mv "$$old" "$(3)/$(1)"; fi' EXIT; \
 	rm -rf "$$staging" "$$old" && \
-	cp -r $(2) "$$staging" && \
-	if [ -e $(3)/$(1) ]; then mv $(3)/$(1) "$$old"; fi && \
-	mv "$$staging" $(3)/$(1) && \
+	cp -r "$(2)" "$$staging" && \
+	if [ -e "$(3)/$(1)" ]; then mv "$(3)/$(1)" "$$old"; fi && \
+	mv "$$staging" "$(3)/$(1)" && \
 	rm -rf "$$old"
 endef
 
@@ -51,11 +51,11 @@ install:
 # replaces atomically, and the EXIT trap removes the staging file on failure.
 	@staging='$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging'; \
 	trap 'rm -f "$$staging"' EXIT; \
-	install -Dm644 $(COLOR_SCHEME) "$$staging" && \
-	mv "$$staging" $(INSTALL_DIR)/$(COLOR_SCHEME_NAME)
-	install -d $(LNF_INSTALL_DIR)
+	install -Dm644 "$(COLOR_SCHEME)" "$$staging" && \
+	mv "$$staging" "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"
+	install -d "$(LNF_INSTALL_DIR)"
 	$(call install_package,$(LNF_ID),$(LNF_PACKAGE),$(LNF_INSTALL_DIR))
-	install -d $(DTHEME_INSTALL_DIR)
+	install -d "$(DTHEME_INSTALL_DIR)"
 	$(call install_package,$(DTHEME_ID),$(DTHEME_PACKAGE),$(DTHEME_INSTALL_DIR))
 
 # Remove only the artifacts `install` copied: the parent directories are shared
@@ -65,6 +65,6 @@ install:
 # EXIT trap, so remove them here too instead of leaking them past uninstall.
 # `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
-	rm -f $(INSTALL_DIR)/$(COLOR_SCHEME_NAME) $(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging
-	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID) $(LNF_INSTALL_DIR)/.$(LNF_ID).staging $(LNF_INSTALL_DIR)/.$(LNF_ID).old
-	rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) $(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging $(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old
+	rm -f "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)" "$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging"
+	rm -rf "$(LNF_INSTALL_DIR)/$(LNF_ID)" "$(LNF_INSTALL_DIR)/.$(LNF_ID).staging" "$(LNF_INSTALL_DIR)/.$(LNF_ID).old"
+	rm -rf "$(DTHEME_INSTALL_DIR)/$(DTHEME_ID)" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old"
