@@ -132,6 +132,68 @@ class TestInstall(unittest.TestCase):
             second = self._install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
 
+    def test_failed_reinstall_keeps_the_previous_package(self):
+        """A copy that dies partway must not delete or damage the working install.
+
+        `make install` removes the installed package before copying the new one.
+        If the copy fails after that removal, Plasma is left with a partial or
+        missing desktop theme; stage the copy and swap it in so a failure leaves
+        the old package intact.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            first = self._install(tmp)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            installed = os.path.join(
+                tmp, "share", "plasma", "desktoptheme", DTHEME_ID
+            )
+            metadata = os.path.join(installed, "metadata.json")
+            with open(metadata, "rb") as handle:
+                good = handle.read()
+
+            # Shadow `cp` with a fake that fails only when copying the desktop
+            # theme (the look-and-feel copy must still succeed), writing part of
+            # the tree then dying like a killed or out-of-space `cp` would.
+            real_cp = shutil.which("cp")
+            bindir = os.path.join(tmp, "fakebin")
+            os.makedirs(bindir)
+            fake_cp = os.path.join(bindir, "cp")
+            with open(fake_cp, "w", encoding="utf-8") as handle:
+                handle.write(
+                    "#!/bin/sh\n"
+                    'case "$2" in\n'
+                    "  */desktop-themes/*)\n"
+                    '    dest="$3/$(basename "$2")"\n'
+                    '    mkdir -p "$dest"\n'
+                    '    printf partial > "$dest/metadata.json"\n'
+                    "    exit 1;;\n"
+                    "esac\n"
+                    f'exec "{real_cp}" "$@"\n'
+                )
+            os.chmod(fake_cp, 0o755)
+
+            env = dict(os.environ)
+            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
+            result = subprocess.run(
+                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            self.assertFalse(
+                os.path.exists(
+                    os.path.join(
+                        tmp, "share", "plasma", "desktoptheme",
+                        "." + DTHEME_ID + ".staging",
+                    )
+                ),
+                "staging directory leaked after a failed install",
+            )
+            self.assertTrue(os.path.isdir(installed), installed)
+            with open(metadata, "rb") as handle:
+                self.assertEqual(handle.read(), good)
+
     def _uninstall(self, tmp):
         return subprocess.run(
             ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],

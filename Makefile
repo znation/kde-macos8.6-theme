@@ -42,9 +42,15 @@ install:
 	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID) && \
 	mv "$$staging" $(LNF_INSTALL_DIR)/$(LNF_ID)
 	install -d $(DTHEME_INSTALL_DIR)
-# Same replace-not-merge rule as the look-and-feel package above.
-	rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID)
-	cp -r $(DTHEME_PACKAGE) $(DTHEME_INSTALL_DIR)/
+# Same stage-then-rename rule as the look-and-feel package above: a copy that
+# fails or is interrupted must not delete the working desktop theme or leave a
+# partial one installed.
+	@staging='$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging'; \
+	trap 'rm -rf "$$staging"' EXIT; \
+	rm -rf "$$staging" && \
+	cp -r $(DTHEME_PACKAGE) "$$staging" && \
+	rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) && \
+	mv "$$staging" $(DTHEME_INSTALL_DIR)/$(DTHEME_ID)
 
 # Remove only the artifacts `install` copied: the parent directories are shared
 # (other color schemes, other look-and-feel/desktop-theme packages), so leave
