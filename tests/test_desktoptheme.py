@@ -295,6 +295,17 @@ class TestButton(unittest.TestCase):
             with self.subTest(corner=name):
                 self.assertEqual(fills, colours, name)
 
+    def test_button_center_tiles_are_face(self):
+        # `test_button_colours` pins only the set of fills, so a centre tile
+        # recoloured to another Platinum grey (#FFFFFF or #999999) passes it,
+        # and neither bevel test reads the centre. The centre is the button
+        # face for both states, so pin every pixel.
+        slices = render_slices(ET.parse(BUTTON_SVG))
+        expected = {(x, y): "#DDDDDD" for y in range(6) for x in range(6)}
+        for name in ("normal-center", "pressed-center"):
+            with self.subTest(slice=name):
+                self.assertEqual(slices[name], expected, name)
+
     def test_button_focus_ring_pixels(self):
         # The focus state is a 1px #000000 ring on the outer pixel of its 2px
         # border, transparent inside and in the centre, so ButtonFocus draws
