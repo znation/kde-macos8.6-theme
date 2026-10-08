@@ -108,6 +108,15 @@ CORNER_PIXELS = {
 }
 
 
+def local_name(element):
+    """Return *element*'s tag without its `{namespace}` prefix.
+
+    Each SVG declares the default SVG namespace, so ElementTree reports a tag
+    as `{http://www.w3.org/2000/svg}rect`; these tests match on the local name.
+    """
+    return element.tag.rsplit("}", 1)[-1]
+
+
 def render_slices(tree):
     """Composite each id-bearing <g> of a nine-slice SVG into a {(x, y): fill} map.
 
@@ -118,11 +127,11 @@ def render_slices(tree):
     """
     slices = {}
     for group in tree.iter():
-        if group.tag.rsplit("}", 1)[-1] != "g" or not group.get("id"):
+        if local_name(group) != "g" or not group.get("id"):
             continue
         pixels = {}
         for rect in group:
-            if rect.tag.rsplit("}", 1)[-1] != "rect":
+            if local_name(rect) != "rect":
                 continue
             x = int(rect.get("x", 0))
             y = int(rect.get("y", 0))
@@ -191,7 +200,7 @@ class TestPanelBackground(unittest.TestCase):
 
     def test_no_script_elements(self):
         for element in self.tree.iter():
-            tag = element.tag.rsplit("}", 1)[-1]
+            tag = local_name(element)
             self.assertFalse(tag.endswith("script"), tag)
 
 
@@ -219,7 +228,7 @@ class TestButton(unittest.TestCase):
     def test_no_script_elements(self):
         tree = ET.parse(BUTTON_SVG)
         for element in tree.iter():
-            tag = element.tag.rsplit("}", 1)[-1]
+            tag = local_name(element)
             self.assertFalse(tag.endswith("script"), tag)
 
     def test_button_bevel_direction(self):
@@ -256,7 +265,7 @@ class TestButton(unittest.TestCase):
         tree = ET.parse(BUTTON_SVG)
         groups = {
             el.get("id"): el for el in tree.iter()
-            if el.tag.rsplit("}", 1)[-1] == "g" and el.get("id")
+            if local_name(el) == "g" and el.get("id")
         }
         corners = {
             "normal-topleft": ("#000000", "#FFFFFF", "#DDDDDD"),
@@ -272,7 +281,7 @@ class TestButton(unittest.TestCase):
             fills = tuple(
                 child.get("fill")
                 for child in groups[name]
-                if child.tag.rsplit("}", 1)[-1] == "path"
+                if local_name(child) == "path"
             )
             with self.subTest(corner=name):
                 self.assertEqual(fills, colours, name)
@@ -287,7 +296,7 @@ class TestRadioButton(unittest.TestCase):
         fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
         self.assertEqual(fills, {"#FFFFFF", "#000000"})
         for element in tree.iter():
-            tag = element.tag.rsplit("}", 1)[-1]
+            tag = local_name(element)
             self.assertFalse(tag.endswith("script"), tag)
 
     def test_radiobutton_geometry(self):
@@ -298,7 +307,7 @@ class TestRadioButton(unittest.TestCase):
         by_id = {el.get("id"): el for el in tree.iter() if el.get("id")}
         circles = [
             el for el in by_id["normal"]
-            if el.tag.rsplit("}", 1)[-1] == "circle"
+            if local_name(el) == "circle"
         ]
         self.assertEqual([float(el.get("r")) for el in circles], [8, 7])
         self.assertEqual(float(by_id["symbol"].get("r")), 3)
@@ -321,7 +330,7 @@ class TestFrame(unittest.TestCase):
         for colour in ("#DDDDDD", "#FFFFFF", "#999999", "#000000"):
             self.assertIn(colour, text)
         for element in tree.iter():
-            tag = element.tag.rsplit("}", 1)[-1]
+            tag = local_name(element)
             self.assertFalse(tag.endswith("script"), tag)
 
     def test_frame_corner_bevels_turn_the_corner(self):
