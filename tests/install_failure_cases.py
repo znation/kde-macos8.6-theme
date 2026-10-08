@@ -45,6 +45,15 @@ class FailedInstallPreservesPackage:
         with open(metadata, "rb") as handle:
             return installed, metadata, handle.read()
 
+    def _install_ok(self, tmp):
+        """Install once into `tmp`, assert it succeeded, and snapshot it.
+
+        Returns `_snapshot`'s (installed, metadata, good) triple.
+        """
+        first = install(tmp)
+        self.assertEqual(first.returncode, 0, first.stderr)
+        return self._snapshot(tmp)
+
     def _assert_package_intact(self, installed, metadata, good):
         self.assertTrue(os.path.isdir(installed), installed)
         with open(metadata, "rb") as handle:
@@ -85,9 +94,7 @@ class FailedInstallPreservesPackage:
         working package installed rather than deleting it.
         """
         with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed, metadata, good = self._snapshot(tmp)
+            installed, metadata, good = self._install_ok(tmp)
 
             # Reproduce the kill window: the working package was moved aside,
             # but the staged copy was never renamed into place.
@@ -108,9 +115,7 @@ class FailedInstallPreservesPackage:
         package installed.
         """
         with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed, metadata, good = self._snapshot(tmp)
+            installed, metadata, good = self._install_ok(tmp)
 
             result = install(tmp, env=self.reinstall_failure_env(tmp))
             self.assertNotEqual(result.returncode, 0, result.stdout)
@@ -129,9 +134,7 @@ class FailedInstallPreservesPackage:
         working install rather than deleting it.
         """
         with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed, metadata, good = self._snapshot(tmp)
+            installed, metadata, good = self._install_ok(tmp)
 
             result = install(tmp, env=self.swap_failure_env(tmp))
             self.assertNotEqual(result.returncode, 0, result.stdout)
