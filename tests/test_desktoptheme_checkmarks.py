@@ -9,6 +9,7 @@ from desktoptheme_paths import CHECKMARKS_SVG
 from svg_assertions import (
     assert_no_script_elements,
     attribute_values,
+    children_named,
     elements_by_id,
     local_name,
 )
@@ -37,8 +38,8 @@ class TestCheckmarks(unittest.TestCase):
 
         checkbox = by_id["checkbox"]
         self.assertEqual(local_name(checkbox), "g")
-        check_rects = [el for el in checkbox if local_name(el) == "rect"]
-        check_paths = [el for el in checkbox if local_name(el) == "path"]
+        check_rects = children_named(checkbox, "rect")
+        check_paths = children_named(checkbox, "path")
         self.assertEqual(len(check_rects), 1)
         self.assertEqual(len(check_paths), 1)
         self.assertEqual(
@@ -54,8 +55,8 @@ class TestCheckmarks(unittest.TestCase):
 
         radiobutton = by_id["radiobutton"]
         self.assertEqual(local_name(radiobutton), "g")
-        radio_rects = [el for el in radiobutton if local_name(el) == "rect"]
-        radio_circles = [el for el in radiobutton if local_name(el) == "circle"]
+        radio_rects = children_named(radiobutton, "rect")
+        radio_circles = children_named(radiobutton, "circle")
         self.assertEqual(len(radio_rects), 1)
         self.assertEqual(len(radio_circles), 1)
         self.assertEqual(

@@ -9,8 +9,8 @@ from desktoptheme_paths import RADIOBUTTON_SVG
 from svg_assertions import (
     assert_no_script_elements,
     attribute_values,
+    children_named,
     elements_by_id,
-    local_name,
 )
 
 
@@ -34,10 +34,7 @@ class TestRadioButton(unittest.TestCase):
         # otherwise pass.
         tree = ET.parse(RADIOBUTTON_SVG)
         by_id = elements_by_id(tree)
-        circles = [
-            el for el in by_id["normal"]
-            if local_name(el) == "circle"
-        ]
+        circles = children_named(by_id["normal"], "circle")
         self.assertEqual(
             [
                 (float(el.get("cx")), float(el.get("cy")),

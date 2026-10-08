@@ -93,6 +93,17 @@ def elements_by_id(tree):
     }
 
 
+def children_named(element, tag):
+    """Return *element*'s direct children whose local tag is *tag*.
+
+    A nine-slice group holds the rects and paths that paint it, and an item's
+    glyphs sit directly under its group, so the artwork a test reads is one
+    level down: this returns a group's own rects, paths or circles without
+    re-filtering ``local_name`` at every call site.
+    """
+    return [child for child in element if local_name(child) == tag]
+
+
 def assert_no_script_elements(case, tree):
     """Assert *tree* holds no ``<script>`` element.
 
@@ -116,9 +127,7 @@ def render_slices(tree):
     slices = {}
     for group in groups_with_id(tree):
         pixels = {}
-        for rect in group:
-            if local_name(rect) != "rect":
-                continue
+        for rect in children_named(group, "rect"):
             x = int(rect.get("x", 0))
             y = int(rect.get("y", 0))
             for dx in range(int(rect.get("width"))):

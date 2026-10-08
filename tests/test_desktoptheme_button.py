@@ -16,8 +16,8 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
+    children_named,
     elements_by_id,
-    local_name,
     path_arcs,
     rect_geometry,
     render_slices,
@@ -128,8 +128,7 @@ class TestButton(unittest.TestCase):
         for name, colours in corners.items():
             fills = tuple(
                 child.get("fill")
-                for child in by_id[name]
-                if local_name(child) == "path"
+                for child in children_named(by_id[name], "path")
             )
             with self.subTest(corner=name):
                 self.assertEqual(fills, colours, name)
@@ -163,8 +162,7 @@ class TestButton(unittest.TestCase):
         for name, (center, radii) in expected.items():
             entries = [
                 entry
-                for path in by_id[name]
-                if local_name(path) == "path"
+                for path in children_named(by_id[name], "path")
                 for entry in path_arcs(path.get("d"))
             ]
             with self.subTest(corner=name):
@@ -246,8 +244,8 @@ class TestButton(unittest.TestCase):
             with self.subTest(corner=name):
                 self.assertEqual(
                     [
-                        child.get("fill") for child in by_id[name]
-                        if local_name(child) == "path"
+                        child.get("fill")
+                        for child in children_named(by_id[name], "path")
                     ],
                     ["#000000"],
                     name,
