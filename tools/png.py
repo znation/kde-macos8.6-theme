@@ -126,6 +126,51 @@ def _paeth_delta_table() -> bytes:
     return table
 
 
+def _byte_add(a: bytes, b: bytes) -> bytes:
+    """Return ``a`` and ``b`` added byte-wise modulo 256.
+
+    Adding the two strings as big integers would let a carry cross from one
+    byte into the next.  Keeping only the low seven bits of each input bounds
+    every per-byte sum below 256, so no byte can carry, and XORing back the
+    bit-7 difference restores the top bit.  The result equals
+    ``bytes((x + y) & 0xFF for x, y in zip(a, b))`` at C speed.
+    """
+    length = len(a)
+    if length == 0:
+        return b""
+    low7 = int.from_bytes(b"\x7f" * length, "little")
+    high = int.from_bytes(b"\x80" * length, "little")
+    x = int.from_bytes(a, "little")
+    y = int.from_bytes(b, "little")
+    return (((x & low7) + (y & low7)) ^ ((x ^ y) & high)).to_bytes(
+        length, "little"
+    )
+
+
+def _prefix_sum(channel: bytes) -> bytes:
+    """Return the inclusive prefix sum of ``channel`` modulo 256.
+
+    Equivalent to ``out[0] = channel[0]`` and
+    ``out[i] = (out[i] + out[i - 1]) & 0xFF``.  A Hillis-Steele scan adds a
+    doubling span at each of ``log2(len(channel))`` steps, using the same
+    carry-free lane addition as :func:`_byte_add`, so a whole channel's Sub
+    filter runs at C speed instead of a Python loop per byte.
+    """
+    length = len(channel)
+    if length <= 1:
+        return bytes(channel)
+    low7 = int.from_bytes(b"\x7f" * length, "little")
+    high = int.from_bytes(b"\x80" * length, "little")
+    mask = (1 << (length * 8)) - 1
+    value = int.from_bytes(channel, "little")
+    step = 1
+    while step < length:
+        shifted = (value << (step * 8)) & mask
+        value = ((value & low7) + (shifted & low7)) ^ ((value ^ shifted) & high)
+        step <<= 1
+    return value.to_bytes(length, "little")
+
+
 def _require_raw_length(raw: bytes, width: int, height: int, channels: int) -> None:
     """Reject scanline data shorter than the header's declared size."""
     expected = height * (width * channels + 1)
@@ -149,11 +194,10 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
         line = bytearray(raw[src : src + stride])
         src += stride
         if ftype == 1:
-            for i in range(channels, stride):
-                line[i] = (line[i] + line[i - channels]) & 0xFF
+            for c in range(channels):
+                line[c::channels] = _prefix_sum(line[c::channels])
         elif ftype == 2:
-            for i in range(stride):
-                line[i] = (line[i] + prev[i]) & 0xFF
+            line = _byte_add(line, prev)
         elif ftype == 3:
             for i in range(stride):
                 a = line[i - channels] if i >= channels else 0
