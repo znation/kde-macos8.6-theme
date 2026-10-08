@@ -347,6 +347,17 @@ def decode_png(data: bytes) -> Image:
             idat += payload
         elif ctype == b"IEND":
             break
+        elif ctype[:1].isupper():
+            # A chunk whose first byte is uppercase is critical: the decoder
+            # must understand it to know how the image is interpreted. The
+            # four critical chunks (IHDR, PLTE, IDAT, IEND) are all modelled
+            # above, so an unknown one carries data that may change the
+            # pixels. Ignoring it the way an unknown *ancillary* chunk
+            # (lowercase first byte) is ignored could decode the image wrong
+            # with no sign that anything was skipped, so refuse it by name.
+            raise PngError(
+                f"unknown critical PNG chunk {_chunk_name(ctype)}"
+            )
     if header is None:
         raise PngError("PNG has no IHDR chunk")
     if len(header) != 13:

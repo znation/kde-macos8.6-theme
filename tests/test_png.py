@@ -216,6 +216,19 @@ class TestDecode(unittest.TestCase):
         augmented = data[:ihdr_end] + ancillary + data[ihdr_end:]
         self.assertEqual(png.decode_png(augmented), image)
 
+    def test_rejects_unknown_critical_chunk(self):
+        # A chunk whose first byte is uppercase is critical: the decoder does
+        # not model it, so it cannot know whether the chunk changes the
+        # pixels. Silently ignoring it, as unknown ancillary chunks are
+        # ignored, could decode the image wrong with no sign of a skipped
+        # chunk; the error names the offending type.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        unknown = _chunk(b"XYZW", b"\x00\x01")
+        message = self._decode_error(data[:ihdr_end] + unknown + data[ihdr_end:])
+        self.assertIn("unknown critical PNG chunk", message)
+        self.assertIn("'XYZW'", message)
+
     def test_ignored_ancillary_chunk_still_has_its_crc_checked(self):
         # Ignoring a chunk's contents must not skip its integrity check: a
         # corrupt ancillary chunk means the file is damaged and could hide a
