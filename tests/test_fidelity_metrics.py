@@ -277,6 +277,41 @@ class TestCompare(unittest.TestCase):
         message = str(caught.exception)
         self.assertIn("x=0 y=0 w=0 h=2", message)
 
+    def test_crop_error_distinguishes_origin_from_size(self):
+        # x=0/y=0 is the top-left pixel, a valid origin, so a zero width is a
+        # size fault. Naming both the origin and the size as "positive" would
+        # send the reader after x/y instead of the field that is actually bad.
+        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+            fidelity_metrics.crop(image, 0, 0, 0, 2)
+        message = str(caught.exception)
+        self.assertIn("positive size", message)
+        self.assertNotIn("origin", message)
+
+    def test_crop_negative_origin_error_names_origin(self):
+        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+            fidelity_metrics.crop(image, -1, 0, 2, 2)
+        message = str(caught.exception)
+        self.assertIn("origin must not be negative", message)
+        self.assertIn("x=-1 y=0 w=2 h=2", message)
+
+    def test_crop_non_integer_coordinate_error_names_argument(self):
+        # crop() slices the RGB byte string, so a non-integer coordinate would
+        # otherwise surface as a raw TypeError from the slice, naming neither
+        # the argument nor its value.
+        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        for args in (
+            (0.0, 0, 1, 1),
+            (0, 1.5, 1, 1),
+            (0, 0, "2", 1),
+            (0, 0, 1, None),
+        ):
+            with self.subTest(args=args):
+                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+                    fidelity_metrics.crop(image, *args)
+                self.assertIn("must be integers", str(caught.exception))
+
     def test_crop_out_of_bounds_error_names_rect_and_image(self):
         # The message must name both the offending rectangle and the image it
         # was measured against, since neither is otherwise visible.

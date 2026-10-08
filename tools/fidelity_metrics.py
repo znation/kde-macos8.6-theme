@@ -152,10 +152,30 @@ class Metrics:
 
 
 def _crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
-    """Return why ``(x, y, width, height)`` is not a valid crop rectangle."""
-    if x < 0 or y < 0 or width <= 0 or height <= 0:
+    """Return why ``(x, y, width, height)`` is not a valid crop rectangle.
+
+    Every value must be an integer: :func:`crop` slices the image's RGB byte
+    string, so a float coordinate would reach the slice as a raw
+    ``TypeError`` naming neither the argument nor its value.  The origin must
+    be non-negative (``x=0``/``y=0`` is the top-left pixel, not a fault) and
+    the size positive.
+    """
+    for name, value in (
+        ("x", x),
+        ("y", y),
+        ("width", width),
+        ("height", height),
+    ):
+        if not isinstance(value, int):
+            return f"crop rectangle values must be integers: {name}={value!r}"
+    if x < 0 or y < 0:
         return (
-            f"crop rectangle must have positive size and origin: "
+            f"crop rectangle origin must not be negative: "
+            f"x={x} y={y} w={width} h={height}"
+        )
+    if width <= 0 or height <= 0:
+        return (
+            f"crop rectangle must have positive size: "
             f"x={x} y={y} w={width} h={height}"
         )
     return None
