@@ -14,6 +14,11 @@ CHECKER = os.path.join(ROOT, "tools", "check_references.py")
 
 
 def load_checker():
+    """Load ``tools/check_references.py`` as a module for the tests to call.
+
+    The checker is a script rather than an installed package, so it is loaded
+    from its path with importlib instead of imported by name.
+    """
     spec = importlib.util.spec_from_file_location("check_references", CHECKER)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
