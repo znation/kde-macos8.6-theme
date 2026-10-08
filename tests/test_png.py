@@ -229,6 +229,24 @@ class TestDecode(unittest.TestCase):
             png.decode_png(data)
         self.assertIn("truncated", str(ctx.exception))
 
+    def test_rejects_corrupt_deflate_stream(self):
+        # The IDAT CRC covers the chunk bytes but says nothing about whether
+        # they are a valid deflate stream, so a download corrupted inside the
+        # chunk reaches zlib.decompressobj and raises zlib.error. That must
+        # become a PngError naming the corruption, not leak a raw zlib.error
+        # past decode_png and read_png (which would print a traceback from the
+        # CLI instead of a clean "fidelity: error:" line).
+        ihdr = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"IHDR", ihdr)
+            + _chunk(b"IDAT", b"\xff\xff\xff\xff")
+            + _chunk(b"IEND", b"")
+        )
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        self.assertIn("corrupt PNG image data", str(ctx.exception))
+
     def test_rejects_declared_image_over_pixel_limit(self):
         # A header may declare dimensions far larger than any screenshot; the
         # pixel limit must reject it before zlib decompresses anything.
