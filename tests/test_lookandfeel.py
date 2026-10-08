@@ -1,6 +1,5 @@
 """Validate the org.macos8.desktop look-and-feel global theme package."""
 
-import configparser
 import json
 import os
 import shutil
@@ -8,6 +7,7 @@ import subprocess
 import tempfile
 import unittest
 
+from kde_config import read as read_kde_config
 from theme_install import ROOT, install, uninstall
 
 LNF_ID = "org.macos8.desktop"
@@ -28,11 +28,7 @@ def load_metadata():
 
 
 def load_defaults():
-    parser = configparser.ConfigParser(interpolation=None)
-    parser.optionxform = str  # KDE keys are case-sensitive.
-    with open(DEFAULTS, encoding="utf-8") as handle:
-        parser.read_file(handle)
-    return parser
+    return read_kde_config(DEFAULTS)
 
 
 class TestMetadata(unittest.TestCase):
@@ -78,10 +74,7 @@ class TestDefaults(unittest.TestCase):
         pairing true if the scheme is renamed later.
         """
         value = self.parser.get(DEFAULTS_SECTION, "ColorScheme")
-        scheme = configparser.ConfigParser(interpolation=None)
-        scheme.optionxform = str
-        with open(SCHEME, encoding="utf-8") as handle:
-            scheme.read_file(handle)
+        scheme = read_kde_config(SCHEME)
         self.assertEqual(value, scheme.get("General", "ColorScheme"))
         self.assertTrue(
             os.path.isfile(

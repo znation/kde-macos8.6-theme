@@ -1,6 +1,5 @@
 """Validate the Mac OS 8.6 Platinum color scheme and its install path."""
 
-import configparser
 import math
 import os
 import re
@@ -9,6 +8,7 @@ import subprocess
 import tempfile
 import unittest
 
+from kde_config import read as read_kde_config
 from theme_install import ROOT, install, uninstall
 
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
@@ -99,11 +99,7 @@ BOOLEAN_VALUES = [
 
 
 def load_scheme():
-    parser = configparser.ConfigParser(interpolation=None)
-    parser.optionxform = str  # KDE keys are case-sensitive.
-    with open(SCHEME, encoding="utf-8") as handle:
-        parser.read_file(handle)
-    return parser
+    return read_kde_config(SCHEME)
 
 
 class TestStructure(unittest.TestCase):
