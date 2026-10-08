@@ -22,7 +22,7 @@ SUBPROCESS_TIMEOUT = 60
 def run(argv, **kwargs):
     """Run `argv` under the suite's subprocess timeout.
 
-    Every subprocess the tests start goes through here, so a child that outlives
+    This is the suite's timeout runner: a child that outlives
     `SUBPROCESS_TIMEOUT` raises `subprocess.TimeoutExpired` rather than hanging
     the suite. The constant is read at call time, so a test can patch it.
     """
