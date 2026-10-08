@@ -4,6 +4,10 @@ XDG_DATA_HOME ?= $(HOME)/.local/share
 COLOR_SCHEME := theme/color-schemes/MacOS8.colors
 INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/color-schemes
 
+LNF_ID := org.macos8.desktop
+LNF_PACKAGE := theme/look-and-feel/$(LNF_ID)
+LNF_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/look-and-feel
+
 .PHONY: check check-references install
 
 check:
@@ -17,3 +21,5 @@ check-references:
 
 install:
 	install -Dm644 $(COLOR_SCHEME) $(INSTALL_DIR)/MacOS8.colors
+	install -d $(LNF_INSTALL_DIR)
+	cp -r $(LNF_PACKAGE) $(LNF_INSTALL_DIR)/

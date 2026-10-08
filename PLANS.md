@@ -5,7 +5,13 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 look-and-feel global theme package (planned 2026-10-07 by plan)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 look-and-feel global theme package (done 2026-10-07)
+
+**Planned 2026-10-07 by plan.**
 
 **Goal.** Ship the second installable artifact: a Plasma 6 `Plasma/LookAndFeel` global theme,
 `org.macos8.desktop`, that applies the existing Platinum color scheme as one selectable global
@@ -81,7 +87,16 @@ color scheme itself.
 **Follow-ups (not planned here).** Desktop-theme widget SVGs, the Platinum window decoration, and
 an 8.6 splash (`contents/splash/`) — each adds its own key to this package's `contents/defaults`.
 
-## Done
+**Implementation note (2026-10-07).** Landed as planned: `metadata.json` (top-level
+`KPackageStructure`, `Keywords`, `X-Plasma-APIVersion`; `KPlugin` with `Id`, `Name`,
+`Description`, `Version`, `License`, empty `Category`, one author), the two-line
+`contents/defaults`, `tests/test_lookandfeel.py`, and the `Makefile` install step. Verified beyond
+`make check`: `kpackagetool6 -t Plasma/LookAndFeel -p <tmp> -i` exits 0; with the package
+installed under a temp `XDG_DATA_HOME`, `lookandfeeltool -l` lists `org.macos8.desktop` and
+`lookandfeeltool -a org.macos8.desktop` exits 0. Headless, the apply wrote the scheme's colour
+sections into `kdeglobals` and `[General] ColorScheme=MacOS8` into `kdedefaults/kdeglobals` (KDE's
+defaults layer), not the main `kdeglobals`; the in-session restart check still needs a Plasma
+session.
 
 ### Mac OS 8.6 Platinum color scheme and project check harness (done 2026-10-07)
 **Planned 2026-10-07 by plan.**

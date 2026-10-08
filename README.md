@@ -9,19 +9,24 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: the first artifact has landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, with a `make check` harness and reference/fidelity tooling; no widget, window-decoration, or look-and-feel package exists yet.
+Pre-alpha: two artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/` and the `org.macos8.desktop` global theme in `theme/look-and-feel/`, with a `make check` harness and reference/fidelity tooling; no widget, window-decoration, or splash assets exist yet.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
 
 ## Installing
 
-The color scheme is the only installable artifact so far. `make install` copies
-`theme/color-schemes/MacOS8.colors` to `${XDG_DATA_HOME:-$HOME/.local/share}/color-schemes/`;
-Plasma lists it as `MacOS8` (KDE derives the scheme ID from the filename before the first dot).
-Select it in System Settings or with `plasma-apply-colorscheme MacOS8`; the dotless filename means
-the ID KDE writes into `kdeglobals` resolves again on the next start. `make check` runs the test
-suite.
+`make install` copies two artifacts into `${XDG_DATA_HOME:-$HOME/.local/share}`: the color scheme
+`theme/color-schemes/MacOS8.colors` into `color-schemes/`, and the `org.macos8.desktop` global
+theme into `plasma/look-and-feel/`.
+
+Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
+first dot). Select it in System Settings or with `plasma-apply-colorscheme MacOS8`; the dotless
+filename means the ID KDE writes into `kdeglobals` resolves again on the next start.
+
+The global theme applies that same scheme as one selection: `lookandfeeltool -a
+org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). `make check` runs the
+test suite.
 
 ## Reference screenshots
 
