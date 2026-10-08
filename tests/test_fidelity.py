@@ -62,6 +62,38 @@ class TestAbsDiff(unittest.TestCase):
                         )
 
 
+class TestSumSquares(unittest.TestCase):
+    """The split-table sum of squares must agree with the per-byte form."""
+
+    @staticmethod
+    def _reference(channel: bytes) -> int:
+        return sum(value * value for value in channel)
+
+    def test_matches_per_byte_reference(self):
+        rng = random.Random(0)
+        lengths = list(range(0, 40)) + [63, 64, 65, 255, 256, 257, 1000]
+        for length in lengths:
+            for _ in range(8):
+                channel = bytes(rng.randrange(256) for _ in range(length))
+                with self.subTest(length=length):
+                    self.assertEqual(
+                        fidelity._sum_squares(channel),
+                        self._reference(channel),
+                    )
+
+    def test_every_byte_value(self):
+        # A single square can spill into the high byte (255*255 == 65025), so
+        # exercise every value, both alone and repeated enough to carry.
+        channel = bytes(range(256))
+        self.assertEqual(
+            fidelity._sum_squares(channel), self._reference(channel)
+        )
+        self.assertEqual(
+            fidelity._sum_squares(b"\xff" * 1000),
+            self._reference(b"\xff" * 1000),
+        )
+
+
 class TestCompare(unittest.TestCase):
     def test_identical_is_zero(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x * 5, y * 5, 100))

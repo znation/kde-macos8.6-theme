@@ -40,8 +40,25 @@ class FidelityError(Exception):
     """A candidate and reference image could not be compared."""
 
 
-# value -> value squared, for summing squared per-channel deltas via a lookup.
-_SQUARES = [value * value for value in range(256)]
+# value -> the low and high bytes of value squared.  A byte string's sum of
+# squares is then ``sum(low bytes) + (sum(high bytes) << 8)``: two C-level
+# ``bytes.translate`` passes instead of a Python call per byte.
+_SQUARES_LOW = bytes((value * value) & 0xFF for value in range(256))
+_SQUARES_HIGH = bytes((value * value) >> 8 for value in range(256))
+
+
+def _sum_squares(channel: bytes) -> int:
+    """Return the sum of the squares of one channel's byte values.
+
+    ``bytes.map`` over a per-byte lookup is the obvious spelling, but it
+    makes a Python-level call per byte.  Splitting each square into its low
+    and high byte tables keeps the work inside ``bytes.translate`` and
+    ``sum``, which run at C speed; the result is identical because
+    ``value**2 == (value**2 & 0xFF) + ((value**2 >> 8) << 8)``.
+    """
+    return sum(channel.translate(_SQUARES_LOW)) + (
+        sum(channel.translate(_SQUARES_HIGH)) << 8
+    )
 
 
 def _abs_diff(a: bytes, b: bytes) -> bytes:
@@ -198,11 +215,7 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     total_abs_r = sum(dr)
     total_abs_g = sum(dg)
     total_abs_b = sum(db)
-    total_sq = (
-        sum(map(_SQUARES.__getitem__, dr))
-        + sum(map(_SQUARES.__getitem__, dg))
-        + sum(map(_SQUARES.__getitem__, db))
-    )
+    total_sq = _sum_squares(dr) + _sum_squares(dg) + _sum_squares(db)
 
     max_delta = max(max(dr), max(dg), max(db))
     max_x = 0
