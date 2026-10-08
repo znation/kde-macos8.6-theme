@@ -94,6 +94,45 @@ class TestSumSquares(unittest.TestCase):
         )
 
 
+class TestMaxByteIndex(unittest.TestCase):
+    """The bit-sliced maximum must agree with ``max`` plus ``find``."""
+
+    @staticmethod
+    def _reference(data: bytes) -> int:
+        return data.find(max(data))
+
+    def test_matches_max_and_find(self):
+        rng = random.Random(0)
+        lengths = list(range(1, 40)) + [63, 64, 65, 255, 256, 257, 1000]
+        for length in lengths:
+            for _ in range(8):
+                data = bytes(rng.randrange(256) for _ in range(length))
+                with self.subTest(length=length):
+                    self.assertEqual(
+                        fidelity._max_byte_index(data), self._reference(data)
+                    )
+
+    def test_edges_and_ties(self):
+        cases = (
+            b"\x00",  # single zero
+            b"\xff",  # single maximum
+            b"\x00\xff",  # maximum last
+            b"\xff\x00",  # maximum first
+            b"\x05\x05\x05",  # all equal: first wins
+            bytes(range(256)),  # every value once: 255 at the end
+            bytes(range(255, -1, -1)),  # every value once: 255 at the start
+        )
+        for data in cases:
+            with self.subTest(data=data[:8]):
+                self.assertEqual(
+                    fidelity._max_byte_index(data), self._reference(data)
+                )
+
+    def test_empty_raises(self):
+        with self.assertRaises(ValueError):
+            fidelity._max_byte_index(b"")
+
+
 class TestCompare(unittest.TestCase):
     def test_identical_is_zero(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x * 5, y * 5, 100))

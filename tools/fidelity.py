@@ -67,6 +67,33 @@ def _sum_squares(channel: bytes) -> int:
     )
 
 
+def _max_byte_index(data: bytes) -> int:
+    """Return the index of the first occurrence of the maximum byte in *data*.
+
+    ``max(data)`` walks the channel as Python ints and a following
+    ``data.find`` rescans it to locate the winner; this returns both from one
+    bit-sliced pass.  It treats *data* as one big integer and narrows the set
+    of candidate byte positions one bit at a time: ``ones`` marks bit 0 of
+    every byte lane, so ``(value >> bit) & ones`` keeps exactly the lanes whose
+    byte has that bit set.  Intersecting the eight bit levels leaves the lanes
+    holding the maximum, and the lowest set bit of that mask is its first
+    index.  *data* must be non-empty.
+    """
+    length = len(data)
+    if length == 0:
+        raise ValueError("_max_byte_index() arg is an empty byte string")
+    value = int.from_bytes(data, "little")
+    ones = int.from_bytes(b"\x01" * length, "little")
+    candidates = ones
+    for bit in range(7, -1, -1):
+        has_bit = (value >> bit) & ones
+        narrowed = has_bit & candidates
+        if narrowed:
+            candidates = narrowed
+    lowest = candidates & -candidates
+    return (lowest.bit_length() - 1) >> 3
+
+
 def _abs_diff(a: bytes, b: bytes) -> bytes:
     """Return the per-byte absolute difference of two equal-length byte strings.
 
@@ -208,22 +235,28 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     total_abs_b = sum(db)
     total_sq = _sum_squares(dr) + _sum_squares(dg) + _sum_squares(db)
 
-    max_delta = max(max(dr), max(dg), max(db))
+    # One bit-sliced pass per channel gives both that channel's maximum and
+    # the first byte reaching it, replacing a ``max`` walk plus a ``find``
+    # rescan.  The global maximum is the largest of the three; the pixel is the
+    # first offset among the channels that actually reach it.  A channel's
+    # byte offset equals its pixel offset, because the three slices are the
+    # same length.
+    r_index = _max_byte_index(dr)
+    g_index = _max_byte_index(dg)
+    b_index = _max_byte_index(db)
+    r_max, g_max, b_max = dr[r_index], dg[g_index], db[b_index]
+    max_delta = max(r_max, g_max, b_max)
     max_x = 0
     max_y = 0
     if max_delta:
-        # Locate the first pixel whose worst channel equals the maximum: the
-        # smallest per-channel offset at which any channel reaches max_delta.
-        # A channel's byte offset equals its pixel offset, because the three
-        # slices are the same length.
         first = min(
-            offset
-            for offset in (
-                dr.find(max_delta),
-                dg.find(max_delta),
-                db.find(max_delta),
+            index
+            for index, channel_max in (
+                (r_index, r_max),
+                (g_index, g_max),
+                (b_index, b_max),
             )
-            if offset != -1
+            if channel_max == max_delta
         )
         max_x = first % candidate.width
         max_y = first // candidate.width
