@@ -297,6 +297,27 @@ class TestCli(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("error", result.stderr)
 
+    def test_size_mismatch_is_error(self):
+        # A candidate render whose dimensions differ from the reference is the
+        # most common real failure. compare() raises FidelityError; main() must
+        # report it on the clean exit-2 path rather than leaking a traceback.
+        with tempfile.TemporaryDirectory() as tmp:
+            _, small = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+            _, large = rgb_image(4, 4, lambda x, y: (x * 9, y * 9, 5))
+            candidate = self._write(Path(tmp), "candidate.png", small)
+            reference = self._write(Path(tmp), "reference.png", large)
+            result = self._run(candidate, reference)
+            self._assert_usage_error(result, "size mismatch")
+
+    def test_crop_outside_reference_is_error(self):
+        # A crop with valid syntax can still fall outside the reference; crop()
+        # raises FidelityError and main() must report it at exit 2, not crash.
+        with tempfile.TemporaryDirectory() as tmp:
+            _, reference = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+            path = self._write(Path(tmp), "reference.png", reference)
+            result = self._run(path, path, "--crop", "1,1,2,2")
+            self._assert_usage_error(result, "falls outside")
+
     def test_invalid_numeric_args_are_usage_errors(self):
         # Negative/NaN thresholds silently invert the verdict (a negative
         # tolerance makes every pixel differ, a NaN max-mae always fails), so
