@@ -5,7 +5,118 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 Platinum list item widget for the desktop theme
+
+**Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button,
+checkmarks, and text-field plans: it adds one widget file to the existing
+`org.macos8.desktop` desktop-theme package and a `TestListItem` class plus one `TestInstall`
+tuple entry to `tests/test_desktoptheme.py`. It does not touch `button.svg`, `frame.svg`,
+`radiobutton.svg`, `checkmarks.svg`, `lineedit.svg`, or `panel-background.svg`.
+
+**Goal.** Ship `widgets/listitem.svg` in the `org.macos8.desktop` desktop theme so
+`PlasmaComponents.ItemDelegate` (and the applet `PlasmaExtras.ListItem`) draw the Platinum flat
+selection row instead of Breeze's rounded gradient, and so the theme stops inheriting
+`widgets/listitem.svgz` from the default theme.
+
+**Grounding.**
+- Consumers verified in the installed Plasma 6.3.6 QML under
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/`:
+  - `components/private/DefaultListItemBackground.qml` (the `background` of
+    `components/ItemDelegate.qml`) is a `KSvg.FrameSvgItem` with `imagePath: "widgets/listitem"`
+    and `prefix: control.highlighted || control.down ? "pressed" : "normal"`, with a nested
+    `widgets/listitem` `prefix: "hover"` overlay; the delegate's padding is
+    `background.margins`.
+  - `extras/ListItem.qml` uses prefixes `pressed`/`normal`/`section` and the `separator`
+    element; `components/ToolBar.qml` uses the `separator` element;
+    `private/clipboard/ClipboardMenu.qml` uses prefix `normal`.
+  - A missing prefix or element renders nothing — the same fallback the done button and
+    lineedit plans rely on.
+- Palette: `[Colors:Selection] BackgroundNormal=204,204,255` (#CCCCFF) in
+  `theme/color-schemes/MacOS8.colors`, with `[Colors:Selection] ForegroundNormal=0,0,0`; the
+  selected-delegate text colour is Kirigami's highlighted text, i.e. that black.
+  `TestReferenceAnchors.test_selection_background` already decodes
+  `macos8.6-screenshots/firstboot_betawiki.png` and pins the selection fill at (200,63). A scan
+  of that PNG with `tools/png.py` finds the selected Setup Assistant row as a flat #CCCCFF
+  rectangle (x 31..428, y 61..85) flush against the list's sunken frame, with no outline of its
+  own.
+- `find /usr/share/plasma/desktoptheme -name 'listitem.svg*'` returns only
+  `default/widgets/listitem.svgz`, so today the theme inherits Breeze's rounded rows.
+- Mac OS 8.6 has no hover highlight, no section headers, and no row separators, so the plan
+  omits the `hover` and `section` prefixes and the `separator` element. A hovered or sectioned
+  row therefore stays pixel-identical to a normal one, and ToolBar draws no separator line.
+- A nine-slice element with no rendered content has no bounding box for KSvg to read margins
+  from, so the default theme draws its `normal` slices at `opacity:0.01`. This plan follows
+  that proven pattern: the `normal` slices carry `style="fill:#FFFFFF" fill-opacity="0.01"`
+  geometry with no `fill` attribute, contributing the 3px margins while painting nothing
+  perceptible.
+
+**Approach.**
+1. New file `widgets/listitem.svg` in the `org.macos8.desktop` package: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">` with a
+   comment naming the widget, its consumers, and the normal/pressed-only contract.
+   - Nine-slice hints (rects, any opaque `style` colour; KSvg reads geometry, not colour):
+     `hint-tile-center` 6x6 at (3,3); for each of `normal` and `pressed`,
+     `{prefix}-hint-top-margin` 6x3 at (3,0), `{prefix}-hint-bottom-margin` 6x3 at (3,9),
+     `{prefix}-hint-left-margin` 3x6 at (0,3), `{prefix}-hint-right-margin` 3x6 at (9,3).
+   - `normal` nine-slice: one group per slice on the 3px border / 6px centre grid, square
+     corners, each holding a single rect of the slice's size with
+     `style="fill:#FFFFFF" fill-opacity="0.01"` and no `fill` attribute:
+     `normal-top` translate(3,0) 6x3, `normal-bottom` translate(3,9) 6x3, `normal-left`
+     translate(0,3) 3x6, `normal-right` translate(9,3) 3x6, `normal-center` translate(3,3)
+     6x6, `normal-topleft` 3x3, `normal-topright` translate(9,0) 3x3, `normal-bottomleft`
+     translate(0,9) 3x3, `normal-bottomright` translate(9,9) 3x3.
+   - `pressed` nine-slice: the same nine groups at the same origins, each holding a single
+     rect of the slice's size with `fill="#CCCCFF"` (flat selection fill, no bevel, no
+     outline).
+   No `hover-*`, `section-*`, `separator`, `focus-*`, `class="ColorScheme-*"`,
+   `currentColor`, or `<script>`, and no element outside the 12x12 canvas.
+2. `tests/test_desktoptheme.py` (edit):
+   - Add `LISTITEM_SVG = os.path.join(PACKAGE, "widgets", "listitem.svg")` beside
+     `LINEEDIT_SVG`.
+   - Add `("listitem.svg", LISTITEM_SVG, 12, 12)` to `SVG_CANVASES`.
+   - Add `class TestListItem` beside `TestLineEdit`:
+     - `test_listitem_slice_ids`: parse; assert the id set contains every
+       `{normal,pressed}-{slice}` id for the nine `SLICE_IDS`, plus `hint-tile-center` and the
+       four `{prefix}-hint-{side}-margin` ids for both prefixes.
+     - `test_listitem_selection_is_flat_selection_colour`:
+       `render_slices(ET.parse(LISTITEM_SVG))` gives every `pressed-*` slice all #CCCCFF, so the
+       selection cannot silently gain a bevel or the grey button face.
+     - `test_listitem_normal_has_no_fill`: every `normal-*` slice's pixel value is `None` (its
+       rects carry no `fill` attribute) and `attribute_values(tree, "fill-opacity") == {"0.01"}`.
+     - `test_listitem_colours`: `attribute_values(tree, "fill") == {"#CCCCFF"}` (the hints and
+       the normal slices use `style`, so they are excluded).
+     - `test_listitem_tiles_placed_by_margins`:
+       `assert_tiles_placed_by_margins(self, self.tree, ["normal", "pressed"])`.
+     - `test_no_script_elements`.
+   - Add `os.path.join("widgets", "listitem.svg")` to `TestInstall.INSTALLED_FILES` (the
+     byte-identity tuple the lifecycle cases iterate).
+3. `README.md` (edit): add "list item" to the `tumwater:status` block's desktop-theme widget
+   parenthetical, and `widgets/listitem.svg` (the flat #CCCCFF selection row for list and
+   applet item delegates) to the Installing section's desktop-theme sentence.
+
+**Files touched.** New: `listitem.svg` in the package's `widgets/` subdirectory. Edited:
+`tests/test_desktoptheme.py` (`LISTITEM_SVG`, `SVG_CANVASES`, `TestListItem`, `TestInstall`
+`INSTALLED_FILES`), `README.md`. No change to the color scheme, the look-and-feel package, the
+Makefile, or the other widgets.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestListItem` passing and the extended `TestInstall` byte-identity
+  assertion.
+- The listitem SVG parses and contains the eighteen `{normal,pressed}-{slice}` ids, the nine
+  hint ids, and the `hint-tile-center` id; every `pressed-*` slice renders entirely #CCCCFF;
+  every `normal-*` slice has no `fill` attribute and a `fill-opacity` of 0.01; the only parsed
+  `fill` attribute value is #CCCCFF.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/listitem.svg` byte-identical to
+  source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a list drawn with `PlasmaComponents.ItemDelegate`
+  (Kickoff, System Settings, or a file dialog) shows the selected row as a flat #CCCCFF
+  rectangle with black text and no rounded gradient or outline; an unselected row shows the
+  view background; hovering a row changes nothing; every other widget is unchanged.
+
+**Follow-up (not planned here).** `widgets/scrollbar.svg` (constrained: the ScrollBar QML
+shows its track only while hovered and computes but never uses `arrowPresent`, so the Mac arrow
+buttons cannot be drawn) and `widgets/background.svg` for dialog/applet backgrounds.
 
 ## Done
 
