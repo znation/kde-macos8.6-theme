@@ -134,7 +134,7 @@ class TestInstall(
                 f": > {shlex.quote(invoked)}\n"
                 f"exec {shlex.quote(real_flock)} \"$@\"\n",
             )
-            proc = subprocess.Popen(
+            proc = theme_install.start(
                 [
                     "make", "install",
                     f"DESTDIR={tmp}",
@@ -159,7 +159,7 @@ class TestInstall(
             finally:
                 fcntl.flock(lock_fd, fcntl.LOCK_UN)
                 os.close(lock_fd)
-            _, err = proc.communicate(timeout=theme_install.SUBPROCESS_TIMEOUT)
+            _, err = theme_install.finish(proc)
             self.assertTrue(
                 reached_lock, "install did not take the data-home lock"
             )

@@ -11,6 +11,7 @@ are quoted.
 
 import os
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -98,6 +99,33 @@ class TestSubprocessTimeout(unittest.TestCase):
                 _process_alive(grandchild),
                 "grandchild survived the timeout",
             )
+
+    def test_finish_kills_a_hung_child(self):
+        """A caller-started child that times out must be killed, not leaked.
+
+        `test_lookandfeel` starts `make install` itself to poll it, then waits
+        with `theme_install.finish`. A child that outlives the timeout must be
+        SIGKILLed with its process group, so a hung `make install` -- and its
+        `flock` descendants -- cannot keep running after the test has failed.
+        """
+        process = theme_install.start(
+            [sys.executable, "-c", "import time; time.sleep(30)"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        original = theme_install.SUBPROCESS_TIMEOUT
+        theme_install.SUBPROCESS_TIMEOUT = 0.5
+        try:
+            with self.assertRaises(subprocess.TimeoutExpired):
+                theme_install.finish(process)
+        finally:
+            theme_install.SUBPROCESS_TIMEOUT = original
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline and _process_alive(process.pid):
+            time.sleep(0.05)
+        self.assertFalse(
+            _process_alive(process.pid), "child survived finish()'s timeout"
+        )
 
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):

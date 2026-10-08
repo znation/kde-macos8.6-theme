@@ -34,6 +34,46 @@ def _kill_process_group(process):
         process.kill()
 
 
+def start(argv, **kwargs):
+    """Start `argv` in its own session, for a caller that polls it, then `finish`.
+
+    A test that must observe a child while it runs starts it here instead of
+    with `subprocess.Popen` directly, so `finish` can kill the child's whole
+    process group when it outlives its timeout. `start_new_session` is forced,
+    not defaulted, so that group is never the suite's own.
+    """
+    kwargs["start_new_session"] = True
+    return subprocess.Popen(argv, **kwargs)
+
+
+def finish(process, timeout=None):
+    """Wait for a process from `start`, killing its group if it times out.
+
+    Returns ``(stdout, stderr)``. A child that outlives *timeout* is SIGKILLed
+    with every process in its group, so a hung `make install` cannot leave its
+    `flock`/inner-`make` descendants running after the test has failed. A
+    descendant that escaped the group and still holds the pipes is not waited
+    on: the timeout is reported instead of blocking the suite. The constant is
+    read at call time, so a test can patch it.
+    """
+    if timeout is None:
+        timeout = SUBPROCESS_TIMEOUT
+    try:
+        return process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        _kill_process_group(process)
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # A descendant left the process group (for example by calling
+            # setsid) and still holds the pipes. The direct child is dead;
+            # report the timeout rather than block on the escaped descendant.
+            raise subprocess.TimeoutExpired(process.args, timeout) from None
+        raise subprocess.TimeoutExpired(
+            process.args, timeout, output=stdout, stderr=stderr
+        ) from None
+
+
 def run(argv, **kwargs):
     """Run `argv` under the suite's subprocess timeout.
 
@@ -47,29 +87,14 @@ def run(argv, **kwargs):
     outer `make`, so the inner make and flock survive as orphans -- still
     running against the throwaway DESTDIR and still holding the data-home
     lock. `capture_output` is expanded here because `Popen` does not take it
-    directly, and the second `communicate` is bounded so a descendant that
-    escapes the group cannot stall the suite.
+    directly.
     """
     timeout = kwargs.pop("timeout", SUBPROCESS_TIMEOUT)
     if kwargs.pop("capture_output", False):
         kwargs.setdefault("stdout", subprocess.PIPE)
         kwargs.setdefault("stderr", subprocess.PIPE)
-    kwargs["start_new_session"] = True
-    process = subprocess.Popen(argv, **kwargs)
-    try:
-        stdout, stderr = process.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        _kill_process_group(process)
-        try:
-            stdout, stderr = process.communicate(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            # A descendant left the process group (for example by calling
-            # setsid) and still holds the pipes. The direct child is dead;
-            # report the timeout rather than block on the escaped descendant.
-            raise subprocess.TimeoutExpired(process.args, timeout) from None
-        raise subprocess.TimeoutExpired(
-            process.args, timeout, output=stdout, stderr=stderr
-        ) from None
+    process = start(argv, **kwargs)
+    stdout, stderr = finish(process, timeout)
     return subprocess.CompletedProcess(
         process.args, process.returncode, stdout, stderr
     )
