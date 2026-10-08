@@ -5,7 +5,89 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 Platinum frame widget for the desktop theme
+
+**Planned 2026-10-07 by plan.** Requires the desktop theme package from the panel-background plan
+above (its `org.macos8.desktop` directory under `theme/desktop-themes/` and its `test_desktoptheme.py`
+under `tests/`); this plan adds
+one widget file to that package and does not create it.
+
+**Goal.** Ship `widgets/frame.svg` in the `org.macos8.desktop` desktop theme so the Platinum
+raised/plain/sunken border replaces Breeze wherever Plasma draws a frame: `PlasmaComponents.Frame`,
+`GroupBox`, the kicker application-menu sidebar, and applet `FrameSvg` consumers. It is the second
+widget family after the menu-bar background, and the first multi-state one.
+
+**Grounding.**
+- Consumers verified in the installed Plasma 6.3.6 QML: `widgets/frame` with prefix `plain` is set by
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/Frame.qml` (`background: KSvg.FrameSvgItem`,
+  `prefix: "plain"`), `.../components/GroupBox.qml` (`prefix: "plain"`),
+  `/usr/share/plasma/plasmoids/org.kde.plasma.kicker/contents/ui/MenuRepresentation.qml` (the app-menu
+  sidebar), and `/usr/share/plasma/plasmoids/org.kde.plasma.calculator/contents/ui/main.qml`. The
+  `raised`/`sunken` prefixes are the classic `PlasmaCore.FrameSvg` variants applets pass to
+  `imagePath: "widgets/frame"`; the system `default` theme ships all three.
+- The default `frame.svgz` (`zcat /usr/share/plasma/desktoptheme/default/widgets/frame.svgz`) id
+  contract is `{plain,raised,sunken}-{center,top,bottom,left,right,topleft,topright,bottomleft,bottomright}`,
+  `{prefix}-hint-{top,bottom,left,right}-margin`, and one `hint-tile-center`; it has no `mask-*` or
+  `shadow-*` elements. Its hint margins are 6px (the value is a hint rect's height for top/bottom and
+  its width for left/right); ours can be 3px for a 1px border plus 1px bevel.
+- Palette from `theme/color-schemes/MacOS8.colors`: `[Colors:Button]`/`[Colors:Window]`
+  `BackgroundNormal=221,221,221` (#DDDDDD) and `ForegroundNormal=0,0,0` (#000000). The panel-background
+  plan already established #FFFFFF top/left highlight and #999999 bottom/right shadow for this theme.
+- Mac OS 8.6 window/frame corners are square, so the slices need no rounded-corner masks; the SVG's
+  own alpha is the shape.
+- The panel-background plan's `make install` copies the package with `cp -r`, so a new widget file
+  needs no Makefile change.
+
+**Approach.**
+1. New file `frame.svg` in that package's `widgets/` subdirectory — a 12x12 canvas, square
+   corners, 3px fixed border region, 6px centre tile. Slice geometry: `topleft`/`topright`/
+   `bottomleft`/`bottomright` 3x3 at (0,0)/(9,0)/(0,9)/(9,9); `top` 6x3 at (3,0), `bottom` 6x3 at
+   (3,9), `left` 3x6 at (0,3), `right` 3x6 at (9,3), `center` 6x6 at (3,3). Hint rects:
+   `{prefix}-hint-top-margin` a rect whose bounding-box height is 3, `-bottom-margin` height 3,
+   `-left-margin` width 3, `-right-margin` width 3, and `hint-tile-center` 6x6; fill them any opaque
+   colour (KSvg reads the geometry, not the colour).
+2. Author the three nine-slice groups as `plain`, `raised`, `sunken`. Each slice is a `<rect>` (or a
+   `<path>` for the corners) carrying `id="{prefix}-{slice}"`.
+   - `plain`: face #DDDDDD with a 1px #000000 border on all four outer edges.
+   - `raised`: 1px #000000 outer border, then 1px #FFFFFF along the inside top and left and 1px
+     #999999 along the inside bottom and right, face #DDDDDD (the Platinum raised bevel).
+   - `sunken`: 1px #000000 outer border, then 1px #999999 along the inside top and left and 1px
+     #FFFFFF along the inside bottom and right, face #DDDDDD (the inverted bevel).
+   Corners take the two adjacent edges' colours so the bevel turns the corner (e.g. raised `topleft`
+   #FFFFFF, raised `bottomright` #999999). No `mask-*`, `shadow-*`, `class="ColorScheme-*"`, or
+   `<script>`, and no fill outside the 12x12 canvas.
+3. `test_desktoptheme.py` (edit; the file is created by the panel-background plan) — add a
+   `TestFrame` class beside `TestPanelBackground`, using the same `xml.etree.ElementTree` approach:
+   - `test_frame_svg_contract`: `ET.parse` the frame SVG, collect every `id`; for each prefix in
+     `("plain", "raised", "sunken")` assert all nine `{prefix}-{slice}` ids and all four
+     `{prefix}-hint-{side}-margin` ids are present; assert `hint-tile-center` is present; assert the
+     file text contains `#DDDDDD`, `#FFFFFF`, `#999999`, `#000000`; assert no element tag ends in
+     `script`.
+   - `test_frame_installed`: run `make install DESTDIR=<tmp> XDG_DATA_HOME=/share`; assert
+     `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/frame.svg` exists and is
+     byte-identical to the source file, and that a second run exits 0.
+4. `README.md` (edit) — add the frame widget to the `tumwater:status` block and to the Installing
+   section's desktop-theme sentence.
+
+**Files touched.** New: `frame.svg` in the package's `widgets/` subdirectory. Edited:
+`test_desktoptheme.py` (new `TestFrame`), `README.md`. No change to the color scheme, the
+look-and-feel package, or the Makefile.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestFrame` passing (its SVG-contract and install assertions).
+- The frame SVG parses and contains the nine slice ids and four hint-margin ids for each of `plain`,
+  `raised`, and `sunken`, plus `hint-tile-center`.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/frame.svg` byte-identical to source,
+  and a second `make install` still exits 0.
+- Manual smoke test (needs a Plasma session): a `PlasmaComponents.Frame`/`GroupBox` and the kicker
+  application-menu sidebar render a #DDDDDD face with a #000000 outline and #FFFFFF top/left +
+  #999999 bottom/right bevels; every other widget still renders Breeze.
+
+**Follow-up (not planned here).** The button widget (`widgets/button`, consumed by
+`RaisedButtonBackground`/`FlatButtonBackground`/`ButtonHover`/`ButtonFocus`/`ButtonShadow` and
+`CheckIndicator`), then `scrollbar`/`tooltip`; the frame establishes the multi-state nine-slice
+pattern those need.
 
 ## Done
 
