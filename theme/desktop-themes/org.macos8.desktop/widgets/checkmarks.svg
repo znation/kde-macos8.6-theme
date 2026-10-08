@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" checkmarks.
+
+     The checked-state glyphs overlaid on the button face: `checkbox` is the
+     2px black check PlasmaComponents.CheckBox draws when checked, and
+     `radiobutton` is the compatibility dot RadioIndicator's fallback
+     component draws (the modern component uses widgets/radiobutton.svg).
+     Each element is a group holding an invisible full-cell bounding rect
+     plus the glyph: the consumers anchor the SvgItem with `anchors.fill`, so
+     KSvg scales the element by its bounds, and the rect pins those bounds to
+     the 16x16 cell so the glyph draws 1:1. Mac OS 8.6 has no partial check
+     state, so there is no third element.
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="32" viewBox="0 0 16 32">
+  <!-- Checked checkbox glyph: a 2px black check in the top 16x16 cell. -->
+  <g id="checkbox">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <path d="M 3.5,8.5 L 6.5,11.5 L 12.5,5.5" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>
+  </g>
+
+  <!-- Compatibility dot: a 6x6 black circle in the bottom 16x16 cell. -->
+  <g id="radiobutton">
+    <rect x="0" y="16" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="24" r="3" fill="#000000"/>
+  </g>
+</svg>

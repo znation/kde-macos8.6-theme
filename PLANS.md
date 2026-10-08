@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 Platinum checkmarks widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum checkmarks widget for the desktop theme (done 2026-10-08)
 
 **Planned 2026-10-08 by plan.** Independent of the done frame, button, and radio-button plans: it
 adds one widget file to the existing `org.macos8.desktop` desktop-theme package and a
@@ -29,6 +33,11 @@ Breeze glyphs.
   `Qt.PartiallyChecked`, and 0 when unchecked (and `control.checked ? 1 : 0` for a non-`CheckBox`
   `AbstractButton`). So `checkbox` is a checked-only overlay drawn on top of the button face: the
   file supplies the glyph, not the box.
+- The overlay uses `anchors.fill: parent`, so KSvg scales the element by its bounds. A bare glyph
+  would be stretched to the 16x16 cell: each element therefore wraps the glyph in a `<g>` with an
+  invisible full-cell `<rect fill="none">`, which pins the element bounds to 16x16 so the glyph
+  draws 1:1. Qt computes a rect's bounds from its geometry (`QSvgRect::internalBounds` maps
+  `m_rect` regardless of fill), so the `fill="none"` rect still sets the bounds.
 - `RadioIndicator.qml`'s fallback `compatibilityComponent` draws `widgets/actionbutton` plus a
   `KSvg.SvgItem` on `widgets/checkmarks` with `elementId: "radiobutton"`; the modern
   `radiobuttonComponent` is selected instead now that the theme ships `widgets/radiobutton.svg`.
@@ -56,11 +65,16 @@ Breeze glyphs.
 1. New file `widgets/checkmarks.svg` in the `org.macos8.desktop` package: root
    `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="32" viewBox="0 0 16 32">` with a
    comment naming the widget, its consumers, and the checked-only overlay contract.
-   - `<path id="checkbox" d="M 3.5,8.5 L 6.5,11.5 L 12.5,5.5" fill="none" stroke="#000000"
-     stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>` — the 2px black check
-     in the top cell (the default theme's check shape, with `currentColor` resolved to `#000000`).
-   - `<circle id="radiobutton" cx="8" cy="24" r="3" fill="#000000"/>` — the compatibility dot
-     in the bottom cell.
+   - Each element is a `<g>` holding an invisible full-cell bounding `<rect fill="none">` plus its
+     glyph, so KSvg scales the element to the 16x16 cell and draws the glyph 1:1.
+   - `<g id="checkbox">` in the top cell: the bounding rect `x="0" y="0" width="16" height="16"
+     fill="none"`, then the 2px black check
+     `<path d="M 3.5,8.5 L 6.5,11.5 L 12.5,5.5" fill="none" stroke="#000000" stroke-width="2"
+     stroke-linecap="square" stroke-linejoin="miter"/>` (the default theme's check shape, with
+     `currentColor` resolved to `#000000`).
+   - `<g id="radiobutton">` in the bottom cell: the bounding rect `x="0" y="16" width="16"
+     height="16" fill="none"`, then the compatibility dot `<circle cx="8" cy="24" r="3"
+     fill="#000000"/>`.
    No `hint-size`/`hint-tile-center` (no consumer reads them), no `class="ColorScheme-*"`, no
    `currentColor`, no `<script>`, and no fill outside the 16x32 canvas.
 2. `tests/test_desktoptheme.py` (edit):
@@ -70,14 +84,16 @@ Breeze glyphs.
      - `test_checkmarks_contract`: `ET.parse` the file; assert ids `checkbox` and `radiobutton` are
        present; assert the parsed `stroke` attributes are exactly `{"#000000"}`; assert the parsed
        `fill` attributes are exactly `{"none", "#000000"}`; assert no element tag ends in `script`.
-     - `test_checkmarks_geometry`: assert the `checkbox` element's tag is `path`, its `d` is exactly
-       `"M 3.5,8.5 L 6.5,11.5 L 12.5,5.5"`, and its `stroke-width` is `"2"`; assert the
-       `radiobutton` element's tag is `circle` with `r == 3` and `fill == "#000000"`.
+     - `test_checkmarks_geometry`: assert `checkbox` is a `<g>` whose children are one bounding
+       `rect` (`x=0`, `y=0`, `width=16`, `height=16`, `fill="none"`) and one `path` with `d` exactly
+       `"M 3.5,8.5 L 6.5,11.5 L 12.5,5.5"`, `stroke-width="2"`, and `fill="none"`; assert
+       `radiobutton` is a `<g>` whose children are one bounding `rect` (`x=0`, `y=16`, `width=16`,
+       `height=16`, `fill="none"`) and one `circle` with `r == 3` and `fill == "#000000"`.
    - Add `os.path.join("widgets", "checkmarks.svg")` to the tuple in
      `TestInstall.test_make_install_copies_package_byte_for_byte`.
-3. `README.md` (edit): extend the `tumwater:status` sentence that enumerates the desktop theme's
-   widgets with "and whose `widgets/checkmarks.svg` provides the Platinum checkbox checkmark (a 2px
-   black check drawn over the face when checked)".
+3. `README.md` (edit): add `widgets/checkmarks.svg` to the desktop theme's widget inventory and the
+   status sentence, naming the 2px black check `CheckBox` overlays when checked and the
+   `RadioIndicator` compatibility dot.
 
 **Files touched.** New: `checkmarks.svg` in the package's `widgets/` subdirectory. Edited:
 `tests/test_desktoptheme.py` (`TestCheckmarks`, `TestInstall` tuple), `README.md`. No change to the
@@ -85,9 +101,10 @@ color scheme, the look-and-feel package, the Makefile, or the other widgets.
 
 **Acceptance criteria.**
 - `make check` exits 0 with `TestCheckmarks` passing.
-- The checkmarks SVG parses and contains `checkbox` and `radiobutton`; `checkbox` is a `path` with
-  the pinned `d`, `stroke-width="2"`, and `stroke="#000000"`; `radiobutton` is a `circle` with
-  `r=3` and `fill="#000000"`.
+- The checkmarks SVG parses and contains `checkbox` and `radiobutton`, each a `<g>` with a full-cell
+  `fill="none"` bounding rect and one glyph child; `checkbox`'s path has the pinned `d`,
+  `stroke-width="2"`, and `stroke="#000000"`; `radiobutton`'s circle has `r=3` and
+  `fill="#000000"`.
 - `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
   `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/checkmarks.svg` byte-identical to
   source (via the extended `TestInstall` tuple).
@@ -99,7 +116,6 @@ color scheme, the look-and-feel package, the Makefile, or the other widgets.
 and the checkbox-face mismatch noted above (a Plasma 6.3 `CheckIndicator.qml` constraint, not a
 missing SVG), then `scrollbar`, `listitem`, and `background`.
 
-## Done
 
 ### Mac OS 8.6 Platinum radio button widget for the desktop theme (done 2026-10-07)
 
