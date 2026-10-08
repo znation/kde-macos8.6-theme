@@ -218,6 +218,22 @@ def assert_edge_band_pixels(case, slices, name, side, band):
         case.assertEqual(actual, expected, name)
 
 
+def assert_corner_pixels(case, slices, name, expected):
+    """Assert corner slice *name* paints the 3x3 *expected* pixels.
+
+    *expected* is the nine colours in row-major order, top-left first -- the
+    shape the corner tests each otherwise rebuild by hand.
+    """
+    pixels = slices[name]
+    actual = tuple(
+        pixels.get((x, y))
+        for y in range(3)
+        for x in range(3)
+    )
+    with case.subTest(corner=name):
+        case.assertEqual(actual, expected, name)
+
+
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
 
 
@@ -876,14 +892,7 @@ class TestLineEdit(unittest.TestCase):
             ),
         }
         for name, colours in expected.items():
-            pixels = slices[name]
-            actual = tuple(
-                pixels.get((x, y))
-                for y in range(3)
-                for x in range(3)
-            )
-            with self.subTest(corner=name):
-                self.assertEqual(actual, colours, name)
+            assert_corner_pixels(self, slices, name, colours)
 
     def test_lineedit_tiles_placed_by_margins(self):
         # `test_lineedit_face_is_white` composites `base-center` slice-local,
@@ -983,13 +992,7 @@ class TestFrame(unittest.TestCase):
         slices = render_slices(ET.parse(FRAME_SVG))
         for prefix, corners in CORNER_PIXELS.items():
             for name, expected in corners.items():
-                pixels = slices[f"{prefix}-{name}"]
-                actual = tuple(
-                    pixels.get((x, y))
-                    for y in range(3)
-                    for x in range(3)
-                )
-                self.assertEqual(actual, expected, f"{prefix}-{name}")
+                assert_corner_pixels(self, slices, f"{prefix}-{name}", expected)
 
     def test_frame_plain_corners_are_flat(self):
         # `test_frame_corner_bevels_turn_the_corner` pins only the raised and
@@ -1023,14 +1026,7 @@ class TestFrame(unittest.TestCase):
             ),
         }
         for name, colours in expected.items():
-            pixels = slices[name]
-            actual = tuple(
-                pixels.get((x, y))
-                for y in range(3)
-                for x in range(3)
-            )
-            with self.subTest(corner=name):
-                self.assertEqual(actual, colours, name)
+            assert_corner_pixels(self, slices, name, colours)
 
     def test_frame_edge_bevels(self):
         # `test_frame_corner_bevels_turn_the_corner` pins only the raised and
