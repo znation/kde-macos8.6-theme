@@ -314,10 +314,11 @@ def tile_origins(tree):
     origins = {}
     for group in groups_with_id(tree):
         transform = group.get("transform")
-        match = None if transform is None else _TRANSLATE.fullmatch(transform.strip())
         if transform is None:
             origins[group.get("id")] = (0, 0)
-        elif match:
+            continue
+        match = _TRANSLATE.fullmatch(transform.strip())
+        if match:
             origins[group.get("id")] = (int(match.group(1)), int(match.group(2)))
         else:
             # Keep the raw text so a transform this test cannot parse fails
