@@ -226,6 +226,12 @@ def decode_png(data: bytes) -> Image:
         raise FidelityError(f"unsupported PNG color type {color_type}")
     if width == 0 or height == 0:
         raise FidelityError("PNG has zero width or height")
+    if not idat:
+        # A PNG truncated before its IDAT chunk, or one whose IDAT is empty,
+        # reaches zlib with no compressed data; zlib then reports an opaque
+        # "incomplete or truncated stream" that names neither the chunk nor
+        # the missing data.
+        raise FidelityError("PNG has no IDAT image data")
     try:
         raw = zlib.decompress(bytes(idat))
     except zlib.error as exc:

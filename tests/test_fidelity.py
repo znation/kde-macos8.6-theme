@@ -186,6 +186,26 @@ class TestDecode(unittest.TestCase):
             "got 10 bytes, expected 30 for a 3x3 image", str(ctx.exception)
         )
 
+    def test_rejects_png_without_image_data(self):
+        # A PNG truncated before its IDAT chunk, or one whose IDAT is empty,
+        # must be named as missing image data rather than surfacing zlib's
+        # opaque "incomplete or truncated stream".
+        ihdr = _chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+        cases = {
+            "no IDAT": _PNG_SIGNATURE + ihdr + _chunk(b"IEND", b""),
+            "empty IDAT": (
+                _PNG_SIGNATURE
+                + ihdr
+                + _chunk(b"IDAT", b"")
+                + _chunk(b"IEND", b"")
+            ),
+        }
+        for label, data in cases.items():
+            with self.subTest(label=label):
+                with self.assertRaises(fidelity.FidelityError) as ctx:
+                    fidelity.decode_png(data)
+                self.assertIn("no IDAT image data", str(ctx.exception))
+
     def test_grayscale_and_rgba(self):
         gray = make_png(2, 1, [bytes([7, 200])], color_type=0)
         self.assertEqual(fidelity.decode_png(gray).rgb, bytes([7, 7, 7, 200, 200, 200]))
