@@ -645,6 +645,12 @@ it printed `MacOS8`, `MacOS86`, and `Platinum`). That mismatch made the applied 
 resolve on restart, so the scheme was later renamed to `MacOS8.colors` with `ColorScheme=MacOS8`
 (see the Fixed BUGS.md entry); `Name` still reads "Mac OS 8.6".
 
+**Implementation note (2026-10-08).** The selection token was planned as `206,206,255`, sampled
+from the lossy `opendialog_macrumors86.jpg`; grounding the anchor in the lossless retail
+`firstboot_betawiki.png` showed the selection fill is `204,204,255`, so the scheme was corrected
+(see the Fixed BUGS.md entry). The tooltip token (`255,255,204`) still has no reference screenshot
+and remains pinned only by the test.
+
 **Follow-ups (not planned here).** Wrap the scheme in a `look-and-feel` global-theme package,
 then build the Plasma desktop-theme widget SVGs and the Platinum window decoration.
 

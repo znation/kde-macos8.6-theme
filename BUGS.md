@@ -30,57 +30,55 @@ once an offline render path is available, and wire it into `make check`.
 
 ### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07)
 
-**Symptom:** `tests/test_colorscheme.py`'s `TestAnchors` pins the Platinum palette (Window/Button/
-Header face `221,221,221`, view `255,255,255`, selection `206,206,255`, tooltip `255,255,204`,
-chrome `0,0,0`) and PLANS.md attributes each value to a named retail screenshot
-(`desktop_archiveorg8.6hd.png`, `desktop_fandom.png`, `opendialog_macrumors86.jpg`), but no code
-reads those images' pixels. The test compares the scheme file to hard-coded strings, so a wrong
-anchor or a swapped reference image passes unnoticed: the image-to-value chain lives only in prose.
+**Symptom:** `tests/test_colorscheme.py`'s `TestReferenceAnchors` now ties the menu-bar face
+(`Window`/`Button`/`Header`), view background and chrome foreground to pixels of
+`desktop_archiveorg8.6hd.png`, and the selection background to a pixel of `firstboot_betawiki.png`,
+but the tooltip anchor (`255,255,204`) still lives only as a hard-coded string in `TestAnchors`: in
+`macos8.6-screenshots/` that colour occurs only as anti-aliasing fragments — diagonal edges and a
+few small glyph-like clusters — never as a balloon, so there is no pixel to re-derive it from.
 
-**How to reproduce:** Search `tests/` and `tools/` for code that reads pixel data from
-`macos8.6-screenshots/`. Only `tools/check_references.py` opens that directory, and only for
-provenance (the file exists, is a materialized image of an accepted format), never pixel values.
-Edit an expected string in `TestAnchors` to any other in-range value and `make check` still passes.
+**How to reproduce:** Decode every PNG in `macos8.6-screenshots/` with `tools/png.py` and search
+for `255,255,204`. The hits are anti-aliasing fragments, not a balloon: a 185-pixel diagonal edge
+(at (966–984, 289–311) in `desktop_betawiki.png` and `firstboot_betawiki.png`, and (838–856, 33–55)
+in `desktop_betawiki86b9.png`), small glyph-like clusters near (388–397, 77–88) in
+`firstboot_betawiki.png`, and isolated single pixels in `desktop_fandom.png` and several
+`*_betawiki.png` screenshots. Decoding the JPEGs (via a converter, since `tools/png.py` cannot read
+them) and searching likewise finds no pale-yellow balloon.
 
-**Suspected cause:** The palette was sampled by hand with ImageMagick while planning; neither the
-sample coordinates nor a re-derivation step were recorded, so the assertions check the scheme
-against itself rather than against the reference set. `tools/fidelity.py` compares a candidate PNG
-against a reference, but nothing points it at the shipped references or the scheme constants.
+**Suspected cause:** The palette was sampled by hand with ImageMagick while planning; the tooltip
+token has no recorded sample point, and none of the collected reference screenshots happens to show
+a tooltip.
 
-**Next step:** Record the sample point behind each anchor and add a check that decodes the
-retail-labelled PNG references with `tools/png.py` and asserts the scheme's anchor values at those
-points. The selection anchor's source (`opendialog_macrumors86.jpg`) is a JPEG, which the repo
-cannot decode yet, so cover the PNG-sourced anchors first.
+**Next step:** Source a retail Mac OS 8.6 screenshot that shows a tooltip / Balloon Help balloon,
+then record its sample point and add the tooltip anchor to `TestReferenceAnchors`.
 
 This complements the Open render/capture entry above: that one covers producing the candidate
 surface, this one covers the ground truth it is measured against.
 
-**Partial coverage 2026-10-07 by coverage:** `tests/test_colorscheme.py`'s `TestReferenceAnchors`
-now decodes `desktop_archiveorg8.6hd.png` with `tools/png.py` and asserts the scheme's menu-bar
-face (`Window`/`Button`/`Header`), view background and chrome foreground at recorded sample
-points, so those anchors are tied to the reference image. The selection anchor (JPEG source) and
-the tooltip anchor (no recorded source) remain pinned only by `TestAnchors`.
-
-### Selection and tooltip palette anchors are still not re-derivable (found 2026-10-07)
-
-**Symptom:** The face/view/chrome anchors now re-derive from the retail PNGs (see the palette-anchor
-entry above), but the selection anchor (`206,206,255`) and tooltip anchor (`255,255,204`) still live
-only as hard-coded strings in `tests/test_colorscheme.py`'s `TestAnchors`.
-
-**How to reproduce:** `TestReferenceAnchors` checks only its recorded sample points; the selection
-and tooltip anchors have no entry there, so their only check is the hard-coded string in
-`TestAnchors` — the self-referential gap this entry records.
-
-**Suspected cause:** The selection anchor's recorded source (`opendialog_macrumors86.jpg`) is a
-JPEG, which the repository cannot decode; the tooltip token has no recorded sample point at all.
-
-**Next step:** Record a sample point for the tooltip token in a retail reference the repository can
-decode, and either add a JPEG decoder for the selection source or find a PNG reference that shows
-a selection highlight, then add both anchors to `TestReferenceAnchors`.
-
-This is the remainder of the palette-anchor entry above.
-
 ## Fixed
+
+### Selection palette anchor is not re-derivable (found 2026-10-07; fixed 2026-10-08)
+
+**Symptom:** `TestAnchors` pinned the selection anchor (`206,206,255`) to a hard-coded string and
+no test read a reference pixel for it, so a wrong value passed unnoticed. The value had been
+sampled from `opendialog_macrumors86.jpg`, a lossy JPEG the repository cannot decode.
+
+**How to reproduce:** Point `TestReferenceAnchors` at the Setup Assistant list selection in the
+retail `firstboot_betawiki.png` (its fill at `(200, 63)`). With the scheme at `206,206,255` the
+test fails: `(204, 204, 255) != (206, 206, 255)`.
+
+**Suspected cause:** JPEG chroma loss shifted the hand-sampled value; the lossless retail PNGs
+(`firstboot_betawiki.png`, `setup_betawiki.png`) show the selection fill as `204,204,255`.
+
+**Fix:** Corrected `[Colors:Selection] BackgroundNormal`/`BackgroundAlternate` to `204,204,255` in
+`theme/color-schemes/MacOS8.colors`, updated `TestAnchors`, and added
+`TestReferenceAnchors.test_selection_background`, which decodes `firstboot_betawiki.png` with
+`tools/png.py` and asserts the selection fill at `(200, 63)`. The tooltip anchor remains ungrounded
+(see the palette-anchor entry under Open).
+
+**Validation gap:** unclear-invariant — confirming the bug meant deciding which reference was
+authoritative, because the lossless retail PNG (`204,204,255`) disagreed with the value hand-sampled
+from the lossy JPEG (`206,206,255`).
 
 ### `--tolerance` does not gate the fidelity exit status; README documents no pass threshold (found 2026-10-07; fixed 2026-10-07)
 

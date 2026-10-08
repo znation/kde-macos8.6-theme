@@ -29,10 +29,16 @@ from tools import png  # noqa: E402
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
 # The retail screenshot the PNG-sourced anchors were sampled from. It is stored
-# with Git LFS, so a clone without it skips TestReferenceAnchors rather than
-# failing `make check`.
+# with Git LFS, so a clone without it skips the anchors sampled from it rather
+# than failing `make check`.
 REFERENCE_DESKTOP = os.path.join(
     ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
+)
+
+# The Setup Assistant list selection (Colors:Selection) was sampled from this
+# retail 8.6 PNG. It is stored with Git LFS too.
+REFERENCE_FIRSTBOOT = os.path.join(
+    ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
 
 # configparser reads the KDE `[Colors:Header][Inactive]` header greedily, so the
@@ -223,7 +229,7 @@ class TestAnchors(unittest.TestCase):
         self.assert_value("Colors:View", "BackgroundNormal", "255,255,255")
 
     def test_selection_background(self):
-        self.assert_value("Colors:Selection", "BackgroundNormal", "206,206,255")
+        self.assert_value("Colors:Selection", "BackgroundNormal", "204,204,255")
 
     def test_tooltip_background(self):
         self.assert_value("Colors:Tooltip", "BackgroundNormal", "255,255,204")
@@ -238,37 +244,46 @@ class TestReferenceAnchors(unittest.TestCase):
     ``TestAnchors`` pins the scheme file to hard-coded strings, so it proves
     only that the file is self-consistent: a wrong anchor, or a reference image
     swapped for a different one, passed unnoticed. Each point below was sampled
-    from ``desktop_archiveorg8.6hd.png`` and is asserted against the scheme's
-    own value, so the file and the reference image must agree. The selection
-    anchor's recorded source is a JPEG, which ``tools/png.py`` cannot decode,
-    so it stays pinned by ``TestAnchors`` alone.
+    from a retail PNG (``desktop_archiveorg8.6hd.png`` for the face/view/chrome
+    anchors, ``firstboot_betawiki.png`` for the selection anchor) and is
+    asserted against the scheme's own value, so the file and the reference image
+    must agree. The tooltip anchor has no reference screenshot in the set, so it
+    stays pinned by ``TestAnchors`` alone.
     """
 
     @classmethod
     def setUpClass(cls):
-        try:
-            cls.image = png.read_png(REFERENCE_DESKTOP)
-        except png.PngError as exc:
-            # `make check` must not require the Git LFS reference set (that is
-            # what `make check-references` is for), so a clone without the
-            # materialized image skips instead of failing.
-            raise unittest.SkipTest(
-                f"{REFERENCE_DESKTOP} is not a materialized PNG: {exc}"
+        cls.images = {}
+        cls.image_errors = {}
+        for path in (REFERENCE_DESKTOP, REFERENCE_FIRSTBOOT):
+            try:
+                cls.images[path] = png.read_png(path)
+            except png.PngError as exc:
+                # `make check` must not require the Git LFS reference set (that
+                # is what `make check-references` is for), so a test whose
+                # reference image is not materialized skips instead of failing.
+                # Each image loads on its own, so a missing one skips only the
+                # anchors sampled from it, not the whole class.
+                cls.image_errors[path] = exc
+
+    def pixel(self, path, x, y):
+        if path not in self.images:
+            self.skipTest(
+                f"{path} is not a materialized PNG: {self.image_errors[path]}"
             )
+        image = self.images[path]
+        offset = (y * image.width + x) * 3
+        return tuple(image.rgb[offset : offset + 3])
 
-    def pixel(self, x, y):
-        offset = (y * self.image.width + x) * 3
-        return tuple(self.image.rgb[offset : offset + 3])
-
-    def assert_anchor_at(self, section, key, x, y):
+    def assert_anchor_at(self, section, key, x, y, path=REFERENCE_DESKTOP):
         value = tuple(
             int(part) for part in load_scheme().get(section, key).split(",")
         )
         self.assertEqual(
-            self.pixel(x, y),
+            self.pixel(path, x, y),
             value,
             f"{section}/{key} is {value} in the scheme but "
-            f"{self.pixel(x, y)} at ({x}, {y}) in {REFERENCE_DESKTOP}",
+            f"{self.pixel(path, x, y)} at ({x}, {y}) in {path}",
         )
 
     def test_menu_bar_face(self):
@@ -286,6 +301,28 @@ class TestReferenceAnchors(unittest.TestCase):
         # The 1px black rule along the bottom of a window is the chrome
         # foreground (Window/ForegroundNormal).
         self.assert_anchor_at("Colors:Window", "ForegroundNormal", 408, 226)
+
+    def test_selection_background(self):
+        # The Setup Assistant's list selection is a full-width highlighted row;
+        # (200, 63) is inside the first row, clear of its label text.
+        self.assert_anchor_at(
+            "Colors:Selection",
+            "BackgroundNormal",
+            200,
+            63,
+            path=REFERENCE_FIRSTBOOT,
+        )
+
+    def test_missing_reference_skips_only_its_own_anchor(self):
+        # A reference that failed to load must skip only the anchors sampled
+        # from it; the other reference stays usable.
+        self.images = {
+            REFERENCE_DESKTOP: png.Image(1, 1, bytes([221, 221, 221]))
+        }
+        self.image_errors = {REFERENCE_FIRSTBOOT: png.PngError("missing")}
+        self.assertEqual(self.pixel(REFERENCE_DESKTOP, 0, 0), (221, 221, 221))
+        with self.assertRaises(unittest.SkipTest):
+            self.pixel(REFERENCE_FIRSTBOOT, 0, 0)
 
 
 class TestInstall(unittest.TestCase):
