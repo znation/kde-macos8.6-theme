@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 Platinum color scheme and project check harness
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum color scheme and project check harness (done 2026-10-07)
 **Planned 2026-10-07 by plan.**
 
 **Goal.** Ship the project's first artifact — a Plasma 6 color scheme encoding the Mac OS 8.6
@@ -67,13 +71,18 @@ recorded as assertions in the test: `desktop_archiveorg8.6hd.png` (menu bar and 
 - `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
   `<tmp>/share/color-schemes/MacOS8.6.colors` byte-identical to the source file.
 - Manual smoke test (needs a Plasma session, so outside `make check`): with the file copied to
-  `~/.local/share/color-schemes/`, `plasma-apply-colorscheme --list-schemes` lists `MacOS8.6`, and
-  `plasma-apply-colorscheme MacOS8.6` exits 0 with window/button faces `#DDDDDD` and view
+  `~/.local/share/color-schemes/`, `plasma-apply-colorscheme --list-schemes` lists `MacOS8`, and
+  `plasma-apply-colorscheme MacOS8` exits 0 with window/button faces `#DDDDDD` and view
   backgrounds `#FFFFFF`.
+
+**Implementation note (2026-10-07).** `plasma-apply-colorscheme` derives a scheme's ID from the
+part of its filename before the first dot, so `MacOS8.6.colors` is listed and selectable as
+`MacOS8`, not `MacOS8.6` (verified by running the tool against a temp `XDG_DATA_HOME` holding
+copies named `MacOS8.6.colors`, `MacOS86.colors`, and `Platinum.colors`: it printed `MacOS8`,
+`MacOS86`, and `Platinum`). The filename is kept as planned so the install path and the
+`[General] ColorScheme`/`Name` keys still read "Mac OS 8.6"; the smoke test uses the ID KDE
+actually exposes.
 
 **Follow-ups (not planned here).** Wrap the scheme in a `look-and-feel` global-theme package,
 then build the Plasma desktop-theme widget SVGs and the Platinum window decoration.
 
-## Done
-
-_None yet._
