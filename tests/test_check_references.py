@@ -226,5 +226,36 @@ class TestAcceptedImageFormats(unittest.TestCase):
         )
 
 
+class TestControlCharactersInFilenames(unittest.TestCase):
+    """An untrusted filename must not reach the terminal as live bytes.
+
+    The reference directory can hold a contributor-supplied name, so an ESC or
+    newline in it would otherwise drive the operator's terminal or forge a
+    diagnostic line when the checker reports the undeclared image.
+    """
+
+    def _undeclared(self, module, filename):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+            (root / filename).write_bytes(module.PNG_MAGIC)
+            return module.check_references(root)
+
+    def test_escape_sequence_in_name_is_escaped(self):
+        module = load_checker()
+        problems = self._undeclared(module, "evil\x1b[31m.png")
+        self.assertTrue(problems, "expected an undeclared-image problem")
+        joined = "\n".join(problems)
+        self.assertNotIn("\x1b", joined)
+        self.assertIn("\\u001b", joined)
+
+    def test_newline_in_name_cannot_forge_a_line(self):
+        module = load_checker()
+        problems = self._undeclared(module, "fake\nproblem line.png")
+        joined = "\n".join(problems)
+        self.assertNotIn("fake\nproblem", joined)
+        self.assertIn("\\u000a", joined)
+
+
 if __name__ == "__main__":
     unittest.main()

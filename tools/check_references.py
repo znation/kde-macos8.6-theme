@@ -66,6 +66,19 @@ def _looks_like_image(path: Path) -> bool:
     return head[:4] == b"RIFF" and head[8:12] == b"WEBP"
 
 
+def _escape_controls(text: str) -> str:
+    """Render *text* with control characters escaped for terminal output.
+
+    A screenshot filename is contributor-supplied data. Printed raw, a name
+    containing an ESC or a newline would drive the operator's terminal with a
+    live escape sequence or forge an extra diagnostic line, so every control
+    character becomes a visible ``\\uXXXX`` escape before the name is shown.
+    """
+    return "".join(
+        ch if ch.isprintable() else f"\\u{ord(ch):04x}" for ch in text
+    )
+
+
 def check_references(directory: Path) -> list[str]:
     """Return a list of human-readable problems in *directory*.
 
@@ -144,7 +157,9 @@ def check_references(directory: Path) -> list[str]:
         if path.name == SOURCES_NAME or not path.is_file():
             continue
         if path.suffix.lower() in IMAGE_SUFFIXES and path.name not in entries:
-            problems.append(f"{path}: image has no entry in {SOURCES_NAME}")
+            problems.append(
+                f"{_escape_controls(str(path))}: image has no entry in {SOURCES_NAME}"
+            )
 
     return problems
 
