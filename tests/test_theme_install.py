@@ -173,6 +173,29 @@ class TestSubprocessTimeout(unittest.TestCase):
             theme_install.finish(process)
         self.assertEqual(process.returncode, 0)
 
+    def test_running_closes_the_pipes_of_an_exited_child(self):
+        """A child that exits before the block does must not leak its pipes.
+
+        `running` only has to kill a still-running child, but the caller may
+        leave the block without `finish` after the child has already exited --
+        an interrupt during the lock test's poll, once `make install` has
+        finished, is exactly that. The child is reaped, but its stdout/stderr
+        read ends stay open until the `Popen` is collected unless `running`
+        closes them, so close every pipe on the way out whether or not a kill
+        was needed.
+        """
+        with theme_install.running(
+            [sys.executable, "-c", "pass"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as process:
+            deadline = time.monotonic() + 5.0
+            while process.poll() is None and time.monotonic() < deadline:
+                time.sleep(0.01)
+            self.assertIsNotNone(process.poll())
+        self.assertTrue(process.stdout.closed, "stdout pipe leaked")
+        self.assertTrue(process.stderr.closed, "stderr pipe leaked")
+
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):
     """`make install`/`uninstall` must quote paths that contain whitespace.

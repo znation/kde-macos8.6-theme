@@ -87,6 +87,9 @@ def running(argv, **kwargs):
     test has failed. This context manager kills a still-running child with its
     whole process group on the way out whatever happens; a caller that reached
     `finish` first leaves nothing to kill, so the normal path is unaffected.
+    It closes the child's pipes on the way out too, so a caller that did not
+    reach `finish` -- including one whose child exited before the block ended
+    -- does not leak them.
 
     Yields the `Popen`; `kwargs` are as for `start`.
     """
@@ -97,11 +100,14 @@ def running(argv, **kwargs):
         if process.poll() is None:
             _kill_process_group(process)
             process.wait()
-            # `finish` drains and closes the pipes; a child killed here never
-            # reached it, so close the read ends instead of leaking them.
-            for stream in (process.stdin, process.stdout, process.stderr):
-                if stream is not None:
-                    stream.close()
+        # `finish` drains and closes the pipes; a caller that never reached it
+        # -- because the block raised, or because the child exited on its own
+        # before the block ended -- leaves the read ends open until the
+        # `Popen` is collected, so close them here. `close()` is idempotent,
+        # so a caller that did reach `finish` is unaffected.
+        for stream in (process.stdin, process.stdout, process.stderr):
+            if stream is not None:
+                stream.close()
 
 
 def run(argv, **kwargs):
