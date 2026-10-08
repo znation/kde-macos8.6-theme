@@ -115,14 +115,19 @@ def _paeth_delta_table() -> bytes:
     return table
 
 
-def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
-    stride = width * channels
-    expected = height * (stride + 1)
+def _require_raw_length(raw: bytes, width: int, height: int, channels: int) -> None:
+    """Reject scanline data shorter than the header's declared size."""
+    expected = height * (width * channels + 1)
     if len(raw) < expected:
         raise PngError(
             f"PNG image data is shorter than its header declares: got "
             f"{len(raw)} bytes, expected {expected} for a {width}x{height} image"
         )
+
+
+def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
+    stride = width * channels
+    _require_raw_length(raw, width, height, channels)
     out = bytearray(height * stride)
     prev = bytearray(stride)
     src = 0
@@ -161,16 +166,36 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
     return bytes(out)
 
 
+def _drop_alpha(raw: bytes, width: int, height: int) -> bytes:
+    """Return ``raw`` with the alpha byte of every pixel removed.
+
+    PNG filters reference only same-channel neighbours, so an alpha byte never
+    influences a colour channel's predictor.  Removing alpha before
+    unfiltering lets a colour-type-6 image unfilter as three channels instead
+    of four and leaves the result already RGB -- the dropped bytes are the
+    ones ``_to_rgb`` used to strip after the fact.  The filter-type byte at the
+    start of each scanline is kept.
+    """
+    _require_raw_length(raw, width, height, 4)
+    stride = width * 4
+    out = bytearray(height * (width * 3 + 1))
+    src = 0
+    dst = 0
+    for _ in range(height):
+        out[dst] = raw[src]
+        src += 1
+        dst += 1
+        line = bytearray(raw[src : src + stride])
+        del line[3::4]
+        out[dst : dst + width * 3] = line
+        src += stride
+        dst += width * 3
+    return bytes(out)
+
+
 def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     if color_type == 2:  # truecolor RGB
         return samples
-    if color_type == 6:  # truecolor + alpha, alpha ignored
-        # Drop every 4th (alpha) byte with one C-level slice deletion; a
-        # per-pixel Python generator here costs tens of millions of bytecode
-        # steps on a megapixel image.
-        out = bytearray(samples)
-        del out[3::4]
-        return bytes(out)
     if color_type == 0:  # grayscale
         return bytes(b for g in samples for b in (g, g, g))
     if color_type == 4:  # grayscale + alpha, alpha ignored
@@ -269,6 +294,11 @@ def decode_png(data: bytes) -> Image:
             "PNG image data is truncated: the compressed stream ends before "
             "its final block"
         )
+    if color_type == 6:
+        # Alpha is discarded and the result is already RGB, so unfilter the
+        # three colour channels directly instead of all four.
+        samples = _unfilter(_drop_alpha(raw, width, height), width, height, 3)
+        return Image(width, height, samples)
     samples = _unfilter(raw, width, height, channels)
     return Image(width, height, _to_rgb(color_type, samples, palette))
 

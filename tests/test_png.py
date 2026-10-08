@@ -184,6 +184,24 @@ class TestDecode(unittest.TestCase):
         rgba = make_png(2, 1, [bytes([1, 2, 3, 4, 5, 6, 7, 8])], color_type=6)
         self.assertEqual(png.decode_png(rgba).rgb, bytes([1, 2, 3, 5, 6, 7]))
 
+    def test_rgba_all_filter_types_ignore_alpha(self):
+        # Color-type-6 alpha is dropped before unfiltering. A filter that
+        # references a same-channel neighbour must still reconstruct the
+        # colour channels exactly, so decode must equal the alpha-stripped
+        # pixels with one row per PNG filter type.
+        rows = [
+            bytes([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+            bytes([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]),
+            bytes([200, 150, 100, 50, 25, 12, 6, 3, 1, 0, 255, 128]),
+            bytes([0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255]),
+            bytes([17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204]),
+        ]
+        data = make_png(3, 5, rows, color_type=6, filter_types=[0, 1, 2, 3, 4])
+        expected = b"".join(
+            bytes(b for i, b in enumerate(row) if i % 4 != 3) for row in rows
+        )
+        self.assertEqual(png.decode_png(data).rgb, expected)
+
     def test_grayscale_alpha_ignores_alpha(self):
         # color_type 4 is grayscale + alpha (2 bytes per pixel). It is the only
         # supported color type with no decode test: the alpha byte must be
