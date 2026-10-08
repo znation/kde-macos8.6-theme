@@ -111,7 +111,10 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
     stride = width * channels
     expected = height * (stride + 1)
     if len(raw) < expected:
-        raise FidelityError("PNG image data is shorter than its header declares")
+        raise FidelityError(
+            f"PNG image data is shorter than its header declares: got "
+            f"{len(raw)} bytes, expected {expected} for a {width}x{height} image"
+        )
     out = bytearray(height * stride)
     prev = bytearray(stride)
     src = 0

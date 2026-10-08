@@ -151,6 +151,17 @@ class TestDecode(unittest.TestCase):
         self.assertIn("index 1", message)
         self.assertIn("3 bytes", message)
 
+    def test_truncated_image_data_names_actual_and_expected(self):
+        # An IDAT that decompresses to fewer scanlines than IHDR's height
+        # declares must name how many bytes arrived and how many were needed,
+        # so a truncated file is distinguishable from other corruption.
+        data = make_png(3, 3, [bytes(9)])
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(data)
+        self.assertIn(
+            "got 10 bytes, expected 30 for a 3x3 image", str(ctx.exception)
+        )
+
     def test_grayscale_and_rgba(self):
         gray = make_png(2, 1, [bytes([7, 200])], color_type=0)
         self.assertEqual(fidelity.decode_png(gray).rgb, bytes([7, 7, 7, 200, 200, 200]))
