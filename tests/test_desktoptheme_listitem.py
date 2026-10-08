@@ -54,6 +54,29 @@ class TestListItem(unittest.TestCase):
                 self.assertIsNone(colour, f"normal-{name} {point}")
         self.assertEqual(attribute_values(tree, "fill-opacity"), {"0.01"})
 
+    def test_listitem_slices_fill_their_tiles(self):
+        # The colour tests above iterate each slice's pixels, so a rect one
+        # pixel short (or long) passes while KSvg leaves a transparent stripe
+        # in the stretched tile. Pin every slice to its exact tile region:
+        # pressed is flat #CCCCFF, normal carries no `fill` attribute (only a
+        # 0.01-opacity style), so render_slices reads it as None.
+        slices = render_slices(ET.parse(LISTITEM_SVG))
+        border, tile = 3, 6
+        sizes = {
+            "center": (tile, tile),
+            "top": (tile, border), "bottom": (tile, border),
+            "left": (border, tile), "right": (border, tile),
+            "topleft": (border, border), "topright": (border, border),
+            "bottomleft": (border, border), "bottomright": (border, border),
+        }
+        for prefix, colour in (("pressed", "#CCCCFF"), ("normal", None)):
+            for name, (width, height) in sizes.items():
+                expected = {
+                    (x, y): colour for y in range(height) for x in range(width)
+                }
+                with self.subTest(slice=f"{prefix}-{name}"):
+                    self.assertEqual(slices[f"{prefix}-{name}"], expected)
+
     def test_listitem_colours(self):
         # The hints and normal slices use `style`, so the parsed `fill` set is
         # exactly the selection fill.
