@@ -48,6 +48,6 @@ reference material only — the theme does not ship them.
 
 `sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run
 `python3 tools/check_references.py`: it fails if the record and the files on disk disagree (a
-missing file, an unmaterialized Git LFS pointer, an image with no entry, a malformed or duplicate
-entry).
+missing file, an unmaterialized Git LFS pointer, a file whose bytes are not a PNG/JPEG/GIF/WebP
+image, an image with no entry, a malformed or duplicate entry).
 `python3 tools/check_references.py --self-test` exercises the checker itself.

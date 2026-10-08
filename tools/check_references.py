@@ -5,7 +5,8 @@
 set: one ``<filename> | <source URL> | <version label>`` line per image. This
 script verifies that record against the files actually on disk, so a renamed or
 forgotten image cannot silently drop out of the evidence trail. It also rejects
-unmaterialized Git LFS pointer files, which exist on disk but contain no image.
+unmaterialized Git LFS pointer files and files whose bytes are not a known image
+format, such as an HTML error page saved under an image name.
 
 Usage:
     python3 tools/check_references.py              # check the repository
@@ -28,6 +29,13 @@ SEPARATOR = " | "
 # First line of a Git LFS pointer file; a real image never starts with this text.
 LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
 
+# Leading bytes of the raster formats the reference set uses. The extension is
+# deliberately not consulted: sherlock_fandom.jpg is a WebP payload.
+PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+JPEG_MAGIC = b"\xff\xd8\xff"
+GIF_MAGICS = (b"GIF87a", b"GIF89a")
+IMAGE_MAGICS = (PNG_MAGIC, JPEG_MAGIC, *GIF_MAGICS)
+
 USAGE = """\
 usage: check_references.py [--self-test | --help]
 
@@ -43,6 +51,19 @@ def _is_lfs_pointer(path: Path) -> bool:
     """Return True when *path* is an unmaterialized Git LFS pointer, not data."""
     with path.open("rb") as handle:
         return handle.read(len(LFS_POINTER_MAGIC)) == LFS_POINTER_MAGIC
+
+
+def _looks_like_image(path: Path) -> bool:
+    """Return True when *path* begins with a known raster image signature.
+
+    Only the bytes decide, never the extension: ``sherlock_fandom.jpg`` is a
+    WebP payload by design, so the WebP signature is accepted here too.
+    """
+    with path.open("rb") as handle:
+        head = handle.read(12)
+    if any(head.startswith(magic) for magic in IMAGE_MAGICS):
+        return True
+    return head[:4] == b"RIFF" and head[8:12] == b"WEBP"
 
 
 def check_references(directory: Path) -> list[str]:
@@ -88,6 +109,11 @@ def check_references(directory: Path) -> list[str]:
                 f"{sources}:{lineno}: {filename!r} is an unmaterialized Git LFS pointer; "
                 "run `git lfs install && git lfs pull` to fetch the image"
             )
+        elif not _looks_like_image(image):
+            problems.append(
+                f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
+                "it may be an HTML error page or a truncated download"
+            )
 
     for path in sorted(directory.iterdir()):
         if path.name == SOURCES_NAME or not path.is_file():
@@ -103,20 +129,25 @@ def _self_test() -> int:
     cases = [
         # (name, sources.txt contents, files on disk, substring expected in a problem)
         ("clean", "good.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
-         ["good.png"], None),
+         [("good.png", PNG_MAGIC)], None),
         ("missing file", "ghost.png | https://example.test/g.png | label\n", [],
          "ghost.png"),
-        ("undeclared image", "", ["extra.png"], "extra.png"),
-        ("too few fields", "bad.png | https://example.test/b.png\n", ["bad.png"],
-         "expected 3 fields"),
-        ("empty field", "bad.png |  | label\n", ["bad.png"], "empty field"),
-        ("duplicate", "dup.png | u | l\ndup.png | u | l\n", ["dup.png"], "duplicate"),
+        ("undeclared image", "", [("extra.png", PNG_MAGIC)], "extra.png"),
+        ("too few fields", "bad.png | https://example.test/b.png\n",
+         [("bad.png", PNG_MAGIC)], "expected 3 fields"),
+        ("empty field", "bad.png |  | label\n", [("bad.png", PNG_MAGIC)], "empty field"),
+        ("duplicate", "dup.png | u | l\ndup.png | u | l\n",
+         [("dup.png", PNG_MAGIC)], "duplicate"),
         ("lfs pointer", "stub.png | u | l\n",
          [("stub.png", b"version https://git-lfs.github.com/spec/v1\n"
                        b"oid sha256:deadbeef\nsize 12345\n")],
          "Git LFS pointer"),
-        ("binary image", "real.png | u | l\n",
-         [("real.png", b"\x89PNG\r\n\x1a\n")], None),
+        ("binary image", "real.png | u | l\n", [("real.png", PNG_MAGIC)], None),
+        ("non-image payload", "fake.png | u | l\n",
+         [("fake.png", b"<!DOCTYPE html>\n<html>404 Not Found</html>\n")],
+         "not a PNG, JPEG, GIF or WebP image"),
+        ("webp with jpg name", "shot.jpg | u | l\n",
+         [("shot.jpg", b"RIFF\x24\x00\x00\x00WEBPVP8 ")], None),
     ]
 
     failed = False
