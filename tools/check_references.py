@@ -131,6 +131,15 @@ def check_references(directory: Path) -> list[str]:
         if not filename or not url or not label:
             problems.append(f"{sources}:{lineno}: empty field in entry: {line!r}")
             continue
+        if "\x00" in filename:
+            # A NUL byte cannot appear in a POSIX path, and Path.resolve()
+            # raises ValueError on one; reject it here so a malformed entry
+            # becomes a diagnostic instead of aborting the whole check.
+            problems.append(
+                f"{sources}:{lineno}: {filename!r} contains a NUL byte and "
+                "cannot name a file"
+            )
+            continue
         if Path(filename).name != filename or filename in (".", ".."):
             problems.append(
                 f"{sources}:{lineno}: {filename!r} must be a bare filename in "

@@ -289,6 +289,28 @@ class TestControlCharactersInFilenames(unittest.TestCase):
         self.assertIn("\\u000a", joined)
 
 
+class TestNullByteFilename(unittest.TestCase):
+    """A NUL byte in a source entry must be a diagnostic, not a crash.
+
+    A NUL cannot appear in a POSIX path and makes ``Path.resolve()`` raise
+    ValueError, so the symlink containment check must not let a malformed
+    sources.txt line abort the whole run with an unhandled exception.
+    """
+
+    def test_null_byte_in_filename_is_reported_not_raised(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_bytes(
+                b"bad\x00name.png | https://example.test/b.png | label\n"
+            )
+            problems = module.check_references(root)
+        self.assertTrue(
+            any("bad\\x00name.png" in p and "NUL" in p for p in problems),
+            problems,
+        )
+
+
 class TestRepositoryCheckEntryPoint(unittest.TestCase):
     """``main`` with no arguments runs the repository reference check.
 
