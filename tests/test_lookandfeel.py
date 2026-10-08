@@ -179,6 +179,67 @@ class TestInstall(unittest.TestCase):
             with open(metadata, "rb") as handle:
                 self.assertEqual(handle.read(), good)
 
+    def test_failed_swap_keeps_the_previous_package(self):
+        """A rename that fails after the old package is moved aside restores it.
+
+        `make install` moves the working package to a hidden sibling before
+        renaming the staged copy into place. If that final rename fails, the
+        EXIT trap must move the old package back, so a failed swap leaves the
+        working install rather than deleting it.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            first = install(tmp)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            installed = os.path.join(
+                tmp, "share", "plasma", "look-and-feel", LNF_ID
+            )
+            metadata = os.path.join(installed, "metadata.json")
+            with open(metadata, "rb") as handle:
+                good = handle.read()
+
+            # Shadow `mv` so only the final rename of the staged look-and-feel
+            # package into place fails, like an IO error or a kill in the swap
+            # window would; every other rename passes through.
+            real_mv = shutil.which("mv")
+            bindir = os.path.join(tmp, "fakebin")
+            os.makedirs(bindir)
+            fake_mv = os.path.join(bindir, "mv")
+            with open(fake_mv, "w", encoding="utf-8") as handle:
+                handle.write(
+                    "#!/bin/sh\n"
+                    'case "$2" in\n'
+                    f"  */plasma/look-and-feel/{LNF_ID})\n"
+                    '    case "$1" in\n'
+                    f"      */.{LNF_ID}.staging) exit 1;;\n"
+                    "    esac;;\n"
+                    "esac\n"
+                    f'exec "{real_mv}" "$@"\n'
+                )
+            os.chmod(fake_mv, 0o755)
+
+            env = dict(os.environ)
+            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
+            result = subprocess.run(
+                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertNotEqual(result.returncode, 0, result.stdout)
+            parent = os.path.join(tmp, "share", "plasma", "look-and-feel")
+            for leaked in (
+                "." + LNF_ID + ".staging",
+                "." + LNF_ID + ".old",
+            ):
+                self.assertFalse(
+                    os.path.exists(os.path.join(parent, leaked)),
+                    f"{leaked} leaked after a failed swap",
+                )
+            self.assertTrue(os.path.isdir(installed), installed)
+            with open(metadata, "rb") as handle:
+                self.assertEqual(handle.read(), good)
+
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
         with tempfile.TemporaryDirectory() as tmp:

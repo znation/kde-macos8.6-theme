@@ -38,25 +38,30 @@ install:
 	install -d $(LNF_INSTALL_DIR)
 # Stage the package as a sibling, then swap it in with a rename, so a copy that
 # fails or is interrupted cannot leave a partial package installed or delete the
-# working one. The rename also replaces rather than merges, so a reinstall drops
-# files deleted from $(LNF_PACKAGE) instead of keeping stale QML. The EXIT trap
-# removes the staging directory on the failure path.
+# working one. The old package is moved aside rather than deleted first: the
+# swap is then a rename either way, and if the final rename fails the EXIT trap
+# moves the old package back. A reinstall still replaces rather than merges, so
+# files deleted from $(LNF_PACKAGE) do not stay behind as stale QML.
 	@staging='$(LNF_INSTALL_DIR)/.$(LNF_ID).staging'; \
-	trap 'rm -rf "$$staging"' EXIT; \
-	rm -rf "$$staging" && \
+	old='$(LNF_INSTALL_DIR)/.$(LNF_ID).old'; \
+	trap 'rm -rf "$$staging"; if [ ! -e $(LNF_INSTALL_DIR)/$(LNF_ID) ] && [ -e "$$old" ]; then mv "$$old" $(LNF_INSTALL_DIR)/$(LNF_ID); fi' EXIT; \
+	rm -rf "$$staging" "$$old" && \
 	cp -r $(LNF_PACKAGE) "$$staging" && \
-	rm -rf $(LNF_INSTALL_DIR)/$(LNF_ID) && \
-	mv "$$staging" $(LNF_INSTALL_DIR)/$(LNF_ID)
+	if [ -e $(LNF_INSTALL_DIR)/$(LNF_ID) ]; then mv $(LNF_INSTALL_DIR)/$(LNF_ID) "$$old"; fi && \
+	mv "$$staging" $(LNF_INSTALL_DIR)/$(LNF_ID) && \
+	rm -rf "$$old"
 	install -d $(DTHEME_INSTALL_DIR)
-# Same stage-then-rename rule as the look-and-feel package above: a copy that
+# Same stage-then-swap rule as the look-and-feel package above: a copy that
 # fails or is interrupted must not delete the working desktop theme or leave a
-# partial one installed.
+# partial one installed, and a failed swap restores the old theme.
 	@staging='$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging'; \
-	trap 'rm -rf "$$staging"' EXIT; \
-	rm -rf "$$staging" && \
+	old='$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old'; \
+	trap 'rm -rf "$$staging"; if [ ! -e $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) ] && [ -e "$$old" ]; then mv "$$old" $(DTHEME_INSTALL_DIR)/$(DTHEME_ID); fi' EXIT; \
+	rm -rf "$$staging" "$$old" && \
 	cp -r $(DTHEME_PACKAGE) "$$staging" && \
-	rm -rf $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) && \
-	mv "$$staging" $(DTHEME_INSTALL_DIR)/$(DTHEME_ID)
+	if [ -e $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) ]; then mv $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) "$$old"; fi && \
+	mv "$$staging" $(DTHEME_INSTALL_DIR)/$(DTHEME_ID) && \
+	rm -rf "$$old"
 
 # Remove only the artifacts `install` copied: the parent directories are shared
 # (other color schemes, other look-and-feel/desktop-theme packages), so leave
