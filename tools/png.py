@@ -50,6 +50,14 @@ class Image:
     height: int
     rgb: bytes
 
+    def __post_init__(self) -> None:
+        expected = self.width * self.height * 3
+        if len(self.rgb) != expected:
+            raise PngError(
+                f"Image has {len(self.rgb)} RGB bytes; a {self.width}x"
+                f"{self.height} image needs {expected} (width*height*3)"
+            )
+
 
 def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     pos = len(_PNG_SIGNATURE)

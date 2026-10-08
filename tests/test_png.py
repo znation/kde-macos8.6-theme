@@ -29,6 +29,27 @@ from png_fixtures import (  # noqa: E402
 )
 
 
+class TestImage(unittest.TestCase):
+    def test_rejects_rgb_length_that_does_not_match_dimensions(self):
+        # Image promises tightly packed width*height*3 bytes, but nothing
+        # checked it: compare() slices rgb by channel and divides by the
+        # declared pixel count, so a short or long buffer mis-measures and can
+        # report a wrong MAE instead of failing. The invariant is enforced at
+        # construction and the error names the actual and expected byte counts.
+        for width, height, size in ((2, 2, 11), (2, 2, 13), (1, 1, 0)):
+            with self.subTest(width=width, height=height, size=size):
+                with self.assertRaises(png.PngError) as ctx:
+                    png.Image(width, height, bytes(size))
+                message = str(ctx.exception)
+                self.assertIn(str(size), message)
+                self.assertIn(str(width * height * 3), message)
+                self.assertIn(f"{width}x{height}", message)
+
+    def test_accepts_rgb_length_matching_dimensions(self):
+        image = png.Image(2, 2, bytes(12))
+        self.assertEqual(len(image.rgb), 12)
+
+
 class TestDecode(unittest.TestCase):
     def test_rgb_roundtrip(self):
         image, data = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 30))
