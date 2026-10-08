@@ -28,7 +28,36 @@ once an offline render path is available, and wire it into `make check`.
 
 **Refused 2026-10-07 by bugfix: no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
 
-### `--tolerance` does not gate the fidelity exit status; README documents no pass threshold (found 2026-10-07)
+### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07)
+
+**Symptom:** `tests/test_colorscheme.py`'s `TestAnchors` pins the Platinum palette (Window/Button/
+Header face `221,221,221`, view `255,255,255`, selection `206,206,255`, tooltip `255,255,204`,
+chrome `0,0,0`) and PLANS.md attributes each value to a named retail screenshot
+(`desktop_archiveorg8.6hd.png`, `desktop_fandom.png`, `opendialog_macrumors86.jpg`), but no code
+reads those images' pixels. The test compares the scheme file to hard-coded strings, so a wrong
+anchor or a swapped reference image passes unnoticed: the image-to-value chain lives only in prose.
+
+**How to reproduce:** Search `tests/` and `tools/` for code that reads pixel data from
+`macos8.6-screenshots/`. Only `tools/check_references.py` opens that directory, and only for
+provenance (the file exists, is a materialized image of an accepted format), never pixel values.
+Edit an expected string in `TestAnchors` to any other in-range value and `make check` still passes.
+
+**Suspected cause:** The palette was sampled by hand with ImageMagick while planning; neither the
+sample coordinates nor a re-derivation step were recorded, so the assertions check the scheme
+against itself rather than against the reference set. `tools/fidelity.py` compares a candidate PNG
+against a reference, but nothing points it at the shipped references or the scheme constants.
+
+**Next step:** Record the sample point behind each anchor and add a check that decodes the
+retail-labelled PNG references with `tools/png.py` and asserts the scheme's anchor values at those
+points. The selection anchor's source (`opendialog_macrumors86.jpg`) is a JPEG, which the repo
+cannot decode yet, so cover the PNG-sourced anchors first.
+
+This complements the Open render/capture entry above: that one covers producing the candidate
+surface, this one covers the ground truth it is measured against.
+
+## Fixed
+
+### `--tolerance` does not gate the fidelity exit status; README documents no pass threshold (found 2026-10-07; fixed 2026-10-07)
 
 **Symptom:** README's "Fidelity checking" section says the tool exits non-zero "when the result is
 outside the requested tolerance" and documents only `--crop`. Requesting a tolerance with
@@ -62,38 +91,18 @@ metrics.frac_differing <= args.max_frac`; `--tolerance` only feeds `compare(tole
 affects the differing-pixel count, not `mae`. The README and the help epilog present `--tolerance`
 as the pass/fail knob when it is not.
 
-**Next step:** Document `--tolerance`, `--max-mae` and `--max-frac` in the README's fidelity
-section (including that the default is byte-exact), or make the verdict honor `--tolerance` when no
-`--max-mae`/`--max-frac` is given.
+**Fix:** `--max-mae` and `--max-frac` now default to unset (`None`) instead of 0, and the verdict
+is the conjunction of the budgets the caller actually set; with neither set it falls back to the
+strictest gate, no pixel differing by more than `--tolerance` (so the default stays byte-exact, and
+`--tolerance` alone now gates as the README promised). The verdict line prints `unset` for an
+unset budget, and the README's Fidelity section and the `--help` epilog document the rule.
+`tests/test_fidelity.py` adds `TestCli.test_tolerance_is_the_default_gate` (a candidate whose worst
+delta equals `--tolerance` passes and one above it fails) and
+`TestCli.test_explicit_budget_replaces_default_gate` (`--max-mae` alone is the criterion); both
+fail before the change and pass after.
 
-### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07)
-
-**Symptom:** `tests/test_colorscheme.py`'s `TestAnchors` pins the Platinum palette (Window/Button/
-Header face `221,221,221`, view `255,255,255`, selection `206,206,255`, tooltip `255,255,204`,
-chrome `0,0,0`) and PLANS.md attributes each value to a named retail screenshot
-(`desktop_archiveorg8.6hd.png`, `desktop_fandom.png`, `opendialog_macrumors86.jpg`), but no code
-reads those images' pixels. The test compares the scheme file to hard-coded strings, so a wrong
-anchor or a swapped reference image passes unnoticed: the image-to-value chain lives only in prose.
-
-**How to reproduce:** Search `tests/` and `tools/` for code that reads pixel data from
-`macos8.6-screenshots/`. Only `tools/check_references.py` opens that directory, and only for
-provenance (the file exists, is a materialized image of an accepted format), never pixel values.
-Edit an expected string in `TestAnchors` to any other in-range value and `make check` still passes.
-
-**Suspected cause:** The palette was sampled by hand with ImageMagick while planning; neither the
-sample coordinates nor a re-derivation step were recorded, so the assertions check the scheme
-against itself rather than against the reference set. `tools/fidelity.py` compares a candidate PNG
-against a reference, but nothing points it at the shipped references or the scheme constants.
-
-**Next step:** Record the sample point behind each anchor and add a check that decodes the
-retail-labelled PNG references with `tools/png.py` and asserts the scheme's anchor values at those
-points. The selection anchor's source (`opendialog_macrumors86.jpg`) is a JPEG, which the repo
-cannot decode yet, so cover the PNG-sourced anchors first.
-
-This complements the Open render/capture entry above: that one covers producing the candidate
-surface, this one covers the ground truth it is measured against.
-
-## Fixed
+**Validation gap:** none — the existing suite had no case for it, but a deterministic scratch repro
+built from the shipped `png_fixtures` confirmed the failure offline, so nothing was missing.
 
 ### `plasma-apply-colorscheme` writes a scheme ID that does not survive a restart (found 2026-10-07; fixed 2026-10-07)
 

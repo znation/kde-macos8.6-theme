@@ -286,6 +286,60 @@ class TestCli(unittest.TestCase):
             self.assertIn("differing pixels: 1 / 9", different.stdout)
             self.assertIn("max channel delta: 50 at (1, 0)", different.stdout)
 
+    def test_tolerance_is_the_default_gate(self):
+        # --tolerance alone decides the verdict: a candidate whose worst
+        # channel delta equals the requested tolerance passes even though its
+        # mean absolute error is non-zero, because no aggregate budget is set
+        # by default. Before the fix, --max-mae defaulted to 0 and forced a
+        # FAIL here.
+        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
+        changed = bytearray(a.rgb)
+        changed[4] = 50  # pixel (1, 0) green: 0 -> 50
+        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "candidate.png", a_png)
+            altered = self._write(tmpdir, "altered.png", b_png)
+
+            within = self._run(candidate, altered, "--tolerance", "50")
+            self.assertEqual(within.returncode, 0, within.stdout + within.stderr)
+            self.assertIn("PASS", within.stdout)
+
+            outside = self._run(candidate, altered, "--tolerance", "49")
+            self.assertEqual(
+                outside.returncode, 1, outside.stdout + outside.stderr
+            )
+            self.assertIn("FAIL", outside.stdout)
+
+            default = self._run(candidate, altered)
+            self.assertEqual(
+                default.returncode, 1, default.stdout + default.stderr
+            )
+
+    def test_explicit_budget_replaces_default_gate(self):
+        # A budget set with --max-mae is the verdict criterion, not an extra
+        # constraint on top of the default all-pixels-within-tolerance gate:
+        # the candidate has a 50-level pixel but passes when its MAE (50/27,
+        # about 1.85) is within the budget.
+        a, a_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
+        changed = bytearray(a.rgb)
+        changed[4] = 50  # pixel (1, 0) green: 0 -> 50
+        b_png = make_png(3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)])
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "candidate.png", a_png)
+            altered = self._write(tmpdir, "altered.png", b_png)
+
+            generous = self._run(candidate, altered, "--max-mae", "2")
+            self.assertEqual(
+                generous.returncode, 0, generous.stdout + generous.stderr
+            )
+            self.assertIn("PASS", generous.stdout)
+
+            tight = self._run(candidate, altered, "--max-mae", "1")
+            self.assertEqual(tight.returncode, 1, tight.stdout + tight.stderr)
+            self.assertIn("FAIL", tight.stdout)
+
     def test_reports_worst_delta_location(self):
         a, a_png = rgb_image(2, 1, lambda x, y: (0, 0, 0))
         changed = bytearray(a.rgb)

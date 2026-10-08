@@ -83,7 +83,12 @@ images materialized, so it stays separate from `make check`.
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
 reference screenshot and reports mean absolute error, per-channel mean absolute error (R, G, B),
-RMSE, worst per-channel delta and where it occurs, and the fraction of differing pixels, exiting
-non-zero when the result is outside the requested tolerance.
-Pass `--crop X,Y,W,H` to select a surface region of the reference. Producing the candidate render
-is not yet automated (see BUGS.md).
+RMSE, worst per-channel delta and where it occurs, and the fraction of differing pixels.
+Pass `--crop X,Y,W,H` to select a surface region of the reference.
+
+The exit status is 0 when the comparison passes and 1 when it fails. By default a run passes only
+when no pixel differs from the reference by more than `--tolerance` (a per-channel delta; 0, i.e.
+byte-exact, unless given). `--max-mae F` and `--max-frac F` set aggregate budgets instead: when
+either is given, a run passes when each given budget is met — `--max-mae` bounds the mean absolute
+error, `--max-frac` bounds the differing-pixel fraction — and the default no-differing-pixel gate
+no longer applies. Producing the candidate render is not yet automated (see BUGS.md).

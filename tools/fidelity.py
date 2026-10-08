@@ -20,6 +20,10 @@ Usage::
     python3 tools/fidelity.py CANDIDATE REFERENCE [--crop X,Y,W,H]
         [--max-mae F] [--max-frac F] [--tolerance N]
 
+The verdict passes when every threshold set with ``--max-mae``/``--max-frac``
+is met; when neither is set it passes only when no pixel differs from the
+reference by more than ``--tolerance``.
+
 Exit status: 0 within tolerance, 1 outside tolerance, 2 usage or read error.
 """
 
@@ -361,7 +365,9 @@ def main(argv: list[str] | None = None) -> int:
         description="Measure a rendered PNG surface against a reference PNG.",
         epilog=(
             "exit status: 0 within tolerance, 1 outside tolerance, "
-            "2 usage or read error"
+            "2 usage or read error; passes when every --max-mae/--max-frac "
+            "threshold set is met, and otherwise when no pixel differs "
+            "beyond --tolerance"
         ),
     )
     parser.add_argument("candidate", help="rendered surface image (PNG)")
@@ -381,14 +387,20 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--max-mae",
         type=_max_mae,
-        default=0.0,
-        help="fail when mean absolute error exceeds this (0-255, default 0)",
+        default=None,
+        help=(
+            "fail when mean absolute error exceeds this (0-255); when set, "
+            "replaces the default no-differing-pixel gate"
+        ),
     )
     parser.add_argument(
         "--max-frac",
         type=_max_frac,
-        default=0.0,
-        help="fail when the differing-pixel fraction exceeds this (default 0)",
+        default=None,
+        help=(
+            "fail when the differing-pixel fraction exceeds this (0-1); when "
+            "set, replaces the default no-differing-pixel gate"
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -402,7 +414,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"fidelity: error: {escape_controls(str(exc))}", file=sys.stderr)
         return 2
 
-    ok = metrics.mae <= args.max_mae and metrics.frac_differing <= args.max_frac
+    # Every threshold the caller set is a budget that must be met. With no
+    # budget set the verdict falls back to the strictest one: no pixel
+    # differing by more than --tolerance. --max-mae and --max-frac therefore
+    # replace the default gate rather than silently defaulting to zero, which
+    # would require byte-exactness no matter what --tolerance says.
+    budgets = []
+    if args.max_mae is not None:
+        budgets.append(metrics.mae <= args.max_mae)
+    if args.max_frac is not None:
+        budgets.append(metrics.frac_differing <= args.max_frac)
+    ok = all(budgets) if budgets else metrics.frac_differing <= 0.0
     print(
         f"candidate: {escape_controls(args.candidate)}  "
         f"{candidate.width}x{candidate.height}"
@@ -427,8 +449,10 @@ def main(argv: list[str] | None = None) -> int:
         f"({metrics.frac_differing:.6f})"
     )
     verdict = "PASS" if ok else "FAIL"
+    max_mae = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
+    max_frac = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"
     print(
-        f"{verdict}: max-mae={args.max_mae:.4f} max-frac={args.max_frac:.6f} "
+        f"{verdict}: max-mae={max_mae} max-frac={max_frac} "
         f"tolerance={args.tolerance}"
     )
     return 0 if ok else 1
