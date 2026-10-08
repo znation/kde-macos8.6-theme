@@ -136,6 +136,17 @@ def local_name(element):
     return element.tag.rsplit("}", 1)[-1]
 
 
+def attribute_values(tree, name):
+    """Return the set of *name* values across every element in *tree*.
+
+    An element that omits *name* contributes nothing, so the set holds exactly
+    the values present in the parsed SVG. The contract tests read the artwork's
+    ids, fills and strokes through this set rather than searching the raw file,
+    whose comments name those values too.
+    """
+    return {element.get(name) for element in tree.iter() if element.get(name)}
+
+
 def assert_no_script_elements(case, tree):
     """Assert *tree* holds no ``<script>`` element.
 
@@ -267,7 +278,7 @@ class TestMetadata(PackageMetadata, unittest.TestCase):
 class TestPanelBackground(unittest.TestCase):
     def setUp(self):
         self.tree = ET.parse(PANEL_SVG)
-        self.ids = {el.get("id") for el in self.tree.iter() if el.get("id")}
+        self.ids = attribute_values(self.tree, "id")
 
     def test_nine_slice_ids_present(self):
         for name in SLICE_IDS:
@@ -307,7 +318,7 @@ class TestPanelBackground(unittest.TestCase):
         # Read the parsed artwork's fill attributes, not the raw file: the
         # header comment names all four colours, so a text search would pass
         # even if the artwork used none of them.
-        fills = {el.get("fill") for el in self.tree.iter() if el.get("fill")}
+        fills = attribute_values(self.tree, "fill")
         self.assertEqual(
             fills, {"#FFFFFF", "#DDDDDD", "#999999", "#000000"}
         )
@@ -338,7 +349,7 @@ class TestPanelBackground(unittest.TestCase):
 class TestButton(unittest.TestCase):
     def test_button_slice_ids(self):
         tree = ET.parse(BUTTON_SVG)
-        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        ids = attribute_values(tree, "id")
         for prefix in BUTTON_PREFIXES:
             for name in SLICE_IDS:
                 self.assertIn(f"{prefix}-{name}", ids, name)
@@ -380,7 +391,7 @@ class TestButton(unittest.TestCase):
         # header comment and the hint rects (which set colour through `style`)
         # would otherwise make a text search pass without any Platinum grey.
         tree = ET.parse(BUTTON_SVG)
-        fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
+        fills = attribute_values(tree, "fill")
         self.assertEqual(
             fills, {"#FFFFFF", "#DDDDDD", "#999999", "#000000"}
         )
@@ -499,10 +510,10 @@ class TestButton(unittest.TestCase):
 class TestRadioButton(unittest.TestCase):
     def test_radiobutton_contract(self):
         tree = ET.parse(RADIOBUTTON_SVG)
-        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        ids = attribute_values(tree, "id")
         for name in ("normal", "symbol", "hint-size"):
             self.assertIn(name, ids, name)
-        fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
+        fills = attribute_values(tree, "fill")
         self.assertEqual(fills, {"#FFFFFF", "#000000"})
         assert_no_script_elements(self, tree)
 
@@ -546,12 +557,12 @@ class TestRadioButton(unittest.TestCase):
 class TestCheckmarks(unittest.TestCase):
     def test_checkmarks_contract(self):
         tree = ET.parse(CHECKMARKS_SVG)
-        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        ids = attribute_values(tree, "id")
         for name in ("checkbox", "radiobutton"):
             self.assertIn(name, ids, name)
-        strokes = {el.get("stroke") for el in tree.iter() if el.get("stroke")}
+        strokes = attribute_values(tree, "stroke")
         self.assertEqual(strokes, {"#000000"})
-        fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
+        fills = attribute_values(tree, "fill")
         self.assertEqual(fills, {"none", "#000000"})
         assert_no_script_elements(self, tree)
 
@@ -607,7 +618,7 @@ class TestCheckmarks(unittest.TestCase):
 class TestLineEdit(unittest.TestCase):
     def test_lineedit_slice_ids(self):
         tree = ET.parse(LINEEDIT_SVG)
-        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        ids = attribute_values(tree, "id")
         for name in SLICE_IDS:
             self.assertIn(f"base-{name}", ids, name)
         for side in ("top", "bottom", "left", "right"):
@@ -618,7 +629,7 @@ class TestLineEdit(unittest.TestCase):
         # The hints use `style`, so the parsed `fill` set is exactly the
         # artwork palette: white face/highlight, grey shadow, black outline.
         tree = ET.parse(LINEEDIT_SVG)
-        fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
+        fills = attribute_values(tree, "fill")
         self.assertEqual(fills, {"#FFFFFF", "#999999", "#000000"})
 
     def test_lineedit_face_is_white(self):
@@ -644,7 +655,7 @@ class TestLineEdit(unittest.TestCase):
 class TestFrame(unittest.TestCase):
     def test_frame_svg_contract(self):
         tree = ET.parse(FRAME_SVG)
-        ids = {el.get("id") for el in tree.iter() if el.get("id")}
+        ids = attribute_values(tree, "id")
         for prefix in FRAME_PREFIXES:
             for name in SLICE_IDS:
                 self.assertIn(f"{prefix}-{name}", ids, name)
