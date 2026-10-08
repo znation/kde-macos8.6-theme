@@ -78,8 +78,9 @@ reference material only — the theme does not ship them.
 `sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run
 `python3 tools/check_references.py`: it fails if the record and the files on disk disagree (a
 missing file, an unmaterialized Git LFS pointer, a file whose bytes are not a PNG/JPEG/GIF/WebP
-image, an image with no entry, a malformed or duplicate entry,
-or a source URL without a scheme).
+image, an image with no entry, a malformed or duplicate entry) or if a source URL is not a
+well-formed absolute URL (a bad scheme, raw whitespace or control characters, or an authority
+naming no host, except for a `file://` URL).
 `python3 tools/check_references.py --self-test` exercises the checker itself.
 `make check-references` runs the self-test and then the repository check; it needs the Git LFS
 images materialized, so it stays separate from `make check`.
