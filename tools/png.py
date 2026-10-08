@@ -94,39 +94,53 @@ def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
         pos += 12 + length
 
 
-def _paeth(a: int, b: int, c: int) -> int:
-    p = a + b - c
-    pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
-    if pa <= pb and pa <= pc:
-        return a
-    if pb <= pc:
-        return b
-    return c
-
-
 _PAETH_DELTA: bytes | None = None
 
 
 def _paeth_delta_table() -> bytes:
     """Paeth predictor deltas, indexed by ``(a - c, b - c)``.
 
-    With ``a``, ``b`` and ``c`` the left, above and above-left bytes,
-    ``_paeth`` returns ``c + delta`` where ``delta`` depends only on the two
-    differences.  The 511x511 table (row stride 512) turns each byte of a
-    Paeth-filtered row into one lookup instead of a ``_paeth`` call with its
-    three ``abs`` calls.  Built on first use, so a decode with no Paeth rows
-    never pays for it.
+    With ``a``, ``b`` and ``c`` the left, above and above-left bytes, the
+    Paeth predictor adds ``c + delta`` where ``delta`` depends only on the two
+    differences ``da = a - c`` and ``db = b - c``.  The 511x511 table (row
+    stride 512) turns each byte of a Paeth-filtered row into one lookup.
+
+    A predictor call per cell costs ~50 ms, a large share of decoding a small
+    Paeth image.  Instead each row is filled from the closed form of the
+    predictor with ``c = 0``: ``delta`` is ``da``, ``db`` or ``0``, and as
+    ``db`` runs from -255 to 255 those three values occupy at most four
+    contiguous blocks, so a row is the ``db`` pattern with two blocks
+    overwritten.  Built on first use, so a decode with no Paeth rows never
+    pays for it.
     """
     global _PAETH_DELTA
     table = _PAETH_DELTA
-    if table is None:
-        table = bytearray(511 * 512)
-        for da in range(-255, 256):
-            base = (da + 255) << 9
-            for db in range(-255, 256):
-                table[base + db + 255] = _paeth(da, db, 0) & 0xFF
-        table = bytes(table)
-        _PAETH_DELTA = table
+    if table is not None:
+        return table
+    table = bytearray(511 * 512)
+    # db mod 256 for db in -255..255, the value of a row wherever the
+    # predictor selects ``db``.
+    db_row = bytes((db + 256) & 0xFF for db in range(-255, 256))
+    zeros = bytes(511)
+    for da in range(-255, 256):
+        base = (da + 255) << 9
+        row = bytearray(db_row)
+        magnitude = da if da >= 0 else -da
+        if da >= 0:
+            # Blocks in order: db, 0, da, db.
+            zero_lo, zero_hi = max(0, 256 - 2 * magnitude), 254 - magnitude // 2
+            da_lo, da_hi = 255 - magnitude // 2, 255 + magnitude
+        else:
+            # Blocks in order: db, da, 0, db.
+            da_lo, da_hi = 255 - magnitude, 255 + magnitude // 2
+            zero_lo = 256 + magnitude // 2
+            zero_hi = min(254 + 2 * magnitude, 510)
+        row[da_lo : da_hi + 1] = bytes([da & 0xFF]) * (da_hi + 1 - da_lo)
+        if zero_lo <= zero_hi:
+            row[zero_lo : zero_hi + 1] = zeros[: zero_hi + 1 - zero_lo]
+        table[base : base + 511] = row
+    table = bytes(table)
+    _PAETH_DELTA = table
     return table
 
 
@@ -218,8 +232,8 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
             for c in range(channels):
                 filtered = line[c::channels]
                 above = prev[c::channels]
-                # The first pixel of a row has no left or above-left neighbour;
-                # _paeth(0, b, 0) is just b.
+                # The first pixel of a row has no left or above-left neighbour,
+                # so the predictor is just the above byte.
                 left = (filtered[0] + above[0]) & 0xFF
                 unfiltered = [left]
                 for value, up, upleft in zip(filtered[1:], above[1:], above):

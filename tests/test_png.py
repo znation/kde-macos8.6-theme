@@ -24,6 +24,7 @@ from tools import png  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
+    _paeth,
     make_png,
     rgb_image,
     with_ihdr_byte,
@@ -542,4 +543,34 @@ class TestUnfilterLanes(unittest.TestCase):
                 expected = b"".join(rows)
             with self.subTest(width=width, color_type=color_type):
                 self.assertEqual(png.decode_png(data).rgb, expected)
+
+
+class TestPaethDeltaTable(unittest.TestCase):
+    """The Paeth delta table is filled from a closed-form block layout rather
+    than a predictor call per cell; pin every cell against the per-entry
+    predictor so a wrong block boundary cannot decode a row to a plausible but
+    wrong value."""
+
+    def test_table_matches_per_entry_oracle(self):
+        expected = bytearray(511 * 512)
+        for da in range(-255, 256):
+            base = (da + 255) << 9
+            for db in range(-255, 256):
+                expected[base + db + 255] = _paeth(da, db, 0) & 0xFF
+        original = png._PAETH_DELTA
+        png._PAETH_DELTA = None
+        try:
+            table = png._paeth_delta_table()
+        finally:
+            png._PAETH_DELTA = original
+        self.assertEqual(table, bytes(expected))
+
+    def test_table_is_built_once_and_reused(self):
+        original = png._PAETH_DELTA
+        png._PAETH_DELTA = None
+        try:
+            first = png._paeth_delta_table()
+            self.assertIs(png._paeth_delta_table(), first)
+        finally:
+            png._PAETH_DELTA = original
 
