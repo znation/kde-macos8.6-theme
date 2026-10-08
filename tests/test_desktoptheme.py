@@ -160,6 +160,25 @@ def render_slices(tree):
     return slices
 
 
+def rect_geometry(tree):
+    """Return {id: (x, y, width, height)} for every id-bearing <rect>.
+
+    KSvg reads a nine-slice hint rect's geometry to size the widget, so the
+    ids the contract tests pin are not enough: a margin rect naming the wrong
+    tile size or border lays the widget out wrong. The artwork rects in these
+    nine-slice SVGs live inside id-bearing <g> elements, so the only
+    id-bearing rects are the hints and this is each SVG's full hint geometry.
+    """
+    geometry = {}
+    for element in tree.iter():
+        if local_name(element) == "rect" and element.get("id"):
+            geometry[element.get("id")] = (
+                element.get("x"), element.get("y"),
+                element.get("width"), element.get("height"),
+            )
+    return geometry
+
+
 class TestMetadata(PackageMetadata, unittest.TestCase):
     METADATA_PATH = METADATA
     PACKAGE_STRUCTURE = "Plasma/Theme"
@@ -180,6 +199,25 @@ class TestPanelBackground(unittest.TestCase):
     def test_hint_ids_present(self):
         for name in HINT_IDS:
             self.assertIn(name, self.ids, name)
+
+    def test_panel_background_hint_geometry(self):
+        # `test_hint_ids_present` pins only the hint ids, so a margin or inset
+        # rect with the wrong position or size passes it. KSvg reads this
+        # geometry to size the menu bar's nine-slice, so pin each hint.
+        self.assertEqual(
+            rect_geometry(self.tree),
+            {
+                "hint-tile-center": ("2", "2", "8", "8"),
+                "hint-top-margin": ("2", "0", "2", "2"),
+                "hint-bottom-margin": ("2", "10", "2", "2"),
+                "hint-left-margin": ("0", "2", "2", "2"),
+                "hint-right-margin": ("10", "2", "2", "2"),
+                "hint-top-inset": ("2", "0", "8", "0"),
+                "hint-bottom-inset": ("2", "12", "8", "0"),
+                "hint-left-inset": ("0", "2", "0", "8"),
+                "hint-right-inset": ("12", "2", "0", "8"),
+            },
+        )
 
     def test_platinum_colours_present(self):
         # Read the parsed artwork's fill attributes, not the raw file: the
@@ -225,6 +263,28 @@ class TestButton(unittest.TestCase):
             for hint in BUTTON_MARGIN_HINTS:
                 self.assertIn(f"{prefix}-{hint}", ids, hint)
         self.assertIn("hint-tile-center", ids)
+
+    def test_button_hint_geometry(self):
+        # `test_button_slice_ids` pins only the hint ids, so a margin hint
+        # naming the wrong tile size or border passes it. KSvg reads this
+        # geometry to lay out the nine-slice, and normal/pressed use a 3px
+        # border while focus uses 2px, so pin every state's margins and the
+        # shared centre tile.
+        expected = {"hint-tile-center": ("3", "3", "6", "6")}
+        for prefix in ("normal", "pressed"):
+            expected.update({
+                f"{prefix}-hint-top-margin": ("3", "0", "6", "3"),
+                f"{prefix}-hint-bottom-margin": ("3", "9", "6", "3"),
+                f"{prefix}-hint-left-margin": ("0", "3", "3", "6"),
+                f"{prefix}-hint-right-margin": ("9", "3", "3", "6"),
+            })
+        expected.update({
+            "focus-hint-top-margin": ("2", "0", "8", "2"),
+            "focus-hint-bottom-margin": ("2", "10", "8", "2"),
+            "focus-hint-left-margin": ("0", "2", "2", "8"),
+            "focus-hint-right-margin": ("10", "2", "2", "8"),
+        })
+        self.assertEqual(rect_geometry(ET.parse(BUTTON_SVG)), expected)
 
     def test_button_colours(self):
         # Read the parsed artwork's fill attributes, not the raw file: the
@@ -515,6 +575,21 @@ class TestFrame(unittest.TestCase):
         for element in tree.iter():
             tag = local_name(element)
             self.assertFalse(tag.endswith("script"), tag)
+
+    def test_frame_hint_geometry(self):
+        # `test_frame_svg_contract` pins only the hint ids, so a margin hint
+        # naming the wrong tile size or border passes it. KSvg reads this
+        # geometry to lay out the nine-slice, so pin each state's margins and
+        # the shared centre tile.
+        expected = {"hint-tile-center": ("3", "3", "6", "6")}
+        for prefix in FRAME_PREFIXES:
+            expected.update({
+                f"{prefix}-hint-top-margin": ("3", "0", "6", "3"),
+                f"{prefix}-hint-bottom-margin": ("3", "9", "6", "3"),
+                f"{prefix}-hint-left-margin": ("0", "3", "3", "6"),
+                f"{prefix}-hint-right-margin": ("9", "3", "3", "6"),
+            })
+        self.assertEqual(rect_geometry(ET.parse(FRAME_SVG)), expected)
 
     def test_frame_corner_bevels_turn_the_corner(self):
         slices = render_slices(ET.parse(FRAME_SVG))
