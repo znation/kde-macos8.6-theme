@@ -10,3 +10,6 @@ and will tune it to this project.
 - Keep each file focused on one responsibility, and small enough to read in one sitting.
 - Every behavior change ships with a test.
 - Small, complete, and correct beats big and half-done: one focused change per tick.
+- Ground each visual value in the reference screenshots: sample palette and metric values from a
+  lossless image, pin each with a test that re-derives that pixel, and record the provenance of
+  any KDE-required value the reference set does not show.
