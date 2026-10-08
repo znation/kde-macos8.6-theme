@@ -1,2 +1,5 @@
 [kdeglobals][General]
 ColorScheme=MacOS8
+
+[plasmarc][Theme]
+name=org.macos8.desktop

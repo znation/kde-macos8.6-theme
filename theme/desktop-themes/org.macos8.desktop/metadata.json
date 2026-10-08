@@ -1,0 +1,17 @@
+{
+    "KPackageStructure": "Plasma/Theme",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "kde-macos8.6-theme"
+            }
+        ],
+        "Category": "",
+        "Description": "Mac OS 8.6 Platinum desktop theme for Plasma 6",
+        "Id": "org.macos8.desktop",
+        "License": "GPL-2.0-or-later",
+        "Name": "Mac OS 8.6",
+        "Version": "0.1.0"
+    },
+    "X-Plasma-API": "5.0"
+}

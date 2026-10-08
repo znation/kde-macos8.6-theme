@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" panel background.
+
+     A square, opaque menu bar: #DDDDDD body, a 1px #FFFFFF highlight on the
+     outer top/left edge, a 1px #999999 shadow on the outer bottom/right edge
+     and a 1px #000000 rule under the bottom edge. The nine-slice contract is a
+     2px border around an 8px centre tile on a tight 12x12 canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size, border margins, and zero insets. -->
+  <rect id="hint-tile-center" x="2" y="2" width="8" height="8" style="fill:#ff6600"/>
+  <rect id="hint-top-margin" x="2" y="0" width="2" height="2" style="fill:#ff00ff"/>
+  <rect id="hint-bottom-margin" x="2" y="10" width="2" height="2" style="fill:#ff00ff"/>
+  <rect id="hint-left-margin" x="0" y="2" width="2" height="2" style="fill:#ff00ff"/>
+  <rect id="hint-right-margin" x="10" y="2" width="2" height="2" style="fill:#ff00ff"/>
+  <rect id="hint-top-inset" x="2" y="0" width="8" height="0" style="fill:#00ff00"/>
+  <rect id="hint-bottom-inset" x="2" y="12" width="8" height="0" style="fill:#00ff00"/>
+  <rect id="hint-left-inset" x="0" y="2" width="0" height="8" style="fill:#00ff00"/>
+  <rect id="hint-right-inset" x="12" y="2" width="0" height="8" style="fill:#00ff00"/>
+
+  <!-- Top edge: outer 1px highlight, then body. -->
+  <g id="top" transform="translate(2,0)">
+    <rect x="0" y="0" width="8" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="8" height="1" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Bottom edge: inner shadow, outer black rule. -->
+  <g id="bottom" transform="translate(2,10)">
+    <rect x="0" y="0" width="8" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="8" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="8" height="1" fill="#000000"/>
+  </g>
+
+  <!-- Left edge: outer 1px highlight, then body. -->
+  <g id="left" transform="translate(0,2)">
+    <rect x="0" y="0" width="2" height="8" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="8" fill="#FFFFFF"/>
+  </g>
+
+  <!-- Right edge: inner body, outer 1px shadow. -->
+  <g id="right" transform="translate(10,2)">
+    <rect x="0" y="0" width="2" height="8" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="8" fill="#999999"/>
+  </g>
+
+  <g id="center" transform="translate(2,2)">
+    <rect x="0" y="0" width="8" height="8" fill="#DDDDDD"/>
+  </g>
+
+  <g id="topleft" transform="translate(0,0)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="2" fill="#FFFFFF"/>
+  </g>
+
+  <g id="topright" transform="translate(10,0)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#999999"/>
+  </g>
+
+  <g id="bottomleft" transform="translate(0,10)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+
+  <g id="bottomright" transform="translate(10,10)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+</svg>

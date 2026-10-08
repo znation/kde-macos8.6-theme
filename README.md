@@ -9,25 +9,28 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: two artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/` and the `org.macos8.desktop` global theme in `theme/look-and-feel/`, with a `make check` harness and reference/fidelity tooling; no widget, window-decoration, or splash assets exist yet.
+Pre-alpha: three artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/`, and the `org.macos8.desktop` desktop theme in `theme/desktop-themes/`, whose `widgets/panel-background.svg` renders the Platinum menu bar; no window-decoration or splash assets exist yet.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
 
 ## Installing
 
-`make install` copies two artifacts into `${XDG_DATA_HOME:-$HOME/.local/share}`: the color scheme
-`theme/color-schemes/MacOS8.colors` into `color-schemes/`, and the `org.macos8.desktop` global
-theme into `plasma/look-and-feel/`.
+`make install` copies three artifacts into `${XDG_DATA_HOME:-$HOME/.local/share}`: the color scheme
+`theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
+into `plasma/look-and-feel/`, and the `org.macos8.desktop` desktop theme into
+`plasma/desktoptheme/`.
 
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot). Select it in System Settings or with `plasma-apply-colorscheme MacOS8`; the dotless
 filename means the ID KDE writes into `kdeglobals` resolves again on the next start.
 
 The global theme applies that same scheme as one selection: `lookandfeeltool -a
-org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). `make uninstall` removes
-the two installed artifacts, leaving the shared `color-schemes/` and `look-and-feel/` directories
-and anything else in them in place. `make check` runs the test suite.
+org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). The desktop theme can be
+selected on its own with `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies
+it through `[plasmarc][Theme]` in its `contents/defaults`. `make uninstall` removes the three
+installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/` and `desktoptheme/`
+directories and anything else in them in place. `make check` runs the test suite.
 
 ## Reference screenshots
 

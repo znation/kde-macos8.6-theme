@@ -15,16 +15,18 @@ produces the candidate: there is no scripted way to render a themed surface and 
 so a fidelity check still starts from a hand-made screenshot.
 
 **How to reproduce:** Look for a command that renders a Plasma surface with the theme applied and
-writes a PNG. None exists; the planned `make check` exercises only the color scheme and the
-comparison tool.
+writes a PNG. None exists; `make check` exercises the installed packages and the comparison tool,
+but nothing renders a surface.
 
-**Suspected cause:** No theme package exists yet, so there is nothing to render. The render step
-depends on the Platinum color scheme and the widget/decoration packages landing first.
+**Suspected cause:** The desktop theme now ships `widgets/panel-background.svg`, so there is a
+surface to render, but no offline render path exists: capturing a themed Plasma surface needs a
+running session or a QML harness, neither of which `make check` can drive.
 
-**Next step:** Once theme code exists, add a bounded, non-interactive render-and-capture script
-(fixed surface size) that writes the candidate PNG this tool consumes, and wire it into `make check`.
+**Next step:** With the Platinum panel background now shipping, add a bounded, non-interactive
+render-and-capture script (fixed surface size) that writes the candidate PNG this tool consumes,
+once an offline render path is available, and wire it into `make check`.
 
-**Refused 2026-10-07 by bugfix: the only theme artifact is the color scheme — no widget/decoration package exists to render and no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
+**Refused 2026-10-07 by bugfix: no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
 
 ## Fixed
 

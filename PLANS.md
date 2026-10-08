@@ -5,7 +5,11 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Mac OS 8.6 desktop theme package with the Platinum panel background
+_None yet._
+
+## Done
+
+### Mac OS 8.6 desktop theme package with the Platinum panel background (done 2026-10-07)
 
 **Planned 2026-10-07 by plan.**
 
@@ -47,8 +51,8 @@ Platinum menu bar, and wire it into the existing global theme so applying
    `org.macos8.desktop`, `Name` `Mac OS 8.6`, `Description`, `Version` `0.1.0`, `License`
    `GPL-2.0-or-later`, empty `Category`, one `Authors` entry.
 2. In that package's `widgets/` subdirectory, `panel-background.svg` (new) — a tight 12x12
-   canvas (no shadow space), 2px border, 8px centre tile: corners 2x2 at (0,0)/(8,0)/(0,8)/(8,8);
-   `top` 8x2 at (2,0), `bottom` 8x2 at (2,8), `left` 2x8 at (0,2), `right` 2x8 at (8,2), `center`
+   canvas (no shadow space), 2px border, 8px centre tile: corners 2x2 at (0,0)/(10,0)/(0,10)/(10,10);
+   `top` 8x2 at (2,0), `bottom` 8x2 at (2,10), `left` 2x8 at (0,2), `right` 2x8 at (10,2), `center`
    8x8 at (2,2). Fills: body `#DDDDDD`; outer 1px top/left `#FFFFFF`; outer 1px bottom/right
    `#999999`; an extra 1px `#000000` rule along the bottom outer edge; corners take the adjacent
    edge colour. Hint rects: `hint-tile-center` 8x8, each `hint-*-margin` 2x2, each `hint-*-inset`
@@ -114,9 +118,6 @@ under `tests/`. Edited: the look-and-feel package's `contents/defaults`,
 **Follow-ups (not planned here).** Further widget families (button, scrollbar, tooltip), the
 Platinum window decoration, an 8.6 splash, and the automated render/capture step (BUGS.md
 `## Open`) — the panel background gives the render harness its first real surface.
-
-## Done
-
 ### Mac OS 8.6 look-and-feel global theme package (done 2026-10-07)
 
 **Planned 2026-10-07 by plan.**

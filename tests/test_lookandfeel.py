@@ -19,6 +19,7 @@ SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 # configparser reads the KDE `[kdeglobals][General]` header greedily, so the
 # section key includes the inner bracket pair.
 DEFAULTS_SECTION = "kdeglobals][General"
+PLASMA_SECTION = "plasmarc][Theme"
 
 
 def load_metadata():
@@ -62,9 +63,12 @@ class TestDefaults(unittest.TestCase):
     def setUp(self):
         self.parser = load_defaults()
 
-    def test_only_the_color_scheme_key_is_set(self):
-        self.assertEqual(self.parser.sections(), [DEFAULTS_SECTION])
+    def test_the_expected_sections_and_keys_are_set(self):
+        self.assertEqual(
+            self.parser.sections(), [DEFAULTS_SECTION, PLASMA_SECTION]
+        )
         self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme"])
+        self.assertEqual(self.parser.options(PLASMA_SECTION), ["name"])
 
     def test_color_scheme_matches_the_scheme_file(self):
         """The package must apply the scheme this repository actually ships.
