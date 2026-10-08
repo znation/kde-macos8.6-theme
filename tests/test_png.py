@@ -216,11 +216,19 @@ class TestDecode(unittest.TestCase):
     def test_rejects_unknown_scanline_filter_type(self):
         # IHDR's filter method byte is separate from the filter type byte that
         # precedes each scanline. A corrupt row filter (5-255) must be named
-        # rather than silently decoded with a wrong predictor.
-        data = make_png(1, 1, [bytes([1, 2, 3])], filter_types=[5])
+        # rather than silently decoded with a wrong predictor, and the error
+        # must name the row so the corrupt scanline can be located.
+        data = make_png(
+            1,
+            3,
+            [bytes([1, 2, 3]), bytes([4, 5, 6]), bytes([7, 8, 9])],
+            filter_types=[0, 0, 5],
+        )
         with self.assertRaises(png.PngError) as ctx:
             png.decode_png(data)
-        self.assertIn("unsupported PNG filter type 5", str(ctx.exception))
+        message = str(ctx.exception)
+        self.assertIn("unsupported PNG filter type 5", message)
+        self.assertIn("row 2", message)
 
     def test_rejects_non_png(self):
         with self.assertRaises(png.PngError):

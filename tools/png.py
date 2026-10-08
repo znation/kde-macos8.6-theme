@@ -133,7 +133,7 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
     prev = bytearray(stride)
     src = 0
     dst = 0
-    for _ in range(height):
+    for row in range(height):
         ftype = raw[src]
         src += 1
         line = bytearray(raw[src : src + stride])
@@ -160,7 +160,9 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
                 db = prev[i] - upleft + 255
                 line[i] = (line[i] + upleft + table[(da << 9) + db]) & 0xFF
         elif ftype != 0:
-            raise PngError(f"unsupported PNG filter type {ftype}")
+            raise PngError(
+                f"unsupported PNG filter type {ftype} in row {row}"
+            )
         out[dst : dst + stride] = line
         dst += stride
         prev = line
