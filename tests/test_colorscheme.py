@@ -213,7 +213,13 @@ class TestStructure(unittest.TestCase):
 
 
 class TestAnchors(unittest.TestCase):
-    """The palette anchors sampled from the retail reference screenshots."""
+    """The palette anchors, reference-sampled except the tooltip token.
+
+    Every value here except ``[Colors:Tooltip] BackgroundNormal`` was sampled
+    from a retail screenshot; the tooltip is the classic Platinum pale-yellow
+    token and the reference set holds no Mac OS 8.6 tooltip/balloon image, so
+    ``TestReferenceAnchors`` cannot ground it and it stays pinned here alone.
+    """
 
     def setUp(self):
         self.parser = load_scheme()
@@ -323,6 +329,28 @@ class TestReferenceAnchors(unittest.TestCase):
         self.assertEqual(self.pixel(REFERENCE_DESKTOP, 0, 0), (221, 221, 221))
         with self.assertRaises(unittest.SkipTest):
             self.pixel(REFERENCE_FIRSTBOOT, 0, 0)
+
+
+class TestProvenanceNote(unittest.TestCase):
+    """The scheme header must not present the tooltip as reference-sampled.
+
+    The tooltip anchor has no Mac OS 8.6 image in the reference set, so the
+    header names it as the one token that is not reference-derived; this pins
+    that exception so a later edit cannot quietly re-overclaim it.
+    """
+
+    def test_tooltip_is_named_as_not_reference_sampled(self):
+        with open(SCHEME, encoding="utf-8") as handle:
+            text = "".join(
+                line[1:].strip() + " "
+                for line in handle
+                if line.startswith("#")
+            )
+        self.assertIn("[Colors:Tooltip]", text)
+        self.assertRegex(
+            text,
+            r"\[Colors:Tooltip\][\s\S]{0,300}?\b(no|not)\b",
+        )
 
 
 class TestInstall(unittest.TestCase):

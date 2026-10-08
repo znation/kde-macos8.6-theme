@@ -31,6 +31,12 @@ screenshots", whose next step needs a reference image the repo does not have.
 could not source one it could visually verify. Otherwise option 2: the tooltip is the one palette
 token with no Mac OS 8.6 ground truth, and saying so is better than an unverifiable anchor.
 
+**Actioned (2026-10-08) by bugfix.** With no retail 8.6 tooltip screenshot available, the loop
+applied option 2: the scheme header and the `TestAnchors` docstring now state that
+`[Colors:Tooltip]` is the classic Platinum pale-yellow token with no reference in the set, and
+`TestProvenanceNote` pins that exception. The BUGS.md entry moved to Fixed. A human who can supply
+a retail balloon screenshot can still re-ground the anchor (option 1) and reopen the entry.
+
 ## Answered
 
 _None yet._

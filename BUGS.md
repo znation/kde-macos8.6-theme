@@ -28,40 +28,38 @@ once an offline render path is available, and wire it into `make check`.
 
 **Refused 2026-10-07 by bugfix: no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
 
-### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07)
+## Fixed
 
-**Symptom:** `tests/test_colorscheme.py`'s `TestReferenceAnchors` now ties the menu-bar face
+### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07; fixed 2026-10-08)
+
+**Symptom:** `tests/test_colorscheme.py`'s `TestReferenceAnchors` ties the menu-bar face
 (`Window`/`Button`/`Header`), view background and chrome foreground to pixels of
 `desktop_archiveorg8.6hd.png`, and the selection background to a pixel of `firstboot_betawiki.png`,
-but the tooltip anchor (`255,255,204`) still lives only as a hard-coded string in `TestAnchors`: in
-`macos8.6-screenshots/` that colour occurs only as anti-aliasing fragments — diagonal edges and a
-few small glyph-like clusters — never as a balloon, so there is no pixel to re-derive it from.
+but the tooltip anchor (`255,255,204`) had no reference pixel: in `macos8.6-screenshots/` that
+colour occurs only as anti-aliasing fragments — diagonal edges and a few small glyph-like clusters
+— never as a balloon, so there was no pixel to re-derive it from.
 
 **How to reproduce:** Decode every PNG in `macos8.6-screenshots/` with `tools/png.py` and search
-for `255,255,204`. The hits are anti-aliasing fragments, not a balloon: a 185-pixel diagonal edge
-(at (966–984, 289–311) in `desktop_betawiki.png` and `firstboot_betawiki.png`, and (838–856, 33–55)
-in `desktop_betawiki86b9.png`), small glyph-like clusters near (388–397, 77–88) in
-`firstboot_betawiki.png`, and isolated single pixels in `desktop_fandom.png` and several
-`*_betawiki.png` screenshots. Decoding the JPEGs (via a converter, since `tools/png.py` cannot read
-them) and searching likewise finds no pale-yellow balloon.
+for `255,255,204`. The largest connected region is a 185-pixel diagonal edge at (966–984, 289–311)
+in `desktop_betawiki.png` and `firstboot_betawiki.png`, plus small glyph clusters near (388–397,
+77–88) in `firstboot_betawiki.png` — no balloon. Decoding the JPEGs (via a converter, since
+`tools/png.py` cannot read them) and searching likewise finds no pale-yellow balloon.
 
 **Suspected cause:** The palette was sampled by hand with ImageMagick while planning; the tooltip
 token has no recorded sample point, and none of the collected reference screenshots happens to show
 a tooltip.
 
-**Next step:** Source a retail Mac OS 8.6 screenshot that shows a tooltip / Balloon Help balloon,
-then record its sample point and add the tooltip anchor to `TestReferenceAnchors`.
+**Resolution (2026-10-08).** No retail Mac OS 8.6 tooltip/balloon screenshot could be sourced
+(BetaWiki's archived Mac OS 8.6 page holds only the already-collected images; the archive.org item
+behind `desktop_archiveorg8.6hd.png` holds a single screenshot). The scheme header had claimed
+every palette anchor was sampled, which was false for the tooltip. Following the recommendation in
+QUESTIONS.md, that claim was dropped: the header now names `[Colors:Tooltip]` as the classic
+Platinum pale-yellow token with no Mac OS 8.6 reference in the set, `TestAnchors`'s docstring says
+the same, and `TestProvenanceNote` pins the header's exception. The value stays pinned in
+`TestAnchors`; it is just no longer presented as reference-derived.
 
-**Blocked (2026-10-08):** No collected reference shows a balloon, and the bugfix loop could not
-source a retail screenshot it could visually verify (BetaWiki's Mac OS 8.6 page holds only the six
-already-collected images; the archive.org item behind `desktop_archiveorg8.6hd.png` holds a single
-screenshot). Filed in QUESTIONS.md for a human-supplied reference or a decision to drop the anchor
-claim.
-
-This complements the Open render/capture entry above: that one covers producing the candidate
-surface, this one covers the ground truth it is measured against.
-
-## Fixed
+**Validation gap:** no-observability — the ungrounded tooltip anchor passed the suite's
+hard-coded assertion, so the gap surfaced only by decoding the reference set by hand.
 
 ### Selection palette anchor is not re-derivable (found 2026-10-07; fixed 2026-10-08)
 
@@ -80,7 +78,7 @@ test fails: `(204, 204, 255) != (206, 206, 255)`.
 `theme/color-schemes/MacOS8.colors`, updated `TestAnchors`, and added
 `TestReferenceAnchors.test_selection_background`, which decodes `firstboot_betawiki.png` with
 `tools/png.py` and asserts the selection fill at `(200, 63)`. The tooltip anchor remains ungrounded
-(see the palette-anchor entry under Open).
+(see the palette-anchor entry above).
 
 **Validation gap:** unclear-invariant — confirming the bug meant deciding which reference was
 authoritative, because the lossless retail PNG (`204,204,255`) disagreed with the value hand-sampled
