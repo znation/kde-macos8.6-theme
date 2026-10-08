@@ -267,12 +267,57 @@ def assert_tiles_placed_by_margins(case, tree, prefixes):
     case.assertEqual(origins, expected)
 
 
+def assert_root_canvas(case, tree, width, height):
+    """Assert *tree*'s root <svg> declares a *width* x *height* canvas 1:1.
+
+    KSvg draws the artwork in the root coordinate space, so a viewBox that
+    disagrees with the canvas -- or a width/height that disagrees with the
+    viewBox -- rescales the whole widget. Every other test reads only the
+    artwork's own coordinates, so nothing else would notice. A nine-slice
+    SVG's right/bottom margin rects must also reach the canvas edge: their far
+    edge is where that border ends, so the canvas is the layout they imply.
+    """
+    root = tree.getroot()
+    case.assertEqual(local_name(root), "svg")
+    case.assertEqual(root.get("viewBox"), f"0 0 {width} {height}")
+    case.assertEqual(root.get("width"), str(width))
+    case.assertEqual(root.get("height"), str(height))
+    for name, (x, y, w, h) in rect_geometry(tree).items():
+        if name.endswith("hint-right-margin"):
+            case.assertEqual(int(x) + int(w), width, name)
+        elif name.endswith("hint-bottom-margin"):
+            case.assertEqual(int(y) + int(h), height, name)
+
+
+# Each widget SVG's root canvas. The four nine-slice widgets share a tight
+# 12x12 canvas; checkmarks is two stacked 16x16 cells and radiobutton two
+# side-by-side, so their canvases are 16x32 and 48x16.
+SVG_CANVASES = (
+    ("panel-background.svg", PANEL_SVG, 12, 12),
+    ("frame.svg", FRAME_SVG, 12, 12),
+    ("button.svg", BUTTON_SVG, 12, 12),
+    ("lineedit.svg", LINEEDIT_SVG, 12, 12),
+    ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
+    ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
+)
+
+
 class TestMetadata(PackageMetadata, unittest.TestCase):
     METADATA_PATH = METADATA
     PACKAGE_STRUCTURE = "Plasma/Theme"
     PACKAGE_ID = DTHEME_ID
     PLASMA_API_KEY = "X-Plasma-API"
     PLASMA_API_VERSION = "5.0"
+
+
+class TestSvgRootCanvas(unittest.TestCase):
+    def test_root_canvas_matches_the_artwork_layout(self):
+        # A root viewBox/width/height change rescales the whole widget while
+        # every per-element test keeps passing, so pin the canvas for every
+        # widget and tie it to the margin hints where there are any.
+        for name, path, width, height in SVG_CANVASES:
+            with self.subTest(svg=name):
+                assert_root_canvas(self, ET.parse(path), width, height)
 
 
 class TestPanelBackground(unittest.TestCase):
