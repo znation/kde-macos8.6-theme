@@ -389,6 +389,32 @@ class TestCli(unittest.TestCase):
                     self.assertIn("error", result.stderr)
                     self.assertNotIn("Traceback", result.stderr)
 
+    def test_tolerance_above_channel_range_rejected(self):
+        # A per-channel delta is at most 255, so a larger tolerance can never
+        # mark a pixel as differing and would silently disable that metric.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        with tempfile.TemporaryDirectory() as tmp:
+            reference = self._write(Path(tmp), "reference.png", data)
+            for value in ("256", "1000"):
+                with self.subTest(value=value):
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(TOOL),
+                            reference,
+                            reference,
+                            "--tolerance",
+                            value,
+                        ],
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertEqual(
+                        result.returncode, 2, result.stdout + result.stderr
+                    )
+                    self.assertIn("255", result.stderr)
+                    self.assertNotIn("Traceback", result.stderr)
+
     def test_valid_numeric_boundaries_accepted(self):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         with tempfile.TemporaryDirectory() as tmp:

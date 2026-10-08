@@ -323,6 +323,10 @@ def _tolerance(value: str) -> int:
         raise argparse.ArgumentTypeError(
             f"--tolerance must not be negative: {value!r}"
         )
+    if number > 255:
+        raise argparse.ArgumentTypeError(
+            f"--tolerance must be at most 255 (a per-channel delta): {value!r}"
+        )
     return number
 
 
@@ -343,7 +347,7 @@ def main(argv: list[str] | None = None) -> int:
         "--tolerance",
         type=_tolerance,
         default=0,
-        help="per-channel delta at or below which a pixel is not 'differing'",
+        help="per-channel delta (0-255) at or below which a pixel is not 'differing'",
     )
     parser.add_argument(
         "--max-mae",
