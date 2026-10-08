@@ -196,6 +196,28 @@ def render_slices(tree):
     return slices
 
 
+def assert_edge_band_pixels(case, slices, name, side, band):
+    """Assert edge slice *name* paints *band* from its outer edge in.
+
+    A horizontal edge (*side* ``top``/``bottom``) is three 6px rows, one per
+    band colour; a vertical edge (*side* ``left``/``right``) is six 3px rows,
+    each running outer to inner. *band* is the three colours read from the
+    slice's outer edge in, so the expected sequence depends on the edge's
+    orientation -- the part the button, lineedit and frame edge tests each
+    otherwise recompute.
+    """
+    if side in ("top", "bottom"):
+        expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
+        points = ((x, y) for y in range(3) for x in range(6))
+    else:
+        expected = band * 6
+        points = ((x, y) for y in range(6) for x in range(3))
+    pixels = slices[name]
+    actual = tuple(pixels.get(point) for point in points)
+    with case.subTest(slice=name):
+        case.assertEqual(actual, expected, name)
+
+
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
 
 
@@ -620,18 +642,9 @@ class TestButton(unittest.TestCase):
         for prefix in ("normal", "pressed"):
             for side in ("top", "bottom", "left", "right"):
                 band = (outward if side in ("top", "left") else mirrored)[prefix]
-                if side in ("top", "bottom"):
-                    # Three 6px rows, one per band colour.
-                    expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
-                    points = ((x, y) for y in range(3) for x in range(6))
-                else:
-                    # Six 3px rows, each running outer to inner.
-                    expected = band * 6
-                    points = ((x, y) for y in range(6) for x in range(3))
-                pixels = slices[f"{prefix}-{side}"]
-                actual = tuple(pixels.get(point) for point in points)
-                with self.subTest(slice=f"{prefix}-{side}"):
-                    self.assertEqual(actual, expected, f"{prefix}-{side}")
+                assert_edge_band_pixels(
+                    self, slices, f"{prefix}-{side}", side, band
+                )
 
     def test_button_center_tiles_are_face(self):
         # `test_button_colours` pins only the set of fills, so a centre tile
@@ -832,18 +845,7 @@ class TestLineEdit(unittest.TestCase):
         mirrored = ("#FFFFFF", "#FFFFFF", "#000000")
         for side in ("top", "bottom", "left", "right"):
             band = outward if side in ("top", "left") else mirrored
-            if side in ("top", "bottom"):
-                # Three 6px rows, one per band colour.
-                expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
-                points = ((x, y) for y in range(3) for x in range(6))
-            else:
-                # Six 3px rows, each running outer to inner.
-                expected = band * 6
-                points = ((x, y) for y in range(6) for x in range(3))
-            pixels = slices[f"base-{side}"]
-            actual = tuple(pixels.get(point) for point in points)
-            with self.subTest(slice=f"base-{side}"):
-                self.assertEqual(actual, expected, f"base-{side}")
+            assert_edge_band_pixels(self, slices, f"base-{side}", side, band)
 
     def test_lineedit_corner_bevels_turn_the_corner(self):
         # The edge bevel must continue into the corner and meet there; a
@@ -1057,19 +1059,9 @@ class TestFrame(unittest.TestCase):
                 band = (
                     outward if side in ("top", "left") else mirrored
                 )[prefix]
-                horizontal = side in ("top", "bottom")
-                if horizontal:
-                    # Three 6px rows, one per band colour.
-                    expected = (band[0],) * 6 + (band[1],) * 6 + (band[2],) * 6
-                    points = ((x, y) for y in range(3) for x in range(6))
-                else:
-                    # Six 3px rows, each running outer to inner.
-                    expected = band * 6
-                    points = ((x, y) for y in range(6) for x in range(3))
-                pixels = slices[f"{prefix}-{side}"]
-                actual = tuple(pixels.get(point) for point in points)
-                with self.subTest(slice=f"{prefix}-{side}"):
-                    self.assertEqual(actual, expected, f"{prefix}-{side}")
+                assert_edge_band_pixels(
+                    self, slices, f"{prefix}-{side}", side, band
+                )
             # The centre tile is one body rect, so every pixel is the face.
             with self.subTest(slice=f"{prefix}-center"):
                 self.assertEqual(
