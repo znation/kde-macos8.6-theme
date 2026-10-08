@@ -8,7 +8,8 @@ import subprocess
 import tempfile
 import unittest
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from theme_install import ROOT, install, uninstall
+
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
@@ -87,17 +88,9 @@ class TestDefaults(unittest.TestCase):
 
 
 class TestInstall(unittest.TestCase):
-    def _install(self, tmp):
-        return subprocess.run(
-            ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-        )
-
     def test_make_install_copies_package_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = self._install(tmp)
+            result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = os.path.join(
                 tmp, "share", "plasma", "look-and-feel", LNF_ID
@@ -111,39 +104,31 @@ class TestInstall(unittest.TestCase):
 
     def test_make_install_is_repeatable(self):
         with tempfile.TemporaryDirectory() as tmp:
-            first = self._install(tmp)
+            first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
-            second = self._install(tmp)
+            second = install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
-
-    def _uninstall(self, tmp):
-        return subprocess.run(
-            ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-        )
 
     def test_make_uninstall_removes_the_installed_package(self):
         with tempfile.TemporaryDirectory() as tmp:
-            installed = self._install(tmp)
+            installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
             package = os.path.join(
                 tmp, "share", "plasma", "look-and-feel", LNF_ID
             )
             self.assertTrue(os.path.isdir(package), package)
 
-            removed = self._uninstall(tmp)
+            removed = uninstall(tmp)
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertFalse(os.path.exists(package), package)
 
-            again = self._uninstall(tmp)
+            again = uninstall(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)
 
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
         with tempfile.TemporaryDirectory() as tmp:
-            first = self._install(tmp)
+            first = install(tmp)
             self.assertEqual(first.returncode, 0, first.stderr)
             stale = os.path.join(
                 tmp, "share", "plasma", "look-and-feel", LNF_ID,
@@ -151,7 +136,7 @@ class TestInstall(unittest.TestCase):
             )
             with open(stale, "w", encoding="utf-8") as handle:
                 handle.write("// deleted from the package\n")
-            second = self._install(tmp)
+            second = install(tmp)
             self.assertEqual(second.returncode, 0, second.stderr)
             self.assertFalse(os.path.exists(stale), stale)
 

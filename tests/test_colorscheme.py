@@ -9,7 +9,8 @@ import subprocess
 import tempfile
 import unittest
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from theme_install import ROOT, install, uninstall
+
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
 # configparser reads the KDE `[Colors:Header][Inactive]` header greedily, so the
@@ -216,12 +217,7 @@ class TestAnchors(unittest.TestCase):
 class TestInstall(unittest.TestCase):
     def test_make_install_copies_scheme_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = os.path.join(
                 tmp, "share", "color-schemes", "MacOS8.colors"
@@ -232,24 +228,14 @@ class TestInstall(unittest.TestCase):
 
     def test_make_uninstall_removes_only_the_scheme_it_installed(self):
         with tempfile.TemporaryDirectory() as tmp:
-            installed = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
             schemes = os.path.join(tmp, "share", "color-schemes")
             other = os.path.join(schemes, "Other.colors")
             with open(other, "w", encoding="utf-8") as handle:
                 handle.write("[General]\nName=Other\n")
 
-            removed = subprocess.run(
-                ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            removed = uninstall(tmp)
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertFalse(
                 os.path.exists(os.path.join(schemes, "MacOS8.colors")),
@@ -257,12 +243,7 @@ class TestInstall(unittest.TestCase):
             )
             self.assertTrue(os.path.isfile(other), other)
 
-            again = subprocess.run(
-                ["make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            again = uninstall(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)
 
 
