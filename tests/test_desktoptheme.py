@@ -10,6 +10,7 @@ import xml.etree.ElementTree as ET
 
 from kde_config import read as read_kde_config
 from theme_install import ROOT, install, uninstall
+
 DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
