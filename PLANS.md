@@ -5,7 +5,80 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 look-and-feel global theme package (planned 2026-10-07 by plan)
+
+**Goal.** Ship the second installable artifact: a Plasma 6 `Plasma/LookAndFeel` global theme,
+`org.macos8.desktop`, that applies the existing Platinum color scheme as one selectable global
+theme and gives the later desktop-theme, window-decoration, and splash plans a package to plug
+into.
+
+**Grounding.**
+- A `Plasma/LookAndFeel` package is `metadata.json` (`KPackageStructure`, `KPlugin.Id`) plus
+  `contents/defaults`; the reference is `/usr/share/plasma/look-and-feel/org.kde.breeze.desktop/`.
+  Packages live under `$XDG_DATA_DIRS/plasma/look-and-feel/<KPlugin.Id>/`, and `lookandfeeltool -l`
+  lists them (verified with a temp `XDG_DATA_HOME`).
+- `contents/defaults` is ini merged into the user's config. Breeze sets every surface
+  (`widgetStyle`, `ColorScheme`, `Theme`, cursor, decoration, splash); this project only has a
+  color scheme, so the defaults set only `[kdeglobals][General] ColorScheme` and leave the rest at
+  the user's current values instead of silently resetting them to Breeze.
+- The value must be `MacOS8.6`, not the CLI-visible `MacOS8`: KDE's scheme resolver turns the
+  config value into `<value>.colors`, and the file is `theme/color-schemes/MacOS8.6.colors`.
+  Verified by running `plasma-apply-colorscheme` with no argument against a temp `XDG_CONFIG_HOME`:
+  `ColorScheme=MacOS8.6` resolves, `ColorScheme=MacOS8` prints `Could not find color scheme
+  "MacOS8" falling back to BreezeLight`. See the companion BUGS.md entry on the dotted filename.
+
+**Approach.**
+1. The package metadata manifest, `metadata.json` (new) — `KPackageStructure`
+   `"Plasma/LookAndFeel"`; `KPlugin` with `Id` `org.macos8.desktop`, `Name` `Mac OS 8.6`,
+   `Description`, `Version` `0.1.0`, `License` `GPL-2.0-or-later`, empty `Category`, and one
+   `Authors` entry; `X-Plasma-APIVersion` `"2"`; `Keywords`
+   `"Desktop;Workspace;Appearance;Look and Feel;"`.
+2. `theme/look-and-feel/org.macos8.desktop/contents/defaults` (new) — exactly two lines,
+   `[kdeglobals][General]` and `ColorScheme=MacOS8.6`. No other sections or keys.
+3. A new `test_lookandfeel.py` module under `tests/` — stdlib `unittest`, `json`, `configparser`, `shutil`,
+   `subprocess`, `tempfile`:
+   - `TestMetadata`: `json.load` the metadata and assert `KPackageStructure`,
+     `KPlugin.Id == "org.macos8.desktop"`, `KPlugin.Name == "Mac OS 8.6"`, `KPlugin.Version`,
+     `X-Plasma-APIVersion == "2"`, and a non-empty `Keywords`.
+   - `TestDefaults`: parse `contents/defaults` with
+     `configparser.ConfigParser(interpolation=None)` and `optionxform = str` (the section key is
+     `kdeglobals][General`); assert that is the only section and `ColorScheme` its only option;
+     assert the value equals `theme/color-schemes/MacOS8.6.colors`'s `[General] ColorScheme` and
+     that `theme/color-schemes/<value>.colors` exists (the cross-artifact invariant, which stays
+     true if the scheme is later renamed).
+   - `TestInstall`: run `make install DESTDIR=<tmp> XDG_DATA_HOME=/share`; assert
+     `<tmp>/share/plasma/look-and-feel/org.macos8.desktop/metadata.json` and `contents/defaults`
+     exist and are byte-identical to source, and that a second run exits 0.
+   - `TestPackageValid` (`@unittest.skipUnless(shutil.which("kpackagetool6"), ...)`): run
+     `kpackagetool6 -t Plasma/LookAndFeel -p <fresh tmp> -i theme/look-and-feel/$LNF_ID`
+     and assert exit 0 with `<fresh tmp>/org.macos8.desktop/metadata.json` present.
+4. `Makefile` — add `LNF_ID := org.macos8.desktop` and
+   `LNF_PACKAGE := theme/look-and-feel/$LNF_ID`, and
+   `LNF_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/look-and-feel`; extend `install` to
+   `install -d $(LNF_INSTALL_DIR)` then `cp -r $(LNF_PACKAGE) $(LNF_INSTALL_DIR)/`. Plain copy, not
+   `kpackagetool6 -i`, because `-i` exits 4 when the target already exists and `-u` does not honour
+   `--packageroot` (both verified); the copy is idempotent.
+5. `README.md` — update the `tumwater:status` block and the Installing section to describe the
+   global theme and `lookandfeeltool -a org.macos8.desktop`.
+
+**Files touched.** New files under `theme/look-and-feel`: `metadata.json` and `contents/defaults`;
+a new `test_lookandfeel.py` under `tests/`; `Makefile` and `README.md` edited. No change to the
+color scheme itself.
+
+**Acceptance criteria.**
+- `make check` exits 0; the metadata, defaults/cross-artifact, install, and (on this host)
+  kpackagetool6-validity tests pass.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/look-and-feel/org.macos8.desktop/metadata.json` and `contents/defaults`
+  byte-identical to source, and a second `make install` still exits 0.
+- Manual smoke test (needs a Plasma session, so outside `make check`): with the package under
+  `~/.local/share/plasma/look-and-feel/`, `lookandfeeltool -l` lists `org.macos8.desktop`, and
+  `lookandfeeltool -a org.macos8.desktop` exits 0 and leaves `kdeglobals [General]
+  ColorScheme=MacOS8.6`, which `plasma-apply-colorscheme` resolves without the "Could not find"
+  warning.
+
+**Follow-ups (not planned here).** Desktop-theme widget SVGs, the Platinum window decoration, and
+an 8.6 splash (`contents/splash/`) — each adds its own key to this package's `contents/defaults`.
 
 ## Done
 

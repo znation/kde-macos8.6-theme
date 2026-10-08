@@ -26,6 +26,31 @@ depends on the Platinum color scheme and the widget/decoration packages landing 
 
 **Refused 2026-10-07 by bugfix: the only theme artifact is the color scheme — no widget/decoration package exists to render and no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
 
+### `plasma-apply-colorscheme` writes a scheme ID that does not survive a restart (found 2026-10-07)
+
+**Symptom:** `plasma-apply-colorscheme MacOS8` — the ID the tool lists for
+`theme/color-schemes/MacOS8.6.colors` — reports success and writes `[General]
+ColorScheme=MacOS8` into `kdeglobals`. On the next load KDE resolves that value to
+`MacOS8.colors`, which does not exist, so the scheme silently falls back to BreezeLight. The value
+that resolves to the shipped file is `MacOS8.6`.
+
+**How to reproduce:** With `XDG_DATA_HOME` pointing at a data dir holding
+`theme/color-schemes/MacOS8.6.colors`, set the temp `XDG_CONFIG_HOME`'s `kdeglobals` to
+`[General] ColorScheme=MacOS8` and run `plasma-apply-colorscheme` with no argument: it prints
+`Could not find color scheme "MacOS8" falling back to BreezeLight`. Repeat with
+`ColorScheme=MacOS8.6`: it resolves. Applying via the CLI looks correct in the running session, so
+the breakage appears only at the next start.
+
+**Suspected cause:** The tool derives a scheme's CLI id from the filename up to the first dot
+(`MacOS8`), while its resolver turns the `ColorScheme` config value into `<value>.colors`. A
+filename containing a dot therefore has a CLI id that no longer names the file.
+
+**Next step:** Rename the scheme to a dotless filename whose stem equals its `[General]
+ColorScheme` (e.g. `MacOS8.colors` with `ColorScheme=MacOS8`, keeping `Name=Mac OS 8.6`), updating
+`Makefile`, `tests/test_colorscheme.py`, the README, and — once the look-and-feel package lands —
+its `contents/defaults` and test. The look-and-feel plan sets `ColorScheme=MacOS8.6` to match the
+file as it stands today, so whichever of the two lands second updates that value.
+
 ## Fixed
 
 ### No objective fidelity check for "pixel-perfect" (structural risk, found 2026-10-07; fixed 2026-10-07)
