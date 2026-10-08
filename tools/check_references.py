@@ -246,48 +246,72 @@ def check_references(directory: Path) -> list[str]:
     return problems
 
 
+def _problems_match(problems: list[str], expected: list[str]) -> bool:
+    """Return True when *expected* matches *problems* exactly.
+
+    Each expected substring must match a distinct problem and no problem may be
+    left unmatched, so a fixture that emits an extra diagnostic -- not merely
+    one that omits an expected problem -- fails the self-test.
+    """
+    remaining = list(problems)
+    for needle in expected:
+        for index, problem in enumerate(remaining):
+            if needle in problem:
+                del remaining[index]
+                break
+        else:
+            return False
+    return not remaining
+
+
 def _self_test() -> int:
     """Run the checker against small fixtures; return 0 when all behave."""
     cases = [
         # (name, sources.txt contents or None to omit the file, files on disk as
-        #  (filename, content) pairs, substring expected in a problem)
+        #  (filename, content) pairs, expected problems: None for a clean set, or
+        #  one substring per problem the checker must report -- exactly that many,
+        #  each matched by a distinct problem)
         ("clean", "good.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
          [("good.png", PNG_MAGIC)], None),
         ("missing sources file", None, [("good.png", PNG_MAGIC)],
-         "missing sources file"),
+         ["missing sources file"]),
         ("comments and blank lines",
          "# provenance\n\ngood.png | https://example.test/x | l\n# trailing note\n",
          [("good.png", PNG_MAGIC)], None),
         ("missing file", "ghost.png | https://example.test/g.png | label\n", [],
-         "ghost.png"),
+         ["ghost.png"]),
+        # A rejected entry never registers the filename, so the image on disk is
+        # reported a second time as undeclared; the self-test pins that cascade.
         ("url with no scheme", "bad.png | example.test/b.png | label\n",
-         [("bad.png", PNG_MAGIC)], "absolute URL"),
+         [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
         ("url with a malformed scheme", "bad.png | ht!tp://example.test/b.png | label\n",
-         [("bad.png", PNG_MAGIC)], "absolute URL"),
+         [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
         ("url with raw whitespace", "bad.png | https://example.test/a b.png | label\n",
-         [("bad.png", PNG_MAGIC)], "absolute URL"),
+         [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
         ("path in filename", "sub/good.png | https://example.test/x | l\n",
-         [("sub/good.png", PNG_MAGIC)], "bare filename"),
-        ("undeclared image", "", [("extra.png", PNG_MAGIC)], "extra.png"),
+         [("sub/good.png", PNG_MAGIC)], ["bare filename"]),
+        ("undeclared image", "", [("extra.png", PNG_MAGIC)], ["extra.png"]),
         # No image extension, but the bytes are a PNG: the scan must read the
         # content, not trust the name, or this file drops out of provenance.
-        ("undeclared extensionless image", "", [("stray", PNG_MAGIC)], "stray"),
+        ("undeclared extensionless image", "", [("stray", PNG_MAGIC)], ["stray"]),
         ("undeclared jpeg misnamed as data", "",
-         [("shot.bin", JPEG_MAGIC)], "shot.bin"),
+         [("shot.bin", JPEG_MAGIC)], ["shot.bin"]),
         ("too few fields", "bad.png | https://example.test/b.png\n",
-         [("bad.png", PNG_MAGIC)], "expected 3 fields"),
-        ("empty field", "bad.png |  | label\n", [("bad.png", PNG_MAGIC)], "empty field"),
+         [("bad.png", PNG_MAGIC)],
+         ["expected 3 fields", "bad.png: image has no entry"]),
+        ("empty field", "bad.png |  | label\n", [("bad.png", PNG_MAGIC)],
+         ["empty field", "bad.png: image has no entry"]),
         ("duplicate",
          "dup.png | https://example.test/x | l\n"
          "dup.png | https://example.test/x | l\n",
-         [("dup.png", PNG_MAGIC)], "duplicate"),
+         [("dup.png", PNG_MAGIC)], ["duplicate"]),
         ("lfs pointer", "stub.png | https://example.test/x | l\n",
          [("stub.png", b"version https://git-lfs.github.com/spec/v1\n"
                        b"oid sha256:deadbeef\nsize 12345\n")],
-         "Git LFS pointer"),
+         ["Git LFS pointer"]),
         ("non-image payload", "fake.png | https://example.test/x | l\n",
          [("fake.png", b"<!DOCTYPE html>\n<html>404 Not Found</html>\n")],
-         "not a PNG, JPEG, GIF or WebP image"),
+         ["not a PNG, JPEG, GIF or WebP image"]),
         ("webp with jpg name", "shot.jpg | https://example.test/x | l\n",
          [("shot.jpg", b"RIFF\x24\x00\x00\x00WEBPVP8 ")], None),
     ]
@@ -307,9 +331,12 @@ def _self_test() -> int:
             if problems:
                 failed = True
                 print(f"self-test {name!r}: expected no problems, got {problems}")
-        elif not any(expected in problem for problem in problems):
+        elif not _problems_match(problems, expected):
             failed = True
-            print(f"self-test {name!r}: no problem mentioning {expected!r}; got {problems}")
+            print(
+                f"self-test {name!r}: expected problems matching {expected!r}, "
+                f"got {problems!r}"
+            )
 
     # Argument handling: --help prints usage and exits 0; anything unrecognized
     # exits 2 rather than silently running the repository check on a typo.

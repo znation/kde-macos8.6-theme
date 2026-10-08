@@ -46,6 +46,37 @@ class TestSelfTestPasses(unittest.TestCase):
         self.assertEqual(code, 0, out.getvalue())
 
 
+class TestSelfTestExactProblems(unittest.TestCase):
+    """A fixture's expected problems must match exactly, not as a subset.
+
+    The self-test once accepted any problem list that merely contained the
+    expected substring, so a spurious extra diagnostic for a fixture passed
+    unnoticed; the matcher now consumes one distinct problem per expectation
+    and rejects anything left over.
+    """
+
+    def test_matching_problems_pass(self):
+        module = load_checker()
+        self.assertTrue(
+            module._problems_match(
+                ["a: bad url", "a: image has no entry"],
+                ["bad url", "image has no entry"],
+            )
+        )
+
+    def test_extra_problem_fails(self):
+        module = load_checker()
+        self.assertFalse(module._problems_match(["bad url", "spurious"], ["bad url"]))
+
+    def test_missing_problem_fails(self):
+        module = load_checker()
+        self.assertFalse(module._problems_match([], ["bad url"]))
+
+    def test_one_expected_substring_consumes_only_one_problem(self):
+        module = load_checker()
+        self.assertFalse(module._problems_match(["bad url"], ["bad", "url"]))
+
+
 class TestRepositoryCheckEntryPoint(unittest.TestCase):
     """``main`` with no arguments runs the repository reference check.
 
