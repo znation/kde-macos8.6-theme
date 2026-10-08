@@ -100,6 +100,18 @@ class TestMakePng(unittest.TestCase):
         self.assertIn("color_type 5", message)
         self.assertIn("[0, 2, 3, 4, 6]", message)
 
+    def test_rejects_non_positive_dimensions(self):
+        # A negative dimension used to escape as a bare struct.error naming
+        # neither the argument nor the requirement, and a zero width silently
+        # built a degenerate PNG. Both are fixture bugs and must be named.
+        for width, height in ((0, 1), (1, 0), (-1, 1), (1, -1), (0, 0)):
+            with self.subTest(width=width, height=height):
+                with self.assertRaises(ValueError) as ctx:
+                    make_png(width, height, [])
+                message = str(ctx.exception)
+                self.assertIn("make_png", message)
+                self.assertIn(f"{width}x{height}", message)
+
     def test_accepts_exact_row_and_matching_filters(self):
         data = make_png(1, 1, [bytes([7, 8, 9])], filter_types=[0])
         self.assertEqual(png.decode_png(data).rgb, bytes([7, 8, 9]))
@@ -139,6 +151,20 @@ class TestWithIhdrByte(unittest.TestCase):
         with self.assertRaises(png.PngError) as ctx:
             png.decode_png(broken)
         self.assertIn("interlaced", str(ctx.exception))
+
+
+class TestPngWithIdat(unittest.TestCase):
+    def test_rejects_non_positive_dimensions(self):
+        # Same fixture-bug class as make_png: the declared dimensions go
+        # straight into struct.pack, so a negative one escaped as a bare
+        # struct.error instead of naming the argument.
+        for width, height in ((0, 1), (1, 0), (-1, 1), (1, -1)):
+            with self.subTest(width=width, height=height):
+                with self.assertRaises(ValueError) as ctx:
+                    png_with_idat(b"", width=width, height=height)
+                message = str(ctx.exception)
+                self.assertIn("png_with_idat", message)
+                self.assertIn(f"{width}x{height}", message)
 
 
 class TestDecode(unittest.TestCase):

@@ -60,6 +60,22 @@ def _filter_line(ftype: int, line: bytes, prev: bytes, bpp: int) -> bytes:
     return bytes(out)
 
 
+def _require_positive_dimensions(name: str, width: int, height: int) -> None:
+    """Reject a non-positive width or height before it reaches ``struct.pack``.
+
+    A zero or negative dimension is a fixture bug. A negative one used to
+    escape from ``struct.pack(">I", ...)`` as a bare ``struct.error`` that
+    named neither the argument nor the requirement, and a zero width silently
+    built a degenerate PNG whose decode error pointed at the decoder rather
+    than the fixture. Every PNG dimension is positive, so report it here by
+    name.
+    """
+    if width <= 0 or height <= 0:
+        raise ValueError(
+            f"{name}: width and height must be positive: {width}x{height}"
+        )
+
+
 def make_png(
     width: int,
     height: int,
@@ -76,8 +92,10 @@ def make_png(
     instead of surfacing later as a confusing decode error. ``color_type``
     must be one of the supported PNG types (0, 2, 3, 4 or 6); anything else is
     reported the same way. Fewer rows than ``height`` is allowed: a test
-    builds a deliberately truncated IDAT that way.
+    builds a deliberately truncated IDAT that way. ``width`` and ``height``
+    must be positive.
     """
+    _require_positive_dimensions("make_png", width, height)
     channels = _CHANNELS.get(color_type)
     if channels is None:
         # An unknown color type is a fixture bug; the dict lookup used to
@@ -151,9 +169,10 @@ def png_with_idat(
     Tests that reach a decode failure past a valid IHDR -- a decompression
     bomb, a truncated or corrupt deflate stream, an oversized declared image --
     need control over the raw IDAT bytes, which ``make_png`` does not expose.
-    The IHDR declares ``width`` x ``height`` and the stream is closed with
-    IEND.
+    The IHDR declares ``width`` x ``height`` (both positive) and the stream is
+    closed with IEND.
     """
+    _require_positive_dimensions("png_with_idat", width, height)
     ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
     return (
         _PNG_SIGNATURE
