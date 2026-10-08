@@ -55,6 +55,12 @@ cannot decode yet, so cover the PNG-sourced anchors first.
 This complements the Open render/capture entry above: that one covers producing the candidate
 surface, this one covers the ground truth it is measured against.
 
+**Partial coverage 2026-10-07 by coverage:** `tests/test_colorscheme.py`'s `TestReferenceAnchors`
+now decodes `desktop_archiveorg8.6hd.png` with `tools/png.py` and asserts the scheme's menu-bar
+face (`Window`/`Button`/`Header`), view background and chrome foreground at recorded sample
+points, so those anchors are tied to the reference image. The selection anchor (JPEG source) and
+the tooltip anchor (no recorded source) remain pinned only by `TestAnchors`.
+
 ## Fixed
 
 ### `--tolerance` does not gate the fidelity exit status; README documents no pass threshold (found 2026-10-07; fixed 2026-10-07)

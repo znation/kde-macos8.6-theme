@@ -4,6 +4,7 @@ import math
 import os
 import re
 import shutil
+import sys
 import tempfile
 import unittest
 
@@ -18,7 +19,19 @@ from theme_install import (
     uninstall,
 )
 
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+from tools import png  # noqa: E402
+
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
+
+# The retail screenshot the PNG-sourced anchors were sampled from. It is stored
+# with Git LFS, so a clone without it skips TestReferenceAnchors rather than
+# failing `make check`.
+REFERENCE_DESKTOP = os.path.join(
+    ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
+)
 
 # configparser reads the KDE `[Colors:Header][Inactive]` header greedily, so the
 # section key includes the inner bracket pair.
@@ -215,6 +228,62 @@ class TestAnchors(unittest.TestCase):
 
     def test_window_foreground(self):
         self.assert_value("Colors:Window", "ForegroundNormal", "0,0,0")
+
+
+class TestReferenceAnchors(unittest.TestCase):
+    """Each sampled anchor must still be the pixel it was sampled from.
+
+    ``TestAnchors`` pins the scheme file to hard-coded strings, so it proves
+    only that the file is self-consistent: a wrong anchor, or a reference image
+    swapped for a different one, passed unnoticed. Each point below was sampled
+    from ``desktop_archiveorg8.6hd.png`` and is asserted against the scheme's
+    own value, so the file and the reference image must agree. The selection
+    anchor's recorded source is a JPEG, which ``tools/png.py`` cannot decode,
+    so it stays pinned by ``TestAnchors`` alone.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        try:
+            cls.image = png.read_png(REFERENCE_DESKTOP)
+        except png.PngError as exc:
+            # `make check` must not require the Git LFS reference set (that is
+            # what `make check-references` is for), so a clone without the
+            # materialized image skips instead of failing.
+            raise unittest.SkipTest(
+                f"{REFERENCE_DESKTOP} is not a materialized PNG: {exc}"
+            )
+
+    def pixel(self, x, y):
+        offset = (y * self.image.width + x) * 3
+        return tuple(self.image.rgb[offset : offset + 3])
+
+    def assert_anchor_at(self, section, key, x, y):
+        value = tuple(
+            int(part) for part in load_scheme().get(section, key).split(",")
+        )
+        self.assertEqual(
+            self.pixel(x, y),
+            value,
+            f"{section}/{key} is {value} in the scheme but "
+            f"{self.pixel(x, y)} at ({x}, {y}) in {REFERENCE_DESKTOP}",
+        )
+
+    def test_menu_bar_face(self):
+        # The Platinum menu bar (and the window/button faces it shares) is the
+        # flat #DDDDDD band across the top of the screen.
+        for section in ("Colors:Window", "Colors:Button", "Colors:Header"):
+            with self.subTest(section=section):
+                self.assert_anchor_at(section, "BackgroundNormal", 400, 5)
+
+    def test_window_view_background(self):
+        # A window's content area is white.
+        self.assert_anchor_at("Colors:View", "BackgroundNormal", 470, 300)
+
+    def test_window_chrome_foreground(self):
+        # The 1px black rule along the bottom of a window is the chrome
+        # foreground (Window/ForegroundNormal).
+        self.assert_anchor_at("Colors:Window", "ForegroundNormal", 408, 226)
 
 
 class TestInstall(unittest.TestCase):
