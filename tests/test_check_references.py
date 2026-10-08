@@ -34,6 +34,23 @@ class TestSelfTestDiagnostics(unittest.TestCase):
         self.assertNotIn("self-test 'extra.png'", printed)
 
 
+class TestSelfTestPasses(unittest.TestCase):
+    """The checker's fixtures must pass under the default `make check`.
+
+    The other tests here mock ``check_references`` (diagnostics) or deny a
+    read (error paths), so the core checks -- missing file, duplicate, LFS
+    pointer, non-image payload, undeclared image -- run only in the tool's
+    built-in self-test, which `make check` does not otherwise invoke.
+    """
+
+    def test_built_in_fixtures_all_pass(self):
+        module = load_checker()
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = module._self_test()
+        self.assertEqual(code, 0, out.getvalue())
+
+
 class TestUnreadableImage(unittest.TestCase):
     def test_unreadable_image_is_reported_not_raised(self):
         module = load_checker()
