@@ -55,6 +55,27 @@ def check_references_in(module, sources, files=()):
         return module.check_references(root)
 
 
+@contextlib.contextmanager
+def path_method_raises(method, path, error_type, errno, message):
+    """Patch ``Path.<method>`` to fail for ``path`` and delegate otherwise.
+
+    The checker reads, lists, and resolves paths throughout a run, so a test
+    drives a single filesystem failure -- an unreadable file, an unlistable
+    directory, an unresolvable path -- by making only that path raise. Every
+    other path still reaches the real ``Path`` method, leaving the rest of
+    the check working.
+    """
+    real = getattr(Path, method)
+
+    def raises_for(self, *args, **kwargs):
+        if self == path:
+            raise error_type(errno, message, str(self))
+        return real(self, *args, **kwargs)
+
+    with unittest.mock.patch.object(Path, method, raises_for):
+        yield
+
+
 class TestSelfTestDiagnostics(unittest.TestCase):
     """The self-test's failure output names the failing case, not its image."""
 
@@ -104,14 +125,9 @@ class TestUnreadableImage(unittest.TestCase):
             {"locked.png": module.PNG_MAGIC},
         ) as root:
             image = root / "locked.png"
-            real_open = Path.open
-
-            def deny_locked(self, *args, **kwargs):
-                if self == image:
-                    raise PermissionError(13, "Permission denied", str(self))
-                return real_open(self, *args, **kwargs)
-
-            with unittest.mock.patch.object(Path, "open", deny_locked):
+            with path_method_raises(
+                "open", image, PermissionError, 13, "Permission denied"
+            ):
                 problems = module.check_references(root)
         self.assertTrue(
             any("locked.png" in p and "could not be read" in p for p in problems),
@@ -133,14 +149,9 @@ class TestUnreadableUndeclaredImage(unittest.TestCase):
         module = load_checker()
         with reference_set(module, "", {"stray.bin": module.PNG_MAGIC}) as root:
             stray = root / "stray.bin"
-            real_open = Path.open
-
-            def deny_stray(self, *args, **kwargs):
-                if self == stray:
-                    raise PermissionError(13, "Permission denied", str(self))
-                return real_open(self, *args, **kwargs)
-
-            with unittest.mock.patch.object(Path, "open", deny_stray):
+            with path_method_raises(
+                "open", stray, PermissionError, 13, "Permission denied"
+            ):
                 problems = module.check_references(root)
         self.assertTrue(
             any("stray.bin" in p and "could not be read" in p for p in problems),
@@ -164,14 +175,9 @@ class TestUnreadableSources(unittest.TestCase):
             {"good.png": module.PNG_MAGIC},
         ) as root:
             sources = root / module.SOURCES_NAME
-            real_read_text = Path.read_text
-
-            def deny_sources(self, *args, **kwargs):
-                if self == sources:
-                    raise PermissionError(13, "Permission denied", str(self))
-                return real_read_text(self, *args, **kwargs)
-
-            with unittest.mock.patch.object(Path, "read_text", deny_sources):
+            with path_method_raises(
+                "read_text", sources, PermissionError, 13, "Permission denied"
+            ):
                 problems = module.check_references(root)
         self.assertTrue(
             any(str(sources) in p and "could not be read" in p for p in problems),
@@ -206,14 +212,9 @@ class TestUnreadableDirectory(unittest.TestCase):
     def test_unreadable_directory_is_reported_not_raised(self):
         module = load_checker()
         with reference_set(module, "") as root:
-            real_iterdir = Path.iterdir
-
-            def deny_iterdir(self):
-                if self == root:
-                    raise PermissionError(13, "Permission denied", str(self))
-                return real_iterdir(self)
-
-            with unittest.mock.patch.object(Path, "iterdir", deny_iterdir):
+            with path_method_raises(
+                "iterdir", root, PermissionError, 13, "Permission denied"
+            ):
                 problems = module.check_references(root)
         self.assertTrue(
             any("could not be listed" in p for p in problems), problems
@@ -569,14 +570,13 @@ class TestResolveFailureIsFailClosed(unittest.TestCase):
             {"good.png": module.PNG_MAGIC},
         ) as root:
             sources = root / module.SOURCES_NAME
-            real_resolve = Path.resolve
-
-            def fail_sources(self, *args, **kwargs):
-                if self == sources:
-                    raise OSError(40, "Too many levels of symbolic links", str(self))
-                return real_resolve(self, *args, **kwargs)
-
-            with unittest.mock.patch.object(Path, "resolve", fail_sources):
+            with path_method_raises(
+                "resolve",
+                sources,
+                OSError,
+                40,
+                "Too many levels of symbolic links",
+            ):
                 problems = module.check_references(root)
         self.assertTrue(
             any(str(sources) in p and "outside" in p for p in problems),
