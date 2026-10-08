@@ -59,6 +59,27 @@ class TestCli(unittest.TestCase):
             self._write(directory, "altered.png", altered_png),
         )
 
+    def _write_padded_surface_pair(self, directory: Path) -> tuple[str, str]:
+        """Write a 2x2 surface PNG and a 4x4 reference with a 1px black border.
+
+        The reference embeds the surface at (1, 1), so ``--crop 1,1,2,2``
+        selects exactly the surface. Returns the surface path and the
+        reference path.
+        """
+        surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+        border = bytes([0, 0, 0] * 4)
+        rows = [
+            border,
+            bytes([0, 0, 0] + list(surface.rgb[0:6]) + [0, 0, 0]),
+            bytes([0, 0, 0] + list(surface.rgb[6:12]) + [0, 0, 0]),
+            border,
+        ]
+        full_png = make_png(4, 4, rows)
+        return (
+            self._write(directory, "surface.png", surface_png),
+            self._write(directory, "full.png", full_png),
+        )
+
     def _solid_reference(self) -> str:
         """Write a 1x1 black PNG to a temp dir removed when the test ends."""
         tmp = tempfile.TemporaryDirectory()
@@ -212,18 +233,8 @@ class TestCli(unittest.TestCase):
         )
 
     def test_crop_region_passes(self):
-        surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-        rows = [
-            bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-            bytes([0, 0, 0] + list(surface.rgb[0:6]) + [0, 0, 0]),
-            bytes([0, 0, 0] + list(surface.rgb[6:12]) + [0, 0, 0]),
-            bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        ]
-        full_png = make_png(4, 4, rows)
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "surface.png", surface_png)
-            reference = self._write(tmpdir, "full.png", full_png)
+            candidate, reference = self._write_padded_surface_pair(Path(tmp))
             result = self._run(candidate, reference, "--crop", "1,1,2,2")
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("PASS", result.stdout)
@@ -233,18 +244,8 @@ class TestCli(unittest.TestCase):
         # after each comma ("0, 0, 10, 10"); that whitespace is formatting,
         # not a value, so --crop must accept it. The scalar options still
         # reject surrounding whitespace (test_python_literal_numeric_args_rejected).
-        surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-        rows = [
-            bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-            bytes([0, 0, 0] + list(surface.rgb[0:6]) + [0, 0, 0]),
-            bytes([0, 0, 0] + list(surface.rgb[6:12]) + [0, 0, 0]),
-            bytes([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-        ]
-        full_png = make_png(4, 4, rows)
         with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "surface.png", surface_png)
-            reference = self._write(tmpdir, "full.png", full_png)
+            candidate, reference = self._write_padded_surface_pair(Path(tmp))
             tight = self._run(candidate, reference, "--crop", "1,1,2,2")
             spaced = self._run(candidate, reference, "--crop", "1, 1, 2, 2")
         self.assertEqual(tight.returncode, 0, tight.stdout + tight.stderr)
