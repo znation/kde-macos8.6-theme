@@ -525,6 +525,29 @@ class TestSymlinkEscape(unittest.TestCase):
             problems = module.check_references(ref)
         self.assertTrue(any("outside" in p for p in problems), problems)
 
+    def test_undeclared_image_symlink_outside_directory_is_not_read(self):
+        """The undeclared-file scan must not sniff a symlink's outside target.
+
+        The scan reads a file's leading bytes to catch an image saved without
+        an image extension, and it must apply the same containment check the
+        declared-entry loop does before opening a symlink. The name below has
+        no image suffix, so the escape can only be reported by the containment
+        check, not by the content sniff it replaces.
+        """
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            ref = root / "ref"
+            ref.mkdir()
+            outside = root / "secret.png"
+            outside.write_bytes(module.PNG_MAGIC + b"secret")
+            (ref / module.SOURCES_NAME).write_text("", encoding="utf-8")
+            os.symlink(outside, ref / "leak")
+            problems = module.check_references(ref)
+        joined = "\n".join(problems)
+        self.assertIn("outside", joined, problems)
+        self.assertNotIn("image has no entry", joined, problems)
+
 
 class TestResolveFailureIsFailClosed(unittest.TestCase):
     """A path that cannot be resolved must be treated as escaping the directory.

@@ -215,6 +215,16 @@ def check_references(directory: Path) -> list[str]:
             continue
         if path.name in entries:
             continue
+        # A symlink can point anywhere on the machine, so refuse to read one
+        # that resolves outside the reference directory; the declared-entry
+        # loop makes the same check before opening an image. Without this, the
+        # content sniff below would read a private file outside the set.
+        if not _resolves_within(directory, path):
+            problems.append(
+                f"{escape_controls(str(path))}: points outside {directory}/ "
+                "(a symlink escape)"
+            )
+            continue
         # An image with no entry is undeclared whether or not its name marks
         # it as one: the bytes are checked too, so a screenshot saved without
         # an image extension (or a JPEG under a .bin name) is still caught.
