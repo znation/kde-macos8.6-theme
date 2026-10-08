@@ -6,6 +6,8 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
+import contextlib
+import io
 import subprocess
 import sys
 import tempfile
@@ -16,6 +18,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
+from tools import fidelity  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
@@ -29,11 +32,30 @@ TOOL = REPO_ROOT / "tools" / "fidelity.py"
 
 class TestCli(unittest.TestCase):
     def _run(self, *args: str) -> subprocess.CompletedProcess:
-        """Run the fidelity CLI with *args* and capture its output."""
-        return run(
-            [sys.executable, str(TOOL), *args],
-            capture_output=True,
-            text=True,
+        """Run the fidelity CLI's ``main`` with *args* and capture its output.
+
+        Every assertion here reads only the exit status and the printed
+        diagnostics, both of which live in ``fidelity.main``; spawning
+        ``python3 tools/fidelity.py`` per assertion would pay ~70 ms of
+        interpreter startup and module import for each one. Calling ``main``
+        in-process exercises the same argument parsing, output and statuses.
+        The script entry point itself is covered once by
+        :meth:`test_script_entry_point`.
+        """
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(
+            stderr
+        ):
+            try:
+                returncode = fidelity.main(list(args))
+            except SystemExit as exc:
+                # argparse exits through SystemExit: 0 for --help and 2 for a
+                # usage error. ``main`` itself returns its status instead.
+                returncode = 0 if exc.code is None else exc.code
+                if not isinstance(returncode, int):
+                    returncode = 1
+        return subprocess.CompletedProcess(
+            ["fidelity", *args], returncode, stdout.getvalue(), stderr.getvalue()
         )
 
     def _write(self, directory: Path, name: str, data: bytes) -> str:
@@ -95,6 +117,24 @@ class TestCli(unittest.TestCase):
         for needle in needles:
             self.assertIn(needle, result.stderr)
         self.assertNotIn("Traceback", result.stderr)
+
+    def test_script_entry_point(self):
+        """The CLI still runs end to end as ``python3 tools/fidelity.py``.
+
+        Every other test calls ``fidelity.main`` in-process; this one spawns
+        the script so the ``if __name__ == "__main__": sys.exit(main())``
+        wrapper and the module's direct-run import path stay covered.
+        """
+        _, reference = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._write(Path(tmp), "reference.png", reference)
+            result = run(
+                [sys.executable, str(TOOL), path, path],
+                capture_output=True,
+                text=True,
+            )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS", result.stdout)
 
     def test_pass_and_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
