@@ -183,6 +183,26 @@ class TestDecode(unittest.TestCase):
         rgba = make_png(2, 1, [bytes([1, 2, 3, 4, 5, 6, 7, 8])], color_type=6)
         self.assertEqual(png.decode_png(rgba).rgb, bytes([1, 2, 3, 5, 6, 7]))
 
+    def test_grayscale_alpha_ignores_alpha(self):
+        # color_type 4 is grayscale + alpha (2 bytes per pixel). It is the only
+        # supported color type with no decode test: the alpha byte must be
+        # dropped and each gray sample repeated across R, G and B. A wrong
+        # stride would silently emit scrambled pixels that poison a fidelity
+        # score, so two pixels are used to exercise the stride.
+        data = make_png(2, 1, [bytes([7, 200, 100, 50])], color_type=4)
+        self.assertEqual(
+            png.decode_png(data).rgb, bytes([7, 7, 7, 100, 100, 100])
+        )
+
+    def test_rejects_unknown_scanline_filter_type(self):
+        # IHDR's filter method byte is separate from the filter type byte that
+        # precedes each scanline. A corrupt row filter (5-255) must be named
+        # rather than silently decoded with a wrong predictor.
+        data = make_png(1, 1, [bytes([1, 2, 3])], filter_types=[5])
+        with self.assertRaises(png.PngError) as ctx:
+            png.decode_png(data)
+        self.assertIn("unsupported PNG filter type 5", str(ctx.exception))
+
     def test_rejects_non_png(self):
         with self.assertRaises(png.PngError):
             png.decode_png(b"not a png")
