@@ -375,6 +375,25 @@ def tile_origins(tree):
     return origins
 
 
+def _margin_hints(hints, prefix):
+    """Return one state's margin hints as ``(sep, top, bottom, left, right)``.
+
+    A margin hint names an edge tile's canvas region; *prefix* selects one
+    state (``""`` for an unprefixed SVG), whose hint ids carry no separator.
+    *hints* is the rect map from `rect_geometry`. The returned *sep* is the
+    prefix separator both callers reuse when naming the tiles those hints
+    place.
+    """
+    sep = "-" if prefix else ""
+    return (
+        sep,
+        hints[f"{prefix}{sep}hint-top-margin"],
+        hints[f"{prefix}{sep}hint-bottom-margin"],
+        hints[f"{prefix}{sep}hint-left-margin"],
+        hints[f"{prefix}{sep}hint-right-margin"],
+    )
+
+
 def assert_tiles_placed_by_margins(case, tree, prefixes):
     """Assert every nine-slice tile group sits where its margin hints place it.
 
@@ -389,11 +408,7 @@ def assert_tiles_placed_by_margins(case, tree, prefixes):
     hints = rect_geometry(tree)
     expected = {}
     for prefix in prefixes:
-        sep = "-" if prefix else ""
-        top = hints[f"{prefix}{sep}hint-top-margin"]
-        bottom = hints[f"{prefix}{sep}hint-bottom-margin"]
-        left = hints[f"{prefix}{sep}hint-left-margin"]
-        right = hints[f"{prefix}{sep}hint-right-margin"]
+        sep, top, bottom, left, right = _margin_hints(hints, prefix)
         border_x = int(left[0]) + int(left[2])
         border_y = int(top[1]) + int(top[3])
         expected.update({
@@ -430,11 +445,7 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes):
     slices = render_slices(tree)
     hints = rect_geometry(tree)
     for prefix in prefixes:
-        sep = "-" if prefix else ""
-        top = hints[f"{prefix}{sep}hint-top-margin"]
-        bottom = hints[f"{prefix}{sep}hint-bottom-margin"]
-        left = hints[f"{prefix}{sep}hint-left-margin"]
-        right = hints[f"{prefix}{sep}hint-right-margin"]
+        sep, top, bottom, left, right = _margin_hints(hints, prefix)
         left_w, right_w = int(left[2]), int(right[2])
         top_h, bottom_h = int(top[3]), int(bottom[3])
         # The right/bottom margin rects reach the canvas edge, so their far
