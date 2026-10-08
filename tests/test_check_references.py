@@ -258,6 +258,46 @@ class TestAcceptedImageFormats(unittest.TestCase):
         )
 
 
+class TestUndeclaredImageExtension(unittest.TestCase):
+    """A stray file named like an image is undeclared even without image bytes.
+
+    The scan flags an unlisted file whose extension marks it as an image, not
+    only one whose leading bytes are a raster signature: a half-downloaded or
+    renamed error page saved as ``.png`` must surface as an undeclared image
+    instead of hiding behind its name. The comparison is case-insensitive and
+    covers every suffix the reference set accepts.
+    """
+
+    def _problems_for(self, module, filename):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+            (root / filename).write_bytes(b"<!DOCTYPE html>\n404 Not Found\n")
+            return module.check_references(root)
+
+    def _assert_undeclared(self, module, filename):
+        problems = self._problems_for(module, filename)
+        self.assertTrue(
+            any(
+                filename in p and "image has no entry" in p
+                for p in problems
+            ),
+            problems,
+        )
+
+    def test_stray_png_extension_without_image_bytes_is_undeclared(self):
+        module = load_checker()
+        self._assert_undeclared(module, "half-downloaded.png")
+
+    def test_uppercase_extension_is_matched_case_insensitively(self):
+        module = load_checker()
+        self._assert_undeclared(module, "SHOT.PNG")
+
+    def test_jpeg_extension_is_matched(self):
+        module = load_checker()
+        self._assert_undeclared(module, "photo.jpeg")
+
+
 class TestControlCharactersInFilenames(unittest.TestCase):
     """An untrusted filename must not reach the terminal as live bytes.
 
