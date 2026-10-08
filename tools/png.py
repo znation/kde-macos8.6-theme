@@ -65,6 +65,11 @@ class Image:
             )
 
 
+def _chunk_name(ctype: bytes) -> str:
+    """The chunk type as a printable ``repr`` for error messages."""
+    return repr(ctype.decode("ascii", "replace"))
+
+
 def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     pos = len(_PNG_SIGNATURE)
     while pos + 8 <= len(data):
@@ -73,14 +78,14 @@ def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
         payload = data[pos + 8 : pos + 8 + length]
         if len(payload) != length:
             raise PngError(
-                f"truncated PNG chunk {ctype.decode('ascii', 'replace')!r} at "
+                f"truncated PNG chunk {_chunk_name(ctype)} at "
                 f"offset {pos}: declared {length} payload bytes, only "
                 f"{len(payload)} present"
             )
         checksum = data[pos + 8 + length : pos + 12 + length]
         if len(checksum) != 4:
             raise PngError(
-                f"truncated PNG chunk {ctype.decode('ascii', 'replace')!r} CRC "
+                f"truncated PNG chunk {_chunk_name(ctype)} CRC "
                 f"at offset {pos + 8 + length}: expected 4 bytes, got "
                 f"{len(checksum)}"
             )
@@ -88,7 +93,7 @@ def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
         actual = zlib.crc32(ctype + payload) & 0xFFFFFFFF
         if actual != expected:
             raise PngError(
-                f"PNG chunk {ctype.decode('ascii', 'replace')!r} at offset {pos} "
+                f"PNG chunk {_chunk_name(ctype)} at offset {pos} "
                 f"has a bad CRC: stored 0x{expected:08x}, computed "
                 f"0x{actual:08x}"
             )
