@@ -133,6 +133,24 @@ class TestDecode(unittest.TestCase):
         with self.assertRaises(fidelity.FidelityError):
             fidelity.decode_png(b"not a png")
 
+    def test_rejects_bad_chunk_crc(self):
+        # Every PNG chunk carries a CRC over its type and payload; a mismatch
+        # means a corrupted header or palette, which would otherwise decode to
+        # silently wrong pixels and poison the comparison.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        corrupted = bytearray(data)
+        corrupted[29] ^= 0xFF  # first byte of the IHDR chunk's CRC
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(bytes(corrupted))
+        self.assertIn("IHDR", str(ctx.exception))
+        self.assertIn("CRC", str(ctx.exception))
+
+    def test_rejects_truncated_chunk_crc(self):
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(data[:-1])
+        self.assertIn("CRC", str(ctx.exception))
+
     def test_read_png_names_undecodable_file(self):
         # A decode failure must name the file it came from, so a two-input
         # invocation can tell which of the candidate/reference was bad.
