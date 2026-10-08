@@ -34,6 +34,26 @@ class TestDecode(unittest.TestCase):
         image, data = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 30))
         self.assertEqual(png.decode_png(data), image)
 
+    def test_multiple_idat_chunks_are_concatenated(self):
+        # An encoder splits the zlib stream across several IDAT chunks once it
+        # exceeds its output buffer, so a real screenshot's image data arrives
+        # in more than one chunk. decode_png must concatenate every IDAT
+        # payload in order before inflating; keeping only one would fail to
+        # decode any large reference image.
+        image, data = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 30))
+        marker = data.index(b"IDAT")
+        length = struct.unpack(">I", data[marker - 4 : marker])[0]
+        compressed = data[marker + 4 : marker + 4 + length]
+        tail = data[marker + 4 + length + 4 :]
+        split = len(compressed) // 2
+        two_chunks = (
+            data[: marker - 4]
+            + _chunk(b"IDAT", compressed[:split])
+            + _chunk(b"IDAT", compressed[split:])
+            + tail
+        )
+        self.assertEqual(png.decode_png(two_chunks), image)
+
     def test_all_filter_types(self):
         rows = [
             bytes([1, 2, 3, 4, 5, 6, 7, 8, 9]),
