@@ -127,6 +127,32 @@ def render_slices(tree):
     return slices
 
 
+def pixel_map(colours, width, height):
+    """Return the {(x, y): colour} map for a row-major *colours* sequence.
+
+    *colours* is read left to right, top to bottom, filling *height* rows of
+    *width* entries; a solid rectangle passes the same colour ``width *
+    height`` times. The map has the same shape as one entry of
+    `render_slices`, so a caller can compare the two directly.
+    """
+    return {
+        (index % width, index // width): colour
+        for index, colour in enumerate(colours)
+    }
+
+
+def assert_slice_pixels(case, slices, name, expected):
+    """Assert slice *name* renders exactly the *expected* {(x, y): colour} map.
+
+    *case* is the calling ``unittest.TestCase``. Comparing the full map pins
+    every pixel of the slice, so a recoloured, resized or shifted body fails
+    rather than just a changed set of fills. *expected* is a `pixel_map` or a
+    hand-built map of the same shape.
+    """
+    with case.subTest(slice=name):
+        case.assertEqual(slices[name], expected, name)
+
+
 def assert_edge_band_pixels(case, slices, name, side, band):
     """Assert edge slice *name* paints *band* from its outer edge in.
 
@@ -174,10 +200,8 @@ def assert_center_tile_is(case, slices, name, colour, size):
     fails here; comparing the full map also catches a centre tile shifted off
     its origin, which a count-and-uniformity check would not.
     """
-    pixels = slices[name]
-    expected = {(x, y): colour for y in range(size) for x in range(size)}
-    with case.subTest(slice=name):
-        case.assertEqual(pixels, expected, name)
+    expected = pixel_map((colour,) * (size * size), size, size)
+    assert_slice_pixels(case, slices, name, expected)
 
 
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")

@@ -11,8 +11,10 @@ from svg_assertions import (
     assert_center_tile_is,
     assert_no_script_elements,
     assert_slice_ids_present,
+    assert_slice_pixels,
     assert_tiles_placed_by_margins,
     attribute_values,
+    pixel_map,
     rect_geometry,
     render_slices,
 )
@@ -90,14 +92,9 @@ class TestPanelBackground(unittest.TestCase):
         # each edge/corner slice's pixels in paint order instead.
         slices = render_slices(self.tree)
         for name, (width, height, expected) in PANEL_EDGE_PIXELS.items():
-            pixels = slices[name]
-            actual = tuple(
-                pixels.get((x, y))
-                for y in range(height)
-                for x in range(width)
+            assert_slice_pixels(
+                self, slices, name, pixel_map(expected, width, height)
             )
-            with self.subTest(slice=name):
-                self.assertEqual(actual, expected, name)
         # The centre tile is one body rect, so every pixel is the same face.
         assert_center_tile_is(self, slices, "center", "#DDDDDD", size=8)
 

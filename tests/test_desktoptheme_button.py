@@ -12,6 +12,7 @@ from svg_assertions import (
     assert_edge_band_pixels,
     assert_no_script_elements,
     assert_slice_ids_present,
+    assert_slice_pixels,
     assert_tiles_placed_by_margins,
     attribute_values,
     elements_by_id,
@@ -222,8 +223,7 @@ class TestButton(unittest.TestCase):
             "focus-center": {},
         }
         for name, pixels in expected.items():
-            with self.subTest(slice=name):
-                self.assertEqual(slices[name], pixels, name)
+            assert_slice_pixels(self, slices, name, pixels)
 
         # The rounded corners are paths, so `render_slices` cannot composite
         # them; pin that each carries exactly the one black ring path.

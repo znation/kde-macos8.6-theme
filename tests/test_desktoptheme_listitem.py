@@ -10,8 +10,10 @@ from svg_assertions import (
     SLICE_IDS,
     assert_no_script_elements,
     assert_slice_ids_present,
+    assert_slice_pixels,
     assert_tiles_placed_by_margins,
     attribute_values,
+    pixel_map,
     rect_geometry,
     render_slices,
 )
@@ -71,11 +73,8 @@ class TestListItem(unittest.TestCase):
         }
         for prefix, colour in (("pressed", "#CCCCFF"), ("normal", None)):
             for name, (width, height) in sizes.items():
-                expected = {
-                    (x, y): colour for y in range(height) for x in range(width)
-                }
-                with self.subTest(slice=f"{prefix}-{name}"):
-                    self.assertEqual(slices[f"{prefix}-{name}"], expected)
+                expected = pixel_map((colour,) * (width * height), width, height)
+                assert_slice_pixels(self, slices, f"{prefix}-{name}", expected)
 
     def test_listitem_colours(self):
         # The hints and normal slices use `style`, so the parsed `fill` set is
