@@ -4,9 +4,9 @@ The project's acceptance bar is "pixel-perfect", but a rendered surface cannot
 be confirmed against its Mac OS 8.6 reference without a repeatable measurement.
 This tool supplies that measurement: it decodes two PNG images, compares them
 pixel by pixel, and reports objective difference metrics -- mean absolute error
-(MAE), root-mean-square error (RMSE), the worst per-channel delta and the
-coordinate where it occurs, and the fraction of pixels whose worst channel
-differs by more than a tolerance.
+(MAE), per-channel mean absolute error (R, G, B), root-mean-square error
+(RMSE), the worst per-channel delta and the coordinate where it occurs, and the
+fraction of pixels whose worst channel differs by more than a tolerance.
 
 Only PNG is read, so the harness crops a reference screenshot to a surface and
 saves it as PNG before comparing. The tool uses only the Python standard
