@@ -1,4 +1,4 @@
-"""Regression tests for the reference checker's self-test diagnostics."""
+"""Tests for tools/check_references.py -- the repository check and its self-test."""
 
 import contextlib
 import importlib.util
