@@ -20,6 +20,33 @@ def load_checker():
     return module
 
 
+@contextlib.contextmanager
+def reference_set(module, sources, files=()):
+    """Yield a temporary reference directory built from the given content.
+
+    ``sources`` is the sources.txt content, encoded as UTF-8 when passed as
+    text; ``files`` pairs a path relative to the directory with the bytes to
+    write, creating intermediate directories. The directory is removed when
+    the context exits.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        (root / module.SOURCES_NAME).write_bytes(
+            sources.encode("utf-8") if isinstance(sources, str) else sources
+        )
+        for name, content in dict(files).items():
+            path = root / name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+        yield root
+
+
+def check_references_in(module, sources, files=()):
+    """Return check_references' problems for a temporary reference set."""
+    with reference_set(module, sources, files) as root:
+        return module.check_references(root)
+
+
 class TestSelfTestDiagnostics(unittest.TestCase):
     def test_failure_names_the_case_not_the_last_image(self):
         module = load_checker()
@@ -54,14 +81,12 @@ class TestSelfTestPasses(unittest.TestCase):
 class TestUnreadableImage(unittest.TestCase):
     def test_unreadable_image_is_reported_not_raised(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text(
-                "locked.png | https://example.test/l.png | label\n",
-                encoding="utf-8",
-            )
+        with reference_set(
+            module,
+            "locked.png | https://example.test/l.png | label\n",
+            {"locked.png": module.PNG_MAGIC},
+        ) as root:
             image = root / "locked.png"
-            image.write_bytes(module.PNG_MAGIC)
             real_open = Path.open
 
             def deny_locked(self, *args, **kwargs):
@@ -89,11 +114,8 @@ class TestUnreadableUndeclaredImage(unittest.TestCase):
 
     def test_unreadable_undeclared_file_is_reported_not_raised(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+        with reference_set(module, "", {"stray.bin": module.PNG_MAGIC}) as root:
             stray = root / "stray.bin"
-            stray.write_bytes(module.PNG_MAGIC)
             real_open = Path.open
 
             def deny_stray(self, *args, **kwargs):
@@ -112,14 +134,12 @@ class TestUnreadableUndeclaredImage(unittest.TestCase):
 class TestUnreadableSources(unittest.TestCase):
     def test_unreadable_sources_file_is_reported_not_raised(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+        with reference_set(
+            module,
+            "good.png | https://example.test/g.png | label\n",
+            {"good.png": module.PNG_MAGIC},
+        ) as root:
             sources = root / module.SOURCES_NAME
-            sources.write_text(
-                "good.png | https://example.test/g.png | label\n",
-                encoding="utf-8",
-            )
-            (root / "good.png").write_bytes(module.PNG_MAGIC)
             real_read_text = Path.read_text
 
             def deny_sources(self, *args, **kwargs):
@@ -138,14 +158,12 @@ class TestUnreadableSources(unittest.TestCase):
 class TestUndecodableSources(unittest.TestCase):
     def test_non_utf8_sources_is_reported_not_raised(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
+        # Latin-1 e-acute: a corrupt download or an editor that saved the
+        # provenance record in a non-UTF-8 encoding.
+        with reference_set(
+            module, b"caf\xe9.png | https://example.test/x.png | label\n"
+        ) as root:
             sources = root / module.SOURCES_NAME
-            # Latin-1 e-acute: a corrupt download or an editor that saved the
-            # provenance record in a non-UTF-8 encoding.
-            sources.write_bytes(
-                b"caf\xe9.png | https://example.test/x.png | label\n"
-            )
             problems = module.check_references(root)
         self.assertTrue(
             any(str(sources) in p and "UTF-8" in p for p in problems), problems
@@ -155,9 +173,7 @@ class TestUndecodableSources(unittest.TestCase):
 class TestUnreadableDirectory(unittest.TestCase):
     def test_unreadable_directory_is_reported_not_raised(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+        with reference_set(module, "") as root:
             real_iterdir = Path.iterdir
 
             def deny_iterdir(self):
@@ -175,14 +191,11 @@ class TestUnreadableDirectory(unittest.TestCase):
 class TestFilenameMustBeBare(unittest.TestCase):
     def test_nested_filename_is_rejected_even_when_the_file_exists(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text(
-                "sub/good.png | https://example.test/g.png | label\n",
-                encoding="utf-8",
-            )
-            (root / "sub").mkdir()
-            (root / "sub" / "good.png").write_bytes(module.PNG_MAGIC)
+        with reference_set(
+            module,
+            "sub/good.png | https://example.test/g.png | label\n",
+            {"sub/good.png": module.PNG_MAGIC},
+        ) as root:
             problems = module.check_references(root)
         self.assertTrue(
             any("sub/good.png" in p and "bare filename" in p for p in problems),
@@ -253,14 +266,11 @@ class TestAcceptedImageFormats(unittest.TestCase):
     """
 
     def _problems_for(self, module, filename, content):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text(
-                f"{filename} | https://example.test/x | label\n",
-                encoding="utf-8",
-            )
-            (root / filename).write_bytes(content)
-            return module.check_references(root)
+        return check_references_in(
+            module,
+            f"{filename} | https://example.test/x | label\n",
+            {filename: content},
+        )
 
     def test_jpeg_signature_is_accepted(self):
         module = load_checker()
@@ -307,11 +317,9 @@ class TestUndeclaredImageExtension(unittest.TestCase):
     """
 
     def _problems_for(self, module, filename):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
-            (root / filename).write_bytes(b"<!DOCTYPE html>\n404 Not Found\n")
-            return module.check_references(root)
+        return check_references_in(
+            module, "", {filename: b"<!DOCTYPE html>\n404 Not Found\n"}
+        )
 
     def _assert_undeclared(self, module, filename):
         problems = self._problems_for(module, filename)
@@ -345,11 +353,7 @@ class TestControlCharactersInFilenames(unittest.TestCase):
     """
 
     def _undeclared(self, module, filename):
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
-            (root / filename).write_bytes(module.PNG_MAGIC)
-            return module.check_references(root)
+        return check_references_in(module, "", {filename: module.PNG_MAGIC})
 
     def test_escape_sequence_in_name_is_escaped(self):
         module = load_checker()
@@ -377,12 +381,10 @@ class TestNullByteFilename(unittest.TestCase):
 
     def test_null_byte_in_filename_is_reported_not_raised(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_bytes(
-                b"bad\x00name.png | https://example.test/b.png | label\n"
-            )
-            problems = module.check_references(root)
+        problems = check_references_in(
+            module,
+            b"bad\x00name.png | https://example.test/b.png | label\n",
+        )
         self.assertTrue(
             any("bad\\x00name.png" in p and "NUL" in p for p in problems),
             problems,
@@ -408,13 +410,11 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
 
     def test_clean_set_exits_zero(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text(
-                "good.png | https://example.test/g.png | label\n",
-                encoding="utf-8",
-            )
-            (root / "good.png").write_bytes(module.PNG_MAGIC)
+        with reference_set(
+            module,
+            "good.png | https://example.test/g.png | label\n",
+            {"good.png": module.PNG_MAGIC},
+        ) as root:
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 0, out + err)
         self.assertIn("reference set is consistent", out)
@@ -422,10 +422,7 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
 
     def test_broken_set_exits_one_and_names_each_problem(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
-            (root / "extra.png").write_bytes(module.PNG_MAGIC)
+        with reference_set(module, "", {"extra.png": module.PNG_MAGIC}) as root:
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 1, out + err)
         self.assertIn("extra.png", err)
