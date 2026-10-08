@@ -54,14 +54,20 @@ class Image:
 class Metrics:
     """Per-pixel difference between two equally sized images.
 
-    ``max_x``/``max_y`` locate the first pixel whose worst channel delta equals
-    ``max_delta``; both are 0 when the images are identical.
+    ``mae`` is averaged over all channels; ``mae_r``/``mae_g``/``mae_b`` average
+    one channel each, so a systematic colour cast shows up as one channel's MAE
+    standing out from the other two. ``max_x``/``max_y`` locate the first pixel
+    whose worst channel delta equals ``max_delta``; both are 0 when the images
+    are identical.
     """
 
     width: int
     height: int
     pixels: int
     mae: float
+    mae_r: float
+    mae_g: float
+    mae_b: float
     rmse: float
     max_delta: int
     max_x: int
@@ -235,6 +241,9 @@ def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
         )
     pa, pb = a.rgb, b.rgb
     total_abs = 0
+    total_abs_r = 0
+    total_abs_g = 0
+    total_abs_b = 0
     total_sq = 0
     max_delta = 0
     max_x = 0
@@ -246,6 +255,9 @@ def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
         db = pa[i + 2] - pb[i + 2]
         ar, ag, ab = abs(dr), abs(dg), abs(db)
         total_abs += ar + ag + ab
+        total_abs_r += ar
+        total_abs_g += ag
+        total_abs_b += ab
         total_sq += dr * dr + dg * dg + db * db
         worst = max(ar, ag, ab)
         if worst > max_delta:
@@ -262,6 +274,9 @@ def compare(a: Image, b: Image, tolerance: int = 0) -> Metrics:
         height=a.height,
         pixels=pixels,
         mae=total_abs / channels,
+        mae_r=total_abs_r / pixels,
+        mae_g=total_abs_g / pixels,
+        mae_b=total_abs_b / pixels,
         rmse=(total_sq / channels) ** 0.5,
         max_delta=max_delta,
         max_x=max_x,
@@ -382,6 +397,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"reference: {args.reference}  {reference.width}x{reference.height}")
     print(f"pixels compared: {metrics.pixels}")
     print(f"mean absolute error: {metrics.mae:.4f}")
+    print(
+        f"per-channel MAE (R, G, B): {metrics.mae_r:.4f} "
+        f"{metrics.mae_g:.4f} {metrics.mae_b:.4f}"
+    )
     print(f"RMSE: {metrics.rmse:.4f}")
     print(
         f"max channel delta: {metrics.max_delta} "

@@ -149,6 +149,9 @@ class TestCompare(unittest.TestCase):
         image, _ = rgb_image(4, 4, lambda x, y: (x * 5, y * 5, 100))
         metrics = fidelity.compare(image, image)
         self.assertEqual(metrics.mae, 0.0)
+        self.assertEqual(metrics.mae_r, 0.0)
+        self.assertEqual(metrics.mae_g, 0.0)
+        self.assertEqual(metrics.mae_b, 0.0)
         self.assertEqual(metrics.rmse, 0.0)
         self.assertEqual(metrics.max_delta, 0)
         self.assertEqual((metrics.max_x, metrics.max_y), (0, 0))
@@ -163,10 +166,26 @@ class TestCompare(unittest.TestCase):
         metrics = fidelity.compare(a, b)
         self.assertEqual(metrics.pixels, 4)
         self.assertAlmostEqual(metrics.mae, 10 / 12)
+        self.assertAlmostEqual(metrics.mae_r, 10 / 4)
+        self.assertEqual(metrics.mae_g, 0.0)
+        self.assertEqual(metrics.mae_b, 0.0)
         self.assertAlmostEqual(metrics.rmse, (100 / 12) ** 0.5)
         self.assertEqual(metrics.max_delta, 10)
         self.assertEqual(metrics.differing, 1)
         self.assertEqual(metrics.frac_differing, 0.25)
+
+    def test_per_channel_mae_locates_colour_cast(self):
+        # A uniform bias in one channel must show up in that channel's MAE and
+        # nowhere else, so a colour cast is distinguishable from per-pixel noise.
+        a, _ = rgb_image(2, 2, lambda x, y: (10, 20, 30))
+        cast = bytes(
+            a.rgb[i] + (5 if i % 3 == 0 else 0) for i in range(len(a.rgb))
+        )
+        metrics = fidelity.compare(a, fidelity.Image(a.width, a.height, cast))
+        self.assertAlmostEqual(metrics.mae_r, 5.0)
+        self.assertEqual(metrics.mae_g, 0.0)
+        self.assertEqual(metrics.mae_b, 0.0)
+        self.assertAlmostEqual(metrics.mae, 5 / 3)
 
     def test_worst_delta_location(self):
         # max_x/max_y must locate the pixel carrying the worst channel delta,
@@ -272,6 +291,25 @@ class TestCli(unittest.TestCase):
             )
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("max channel delta: 50 at (1, 0)", result.stdout)
+
+    def test_reports_per_channel_mae(self):
+        # The CLI must expose each channel's MAE so a colour cast is visible
+        # from a run without importing the module.
+        a, a_png = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        b_png = make_png(1, 1, [bytes([10, 0, 0])])
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "candidate.png", a_png)
+            altered = self._write(tmpdir, "altered.png", b_png)
+            result = subprocess.run(
+                [sys.executable, str(TOOL), candidate, altered],
+                capture_output=True,
+                text=True,
+            )
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(
+            "per-channel MAE (R, G, B): 10.0000 0.0000 0.0000", result.stdout
+        )
 
     def test_crop_region_passes(self):
         surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))

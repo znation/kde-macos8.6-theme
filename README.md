@@ -65,8 +65,8 @@ images materialized, so it stays separate from `make check`.
 ## Fidelity checking
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
-reference screenshot and reports mean absolute error, RMSE, worst per-channel delta and where it
-occurs, and the fraction of differing pixels, exiting non-zero when the result is outside the
-requested tolerance.
+reference screenshot and reports mean absolute error, per-channel mean absolute error (R, G, B),
+RMSE, worst per-channel delta and where it occurs, and the fraction of differing pixels, exiting
+non-zero when the result is outside the requested tolerance.
 Pass `--crop X,Y,W,H` to select a surface region of the reference. Producing the candidate render
 is not yet automated (see BUGS.md).
