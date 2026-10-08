@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import PANEL_SVG
 from svg_assertions import (
     HINT_IDS,
+    assert_center_tile_is,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
@@ -98,9 +99,7 @@ class TestPanelBackground(unittest.TestCase):
             with self.subTest(slice=name):
                 self.assertEqual(actual, expected, name)
         # The centre tile is one body rect, so every pixel is the same face.
-        center = slices["center"]
-        self.assertEqual(set(center.values()), {"#DDDDDD"})
-        self.assertEqual(len(center), 8 * 8)
+        assert_center_tile_is(self, slices, "center", "#DDDDDD", size=8)
 
     def test_no_script_elements(self):
         assert_no_script_elements(self, self.tree)

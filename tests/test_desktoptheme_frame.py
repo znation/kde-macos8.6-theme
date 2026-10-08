@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import DTHEME_ID, FRAME_SVG
 from svg_assertions import (
+    assert_center_tile_is,
     assert_corner_pixels,
     assert_edge_band_pixels,
     assert_no_script_elements,
@@ -181,11 +182,7 @@ class TestFrame(unittest.TestCase):
                     self, slices, f"{prefix}-{side}", side, band
                 )
             # The centre tile is one body rect, so every pixel is the face.
-            with self.subTest(slice=f"{prefix}-center"):
-                self.assertEqual(
-                    slices[f"{prefix}-center"],
-                    {(x, y): "#DDDDDD" for y in range(6) for x in range(6)},
-                )
+            assert_center_tile_is(self, slices, f"{prefix}-center", "#DDDDDD", size=6)
 
     def test_frame_installed(self):
         with tempfile.TemporaryDirectory() as tmp:

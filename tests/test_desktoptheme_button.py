@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import BUTTON_SVG
 from svg_assertions import (
     arc_center,
+    assert_center_tile_is,
     assert_edge_band_pixels,
     assert_no_script_elements,
     assert_slice_ids_present,
@@ -201,10 +202,8 @@ class TestButton(unittest.TestCase):
         # and neither bevel test reads the centre. The centre is the button
         # face for both states, so pin every pixel.
         slices = render_slices(ET.parse(BUTTON_SVG))
-        expected = {(x, y): "#DDDDDD" for y in range(6) for x in range(6)}
         for name in ("normal-center", "pressed-center"):
-            with self.subTest(slice=name):
-                self.assertEqual(slices[name], expected, name)
+            assert_center_tile_is(self, slices, name, "#DDDDDD", size=6)
 
     def test_button_focus_ring_pixels(self):
         # The focus state is a 1px #000000 ring on the outer pixel of its 2px

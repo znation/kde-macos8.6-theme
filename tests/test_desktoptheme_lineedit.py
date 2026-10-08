@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import LINEEDIT_SVG
 from svg_assertions import (
+    assert_center_tile_is,
     assert_corner_pixels,
     assert_edge_band_pixels,
     assert_no_script_elements,
@@ -50,10 +51,7 @@ class TestLineEdit(unittest.TestCase):
         # centre tile to #FFFFFF so a copy of frame.svg's sunken geometry
         # fails here.
         slices = render_slices(ET.parse(LINEEDIT_SVG))
-        self.assertEqual(
-            slices["base-center"],
-            {(x, y): "#FFFFFF" for y in range(6) for x in range(6)},
-        )
+        assert_center_tile_is(self, slices, "base-center", "#FFFFFF", size=6)
 
     def test_lineedit_edge_bevels_are_sunken(self):
         # `test_lineedit_colours` sees the same three fills whichever way the

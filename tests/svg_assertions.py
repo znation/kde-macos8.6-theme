@@ -165,6 +165,21 @@ def assert_corner_pixels(case, slices, name, expected):
         case.assertEqual(actual, expected, name)
 
 
+def assert_center_tile_is(case, slices, name, colour, size):
+    """Assert centre slice *name* is a solid *size* x *size* rectangle of *colour*.
+
+    The nine-slice centre tile is a single body rect, so every pixel is the
+    widget's face colour. *size* pins the tile's width and height -- 6 for the
+    button/frame/lineedit, 8 for the panel -- so a resized centre body rect
+    fails here; comparing the full map also catches a centre tile shifted off
+    its origin, which a count-and-uniformity check would not.
+    """
+    pixels = slices[name]
+    expected = {(x, y): colour for y in range(size) for x in range(size)}
+    with case.subTest(slice=name):
+        case.assertEqual(pixels, expected, name)
+
+
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
 
 
