@@ -175,7 +175,10 @@ def _crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
         ("width", width),
         ("height", height),
     ):
-        if not isinstance(value, int):
+        # bool is an int subclass, so True/False would pass an isinstance
+        # check as 1/0 and silently crop a different rectangle; require a
+        # genuine integer.
+        if isinstance(value, bool) or not isinstance(value, int):
             return f"crop rectangle values must be integers: {name}={value!r}"
     if x < 0 or y < 0:
         return (
@@ -217,7 +220,13 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     line rejects both as usage errors; this is the same bound for a caller
     that uses the comparison directly.
     """
-    if not isinstance(tolerance, int) or not 0 <= tolerance <= 255:
+    # bool is an int subclass, so True would pass the isinstance check as a
+    # tolerance of 1 and silently widen the gate; require a genuine integer.
+    if (
+        isinstance(tolerance, bool)
+        or not isinstance(tolerance, int)
+        or not 0 <= tolerance <= 255
+    ):
         raise FidelityError(
             f"tolerance must be a per-channel delta between 0 and 255: "
             f"{tolerance!r}"

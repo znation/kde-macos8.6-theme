@@ -231,6 +231,16 @@ class TestCompare(unittest.TestCase):
                     fidelity_metrics.compare(image, image, tolerance=tolerance)
                 self.assertIn(repr(tolerance), str(caught.exception))
 
+    def test_tolerance_rejects_bool_despite_being_an_int_subclass(self):
+        # bool is a subclass of int, so True would otherwise be accepted as a
+        # tolerance of 1; the entry point must reject it like any non-integer.
+        image, _ = solid_rgb(1, 1)
+        for tolerance in (True, False):
+            with self.subTest(tolerance=tolerance):
+                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+                    fidelity_metrics.compare(image, image, tolerance=tolerance)
+                self.assertIn(repr(tolerance), str(caught.exception))
+
     def test_size_mismatch_raises(self):
         a, _ = solid_rgb(2, 2)
         b, _ = solid_rgb(1, 1)
@@ -317,6 +327,16 @@ class TestCompare(unittest.TestCase):
             (0, 0, "2", 1),
             (0, 0, 1, None),
         ):
+            with self.subTest(args=args):
+                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
+                    fidelity_metrics.crop(image, *args)
+                self.assertIn("must be integers", str(caught.exception))
+
+    def test_crop_rejects_bool_despite_being_an_int_subclass(self):
+        # bool is a subclass of int, so True would otherwise be accepted as a
+        # coordinate of 1; crop must reject it like any non-integer.
+        image, _ = solid_rgb(4, 4)
+        for args in ((True, 0, 1, 1), (0, 0, True, 1)):
             with self.subTest(args=args):
                 with self.assertRaises(fidelity_metrics.FidelityError) as caught:
                     fidelity_metrics.crop(image, *args)
