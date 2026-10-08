@@ -51,6 +51,10 @@ class Image:
     rgb: bytes
 
     def __post_init__(self) -> None:
+        if self.width <= 0 or self.height <= 0:
+            raise PngError(
+                f"Image dimensions must be positive: {self.width}x{self.height}"
+            )
         expected = self.width * self.height * 3
         if len(self.rgb) != expected:
             raise PngError(

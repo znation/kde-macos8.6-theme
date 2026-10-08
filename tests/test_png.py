@@ -50,6 +50,19 @@ class TestImage(unittest.TestCase):
         image = png.Image(2, 2, bytes(12))
         self.assertEqual(len(image.rgb), 12)
 
+    def test_rejects_non_positive_dimensions(self):
+        # decode_png rejects a zero-dimension PNG, but a directly constructed
+        # Image accepted one: 0 * height * 3 == 0 bytes, so the byte-count
+        # check passed and compare() later raised an opaque ValueError from
+        # _max_byte_index. A negative dimension was worse still, reporting a
+        # nonsensical negative "needs" byte count. The invariant belongs at
+        # construction, named with the offending dimensions.
+        for width, height in ((0, 1), (1, 0), (0, 0), (-2, 3), (3, -1)):
+            with self.subTest(width=width, height=height):
+                with self.assertRaises(png.PngError) as ctx:
+                    png.Image(width, height, b"")
+                self.assertIn(f"{width}x{height}", str(ctx.exception))
+
 
 class TestDecode(unittest.TestCase):
     def _decode_error(self, data):
