@@ -5,7 +5,135 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 Platinum scroll bar widget for the desktop theme
+
+**Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button,
+checkmarks, text-field, and list-item plans: it adds one widget file to the existing
+`org.macos8.desktop` desktop-theme package, a new scrollbar test module in `tests/`
+with the `TestScrollbar` class, and one `TestInstall` tuple entry in
+`tests/test_desktoptheme.py`. It does not touch `button.svg`, `frame.svg`,
+`radiobutton.svg`, `checkmarks.svg`, `lineedit.svg`, `listitem.svg`, or
+`panel-background.svg`.
+
+**Goal.** Ship `widgets/scrollbar.svg` in the `org.macos8.desktop` desktop theme so
+`PlasmaComponents.ScrollBar` (the bar used by `PlasmaComponents.ScrollView`, `Menu`,
+`ComboBox` and the clipboard applet) draws the Platinum raised grey thumb and flat grey
+trough instead of Breeze's thin rounded translucent handle, and the theme stops inheriting
+`widgets/scrollbar.svgz` from the default theme.
+
+**Grounding.**
+- Consumer verified in the installed Plasma 6.3.6 QML under
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/`:
+  `components/ScrollBar.qml` is a `T.ScrollBar` whose `background` is a `KSvg.FrameSvgItem`
+  with `imagePath: "widgets/scrollbar"` and
+  `prefix: controlRoot.horizontal ? "background-horizontal" : "background-vertical"`, and
+  whose `contentItem` (the handle) uses
+  `prefix: interactive && (pressed || hovered) && enabled ? "mouseover-slider" : "slider"`.
+  Its `background` implicit size is
+  `max(elementSize("hint-scrollbar-size"), fixedMargins.left + fixedMargins.right)`; its
+  `leftPadding`/`rightPadding`/`topPadding`/`bottomPadding` read
+  `{handle.usedPrefix}-hint-{side}-inset` and its `leftInset`/`rightInset`/`topInset`/
+  `bottomInset` read `{bgFrame.usedPrefix}-hint-{side}-inset`; its `separator` is visible
+  only when `private-hint-show-separator` exists.
+  `components/ScrollView.qml`, `components/Menu.qml`, `components/ComboBox.qml` and the
+  clipboard pages construct `PlasmaComponents3.ScrollBar`.
+- `find /usr/share/plasma/desktoptheme -name 'scrollbar.svg*'` returns only
+  `default/widgets/scrollbar.svgz` (a 6px Breeze bar whose `hint-tile-center` is 2x2), so
+  today the theme inherits Breeze.
+- Palette-derived greys, matching the done button/frame bevel convention: a #DDDDDD face
+  with a 1px #000000 outline and a 1px bevel (#FFFFFF top/left, #999999 bottom/right) for
+  the thumb, and a #EEEEEE trough (`[Colors:View] BackgroundAlternate=238,238,238`) with
+  the same 1px #000000 outline. These are not screenshot-anchored: `TestReferenceAnchors`
+  records no scroll-bar pixel, and the reference screenshots that show scroll bars are
+  JPEGs, which the project's `tools/png.py` cannot decode.
+- Plasma 6 limitations the SVG cannot change and the plan does not try to: the `background`
+  (trough) is drawn only while the pointer hovers the bar
+  (`opacity: hovered && interactive`), and the QML computes but never uses `arrowPresent`
+  (`//TODO: support arrows?`), so the Mac OS 8.6 arrow boxes at the trough ends cannot be
+  drawn. The plan ships the correct trough and thumb and records both deviations in the
+  SVG comment.
+
+**Approach.**
+1. New `widgets/scrollbar.svg` in the package: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">`
+   with a comment naming the widget, its consumers, the four prefixes, and the two Plasma
+   deviations (hover-only trough, no arrow boxes).
+   - Hints (rects, any opaque `style` colour; KSvg reads geometry): `hint-tile-center`
+     10x10 at (3,3); `hint-scrollbar-size` 16x16 at (0,0); and for each of the four
+     prefixes `background-vertical`, `background-horizontal`, `slider`,
+     `mouseover-slider`: `{prefix}-hint-top-margin` 10x3 at (3,0),
+     `{prefix}-hint-bottom-margin` 10x3 at (3,13), `{prefix}-hint-left-margin` 3x10 at
+     (0,3), `{prefix}-hint-right-margin` 3x10 at (13,3). No `-inset` hints (so the QML
+     falls back to zero padding and the handle fills the 16px track) and no
+     `private-hint-show-separator`.
+   - Trough nine-slice, identical for `background-vertical` and `background-horizontal`:
+     each of the nine `<g id="{prefix}-{slice}">` groups holds a #EEEEEE rect of the
+     slice size with a 1px #000000 line along each outer edge (top slice: black row 0;
+     bottom: black row 2; left: black column 0; right: black column 2; each corner: its
+     two outer edges), square corners.
+   - Thumb nine-slice, identical for `slider` and `mouseover-slider`: each group holds a
+     #DDDDDD rect of the slice size, a 1px #000000 line along each outer edge, and a 1px
+     bevel inside it (#FFFFFF top/left, #999999 bottom/right), square corners, the same
+     bevel rule as `button.svg`'s `normal` state.
+   - Group origins match the other widgets: top translate(3,0), bottom translate(3,13),
+     left translate(0,3), right translate(13,3), center translate(3,3), corners at
+     (0,0)/(13,0)/(0,13)/(13,13).
+2. `tests/desktoptheme_paths.py` (edit): add
+   `SCROLLBAR_SVG = os.path.join(PACKAGE, "widgets", "scrollbar.svg")`.
+3. `tests/test_desktoptheme.py` (edit): add `("scrollbar.svg", SCROLLBAR_SVG, 16, 16)` to
+   `SVG_CANVASES`, update the stale `SVG_CANVASES` comment (it calls the 12x12 nine-slice
+   widgets "four"), and add `os.path.join("widgets", "scrollbar.svg")` to
+   `TestInstall.INSTALLED_FILES`.
+4. New scrollbar test module in `tests/`, named after the existing
+   `test_desktoptheme_listitem.py` pattern, with `class TestScrollbar`, importing `SCROLLBAR_SVG` and `assert_slice_ids_present`,
+   `assert_tiles_placed_by_margins`, `assert_corner_pixels`, `assert_no_script_elements`,
+   `attribute_values`, `rect_geometry`, `render_slices` from `svg_assertions`:
+   - `test_scrollbar_slice_ids`: `assert_slice_ids_present(self, tree,
+     ["background-vertical", "background-horizontal", "slider", "mouseover-slider"])`.
+   - `test_scrollbar_hint_geometry`: `rect_geometry` equals the exact hint dict above.
+   - `test_scrollbar_tiles_placed_by_margins`: `assert_tiles_placed_by_margins` for the
+     four prefixes.
+   - `test_scrollbar_trough_outline`: `render_slices`; every centre pixel of both trough
+     prefixes is #EEEEEE, each trough edge slice's outer row/column is #000000, and each
+     corner matches `assert_corner_pixels` with its outer edges black and interior #EEEEEE.
+   - `test_scrollbar_thumb_bevel`: `slider` and `mouseover-slider` render identically;
+     every centre pixel is #DDDDDD; the top slice's three rows are #000000/#FFFFFF/#DDDDDD,
+     the bottom's #DDDDDD/#999999/#000000, the left's three columns
+     #000000/#FFFFFF/#DDDDDD, the right's #DDDDDD/#999999/#000000, and each corner matches
+     `assert_corner_pixels` with its outline, bevel and face pixels.
+   - `test_scrollbar_colours`:
+     `attribute_values(tree, "fill") == {"#000000", "#FFFFFF", "#999999", "#DDDDDD", "#EEEEEE"}`.
+   - `test_no_script_elements`.
+5. `README.md` (edit): add "scroll bar" to the `tumwater:status` block's desktop-theme
+   widget parenthetical, and `widgets/scrollbar.svg` (the raised grey thumb and flat grey
+   trough for `PlasmaComponents.ScrollBar`) to the Installing section's desktop-theme
+   sentence.
+
+**Files touched.** New: `scrollbar.svg` in the package's `widgets/` subdirectory and a
+scrollbar test module in `tests/` beside the existing `test_desktoptheme_listitem.py`.
+Edited:
+`tests/desktoptheme_paths.py` (`SCROLLBAR_SVG`), `tests/test_desktoptheme.py`
+(`SVG_CANVASES`, `TestInstall` `INSTALLED_FILES`), `README.md`. No change to the color
+scheme, the look-and-feel package, the Makefile, or the other widgets.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestScrollbar` passing and the extended `TestInstall`
+  byte-identity assertion.
+- The scrollbar SVG parses and contains the 36 `{prefix}-{slice}` ids for the four
+  prefixes, the 16 margin hints, `hint-tile-center` and `hint-scrollbar-size`; every trough
+  centre is #EEEEEE and every thumb centre #DDDDDD; the only parsed `fill` values are
+  #000000, #FFFFFF, #999999, #DDDDDD and #EEEEEE.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/scrollbar.svg` byte-identical
+  to source.
+- Manual smoke test (needs a Plasma session): a `PlasmaComponents.ScrollView`, `Menu` or
+  `ComboBox` shows a 16px-wide raised #DDDDDD thumb with a black outline and bevel; the
+  trough appears while hovered as a flat #EEEEEE bar with a black outline; the Mac arrow
+  boxes at the ends are absent (Plasma does not render them).
+
+**Follow-up (not planned here).** `widgets/background.svg` for dialog/popup/applet
+backgrounds: the same SVG serves `Menu` (white in Mac OS 8.6) and `Dialog`/applet
+containers (grey), so it needs a decision before it can be planned.
 
 ## Done
 
