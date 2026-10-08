@@ -1,7 +1,6 @@
 """Validate the org.macos8.desktop look-and-feel global theme package."""
 
 import fcntl
-import json
 import os
 import shlex
 import shutil
@@ -11,6 +10,7 @@ import time
 import unittest
 
 from install_failure_cases import FailedInstallPreservesPackage
+from package_metadata import PackageMetadata
 import theme_install
 from kde_config import read as read_kde_config
 from theme_install import (
@@ -38,47 +38,19 @@ DEFAULTS_SECTION = "kdeglobals][General"
 PLASMA_SECTION = "plasmarc][Theme"
 
 
-def load_metadata():
-    with open(METADATA, encoding="utf-8") as handle:
-        return json.load(handle)
-
-
 def load_defaults():
     return read_kde_config(DEFAULTS)
 
 
-class TestMetadata(unittest.TestCase):
-    def setUp(self):
-        self.metadata = load_metadata()
-
-    def test_package_structure(self):
-        self.assertEqual(
-            self.metadata.get("KPackageStructure"), "Plasma/LookAndFeel"
-        )
-
-    def test_plugin_id_and_name(self):
-        plugin = self.metadata["KPlugin"]
-        self.assertEqual(plugin["Id"], LNF_ID)
-        self.assertEqual(plugin["Name"], "Mac OS 8.6")
-
-    def test_plugin_version(self):
-        self.assertTrue(self.metadata["KPlugin"].get("Version"))
-
-    def test_plasma_api_version(self):
-        self.assertEqual(self.metadata.get("X-Plasma-APIVersion"), "2")
+class TestMetadata(PackageMetadata, unittest.TestCase):
+    METADATA_PATH = METADATA
+    PACKAGE_STRUCTURE = "Plasma/LookAndFeel"
+    PACKAGE_ID = LNF_ID
+    PLASMA_API_KEY = "X-Plasma-APIVersion"
+    PLASMA_API_VERSION = "2"
 
     def test_keywords_non_empty(self):
         self.assertTrue(self.metadata.get("Keywords"))
-
-    def test_plugin_description_and_license_are_non_empty(self):
-        # Description is shown in System Settings and License is the package's
-        # legal metadata; a blank or non-string value installs cleanly but
-        # misreports the package, so pin both here.
-        plugin = self.metadata["KPlugin"]
-        for key in ("Description", "License"):
-            value = plugin.get(key)
-            self.assertIsInstance(value, str, key)
-            self.assertTrue(value.strip(), f"KPlugin.{key} must not be blank")
 
 
 class TestDefaults(unittest.TestCase):

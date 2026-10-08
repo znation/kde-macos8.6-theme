@@ -1,6 +1,5 @@
 """Validate the org.macos8.desktop Plasma desktop theme package."""
 
-import json
 import os
 import shutil
 import tempfile
@@ -9,6 +8,7 @@ import xml.etree.ElementTree as ET
 
 from install_failure_cases import FailedInstallPreservesPackage
 from kde_config import read as read_kde_config
+from package_metadata import PackageMetadata, load_metadata
 from theme_install import (
     ROOT,
     assert_files_identical,
@@ -160,38 +160,12 @@ def render_slices(tree):
     return slices
 
 
-def load_metadata():
-    with open(METADATA, encoding="utf-8") as handle:
-        return json.load(handle)
-
-
-class TestMetadata(unittest.TestCase):
-    def setUp(self):
-        self.metadata = load_metadata()
-
-    def test_package_structure(self):
-        self.assertEqual(self.metadata.get("KPackageStructure"), "Plasma/Theme")
-
-    def test_plugin_id_and_name(self):
-        plugin = self.metadata["KPlugin"]
-        self.assertEqual(plugin["Id"], DTHEME_ID)
-        self.assertEqual(plugin["Name"], "Mac OS 8.6")
-
-    def test_plugin_version(self):
-        self.assertTrue(self.metadata["KPlugin"].get("Version"))
-
-    def test_plasma_api_version(self):
-        self.assertEqual(self.metadata.get("X-Plasma-API"), "5.0")
-
-    def test_plugin_description_and_license_are_non_empty(self):
-        # Description is shown in System Settings and License is the package's
-        # legal metadata; a blank or non-string value installs cleanly but
-        # misreports the package, so pin both here.
-        plugin = self.metadata["KPlugin"]
-        for key in ("Description", "License"):
-            value = plugin.get(key)
-            self.assertIsInstance(value, str, key)
-            self.assertTrue(value.strip(), f"KPlugin.{key} must not be blank")
+class TestMetadata(PackageMetadata, unittest.TestCase):
+    METADATA_PATH = METADATA
+    PACKAGE_STRUCTURE = "Plasma/Theme"
+    PACKAGE_ID = DTHEME_ID
+    PLASMA_API_KEY = "X-Plasma-API"
+    PLASMA_API_VERSION = "5.0"
 
 
 class TestPanelBackground(unittest.TestCase):
@@ -400,7 +374,7 @@ class TestDefaultsWiring(unittest.TestCase):
         parser = read_kde_config(LNF_DEFAULTS)
         self.assertEqual(
             parser.get(PLASMA_SECTION, "name"),
-            load_metadata()["KPlugin"]["Id"],
+            load_metadata(METADATA)["KPlugin"]["Id"],
         )
 
 
