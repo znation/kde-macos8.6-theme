@@ -59,6 +59,8 @@ reference material only — the theme does not ship them.
 missing file, an unmaterialized Git LFS pointer, a file whose bytes are not a PNG/JPEG/GIF/WebP
 image, an image with no entry, a malformed or duplicate entry).
 `python3 tools/check_references.py --self-test` exercises the checker itself.
+`make check-references` runs the self-test and then the repository check; it needs the Git LFS
+images materialized, so it stays separate from `make check`.
 
 ## Fidelity checking
 
