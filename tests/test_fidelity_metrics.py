@@ -32,10 +32,7 @@ def assert_matches_oracle(case, actual, reference, *, arity, min_length=0):
     lengths = list(range(min_length, 40)) + [63, 64, 65, 255, 256, 257, 1000]
     for length in lengths:
         for _ in range(8):
-            args = [
-                bytes(rng.randrange(256) for _ in range(length))
-                for _ in range(arity)
-            ]
+            args = [rng.randbytes(length) for _ in range(arity)]
             with case.subTest(length=length):
                 case.assertEqual(actual(*args), reference(*args))
 
