@@ -198,6 +198,37 @@ class TestDecode(unittest.TestCase):
         )
         self.assertEqual(png.decode_png(two_chunks), image)
 
+    def test_ignores_unknown_ancillary_chunks(self):
+        # Real screenshots carry ancillary chunks (gAMA, sRGB, pHYs, tEXt,
+        # iCCP) between IHDR and IDAT that decode_png does not model. The PNG
+        # spec has a decoder ignore unknown ancillary chunks, so their presence
+        # must not change the decoded pixels; a regression that rejected them
+        # would refuse nearly every real reference image. Insert a gAMA, tEXt
+        # and pHYs chunk after the fixed 25-byte IHDR chunk and compare to the
+        # same PNG without them.
+        image, data = rgb_image(2, 1, lambda x, y: (x * 40, 7, 200))
+        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        ancillary = (
+            _chunk(b"gAMA", struct.pack(">I", 45455))
+            + _chunk(b"tEXt", b"Software\x00Mac OS 8.6")
+            + _chunk(b"pHYs", struct.pack(">IIB", 2835, 2835, 1))
+        )
+        augmented = data[:ihdr_end] + ancillary + data[ihdr_end:]
+        self.assertEqual(png.decode_png(augmented), image)
+
+    def test_ignored_ancillary_chunk_still_has_its_crc_checked(self):
+        # Ignoring a chunk's contents must not skip its integrity check: a
+        # corrupt ancillary chunk means the file is damaged and could hide a
+        # damaged IHDR/IDAT region, so it must be rejected by name even though
+        # decode_png would otherwise discard it.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        text = _chunk(b"tEXt", b"note")
+        corrupt = text[:-1] + bytes([text[-1] ^ 0xFF])
+        message = self._decode_error(data[:ihdr_end] + corrupt + data[ihdr_end:])
+        self.assertIn("tEXt", message)
+        self.assertIn("CRC", message)
+
     def test_all_filter_types(self):
         rows = [
             bytes([1, 2, 3, 4, 5, 6, 7, 8, 9]),
