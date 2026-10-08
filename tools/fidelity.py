@@ -32,8 +32,10 @@ from dataclasses import dataclass
 
 if __package__:
     from tools.png import Image, PngError, read_png
+    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
     from png import Image, PngError, read_png
+    from terminal import escape_controls
 
 
 class FidelityError(Exception):
@@ -110,21 +112,6 @@ def _abs_diff(a: bytes, b: bytes) -> bytes:
     )
 
 
-def _escape_controls(text: str) -> str:
-    """Render *text* with control characters escaped for terminal output.
-
-    The documented workflow passes a reference file from
-    ``macos8.6-screenshots/`` on the command line, so the path can carry a
-    contributor-supplied filename; a shell glob hands it to this tool
-    unchanged. Printed raw, an ESC or newline in that name would drive the
-    operator's terminal or forge an extra output line, so every control
-    character becomes a visible ``\\uXXXX`` escape before the path is shown.
-    """
-    return "".join(
-        ch if ch.isprintable() else f"\\u{ord(ch):04x}" for ch in text
-    )
-
-
 class _ArgumentParser(argparse.ArgumentParser):
     """ArgumentParser whose error diagnostics escape control characters.
 
@@ -136,7 +123,7 @@ class _ArgumentParser(argparse.ArgumentParser):
     """
 
     def error(self, message: str) -> None:
-        super().error(_escape_controls(message))
+        super().error(escape_controls(message))
 
 
 @dataclass(frozen=True)
@@ -412,16 +399,16 @@ def main(argv: list[str] | None = None) -> int:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
     except (PngError, FidelityError) as exc:
-        print(f"fidelity: error: {_escape_controls(str(exc))}", file=sys.stderr)
+        print(f"fidelity: error: {escape_controls(str(exc))}", file=sys.stderr)
         return 2
 
     ok = metrics.mae <= args.max_mae and metrics.frac_differing <= args.max_frac
     print(
-        f"candidate: {_escape_controls(args.candidate)}  "
+        f"candidate: {escape_controls(args.candidate)}  "
         f"{candidate.width}x{candidate.height}"
     )
     print(
-        f"reference: {_escape_controls(args.reference)}  "
+        f"reference: {escape_controls(args.reference)}  "
         f"{reference.width}x{reference.height}"
     )
     print(f"pixels compared: {metrics.pixels}")

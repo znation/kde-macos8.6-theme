@@ -23,6 +23,11 @@ import sys
 import tempfile
 from pathlib import Path
 
+try:
+    from tools.terminal import escape_controls
+except ImportError:  # run directly: python3 tools/check_references.py
+    from terminal import escape_controls
+
 REFERENCE_DIR = "macos8.6-screenshots"
 SOURCES_NAME = "sources.txt"
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
@@ -90,19 +95,6 @@ def _is_absolute_url(url: str) -> bool:
     if not all(ch.isalnum() or ch in _SCHEME_PUNCTUATION for ch in scheme):
         return False
     return all(ch.isprintable() and not ch.isspace() for ch in url)
-
-
-def _escape_controls(text: str) -> str:
-    """Render *text* with control characters escaped for terminal output.
-
-    A screenshot filename is contributor-supplied data. Printed raw, a name
-    containing an ESC or a newline would drive the operator's terminal with a
-    live escape sequence or forge an extra diagnostic line, so every control
-    character becomes a visible ``\\uXXXX`` escape before the name is shown.
-    """
-    return "".join(
-        ch if ch.isprintable() else f"\\u{ord(ch):04x}" for ch in text
-    )
 
 
 def _resolves_within(directory: Path, path: Path) -> bool:
@@ -233,12 +225,12 @@ def check_references(directory: Path) -> list[str]:
             has_image_bytes = _looks_like_image(path)
         except OSError as exc:
             problems.append(
-                f"{_escape_controls(str(path))}: could not be read: {exc}"
+                f"{escape_controls(str(path))}: could not be read: {exc}"
             )
             continue
         if path.suffix.lower() in IMAGE_SUFFIXES or has_image_bytes:
             problems.append(
-                f"{_escape_controls(str(path))}: image has no entry in {SOURCES_NAME}"
+                f"{escape_controls(str(path))}: image has no entry in {SOURCES_NAME}"
             )
 
     return problems
@@ -343,7 +335,7 @@ def main(argv: list[str]) -> int:
         return 0
     if args:
         print(
-            f"error: unknown argument(s): {_escape_controls(' '.join(args))}",
+            f"error: unknown argument(s): {escape_controls(' '.join(args))}",
             file=sys.stderr,
         )
         print(USAGE, end="", file=sys.stderr)
