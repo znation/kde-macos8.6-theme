@@ -83,10 +83,18 @@ def _iter_chunks(data: bytes):
         ctype = data[pos + 4 : pos + 8]
         payload = data[pos + 8 : pos + 8 + length]
         if len(payload) != length:
-            raise FidelityError("truncated PNG chunk")
+            raise FidelityError(
+                f"truncated PNG chunk {ctype.decode('ascii', 'replace')!r} at "
+                f"offset {pos}: declared {length} payload bytes, only "
+                f"{len(payload)} present"
+            )
         checksum = data[pos + 8 + length : pos + 12 + length]
         if len(checksum) != 4:
-            raise FidelityError("truncated PNG chunk CRC")
+            raise FidelityError(
+                f"truncated PNG chunk {ctype.decode('ascii', 'replace')!r} CRC "
+                f"at offset {pos + 8 + length}: expected 4 bytes, got "
+                f"{len(checksum)}"
+            )
         (expected,) = struct.unpack(">I", checksum)
         actual = zlib.crc32(ctype + payload) & 0xFFFFFFFF
         if actual != expected:

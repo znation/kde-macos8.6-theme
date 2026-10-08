@@ -185,10 +185,27 @@ class TestDecode(unittest.TestCase):
         self.assertIn("CRC", str(ctx.exception))
 
     def test_rejects_truncated_chunk_crc(self):
+        # Cutting the final CRC byte must name the chunk and the offset of the
+        # missing CRC, so the user can find the truncation point.
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         with self.assertRaises(fidelity.FidelityError) as ctx:
             fidelity.decode_png(data[:-1])
-        self.assertIn("CRC", str(ctx.exception))
+        message = str(ctx.exception)
+        self.assertIn("truncated PNG chunk 'IEND' CRC", message)
+        self.assertIn(f"offset {data.rindex(b'IEND') + 4}", message)
+        self.assertIn("expected 4 bytes, got 3", message)
+
+    def test_rejects_truncated_chunk_payload(self):
+        # A chunk header declaring more payload than the file holds must name
+        # the chunk, its offset, and the byte counts, not just say "truncated".
+        ihdr = _chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+        data = _PNG_SIGNATURE + ihdr + struct.pack(">I", 100) + b"IDAT" + b"\x00\x01"
+        with self.assertRaises(fidelity.FidelityError) as ctx:
+            fidelity.decode_png(data)
+        message = str(ctx.exception)
+        self.assertIn("truncated PNG chunk 'IDAT'", message)
+        self.assertIn("offset 33", message)
+        self.assertIn("declared 100 payload bytes, only 2 present", message)
 
     def test_rejects_unknown_compression_method(self):
         # The IHDR compression and filter methods are separate fields; naming
