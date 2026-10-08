@@ -9,7 +9,7 @@ import tempfile
 import unittest
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, uninstall
+from theme_install import ROOT, install, shadow_command_env, uninstall
 
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
@@ -242,33 +242,21 @@ class TestInstall(unittest.TestCase):
             # dies, like a killed or out-of-space install would. Directory
             # creation (`install -d`) still passes through to the real tool.
             real_install = shutil.which("install")
-            bindir = os.path.join(tmp, "fakebin")
-            os.makedirs(bindir)
-            fake_install = os.path.join(bindir, "install")
-            with open(fake_install, "w", encoding="utf-8") as handle:
-                handle.write(
-                    "#!/bin/sh\n"
-                    'case "$1" in\n'
-                    '  -d) exec "%s" "$@";;\n'
-                    "  -D*)\n"
-                    "    for last; do :; done\n"
-                    '    mkdir -p "$(dirname "$last")"\n'
-                    '    printf partial > "$last"\n'
-                    "    exit 1;;\n"
-                    "esac\n"
-                    'exec "%s" "$@"\n' % (real_install, real_install)
-                )
-            os.chmod(fake_install, 0o755)
-
-            env = dict(os.environ)
-            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
-            result = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                env=env,
+            env = shadow_command_env(
+                tmp,
+                "install",
+                "#!/bin/sh\n"
+                'case "$1" in\n'
+                '  -d) exec "%s" "$@";;\n'
+                "  -D*)\n"
+                "    for last; do :; done\n"
+                '    mkdir -p "$(dirname "$last")"\n'
+                '    printf partial > "$last"\n'
+                "    exit 1;;\n"
+                "esac\n"
+                'exec "%s" "$@"\n' % (real_install, real_install),
             )
+            result = install(tmp, env=env)
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertFalse(
                 os.path.exists(
@@ -290,15 +278,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             source = os.path.join(tmp, "Platinum.colors")
             shutil.copy(SCHEME, source)
-            result = subprocess.run(
-                [
-                    "make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share",
-                    f"COLOR_SCHEME={source}",
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            result = install(tmp, extra=[f"COLOR_SCHEME={source}"])
             self.assertEqual(result.returncode, 0, result.stderr)
             installed = os.path.join(
                 tmp, "share", "color-schemes", "Platinum.colors"
@@ -319,15 +299,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             source = os.path.join(tmp, "Platinum.colors")
             shutil.copy(SCHEME, source)
-            installed = subprocess.run(
-                [
-                    "make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share",
-                    f"COLOR_SCHEME={source}",
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            installed = install(tmp, extra=[f"COLOR_SCHEME={source}"])
             self.assertEqual(installed.returncode, 0, installed.stderr)
             schemes = os.path.join(tmp, "share", "color-schemes")
             renamed = os.path.join(schemes, "Platinum.colors")
@@ -336,15 +308,7 @@ class TestInstall(unittest.TestCase):
             with open(decoy, "w", encoding="utf-8") as handle:
                 handle.write("[General]\nName=Decoy\n")
 
-            removed = subprocess.run(
-                [
-                    "make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share",
-                    f"COLOR_SCHEME={source}",
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            removed = uninstall(tmp, extra=[f"COLOR_SCHEME={source}"])
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertFalse(
                 os.path.exists(renamed),

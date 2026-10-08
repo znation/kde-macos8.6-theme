@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, uninstall
+from theme_install import ROOT, install, shadow_command_env, uninstall
 
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
@@ -141,30 +141,18 @@ class TestInstall(unittest.TestCase):
 
             # Shadow `cp` with a fake that writes part of the tree, then fails,
             # simulating a copy killed or out of space halfway through.
-            bindir = os.path.join(tmp, "fakebin")
-            os.makedirs(bindir)
-            fake_cp = os.path.join(bindir, "cp")
-            with open(fake_cp, "w", encoding="utf-8") as handle:
-                handle.write(
-                    '#!/bin/sh\n'
-                    '# Copy part of the tree, then die, like a killed `cp` would.\n'
-                    'src="$2"\n'
-                    'dest="$3/$(basename "$src")"\n'
-                    'mkdir -p "$dest"\n'
-                    'printf partial > "$dest/metadata.json"\n'
-                    'exit 1\n'
-                )
-            os.chmod(fake_cp, 0o755)
-
-            env = dict(os.environ)
-            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
-            result = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                env=env,
+            env = shadow_command_env(
+                tmp,
+                "cp",
+                '#!/bin/sh\n'
+                '# Copy part of the tree, then die, like a killed `cp` would.\n'
+                'src="$2"\n'
+                'dest="$3/$(basename "$src")"\n'
+                'mkdir -p "$dest"\n'
+                'printf partial > "$dest/metadata.json"\n'
+                'exit 1\n',
             )
+            result = install(tmp, env=env)
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertFalse(
                 os.path.exists(
@@ -201,31 +189,19 @@ class TestInstall(unittest.TestCase):
             # package into place fails, like an IO error or a kill in the swap
             # window would; every other rename passes through.
             real_mv = shutil.which("mv")
-            bindir = os.path.join(tmp, "fakebin")
-            os.makedirs(bindir)
-            fake_mv = os.path.join(bindir, "mv")
-            with open(fake_mv, "w", encoding="utf-8") as handle:
-                handle.write(
-                    "#!/bin/sh\n"
-                    'case "$2" in\n'
-                    f"  */plasma/look-and-feel/{LNF_ID})\n"
-                    '    case "$1" in\n'
-                    f"      */.{LNF_ID}.staging) exit 1;;\n"
-                    "    esac;;\n"
-                    "esac\n"
-                    f'exec "{real_mv}" "$@"\n'
-                )
-            os.chmod(fake_mv, 0o755)
-
-            env = dict(os.environ)
-            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
-            result = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                env=env,
+            env = shadow_command_env(
+                tmp,
+                "mv",
+                "#!/bin/sh\n"
+                'case "$2" in\n'
+                f"  */plasma/look-and-feel/{LNF_ID})\n"
+                '    case "$1" in\n'
+                f"      */.{LNF_ID}.staging) exit 1;;\n"
+                "    esac;;\n"
+                "esac\n"
+                f'exec "{real_mv}" "$@"\n',
             )
+            result = install(tmp, env=env)
             self.assertNotEqual(result.returncode, 0, result.stdout)
             parent = os.path.join(tmp, "share", "plasma", "look-and-feel")
             for leaked in (

@@ -9,7 +9,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from kde_config import read as read_kde_config
-from theme_install import ROOT, install, uninstall
+from theme_install import ROOT, install, shadow_command_env, uninstall
 
 DTHEME_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
@@ -200,12 +200,7 @@ class TestFrame(unittest.TestCase):
 
     def test_frame_installed(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
             target = os.path.join(
                 tmp, "share", "plasma", "desktoptheme", DTHEME_ID,
@@ -214,12 +209,7 @@ class TestFrame(unittest.TestCase):
             self.assertTrue(os.path.isfile(target), target)
             with open(FRAME_SVG, "rb") as source, open(target, "rb") as installed:
                 self.assertEqual(source.read(), installed.read())
-            again = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-            )
+            again = install(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)
 
 
@@ -278,32 +268,20 @@ class TestInstall(unittest.TestCase):
             # theme (the look-and-feel copy must still succeed), writing part of
             # the tree then dying like a killed or out-of-space `cp` would.
             real_cp = shutil.which("cp")
-            bindir = os.path.join(tmp, "fakebin")
-            os.makedirs(bindir)
-            fake_cp = os.path.join(bindir, "cp")
-            with open(fake_cp, "w", encoding="utf-8") as handle:
-                handle.write(
-                    "#!/bin/sh\n"
-                    'case "$2" in\n'
-                    "  */desktop-themes/*)\n"
-                    '    dest="$3/$(basename "$2")"\n'
-                    '    mkdir -p "$dest"\n'
-                    '    printf partial > "$dest/metadata.json"\n'
-                    "    exit 1;;\n"
-                    "esac\n"
-                    f'exec "{real_cp}" "$@"\n'
-                )
-            os.chmod(fake_cp, 0o755)
-
-            env = dict(os.environ)
-            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
-            result = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                env=env,
+            env = shadow_command_env(
+                tmp,
+                "cp",
+                "#!/bin/sh\n"
+                'case "$2" in\n'
+                "  */desktop-themes/*)\n"
+                '    dest="$3/$(basename "$2")"\n'
+                '    mkdir -p "$dest"\n'
+                '    printf partial > "$dest/metadata.json"\n'
+                "    exit 1;;\n"
+                "esac\n"
+                f'exec "{real_cp}" "$@"\n',
             )
+            result = install(tmp, env=env)
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertFalse(
                 os.path.exists(
@@ -340,31 +318,19 @@ class TestInstall(unittest.TestCase):
             # into place fails (the look-and-feel rename must still succeed),
             # like an IO error or a kill in the swap window would.
             real_mv = shutil.which("mv")
-            bindir = os.path.join(tmp, "fakebin")
-            os.makedirs(bindir)
-            fake_mv = os.path.join(bindir, "mv")
-            with open(fake_mv, "w", encoding="utf-8") as handle:
-                handle.write(
-                    "#!/bin/sh\n"
-                    'case "$2" in\n'
-                    f"  */plasma/desktoptheme/{DTHEME_ID})\n"
-                    '    case "$1" in\n'
-                    f"      */.{DTHEME_ID}.staging) exit 1;;\n"
-                    "    esac;;\n"
-                    "esac\n"
-                    f'exec "{real_mv}" "$@"\n'
-                )
-            os.chmod(fake_mv, 0o755)
-
-            env = dict(os.environ)
-            env["PATH"] = bindir + os.pathsep + os.environ.get("PATH", "")
-            result = subprocess.run(
-                ["make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share"],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                env=env,
+            env = shadow_command_env(
+                tmp,
+                "mv",
+                "#!/bin/sh\n"
+                'case "$2" in\n'
+                f"  */plasma/desktoptheme/{DTHEME_ID})\n"
+                '    case "$1" in\n'
+                f"      */.{DTHEME_ID}.staging) exit 1;;\n"
+                "    esac;;\n"
+                "esac\n"
+                f'exec "{real_mv}" "$@"\n',
             )
+            result = install(tmp, env=env)
             self.assertNotEqual(result.returncode, 0, result.stdout)
             parent = os.path.join(tmp, "share", "plasma", "desktoptheme")
             for leaked in (
