@@ -157,5 +157,57 @@ class TestFilenameMustBeBare(unittest.TestCase):
         )
 
 
+class TestAcceptedImageFormats(unittest.TestCase):
+    """The checker must accept every raster format the reference set uses.
+
+    The built-in self-test exercises only the PNG and WebP signatures, so a
+    regression in the JPEG or GIF handling would flag the reference set's 9
+    JPEG and 1 GIF files as non-images without any test noticing.
+    """
+
+    def _problems_for(self, module, filename, content):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text(
+                f"{filename} | https://example.test/x | label\n",
+                encoding="utf-8",
+            )
+            (root / filename).write_bytes(content)
+            return module.check_references(root)
+
+    def test_jpeg_signature_is_accepted(self):
+        module = load_checker()
+        # A JPEG begins ff d8 ff; the bytes after it are not part of the check.
+        problems = self._problems_for(
+            module, "photo.jpg", b"\xff\xd8\xff\xe1" + b"\x00" * 8
+        )
+        self.assertEqual(problems, [])
+
+    def test_gif87a_signature_is_accepted(self):
+        module = load_checker()
+        problems = self._problems_for(module, "anim.gif", b"GIF87a" + b"\x00" * 6)
+        self.assertEqual(problems, [])
+
+    def test_gif89a_signature_is_accepted(self):
+        module = load_checker()
+        problems = self._problems_for(module, "anim.gif", b"GIF89a" + b"\x00" * 6)
+        self.assertEqual(problems, [])
+
+    def test_riff_container_that_is_not_webp_is_rejected(self):
+        module = load_checker()
+        # A RIFF/WAVE payload shares the RIFF prefix but is not an image; the
+        # WEBP marker at bytes 8-11 is what makes it a WebP.
+        problems = self._problems_for(
+            module, "sound.png", b"RIFF\x24\x00\x00\x00WAVEfmt "
+        )
+        self.assertTrue(
+            any(
+                "sound.png" in p and "not a PNG, JPEG, GIF or WebP" in p
+                for p in problems
+            ),
+            problems,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
