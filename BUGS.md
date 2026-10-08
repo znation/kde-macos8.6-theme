@@ -52,6 +52,12 @@ a tooltip.
 **Next step:** Source a retail Mac OS 8.6 screenshot that shows a tooltip / Balloon Help balloon,
 then record its sample point and add the tooltip anchor to `TestReferenceAnchors`.
 
+**Blocked (2026-10-08):** No collected reference shows a balloon, and the bugfix loop could not
+source a retail screenshot it could visually verify (BetaWiki's Mac OS 8.6 page holds only the six
+already-collected images; the archive.org item behind `desktop_archiveorg8.6hd.png` holds a single
+screenshot). Filed in QUESTIONS.md for a human-supplied reference or a decision to drop the anchor
+claim.
+
 This complements the Open render/capture entry above: that one covers producing the candidate
 surface, this one covers the ground truth it is measured against.
 
