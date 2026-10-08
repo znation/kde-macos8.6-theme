@@ -157,7 +157,7 @@ button replaces Breeze for the most-used control: `PlasmaComponents.Button`, `To
      `normal` fallback.
 3. `tests/test_desktoptheme.py` (edit) — add a `TestButton` class beside `TestPanelBackground`:
    - `BUTTON_PREFIXES = ("normal", "pressed", "focus")` and
-     `BUTTON_HINTS = ("hint-tile-center", "hint-top-margin", "hint-bottom-margin",
+     `BUTTON_MARGIN_HINTS = ("hint-top-margin", "hint-bottom-margin",
      "hint-left-margin", "hint-right-margin")`.
    - `test_button_slice_ids`: parse `widgets/button.svg`; for each prefix assert all nine
      `{prefix}-{slice}` ids and all four `{prefix}-hint-{side}-margin` ids are present; assert

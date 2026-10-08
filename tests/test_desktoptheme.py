@@ -25,8 +25,7 @@ FRAME_SVG = os.path.join(PACKAGE, "widgets", "frame.svg")
 FRAME_PREFIXES = ("plain", "raised", "sunken")
 BUTTON_SVG = os.path.join(PACKAGE, "widgets", "button.svg")
 BUTTON_PREFIXES = ("normal", "pressed", "focus")
-BUTTON_HINTS = (
-    "hint-tile-center",
+BUTTON_MARGIN_HINTS = (
     "hint-top-margin", "hint-bottom-margin",
     "hint-left-margin", "hint-right-margin",
 )
@@ -186,9 +185,8 @@ class TestButton(unittest.TestCase):
         for prefix in BUTTON_PREFIXES:
             for name in SLICE_IDS:
                 self.assertIn(f"{prefix}-{name}", ids, name)
-            for hint in BUTTON_HINTS:
-                if hint != "hint-tile-center":
-                    self.assertIn(f"{prefix}-{hint}", ids, hint)
+            for hint in BUTTON_MARGIN_HINTS:
+                self.assertIn(f"{prefix}-{hint}", ids, hint)
         self.assertIn("hint-tile-center", ids)
 
     def test_button_colours(self):
