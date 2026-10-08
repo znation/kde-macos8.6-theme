@@ -103,6 +103,32 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(region.height, 2)
         self.assertEqual(region.rgb, bytes([1, 2, 0, 2, 2, 0, 1, 3, 0, 2, 3, 0]))
 
+    def test_crop_region_ending_exactly_on_far_edges_is_allowed(self):
+        # A crop whose far edges land exactly on the image's right and bottom
+        # borders is inside the image: x + width == image.width is valid. An
+        # off-by-one (>= instead of >) would reject this legitimate crop.
+        image, _ = rgb_image(4, 4, lambda x, y: (x, y, 0))
+        region = fidelity.crop(image, 1, 1, 3, 3)
+        self.assertEqual((region.width, region.height), (3, 3))
+        self.assertEqual(
+            region.rgb,
+            bytes(
+                [
+                    1, 1, 0, 2, 1, 0, 3, 1, 0,
+                    1, 2, 0, 2, 2, 0, 3, 2, 0,
+                    1, 3, 0, 2, 3, 0, 3, 3, 0,
+                ]
+            ),
+        )
+
+    def test_crop_whole_image_returns_it_unchanged(self):
+        # Selecting the entire surface is the degenerate crop; it must be
+        # accepted and preserve every pixel in order.
+        image, _ = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 7))
+        region = fidelity.crop(image, 0, 0, 3, 2)
+        self.assertEqual((region.width, region.height), (3, 2))
+        self.assertEqual(region.rgb, image.rgb)
+
     def test_crop_out_of_bounds_raises(self):
         image, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
         with self.assertRaises(fidelity.FidelityError):
