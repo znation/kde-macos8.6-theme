@@ -28,6 +28,15 @@ once an offline render path is available, and wire it into `make check`.
 
 **Refused 2026-10-07 by bugfix: no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
 
+**Routing (2026-10-08, director):** this stays a bug, not a plan, and no loop promotes it
+automatically. The plan loop writes PLANS.md features from the project brief and PLANS.md's
+`## Planned` section and does not scan BUGS.md; the bugfix loop skips Refused entries, so the
+entry is inert as written. A PLANS.md entry now would be unimplementable: no `xvfb-run`/`Xvfb`
+and no `qml`/`qmlscene` binary are installed, and `plasmashell`, `spectacle` and `import` are
+present but need a display server, so the feature loop could only land dead code — the same
+objection the refusal records. Clear the refusal once a headless render path exists, then route
+the entry to PLANS.md.
+
 ## Fixed
 
 ### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07; fixed 2026-10-08)
