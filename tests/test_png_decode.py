@@ -25,6 +25,7 @@ from png_fixtures import (  # noqa: E402
     make_png,
     png_with_idat,
     rgb_image,
+    solid_rgb,
     with_ihdr_byte,
 )
 
@@ -84,7 +85,7 @@ class TestDecode(unittest.TestCase):
         # pixels. Silently ignoring it, as unknown ancillary chunks are
         # ignored, could decode the image wrong with no sign of a skipped
         # chunk; the error names the offending type.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
         unknown = _chunk(b"XYZW", b"\x00\x01")
         message = self._decode_error(data[:ihdr_end] + unknown + data[ihdr_end:])
@@ -98,7 +99,7 @@ class TestDecode(unittest.TestCase):
         # uppercase letter it used to fall through as an unknown *ancillary*
         # chunk and be ignored. Reject it by name instead of silently skipping
         # malformed framing.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
         for ctype in (b"ab1d", b"a bd", b"ab\xffd"):
             with self.subTest(ctype=ctype):
@@ -130,7 +131,7 @@ class TestDecode(unittest.TestCase):
         # corrupt ancillary chunk means the file is damaged and could hide a
         # damaged IHDR/IDAT region, so it must be rejected by name even though
         # decode_png would otherwise discard it.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
         text = _chunk(b"tEXt", b"note")
         corrupt = text[:-1] + bytes([text[-1] ^ 0xFF])
@@ -405,7 +406,7 @@ class TestDecode(unittest.TestCase):
         # silently wrong pixels and poison the comparison. The failure must
         # name the chunk, its offset, and both CRC values, so the corruption
         # can be located without re-deriving them by hand.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         corrupted = bytearray(data)
         (ihdr_length,) = struct.unpack(">I", data[8:12])
         crc_offset = data.rindex(b"IHDR") + 4 + ihdr_length
@@ -426,7 +427,7 @@ class TestDecode(unittest.TestCase):
     def test_rejects_truncated_chunk_crc(self):
         # Cutting the final CRC byte must name the chunk and the offset of the
         # missing CRC, so the user can find the truncation point.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         message = self._decode_error(data[:-1])
         self.assertIn("truncated PNG chunk 'IEND' CRC", message)
         self.assertIn(f"offset {data.rindex(b'IEND') + 4}", message)
@@ -445,12 +446,12 @@ class TestDecode(unittest.TestCase):
     def test_rejects_unknown_compression_method(self):
         # The IHDR compression and filter methods are separate fields; naming
         # the offending value tells the user which one to fix.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         broken = with_ihdr_byte(data, 10, 1)
         self.assertIn("compression method 1", self._decode_error(broken))
 
     def test_rejects_unknown_filter_method(self):
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         broken = with_ihdr_byte(data, 11, 1)
         self.assertIn("filter method 1", self._decode_error(broken))
 
@@ -461,7 +462,7 @@ class TestDecode(unittest.TestCase):
         # (wrong pixels), an unknown color type would KeyError in _CHANNELS, and
         # a zero dimension would produce a degenerate image. Each must be
         # rejected by name before any scanline work.
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         cases = {
             # offset 8 is the bit-depth field.
             "bit depth 16": (with_ihdr_byte(data, 8, 16), "bit depth 16"),

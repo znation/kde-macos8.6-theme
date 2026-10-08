@@ -24,6 +24,7 @@ from png_fixtures import (  # noqa: E402
     _chunk,
     make_png,
     rgb_image,
+    solid_rgb,
 )
 from theme_install import run  # noqa: E402
 
@@ -106,7 +107,7 @@ class TestCli(unittest.TestCase):
         """Write a 1x1 black PNG to a temp dir removed when the test ends."""
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
-        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, data = solid_rgb(1, 1)
         return self._write(Path(tmp.name), "reference.png", data)
 
     def _assert_usage_error(
@@ -125,7 +126,7 @@ class TestCli(unittest.TestCase):
         the script so the ``if __name__ == "__main__": sys.exit(main())``
         wrapper and the module's direct-run import path stay covered.
         """
-        _, reference = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        _, reference = solid_rgb(1, 1)
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write(Path(tmp), "reference.png", reference)
             result = run(
@@ -240,7 +241,7 @@ class TestCli(unittest.TestCase):
                     self.assertIn("FAIL", result.stdout)
 
     def test_reports_worst_delta_location(self):
-        a, a_png = rgb_image(2, 1, lambda x, y: (0, 0, 0))
+        a, a_png = solid_rgb(2, 1)
         changed = bytearray(a.rgb)
         changed[3] = 50  # red channel of pixel (1, 0)
         b_png = make_png(2, 1, [bytes(changed)])
@@ -255,7 +256,7 @@ class TestCli(unittest.TestCase):
     def test_reports_per_channel_mae(self):
         # The CLI must expose each channel's MAE so a colour cast is visible
         # from a run without importing the module.
-        a, a_png = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        a, a_png = solid_rgb(1, 1)
         b_png = make_png(1, 1, [bytes([10, 0, 0])])
         with tempfile.TemporaryDirectory() as tmp:
             tmpdir = Path(tmp)
@@ -487,7 +488,7 @@ class TestCli(unittest.TestCase):
         # directory passes a contributor-supplied filename through unchanged.
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "evil\x1b]0;pwned\x07.png"
-            _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+            _, data = solid_rgb(1, 1)
             path.write_bytes(data)
             result = self._run(str(path), str(path))
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)

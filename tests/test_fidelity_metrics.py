@@ -17,7 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import fidelity_metrics  # noqa: E402
-from png_fixtures import rgb_image  # noqa: E402
+from png_fixtures import rgb_image, solid_rgb  # noqa: E402
 
 
 def assert_matches_oracle(case, actual, reference, *, arity, min_length=0):
@@ -156,7 +156,7 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(metrics.frac_differing, 0.0)
 
     def test_single_pixel_difference(self):
-        a, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
+        a, _ = solid_rgb(2, 2)
         changed = bytearray(a.rgb)
         changed[0] = 10  # one red channel on the first pixel
         b = fidelity_metrics.Image(a.width, a.height, bytes(changed))
@@ -174,7 +174,7 @@ class TestCompare(unittest.TestCase):
     def test_per_channel_mae_locates_colour_cast(self):
         # A uniform bias in one channel must show up in that channel's MAE and
         # nowhere else, so a colour cast is distinguishable from per-pixel noise.
-        a, _ = rgb_image(2, 2, lambda x, y: (10, 20, 30))
+        a, _ = solid_rgb(2, 2, (10, 20, 30))
         cast = bytes(
             a.rgb[i] + (5 if i % 3 == 0 else 0) for i in range(len(a.rgb))
         )
@@ -187,7 +187,7 @@ class TestCompare(unittest.TestCase):
     def test_worst_delta_location(self):
         # max_x/max_y must locate the pixel carrying the worst channel delta,
         # so a failing comparison can be inspected at the right coordinate.
-        a, _ = rgb_image(3, 2, lambda x, y: (0, 0, 0))
+        a, _ = solid_rgb(3, 2)
         changed = bytearray(a.rgb)
         changed[15] = 40  # red channel of pixel (2, 1)
         b = fidelity_metrics.Image(a.width, a.height, bytes(changed))
@@ -217,7 +217,7 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(metrics.differing, 3)
 
     def test_tolerance_absorbs_small_deltas(self):
-        a, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        a, _ = solid_rgb(1, 1)
         b = fidelity_metrics.Image(1, 1, bytes([3, 0, 0]))
         self.assertEqual(fidelity_metrics.compare(a, b, tolerance=3).differing, 0)
         self.assertEqual(fidelity_metrics.compare(a, b, tolerance=2).differing, 1)
@@ -227,7 +227,7 @@ class TestCompare(unittest.TestCase):
         # exceeded (every pixel reads as within tolerance) and a negative one
         # is exceeded by every pixel; either silently inverts the verdict, so
         # the entry point names the rejected value instead of acting on it.
-        image, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        image, _ = solid_rgb(1, 1)
         for tolerance in (-1, 256, "5"):
             with self.subTest(tolerance=tolerance):
                 with self.assertRaises(fidelity_metrics.FidelityError) as caught:
@@ -235,8 +235,8 @@ class TestCompare(unittest.TestCase):
                 self.assertIn(repr(tolerance), str(caught.exception))
 
     def test_size_mismatch_raises(self):
-        a, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
-        b, _ = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        a, _ = solid_rgb(2, 2)
+        b, _ = solid_rgb(1, 1)
         with self.assertRaises(fidelity_metrics.FidelityError) as caught:
             fidelity_metrics.compare(a, b)
         message = str(caught.exception)
@@ -277,14 +277,14 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(region.rgb, image.rgb)
 
     def test_crop_out_of_bounds_raises(self):
-        image, _ = rgb_image(2, 2, lambda x, y: (0, 0, 0))
+        image, _ = solid_rgb(2, 2)
         with self.assertRaises(fidelity_metrics.FidelityError):
             fidelity_metrics.crop(image, 1, 1, 2, 2)
 
     def test_crop_nonpositive_rect_error_names_values(self):
         # The message must echo the rejected rectangle so a CLI user can see
         # which of x/y/w/h was wrong without re-deriving it from the input.
-        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        image, _ = solid_rgb(4, 4)
         with self.assertRaises(fidelity_metrics.FidelityError) as caught:
             fidelity_metrics.crop(image, 0, 0, 0, 2)
         message = str(caught.exception)
@@ -294,7 +294,7 @@ class TestCompare(unittest.TestCase):
         # x=0/y=0 is the top-left pixel, a valid origin, so a zero width is a
         # size fault. Naming both the origin and the size as "positive" would
         # send the reader after x/y instead of the field that is actually bad.
-        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        image, _ = solid_rgb(4, 4)
         with self.assertRaises(fidelity_metrics.FidelityError) as caught:
             fidelity_metrics.crop(image, 0, 0, 0, 2)
         message = str(caught.exception)
@@ -302,7 +302,7 @@ class TestCompare(unittest.TestCase):
         self.assertNotIn("origin", message)
 
     def test_crop_negative_origin_error_names_origin(self):
-        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        image, _ = solid_rgb(4, 4)
         with self.assertRaises(fidelity_metrics.FidelityError) as caught:
             fidelity_metrics.crop(image, -1, 0, 2, 2)
         message = str(caught.exception)
@@ -313,7 +313,7 @@ class TestCompare(unittest.TestCase):
         # crop() slices the RGB byte string, so a non-integer coordinate would
         # otherwise surface as a raw TypeError from the slice, naming neither
         # the argument nor its value.
-        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        image, _ = solid_rgb(4, 4)
         for args in (
             (0.0, 0, 1, 1),
             (0, 1.5, 1, 1),
@@ -328,7 +328,7 @@ class TestCompare(unittest.TestCase):
     def test_crop_out_of_bounds_error_names_rect_and_image(self):
         # The message must name both the offending rectangle and the image it
         # was measured against, since neither is otherwise visible.
-        image, _ = rgb_image(4, 4, lambda x, y: (0, 0, 0))
+        image, _ = solid_rgb(4, 4)
         with self.assertRaises(fidelity_metrics.FidelityError) as caught:
             fidelity_metrics.crop(image, 3, 3, 2, 2)
         message = str(caught.exception)

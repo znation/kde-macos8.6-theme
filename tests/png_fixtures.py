@@ -200,3 +200,15 @@ def rgb_image(
     image = png.Image(width, height, b"".join(rows))
     return image, make_png(width, height, rows)
 
+
+def solid_rgb(
+    width: int, height: int, color: tuple[int, int, int] = (0, 0, 0)
+) -> tuple[png.Image, bytes]:
+    """Return a single-colour RGB image and its PNG bytes.
+
+    A flat fill is the common case in the decode, metrics and CLI tests, which
+    otherwise each spell it as an argument-ignoring ``lambda``; naming the
+    case here keeps the colour visible at the call site.
+    """
+    return rgb_image(width, height, lambda x, y: color)
+
