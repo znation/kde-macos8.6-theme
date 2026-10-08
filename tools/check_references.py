@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import re
 import sys
 import tempfile
 from pathlib import Path
@@ -33,6 +34,10 @@ REFERENCE_DIR = "macos8.6-screenshots"
 SOURCES_NAME = "sources.txt"
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 SEPARATOR = " | "
+# Only CR, LF and CRLF end a sources.txt line. ``str.splitlines`` also breaks
+# on U+2028/U+2029, NEL and the C0 separators, so a version label containing
+# one would split into a phantom line and be reported as a malformed entry.
+_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 # First line of a Git LFS pointer file; a real image never starts with this text.
 LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
 
@@ -182,7 +187,7 @@ def check_references(directory: Path) -> list[str]:
     problems: list[str] = []
     entries: dict[str, int] = {}
 
-    for lineno, raw in enumerate(sources_text.splitlines(), 1):
+    for lineno, raw in enumerate(_LINE_BREAK.split(sources_text), 1):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
@@ -337,6 +342,12 @@ def _self_test() -> int:
         # entry readable instead of folding the BOM into its filename.
         ("utf-8 BOM before the first entry",
          "\ufeffgood.png | https://example.test/g.png | Mac OS 8.6 (desktop)\n",
+         [("good.png", PNG_MAGIC)], None),
+        # U+2028 is a Unicode line separator, not a newline: a label that
+        # contains one must stay on its own line instead of splitting into a
+        # phantom second entry.
+        ("label containing U+2028 stays one line",
+         "good.png | https://example.test/g.png | Mac OS 8.6\u2028retail\n",
          [("good.png", PNG_MAGIC)], None),
         ("missing sources file", None, [("good.png", PNG_MAGIC)],
          ["missing sources file"]),

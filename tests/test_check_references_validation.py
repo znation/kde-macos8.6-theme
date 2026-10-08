@@ -38,6 +38,35 @@ def assert_url_problem_not_the_scheme(case, url, *needles):
     )
 
 
+class TestLineSplitting(unittest.TestCase):
+    """sources.txt is newline-delimited; other Unicode separators are data.
+
+    ``str.splitlines`` also breaks on U+2028/U+2029, NEL and the C0
+    separators, so a version label pasted from a web page or PDF could split
+    into a phantom line and be reported as a malformed entry. Only CR, LF and
+    CRLF end a record.
+    """
+
+    def test_unicode_line_separator_stays_inside_the_label(self):
+        module = load_checker()
+        problems = check_references_in(
+            module,
+            "good.png | https://example.test/g.png | Mac OS 8.6\u2028retail\n",
+            {"good.png": module.PNG_MAGIC},
+        )
+        self.assertEqual(problems, [])
+
+    def test_carriage_return_still_ends_a_line(self):
+        module = load_checker()
+        problems = check_references_in(
+            module,
+            "good.png | https://example.test/g.png | label\r"
+            "bad.png | https://example.test/b.png | label\r",
+            {"good.png": module.PNG_MAGIC, "bad.png": b"not an image"},
+        )
+        assert_problem(self, problems, "bad.png", "not a PNG")
+
+
 class TestFilenameMustBeBare(unittest.TestCase):
     """A sources.txt entry must name a bare file in the directory.
 
