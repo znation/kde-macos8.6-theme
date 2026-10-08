@@ -5,7 +5,119 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 Platinum text field widget for the desktop theme
+
+**Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button, and
+checkmarks plans: it adds one widget file to the existing `org.macos8.desktop` desktop-theme
+package and a `TestLineEdit` class plus one `TestInstall` tuple entry to
+`tests/test_desktoptheme.py`. It does not touch `button.svg`, `frame.svg`, `radiobutton.svg`,
+`checkmarks.svg`, or `panel-background.svg`.
+
+**Goal.** Ship `widgets/lineedit.svg` in the `org.macos8.desktop` desktop theme so
+`PlasmaComponents.TextField`, `TextArea`, `SpinBox` and an editable `ComboBox` draw the Platinum
+sunken white text field instead of the Breeze rounded field, and so the theme stops inheriting
+`widgets/lineedit.svgz` from the default theme.
+
+**Grounding.**
+- Consumers verified in the installed Plasma 6.3.6 QML under
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/`:
+  - `TextField.qml`'s background is a `KSvg.FrameSvgItem` with `imagePath: "widgets/lineedit"`,
+    `prefix: "base"`, overlaid by two more `widgets/lineedit` FrameSvgItems with `prefix:
+    "hover"` (`opacity: control.hovered`) and `prefix: control.visualFocus &&
+    hasElement("focusframe-center") ? "focusframe" : "focus"` (`opacity: control.visualFocus ||
+    control.activeFocus`).
+  - `TextArea.qml`'s background is `widgets/lineedit` `prefix: "base"`, with
+    `private/TextFieldFocus.qml` drawing `widgets/lineedit` prefixes `"hover"`/`"focus"`/
+    `"focusframe"`.
+  - `SpinBox.qml` draws `widgets/lineedit` prefixes `"base"`, `"hover"`, and
+    `"focus"`/`"focusframe"`; `ComboBox.qml` uses `imagePath: control.editable ?
+    "widgets/lineedit" : "widgets/button"` for the editable field.
+- The default `lineedit.svgz` (`zcat
+  /usr/share/plasma/desktoptheme/default/widgets/lineedit.svgz`) carries a nine-slice for each of
+  `base`, `hover`, `focus`, and `focusframe`, plus `hint-tile-center`,
+  `{prefix}-hint-{top,bottom,left,right}-margin` (2px for `base`), and `hint-focus-over-base`.
+  `KSvg.Svg` resolves a theme file the current theme lacks to the default theme, and
+  `find /usr/share/plasma/desktoptheme -name 'lineedit.svg*'` returns only
+  `default/widgets/lineedit.svgz`, so today the theme inherits the Breeze field.
+- Missing prefixes render nothing — the same fallback behavior the done button plan relies on:
+  `hover` is a separate overlay whose opacity gates it, and `focus`/`focusframe` are chosen only
+  when visual focus allows. Mac OS 8.6 text fields have no hover highlight and no focus ring (the
+  blinking caret is the focus cue), so `hover`, `focus`, and `focusframe` are deliberately omitted
+  and a hovered or focused field stays pixel-identical to an idle one.
+- Palette: `[Colors:View] BackgroundNormal=255,255,255` (#FFFFFF) in
+  `theme/color-schemes/MacOS8.colors`, with the #000000 outline and #999999 shadow the
+  frame/button/radio plans pin. A scan of the reference set for the sunken pattern (black top edge,
+  #999999 next row, near-#FFFFFF third row) finds it in
+  `macos8.6-screenshots/desktop_archiveorg8.6hd.png` at (430,183) (`#00000B`, `#9B9B99`,
+  `#FEFEFF`), so Mac OS 8.6 draws recessed surfaces with a grey top/left shadow. The Platinum text
+  field is specified here as a white face with that same sunken bevel, reusing the done
+  `frame.svg` `sunken` geometry rather than introducing a new one.
+- The package is installed with `cp -r` (the `Makefile` `install_package` macro), so the new file
+  needs no Makefile change.
+
+**Approach.**
+1. New file `widgets/lineedit.svg` in the `org.macos8.desktop` package: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">` with a
+   comment naming the widget, its consumers, and the base-only contract.
+   - Nine-slice hints: `hint-tile-center` 6x6 at (3,3); `base-hint-top-margin` 6x3 at (3,0),
+     `base-hint-bottom-margin` 6x3 at (3,9), `base-hint-left-margin` 3x6 at (0,3),
+     `base-hint-right-margin` 3x6 at (9,3). Fill them any opaque colour through `style` (KSvg
+     reads their geometry, not their colour).
+   - One `base` nine-slice group per slice on the 3px border / 6px centre grid, square corners,
+     exactly the done `frame.svg` `sunken` geometry with the face changed from #DDDDDD to
+     #FFFFFF: outer 1px #000000, 1px #999999 inside the top/left, 1px #FFFFFF inside the
+     bottom/right, #FFFFFF face. Concretely:
+     - `base-top` (translate 3,0): 6x3 #FFFFFF, then `y=1` 6x1 #999999, then 6x1 #000000.
+     - `base-bottom` (translate 3,9): 6x3 #FFFFFF, then `y=1` 6x1 #FFFFFF, then `y=2` 6x1 #000000.
+     - `base-left` (translate 0,3): 3x6 #FFFFFF, then `x=1` 1x6 #999999, then 1x6 #000000.
+     - `base-right` (translate 9,3): 3x6 #FFFFFF, then `x=1` 1x6 #FFFFFF, then `x=2` 1x6 #000000.
+     - `base-center` (translate 3,3): 6x6 #FFFFFF.
+     - `base-topleft`: 3x3 #FFFFFF, `x=1 y=1` 2x1 #999999, `x=1 y=1` 1x2 #999999, 3x1 #000000,
+       1x3 #000000.
+     - `base-topright` (translate 9,0): 3x3 #FFFFFF, `x=0 y=1` 2x1 #999999, `x=1 y=1` 1x2
+       #FFFFFF, 3x1 #000000, `x=2` 1x3 #000000.
+     - `base-bottomleft` (translate 0,9): 3x3 #FFFFFF, `x=1 y=0` 1x3 #999999, `x=1 y=1` 2x1
+       #FFFFFF, `y=2` 3x1 #000000, 1x3 #000000.
+     - `base-bottomright` (translate 9,9): 3x3 #FFFFFF, `x=0 y=1` 2x1 #FFFFFF, `x=1 y=0` 1x3
+       #FFFFFF, `y=2` 3x1 #000000, `x=2` 1x3 #000000.
+   No `hover-*`, `focus-*`, `focusframe-*`, `hint-focus-over-base`, `class="ColorScheme-*"`,
+   `currentColor`, or `<script>`, and no fill outside the 12x12 canvas.
+2. `tests/test_desktoptheme.py` (edit):
+   - Add `LINEEDIT_SVG = os.path.join(PACKAGE, "widgets", "lineedit.svg")` beside
+     `CHECKMARKS_SVG`.
+   - Add `class TestLineEdit` beside `TestCheckmarks`:
+     - `test_lineedit_slice_ids`: parse; assert every `base-{slice}` id in `SLICE_IDS` and every
+       `base-hint-{side}-margin` id are present, plus `hint-tile-center`.
+     - `test_lineedit_colours`: assert the parsed `fill` attributes are exactly `{"#FFFFFF",
+       "#999999", "#000000"}` (the hints use `style`, so they are excluded).
+     - `test_lineedit_face_is_white`: `render_slices(ET.parse(LINEEDIT_SVG))` gives `base-center`
+       every pixel #FFFFFF, so the field cannot silently become the grey frame face.
+     - `test_no_script_elements`: no element tag ends in `script`.
+   - Add `os.path.join("widgets", "lineedit.svg")` to the tuple in
+     `TestInstall.test_make_install_copies_package_byte_for_byte`.
+3. `README.md` (edit): add "text field" to the `tumwater:status` block's desktop-theme widget
+   parenthetical, and `widgets/lineedit.svg` (the white sunken field for
+   `TextField`/`TextArea`/`SpinBox`) to the Installing section's desktop-theme sentence.
+
+**Files touched.** New: `lineedit.svg` in the package's `widgets/` subdirectory. Edited:
+`tests/test_desktoptheme.py` (`TestLineEdit`, `TestInstall` tuple), `README.md`. No change to the
+color scheme, the look-and-feel package, the Makefile, or the other widgets.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestLineEdit` passing and the extended `TestInstall` byte-identity
+  assertion.
+- The lineedit SVG parses and contains the nine `base-{slice}` ids, the four
+  `base-hint-{side}-margin` ids, and `hint-tile-center`; its parsed `fill` values are exactly
+  #FFFFFF, #999999, and #000000; `base-center` is entirely #FFFFFF.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/lineedit.svg` byte-identical to
+  source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a `PlasmaComponents.TextField`/`TextArea`/`SpinBox`
+  renders a #FFFFFF field with a 1px #000000 outline and a 1px #999999 shadow inside the top/left,
+  with no Breeze blue tint, hover highlight, or focus ring; every other widget is unchanged.
+
+**Follow-up (not planned here).** `widgets/actionbutton.svg` for `RoundButton`/`Dial`/`RoundShadow`,
+`widgets/scrollbar.svg`, then `listitem` and `background`.
 
 ## Done
 
