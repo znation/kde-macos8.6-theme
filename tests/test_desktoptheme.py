@@ -313,15 +313,22 @@ class TestRadioButton(unittest.TestCase):
     def test_radiobutton_geometry(self):
         # The black ring is a filled circle under the white face, so the two
         # normal circles must stay r=8 over r=7 (a 1px outline), and the
-        # selected dot must stay r=3 (a 6x6 symbol).
+        # selected dot must stay r=3 (a 6x6 symbol). Pin each circle's fill
+        # with its radius: the contract test only checks the fill set, so a
+        # swap of the two faces (black face, white ring) would otherwise pass.
         tree = ET.parse(RADIOBUTTON_SVG)
         by_id = {el.get("id"): el for el in tree.iter() if el.get("id")}
         circles = [
             el for el in by_id["normal"]
             if local_name(el) == "circle"
         ]
-        self.assertEqual([float(el.get("r")) for el in circles], [8, 7])
-        self.assertEqual(float(by_id["symbol"].get("r")), 3)
+        self.assertEqual(
+            [(float(el.get("r")), el.get("fill")) for el in circles],
+            [(8, "#000000"), (7, "#FFFFFF")],
+        )
+        symbol = by_id["symbol"]
+        self.assertEqual(float(symbol.get("r")), 3)
+        self.assertEqual(symbol.get("fill"), "#000000")
 
 
 class TestFrame(unittest.TestCase):
