@@ -76,10 +76,15 @@ def check_references(directory: Path) -> list[str]:
     if not sources.is_file():
         return [f"{sources}: missing sources file"]
 
+    try:
+        sources_text = sources.read_text(encoding="utf-8")
+    except OSError as exc:
+        return [f"{sources}: could not be read: {exc}"]
+
     problems: list[str] = []
     entries: dict[str, int] = {}
 
-    for lineno, raw in enumerate(sources.read_text(encoding="utf-8").splitlines(), 1):
+    for lineno, raw in enumerate(sources_text.splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
@@ -121,7 +126,13 @@ def check_references(directory: Path) -> list[str]:
                 f"{sources}:{lineno}: {filename!r} could not be read: {exc}"
             )
 
-    for path in sorted(directory.iterdir()):
+    try:
+        listed = sorted(directory.iterdir())
+    except OSError as exc:
+        problems.append(f"{directory}: could not be listed: {exc}")
+        return problems
+
+    for path in listed:
         if path.name == SOURCES_NAME or not path.is_file():
             continue
         if path.suffix.lower() in IMAGE_SUFFIXES and path.name not in entries:

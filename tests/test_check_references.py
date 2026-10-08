@@ -60,5 +60,51 @@ class TestUnreadableImage(unittest.TestCase):
         )
 
 
+class TestUnreadableSources(unittest.TestCase):
+    def test_unreadable_sources_file_is_reported_not_raised(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            sources = root / module.SOURCES_NAME
+            sources.write_text(
+                "good.png | https://example.test/g.png | label\n",
+                encoding="utf-8",
+            )
+            (root / "good.png").write_bytes(module.PNG_MAGIC)
+            real_read_text = Path.read_text
+
+            def deny_sources(self, *args, **kwargs):
+                if self == sources:
+                    raise PermissionError(13, "Permission denied", str(self))
+                return real_read_text(self, *args, **kwargs)
+
+            with unittest.mock.patch.object(Path, "read_text", deny_sources):
+                problems = module.check_references(root)
+        self.assertTrue(
+            any(str(sources) in p and "could not be read" in p for p in problems),
+            problems,
+        )
+
+
+class TestUnreadableDirectory(unittest.TestCase):
+    def test_unreadable_directory_is_reported_not_raised(self):
+        module = load_checker()
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+            real_iterdir = Path.iterdir
+
+            def deny_iterdir(self):
+                if self == root:
+                    raise PermissionError(13, "Permission denied", str(self))
+                return real_iterdir(self)
+
+            with unittest.mock.patch.object(Path, "iterdir", deny_iterdir):
+                problems = module.check_references(root)
+        self.assertTrue(
+            any("could not be listed" in p for p in problems), problems
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
