@@ -1,5 +1,6 @@
 """Validate the org.macos8.desktop Plasma desktop theme package."""
 
+import math
 import os
 import re
 import shutil
@@ -192,6 +193,50 @@ def render_slices(tree):
                     pixels[(x + dx, y + dy)] = rect.get("fill")
         slices[group.get("id")] = pixels
     return slices
+
+
+_PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
+
+
+def _path_commands(d):
+    """Yield (command, numbers) for each command letter in an SVG path *d*."""
+    for letter, body in _PATH_COMMAND.findall(d):
+        yield letter, [float(n) for n in re.findall(r"-?\d+(?:\.\d+)?", body)]
+
+
+def path_arcs(d):
+    """Yield (start, (rx, ry, large_arc, sweep), end) for each arc in path *d*.
+
+    Only the M/A/L/Z commands the button corner paths use are interpreted; an
+    `A` command advances the current point to its endpoint, and `Z` closes the
+    subpath without moving it.
+    """
+    x = y = 0.0
+    for command, numbers in _path_commands(d):
+        if command in ("M", "L"):
+            x, y = numbers
+        elif command == "A":
+            rx, ry, _rotation, large_arc, sweep, nx, ny = numbers
+            yield (x, y), (rx, ry, int(large_arc), int(sweep)), (nx, ny)
+            x, y = nx, ny
+
+
+def arc_center(start, arc, end):
+    """Return the centre of a circular SVG arc given its endpoint form.
+
+    *arc* is (rx, ry, large_arc, sweep) with no x-axis rotation, so the centre
+    lies on the perpendicular bisector of start->end and the flags pick which
+    side. A flipped sweep flag puts the centre on the opposite side, which is
+    exactly the arc defect the button corner test computes against.
+    """
+    (x1, y1), (rx, _ry, large_arc, sweep), (x2, y2) = start, arc, end
+    x1p = (x1 - x2) / 2
+    y1p = (y1 - y2) / 2
+    denom = x1p * x1p + y1p * y1p
+    factor = math.sqrt((rx * rx - denom) / denom)
+    if large_arc == sweep:
+        factor = -factor
+    return (factor * y1p + (x1 + x2) / 2, -factor * x1p + (y1 + y2) / 2)
 
 
 def rect_geometry(tree):
@@ -503,6 +548,53 @@ class TestButton(unittest.TestCase):
             )
             with self.subTest(corner=name):
                 self.assertEqual(fills, colours, name)
+
+    def test_button_corner_arcs_curve_around_the_inner_corner(self):
+        # `test_button_bevel_direction` reads the corner paths' fills only, so
+        # a corner path whose `d` arcs the wrong way, at the wrong radius, or
+        # around the wrong point passes every other test: the rounded corner
+        # is the button's one piece of geometry no pixel test reaches. Read
+        # each arc's centre and radius from `d` and pin both against the
+        # slice's inner corner and the corner's layer radii. A flipped sweep
+        # flag moves the centre to the opposite corner; a changed radius moves
+        # it too, so this catches an arc the fill-order test cannot.
+        expected = {
+            # group: (inner corner, radii in document order)
+            "normal-topleft": ((3, 3), (3, 2, 1)),
+            "normal-topright": ((0, 3), (3, 2, 2, 1, 1)),
+            "normal-bottomleft": ((3, 0), (3, 2, 2, 1, 1)),
+            "normal-bottomright": ((0, 0), (3, 2, 1)),
+            "pressed-topleft": ((3, 3), (3, 2, 1)),
+            "pressed-topright": ((0, 3), (3, 2, 2, 1, 1)),
+            "pressed-bottomleft": ((3, 0), (3, 2, 2, 1, 1)),
+            "pressed-bottomright": ((0, 0), (3, 2, 1)),
+            "focus-topleft": ((2, 2), (2, 1)),
+            "focus-topright": ((0, 2), (2, 1)),
+            "focus-bottomleft": ((2, 0), (2, 1)),
+            "focus-bottomright": ((0, 0), (2, 1)),
+        }
+        tree = ET.parse(BUTTON_SVG)
+        groups = {el.get("id"): el for el in groups_with_id(tree)}
+        for name, (center, radii) in expected.items():
+            entries = [
+                entry
+                for path in groups[name]
+                if local_name(path) == "path"
+                for entry in path_arcs(path.get("d"))
+            ]
+            with self.subTest(corner=name):
+                self.assertEqual(
+                    [arc[0] for _, arc, _ in entries], list(radii), name
+                )
+                for start, arc, end in entries:
+                    rx, ry = arc[0], arc[1]
+                    self.assertEqual(rx, ry, name)
+                    actual = arc_center(start, arc, end)
+                    # The mixed-corner arcs meet the diagonal at coordinates
+                    # rounded to three decimals, so their reconstructed centre
+                    # is within a thousandth of the exact inner corner.
+                    self.assertAlmostEqual(actual[0], center[0], places=2, msg=name)
+                    self.assertAlmostEqual(actual[1], center[1], places=2, msg=name)
 
     def test_button_edge_pixels(self):
         # `test_button_bevel_direction` reads only the first column of each
