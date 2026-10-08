@@ -376,8 +376,8 @@ class TestDecode(unittest.TestCase):
         # IHDR is fixed at 13 bytes; any other length cannot be unpacked as
         # width/height/depth/colour/compression/filter/interlace, so it must be
         # rejected by length, naming the actual and expected sizes. The CLI test
-        # test_fidelity.TestCli.test_malformed_png_is_error already drives this
-        # guard end-to-end; this test pins the message it does not assert.
+        # test_fidelity_cli.TestCli.test_malformed_png_is_error already drives
+        # this guard end-to-end; this test pins the message it does not assert.
         data = (
             _PNG_SIGNATURE
             + _chunk(b"IHDR", b"\x00" * 12)

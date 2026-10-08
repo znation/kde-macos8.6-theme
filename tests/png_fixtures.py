@@ -1,8 +1,9 @@
 """PNG encoding helpers shared by the image test modules.
 
 Test-only: builds 8-bit, non-interlaced PNGs (including deliberately malformed
-ones) so ``tests/test_png.py`` and ``tests/test_fidelity.py`` share one encoder
-instead of each carrying its own.
+ones) so the image test modules -- ``tests/test_png.py``,
+``tests/test_fidelity_metrics.py`` and ``tests/test_fidelity_cli.py`` -- share
+one encoder instead of each carrying its own.
 """
 
 from __future__ import annotations

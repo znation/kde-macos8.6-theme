@@ -121,7 +121,7 @@ is the conjunction of the budgets the caller actually set; with neither set it f
 strictest gate, no pixel differing by more than `--tolerance` (so the default stays byte-exact, and
 `--tolerance` alone now gates as the README promised). The verdict line prints `unset` for an
 unset budget, and the README's Fidelity section and the `--help` epilog document the rule.
-`tests/test_fidelity.py` adds `TestCli.test_tolerance_is_the_default_gate` (a candidate whose worst
+`tests/test_fidelity_cli.py` adds `TestCli.test_tolerance_is_the_default_gate` (a candidate whose worst
 delta equals `--tolerance` passes and one above it fails) and
 `TestCli.test_explicit_budget_replaces_default_gate` (`--max-mae` alone is the criterion); both
 fail before the change and pass after. A coverage pass (2026-10-08) added
@@ -184,8 +184,9 @@ their provenance, but no code compared a captured surface against the retail-lab
 types 0/2/3/4/6) with only the standard library, crops a reference to a surface region, and reports
 objective metrics — mean absolute error, RMSE, worst per-channel delta, and differing-pixel
 fraction — exiting non-zero when the result is outside the requested tolerance.
-`tests/test_png.py` covers decoding (palette plus every PNG filter type); `tests/test_fidelity.py`
-covers the metrics, cropping, and the CLI pass/fail paths. Producing the candidate PNG (the Plasma
+`tests/test_png.py` covers decoding (palette plus every PNG filter type);
+`tests/test_fidelity_metrics.py` covers the metrics and cropping, and
+`tests/test_fidelity_cli.py` covers the CLI pass/fail paths. Producing the candidate PNG (the Plasma
 render step) is still missing and is tracked as its own Open entry above.
 
 **Validation gap:** unclear-invariant — "pixel-perfect" had no numeric definition and the repo had
