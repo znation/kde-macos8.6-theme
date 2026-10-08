@@ -5,15 +5,13 @@ surface as a problem line rather than a traceback, and a checked-in symlink
 must not let it read outside the reference directory.
 """
 
-import os
-import tempfile
 import unittest
-from pathlib import Path
 
 from check_references_fixtures import (
     load_checker,
     path_method_raises,
     reference_set,
+    symlinked_reference,
 )
 
 
@@ -140,13 +138,9 @@ class TestSymlinkEscape(unittest.TestCase):
 
     def test_sources_symlink_outside_directory_is_not_read(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            ref = root / "ref"
-            ref.mkdir()
-            secret = root / "secret.txt"
-            secret.write_text("SECRET_TOKEN_abc123\n", encoding="utf-8")
-            os.symlink(secret, ref / module.SOURCES_NAME)
+        with symlinked_reference(
+            module, module.SOURCES_NAME, b"SECRET_TOKEN_abc123\n"
+        ) as ref:
             problems = module.check_references(ref)
         joined = "\n".join(problems)
         self.assertNotIn("SECRET_TOKEN_abc123", joined)
@@ -154,17 +148,12 @@ class TestSymlinkEscape(unittest.TestCase):
 
     def test_declared_image_symlink_outside_directory_is_reported(self):
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            ref = root / "ref"
-            ref.mkdir()
-            outside = root / "outside.png"
-            outside.write_bytes(module.PNG_MAGIC + b"secret")
-            (ref / module.SOURCES_NAME).write_text(
-                "link.png | https://example.test/l.png | label\n",
-                encoding="utf-8",
-            )
-            os.symlink(outside, ref / "link.png")
+        with symlinked_reference(
+            module,
+            "link.png",
+            module.PNG_MAGIC + b"secret",
+            "link.png | https://example.test/l.png | label\n",
+        ) as ref:
             problems = module.check_references(ref)
         self.assertTrue(any("outside" in p for p in problems), problems)
 
@@ -178,14 +167,9 @@ class TestSymlinkEscape(unittest.TestCase):
         check, not by the content sniff it replaces.
         """
         module = load_checker()
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            ref = root / "ref"
-            ref.mkdir()
-            outside = root / "secret.png"
-            outside.write_bytes(module.PNG_MAGIC + b"secret")
-            (ref / module.SOURCES_NAME).write_text("", encoding="utf-8")
-            os.symlink(outside, ref / "leak")
+        with symlinked_reference(
+            module, "leak", module.PNG_MAGIC + b"secret", ""
+        ) as ref:
             problems = module.check_references(ref)
         joined = "\n".join(problems)
         self.assertIn("outside", joined, problems)

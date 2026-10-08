@@ -54,6 +54,29 @@ def reference_set(module, sources, files=()):
         yield root
 
 
+@contextlib.contextmanager
+def symlinked_reference(module, link_name, target, sources=None):
+    """Yield a reference directory holding one symlink that escapes it.
+
+    ``target`` is the bytes of a file created beside the directory, and the
+    symlink named ``link_name`` inside it points at that file. ``sources``,
+    when given, is the sources.txt content written inside the directory (so
+    the caller can declare the escaping link); when omitted, no sources.txt
+    is written and ``link_name`` may itself be the symlinked sources.txt.
+    The directory and its sibling target are removed when the context exits.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        ref = root / "ref"
+        ref.mkdir()
+        outside = root / "outside"
+        outside.write_bytes(target)
+        if sources is not None:
+            (ref / module.SOURCES_NAME).write_bytes(sources.encode("utf-8"))
+        os.symlink(outside, ref / link_name)
+        yield ref
+
+
 def check_references_in(module, sources, files=()):
     """Return check_references' problems for a temporary reference set."""
     with reference_set(module, sources, files) as root:
