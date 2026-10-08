@@ -127,6 +127,19 @@ class TestStructure(unittest.TestCase):
                     self.parser.has_option(section, key), f"{section}/{key}"
                 )
 
+    def test_colorscheme_value_names_the_scheme_file(self):
+        # KDE's scheme resolver turns a `ColorScheme=<value>` config value into
+        # `<value>.colors` looked up beside this file (see the BUGS.md entry on
+        # the dotted filename), and every installed KDE scheme sets the value to
+        # its own filename stem. A rename or edit that breaks the pairing makes
+        # the scheme silently fall back to BreezeLight on the next load.
+        value = self.parser.get("General", "ColorScheme")
+        self.assertEqual(
+            os.path.basename(SCHEME),
+            f"{value}.colors",
+            "General/ColorScheme must name this file (without the .colors suffix)",
+        )
+
     def test_color_values_are_rgb(self):
         for section, key in RGB_VALUES:
             value = self.parser.get(section, key)
