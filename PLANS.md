@@ -5,7 +5,95 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Mac OS 8.6 Platinum radio button widget for the desktop theme
+
+**Planned 2026-10-07 by plan.** Independent of the done frame and button plans: it adds one widget
+file to the existing `org.macos8.desktop` desktop-theme package and a `TestRadioButton` class plus
+one `TestInstall` tuple entry to `tests/test_desktoptheme.py`. It does not touch `button.svg`,
+`frame.svg`, or `panel-background.svg`.
+
+**Goal.** Ship `widgets/radiobutton.svg` in the `org.macos8.desktop` desktop theme so
+`PlasmaComponents.RadioButton` draws the Platinum radio button — a white circle with a 1px black
+outline and, when selected, a black centre dot — instead of the Breeze `actionbutton` face. It is
+the radio half of the `CheckBox`/`RadioButton` indicators the button plan left on Breeze
+faces/glyphs.
+
+**Grounding.**
+- `RadioIndicator.qml` (installed at
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/RadioIndicator.qml`) loads
+  `KSvg.Svg { imagePath: "widgets/radiobutton" }` and selects its `radiobuttonComponent` only when
+  `radioButtonSvg.fromCurrentImageSet` is true; the fallback `compatibilityComponent` draws
+  `widgets/actionbutton` plus `widgets/checkmarks` elementId `"radiobutton"`. The default theme is
+  the only installed theme with `widgets/radiobutton.svgz` (`find /usr/share/plasma/desktoptheme
+  -name 'radiobutton.svg*'` returns just that file; breeze-light/breeze-dark ship no `widgets/`
+  directory), so today `fromCurrentImageSet` is false for this theme and radios render the Breeze
+  face; shipping our own `widgets/radiobutton.svg` makes it true. The file's own comment states the
+  mechanism: "fromCurrentImageSet is false for them. This is because they don't contain any SVGs
+  and inherit all of them from the default theme."
+- The modern `radiobuttonComponent` draws, each `anchors.centerIn: parent` with
+  `implicitWidth: naturalSize.width`: `normal` (always visible), `shadow` (`opacity: enabled &&
+  !control.down`), `checked` (opacity when checked), `focus`, `hover`, and `symbol`
+  (`scale: control.checked`, so hidden at 0). `hintSize` uses `elementSize("hint-size")` when the
+  element is present, else `Kirigami.Units.iconSizes.small` (16px). Missing elements render
+  nothing, so the file need not ship the states Mac OS 8.6 does not have.
+- The default `radiobutton.svgz` (parsed from
+  `zcat /usr/share/plasma/desktoptheme/default/widgets/radiobutton.svgz`) has ids `normal`,
+  `checked`, `focus`, `hover`, `shadow`, `symbol`, `hint-size`; its `hint-size` is a circle r=8
+  (16x16) and its `symbol` a circle r=3 (6x6).
+- Mac OS 8.6 radio buttons have no hover highlight, focus ring, or drop shadow, so those elements
+  are deliberately absent. The palette is the `#FFFFFF`/`#000000` the button plan pins
+  (`[Colors:Button]`/`[Colors:Window]` in `theme/color-schemes/MacOS8.colors`); the 1px outline is
+  a black filled circle under a white filled circle, so the ring stays crisp with no stroke
+  antialiasing.
+- The package is installed with `cp -r` (the `Makefile` `install_package` macro), so the new file
+  needs no Makefile change.
+
+**Approach.**
+1. New file `widgets/radiobutton.svg` in the `org.macos8.desktop` package: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="16" viewBox="0 0 48 16">` with a
+   comment naming the widget and its two states.
+   - `<g id="normal">` centred at (8,8): `<circle cx="8" cy="8" r="8" fill="#000000"/>` then
+     `<circle cx="8" cy="8" r="7" fill="#FFFFFF"/>` — a 16x16 bounding box and a 1px black ring.
+   - `<circle id="symbol" cx="40" cy="8" r="3" fill="#000000"/>` — the 6x6 selected dot.
+   - `<circle id="hint-size" cx="24" cy="8" r="8" style="fill:#ff00ff"/>` — geometry only, colour
+     through `style` so it stays out of the parsed `fill` set (mirrors `button.svg`'s hint rects).
+   No `shadow`/`checked`/`focus`/`hover`, no `mask-*`, no `class="ColorScheme-*"`, no `<script>`,
+   and no fill outside the 48x16 canvas.
+2. `tests/test_desktoptheme.py` (edit):
+   - Add `RADIOBUTTON_SVG = os.path.join(PACKAGE, "widgets", "radiobutton.svg")` beside
+     `BUTTON_SVG`.
+   - Add `class TestRadioButton` beside `TestButton`:
+     - `test_radiobutton_contract`: `ET.parse` the file; assert ids `normal`, `symbol`, and
+       `hint-size` are present; assert the parsed `fill` attributes are exactly
+       `{"#FFFFFF", "#000000"}`; assert no element tag ends in `script`.
+     - `test_radiobutton_geometry`: assert the `normal` group holds two `circle` children with radii
+       8 and 7, and that the `symbol` circle has radius 3 (so the ring and dot cannot silently
+       shrink or vanish).
+   - Add `os.path.join("widgets", "radiobutton.svg")` to the tuple in
+     `TestInstall.test_make_install_copies_package_byte_for_byte`.
+3. `README.md` (edit): extend the `tumwater:status` sentence that enumerates the desktop theme's
+   widgets with "and whose `widgets/radiobutton.svg` provides the Platinum radio button (a white
+   face with a 1px black outline and a black selection dot)".
+
+**Files touched.** New: `radiobutton.svg` in the package's `widgets/` subdirectory. Edited:
+`tests/test_desktoptheme.py` (`TestRadioButton`, `TestInstall` tuple), `README.md`. No change to the
+color scheme, the look-and-feel package, the Makefile, or the other widgets.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestRadioButton` passing.
+- The radio SVG parses and contains `normal`, `symbol`, and `hint-size`; its parsed `fill`
+  attributes are exactly `#FFFFFF` and `#000000`; the `normal` circles have radii 8 and 7 and the
+  `symbol` circle radius 3.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/radiobutton.svg` byte-identical to
+  source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a `PlasmaComponents.RadioButton` renders a white
+  circle with a 1px black outline, and when selected shows a black centre dot with no Breeze blue,
+  hover highlight, or drop shadow; every other widget is unchanged.
+
+**Follow-up (not planned here).** `widgets/checkmarks.svg` for the checkbox/radio glyph overlays,
+`widgets/actionbutton.svg` for `RoundButton`/`Dial`/`RoundShadow`, then `scrollbar`, `listitem`,
+and `background`.
 
 ## Done
 
