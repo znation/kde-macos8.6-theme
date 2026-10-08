@@ -226,6 +226,78 @@ class TestInstall(unittest.TestCase):
             with open(SCHEME, "rb") as source, open(installed, "rb") as target:
                 self.assertEqual(source.read(), target.read())
 
+    def test_make_install_names_the_scheme_after_its_source_basename(self):
+        # KDE derives the scheme id from the installed filename, so install must
+        # follow the source basename: a hardcoded destination name would install
+        # a renamed scheme under the old id and break its restart resolution.
+        with tempfile.TemporaryDirectory() as tmp:
+            source = os.path.join(tmp, "Platinum.colors")
+            shutil.copy(SCHEME, source)
+            result = subprocess.run(
+                [
+                    "make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share",
+                    f"COLOR_SCHEME={source}",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            installed = os.path.join(
+                tmp, "share", "color-schemes", "Platinum.colors"
+            )
+            self.assertTrue(os.path.isfile(installed), installed)
+            with open(source, "rb") as original, open(installed, "rb") as copy:
+                self.assertEqual(original.read(), copy.read())
+            self.assertFalse(
+                os.path.exists(
+                    os.path.join(tmp, "share", "color-schemes", "MacOS8.colors")
+                ),
+                "the old hardcoded name should not be installed",
+            )
+
+    def test_make_uninstall_removes_the_scheme_under_its_source_basename(self):
+        # `uninstall` must remove the same basename `install` wrote: a hardcoded
+        # name would leave a renamed scheme behind and delete the wrong file.
+        with tempfile.TemporaryDirectory() as tmp:
+            source = os.path.join(tmp, "Platinum.colors")
+            shutil.copy(SCHEME, source)
+            installed = subprocess.run(
+                [
+                    "make", "install", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share",
+                    f"COLOR_SCHEME={source}",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(installed.returncode, 0, installed.stderr)
+            schemes = os.path.join(tmp, "share", "color-schemes")
+            renamed = os.path.join(schemes, "Platinum.colors")
+            self.assertTrue(os.path.isfile(renamed), renamed)
+            decoy = os.path.join(schemes, "MacOS8.colors")
+            with open(decoy, "w", encoding="utf-8") as handle:
+                handle.write("[General]\nName=Decoy\n")
+
+            removed = subprocess.run(
+                [
+                    "make", "uninstall", f"DESTDIR={tmp}", "XDG_DATA_HOME=/share",
+                    f"COLOR_SCHEME={source}",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(removed.returncode, 0, removed.stderr)
+            self.assertFalse(
+                os.path.exists(renamed),
+                "the renamed scheme should have been uninstalled",
+            )
+            self.assertTrue(
+                os.path.isfile(decoy),
+                "uninstall must not remove a file it did not install",
+            )
+
     def test_make_uninstall_removes_only_the_scheme_it_installed(self):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
