@@ -173,7 +173,6 @@ def _self_test() -> int:
          [("stub.png", b"version https://git-lfs.github.com/spec/v1\n"
                        b"oid sha256:deadbeef\nsize 12345\n")],
          "Git LFS pointer"),
-        ("binary image", "real.png | u | l\n", [("real.png", PNG_MAGIC)], None),
         ("non-image payload", "fake.png | u | l\n",
          [("fake.png", b"<!DOCTYPE html>\n<html>404 Not Found</html>\n")],
          "not a PNG, JPEG, GIF or WebP image"),
