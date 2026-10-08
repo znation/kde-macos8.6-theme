@@ -21,6 +21,15 @@ from pathlib import Path
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
+# First line of an unmaterialized Git LFS pointer file. The reference
+# screenshots are stored with Git LFS, so a fresh clone that has not run
+# `git lfs pull` hands read_png a small text pointer under an image name.
+# Decoding it reports only "not a PNG file", which reads as a corrupt image
+# rather than a missing fetch, so read_png names the pointer and the fix. The
+# same literal is in tools/check_references.py, which reports the condition
+# for the whole reference set.
+_LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
+
 # color_type -> channels per pixel at bit depth 8
 _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 
@@ -468,6 +477,11 @@ def read_png(path: str | Path) -> Image:
         raise PngError(
             f"cannot read {path}: file is {file_stat.st_size} bytes, larger "
             f"than the {_MAX_FILE_BYTES}-byte limit"
+        )
+    if data.startswith(_LFS_POINTER_MAGIC):
+        raise PngError(
+            f"cannot decode {path}: the file is an unmaterialized Git LFS "
+            "pointer, not image data; run `git lfs pull` to fetch it"
         )
     try:
         return decode_png(data)

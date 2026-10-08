@@ -620,6 +620,28 @@ class TestDecode(unittest.TestCase):
                 png.read_png(path)
             self.assertIn(str(path), str(ctx.exception))
 
+    def test_read_png_names_an_unmaterialized_lfs_pointer(self):
+        # The reference screenshots are stored with Git LFS. On a fresh clone
+        # without `git lfs pull`, a reference path is a small text pointer;
+        # decoding it would report only "not a PNG file", which reads as a
+        # corrupt image rather than a missing fetch. Name the pointer and the
+        # command that fetches it. The pointer text is written out literally,
+        # not read from the module constant, so the test fails if the constant
+        # stops matching a real Git LFS pointer.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "pointer.png"
+            path.write_bytes(
+                b"version https://git-lfs.github.com/spec/v1\n"
+                b"oid sha256:" + b"0" * 64 + b"\n"
+                b"size 12345\n"
+            )
+            with self.assertRaises(png.PngError) as ctx:
+                png.read_png(path)
+            message = str(ctx.exception)
+            self.assertIn(str(path), message)
+            self.assertIn("Git LFS pointer", message)
+            self.assertIn("git lfs pull", message)
+
     def test_read_png_rejects_a_fifo_instead_of_blocking(self):
         # open() on a FIFO blocks until a writer appears, and read() on a pipe
         # whose writer never sends or closes blocks forever; the byte cap
