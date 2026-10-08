@@ -128,6 +128,20 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
         ):
             self.assertFalse(self.is_absolute(url), repr(url))
 
+    def test_raw_whitespace_problem_names_the_whitespace_not_the_scheme(self):
+        # The URL's scheme is valid, so a diagnostic that blames the scheme
+        # sends the reader after the wrong fix; it must point at the space.
+        module = load_checker()
+        problems = check_references_in(
+            module,
+            "bad.png | https://example.test/a b.png | label\n",
+            {"bad.png": module.PNG_MAGIC},
+        )
+        assert_problem(self, problems, "whitespace or control")
+        self.assertFalse(
+            any("absolute URL" in line for line in problems), problems
+        )
+
 
 class TestAcceptedImageFormats(unittest.TestCase):
     """The checker must accept every raster format the reference set uses.

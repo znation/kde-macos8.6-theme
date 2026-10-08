@@ -7,7 +7,8 @@ script verifies that record against the files actually on disk, so a renamed or
 forgotten image cannot silently drop out of the evidence trail. It also rejects
 unmaterialized Git LFS pointer files, files whose bytes are not a known image
 format (such as an HTML error page saved under an image name), and source URLs
-that are not absolute (a bare host or relative path is a broken citation).
+that are not well-formed absolute URLs (a bare host, a relative path, or a raw
+space is a broken citation).
 
 Usage:
     python3 tools/check_references.py              # check the repository
@@ -78,8 +79,8 @@ def _looks_like_image(path: Path) -> bool:
 _SCHEME_PUNCTUATION = frozenset("+-.")
 
 
-def _is_absolute_url(url: str) -> bool:
-    """Return True when *url* is a well-formed absolute URL.
+def _url_problem(url: str) -> str | None:
+    """Return why *url* is not a well-formed absolute URL, or None when it is.
 
     A provenance source is an absolute URL, so a bare host or a relative path
     (``example.test/x.png``) is a broken citation even though it is non-empty.
@@ -88,13 +89,36 @@ def _is_absolute_url(url: str) -> bool:
     which belong percent-encoded. Both rules catch broken citations that a
     first-character-only scheme test accepts: ``ht!tp://x`` and
     ``https://example.test/a b.png``.
+
+    The two failures are returned separately because the fix differs: a URL
+    with no (or a malformed) scheme needs a source, while one whose scheme is
+    fine but which carries a space or control character only needs that
+    character percent-encoded. Blaming the scheme for the latter sends the
+    reader after the wrong thing.
     """
     scheme, sep, rest = url.partition("://")
-    if not (sep and rest) or not scheme.isascii() or not scheme[:1].isalpha():
-        return False
-    if not all(ch.isalnum() or ch in _SCHEME_PUNCTUATION for ch in scheme):
-        return False
-    return all(ch.isprintable() and not ch.isspace() for ch in url)
+    if (
+        not (sep and rest)
+        or not scheme.isascii()
+        or not scheme[:1].isalpha()
+        or not all(ch.isalnum() or ch in _SCHEME_PUNCTUATION for ch in scheme)
+    ):
+        return (
+            "must be an absolute URL with a valid scheme, "
+            "e.g. https://example.test/image.png"
+        )
+    if not all(ch.isprintable() and not ch.isspace() for ch in url):
+        return "must not contain whitespace or control characters; percent-encode them"
+    return None
+
+
+def _is_absolute_url(url: str) -> bool:
+    """Return True when *url* is a well-formed absolute URL.
+
+    See :func:`_url_problem`, which this wraps, for the rules and the reason a
+    URL can fail.
+    """
+    return _url_problem(url) is None
 
 
 def _resolves_within(directory: Path, path: Path) -> bool:
@@ -163,10 +187,10 @@ def check_references(directory: Path) -> list[str]:
                 "cannot name a file"
             )
             continue
-        if not _is_absolute_url(url):
+        url_problem = _url_problem(url)
+        if url_problem is not None:
             problems.append(
-                f"{sources}:{lineno}: source URL {url!r} must be an absolute "
-                "URL with a scheme, e.g. https://example.test/image.png"
+                f"{sources}:{lineno}: source URL {url!r} {url_problem}"
             )
             continue
         if Path(filename).name != filename or filename in (".", ".."):
@@ -308,8 +332,15 @@ def _self_test() -> int:
          [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
         ("url with a malformed scheme", "bad.png | ht!tp://example.test/b.png | label\n",
          [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
+        # The scheme is valid, so the diagnostic must name the whitespace, not
+        # the scheme, or it sends the reader after the wrong thing.
         ("url with raw whitespace", "bad.png | https://example.test/a b.png | label\n",
-         [("bad.png", PNG_MAGIC)], ["absolute URL", "bad.png: image has no entry"]),
+         [("bad.png", PNG_MAGIC)],
+         ["whitespace or control", "bad.png: image has no entry"]),
+        ("url with a control character",
+         "bad.png | https://example.test/a\x01b.png | label\n",
+         [("bad.png", PNG_MAGIC)],
+         ["whitespace or control", "bad.png: image has no entry"]),
         ("path in filename", "sub/good.png | https://example.test/x | l\n",
          [("sub/good.png", PNG_MAGIC)], ["bare filename"]),
         ("undeclared image", "", [("extra.png", PNG_MAGIC)], ["extra.png"]),
