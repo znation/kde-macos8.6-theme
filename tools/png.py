@@ -21,6 +21,13 @@ from pathlib import Path
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
+# The PNG spec caps a chunk's payload length at 2**31 - 1 bytes: the field is
+# 32-bit unsigned, but values with the high bit set are reserved. A file
+# declaring more is malformed; without this check the length is compared
+# against the bytes present and reported as a truncated chunk, which points at
+# a missing tail instead of the invalid length.
+_MAX_CHUNK_LENGTH = (1 << 31) - 1
+
 # First line of an unmaterialized Git LFS pointer file. The reference
 # screenshots are stored with Git LFS, so a fresh clone that has not run
 # `git lfs pull` hands read_png a small text pointer under an image name.
@@ -84,6 +91,12 @@ def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     while pos + 8 <= len(data):
         (length,) = struct.unpack(">I", data[pos : pos + 4])
         ctype = data[pos + 4 : pos + 8]
+        if length > _MAX_CHUNK_LENGTH:
+            raise PngError(
+                f"PNG chunk {_chunk_name(ctype)} at offset {pos} declares "
+                f"{length} payload bytes, above the {_MAX_CHUNK_LENGTH}-byte "
+                "maximum the PNG spec allows"
+            )
         # The PNG spec restricts a chunk type to four ASCII letters, and the
         # first byte alone decides whether the chunk is critical. A type with
         # a digit, space or non-ASCII byte is not a valid code: without this

@@ -110,6 +110,21 @@ class TestDecode(unittest.TestCase):
                 if ctype.isascii():
                     self.assertIn(repr(ctype.decode("ascii")), message)
 
+    def test_rejects_chunk_length_above_the_spec_maximum(self):
+        # A chunk length is a 32-bit unsigned field, but the PNG spec caps it
+        # at 2**31 - 1; a value with the high bit set cannot be a real payload.
+        # Without the cap it is compared against the bytes present and reported
+        # as a truncated chunk, which blames the file's tail instead of its
+        # invalid length. The error names the chunk, offset and declared length.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        oversized = struct.pack(">I", 0x80000000) + b"IDAT"
+        message = self._decode_error(data[:ihdr_end] + oversized)
+        self.assertIn("'IDAT'", message)
+        self.assertIn("offset", message)
+        self.assertIn("2147483648", message)
+        self.assertIn("2147483647", message)
+
     def test_ignored_ancillary_chunk_still_has_its_crc_checked(self):
         # Ignoring a chunk's contents must not skip its integrity check: a
         # corrupt ancillary chunk means the file is damaged and could hide a
