@@ -299,9 +299,9 @@ class TestAbsoluteUrlSchemeShape(unittest.TestCase):
 class TestAcceptedImageFormats(unittest.TestCase):
     """The checker must accept every raster format the reference set uses.
 
-    The built-in self-test exercises only the PNG and WebP signatures, so a
-    regression in the JPEG or GIF handling would flag the reference set's 9
-    JPEG and 1 GIF files as non-images without any test noticing.
+    The built-in self-test does not exercise the GIF signatures, so a
+    regression in GIF handling would flag the reference set's 1 GIF file as a
+    non-image without any test noticing.
     """
 
     def _problems_for(self, module, filename, content):
