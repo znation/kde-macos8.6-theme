@@ -77,6 +77,16 @@ class Image:
     rgb: bytes
 
     def __post_init__(self) -> None:
+        # bool is an int subclass, so True/False would pass an isinstance check
+        # as 1/0 and silently build a 1x1 image; a non-int dimension reaches
+        # the comparison below as an opaque TypeError (or, for a float, a byte
+        # count that is not a whole number). Require genuine integers here and
+        # name the offending dimension.
+        for name, value in (("width", self.width), ("height", self.height)):
+            if isinstance(value, bool) or not isinstance(value, int):
+                raise PngError(
+                    f"Image {name} must be an integer: {name}={value!r}"
+                )
         if self.width <= 0 or self.height <= 0:
             raise PngError(
                 f"Image dimensions must be positive: {self.width}x{self.height}"

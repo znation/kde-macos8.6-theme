@@ -49,3 +49,26 @@ class TestImage(unittest.TestCase):
                 with self.assertRaises(png.PngError) as ctx:
                     png.Image(width, height, b"")
                 self.assertIn(f"{width}x{height}", str(ctx.exception))
+
+    def test_rejects_bool_dimensions_despite_being_an_int_subclass(self):
+        # bool is an int subclass, so True/False would pass an isinstance
+        # check as 1/0 and build a 1x1 image carrying width=True; require a
+        # genuine integer and name the offending dimension.
+        for width, height in ((True, 1), (1, False), (True, True)):
+            with self.subTest(width=width, height=height):
+                with self.assertRaises(png.PngError) as ctx:
+                    png.Image(width, height, bytes(3))
+                self.assertIn("must be an integer", str(ctx.exception))
+
+    def test_rejects_non_integer_dimensions_naming_the_value(self):
+        # A non-int dimension used to reach the positivity comparison as an
+        # opaque TypeError (a str) or report a non-integral byte count (a
+        # float); the invariant names the offending dimension and its value.
+        for width, height in (("2", 2), (2, "2"), (2.5, 2), (2, 2.5)):
+            with self.subTest(width=width, height=height):
+                with self.assertRaises(png.PngError) as ctx:
+                    png.Image(width, height, b"")
+                message = str(ctx.exception)
+                self.assertIn("must be an integer", message)
+                self.assertIn(repr(width), message)
+                self.assertIn(repr(height), message)
