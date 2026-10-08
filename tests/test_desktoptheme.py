@@ -297,6 +297,47 @@ class TestButton(unittest.TestCase):
             with self.subTest(corner=name):
                 self.assertEqual(fills, colours, name)
 
+    def test_button_focus_ring_pixels(self):
+        # The focus state is a 1px #000000 ring on the outer pixel of its 2px
+        # border, transparent inside and in the centre, so ButtonFocus draws
+        # it 1-2px outside the button outline. `test_button_colours` sees the
+        # same four fills whichever pixel of the border is painted, so only
+        # pinning the pixels keeps the ring from sliding to the inner pixel,
+        # being recoloured to another Platinum grey, or the centre from being
+        # filled in.
+        slices = render_slices(ET.parse(BUTTON_SVG))
+        expected = {
+            "focus-top": {(x, 0): "#000000" for x in range(8)},
+            "focus-bottom": {(x, 1): "#000000" for x in range(8)},
+            "focus-left": {(0, y): "#000000" for y in range(8)},
+            "focus-right": {(1, y): "#000000" for y in range(8)},
+            "focus-center": {},
+        }
+        for name, pixels in expected.items():
+            with self.subTest(slice=name):
+                self.assertEqual(slices[name], pixels, name)
+
+        # The rounded corners are paths, so `render_slices` cannot composite
+        # them; pin that each carries exactly the one black ring path.
+        tree = ET.parse(BUTTON_SVG)
+        groups = {
+            el.get("id"): el for el in tree.iter()
+            if local_name(el) == "g" and el.get("id")
+        }
+        for name in (
+            "focus-topleft", "focus-topright",
+            "focus-bottomleft", "focus-bottomright",
+        ):
+            with self.subTest(corner=name):
+                self.assertEqual(
+                    [
+                        child.get("fill") for child in groups[name]
+                        if local_name(child) == "path"
+                    ],
+                    ["#000000"],
+                    name,
+                )
+
 
 class TestRadioButton(unittest.TestCase):
     def test_radiobutton_contract(self):
