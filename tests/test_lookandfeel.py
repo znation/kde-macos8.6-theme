@@ -11,6 +11,7 @@ import unittest
 
 from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
+from kpackage_install_case import KPackageInstallCase
 from package_metadata import PackageMetadata
 import theme_install
 from kde_config import read as read_kde_config
@@ -18,7 +19,6 @@ from theme_install import (
     ROOT,
     install,
     installed_package,
-    run,
     shadow_command_env,
 )
 
@@ -217,21 +217,10 @@ class TestInstall(
 
 
 @unittest.skipUnless(shutil.which("kpackagetool6"), "needs kpackagetool6")
-class TestPackageValid(unittest.TestCase):
-    def test_kpackagetool6_installs_package(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = run(
-                [
-                    "kpackagetool6", "-t", "Plasma/LookAndFeel",
-                    "-p", tmp, "-i", PACKAGE,
-                ],
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue(
-                os.path.isfile(os.path.join(tmp, LNF_ID, "metadata.json"))
-            )
+class TestPackageValid(KPackageInstallCase, unittest.TestCase):
+    KPACKAGETOOL_TYPE = "Plasma/LookAndFeel"
+    PACKAGE_DIR = PACKAGE
+    PACKAGE_ID = LNF_ID
 
 
 if __name__ == "__main__":

@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 
 from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
+from kpackage_install_case import KPackageInstallCase
 from kde_config import read as read_kde_config
 from package_metadata import PackageMetadata, load_metadata
 from theme_install import (
@@ -706,21 +707,10 @@ class TestApplyDesktopTheme(unittest.TestCase):
 
 
 @unittest.skipUnless(shutil.which("kpackagetool6"), "needs kpackagetool6")
-class TestPackageValid(unittest.TestCase):
-    def test_kpackagetool6_installs_package(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = run(
-                [
-                    "kpackagetool6", "-t", "Plasma/Theme",
-                    "-p", tmp, "-i", PACKAGE,
-                ],
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertTrue(
-                os.path.isfile(os.path.join(tmp, DTHEME_ID, "metadata.json"))
-            )
+class TestPackageValid(KPackageInstallCase, unittest.TestCase):
+    KPACKAGETOOL_TYPE = "Plasma/Theme"
+    PACKAGE_DIR = PACKAGE
+    PACKAGE_ID = DTHEME_ID
 
 
 if __name__ == "__main__":
