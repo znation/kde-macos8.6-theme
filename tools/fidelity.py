@@ -394,6 +394,11 @@ def _tolerance(value: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the comparison CLI; *argv* is the argument list without a program name.
+
+    Following ``argparse`` and the sibling ``tools/check_references.py``,
+    ``None`` reads ``sys.argv``.
+    """
     parser = _ArgumentParser(
         prog="fidelity",
         description="Measure a rendered PNG surface against a reference PNG.",
