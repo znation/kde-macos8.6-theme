@@ -135,6 +135,18 @@ def local_name(element):
     return element.tag.rsplit("}", 1)[-1]
 
 
+def assert_no_script_elements(case, tree):
+    """Assert *tree* holds no ``<script>`` element.
+
+    KSvg executes a script element rather than drawing it, so a pixel check
+    would not notice one; only this structural assertion catches it. *case* is
+    the calling ``unittest.TestCase``; its assertion names the element.
+    """
+    for element in tree.iter():
+        tag = local_name(element)
+        case.assertFalse(tag.endswith("script"), tag)
+
+
 def render_slices(tree):
     """Composite each id-bearing <g> of a nine-slice SVG into a {(x, y): fill} map.
 
@@ -248,9 +260,7 @@ class TestPanelBackground(unittest.TestCase):
         self.assertEqual(len(center), 8 * 8)
 
     def test_no_script_elements(self):
-        for element in self.tree.iter():
-            tag = local_name(element)
-            self.assertFalse(tag.endswith("script"), tag)
+        assert_no_script_elements(self, self.tree)
 
 
 class TestButton(unittest.TestCase):
@@ -297,10 +307,7 @@ class TestButton(unittest.TestCase):
         )
 
     def test_no_script_elements(self):
-        tree = ET.parse(BUTTON_SVG)
-        for element in tree.iter():
-            tag = local_name(element)
-            self.assertFalse(tag.endswith("script"), tag)
+        assert_no_script_elements(self, ET.parse(BUTTON_SVG))
 
     def test_button_bevel_direction(self):
         # `test_button_colours` sees the same four fills whichever way the
@@ -418,9 +425,7 @@ class TestRadioButton(unittest.TestCase):
             self.assertIn(name, ids, name)
         fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
         self.assertEqual(fills, {"#FFFFFF", "#000000"})
-        for element in tree.iter():
-            tag = local_name(element)
-            self.assertFalse(tag.endswith("script"), tag)
+        assert_no_script_elements(self, tree)
 
     def test_radiobutton_geometry(self):
         # The black ring is a filled circle under the white face, so the two
@@ -469,9 +474,7 @@ class TestCheckmarks(unittest.TestCase):
         self.assertEqual(strokes, {"#000000"})
         fills = {el.get("fill") for el in tree.iter() if el.get("fill")}
         self.assertEqual(fills, {"none", "#000000"})
-        for element in tree.iter():
-            tag = local_name(element)
-            self.assertFalse(tag.endswith("script"), tag)
+        assert_no_script_elements(self, tree)
 
     def test_checkmarks_geometry(self):
         # The consumers anchor the SvgItem with `anchors.fill`, so KSvg scales
@@ -550,10 +553,7 @@ class TestLineEdit(unittest.TestCase):
         )
 
     def test_no_script_elements(self):
-        tree = ET.parse(LINEEDIT_SVG)
-        for element in tree.iter():
-            tag = local_name(element)
-            self.assertFalse(tag.endswith("script"), tag)
+        assert_no_script_elements(self, ET.parse(LINEEDIT_SVG))
 
 
 class TestFrame(unittest.TestCase):
@@ -572,9 +572,7 @@ class TestFrame(unittest.TestCase):
             text = handle.read()
         for colour in ("#DDDDDD", "#FFFFFF", "#999999", "#000000"):
             self.assertIn(colour, text)
-        for element in tree.iter():
-            tag = local_name(element)
-            self.assertFalse(tag.endswith("script"), tag)
+        assert_no_script_elements(self, tree)
 
     def test_frame_hint_geometry(self):
         # `test_frame_svg_contract` pins only the hint ids, so a margin hint
