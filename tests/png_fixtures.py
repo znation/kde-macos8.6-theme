@@ -1,8 +1,9 @@
 """PNG encoding and decode-expectation helpers shared by the image test modules.
 
 Test-only: builds 8-bit, non-interlaced PNGs (including deliberately malformed
-ones) so the PNG test modules -- ``tests/test_png_decode.py``,
-``tests/test_png_filters.py``, ``tests/test_png_fixtures.py``,
+ones) so the image test modules -- ``tests/test_png_decode.py``,
+``tests/test_png_filters.py``, ``tests/test_png_read.py``,
+``tests/test_png_fixtures.py``, ``tests/test_sample_cli.py``,
 ``tests/test_fidelity_metrics.py`` and ``tests/test_fidelity_cli.py`` -- share
 one encoder instead of each carrying its own. It also expands raw scanlines to
 the RGB bytes ``decode_png`` should return, so a test comparing a non-RGB
