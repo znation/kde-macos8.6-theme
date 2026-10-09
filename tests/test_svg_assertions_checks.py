@@ -92,10 +92,24 @@ class _NoSubTest(unittest.TestCase):
     than raising, so an ``assertRaises`` around the guard would never see it.
     Dropping the subTest frame keeps the real ``assertEqual`` (which raises)
     so the guard's failure is observable here.
+
+    The pixel guards compare whole ``{(x, y): colour}`` maps, and every use of
+    this stub is a deliberately broken map whose only observable is that the
+    guard raises. ``assertEqual`` on two dicts dispatches to
+    ``assertDictEqual``, whose failure path pretty-prints both maps and runs
+    them through difflib -- a large, pure-diagnostic cost these callers never
+    read. Compare without that diff; a mismatch still raises
+    ``AssertionError``, so the guard's failure stays observable.
     """
 
     def subTest(self, **kwargs):
         return contextlib.nullcontext()
+
+    def assertDictEqual(self, d1, d2, msg=None):
+        self.assertIsInstance(d1, dict, "First argument is not a dictionary")
+        self.assertIsInstance(d2, dict, "Second argument is not a dictionary")
+        if d1 != d2:
+            self.fail(self._formatMessage(msg, "the maps differ"))
 
 
 class TestStructuralGuards(unittest.TestCase):
