@@ -29,3 +29,15 @@ def _svg_tree(body, **attributes):
             f'<svg xmlns="http://www.w3.org/2000/svg"{attrs}>{body}</svg>'
         )
     )
+
+
+class SvgBodyCase:
+    """Mixin for cases whose tests build a tree from an SVG body string.
+
+    The tree-query cases in ``test_svg_assertions_parsing`` each wrap a body
+    string in the shared ``<svg>`` root; ``_tree`` exposes ``_svg_tree`` to the
+    test method. Subclass it before ``unittest.TestCase``.
+    """
+
+    def _tree(self, body):
+        return _svg_tree(body)

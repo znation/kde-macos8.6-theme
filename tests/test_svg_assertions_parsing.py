@@ -37,7 +37,7 @@ from svg_assertions import (
     sunken_face_corners,
     tile_origins,
 )
-from svg_fixtures import _svg_tree
+from svg_fixtures import SvgBodyCase, _svg_tree
 
 
 class TestPathArcs(unittest.TestCase):
@@ -634,10 +634,7 @@ class TestPixelMap(unittest.TestCase):
                 )
 
 
-class TestGroupsWithId(unittest.TestCase):
-    def _tree(self, body):
-        return _svg_tree(body)
-
+class TestGroupsWithId(SvgBodyCase, unittest.TestCase):
     def test_yields_only_id_bearing_groups(self):
         # The documented filter: an id-bearing <rect>, <path> or <circle> must
         # not be yielded -- render_slices and tile_origins composite whole
@@ -676,10 +673,7 @@ class TestGroupsWithId(unittest.TestCase):
         self.assertEqual(list(groups_with_id(tree)), [])
 
 
-class TestAttributeValues(unittest.TestCase):
-    def _tree(self, body):
-        return _svg_tree(body)
-
+class TestAttributeValues(SvgBodyCase, unittest.TestCase):
     def test_collects_values_from_every_descendant(self):
         # The ids sit at different depths -- a root child, a nested group and
         # a rect under a nested group -- so a helper that scanned only the
@@ -750,10 +744,7 @@ class TestChildrenNamed(unittest.TestCase):
         self.assertEqual(children_named(group, "rect"), [])
 
 
-class TestElementsById(unittest.TestCase):
-    def _tree(self, body):
-        return _svg_tree(body)
-
+class TestElementsById(SvgBodyCase, unittest.TestCase):
     def test_keeps_elements_that_are_not_groups(self):
         # Unlike groups_with_id, this map must keep a <circle> or <path>:
         # radiobutton reads its selection dot and checkmarks their glyphs by
