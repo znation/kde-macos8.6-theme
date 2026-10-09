@@ -1,6 +1,7 @@
 """Shared SVG tree fixtures for the svg-assertion test modules.
 
-``test_svg_assertions_parsing`` and ``test_svg_assertions_checks`` both build
+``test_svg_assertions_tree``, ``test_svg_assertions_geometry``,
+``test_svg_assertions_render`` and ``test_svg_assertions_checks`` all build
 namespaced ``<svg>`` documents to exercise ``tests/svg_assertions.py``; the
 wrapper that declares the SVG namespace lives here once instead of in each
 module.
@@ -34,7 +35,7 @@ def _svg_tree(body, **attributes):
 class SvgBodyCase:
     """Mixin for cases whose tests build a tree from an SVG body string.
 
-    The tree-query cases in ``test_svg_assertions_parsing`` each wrap a body
+    The tree-query cases in ``test_svg_assertions_tree`` each wrap a body
     string in the shared ``<svg>`` root; ``_tree`` exposes ``_svg_tree`` to the
     test method. Subclass it before ``unittest.TestCase``.
     """
