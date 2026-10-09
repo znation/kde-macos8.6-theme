@@ -77,6 +77,23 @@ def _kde(rgb):
     return ",".join(str(channel) for channel in rgb)
 
 
+def _black_run_length(colours, start=0):
+    """Return the length of the first black->black run in *colours*.
+
+    *colours* are RGB triples sampled at consecutive coordinates beginning at
+    *start*; the run spans the first black pixel through the next black pixel
+    after a gap.
+    """
+    blacks = [
+        start + i
+        for i, colour in enumerate(colours)
+        if colour == (0, 0, 0)
+    ]
+    first = blacks[0]
+    second = next(index for index in blacks if index > first + 1)
+    return second - first + 1
+
+
 def _rect_fills(tree, group_id):
     """Return every rect fill inside the ``<g id=group_id>`` of *tree*.
 
@@ -205,26 +222,17 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
     def _title_bar_height(self):
         """Return the black->black title-bar run at a clear column x=250."""
         column = [self.reference_pixel(250, y) for y in range(20, 60)]
-        blacks = [20 + i for i, colour in enumerate(column) if colour == (0, 0, 0)]
-        first = blacks[0]
-        second = next(y for y in blacks if y > first + 1)
-        return second - first + 1
+        return _black_run_length(column, 20)
 
     def _side_border_thickness(self):
         """Return the black->black side-border run at a clear row y=100."""
         row = [self.reference_pixel(x, 100) for x in range(0, 16)]
-        blacks = [i for i, colour in enumerate(row) if colour == (0, 0, 0)]
-        first = blacks[0]
-        second = next(x for x in blacks if x > first + 1)
-        return second - first + 1
+        return _black_run_length(row)
 
     def _bottom_border_thickness(self):
         """Return the black->black bottom-border run at a clear column x=250."""
         column = [self.reference_pixel(250, y) for y in range(417, 425)]
-        blacks = [417 + i for i, colour in enumerate(column) if colour == (0, 0, 0)]
-        first = blacks[0]
-        second = next(y for y in blacks if y > first + 1)
-        return second - first + 1
+        return _black_run_length(column, 417)
 
     def _frame_edges(self):
         """Return the frame's (left, right, top) reference coordinates.
