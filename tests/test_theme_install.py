@@ -17,6 +17,22 @@ import theme_install
 from process_assertions import assert_failed, assert_succeeded
 
 
+def _assert_both_targets_refused(case, env, args, expected):
+    """Run `install` and `uninstall` with *env*; both must refuse.
+
+    *args* carries the make variable assignments for each target, and *expected*
+    names each substring the diagnostic must carry. `install` and `uninstall`
+    share their guards, so a test that drove only one target would miss a guard
+    wired to the other.
+    """
+    for target in ("install", "uninstall"):
+        with case.subTest(target=target):
+            result = theme_install.run_make([target, *args], env=env)
+            assert_failed(case, result)
+            for substring in expected:
+                case.assertIn(substring, result.stderr)
+
+
 class TestWhitespaceInInstallPaths(unittest.TestCase):
     """`make install`/`uninstall` must quote paths that contain whitespace.
 
@@ -99,11 +115,7 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         env = dict(os.environ)
         env.pop("HOME", None)
         env.pop("XDG_DATA_HOME", None)
-        for target in ("install", "uninstall"):
-            with self.subTest(target=target):
-                result = theme_install.run_make([target], env=env)
-                assert_failed(self, result)
-                self.assertIn("HOME is unset", result.stderr)
+        _assert_both_targets_refused(self, env, (), ("HOME is unset",))
 
     def test_relative_home_without_an_absolute_data_home_is_refused(self):
         # A relative HOME makes the fallback a relative path, so `install -d`
@@ -115,18 +127,17 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         env = dict(os.environ, HOME="relative")
         env.pop("XDG_DATA_HOME", None)
         with tempfile.TemporaryDirectory() as tmp:
-            for target in ("install", "uninstall"):
-                with self.subTest(target=target):
-                    result = theme_install.run_make(
-                        [target, f"DESTDIR={tmp}"], env=env
-                    )
-                    assert_failed(self, result)
-                    self.assertIn(
-                        "HOME is not an absolute path", result.stderr
-                    )
+            _assert_both_targets_refused(
+                self,
+                env,
+                (f"DESTDIR={tmp}",),
+                (
+                    "HOME is not an absolute path",
                     # The guard names the offending HOME so a contributor can
                     # see which value it read, not just that one was bad.
-                    self.assertIn("('relative')", result.stderr)
+                    "('relative')",
+                ),
+            )
 
     def test_guard_names_the_relative_data_home_it_refused(self):
         # XDG_DATA_HOME_ENV is exported so the guard can name the raw value
@@ -162,26 +173,23 @@ class TestFlockTimeout(unittest.TestCase):
     """
 
     def _assert_refused(self, value, extra=None):
+        expected = [
+            "FLOCK_TIMEOUT must be a non-negative integer number of seconds",
+            f"'{value}'",
+        ]
+        if extra is not None:
+            expected.append(extra)
         with tempfile.TemporaryDirectory() as tmp:
-            for target in ("install", "uninstall"):
-                with self.subTest(target=target):
-                    result = theme_install.run_make(
-                        [
-                            target,
-                            f"DESTDIR={tmp}",
-                            f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
-                            f"FLOCK_TIMEOUT={value}",
-                        ]
-                    )
-                    assert_failed(self, result)
-                    self.assertIn(
-                        "FLOCK_TIMEOUT must be a non-negative integer "
-                        "number of seconds",
-                        result.stderr,
-                    )
-                    self.assertIn(f"'{value}'", result.stderr)
-                    if extra is not None:
-                        self.assertIn(extra, result.stderr)
+            _assert_both_targets_refused(
+                self,
+                None,
+                (
+                    f"DESTDIR={tmp}",
+                    f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                    f"FLOCK_TIMEOUT={value}",
+                ),
+                expected,
+            )
             data_home = os.path.join(
                 tmp, theme_install.XDG_DATA_HOME.lstrip("/")
             )
