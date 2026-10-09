@@ -17,7 +17,110 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum slider widget for the desktop theme
+
+**Planned 2026-10-09 by plan.** Independent of the done frame/button/scrollbar plans: it adds one
+widget file to the existing `org.macos8.desktop` desktop-theme package and one new test module; it
+touches no existing SVG and needs none of them to land first.
+
+**Goal.** Ship `widgets/slider.svg` in the `org.macos8.desktop` desktop theme so the Platinum groove
+and thumb replace Breeze's blue-tinted groove and round handle. Today `PlasmaComponents.Slider`,
+`PlasmaComponents.RangeSlider` and `PlasmaComponents.Dial` are the last common interactive shell
+controls still rendering as Breeze — the volume applet's
+`/usr/share/plasma/plasmoids/org.kde.plasma.volume/contents/ui/VolumeSlider.qml` (`PC3.Slider`) and
+the brightness applet's `.../org.kde.plasma.brightness/contents/ui/BrightnessItem.qml`
+(`PlasmaComponents3.Slider`) both go through it.
+
+**Consumers (verified in installed Plasma 6.3.6 QML).** Under
+`/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/`, `Slider.qml` reads
+`imagePath: "widgets/slider"` for a `KSvg.Svg`, the `groove` and `groove-highlight`
+`FrameSvgItem`s, and the `horizontal-slider-handle`/`vertical-slider-handle` `SvgItem`s;
+`RangeSlider.qml` and `Dial.qml` read the same `imagePath` and handle ids. `hint-handle-size` is
+optional: when absent, `Slider.qml` sizes the handle from the handle element's own bounding box.
+
+**Reference and provenance.** No screenshot in `macos8.6-screenshots/` shows a slider, so the
+slider's shape and metrics are KDE-required provenance, recorded here. Its colours are the grounded
+Platinum values the scroll bar already ships, because a slider and a scroll bar are the same
+Platinum trough-and-raised-thumb control:
+- Groove (the track): the scroll bar trough recipe — a flat `#EEEEEE` bar with a 1px `#000000`
+  outline, square corners (`[Colors:View] BackgroundAlternate=238,238,238`, the value
+  `tests/test_desktoptheme_scrollbar.py` re-derives).
+- Handle (the thumb): the scroll bar thumb recipe — a raised `#DDDDDD` face with a 1px `#000000`
+  outline and a 1px bevel inside it (`#FFFFFF` top/left, `#999999` bottom/right), the same rule as
+  `button.svg`'s `normal` state.
+The track thickness (6px: 3px top and bottom margins) and the handle size (12x16 horizontal, 16x12
+vertical) are provenance, like the scroll bar's own trough/thumb geometry.
+
+**Approach.**
+1. New `widgets/slider.svg` in the package: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">` with a
+   comment naming the widget, its consumers, the `groove` prefix it ships, the omitted prefixes, and
+   the provenance above.
+   - Hints (id-bearing rects, any opaque `style` colour; KSvg reads geometry): `hint-tile-center`
+     10x10 at (3,3); `groove-hint-top-margin` 10x3 at (3,0), `groove-hint-bottom-margin` 10x3 at
+     (3,13), `groove-hint-left-margin` 3x10 at (0,3), `groove-hint-right-margin` 3x10 at (13,3). No
+     `hint-handle-size` and no `-inset` hints.
+   - `groove` nine-slice, identical to the scroll bar trough: each of the nine
+     `<g id="groove-{slice}">` groups holds a `#EEEEEE` rect of the slice size with a 1px
+     `#000000` line along each outer edge, square corners; group origins match the scroll bar's
+     (top translate(3,0), bottom translate(3,13), left translate(0,3), right translate(13,3), centre
+     translate(3,3), corners at (0,0)/(13,0)/(0,13)/(13,13)).
+   - `horizontal-slider-handle`: a `<g>` holding rects for a 12x16 raised thumb at (0,0) — a
+     `#DDDDDD` base, a 1px `#000000` outline, 1px `#FFFFFF` inside top/left, 1px `#999999` inside
+     bottom/right. `vertical-slider-handle`: the same thumb rotated, 16 wide x 12 tall at (0,0),
+     same bevel sides. No rect inside either group carries an id (so `rect_geometry` sees only the
+     five hints) and neither group declares a transform.
+   - Omitted on purpose, like `button.svg`'s `hover`/`shadow`: no `groove-highlight-*` (the filled
+     portion; a prefix this file does not declare draws nothing, so the slider shows one uniform
+     Platinum trough and the thumb alone marks the value), no `horizontal/vertical-slider-hover`,
+     `-focus`, `-shadow`, and no `class=`, `<style>` or `<script>`.
+2. `tests/desktoptheme_paths.py`: add
+   `SLIDER_SVG = os.path.join(PACKAGE, "widgets", "slider.svg")` beside `SCROLLBAR_SVG`.
+3. `tests/test_desktoptheme.py`: add `("slider.svg", SLIDER_SVG, 16, 16)` to `SVG_CANVASES` and
+   `os.path.join("widgets", "slider.svg")` to `TestInstall.INSTALLED_FILES`.
+4. New per-widget test module under `tests/`, following the `tests/test_desktoptheme_scrollbar.py`
+   pattern, with `class TestSlider`, importing `SLIDER_SVG` and
+   `assert_slice_ids_present`, `assert_tiles_placed_by_margins`, `assert_corner_pixels`,
+   `assert_unique_ids`, `assert_no_script_elements`, `attribute_values`, `rect_geometry`,
+   `render_slices` from `svg_assertions` (tests in the criteria below).
+5. `README.md`: add "slider" to the status block's desktop-theme widget list and name
+   `widgets/slider.svg` (the raised grey thumb in a flat grey trough for
+   `PlasmaComponents.Slider`/`RangeSlider`/`Dial`) in the Installing section's desktop-theme
+   inventory.
+
+**Files touched.** New: `widgets/slider.svg` in the package, and a per-widget test module under
+`tests/` following `tests/test_desktoptheme_scrollbar.py`.
+Edited: `tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (this
+entry). No Makefile, color-scheme or look-and-feel change: the Makefile's `cp -r` already copies new
+widget files.
+
+**Acceptance criteria.**
+- `make check` exits 0; the new `TestSlider` passes and the package, install, lifecycle and other
+  widget suites still pass.
+- `TestSlider.test_slider_slice_ids` parses `widgets/slider.svg` and runs
+  `assert_slice_ids_present(self, tree, ["groove"])`; `assert_unique_ids` and
+  `assert_no_script_elements` pass.
+- `TestSlider.test_slider_hint_geometry` asserts `rect_geometry(tree)` equals exactly the five hint
+  rects above (the four `groove` margins plus `hint-tile-center`), pinning the 3px border, the 10px
+  centre tile and the 6px track.
+- `TestSlider.test_slider_tiles_placed_by_margins` runs
+  `assert_tiles_placed_by_margins(self, tree, ["groove"])`.
+- `TestSlider.test_slider_groove_outline` renders `groove` with `render_slices` and asserts each
+  edge slice's outer row/column is `#000000` and its other two rows/columns are `#EEEEEE`, and each
+  corner via `assert_corner_pixels` has black outer edges and a `#EEEEEE` interior.
+- `TestSlider.test_slider_handles_are_raised_thumbs` renders `horizontal-slider-handle` and
+  `vertical-slider-handle` and asserts, for each, that the map spans 12x16 and 16x12 respectively,
+  the outer ring is `#000000`, the inner top/left ring is `#FFFFFF`, the inner bottom/right ring is
+  `#999999`, and every remaining pixel is `#DDDDDD`.
+- `TestSlider.test_slider_colours` asserts
+  `attribute_values(tree, "fill") == {"#000000", "#FFFFFF", "#999999", "#DDDDDD", "#EEEEEE"}`.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/slider.svg` byte-identical to source
+  (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): the volume and brightness applets draw a flat
+  `#EEEEEE` trough with a 1px black outline and a raised `#DDDDDD` thumb with a `#FFFFFF` top/left
+  and `#999999` bottom/right bevel, in both horizontal and vertical orientations, with no Breeze
+  blue; every other widget is unchanged.
 
 ## Done
 
