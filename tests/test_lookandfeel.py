@@ -136,21 +136,6 @@ class TestInstall(
         os.path.join("contents", "splash", "images", "macos-logo.svg"),
     )
 
-    def reinstall_failure_env(self, tmp):
-        # Shadow `cp` with a fake that writes part of the tree, then fails,
-        # simulating a copy killed or out of space halfway through.
-        return shadow_command_env(
-            tmp,
-            "cp",
-            '#!/bin/sh\n'
-            '# Copy part of the tree, then die, like a killed `cp` would.\n'
-            'src="$2"\n'
-            'dest="$3/$(basename "$src")"\n'
-            'mkdir -p "$dest"\n'
-            'printf partial > "$dest/metadata.json"\n'
-            'exit 1\n',
-        )
-
     @unittest.skipUnless(shutil.which("flock"), "needs flock")
     def test_make_install_waits_for_an_overlapping_install(self):
         """A second install must wait for the first, not clobber its staging.

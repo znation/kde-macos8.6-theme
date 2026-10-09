@@ -20,13 +20,46 @@ from theme_install import (
 )
 
 
+def failing_cp_env(tmp, package_glob=None):
+    """Environment whose `cp` writes a partial package then dies.
+
+    ``package_glob`` selects the copy that fails, so an earlier package
+    family's copies still succeed; with ``None`` the first copy fails. The
+    fake writes part of the tree and exits non-zero, like a copy killed or out
+    of space halfway through.
+    """
+    real_cp = shutil.which("cp")
+    if package_glob is None:
+        script = (
+            "#!/bin/sh\n"
+            'src="$2"\n'
+            'dest="$3/$(basename "$src")"\n'
+            'mkdir -p "$dest"\n'
+            'printf partial > "$dest/metadata.json"\n'
+            "exit 1\n"
+        )
+    else:
+        script = (
+            "#!/bin/sh\n"
+            'case "$2" in\n'
+            f"  {package_glob})\n"
+            '    dest="$3/$(basename "$2")"\n'
+            '    mkdir -p "$dest"\n'
+            '    printf partial > "$dest/metadata.json"\n'
+            "    exit 1;;\n"
+            "esac\n"
+            f'exec "{real_cp}" "$@"\n'
+        )
+    return shadow_command_env(tmp, "cp", script)
+
+
 class FailedInstallPreservesPackage(InstalledPackageLocation):
     """Mixin: a failed `make install` must leave the previous package installed.
 
     `InstalledPackageLocation` supplies `installed_parent` and
-    `installed_package_dir` from `KIND`/`PACKAGE_ID`; subclasses override
-    `reinstall_failure_env` for the copy-failure case. It is a plain mixin, not
-    a `TestCase`, so importing it into a test module does not collect the
+    `installed_package_dir` from `KIND`/`PACKAGE_ID`; subclasses set
+    `COPY_FAILURE_GLOB` for the copy-failure case. It is a plain mixin, not a
+    `TestCase`, so importing it into a test module does not collect the
     unconfigured base.
     """
 
@@ -56,13 +89,15 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         with open(metadata, "rb") as handle:
             self.assertEqual(handle.read(), good)
 
-    def reinstall_failure_env(self, tmp):
-        """Environment whose `cp` fails while copying this package.
+    # Path pattern selecting which `cp` fails in `reinstall_failure_env`; a
+    # single `make install` copies several package families, so a suite whose
+    # copy runs after an earlier family's sets its own pattern. `None` fails
+    # the first copy.
+    COPY_FAILURE_GLOB = None
 
-        Subclasses override this: a single `make install` also copies the other
-        package family, so each suite's failure script matches differently.
-        """
-        raise NotImplementedError
+    def reinstall_failure_env(self, tmp):
+        """Environment whose `cp` fails while copying this package."""
+        return failing_cp_env(tmp, self.COPY_FAILURE_GLOB)
 
     def swap_failure_env(self, tmp):
         """Environment whose `mv` fails only on the final package rename."""

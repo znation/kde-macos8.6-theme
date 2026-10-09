@@ -36,7 +36,6 @@ from theme_install import (
     install,
     installed_aurorae_dir,
     installed_aurorae_theme,
-    shadow_command_env,
 )
 
 if ROOT not in sys.path:
@@ -133,31 +132,13 @@ class TestInstall(
         "maximize.svg",
         "restore.svg",
     )
+    COPY_FAILURE_GLOB = "*/aurorae/themes/*"
 
     def installed_parent(self, tmp):
         return installed_aurorae_dir(tmp)
 
     def installed_package_dir(self, tmp):
         return installed_aurorae_theme(tmp, self.PACKAGE_ID)
-
-    def reinstall_failure_env(self, tmp):
-        # Shadow `cp` with a fake that fails only when copying the Aurorae
-        # theme (the other families' copies must still succeed), writing part
-        # of the tree then dying like a killed or out-of-space `cp` would.
-        real_cp = shutil.which("cp")
-        return shadow_command_env(
-            tmp,
-            "cp",
-            "#!/bin/sh\n"
-            'case "$2" in\n'
-            "  */aurorae/themes/*)\n"
-            '    dest="$3/$(basename "$2")"\n'
-            '    mkdir -p "$dest"\n'
-            '    printf partial > "$dest/metadata.json"\n'
-            "    exit 1;;\n"
-            "esac\n"
-            f'exec "{real_cp}" "$@"\n',
-        )
 
 
 class TestRc(ReferenceImageCase, unittest.TestCase):

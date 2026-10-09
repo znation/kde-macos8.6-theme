@@ -40,7 +40,7 @@ from svg_assertions import (
     assert_root_canvas,
     assert_unique_ids,
 )
-from theme_install import install, run_captured, shadow_command_env
+from theme_install import install, run_captured
 
 
 # configparser reads the KDE `[plasmarc][Theme]` header greedily, so the
@@ -151,25 +151,7 @@ class TestInstall(
         os.path.join("widgets", "background.svg"),
         os.path.join("dialogs", "background.svg"),
     )
-
-    def reinstall_failure_env(self, tmp):
-        # Shadow `cp` with a fake that fails only when copying the desktop
-        # theme (the look-and-feel copy must still succeed), writing part of
-        # the tree then dying like a killed or out-of-space `cp` would.
-        real_cp = shutil.which("cp")
-        return shadow_command_env(
-            tmp,
-            "cp",
-            "#!/bin/sh\n"
-            'case "$2" in\n'
-            "  */desktop-themes/*)\n"
-            '    dest="$3/$(basename "$2")"\n'
-            '    mkdir -p "$dest"\n'
-            '    printf partial > "$dest/metadata.json"\n'
-            "    exit 1;;\n"
-            "esac\n"
-            f'exec "{real_cp}" "$@"\n',
-        )
+    COPY_FAILURE_GLOB = "*/desktop-themes/*"
 
 
 @unittest.skipUnless(
