@@ -20,6 +20,7 @@ from svg_assertions import (
 )
 from svg_fixtures import SvgBodyCase, _svg_tree
 
+
 class TestGroupsWithId(SvgBodyCase, unittest.TestCase):
     def test_yields_only_id_bearing_groups(self):
         # The documented filter: an id-bearing <rect>, <path> or <circle> must

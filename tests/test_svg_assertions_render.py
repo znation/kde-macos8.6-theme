@@ -13,6 +13,7 @@ from error_assertions import error_message
 from svg_assertions import pixel_map, render_slices
 from svg_fixtures import _svg_tree
 
+
 class TestRenderSlices(unittest.TestCase):
     def test_later_rects_paint_over_earlier_ones(self):
         # KSvg composites a tile's rects in document order, so an overlay's

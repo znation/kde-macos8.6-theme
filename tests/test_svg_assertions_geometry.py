@@ -29,6 +29,7 @@ from svg_assertions import (
 )
 from svg_fixtures import _svg_tree
 
+
 def _face_substituted(table, face):
     """Return *table* with each #DDDDDD face pixel replaced by *face*.
 
