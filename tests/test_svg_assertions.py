@@ -50,6 +50,26 @@ from svg_assertions import (
 )
 
 
+def _svg_tree(body, **attributes):
+    """Return an ElementTree for a namespaced SVG root wrapping *body*.
+
+    The fixtures that build an SVG document root share this wrapper: a
+    ``<svg xmlns=...>`` element around a body string. *attributes* are the
+    extra root attributes the canvas builders need (``width``, ``height``,
+    ``viewBox``). Declaring the SVG namespace is what makes ElementTree
+    report each tag as ``{http://www.w3.org/2000/svg}rect``, the form
+    `local_name` strips back to ``rect``.
+    """
+    attrs = "".join(
+        f' {name}="{value}"' for name, value in attributes.items()
+    )
+    return ET.ElementTree(
+        ET.fromstring(
+            f'<svg xmlns="http://www.w3.org/2000/svg"{attrs}>{body}</svg>'
+        )
+    )
+
+
 # A minimal valid nine-slice layout: a 12x12 canvas with 4px borders, so every
 # tile region is 4x4. The hints place the edge tiles at 4 and the corners at
 # the canvas corners.
@@ -89,11 +109,8 @@ def _nine_slice_tree(origins=None, sizes=None):
         "</g>"
         for name, (x, y) in origins.items()
     )
-    return ET.ElementTree(
-        ET.fromstring(
-            '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" '
-            f'viewBox="0 0 12 12">{_HINTS}{groups}</svg>'
-        )
+    return _svg_tree(
+        f"{_HINTS}{groups}", width="12", height="12", viewBox="0 0 12 12"
     )
 
 
@@ -214,14 +231,10 @@ class TestArcCenter(unittest.TestCase):
 
 class TestTileOrigins(unittest.TestCase):
     def test_reads_translates_and_surfaces_unparseable_transforms(self):
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<g id="moved" transform="translate(3, 4)"/>'
-                '<g id="at-origin"/>'
-                '<g id="unknown" transform="matrix(1,0,0,1,9,9)"/>'
-                "</svg>"
-            )
+        tree = _svg_tree(
+            '<g id="moved" transform="translate(3, 4)"/>'
+            '<g id="at-origin"/>'
+            '<g id="unknown" transform="matrix(1,0,0,1,9,9)"/>'
         )
         origins = tile_origins(tree)
         self.assertEqual(origins["moved"], (3, 4))
@@ -517,13 +530,9 @@ class TestRectGeometry(unittest.TestCase):
         # through this map, so a missing or reordered value would mispin the
         # nine-slice layout. Pin the order and that a rect without an id is
         # left out.
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="a" x="1" y="2" width="3" height="4"/>'
-                '<rect x="9" y="9" width="9" height="9"/>'
-                "</svg>"
-            )
+        tree = _svg_tree(
+            '<rect id="a" x="1" y="2" width="3" height="4"/>'
+            '<rect x="9" y="9" width="9" height="9"/>'
         )
         self.assertEqual(rect_geometry(tree), {"a": ("1", "2", "3", "4")})
 
@@ -531,12 +540,8 @@ class TestRectGeometry(unittest.TestCase):
         # ElementTree hands an absent attribute back as None, and the layout
         # guards convert each value with int(); the error must name the rect
         # and the attribute rather than surfacing as a bare TypeError.
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="hint-top-margin" y="0" width="4" height="4"/>'
-                "</svg>"
-            )
+        tree = _svg_tree(
+            '<rect id="hint-top-margin" y="0" width="4" height="4"/>'
         )
         with self.assertRaises(ValueError) as caught:
             rect_geometry(tree)
@@ -550,13 +555,9 @@ class TestRectGeometry(unittest.TestCase):
         # its x/y/width/height. A present but non-integer value (x="4px")
         # would reach the layout guards' int() and surface as a bare
         # ValueError naming no rect; name the rect, attribute and value.
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="hint-top-margin" x="4px" y="0" width="4" '
-                'height="4"/>'
-                "</svg>"
-            )
+        tree = _svg_tree(
+            '<rect id="hint-top-margin" x="4px" y="0" width="4" '
+            'height="4"/>'
         )
         with self.assertRaises(ValueError) as caught:
             rect_geometry(tree)
@@ -571,13 +572,11 @@ class TestRenderSlices(unittest.TestCase):
         # KSvg composites a tile's rects in document order, so an overlay's
         # colour must win; otherwise a bevel drawn under the face would read as
         # the face and a pixel test would pin the wrong layer.
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg"><g id="g">'
-                '<rect x="0" y="0" width="2" height="1" fill="#111111"/>'
-                '<rect x="1" y="0" width="1" height="1" fill="#222222"/>'
-                "</g></svg>"
-            )
+        tree = _svg_tree(
+            '<g id="g">'
+            '<rect x="0" y="0" width="2" height="1" fill="#111111"/>'
+            '<rect x="1" y="0" width="1" height="1" fill="#222222"/>'
+            "</g>"
         )
         self.assertEqual(
             render_slices(tree)["g"],
@@ -594,12 +593,7 @@ class TestRenderSlices(unittest.TestCase):
             ('<rect x="0" y="0" height="1" fill="#111111"/>', None),
         ):
             with self.subTest(rect=rect):
-                tree = ET.ElementTree(
-                    ET.fromstring(
-                        '<svg xmlns="http://www.w3.org/2000/svg"><g id="g">'
-                        f"{rect}</g></svg>"
-                    )
-                )
+                tree = _svg_tree(f'<g id="g">{rect}</g>')
                 with self.assertRaises(ValueError) as caught:
                     render_slices(tree)
                 message = str(caught.exception)
@@ -616,13 +610,9 @@ class TestRenderSlices(unittest.TestCase):
         for attr, value in (("width", "0"), ("height", "-1")):
             with self.subTest(attr=attr, value=value):
                 other = "height" if attr == "width" else "width"
-                tree = ET.ElementTree(
-                    ET.fromstring(
-                        '<svg xmlns="http://www.w3.org/2000/svg"><g id="g">'
-                        f'<rect id="face" x="0" y="0" {other}="1" '
-                        f'{attr}="{value}" fill="#111111"/>'
-                        "</g></svg>"
-                    )
+                tree = _svg_tree(
+                    f'<g id="g"><rect id="face" x="0" y="0" {other}="1" '
+                    f'{attr}="{value}" fill="#111111"/></g>'
                 )
                 with self.assertRaises(ValueError) as caught:
                     render_slices(tree)
@@ -634,13 +624,11 @@ class TestRenderSlices(unittest.TestCase):
     def test_non_integer_offset_names_the_rect(self):
         # An SVG rect's x/y default to 0, but a present non-integer one is
         # malformed; name the rect rather than surfacing a bare int() error.
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg"><g id="g">'
-                '<rect id="face" x="nope" y="0" width="1" height="1" '
-                'fill="#111111"/>'
-                "</g></svg>"
-            )
+        tree = _svg_tree(
+            '<g id="g">'
+            '<rect id="face" x="nope" y="0" width="1" height="1" '
+            'fill="#111111"/>'
+            "</g>"
         )
         with self.assertRaises(ValueError) as caught:
             render_slices(tree)
@@ -769,9 +757,7 @@ def _id_tree(prefixes=("",), omit=()):
     body = "".join(
         f'<rect id="{name}"/>' for name in ids if name not in omit
     )
-    return ET.ElementTree(
-        ET.fromstring(f'<svg xmlns="http://www.w3.org/2000/svg">{body}</svg>')
-    )
+    return _svg_tree(body)
 
 
 class TestSliceIdsPresent(unittest.TestCase):
@@ -816,12 +802,7 @@ class TestSliceIdsPresent(unittest.TestCase):
 
 class TestGroupsWithId(unittest.TestCase):
     def _tree(self, body):
-        return ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                f"{body}</svg>"
-            )
-        )
+        return _svg_tree(body)
 
     def test_yields_only_id_bearing_groups(self):
         # The documented filter: an id-bearing <rect>, <path> or <circle> must
@@ -863,12 +844,7 @@ class TestGroupsWithId(unittest.TestCase):
 
 class TestAttributeValues(unittest.TestCase):
     def _tree(self, body):
-        return ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                f"{body}</svg>"
-            )
-        )
+        return _svg_tree(body)
 
     def test_collects_values_from_every_descendant(self):
         # The ids sit at different depths -- a root child, a nested group and
@@ -907,11 +883,7 @@ class TestAttributeValues(unittest.TestCase):
 
 class TestChildrenNamed(unittest.TestCase):
     def _first_child(self, body):
-        root = ET.fromstring(
-            '<svg xmlns="http://www.w3.org/2000/svg">'
-            f"{body}</svg>"
-        )
-        return root[0]
+        return _svg_tree(body).getroot()[0]
 
     def test_returns_only_the_direct_children_with_the_tag(self):
         # A rect nested inside a child <g> is a grandchild, not a child: the
@@ -946,12 +918,7 @@ class TestChildrenNamed(unittest.TestCase):
 
 class TestElementsById(unittest.TestCase):
     def _tree(self, body):
-        return ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                f"{body}</svg>"
-            )
-        )
+        return _svg_tree(body)
 
     def test_keeps_elements_that_are_not_groups(self):
         # Unlike groups_with_id, this map must keep a <circle> or <path>:
@@ -1020,31 +987,20 @@ class TestLocalName(unittest.TestCase):
 
 class TestNoScriptElements(unittest.TestCase):
     def test_passes_a_tree_without_a_script(self):
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="center"/></svg>'
-            )
-        )
+        tree = _svg_tree('<rect id="center"/>')
         assert_no_script_elements(self, tree)
 
     def test_catches_a_script_after_another_element(self):
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="center"/><script>alert(1)</script></svg>'
-            )
+        tree = _svg_tree(
+            '<rect id="center"/><script>alert(1)</script>'
         )
         with self.assertRaises(AssertionError):
             assert_no_script_elements(self, tree)
 
     def test_catches_a_script_nested_below_the_root(self):
         # The guard walks every descendant, not just the root's children.
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<g id="top"><g><script>alert(1)</script></g></g></svg>'
-            )
+        tree = _svg_tree(
+            '<g id="top"><g><script>alert(1)</script></g></g>'
         )
         with self.assertRaises(AssertionError):
             assert_no_script_elements(self, tree)
@@ -1052,41 +1008,25 @@ class TestNoScriptElements(unittest.TestCase):
 
 class TestUniqueIds(unittest.TestCase):
     def test_passes_a_tree_with_unique_ids(self):
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="center"/><g id="top"><rect id="top-body"/></g>'
-                "</svg>"
-            )
+        tree = _svg_tree(
+            '<rect id="center"/><g id="top"><rect id="top-body"/></g>'
         )
         assert_unique_ids(self, tree)
 
     def test_passes_a_tree_whose_elements_have_no_ids(self):
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>'
-            )
-        )
+        tree = _svg_tree("<rect/>")
         assert_unique_ids(self, tree)
 
     def test_catches_a_duplicate_id_naming_it(self):
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="center"/><rect id="center"/></svg>'
-            )
-        )
+        tree = _svg_tree('<rect id="center"/><rect id="center"/>')
         with self.assertRaises(AssertionError) as ctx:
             assert_unique_ids(self, tree)
         self.assertIn("center", str(ctx.exception))
 
     def test_catches_a_duplicate_id_nested_below_the_root(self):
         # The guard walks every descendant, not just the root's children.
-        tree = ET.ElementTree(
-            ET.fromstring(
-                '<svg xmlns="http://www.w3.org/2000/svg">'
-                '<rect id="center"/><g><rect id="center"/></g></svg>'
-            )
+        tree = _svg_tree(
+            '<rect id="center"/><g><rect id="center"/></g>'
         )
         with self.assertRaises(AssertionError) as ctx:
             assert_unique_ids(self, tree)
@@ -1109,11 +1049,8 @@ def _root_canvas_tree(viewbox="0 0 12 12", width="12", height="12",
     The two margin rects reach the 12x12 canvas edge; *viewbox*, *width*,
     *height* and *hints* each let a caller break one declared value at a time.
     """
-    return ET.ElementTree(
-        ET.fromstring(
-            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" '
-            f'height="{height}" viewBox="{viewbox}">{hints}</svg>'
-        )
+    return _svg_tree(
+        hints, width=width, height=height, viewBox=viewbox
     )
 
 
