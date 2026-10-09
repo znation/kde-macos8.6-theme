@@ -491,6 +491,37 @@ class TestCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("PASS", result.stdout)
 
+    def test_verdict_line_echoes_budget_values(self):
+        # The verdict line is the run's audit record: it echoes the parsed
+        # --max-mae/--max-frac values, or "unset" when the option was absent,
+        # so a transcript can be replayed. No other test asserts those fields,
+        # so a format regression (.4f -> .2f, .6f -> .3f) or a swapped label
+        # would pass every other test. The fractional case also pins the
+        # documented four- and six-decimal rounding.
+        reference = self._solid_reference()
+        cases = (
+            ((), "PASS: max-mae=unset max-frac=unset tolerance=0"),
+            (
+                ("--max-mae", "2"),
+                "PASS: max-mae=2.0000 max-frac=unset tolerance=0",
+            ),
+            (
+                ("--max-frac", "0.12"),
+                "PASS: max-mae=unset max-frac=0.120000 tolerance=0",
+            ),
+            (
+                ("--max-mae", "1.5", "--max-frac", "0.1234567"),
+                "PASS: max-mae=1.5000 max-frac=0.123457 tolerance=0",
+            ),
+        )
+        for extra, verdict in cases:
+            with self.subTest(extra=extra):
+                result = self._run(reference, reference, *extra)
+                self.assertEqual(
+                    result.returncode, 0, result.stdout + result.stderr
+                )
+                self.assertIn(verdict, result.stdout)
+
     def test_error_message_escapes_control_characters_in_path(self):
         # read_png embeds the path in its error message, and the documented
         # workflow hands this tool a reference file from the contributor-owned
