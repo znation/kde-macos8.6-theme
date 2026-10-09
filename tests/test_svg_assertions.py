@@ -22,6 +22,7 @@ from svg_assertions import (
     nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
+    pixel_map,
     rect_geometry,
     render_slices,
     tile_origins,
@@ -422,6 +423,65 @@ class TestRenderSlices(unittest.TestCase):
         self.assertIn("'face'", message)
         self.assertIn("'x'", message)
         self.assertIn("'nope'", message)
+
+
+class TestPixelMap(unittest.TestCase):
+    def test_builds_a_row_major_map(self):
+        # Positive control: width decides the row length and height is honoured
+        # as the number of rows, so the map has the shape the caller declared.
+        self.assertEqual(
+            pixel_map(("#111111", "#222222", "#333333", "#444444"), 2, 2),
+            {
+                (0, 0): "#111111",
+                (1, 0): "#222222",
+                (0, 1): "#333333",
+                (1, 1): "#444444",
+            },
+        )
+
+    def test_wrong_colour_count_names_the_shape(self):
+        # The comprehension lays out rows from width alone, so height is inert
+        # without this check: three colours declared as a 2x2 map would yield a
+        # 2x2 map missing its last pixel instead of an error. Name the count
+        # and the shape that was declared.
+        for colours in (("#111111",) * 3, ("#111111",) * 5):
+            with self.subTest(colours=len(colours)):
+                with self.assertRaises(ValueError) as caught:
+                    pixel_map(colours, 2, 2)
+                message = str(caught.exception)
+                self.assertIn(str(len(colours)), message)
+                self.assertIn("2x2", message)
+                self.assertIn("4", message)
+
+    def test_non_positive_dimension_is_rejected(self):
+        # width=0 would divide by zero in the comprehension and a negative one
+        # would fold every index into a nonsense coordinate; reject both by
+        # name instead of surfacing a bare ZeroDivisionError.
+        for name, width, height in (
+            ("width", 0, 2),
+            ("width", -1, 2),
+            ("height", 2, 0),
+            ("height", 2, -1),
+        ):
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError) as caught:
+                    pixel_map((), width, height)
+                message = str(caught.exception)
+                self.assertIn(name, message)
+
+    def test_non_integer_dimension_is_rejected(self):
+        # bool is an int subclass, so True would pass an isinstance check as 1;
+        # require a genuine integer and name the offending dimension.
+        for name, width, height in (
+            ("width", "2", 2),
+            ("width", True, 2),
+            ("height", 2, "2"),
+            ("height", 2, True),
+        ):
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError) as caught:
+                    pixel_map((), width, height)
+                self.assertIn(name, str(caught.exception))
 
 
 class _NoSubTest(unittest.TestCase):

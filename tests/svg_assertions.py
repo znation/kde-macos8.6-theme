@@ -200,7 +200,29 @@ def pixel_map(colours, width, height):
     *width* entries; a solid rectangle passes the same colour ``width *
     height`` times. The map has the same shape as one entry of
     `render_slices`, so a caller can compare the two directly.
+
+    Raise ValueError when *width* or *height* is not a positive integer, or
+    when *colours* does not hold exactly ``width * height`` entries. Without
+    the count check *height* is inert -- the comprehension lays out rows from
+    *width* alone -- so a caller passing the wrong height would get a
+    differently shaped map instead of an error naming the mismatch, and a
+    zero width would surface as a bare ``ZeroDivisionError``.
     """
+    for name, value in (("width", width), ("height", height)):
+        if isinstance(value, bool) or not isinstance(value, int):
+            raise ValueError(
+                f"pixel_map {name} must be an integer: {name}={value!r}"
+            )
+        if value <= 0:
+            raise ValueError(
+                f"pixel_map {name} must be positive: {name}={value!r}"
+            )
+    expected = width * height
+    if len(colours) != expected:
+        raise ValueError(
+            f"pixel_map got {len(colours)} colours; a {width}x{height} map "
+            f"needs {expected} (width*height)"
+        )
     return {
         (index % width, index // width): colour
         for index, colour in enumerate(colours)
