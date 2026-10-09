@@ -145,6 +145,31 @@ def _slice_where(rect):
     return f"rect {rect_id!r}" if rect_id else "rect"
 
 
+def _numeric_attribute(element, name, *, where, cast, kind, missing, invalid):
+    """Return *element*'s *name* attribute text, naming it when absent or malformed.
+
+    ElementTree hands back ``None`` for an omitted attribute and the raw text
+    otherwise, so a caller that converts with ``int()``/``float()`` would
+    surface a missing attribute as a bare TypeError and a malformed one as a
+    bare ValueError naming neither the element nor the attribute. *where*
+    names the element in the message, *cast* is the converter the text must
+    satisfy, *kind* is the expected type as it reads in the error
+    (``"integer"``/``"numeric"``), and *missing*/*invalid* are the contract
+    clauses that follow the two failures. The raw text is returned so the
+    caller decides how to convert it.
+    """
+    value = element.get(name)
+    if value is None:
+        raise ValueError(f"{where} has no {name!r} attribute: {missing}")
+    try:
+        cast(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{where} has a non-{kind} {name!r} of {value!r}: {invalid}"
+        ) from None
+    return value
+
+
 def _slice_offset(rect, name):
     """Return *rect*'s integer *name* offset, defaulting to 0 when absent.
 
@@ -171,19 +196,16 @@ def _slice_extent(rect, name):
     or height silently paints no pixels and weakens every pixel assertion built
     on it, and an absent one would surface as a bare ``int(None)`` TypeError.
     """
-    value = rect.get(name)
-    if value is None:
-        raise ValueError(
-            f"{_slice_where(rect)} has no {name!r} attribute: a nine-slice "
-            "tile rect must declare a positive width and height"
-        )
-    try:
-        extent = int(value)
-    except (TypeError, ValueError):
-        raise ValueError(
-            f"{_slice_where(rect)} has a non-integer {name!r} of {value!r}: "
-            "a nine-slice tile rect must declare a positive width and height"
-        ) from None
+    contract = "a nine-slice tile rect must declare a positive width and height"
+    value = _numeric_attribute(
+        rect, name,
+        where=_slice_where(rect),
+        cast=int,
+        kind="integer",
+        missing=contract,
+        invalid=contract,
+    )
+    extent = int(value)
     if extent <= 0:
         raise ValueError(
             f"{_slice_where(rect)} has a non-positive {name!r} of {value!r}: "
@@ -591,20 +613,17 @@ def _rect_dimension(element, rect_id, name):
     ``int()`` ValueError, neither naming which rect or attribute is malformed.
     Reject both here, naming the rect, the attribute and the value.
     """
-    value = element.get(name)
-    if value is None:
-        raise ValueError(
-            f"rect {rect_id!r} has no {name!r} attribute: an id-bearing rect "
-            "must declare x, y, width and height"
-        )
-    try:
-        int(value)
-    except (TypeError, ValueError):
-        raise ValueError(
-            f"rect {rect_id!r} has a non-integer {name!r} of {value!r}: an "
-            "id-bearing rect must declare x, y, width and height as integers"
-        ) from None
-    return value
+    return _numeric_attribute(
+        element, name,
+        where=f"rect {rect_id!r}",
+        cast=int,
+        kind="integer",
+        missing="an id-bearing rect must declare x, y, width and height",
+        invalid=(
+            "an id-bearing rect must declare x, y, width and height "
+            "as integers"
+        ),
+    )
 
 
 def rect_geometry(tree):
@@ -643,22 +662,16 @@ def _circle_dimension(element, name):
     value. An anonymous circle -- the radiobutton face and checkmarks dot
     carry no id of their own -- is named generically instead.
     """
-    value = element.get(name)
     circle_id = element.get("id")
     where = f"circle {circle_id!r}" if circle_id else "circle"
-    if value is None:
-        raise ValueError(
-            f"{where} has no {name!r} attribute: a circle must declare "
-            "cx, cy and r"
-        )
-    try:
-        float(value)
-    except (TypeError, ValueError):
-        raise ValueError(
-            f"{where} has a non-numeric {name!r} of {value!r}: a circle must "
-            "declare cx, cy and r as numbers"
-        ) from None
-    return value
+    return _numeric_attribute(
+        element, name,
+        where=where,
+        cast=float,
+        kind="numeric",
+        missing="a circle must declare cx, cy and r",
+        invalid="a circle must declare cx, cy and r as numbers",
+    )
 
 
 def circle_geometry(element):
