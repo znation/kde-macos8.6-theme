@@ -341,15 +341,17 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
 
     def test_title_bar_colours_match_reference(self):
         # The pinstripe field is uniform along the bar, so one clear column
-        # pins it: local y = reference y - 25.
-        samples = {
-            2: self.reference_pixel(250, 27),
-            4: self.reference_pixel(250, 29),
-            5: self.reference_pixel(250, 30),
-        }
+        # pins it: local y = reference y - 25. Pin every row, not only the
+        # bevel and the first stripe: the inactive tile is derived from this
+        # active one (its #FFFFFF/#777777 rows flatten to #CCCCCC), so a wrong
+        # active pinstripe row would otherwise pass every other test.
         top = render_slices(ET.parse(DECORATION_SVG))["decoration-top"]
-        for local_y, colour in samples.items():
-            self.assertEqual(top[(0, local_y)], _hex(colour), local_y)
+        for local_y in range(22):
+            self.assertEqual(
+                top[(0, local_y)],
+                _hex(self.reference_pixel(250, 25 + local_y)),
+                local_y,
+            )
 
     def test_caption_colour_matches_reference(self):
         # ActiveTextColor is the caption glyph colour; (198, 30) is inside a
