@@ -29,6 +29,7 @@ from svg_assertions import (
     assert_slice_pixels,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    assert_unique_ids,
     circle_geometry,
     face_edge_bands,
     groups_with_id,
@@ -886,6 +887,49 @@ class TestNoScriptElements(unittest.TestCase):
         )
         with self.assertRaises(AssertionError):
             assert_no_script_elements(self, tree)
+
+
+class TestUniqueIds(unittest.TestCase):
+    def test_passes_a_tree_with_unique_ids(self):
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="center"/><g id="top"><rect id="top-body"/></g>'
+                "</svg>"
+            )
+        )
+        assert_unique_ids(self, tree)
+
+    def test_passes_a_tree_whose_elements_have_no_ids(self):
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg"><rect/></svg>'
+            )
+        )
+        assert_unique_ids(self, tree)
+
+    def test_catches_a_duplicate_id_naming_it(self):
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="center"/><rect id="center"/></svg>'
+            )
+        )
+        with self.assertRaises(AssertionError) as ctx:
+            assert_unique_ids(self, tree)
+        self.assertIn("center", str(ctx.exception))
+
+    def test_catches_a_duplicate_id_nested_below_the_root(self):
+        # The guard walks every descendant, not just the root's children.
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="center"/><g><rect id="center"/></g></svg>'
+            )
+        )
+        with self.assertRaises(AssertionError) as ctx:
+            assert_unique_ids(self, tree)
+        self.assertIn("center", str(ctx.exception))
 
 
 # Two margin rects whose far edges reach a 12x12 canvas. `assert_root_canvas`

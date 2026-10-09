@@ -33,7 +33,7 @@ from install_lifecycle_cases import InstallLifecycleCases
 from kpackage_install_case import KPackageInstallCase
 from kde_config import read as read_kde_config
 from package_metadata import PackageMetadata, kplugin, load_metadata
-from svg_assertions import assert_root_canvas
+from svg_assertions import assert_root_canvas, assert_unique_ids
 from theme_install import install, run, shadow_command_env
 
 
@@ -76,6 +76,16 @@ class TestSvgRootCanvas(unittest.TestCase):
         for name, path, width, height in SVG_CANVASES:
             with self.subTest(svg=name):
                 assert_root_canvas(self, ET.parse(path), width, height)
+
+    def test_every_svg_declares_unique_ids(self):
+        # `elements_by_id` and `rect_geometry` key their maps by id, and
+        # `attribute_values` reads ids as a set, so a duplicate id would
+        # silently resolve to one element in any id-keyed test map; KSvg
+        # resolves it to one element too. Pin uniqueness for every registered
+        # SVG, not only the widgets whose tests happen to read by id.
+        for name, path, _, _ in SVG_CANVASES:
+            with self.subTest(svg=name):
+                assert_unique_ids(self, ET.parse(path))
 
     def test_registry_covers_every_shipped_svg(self):
         # The canvas pin above only visits the SVGs listed in SVG_CANVASES, so

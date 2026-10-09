@@ -116,6 +116,29 @@ def assert_no_script_elements(case, tree):
         case.assertFalse(tag.endswith("script"), tag)
 
 
+def assert_unique_ids(case, tree):
+    """Assert every ``id`` in *tree* is unique.
+
+    `elements_by_id` and `rect_geometry` key their maps by id, so a duplicate
+    silently keeps only the later element and a test that reads by id sees the
+    wrong one; `attribute_values` reads ids as a set, which cannot see a
+    duplicate either. KSvg resolves an id to a single element, so a duplicate
+    is an artwork defect regardless. *case* is the calling
+    ``unittest.TestCase``; its assertion names each repeated id.
+    """
+    seen = set()
+    duplicates = set()
+    for element in tree.iter():
+        element_id = element.get("id")
+        if element_id is None:
+            continue
+        if element_id in seen:
+            duplicates.add(element_id)
+        else:
+            seen.add(element_id)
+    case.assertEqual(sorted(duplicates), [], "duplicate ids")
+
+
 def _slice_where(rect):
     """Name *rect* for an error, by id when it has one."""
     rect_id = rect.get("id")
