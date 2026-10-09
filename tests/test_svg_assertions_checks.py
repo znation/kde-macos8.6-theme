@@ -25,6 +25,8 @@ from svg_assertions import (
     assert_face_corners,
     assert_hint_geometry,
     assert_no_script_elements,
+    assert_no_external_references,
+    assert_no_style_elements,
     assert_root_canvas,
     assert_slice_ids_present,
     assert_slice_pixels,
@@ -231,6 +233,104 @@ class TestNoScriptElements(unittest.TestCase):
         )
         with self.assertRaises(AssertionError):
             assert_no_script_elements(self, tree)
+
+
+class TestNoStyleElements(unittest.TestCase):
+    def test_passes_a_tree_without_a_style_element(self):
+        # An inline `style` attribute is how every shipped SVG states its
+        # colours; only a `<style>` element is rejected.
+        tree = _svg_tree('<rect id="center" style="fill:#ff6600"/>')
+        assert_no_style_elements(self, tree)
+
+    def test_catches_a_style_element_naming_it(self):
+        tree = _svg_tree(
+            '<rect id="center"/><style>rect{fill:#ff6600}</style>'
+        )
+        self.assertIn(
+            "style",
+            error_message(
+                self, AssertionError, assert_no_style_elements, self, tree
+            ),
+        )
+
+    def test_catches_a_style_element_nested_below_the_root(self):
+        # The guard walks every descendant, not just the root's children.
+        tree = _svg_tree(
+            '<g id="top"><style>rect{fill:#ff6600}</style></g>'
+        )
+        with self.assertRaises(AssertionError):
+            assert_no_style_elements(self, tree)
+
+
+class TestNoExternalReferences(unittest.TestCase):
+    def test_passes_a_tree_with_no_references(self):
+        tree = _svg_tree('<rect id="center" style="fill:#ff6600"/>')
+        assert_no_external_references(self, tree)
+
+    def test_passes_a_same_document_fragment_reference(self):
+        # An internal `#id` reference stays inside the file, so it is allowed.
+        tree = _svg_tree('<use href="#center"/>')
+        assert_no_external_references(self, tree)
+
+    def test_catches_an_image_element(self):
+        tree = _svg_tree('<image href="panel.png"/>')
+        self.assertIn(
+            "image",
+            error_message(
+                self,
+                AssertionError,
+                assert_no_external_references,
+                self,
+                tree,
+            ),
+        )
+
+    def test_catches_a_file_href_naming_the_value(self):
+        tree = _svg_tree('<use href="other.svg#center"/>')
+        self.assertIn(
+            "other.svg#center",
+            error_message(
+                self,
+                AssertionError,
+                assert_no_external_references,
+                self,
+                tree,
+            ),
+        )
+
+    def test_catches_an_xlink_href(self):
+        # A declared xlink namespace makes ElementTree report the attribute as
+        # `{http://www.w3.org/1999/xlink}href`; the guard must strip it and
+        # still reject the file reference.
+        tree = _svg_tree(
+            '<use xlink:href="other.svg#center"/>',
+            **{"xmlns:xlink": "http://www.w3.org/1999/xlink"},
+        )
+        self.assertIn(
+            "other.svg#center",
+            error_message(
+                self,
+                AssertionError,
+                assert_no_external_references,
+                self,
+                tree,
+            ),
+        )
+
+    def test_catches_a_data_uri_href(self):
+        # A `data:` URI is self-contained but still not an in-file #id, so the
+        # guard rejects it like any other non-fragment reference.
+        tree = _svg_tree('<use href="data:image/png;base64,AAAA"/>')
+        self.assertIn(
+            "data:",
+            error_message(
+                self,
+                AssertionError,
+                assert_no_external_references,
+                self,
+                tree,
+            ),
+        )
 
 
 class TestUniqueIds(unittest.TestCase):

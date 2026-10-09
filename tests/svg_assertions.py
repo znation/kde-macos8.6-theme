@@ -116,6 +116,57 @@ def assert_no_script_elements(case, tree):
         case.assertFalse(tag.endswith("script"), tag)
 
 
+def _local_attribute_name(name):
+    """Return an attribute *name* without its `{namespace}` prefix.
+
+    An SVG that declares the xlink namespace makes ElementTree report
+    ``xlink:href`` as ``{http://www.w3.org/1999/xlink}href``; one that leaves
+    it undeclared reports the bare ``xlink:href``. Both name the same
+    reference, so strip any namespace before matching.
+    """
+    return name.rsplit("}", 1)[-1]
+
+
+def assert_no_style_elements(case, tree):
+    """Assert *tree* holds no ``<style>`` element.
+
+    The widget tests read every colour from an element's ``fill``/``stroke``
+    or its inline ``style`` attribute (``attribute_values``), and the slice
+    renderer composites only the rects and groups it models. A ``<style>``
+    element moves the artwork's colours into CSS selectors neither the pixel
+    tests nor the palette checks can see, so a widget whose rendered colour
+    changed could still pass. Keep the colours on the elements; *case* is the
+    calling ``unittest.TestCase`` and its assertion names the element.
+    """
+    for element in tree.iter():
+        tag = local_name(element)
+        case.assertNotEqual(tag, "style", f"<{tag}> element")
+
+
+def assert_no_external_references(case, tree):
+    """Assert every reference in *tree* is a same-document ``#id``.
+
+    The package is installed by copying its directory, so an ``<image>`` or an
+    ``href``/``xlink:href`` that names a file (or a ``data:`` URI) points at
+    something the installed theme does not ship, so the reference cannot
+    resolve. The pixel tests composite only rects and groups, so they cannot
+    notice one; *case* is the calling ``unittest.TestCase`` and its assertion
+    names the element and value instead. A bare ``#id`` fragment is allowed.
+    """
+    for element in tree.iter():
+        tag = local_name(element)
+        case.assertNotEqual(
+            tag, "image", f"<{tag}> references an external file"
+        )
+        for name, value in element.attrib.items():
+            if _local_attribute_name(name) == "href" and not value.startswith(
+                "#"
+            ):
+                case.fail(
+                    f"<{tag}> reference {value!r} is not an in-file #id"
+                )
+
+
 def assert_unique_ids(case, tree):
     """Assert every ``id`` in *tree* is unique.
 
