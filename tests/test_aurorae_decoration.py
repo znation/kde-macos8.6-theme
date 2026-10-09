@@ -132,6 +132,30 @@ class TestMetadata(unittest.TestCase):
         parser = read_kde_config(METADATA_DESKTOP)
         self.assertEqual(parser.get("Desktop Entry", "Name"), "Mac OS 8.6")
 
+    def test_metadata_desktop_matches_metadata_json(self):
+        # metadata.json and metadata.desktop describe the same package to two
+        # consumers -- KPackage and System Settings read the JSON, KWin's
+        # Aurorae discovery reads the desktop file -- so their shared identity
+        # fields must agree. Name is pinned on each file already, but nothing
+        # checks the two files agree, and Version is pinned nowhere, so a
+        # version bump that updates only one file would leave the two views
+        # disagreeing silently. X-KDE-PluginInfo-Name is the KPlugin identity
+        # (the theme directory name, the `org.macos8.desktoprc` stem and the id
+        # the global theme's `[kwinrc]` defaults point KWin at), so pin it to
+        # AURORAE_ID as well.
+        plugin = kplugin(load_metadata(METADATA), METADATA)
+        parser = read_kde_config(METADATA_DESKTOP)
+        for key, expected in (
+            ("X-KDE-PluginInfo-Name", AURORAE_ID),
+            ("X-KDE-PluginInfo-Version", plugin.get("Version")),
+            ("X-KDE-PluginInfo-License", plugin.get("License")),
+        ):
+            self.assertEqual(
+                parser.get("Desktop Entry", key),
+                expected,
+                f"{METADATA_DESKTOP}: {key} must match {METADATA}",
+            )
+
 
 class TestInstall(
     FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
