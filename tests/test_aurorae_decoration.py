@@ -142,13 +142,16 @@ class TestMetadata(unittest.TestCase):
         # disagreeing silently. X-KDE-PluginInfo-Name is the KPlugin identity
         # (the theme directory name, the `org.macos8.desktoprc` stem and the id
         # the global theme's `[kwinrc]` defaults point KWin at), so pin it to
-        # AURORAE_ID as well.
+        # AURORAE_ID as well. The desktop file's `Comment` is the KPlugin
+        # `Description` shown to the user, so a description edit that touches
+        # only one file would show two different texts for one package.
         plugin = kplugin(load_metadata(METADATA), METADATA)
         parser = read_kde_config(METADATA_DESKTOP)
         for key, expected in (
             ("X-KDE-PluginInfo-Name", AURORAE_ID),
             ("X-KDE-PluginInfo-Version", plugin.get("Version")),
             ("X-KDE-PluginInfo-License", plugin.get("License")),
+            ("Comment", plugin.get("Description")),
         ):
             self.assertEqual(
                 parser.get("Desktop Entry", key),
