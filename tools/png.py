@@ -107,6 +107,23 @@ class Image:
             )
 
 
+def pixel_at(image: Image, x: int, y: int) -> tuple[int, int, int]:
+    """Return the RGB pixel at ``(x, y)`` in *image*.
+
+    A coordinate outside the image is rejected instead of read: the RGB slice
+    would be empty, and an ``x`` past the row end would wrap to the next row
+    and return the wrong pixel. Naming the coordinate and the image size turns
+    that silent misread into a diagnostic. Sampling a reference screenshot's
+    palette or metric value goes through this accessor.
+    """
+    if not (0 <= x < image.width and 0 <= y < image.height):
+        raise ValueError(
+            f"pixel ({x}, {y}) is outside the {image.width}x{image.height} image"
+        )
+    offset = (y * image.width + x) * 3
+    return (image.rgb[offset], image.rgb[offset + 1], image.rgb[offset + 2])
+
+
 def _chunk_name(ctype: bytes) -> str:
     """The chunk type as a printable ``repr`` for error messages."""
     return repr(ctype.decode("ascii", "replace"))

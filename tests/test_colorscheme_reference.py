@@ -64,24 +64,16 @@ class TestReferenceAnchors(unittest.TestCase):
     def pixel(self, path, x, y):
         """Return the RGB pixel at ``(x, y)`` of the reference image at *path*.
 
-        A coordinate outside the image is rejected instead of read: the RGB
-        slice would be empty (a bare comparison against ``()``) or, for an
-        ``x`` past the row end, wrap to the next row and silently tie the
-        anchor to the wrong pixel. Naming the coordinate and the image size
-        turns that into a diagnostic.
+        The bounds check and the byte-slice arithmetic live in
+        ``png.pixel_at``, so the same validation serves the splash tests and
+        any other sampler; this adds only the skip when the reference image is
+        not materialized.
         """
         if path not in self.images:
             self.skipTest(
                 f"{path} is not a materialized PNG: {self.image_errors[path]}"
             )
-        image = self.images[path]
-        if not (0 <= x < image.width and 0 <= y < image.height):
-            raise ValueError(
-                f"pixel ({x}, {y}) is outside the {image.width}x{image.height} "
-                f"reference image {path}"
-            )
-        offset = (y * image.width + x) * 3
-        return tuple(image.rgb[offset : offset + 3])
+        return png.pixel_at(self.images[path], x, y)
 
     def assert_anchor_at(self, section, key, x, y, path=REFERENCE_DESKTOP):
         value = tuple(

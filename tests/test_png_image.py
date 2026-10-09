@@ -101,3 +101,32 @@ class TestImage(unittest.TestCase):
                 self.assertIn("must be an integer", message)
                 self.assertIn(repr(width), message)
                 self.assertIn(repr(height), message)
+
+
+class TestPixelAt(unittest.TestCase):
+    def test_reads_the_pixel_at_a_coordinate(self):
+        # Four distinct pixels, so a wrong offset or a row wrap reads a
+        # different one instead of passing by coincidence.
+        image = png.Image(2, 2, bytes(range(1, 13)))
+        for x, y, expected in (
+            (0, 0, (1, 2, 3)),
+            (1, 0, (4, 5, 6)),
+            (0, 1, (7, 8, 9)),
+            (1, 1, (10, 11, 12)),
+        ):
+            with self.subTest(x=x, y=y):
+                self.assertEqual(png.pixel_at(image, x, y), expected)
+
+    def test_rejects_coordinates_outside_the_image(self):
+        # A coordinate outside the image must not be read: the RGB slice would
+        # be empty, and an x past the row end would wrap to the next row and
+        # return the wrong pixel. Pin that both the coordinate and the image
+        # size are named.
+        image = png.Image(2, 3, bytes(2 * 3 * 3))
+        for x, y in ((2, 0), (0, 3), (-1, 0), (0, -1), (5, 5)):
+            with self.subTest(x=x, y=y):
+                message = error_message(
+                    self, ValueError, png.pixel_at, image, x, y
+                )
+                self.assertIn(f"({x}, {y})", message)
+                self.assertIn("2x3", message)
