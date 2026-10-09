@@ -12,6 +12,8 @@ import unittest
 import zlib
 from pathlib import Path
 
+from error_assertions import error_message
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -33,14 +35,11 @@ def _value_error(case, func, *args, **kwargs):
     """Call *func* and return the ``ValueError`` message it raises.
 
     Every fixture guard tested here reports a malformed argument by raising
-    ``ValueError``, and each test reads that message to pin what it names. The
-    ``assertRaises``/``str(ctx.exception)`` pair was copy-pasted at every call
-    site; this names the shared expectation once. *case* is the calling
+    ``ValueError``; this pins that type once on top of the shared
+    ``error_assertions.error_message``. *case* is the calling
     ``unittest.TestCase``, so a failure is reported against the right test.
     """
-    with case.assertRaises(ValueError) as ctx:
-        func(*args, **kwargs)
-    return str(ctx.exception)
+    return error_message(case, ValueError, func, *args, **kwargs)
 
 
 class TestMakePng(unittest.TestCase):
@@ -117,9 +116,9 @@ class TestWithIhdrByte(unittest.TestCase):
         # must not reject it.
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         broken = with_ihdr_byte(data, 12, 1)
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(broken)
-        self.assertIn("interlaced", str(ctx.exception))
+        self.assertIn(
+            "interlaced", error_message(self, png.PngError, png.decode_png, broken)
+        )
 
 
 class TestIhdrEnd(unittest.TestCase):

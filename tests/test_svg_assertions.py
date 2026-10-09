@@ -14,6 +14,7 @@ import contextlib
 import unittest
 import xml.etree.ElementTree as ET
 
+from error_assertions import error_message
 from svg_assertions import (
     RAISED_FACE_CORNERS,
     SLICE_IDS,
@@ -166,10 +167,9 @@ class TestPathArcs(unittest.TestCase):
             "m0,0 l5,5",
         ):
             with self.subTest(d=d):
-                with self.assertRaises(ValueError) as caught:
-                    list(path_arcs(d))
                 self.assertIn(
-                    "unsupported SVG path command", str(caught.exception)
+                    "unsupported SVG path command",
+                    error_message(self, ValueError, list, path_arcs(d)),
                 )
 
     def test_rejects_wrong_number_count_naming_the_command(self):
@@ -184,9 +184,7 @@ class TestPathArcs(unittest.TestCase):
             ("M1,1 Z5", "Z", 1),
         ):
             with self.subTest(d=d):
-                with self.assertRaises(ValueError) as caught:
-                    list(path_arcs(d))
-                message = str(caught.exception)
+                message = error_message(self, ValueError, list, path_arcs(d))
                 self.assertIn(f"command {command}", message)
                 self.assertIn(f"got {count}", message)
                 self.assertIn(repr(d), message)
@@ -214,18 +212,18 @@ class TestArcCenter(unittest.TestCase):
         # start == end has no perpendicular bisector, so the centre is
         # undefined. Before the guard this was a bare ZeroDivisionError that
         # named neither the arc nor its defect.
-        with self.assertRaises(ValueError) as caught:
-            arc_center((2.0, 2.0), (3, 3, 0, 1), (2.0, 2.0))
-        message = str(caught.exception)
+        message = error_message(
+            self, ValueError, arc_center, (2.0, 2.0), (3, 3, 0, 1), (2.0, 2.0)
+        )
         self.assertIn("(2.0, 2.0)", message)
         self.assertIn("zero-length chord", message)
 
     def test_radius_too_small_names_the_arc_and_the_chord(self):
         # Endpoints 6 apart need radius >= 3; a radius of 2 cannot reach both
         # and the square root would fail with "math domain error".
-        with self.assertRaises(ValueError) as caught:
-            arc_center((0.0, 0.0), (2, 2, 0, 1), (6.0, 0.0))
-        message = str(caught.exception)
+        message = error_message(
+            self, ValueError, arc_center, (0.0, 0.0), (2, 2, 0, 1), (6.0, 0.0)
+        )
         self.assertIn("(0.0, 0.0)", message)
         self.assertIn("(6.0, 0.0)", message)
         self.assertIn("radius 2", message)
@@ -468,9 +466,12 @@ class TestFaceEdgeBands(unittest.TestCase):
         )
 
     def test_rejects_an_unknown_direction_naming_it(self):
-        with self.assertRaises(ValueError) as caught:
-            face_edge_bands("#DDDDDD", "bevelled")
-        self.assertIn("bevelled", str(caught.exception))
+        self.assertIn(
+            "bevelled",
+            error_message(
+                self, ValueError, face_edge_bands, "#DDDDDD", "bevelled"
+            ),
+        )
 
 
 class TestFaceCorners(unittest.TestCase):
@@ -491,9 +492,12 @@ class TestFaceCorners(unittest.TestCase):
         )
 
     def test_rejects_an_unknown_bevel_naming_it(self):
-        with self.assertRaises(ValueError) as caught:
-            face_corners("#DDDDDD", "bevelled")
-        self.assertIn("bevelled", str(caught.exception))
+        self.assertIn(
+            "bevelled",
+            error_message(
+                self, ValueError, face_corners, "#DDDDDD", "bevelled"
+            ),
+        )
 
 
 class TestCircleGeometry(unittest.TestCase):
@@ -512,9 +516,7 @@ class TestCircleGeometry(unittest.TestCase):
         # name the circle and the attribute rather than surfacing as a bare
         # TypeError.
         element = ET.fromstring('<circle id="symbol" cy="8" r="3"/>')
-        with self.assertRaises(ValueError) as caught:
-            circle_geometry(element)
-        message = str(caught.exception)
+        message = error_message(self, ValueError, circle_geometry, element)
         self.assertIn("symbol", message)
         self.assertIn("'cx'", message)
 
@@ -523,9 +525,9 @@ class TestCircleGeometry(unittest.TestCase):
         # the diagnostic must still name the attribute when it cannot name the
         # element.
         element = ET.fromstring('<circle cy="8" r="3"/>')
-        with self.assertRaises(ValueError) as caught:
-            circle_geometry(element)
-        self.assertIn("'cx'", str(caught.exception))
+        self.assertIn(
+            "'cx'", error_message(self, ValueError, circle_geometry, element)
+        )
 
     def test_non_numeric_dimension_names_the_circle_attribute_and_value(self):
         # A present but non-numeric value (r="3px") would reach float() and
@@ -534,18 +536,14 @@ class TestCircleGeometry(unittest.TestCase):
         element = ET.fromstring(
             '<circle id="symbol" cx="8" cy="8" r="3px"/>'
         )
-        with self.assertRaises(ValueError) as caught:
-            circle_geometry(element)
-        message = str(caught.exception)
+        message = error_message(self, ValueError, circle_geometry, element)
         self.assertIn("symbol", message)
         self.assertIn("'r'", message)
         self.assertIn("'3px'", message)
 
     def test_anonymous_non_numeric_dimension_still_names_the_attribute(self):
         element = ET.fromstring('<circle cx="8" cy="8" r="3px"/>')
-        with self.assertRaises(ValueError) as caught:
-            circle_geometry(element)
-        message = str(caught.exception)
+        message = error_message(self, ValueError, circle_geometry, element)
         self.assertIn("'r'", message)
         self.assertIn("'3px'", message)
 
@@ -569,9 +567,7 @@ class TestRectGeometry(unittest.TestCase):
         tree = _svg_tree(
             '<rect id="hint-top-margin" y="0" width="4" height="4"/>'
         )
-        with self.assertRaises(ValueError) as caught:
-            rect_geometry(tree)
-        message = str(caught.exception)
+        message = error_message(self, ValueError, rect_geometry, tree)
         self.assertIn("hint-top-margin", message)
         self.assertIn("'x'", message)
 
@@ -585,9 +581,7 @@ class TestRectGeometry(unittest.TestCase):
             '<rect id="hint-top-margin" x="4px" y="0" width="4" '
             'height="4"/>'
         )
-        with self.assertRaises(ValueError) as caught:
-            rect_geometry(tree)
-        message = str(caught.exception)
+        message = error_message(self, ValueError, rect_geometry, tree)
         self.assertIn("hint-top-margin", message)
         self.assertIn("'x'", message)
         self.assertIn("'4px'", message)
@@ -620,9 +614,7 @@ class TestRenderSlices(unittest.TestCase):
         ):
             with self.subTest(rect=rect):
                 tree = _svg_tree(f'<g id="g">{rect}</g>')
-                with self.assertRaises(ValueError) as caught:
-                    render_slices(tree)
-                message = str(caught.exception)
+                message = error_message(self, ValueError, render_slices, tree)
                 self.assertIn("'width'", message)
                 if rect_id is None:
                     self.assertIn("rect has no 'width'", message)
@@ -640,9 +632,7 @@ class TestRenderSlices(unittest.TestCase):
                     f'<g id="g"><rect id="face" x="0" y="0" {other}="1" '
                     f'{attr}="{value}" fill="#111111"/></g>'
                 )
-                with self.assertRaises(ValueError) as caught:
-                    render_slices(tree)
-                message = str(caught.exception)
+                message = error_message(self, ValueError, render_slices, tree)
                 self.assertIn("'face'", message)
                 self.assertIn(f"'{attr}'", message)
                 self.assertIn(f"'{value}'", message)
@@ -656,9 +646,7 @@ class TestRenderSlices(unittest.TestCase):
             'fill="#111111"/>'
             "</g>"
         )
-        with self.assertRaises(ValueError) as caught:
-            render_slices(tree)
-        message = str(caught.exception)
+        message = error_message(self, ValueError, render_slices, tree)
         self.assertIn("'face'", message)
         self.assertIn("'x'", message)
         self.assertIn("'nope'", message)
@@ -685,9 +673,9 @@ class TestPixelMap(unittest.TestCase):
         # and the shape that was declared.
         for colours in (("#111111",) * 3, ("#111111",) * 5):
             with self.subTest(colours=len(colours)):
-                with self.assertRaises(ValueError) as caught:
-                    pixel_map(colours, 2, 2)
-                message = str(caught.exception)
+                message = error_message(
+                    self, ValueError, pixel_map, colours, 2, 2
+                )
                 self.assertIn(str(len(colours)), message)
                 self.assertIn("2x2", message)
                 self.assertIn("4", message)
@@ -703,9 +691,9 @@ class TestPixelMap(unittest.TestCase):
             ("height", 2, -1),
         ):
             with self.subTest(name=name):
-                with self.assertRaises(ValueError) as caught:
-                    pixel_map((), width, height)
-                message = str(caught.exception)
+                message = error_message(
+                    self, ValueError, pixel_map, (), width, height
+                )
                 self.assertIn(name, message)
 
     def test_non_integer_dimension_is_rejected(self):
@@ -718,9 +706,10 @@ class TestPixelMap(unittest.TestCase):
             ("height", 2, True),
         ):
             with self.subTest(name=name):
-                with self.assertRaises(ValueError) as caught:
-                    pixel_map((), width, height)
-                self.assertIn(name, str(caught.exception))
+                self.assertIn(
+                    name,
+                    error_message(self, ValueError, pixel_map, (), width, height),
+                )
 
 
 class _NoSubTest(unittest.TestCase):
@@ -1072,18 +1061,24 @@ class TestUniqueIds(unittest.TestCase):
 
     def test_catches_a_duplicate_id_naming_it(self):
         tree = _svg_tree('<rect id="center"/><rect id="center"/>')
-        with self.assertRaises(AssertionError) as ctx:
-            assert_unique_ids(self, tree)
-        self.assertIn("center", str(ctx.exception))
+        self.assertIn(
+            "center",
+            error_message(
+                self, AssertionError, assert_unique_ids, self, tree
+            ),
+        )
 
     def test_catches_a_duplicate_id_nested_below_the_root(self):
         # The guard walks every descendant, not just the root's children.
         tree = _svg_tree(
             '<rect id="center"/><g><rect id="center"/></g>'
         )
-        with self.assertRaises(AssertionError) as ctx:
-            assert_unique_ids(self, tree)
-        self.assertIn("center", str(ctx.exception))
+        self.assertIn(
+            "center",
+            error_message(
+                self, AssertionError, assert_unique_ids, self, tree
+            ),
+        )
 
 
 # Two margin rects whose far edges reach a 12x12 canvas. `assert_root_canvas`

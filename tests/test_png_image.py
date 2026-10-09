@@ -10,6 +10,8 @@ import sys
 import unittest
 from pathlib import Path
 
+from error_assertions import error_message
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -26,9 +28,9 @@ class TestImage(unittest.TestCase):
         # construction and the error names the actual and expected byte counts.
         for width, height, size in ((2, 2, 11), (2, 2, 13), (1, 1, 0)):
             with self.subTest(width=width, height=height, size=size):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.Image(width, height, bytes(size))
-                message = str(ctx.exception)
+                message = error_message(
+                    self, png.PngError, png.Image, width, height, bytes(size)
+                )
                 self.assertIn(str(size), message)
                 self.assertIn(str(width * height * 3), message)
                 self.assertIn(f"{width}x{height}", message)
@@ -46,9 +48,12 @@ class TestImage(unittest.TestCase):
         # construction, named with the offending dimensions.
         for width, height in ((0, 1), (1, 0), (0, 0), (-2, 3), (3, -1)):
             with self.subTest(width=width, height=height):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.Image(width, height, b"")
-                self.assertIn(f"{width}x{height}", str(ctx.exception))
+                self.assertIn(
+                    f"{width}x{height}",
+                    error_message(
+                        self, png.PngError, png.Image, width, height, b""
+                    ),
+                )
 
     def test_rejects_bool_dimensions_despite_being_an_int_subclass(self):
         # bool is an int subclass, so True/False would pass an isinstance
@@ -56,9 +61,12 @@ class TestImage(unittest.TestCase):
         # genuine integer and name the offending dimension.
         for width, height in ((True, 1), (1, False), (True, True)):
             with self.subTest(width=width, height=height):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.Image(width, height, bytes(3))
-                self.assertIn("must be an integer", str(ctx.exception))
+                self.assertIn(
+                    "must be an integer",
+                    error_message(
+                        self, png.PngError, png.Image, width, height, bytes(3)
+                    ),
+                )
 
     def test_rejects_non_bytes_rgb_naming_its_type(self):
         # Only the rgb length was checked, so a str or list of the right
@@ -69,9 +77,9 @@ class TestImage(unittest.TestCase):
         # later (_abs_diff cannot concatenate a memoryview with bytes).
         for rgb in ("abc", [1, 2, 3], memoryview(b"abc"), 1):
             with self.subTest(rgb=type(rgb).__name__):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.Image(1, 1, rgb)
-                message = str(ctx.exception)
+                message = error_message(
+                    self, png.PngError, png.Image, 1, 1, rgb
+                )
                 self.assertIn("rgb", message)
                 self.assertIn(type(rgb).__name__, message)
 
@@ -87,9 +95,9 @@ class TestImage(unittest.TestCase):
         # float); the invariant names the offending dimension and its value.
         for width, height in (("2", 2), (2, "2"), (2.5, 2), (2, 2.5)):
             with self.subTest(width=width, height=height):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.Image(width, height, b"")
-                message = str(ctx.exception)
+                message = error_message(
+                    self, png.PngError, png.Image, width, height, b""
+                )
                 self.assertIn("must be an integer", message)
                 self.assertIn(repr(width), message)
                 self.assertIn(repr(height), message)

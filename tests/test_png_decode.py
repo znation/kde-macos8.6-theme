@@ -14,6 +14,8 @@ import unittest
 import zlib
 from pathlib import Path
 
+from error_assertions import error_message
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -36,9 +38,7 @@ from png_fixtures import (  # noqa: E402
 class TestDecode(unittest.TestCase):
     def _decode_error(self, data):
         """Assert decode_png rejects *data* and return the PngError message."""
-        with self.assertRaises(png.PngError) as ctx:
-            png.decode_png(data)
-        return str(ctx.exception)
+        return error_message(self, png.PngError, png.decode_png, data)
 
     def test_rgb_roundtrip(self):
         image, data = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 30))
@@ -530,9 +530,9 @@ class TestToRgbUnsupportedColorType(unittest.TestCase):
     def test_unsupported_color_type_names_the_type(self):
         for color_type in (1, 5, 7):
             with self.subTest(color_type=color_type):
-                with self.assertRaises(png.PngError) as ctx:
-                    png._to_rgb(color_type, b"", None)
                 self.assertEqual(
-                    str(ctx.exception),
+                    error_message(
+                        self, png.PngError, png._to_rgb, color_type, b"", None
+                    ),
                     f"unsupported PNG color type {color_type}",
                 )

@@ -16,6 +16,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from error_assertions import error_message
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
@@ -32,9 +34,7 @@ class TestReadPng(unittest.TestCase):
         tell which of candidate/reference was bad; each extra *needle* pins
         one part of the diagnosis.
         """
-        with self.assertRaises(png.PngError) as ctx:
-            png.read_png(path)
-        message = str(ctx.exception)
+        message = error_message(self, png.PngError, png.read_png, path)
         self.assertIn(str(path), message)
         for needle in needles:
             self.assertIn(needle, message)
@@ -50,13 +50,14 @@ class TestReadPng(unittest.TestCase):
             with mock.patch.object(png, "_MAX_FILE_BYTES", limit):
                 tracemalloc.start()
                 try:
-                    with self.assertRaises(png.PngError) as ctx:
-                        png.read_png(path)
+                    message = error_message(
+                        self, png.PngError, png.read_png, path
+                    )
                     peak = tracemalloc.get_traced_memory()[1]
                 finally:
                     tracemalloc.stop()
-        self.assertIn(str(limit), str(ctx.exception))
-        self.assertIn(f"{limit + 1} bytes", str(ctx.exception))
+        self.assertIn(str(limit), message)
+        self.assertIn(f"{limit + 1} bytes", message)
         self.assertLess(peak, limit + 1024 * 1024)
 
     def test_read_png_names_undecodable_file(self):

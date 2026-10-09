@@ -11,6 +11,7 @@ import sys
 import unittest
 
 from colorscheme_fixtures import ROOT, load_scheme
+from error_assertions import error_message
 
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
@@ -140,9 +141,9 @@ class TestReferenceAnchors(unittest.TestCase):
         self.image_errors = {}
         for x, y in ((4, 0), (0, 3), (-1, 0), (0, -1)):
             with self.subTest(x=x, y=y):
-                with self.assertRaises(ValueError) as caught:
-                    self.pixel(REFERENCE_DESKTOP, x, y)
-                message = str(caught.exception)
+                message = error_message(
+                    self, ValueError, self.pixel, REFERENCE_DESKTOP, x, y
+                )
                 self.assertIn(f"({x}, {y})", message)
                 self.assertIn("4x3", message)
 
