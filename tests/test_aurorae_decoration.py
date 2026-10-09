@@ -27,7 +27,7 @@ from install_lifecycle_cases import InstallLifecycleCases
 from kde_config import read as read_kde_config
 from kpackage_install_case import KPackageInstallCase
 from nine_slice_case import NineSliceCase
-from package_metadata import kplugin, load_metadata
+from package_metadata import assert_named_authors, kplugin, load_metadata
 from reference_image import skip_unless_materialized
 from svg_assertions import (
     SLICE_IDS,
@@ -158,6 +158,19 @@ class TestMetadata(unittest.TestCase):
                 expected,
                 f"{METADATA_DESKTOP}: {key} must match {METADATA}",
             )
+        # The desktop file's `X-KDE-PluginInfo-Author` is one string; the JSON
+        # `KPlugin.Authors` is the list KDE's About dialog reads. Both name the
+        # package's author, so the desktop file's name must be one of them, or
+        # the two consumers disagree. `assert_named_authors` validates the list
+        # shape first (nothing else checks the Aurorae metadata.json's Authors)
+        # and returns the names it accepted.
+        authors = assert_named_authors(self, plugin.get("Authors"), METADATA)
+        self.assertIn(
+            parser.get("Desktop Entry", "X-KDE-PluginInfo-Author"),
+            authors,
+            f"{METADATA_DESKTOP}: X-KDE-PluginInfo-Author must name one of "
+            f"{METADATA}'s KPlugin.Authors",
+        )
 
 
 class TestInstall(

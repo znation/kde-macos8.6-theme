@@ -63,6 +63,33 @@ def kplugin(metadata, path):
     return plugin
 
 
+def assert_named_authors(case, authors, path):
+    """Assert *authors* is a non-empty list of named objects; return the names.
+
+    ``KPlugin.Authors`` is a non-empty list whose entries are objects with a
+    non-blank ``Name`` (KDE's About dialog reads each one). A metadata.json
+    that drops the field, replaces the list with a string, empties it, or
+    blanks an entry's Name still installs, so every package pins the shape.
+    The Aurorae metadata test also cross-checks the desktop file's single
+    author against these names, so the contract lives here once. *case* is the
+    calling ``unittest.TestCase``; *path* names the metadata.json in the
+    diagnostics. Returns the author names in list order.
+    """
+    case.assertIsInstance(authors, list, f"{path}: KPlugin.Authors")
+    case.assertTrue(
+        authors, f"{path}: KPlugin.Authors must not be empty"
+    )
+    names = []
+    for index, author in enumerate(authors):
+        where = f"{path}: KPlugin.Authors[{index}]"
+        case.assertIsInstance(author, dict, where)
+        name = author.get("Name")
+        case.assertIsInstance(name, str, f"{where}.Name")
+        case.assertTrue(name.strip(), f"{where}.Name must not be blank")
+        names.append(name)
+    return names
+
+
 class PackageMetadata:
     """Mixin: assert the shape of a KDE package's `metadata.json`.
 
@@ -175,23 +202,12 @@ class PackageMetadata:
         # of objects, and KDE's About dialog reads each entry's Name. Nothing
         # else pins that shape: a metadata.json that drops Authors, replaces
         # the list with a string, empties it, or blanks an entry's Name still
-        # installs, so pin it here with the rest of the KPlugin contract.
-        authors = self._plugin_field("Authors")
-        self.assertIsInstance(
-            authors, list, f"{self.METADATA_PATH}: KPlugin.Authors"
+        # installs, so pin it here with the rest of the KPlugin contract. The
+        # Aurorae metadata test shares this check through
+        # `assert_named_authors`, which also returns the names it validated.
+        assert_named_authors(
+            self, self._plugin_field("Authors"), self.METADATA_PATH
         )
-        self.assertTrue(
-            authors,
-            f"{self.METADATA_PATH}: KPlugin.Authors must not be empty",
-        )
-        for index, author in enumerate(authors):
-            where = f"{self.METADATA_PATH}: KPlugin.Authors[{index}]"
-            self.assertIsInstance(author, dict, where)
-            name = author.get("Name")
-            self.assertIsInstance(name, str, f"{where}.Name")
-            self.assertTrue(
-                name.strip(), f"{where}.Name must not be blank"
-            )
 
     def test_plugin_description_and_license_are_non_empty(self):
         # Description is shown in System Settings and License is the package's
