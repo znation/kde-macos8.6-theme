@@ -52,6 +52,8 @@ OTHER_SECTIONS = {
         "IntensityEffect",
     ],
     "General": ["ColorScheme", "Name", "shadeSortColumn"],
+    # KDE reads `[KDE] contrast` as an integer (KColorScheme::contrastF scales
+    # an int), so it gets its own format test below rather than only presence.
     "KDE": ["contrast"],
     "WM": [
         "activeBackground", "activeBlend", "activeForeground",
@@ -64,8 +66,8 @@ RGB_RE = re.compile(r"^\d{1,3},\d{1,3},\d{1,3}$")
 # Every value KDE parses as an RGB triple: the semantic roles in each [Colors:*]
 # section, the [WM] window-decoration colours, and the base `Color` of the two
 # ColorEffects sections. The amounts and booleans have their own range/format
-# tests below; the effect selectors have their own integer test, and the [KDE]
-# scalar is checked only for presence by test_other_sections_and_keys.
+# tests below; the effect selectors and the [KDE] scalar have their own integer
+# tests.
 RGB_VALUES = (
     [(section, key) for section in COLORS_SECTIONS for key in COLORS_KEYS]
     + [(section, "Color") for section in ("ColorEffects:Disabled", "ColorEffects:Inactive")]
@@ -198,6 +200,16 @@ class TestStructure(unittest.TestCase):
             except ValueError:
                 self.fail(f"{section}/{key} is not an integer: {value!r}")
             self.assertGreaterEqual(selector, 0, f"{section}/{key} = {value!r}")
+
+    def test_kde_contrast_is_an_integer(self):
+        # KDE reads `[KDE] contrast` with readEntry<int>, so a non-integer
+        # (e.g. 4.0 or a typo) silently falls back to the default instead of
+        # failing, quietly changing the contrast-derived colours.
+        value = self.parser.get("KDE", "contrast")
+        try:
+            int(value)
+        except ValueError:
+            self.fail(f"KDE/contrast is not an integer: {value!r}")
 
     def test_boolean_values_use_kde_spellings(self):
         for section, key in BOOLEAN_VALUES:
