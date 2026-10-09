@@ -330,5 +330,44 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         self.assertIn('install -d "/custom/share"', out)
 
 
+class TestCheckPattern(unittest.TestCase):
+    """`make check` defaults to the whole suite and accepts a narrowing glob.
+
+    The suite is slow (the install tests spawn `make`), so a focused run should
+    not have to retype `python3 -m unittest discover -s tests ...`. `make -n`
+    prints the recipe without running it, so the wiring is checked without a
+    nested suite run.
+    """
+
+    def _dry_run(self, *extra):
+        # A caller's `make check CHECK_PATTERN=...` reaches the recipe both as
+        # a CHECK_PATTERN environment variable and as a command-line variable
+        # definition inside MAKEFLAGS; the child `make` re-reads the latter and
+        # would otherwise use the ambient pattern for the default case. Drop
+        # both so each case pins the pattern it means to; a command-line
+        # assignment passed below still overrides the Makefile default.
+        env = dict(os.environ)
+        env.pop("CHECK_PATTERN", None)
+        env.pop("MAKEFLAGS", None)
+        result = theme_install.run(
+            ["make", "-n", "check", *extra],
+            cwd=theme_install.ROOT,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    def test_default_pattern_runs_every_test_module(self):
+        self.assertIn("-p 'test*.py'", self._dry_run())
+
+    def test_pattern_narrows_the_discovered_modules(self):
+        self.assertIn(
+            "-p 'test_byteops.py'",
+            self._dry_run("CHECK_PATTERN=test_byteops.py"),
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

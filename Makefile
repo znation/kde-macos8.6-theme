@@ -52,8 +52,15 @@ endef
 
 .PHONY: check check-references install uninstall _install _uninstall
 
+# `check` runs the whole suite by default. A caller can narrow it to the test
+# modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
+# so a focused run does not need `python3 -m unittest discover -s tests ...`
+# (the test modules import each other by bare name, so they only run under
+# `discover`, not as `python3 -m unittest tests.<module>`).
+CHECK_PATTERN ?= test*.py
+
 check:
-	$(PYTHON) -m unittest discover -s tests -v
+	$(PYTHON) -m unittest discover -s tests -v -p '$(CHECK_PATTERN)'
 
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
 # out of `check`. The deterministic self-test runs first and fails fast.
