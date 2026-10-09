@@ -21,6 +21,7 @@ if str(REPO_ROOT) not in sys.path:
 from tools import png  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _chunk,
+    control_named_png,
     ihdr_chunk,
     ihdr_end,
     make_png,
@@ -269,3 +270,16 @@ class TestValueError(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             _value_error(self, reject)
+
+
+class TestControlNamedPng(unittest.TestCase):
+    def test_yields_a_valid_png_whose_name_carries_an_escape(self):
+        # The CLI escaping tests read the path from this fixture; pin that it
+        # really is a decodable 1x1 PNG and that the name still carries the
+        # OSC title-setting escape those tests are about.
+        with control_named_png() as path:
+            self.assertTrue(path.endswith("evil\x1b]0;pwned\x07.png"))
+            self.assertEqual(
+                png.decode_png(Path(path).read_bytes()),
+                png.Image(1, 1, b"\x00\x00\x00"),
+            )

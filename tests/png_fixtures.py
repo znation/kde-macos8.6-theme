@@ -12,9 +12,12 @@ color type does not re-derive that expansion.
 
 from __future__ import annotations
 
+import contextlib
 import struct
+import tempfile
 import zlib
 from collections.abc import Callable
+from pathlib import Path
 
 from tools import png
 from tools.ints import is_plain_int
@@ -323,4 +326,21 @@ def solid_rgb(
     case here keeps the colour visible at the call site.
     """
     return rgb_image(width, height, lambda x, y: color)
+
+
+@contextlib.contextmanager
+def control_named_png():
+    """Yield the path of a valid 1x1 PNG whose name carries a control sequence.
+
+    The name is ``evil`` + ESC + ``]0;pwned`` + BEL + ``.png`` -- an OSC
+    "set window title" payload followed by a bell -- and the bytes are a real
+    1x1 PNG, so a CLI that prints the path in a success line has a valid input
+    that still must be escaped. Defining the name and the valid image once
+    keeps the fidelity and sample escaping tests on the same case.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "evil\x1b]0;pwned\x07.png"
+        _, data = solid_rgb(1, 1)
+        path.write_bytes(data)
+        yield str(path)
 

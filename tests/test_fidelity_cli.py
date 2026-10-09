@@ -22,6 +22,7 @@ from error_assertions import assert_escapes_escape_character  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
+    control_named_png,
     make_png,
     rgb_image,
     solid_rgb,
@@ -494,11 +495,8 @@ class TestCli(CliTestCase):
     def test_success_output_escapes_control_characters_in_paths(self):
         # The success lines name both paths; a shell glob over the reference
         # directory passes a contributor-supplied filename through unchanged.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "evil\x1b]0;pwned\x07.png"
-            _, data = solid_rgb(1, 1)
-            path.write_bytes(data)
-            result = self._run(str(path), str(path))
+        with control_named_png() as path:
+            result = self._run(path, path)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         assert_escapes_escape_character(self, result.stdout)
 
