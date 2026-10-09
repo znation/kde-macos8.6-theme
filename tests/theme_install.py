@@ -87,6 +87,28 @@ def installed_package(destdir, kind, package_id):
     return os.path.join(installed_plasma_dir(destdir, kind), package_id)
 
 
+def installed_aurorae_dir(destdir):
+    """Directory `make install` writes the Aurorae window decoration into.
+
+    The Makefile installs the decoration under
+    `$(DESTDIR)$(XDG_DATA_HOME)/aurorae/themes`, the KWin sibling of the
+    `plasma/` families; `installed_aurorae_theme` joins a theme's own
+    directory onto the result.
+    """
+    return os.path.join(
+        destdir, XDG_DATA_HOME.lstrip("/"), "aurorae", "themes"
+    )
+
+
+def installed_aurorae_theme(destdir, theme_id):
+    """Directory `make install` writes one Aurorae theme into.
+
+    The family comes from `installed_aurorae_dir`; the theme's own directory
+    is that family joined with its id (`org.macos8.desktop`).
+    """
+    return os.path.join(installed_aurorae_dir(destdir), theme_id)
+
+
 def installed_color_scheme_dir(destdir):
     """Directory `make install` writes the color scheme into.
 

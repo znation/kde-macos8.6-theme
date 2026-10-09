@@ -37,11 +37,27 @@ class InstallLifecycleCases:
     PACKAGE_DIR = None
     INSTALLED_FILES = ()
 
+    def installed_parent(self, tmp):
+        """Directory holding this family's packages.
+
+        Defaults to the `plasma/<kind>` family; a suite whose package installs
+        elsewhere (an Aurorae theme under `aurorae/themes`) overrides it.
+        """
+        return installed_plasma_dir(tmp, self.KIND)
+
+    def installed_package_dir(self, tmp):
+        """This package's installed directory.
+
+        Defaults to the `plasma/<kind>/<id>` path; a suite whose package
+        installs elsewhere overrides it alongside `installed_parent`.
+        """
+        return installed_package(tmp, self.KIND, self.PACKAGE_ID)
+
     def test_make_install_copies_package_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
             self.assertEqual(result.returncode, 0, result.stderr)
-            installed = installed_package(tmp, self.KIND, self.PACKAGE_ID)
+            installed = self.installed_package_dir(tmp)
             for name in self.INSTALLED_FILES:
                 source = os.path.join(self.PACKAGE_DIR, name)
                 target = os.path.join(installed, name)
@@ -77,8 +93,8 @@ class InstallLifecycleCases:
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
             self.assertEqual(installed.returncode, 0, installed.stderr)
-            parent = installed_plasma_dir(tmp, self.KIND)
-            package = os.path.join(parent, self.PACKAGE_ID)
+            parent = self.installed_parent(tmp)
+            package = self.installed_package_dir(tmp)
             self.assertTrue(os.path.isdir(package), package)
 
             # SIGKILL cannot be trapped, so an install killed in the swap

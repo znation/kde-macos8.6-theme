@@ -21,7 +21,7 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
 
     A `DESTDIR` or `XDG_DATA_HOME` with a space is legal; an unquoted recipe
     word-splits it, so the copy lands in the wrong place or fails outright.
-    All three artifacts must install and uninstall under a spaced root.
+    All four artifacts must install and uninstall under a spaced root.
     """
 
     def test_install_and_uninstall_under_a_path_with_a_space(self):
@@ -42,12 +42,17 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
                 "org.macos8.desktop",
             )
             self.assertTrue(os.path.isdir(dtheme), dtheme)
+            aurorae = theme_install.installed_aurorae_theme(
+                destdir, "org.macos8.desktop"
+            )
+            self.assertTrue(os.path.isdir(aurorae), aurorae)
 
             removed = theme_install.uninstall(destdir)
             self.assertEqual(removed.returncode, 0, removed.stderr)
             self.assertFalse(os.path.exists(scheme), scheme)
             self.assertFalse(os.path.exists(lnf), lnf)
             self.assertFalse(os.path.exists(dtheme), dtheme)
+            self.assertFalse(os.path.exists(aurorae), aurorae)
 
 
 class TestXdgDataHomeDefault(unittest.TestCase):

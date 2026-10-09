@@ -17,122 +17,11 @@ the window decoration is now planned by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part A: active frame, close and zoom widgets (planned 2026-10-08)
-
-**Planned 2026-10-08 by plan.**
-
-**Goal.** Ship the first window decoration for the Mac OS 8.6 port: an Aurorae theme whose active
-frame reproduces the Platinum title bar and whose close and zoom widgets reproduce the reference's
-gradient boxes, so a window drawn by KWin stops wearing Breeze chrome. Today no `aurorae` theme tree exists and the `Makefile` installs only the color scheme and the two `plasma/` package families,
-so KWin keeps Breeze. This is the window-decoration surface the steward's 2026-10-08 scope-drift
-note names as uncovered. Part A is the active frame and the two widgets the clean reference shows;
-the inactive frame, the hover/pressed/maximized states, the collapse widget, the secondary widgets
-and the global-theme wiring are part B (see Follow-ups).
-
-**Reference.** `macos8.6-screenshots/aboutsystem_betawiki.png` (1024x768, lossless PNG;
-`sources.txt`). The "About This Computer" window's active title bar is y=25..46 at every column
-clear of the caption; sampling column x=250 with `tools/sample.py` gives, top to bottom: y=25
-`#000000` (1px), y=26 `#FFFFFF` (1px), y=27..28 `#CCCCCC` (2px), y=29..40 the pinstripes
-alternating `#FFFFFF` (odd y) and `#777777` (even y), y=41..44 `#CCCCCC` (4px), y=45 `#999999`
-(1px), y=46 `#000000` (1px). The window's side borders at y=100 are x=354 `#000000`, x=355
-`#FFFFFF`, x=356..357 `#CCCCCC`, x=358 `#999999`, x=359 `#000000`, mirrored at x=7..12, with a 1px
-`#AAAAAA` drop shadow outside them (x=353, and y=418 below the bottom border y=419..424). The close
-box is a 12x12 gradient square at
-x=11..22, y=29..40 with a 1px `#888888` top/left outline, a 1px `#222222` inner outline, a diagonal
-`#999999`→`#FFFFFF` face and no glyph; the zoom box is the same square at x=343..354, y=29..40. The
-caption's solid `#CCCCCC` plate (x≈145..225 at y=29) is a Mac OS caption background that Aurorae's
-`caption` `Text` (see `/usr/share/kwin/aurorae/aurorae.qml`) cannot draw; part A leaves the
-pinstripes continuous and records this as a deviation.
-
-**Approach.**
-- Add `aurorae/themes/org.macos8.desktop/` under `theme/` as a data-only Aurorae theme. The plugin
-  `/usr/lib/x86_64-linux-gnu/qt6/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.so` and
-  `/usr/share/kwin/aurorae/aurorae.qml` are installed, and `~/.local/share/aurorae/themes/Marge/`
-  is an installed example to read the rc keys from.
-  - `org.macos8.desktoprc` — `[General]` `ActiveTextColor=0,0,0`, `InactiveTextColor=153,153,153`,
-    `TitleAlignment=Center`, `TitleVerticalAlignment=Center`, `Animation=0`, `Shadow=false`;
-    `[Layout]` `BorderLeft=6`, `BorderRight=6`, `BorderBottom=6`, `BorderTop=22`, `TitleHeight=22`,
-    `ButtonWidth=12`, `ButtonHeight=12`, `ButtonMarginTop=4`, `TitleEdgeTop=0`, `TitleEdgeLeft=4`,
-    `TitleEdgeRight=5`, `ButtonSpacing=8`. The `#CCCCCC` title field and black caption are read from
-    the reference; `InactiveTextColor=#999999` is the classic Platinum inactive caption colour,
-    recorded as KDE-required because the clean reference used here (`aboutsystem_betawiki.png`)
-    shows only an active window.
-  - `decoration.svg` — a KSvg nine-slice on the `decoration` prefix: the ids `decoration-top`,
-    `decoration-topleft`, `decoration-topright`, `decoration-left`, `decoration-right`,
-    `decoration-center`, `decoration-bottomleft`, `decoration-bottom`, `decoration-bottomright`, the
-    margin hints `decoration-hint-{top,bottom,left,right}-margin` and `hint-tile-center`. The top
-    tile is the 22px title bar above (pinstripes included); the left/right/bottom tiles are the 6px
-    bevel; the center is a plain `#FFFFFF` body the client paints over.
-  - `close.svg`, `maximize.svg`, `restore.svg` — one 12x12 button SVG each, an `active-center`
-    element drawing the reference's gradient box (no glyph, matching the reference).
-  - `metadata.json` — `KPackageStructure: "KWin/Aurorae"`, `Id: "org.macos8.desktop"`,
-    `Name: "Mac OS 8.6"`, `License: "GPL-2.0-or-later"`, mirroring the desktop theme's fields.
-- Install the family: in the `Makefile`, add `AURORAE_ID`, `AURORAE_PACKAGE`,
-  `AURORAE_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/aurorae/themes`, an `install -d` and an
-  `install_package` call in `_install`, and the matching `rm -rf` (package plus `.staging`/`.old`
-  siblings) in `_uninstall`.
-- Teach `tests/theme_install.py` the family: `installed_aurorae_dir(destdir)`
-  (`<destdir>/share/aurorae/themes`) and `installed_aurorae_theme(destdir, theme_id)`.
-- Let the shared install mixins carry the family without changing their existing subclasses: add an
-  `installed_parent(self, tmp)` and an `installed_package_dir(self, tmp)` hook to
-  `InstallLifecycleCases` and `FailedInstallPreservesPackage` (defaulting to
-  `installed_plasma_dir(tmp, self.KIND)` / `installed_package(tmp, self.KIND, self.PACKAGE_ID)`) and
-  replace the direct calls with them.
-- Add a new `test_aurorae_decoration.py` test module covering the package, the rc and the artwork (below).
-- `README.md`: Status and Installing name the fourth artifact.
-
-**Files touched.**
-- `aurorae/themes/org.macos8.desktop/org.macos8.desktoprc` (new)
-- `aurorae/themes/org.macos8.desktop/decoration.svg` (new)
-- `aurorae/themes/org.macos8.desktop/close.svg`, `maximize.svg`, `restore.svg` (new)
-- `aurorae/themes/org.macos8.desktop/metadata.json` (new)
-- `Makefile` (`AURORAE_*`, `_install`, `_uninstall`)
-- `tests/theme_install.py` (`installed_aurorae_dir`, `installed_aurorae_theme`)
-- `tests/install_lifecycle_cases.py`, `tests/install_failure_cases.py` (the two hooks)
-- a new `test_aurorae_decoration.py` test module
-- `README.md`
-
-**Acceptance criteria.**
-- `make check` exits 0; the new `test_aurorae_decoration.py` passes and the existing install
-  suites still pass with the added hooks.
-- `TestInstall` (subclassing `InstallLifecycleCases` and `FailedInstallPreservesPackage` with
-  `installed_parent`/`installed_package_dir` overridden) proves `make install` copies
-  `aurorae/themes/org.macos8.desktop/` byte-for-byte to
-  `<tmp>/share/aurorae/themes/org.macos8.desktop/`, a reinstall is repeatable, and `make uninstall`
-  removes the package and its `.staging`/`.old` siblings.
-- `TestRc.test_layout_metrics_match_reference` reads `aboutsystem_betawiki.png` through `tools/png.py`,
-  re-derives the title-bar height (the `#000000`→`#000000` run at a clear column), the side-border
-  thickness (the black→black run at y=100, excluding the 1px `#AAAAAA` drop shadow) and the
-  close-box bounding box (the `#888888` pixels near `(11,29)`), and asserts the rc's `TitleHeight`,
-  `BorderLeft`/`BorderRight` and `ButtonWidth`/`ButtonHeight` equal them; `test_title_bar_colours_match_reference` asserts the rc
-  and `decoration.svg` use the `#FFFFFF`/`#777777` pinstripes and the `#CCCCCC` field the test
-  samples at `(250,29)`/`(250,30)`/`(250,27)`.
-- `TestDecorationSvg` parses `decoration.svg` and asserts the `decoration`-prefixed slice ids and
-  margin hints are present (`assert_slice_ids_present`), that `assert_unique_ids` and
-  `assert_no_script_elements` pass, `assert_tiles_placed_by_margins` and
-  `assert_slices_stay_within_their_tiles` hold for the `decoration` prefix, and `assert_root_canvas`
-  holds for the frame canvas.
-- `TestButtons.test_close_box_colours_match_reference` re-derives the close box's outline and face
-  colours from `aboutsystem_betawiki.png` (the `#888888`, `#222222`, `#999999` and `#FFFFFF` pixels
-  of the box at x=11..22, y=29..40) and asserts `close.svg`'s `active-center` defines exactly them;
-  `test_zoom_box_matches_the_close_box` asserts `maximize.svg` and `restore.svg` carry the same
-  fills, since the reference's zoom box is the same 12x12 square.
-- Manual smoke test (needs a Plasma session, outside `make check`): with the theme copied to
-  `$XDG_DATA_HOME/aurorae/themes/`, System Settings → Window Decorations lists `org.macos8.desktop`,
-  and selecting it draws the pinstriped Platinum title bar and the two gradient boxes.
-
-**Follow-ups (not planned here).** Part B adds the inactive frame (`decoration-inactive`) and
-inactive button state, the hover/pressed/deactivated prefixes, the `decoration-maximized` frame,
-the collapse (`minimize.svg`) and secondary widgets, and wires the global theme by adding
-`[kwinrc][org.kde.kdecoration2]` (`library=org.kde.kwin.aurorae`, `theme=org.macos8.desktop`,
-`ButtonsOnLeft=X`, `ButtonsOnRight=A`) to `look-and-feel/org.macos8.desktop/contents/defaults`
-and extending `tests/test_lookandfeel.py::TestDefaults`.
-
 ### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part B1: inactive frame and inactive widget state (planned 2026-10-08)
 
 **Planned 2026-10-08 by plan.**
 
-**Depends on.** Part A above, which creates the `org.macos8.desktop` Aurorae theme tree and its
+**Depends on.** Part A (now under `## Done`), which creates the `org.macos8.desktop` Aurorae theme tree and its
 `test_aurorae_decoration.py` module; land Part A first. This is the first slice of the Part B work
 Part A's Follow-ups list; the hover/pressed/deactivated button states, the `decoration-maximized`
 frame, the collapse (`minimize.svg`) and secondary widgets, and the global-theme wiring stay
@@ -201,6 +90,148 @@ A later reference or a human can correct these three choices without touching th
   artwork and the flat grey inactive artwork.
 
 ## Done
+
+### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part A: active frame, close and zoom widgets (done 2026-10-08)
+
+**Planned 2026-10-08 by plan.**
+
+**Goal.** Ship the first window decoration for the Mac OS 8.6 port: an Aurorae theme whose active
+frame reproduces the Platinum title bar and whose close and zoom widgets reproduce the reference's
+gradient boxes, so a window drawn by KWin stops wearing Breeze chrome. Today no `aurorae` theme tree exists and the `Makefile` installs only the color scheme and the two `plasma/` package families,
+so KWin keeps Breeze. This is the window-decoration surface the steward's 2026-10-08 scope-drift
+note names as uncovered. Part A is the active frame and the two widgets the clean reference shows;
+the inactive frame, the hover/pressed/maximized states, the collapse widget, the secondary widgets
+and the global-theme wiring are part B (see Follow-ups).
+
+**Reference.** `macos8.6-screenshots/aboutsystem_betawiki.png` (1024x768, lossless PNG;
+`sources.txt`). The "About This Computer" window's active title bar is y=25..46 at every column
+clear of the caption; sampling column x=250 with `tools/sample.py` gives, top to bottom: y=25
+`#000000` (1px), y=26 `#FFFFFF` (1px), y=27..28 `#CCCCCC` (2px), y=29..40 the pinstripes
+alternating `#FFFFFF` (odd y) and `#777777` (even y), y=41..44 `#CCCCCC` (4px), y=45 `#999999`
+(1px), y=46 `#000000` (1px). The window's side borders at y=100 are x=354 `#000000`, x=355
+`#FFFFFF`, x=356..357 `#CCCCCC`, x=358 `#999999`, x=359 `#000000`, mirrored at x=7..12, with a 1px
+`#AAAAAA` drop shadow outside them (x=353, and y=418 below the bottom border y=419..424). The close
+box is a 12x12 gradient square at
+x=11..22, y=29..40 with a 1px `#888888` top/left outline, a 1px `#222222` inner outline, a diagonal
+`#999999`→`#FFFFFF` face and no glyph; the zoom box is the same square at x=343..354, y=29..40 but
+carries an inner `#222222` glyph (two horizontal bars at local y=5 and y=7 spanning x=2..10, the 18
+pixels that differ from the close box). The
+caption's solid `#CCCCCC` plate (x≈145..225 at y=29) is a Mac OS caption background that Aurorae's
+`caption` `Text` (see `/usr/share/kwin/aurorae/aurorae.qml`) cannot draw; part A leaves the
+pinstripes continuous and records this as a deviation.
+
+**Approach.**
+- Add `aurorae/themes/org.macos8.desktop/` under `theme/` as a data-only Aurorae theme. The plugin
+  `/usr/lib/x86_64-linux-gnu/qt6/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.so` and
+  `/usr/share/kwin/aurorae/aurorae.qml` are installed, and `~/.local/share/aurorae/themes/Marge/`
+  is an installed example to read the rc keys from.
+  - `org.macos8.desktoprc` — `[General]` `ActiveTextColor=0,0,0`, `InactiveTextColor=153,153,153`,
+    `TitleAlignment=Center`, `TitleVerticalAlignment=Center`, `Animation=0`, `Shadow=false`;
+    `[Layout]` `BorderLeft=6`, `BorderRight=6`, `BorderBottom=6`, `BorderTop=22`, `TitleHeight=22`,
+    `ButtonWidth=12`, `ButtonHeight=12`, `ButtonMarginTop=4`, `TitleEdgeTop=0`, `TitleEdgeLeft=4`,
+    `TitleEdgeRight=5`, `ButtonSpacing=8`. The `#CCCCCC` title field and black caption are read from
+    the reference; `InactiveTextColor=#999999` is the classic Platinum inactive caption colour,
+    recorded as KDE-required because the clean reference used here (`aboutsystem_betawiki.png`)
+    shows only an active window.
+  - `decoration.svg` — a KSvg nine-slice on the `decoration` prefix: the ids `decoration-top`,
+    `decoration-topleft`, `decoration-topright`, `decoration-left`, `decoration-right`,
+    `decoration-center`, `decoration-bottomleft`, `decoration-bottom`, `decoration-bottomright`, the
+    margin hints `decoration-hint-{top,bottom,left,right}-margin` and `hint-tile-center`. The top
+    tile is the 22px title bar above (pinstripes included); the left/right/bottom tiles are the 6px
+    bevel; the center is a plain `#FFFFFF` body the client paints over.
+  - `close.svg`, `maximize.svg`, `restore.svg` — one 12x12 button SVG each, an `active-center`
+    element drawing the reference's gradient box; `close.svg` has no glyph, while `maximize.svg`
+    and `restore.svg` carry the zoom box's inner `#222222` glyph. `restore.svg` reuses the zoom
+    box because the reference set has no maximized window (KDE-required provenance). The 1px
+    `#AAAAAA` shadow the reference shows outside the bottom/right border is not drawn.
+  - `metadata.json` — `KPackageStructure: "KWin/Aurorae"`, `Id: "org.macos8.desktop"`,
+    `Name: "Mac OS 8.6"`, `License: "GPL-2.0-or-later"`, mirroring the desktop theme's fields.
+  - `metadata.desktop` — the `[Desktop Entry]` `Name=Mac OS 8.6` plus the standard
+    `X-KDE-PluginInfo-*` keys. KWin 6.3.6's `ThemeProvider::findAllSvgThemes`
+    (`src/plugins/kdecorations/aurorae/src/aurorae.cpp`) lists an
+    `aurorae/themes/<dir>` only when it contains this file, so without it the
+    decoration is never offered in System Settings → Window Decorations.
+  - `decoration.svgz` — `decoration.svg` gzipped. `kpackagetool6 -t KWin/Aurorae`
+    (the `aurorae` KPackage structure) requires the `decoration.svgz` file
+    definition, so a package without it fails to install; the Aurorae runtime
+    prefers `decoration.svg` and falls back to the `.svgz`
+    (`AuroraeTheme::loadTheme`), so the artwork under test stays uncompressed.
+- Install the family: in the `Makefile`, add `AURORAE_ID`, `AURORAE_PACKAGE`,
+  `AURORAE_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/aurorae/themes`, an `install -d` and an
+  `install_package` call in `_install`, and the matching `rm -rf` (package plus `.staging`/`.old`
+  siblings) in `_uninstall`.
+- Teach `tests/theme_install.py` the family: `installed_aurorae_dir(destdir)`
+  (`<destdir>/share/aurorae/themes`) and `installed_aurorae_theme(destdir, theme_id)`.
+- Let the shared install mixins carry the family without changing their existing subclasses: add an
+  `installed_parent(self, tmp)` and an `installed_package_dir(self, tmp)` hook to
+  `InstallLifecycleCases` and `FailedInstallPreservesPackage` (defaulting to
+  `installed_plasma_dir(tmp, self.KIND)` / `installed_package(tmp, self.KIND, self.PACKAGE_ID)`) and
+  replace the direct calls with them.
+- Add a new `test_aurorae_decoration.py` test module covering the package, the rc and the artwork (below).
+- `README.md`: Status and Installing name the fourth artifact.
+
+**Files touched.**
+- `aurorae/themes/org.macos8.desktop/org.macos8.desktoprc` (new)
+- `aurorae/themes/org.macos8.desktop/decoration.svg` (new)
+- `aurorae/themes/org.macos8.desktop/close.svg`, `maximize.svg`, `restore.svg` (new)
+- `aurorae/themes/org.macos8.desktop/metadata.json` (new)
+- `aurorae/themes/org.macos8.desktop/metadata.desktop` (new)
+- `aurorae/themes/org.macos8.desktop/decoration.svgz` (new, gzip of `decoration.svg`)
+- `Makefile` (`AURORAE_*`, `_install`, `_uninstall`)
+- `tests/theme_install.py` (`installed_aurorae_dir`, `installed_aurorae_theme`)
+- `tests/install_lifecycle_cases.py`, `tests/install_failure_cases.py` (the two hooks)
+- a new `test_aurorae_decoration.py` test module
+- `tests/test_theme_install.py` (the spaced-root install test now covers the fourth artifact)
+- `README.md`
+
+**Acceptance criteria.**
+- `make check` exits 0; the new `test_aurorae_decoration.py` passes and the existing install
+  suites still pass with the added hooks.
+- `TestInstall` (subclassing `InstallLifecycleCases` and `FailedInstallPreservesPackage` with
+  `installed_parent`/`installed_package_dir` overridden) proves `make install` copies
+  `aurorae/themes/org.macos8.desktop/` byte-for-byte to
+  `<tmp>/share/aurorae/themes/org.macos8.desktop/`, a reinstall is repeatable, and `make uninstall`
+  removes the package and its `.staging`/`.old` siblings.
+- `TestRc.test_layout_metrics_match_reference` reads `aboutsystem_betawiki.png` through `tools/png.py`,
+  re-derives the title-bar height (the `#000000`→`#000000` run at a clear column), the side-border
+  thickness (the black→black run at y=100, excluding the 1px `#AAAAAA` drop shadow), the bottom
+  border thickness and the close-box bounding box (the `#888888` pixels near `(11,29)`), and
+  asserts the rc's `TitleHeight`, `BorderTop`/`BorderBottom`, `BorderLeft`/`BorderRight` and
+  `ButtonWidth`/`ButtonHeight` equal them; `test_title_bar_colours_match_reference` samples
+  `(250,29)`/`(250,30)`/`(250,27)` and asserts `decoration.svg`'s `decoration-top` slice uses them,
+  and `test_caption_colour_matches_reference` samples the caption glyph at `(198,30)` and asserts
+  the rc's `ActiveTextColor` is it.
+- `TestDecorationSvg` parses `decoration.svg` and asserts the `decoration`-prefixed slice ids and
+  margin hints are present (`assert_slice_ids_present`), that `assert_unique_ids` and
+  `assert_no_script_elements` pass, `assert_tiles_placed_by_margins` and
+  `assert_slices_stay_within_their_tiles` hold for the `decoration` prefix, and `assert_root_canvas`
+  holds for the frame canvas.
+- `TestButtons.test_close_box_matches_reference` re-derives every pixel of the close box from
+  `aboutsystem_betawiki.png` (x=11..22, y=29..40) and asserts `close.svg`'s `active-center` is
+  exactly them; `test_zoom_box_matches_reference` does the same for the zoom box (x=343..354,
+  y=29..40) against `maximize.svg` and `restore.svg`, and `test_zoom_glyph_is_the_reference_glyph`
+  pins the 18 `#222222` glyph pixels that differ from the close box, so a zoom widget that reuses
+  the close artwork fails.
+- `TestCorners.test_corners_match_reference` composites each 6x22 / 6x6 corner slice and compares
+  it to the reference region, masking only the exact 12x12 close/zoom button footprints
+  (frame-local x=4..5 and x=0, y=4..15) that Aurorae draws over the frame.
+- `TestMetadata.test_metadata_desktop_names_the_theme` reads `metadata.desktop` and asserts its
+  `Name`, the field KWin's SVG-theme discovery shows; `TestDecorationSvg.test_svgz_is_the_compressed_svg`
+  pins that `decoration.svgz` decompresses to `decoration.svg`.
+- `TestPackageValid` (subclassing `KPackageInstallCase` with `KPACKAGETOOL_TYPE = "KWin/Aurorae"`)
+  proves `kpackagetool6 -t KWin/Aurorae -i` accepts the package and lands its `metadata.json`
+  under the theme id.
+- Manual smoke test (needs a Plasma session, outside `make check`): with the theme copied to
+  `$XDG_DATA_HOME/aurorae/themes/`, System Settings → Window Decorations lists `Mac OS 8.6` (the
+  `metadata.desktop` `Name`; its theme id is `__aurorae__svg__org.macos8.desktop`), and selecting
+  it draws the pinstriped Platinum title bar and the two gradient boxes.
+
+**Follow-ups (not planned here).** Part B adds the inactive frame (`decoration-inactive`) and
+inactive button state, the hover/pressed/deactivated prefixes, the `decoration-maximized` frame,
+the collapse (`minimize.svg`) and secondary widgets, and wires the global theme by adding
+`[kwinrc][org.kde.kdecoration2]` (`library=org.kde.kwin.aurorae`, `theme=org.macos8.desktop`,
+`ButtonsOnLeft=X`, `ButtonsOnRight=A`) to `look-and-feel/org.macos8.desktop/contents/defaults`
+and extending `tests/test_lookandfeel.py::TestDefaults`.
 
 ### Mac OS 8.6 Platinum startup splash (`contents/splash/`) for the global theme (done 2026-10-08)
 

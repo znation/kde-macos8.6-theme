@@ -9,21 +9,21 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: three artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/` (with its Mac OS 8.6 startup splash under `contents/splash/`), and the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, scroll bar, and menu/popup body widgets, plus the dialog / applet-popup window body); no window-decoration assets exist yet.
+Pre-alpha: four artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/` (with its Mac OS 8.6 startup splash under `contents/splash/`), the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, scroll bar, and menu/popup body widgets, plus the dialog / applet-popup window body), and the `org.macos8.desktop` Aurorae window decoration in `theme/aurorae/themes/` (the active Platinum title bar with close and zoom widgets).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
 
 ## Installing
 
-`make install` copies three artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
+`make install` copies four artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
 `$HOME/.local/share` when it is unset, empty, or relative; `make install` and `make uninstall`
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
 absolute path): the
 color scheme
 `theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
-into `plasma/look-and-feel/`, and the `org.macos8.desktop` desktop theme into
-`plasma/desktoptheme/`.
+into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
+`plasma/desktoptheme/`, and the `org.macos8.desktop` window decoration into `aurorae/themes/`.
 
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
@@ -50,8 +50,16 @@ also ships `widgets/background.svg` (the flat white Platinum body for
 `PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers) and
 `dialogs/background.svg` (the raised grey Platinum window body
 `PlasmaCore.Dialog` and `PlasmaCore.AppletPopup` draw, replacing Breeze's
-translucent rounded rectangle). `make
-uninstall` removes the three installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/` and `desktoptheme/`
+translucent rounded rectangle). The window decoration ships
+`metadata.json` and `metadata.desktop` (the KPackage and KWin-discovery
+metadata), `org.macos8.desktoprc` (the Aurorae layout: a 22px title bar, 6px
+side and bottom borders, and 12x12 close/zoom widgets), `decoration.svg` (the
+active frame) with its gzipped `decoration.svgz` (the form `kpackagetool6`
+requires), and `close.svg`, `maximize.svg`, `restore.svg` (the widgets); select
+it in System Settings → Window Decorations. This first slice draws only the
+active state, so an unfocused window reuses it. `make
+uninstall` removes the four installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/` and
+`aurorae/themes/`
 directories and anything else in them in place. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`.

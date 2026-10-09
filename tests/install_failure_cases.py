@@ -33,14 +33,30 @@ class FailedInstallPreservesPackage:
     KIND = None
     PACKAGE_ID = None
 
+    def installed_parent(self, tmp):
+        """Directory holding this family's packages.
+
+        Defaults to the `plasma/<kind>` family; a suite whose package installs
+        elsewhere (an Aurorae theme under `aurorae/themes`) overrides it.
+        """
+        return installed_plasma_dir(tmp, self.KIND)
+
+    def installed_package_dir(self, tmp):
+        """This package's installed directory.
+
+        Defaults to the `plasma/<kind>/<id>` path; a suite whose package
+        installs elsewhere overrides it alongside `installed_parent`.
+        """
+        return installed_package(tmp, self.KIND, self.PACKAGE_ID)
+
     def _staging_path(self, tmp):
         return staging_sibling(
-            installed_plasma_dir(tmp, self.KIND), self.PACKAGE_ID
+            self.installed_parent(tmp), self.PACKAGE_ID
         )
 
     def _snapshot(self, tmp):
         """Return the installed package directory, metadata path and bytes."""
-        installed = installed_package(tmp, self.KIND, self.PACKAGE_ID)
+        installed = self.installed_package_dir(tmp)
         metadata = os.path.join(installed, "metadata.json")
         with open(metadata, "rb") as handle:
             return installed, metadata, handle.read()
@@ -70,12 +86,13 @@ class FailedInstallPreservesPackage:
     def swap_failure_env(self, tmp):
         """Environment whose `mv` fails only on the final package rename."""
         real_mv = shutil.which("mv")
+        package_dir = self.installed_package_dir(tmp)
         return shadow_command_env(
             tmp,
             "mv",
             "#!/bin/sh\n"
             'case "$2" in\n'
-            f"  */plasma/{self.KIND}/{self.PACKAGE_ID})\n"
+            f'  "{package_dir}")\n'
             '    case "$1" in\n'
             f"      */.{self.PACKAGE_ID}.staging) exit 1;;\n"
             "    esac;;\n"
@@ -99,7 +116,7 @@ class FailedInstallPreservesPackage:
             # Reproduce the kill window: the working package was moved aside,
             # but the staged copy was never renamed into place.
             old = old_sibling(
-                installed_plasma_dir(tmp, self.KIND), self.PACKAGE_ID
+                self.installed_parent(tmp), self.PACKAGE_ID
             )
             os.rename(installed, old)
 
@@ -138,7 +155,7 @@ class FailedInstallPreservesPackage:
 
             result = install(tmp, env=self.swap_failure_env(tmp))
             self.assertNotEqual(result.returncode, 0, result.stdout)
-            parent = installed_plasma_dir(tmp, self.KIND)
+            parent = self.installed_parent(tmp)
             for leaked in (
                 staging_sibling(parent, self.PACKAGE_ID),
                 old_sibling(parent, self.PACKAGE_ID),

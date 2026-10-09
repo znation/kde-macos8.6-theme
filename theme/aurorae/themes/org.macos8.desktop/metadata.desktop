@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Mac OS 8.6
+Comment=Mac OS 8.6 Platinum window decoration for Plasma 6
+
+X-KDE-PluginInfo-Author=kde-macos8.6-theme
+X-KDE-PluginInfo-Name=org.macos8.desktop
+X-KDE-PluginInfo-Version=0.1.0
+X-KDE-PluginInfo-Category=
+X-KDE-PluginInfo-Depends=
+X-KDE-PluginInfo-License=GPL-2.0-or-later
+X-KDE-PluginInfo-EnabledByDefault=true
