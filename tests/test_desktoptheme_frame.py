@@ -16,6 +16,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    flat_face_corners,
     nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
@@ -112,30 +113,8 @@ class TestFrame(unittest.TestCase):
         # pixel: the face plus the 1px black outline on the two outer edges,
         # with no bevel.
         slices = render_slices(ET.parse(FRAME_SVG))
-        expected = {
-            "plain-topleft": (
-                "#000000", "#000000", "#000000",
-                "#000000", "#DDDDDD", "#DDDDDD",
-                "#000000", "#DDDDDD", "#DDDDDD",
-            ),
-            "plain-topright": (
-                "#000000", "#000000", "#000000",
-                "#DDDDDD", "#DDDDDD", "#000000",
-                "#DDDDDD", "#DDDDDD", "#000000",
-            ),
-            "plain-bottomleft": (
-                "#000000", "#DDDDDD", "#DDDDDD",
-                "#000000", "#DDDDDD", "#DDDDDD",
-                "#000000", "#000000", "#000000",
-            ),
-            "plain-bottomright": (
-                "#DDDDDD", "#DDDDDD", "#000000",
-                "#DDDDDD", "#DDDDDD", "#000000",
-                "#000000", "#000000", "#000000",
-            ),
-        }
-        for name, colours in expected.items():
-            assert_corner_pixels(self, slices, name, colours)
+        for name, colours in flat_face_corners("#DDDDDD").items():
+            assert_corner_pixels(self, slices, f"plain-{name}", colours)
 
     def test_frame_edge_bevels(self):
         # `test_frame_corner_bevels_turn_the_corner` pins only the raised and

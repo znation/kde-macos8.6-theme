@@ -15,6 +15,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
+    flat_face_corners,
     nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
@@ -66,22 +67,10 @@ class TestScrollbar(unittest.TestCase):
             assert_edge_bevels(
                 self, slices, prefix, outward, mirrored, size=10
             )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-topleft",
-                (BLACK, BLACK, BLACK, BLACK, TROUGH, TROUGH, BLACK, TROUGH, TROUGH),
-            )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-topright",
-                (BLACK, BLACK, BLACK, TROUGH, TROUGH, BLACK, TROUGH, TROUGH, BLACK),
-            )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-bottomleft",
-                (BLACK, TROUGH, TROUGH, BLACK, TROUGH, TROUGH, BLACK, BLACK, BLACK),
-            )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-bottomright",
-                (TROUGH, TROUGH, BLACK, TROUGH, TROUGH, BLACK, BLACK, BLACK, BLACK),
-            )
+            for name, expected in flat_face_corners(TROUGH).items():
+                assert_corner_pixels(
+                    self, slices, f"{prefix}-{name}", expected
+                )
 
     def test_scrollbar_thumb_bevel(self):
         # The handle is a raised #DDDDDD thumb: a 1px #000000 outline with a

@@ -381,6 +381,39 @@ def sunken_face_corners(face):
     }
 
 
+def flat_face_corners(face):
+    """Return the four 3x3 flat-face corner slices painted for *face*.
+
+    A flat face carries no bevel, so the only non-face pixels are the 1px
+    #000000 outline on the two outer edges. The frame's plain state and the
+    scroll-bar trough share this geometry but paint a #DDDDDD and #EEEEEE
+    face respectively, so the face is the parameter. The raised and sunken
+    faces keep their own tables because their corners carry a bevel.
+    """
+    return {
+        "topleft": (
+            "#000000", "#000000", "#000000",
+            "#000000", face, face,
+            "#000000", face, face,
+        ),
+        "topright": (
+            "#000000", "#000000", "#000000",
+            face, face, "#000000",
+            face, face, "#000000",
+        ),
+        "bottomleft": (
+            "#000000", face, face,
+            "#000000", face, face,
+            "#000000", "#000000", "#000000",
+        ),
+        "bottomright": (
+            face, face, "#000000",
+            face, face, "#000000",
+            "#000000", "#000000", "#000000",
+        ),
+    }
+
+
 def assert_raised_face_bevel(case, slices, prefix, size=6):
     """Assert *prefix*'s nine-slice paints the raised #DDDDDD face bevel.
 

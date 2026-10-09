@@ -20,6 +20,7 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     circle_geometry,
+    flat_face_corners,
     nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
@@ -317,6 +318,50 @@ class TestSunkenFaceCorners(unittest.TestCase):
                     for colour in pixels
                 )
                 for name, pixels in sunken.items()
+            },
+        )
+
+
+class TestFlatFaceCorners(unittest.TestCase):
+    def test_paints_only_the_outline_and_the_face(self):
+        # The frame's plain state and the scroll-bar trough both read their
+        # corner pixels from this generator, so a stray bevel colour would
+        # weaken both tests at once. Pin the full #DDDDDD table, then check
+        # the #EEEEEE face substitutes only the face pixels.
+        flat = flat_face_corners("#DDDDDD")
+        self.assertEqual(
+            flat,
+            {
+                "topleft": (
+                    "#000000", "#000000", "#000000",
+                    "#000000", "#DDDDDD", "#DDDDDD",
+                    "#000000", "#DDDDDD", "#DDDDDD",
+                ),
+                "topright": (
+                    "#000000", "#000000", "#000000",
+                    "#DDDDDD", "#DDDDDD", "#000000",
+                    "#DDDDDD", "#DDDDDD", "#000000",
+                ),
+                "bottomleft": (
+                    "#000000", "#DDDDDD", "#DDDDDD",
+                    "#000000", "#DDDDDD", "#DDDDDD",
+                    "#000000", "#000000", "#000000",
+                ),
+                "bottomright": (
+                    "#DDDDDD", "#DDDDDD", "#000000",
+                    "#DDDDDD", "#DDDDDD", "#000000",
+                    "#000000", "#000000", "#000000",
+                ),
+            },
+        )
+        self.assertEqual(
+            flat_face_corners("#EEEEEE"),
+            {
+                name: tuple(
+                    "#EEEEEE" if colour == "#DDDDDD" else colour
+                    for colour in pixels
+                )
+                for name, pixels in flat.items()
             },
         )
 
