@@ -52,6 +52,15 @@ class TestCheckmarks(unittest.TestCase):
         )
         self.assertEqual(check_paths[0].get("stroke-width"), "2")
         self.assertEqual(check_paths[0].get("fill"), "none")
+        # `d` and stroke-width alone do not fix the drawn glyph. The 2px
+        # square caps extend the stroke past the path endpoints: the drawn
+        # check spans x ~ 2.09..13.91, beyond the path's 3.5..12.5, and the
+        # miter join keeps the (6.5, 11.5) corner sharp. A change to either
+        # attribute would silently resize or round the check while every
+        # existing assertion still passed, so pin them with the rest of the
+        # stroke.
+        self.assertEqual(check_paths[0].get("stroke-linecap"), "square")
+        self.assertEqual(check_paths[0].get("stroke-linejoin"), "miter")
 
         radiobutton = by_id["radiobutton"]
         self.assertEqual(local_name(radiobutton), "g")
