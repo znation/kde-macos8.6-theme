@@ -82,6 +82,21 @@ class TestCli(unittest.TestCase):
             self._write(directory, "altered.png", altered_png),
         )
 
+    def _run_png_pair(
+        self, candidate_png: bytes, reference_png: bytes
+    ) -> subprocess.CompletedProcess:
+        """Write two PNGs to a temp dir and run the CLI on them.
+
+        *candidate_png* is written as ``candidate.png`` and *reference_png* as
+        ``reference.png``. The temp dir is removed before the result returns,
+        which is safe because ``_run`` reads both files before it returns.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            tmpdir = Path(tmp)
+            candidate = self._write(tmpdir, "candidate.png", candidate_png)
+            reference = self._write(tmpdir, "reference.png", reference_png)
+            return self._run(candidate, reference)
+
     def _write_padded_surface_pair(self, directory: Path) -> tuple[str, str]:
         """Write a 2x2 surface PNG and a 4x4 reference with a 1px black border.
 
@@ -245,11 +260,7 @@ class TestCli(unittest.TestCase):
         changed = bytearray(a.rgb)
         changed[3] = 50  # red channel of pixel (1, 0)
         b_png = make_png(2, 1, [bytes(changed)])
-        with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", a_png)
-            altered = self._write(tmpdir, "altered.png", b_png)
-            result = self._run(candidate, altered)
+        result = self._run_png_pair(a_png, b_png)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("max channel delta: 50 at (1, 0)", result.stdout)
 
@@ -258,11 +269,7 @@ class TestCli(unittest.TestCase):
         # from a run without importing the module.
         a, a_png = solid_rgb(1, 1)
         b_png = make_png(1, 1, [bytes([10, 0, 0])])
-        with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", a_png)
-            altered = self._write(tmpdir, "altered.png", b_png)
-            result = self._run(candidate, altered)
+        result = self._run_png_pair(a_png, b_png)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn(
             "per-channel MAE (R, G, B): 10.0000 0.0000 0.0000", result.stdout
@@ -358,13 +365,10 @@ class TestCli(unittest.TestCase):
         # A candidate render whose dimensions differ from the reference is the
         # most common real failure. compare() raises FidelityError; main() must
         # report it on the clean exit-2 path rather than leaking a traceback.
-        with tempfile.TemporaryDirectory() as tmp:
-            _, small = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-            _, large = rgb_image(4, 4, lambda x, y: (x * 9, y * 9, 5))
-            candidate = self._write(Path(tmp), "candidate.png", small)
-            reference = self._write(Path(tmp), "reference.png", large)
-            result = self._run(candidate, reference)
-            self._assert_usage_error(result, "size mismatch")
+        _, small = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+        _, large = rgb_image(4, 4, lambda x, y: (x * 9, y * 9, 5))
+        result = self._run_png_pair(small, large)
+        self._assert_usage_error(result, "size mismatch")
 
     def test_crop_outside_reference_is_error(self):
         # A crop with valid syntax can still fall outside the reference; crop()
