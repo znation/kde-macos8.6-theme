@@ -18,6 +18,7 @@ from check_references_fixtures import (
     load_checker,
     reference_set,
 )
+from error_assertions import assert_escapes_escape_character
 from theme_install import run
 
 
@@ -165,8 +166,7 @@ class TestUnknownArgumentEscaping(unittest.TestCase):
             code = module.main(["evil\x1b[31m.png"])
         self.assertEqual(code, 2)
         self.assertIn("unknown argument", err.getvalue())
-        self.assertNotIn("\x1b", err.getvalue())
-        self.assertIn("\\u001b", err.getvalue())
+        assert_escapes_escape_character(self, err.getvalue())
 
     def test_two_unknown_arguments_are_named_in_the_plural(self):
         module = load_checker()

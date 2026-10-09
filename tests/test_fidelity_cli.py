@@ -19,6 +19,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import fidelity  # noqa: E402
+from error_assertions import assert_escapes_escape_character  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
@@ -520,8 +521,7 @@ class TestCli(unittest.TestCase):
             missing = str(Path(tmp) / "evil\x1b[31m.png")
             result = self._run(missing, missing)
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertNotIn("\x1b", result.stderr)
-        self.assertIn("\\u001b", result.stderr)
+        assert_escapes_escape_character(self, result.stderr)
 
     def test_success_output_escapes_control_characters_in_paths(self):
         # The success lines name both paths; a shell glob over the reference
@@ -532,8 +532,7 @@ class TestCli(unittest.TestCase):
             path.write_bytes(data)
             result = self._run(str(path), str(path))
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertNotIn("\x1b", result.stdout)
-        self.assertIn("\\u001b", result.stdout)
+        assert_escapes_escape_character(self, result.stdout)
 
     def test_usage_error_escapes_control_characters_in_arguments(self):
         # argparse builds its own "unrecognized arguments: ..." diagnostic from
@@ -546,8 +545,7 @@ class TestCli(unittest.TestCase):
         result = self._run(reference, reference, extra)
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         self.assertIn("unrecognized arguments", result.stderr)
-        self.assertNotIn("\x1b", result.stderr)
-        self.assertIn("\\u001b", result.stderr)
+        assert_escapes_escape_character(self, result.stderr)
 
 
 if __name__ == "__main__":

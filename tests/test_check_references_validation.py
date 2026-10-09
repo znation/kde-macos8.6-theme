@@ -16,6 +16,7 @@ from check_references_fixtures import (
     load_checker,
     reference_set,
 )
+from error_assertions import assert_escapes_escape_character
 
 
 def assert_url_problem_not_the_scheme(case, url, *needles):
@@ -346,8 +347,7 @@ class TestControlCharactersInFilenames(unittest.TestCase):
         problems = self._undeclared(module, "evil\x1b[31m.png")
         self.assertTrue(problems, "expected an undeclared-image problem")
         joined = "\n".join(problems)
-        self.assertNotIn("\x1b", joined)
-        self.assertIn("\\u001b", joined)
+        assert_escapes_escape_character(self, joined)
 
     def test_newline_in_name_cannot_forge_a_line(self):
         module = load_checker()
