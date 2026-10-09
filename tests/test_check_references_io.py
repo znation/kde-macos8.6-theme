@@ -11,16 +11,16 @@ import unittest
 from pathlib import Path
 
 from check_references_fixtures import (
+    CheckerTestCase,
     assert_problem,
     assert_sources_failure,
-    load_checker,
     path_method_raises,
     reference_set,
     symlinked_reference,
 )
 
 
-class TestUnreadableImage(unittest.TestCase):
+class TestUnreadableImage(CheckerTestCase):
     """A permission-denied image named in sources.txt is reported, not raised.
 
     The checker reads each declared image's leading bytes to confirm it is a
@@ -29,7 +29,7 @@ class TestUnreadableImage(unittest.TestCase):
     """
 
     def test_unreadable_image_is_reported_not_raised(self):
-        module = load_checker()
+        module = self.checker
         with reference_set(
             module,
             "locked.png | https://example.test/l.png | label\n",
@@ -43,7 +43,7 @@ class TestUnreadableImage(unittest.TestCase):
         assert_problem(self, problems, "locked.png", "could not be read")
 
 
-class TestUnreadableUndeclaredImage(unittest.TestCase):
+class TestUnreadableUndeclaredImage(CheckerTestCase):
     """An unreadable file with no sources entry is reported, not raised.
 
     The undeclared-image scan reads each unlisted file's leading bytes to
@@ -54,7 +54,7 @@ class TestUnreadableUndeclaredImage(unittest.TestCase):
     """
 
     def test_unreadable_undeclared_file_is_reported_not_raised(self):
-        module = load_checker()
+        module = self.checker
         with reference_set(module, "", {"stray.bin": module.PNG_MAGIC}) as root:
             stray = root / "stray.bin"
             with path_method_raises(
@@ -64,7 +64,7 @@ class TestUnreadableUndeclaredImage(unittest.TestCase):
         assert_problem(self, problems, "stray.bin", "could not be read")
 
 
-class TestUnreadableSources(unittest.TestCase):
+class TestUnreadableSources(CheckerTestCase):
     """An unreadable sources.txt is reported, not raised.
 
     The provenance record can be present but unreadable (a permissions
@@ -83,11 +83,11 @@ class TestUnreadableSources(unittest.TestCase):
         )
 
 
-class TestUndecodableSources(unittest.TestCase):
+class TestUndecodableSources(CheckerTestCase):
     """A sources.txt that is not valid UTF-8 is reported, not raised."""
 
     def test_non_utf8_sources_is_reported_not_raised(self):
-        module = load_checker()
+        module = self.checker
         # Latin-1 e-acute: a corrupt download or an editor that saved the
         # provenance record in a non-UTF-8 encoding.
         with reference_set(
@@ -98,7 +98,7 @@ class TestUndecodableSources(unittest.TestCase):
         assert_problem(self, problems, str(sources), "UTF-8")
 
 
-class TestUnreadableDirectory(unittest.TestCase):
+class TestUnreadableDirectory(CheckerTestCase):
     """A reference directory that cannot be listed is reported, not raised.
 
     The undeclared-image scan lists the directory, so a listing failure must
@@ -106,7 +106,7 @@ class TestUnreadableDirectory(unittest.TestCase):
     """
 
     def test_unreadable_directory_is_reported_not_raised(self):
-        module = load_checker()
+        module = self.checker
         with reference_set(module, "") as root:
             with path_method_raises(
                 "iterdir", root, PermissionError, 13, "Permission denied"
@@ -115,7 +115,7 @@ class TestUnreadableDirectory(unittest.TestCase):
         assert_problem(self, problems, "could not be listed")
 
 
-class TestSymlinkEscape(unittest.TestCase):
+class TestSymlinkEscape(CheckerTestCase):
     """A checked-in symlink must not make the checker read outside the directory.
 
     The reference directory is contributor-supplied, and git stores symlinks.
@@ -125,7 +125,7 @@ class TestSymlinkEscape(unittest.TestCase):
     """
 
     def test_sources_symlink_outside_directory_is_not_read(self):
-        module = load_checker()
+        module = self.checker
         with symlinked_reference(
             module, module.SOURCES_NAME, b"SECRET_TOKEN_abc123\n"
         ) as ref:
@@ -135,7 +135,7 @@ class TestSymlinkEscape(unittest.TestCase):
         assert_problem(self, problems, "outside")
 
     def test_declared_image_symlink_outside_directory_is_reported(self):
-        module = load_checker()
+        module = self.checker
         with symlinked_reference(
             module,
             "link.png",
@@ -154,7 +154,7 @@ class TestSymlinkEscape(unittest.TestCase):
         no image suffix, so the escape can only be reported by the containment
         check, not by the content sniff it replaces.
         """
-        module = load_checker()
+        module = self.checker
         with symlinked_reference(
             module, "leak", module.PNG_MAGIC + b"secret", ""
         ) as ref:
@@ -164,7 +164,7 @@ class TestSymlinkEscape(unittest.TestCase):
         self.assertNotIn("image has no entry", joined, problems)
 
 
-class TestUndeclaredDanglingImageSymlink(unittest.TestCase):
+class TestUndeclaredDanglingImageSymlink(CheckerTestCase):
     """A dangling symlink named like an image is reported, not skipped.
 
     ``Path.is_file()`` follows the link and returns False when the target is
@@ -175,7 +175,7 @@ class TestUndeclaredDanglingImageSymlink(unittest.TestCase):
     """
 
     def test_dangling_image_symlink_is_reported(self):
-        module = load_checker()
+        module = self.checker
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
@@ -184,7 +184,7 @@ class TestUndeclaredDanglingImageSymlink(unittest.TestCase):
         assert_problem(self, problems, "dangling.png", "no entry")
 
 
-class TestResolveFailureIsFailClosed(unittest.TestCase):
+class TestResolveFailureIsFailClosed(CheckerTestCase):
     """A path that cannot be resolved must be treated as escaping the directory.
 
     ``_resolves_within`` calls ``Path.resolve()`` to keep every read inside the

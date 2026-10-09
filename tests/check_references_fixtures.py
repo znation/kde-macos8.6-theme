@@ -12,6 +12,7 @@ import contextlib
 import importlib.util
 import os
 import tempfile
+import unittest
 import unittest.mock
 from pathlib import Path
 
@@ -30,6 +31,23 @@ def load_checker():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
+
+
+class CheckerTestCase(unittest.TestCase):
+    """Base for a test case that drives ``tools/check_references.py``.
+
+    The checker is a script rather than an installed module, so every test
+    that needs it would otherwise load and execute the whole file through
+    :func:`load_checker`. Loading it once per class in ``setUpClass`` and
+    exposing it as ``self.checker`` keeps that loading out of the individual
+    tests. Each class gets its own module object, so a test that patches a
+    module attribute (``test_check_references_cli`` replaces
+    ``check_references``) cannot leak the change into another class.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.checker = load_checker()
 
 
 @contextlib.contextmanager
@@ -141,7 +159,7 @@ def assert_sources_failure(case, method, error_type, errno, message, needle):
     to raise and asserts the checker returns a problem line naming the path
     and *needle* rather than letting the ``OSError`` escape.
     """
-    module = load_checker()
+    module = case.checker
     with good_reference(module) as root:
         sources = root / module.SOURCES_NAME
         with path_method_raises(method, sources, error_type, errno, message):

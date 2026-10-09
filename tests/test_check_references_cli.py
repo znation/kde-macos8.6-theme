@@ -14,8 +14,8 @@ import unittest.mock
 from check_references_fixtures import (
     CHECKER,
     ROOT,
+    CheckerTestCase,
     good_reference,
-    load_checker,
     reference_set,
 )
 from error_assertions import assert_escapes_escape_character
@@ -37,11 +37,11 @@ def _capture(function, *args):
     return status, out.getvalue(), err.getvalue()
 
 
-class TestSelfTestDiagnostics(unittest.TestCase):
+class TestSelfTestDiagnostics(CheckerTestCase):
     """The self-test's failure output names the failing case, not its image."""
 
     def test_failure_names_the_case_not_the_last_image(self):
-        module = load_checker()
+        module = self.checker
         # Force every fixture to fail so _self_test prints its diagnostics.
         module.check_references = lambda directory: ["boom"]
         code, printed, _ = _capture(module._self_test)
@@ -50,7 +50,7 @@ class TestSelfTestDiagnostics(unittest.TestCase):
         self.assertNotIn("self-test 'extra.png'", printed)
 
 
-class TestSelfTestPasses(unittest.TestCase):
+class TestSelfTestPasses(CheckerTestCase):
     """The checker's fixtures must pass under the default `make check`.
 
     The other tests here mock ``check_references`` (diagnostics) or deny a
@@ -60,12 +60,12 @@ class TestSelfTestPasses(unittest.TestCase):
     """
 
     def test_built_in_fixtures_all_pass(self):
-        module = load_checker()
+        module = self.checker
         code, out, _ = _capture(module._self_test)
         self.assertEqual(code, 0, out)
 
 
-class TestSelfTestExactProblems(unittest.TestCase):
+class TestSelfTestExactProblems(CheckerTestCase):
     """A fixture's expected problems must match exactly, not as a subset.
 
     The self-test once accepted any problem list that merely contained the
@@ -75,7 +75,7 @@ class TestSelfTestExactProblems(unittest.TestCase):
     """
 
     def test_matching_problems_pass(self):
-        module = load_checker()
+        module = self.checker
         self.assertTrue(
             module._problems_match(
                 ["a: bad url", "a: image has no entry"],
@@ -84,19 +84,19 @@ class TestSelfTestExactProblems(unittest.TestCase):
         )
 
     def test_extra_problem_fails(self):
-        module = load_checker()
+        module = self.checker
         self.assertFalse(module._problems_match(["bad url", "spurious"], ["bad url"]))
 
     def test_missing_problem_fails(self):
-        module = load_checker()
+        module = self.checker
         self.assertFalse(module._problems_match([], ["bad url"]))
 
     def test_one_expected_substring_consumes_only_one_problem(self):
-        module = load_checker()
+        module = self.checker
         self.assertFalse(module._problems_match(["bad url"], ["bad", "url"]))
 
 
-class TestRepositoryCheckEntryPoint(unittest.TestCase):
+class TestRepositoryCheckEntryPoint(CheckerTestCase):
     """``main`` with no arguments runs the repository reference check.
 
     The built-in self-test drives only ``--help`` and unknown-argument
@@ -111,7 +111,7 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
             return _capture(module.main, [])
 
     def test_clean_set_exits_zero(self):
-        module = load_checker()
+        module = self.checker
         with good_reference(module) as root:
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 0, out + err)
@@ -119,7 +119,7 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
         self.assertEqual(err, "")
 
     def test_broken_set_exits_one_and_names_each_problem(self):
-        module = load_checker()
+        module = self.checker
         with reference_set(module, "", {"extra.png": module.PNG_MAGIC}) as root:
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 1, out + err)
@@ -129,7 +129,7 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
         self.assertIn("1 problem in the reference set", err)
 
     def test_broken_set_counts_problems_in_the_plural(self):
-        module = load_checker()
+        module = self.checker
         with reference_set(
             module,
             "",
@@ -140,7 +140,7 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
         self.assertIn("2 problems in the reference set", err)
 
 
-class TestArgumentsExcludeProgramName(unittest.TestCase):
+class TestArgumentsExcludeProgramName(CheckerTestCase):
     """``main`` takes the argument list without a program name.
 
     This matches ``tools/fidelity.py`` and ``argparse.parse_args``. Under the
@@ -150,13 +150,13 @@ class TestArgumentsExcludeProgramName(unittest.TestCase):
     """
 
     def test_help_as_first_argument_prints_usage(self):
-        module = load_checker()
+        module = self.checker
         code, out, _ = _capture(module.main, ["--help"])
         self.assertEqual(code, 0)
         self.assertIn("usage:", out)
 
 
-class TestUnknownArgumentEscaping(unittest.TestCase):
+class TestUnknownArgumentEscaping(CheckerTestCase):
     """An unrecognized argument must not print raw control bytes.
 
     The usage diagnostic joins argv, and a shell glob over the contributor-owned
@@ -165,14 +165,14 @@ class TestUnknownArgumentEscaping(unittest.TestCase):
     """
 
     def test_unknown_argument_escapes_control_characters(self):
-        module = load_checker()
+        module = self.checker
         code, _, err = _capture(module.main, ["evil\x1b[31m.png"])
         self.assertEqual(code, 2)
         self.assertIn("unknown argument", err)
         assert_escapes_escape_character(self, err)
 
     def test_two_unknown_arguments_are_named_in_the_plural(self):
-        module = load_checker()
+        module = self.checker
         code, _, err = _capture(module.main, ["one", "two"])
         self.assertEqual(code, 2)
         self.assertIn("unknown arguments: one two", err)

@@ -23,7 +23,7 @@ import re
 import unittest
 
 import theme_install
-from check_references_fixtures import load_checker
+from check_references_fixtures import CheckerTestCase
 from process_assertions import assert_succeeded
 
 _TOKEN = re.compile(r"`([^`]+)`")
@@ -149,12 +149,12 @@ class TestReferenceTableParser(unittest.TestCase):
         self.assertEqual(reference_table("# Title\n"), [])
 
 
-class TestReadmeReferenceTable(unittest.TestCase):
+class TestReadmeReferenceTable(CheckerTestCase):
     """README's table must list exactly the images sources.txt declares."""
 
     @classmethod
     def setUpClass(cls):
-        cls.checker = load_checker()
+        super().setUpClass()
         cls.directory = os.path.join(
             theme_install.ROOT, cls.checker.REFERENCE_DIR
         )
@@ -225,18 +225,18 @@ class TestLfsFilterStates(unittest.TestCase):
         self.assertEqual(lfs_filter_states("warning: not an attribute\n"), {})
 
 
-class TestReferenceLfsTracking(unittest.TestCase):
+class TestReferenceLfsTracking(CheckerTestCase):
     """Every image ``sources.txt`` declares must be routed through Git LFS."""
 
     @classmethod
     def setUpClass(cls):
-        checker = load_checker()
-        cls.relative_dir = checker.REFERENCE_DIR
+        super().setUpClass()
+        cls.relative_dir = cls.checker.REFERENCE_DIR
         with open(
-            os.path.join(theme_install.ROOT, cls.relative_dir, checker.SOURCES_NAME),
+            os.path.join(theme_install.ROOT, cls.relative_dir, cls.checker.SOURCES_NAME),
             encoding="utf-8-sig",
         ) as handle:
-            cls.declared = declared_files(handle.read(), checker.SEPARATOR)
+            cls.declared = declared_files(handle.read(), cls.checker.SEPARATOR)
 
     def test_every_declared_file_is_routed_through_lfs(self):
         # Ask git for the effective attribute rather than re-implementing its

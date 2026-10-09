@@ -11,9 +11,9 @@ import unittest
 from pathlib import Path
 
 from check_references_fixtures import (
+    CheckerTestCase,
     assert_problem,
     check_references_in,
-    load_checker,
     reference_set,
 )
 from error_assertions import assert_escapes_escape_character
@@ -27,7 +27,7 @@ def assert_url_problem_not_the_scheme(case, url, *needles):
     sends the reader after the wrong fix: the reported problems must name
     *needles* and none may mention an absolute URL.
     """
-    module = load_checker()
+    module = case.checker
     problems = check_references_in(
         module,
         f"bad.png | {url} | label\n",
@@ -39,7 +39,7 @@ def assert_url_problem_not_the_scheme(case, url, *needles):
     )
 
 
-class TestLineSplitting(unittest.TestCase):
+class TestLineSplitting(CheckerTestCase):
     """sources.txt is newline-delimited; other Unicode separators are data.
 
     ``str.splitlines`` also breaks on U+2028/U+2029, NEL and the C0
@@ -49,7 +49,7 @@ class TestLineSplitting(unittest.TestCase):
     """
 
     def test_unicode_line_separator_stays_inside_the_label(self):
-        module = load_checker()
+        module = self.checker
         problems = check_references_in(
             module,
             "good.png | https://example.test/g.png | Mac OS 8.6\u2028retail\n",
@@ -58,7 +58,7 @@ class TestLineSplitting(unittest.TestCase):
         self.assertEqual(problems, [])
 
     def test_carriage_return_still_ends_a_line(self):
-        module = load_checker()
+        module = self.checker
         problems = check_references_in(
             module,
             "good.png | https://example.test/g.png | label\r"
@@ -68,7 +68,7 @@ class TestLineSplitting(unittest.TestCase):
         assert_problem(self, problems, "bad.png", "not a PNG")
 
 
-class TestFilenameMustBeBare(unittest.TestCase):
+class TestFilenameMustBeBare(CheckerTestCase):
     """A sources.txt entry must name a bare file in the directory.
 
     A nested path or ``..`` traversal can reach a file outside the reference
@@ -77,7 +77,7 @@ class TestFilenameMustBeBare(unittest.TestCase):
     """
 
     def test_nested_filename_is_rejected_even_when_the_file_exists(self):
-        module = load_checker()
+        module = self.checker
         with reference_set(
             module,
             "sub/good.png | https://example.test/g.png | label\n",
@@ -87,7 +87,7 @@ class TestFilenameMustBeBare(unittest.TestCase):
         assert_problem(self, problems, "sub/good.png", "bare filename")
 
     def test_parent_traversal_is_rejected_even_when_the_file_exists(self):
-        module = load_checker()
+        module = self.checker
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp) / "refs"
             root.mkdir()
@@ -105,7 +105,7 @@ class TestFilenameMustBeBare(unittest.TestCase):
         # explicit (".", "..") guard rejects it as non-bare. Without that
         # guard the entry reaches the symlink-escape check, which reports it
         # as pointing outside the directory and blames the wrong thing.
-        module = load_checker()
+        module = self.checker
         problems = check_references_in(
             module,
             ".. | https://example.test/e.png | label\n",
@@ -116,7 +116,7 @@ class TestFilenameMustBeBare(unittest.TestCase):
         )
 
 
-class TestAbsoluteUrlSchemeShape(unittest.TestCase):
+class TestAbsoluteUrlSchemeShape(CheckerTestCase):
     """A source entry must be a scheme followed by a non-empty remainder.
 
     A scheme with nothing after it names no resource, and a bare host or
@@ -125,7 +125,7 @@ class TestAbsoluteUrlSchemeShape(unittest.TestCase):
     """
 
     def test_scheme_and_remainder_are_both_required(self):
-        module = load_checker()
+        module = self.checker
         self.assertTrue(module._is_absolute_url("https://example.test/x"))
         # A scheme with nothing after it names no resource.
         self.assertFalse(module._is_absolute_url("https://"))
@@ -133,7 +133,7 @@ class TestAbsoluteUrlSchemeShape(unittest.TestCase):
         self.assertFalse(module._is_absolute_url("example.test/x"))
 
     def test_scheme_must_start_with_an_ascii_letter(self):
-        module = load_checker()
+        module = self.checker
         # RFC 3986: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ).
         self.assertTrue(module._is_absolute_url("h2://example.test/x"))
         self.assertTrue(module._is_absolute_url("svn+ssh://example.test/x"))
@@ -142,7 +142,7 @@ class TestAbsoluteUrlSchemeShape(unittest.TestCase):
         self.assertFalse(module._is_absolute_url("://example.test/x"))
 
     def test_empty_remainder_is_reported_by_the_checker(self):
-        module = load_checker()
+        module = self.checker
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / module.SOURCES_NAME).write_text(
@@ -153,12 +153,12 @@ class TestAbsoluteUrlSchemeShape(unittest.TestCase):
         assert_problem(self, problems, "absolute URL")
 
 
-class TestAbsoluteUrlWellFormedness(unittest.TestCase):
+class TestAbsoluteUrlWellFormedness(CheckerTestCase):
     """The source URL must be a well-formed absolute URL, not merely start
     with something alpha-like before ``://``."""
 
     def setUp(self):
-        self.is_absolute = load_checker()._is_absolute_url
+        self.is_absolute = self.checker._is_absolute_url
 
     def test_well_formed_urls_are_accepted(self):
         for url in (
@@ -242,7 +242,7 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
         )
 
 
-class TestAcceptedImageFormats(unittest.TestCase):
+class TestAcceptedImageFormats(CheckerTestCase):
     """The checker must accept every raster format the reference set uses.
 
     The built-in self-test does not exercise the GIF signatures, so a
@@ -260,7 +260,7 @@ class TestAcceptedImageFormats(unittest.TestCase):
         )
 
     def test_jpeg_signature_is_accepted(self):
-        module = load_checker()
+        module = self.checker
         # A JPEG begins ff d8 ff; the bytes after it are not part of the check.
         problems = self._problems_for(
             module, "photo.jpg", b"\xff\xd8\xff\xe1" + b"\x00" * 8
@@ -268,17 +268,17 @@ class TestAcceptedImageFormats(unittest.TestCase):
         self.assertEqual(problems, [])
 
     def test_gif87a_signature_is_accepted(self):
-        module = load_checker()
+        module = self.checker
         problems = self._problems_for(module, "anim.gif", b"GIF87a" + b"\x00" * 6)
         self.assertEqual(problems, [])
 
     def test_gif89a_signature_is_accepted(self):
-        module = load_checker()
+        module = self.checker
         problems = self._problems_for(module, "anim.gif", b"GIF89a" + b"\x00" * 6)
         self.assertEqual(problems, [])
 
     def test_webp_signature_is_accepted(self):
-        module = load_checker()
+        module = self.checker
         # The reference set's sherlock_fandom.jpg is a WebP payload, so the
         # RIFF/WEBP signature must be accepted even under a .jpg name; only
         # the bytes decide, never the extension.
@@ -288,7 +288,7 @@ class TestAcceptedImageFormats(unittest.TestCase):
         self.assertEqual(problems, [])
 
     def test_riff_container_that_is_not_webp_is_rejected(self):
-        module = load_checker()
+        module = self.checker
         # A RIFF/WAVE payload shares the RIFF prefix but is not an image; the
         # WEBP marker at bytes 8-11 is what makes it a WebP.
         problems = self._problems_for(
@@ -299,7 +299,7 @@ class TestAcceptedImageFormats(unittest.TestCase):
         )
 
 
-class TestUndeclaredImageExtension(unittest.TestCase):
+class TestUndeclaredImageExtension(CheckerTestCase):
     """A stray file named like an image is undeclared even without image bytes.
 
     The scan flags an unlisted file whose extension marks it as an image, not
@@ -319,19 +319,19 @@ class TestUndeclaredImageExtension(unittest.TestCase):
         assert_problem(self, problems, filename, "image has no entry")
 
     def test_stray_png_extension_without_image_bytes_is_undeclared(self):
-        module = load_checker()
+        module = self.checker
         self._assert_undeclared(module, "half-downloaded.png")
 
     def test_uppercase_extension_is_matched_case_insensitively(self):
-        module = load_checker()
+        module = self.checker
         self._assert_undeclared(module, "SHOT.PNG")
 
     def test_jpeg_extension_is_matched(self):
-        module = load_checker()
+        module = self.checker
         self._assert_undeclared(module, "photo.jpeg")
 
 
-class TestControlCharactersInFilenames(unittest.TestCase):
+class TestControlCharactersInFilenames(CheckerTestCase):
     """An untrusted filename must not reach the terminal as live bytes.
 
     The reference directory can hold a contributor-supplied name, so an ESC or
@@ -343,21 +343,21 @@ class TestControlCharactersInFilenames(unittest.TestCase):
         return check_references_in(module, "", {filename: module.PNG_MAGIC})
 
     def test_escape_sequence_in_name_is_escaped(self):
-        module = load_checker()
+        module = self.checker
         problems = self._undeclared(module, "evil\x1b[31m.png")
         self.assertTrue(problems, "expected an undeclared-image problem")
         joined = "\n".join(problems)
         assert_escapes_escape_character(self, joined)
 
     def test_newline_in_name_cannot_forge_a_line(self):
-        module = load_checker()
+        module = self.checker
         problems = self._undeclared(module, "fake\nproblem line.png")
         joined = "\n".join(problems)
         self.assertNotIn("fake\nproblem", joined)
         self.assertIn("\\u000a", joined)
 
 
-class TestNullByteFilename(unittest.TestCase):
+class TestNullByteFilename(CheckerTestCase):
     """A NUL byte in a source entry must be a diagnostic, not a crash.
 
     A NUL cannot appear in a POSIX path and makes ``Path.resolve()`` raise
@@ -366,7 +366,7 @@ class TestNullByteFilename(unittest.TestCase):
     """
 
     def test_null_byte_in_filename_is_reported_not_raised(self):
-        module = load_checker()
+        module = self.checker
         problems = check_references_in(
             module,
             b"bad\x00name.png | https://example.test/b.png | label\n",
