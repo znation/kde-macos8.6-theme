@@ -358,6 +358,71 @@ class TestRenderSlices(unittest.TestCase):
             {(0, 0): "#111111", (1, 0): "#222222"},
         )
 
+    def test_missing_extent_names_the_rect_and_the_attribute(self):
+        # render_slices iterates range(width/height), so an absent extent
+        # previously surfaced as a bare int(None) TypeError; the error must
+        # name the rect (or say "rect" for anonymous artwork) and the
+        # attribute.
+        for rect, rect_id in (
+            ('<rect id="face" x="0" y="0" height="1" fill="#111111"/>', "face"),
+            ('<rect x="0" y="0" height="1" fill="#111111"/>', None),
+        ):
+            with self.subTest(rect=rect):
+                tree = ET.ElementTree(
+                    ET.fromstring(
+                        '<svg xmlns="http://www.w3.org/2000/svg"><g id="g">'
+                        f"{rect}</g></svg>"
+                    )
+                )
+                with self.assertRaises(ValueError) as caught:
+                    render_slices(tree)
+                message = str(caught.exception)
+                self.assertIn("'width'", message)
+                if rect_id is None:
+                    self.assertIn("rect has no 'width'", message)
+                else:
+                    self.assertIn("'face'", message)
+
+    def test_non_positive_extent_is_rejected(self):
+        # range(0) and range(-1) paint nothing, so a zero or negative width or
+        # height silently drops pixels and weakens every pixel assertion built
+        # on render_slices; reject it, naming the rect, attribute and value.
+        for attr, value in (("width", "0"), ("height", "-1")):
+            with self.subTest(attr=attr, value=value):
+                other = "height" if attr == "width" else "width"
+                tree = ET.ElementTree(
+                    ET.fromstring(
+                        '<svg xmlns="http://www.w3.org/2000/svg"><g id="g">'
+                        f'<rect id="face" x="0" y="0" {other}="1" '
+                        f'{attr}="{value}" fill="#111111"/>'
+                        "</g></svg>"
+                    )
+                )
+                with self.assertRaises(ValueError) as caught:
+                    render_slices(tree)
+                message = str(caught.exception)
+                self.assertIn("'face'", message)
+                self.assertIn(f"'{attr}'", message)
+                self.assertIn(f"'{value}'", message)
+
+    def test_non_integer_offset_names_the_rect(self):
+        # An SVG rect's x/y default to 0, but a present non-integer one is
+        # malformed; name the rect rather than surfacing a bare int() error.
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg"><g id="g">'
+                '<rect id="face" x="nope" y="0" width="1" height="1" '
+                'fill="#111111"/>'
+                "</g></svg>"
+            )
+        )
+        with self.assertRaises(ValueError) as caught:
+            render_slices(tree)
+        message = str(caught.exception)
+        self.assertIn("'face'", message)
+        self.assertIn("'x'", message)
+        self.assertIn("'nope'", message)
+
 
 class _NoSubTest(unittest.TestCase):
     """A real TestCase whose ``subTest`` is a no-op frame.

@@ -116,6 +116,59 @@ def assert_no_script_elements(case, tree):
         case.assertFalse(tag.endswith("script"), tag)
 
 
+def _slice_where(rect):
+    """Name *rect* for an error, by id when it has one."""
+    rect_id = rect.get("id")
+    return f"rect {rect_id!r}" if rect_id else "rect"
+
+
+def _slice_offset(rect, name):
+    """Return *rect*'s integer *name* offset, defaulting to 0 when absent.
+
+    An SVG rect's x and y default to 0, so an omitted offset is valid. A
+    present but non-integer one is malformed and would otherwise surface as a
+    bare ``int()`` ValueError naming no rect.
+    """
+    value = rect.get(name)
+    if value is None:
+        return 0
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{_slice_where(rect)} has a non-integer {name!r} of {value!r}: "
+            "a nine-slice tile rect's x and y must be integers"
+        ) from None
+
+
+def _slice_extent(rect, name):
+    """Return *rect*'s positive integer *name* extent, naming it when invalid.
+
+    ``render_slices`` iterates ``range(extent)``, so a zero or negative width
+    or height silently paints no pixels and weakens every pixel assertion built
+    on it, and an absent one would surface as a bare ``int(None)`` TypeError.
+    """
+    value = rect.get(name)
+    if value is None:
+        raise ValueError(
+            f"{_slice_where(rect)} has no {name!r} attribute: a nine-slice "
+            "tile rect must declare a positive width and height"
+        )
+    try:
+        extent = int(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"{_slice_where(rect)} has a non-integer {name!r} of {value!r}: "
+            "a nine-slice tile rect must declare a positive width and height"
+        ) from None
+    if extent <= 0:
+        raise ValueError(
+            f"{_slice_where(rect)} has a non-positive {name!r} of {value!r}: "
+            "a nine-slice tile rect must declare a positive width and height"
+        )
+    return extent
+
+
 def render_slices(tree):
     """Composite each id-bearing <g> of a nine-slice SVG into a {(x, y): fill} map.
 
@@ -123,15 +176,18 @@ def render_slices(tree):
     way. Coordinates are slice-local: the groups are pure translations, so a
     slice's appearance is its rects painted in document order, with a later
     rect overriding an earlier one as KSvg composites one nine-slice tile.
+    Raise ValueError, naming the rect, when one of its width/height attributes
+    is absent, non-integer or non-positive, or its x/y is non-integer; a
+    silently empty or mis-sampled tile would otherwise pass the pixel checks.
     """
     slices = {}
     for group in groups_with_id(tree):
         pixels = {}
         for rect in children_named(group, "rect"):
-            x = int(rect.get("x", 0))
-            y = int(rect.get("y", 0))
-            for dx in range(int(rect.get("width"))):
-                for dy in range(int(rect.get("height"))):
+            x = _slice_offset(rect, "x")
+            y = _slice_offset(rect, "y")
+            for dx in range(_slice_extent(rect, "width")):
+                for dy in range(_slice_extent(rect, "height")):
                     pixels[(x + dx, y + dy)] = rect.get("fill")
         slices[group.get("id")] = pixels
     return slices
