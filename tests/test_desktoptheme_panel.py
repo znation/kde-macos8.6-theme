@@ -3,18 +3,14 @@
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import PANEL_SVG
+from nine_slice_case import NineSliceCase
 from platinum_palette import PLATINUM_FILLS
 from svg_assertions import (
-    HINT_IDS,
     assert_center_tile_is,
-    assert_no_script_elements,
     assert_slice_ids_present,
     assert_slice_pixels,
-    assert_slices_stay_within_their_tiles,
-    assert_tiles_placed_by_margins,
     attribute_values,
     pixel_map,
     rect_geometry,
@@ -41,17 +37,11 @@ PANEL_EDGE_PIXELS = {
 }
 
 
-class TestPanelBackground(unittest.TestCase):
-    def setUp(self):
-        self.tree = ET.parse(PANEL_SVG)
-        self.ids = attribute_values(self.tree, "id")
+class TestPanelBackground(NineSliceCase, unittest.TestCase):
+    SVG_PATH = PANEL_SVG
 
     def test_nine_slice_ids_present(self):
         assert_slice_ids_present(self, self.tree, [""])
-
-    def test_hint_ids_present(self):
-        for name in HINT_IDS:
-            self.assertIn(name, self.ids, name)
 
     def test_panel_background_hint_geometry(self):
         # `test_hint_ids_present` pins only the hint ids, so a margin or inset
@@ -72,20 +62,6 @@ class TestPanelBackground(unittest.TestCase):
             },
         )
 
-    def test_panel_background_tiles_placed_by_margins(self):
-        # `test_panel_background_pixels` composites each slice from its rects
-        # but ignores the group's translate, so a group moved off its slice
-        # draws from the wrong canvas region and still passes. Pin each tile's
-        # origin against the margins that size the menu bar's nine-slice.
-        assert_tiles_placed_by_margins(self, self.tree, [""])
-
-    def test_panel_background_tiles_stay_within_their_margins(self):
-        # `test_panel_background_pixels` reads only points inside each tile, so
-        # an oversized rect spilling into the neighbouring canvas region --
-        # which KSvg samples into that adjacent tile -- passes. Pin every
-        # slice to the tile region its hints define.
-        assert_slices_stay_within_their_tiles(self, self.tree, [""])
-
     def test_platinum_colours_present(self):
         # Read the parsed artwork's fill attributes, not the raw file: the
         # header comment names all four colours, so a text search would pass
@@ -104,9 +80,6 @@ class TestPanelBackground(unittest.TestCase):
             )
         # The centre tile is one body rect, so every pixel is the same face.
         assert_center_tile_is(self, slices, "center", "#DDDDDD", size=8)
-
-    def test_no_script_elements(self):
-        assert_no_script_elements(self, self.tree)
 
 
 if __name__ == "__main__":
