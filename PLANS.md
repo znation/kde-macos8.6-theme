@@ -16,6 +16,94 @@ screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveor
 and there is no icon, cursor, or Qt widget-style theme either. The widget sequence should not be
 treated as the whole of the prompt until these surfaces are planned or explicitly ruled out.
 
+### Mac OS 8.6 Platinum dialog / applet-popup background for the desktop theme
+
+**Planned 2026-10-08 by plan.** Independent of the done widget plans: it adds one
+artwork file to the existing `org.macos8.desktop` desktop-theme package under a new
+`dialogs/` subdirectory, one path constant in `tests/desktoptheme_paths.py`, a new
+`test_desktoptheme_dialog.py` module with the `TestDialogBackground` class, and one
+`TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`. It does not
+touch any `widgets/*.svg`, `metadata.json`, or the color scheme.
+
+**Goal.** Ship `dialogs/background.svg` in the `org.macos8.desktop` desktop theme so the
+frameless Plasma dialog surfaces — `PlasmaCore.Dialog` and `PlasmaCore.AppletPopup`
+windows, the popups applets and Plasma dialogs use — draw the raised grey Platinum window
+body instead of Breeze's translucent rounded rectangle, and the theme stops inheriting
+`dialogs/background.svgz` from the default theme.
+
+**Grounding.**
+- Consumer verified in the installed Plasma 6.3.6 tree:
+  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/extras/private/BackgroundMetrics.qml`
+  returns the literal `"dialogs/background"` when `Window.window instanceof
+  PlasmaCore.AppletPopup || Window.window instanceof PlasmaCore.Dialog`, and
+  `strings /usr/lib/x86_64-linux-gnu/libPlasmaQuick.so.6.3.5` contains the literal
+  `dialogs/background` (PlasmaQuick paints the frameless dialog background from it).
+- `ls /usr/share/plasma/desktoptheme/default/dialogs/` shows only `background.svgz`,
+  so today the theme ships no `dialogs/` artwork and inherits the default's.
+- Palette-derived, following the landed `widgets/scrollbar.svg` thumb and
+  `widgets/button.svg` normal state: a `#DDDDDD` face
+  (`[Colors:Window] BackgroundNormal=221,221,221`), a 1px `#000000` outline, and a 1px
+  bevel inside it (`#FFFFFF` top/left, `#999999` bottom/right). The reference set shows
+  the same grey window bodies (`about_betawiki.png`, `setup_emaculation.png`) but they
+  are dithered 8-bit captures, so no single pixel is added to `TestReferenceAnchors`;
+  the values are palette-derived and recorded as such here.
+
+**Approach.**
+1. Add a new `background.svg` in the desktop-theme package's new `dialogs/`
+   subdirectory (beside `widgets/`): one
+   unprefixed frame (prefix `""`) on a 16x16 nine-slice canvas, 3px border, 10x10 centre
+   tile, square corners.
+   - `center` group: a 10x10 `#DDDDDD` rect.
+   - `top`/`left` edge groups, outer-to-inner: `#000000`, `#FFFFFF`, `#DDDDDD`.
+   - `bottom`/`right` edge groups, outer-to-inner: `#DDDDDD`, `#999999`, `#000000`.
+   - four corner groups: the 3x3 patterns of the landed scrollbar thumb corners (black
+     L outline, white highlight corner, grey shadow corner).
+   - hints: `hint-tile-center` at (3,3,10,10) and `hint-{top,bottom,left,right}-margin`
+     3px each, i.e. `nine_slice_hint_geometry([""], 3, 10)`; no `hint-*-inset`.
+2. Add `DIALOG_BACKGROUND_SVG = os.path.join(PACKAGE, "dialogs", "background.svg")` to
+   `tests/desktoptheme_paths.py`.
+3. Add a new `test_desktoptheme_dialog.py` module beside
+   `tests/test_desktoptheme_scrollbar.py`, with `TestDialogBackground`, modelled on
+   `tests/test_desktoptheme_scrollbar.py`'s `TestScrollbar` but for the single prefix
+   `""`:
+   - `test_dialog_slice_ids`: `assert_slice_ids_present(self, tree, [""])`.
+   - `test_dialog_hint_geometry`: `rect_geometry(tree)` equals
+     `nine_slice_hint_geometry([""], 3, 10)`.
+   - `test_dialog_tiles_placed_by_margins`: `assert_tiles_placed_by_margins(self, tree,
+     [""])`.
+   - `test_dialog_frame_bevel`: `assert_center_tile_is(..., "center", "#DDDDDD", 10)`;
+     `assert_edge_band_pixels` for the four edges with the outward band
+     `(BLACK, WHITE, FACE)` on top/left and the mirrored `(FACE, GREY, BLACK)` on
+     bottom/right, `size=10`; and `assert_corner_pixels` for the four corners.
+   - `test_dialog_colours`: `attribute_values(tree, "fill")` equals
+     `{"#000000", "#FFFFFF", "#999999", "#DDDDDD"}`.
+   - `test_no_script_elements`.
+4. Add `os.path.join("dialogs", "background.svg")` to `TestInstall.INSTALLED_FILES` in
+   `tests/test_desktoptheme.py`.
+
+**Acceptance criteria.**
+- The new module's tests pass and `make check` exits 0.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/dialogs/background.svg`
+  byte-identical to source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): clicking an applet that opens a
+  `PlasmaCore.AppletPopup` (clock, calendar, network, battery) shows a square, flat
+  `#DDDDDD` popup with a 1px `#000000` outline and a 1px raised bevel, and a
+  `PlasmaCore.Dialog` shows the same body; context menus and combo dropdowns keep their
+  current background; every other widget is unchanged.
+
+**Known deviation (recorded, not fixed here).** The default theme's
+`dialogs/background.svgz` also carries a `shadow-*` element set. This plan defines only the
+main frame and makes no claim about a themed drop shadow: `strings
+libPlasmaQuick.so.6.3.5` contains no `shadow` element-prefix literal, so the geometry the
+compositor would read could not be established here. If a later tick establishes it, that
+is a separate plan.
+
+**Follow-up (not planned here).** `widgets/background.svg` for
+`PlasmaComponents.Menu`/`Drawer`/`Popup` and planar applet containers — a separate file
+with separate consumers; Mac OS 8.6 menus are white, so that plan will use a white face
+and treat the rare `PlasmaComponents.Popup`/`Drawer` as the same menu-like surface.
+
 ## Done
 
 ### Mac OS 8.6 Platinum scroll bar widget for the desktop theme (done 2026-10-08)
