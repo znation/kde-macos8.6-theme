@@ -8,16 +8,12 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import BACKGROUND_SVG
 from svg_assertions import (
     HINT_IDS,
-    assert_center_tile_is,
-    assert_corner_pixels,
-    assert_edge_bevels,
+    assert_face_bevel,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
-    face_edge_bands,
-    flat_face_corners,
     nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
@@ -70,16 +66,11 @@ class TestBackground(unittest.TestCase):
 
     def test_background_pixels(self):
         # The body is a flat #FFFFFF face: a 1px #000000 outline on the outer
-        # edge of each slice and no bevel. `assert_edge_bevels` pins the four
-        # edge tiles, `assert_corner_pixels` the four corners where the outline
-        # turns, and `assert_center_tile_is` the 10x10 centre.
+        # edge of each slice and no bevel. `assert_face_bevel` pins the 10x10
+        # centre, the four edge tiles, and the four corners where the outline
+        # turns.
         slices = render_slices(self.tree)
-        assert_center_tile_is(self, slices, "center", WHITE, size=10)
-        assert_edge_bevels(
-            self, slices, "", *face_edge_bands(WHITE, "flat"), size=10
-        )
-        for name, expected in flat_face_corners(WHITE).items():
-            assert_corner_pixels(self, slices, name, expected)
+        assert_face_bevel(self, slices, "", WHITE, "flat", size=10)
 
     def test_background_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the

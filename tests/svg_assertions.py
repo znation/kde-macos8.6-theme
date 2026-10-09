@@ -439,24 +439,30 @@ def face_edge_bands(face, bevel):
     )
 
 
-def assert_raised_face_bevel(case, slices, prefix, size=6):
-    """Assert *prefix*'s nine-slice paints the raised #DDDDDD face bevel.
+def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
+    """Assert *prefix*'s nine-slice paints the *bevel* on *face*.
 
-    This is the bevel shared by the scroll-bar thumb and the dialog body: a
-    #DDDDDD centre tile, a 1px #000000 outline with a #FFFFFF highlight inside
-    the top/left edges and a #999999 shadow inside the bottom/right ones, and
-    the four `RAISED_FACE_CORNERS` slices where those bands turn the corner.
-    *prefix* names the state, ``""`` for an unprefixed SVG, and *size* is the
-    centre and edge tile length (10 for both the scroll bar and the dialog).
-    *case* is the calling ``unittest.TestCase``.
+    A face bevel is a *face*-coloured centre tile, a 1px #000000 outline on
+    each edge tile's outer edge with the bevel's highlight/shadow bands
+    inside it, and the four 3x3 corner slices where those bands turn the
+    corner. *face* is the widget's face colour (the #DDDDDD button/frame/
+    scroll-bar-thumb face, the #FFFFFF line-edit/menu face, the #EEEEEE
+    scroll-bar trough), *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``,
+    *prefix* names the state (``""`` for an unprefixed SVG), and *size* is the
+    centre and edge tile length. The raised corner table is the fixed
+    `RAISED_FACE_CORNERS` (#DDDDDD); the sunken and flat tables are derived
+    from *face*. *case* is the calling ``unittest.TestCase``.
     """
     sep = "-" if prefix else ""
-    assert_center_tile_is(
-        case, slices, f"{prefix}{sep}center", "#DDDDDD", size
-    )
-    outward, mirrored = face_edge_bands("#DDDDDD", "raised")
+    assert_center_tile_is(case, slices, f"{prefix}{sep}center", face, size)
+    outward, mirrored = face_edge_bands(face, bevel)
     assert_edge_bevels(case, slices, prefix, outward, mirrored, size)
-    for name, expected in RAISED_FACE_CORNERS.items():
+    corners = {
+        "raised": RAISED_FACE_CORNERS,
+        "sunken": sunken_face_corners(face),
+        "flat": flat_face_corners(face),
+    }[bevel]
+    for name, expected in corners.items():
         assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
 
 

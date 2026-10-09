@@ -7,16 +7,11 @@ import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import SCROLLBAR_SVG
 from svg_assertions import (
-    assert_center_tile_is,
-    assert_corner_pixels,
-    assert_edge_bevels,
+    assert_face_bevel,
     assert_no_script_elements,
-    assert_raised_face_bevel,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
-    face_edge_bands,
-    flat_face_corners,
     nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
@@ -56,21 +51,8 @@ class TestScrollbar(unittest.TestCase):
         # centre pixel is the trough fill, every edge slice's outer row/column
         # is black, and each square corner carries the two black outer edges.
         slices = render_slices(ET.parse(SCROLLBAR_SVG))
-        # Each edge slice reads top-to-bottom (horizontal) or left-to-right
-        # (vertical) in the slice's own coordinates, so the bottom/right bands
-        # are the mirrored top/left ones.
-        outward, mirrored = face_edge_bands(TROUGH, "flat")
         for prefix in TROUGH_PREFIXES:
-            assert_center_tile_is(
-                self, slices, f"{prefix}-center", TROUGH, size=10
-            )
-            assert_edge_bevels(
-                self, slices, prefix, outward, mirrored, size=10
-            )
-            for name, expected in flat_face_corners(TROUGH).items():
-                assert_corner_pixels(
-                    self, slices, f"{prefix}-{name}", expected
-                )
+            assert_face_bevel(self, slices, prefix, TROUGH, "flat", size=10)
 
     def test_scrollbar_thumb_bevel(self):
         # The handle is a raised #DDDDDD thumb: a 1px #000000 outline with a
@@ -83,7 +65,7 @@ class TestScrollbar(unittest.TestCase):
                     pixels, slices["mouseover-" + name], name
                 )
         for prefix in THUMB_PREFIXES:
-            assert_raised_face_bevel(self, slices, prefix, size=10)
+            assert_face_bevel(self, slices, prefix, FACE, "raised", size=10)
 
     def test_scrollbar_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the

@@ -7,8 +7,8 @@ import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import DIALOG_BACKGROUND_SVG
 from svg_assertions import (
+    assert_face_bevel,
     assert_no_script_elements,
-    assert_raised_face_bevel,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
@@ -49,10 +49,10 @@ class TestDialogBackground(unittest.TestCase):
         # The body is a raised #DDDDDD face: a 1px #000000 outline with a 1px
         # bevel inside it (#FFFFFF top/left, #999999 bottom/right), the same
         # bevel direction as button.svg's normal state and scrollbar.svg's
-        # thumb; `assert_raised_face_bevel` pins the centre tile, the four
-        # edge bands and the four corners.
+        # thumb; `assert_face_bevel` pins the centre tile, the four edge bands
+        # and the four corners.
         slices = render_slices(ET.parse(DIALOG_BACKGROUND_SVG))
-        assert_raised_face_bevel(self, slices, "", size=10)
+        assert_face_bevel(self, slices, "", FACE, "raised", size=10)
 
     def test_dialog_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the
