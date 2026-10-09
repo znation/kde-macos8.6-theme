@@ -11,8 +11,22 @@ import json
 
 
 def load_metadata(path):
+    """Read the JSON object at *path*, naming the file when it is not one.
+
+    A ``metadata.json`` is a JSON object at the top level. Valid JSON of
+    another shape -- an array, a string, a number or ``null`` -- would
+    otherwise reach the mixin's ``self.metadata.get(...)`` and fail with a
+    bare ``AttributeError`` naming neither the file nor the type, so reject
+    it here with both.
+    """
     with open(path, encoding="utf-8") as handle:
-        return json.load(handle)
+        metadata = json.load(handle)
+    if not isinstance(metadata, dict):
+        raise ValueError(
+            f"{path} decoded to {type(metadata).__name__}, not a JSON object: "
+            "a KDE metadata.json must be a JSON object"
+        )
+    return metadata
 
 
 class PackageMetadata:

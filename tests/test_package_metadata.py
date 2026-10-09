@@ -5,7 +5,7 @@ own real `metadata.json`, so the passing path is exercised twice over. Every
 guard, though, is only ever fed good data: a guard that stopped rejecting a
 blank Description, a missing Version or a mismatched package structure would
 keep both suites green. Pin each guard against deliberately broken metadata
-here, and pin `load_metadata`'s explicit UTF-8 decode.
+here, and pin `load_metadata`'s explicit UTF-8 decode and JSON-object guard.
 """
 
 import json
@@ -68,6 +68,26 @@ class TestLoadMetadata(unittest.TestCase):
                 metadata = load_metadata(path)
         self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8")
         self.assertEqual(metadata["Name"], "Caf\u00e9")
+
+    def test_non_object_json_names_the_type_and_path(self):
+        # Valid JSON of the wrong top-level shape reaches the mixin's
+        # ``self.metadata.get(...)`` as a bare AttributeError; the guard must
+        # name both the file and the decoded type instead.
+        for text, decoded_type in (
+            ("[]", "list"),
+            ('"text"', "str"),
+            ("42", "int"),
+            ("null", "NoneType"),
+        ):
+            with self.subTest(json=text):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp) / "metadata.json"
+                    path.write_text(text, encoding="utf-8")
+                    with self.assertRaises(ValueError) as caught:
+                        load_metadata(path)
+                message = str(caught.exception)
+                self.assertIn(decoded_type, message)
+                self.assertIn(str(path), message)
 
 
 class TestPackageMetadata(unittest.TestCase):
