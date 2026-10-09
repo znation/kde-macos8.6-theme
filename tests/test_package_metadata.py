@@ -34,6 +34,22 @@ def _metadata():
     }
 
 
+def _metadata_with_kplugin(value):
+    """A fresh metadata dict whose ``KPlugin`` is *value*.
+
+    ``None`` removes the key, matching a metadata.json that never had one;
+    anything else replaces the default object so a guard sees the malformed
+    value. The guard tests below that walk a table of malformed ``KPlugin``
+    values share this convention here.
+    """
+    metadata = _metadata()
+    if value is None:
+        del metadata["KPlugin"]
+    else:
+        metadata["KPlugin"] = value
+    return metadata
+
+
 def _case(method, metadata):
     """Return a configured `PackageMetadata` case, without running setUp.
 
@@ -145,11 +161,7 @@ class TestKPluginHelper(unittest.TestCase):
             (7, "int"),
         ):
             with self.subTest(kplugin=value):
-                metadata = _metadata()
-                if value is None:
-                    del metadata["KPlugin"]
-                else:
-                    metadata["KPlugin"] = value
+                metadata = _metadata_with_kplugin(value)
                 with self.assertRaises(ValueError) as caught:
                     kplugin(metadata, "metadata.json")
                 message = str(caught.exception)
@@ -241,11 +253,7 @@ class TestPackageMetadata(unittest.TestCase):
         # naming neither the file nor the field; the mixin must name both.
         for value in (None, "text", [], 7):
             with self.subTest(kplugin=value):
-                metadata = _metadata()
-                if value is None:
-                    del metadata["KPlugin"]
-                else:
-                    metadata["KPlugin"] = value
+                metadata = _metadata_with_kplugin(value)
                 for method in (
                     "test_plugin_id_and_name",
                     "test_plugin_version",
