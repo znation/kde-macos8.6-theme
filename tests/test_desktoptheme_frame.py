@@ -10,8 +10,8 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import DTHEME_ID, FRAME_SVG
 from svg_assertions import (
     assert_center_tile_is,
-    assert_corner_pixels,
     assert_edge_bevels,
+    assert_face_corners,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
@@ -94,8 +94,7 @@ class TestFrame(unittest.TestCase):
     def test_frame_corner_bevels_turn_the_corner(self):
         slices = render_slices(ET.parse(FRAME_SVG))
         for prefix, corners in CORNER_PIXELS.items():
-            for name, expected in corners.items():
-                assert_corner_pixels(self, slices, f"{prefix}-{name}", expected)
+            assert_face_corners(self, slices, prefix, corners)
 
     def test_frame_plain_corners_are_flat(self):
         # `test_frame_corner_bevels_turn_the_corner` pins only the raised and
@@ -106,8 +105,7 @@ class TestFrame(unittest.TestCase):
         # pixel: the face plus the 1px black outline on the two outer edges,
         # with no bevel.
         slices = render_slices(ET.parse(FRAME_SVG))
-        for name, colours in flat_face_corners("#DDDDDD").items():
-            assert_corner_pixels(self, slices, f"plain-{name}", colours)
+        assert_face_corners(self, slices, "plain", flat_face_corners("#DDDDDD"))
 
     def test_frame_edge_bevels(self):
         # `test_frame_corner_bevels_turn_the_corner` pins only the raised and

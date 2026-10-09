@@ -23,6 +23,7 @@ from svg_assertions import (
     assert_edge_band_pixels,
     assert_edge_bevels,
     assert_face_bevel,
+    assert_face_corners,
     assert_no_script_elements,
     assert_root_canvas,
     assert_slice_ids_present,
@@ -1269,6 +1270,18 @@ class TestPixelAssertions(unittest.TestCase):
                     "topleft",
                     colours,
                 )
+
+    def test_face_corners_names_each_slice_by_prefix(self):
+        colours = ("#000001",) * 9
+        corners = {"topleft": colours}
+        slices = {"state-topleft": pixel_map(colours, 3, 3)}
+        assert_face_corners(self, slices, "state", corners)
+        # The prefix names the slice: the table's only entry is stored under
+        # the prefixed key, so a helper that dropped or doubled the prefix
+        # would not find it. A wrong pixel must also fail.
+        broken = {"state-topleft": pixel_map(("#FFFFFF",) * 9, 3, 3)}
+        with self.assertRaises(AssertionError):
+            assert_face_corners(_NoSubTest(), broken, "state", corners)
 
     def test_center_tile_is_pins_the_full_square_and_its_size(self):
         colour = "#DDDDDD"

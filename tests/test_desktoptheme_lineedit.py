@@ -8,8 +8,8 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import LINEEDIT_SVG
 from svg_assertions import (
     assert_center_tile_is,
-    assert_corner_pixels,
     assert_edge_bevels,
+    assert_face_corners,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
@@ -69,12 +69,9 @@ class TestLineEdit(unittest.TestCase):
         # notch where the edge tile shows shadow or highlight. Pin every
         # pixel of each corner slice.
         slices = render_slices(ET.parse(LINEEDIT_SVG))
-        expected = {
-            f"base-{name}": pixels
-            for name, pixels in sunken_face_corners("#FFFFFF").items()
-        }
-        for name, colours in expected.items():
-            assert_corner_pixels(self, slices, name, colours)
+        assert_face_corners(
+            self, slices, "base", sunken_face_corners("#FFFFFF")
+        )
 
     def test_lineedit_tiles_placed_by_margins(self):
         # `test_lineedit_face_is_white` composites `base-center` slice-local,

@@ -347,6 +347,21 @@ def assert_corner_pixels(case, slices, name, expected):
         case.assertEqual(actual, expected, name)
 
 
+def assert_face_corners(case, slices, prefix, corners):
+    """Assert every 3x3 corner slice in *corners* paints its expected pixels.
+
+    *corners* maps a corner name (``"topleft"`` ...) to the nine colours in
+    row-major order; each is looked up in *slices* as ``"<prefix>-<name>"``,
+    or ``"<name>"`` when *prefix* is ``""``. `assert_face_bevel` passes its
+    bevel's table here, and the frame's plain/raised/sunken and the line
+    edit's ``"base"`` corner tests pass theirs. *case* is the calling
+    ``unittest.TestCase``.
+    """
+    sep = "-" if prefix else ""
+    for name, expected in corners.items():
+        assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
+
+
 def assert_center_tile_is(case, slices, name, colour, size):
     """Assert centre slice *name* is a solid *size* x *size* rectangle of *colour*.
 
@@ -507,8 +522,7 @@ def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
         "sunken": sunken_face_corners(face),
         "flat": flat_face_corners(face),
     }[bevel]
-    for name, expected in corners.items():
-        assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
+    assert_face_corners(case, slices, prefix, corners)
 
 
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
