@@ -108,6 +108,7 @@ class TestInstall(
     INSTALLED_FILES = (
         "metadata.json",
         os.path.join("widgets", "panel-background.svg"),
+        os.path.join("widgets", "frame.svg"),
         os.path.join("widgets", "button.svg"),
         os.path.join("widgets", "radiobutton.svg"),
         os.path.join("widgets", "checkmarks.svg"),

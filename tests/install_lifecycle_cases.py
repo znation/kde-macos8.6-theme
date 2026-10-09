@@ -47,6 +47,25 @@ class InstallLifecycleCases:
                 target = os.path.join(installed, name)
                 assert_files_identical(self, source, target, name)
 
+    def test_installed_files_registry_covers_the_package(self):
+        """`INSTALLED_FILES` must name every file the package ships.
+
+        The byte-for-byte check above only visits the files in
+        `INSTALLED_FILES`, so a newly shipped file that is never added to the
+        registry is installed but never compared. Derive the shipped set from
+        the package directory and require it to equal the registry, so adding
+        or removing a file without updating `INSTALLED_FILES` fails here.
+        """
+        shipped = set()
+        for dirpath, _, filenames in os.walk(self.PACKAGE_DIR):
+            for filename in filenames:
+                shipped.add(
+                    os.path.relpath(
+                        os.path.join(dirpath, filename), self.PACKAGE_DIR
+                    )
+                )
+        self.assertEqual(shipped, set(self.INSTALLED_FILES))
+
     def test_make_install_is_repeatable(self):
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
