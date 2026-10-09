@@ -8,6 +8,13 @@ image added to or removed from the set could leave the README listing a file
 that no longer exists or omitting one that does -- the reference set is the
 project's source of truth, so a stale index sends sampling work at the wrong
 image. These tests derive both sides and fail when they disagree.
+
+The same declared set must stay routed through Git LFS: README says the binary
+assets are stored with Git LFS (see ``.gitattributes``), and the checker catches
+an unmaterialized pointer on disk, but nothing tied the declared files to the
+LFS rules. These tests also ask git for each declared file's effective
+``filter`` attribute, so dropping a rule or adding an image with an unlisted
+extension fails here instead of committing a raw binary.
 """
 
 import glob
@@ -101,6 +108,23 @@ def declared_files(sources_text, separator):
     return names
 
 
+def lfs_filter_states(output):
+    """Return ``{file name: filter state}`` from ``git check-attr`` output.
+
+    ``git check-attr filter -- <paths>`` prints one
+    ``<path>: filter: <state>`` line per path. The file name is keyed so the
+    caller can match it against the names ``sources.txt`` declares; a line
+    without the ``: filter: `` separator (a git warning, say) contributes
+    nothing.
+    """
+    states = {}
+    for line in output.splitlines():
+        path, separator, state = line.partition(": filter: ")
+        if separator:
+            states[os.path.basename(path)] = state
+    return states
+
+
 class TestReferenceTableParser(unittest.TestCase):
     """Pin the parser's rules on a synthetic README."""
 
@@ -178,6 +202,63 @@ class TestReadmeReferenceTable(unittest.TestCase):
             match, "README no longer states the reference-set image count"
         )
         self.assertEqual(int(match.group(1)), len(self.declared))
+
+
+class TestLfsFilterStates(unittest.TestCase):
+    """Pin the ``git check-attr`` output parser."""
+
+    def test_reads_the_state_per_file(self):
+        self.assertEqual(
+            lfs_filter_states(
+                "macos8.6-screenshots/about_betawiki.png: filter: lfs\n"
+                "macos8.6-screenshots/sherlock_fandom.jpg: filter: "
+                "unspecified\n"
+            ),
+            {
+                "about_betawiki.png": "lfs",
+                "sherlock_fandom.jpg": "unspecified",
+            },
+        )
+
+    def test_ignores_a_line_without_the_separator(self):
+        self.assertEqual(lfs_filter_states("warning: not an attribute\n"), {})
+
+
+class TestReferenceLfsTracking(unittest.TestCase):
+    """Every image ``sources.txt`` declares must be routed through Git LFS."""
+
+    @classmethod
+    def setUpClass(cls):
+        checker = load_checker()
+        cls.relative_dir = checker.REFERENCE_DIR
+        with open(
+            os.path.join(theme_install.ROOT, cls.relative_dir, checker.SOURCES_NAME),
+            encoding="utf-8-sig",
+        ) as handle:
+            cls.declared = declared_files(handle.read(), checker.SEPARATOR)
+
+    def test_every_declared_file_is_routed_through_lfs(self):
+        # Ask git for the effective attribute rather than re-implementing its
+        # pattern matching, so a directory-scoped rule or a later override is
+        # honoured. The paths are relative to the repository root, matching
+        # the working-tree .gitattributes git reads.
+        paths = [
+            os.path.join(self.relative_dir, name)
+            for name in sorted(self.declared)
+        ]
+        result = theme_install.run_captured(
+            ["git", "check-attr", "filter", "--", *paths],
+            cwd=theme_install.ROOT,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        states = lfs_filter_states(result.stdout)
+        for name in sorted(self.declared):
+            with self.subTest(file=name):
+                self.assertEqual(
+                    states.get(name),
+                    "lfs",
+                    f"{name} is not routed through Git LFS by .gitattributes",
+                )
 
 
 if __name__ == "__main__":
