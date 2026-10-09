@@ -17,7 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import png  # noqa: E402
-from png_fixtures import _paeth, make_png  # noqa: E402
+from png_fixtures import _paeth, make_png, rgb_from_rows  # noqa: E402
 
 
 class TestUnfilterLanes(unittest.TestCase):
@@ -91,22 +91,7 @@ class TestUnfilterLanes(unittest.TestCase):
                 color_type=color_type,
                 filter_types=[1, 2, 1, 2, 1, 2],
             )
-            if color_type == 6:
-                expected = b"".join(
-                    bytes(b for i, b in enumerate(row) if i % 4 != 3)
-                    for row in rows
-                )
-            elif color_type == 0:
-                expected = b"".join(
-                    bytes(b for g in row for b in (g, g, g)) for row in rows
-                )
-            elif color_type == 4:
-                expected = b"".join(
-                    bytes(b for i in range(0, len(row), 2) for b in (row[i],) * 3)
-                    for row in rows
-                )
-            else:
-                expected = b"".join(rows)
+            expected = rgb_from_rows(rows, color_type)
             with self.subTest(width=width, color_type=color_type):
                 self.assertEqual(png.decode_png(data).rgb, expected)
 

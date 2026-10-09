@@ -1,10 +1,12 @@
-"""PNG encoding helpers shared by the image test modules.
+"""PNG encoding and decode-expectation helpers shared by the image test modules.
 
 Test-only: builds 8-bit, non-interlaced PNGs (including deliberately malformed
 ones) so the PNG test modules -- ``tests/test_png_decode.py``,
 ``tests/test_png_filters.py``, ``tests/test_png_fixtures.py``,
 ``tests/test_fidelity_metrics.py`` and ``tests/test_fidelity_cli.py`` -- share
-one encoder instead of each carrying its own.
+one encoder instead of each carrying its own. It also expands raw scanlines to
+the RGB bytes ``decode_png`` should return, so a test comparing a non-RGB
+color type does not re-derive that expansion.
 """
 
 from __future__ import annotations
@@ -55,6 +57,38 @@ def ihdr_chunk(width: int, height: int, color_type: int) -> bytes:
     """
     payload = struct.pack(">IIBBBBB", width, height, 8, color_type, 0, 0, 0)
     return _chunk(b"IHDR", payload)
+
+
+def rgb_from_rows(rows: list[bytes], color_type: int) -> bytes:
+    """Return the RGB bytes `decode_png` should produce from raw *rows*.
+
+    A test that builds scanlines for a non-RGB color type has to expand them
+    the way the decoder does before comparing. Color type 0 repeats each gray
+    sample across R, G and B; type 4 drops each pixel's alpha byte and repeats
+    the gray sample; type 6 drops each pixel's alpha byte; type 2 is already
+    RGB and passes through. Type 3 (palette) is not expanded here because its
+    output depends on the PLTE table, and an unsupported type is a fixture bug
+    that is named rather than returning bytes no decode could match.
+    """
+    if color_type == 0:
+        return b"".join(
+            bytes(b for g in row for b in (g, g, g)) for row in rows
+        )
+    if color_type == 2:
+        return b"".join(rows)
+    if color_type == 4:
+        return b"".join(
+            bytes(b for i in range(0, len(row), 2) for b in (row[i],) * 3)
+            for row in rows
+        )
+    if color_type == 6:
+        return b"".join(
+            bytes(b for i, b in enumerate(row) if i % 4 != 3) for row in rows
+        )
+    raise ValueError(
+        f"rgb_from_rows: unsupported color_type {color_type}; expected one of "
+        f"[0, 2, 4, 6]"
+    )
 
 
 def _paeth(a: int, b: int, c: int) -> int:

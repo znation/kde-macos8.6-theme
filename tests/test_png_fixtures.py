@@ -23,6 +23,7 @@ from png_fixtures import (  # noqa: E402
     ihdr_end,
     make_png,
     png_with_idat,
+    rgb_from_rows,
     rgb_image,
     with_ihdr_byte,
 )
@@ -140,6 +141,43 @@ class TestIhdrChunk(unittest.TestCase):
             chunk[21:],
             struct.pack(">I", zlib.crc32(chunk[4:21]) & 0xFFFFFFFF),
         )
+
+
+class TestRgbFromRows(unittest.TestCase):
+    def test_expands_each_supported_color_type(self):
+        # The helper stands in for the decoder's per-color-type expansion, so
+        # pin one row of each type: a wrong stride or a kept alpha byte would
+        # otherwise make both a decode and its expected value wrong together.
+        self.assertEqual(
+            rgb_from_rows([bytes([1, 2])], 0),
+            bytes([1, 1, 1, 2, 2, 2]),
+        )
+        self.assertEqual(rgb_from_rows([bytes([1, 2, 3])], 2), bytes([1, 2, 3]))
+        self.assertEqual(
+            rgb_from_rows([bytes([7, 200, 100, 50])], 4),
+            bytes([7, 7, 7, 100, 100, 100]),
+        )
+        self.assertEqual(
+            rgb_from_rows([bytes([1, 2, 3, 4, 5, 6, 7, 8])], 6),
+            bytes([1, 2, 3, 5, 6, 7]),
+        )
+
+    def test_concatenates_rows_in_order(self):
+        # A decode's rgb is the rows concatenated, so the helper must not
+        # interleave or reverse them.
+        self.assertEqual(
+            rgb_from_rows([bytes([1]), bytes([2])], 0),
+            bytes([1, 1, 1, 2, 2, 2]),
+        )
+
+    def test_rejects_an_unsupported_color_type(self):
+        # Palette output depends on the PLTE table, which this helper does not
+        # read; returning RGB for it would be bytes no decode could match.
+        with self.assertRaises(ValueError) as ctx:
+            rgb_from_rows([bytes([0])], 3)
+        message = str(ctx.exception)
+        self.assertIn("color_type 3", message)
+        self.assertIn("[0, 2, 4, 6]", message)
 
 
 class TestPngWithIdat(unittest.TestCase):

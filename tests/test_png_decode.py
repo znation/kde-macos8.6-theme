@@ -26,6 +26,7 @@ from png_fixtures import (  # noqa: E402
     ihdr_end,
     make_png,
     png_with_idat,
+    rgb_from_rows,
     rgb_image,
     solid_rgb,
     with_ihdr_byte,
@@ -166,10 +167,7 @@ class TestDecode(unittest.TestCase):
             bytes([17, 34, 51, 68, 85]),
         ]
         data = make_png(5, 5, rows, color_type=0, filter_types=[0, 1, 2, 3, 4])
-        expected = b"".join(
-            bytes(b for g in row for b in (g, g, g)) for row in rows
-        )
-        self.assertEqual(png.decode_png(data).rgb, expected)
+        self.assertEqual(png.decode_png(data).rgb, rgb_from_rows(rows, 0))
 
     def test_palette(self):
         palette = bytes([255, 0, 0, 0, 255, 0])
@@ -334,10 +332,7 @@ class TestDecode(unittest.TestCase):
             bytes([17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204]),
         ]
         data = make_png(3, 5, rows, color_type=6, filter_types=[0, 1, 2, 3, 4])
-        expected = b"".join(
-            bytes(b for i, b in enumerate(row) if i % 4 != 3) for row in rows
-        )
-        self.assertEqual(png.decode_png(data).rgb, expected)
+        self.assertEqual(png.decode_png(data).rgb, rgb_from_rows(rows, 6))
 
     def test_grayscale_alpha_ignores_alpha(self):
         # color_type 4 is grayscale + alpha (2 bytes per pixel). It is the only
