@@ -134,6 +134,16 @@ class TestCli(unittest.TestCase):
             self.assertIn(needle, result.stderr)
         self.assertNotIn("Traceback", result.stderr)
 
+    def _assert_pass(self, result: subprocess.CompletedProcess) -> None:
+        """Assert *result* is a clean exit-0 pass whose stdout says PASS."""
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("PASS", result.stdout)
+
+    def _assert_fail(self, result: subprocess.CompletedProcess) -> None:
+        """Assert *result* is an exit-1 fidelity failure whose stdout says FAIL."""
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn("FAIL", result.stdout)
+
     def test_script_entry_point(self):
         """The CLI still runs end to end as ``python3 tools/fidelity.py``.
 
@@ -149,8 +159,7 @@ class TestCli(unittest.TestCase):
                 capture_output=True,
                 text=True,
             )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("PASS", result.stdout)
+        self._assert_pass(result)
 
     def test_pass_and_fail(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -161,12 +170,10 @@ class TestCli(unittest.TestCase):
             reference = candidate
 
             same = self._run(candidate, reference)
-            self.assertEqual(same.returncode, 0, same.stderr)
-            self.assertIn("PASS", same.stdout)
+            self._assert_pass(same)
 
             different = self._run(candidate, altered)
-            self.assertEqual(different.returncode, 1, different.stderr)
-            self.assertIn("FAIL", different.stdout)
+            self._assert_fail(different)
             self.assertIn("differing pixels: 1 / 9", different.stdout)
             self.assertIn("max channel delta: 50 at (1, 0)", different.stdout)
 
@@ -180,14 +187,10 @@ class TestCli(unittest.TestCase):
             candidate, altered = self._write_altered_pair(Path(tmp))
 
             within = self._run(candidate, altered, "--tolerance", "50")
-            self.assertEqual(within.returncode, 0, within.stdout + within.stderr)
-            self.assertIn("PASS", within.stdout)
+            self._assert_pass(within)
 
             outside = self._run(candidate, altered, "--tolerance", "49")
-            self.assertEqual(
-                outside.returncode, 1, outside.stdout + outside.stderr
-            )
-            self.assertIn("FAIL", outside.stdout)
+            self._assert_fail(outside)
 
             default = self._run(candidate, altered)
             self.assertEqual(
@@ -203,14 +206,10 @@ class TestCli(unittest.TestCase):
             candidate, altered = self._write_altered_pair(Path(tmp))
 
             generous = self._run(candidate, altered, "--max-mae", "2")
-            self.assertEqual(
-                generous.returncode, 0, generous.stdout + generous.stderr
-            )
-            self.assertIn("PASS", generous.stdout)
+            self._assert_pass(generous)
 
             tight = self._run(candidate, altered, "--max-mae", "1")
-            self.assertEqual(tight.returncode, 1, tight.stdout + tight.stderr)
-            self.assertIn("FAIL", tight.stdout)
+            self._assert_fail(tight)
 
     def test_max_frac_budget_is_the_verdict(self):
         # --max-frac is a budget on its own: with no --max-mae, the verdict is
@@ -221,14 +220,10 @@ class TestCli(unittest.TestCase):
             candidate, altered = self._write_altered_pair(Path(tmp))
 
             generous = self._run(candidate, altered, "--max-frac", "0.12")
-            self.assertEqual(
-                generous.returncode, 0, generous.stdout + generous.stderr
-            )
-            self.assertIn("PASS", generous.stdout)
+            self._assert_pass(generous)
 
             tight = self._run(candidate, altered, "--max-frac", "0.10")
-            self.assertEqual(tight.returncode, 1, tight.stdout + tight.stderr)
-            self.assertIn("FAIL", tight.stdout)
+            self._assert_fail(tight)
 
     def test_both_budgets_must_be_met(self):
         # --max-mae and --max-frac are both budgets: when both are set the run
@@ -241,8 +236,7 @@ class TestCli(unittest.TestCase):
             both = self._run(
                 candidate, altered, "--max-mae", "2", "--max-frac", "0.12"
             )
-            self.assertEqual(both.returncode, 0, both.stdout + both.stderr)
-            self.assertIn("PASS", both.stdout)
+            self._assert_pass(both)
 
             for extra in (
                 ("--max-mae", "2", "--max-frac", "0.10"),  # frac fails
@@ -250,10 +244,7 @@ class TestCli(unittest.TestCase):
             ):
                 with self.subTest(extra=extra):
                     result = self._run(candidate, altered, *extra)
-                    self.assertEqual(
-                        result.returncode, 1, result.stdout + result.stderr
-                    )
-                    self.assertIn("FAIL", result.stdout)
+                    self._assert_fail(result)
 
     def test_reports_worst_delta_location(self):
         a, a_png = solid_rgb(2, 1)
@@ -279,8 +270,7 @@ class TestCli(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             candidate, reference = self._write_padded_surface_pair(Path(tmp))
             result = self._run(candidate, reference, "--crop", "1,1,2,2")
-            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-            self.assertIn("PASS", result.stdout)
+            self._assert_pass(result)
 
     def test_crop_rectangle_is_echoed_for_reproducibility(self):
         # The reference line prints the cropped size, which does not say where
@@ -488,8 +478,7 @@ class TestCli(unittest.TestCase):
             "--max-frac",
             "1",
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("PASS", result.stdout)
+        self._assert_pass(result)
 
     def test_verdict_line_echoes_budget_values(self):
         # The verdict line is the run's audit record: it echoes the parsed
