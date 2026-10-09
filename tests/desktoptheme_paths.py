@@ -24,6 +24,7 @@ CHECKMARKS_SVG = os.path.join(PACKAGE, "widgets", "checkmarks.svg")
 LINEEDIT_SVG = os.path.join(PACKAGE, "widgets", "lineedit.svg")
 LISTITEM_SVG = os.path.join(PACKAGE, "widgets", "listitem.svg")
 SCROLLBAR_SVG = os.path.join(PACKAGE, "widgets", "scrollbar.svg")
+SLIDER_SVG = os.path.join(PACKAGE, "widgets", "slider.svg")
 BACKGROUND_SVG = os.path.join(PACKAGE, "widgets", "background.svg")
 DIALOG_BACKGROUND_SVG = os.path.join(PACKAGE, "dialogs", "background.svg")
 

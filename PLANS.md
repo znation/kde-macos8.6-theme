@@ -17,16 +17,19 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum slider widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum slider widget for the desktop theme (done 2026-10-09)
 
 **Planned 2026-10-09 by plan.** Independent of the done frame/button/scrollbar plans: it adds one
 widget file to the existing `org.macos8.desktop` desktop-theme package and one new test module; it
 touches no existing SVG and needs none of them to land first.
 
 **Goal.** Ship `widgets/slider.svg` in the `org.macos8.desktop` desktop theme so the Platinum groove
-and thumb replace Breeze's blue-tinted groove and round handle. Today `PlasmaComponents.Slider`,
-`PlasmaComponents.RangeSlider` and `PlasmaComponents.Dial` are the last common interactive shell
-controls still rendering as Breeze — the volume applet's
+and thumb replace Breeze's blue-tinted groove and round handle. Today `PlasmaComponents.Slider`
+and `PlasmaComponents.RangeSlider` still render as Breeze — the volume applet's
 `/usr/share/plasma/plasmoids/org.kde.plasma.volume/contents/ui/VolumeSlider.qml` (`PC3.Slider`) and
 the brightness applet's `.../org.kde.plasma.brightness/contents/ui/BrightnessItem.qml`
 (`PlasmaComponents3.Slider`) both go through it.
@@ -35,7 +38,9 @@ the brightness applet's `.../org.kde.plasma.brightness/contents/ui/BrightnessIte
 `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/`, `Slider.qml` reads
 `imagePath: "widgets/slider"` for a `KSvg.Svg`, the `groove` and `groove-highlight`
 `FrameSvgItem`s, and the `horizontal-slider-handle`/`vertical-slider-handle` `SvgItem`s;
-`RangeSlider.qml` and `Dial.qml` read the same `imagePath` and handle ids. `hint-handle-size` is
+`RangeSlider.qml` reads the same `imagePath` and handle ids. `Dial.qml` declares a `KSvg.Svg`
+with the same `imagePath` but never references it — it paints its groove with a `Canvas` using
+Kirigami theme colors — so `widgets/slider.svg` does not reach it. `hint-handle-size` is
 optional: when absent, `Slider.qml` sizes the handle from the handle element's own bounding box.
 
 **Reference and provenance.** No screenshot in `macos8.6-screenshots/` shows a slider, so the
@@ -78,36 +83,45 @@ vertical) are provenance, like the scroll bar's own trough/thumb geometry.
    `SLIDER_SVG = os.path.join(PACKAGE, "widgets", "slider.svg")` beside `SCROLLBAR_SVG`.
 3. `tests/test_desktoptheme.py`: add `("slider.svg", SLIDER_SVG, 16, 16)` to `SVG_CANVASES` and
    `os.path.join("widgets", "slider.svg")` to `TestInstall.INSTALLED_FILES`.
-4. New per-widget test module under `tests/`, following the `tests/test_desktoptheme_scrollbar.py`
-   pattern, with `class TestSlider`, importing `SLIDER_SVG` and
-   `assert_slice_ids_present`, `assert_tiles_placed_by_margins`, `assert_corner_pixels`,
-   `assert_unique_ids`, `assert_no_script_elements`, `attribute_values`, `rect_geometry`,
-   `render_slices` from `svg_assertions` (tests in the criteria below).
+4. New per-widget test module `tests/test_desktoptheme_slider.py` with `class TestSlider`,
+   subclassing the `tests/nine_slice_case.py` `NineSliceCase` mixin (so the shared slice-id,
+   tile-placement, within-tile and no-script checks run once) and importing `SLIDER_SVG`,
+   `assert_face_bevel`, `assert_hint_geometry`, `assert_slice_pixels`, `assert_unique_ids`,
+   `attribute_values` and `render_slices` from `svg_assertions`. Because the two handle groups
+   are id-bearing `<g>` elements but not nine-slice tiles, `assert_tiles_placed_by_margins`
+   gains an `extra_groups` argument and `NineSliceCase` an `EXTRA_GROUPS` attribute to pin the
+   handles' origins at (0,0) (tests in the criteria below).
 5. `README.md`: add "slider" to the status block's desktop-theme widget list and name
    `widgets/slider.svg` (the raised grey thumb in a flat grey trough for
-   `PlasmaComponents.Slider`/`RangeSlider`/`Dial`) in the Installing section's desktop-theme
+   `PlasmaComponents.Slider`/`RangeSlider`) in the Installing section's desktop-theme
    inventory.
 
-**Files touched.** New: `widgets/slider.svg` in the package, and a per-widget test module under
-`tests/` following `tests/test_desktoptheme_scrollbar.py`.
-Edited: `tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (this
-entry). No Makefile, color-scheme or look-and-feel change: the Makefile's `cp -r` already copies new
-widget files.
+**Files touched.** New: `widgets/slider.svg` in the package, and
+`tests/test_desktoptheme_slider.py`.
+Edited: `tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`,
+`tests/svg_assertions.py` (the `extra_groups` argument on `assert_tiles_placed_by_margins`),
+`tests/nine_slice_case.py` (the `EXTRA_GROUPS` attribute), `tests/test_svg_assertions_checks.py`
+(the two tests for `extra_groups`), `README.md`, `PLANS.md` (this entry). No Makefile,
+color-scheme or look-and-feel change: the Makefile's `cp -r` already copies new widget files.
 
 **Acceptance criteria.**
 - `make check` exits 0; the new `TestSlider` passes and the package, install, lifecycle and other
   widget suites still pass.
-- `TestSlider.test_slider_slice_ids` parses `widgets/slider.svg` and runs
-  `assert_slice_ids_present(self, tree, ["groove"])`; `assert_unique_ids` and
-  `assert_no_script_elements` pass.
-- `TestSlider.test_slider_hint_geometry` asserts `rect_geometry(tree)` equals exactly the five hint
-  rects above (the four `groove` margins plus `hint-tile-center`), pinning the 3px border, the 10px
-  centre tile and the 6px track.
-- `TestSlider.test_slider_tiles_placed_by_margins` runs
-  `assert_tiles_placed_by_margins(self, tree, ["groove"])`.
-- `TestSlider.test_slider_groove_outline` renders `groove` with `render_slices` and asserts each
-  edge slice's outer row/column is `#000000` and its other two rows/columns are `#EEEEEE`, and each
-  corner via `assert_corner_pixels` has black outer edges and a `#EEEEEE` interior.
+- `TestSlider` inherits `NineSliceCase`: `test_slice_ids_present` runs
+  `assert_slice_ids_present(self, tree, ["groove"])` and `test_no_script_elements` passes, and
+  `TestSlider.test_slider_ids_are_unique` runs `assert_unique_ids`.
+- `TestSlider.test_slider_hint_geometry` runs
+  `assert_hint_geometry(self, tree, ["groove"], 3, 10)`, pinning exactly the five hint rects
+  above (the four `groove` margins plus `hint-tile-center`): the 3px border, the 10px centre tile
+  and the 6px track.
+- `TestSlider.test_tiles_placed_by_margins` (inherited) runs
+  `assert_tiles_placed_by_margins(self, tree, ["groove"], extra_groups={
+  "horizontal-slider-handle": (0, 0), "vertical-slider-handle": (0, 0)})`, and
+  `test_tiles_stay_within_their_margins` passes.
+- `TestSlider.test_slider_groove_outline` runs
+  `assert_face_bevel(self, render_slices(tree), "groove", "#EEEEEE", "flat", size=10)`: each edge
+  slice's outer row/column is `#000000` and its other two rows/columns are `#EEEEEE`, and each
+  corner has black outer edges and a `#EEEEEE` interior.
 - `TestSlider.test_slider_handles_are_raised_thumbs` renders `horizontal-slider-handle` and
   `vertical-slider-handle` and asserts, for each, that the map spans 12x16 and 16x12 respectively,
   the outer ring is `#000000`, the inner top/left ring is `#FFFFFF`, the inner bottom/right ring is
@@ -121,8 +135,6 @@ widget files.
   `#EEEEEE` trough with a 1px black outline and a raised `#DDDDDD` thumb with a `#FFFFFF` top/left
   and `#999999` bottom/right bevel, in both horizontal and vertical orientations, with no Breeze
   blue; every other widget is unchanged.
-
-## Done
 
 ### Wire the Mac OS 8.6 window decoration into the global theme defaults (done 2026-10-09)
 

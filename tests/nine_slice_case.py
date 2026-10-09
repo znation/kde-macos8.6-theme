@@ -34,6 +34,11 @@ class NineSliceCase(SvgCase):
 
     PREFIXES = ("",)
     HINT_ALIASES = {}
+    # Id-bearing <g> groups that are not nine-slice tiles (a slider handle,
+    # say), mapped to the origin each must sit at. `assert_tiles_placed_by_
+    # margins` compares the full origin map, so without this the widget's own
+    # non-tile groups would fail its tile-placement check.
+    EXTRA_GROUPS = None
 
     def test_slice_ids_present(self):
         assert_slice_ids_present(
@@ -46,7 +51,11 @@ class NineSliceCase(SvgCase):
         # from the wrong canvas region and still passes. Pin each tile's origin
         # against the margins that size the nine-slice.
         assert_tiles_placed_by_margins(
-            self, self.tree, self.PREFIXES, self.HINT_ALIASES
+            self,
+            self.tree,
+            self.PREFIXES,
+            self.HINT_ALIASES,
+            self.EXTRA_GROUPS,
         )
 
     def test_tiles_stay_within_their_margins(self):

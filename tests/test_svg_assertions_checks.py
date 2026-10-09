@@ -80,6 +80,33 @@ def _nine_slice_tree(origins=None, sizes=None):
     )
 
 
+def _tree_with_extra_group(origin=(0, 0)):
+    """A valid nine-slice tree plus an id-bearing non-tile group at *origin*.
+
+    The slider's handle groups are id-bearing but are not nine-slice tiles,
+    so `assert_tiles_placed_by_margins` needs their origin supplied through
+    its *extra_groups* map instead of deriving it from the margin hints.
+    """
+    x, y = origin
+    groups = "".join(
+        f'<g id="{name}" transform="translate({gx},{gy})">'
+        '<rect width="4" height="4" fill="#000000"/>'
+        "</g>"
+        for name, (gx, gy) in _ORIGINS.items()
+    )
+    extra = (
+        f'<g id="handle" transform="translate({x},{y})">'
+        '<rect width="2" height="2" fill="#000000"/>'
+        "</g>"
+    )
+    return _svg_tree(
+        f"{_HINTS}{groups}{extra}",
+        width="12",
+        height="12",
+        viewBox="0 0 12 12",
+    )
+
+
 # A base state with hints plus a hintless alias state that reuses them, the
 # shape the inactive Aurorae frame has. The alias tiles sit at the base
 # origins; the SVG carries no `alias-hint-*-margin` ids.
@@ -165,6 +192,25 @@ class TestStructuralGuards(unittest.TestCase):
             _aliased_nine_slice_tree(alias_origins=origins),
             _ALIAS_PREFIXES,
             _ALIAS_HINT_MAP,
+        )
+
+    def test_tiles_placed_by_margins_accounts_for_extra_groups(self):
+        # The slider's handle groups are id-bearing but are not nine-slice
+        # tiles; their origin is supplied separately so the exact map
+        # comparison does not fail on them.
+        assert_tiles_placed_by_margins(
+            self,
+            _tree_with_extra_group(),
+            [""],
+            extra_groups={"handle": (0, 0)},
+        )
+
+    def test_tiles_placed_by_margins_catches_a_misplaced_extra_group(self):
+        assert_rejects(
+            assert_tiles_placed_by_margins,
+            _tree_with_extra_group(origin=(1, 1)),
+            [""],
+            extra_groups={"handle": (0, 0)},
         )
 
     def test_slices_within_their_tiles_uses_the_alias_hints(self):

@@ -997,7 +997,9 @@ def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):
     case.assertEqual(rect_geometry(tree), expected)
 
 
-def assert_tiles_placed_by_margins(case, tree, prefixes, hint_aliases=None):
+def assert_tiles_placed_by_margins(
+    case, tree, prefixes, hint_aliases=None, extra_groups=None
+):
     """Assert every nine-slice tile group sits where its margin hints place it.
 
     A margin hint names a border: its width/height is the border's thickness
@@ -1008,6 +1010,10 @@ def assert_tiles_placed_by_margins(case, tree, prefixes, hint_aliases=None):
     *tree* (pass ``[""]`` for an unprefixed SVG). *hint_aliases* maps a
     prefix that declares no hints of its own to the prefix whose hints place
     its tiles; pass ``None`` (the default) when every state declares its own.
+    *extra_groups* maps the id of an id-bearing ``<g>`` that is not a
+    nine-slice tile -- a slider handle, say -- to the origin it must sit at,
+    so the exact map comparison does not fail on the widget's non-tile
+    groups; pass ``None`` (the default) when every group is a tile.
     """
     origins = tile_origins(tree)
     expected = {}
@@ -1027,6 +1033,8 @@ def assert_tiles_placed_by_margins(case, tree, prefixes, hint_aliases=None):
             f"{state}bottomleft": (int(left[0]), int(bottom[1])),
             f"{state}bottomright": (int(right[0]), int(bottom[1])),
         })
+    if extra_groups:
+        expected.update(extra_groups)
     case.assertEqual(origins, expected)
 
 

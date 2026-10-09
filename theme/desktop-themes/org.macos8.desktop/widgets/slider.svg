@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" slider.
+
+     The control PlasmaComponents.Slider and RangeSlider draw: the
+     volume applet's VolumeSlider and the brightness applet's BrightnessItem
+     both go through it. KSvg reads the `groove` nine-slice prefix as the
+     track, a flat #EEEEEE bar with a 1px #000000 outline, square corners,
+     the same recipe as scrollbar.svg's trough, and the
+     `horizontal-slider-handle` / `vertical-slider-handle` element ids as the
+     raised #DDDDDD thumb with a 1px #000000 outline and a 1px bevel inside it
+     (#FFFFFF on top/left, #999999 on bottom/right, the same rule as
+     button.svg's normal state).
+
+     No Mac OS 8.6 screenshot in the reference set shows a slider, so the
+     shape and metrics are KDE-required provenance; the colours are the
+     grounded Platinum values the scroll bar already ships, because a slider
+     and a scroll bar are the same Platinum trough-and-raised-thumb control.
+     Track thickness is 6px (3px top and bottom margins) and the horizontal
+     handle is 12x16 (16x12 for the vertical one).
+
+     Omitted on purpose, like button.svg's hover/shadow: the
+     `groove-highlight` prefix (the filled portion; a prefix this file does
+     not declare draws nothing, so the slider shows one uniform Platinum
+     trough and the thumb alone marks the value) and the
+     horizontal/vertical-slider hover, focus and shadow prefixes.
+
+     Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
+     canvas; the two handle groups sit at the origin and carry no transform. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="10" height="10" style="fill:#ff6600"/>
+  <rect id="groove-hint-top-margin" x="3" y="0" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="groove-hint-bottom-margin" x="3" y="13" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="groove-hint-left-margin" x="0" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="groove-hint-right-margin" x="13" y="3" width="3" height="10" style="fill:#ff00ff"/>
+
+  <!-- Groove: a flat #EEEEEE track with a 1px #000000 outline, identical to
+       the scroll bar trough. -->
+  <g id="groove-top" transform="translate(3,0)">
+    <rect width="10" height="3" fill="#EEEEEE"/>
+    <rect y="0" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="groove-bottom" transform="translate(3,13)">
+    <rect width="10" height="3" fill="#EEEEEE"/>
+    <rect y="2" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="groove-left" transform="translate(0,3)">
+    <rect width="3" height="10" fill="#EEEEEE"/>
+    <rect x="0" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="groove-right" transform="translate(13,3)">
+    <rect width="3" height="10" fill="#EEEEEE"/>
+    <rect x="2" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="groove-center" transform="translate(3,3)">
+    <rect width="10" height="10" fill="#EEEEEE"/>
+  </g>
+  <g id="groove-topleft">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="groove-topright" transform="translate(13,0)">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="groove-bottomleft" transform="translate(0,13)">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="groove-bottomright" transform="translate(13,13)">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+
+  <!-- Handles: a raised #DDDDDD thumb. The base, then the horizontal bevel
+       (top #FFFFFF, bottom #999999), then the vertical bevel (left #FFFFFF,
+       right #999999) so the vertical edges turn the corners the way the
+       scroll bar thumb's corner slices do, then the 1px #000000 outline on
+       top of everything. -->
+  <g id="horizontal-slider-handle">
+    <rect width="12" height="16" fill="#DDDDDD"/>
+    <rect y="1" width="12" height="1" fill="#FFFFFF"/>
+    <rect y="14" width="12" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="16" fill="#FFFFFF"/>
+    <rect x="10" width="1" height="16" fill="#999999"/>
+    <rect width="12" height="1" fill="#000000"/>
+    <rect y="15" width="12" height="1" fill="#000000"/>
+    <rect width="1" height="16" fill="#000000"/>
+    <rect x="11" width="1" height="16" fill="#000000"/>
+  </g>
+  <g id="vertical-slider-handle">
+    <rect width="16" height="12" fill="#DDDDDD"/>
+    <rect y="1" width="16" height="1" fill="#FFFFFF"/>
+    <rect y="10" width="16" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="12" fill="#FFFFFF"/>
+    <rect x="14" width="1" height="12" fill="#999999"/>
+    <rect width="16" height="1" fill="#000000"/>
+    <rect y="11" width="16" height="1" fill="#000000"/>
+    <rect width="1" height="12" fill="#000000"/>
+    <rect x="15" width="1" height="12" fill="#000000"/>
+  </g>
+</svg>

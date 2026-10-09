@@ -27,6 +27,7 @@ from desktoptheme_paths import (
     PANEL_SVG,
     RADIOBUTTON_SVG,
     SCROLLBAR_SVG,
+    SLIDER_SVG,
 )
 from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
@@ -50,9 +51,9 @@ PLASMA_SECTION = "plasmarc][Theme"
 
 
 # Each shipped SVG's root canvas. Five nine-slice widgets share a tight 12x12
-# canvas; the scrollbar, the menu body and the dialog window body are 16x16;
-# checkmarks is two stacked 16x16 cells and radiobutton two side-by-side, so
-# their canvases are 16x32 and 48x16.
+# canvas; the scrollbar, the slider, the menu body and the dialog window body
+# are 16x16; checkmarks is two stacked 16x16 cells and radiobutton two
+# side-by-side, so their canvases are 16x32 and 48x16.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 12),
     ("frame.svg", FRAME_SVG, 12, 12),
@@ -60,6 +61,7 @@ SVG_CANVASES = (
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
     ("listitem.svg", LISTITEM_SVG, 12, 12),
     ("scrollbar.svg", SCROLLBAR_SVG, 16, 16),
+    ("slider.svg", SLIDER_SVG, 16, 16),
     ("background.svg", BACKGROUND_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
@@ -149,6 +151,7 @@ class TestInstall(
         os.path.join("widgets", "lineedit.svg"),
         os.path.join("widgets", "listitem.svg"),
         os.path.join("widgets", "scrollbar.svg"),
+        os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "background.svg"),
         os.path.join("dialogs", "background.svg"),
     )
