@@ -1,6 +1,6 @@
 """Tests for tools/byteops.py -- the shared equal-length precondition.
 
-``png._byte_add`` and ``fidelity_metrics._abs_diff`` both pack byte strings
+``png_filters._byte_add`` and ``fidelity_metrics._abs_diff`` both pack byte strings
 into big-integer lanes and call ``require_equal_lengths`` first. Their own
 tests exercise only the length-mismatch branch and check that the raised
 message names *their* function, so they pin neither the value the helper

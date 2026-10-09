@@ -1,6 +1,6 @@
 """Shared preconditions for the byte-string lane arithmetic in ``tools/``.
 
-``tools/png.py``'s ``_byte_add`` and ``tools/fidelity_metrics.py``'s
+``tools/png_filters.py``'s ``_byte_add`` and ``tools/fidelity_metrics.py``'s
 ``_abs_diff`` both pack byte strings into big-integer lanes, where a length
 mismatch would silently truncate or overflow the result. Both reject it the
 same way, so the check and its diagnostic live here once.
