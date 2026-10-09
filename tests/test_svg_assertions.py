@@ -147,6 +147,27 @@ class TestArcCenter(unittest.TestCase):
                     arc_center(start, (3, 3, flags[0], flags[1]), end), expected
                 )
 
+    def test_zero_length_chord_names_the_arc(self):
+        # start == end has no perpendicular bisector, so the centre is
+        # undefined. Before the guard this was a bare ZeroDivisionError that
+        # named neither the arc nor its defect.
+        with self.assertRaises(ValueError) as caught:
+            arc_center((2.0, 2.0), (3, 3, 0, 1), (2.0, 2.0))
+        message = str(caught.exception)
+        self.assertIn("(2.0, 2.0)", message)
+        self.assertIn("zero-length chord", message)
+
+    def test_radius_too_small_names_the_arc_and_the_chord(self):
+        # Endpoints 6 apart need radius >= 3; a radius of 2 cannot reach both
+        # and the square root would fail with "math domain error".
+        with self.assertRaises(ValueError) as caught:
+            arc_center((0.0, 0.0), (2, 2, 0, 1), (6.0, 0.0))
+        message = str(caught.exception)
+        self.assertIn("(0.0, 0.0)", message)
+        self.assertIn("(6.0, 0.0)", message)
+        self.assertIn("radius 2", message)
+        self.assertIn("half its chord 3", message)
+
 
 class TestTileOrigins(unittest.TestCase):
     def test_reads_translates_and_surfaces_unparseable_transforms(self):

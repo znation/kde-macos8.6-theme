@@ -292,11 +292,27 @@ def arc_center(start, arc, end):
     lies on the perpendicular bisector of start->end and the flags pick which
     side. A flipped sweep flag puts the centre on the opposite side, which is
     exactly the arc defect the button corner test computes against.
+
+    Raise ValueError, naming the arc, when it has no centre to reconstruct: a
+    zero-length chord (start == end) has no perpendicular bisector, and a
+    radius shorter than half the chord cannot reach both endpoints. Both are
+    fixture defects the arithmetic would otherwise report as a bare
+    ZeroDivisionError or "math domain error".
     """
     (x1, y1), (rx, _ry, large_arc, sweep), (x2, y2) = start, arc, end
     x1p = (x1 - x2) / 2
     y1p = (y1 - y2) / 2
     denom = x1p * x1p + y1p * y1p
+    if denom == 0:
+        raise ValueError(
+            f"arc from {start} to {end} is a zero-length chord: a circular "
+            "arc cannot start and end at the same point"
+        )
+    if rx * rx < denom:
+        raise ValueError(
+            f"arc from {start} to {end} has radius {rx:g} smaller than half "
+            f"its chord {math.sqrt(denom):g}"
+        )
     factor = math.sqrt((rx * rx - denom) / denom)
     if large_arc == sweep:
         factor = -factor
