@@ -19,6 +19,7 @@ from check_references_fixtures import (
     reference_set,
 )
 from error_assertions import assert_escapes_escape_character
+from process_assertions import assert_succeeded
 from theme_install import run_captured
 
 
@@ -194,7 +195,7 @@ class TestScriptEntryPoint(unittest.TestCase):
             [sys.executable, CHECKER, "--self-test"],
             cwd=ROOT,
         )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        assert_succeeded(self, result)
         self.assertIn("cases passed", result.stdout)
         self.assertNotIn("Traceback", result.stderr)
 

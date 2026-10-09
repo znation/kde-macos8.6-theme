@@ -17,6 +17,7 @@ from pathlib import Path
 from unittest import mock
 
 from error_assertions import error_message
+from process_assertions import assert_failed
 
 import repo_root
 from tools import png  # noqa: E402
@@ -172,5 +173,5 @@ class TestReadPng(unittest.TestCase):
                 text=True,
                 timeout=10,
             )
-        self.assertNotEqual(child.returncode, 0)
+        assert_failed(self, child)
         self.assertIn("not a regular file", child.stderr)

@@ -33,6 +33,7 @@ from install_lifecycle_cases import InstallLifecycleCases
 from kpackage_install_case import KPackageInstallCase
 from kde_config import read as read_kde_config
 from package_metadata import PackageMetadata, kplugin, load_metadata
+from process_assertions import assert_succeeded
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -162,7 +163,7 @@ class TestApplyDesktopTheme(unittest.TestCase):
     def test_apply_lists_and_selects_the_theme(self):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
+            assert_succeeded(self, installed)
             env = dict(
                 os.environ,
                 XDG_DATA_HOME=os.path.join(tmp, "share"),
@@ -172,13 +173,13 @@ class TestApplyDesktopTheme(unittest.TestCase):
                 ["plasma-apply-desktoptheme", "--list-themes"],
                 env=env,
             )
-            self.assertEqual(listed.returncode, 0, listed.stderr)
+            assert_succeeded(self, listed)
             self.assertIn(DTHEME_ID, listed.stdout)
             applied = run_captured(
                 ["plasma-apply-desktoptheme", DTHEME_ID],
                 env=env,
             )
-            self.assertEqual(applied.returncode, 0, applied.stderr)
+            assert_succeeded(self, applied)
             parser = read_kde_config(os.path.join(tmp, "config", "plasmarc"))
             self.assertEqual(parser.get("Theme", "name"), DTHEME_ID)
 

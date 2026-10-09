@@ -8,6 +8,7 @@ import unittest
 
 from desktoptheme_paths import DTHEME_ID, FRAME_SVG
 from nine_slice_case import NineSliceCase
+from process_assertions import assert_succeeded
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
@@ -103,14 +104,14 @@ class TestFrame(NineSliceCase, unittest.TestCase):
     def test_frame_installed(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            assert_succeeded(self, result)
             target = os.path.join(
                 installed_package(tmp, "desktoptheme", DTHEME_ID),
                 "widgets", "frame.svg",
             )
             assert_files_identical(self, FRAME_SVG, target)
             again = install(tmp)
-            self.assertEqual(again.returncode, 0, again.stderr)
+            assert_succeeded(self, again)
 
 
 if __name__ == "__main__":

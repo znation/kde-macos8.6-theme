@@ -15,6 +15,8 @@ import subprocess
 import unittest
 from pathlib import Path
 
+from process_assertions import assert_succeeded
+
 
 def run_main(main, program, args):
     """Call *main* with *args* and capture stdout/stderr as a CompletedProcess.
@@ -69,7 +71,7 @@ class CliTestCase(unittest.TestCase):
         on stderr, so both streams are attached to a failure message rather
         than only one. This is the counterpart of ``_assert_usage_error``.
         """
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        assert_succeeded(self, result)
 
     def _assert_usage_error(
         self, result: subprocess.CompletedProcess, *needles: str

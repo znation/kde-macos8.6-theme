@@ -12,6 +12,7 @@ import tempfile
 import unittest
 
 from colorscheme_fixtures import SCHEME
+from process_assertions import assert_failed, assert_succeeded
 from theme_install import (
     assert_files_identical,
     install,
@@ -28,7 +29,7 @@ class TestInstall(unittest.TestCase):
     def test_make_install_copies_scheme_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            assert_succeeded(self, result)
             installed = installed_color_scheme(tmp)
             assert_files_identical(self, SCHEME, installed)
 
@@ -41,7 +42,7 @@ class TestInstall(unittest.TestCase):
         """
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
+            assert_succeeded(self, first)
             installed = installed_color_scheme(tmp)
             with open(installed, "rb") as handle:
                 good = handle.read()
@@ -65,7 +66,7 @@ class TestInstall(unittest.TestCase):
                 'exec "%s" "$@"\n' % (real_install, real_install),
             )
             result = install(tmp, env=env)
-            self.assertNotEqual(result.returncode, 0, result.stdout)
+            assert_failed(self, result)
             self.assertFalse(
                 os.path.exists(
                     staging_sibling(
@@ -86,7 +87,7 @@ class TestInstall(unittest.TestCase):
             source = os.path.join(tmp, "Platinum.colors")
             shutil.copy(SCHEME, source)
             result = install(tmp, extra=[f"COLOR_SCHEME={source}"])
-            self.assertEqual(result.returncode, 0, result.stderr)
+            assert_succeeded(self, result)
             installed = installed_color_scheme(tmp, "Platinum.colors")
             assert_files_identical(self, source, installed)
             self.assertFalse(
@@ -101,7 +102,7 @@ class TestInstall(unittest.TestCase):
             source = os.path.join(tmp, "Platinum.colors")
             shutil.copy(SCHEME, source)
             installed = install(tmp, extra=[f"COLOR_SCHEME={source}"])
-            self.assertEqual(installed.returncode, 0, installed.stderr)
+            assert_succeeded(self, installed)
             schemes = installed_color_scheme_dir(tmp)
             renamed = os.path.join(schemes, "Platinum.colors")
             self.assertTrue(os.path.isfile(renamed), renamed)
@@ -110,7 +111,7 @@ class TestInstall(unittest.TestCase):
                 handle.write("[General]\nName=Decoy\n")
 
             removed = uninstall(tmp, extra=[f"COLOR_SCHEME={source}"])
-            self.assertEqual(removed.returncode, 0, removed.stderr)
+            assert_succeeded(self, removed)
             self.assertFalse(
                 os.path.exists(renamed),
                 "the renamed scheme should have been uninstalled",
@@ -123,7 +124,7 @@ class TestInstall(unittest.TestCase):
     def test_make_uninstall_removes_only_the_scheme_it_installed(self):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
+            assert_succeeded(self, installed)
             schemes = installed_color_scheme_dir(tmp)
             other = os.path.join(schemes, "Other.colors")
             with open(other, "w", encoding="utf-8") as handle:
@@ -136,7 +137,7 @@ class TestInstall(unittest.TestCase):
                 handle.write("[General]\nName=Partial\n")
 
             removed = uninstall(tmp)
-            self.assertEqual(removed.returncode, 0, removed.stderr)
+            assert_succeeded(self, removed)
             self.assertFalse(
                 os.path.exists(os.path.join(schemes, "MacOS8.colors")),
                 "the installed scheme should be gone",
@@ -148,7 +149,7 @@ class TestInstall(unittest.TestCase):
             self.assertTrue(os.path.isfile(other), other)
 
             again = uninstall(tmp)
-            self.assertEqual(again.returncode, 0, again.stderr)
+            assert_succeeded(self, again)
 
     def test_make_uninstall_warns_when_the_removed_scheme_is_still_selected(self):
         # Removing the scheme leaves `[General] ColorScheme=MacOS8` in the
@@ -157,7 +158,7 @@ class TestInstall(unittest.TestCase):
         # command, without editing the user's config.
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
+            assert_succeeded(self, installed)
             config = os.path.join(tmp, "config")
             os.makedirs(config)
             kdeglobals = os.path.join(config, "kdeglobals")
@@ -168,7 +169,7 @@ class TestInstall(unittest.TestCase):
             removed = uninstall(
                 tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
             )
-            self.assertEqual(removed.returncode, 0, removed.stderr)
+            assert_succeeded(self, removed)
             self.assertIn(
                 "plasma-apply-colorscheme BreezeLight", removed.stderr
             )
@@ -182,7 +183,7 @@ class TestInstall(unittest.TestCase):
     def test_make_uninstall_does_not_warn_for_a_different_selection(self):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
+            assert_succeeded(self, installed)
             config = os.path.join(tmp, "config")
             os.makedirs(config)
             with open(
@@ -193,7 +194,7 @@ class TestInstall(unittest.TestCase):
             removed = uninstall(
                 tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
             )
-            self.assertEqual(removed.returncode, 0, removed.stderr)
+            assert_succeeded(self, removed)
             self.assertNotIn("is still selected", removed.stderr)
 
     def test_make_uninstall_warns_for_a_scheme_id_with_a_space(self):
@@ -205,7 +206,7 @@ class TestInstall(unittest.TestCase):
             shutil.copy(SCHEME, source)
             extra = [f"COLOR_SCHEME={source}"]
             installed = install(tmp, extra=extra)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
+            assert_succeeded(self, installed)
             config = os.path.join(tmp, "config")
             os.makedirs(config)
             with open(
@@ -218,7 +219,7 @@ class TestInstall(unittest.TestCase):
                 extra=extra,
                 env=dict(os.environ, XDG_CONFIG_HOME=config),
             )
-            self.assertEqual(removed.returncode, 0, removed.stderr)
+            assert_succeeded(self, removed)
             self.assertIn(
                 "color scheme My Scheme is still selected", removed.stderr
             )
@@ -258,7 +259,7 @@ class TestRestartRoundTrip(unittest.TestCase):
                 ["plasma-apply-colorscheme", cli_id],
                 env=env,
             )
-            self.assertEqual(applied.returncode, 0, applied.stderr)
+            assert_succeeded(self, applied)
             with open(kdeglobals, encoding="utf-8") as handle:
                 written = handle.read()
             self.assertIn(f"ColorScheme={cli_id}", written)

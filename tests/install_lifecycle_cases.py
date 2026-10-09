@@ -11,6 +11,7 @@ the package along with any staging/old leftovers. Each suite subclasses
 import os
 import tempfile
 
+from process_assertions import assert_succeeded
 from theme_install import (
     InstalledPackageLocation,
     assert_files_identical,
@@ -38,7 +39,7 @@ class InstallLifecycleCases(InstalledPackageLocation):
     def test_make_install_copies_package_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = install(tmp)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            assert_succeeded(self, result)
             installed = self.installed_package_dir(tmp)
             for name in self.INSTALLED_FILES:
                 source = os.path.join(self.PACKAGE_DIR, name)
@@ -67,14 +68,14 @@ class InstallLifecycleCases(InstalledPackageLocation):
     def test_make_install_is_repeatable(self):
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
+            assert_succeeded(self, first)
             second = install(tmp)
-            self.assertEqual(second.returncode, 0, second.stderr)
+            assert_succeeded(self, second)
 
     def test_make_uninstall_removes_the_installed_package(self):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
+            assert_succeeded(self, installed)
             parent = self.installed_parent(tmp)
             package = self.installed_package_dir(tmp)
             self.assertTrue(os.path.isdir(package), package)
@@ -94,7 +95,7 @@ class InstallLifecycleCases(InstalledPackageLocation):
                     handle.write("{}")
 
             removed = uninstall(tmp)
-            self.assertEqual(removed.returncode, 0, removed.stderr)
+            assert_succeeded(self, removed)
             self.assertFalse(os.path.exists(package), package)
             for path in leaked:
                 self.assertFalse(
@@ -103,4 +104,4 @@ class InstallLifecycleCases(InstalledPackageLocation):
                 )
 
             again = uninstall(tmp)
-            self.assertEqual(again.returncode, 0, again.stderr)
+            assert_succeeded(self, again)

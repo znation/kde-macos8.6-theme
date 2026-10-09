@@ -14,6 +14,7 @@ import tempfile
 import unittest
 
 import theme_install
+from process_assertions import assert_failed, assert_succeeded
 
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):
@@ -28,7 +29,7 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             destdir = os.path.join(tmp, "spaced root")
             result = theme_install.install(destdir)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            assert_succeeded(self, result)
 
             scheme = theme_install.installed_color_scheme(destdir)
             self.assertTrue(os.path.isfile(scheme), scheme)
@@ -48,7 +49,7 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
             self.assertTrue(os.path.isdir(aurorae), aurorae)
 
             removed = theme_install.uninstall(destdir)
-            self.assertEqual(removed.returncode, 0, removed.stderr)
+            assert_succeeded(self, removed)
             self.assertFalse(os.path.exists(scheme), scheme)
             self.assertFalse(os.path.exists(lnf), lnf)
             self.assertFalse(os.path.exists(dtheme), dtheme)
@@ -73,7 +74,7 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         """Return the `make -n install` output for *xdg* in the environment."""
         env = dict(os.environ, HOME=self.HOME, XDG_DATA_HOME=xdg)
         result = theme_install.run_make(["-n", "install"], env=env)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        assert_succeeded(self, result)
         return result.stdout
 
     def test_empty_falls_back_to_the_xdg_default(self):
@@ -101,7 +102,7 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         for target in ("install", "uninstall"):
             with self.subTest(target=target):
                 result = theme_install.run_make([target], env=env)
-                self.assertNotEqual(result.returncode, 0, result.stdout)
+                assert_failed(self, result)
                 self.assertIn("HOME is unset", result.stderr)
 
     def test_relative_home_without_an_absolute_data_home_is_refused(self):
@@ -119,7 +120,7 @@ class TestXdgDataHomeDefault(unittest.TestCase):
                     result = theme_install.run_make(
                         [target, f"DESTDIR={tmp}"], env=env
                     )
-                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    assert_failed(self, result)
                     self.assertIn(
                         "HOME is not an absolute path", result.stderr
                     )
@@ -137,7 +138,7 @@ class TestXdgDataHomeDefault(unittest.TestCase):
             result = theme_install.run_make(
                 ["install", f"DESTDIR={tmp}"], env=env
             )
-        self.assertNotEqual(result.returncode, 0, result.stdout)
+        assert_failed(self, result)
         self.assertIn(
             "XDG_DATA_HOME is not an absolute path ('relative/share')",
             result.stderr,
@@ -172,7 +173,7 @@ class TestFlockTimeout(unittest.TestCase):
                             f"FLOCK_TIMEOUT={value}",
                         ]
                     )
-                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    assert_failed(self, result)
                     self.assertIn(
                         "FLOCK_TIMEOUT must be a non-negative integer "
                         "number of seconds",
@@ -211,7 +212,7 @@ class TestFlockTimeout(unittest.TestCase):
             result = theme_install.install(
                 tmp, extra=["FLOCK_TIMEOUT=00000000000000000001"]
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            assert_succeeded(self, result)
             scheme = theme_install.installed_color_scheme(tmp)
             self.assertTrue(os.path.isfile(scheme), result.stderr)
 
@@ -236,7 +237,7 @@ class TestCheckPattern(unittest.TestCase):
         env.pop("CHECK_PATTERN", None)
         env.pop("MAKEFLAGS", None)
         result = theme_install.run_make(["-n", "check", *extra], env=env)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        assert_succeeded(self, result)
         return result.stdout
 
     def test_default_pattern_runs_every_test_module(self):
@@ -273,7 +274,7 @@ class TestPythonInterpreter(unittest.TestCase):
         if environment is not None:
             env["PYTHON"] = environment
         result = theme_install.run_make(args, env=env)
-        self.assertNotEqual(result.returncode, 0, result.stdout)
+        assert_failed(self, result)
         self.assertIn("PYTHON must name an interpreter", result.stderr)
 
     def test_empty_from_the_command_line_is_refused(self):
@@ -311,7 +312,7 @@ class TestHelp(unittest.TestCase):
             cwd=theme_install.ROOT,
             env=env,
         )
-        self.assertEqual(result.returncode, 0, result.stderr)
+        assert_succeeded(self, result)
         return result.stdout
 
     def _public_targets(self):

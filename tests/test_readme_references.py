@@ -24,6 +24,7 @@ import unittest
 
 import theme_install
 from check_references_fixtures import load_checker
+from process_assertions import assert_succeeded
 
 _TOKEN = re.compile(r"`([^`]+)`")
 _GLOB_CHARS = "*?["
@@ -250,7 +251,7 @@ class TestReferenceLfsTracking(unittest.TestCase):
             ["git", "check-attr", "filter", "--", *paths],
             cwd=theme_install.ROOT,
         )
-        self.assertEqual(result.returncode, 0, result.stderr)
+        assert_succeeded(self, result)
         states = lfs_filter_states(result.stdout)
         for name in sorted(self.declared):
             with self.subTest(file=name):

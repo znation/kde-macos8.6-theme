@@ -12,6 +12,7 @@ once.
 import os
 import tempfile
 
+from process_assertions import assert_succeeded
 from theme_install import run_captured
 
 
@@ -42,7 +43,7 @@ class KPackageInstallCase:
                     self.PACKAGE_DIR,
                 ],
             )
-            self.assertEqual(result.returncode, 0, result.stderr)
+            assert_succeeded(self, result)
             self.assertTrue(
                 os.path.isfile(
                     os.path.join(tmp, self.PACKAGE_ID, "metadata.json")

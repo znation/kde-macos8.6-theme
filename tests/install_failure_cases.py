@@ -11,6 +11,7 @@ import os
 import shutil
 import tempfile
 
+from process_assertions import assert_failed, assert_succeeded
 from theme_install import (
     InstalledPackageLocation,
     install,
@@ -81,7 +82,7 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         Returns `_snapshot`'s (installed, metadata, good) triple.
         """
         first = install(tmp)
-        self.assertEqual(first.returncode, 0, first.stderr)
+        assert_succeeded(self, first)
         return self._snapshot(tmp)
 
     def _assert_package_intact(self, installed, metadata, good):
@@ -137,7 +138,7 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
             os.rename(installed, old)
 
             result = install(tmp, env=self.reinstall_failure_env(tmp))
-            self.assertNotEqual(result.returncode, 0, result.stdout)
+            assert_failed(self, result)
             self._assert_package_intact(installed, metadata, good)
 
     def test_failed_reinstall_keeps_the_previous_package(self):
@@ -151,7 +152,7 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
             installed, metadata, good = self._install_ok(tmp)
 
             result = install(tmp, env=self.reinstall_failure_env(tmp))
-            self.assertNotEqual(result.returncode, 0, result.stdout)
+            assert_failed(self, result)
             self.assertFalse(
                 os.path.exists(self._staging_path(tmp)),
                 "staging directory leaked after a failed install",
@@ -170,7 +171,7 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
             installed, metadata, good = self._install_ok(tmp)
 
             result = install(tmp, env=self.swap_failure_env(tmp))
-            self.assertNotEqual(result.returncode, 0, result.stdout)
+            assert_failed(self, result)
             parent = self.installed_parent(tmp)
             for leaked in (
                 staging_sibling(parent, self.PACKAGE_ID),

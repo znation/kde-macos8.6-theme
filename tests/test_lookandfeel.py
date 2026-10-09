@@ -12,6 +12,7 @@ from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
 from kpackage_install_case import KPackageInstallCase
 from package_metadata import PackageMetadata
+from process_assertions import assert_failed, assert_succeeded
 import process_runner
 import theme_install
 from kde_config import read as read_kde_config
@@ -257,7 +258,7 @@ class TestInstall(
             # FLOCK_TIMEOUT=0 makes the bounded wait expire immediately,
             # so the test does not spend the default 60s proving the bound.
             result = install(tmp, extra=["FLOCK_TIMEOUT=0"])
-            self.assertNotEqual(result.returncode, 0, result.stdout)
+            assert_failed(self, result)
             self.assertIn("lock", result.stderr)
             self.assertFalse(os.path.exists(lock.package), lock.package)
 
@@ -265,7 +266,7 @@ class TestInstall(
         """A reinstall must replace the package, not merge into the old one."""
         with tempfile.TemporaryDirectory() as tmp:
             first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
+            assert_succeeded(self, first)
             stale = os.path.join(
                 installed_package(tmp, "look-and-feel", LNF_ID),
                 "contents", "removed.qml",
@@ -273,7 +274,7 @@ class TestInstall(
             with open(stale, "w", encoding="utf-8") as handle:
                 handle.write("// deleted from the package\n")
             second = install(tmp)
-            self.assertEqual(second.returncode, 0, second.stderr)
+            assert_succeeded(self, second)
             self.assertFalse(os.path.exists(stale), stale)
 
 
