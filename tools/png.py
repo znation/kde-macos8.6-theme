@@ -19,6 +19,11 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
 
+if __package__:
+    from tools.byteops import require_equal_lengths
+else:  # run as a top-level module, e.g. imported by tools/fidelity.py
+    from byteops import require_equal_lengths
+
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
 # Signatures of the raster formats the reference set uses besides PNG. Handing
@@ -223,16 +228,10 @@ def _byte_add(a: bytes, b: bytes) -> bytes:
     bit-7 difference restores the top bit.  The result equals
     ``bytes((x + y) & 0xFF for x, y in zip(a, b))`` at C speed.
 
-    Both byte strings must be the same length; a mismatch is a caller bug
-    that would otherwise yield a silently truncated or overflowing result, so
-    it raises ``ValueError`` naming both lengths.
+    Both byte strings must be the same length; :func:`require_equal_lengths`
+    rejects a mismatch and returns the shared length.
     """
-    if len(a) != len(b):
-        raise ValueError(
-            f"_byte_add() requires equal-length byte strings: "
-            f"len(a)={len(a)} len(b)={len(b)}"
-        )
-    length = len(a)
+    length = require_equal_lengths(a, b, "_byte_add")
     if length == 0:
         return b""
     low7 = int.from_bytes(b"\x7f" * length, "little")
