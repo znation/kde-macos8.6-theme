@@ -370,18 +370,40 @@ def rect_geometry(tree):
     return geometry
 
 
+def _circle_dimension(element, name):
+    """Return *element*'s *name* attribute, naming the circle when absent.
+
+    ElementTree hands back ``None`` for an attribute the circle omits, and
+    `circle_geometry` converts each value with ``float()``; a bare None would
+    surface as a TypeError that never says which circle or attribute is
+    malformed. An anonymous circle -- the radiobutton face and checkmarks dot
+    carry no id of their own -- is named generically instead.
+    """
+    value = element.get(name)
+    if value is None:
+        circle_id = element.get("id")
+        where = f"circle {circle_id!r}" if circle_id else "circle"
+        raise ValueError(
+            f"{where} has no {name!r} attribute: a circle must declare "
+            "cx, cy and r"
+        )
+    return value
+
+
 def circle_geometry(element):
     """Return *element*'s circle geometry as ``(cx, cy, r)`` floats.
 
     KSvg reads a circle hint's centre and radius to size and place the widget,
     so a circle nudged off-centre or resized lays the widget out wrong even
     while its id and fill pass the contract tests. ElementTree hands the
-    attributes back as strings; convert the three numeric ones here.
+    attributes back as strings; convert the three numeric ones here. Raise
+    ValueError, naming the circle and the missing attribute, when one of the
+    three is absent; the callers convert these values with ``float()``, so an
+    unnamed None would read as a bare TypeError.
     """
-    return (
-        float(element.get("cx")),
-        float(element.get("cy")),
-        float(element.get("r")),
+    return tuple(
+        float(_circle_dimension(element, name))
+        for name in ("cx", "cy", "r")
     )
 
 

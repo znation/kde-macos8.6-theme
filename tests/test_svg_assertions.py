@@ -284,6 +284,27 @@ class TestCircleGeometry(unittest.TestCase):
         )
         self.assertEqual(circle_geometry(element), (7.5, 24.0, 3.0))
 
+    def test_missing_dimension_names_the_circle_and_the_attribute(self):
+        # ElementTree hands an absent attribute back as None, and
+        # circle_geometry converts each value with float(); the error must
+        # name the circle and the attribute rather than surfacing as a bare
+        # TypeError.
+        element = ET.fromstring('<circle id="symbol" cy="8" r="3"/>')
+        with self.assertRaises(ValueError) as caught:
+            circle_geometry(element)
+        message = str(caught.exception)
+        self.assertIn("symbol", message)
+        self.assertIn("'cx'", message)
+
+    def test_anonymous_missing_dimension_still_names_the_attribute(self):
+        # The radiobutton face and checkmarks dot carry no id of their own, so
+        # the diagnostic must still name the attribute when it cannot name the
+        # element.
+        element = ET.fromstring('<circle cy="8" r="3"/>')
+        with self.assertRaises(ValueError) as caught:
+            circle_geometry(element)
+        self.assertIn("'cx'", str(caught.exception))
+
 
 class TestRectGeometry(unittest.TestCase):
     def test_reads_the_four_dimensions_of_each_id_bearing_rect(self):
