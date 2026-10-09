@@ -414,6 +414,31 @@ def flat_face_corners(face):
     }
 
 
+def face_edge_bands(face, bevel):
+    """Return the (outward, mirrored) edge bands for a *bevel* on *face*.
+
+    `assert_edge_bevels` checks a widget's four edge tiles with two
+    three-colour bands: *outward* reads a top/left slice from its outer edge
+    inward, and *mirrored* is the bottom/right band, whose #000000 outline
+    stays on the outer edge while the bevel colour swaps sides. A raised face
+    paints a #FFFFFF highlight inside the top/left outline and a #999999
+    shadow inside the bottom/right ones; a sunken face swaps those two bevel
+    colours; a flat face has no bevel, so both inner bands are *face*.
+    *face* is the widget's face colour (#DDDDDD for the button, frame and
+    scroll-bar thumb, #FFFFFF for the line edit, #EEEEEE for the scroll-bar
+    trough) and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``.
+    """
+    if bevel == "raised":
+        return ("#000000", "#FFFFFF", face), (face, "#999999", "#000000")
+    if bevel == "sunken":
+        return ("#000000", "#999999", face), (face, "#FFFFFF", "#000000")
+    if bevel == "flat":
+        return ("#000000", face, face), (face, face, "#000000")
+    raise ValueError(
+        f"unknown bevel {bevel!r}; expected 'raised', 'sunken' or 'flat'"
+    )
+
+
 def assert_raised_face_bevel(case, slices, prefix, size=6):
     """Assert *prefix*'s nine-slice paints the raised #DDDDDD face bevel.
 
@@ -429,12 +454,8 @@ def assert_raised_face_bevel(case, slices, prefix, size=6):
     assert_center_tile_is(
         case, slices, f"{prefix}{sep}center", "#DDDDDD", size
     )
-    assert_edge_bevels(
-        case, slices, prefix,
-        ("#000000", "#FFFFFF", "#DDDDDD"),
-        ("#DDDDDD", "#999999", "#000000"),
-        size,
-    )
+    outward, mirrored = face_edge_bands("#DDDDDD", "raised")
+    assert_edge_bevels(case, slices, prefix, outward, mirrored, size)
     for name, expected in RAISED_FACE_CORNERS.items():
         assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
 

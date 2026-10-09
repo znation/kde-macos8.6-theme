@@ -18,6 +18,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     elements_by_id,
+    face_edge_bands,
     nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
@@ -180,18 +181,10 @@ class TestButton(unittest.TestCase):
         # (outer outline, bevel, inner face) for top/left, read from the
         # slice's outer edge in; bottom/right mirror it, with the outline
         # still on the outer edge and the bevel colour swapped.
-        outward = {
-            "normal": ("#000000", "#FFFFFF", "#DDDDDD"),
-            "pressed": ("#000000", "#999999", "#DDDDDD"),
-        }
-        mirrored = {
-            "normal": ("#DDDDDD", "#999999", "#000000"),
-            "pressed": ("#DDDDDD", "#FFFFFF", "#000000"),
-        }
-        for prefix in ("normal", "pressed"):
-            assert_edge_bevels(
-                self, slices, prefix, outward[prefix], mirrored[prefix]
-            )
+        directions = {"normal": "raised", "pressed": "sunken"}
+        for prefix, direction in directions.items():
+            outward, mirrored = face_edge_bands("#DDDDDD", direction)
+            assert_edge_bevels(self, slices, prefix, outward, mirrored)
 
     def test_button_center_tiles_are_face(self):
         # `test_button_colours` pins only the set of fills, so a centre tile

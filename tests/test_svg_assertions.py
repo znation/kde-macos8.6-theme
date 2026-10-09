@@ -20,6 +20,7 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     circle_geometry,
+    face_edge_bands,
     flat_face_corners,
     nine_slice_hint_geometry,
     nine_slice_margins,
@@ -364,6 +365,40 @@ class TestFlatFaceCorners(unittest.TestCase):
                 for name, pixels in flat.items()
             },
         )
+
+
+class TestFaceEdgeBands(unittest.TestCase):
+    def test_paints_the_outline_bevel_and_face_for_each_direction(self):
+        # The button, frame, line edit and scroll-bar trough all read their
+        # edge bands from this generator, so a swapped highlight/shadow would
+        # weaken every one of them at once. Pin all three directions on the
+        # #DDDDDD face, then check a different face substitutes only the face
+        # pixels.
+        self.assertEqual(
+            face_edge_bands("#DDDDDD", "raised"),
+            (("#000000", "#FFFFFF", "#DDDDDD"),
+             ("#DDDDDD", "#999999", "#000000")),
+        )
+        self.assertEqual(
+            face_edge_bands("#DDDDDD", "sunken"),
+            (("#000000", "#999999", "#DDDDDD"),
+             ("#DDDDDD", "#FFFFFF", "#000000")),
+        )
+        self.assertEqual(
+            face_edge_bands("#DDDDDD", "flat"),
+            (("#000000", "#DDDDDD", "#DDDDDD"),
+             ("#DDDDDD", "#DDDDDD", "#000000")),
+        )
+        self.assertEqual(
+            face_edge_bands("#FFFFFF", "sunken"),
+            (("#000000", "#999999", "#FFFFFF"),
+             ("#FFFFFF", "#FFFFFF", "#000000")),
+        )
+
+    def test_rejects_an_unknown_direction_naming_it(self):
+        with self.assertRaises(ValueError) as caught:
+            face_edge_bands("#DDDDDD", "bevelled")
+        self.assertIn("bevelled", str(caught.exception))
 
 
 class TestCircleGeometry(unittest.TestCase):

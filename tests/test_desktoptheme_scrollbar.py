@@ -15,6 +15,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
+    face_edge_bands,
     flat_face_corners,
     nine_slice_hint_geometry,
     rect_geometry,
@@ -58,8 +59,7 @@ class TestScrollbar(unittest.TestCase):
         # Each edge slice reads top-to-bottom (horizontal) or left-to-right
         # (vertical) in the slice's own coordinates, so the bottom/right bands
         # are the mirrored top/left ones.
-        outward = (BLACK, TROUGH, TROUGH)
-        mirrored = (TROUGH, TROUGH, BLACK)
+        outward, mirrored = face_edge_bands(TROUGH, "flat")
         for prefix in TROUGH_PREFIXES:
             assert_center_tile_is(
                 self, slices, f"{prefix}-center", TROUGH, size=10

@@ -16,6 +16,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    face_edge_bands,
     flat_face_corners,
     nine_slice_hint_geometry,
     rect_geometry,
@@ -126,22 +127,10 @@ class TestFrame(unittest.TestCase):
         slices = render_slices(ET.parse(FRAME_SVG))
         # (outer outline, bevel, inner face) read from the slice's outer edge
         # inward; plain has no bevel, so its middle band is the face.
-        outward = {
-            "plain": ("#000000", "#DDDDDD", "#DDDDDD"),
-            "raised": ("#000000", "#FFFFFF", "#DDDDDD"),
-            "sunken": ("#000000", "#999999", "#DDDDDD"),
-        }
-        # The bottom/right edges mirror the top/left: the outline stays on the
-        # outer edge while the bevel colour swaps sides.
-        mirrored = {
-            "plain": ("#DDDDDD", "#DDDDDD", "#000000"),
-            "raised": ("#DDDDDD", "#999999", "#000000"),
-            "sunken": ("#DDDDDD", "#FFFFFF", "#000000"),
-        }
+        directions = {"plain": "flat", "raised": "raised", "sunken": "sunken"}
         for prefix in FRAME_PREFIXES:
-            assert_edge_bevels(
-                self, slices, prefix, outward[prefix], mirrored[prefix]
-            )
+            outward, mirrored = face_edge_bands("#DDDDDD", directions[prefix])
+            assert_edge_bevels(self, slices, prefix, outward, mirrored)
             # The centre tile is one body rect, so every pixel is the face.
             assert_center_tile_is(self, slices, f"{prefix}-center", "#DDDDDD", size=6)
 

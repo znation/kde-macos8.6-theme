@@ -15,6 +15,7 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
+    face_edge_bands,
     nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
@@ -57,11 +58,9 @@ class TestLineEdit(unittest.TestCase):
         # the #FFFFFF highlight inside the bottom/right, with the white face
         # innermost. A swap (a raised field) passes every existing test.
         slices = render_slices(ET.parse(LINEEDIT_SVG))
-        # (outer outline, bevel, inner face) read from the slice's outer edge in.
-        outward = ("#000000", "#999999", "#FFFFFF")
-        # The bottom/right edges mirror the top/left: the outline stays on the
-        # outer edge while the bevel colour swaps sides.
-        mirrored = ("#FFFFFF", "#FFFFFF", "#000000")
+        # (outer outline, bevel, inner face) read from the slice's outer edge
+        # in; the bottom/right edges mirror the top/left.
+        outward, mirrored = face_edge_bands("#FFFFFF", "sunken")
         assert_edge_bevels(self, slices, "base", outward, mirrored)
 
     def test_lineedit_corner_bevels_turn_the_corner(self):
