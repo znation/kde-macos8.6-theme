@@ -334,9 +334,14 @@ def render_slices(tree):
                 )
             x = _slice_offset(rect, "x")
             y = _slice_offset(rect, "y")
-            for dx in range(_slice_extent(rect, "width")):
-                for dy in range(_slice_extent(rect, "height")):
-                    pixels[(x + dx, y + dy)] = rect.get("fill")
+            # The width, height and fill are the same for every pixel of the
+            # rect, so read and validate each once instead of per column.
+            width = _slice_extent(rect, "width")
+            height = _slice_extent(rect, "height")
+            fill = rect.get("fill")
+            for dx in range(width):
+                for dy in range(height):
+                    pixels[(x + dx, y + dy)] = fill
         slices[group.get("id")] = pixels
     return slices
 
