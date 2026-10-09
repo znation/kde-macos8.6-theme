@@ -18,6 +18,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import png  # noqa: E402
+from error_assertions import assert_rejects_unequal_lengths  # noqa: E402
 from png_fixtures import _paeth, make_png, rgb_from_rows  # noqa: E402
 
 
@@ -36,17 +37,7 @@ class TestUnfilterLanes(unittest.TestCase):
                 self.assertEqual(png._byte_add(a, b), expected)
 
     def test_byte_add_unequal_lengths_raise(self):
-        # A shorter b would silently drop bytes and a longer one would
-        # overflow to_bytes; name both lengths instead.
-        for a, b in (
-            (b"\x01\x02\x03", b"\x01\x02"),
-            (b"\x01", b"\x01\x02\x03"),
-        ):
-            with self.subTest(a=a, b=b):
-                with self.assertRaisesRegex(
-                    ValueError, r"_byte_add\(\) requires equal-length"
-                ):
-                    png._byte_add(a, b)
+        assert_rejects_unequal_lengths(self, png._byte_add)
 
     def test_byte_add_wraps_without_carrying_between_bytes(self):
         # 0xFF + 0x01 must wrap to 0x00 without carrying into the next byte;

@@ -10,9 +10,16 @@ exception's message to pin what it names. This names that expectation once::
 
 ``assert_escapes_escape_character`` names the terminal-safety outcome the
 tools' output is expected to have: no raw ESC byte, its visible escape shown.
+
+``assert_rejects_unequal_lengths`` names the caller side of the shared
+``tools.byteops.require_equal_lengths`` precondition: the packed-lane byte
+helpers in ``tools/png.py`` and ``tools/fidelity_metrics.py`` both reject a
+length mismatch, and each must name itself in the diagnostic.
 """
 
 from __future__ import annotations
+
+import re
 
 
 def error_message(case, exception, function, *args, **kwargs):
@@ -37,3 +44,25 @@ def assert_escapes_escape_character(case, text):
     """
     case.assertNotIn("\x1b", text)
     case.assertIn("\\u001b", text)
+
+
+def assert_rejects_unequal_lengths(case, function):
+    """Assert *function* rejects byte strings whose lengths differ.
+
+    *function* is a packed-lane byte helper (``tools/png._byte_add`` or
+    ``tools/fidelity_metrics._abs_diff``) whose length precondition is
+    ``tools.byteops.require_equal_lengths``. A second argument that is too
+    short would silently drop bytes and one that is too long would overflow
+    ``to_bytes``, so both directions must raise a ``ValueError`` naming
+    *function* and the equal-length requirement.
+    """
+    for a, b in (
+        (b"\x01\x02\x03", b"\x01\x02"),
+        (b"\x01", b"\x01\x02\x03"),
+    ):
+        with case.subTest(a=a, b=b):
+            with case.assertRaisesRegex(
+                ValueError,
+                rf"{re.escape(function.__name__)}\(\) requires equal-length",
+            ):
+                function(a, b)
