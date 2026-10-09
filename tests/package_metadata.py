@@ -18,7 +18,10 @@ def load_metadata(path):
     well-formed file of another shape (an array, string, number or ``null``)
     as a bare ``AttributeError`` from the mixin's ``self.metadata.get(...)``;
     both name neither the file nor the type, so both are rejected here --
-    with the path, and for the shape error the decoded type as well.
+    with the path, and for the shape error the decoded type as well. A file
+    that is not valid UTF-8 surfaces as a bare ``UnicodeDecodeError`` from
+    the read, which names the byte but not the file, so that is rejected with
+    the path too.
     """
     with open(path, encoding="utf-8") as handle:
         try:
@@ -28,6 +31,12 @@ def load_metadata(path):
             # (which names line and column but not the file) is ambiguous;
             # prepend the path and keep the original detail.
             raise ValueError(f"{path}: invalid JSON: {exc}") from exc
+        except UnicodeDecodeError as exc:
+            # The read decodes as UTF-8, so bytes in another encoding (or a
+            # file corrupted mid-write) raise the decoder's own message,
+            # which names the byte but neither of the two metadata.json
+            # files; prepend the path and keep the byte detail.
+            raise ValueError(f"{path}: not valid UTF-8 text: {exc}") from exc
     if not isinstance(metadata, dict):
         raise ValueError(
             f"{path} decoded to {type(metadata).__name__}, not a JSON object: "

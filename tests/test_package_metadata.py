@@ -85,6 +85,22 @@ class TestLoadMetadata(unittest.TestCase):
         self.assertIn("line 2", message)
         self.assertIsInstance(caught.exception.__cause__, json.JSONDecodeError)
 
+    def test_non_utf8_bytes_name_the_path_and_keep_the_detail(self):
+        # A metadata.json saved in another encoding (say Latin-1) or corrupted
+        # mid-write raises a bare UnicodeDecodeError from the read that names
+        # the byte but neither of the two packages' files; the guard must add
+        # the path and keep the decoder's own byte detail (and its cause).
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "metadata.json"
+            path.write_bytes(b'{"Name": "Caf\xff"}')
+            with self.assertRaises(ValueError) as caught:
+                load_metadata(path)
+        message = str(caught.exception)
+        self.assertIn(str(path), message)
+        self.assertIn("UTF-8", message)
+        self.assertIn("0xff", message)
+        self.assertIsInstance(caught.exception.__cause__, UnicodeDecodeError)
+
     def test_non_object_json_names_the_type_and_path(self):
         # Valid JSON of the wrong top-level shape reaches the mixin's
         # ``self.metadata.get(...)`` as a bare AttributeError; the guard must
