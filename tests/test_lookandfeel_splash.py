@@ -105,6 +105,22 @@ def qml_border_width():
     return int(match.group(1))
 
 
+def qml_unit_expression():
+    """Return the whitespace-normalized expression bound to ``root.unit``.
+
+    Every geometry binding multiplies a reference-grid literal by ``root.unit``,
+    so the scale itself is as load-bearing as those bindings: the reference
+    thumbnail is 240x180, and the ``Math.max(1, ...)`` floor keeps a window
+    smaller than that grid from collapsing the splash to zero. The definition
+    is one line today but may wrap, so collapse its whitespace before comparing
+    it to the canonical expression.
+    """
+    match = re.search(r"readonly property int unit:[ \t]*(.+)", _read_qml())
+    if match is None:
+        raise AssertionError(f"{SPLASH}: no unit property definition")
+    return " ".join(match.group(1).split())
+
+
 def _field_like(rgb):
     """True for the reference's dithered #63639C field.
 
@@ -321,6 +337,18 @@ class TestSplashQml(unittest.TestCase):
         # fill that ignores `stage` would look plausible but never advance.
         self.assertIn(
             "width: parent.width * Math.min(1, root.stage / 6)", _read_qml()
+        )
+
+    def test_unit_scales_the_reference_grid_without_collapsing(self):
+        # Every geometry binding is a reference-grid literal times `root.unit`,
+        # but no test pinned `unit` itself. A definition that dropped the
+        # `Math.max(1, ...)` floor would let `unit` reach 0 on a window smaller
+        # than the 240x180 grid and collapse the whole splash, while every
+        # geometry binding still read correctly. Pin the exact scale: one whole
+        # pixel per reference-grid pixel, floored at 1.
+        self.assertEqual(
+            qml_unit_expression(),
+            "Math.max(1, Math.floor(Math.min(width / 240, height / 180)))",
         )
 
     def test_reference_colours_are_painted(self):
