@@ -17,7 +17,115 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum menu-bar item widget for the desktop theme
+
+**Planned 2026-10-09 by plan.** The follow-up the done viewitem plan left unplanned.
+Independent of every done widget plan: it adds one artwork file to the existing
+`org.macos8.desktop` desktop-theme package under `widgets/`, one path constant in
+`tests/desktoptheme_paths.py`, a new `tests/test_desktoptheme_menubaritem.py` module with
+the `TestMenuBarItem` class, one `SVG_CANVASES` entry and one
+`TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the README
+inventory lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`,
+`metadata.json`, or the color scheme.
+
+**Goal.** Ship `widgets/menubaritem.svg` so the Plasma menu-bar titles -- the
+`org.kde.plasma.appmenu` applet's application-menu titles and the
+`org.kde.plasma.windowlist` task-menu button -- draw the Platinum menu-bar behaviour (no
+hover highlight; a flat #CCCCFF fill only while the title's menu is open) instead of
+inheriting Breeze's `menubaritem.svgz`. Today the theme ships no `menubaritem.svg`, so
+`KSvg` resolves the name to the default theme's Breeze file.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree).**
+- `/usr/share/plasma/plasmoids/org.kde.plasma.appmenu/contents/ui/MenuDelegate.qml`:
+  `background` is a `KSvg.FrameSvgItem` with `imagePath: "widgets/menubaritem"` and
+  `prefix` `"pressed"` when `down`, `"hover"` when `hovered && !menuIsOpen`, else
+  `"normal"`; `topPadding`/`leftPadding`/`rightPadding`/`bottomPadding` all come from
+  that item's `rest.margins`. `main.qml` sets `down: pressed || Plasmoid.currentIndex ===
+  index`, so a title takes `pressed` while its menu is open and `hover` only while merely
+  hovered.
+- `/usr/share/plasma/plasmoids/org.kde.plasma.windowlist/contents/ui/MenuButton.qml`:
+  three stacked `KSvg.FrameSvgItem`s read `widgets/menubaritem` with `prefix` `"normal"`,
+  `"hover"` and `"pressed"`.
+- No other consumer names `widgets/menubaritem` (a grep over `/usr/share/plasma` and
+  `/usr/lib/x86_64-linux-gnu/qt6/qml`).
+- A missing prefix or slice renders nothing and there is no cross-theme fallback once the
+  file exists, so all three prefixes ship.
+
+**Default contract.** `zcat /usr/share/plasma/desktoptheme/default/widgets/menubaritem.svgz`
+carries the nine-slice ids
+`{normal,hover,pressed}-{center,top,bottom,left,right,topleft,topright,bottomleft,bottomright}`,
+one shared `hint-tile-center`, and four margin hints per state, on a 112x34 canvas with a
+uniform 6px border and a 22x22 centre tile.
+
+**Grounding.**
+- The Mac OS 8.6 menu bar is a flat light-grey strip (`desktop_betawiki.png` samples
+  `#DDDDDD` at (5,5)); the landed `widgets/panel-background.svg` already paints it, so
+  `normal` paints nothing perceptible and the panel shows through.
+- Mac OS 8.6 highlights a menu-bar title only while its menu is open, not on hover, so
+  `hover` also paints nothing perceptible; the appmenu label still switches to
+  `Kirigami.Theme.highlightedTextColor` (= `[Colors:Selection] ForegroundNormal=0,0,0`,
+  black) on hover, the same black it already uses, so the hovered title does not change.
+- `pressed` is the flat `[Colors:Selection] BackgroundNormal=204,204,255` (#CCCCFF) fill,
+  square corners, no bevel and no outline. `[Colors:Selection] ForegroundNormal=0,0,0` is
+  the label colour while `pressed`, so black text stays readable on #CCCCFF.
+- The reference set has no screenshot with a menu pulled down (scanning the light
+  menu-bar rows of `desktop_betawiki.png`, `desktop_archiveorg8.6hd.png` and the rest for a
+  dark full-width run finds none), so the pressed fill reuses the project's sampled
+  selection token by semantic role -- as `widgets/viewitem.svg` and `widgets/listitem.svg`
+  already do -- rather than a per-pixel menu sample. The SVG comment records that
+  provenance.
+
+**Approach.**
+1. Add `theme/desktop-themes/org.macos8.desktop/widgets/menubaritem.svg`: one `normal`,
+   one `hover` and one `pressed` nine-slice on a tight 12x12 canvas, 3px border, 6x6 centre
+   tile (the `widgets/listitem.svg` / `widgets/viewitem.svg` grid).
+   - `pressed-*`: every slice a `#CCCCFF` rect filling its tile.
+   - `normal-*` and `hover-*`: every slice a `style="fill:#FFFFFF" fill-opacity="0.01"`
+     rect with no `fill` attribute (so `render_slices` reads it as `None`) filling its tile.
+   - hints: `hint-tile-center` at (3,3,6,6) and
+     `{normal,hover,pressed}-hint-{top,bottom,left,right}-margin` at the 3px edges,
+     identical for all three states.
+2. Add `MENUBARITEM_SVG = os.path.join(PACKAGE, "widgets", "menubaritem.svg")` to
+   `tests/desktoptheme_paths.py`.
+3. Add `tests/test_desktoptheme_menubaritem.py` with
+   `TestMenuBarItem(NineSliceCase, unittest.TestCase)`, `SVG_PATH = MENUBARITEM_SVG`,
+   `PREFIXES = ("normal", "hover", "pressed")`, modelled on
+   `tests/test_desktoptheme_viewitem.py`:
+   - `test_menubaritem_hint_geometry`: `assert_hint_geometry(self, self.tree, self.PREFIXES, 3, 6)`.
+   - `test_menubaritem_normal_and_hover_have_no_fill`: `assert_slices_uniform` with `None`
+     for both prefixes, and `attribute_values(self.tree, "fill-opacity") == {"0.01"}`.
+   - `test_menubaritem_pressed_is_flat_selection_colour`:
+     `assert_slices_uniform(..., "pressed", "#CCCCFF")`.
+   - `test_menubaritem_slices_fill_their_tiles`:
+     `assert_slices_fill_their_tiles(..., (("normal", None), ("hover", None), ("pressed", "#CCCCFF")), 3, 6)`.
+   - `test_menubaritem_colours`: `attribute_values(self.tree, "fill") == {"#CCCCFF"}`.
+4. Add `("menubaritem.svg", MENUBARITEM_SVG, 12, 12)` to `SVG_CANVASES` and
+   `os.path.join("widgets", "menubaritem.svg")` to `TestInstall.INSTALLED_FILES` in
+   `tests/test_desktoptheme.py`.
+5. Name `widgets/menubaritem.svg` in README.md's status block and Installing inventory.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestMenuBarItem` passing and `TestSvgRootCanvas`/`TestInstall`
+  covering the new file.
+- The SVG parses and contains the 27 `{normal,hover,pressed}-{slice}` ids, the 12 per-state
+  margin-hint ids and `hint-tile-center`; every `pressed` slice renders entirely #CCCCFF;
+  every `normal`/`hover` slice has no `fill` attribute and a `fill-opacity` of 0.01; the
+  only parsed `fill` attribute value is #CCCCFF.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/menubaritem.svg`
+  byte-identical to source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): the appmenu application-menu titles show no
+  highlight while merely hovered and a flat #CCCCFF rectangle with black text while a
+  title's menu is open, with square corners and no Breeze bevel; the windowlist task-menu
+  button draws the same; every other widget is unchanged.
+
+**Known deviations (recorded, not fixed here).**
+- The `windowlist` MenuButton takes its `hover` background from this file, so a hovered
+  task-menu button shows no highlight. Mac OS 8.6 has no analogous window-list button, so
+  there is no reference for a hovered state and the transparent `hover` is the faithful
+  choice for the appmenu titles.
+- The uniform 3px margins are the project's tight 12x12 grid; the reference set has no
+  menu-open screenshot to measure a per-side menu-title padding from.
 
 ## Done
 
