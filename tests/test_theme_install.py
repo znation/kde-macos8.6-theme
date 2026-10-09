@@ -33,12 +33,18 @@ def _process_alive(pid):
 
 
 @contextlib.contextmanager
-def _short_subprocess_timeout(seconds=0.5):
+def _short_subprocess_timeout(seconds=0.25):
     """Temporarily shorten `theme_install.SUBPROCESS_TIMEOUT` for one block.
 
     Each timeout test cuts the suite's 60-second budget to a fraction of a
     second; the global must be restored even when the body raises, or every
-    later subprocess call in the suite would time out.
+    later subprocess call in the suite would time out. The default is ample
+    for the tests whose child is a `sleep` that cannot exit on its own -- they
+    only need it still running when the timeout fires -- and one of them times
+    out twice (`finish` waits again for the escaped descendant's pipes), so
+    the default bounds the whole class to about a second and a half. Only a
+    test that needs the child to finish some setup *before* the timeout passes
+    a longer *seconds*.
     """
     original = theme_install.SUBPROCESS_TIMEOUT
     theme_install.SUBPROCESS_TIMEOUT = seconds
@@ -91,7 +97,10 @@ class TestSubprocessTimeout(unittest.TestCase):
                 "exec sleep 5\n",
             )
             env["GRANDCHILD_PIDFILE"] = pidfile
-            with _short_subprocess_timeout():
+            # The fake make must background its sleep and write the pidfile
+            # before the timeout kills it, so this test alone keeps the
+            # longer bound; the others have no such setup to finish.
+            with _short_subprocess_timeout(seconds=0.5):
                 with self.assertRaises(subprocess.TimeoutExpired):
                     theme_install.install(tmp, env=env)
 
