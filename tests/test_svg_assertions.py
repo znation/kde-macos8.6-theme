@@ -482,6 +482,28 @@ class TestCircleGeometry(unittest.TestCase):
             circle_geometry(element)
         self.assertIn("'cx'", str(caught.exception))
 
+    def test_non_numeric_dimension_names_the_circle_attribute_and_value(self):
+        # A present but non-numeric value (r="3px") would reach float() and
+        # surface as a bare ValueError naming no circle or attribute; name
+        # the circle, the attribute and the value instead.
+        element = ET.fromstring(
+            '<circle id="symbol" cx="8" cy="8" r="3px"/>'
+        )
+        with self.assertRaises(ValueError) as caught:
+            circle_geometry(element)
+        message = str(caught.exception)
+        self.assertIn("symbol", message)
+        self.assertIn("'r'", message)
+        self.assertIn("'3px'", message)
+
+    def test_anonymous_non_numeric_dimension_still_names_the_attribute(self):
+        element = ET.fromstring('<circle cx="8" cy="8" r="3px"/>')
+        with self.assertRaises(ValueError) as caught:
+            circle_geometry(element)
+        message = str(caught.exception)
+        self.assertIn("'r'", message)
+        self.assertIn("'3px'", message)
+
 
 class TestRectGeometry(unittest.TestCase):
     def test_reads_the_four_dimensions_of_each_id_bearing_rect(self):
