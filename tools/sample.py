@@ -17,11 +17,11 @@ import argparse
 import sys
 
 if __package__:
-    from tools.cli import EscapingArgumentParser, plain_number
+    from tools.cli import EscapingArgumentParser, plain_number, report_error
     from tools.png import PngError, pixel_at, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
-    from cli import EscapingArgumentParser, plain_number
+    from cli import EscapingArgumentParser, plain_number, report_error
     from png import PngError, pixel_at, read_png
     from terminal import escape_controls
 
@@ -87,15 +87,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         image = read_png(args.image)
     except PngError as exc:
-        print(f"sample: error: {escape_controls(str(exc))}", file=sys.stderr)
-        return 2
+        return report_error("sample", str(exc))
     # pixel_at rejects a coordinate outside the image; it is operator input
     # here, not a caller bug, so report it as an error rather than a traceback.
     try:
         rgb = pixel_at(image, args.x, args.y)
     except ValueError as exc:
-        print(f"sample: error: {escape_controls(str(exc))}", file=sys.stderr)
-        return 2
+        return report_error("sample", str(exc))
 
     header = f"image: {escape_controls(args.image)}  {image.width}x{image.height}"
     if args.width == 1 and args.height == 1:
@@ -113,13 +111,12 @@ def main(argv: list[str] | None = None) -> int:
         args.x + args.width > image.width
         or args.y + args.height > image.height
     ):
-        print(
-            f"sample: error: region ({args.x}, {args.y}) "
+        return report_error(
+            "sample",
+            f"region ({args.x}, {args.y}) "
             f"{args.width}x{args.height} is outside the "
             f"{image.width}x{image.height} image",
-            file=sys.stderr,
         )
-        return 2
 
     print(header)
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")

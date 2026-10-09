@@ -34,6 +34,7 @@ if __package__:
         EscapingArgumentParser,
         is_plain_ascii_number,
         plain_number,
+        report_error,
     )
     from tools.fidelity_metrics import (
         FidelityError,
@@ -44,7 +45,12 @@ if __package__:
     from tools.png import PngError, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
-    from cli import EscapingArgumentParser, is_plain_ascii_number, plain_number
+    from cli import (
+        EscapingArgumentParser,
+        is_plain_ascii_number,
+        plain_number,
+        report_error,
+    )
     from fidelity_metrics import FidelityError, compare, crop, crop_rect_problem
     from png import PngError, read_png
     from terminal import escape_controls
@@ -191,8 +197,7 @@ def main(argv: list[str] | None = None) -> int:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
     except (PngError, FidelityError) as exc:
-        print(f"fidelity: error: {escape_controls(str(exc))}", file=sys.stderr)
-        return 2
+        return report_error("fidelity", str(exc))
 
     # Every threshold the caller set is a budget that must be met. With no
     # budget set the verdict falls back to the strictest one: no pixel

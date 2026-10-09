@@ -153,5 +153,30 @@ class TestEscapingArgumentParser(unittest.TestCase):
         self.assertIn("no such option", err)
 
 
+class TestReportError(unittest.TestCase):
+    def _report(self, tool, message):
+        """Call report_error and return its status and stderr text."""
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            status = cli.report_error(tool, message)
+        return status, stderr.getvalue()
+
+    def test_prefixes_the_tool_name_and_returns_two(self):
+        # Both CLIs return report_error()'s result directly as the process
+        # exit status, so the helper must supply the 2 itself.
+        status, err = self._report("sample", "could not be read")
+        self.assertEqual(status, 2)
+        self.assertEqual(err, "sample: error: could not be read\n")
+
+    def test_escapes_control_characters_in_the_message(self):
+        # The message often carries a contributor-supplied path; an ESC or
+        # newline must not reach the terminal raw or forge a second line.
+        status, err = self._report("fidelity", "bad \x1b[31m path\nname")
+        self.assertEqual(status, 2)
+        self.assertNotIn("\x1b", err)
+        self.assertIn("\\u001b", err)
+        self.assertIn("\\u000a", err)
+
+
 if __name__ == "__main__":
     unittest.main()

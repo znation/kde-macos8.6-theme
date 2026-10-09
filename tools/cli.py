@@ -1,17 +1,19 @@
 """Shared argument-parsing helpers for the command-line tools.
 
 Each tool in this directory takes contributor-supplied paths and numbers on
-its command line. Two concerns recur across them: argparse's own diagnostics
-are formatted from raw argv and must not print control characters, and a
-numeric option must reject Python-only spellings (underscore separators,
-non-ASCII digits, surrounding whitespace) that would silently name a
-different value. Both live here so ``tools/fidelity.py`` and
-``tools/sample.py`` share one implementation.
+its command line. Three concerns recur across them: argparse's own
+diagnostics are formatted from raw argv and must not print control
+characters, a numeric option must reject Python-only spellings (underscore
+separators, non-ASCII digits, surrounding whitespace) that would silently
+name a different value, and a caught read/comparison failure is reported as
+one escaped, tool-named line with exit status 2. All three live here so
+``tools/fidelity.py`` and ``tools/sample.py`` share one implementation.
 """
 
 from __future__ import annotations
 
 import argparse
+import sys
 from collections.abc import Callable
 from typing import TypeVar
 
@@ -33,6 +35,20 @@ class EscapingArgumentParser(argparse.ArgumentParser):
 
     def error(self, message: str) -> None:
         super().error(escape_controls(message))
+
+
+def report_error(tool: str, message: str) -> int:
+    """Print ``tool: error: <escaped message>`` to stderr and return 2.
+
+    Both tools report every operator-facing failure the same way: one
+    control-character-escaped diagnostic line prefixed with the tool's name,
+    and exit status 2. Keeping the format here means the prefix and the
+    escaping cannot drift between ``tools/fidelity.py`` and
+    ``tools/sample.py``. *message* is the unescaped text; a caller passes an
+    exception's ``str()`` or a diagnostic it built itself.
+    """
+    print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
+    return 2
 
 
 def is_plain_ascii_number(value: str) -> bool:
