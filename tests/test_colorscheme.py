@@ -130,6 +130,33 @@ class TestStructure(unittest.TestCase):
                     self.parser.has_option(section, key), f"{section}/{key}"
                 )
 
+    def test_section_and_key_registries_cover_the_scheme(self):
+        """The registries must name every section and key the scheme defines.
+
+        The presence and format tests above iterate only the registries, so a
+        new ``[Colors:*]`` section, a new semantic key, or a new key in an
+        ``OTHER_SECTIONS`` section would ship without any check. Derive the
+        ``(section, key)`` set from the parsed file and require it to equal the
+        registry union, so adding or removing one without updating the
+        registries fails here.
+        """
+        registered = {
+            (section, key)
+            for section in COLORS_SECTIONS
+            for key in COLORS_KEYS
+        }
+        registered |= {
+            (section, key)
+            for section, keys in OTHER_SECTIONS.items()
+            for key in keys
+        }
+        found = {
+            (section, key)
+            for section in self.parser.sections()
+            for key in self.parser.options(section)
+        }
+        self.assertEqual(found, registered)
+
     def test_colorscheme_value_names_the_scheme_file(self):
         # KDE's scheme resolver turns a `ColorScheme=<value>` config value into
         # `<value>.colors` looked up beside this file (see the BUGS.md entry on
