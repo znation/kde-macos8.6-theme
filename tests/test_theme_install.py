@@ -12,6 +12,7 @@ are quoted.
 
 import contextlib
 import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -121,6 +122,79 @@ class TestSubprocessTimeout(unittest.TestCase):
         self._assert_process_dies(
             process.pid, "child survived finish()'s timeout"
         )
+
+    def _kill_escaped(self, pidfile):
+        """SIGKILL the escaped grandchild whose pid *pidfile* holds, if any."""
+        try:
+            with open(pidfile, encoding="utf-8") as handle:
+                pid = int(handle.read())
+        except (OSError, ValueError):
+            return
+        try:
+            os.kill(pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+
+    @unittest.skipUnless(hasattr(os, "setsid"), "needs os.setsid")
+    def test_finish_reports_a_descendant_that_escaped_the_process_group(self):
+        """A descendant outside the group must not make finish() block again.
+
+        Killing the direct child's process group reaps its descendants, but a
+        descendant that called setsid() has left that group and still holds
+        the child's stdout/stderr pipes. communicate() then cannot reach EOF
+        and times out a second time; finish must report the timeout with no
+        captured output instead of blocking on the escaped descendant.
+        """
+        with tempfile.TemporaryDirectory() as tmp:
+            pidfile = os.path.join(tmp, "escaped.pid")
+            readyfile = os.path.join(tmp, "escaped.ready")
+            grandchild = (
+                "import os, sys, time\n"
+                "os.setsid()\n"
+                "open(sys.argv[1], 'w').write('ok')\n"
+                "time.sleep(30)\n"
+            )
+            child = (
+                "import subprocess, sys, time\n"
+                "p = subprocess.Popen(\n"
+                "    [sys.executable, '-c', sys.argv[3], sys.argv[2]])\n"
+                "open(sys.argv[1], 'w').write(str(p.pid))\n"
+                "time.sleep(30)\n"
+            )
+            process = theme_install.start(
+                [sys.executable, "-c", child, pidfile, readyfile, grandchild],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            try:
+                # The grandchild writes `readyfile` only after setsid(), so
+                # the group kill below cannot race its escape.
+                deadline = time.monotonic() + 5.0
+                while (
+                    not os.path.exists(readyfile)
+                    and time.monotonic() < deadline
+                ):
+                    time.sleep(0.01)
+                self.assertTrue(
+                    os.path.exists(readyfile),
+                    "the child did not spawn an escaped grandchild",
+                )
+                with _short_subprocess_timeout():
+                    with self.assertRaises(subprocess.TimeoutExpired) as caught:
+                        theme_install.finish(process)
+                # The escaped-descendant path re-raises with no captured
+                # output; the normal path drains the killed child's pipes and
+                # includes their (empty) bytes.
+                self.assertIsNone(caught.exception.output)
+                self.assertIsNone(caught.exception.stderr)
+            finally:
+                self._kill_escaped(pidfile)
+                if process.poll() is None:
+                    process.kill()
+                process.wait()
+                for stream in (process.stdout, process.stderr):
+                    if stream is not None:
+                        stream.close()
 
     def test_running_kills_the_child_when_the_block_raises(self):
         """An abandoned started child must be killed, not left running.
