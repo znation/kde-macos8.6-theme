@@ -554,11 +554,13 @@ def arc_center(start, arc, end):
 
 
 def _rect_dimension(element, rect_id, name):
-    """Return *element*'s *name* attribute, naming the rect when absent.
+    """Return *element*'s integer *name* attribute, naming the rect when invalid.
 
     ElementTree hands back ``None`` for an attribute the rect omits, and the
     geometry helpers convert each value with ``int()``; a bare None would
-    surface as a TypeError that never says which rect is malformed.
+    surface as a TypeError and a present non-integer (``x="4px"``) as a bare
+    ``int()`` ValueError, neither naming which rect or attribute is malformed.
+    Reject both here, naming the rect, the attribute and the value.
     """
     value = element.get(name)
     if value is None:
@@ -566,6 +568,13 @@ def _rect_dimension(element, rect_id, name):
             f"rect {rect_id!r} has no {name!r} attribute: an id-bearing rect "
             "must declare x, y, width and height"
         )
+    try:
+        int(value)
+    except (TypeError, ValueError):
+        raise ValueError(
+            f"rect {rect_id!r} has a non-integer {name!r} of {value!r}: an "
+            "id-bearing rect must declare x, y, width and height as integers"
+        ) from None
     return value
 
 
@@ -578,9 +587,10 @@ def rect_geometry(tree):
     nine-slice SVGs live inside id-bearing <g> elements, so the only
     id-bearing rects are the hints and this is each SVG's full hint geometry.
 
-    Raise ValueError, naming the rect and the missing attribute, when an
-    id-bearing rect omits one of the four; the layout guards convert these
-    values with ``int()``, so an unnamed None would read as a bare TypeError.
+    Raise ValueError, naming the rect and the attribute, when an id-bearing
+    rect omits one of the four or declares a non-integer value; the layout
+    guards convert these values with ``int()``, so an unnamed None would read
+    as a bare TypeError and a non-integer one as a bare ``int()`` ValueError.
     """
     geometry = {}
     for element in tree.iter():

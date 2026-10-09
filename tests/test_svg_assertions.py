@@ -506,6 +506,27 @@ class TestRectGeometry(unittest.TestCase):
         self.assertIn("hint-top-margin", message)
         self.assertIn("'x'", message)
 
+    def test_non_integer_dimension_names_the_rect_attribute_and_value(self):
+        # A hint rect is never rendered by render_slices (it lives outside
+        # the id-bearing <g> groups), so rect_geometry is the only reader of
+        # its x/y/width/height. A present but non-integer value (x="4px")
+        # would reach the layout guards' int() and surface as a bare
+        # ValueError naming no rect; name the rect, attribute and value.
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="hint-top-margin" x="4px" y="0" width="4" '
+                'height="4"/>'
+                "</svg>"
+            )
+        )
+        with self.assertRaises(ValueError) as caught:
+            rect_geometry(tree)
+        message = str(caught.exception)
+        self.assertIn("hint-top-margin", message)
+        self.assertIn("'x'", message)
+        self.assertIn("'4px'", message)
+
 
 class TestRenderSlices(unittest.TestCase):
     def test_later_rects_paint_over_earlier_ones(self):
