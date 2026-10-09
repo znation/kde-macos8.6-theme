@@ -91,6 +91,18 @@ class Image:
             raise PngError(
                 f"Image dimensions must be positive: {self.width}x{self.height}"
             )
+        # The annotation says bytes, but only the length was checked: a str
+        # or list of the right length passed here and reached fidelity_metrics'
+        # _abs_diff as an opaque TypeError ("can only concatenate str (not
+        # bytes) to str") that named neither the field nor its type. bytes and
+        # bytearray are both accepted -- the decoder returns bytes and a caller
+        # may build a buffer in place, and a bytearray supports every operation
+        # the tool performs -- while anything else is rejected by type here.
+        if not isinstance(self.rgb, (bytes, bytearray)):
+            raise PngError(
+                f"Image rgb must be bytes or bytearray, not "
+                f"{type(self.rgb).__name__}"
+            )
         expected = self.width * self.height * 3
         if len(self.rgb) != expected:
             raise PngError(

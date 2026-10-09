@@ -60,6 +60,27 @@ class TestImage(unittest.TestCase):
                     png.Image(width, height, bytes(3))
                 self.assertIn("must be an integer", str(ctx.exception))
 
+    def test_rejects_non_bytes_rgb_naming_its_type(self):
+        # Only the rgb length was checked, so a str or list of the right
+        # length constructed an Image and then failed inside compare() with an
+        # opaque TypeError ("can only concatenate str (not bytes) to str")
+        # naming neither the field nor the offending type. Reject it at
+        # construction, by type. memoryview is included because it also fails
+        # later (_abs_diff cannot concatenate a memoryview with bytes).
+        for rgb in ("abc", [1, 2, 3], memoryview(b"abc"), 1):
+            with self.subTest(rgb=type(rgb).__name__):
+                with self.assertRaises(png.PngError) as ctx:
+                    png.Image(1, 1, rgb)
+                message = str(ctx.exception)
+                self.assertIn("rgb", message)
+                self.assertIn(type(rgb).__name__, message)
+
+    def test_accepts_bytearray_rgb(self):
+        # A bytearray supports every operation compare() and crop() perform on
+        # rgb, so it stays a valid input alongside bytes.
+        image = png.Image(1, 1, bytearray(b"abc"))
+        self.assertEqual(image.rgb, bytearray(b"abc"))
+
     def test_rejects_non_integer_dimensions_naming_the_value(self):
         # A non-int dimension used to reach the positivity comparison as an
         # opaque TypeError (a str) or report a non-integral byte count (a
