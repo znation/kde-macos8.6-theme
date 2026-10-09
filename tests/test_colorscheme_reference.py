@@ -61,11 +61,24 @@ class TestReferenceAnchors(unittest.TestCase):
                 cls.image_errors[path] = exc
 
     def pixel(self, path, x, y):
+        """Return the RGB pixel at ``(x, y)`` of the reference image at *path*.
+
+        A coordinate outside the image is rejected instead of read: the RGB
+        slice would be empty (a bare comparison against ``()``) or, for an
+        ``x`` past the row end, wrap to the next row and silently tie the
+        anchor to the wrong pixel. Naming the coordinate and the image size
+        turns that into a diagnostic.
+        """
         if path not in self.images:
             self.skipTest(
                 f"{path} is not a materialized PNG: {self.image_errors[path]}"
             )
         image = self.images[path]
+        if not (0 <= x < image.width and 0 <= y < image.height):
+            raise ValueError(
+                f"pixel ({x}, {y}) is outside the {image.width}x{image.height} "
+                f"reference image {path}"
+            )
         offset = (y * image.width + x) * 3
         return tuple(image.rgb[offset : offset + 3])
 
@@ -117,6 +130,21 @@ class TestReferenceAnchors(unittest.TestCase):
         self.assertEqual(self.pixel(REFERENCE_DESKTOP, 0, 0), (221, 221, 221))
         with self.assertRaises(unittest.SkipTest):
             self.pixel(REFERENCE_FIRSTBOOT, 0, 0)
+
+    def test_out_of_bounds_anchor_coordinate_is_rejected(self):
+        # An anchor coordinate outside the reference must not be read: the
+        # byte slice would be empty, and an x past the row end would wrap to
+        # the next row and tie the anchor to the wrong pixel. Pin that it is
+        # rejected with the coordinate and the image size.
+        self.images = {REFERENCE_DESKTOP: png.Image(4, 3, bytes(4 * 3 * 3))}
+        self.image_errors = {}
+        for x, y in ((4, 0), (0, 3), (-1, 0), (0, -1)):
+            with self.subTest(x=x, y=y):
+                with self.assertRaises(ValueError) as caught:
+                    self.pixel(REFERENCE_DESKTOP, x, y)
+                message = str(caught.exception)
+                self.assertIn(f"({x}, {y})", message)
+                self.assertIn("4x3", message)
 
 
 if __name__ == "__main__":
