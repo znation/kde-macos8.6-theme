@@ -829,6 +829,19 @@ def circle_geometry(element):
     )
 
 
+def circle_geometry_and_fill(element):
+    """Return *element*'s circle geometry followed by its ``fill`` attribute.
+
+    The radiobutton and checkmarks tests pin a circle's centre, radius and
+    fill together, because a face swapped between black and white or a dot
+    nudged off-centre lays the widget out wrong even while each value alone
+    passes. The fill is returned exactly as ElementTree hands it back -- the
+    attribute string, or None when the circle omits it -- so a caller compares
+    one tuple.
+    """
+    return circle_geometry(element) + (element.get("fill"),)
+
+
 def nine_slice_margins(prefix, border, size):
     """Return the four margin-hint rects of a centred nine-slice tile.
 

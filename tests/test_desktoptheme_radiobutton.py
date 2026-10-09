@@ -11,6 +11,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     circle_geometry,
+    circle_geometry_and_fill,
     elements_by_id,
 )
 from svg_case import SvgCase
@@ -37,12 +38,12 @@ class TestRadioButton(SvgCase, unittest.TestCase):
         by_id = elements_by_id(tree)
         circles = children_named(by_id["normal"], "circle")
         self.assertEqual(
-            [circle_geometry(el) + (el.get("fill"),) for el in circles],
+            [circle_geometry_and_fill(el) for el in circles],
             [(8, 8, 8, "#000000"), (8, 8, 7, "#FFFFFF")],
         )
         symbol = by_id["symbol"]
         self.assertEqual(
-            circle_geometry(symbol) + (symbol.get("fill"),),
+            circle_geometry_and_fill(symbol),
             (40, 8, 3, "#000000"),
         )
         # KSvg reads the hint circle's size (not its colour) to size the

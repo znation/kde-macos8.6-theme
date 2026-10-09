@@ -17,6 +17,7 @@ from svg_assertions import (
     RAISED_FACE_CORNERS,
     arc_center,
     circle_geometry,
+    circle_geometry_and_fill,
     face_corners,
     face_edge_bands,
     flat_face_corners,
@@ -425,6 +426,20 @@ class TestCircleGeometry(unittest.TestCase):
             '<circle cx="7.5" cy="24" r="3" fill="#000000"/>'
         )
         self.assertEqual(circle_geometry(element), (7.5, 24.0, 3.0))
+
+    def test_geometry_and_fill_appends_the_raw_fill_attribute(self):
+        # The radiobutton and checkmarks tests compare this against tuples of
+        # geometry plus fill, so pin that the fill is appended after the
+        # three floats -- and that an absent fill is the raw None, not
+        # dropped or stringified.
+        element = ET.fromstring(
+            '<circle cx="8" cy="8" r="3" fill="#000000"/>'
+        )
+        self.assertEqual(
+            circle_geometry_and_fill(element), (8.0, 8.0, 3.0, "#000000")
+        )
+        bare = ET.fromstring('<circle cx="8" cy="8" r="3"/>')
+        self.assertEqual(circle_geometry_and_fill(bare), (8.0, 8.0, 3.0, None))
 
     def test_missing_dimension_names_the_circle_and_the_attribute(self):
         # ElementTree hands an absent attribute back as None, and

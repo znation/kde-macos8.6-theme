@@ -10,7 +10,7 @@ from svg_assertions import (
     assert_no_script_elements,
     attribute_values,
     children_named,
-    circle_geometry,
+    circle_geometry_and_fill,
     elements_by_id,
     local_name,
 )
@@ -78,8 +78,7 @@ class TestCheckmarks(SvgCase, unittest.TestCase):
         # contract test only checks the fill set, so a dot nudged off-centre
         # would otherwise pass. Pin its centre with its radius and fill.
         self.assertEqual(
-            circle_geometry(radio_circles[0])
-            + (radio_circles[0].get("fill"),),
+            circle_geometry_and_fill(radio_circles[0]),
             (8, 24, 3, "#000000"),
         )
 
