@@ -33,6 +33,11 @@ COLOR_SCHEME := theme/color-schemes/MacOS8.colors
 # source's own basename: renaming the scheme then moves the id with it instead
 # of leaving a stale hardcoded name behind.
 COLOR_SCHEME_NAME := $(notdir $(COLOR_SCHEME))
+# The id KDE resolves a `[General] ColorScheme` value to: the installed
+# basename up to the first dot (README's Installing section documents the same
+# rule). `uninstall` uses it to detect a stored selection that still points at
+# the scheme it just removed.
+COLOR_SCHEME_ID := $(shell name='$(COLOR_SCHEME_NAME)'; printf '%s' "$${name%%.*}")
 INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/color-schemes
 
 LNF_ID := org.macos8.desktop
@@ -193,3 +198,20 @@ _uninstall:
 	rm -rf "$(LNF_INSTALL_DIR)/$(LNF_ID)" "$(LNF_INSTALL_DIR)/.$(LNF_ID).staging" "$(LNF_INSTALL_DIR)/.$(LNF_ID).old"
 	rm -rf "$(DTHEME_INSTALL_DIR)/$(DTHEME_ID)" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old"
 	rm -rf "$(AURORAE_INSTALL_DIR)/$(AURORAE_ID)" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).staging" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).old"
+# Removing the scheme does not touch the user's `[General] ColorScheme`
+# selection. If it still names the scheme just removed, KDE cannot resolve the
+# id and falls back to BreezeLight on every start without rewriting the stale
+# key, so warn and name the reset command. Read `$XDG_CONFIG_HOME/kdeglobals`
+# (default `$HOME/.config/kdeglobals`, ignoring an empty or relative
+# XDG_CONFIG_HOME) the way KDE reads it: case-sensitive keys in the
+# `[General]` section. This is a diagnostic only -- it must not edit the file.
+	@config_home="$${XDG_CONFIG_HOME:-}"; \
+	case "$$config_home" in /*) ;; *) config_home="";; esac; \
+	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
+	kdeglobals="$$config_home/kdeglobals"; \
+	if [ -n "$$config_home" ] && [ -f "$$kdeglobals" ]; then \
+	  selected=$$(awk '/^\[/ { section=$$0; sub(/^\[/,"",section); sub(/\].*$$/,"",section); next } section=="General" && $$0 ~ /^[[:space:]]*ColorScheme[[:space:]]*=/ { value=$$0; sub(/^[[:space:]]*ColorScheme[[:space:]]*=/,"",value); sub(/^[[:space:]]*/,"",value); sub(/[[:space:]]*$$/,"",value); print value; exit }' "$$kdeglobals"); \
+	  if [ "$$selected" = "$(COLOR_SCHEME_ID)" ]; then \
+	    echo "uninstall: color scheme $(COLOR_SCHEME_ID) is still selected in $$kdeglobals after removal; if KDE cannot resolve it, it falls back to BreezeLight on the next start. Reset it with: plasma-apply-colorscheme BreezeLight" >&2; \
+	  fi; \
+	fi

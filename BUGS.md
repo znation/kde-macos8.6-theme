@@ -37,7 +37,9 @@ present but need a display server, so the feature loop could only land dead code
 objection the refusal records. Clear the refusal once a headless render path exists, then route
 the entry to PLANS.md.
 
-### Uninstalling the scheme while it is selected leaves KDE warning `Could not find color scheme "MacOS8"` (found 2026-10-09)
+## Fixed
+
+### Uninstalling the scheme while it is selected leaves KDE warning `Could not find color scheme "MacOS8"` (found 2026-10-09; fixed 2026-10-09)
 
 **Symptom:** A KDE/Qt app started from a terminal prints
 `Could not find color scheme "MacOS8" falling back to BreezeLight` and runs with BreezeLight
@@ -67,7 +69,16 @@ covers only the installed case, not the post-uninstall dangling one; a new case 
 `make uninstall` against a throwaway `XDG_CONFIG_HOME` whose `kdeglobals` selects `MacOS8` and
 assert the warning is printed.
 
-## Fixed
+**Fix:** Adopted (a) plus (b). `_uninstall` now reads `$XDG_CONFIG_HOME/kdeglobals` (default
+`$HOME/.config/kdeglobals`, ignoring an empty or relative `XDG_CONFIG_HOME`) and, when its
+`[General] ColorScheme` still names the removed scheme id, prints a warning naming
+`plasma-apply-colorscheme BreezeLight`; it never edits the config. README's Installing section
+documents the dangling selection. Two cases in `tests/test_colorscheme_install.py` drive
+`make uninstall` with a throwaway `XDG_CONFIG_HOME` and assert the warning appears for
+`ColorScheme=MacOS8` (leaving the file unchanged) and stays quiet for another selection.
+
+**Validation gap:** real-run-needed — the KDE-side fallback (`Could not find color scheme`) needs a
+real KDE app start to observe, so the regression test pins our warning rather than KDE's.
 
 ### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07; fixed 2026-10-08)
 

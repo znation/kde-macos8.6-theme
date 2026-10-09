@@ -63,7 +63,12 @@ Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make
 uninstall` removes the four installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/` and
 `aurorae/themes/`
-directories and anything else in them in place. `make check` runs the test suite, and `make help`
+directories and anything else in them in place. It removes only the artifacts
+`install` copied, never the user's configuration: if the removed scheme is still
+the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve
+it after the uninstall and falls back to BreezeLight on the next start, so
+`make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
+as the reset. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`.
 

@@ -150,6 +150,79 @@ class TestInstall(unittest.TestCase):
             again = uninstall(tmp)
             self.assertEqual(again.returncode, 0, again.stderr)
 
+    def test_make_uninstall_warns_when_the_removed_scheme_is_still_selected(self):
+        # Removing the scheme leaves `[General] ColorScheme=MacOS8` in the
+        # user's kdeglobals; KDE then cannot resolve the id and falls back to
+        # BreezeLight on every start. uninstall must warn and name the reset
+        # command, without editing the user's config.
+        with tempfile.TemporaryDirectory() as tmp:
+            installed = install(tmp)
+            self.assertEqual(installed.returncode, 0, installed.stderr)
+            config = os.path.join(tmp, "config")
+            os.makedirs(config)
+            kdeglobals = os.path.join(config, "kdeglobals")
+            original = "[General]\nColorScheme=MacOS8\n"
+            with open(kdeglobals, "w", encoding="utf-8") as handle:
+                handle.write(original)
+
+            removed = uninstall(
+                tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
+            )
+            self.assertEqual(removed.returncode, 0, removed.stderr)
+            self.assertIn(
+                "plasma-apply-colorscheme BreezeLight", removed.stderr
+            )
+            with open(kdeglobals, encoding="utf-8") as handle:
+                self.assertEqual(
+                    handle.read(),
+                    original,
+                    "uninstall must not edit the user's kdeglobals",
+                )
+
+    def test_make_uninstall_does_not_warn_for_a_different_selection(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            installed = install(tmp)
+            self.assertEqual(installed.returncode, 0, installed.stderr)
+            config = os.path.join(tmp, "config")
+            os.makedirs(config)
+            with open(
+                os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
+            ) as handle:
+                handle.write("[General]\nColorScheme=BreezeLight\n")
+
+            removed = uninstall(
+                tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
+            )
+            self.assertEqual(removed.returncode, 0, removed.stderr)
+            self.assertNotIn("is still selected", removed.stderr)
+
+    def test_make_uninstall_warns_for_a_scheme_id_with_a_space(self):
+        # The scheme id is the basename before its first dot, spaces included:
+        # whitespace word-splitting would compare `My Scheme` to `My` and miss
+        # the warning for a renamed scheme.
+        with tempfile.TemporaryDirectory() as tmp:
+            source = os.path.join(tmp, "My Scheme.colors")
+            shutil.copy(SCHEME, source)
+            extra = [f"COLOR_SCHEME={source}"]
+            installed = install(tmp, extra=extra)
+            self.assertEqual(installed.returncode, 0, installed.stderr)
+            config = os.path.join(tmp, "config")
+            os.makedirs(config)
+            with open(
+                os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
+            ) as handle:
+                handle.write("[General]\nColorScheme=My Scheme\n")
+
+            removed = uninstall(
+                tmp,
+                extra=extra,
+                env=dict(os.environ, XDG_CONFIG_HOME=config),
+            )
+            self.assertEqual(removed.returncode, 0, removed.stderr)
+            self.assertIn(
+                "color scheme My Scheme is still selected", removed.stderr
+            )
+
 
 @unittest.skipUnless(
     shutil.which("plasma-apply-colorscheme"), "needs plasma-apply-colorscheme"
