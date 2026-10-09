@@ -189,11 +189,12 @@ class TestResolveFailureIsFailClosed(CheckerTestCase):
 
     ``_resolves_within`` calls ``Path.resolve()`` to keep every read inside the
     reference directory, and resolving can raise ``OSError`` on a filesystem
-    failure. The containment check must fail closed: an unresolvable path is
-    not assumed to be inside the directory, so the checker reports it instead
-    of letting the ``OSError`` escape and abort the run with a traceback.
-    ``Path.resolve()`` does not raise for a real symlink loop on this runtime,
-    so the branch is driven by making the resolution itself raise.
+    failure or ``RuntimeError`` on the symlink loop Python before 3.13 reports.
+    The containment check must fail closed: an unresolvable path is not assumed
+    to be inside the directory, so the checker reports it instead of letting
+    the exception escape and abort the run with a traceback. ``Path.resolve()``
+    does not raise for a real symlink loop on this runtime, so each branch is
+    driven by making the resolution itself raise.
     """
 
     def test_unresolvable_sources_path_is_reported_not_raised(self):
@@ -203,6 +204,16 @@ class TestResolveFailureIsFailClosed(CheckerTestCase):
             OSError,
             40,
             "Too many levels of symbolic links",
+            "outside",
+        )
+
+    def test_symlink_loop_sources_path_is_reported_not_raised(self):
+        assert_sources_failure(
+            self,
+            "resolve",
+            RuntimeError,
+            40,
+            "Symlink loop from sources.txt",
             "outside",
         )
 

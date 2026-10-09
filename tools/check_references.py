@@ -152,11 +152,15 @@ def _resolves_within(directory: Path, path: Path) -> bool:
     can point anywhere on the machine: a ``sources.txt`` symlink to a private
     file would make the checker read that file and print its lines as
     diagnostics. Resolving both paths keeps every read inside the reference
-    directory even when a symlink tries to leave it.
+    directory even when a symlink tries to leave it. A resolution that fails
+    is not assumed to be contained: an ``OSError`` (a filesystem failure) and
+    a ``RuntimeError`` (the symlink loop ``Path.resolve()`` raised before
+    Python 3.13) both make this return False, so the caller reports the path
+    instead of the exception aborting the whole check.
     """
     try:
         return path.resolve().is_relative_to(directory.resolve())
-    except OSError:
+    except (OSError, RuntimeError):
         return False
 
 
