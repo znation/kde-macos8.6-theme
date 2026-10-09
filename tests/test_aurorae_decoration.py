@@ -62,6 +62,13 @@ METADATA = os.path.join(AURORAE_DIR, "metadata.json")
 METADATA_DESKTOP = os.path.join(AURORAE_DIR, "metadata.desktop")
 DECORATION_SVGZ = os.path.join(AURORAE_DIR, "decoration.svgz")
 
+# The decoration artwork is ~35 KB uncompressed; cap the reads well above it.
+# The `.svgz` is a compressed payload a contributor can replace with a
+# decompression bomb, so both it and the uncompressed `decoration.svg` are
+# read through `_read_capped`, which refuses an oversize payload instead of
+# allocating its expansion whole.
+_MAX_DECORATION_SVG_BYTES = 1 << 20
+
 # The three Aurorae button SVGs: the close widget on the left, and the
 # maximize and restore states of the zoom widget on the right.
 BUTTON_SVGS = (CLOSE_SVG, MAXIMIZE_SVG, RESTORE_SVG)
@@ -82,6 +89,25 @@ INACTIVE_GREY = "#CCCCCC"
 
 def _hex(rgb):
     return "#%02X%02X%02X" % rgb
+
+
+def _read_capped(path, opener, limit=_MAX_DECORATION_SVG_BYTES):
+    """Return the bytes *opener* yields for *path*, refusing an oversize payload.
+
+    A contributor controls `decoration.svgz`, and a few-KB gzip can expand to
+    gigabytes; reading it with a bare ``.read()`` would allocate the whole
+    expansion. Reading at most one byte past *limit* detects an oversize
+    payload -- for the gzip opener without expanding past it -- and the caller
+    gets a diagnostic naming the path and limit instead.
+    """
+    with opener(path) as handle:
+        data = handle.read(limit + 1)
+    if len(data) > limit:
+        raise AssertionError(
+            f"{path}: payload is larger than the {limit}-byte limit for "
+            "Aurorae decoration artwork; refusing to read it whole"
+        )
+    return data
 
 
 def _parsed_svgs(paths):
@@ -519,10 +545,22 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         # `kpackagetool6 -t KWin/Aurorae` requires `decoration.svgz`, while the
         # Aurorae runtime prefers the uncompressed `decoration.svg`; pin that
         # the compressed copy cannot drift from the artwork under test.
-        with open(DECORATION_SVG, "rb") as handle:
-            uncompressed = handle.read()
-        with gzip.open(DECORATION_SVGZ, "rb") as compressed:
-            self.assertEqual(compressed.read(), uncompressed)
+        uncompressed = _read_capped(DECORATION_SVG, lambda path: open(path, "rb"))
+        decompressed = _read_capped(DECORATION_SVGZ, gzip.open)
+        self.assertEqual(decompressed, uncompressed)
+
+    def test_svgz_decompression_bomb_is_refused(self):
+        # A small `.svgz` can expand to far more than its file size; the capped
+        # read must refuse it after the limit instead of allocating the whole
+        # expansion. 64 MiB expands from a few KB.
+        with tempfile.TemporaryDirectory() as tmp:
+            bomb = os.path.join(tmp, "bomb.svgz")
+            with gzip.open(bomb, "wb") as handle:
+                for _ in range(64):
+                    handle.write(b"\x00" * _MAX_DECORATION_SVG_BYTES)
+            with self.assertRaises(AssertionError) as caught:
+                _read_capped(bomb, gzip.open)
+        self.assertIn("larger than", str(caught.exception))
 
 
 class TestCorners(ReferenceImageCase, unittest.TestCase):
