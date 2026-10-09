@@ -24,6 +24,7 @@ from svg_assertions import (
     assert_edge_bevels,
     assert_face_bevel,
     assert_face_corners,
+    assert_hint_geometry,
     assert_no_script_elements,
     assert_root_canvas,
     assert_slice_ids_present,
@@ -759,6 +760,33 @@ class TestStructuralGuards(unittest.TestCase):
             assert_slices_stay_within_their_tiles(
                 _NoSubTest(), _nine_slice_tree(sizes={"top": (5, 4)}), [""]
             )
+
+    def test_hint_geometry_passes_a_correct_layout(self):
+        assert_hint_geometry(self, _svg_tree(_HINTS), [""], 4, 4)
+
+    def test_hint_geometry_merges_extra_hints(self):
+        # An SVG may declare hints beyond the nine-slice layout (an inset
+        # band, a track size); those must be checked too, not ignored.
+        extra = {"hint-extra": ("0", "0", "12", "12")}
+        assert_hint_geometry(
+            self,
+            _svg_tree(
+                _HINTS
+                + '<rect id="hint-extra" x="0" y="0" width="12" height="12"/>'
+            ),
+            [""],
+            4,
+            4,
+            extra,
+        )
+
+    def test_hint_geometry_catches_a_moved_hint(self):
+        moved = _HINTS.replace(
+            'x="4" y="0" width="4" height="4"',
+            'x="5" y="0" width="4" height="4"',
+        )
+        with self.assertRaises(AssertionError):
+            assert_hint_geometry(self, _svg_tree(moved), [""], 4, 4)
 
 
 def _id_tree(prefixes=("",), omit=()):

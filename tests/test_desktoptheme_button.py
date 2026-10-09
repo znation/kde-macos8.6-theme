@@ -10,6 +10,7 @@ from svg_assertions import (
     arc_center,
     assert_center_tile_is,
     assert_edge_bevels,
+    assert_hint_geometry,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slice_pixels,
@@ -19,10 +20,8 @@ from svg_assertions import (
     children_named,
     elements_by_id,
     face_edge_bands,
-    nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
-    rect_geometry,
     render_slices,
 )
 
@@ -40,9 +39,14 @@ class TestButton(unittest.TestCase):
         # geometry to lay out the nine-slice, and normal/pressed use a 3px
         # border while focus uses 2px, so pin every state's margins and the
         # shared centre tile.
-        expected = nine_slice_hint_geometry(("normal", "pressed"), 3, 6)
-        expected.update(nine_slice_margins("focus", 2, 8))
-        self.assertEqual(rect_geometry(ET.parse(BUTTON_SVG)), expected)
+        assert_hint_geometry(
+            self,
+            ET.parse(BUTTON_SVG),
+            ("normal", "pressed"),
+            3,
+            6,
+            nine_slice_margins("focus", 2, 8),
+        )
 
     def test_button_tiles_placed_by_margins(self):
         # `test_button_hint_geometry` pins the margins but not the artwork's

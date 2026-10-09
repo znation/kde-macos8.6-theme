@@ -9,13 +9,12 @@ from desktoptheme_paths import BACKGROUND_SVG
 from svg_assertions import (
     HINT_IDS,
     assert_face_bevel,
+    assert_hint_geometry,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     attribute_values,
-    nine_slice_hint_geometry,
-    rect_geometry,
     render_slices,
 )
 
@@ -41,14 +40,12 @@ class TestBackground(unittest.TestCase):
         # inset rect with the wrong position or size passes it while KSvg lays
         # the menu body out wrong. Pin every hint: a 3px border around a 10px
         # centre tile on the 16x16 canvas, plus the zero-size inset rects.
-        expected = nine_slice_hint_geometry([""], 3, 10)
-        expected.update({
+        assert_hint_geometry(self, self.tree, [""], 3, 10, {
             "hint-top-inset": ("3", "0", "10", "0"),
             "hint-bottom-inset": ("3", "16", "10", "0"),
             "hint-left-inset": ("0", "3", "0", "10"),
             "hint-right-inset": ("16", "3", "0", "10"),
         })
-        self.assertEqual(rect_geometry(self.tree), expected)
 
     def test_background_tiles_placed_by_margins(self):
         # `test_background_pixels` composites each slice from its rects but

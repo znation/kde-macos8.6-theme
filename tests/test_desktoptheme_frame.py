@@ -12,15 +12,14 @@ from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
     assert_face_corners,
+    assert_hint_geometry,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     face_edge_bands,
     flat_face_corners,
-    nine_slice_hint_geometry,
     RAISED_FACE_CORNERS,
-    rect_geometry,
     render_slices,
     sunken_face_corners,
 )
@@ -70,10 +69,7 @@ class TestFrame(unittest.TestCase):
         # naming the wrong tile size or border passes it. KSvg reads this
         # geometry to lay out the nine-slice, so pin each state's margins and
         # the shared centre tile.
-        self.assertEqual(
-            rect_geometry(ET.parse(FRAME_SVG)),
-            nine_slice_hint_geometry(FRAME_PREFIXES, 3, 6),
-        )
+        assert_hint_geometry(self, ET.parse(FRAME_SVG), FRAME_PREFIXES, 3, 6)
 
     def test_frame_tiles_placed_by_margins(self):
         # The pixel tests composite each slice from its rects but ignore the

@@ -8,15 +8,14 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import LISTITEM_SVG
 from svg_assertions import (
     SLICE_IDS,
+    assert_hint_geometry,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slice_pixels,
     assert_tiles_placed_by_margins,
     attribute_values,
-    nine_slice_hint_geometry,
     nine_slice_tile_sizes,
     pixel_map,
-    rect_geometry,
     render_slices,
 )
 
@@ -30,9 +29,8 @@ class TestListItem(unittest.TestCase):
         # centre hint with the wrong position or size passes it while KSvg
         # lays the row out wrong. Pin every hint: normal and pressed share a
         # 3px border around a 6px centre tile on the 12x12 canvas.
-        self.assertEqual(
-            rect_geometry(ET.parse(LISTITEM_SVG)),
-            nine_slice_hint_geometry(("normal", "pressed"), 3, 6),
+        assert_hint_geometry(
+            self, ET.parse(LISTITEM_SVG), ("normal", "pressed"), 3, 6
         )
 
     def test_listitem_selection_is_flat_selection_colour(self):

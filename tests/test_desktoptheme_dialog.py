@@ -8,12 +8,11 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import DIALOG_BACKGROUND_SVG
 from svg_assertions import (
     assert_face_bevel,
+    assert_hint_geometry,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
-    nine_slice_hint_geometry,
-    rect_geometry,
     render_slices,
 )
 
@@ -35,9 +34,8 @@ class TestDialogBackground(unittest.TestCase):
         # the wrong position or size passes it while KSvg lays the body out
         # wrong. Pin every hint: a 3px border around a 10px centre tile on the
         # 16x16 canvas.
-        self.assertEqual(
-            rect_geometry(ET.parse(DIALOG_BACKGROUND_SVG)),
-            nine_slice_hint_geometry([""], 3, 10),
+        assert_hint_geometry(
+            self, ET.parse(DIALOG_BACKGROUND_SVG), [""], 3, 10
         )
 
     def test_dialog_tiles_placed_by_margins(self):

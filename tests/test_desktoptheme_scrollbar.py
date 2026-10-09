@@ -8,12 +8,11 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import SCROLLBAR_SVG
 from svg_assertions import (
     assert_face_bevel,
+    assert_hint_geometry,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
-    nine_slice_hint_geometry,
-    rect_geometry,
     render_slices,
 )
 
@@ -39,9 +38,14 @@ class TestScrollbar(unittest.TestCase):
         # the bar out wrong. Pin every hint: the four prefixes share a 3px
         # border around a 10px centre tile on the 16x16 canvas, and
         # `hint-scrollbar-size` names the 16px track.
-        expected = nine_slice_hint_geometry(PREFIXES, 3, 10)
-        expected["hint-scrollbar-size"] = ("0", "0", "16", "16")
-        self.assertEqual(rect_geometry(ET.parse(SCROLLBAR_SVG)), expected)
+        assert_hint_geometry(
+            self,
+            ET.parse(SCROLLBAR_SVG),
+            PREFIXES,
+            3,
+            10,
+            {"hint-scrollbar-size": ("0", "0", "16", "16")},
+        )
 
     def test_scrollbar_tiles_placed_by_margins(self):
         assert_tiles_placed_by_margins(self, ET.parse(SCROLLBAR_SVG), list(PREFIXES))

@@ -842,6 +842,22 @@ def _margin_hints(hints, prefix):
     )
 
 
+def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):
+    """Assert *tree*'s hint rects are a centred nine-slice's.
+
+    `nine_slice_hint_geometry` gives the shared ``hint-tile-center`` and
+    every state's four margin hints; *extra* merges in any hints beyond
+    that layout (an inset band, a track size), keyed by id. The whole map
+    is compared against `rect_geometry`, so a hint with a wrong position or
+    size fails naming the difference. *prefixes* lists each state prefix
+    (pass ``[""]`` for an unprefixed SVG).
+    """
+    expected = nine_slice_hint_geometry(prefixes, border, size)
+    if extra:
+        expected.update(extra)
+    case.assertEqual(rect_geometry(tree), expected)
+
+
 def assert_tiles_placed_by_margins(case, tree, prefixes):
     """Assert every nine-slice tile group sits where its margin hints place it.
 
