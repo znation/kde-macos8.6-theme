@@ -159,6 +159,17 @@ class TestKPluginHelper(unittest.TestCase):
 
 
 class TestPackageMetadata(unittest.TestCase):
+    def _guard_message(self, method, metadata):
+        """Return the AssertionError message from guard *method* on *metadata*.
+
+        Build a `PackageMetadata` case for *method* and run it against the
+        deliberately broken *metadata*; the guard must reject it. Return the
+        message so the caller can assert the file and field it names.
+        """
+        with self.assertRaises(AssertionError) as caught:
+            getattr(_case(method, metadata), method)()
+        return str(caught.exception)
+
     def test_accepts_well_formed_metadata(self):
         # Positive control: every guard passes on the shape the real packages
         # use, so a guard that rejects everything cannot pass the failure
@@ -179,8 +190,7 @@ class TestPackageMetadata(unittest.TestCase):
     def test_package_structure_guard(self):
         metadata = _metadata()
         metadata["KPackageStructure"] = "Plasma/LookAndFeel"
-        with self.assertRaises(AssertionError):
-            _case("test_package_structure", metadata).test_package_structure()
+        self._guard_message("test_package_structure", metadata)
 
     def test_top_level_key_missing_names_the_file_and_field(self):
         # A metadata.json that drops a top-level key used to fail as
@@ -193,9 +203,7 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(key=key):
                 metadata = _metadata()
                 del metadata[key]
-                with self.assertRaises(AssertionError) as caught:
-                    getattr(_case(method, metadata), method)()
-                message = str(caught.exception)
+                message = self._guard_message(method, metadata)
                 self.assertIn("metadata.json", message)
                 self.assertIn(key, message)
 
@@ -204,9 +212,8 @@ class TestPackageMetadata(unittest.TestCase):
         # the metadata.json the value came from.
         metadata = _metadata()
         metadata["KPackageStructure"] = "Plasma/LookAndFeel"
-        with self.assertRaises(AssertionError) as caught:
-            _case("test_package_structure", metadata).test_package_structure()
-        self.assertIn("metadata.json", str(caught.exception))
+        message = self._guard_message("test_package_structure", metadata)
+        self.assertIn("metadata.json", message)
 
     def test_top_level_field_returns_the_value(self):
         case = _case("test_package_structure", _metadata())
@@ -246,9 +253,7 @@ class TestPackageMetadata(unittest.TestCase):
                     "test_plugin_description_and_license_are_non_empty",
                 ):
                     with self.subTest(method=method):
-                        with self.assertRaises(AssertionError) as caught:
-                            getattr(_case(method, metadata), method)()
-                        message = str(caught.exception)
+                        message = self._guard_message(method, metadata)
                         self.assertIn("metadata.json", message)
                         self.assertIn("KPlugin", message)
 
@@ -257,10 +262,7 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(key=key):
                 metadata = _metadata()
                 metadata["KPlugin"][key] = value
-                with self.assertRaises(AssertionError):
-                    _case(
-                        "test_plugin_id_and_name", metadata
-                    ).test_plugin_id_and_name()
+                self._guard_message("test_plugin_id_and_name", metadata)
 
     def test_plugin_id_and_name_missing_key_names_the_file_and_field(self):
         # A metadata.json whose KPlugin drops Id or Name used to fail with a
@@ -270,11 +272,7 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(key=key):
                 metadata = _metadata()
                 del metadata["KPlugin"][key]
-                with self.assertRaises(AssertionError) as caught:
-                    _case(
-                        "test_plugin_id_and_name", metadata
-                    ).test_plugin_id_and_name()
-                message = str(caught.exception)
+                message = self._guard_message("test_plugin_id_and_name", metadata)
                 self.assertIn("metadata.json", message)
                 self.assertIn(key, message)
 
@@ -290,9 +288,7 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(key=key):
                 metadata = _metadata()
                 del metadata["KPlugin"][key]
-                with self.assertRaises(AssertionError) as caught:
-                    getattr(_case(method, metadata), method)()
-                message = str(caught.exception)
+                message = self._guard_message(method, metadata)
                 self.assertIn("metadata.json", message)
                 self.assertIn(key, message)
 
@@ -301,17 +297,13 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(version=value):
                 metadata = _metadata()
                 metadata["KPlugin"]["Version"] = value
-                with self.assertRaises(AssertionError) as caught:
-                    _case("test_plugin_version", metadata).test_plugin_version()
-                self.assertIn("metadata.json", str(caught.exception))
+                message = self._guard_message("test_plugin_version", metadata)
+                self.assertIn("metadata.json", message)
 
     def test_plasma_api_version_guard(self):
         metadata = _metadata()
         metadata["X-Plasma-API"] = "6.0"
-        with self.assertRaises(AssertionError):
-            _case(
-                "test_plasma_api_version", metadata
-            ).test_plasma_api_version()
+        self._guard_message("test_plasma_api_version", metadata)
 
     def test_description_and_license_guard(self):
         for key in ("Description", "License"):
@@ -319,12 +311,11 @@ class TestPackageMetadata(unittest.TestCase):
                 with self.subTest(key=key, value=value):
                     metadata = _metadata()
                     metadata["KPlugin"][key] = value
-                    with self.assertRaises(AssertionError) as caught:
-                        _case(
-                            "test_plugin_description_and_license_are_non_empty",
-                            metadata,
-                        ).test_plugin_description_and_license_are_non_empty()
-                    self.assertIn("metadata.json", str(caught.exception))
+                    message = self._guard_message(
+                        "test_plugin_description_and_license_are_non_empty",
+                        metadata,
+                    )
+                    self.assertIn("metadata.json", message)
 
     def test_plugin_authors_guard(self):
         # Both packages ship Authors as a list of named objects, but nothing
@@ -334,11 +325,7 @@ class TestPackageMetadata(unittest.TestCase):
         # pin each rejection with the file and the offending field.
         metadata = _metadata()
         del metadata["KPlugin"]["Authors"]
-        with self.assertRaises(AssertionError) as caught:
-            _case(
-                "test_plugin_authors_are_named", metadata
-            ).test_plugin_authors_are_named()
-        message = str(caught.exception)
+        message = self._guard_message("test_plugin_authors_are_named", metadata)
         self.assertIn("metadata.json", message)
         self.assertIn("Authors", message)
 
@@ -346,31 +333,24 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(authors=value):
                 metadata = _metadata()
                 metadata["KPlugin"]["Authors"] = value
-                with self.assertRaises(AssertionError) as caught:
-                    _case(
-                        "test_plugin_authors_are_named", metadata
-                    ).test_plugin_authors_are_named()
-                message = str(caught.exception)
+                message = self._guard_message(
+                    "test_plugin_authors_are_named", metadata
+                )
                 self.assertIn("metadata.json", message)
                 self.assertIn("Authors", message)
 
         metadata = _metadata()
         metadata["KPlugin"]["Authors"] = []
-        with self.assertRaises(AssertionError) as caught:
-            _case(
-                "test_plugin_authors_are_named", metadata
-            ).test_plugin_authors_are_named()
-        self.assertIn("Authors", str(caught.exception))
+        message = self._guard_message("test_plugin_authors_are_named", metadata)
+        self.assertIn("Authors", message)
 
         for author in ("text", 7, {"Name": ""}, {"Name": "   "}, {"Name": 7}, {}):
             with self.subTest(author=author):
                 metadata = _metadata()
                 metadata["KPlugin"]["Authors"] = [author]
-                with self.assertRaises(AssertionError) as caught:
-                    _case(
-                        "test_plugin_authors_are_named", metadata
-                    ).test_plugin_authors_are_named()
-                message = str(caught.exception)
+                message = self._guard_message(
+                    "test_plugin_authors_are_named", metadata
+                )
                 self.assertIn("Authors[0]", message)
                 self.assertIn("metadata.json", message)
 
