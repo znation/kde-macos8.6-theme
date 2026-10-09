@@ -319,6 +319,32 @@ class TestCompare(unittest.TestCase):
         self.assertIn("origin must not be negative", message)
         self.assertIn("x=-1 y=0 w=2 h=2", message)
 
+    def test_crop_negative_y_origin_error_names_origin(self):
+        # The origin guard is ``x < 0 or y < 0``; only the x < 0 arm is
+        # covered above. A negative y with a valid x must be rejected too: if
+        # it slipped past, the row loop would start at a negative row and
+        # Python's negative slicing would return the wrong pixels silently.
+        image, _ = solid_rgb(4, 4)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, 0, -1, 2, 2,
+        )
+        self.assertIn("origin must not be negative", message)
+        self.assertIn("x=0 y=-1 w=2 h=2", message)
+
+    def test_crop_zero_height_error_names_values(self):
+        # The size guard is ``width <= 0 or height <= 0``; only the width arm
+        # is covered above. A zero height with a positive width is a size
+        # fault, so it must name the rectangle rather than yield a zero-row
+        # image that fails later with an Image-dimensions error.
+        image, _ = solid_rgb(4, 4)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, 0, 0, 2, 0,
+        )
+        self.assertIn("positive size", message)
+        self.assertIn("x=0 y=0 w=2 h=0", message)
+
     def test_crop_non_integer_coordinate_error_names_argument(self):
         # crop() slices the RGB byte string, so a non-integer coordinate would
         # otherwise surface as a raw TypeError from the slice, naming neither
