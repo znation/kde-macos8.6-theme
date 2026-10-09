@@ -251,24 +251,17 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         )
         return blacks[0], blacks[-1], top
 
-    def _close_box_bounds(self):
-        """Return the (x, y, width, height) of the close box's #888888 face."""
-        points = [
-            (x, y)
-            for y in range(26, 44)
-            for x in range(8, 26)
-            if self.reference_pixel(x, y) == (136, 136, 136)
-        ]
-        xs = [x for x, _ in points]
-        ys = [y for _, y in points]
-        return min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
+    def _box_bounds(self, x0, x1):
+        """Return the (x, y, width, height) of a #888888 button face.
 
-    def _zoom_box_bounds(self):
-        """Return the (x, y, width, height) of the zoom box's #888888 face."""
+        The close and zoom boxes are the only #888888 faces in this band of
+        the title bar; ``x0`` and ``x1`` bound the columns searched so each
+        box's bounds are measured from its own face.
+        """
         points = [
             (x, y)
             for y in range(26, 44)
-            for x in range(338, 360)
+            for x in range(x0, x1)
             if self.reference_pixel(x, y) == (136, 136, 136)
         ]
         xs = [x for x, _ in points]
@@ -277,7 +270,7 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
 
     def _close_box_size(self):
         """Return the (width, height) of the close box's #888888 bounding box."""
-        _, _, width, height = self._close_box_bounds()
+        _, _, width, height = self._box_bounds(8, 26)
         return width, height
 
     def test_layout_metrics_match_reference(self):
@@ -304,8 +297,8 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         # what pins the rc to the artwork instead of trusting it.
         layout = "Layout"
         left, right, top = self._frame_edges()
-        close_x, close_y, _, _ = self._close_box_bounds()
-        zoom_x, zoom_y, zoom_w, _ = self._zoom_box_bounds()
+        close_x, close_y, _, _ = self._box_bounds(8, 26)
+        zoom_x, zoom_y, zoom_w, _ = self._box_bounds(338, 360)
         self.assertEqual(close_y, zoom_y)
         self.assertEqual(
             int(self.parser.get(layout, "TitleEdgeLeft")), close_x - left
