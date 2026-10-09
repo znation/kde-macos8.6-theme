@@ -180,8 +180,7 @@ class SplashReferenceCase(unittest.TestCase):
             )
 
     def pixel(self, x, y):
-        offset = (y * self.image.width + x) * 3
-        return tuple(self.image.rgb[offset : offset + 3])
+        return png.pixel_at(self.image, x, y)
 
 
 class TestSplashReference(SplashReferenceCase):
