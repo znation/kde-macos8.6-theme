@@ -463,6 +463,15 @@ class TestDecode(unittest.TestCase):
         self.assertIn(f"offset {data.rindex(b'IEND') + 4}", message)
         self.assertIn("expected 4 bytes, got 3", message)
 
+    def test_rejects_png_without_end_marker(self):
+        # IEND terminates the chunk stream. A file cut at a chunk boundary
+        # keeps a complete IHDR and IDAT but has no end marker; decoding it
+        # as a whole image would hide the truncation, so it must be named.
+        _, data = solid_rgb(1, 1)
+        stripped = data[: data.rindex(b"IEND") - 4]
+        self.assertNotIn(b"IEND", stripped)
+        self.assertIn("no IEND chunk", self._decode_error(stripped))
+
     def test_rejects_truncated_chunk_payload(self):
         # A chunk header declaring more payload than the file holds must name
         # the chunk, its offset, and the byte counts, not just say "truncated".

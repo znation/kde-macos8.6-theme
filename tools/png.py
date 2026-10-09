@@ -422,6 +422,7 @@ def decode_png(data: bytes) -> Image:
     header = None
     palette = None
     idat = bytearray()
+    saw_iend = False
     for ctype, payload in _iter_chunks(data):
         if ctype == b"IHDR":
             header = payload
@@ -435,6 +436,7 @@ def decode_png(data: bytes) -> Image:
         elif ctype == b"IDAT":
             idat += payload
         elif ctype == b"IEND":
+            saw_iend = True
             break
         elif ctype[:1].isupper():
             # A chunk whose first byte is uppercase is critical: the decoder
@@ -452,6 +454,14 @@ def decode_png(data: bytes) -> Image:
     if len(header) != 13:
         raise PngError(
             f"IHDR chunk has {len(header)} bytes, expected 13"
+        )
+    if not saw_iend:
+        # The IEND chunk terminates the chunk stream, so a file cut at a
+        # chunk boundary can hold a complete IHDR and IDAT and still be
+        # truncated. Without this the decoder returns the image from the
+        # partial stream as if the file were whole.
+        raise PngError(
+            "PNG has no IEND chunk (the chunk stream may be truncated)"
         )
     width, height, depth, color_type, compression, filt, interlace = struct.unpack(
         ">IIBBBBB", header
