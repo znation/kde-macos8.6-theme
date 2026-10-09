@@ -2,8 +2,9 @@
 
 The helpers that turn artwork markup into geometry -- ``path_arcs`` /
 ``arc_center``, ``rect_geometry`` / ``circle_geometry``, the nine-slice margin,
-hint and tile sizes, and the face corner tables -- feed every widget test's
-pixel assertions, so a mis-parse here would weaken them all at once.
+hint and tile sizes, the group origins, face edge bands and face corner
+tables -- feed every widget test's pixel assertions, so a mis-parse here
+would weaken them all at once.
 """
 
 from __future__ import annotations
