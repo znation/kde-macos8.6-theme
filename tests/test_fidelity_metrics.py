@@ -17,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import fidelity_metrics  # noqa: E402
+from error_assertions import error_message  # noqa: E402
 from png_fixtures import rgb_image, solid_rgb  # noqa: E402
 
 
@@ -227,9 +228,12 @@ class TestCompare(unittest.TestCase):
         image, _ = solid_rgb(1, 1)
         for tolerance in (-1, 256, "5"):
             with self.subTest(tolerance=tolerance):
-                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-                    fidelity_metrics.compare(image, image, tolerance=tolerance)
-                self.assertIn(repr(tolerance), str(caught.exception))
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.compare, image, image,
+                    tolerance=tolerance,
+                )
+                self.assertIn(repr(tolerance), message)
 
     def test_tolerance_rejects_bool_despite_being_an_int_subclass(self):
         # bool is a subclass of int, so True would otherwise be accepted as a
@@ -237,16 +241,19 @@ class TestCompare(unittest.TestCase):
         image, _ = solid_rgb(1, 1)
         for tolerance in (True, False):
             with self.subTest(tolerance=tolerance):
-                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-                    fidelity_metrics.compare(image, image, tolerance=tolerance)
-                self.assertIn(repr(tolerance), str(caught.exception))
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.compare, image, image,
+                    tolerance=tolerance,
+                )
+                self.assertIn(repr(tolerance), message)
 
     def test_size_mismatch_raises(self):
         a, _ = solid_rgb(2, 2)
         b, _ = solid_rgb(1, 1)
-        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-            fidelity_metrics.compare(a, b)
-        message = str(caught.exception)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.compare, a, b
+        )
         self.assertIn("candidate 2x2", message)
         self.assertIn("reference 1x1", message)
 
@@ -292,9 +299,10 @@ class TestCompare(unittest.TestCase):
         # The message must echo the rejected rectangle so a CLI user can see
         # which of x/y/w/h was wrong without re-deriving it from the input.
         image, _ = solid_rgb(4, 4)
-        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-            fidelity_metrics.crop(image, 0, 0, 0, 2)
-        message = str(caught.exception)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, 0, 0, 0, 2,
+        )
         self.assertIn("x=0 y=0 w=0 h=2", message)
 
     def test_crop_error_distinguishes_origin_from_size(self):
@@ -302,17 +310,19 @@ class TestCompare(unittest.TestCase):
         # size fault. Naming both the origin and the size as "positive" would
         # send the reader after x/y instead of the field that is actually bad.
         image, _ = solid_rgb(4, 4)
-        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-            fidelity_metrics.crop(image, 0, 0, 0, 2)
-        message = str(caught.exception)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, 0, 0, 0, 2,
+        )
         self.assertIn("positive size", message)
         self.assertNotIn("origin", message)
 
     def test_crop_negative_origin_error_names_origin(self):
         image, _ = solid_rgb(4, 4)
-        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-            fidelity_metrics.crop(image, -1, 0, 2, 2)
-        message = str(caught.exception)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, -1, 0, 2, 2,
+        )
         self.assertIn("origin must not be negative", message)
         self.assertIn("x=-1 y=0 w=2 h=2", message)
 
@@ -328,9 +338,11 @@ class TestCompare(unittest.TestCase):
             (0, 0, 1, None),
         ):
             with self.subTest(args=args):
-                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-                    fidelity_metrics.crop(image, *args)
-                self.assertIn("must be integers", str(caught.exception))
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.crop, image, *args,
+                )
+                self.assertIn("must be integers", message)
 
     def test_crop_rejects_bool_despite_being_an_int_subclass(self):
         # bool is a subclass of int, so True would otherwise be accepted as a
@@ -338,17 +350,20 @@ class TestCompare(unittest.TestCase):
         image, _ = solid_rgb(4, 4)
         for args in ((True, 0, 1, 1), (0, 0, True, 1)):
             with self.subTest(args=args):
-                with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-                    fidelity_metrics.crop(image, *args)
-                self.assertIn("must be integers", str(caught.exception))
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.crop, image, *args,
+                )
+                self.assertIn("must be integers", message)
 
     def test_crop_out_of_bounds_error_names_rect_and_image(self):
         # The message must name both the offending rectangle and the image it
         # was measured against, since neither is otherwise visible.
         image, _ = solid_rgb(4, 4)
-        with self.assertRaises(fidelity_metrics.FidelityError) as caught:
-            fidelity_metrics.crop(image, 3, 3, 2, 2)
-        message = str(caught.exception)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, 3, 3, 2, 2,
+        )
         self.assertIn("x=3 y=3 w=2 h=2", message)
         self.assertIn("4x4", message)
 
