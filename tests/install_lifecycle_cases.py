@@ -12,46 +12,28 @@ import os
 import tempfile
 
 from theme_install import (
+    InstalledPackageLocation,
     assert_files_identical,
     install,
-    installed_package,
-    installed_plasma_dir,
     old_sibling,
     staging_sibling,
     uninstall,
 )
 
 
-class InstallLifecycleCases:
+class InstallLifecycleCases(InstalledPackageLocation):
     """Mixin: the install/uninstall lifecycle shared by both packages.
 
-    Subclasses set `KIND` (`look-and-feel` or `desktoptheme`), `PACKAGE_ID`,
-    `PACKAGE_DIR` (the source package directory) and `INSTALLED_FILES` (paths
-    relative to the package root to compare byte for byte). It is a plain
-    mixin, not a `TestCase`, so importing it does not collect the unconfigured
-    base.
+    `InstalledPackageLocation` supplies `installed_parent` and
+    `installed_package_dir` from `KIND`/`PACKAGE_ID`; subclasses additionally
+    set `PACKAGE_DIR` (the source package directory) and `INSTALLED_FILES`
+    (paths relative to the package root to compare byte for byte). It is a
+    plain mixin, not a `TestCase`, so importing it does not collect the
+    unconfigured base.
     """
 
-    KIND = None
-    PACKAGE_ID = None
     PACKAGE_DIR = None
     INSTALLED_FILES = ()
-
-    def installed_parent(self, tmp):
-        """Directory holding this family's packages.
-
-        Defaults to the `plasma/<kind>` family; a suite whose package installs
-        elsewhere (an Aurorae theme under `aurorae/themes`) overrides it.
-        """
-        return installed_plasma_dir(tmp, self.KIND)
-
-    def installed_package_dir(self, tmp):
-        """This package's installed directory.
-
-        Defaults to the `plasma/<kind>/<id>` path; a suite whose package
-        installs elsewhere overrides it alongside `installed_parent`.
-        """
-        return installed_package(tmp, self.KIND, self.PACKAGE_ID)
 
     def test_make_install_copies_package_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:

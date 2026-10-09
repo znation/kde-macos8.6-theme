@@ -12,42 +12,23 @@ import shutil
 import tempfile
 
 from theme_install import (
+    InstalledPackageLocation,
     install,
-    installed_package,
-    installed_plasma_dir,
     old_sibling,
     shadow_command_env,
     staging_sibling,
 )
 
 
-class FailedInstallPreservesPackage:
+class FailedInstallPreservesPackage(InstalledPackageLocation):
     """Mixin: a failed `make install` must leave the previous package installed.
 
-    Subclasses set `KIND` (`look-and-feel` or `desktoptheme`) and `PACKAGE_ID`,
-    and override `reinstall_failure_env` for the copy-failure case. It is a
-    plain mixin, not a `TestCase`, so importing it into a test module does not
-    collect the unconfigured base.
+    `InstalledPackageLocation` supplies `installed_parent` and
+    `installed_package_dir` from `KIND`/`PACKAGE_ID`; subclasses override
+    `reinstall_failure_env` for the copy-failure case. It is a plain mixin, not
+    a `TestCase`, so importing it into a test module does not collect the
+    unconfigured base.
     """
-
-    KIND = None
-    PACKAGE_ID = None
-
-    def installed_parent(self, tmp):
-        """Directory holding this family's packages.
-
-        Defaults to the `plasma/<kind>` family; a suite whose package installs
-        elsewhere (an Aurorae theme under `aurorae/themes`) overrides it.
-        """
-        return installed_plasma_dir(tmp, self.KIND)
-
-    def installed_package_dir(self, tmp):
-        """This package's installed directory.
-
-        Defaults to the `plasma/<kind>/<id>` path; a suite whose package
-        installs elsewhere overrides it alongside `installed_parent`.
-        """
-        return installed_package(tmp, self.KIND, self.PACKAGE_ID)
 
     def _staging_path(self, tmp):
         return staging_sibling(

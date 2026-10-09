@@ -86,6 +86,37 @@ def installed_package(destdir, kind, package_id):
     return os.path.join(installed_plasma_dir(destdir, kind), package_id)
 
 
+class InstalledPackageLocation:
+    """Mixin: resolve a suite's installed package directory from its identity.
+
+    A suite sets `KIND` (`look-and-feel` or `desktoptheme`) and `PACKAGE_ID`;
+    `installed_parent` and `installed_package_dir` map them onto the paths
+    `make install` writes. A suite whose package installs elsewhere (an Aurorae
+    theme under `aurorae/themes`) overrides both methods together. It is a
+    plain mixin, not a `TestCase`, so importing it does not collect an
+    unconfigured base.
+    """
+
+    KIND = None
+    PACKAGE_ID = None
+
+    def installed_parent(self, tmp):
+        """Directory holding this family's packages.
+
+        Defaults to the `plasma/<kind>` family; a suite whose package installs
+        elsewhere (an Aurorae theme under `aurorae/themes`) overrides it.
+        """
+        return installed_plasma_dir(tmp, self.KIND)
+
+    def installed_package_dir(self, tmp):
+        """This package's installed directory.
+
+        Defaults to the `plasma/<kind>/<id>` path; a suite whose package
+        installs elsewhere overrides it alongside `installed_parent`.
+        """
+        return installed_package(tmp, self.KIND, self.PACKAGE_ID)
+
+
 def installed_aurorae_dir(destdir):
     """Directory `make install` writes the Aurorae window decoration into.
 
