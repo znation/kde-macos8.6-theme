@@ -2,9 +2,9 @@
 
 Both packages ship a `metadata.json` with the same shape, so the checks that do
 not depend on the package kind — a plugin Version, a non-blank Description and
-License — and the ones that differ only by constants — the package structure,
-the plugin Id/Name and the Plasma API key/value — live here once. Each suite
-subclasses `PackageMetadata` and sets the class attributes.
+License, and a named Author — and the ones that differ only by constants — the
+package structure, the plugin Id/Name and the Plasma API key/value — live here
+once. Each suite subclasses `PackageMetadata` and sets the class attributes.
 """
 
 import json
@@ -169,6 +169,29 @@ class PackageMetadata:
 
     def test_plasma_api_version(self):
         self._top_level(self.PLASMA_API_KEY, self.PLASMA_API_VERSION)
+
+    def test_plugin_authors_are_named(self):
+        # Both metadata.json files declare KPlugin.Authors as a non-empty list
+        # of objects, and KDE's About dialog reads each entry's Name. Nothing
+        # else pins that shape: a metadata.json that drops Authors, replaces
+        # the list with a string, empties it, or blanks an entry's Name still
+        # installs, so pin it here with the rest of the KPlugin contract.
+        authors = self._plugin_field("Authors")
+        self.assertIsInstance(
+            authors, list, f"{self.METADATA_PATH}: KPlugin.Authors"
+        )
+        self.assertTrue(
+            authors,
+            f"{self.METADATA_PATH}: KPlugin.Authors must not be empty",
+        )
+        for index, author in enumerate(authors):
+            where = f"{self.METADATA_PATH}: KPlugin.Authors[{index}]"
+            self.assertIsInstance(author, dict, where)
+            name = author.get("Name")
+            self.assertIsInstance(name, str, f"{where}.Name")
+            self.assertTrue(
+                name.strip(), f"{where}.Name must not be blank"
+            )
 
     def test_plugin_description_and_license_are_non_empty(self):
         # Description is shown in System Settings and License is the package's

@@ -27,6 +27,7 @@ def _metadata():
             "Description": "An example package",
             "License": "GPL-2.0-or-later",
             "Version": "0.1.0",
+            "Authors": [{"Name": "kde-macos8.6-theme"}],
         },
         "X-Plasma-API": "5.0",
         "Keywords": "Desktop;Workspace;Appearance;",
@@ -167,6 +168,7 @@ class TestPackageMetadata(unittest.TestCase):
             "test_package_structure",
             "test_plugin_id_and_name",
             "test_plugin_version",
+            "test_plugin_authors_are_named",
             "test_plasma_api_version",
             "test_plugin_description_and_license_are_non_empty",
         ):
@@ -240,6 +242,7 @@ class TestPackageMetadata(unittest.TestCase):
                 for method in (
                     "test_plugin_id_and_name",
                     "test_plugin_version",
+                    "test_plugin_authors_are_named",
                     "test_plugin_description_and_license_are_non_empty",
                 ):
                     with self.subTest(method=method):
@@ -322,6 +325,54 @@ class TestPackageMetadata(unittest.TestCase):
                             metadata,
                         ).test_plugin_description_and_license_are_non_empty()
                     self.assertIn("metadata.json", str(caught.exception))
+
+    def test_plugin_authors_guard(self):
+        # Both packages ship Authors as a list of named objects, but nothing
+        # pinned that shape. A metadata.json that drops the field used to be
+        # ignored entirely; one whose Authors is not a list, is empty, holds a
+        # non-object entry, or blanks an entry's Name installs cleanly too, so
+        # pin each rejection with the file and the offending field.
+        metadata = _metadata()
+        del metadata["KPlugin"]["Authors"]
+        with self.assertRaises(AssertionError) as caught:
+            _case(
+                "test_plugin_authors_are_named", metadata
+            ).test_plugin_authors_are_named()
+        message = str(caught.exception)
+        self.assertIn("metadata.json", message)
+        self.assertIn("Authors", message)
+
+        for value in (None, "text", 7):
+            with self.subTest(authors=value):
+                metadata = _metadata()
+                metadata["KPlugin"]["Authors"] = value
+                with self.assertRaises(AssertionError) as caught:
+                    _case(
+                        "test_plugin_authors_are_named", metadata
+                    ).test_plugin_authors_are_named()
+                message = str(caught.exception)
+                self.assertIn("metadata.json", message)
+                self.assertIn("Authors", message)
+
+        metadata = _metadata()
+        metadata["KPlugin"]["Authors"] = []
+        with self.assertRaises(AssertionError) as caught:
+            _case(
+                "test_plugin_authors_are_named", metadata
+            ).test_plugin_authors_are_named()
+        self.assertIn("Authors", str(caught.exception))
+
+        for author in ("text", 7, {"Name": ""}, {"Name": "   "}, {"Name": 7}, {}):
+            with self.subTest(author=author):
+                metadata = _metadata()
+                metadata["KPlugin"]["Authors"] = [author]
+                with self.assertRaises(AssertionError) as caught:
+                    _case(
+                        "test_plugin_authors_are_named", metadata
+                    ).test_plugin_authors_are_named()
+                message = str(caught.exception)
+                self.assertIn("Authors[0]", message)
+                self.assertIn("metadata.json", message)
 
 
 if __name__ == "__main__":
