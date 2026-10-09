@@ -212,40 +212,40 @@ class TestPngWithIdat(unittest.TestCase):
 
 
 class TestRgbImage(unittest.TestCase):
+    def _rgb_error(self, value):
+        """Return the ``ValueError`` message ``rgb_image`` raises for *value*.
+
+        Every guard in this case drives a 1x1 image whose pixel callback
+        returns *value*, so this pins that call shape once.
+        """
+        return _value_error(self, rgb_image, 1, 1, lambda x, y: value)
+
     def test_rejects_a_non_triple_pixel_result(self):
         # bytes() accepts a plain int as a length, so a callback returning 3
         # used to build three zero bytes silently -- a wrong image that every
         # later assertion would read as valid. It must name the coordinate.
         for value in (3, None):
             with self.subTest(value=value):
-                message = _value_error(
-                    self, rgb_image, 1, 1, lambda x, y: value
-                )
+                message = self._rgb_error(value)
                 self.assertIn("pixel(0, 0)", message)
                 self.assertIn("(r, g, b)", message)
 
     def test_rejects_wrong_channel_count(self):
         for value in ((1, 2), (1, 2, 3, 4)):
             with self.subTest(value=value):
-                message = _value_error(
-                    self, rgb_image, 1, 1, lambda x, y: value
-                )
+                message = self._rgb_error(value)
                 self.assertIn(f"{len(value)} channels", message)
                 self.assertIn("expected 3", message)
 
     def test_rejects_a_non_integer_channel(self):
-        message = _value_error(
-            self, rgb_image, 1, 1, lambda x, y: (1, "2", 3)
-        )
+        message = self._rgb_error((1, "2", 3))
         self.assertIn("channel g", message)
         self.assertIn("not an integer", message)
 
     def test_rejects_an_out_of_range_channel(self):
         for value in ((1, 2, 256), (-1, 2, 3)):
             with self.subTest(value=value):
-                message = _value_error(
-                    self, rgb_image, 1, 1, lambda x, y: value
-                )
+                message = self._rgb_error(value)
                 self.assertIn("outside 0-255", message)
 
     def test_accepts_a_valid_triple(self):
