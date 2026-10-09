@@ -95,6 +95,18 @@ class TestAttributeValues(SvgBodyCase, unittest.TestCase):
         tree = self._tree('<rect id="center"/><g id="top"/>')
         self.assertEqual(attribute_values(tree, "stroke"), set())
 
+    def test_ignores_a_colour_declared_in_an_inline_style(self):
+        # attribute_values reads presentation attributes, not CSS: a colour
+        # buried in an inline `style` is invisible to it. The widget tests
+        # depend on that -- listitem's sentinel hints and transparent
+        # placeholders live in `style`, and its `fill` set is exactly the
+        # selection colour -- so parsing `style` here would change what they
+        # assert.
+        tree = self._tree(
+            '<rect style="fill:#123456"/><rect fill="#000000"/>'
+        )
+        self.assertEqual(attribute_values(tree, "fill"), {"#000000"})
+
 
 class TestChildrenNamed(unittest.TestCase):
     def _first_child(self, body):

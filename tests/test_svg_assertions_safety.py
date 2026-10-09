@@ -45,8 +45,9 @@ class TestNoScriptElements(unittest.TestCase):
 
 class TestNoStyleElements(unittest.TestCase):
     def test_passes_a_tree_without_a_style_element(self):
-        # An inline `style` attribute is how every shipped SVG states its
-        # colours; only a `<style>` element is rejected.
+        # The shipped SVGs state their real colours in presentation `fill`
+        # attributes and use an inline `style` only for hint sentinels and
+        # transparent placeholders; only a `<style>` element is rejected.
         tree = _svg_tree('<rect id="center" style="fill:#ff6600"/>')
         assert_no_style_elements(self, tree)
 

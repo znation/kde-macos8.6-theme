@@ -145,8 +145,8 @@ def _local_attribute_name(name):
 def assert_no_style_elements(case, tree):
     """Assert *tree* holds no ``<style>`` element.
 
-    The widget tests read every colour from an element's ``fill``/``stroke``
-    or its inline ``style`` attribute (``attribute_values``), and the slice
+    The widget tests read an element's colours from its presentation
+    ``fill``/``stroke`` attributes (``attribute_values``), and the slice
     renderer composites only the rects and groups it models. A ``<style>``
     element moves the artwork's colours into CSS selectors neither the pixel
     tests nor the palette checks can see, so a widget whose rendered colour
