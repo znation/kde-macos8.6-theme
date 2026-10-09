@@ -136,11 +136,12 @@ FLOCK_CONFLICT_EXIT := 75
 # value above 2**63 - 1 otherwise reaches flock and fails with its own
 # "invalid timeout value" or "cannot set up timer" message that never names
 # the variable -- after `install` has already created the data home. Refuse
-# first with a diagnostic that names FLOCK_TIMEOUT. A value with more than 19
-# digits is above the limit outright; a 19-digit one is compared as text,
-# where equal-length decimal strings sort by value, so the guard never asks
-# the shell to do big-integer arithmetic. $(1) names the target.
-require_flock_timeout = set -- "$(FLOCK_TIMEOUT)"; case "$$1" in ''|*[!0-9]*) echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds: '$$1'" >&2; exit 2;; esac; if [ "$${\#1}" -gt 19 ] || { [ "$${\#1}" -eq 19 ] && [ "$$1" \> 9223372036854775807 ]; }; then echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds at most 9223372036854775807 (flock's 64-bit timer limit): '$$1'" >&2; exit 2; fi
+# first with a diagnostic that names FLOCK_TIMEOUT. Leading zeros are stripped
+# before the length check, so a valid value written with them is not refused as
+# too large. The remaining digits are compared by length, then (at 19 digits)
+# as text, where equal-length decimal strings sort by value, so the guard never
+# asks the shell to do big-integer arithmetic. $(1) names the target.
+require_flock_timeout = set -- "$(FLOCK_TIMEOUT)"; case "$$1" in ''|*[!0-9]*) echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds: '$$1'" >&2; exit 2;; esac; digits="$$1"; while [ "$${\#digits}" -gt 1 ] && [ "$${digits\#0}" != "$$digits" ]; do digits="$${digits\#0}"; done; if [ "$${\#digits}" -gt 19 ] || { [ "$${\#digits}" -eq 19 ] && [ "$$digits" \> 9223372036854775807 ]; }; then echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds at most 9223372036854775807 (flock's 64-bit timer limit): '$$1'" >&2; exit 2; fi
 
 # Run the internal target $(1) under the data-home lock, naming $(2) when the
 # bounded wait expires instead of letting the command's own failure be blamed.

@@ -130,6 +130,10 @@ class TestFlockTimeout(unittest.TestCase):
     message that does not name the variable -- after `install` has already
     created the data home. The guard must name FLOCK_TIMEOUT and leave the
     tree untouched. `install` and `uninstall` share the guard.
+
+    The guard must also accept every value flock accepts: leading zeros are
+    characters, not magnitude, so a small value written with them must not be
+    refused as too large.
     """
 
     def _assert_refused(self, value, extra=None):
@@ -173,6 +177,19 @@ class TestFlockTimeout(unittest.TestCase):
             "9223372036854775808",
             "at most 9223372036854775807",
         )
+
+    def test_leading_zeros_do_not_make_a_small_value_look_too_large(self):
+        # A valid value written with leading zeros ("000...0001") has more
+        # than 19 characters but a value of 1. The length check must strip the
+        # zeros before calling it too large; flock parses the value as 1
+        # second, so the install must proceed and install the scheme.
+        with tempfile.TemporaryDirectory() as tmp:
+            result = theme_install.install(
+                tmp, extra=["FLOCK_TIMEOUT=00000000000000000001"]
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            scheme = theme_install.installed_color_scheme(tmp)
+            self.assertTrue(os.path.isfile(scheme), result.stderr)
 
 
 class TestCheckPattern(unittest.TestCase):
