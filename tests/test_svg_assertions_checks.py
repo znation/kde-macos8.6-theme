@@ -127,6 +127,21 @@ def _assert_rejects(guard, *args, **kwargs):
         guard(case, *args, **kwargs)
 
 
+def _rejection_message(guard, *args, **kwargs):
+    """Return the AssertionError message *guard* raises for a broken input.
+
+    `_assert_rejects` proves a guard rejects an input; a test that also pins
+    what the diagnostic names needs the message. Like that helper this gives
+    the guard a ``_NoSubTest`` case, so a guard that reports through
+    ``case.subTest`` still raises. *args* and *kwargs* are the guard's own
+    parameters after ``case``.
+    """
+    case = _NoSubTest()
+    return error_message(
+        case, AssertionError, guard, case, *args, **kwargs
+    )
+
+
 class TestStructuralGuards(unittest.TestCase):
     def test_tiles_placed_by_margins_passes_a_correct_layout(self):
         assert_tiles_placed_by_margins(self, _nine_slice_tree(), [""])
@@ -279,9 +294,7 @@ class TestNoStyleElements(unittest.TestCase):
         )
         self.assertIn(
             "style",
-            error_message(
-                self, AssertionError, assert_no_style_elements, self, tree
-            ),
+            _rejection_message(assert_no_style_elements, tree),
         )
 
     def test_catches_a_style_element_nested_below_the_root(self):
@@ -307,26 +320,14 @@ class TestNoExternalReferences(unittest.TestCase):
         tree = _svg_tree('<image href="panel.png"/>')
         self.assertIn(
             "image",
-            error_message(
-                self,
-                AssertionError,
-                assert_no_external_references,
-                self,
-                tree,
-            ),
+            _rejection_message(assert_no_external_references, tree),
         )
 
     def test_catches_a_file_href_naming_the_value(self):
         tree = _svg_tree('<use href="other.svg#center"/>')
         self.assertIn(
             "other.svg#center",
-            error_message(
-                self,
-                AssertionError,
-                assert_no_external_references,
-                self,
-                tree,
-            ),
+            _rejection_message(assert_no_external_references, tree),
         )
 
     def test_catches_an_xlink_href(self):
@@ -339,13 +340,7 @@ class TestNoExternalReferences(unittest.TestCase):
         )
         self.assertIn(
             "other.svg#center",
-            error_message(
-                self,
-                AssertionError,
-                assert_no_external_references,
-                self,
-                tree,
-            ),
+            _rejection_message(assert_no_external_references, tree),
         )
 
     def test_catches_a_data_uri_href(self):
@@ -354,13 +349,7 @@ class TestNoExternalReferences(unittest.TestCase):
         tree = _svg_tree('<use href="data:image/png;base64,AAAA"/>')
         self.assertIn(
             "data:",
-            error_message(
-                self,
-                AssertionError,
-                assert_no_external_references,
-                self,
-                tree,
-            ),
+            _rejection_message(assert_no_external_references, tree),
         )
 
     def test_passes_an_in_file_url_reference(self):
@@ -382,13 +371,7 @@ class TestNoExternalReferences(unittest.TestCase):
         )
         self.assertIn(
             "other.svg#gradient",
-            error_message(
-                self,
-                AssertionError,
-                assert_no_external_references,
-                self,
-                tree,
-            ),
+            _rejection_message(assert_no_external_references, tree),
         )
 
     def test_catches_an_external_url_in_an_inline_style(self):
@@ -397,13 +380,7 @@ class TestNoExternalReferences(unittest.TestCase):
         )
         self.assertIn(
             "other.svg#blur",
-            error_message(
-                self,
-                AssertionError,
-                assert_no_external_references,
-                self,
-                tree,
-            ),
+            _rejection_message(assert_no_external_references, tree),
         )
 
     def test_catches_a_data_uri_url(self):
@@ -412,13 +389,7 @@ class TestNoExternalReferences(unittest.TestCase):
         )
         self.assertIn(
             "data:",
-            error_message(
-                self,
-                AssertionError,
-                assert_no_external_references,
-                self,
-                tree,
-            ),
+            _rejection_message(assert_no_external_references, tree),
         )
 
 
@@ -437,9 +408,7 @@ class TestUniqueIds(unittest.TestCase):
         tree = _svg_tree('<rect id="center"/><rect id="center"/>')
         self.assertIn(
             "center",
-            error_message(
-                self, AssertionError, assert_unique_ids, self, tree
-            ),
+            _rejection_message(assert_unique_ids, tree),
         )
 
     def test_catches_a_duplicate_id_nested_below_the_root(self):
@@ -449,9 +418,7 @@ class TestUniqueIds(unittest.TestCase):
         )
         self.assertIn(
             "center",
-            error_message(
-                self, AssertionError, assert_unique_ids, self, tree
-            ),
+            _rejection_message(assert_unique_ids, tree),
         )
 
 
