@@ -16,7 +16,98 @@ screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveor
 and there is no icon, cursor, or Qt widget-style theme either. The widget sequence should not be
 treated as the whole of the prompt until these surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum menu / popup background (`widgets/background.svg`) for the desktop theme
+
+**Planned 2026-10-08 by plan.** The follow-up the done dialog/background plan left
+unplanned. Independent of every done widget plan: it adds one artwork file to the
+existing `org.macos8.desktop` desktop-theme package under `widgets/`, one path constant
+in `tests/desktoptheme_paths.py`, a new `tests/test_desktoptheme_background.py` module
+with the `TestBackground` class, one `TestInstall.INSTALLED_FILES` tuple entry, and the
+README inventory line. It does not touch any other `widgets/*.svg`, `dialogs/background.svg`,
+`metadata.json`, or the color scheme.
+
+**Goal.** Ship `widgets/background.svg` so Plasma's menu-like surfaces —
+`PlasmaComponents.Menu` (context menus and combo-box dropdowns), `PlasmaComponents.Drawer`,
+`PlasmaComponents.Popup`, and planar applet containers — draw the flat white Platinum menu
+body with a 1px black outline and square corners instead of inheriting Breeze's translucent
+rounded `background.svgz`.
+
+**Grounding.**
+- Consumers verified in the installed Plasma 6.3.6 tree, every one `imagePath:
+  "widgets/background"` with no prefix:
+  - `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/Menu.qml` — the
+    `background` of `T.Menu`; its `topPadding`/`leftPadding` come from `background.margins`.
+  - `.../components/Drawer.qml`, `.../components/Popup.qml`, `.../components/Dialog.qml`.
+  - `.../extras/private/BackgroundMetrics.qml` returns `widgets/background` when
+    `Plasmoid.formFactor === PlasmaCore.Types.Planar`.
+  - `.../private/containmentlayoutmanager/BasicAppletContainer.qml` uses it with
+    `prefix: blurEnabled ? "blurred" : ""`, where `blurEnabled` is true only when the SVG
+    defines a `blurred` element prefix (`hasElementPrefix("blurred")`); omitting that
+    prefix keeps the effective prefix `""`.
+- `PlasmaComponents.Dialog` is unused in the installed tree (a grep over `/usr/share/plasma`
+  and `/usr/lib/x86_64-linux-gnu/qt6/qml` finds no consumer), and the PlasmaQuick dialog body
+  resolves to the landed `dialogs/background` (the `dialogs/background` literal is in
+  `libPlasmaQuick`), so no dialog surface takes the white body.
+- Mac OS 8.6 menus are a flat white face with a 1px black outline and square corners; white
+  is `[Colors:View] BackgroundNormal=255,255,255` in `theme/color-schemes/MacOS8.colors`.
+  Palette-derived: this plan adds no `TestReferenceAnchors` entry.
+
+**Approach.**
+1. Add `theme/desktop-themes/org.macos8.desktop/widgets/background.svg`: one unprefixed
+   frame (prefix `""`) on a 16x16 nine-slice canvas, 3px border, 10x10 centre tile, square
+   corners.
+   - `center`: a 10x10 `#FFFFFF` rect.
+   - `top`/`bottom`/`left`/`right` edge groups: 3px of `#FFFFFF` with a 1px `#000000` rule
+     on the outer edge (top `y=0`, bottom `y=2`, left `x=0`, right `x=2`).
+   - four corner groups: the `flat_face_corners("#FFFFFF")` pattern (black on the two outer
+     edges, white elsewhere).
+   - hints: `hint-tile-center` at (3,3,10,10); `hint-{top,bottom,left,right}-margin` 3px
+     each; and zero-size `hint-{top,bottom,left,right}-inset` rects exactly as
+     `widgets/panel-background.svg` declares them, so the inset hints are present and
+     defined.
+2. Add `BACKGROUND_SVG = os.path.join(PACKAGE, "widgets", "background.svg")` to
+   `tests/desktoptheme_paths.py`.
+3. Add `tests/test_desktoptheme_background.py` with `TestBackground`, modelled on
+   `tests/test_desktoptheme_panel.py` and `tests/test_desktoptheme_dialog.py`:
+   - `test_background_slice_ids`: `assert_slice_ids_present(self, tree, [""])`.
+   - `test_hint_ids_present`: every `HINT_IDS` name is present.
+   - `test_background_hint_geometry`: `rect_geometry(tree)` equals the exact dict of the
+     tile-centre, four margin and four inset rects.
+   - `test_background_tiles_placed_by_margins`: `assert_tiles_placed_by_margins(self, tree,
+     [""])`.
+   - `test_background_tiles_stay_within_their_margins`:
+     `assert_slices_stay_within_their_tiles(self, tree, [""])`.
+   - `test_background_pixels`: `assert_center_tile_is(self, slices, "center", "#FFFFFF",
+     size=10)`; `assert_edge_bevels(self, slices, "", *face_edge_bands("#FFFFFF",
+     "flat"), size=10)`; `assert_corner_pixels` for each entry of
+     `flat_face_corners("#FFFFFF")`.
+   - `test_background_colours`: `attribute_values(tree, "fill")` equals
+     `{"#000000", "#FFFFFF"}`.
+   - `test_no_script_elements`.
+4. Add `os.path.join("widgets", "background.svg")` to `TestInstall.INSTALLED_FILES` in
+   `tests/test_desktoptheme.py`.
+5. Name `widgets/background.svg` in README.md's status block and Installing inventory.
+
+**Acceptance criteria.**
+- The new module's tests pass and `make check` exits 0.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/background.svg`
+  byte-identical to source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a right-click context menu, an application
+  menu, and a combo-box dropdown draw a flat white square body with a 1px black outline; a
+  planar (desktop) applet container draws the same; applet popups and dialogs keep the
+  `#DDDDDD` `dialogs/background.svg` body; no other widget changes.
+
+**Known deviations (recorded, not fixed here).**
+- No `shadow-*` element set: the default theme's `widgets/background.svg` carries one, but
+  the installed tree reads the `shadow` prefix only against `widgets/button`
+  (`ButtonShadow.qml`) and `widgets/tooltip` (`ToolTip.qml`), so this file makes no claim
+  about a themed drop shadow.
+- No `blurred`/`blurred-mask` element prefixes: `BasicAppletContainer` enables blur only
+  when `blurred` exists, so omitting it keeps planar applet containers opaque (prefix
+  `""`), matching the flat Platinum look.
+
+**Docs.** README.md's status block and Installing inventory name `widgets/background.svg`.
 
 ## Done
 
