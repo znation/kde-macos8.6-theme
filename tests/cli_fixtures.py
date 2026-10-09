@@ -12,10 +12,13 @@ per CLI by a ``test_script_entry_point``.
 import contextlib
 import io
 import subprocess
+import sys
 import unittest
 from pathlib import Path
 
 from process_assertions import assert_succeeded
+from repo_root import ROOT
+from theme_install import run_captured
 
 
 def run_main(main, program, args):
@@ -58,6 +61,18 @@ class CliTestCase(unittest.TestCase):
 
     def _run(self, *args: str) -> subprocess.CompletedProcess:
         return run_main(self.MAIN, self.PROGRAM, args)
+
+    def _run_script(self, *args: str) -> subprocess.CompletedProcess:
+        """Spawn ``python3 tools/<PROGRAM>.py`` with *args* and capture its output.
+
+        Every other assertion calls ``MAIN`` in-process, which covers the
+        parsing, output and statuses; only a real subprocess covers the
+        script's ``if __name__ == "__main__": sys.exit(main())`` wrapper and
+        its direct-run import path. Each CLI covers that once, from its
+        ``test_script_entry_point``.
+        """
+        script = ROOT / "tools" / f"{self.PROGRAM}.py"
+        return run_captured([sys.executable, str(script), *args])
 
     def _write(self, directory: Path, name: str, data: bytes) -> str:
         path = directory / name

@@ -6,12 +6,11 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-import repo_root
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import sample  # noqa: E402
 from cli_fixtures import CliTestCase  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
@@ -21,9 +20,6 @@ from png_fixtures import (  # noqa: E402
     rgb_image,
     solid_rgb,
 )
-from theme_install import run_captured  # noqa: E402
-
-TOOL = repo_root.ROOT / "tools" / "sample.py"
 
 
 class TestSampleCli(CliTestCase):
@@ -45,9 +41,7 @@ class TestSampleCli(CliTestCase):
         _, data = solid_rgb(1, 1)
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write(Path(tmp), "reference.png", data)
-            result = run_captured(
-                [sys.executable, str(TOOL), path, "0", "0"],
-            )
+            result = self._run_script(path, "0", "0")
         self._assert_success(result)
         self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)
 

@@ -7,12 +7,11 @@ Run with the project's check harness (stdlib unittest):
 from __future__ import annotations
 
 import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-import repo_root
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import fidelity  # noqa: E402
 from cli_fixtures import CliTestCase  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
@@ -25,9 +24,6 @@ from png_fixtures import (  # noqa: E402
     rgb_image,
     solid_rgb,
 )
-from theme_install import run_captured  # noqa: E402
-
-TOOL = repo_root.ROOT / "tools" / "fidelity.py"
 
 
 class TestCli(CliTestCase):
@@ -115,9 +111,7 @@ class TestCli(CliTestCase):
         _, reference = solid_rgb(1, 1)
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write(Path(tmp), "reference.png", reference)
-            result = run_captured(
-                [sys.executable, str(TOOL), path, path],
-            )
+            result = self._run_script(path, path)
         self._assert_pass(result)
 
     def test_pass_and_fail(self):
