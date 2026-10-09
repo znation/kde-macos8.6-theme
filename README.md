@@ -109,9 +109,21 @@ pixel (5, 5): 99,99,156  #63639C
 ```
 
 The `99,99,156` triple is copied into a `.colors` file; the `#63639C` literal is copied
-into an SVG or QML file. Coordinates are plain ASCII integers; a coordinate outside the
-image, a missing file, or an unreadable PNG exits 2 with a diagnostic naming the
-coordinate, image size or path.
+into an SVG or QML file. Pass `--width W` and/or `--height H` (default 1) to sample a
+rectangle anchored at `(X, Y)`, printed row by row, so a whole title-bar column is one
+command:
+
+```
+$ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5 --height 2
+image: macos8.6-screenshots/boot2_betawiki.png  240x180
+region (5, 5) 1x2:
+(5, 5): 99,99,156  #63639C
+(5, 6): 99,99,156  #63639C
+```
+
+Coordinates are plain ASCII integers and `--width`/`--height` must be at least 1; a
+coordinate or region outside the image, a missing file, or an unreadable PNG exits 2
+with a diagnostic naming the coordinate, region, image size or path.
 
 ## Fidelity checking
 

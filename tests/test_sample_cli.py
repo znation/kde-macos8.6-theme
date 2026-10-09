@@ -75,6 +75,74 @@ class TestSampleCli(CliTestCase):
                         f"pixel ({x}, {y}): {expected}", result.stdout
                     )
 
+    def test_width_samples_a_row(self):
+        # --width extends the sample to the right of (x, y).
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._image(Path(tmp))
+            result = self._run(path, "1", "1", "--width", "3")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("region (1, 1) 3x1:", result.stdout)
+        for line in (
+            "(1, 1): 1,1,2  #010102",
+            "(2, 1): 2,1,3  #020103",
+            "(3, 1): 3,1,4  #030104",
+        ):
+            self.assertIn(line, result.stdout)
+
+    def test_height_samples_a_column(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._image(Path(tmp))
+            result = self._run(path, "0", "0", "--height", "3")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("region (0, 0) 1x3:", result.stdout)
+        for line in (
+            "(0, 0): 0,0,0  #000000",
+            "(0, 1): 0,1,1  #000101",
+            "(0, 2): 0,2,2  #000202",
+        ):
+            self.assertIn(line, result.stdout)
+
+    def test_region_is_row_major(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._image(Path(tmp))
+            result = self._run(path, "1", "0", "--width", "2", "--height", "2")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("region (1, 0) 2x2:", result.stdout)
+        expected = [
+            "(1, 0): 1,0,1  #010001",
+            "(2, 0): 2,0,2  #020002",
+            "(1, 1): 1,1,2  #010102",
+            "(2, 1): 2,1,3  #020103",
+        ]
+        positions = [result.stdout.index(line) for line in expected]
+        self.assertEqual(positions, sorted(positions))
+
+    def test_zero_or_negative_extent_is_usage_error(self):
+        # --width/--height count pixels, so 0 and negative would name an empty
+        # or inverted region; both must be rejected with the option named.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._image(Path(tmp))
+            for option, value in (("--width", "0"), ("--height", "-1")):
+                with self.subTest(option=option):
+                    result = self._run(path, "0", "0", option, value)
+                    self.assertEqual(
+                        result.returncode, 2, result.stdout + result.stderr
+                    )
+                    self.assertIn(
+                        f"{option} must be at least 1", result.stderr
+                    )
+
+    def test_region_past_edge_is_error(self):
+        # The whole rectangle is validated before any pixel is printed, so an
+        # out-of-bounds region names the region and the image size once.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._image(Path(tmp))
+            result = self._run(path, "2", "1", "--width", "3")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn(
+            "region (2, 1) 3x1 is outside the 4x3 image", result.stderr
+        )
+
     def test_coordinate_past_edge_is_error(self):
         # x == width and y == height are the first coordinates outside the
         # image; pixel_at must name both the coordinate and the image size.
