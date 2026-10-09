@@ -91,6 +91,11 @@ _ALIAS_HINTS = (
     '<rect id="base-hint-right-margin" x="8" y="4" width="4" height="4"/>'
 )
 
+# The alias state declares that it reuses the base state's hints, so the alias
+# tiles are placed by `base-hint-*-margin` rather than their own.
+_ALIAS_PREFIXES = ["base", "alias"]
+_ALIAS_HINT_MAP = {"alias": "base"}
+
 
 def _aliased_nine_slice_tree(alias_origins=None):
     """Build a nine-slice tree whose alias state reuses the base's hints.
@@ -148,8 +153,8 @@ class TestStructuralGuards(unittest.TestCase):
         assert_tiles_placed_by_margins(
             self,
             _aliased_nine_slice_tree(),
-            ["base", "alias"],
-            {"alias": "base"},
+            _ALIAS_PREFIXES,
+            _ALIAS_HINT_MAP,
         )
 
     def test_tiles_placed_by_margins_catches_a_misplaced_alias_tile(self):
@@ -158,16 +163,16 @@ class TestStructuralGuards(unittest.TestCase):
         assert_rejects(
             assert_tiles_placed_by_margins,
             _aliased_nine_slice_tree(alias_origins=origins),
-            ["base", "alias"],
-            {"alias": "base"},
+            _ALIAS_PREFIXES,
+            _ALIAS_HINT_MAP,
         )
 
     def test_slices_within_their_tiles_uses_the_alias_hints(self):
         assert_slices_stay_within_their_tiles(
             self,
             _aliased_nine_slice_tree(),
-            ["base", "alias"],
-            {"alias": "base"},
+            _ALIAS_PREFIXES,
+            _ALIAS_HINT_MAP,
         )
 
     def test_hint_geometry_passes_a_correct_layout(self):
@@ -258,14 +263,14 @@ class TestSliceIdsPresent(unittest.TestCase):
         assert_slice_ids_present(
             self,
             _aliased_nine_slice_tree(),
-            ["base", "alias"],
-            {"alias": "base"},
+            _ALIAS_PREFIXES,
+            _ALIAS_HINT_MAP,
         )
 
     def test_requires_the_alias_hints_when_no_alias_is_declared(self):
         with self.assertRaises(AssertionError):
             assert_slice_ids_present(
-                self, _aliased_nine_slice_tree(), ["base", "alias"]
+                self, _aliased_nine_slice_tree(), _ALIAS_PREFIXES
             )
 
     def test_catches_a_missing_id_in_a_later_prefix(self):
