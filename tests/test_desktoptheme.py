@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -43,7 +42,7 @@ from svg_assertions import (
     assert_root_canvas,
     assert_unique_ids,
 )
-from theme_install import install, run_captured
+from theme_install import installed_destdir, run_captured
 
 
 # configparser reads the KDE `[plasmarc][Theme]` header greedily, so the
@@ -167,9 +166,7 @@ class TestInstall(
 )
 class TestApplyDesktopTheme(unittest.TestCase):
     def test_apply_lists_and_selects_the_theme(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            assert_succeeded(self, installed)
+        with installed_destdir(self) as tmp:
             env = dict(
                 os.environ,
                 XDG_DATA_HOME=os.path.join(tmp, "share"),

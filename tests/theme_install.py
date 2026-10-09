@@ -6,9 +6,12 @@ throwaway `DESTDIR` and inspect the result there. Child processes go through
 `process_runner`, which applies the suite's timeout and process-group cleanup.
 """
 
+import contextlib
 import os
+import tempfile
 
 import process_runner
+from process_assertions import assert_succeeded
 from repo_root import ROOT
 
 # The data home inside each test's throwaway DESTDIR.
@@ -64,6 +67,22 @@ def uninstall(destdir, extra=(), env=None):
     `extra` and `env` are as for `install`.
     """
     return _run("uninstall", destdir, extra, env)
+
+
+@contextlib.contextmanager
+def installed_destdir(case, **kwargs):
+    """Yield a fresh temporary DESTDIR with `make install` already succeeded.
+
+    Creates a `tempfile.TemporaryDirectory`, runs `install` into it (forwarding
+    *kwargs*), asserts the child exited 0 via `assert_succeeded`, and yields the
+    directory. The directory is removed when the context exits, so a test that
+    only needs the installed tree alive while it inspects it writes
+    ``with installed_destdir(self) as tmp:`` instead of repeating the
+    tempdir/install/assert scaffold.
+    """
+    with tempfile.TemporaryDirectory() as destdir:
+        assert_succeeded(case, install(destdir, **kwargs))
+        yield destdir
 
 
 def installed_plasma_dir(destdir, kind):

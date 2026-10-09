@@ -9,13 +9,13 @@ the package along with any staging/old leftovers. Each suite subclasses
 """
 
 import os
-import tempfile
 
 from process_assertions import assert_succeeded
 from theme_install import (
     InstalledPackageLocation,
     assert_files_identical,
     install,
+    installed_destdir,
     old_sibling,
     staging_sibling,
     uninstall,
@@ -37,9 +37,7 @@ class InstallLifecycleCases(InstalledPackageLocation):
     INSTALLED_FILES = ()
 
     def test_make_install_copies_package_byte_for_byte(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(tmp)
-            assert_succeeded(self, result)
+        with installed_destdir(self) as tmp:
             installed = self.installed_package_dir(tmp)
             for name in self.INSTALLED_FILES:
                 source = os.path.join(self.PACKAGE_DIR, name)
@@ -66,16 +64,12 @@ class InstallLifecycleCases(InstalledPackageLocation):
         self.assertEqual(shipped, set(self.INSTALLED_FILES))
 
     def test_make_install_is_repeatable(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            assert_succeeded(self, first)
+        with installed_destdir(self) as tmp:
             second = install(tmp)
             assert_succeeded(self, second)
 
     def test_make_uninstall_removes_the_installed_package(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            assert_succeeded(self, installed)
+        with installed_destdir(self) as tmp:
             parent = self.installed_parent(tmp)
             package = self.installed_package_dir(tmp)
             self.assertTrue(os.path.isdir(package), package)

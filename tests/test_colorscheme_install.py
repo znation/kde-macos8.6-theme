@@ -18,6 +18,7 @@ from theme_install import (
     install,
     installed_color_scheme,
     installed_color_scheme_dir,
+    installed_destdir,
     run_captured,
     shadow_command_env,
     staging_sibling,
@@ -44,9 +45,7 @@ def write_selected_scheme(tmp, scheme_id):
 
 class TestInstall(unittest.TestCase):
     def test_make_install_copies_scheme_byte_for_byte(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(tmp)
-            assert_succeeded(self, result)
+        with installed_destdir(self) as tmp:
             installed = installed_color_scheme(tmp)
             assert_files_identical(self, SCHEME, installed)
 
@@ -57,9 +56,7 @@ class TestInstall(unittest.TestCase):
         in, so a copy that fails or is interrupted leaves the working installed
         scheme intact.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            assert_succeeded(self, first)
+        with installed_destdir(self) as tmp:
             installed = installed_color_scheme(tmp)
             with open(installed, "rb") as handle:
                 good = handle.read()
@@ -139,9 +136,7 @@ class TestInstall(unittest.TestCase):
             )
 
     def test_make_uninstall_removes_only_the_scheme_it_installed(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            assert_succeeded(self, installed)
+        with installed_destdir(self) as tmp:
             schemes = installed_color_scheme_dir(tmp)
             other = os.path.join(schemes, "Other.colors")
             with open(other, "w", encoding="utf-8") as handle:
@@ -173,9 +168,7 @@ class TestInstall(unittest.TestCase):
         # user's kdeglobals; KDE then cannot resolve the id and falls back to
         # BreezeLight on every start. uninstall must warn and name the reset
         # command, without editing the user's config.
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            assert_succeeded(self, installed)
+        with installed_destdir(self) as tmp:
             config = write_selected_scheme(tmp, "MacOS8")
             kdeglobals = os.path.join(config, "kdeglobals")
             original = "[General]\nColorScheme=MacOS8\n"
@@ -195,9 +188,7 @@ class TestInstall(unittest.TestCase):
                 )
 
     def test_make_uninstall_does_not_warn_for_a_different_selection(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            assert_succeeded(self, installed)
+        with installed_destdir(self) as tmp:
             config = write_selected_scheme(tmp, "BreezeLight")
 
             removed = uninstall(

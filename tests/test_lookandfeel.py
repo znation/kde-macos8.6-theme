@@ -19,6 +19,7 @@ from kde_config import read as read_kde_config
 from theme_install import (
     ROOT,
     install,
+    installed_destdir,
     installed_package,
     shadow_command_env,
 )
@@ -264,9 +265,7 @@ class TestInstall(
 
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            assert_succeeded(self, first)
+        with installed_destdir(self) as tmp:
             stale = os.path.join(
                 installed_package(tmp, "look-and-feel", LNF_ID),
                 "contents", "removed.qml",

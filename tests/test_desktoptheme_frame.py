@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import tempfile
 import unittest
 
 from desktoptheme_paths import DTHEME_ID, FRAME_SVG
@@ -20,7 +19,12 @@ from svg_assertions import (
     render_slices,
     sunken_face_corners,
 )
-from theme_install import assert_files_identical, install, installed_package
+from theme_install import (
+    assert_files_identical,
+    install,
+    installed_destdir,
+    installed_package,
+)
 
 
 FRAME_PREFIXES = ("plain", "raised", "sunken")
@@ -102,9 +106,7 @@ class TestFrame(NineSliceCase, unittest.TestCase):
             assert_center_tile_is(self, slices, f"{prefix}-center", "#DDDDDD", size=6)
 
     def test_frame_installed(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(tmp)
-            assert_succeeded(self, result)
+        with installed_destdir(self) as tmp:
             target = os.path.join(
                 installed_package(tmp, "desktoptheme", DTHEME_ID),
                 "widgets", "frame.svg",
