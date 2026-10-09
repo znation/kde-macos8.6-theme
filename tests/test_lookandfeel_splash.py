@@ -344,6 +344,14 @@ class TestSplashQml(unittest.TestCase):
         self.assertIn("sourceSize.width: width", logo)
         self.assertIn("sourceSize.height: height", logo)
 
+    def test_logo_loads_asynchronously(self):
+        # The logo is a rasterized SVG; without `asynchronous: true` Qt decodes
+        # it on the UI thread while the splash is already on screen, stalling
+        # the first frame. The flag is the only part of the Image left
+        # unpinned, and dropping it would pass every geometry and colour test.
+        logo = _object_source(_read_qml(), "logo")
+        self.assertIn("asynchronous: true", logo)
+
     def test_progress_fill_follows_stage(self):
         # The fill width binds to the KDE splash `stage` (0..6), so the
         # reference's mostly-full bar is stage 5 of 6. Pin the binding, or a
@@ -407,6 +415,16 @@ class TestSplashQml(unittest.TestCase):
         self.assertIn("target: content", animator)
         self.assertIn("from: 0", animator)
         self.assertIn("to: 1", animator)
+
+    def test_intro_animation_uses_the_reference_timing(self):
+        # The fade chain above pins where the animation goes, but not how long
+        # it takes or how it eases. Dropping `duration` falls back to Qt's
+        # 250ms default and dropping `easing.type` to Linear, so the reveal
+        # would snap to its midpoint and run at a third of the authored speed
+        # while every other test still passed. Pin both literals together.
+        animator = _object_source(_read_qml(), "introAnimation")
+        self.assertIn("duration: 800", animator)
+        self.assertIn("easing.type: Easing.InOutQuad", animator)
 
     def test_content_is_the_centred_reference_grid(self):
         # Every child rect is positioned in the 240x180 reference grid, but the
