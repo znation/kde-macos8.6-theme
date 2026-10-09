@@ -513,3 +513,26 @@ class TestDecode(unittest.TestCase):
         for label, (broken, expected) in cases.items():
             with self.subTest(label=label):
                 self.assertIn(expected, self._decode_error(broken))
+
+
+class TestToRgbUnsupportedColorType(unittest.TestCase):
+    """``_to_rgb`` names a color type it has no expansion for.
+
+    ``decode_png`` rejects a color type outside ``_CHANNELS`` before calling
+    ``_to_rgb``, so the five types it handles are the only ones a real PNG can
+    present. The helper's final guard is the contract that keeps a future
+    ``_CHANNELS`` entry from silently decoding with the wrong expansion: adding
+    a color type there without a matching branch here must fail loudly, naming
+    the type. No PNG can drive that branch through ``decode_png``, so call the
+    helper directly with the color types the PNG spec does not define.
+    """
+
+    def test_unsupported_color_type_names_the_type(self):
+        for color_type in (1, 5, 7):
+            with self.subTest(color_type=color_type):
+                with self.assertRaises(png.PngError) as ctx:
+                    png._to_rgb(color_type, b"", None)
+                self.assertEqual(
+                    str(ctx.exception),
+                    f"unsupported PNG color type {color_type}",
+                )
