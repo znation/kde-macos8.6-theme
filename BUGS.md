@@ -37,6 +37,8 @@ last real bugfix landing) is the last time `## Open` held work bugfix would take
 not actionable (the bugfix loop already does), so a Refused-only `## Open` plus an empty
 `## Planned` reads as no backlog and the deferred roles resume.
 
+**Refused 2026-10-09 by bugfix: the scheduler is tumwater harness code outside this theme repo, so its backlog-open test cannot be changed from this worktree.**
+
 ### No automated Plasma render/capture step feeding the fidelity check (found 2026-10-07)
 
 **Symptom:** `tools/fidelity.py` can measure a candidate PNG against a reference, but nothing
