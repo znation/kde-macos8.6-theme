@@ -499,6 +499,28 @@ def face_edge_bands(face, bevel):
     )
 
 
+def face_corners(face, bevel):
+    """Return the four 3x3 corner slices of a *bevel* painted on *face*.
+
+    `assert_face_bevel` checks the corners its edges lead into, and its
+    self-test rebuilds a slice from the same table, so both read a bevel's
+    corner geometry here: the fixed `RAISED_FACE_CORNERS` (#DDDDDD) for a
+    raised face, and the *face*-derived `sunken_face_corners` and
+    `flat_face_corners` tables otherwise. *face* is the widget's face colour
+    and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``; an unknown
+    *bevel* raises ValueError naming it, matching `face_edge_bands`.
+    """
+    if bevel == "raised":
+        return RAISED_FACE_CORNERS
+    if bevel == "sunken":
+        return sunken_face_corners(face)
+    if bevel == "flat":
+        return flat_face_corners(face)
+    raise ValueError(
+        f"unknown bevel {bevel!r}; expected 'raised', 'sunken' or 'flat'"
+    )
+
+
 def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
     """Assert *prefix*'s nine-slice paints the *bevel* on *face*.
 
@@ -509,20 +531,16 @@ def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
     scroll-bar-thumb face, the #FFFFFF line-edit/menu face, the #EEEEEE
     scroll-bar trough), *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``,
     *prefix* names the state (``""`` for an unprefixed SVG), and *size* is the
-    centre and edge tile length. The raised corner table is the fixed
-    `RAISED_FACE_CORNERS` (#DDDDDD); the sunken and flat tables are derived
-    from *face*. *case* is the calling ``unittest.TestCase``.
+    centre and edge tile length. The corner table comes from `face_corners`,
+    so a raised face reads the fixed `RAISED_FACE_CORNERS` (#DDDDDD) and the
+    sunken and flat faces their *face*-derived tables. *case* is the calling
+    ``unittest.TestCase``.
     """
     sep = "-" if prefix else ""
     assert_center_tile_is(case, slices, f"{prefix}{sep}center", face, size)
     outward, mirrored = face_edge_bands(face, bevel)
     assert_edge_bevels(case, slices, prefix, outward, mirrored, size)
-    corners = {
-        "raised": RAISED_FACE_CORNERS,
-        "sunken": sunken_face_corners(face),
-        "flat": flat_face_corners(face),
-    }[bevel]
-    assert_face_corners(case, slices, prefix, corners)
+    assert_face_corners(case, slices, prefix, face_corners(face, bevel))
 
 
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")

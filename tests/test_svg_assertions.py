@@ -35,6 +35,7 @@ from svg_assertions import (
     children_named,
     circle_geometry,
     elements_by_id,
+    face_corners,
     face_edge_bands,
     groups_with_id,
     flat_face_corners,
@@ -468,6 +469,29 @@ class TestFaceEdgeBands(unittest.TestCase):
     def test_rejects_an_unknown_direction_naming_it(self):
         with self.assertRaises(ValueError) as caught:
             face_edge_bands("#DDDDDD", "bevelled")
+        self.assertIn("bevelled", str(caught.exception))
+
+
+class TestFaceCorners(unittest.TestCase):
+    def test_selects_the_table_for_each_bevel(self):
+        # `assert_face_bevel` and its `_face_slices` fixture both read the
+        # corner table through this dispatch, so a swapped branch would
+        # weaken both at once. Pin each bevel to its table, including a
+        # non-#DDDDDD face for the sunken and flat generators.
+        self.assertIs(face_corners("#DDDDDD", "raised"), RAISED_FACE_CORNERS)
+        self.assertEqual(
+            face_corners("#DDDDDD", "sunken"), sunken_face_corners("#DDDDDD")
+        )
+        self.assertEqual(
+            face_corners("#FFFFFF", "sunken"), sunken_face_corners("#FFFFFF")
+        )
+        self.assertEqual(
+            face_corners("#EEEEEE", "flat"), flat_face_corners("#EEEEEE")
+        )
+
+    def test_rejects_an_unknown_bevel_naming_it(self):
+        with self.assertRaises(ValueError) as caught:
+            face_corners("#DDDDDD", "bevelled")
         self.assertIn("bevelled", str(caught.exception))
 
 
@@ -1146,11 +1170,9 @@ def _bevel_slices(outward, mirrored, size, prefix=""):
 def _face_slices(face, bevel, size, prefix=""):
     """Build a nine-slice that `assert_face_bevel` accepts for *prefix*.
 
-    The edges come from `face_edge_bands` and the corners from the bevel's
-    exported table (`RAISED_FACE_CORNERS` for a raised face, else the
-    face-derived `sunken_face_corners`/`flat_face_corners`), so a failure here
-    means the helper's wiring changed, not the pinned corner table (which the
-    widget tests pin against artwork).
+    The edges come from `face_edge_bands` and the corners from
+    `face_corners`, so a failure here means the helper's wiring changed, not
+    the pinned corner table (which the widget tests pin against artwork).
     """
     sep = "-" if prefix else ""
     outward, mirrored = face_edge_bands(face, bevel)
@@ -1158,12 +1180,7 @@ def _face_slices(face, bevel, size, prefix=""):
     slices[f"{prefix}{sep}center"] = pixel_map(
         (face,) * (size * size), size, size
     )
-    corners = {
-        "raised": RAISED_FACE_CORNERS,
-        "sunken": sunken_face_corners(face),
-        "flat": flat_face_corners(face),
-    }[bevel]
-    for name, colours in corners.items():
+    for name, colours in face_corners(face, bevel).items():
         slices[f"{prefix}{sep}{name}"] = pixel_map(colours, 3, 3)
     return slices
 
