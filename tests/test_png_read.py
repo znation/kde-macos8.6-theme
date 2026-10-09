@@ -23,6 +23,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import png  # noqa: E402
+from png_fixtures import rgb_image  # noqa: E402
 
 
 class TestReadPng(unittest.TestCase):
@@ -86,6 +87,16 @@ class TestReadPng(unittest.TestCase):
             self._assert_png_error_names_path(
                 path, "Git LFS pointer", "git lfs pull"
             )
+
+    def test_read_png_forwards_max_rows(self):
+        # The early-stop bound is why read_png takes a second argument; pin
+        # that it reaches decode_png instead of being dropped.
+        image, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "image.png"
+            path.write_bytes(data)
+            top = png.read_png(path, max_rows=2)
+        self.assertEqual(top, png.Image(3, 2, image.rgb[: 3 * 2 * 3]))
 
     def test_read_png_names_a_read_failure(self):
         # A read() that fails after a successful open (a disk error) must be

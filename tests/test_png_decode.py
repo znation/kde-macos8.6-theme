@@ -45,6 +45,35 @@ class TestDecode(unittest.TestCase):
         image, data = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 30))
         self.assertEqual(png.decode_png(data), image)
 
+    def test_max_rows_returns_only_the_top_scanlines(self):
+        image, data = rgb_image(3, 4, lambda x, y: (x * 10, y * 20, 30))
+        top = png.decode_png(data, max_rows=2)
+        self.assertEqual(top, png.Image(3, 2, image.rgb[: 3 * 2 * 3]))
+
+    def test_max_rows_at_or_above_height_decodes_every_row(self):
+        image, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        self.assertEqual(png.decode_png(data, max_rows=4), image)
+        self.assertEqual(png.decode_png(data, max_rows=99), image)
+
+    def test_max_rows_still_checks_every_scanline_filter_type(self):
+        # The bound skips the predictor work, not the filter-type check: a bad
+        # filter type in a row the caller did not ask for is still rejected.
+        rows = [bytes(3), bytes(3), bytes(3)]
+        data = make_png(1, 3, rows, filter_types=[0, 0, 7])
+        message = error_message(
+            self, png.PngError, png.decode_png, data, max_rows=1
+        )
+        self.assertIn("row 2", message)
+
+    def test_max_rows_rejects_a_non_positive_or_non_integer_bound(self):
+        _, data = rgb_image(1, 2, lambda x, y: (0, 0, 0))
+        for bad in (0, -1, True, 1.5, "2"):
+            with self.subTest(max_rows=bad):
+                message = error_message(
+                    self, png.PngError, png.decode_png, data, max_rows=bad
+                )
+                self.assertIn("max_rows", message)
+
     def test_multiple_idat_chunks_are_concatenated(self):
         # An encoder splits the zlib stream across several IDAT chunks once it
         # exceeds its output buffer, so a real screenshot's image data arrives

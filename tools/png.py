@@ -285,16 +285,41 @@ def _require_raw_length(raw: bytes, width: int, height: int, channels: int) -> N
         )
 
 
-def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
+def _unfilter(
+    raw: bytes,
+    width: int,
+    height: int,
+    channels: int,
+    max_rows: int | None = None,
+) -> bytes:
+    """Unfilter scanlines, returning at most *max_rows* rows of samples.
+
+    Every scanline's filter type is validated, but when a bound is given only
+    the first *max_rows* rows are actually unfiltered: the per-byte predictor
+    work is what dominates decoding a large screenshot, so a caller that reads
+    only its top rows skips that work for the rest without giving up the
+    filter-type check. The returned bytes are ``max_rows * width * channels``
+    long (or the whole image when no bound is given).
+    """
     stride = width * channels
     _require_raw_length(raw, width, height, channels)
-    out = bytearray(height * stride)
+    rows = height if max_rows is None else min(max_rows, height)
+    out = bytearray(rows * stride)
     prev = bytearray(stride)
     src = 0
     dst = 0
     for row in range(height):
         ftype = raw[src]
         src += 1
+        if ftype > 4:
+            raise PngError(
+                f"unsupported PNG filter type {ftype} in row {row}"
+            )
+        if row >= rows:
+            # Past the requested bound: the filter type above is still
+            # checked, but the predictor work is skipped.
+            src += stride
+            continue
         line = bytearray(raw[src : src + stride])
         src += stride
         if ftype == 1:
@@ -328,10 +353,6 @@ def _unfilter(raw: bytes, width: int, height: int, channels: int) -> bytes:
                     left = (value + upleft + table[(da << 9) + db]) & 0xFF
                     unfiltered.append(left)
                 line[c::channels] = bytes(unfiltered)
-        elif ftype != 0:
-            raise PngError(
-                f"unsupported PNG filter type {ftype} in row {row}"
-            )
         out[dst : dst + stride] = line
         dst += stride
         prev = line
@@ -401,8 +422,15 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     raise PngError(f"unsupported PNG color type {color_type}")
 
 
-def decode_png(data: bytes) -> Image:
-    """Decode an 8-bit, non-interlaced PNG into an :class:`Image`."""
+def decode_png(data: bytes, max_rows: int | None = None) -> Image:
+    """Decode an 8-bit, non-interlaced PNG into an :class:`Image`.
+
+    When *max_rows* is given, the returned image is at most that many rows
+    tall and holds only the top rows of the PNG. The whole compressed stream
+    is still inflated and validated (its length, end marker and adler32), and
+    every scanline's filter type is still checked; the bound skips only the
+    per-byte unfilter work for the rows past it.
+    """
     if not data.startswith(PNG_MAGIC):
         detected = other_image_format(data)
         if detected is not None:
@@ -477,6 +505,16 @@ def decode_png(data: bytes) -> Image:
             f"PNG header declares zero width or height: {width}x{height}; "
             "both dimensions must be positive"
         )
+    if max_rows is not None:
+        if isinstance(max_rows, bool) or not isinstance(max_rows, int):
+            raise PngError(
+                f"max_rows must be an integer or None: max_rows={max_rows!r}"
+            )
+        if max_rows < 1:
+            raise PngError(
+                f"max_rows must be positive: max_rows={max_rows}"
+            )
+    rows = height if max_rows is None else min(max_rows, height)
     channels = _CHANNELS[color_type]
     # Bound the work by the header before zlib sees any data: reject an image
     # too large to be a screenshot, then decompress at most the exact unfiltered
@@ -514,14 +552,20 @@ def decode_png(data: bytes) -> Image:
     if color_type == 6:
         # Alpha is discarded and the result is already RGB, so unfilter the
         # three colour channels directly instead of all four.
-        samples = _unfilter(_drop_alpha(raw, width, height), width, height, 3)
-        return Image(width, height, samples)
-    samples = _unfilter(raw, width, height, channels)
-    return Image(width, height, _to_rgb(color_type, samples, palette))
+        samples = _unfilter(
+            _drop_alpha(raw, width, height), width, height, 3, rows
+        )
+        return Image(width, rows, samples)
+    samples = _unfilter(raw, width, height, channels, rows)
+    return Image(width, rows, _to_rgb(color_type, samples, palette))
 
 
-def read_png(path: str | Path) -> Image:
-    """Read and decode the PNG at *path*, naming it in any :class:`PngError`."""
+def read_png(path: str | Path, max_rows: int | None = None) -> Image:
+    """Read and decode the PNG at *path*, naming it in any :class:`PngError`.
+
+    *max_rows* is forwarded to :func:`decode_png`: the returned image holds at
+    most that many top scanlines.
+    """
     # Open with O_NONBLOCK so a path naming a pipe (FIFO) cannot block in
     # open() waiting for a writer; a regular file is unaffected. The byte cap
     # below bounds memory but not time: read() on a pipe whose writer stays
@@ -560,7 +604,7 @@ def read_png(path: str | Path) -> Image:
             "pointer, not image data; run `git lfs pull` to fetch it"
         )
     try:
-        return decode_png(data)
+        return decode_png(data, max_rows)
     except PngError as exc:
         raise PngError(f"cannot decode {path}: {exc}") from exc
 

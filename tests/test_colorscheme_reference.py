@@ -31,6 +31,14 @@ REFERENCE_FIRSTBOOT = os.path.join(
     ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
 
+# The deepest anchor row sampled from each reference, plus one. setUpClass
+# decodes only these top rows: unfiltering the rest of a large screenshot is
+# the dominant cost of the decode, and no anchor reads below this. A new
+# anchor below the bound here must raise the matching constant, or its pixel
+# read fails the out-of-bounds check in ``pixel``.
+DESKTOP_ANCHOR_ROWS = 301  # deepest desktop anchor is (470, 300)
+FIRSTBOOT_ANCHOR_ROWS = 64  # the selection anchor is (200, 63)
+
 
 class TestReferenceAnchors(unittest.TestCase):
     """Each sampled anchor must still be the pixel it was sampled from.
@@ -50,9 +58,12 @@ class TestReferenceAnchors(unittest.TestCase):
     def setUpClass(cls):
         cls.images = {}
         cls.image_errors = {}
-        for path in (REFERENCE_DESKTOP, REFERENCE_FIRSTBOOT):
+        for path, max_rows in (
+            (REFERENCE_DESKTOP, DESKTOP_ANCHOR_ROWS),
+            (REFERENCE_FIRSTBOOT, FIRSTBOOT_ANCHOR_ROWS),
+        ):
             try:
-                cls.images[path] = png.read_png(path)
+                cls.images[path] = png.read_png(path, max_rows=max_rows)
             except png.PngError as exc:
                 # `make check` must not require the Git LFS reference set (that
                 # is what `make check-references` is for), so a test whose
