@@ -11,6 +11,7 @@ import random
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -108,19 +109,13 @@ class TestPaethDeltaTable(unittest.TestCase):
             base = (da + 255) << 9
             for db in range(-255, 256):
                 expected[base + db + 255] = _paeth(da, db, 0) & 0xFF
-        original = png._PAETH_DELTA
-        png._PAETH_DELTA = None
-        try:
+        # The table is memoized in a module global; clear it so this call
+        # rebuilds it, and `patch.object` restores the original afterwards.
+        with mock.patch.object(png, "_PAETH_DELTA", None):
             table = png._paeth_delta_table()
-        finally:
-            png._PAETH_DELTA = original
         self.assertEqual(table, bytes(expected))
 
     def test_table_is_built_once_and_reused(self):
-        original = png._PAETH_DELTA
-        png._PAETH_DELTA = None
-        try:
+        with mock.patch.object(png, "_PAETH_DELTA", None):
             first = png._paeth_delta_table()
             self.assertIs(png._paeth_delta_table(), first)
-        finally:
-            png._PAETH_DELTA = original
