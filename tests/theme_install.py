@@ -136,15 +136,26 @@ def run(argv, **kwargs):
     )
 
 
-def _run(target, destdir, extra=(), env=None):
+def run_make(args, env=None):
+    """Run `make *args*` at the repository root under the suite's timeout runner.
+
+    *args* is the target plus any variable assignments (`run_make(["install",
+    "DESTDIR=..."])`); *env* replaces the environment for a test that drives
+    `make -n` with a controlled one. The return is `run`'s CompletedProcess,
+    so a caller reads `returncode`, `stdout` and `stderr`.
+    """
     return run(
-        [
-            "make", target, f"DESTDIR={destdir}", f"XDG_DATA_HOME={XDG_DATA_HOME}",
-            *extra,
-        ],
+        ["make", *args],
         cwd=ROOT,
         capture_output=True,
         text=True,
+        env=env,
+    )
+
+
+def _run(target, destdir, extra=(), env=None):
+    return run_make(
+        [target, f"DESTDIR={destdir}", f"XDG_DATA_HOME={XDG_DATA_HOME}", *extra],
         env=env,
     )
 
