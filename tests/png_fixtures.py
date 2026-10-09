@@ -2,6 +2,7 @@
 
 Test-only: builds 8-bit, non-interlaced PNGs (including deliberately malformed
 ones) so the image test modules -- ``tests/test_png_decode.py``,
+``tests/test_png_chunks.py``, ``tests/test_png_malformed.py``,
 ``tests/test_png_filters.py``, ``tests/test_png_read.py``,
 ``tests/test_png_fixtures.py``, ``tests/test_sample_cli.py``,
 ``tests/test_fidelity_metrics.py`` and ``tests/test_fidelity_cli.py`` -- share
@@ -20,8 +21,9 @@ from collections.abc import Callable
 from pathlib import Path
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import png
-from tools.ints import is_plain_int
+from error_assertions import error_message  # noqa: E402
+from tools import png  # noqa: E402
+from tools.ints import is_plain_int  # noqa: E402
 
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -108,6 +110,17 @@ def rgb_from_rows(rows: list[bytes], color_type: int) -> bytes:
         f"rgb_from_rows: unsupported color_type {color_type}; expected one of "
         f"[0, 2, 4, 6]"
     )
+
+
+def decode_error(case, data, **kwargs):
+    """Assert ``decode_png`` rejects *data* and return the PngError message.
+
+    The decode test modules read the raised message to pin what it names;
+    *case* is the calling ``unittest.TestCase``, so a missing raise fails
+    against the right test. Keyword arguments (``max_rows``) are forwarded to
+    ``decode_png``.
+    """
+    return error_message(case, png.PngError, png.decode_png, data, **kwargs)
 
 
 def _paeth(a: int, b: int, c: int) -> int:
