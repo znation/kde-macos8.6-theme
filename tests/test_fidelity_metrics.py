@@ -133,6 +133,38 @@ class TestMaxByteIndex(unittest.TestCase):
 
 
 class TestCompare(unittest.TestCase):
+    def _assert_compare_rejects(self, tolerances):
+        """Assert ``compare`` rejects every tolerance in *tolerances*.
+
+        A rejected tolerance must be named by its ``repr`` in the diagnostic,
+        so a bad value that happens to look like an accepted one is still
+        identifiable.
+        """
+        image, _ = solid_rgb(1, 1)
+        for tolerance in tolerances:
+            with self.subTest(tolerance=tolerance):
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.compare, image, image,
+                    tolerance=tolerance,
+                )
+                self.assertIn(repr(tolerance), message)
+
+    def _assert_crop_rejects(self, rects):
+        """Assert ``crop`` rejects every non-integer rectangle in *rects*.
+
+        The diagnostic names the ``must be integers`` precondition rather than
+        surfacing the raw ``TypeError`` from slicing the byte string.
+        """
+        image, _ = solid_rgb(4, 4)
+        for args in rects:
+            with self.subTest(args=args):
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.crop, image, *args,
+                )
+                self.assertIn("must be integers", message)
+
     def test_identical_is_zero(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x * 5, y * 5, 100))
         metrics = fidelity_metrics.compare(image, image)
@@ -218,28 +250,12 @@ class TestCompare(unittest.TestCase):
         # exceeded (every pixel reads as within tolerance) and a negative one
         # is exceeded by every pixel; either silently inverts the verdict, so
         # the entry point names the rejected value instead of acting on it.
-        image, _ = solid_rgb(1, 1)
-        for tolerance in (-1, 256, "5"):
-            with self.subTest(tolerance=tolerance):
-                message = error_message(
-                    self, fidelity_metrics.FidelityError,
-                    fidelity_metrics.compare, image, image,
-                    tolerance=tolerance,
-                )
-                self.assertIn(repr(tolerance), message)
+        self._assert_compare_rejects((-1, 256, "5"))
 
     def test_tolerance_rejects_bool_despite_being_an_int_subclass(self):
         # bool is a subclass of int, so True would otherwise be accepted as a
         # tolerance of 1; the entry point must reject it like any non-integer.
-        image, _ = solid_rgb(1, 1)
-        for tolerance in (True, False):
-            with self.subTest(tolerance=tolerance):
-                message = error_message(
-                    self, fidelity_metrics.FidelityError,
-                    fidelity_metrics.compare, image, image,
-                    tolerance=tolerance,
-                )
-                self.assertIn(repr(tolerance), message)
+        self._assert_compare_rejects((True, False))
 
     def test_size_mismatch_raises(self):
         a, _ = solid_rgb(2, 2)
@@ -349,31 +365,17 @@ class TestCompare(unittest.TestCase):
         # crop() slices the RGB byte string, so a non-integer coordinate would
         # otherwise surface as a raw TypeError from the slice, naming neither
         # the argument nor its value.
-        image, _ = solid_rgb(4, 4)
-        for args in (
+        self._assert_crop_rejects((
             (0.0, 0, 1, 1),
             (0, 1.5, 1, 1),
             (0, 0, "2", 1),
             (0, 0, 1, None),
-        ):
-            with self.subTest(args=args):
-                message = error_message(
-                    self, fidelity_metrics.FidelityError,
-                    fidelity_metrics.crop, image, *args,
-                )
-                self.assertIn("must be integers", message)
+        ))
 
     def test_crop_rejects_bool_despite_being_an_int_subclass(self):
         # bool is a subclass of int, so True would otherwise be accepted as a
         # coordinate of 1; crop must reject it like any non-integer.
-        image, _ = solid_rgb(4, 4)
-        for args in ((True, 0, 1, 1), (0, 0, True, 1)):
-            with self.subTest(args=args):
-                message = error_message(
-                    self, fidelity_metrics.FidelityError,
-                    fidelity_metrics.crop, image, *args,
-                )
-                self.assertIn("must be integers", message)
+        self._assert_crop_rejects(((True, 0, 1, 1), (0, 0, True, 1)))
 
     def test_crop_out_of_bounds_error_names_rect_and_image(self):
         # The message must name both the offending rectangle and the image it
