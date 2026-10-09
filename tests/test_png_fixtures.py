@@ -27,6 +27,7 @@ from png_fixtures import (  # noqa: E402
     png_with_idat,
     rgb_from_rows,
     rgb_image,
+    splice_after_ihdr,
     with_ihdr_byte,
 )
 
@@ -123,13 +124,24 @@ class TestWithIhdrByte(unittest.TestCase):
 
 class TestIhdrEnd(unittest.TestCase):
     def test_returns_the_offset_where_the_next_chunk_begins(self):
-        # The decode tests splice chunks in at this boundary. Splicing must
-        # leave the pixels unchanged: an offset inside IHDR would corrupt it,
-        # and one inside the following chunk would split that chunk.
+        # The decode tests splice chunks in at this boundary. An offset inside
+        # IHDR would corrupt it, and one inside the following chunk would
+        # split that chunk, so pin the boundary to the next chunk's type.
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         boundary = ihdr_end(data)
         self.assertEqual(data[12:16], b"IHDR")
-        spliced = data[:boundary] + _chunk(b"tEXt", b"note") + data[boundary:]
+        self.assertEqual(data[boundary + 4 : boundary + 8], b"IDAT")
+
+
+class TestSpliceAfterIhdr(unittest.TestCase):
+    def test_inserts_at_the_ihdr_boundary_without_changing_the_pixels(self):
+        # A chunk spliced in here must sit between IHDR and IDAT; the decode
+        # tests rely on this to inject framing without touching the image.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        boundary = ihdr_end(data)
+        chunk = _chunk(b"tEXt", b"note")
+        spliced = splice_after_ihdr(data, chunk)
+        self.assertEqual(spliced[boundary : boundary + len(chunk)], chunk)
         self.assertEqual(png.decode_png(spliced), png.decode_png(data))
 
 

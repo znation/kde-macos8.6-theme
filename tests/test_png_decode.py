@@ -31,6 +31,7 @@ from png_fixtures import (  # noqa: E402
     rgb_from_rows,
     rgb_image,
     solid_rgb,
+    splice_after_ihdr,
     with_ihdr_byte,
 )
 
@@ -73,13 +74,12 @@ class TestDecode(unittest.TestCase):
         # and pHYs chunk after the fixed 25-byte IHDR chunk and compare to the
         # same PNG without them.
         image, data = rgb_image(2, 1, lambda x, y: (x * 40, 7, 200))
-        boundary = ihdr_end(data)
         ancillary = (
             _chunk(b"gAMA", struct.pack(">I", 45455))
             + _chunk(b"tEXt", b"Software\x00Mac OS 8.6")
             + _chunk(b"pHYs", struct.pack(">IIB", 2835, 2835, 1))
         )
-        augmented = data[:boundary] + ancillary + data[boundary:]
+        augmented = splice_after_ihdr(data, ancillary)
         self.assertEqual(png.decode_png(augmented), image)
 
     def test_rejects_unknown_critical_chunk(self):
@@ -89,9 +89,8 @@ class TestDecode(unittest.TestCase):
         # ignored, could decode the image wrong with no sign of a skipped
         # chunk; the error names the offending type.
         _, data = solid_rgb(1, 1)
-        boundary = ihdr_end(data)
         unknown = _chunk(b"XYZW", b"\x00\x01")
-        message = self._decode_error(data[:boundary] + unknown + data[boundary:])
+        message = self._decode_error(splice_after_ihdr(data, unknown))
         self.assertIn("unknown critical PNG chunk", message)
         self.assertIn("'XYZW'", message)
 
@@ -103,11 +102,10 @@ class TestDecode(unittest.TestCase):
         # chunk and be ignored. Reject it by name instead of silently skipping
         # malformed framing.
         _, data = solid_rgb(1, 1)
-        boundary = ihdr_end(data)
         for ctype in (b"ab1d", b"a bd", b"ab\xffd"):
             with self.subTest(ctype=ctype):
                 message = self._decode_error(
-                    data[:boundary] + _chunk(ctype, b"\x00") + data[boundary:]
+                    splice_after_ihdr(data, _chunk(ctype, b"\x00"))
                 )
                 self.assertIn("invalid PNG chunk type", message)
                 self.assertIn("four ASCII letters", message)
@@ -135,10 +133,9 @@ class TestDecode(unittest.TestCase):
         # damaged IHDR/IDAT region, so it must be rejected by name even though
         # decode_png would otherwise discard it.
         _, data = solid_rgb(1, 1)
-        boundary = ihdr_end(data)
         text = _chunk(b"tEXt", b"note")
         corrupt = text[:-1] + bytes([text[-1] ^ 0xFF])
-        message = self._decode_error(data[:boundary] + corrupt + data[boundary:])
+        message = self._decode_error(splice_after_ihdr(data, corrupt))
         self.assertIn("tEXt", message)
         self.assertIn("CRC", message)
 

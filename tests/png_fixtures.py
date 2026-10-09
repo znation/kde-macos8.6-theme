@@ -47,6 +47,19 @@ def ihdr_end(data: bytes) -> int:
     return start + 8 + length + 4
 
 
+def splice_after_ihdr(data: bytes, inserted: bytes) -> bytes:
+    """Return *data* with *inserted* spliced in just after its IHDR chunk.
+
+    The decode tests inject deliberately malformed or unknown chunks into an
+    otherwise valid stream, which means splitting at the IHDR boundary and
+    rejoining. Pairing the split with :func:`ihdr_end` here keeps that
+    boundary arithmetic in one place instead of re-deriving the slice at
+    each call site.
+    """
+    boundary = ihdr_end(data)
+    return data[:boundary] + inserted + data[boundary:]
+
+
 def ihdr_chunk(width: int, height: int, color_type: int) -> bytes:
     """Return the complete IHDR chunk for an 8-bit, non-interlaced image.
 
