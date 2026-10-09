@@ -20,6 +20,10 @@ from tools import png  # noqa: E402
 
 
 class TestImage(unittest.TestCase):
+    def _image_error(self, width, height, rgb):
+        """Assert Image construction rejects the arguments and return the message."""
+        return error_message(self, png.PngError, png.Image, width, height, rgb)
+
     def test_rejects_rgb_length_that_does_not_match_dimensions(self):
         # Image promises tightly packed width*height*3 bytes, but nothing
         # checked it: compare() slices rgb by channel and divides by the
@@ -28,9 +32,7 @@ class TestImage(unittest.TestCase):
         # construction and the error names the actual and expected byte counts.
         for width, height, size in ((2, 2, 11), (2, 2, 13), (1, 1, 0)):
             with self.subTest(width=width, height=height, size=size):
-                message = error_message(
-                    self, png.PngError, png.Image, width, height, bytes(size)
-                )
+                message = self._image_error(width, height, bytes(size))
                 self.assertIn(str(size), message)
                 self.assertIn(str(width * height * 3), message)
                 self.assertIn(f"{width}x{height}", message)
@@ -50,9 +52,7 @@ class TestImage(unittest.TestCase):
             with self.subTest(width=width, height=height):
                 self.assertIn(
                     f"{width}x{height}",
-                    error_message(
-                        self, png.PngError, png.Image, width, height, b""
-                    ),
+                    self._image_error(width, height, b""),
                 )
 
     def test_rejects_bool_dimensions_despite_being_an_int_subclass(self):
@@ -63,9 +63,7 @@ class TestImage(unittest.TestCase):
             with self.subTest(width=width, height=height):
                 self.assertIn(
                     "must be an integer",
-                    error_message(
-                        self, png.PngError, png.Image, width, height, bytes(3)
-                    ),
+                    self._image_error(width, height, bytes(3)),
                 )
 
     def test_rejects_non_bytes_rgb_naming_its_type(self):
@@ -77,9 +75,7 @@ class TestImage(unittest.TestCase):
         # later (_abs_diff cannot concatenate a memoryview with bytes).
         for rgb in ("abc", [1, 2, 3], memoryview(b"abc"), 1):
             with self.subTest(rgb=type(rgb).__name__):
-                message = error_message(
-                    self, png.PngError, png.Image, 1, 1, rgb
-                )
+                message = self._image_error(1, 1, rgb)
                 self.assertIn("rgb", message)
                 self.assertIn(type(rgb).__name__, message)
 
@@ -95,9 +91,7 @@ class TestImage(unittest.TestCase):
         # float); the invariant names the offending dimension and its value.
         for width, height in (("2", 2), (2, "2"), (2.5, 2), (2, 2.5)):
             with self.subTest(width=width, height=height):
-                message = error_message(
-                    self, png.PngError, png.Image, width, height, b""
-                )
+                message = self._image_error(width, height, b"")
                 self.assertIn("must be an integer", message)
                 self.assertIn(repr(width), message)
                 self.assertIn(repr(height), message)
