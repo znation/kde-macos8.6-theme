@@ -25,6 +25,20 @@ from tools import png  # noqa: E402
 
 class TestReadPng(unittest.TestCase):
 
+    def _assert_png_error_names_path(self, path: Path, *needles: str) -> None:
+        """Assert ``read_png(path)`` raises ``PngError`` naming *path*.
+
+        A PngError message must name the file so a two-input invocation can
+        tell which of candidate/reference was bad; each extra *needle* pins
+        one part of the diagnosis.
+        """
+        with self.assertRaises(png.PngError) as ctx:
+            png.read_png(path)
+        message = str(ctx.exception)
+        self.assertIn(str(path), message)
+        for needle in needles:
+            self.assertIn(needle, message)
+
     def test_read_png_rejects_oversize_file_without_reading_it_all(self):
         # read_png reads the whole file before decode_png sees its header, so
         # an oversize file would be loaded into memory first. The read must
@@ -51,9 +65,7 @@ class TestReadPng(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "broken.png"
             path.write_bytes(b"not a png")
-            with self.assertRaises(png.PngError) as ctx:
-                png.read_png(path)
-            self.assertIn(str(path), str(ctx.exception))
+            self._assert_png_error_names_path(path)
 
     def test_read_png_names_an_unmaterialized_lfs_pointer(self):
         # The reference screenshots are stored with Git LFS. On a fresh clone
@@ -70,12 +82,9 @@ class TestReadPng(unittest.TestCase):
                 b"oid sha256:" + b"0" * 64 + b"\n"
                 b"size 12345\n"
             )
-            with self.assertRaises(png.PngError) as ctx:
-                png.read_png(path)
-            message = str(ctx.exception)
-            self.assertIn(str(path), message)
-            self.assertIn("Git LFS pointer", message)
-            self.assertIn("git lfs pull", message)
+            self._assert_png_error_names_path(
+                path, "Git LFS pointer", "git lfs pull"
+            )
 
     def test_read_png_names_a_read_failure(self):
         # A read() that fails after a successful open (a disk error) must be
@@ -96,12 +105,9 @@ class TestReadPng(unittest.TestCase):
                 return handle
 
             with mock.patch.object(png.os, "fdopen", failing_fdopen):
-                with self.assertRaises(png.PngError) as ctx:
-                    png.read_png(path)
-        message = str(ctx.exception)
-        self.assertIn(str(path), message)
-        self.assertIn("cannot read", message)
-        self.assertIn("Input/output error", message)
+                self._assert_png_error_names_path(
+                    path, "cannot read", "Input/output error"
+                )
 
     def test_read_png_closes_the_fd_when_fstat_fails(self):
         # os.fstat runs on the open fd before os.fdopen takes ownership; if it
@@ -123,13 +129,10 @@ class TestReadPng(unittest.TestCase):
                 png.os, "fstat", side_effect=OSError(5, "Input/output error")
             ):
                 with mock.patch.object(png.os, "close", recording_close):
-                    with self.assertRaises(png.PngError) as ctx:
-                        png.read_png(path)
+                    self._assert_png_error_names_path(
+                        path, "cannot read", "Input/output error"
+                    )
 
-        message = str(ctx.exception)
-        self.assertIn(str(path), message)
-        self.assertIn("cannot read", message)
-        self.assertIn("Input/output error", message)
         # The finally block closed exactly the fd os.open handed out, so it is
         # no longer a valid descriptor.
         self.assertEqual(len(closed_fds), 1)
