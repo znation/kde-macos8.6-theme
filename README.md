@@ -74,7 +74,9 @@ it after the uninstall and falls back to BreezeLight on the next start, so
 as the reset. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`, or to
-one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`.
+one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Both
+`check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
+`int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
 
 ## Reference screenshots
 

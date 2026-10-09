@@ -327,6 +327,40 @@ class TestPythonInterpreter(unittest.TestCase):
         self._assert_refused(environment=" ")
 
 
+class TestPythonVersion(unittest.TestCase):
+    """`make check`/`check-references` must refuse an unsupported interpreter.
+
+    The fidelity tool uses ``int.bit_count()`` (Python 3.10), so an older
+    interpreter fails deep in the suite with an ``AttributeError`` that names
+    neither ``PYTHON`` nor the requirement. The guard probes the version once
+    and refuses with a diagnostic naming both. The fake interpreter exits
+    non-zero for every invocation, so a guard that regresses fails fast instead
+    of running the suite under it.
+    """
+
+    def _assert_refused(self, target):
+        with tempfile.TemporaryDirectory() as tmp:
+            fake = os.path.join(tmp, "python")
+            with open(fake, "w", encoding="utf-8") as handle:
+                handle.write("#!/bin/sh\nexit 3\n")
+            os.chmod(fake, 0o755)
+            env = dict(os.environ)
+            env.pop("PYTHON", None)
+            env.pop("MAKEFLAGS", None)
+            result = theme_install.run_make(
+                [target, f"PYTHON={fake}"], env=env
+            )
+        assert_failed(self, result)
+        self.assertIn("Python 3.10 or newer", result.stderr)
+        self.assertIn(fake, result.stderr)
+
+    def test_check_refuses_an_old_interpreter(self):
+        self._assert_refused("check")
+
+    def test_check_references_refuses_an_old_interpreter(self):
+        self._assert_refused("check-references")
+
+
 class TestHelp(unittest.TestCase):
     """`make help` lists every public target and tunable-variable default.
 

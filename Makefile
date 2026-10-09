@@ -102,6 +102,14 @@ CHECK_TESTS ?=
 # names the target.
 require_python = set -- "$(PYTHON)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in ''|-*) echo "$(1): PYTHON must name an interpreter, not an empty or option-like value: '$$1'" >&2; exit 2;; esac
 
+# PYTHON must run an interpreter the project supports. Its fidelity tool uses
+# int.bit_count(), added in Python 3.10, so an older interpreter fails deep in
+# the suite with an AttributeError that names neither PYTHON nor the
+# requirement. Probe the version once and refuse with a diagnostic naming both;
+# the probe's stderr is discarded so a missing interpreter prints only this
+# message. $(1) names the target.
+require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 3)' 2>/dev/null || { echo "$(1): PYTHON must be Python 3.10 or newer (the fidelity tool uses int.bit_count()): '$(PYTHON)'" >&2; exit 2; }
+
 # CHECK_TESTS names tests instead of discovering them, so a value beginning
 # (after leading whitespace) with `-` would reach `unittest` as an option --
 # `-x` aborts on the first failure and `-k` filters by pattern -- silently
@@ -111,6 +119,7 @@ require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$
 
 check:
 	@$(call require_python,check)
+	@$(call require_python_version,check)
 	@$(call require_check_tests,check)
 ifeq ($(strip $(CHECK_TESTS)),)
 	$(PYTHON) -m unittest discover -s tests -v -p '$(CHECK_PATTERN)'
@@ -134,7 +143,7 @@ help:
 	@echo "Variables (make VAR=value TARGET):"
 	@echo "  CHECK_PATTERN=glob  test modules 'check' discovers (default test*.py)"
 	@echo "  CHECK_TESTS=spec    test modules/classes/methods to run instead of discovering"
-	@echo "  PYTHON=path         interpreter for check and check-references (default python3)"
+	@echo "  PYTHON=path         Python 3.10+ interpreter for check and check-references (default python3)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
@@ -143,6 +152,7 @@ help:
 # out of `check`. The deterministic self-test runs first and fails fast.
 check-references:
 	@$(call require_python,check-references)
+	@$(call require_python_version,check-references)
 	$(PYTHON) tools/check_references.py --self-test
 	$(PYTHON) tools/check_references.py
 
