@@ -21,7 +21,7 @@ helpers in ``tools/png.py`` and ``tools/fidelity_metrics.py`` both reject a
 length mismatch, and each must name itself in the diagnostic.
 
 ``NoSubTest``, ``assert_rejects`` and ``rejection_message`` observe the other
-kind of failure: a ``tests/svg_assertions.py`` guard that reports a bad slice
+kind of failure: a ``tests/svg_assertions/`` guard that reports a bad slice
 through ``case.subTest`` records a failure on the result and keeps going
 instead of raising, so ``assertRaises`` would never see it. They drop the
 subTest frame so the underlying assertion raises and its message is readable.

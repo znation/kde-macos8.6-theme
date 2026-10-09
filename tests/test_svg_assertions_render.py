@@ -1,4 +1,4 @@
-"""Direct tests for tests/svg_assertions.py's slice-rendering helpers.
+"""Direct tests for ``svg_assertions.render``'s slice-rendering helpers.
 
 ``render_slices`` composites a nine-slice SVG's rects into per-slice pixel
 maps and ``pixel_map`` builds the same shape from a colour sequence; both feed

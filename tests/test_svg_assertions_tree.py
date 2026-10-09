@@ -1,4 +1,4 @@
-"""Direct tests for tests/svg_assertions.py's tree-query helpers.
+"""Direct tests for ``svg_assertions.tree``'s query helpers.
 
 The helpers that read a parsed SVG's element tree -- ``local_name``,
 ``attribute_values``, ``groups_with_id``, ``elements_by_id`` and

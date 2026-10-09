@@ -1,4 +1,4 @@
-"""Direct tests for tests/svg_assertions.py's layout and pixel assertions.
+"""Direct tests for ``svg_assertions.checks``'s layout and pixel assertions.
 
 Every desktop-theme widget test reaches these helpers only over its own
 current artwork, so a helper that mis-orders a band, mirrors the wrong sides

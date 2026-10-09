@@ -323,7 +323,7 @@ vertical) are provenance, like the scroll bar's own trough/thumb geometry.
 **Files touched.** New: `widgets/slider.svg` in the package, and
 `tests/test_desktoptheme_slider.py`.
 Edited: `tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`,
-`tests/svg_assertions.py` (the `extra_groups` argument on `assert_tiles_placed_by_margins`),
+`tests/svg_assertions/checks.py` (the `extra_groups` argument on `assert_tiles_placed_by_margins`),
 `tests/nine_slice_case.py` (the `EXTRA_GROUPS` attribute), `tests/test_svg_assertions_checks.py`
 (the two tests for `extra_groups`), `README.md`, `PLANS.md` (this entry). No Makefile,
 color-scheme or look-and-feel change: the Makefile's `cp -r` already copies new widget files.
@@ -480,7 +480,7 @@ A later reference or a human can correct these three choices without touching th
 - Part A's `decoration.svg`
 - Part A's `close.svg`, `maximize.svg`, `restore.svg`
 - Part A's `test_aurorae_decoration.py`
-- `tests/svg_assertions.py`, `tests/nine_slice_case.py`, `tests/test_svg_assertions_checks.py`
+- `tests/svg_assertions/`, `tests/nine_slice_case.py`, `tests/test_svg_assertions_checks.py`
   (the `hint_aliases` mechanism and its tests)
 - `PLANS.md` (this entry)
 

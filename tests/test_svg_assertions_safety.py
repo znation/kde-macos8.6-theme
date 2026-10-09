@@ -1,4 +1,4 @@
-"""Direct tests for tests/svg_assertions.py's document-safety guards.
+"""Direct tests for ``svg_assertions.safety``'s document-safety guards.
 
 A shipped widget SVG must stay self-contained and inert: no ``<script>``, no
 ``<style>`` element, no reference to another file, and no duplicate ``id``.

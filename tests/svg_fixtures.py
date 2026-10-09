@@ -3,7 +3,7 @@
 ``test_svg_assertions_tree``, ``test_svg_assertions_geometry``,
 ``test_svg_assertions_render``, ``test_svg_assertions_checks`` and
 ``test_svg_assertions_safety`` all build namespaced ``<svg>`` documents to
-exercise ``tests/svg_assertions.py``; the wrapper that declares the SVG
+exercise the ``tests/svg_assertions/`` package; the wrapper that declares the SVG
 namespace lives here once instead of in each module.
 """
 

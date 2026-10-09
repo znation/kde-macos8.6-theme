@@ -1,4 +1,4 @@
-"""Direct tests for tests/svg_assertions.py's geometry helpers.
+"""Direct tests for ``svg_assertions.geometry``'s helpers.
 
 The helpers that turn artwork markup into geometry -- ``path_arcs`` /
 ``arc_center``, ``rect_geometry`` / ``circle_geometry``, the nine-slice margin,
