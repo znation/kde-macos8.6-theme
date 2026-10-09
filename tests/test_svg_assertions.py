@@ -129,6 +129,25 @@ class TestPathArcs(unittest.TestCase):
                     "unsupported SVG path command", str(caught.exception)
                 )
 
+    def test_rejects_wrong_number_count_naming_the_command(self):
+        # A command body with too few or too many numbers used to raise a bare
+        # "not enough/too many values to unpack" that named neither the command
+        # nor the path, so a malformed fixture was hard to locate. Pin the
+        # named rejection instead.
+        for d, command, count in (
+            ("M1,1 A2,2 0 0 1", "A", 5),
+            ("M1,1 A2,2 0 0 1 9,9 9", "A", 8),
+            ("M1,1 2,2", "M", 4),
+            ("M1,1 Z5", "Z", 1),
+        ):
+            with self.subTest(d=d):
+                with self.assertRaises(ValueError) as caught:
+                    list(path_arcs(d))
+                message = str(caught.exception)
+                self.assertIn(f"command {command}", message)
+                self.assertIn(f"got {count}", message)
+                self.assertIn(repr(d), message)
+
 
 class TestArcCenter(unittest.TestCase):
     def test_flags_select_the_side_of_the_chord(self):

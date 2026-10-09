@@ -240,6 +240,7 @@ def assert_center_tile_is(case, slices, name, colour, size):
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
 _PATH_LETTER = re.compile(r"[A-Za-z]")
 _SUPPORTED_PATH_COMMANDS = frozenset("MALZ")
+_PATH_COMMAND_ARITY = {"M": 2, "L": 2, "A": 7, "Z": 0}
 
 
 def _path_commands(d):
@@ -268,10 +269,20 @@ def path_arcs(d):
     `A` command advances the current point to its endpoint, and `Z` closes the
     subpath and returns the current point to the subpath start, as SVG
     requires, so an arc after `Z` starts where the closed subpath began.
+
+    Raise ValueError, naming the command and the path, when a command's body
+    does not carry the number of coordinates that command takes: a fixture
+    defect would otherwise surface as a bare tuple-unpack error naming neither.
     """
     x = y = 0.0
     subpath_start = (0.0, 0.0)
     for command, numbers in _path_commands(d):
+        expected = _PATH_COMMAND_ARITY[command]
+        if len(numbers) != expected:
+            raise ValueError(
+                f"SVG path command {command} takes {expected} numbers but got "
+                f"{len(numbers)} in {d!r}"
+            )
         if command == "M":
             x, y = numbers
             subpath_start = (x, y)
