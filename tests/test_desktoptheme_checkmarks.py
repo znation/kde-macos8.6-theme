@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import CHECKMARKS_SVG
 from svg_assertions import (
@@ -14,19 +13,21 @@ from svg_assertions import (
     elements_by_id,
     local_name,
 )
+from svg_case import SvgCase
 
 
-class TestCheckmarks(unittest.TestCase):
+class TestCheckmarks(SvgCase, unittest.TestCase):
+    SVG_PATH = CHECKMARKS_SVG
+
     def test_checkmarks_contract(self):
-        tree = ET.parse(CHECKMARKS_SVG)
-        ids = attribute_values(tree, "id")
+        ids = attribute_values(self.tree, "id")
         for name in ("checkbox", "radiobutton"):
             self.assertIn(name, ids, name)
-        strokes = attribute_values(tree, "stroke")
+        strokes = attribute_values(self.tree, "stroke")
         self.assertEqual(strokes, {"#000000"})
-        fills = attribute_values(tree, "fill")
+        fills = attribute_values(self.tree, "fill")
         self.assertEqual(fills, {"none", "#000000"})
-        assert_no_script_elements(self, tree)
+        assert_no_script_elements(self, self.tree)
 
     def test_checkmarks_geometry(self):
         # The consumers anchor the SvgItem with `anchors.fill`, so KSvg scales
@@ -34,7 +35,7 @@ class TestCheckmarks(unittest.TestCase):
         # rect the checkbox path's natural ~12x9 bounds (and the 6x6 dot)
         # would stretch to the 16x16 cell; pin the group, the rect, and the
         # glyph so that scaling cannot creep back in.
-        tree = ET.parse(CHECKMARKS_SVG)
+        tree = self.tree
         by_id = elements_by_id(tree)
 
         checkbox = by_id["checkbox"]

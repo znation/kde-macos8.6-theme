@@ -13,7 +13,6 @@ import os
 import re
 import sys
 import unittest
-import xml.etree.ElementTree as ET
 
 from theme_install import ROOT
 
@@ -29,6 +28,7 @@ from svg_assertions import (  # noqa: E402
     assert_unique_ids,
     attribute_values,
 )
+from svg_case import SvgCase  # noqa: E402
 
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
@@ -356,7 +356,9 @@ class TestSplashQml(unittest.TestCase):
                 self.assertIn(binding, block, f"{object_id}: {binding}")
 
 
-class TestLogo(unittest.TestCase):
+class TestLogo(SvgCase, unittest.TestCase):
+    SVG_PATH = LOGO
+
     def test_logo_svg(self):
         # The logo is the look-and-feel package's only shipped SVG, so it gets
         # the same structural guard the desktop-theme SVGs get centrally: a
@@ -365,14 +367,13 @@ class TestLogo(unittest.TestCase):
         # the package does not ship. `attribute_values` reads fills only from
         # attributes, so a CSS-styled or externally-referenced logo could
         # otherwise pass this test while rendering wrong or blank.
-        tree = ET.parse(LOGO)
-        assert_root_canvas(self, tree, 26, 21)
-        assert_no_script_elements(self, tree)
-        assert_no_style_elements(self, tree)
-        assert_no_external_references(self, tree)
-        assert_unique_ids(self, tree)
+        assert_root_canvas(self, self.tree, 26, 21)
+        assert_no_script_elements(self, self.tree)
+        assert_no_style_elements(self, self.tree)
+        assert_no_external_references(self, self.tree)
+        assert_unique_ids(self, self.tree)
         self.assertEqual(
-            attribute_values(tree, "fill"), {"#4C65CB", "#7286D6"}
+            attribute_values(self.tree, "fill"), {"#4C65CB", "#7286D6"}
         )
 
 

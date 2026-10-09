@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import RADIOBUTTON_SVG
 from svg_assertions import (
@@ -13,17 +12,19 @@ from svg_assertions import (
     circle_geometry,
     elements_by_id,
 )
+from svg_case import SvgCase
 
 
-class TestRadioButton(unittest.TestCase):
+class TestRadioButton(SvgCase, unittest.TestCase):
+    SVG_PATH = RADIOBUTTON_SVG
+
     def test_radiobutton_contract(self):
-        tree = ET.parse(RADIOBUTTON_SVG)
-        ids = attribute_values(tree, "id")
+        ids = attribute_values(self.tree, "id")
         for name in ("normal", "symbol", "hint-size"):
             self.assertIn(name, ids, name)
-        fills = attribute_values(tree, "fill")
+        fills = attribute_values(self.tree, "fill")
         self.assertEqual(fills, {"#FFFFFF", "#000000"})
-        assert_no_script_elements(self, tree)
+        assert_no_script_elements(self, self.tree)
 
     def test_radiobutton_geometry(self):
         # The black ring is a filled circle under the white face, so the two
@@ -33,7 +34,7 @@ class TestRadioButton(unittest.TestCase):
         # contract test only checks the fill set, so a swap of the two faces
         # (black face, white ring) or a circle nudged off-centre would
         # otherwise pass.
-        tree = ET.parse(RADIOBUTTON_SVG)
+        tree = self.tree
         by_id = elements_by_id(tree)
         circles = children_named(by_id["normal"], "circle")
         self.assertEqual(

@@ -9,8 +9,7 @@ widget whose SVG prefixes its states (``normal-top``) also sets `PREFIXES`.
 
 from __future__ import annotations
 
-import xml.etree.ElementTree as ET
-
+from svg_case import SvgCase
 from svg_assertions import (
     assert_no_script_elements,
     assert_slice_ids_present,
@@ -19,21 +18,18 @@ from svg_assertions import (
 )
 
 
-class NineSliceCase:
+class NineSliceCase(SvgCase):
     """Mixin: the structural checks shared by the nine-slice widgets.
 
     Subclasses set `SVG_PATH` to the widget SVG and `PREFIXES` to each state
     prefix in it (``("",)`` for an unprefixed SVG). It is a plain mixin, not a
     `TestCase`, so importing it does not collect an unconfigured base. The
     widget's own pixel test pins the painted result; the checks here guard the
-    structure that pixel test does not read.
+    structure that pixel test does not read. `SvgCase` parses `SVG_PATH` once
+    per test into `self.tree`.
     """
 
-    SVG_PATH = None
     PREFIXES = ("",)
-
-    def setUp(self):
-        self.tree = ET.parse(self.SVG_PATH)
 
     def test_slice_ids_present(self):
         assert_slice_ids_present(self, self.tree, self.PREFIXES)
