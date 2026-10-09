@@ -31,6 +31,7 @@ from svg_assertions import (
     assert_tiles_placed_by_margins,
     circle_geometry,
     face_edge_bands,
+    groups_with_id,
     flat_face_corners,
     nine_slice_hint_geometry,
     nine_slice_margins,
@@ -806,6 +807,53 @@ class TestSliceIdsPresent(unittest.TestCase):
                 _id_tree(("plain", "raised"), omit=("raised-top",)),
                 ["plain", "raised"],
             )
+
+
+class TestGroupsWithId(unittest.TestCase):
+    def _tree(self, body):
+        return ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                f"{body}</svg>"
+            )
+        )
+
+    def test_yields_only_id_bearing_groups(self):
+        # The documented filter: an id-bearing <rect>, <path> or <circle> must
+        # not be yielded -- render_slices and tile_origins composite whole
+        # groups and would misread a bare shape as one. An id-less <g> is not
+        # a slice either.
+        tree = self._tree(
+            '<g id="top"><rect/></g>'
+            '<g><rect id="unused"/></g>'
+            '<rect id="center"/>'
+            '<path id="edge"/>'
+            '<circle id="dot"/>'
+        )
+        self.assertEqual([g.get("id") for g in groups_with_id(tree)], ["top"])
+
+    def test_yields_every_group_in_document_order(self):
+        tree = self._tree(
+            '<g id="a"/>'
+            '<g id="b"><g id="b-inner"/></g>'
+            '<g id="c"/>'
+        )
+        self.assertEqual(
+            [g.get("id") for g in groups_with_id(tree)],
+            ["a", "b", "b-inner", "c"],
+        )
+
+    def test_yields_the_group_element_itself(self):
+        # Callers read the group's id and its child rects, so the yielded
+        # object must be the <g>, not a copy or a wrapper.
+        tree = self._tree('<g id="top"><rect fill="#000000"/></g>')
+        group = next(iter(groups_with_id(tree)))
+        self.assertEqual(group.get("id"), "top")
+        self.assertEqual(group[0].get("fill"), "#000000")
+
+    def test_yields_nothing_when_no_group_has_an_id(self):
+        tree = self._tree('<rect id="center"/><g><rect id="x"/></g>')
+        self.assertEqual(list(groups_with_id(tree)), [])
 
 
 class TestNoScriptElements(unittest.TestCase):
