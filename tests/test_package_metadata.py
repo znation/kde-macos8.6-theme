@@ -179,6 +179,32 @@ class TestPackageMetadata(unittest.TestCase):
         with self.assertRaises(AssertionError):
             _case("test_package_structure", metadata).test_package_structure()
 
+    def test_top_level_key_missing_names_the_file_and_field(self):
+        # A metadata.json that drops a top-level key used to fail as
+        # ``None != expected``, naming neither the file nor the key; the mixin
+        # must name both.
+        for key, method in (
+            ("KPackageStructure", "test_package_structure"),
+            ("X-Plasma-API", "test_plasma_api_version"),
+        ):
+            with self.subTest(key=key):
+                metadata = _metadata()
+                del metadata[key]
+                with self.assertRaises(AssertionError) as caught:
+                    getattr(_case(method, metadata), method)()
+                message = str(caught.exception)
+                self.assertIn("metadata.json", message)
+                self.assertIn(key, message)
+
+    def test_top_level_key_mismatch_names_the_file(self):
+        # The mismatch case used to report only the two values; label it with
+        # the metadata.json the value came from.
+        metadata = _metadata()
+        metadata["KPackageStructure"] = "Plasma/LookAndFeel"
+        with self.assertRaises(AssertionError) as caught:
+            _case("test_package_structure", metadata).test_package_structure()
+        self.assertIn("metadata.json", str(caught.exception))
+
     def test_kplugin_guard_names_the_file_and_field(self):
         # A metadata.json that decodes to an object but whose KPlugin is
         # missing or not an object used to fail with a bare KeyError/TypeError

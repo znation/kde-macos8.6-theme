@@ -94,10 +94,27 @@ class PackageMetadata:
         except ValueError as exc:
             self.fail(str(exc))
 
-    def test_package_structure(self):
+    def _top_level(self, key, expected):
+        """Assert top-level *key* equals *expected*, naming the file and key.
+
+        `KPackageStructure` and the Plasma API key are top-level strings. A
+        metadata.json that drops one would fail the equality as ``None !=
+        expected``, naming neither the file nor the missing key, so name both
+        when the key is absent and label a mismatched value with the file too.
+        """
+        if key not in self.metadata:
+            self.fail(
+                f"{self.METADATA_PATH}: missing top-level {key!r} "
+                f"(expected {expected!r})"
+            )
         self.assertEqual(
-            self.metadata.get("KPackageStructure"), self.PACKAGE_STRUCTURE
+            self.metadata[key],
+            expected,
+            f"{self.METADATA_PATH}: top-level {key!r}",
         )
+
+    def test_package_structure(self):
+        self._top_level("KPackageStructure", self.PACKAGE_STRUCTURE)
 
     def test_plugin_id_and_name(self):
         # Indexing Id/Name directly would raise a bare KeyError naming only
@@ -118,9 +135,7 @@ class PackageMetadata:
         self.assertTrue(version.strip(), "KPlugin.Version must not be blank")
 
     def test_plasma_api_version(self):
-        self.assertEqual(
-            self.metadata.get(self.PLASMA_API_KEY), self.PLASMA_API_VERSION
-        )
+        self._top_level(self.PLASMA_API_KEY, self.PLASMA_API_VERSION)
 
     def test_plugin_description_and_license_are_non_empty(self):
         # Description is shown in System Settings and License is the package's
