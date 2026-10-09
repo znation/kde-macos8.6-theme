@@ -8,11 +8,9 @@ from desktoptheme_paths import LISTITEM_SVG
 from nine_slice_case import NineSliceCase
 from svg_assertions import (
     assert_hint_geometry,
-    assert_slice_pixels,
+    assert_slices_fill_their_tiles,
     assert_slices_uniform,
     attribute_values,
-    nine_slice_tile_sizes,
-    pixel_map,
     render_slices,
 )
 
@@ -47,16 +45,13 @@ class TestListItem(NineSliceCase, unittest.TestCase):
         # in the stretched tile. Pin every slice to its exact tile region:
         # pressed is flat #CCCCFF, normal carries no `fill` attribute (only a
         # 0.01-opacity style), so render_slices reads it as None.
-        slices = render_slices(self.tree)
-        border, tile = 3, 6
-        sizes = nine_slice_tile_sizes(
-            tile + 2 * border, tile + 2 * border,
-            border, border, border, border,
+        assert_slices_fill_their_tiles(
+            self,
+            render_slices(self.tree),
+            (("pressed", "#CCCCFF"), ("normal", None)),
+            3,
+            6,
         )
-        for prefix, colour in (("pressed", "#CCCCFF"), ("normal", None)):
-            for name, (width, height) in sizes.items():
-                expected = pixel_map((colour,) * (width * height), width, height)
-                assert_slice_pixels(self, slices, f"{prefix}-{name}", expected)
 
     def test_listitem_colours(self):
         # The hints and normal slices use `style`, so the parsed `fill` set is

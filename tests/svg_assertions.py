@@ -407,6 +407,33 @@ def assert_slices_uniform(case, slices, prefix, colour):
                 case.assertEqual(value, colour, f"{slice_name} {point}")
 
 
+def assert_slices_fill_their_tiles(case, slices, prefix_colours, border, tile):
+    """Assert each ``<prefix>-<name>`` slice fills its exact tile with *colour*.
+
+    *prefix_colours* pairs each widget state's prefix with the colour every
+    one of its nine tiles paints (``None`` for a state whose rects carry no
+    ``fill`` attribute). *border* and *tile* are the SVG's border thickness
+    and centre-tile size, so the canvas is ``tile + 2 * border`` square and
+    the tiles are the nine regions `nine_slice_tile_sizes` derives from it.
+    The per-slice colour checks read each slice's pixels, so a rect one pixel
+    short (or long) passes while KSvg leaves a transparent stripe in the
+    stretched tile; comparing each tile to a solid `pixel_map` pins the exact
+    region. *case* is the calling ``unittest.TestCase``.
+    """
+    sizes = nine_slice_tile_sizes(
+        tile + 2 * border,
+        tile + 2 * border,
+        border,
+        border,
+        border,
+        border,
+    )
+    for prefix, colour in prefix_colours:
+        for name, (width, height) in sizes.items():
+            expected = pixel_map((colour,) * (width * height), width, height)
+            assert_slice_pixels(case, slices, f"{prefix}-{name}", expected)
+
+
 def assert_edge_band_pixels(case, slices, name, side, band, size=6):
     """Assert edge slice *name* paints *band* from its outer edge in.
 

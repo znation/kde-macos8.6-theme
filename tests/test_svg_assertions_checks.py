@@ -26,6 +26,7 @@ from svg_assertions import (
     assert_root_canvas,
     assert_slice_ids_present,
     assert_slice_pixels,
+    assert_slices_fill_their_tiles,
     assert_slices_stay_within_their_tiles,
     assert_slices_uniform,
     assert_tiles_placed_by_margins,
@@ -504,6 +505,33 @@ class TestPixelAssertions(unittest.TestCase):
         case = NoSubTest()
         with case.assertRaises(KeyError):
             assert_slices_uniform(case, missing, "pressed", colour)
+
+    def test_slices_fill_their_tiles_pins_every_tile_and_rejects_a_gap(self):
+        colour = "#CCCCFF"
+        fills = {"pressed": colour, "normal": None}
+        # A 4px border on a 12x12 canvas makes every tile 4x4, so the maps can
+        # be built without re-deriving their sizes from the helper.
+        border = tile = 4
+        slices = {
+            f"{prefix}-{name}": pixel_map((fills[prefix],) * 16, 4, 4)
+            for prefix in fills
+            for name in SLICE_IDS
+        }
+        assert_slices_fill_their_tiles(
+            self, slices, tuple(fills.items()), border, tile
+        )
+        # A tile one pixel short must fail: its fill is uniform, so only the
+        # full-map compare catches the missing pixel.
+        short = dict(slices)
+        short["pressed-center"] = pixel_map((colour,) * 16, 4, 4)
+        del short["pressed-center"][(3, 3)]
+        assert_rejects(
+            assert_slices_fill_their_tiles,
+            short,
+            tuple(fills.items()),
+            border,
+            tile,
+        )
 
     def test_edge_band_pixels_pins_a_top_band_and_rejects_its_mirror(self):
         size = 6
