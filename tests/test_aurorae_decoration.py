@@ -73,6 +73,12 @@ REFERENCE = os.path.join(
 # The deepest reference row this module reads is the bottom border at y=424.
 REFERENCE_ROWS = 425
 
+# The flat grey every inactive-state tile uses in place of the active tile's
+# highlight and pinstripe fills. The reference set has no inactive window, so
+# this value is KDE-required provenance: it is the active title field's flat
+# row, sampled at (250, 27).
+INACTIVE_GREY = "#CCCCCC"
+
 
 def _hex(rgb):
     return "#%02X%02X%02X" % rgb
@@ -120,6 +126,24 @@ def _rect_fills(tree, group_id):
         if element.get("id") == group_id:
             return [child.get("fill") for child in element]
     raise AssertionError(f"no element with id {group_id!r}")
+
+
+def _assert_flattened_inactive_tile(case, tree, slices, name, flattened):
+    """Assert inactive tile *name* is its active tile with *flattened* gone.
+
+    The inactive window's tiles mirror the active ones with the highlight and
+    pinstripe fills flattened to `INACTIVE_GREY`. Check the composited pixels
+    against that derivation, then the rects' own fills, so a flattened colour
+    that a later rect overpaints still fails. *slices* is the shared
+    ``render_slices(tree)`` map.
+    """
+    expected = {
+        point: INACTIVE_GREY if fill in flattened else fill
+        for point, fill in slices[name.replace("inactive-", "")].items()
+    }
+    assert_slice_pixels(case, slices, name, expected)
+    for fill in _rect_fills(tree, name):
+        case.assertNotIn(fill, flattened)
 
 
 class ReferenceImageCase:
@@ -400,16 +424,16 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         # row (250,27). The inactive top tile is the active tile with every
         # #FFFFFF/#777777 pinstripe (and the 1px highlight) flattened.
         grey = self.reference_pixel(250, 27)
-        self.assertEqual(_hex(grey), "#CCCCCC")
+        self.assertEqual(_hex(grey), INACTIVE_GREY)
         slices = render_slices(self.tree)
-        expected = {
-            point: "#CCCCCC" if fill in ("#FFFFFF", "#777777") else fill
-            for point, fill in slices["decoration-top"].items()
-        }
-        assert_slice_pixels(self, slices, "decoration-inactive-top", expected)
+        _assert_flattened_inactive_tile(
+            self,
+            self.tree,
+            slices,
+            "decoration-inactive-top",
+            ("#FFFFFF", "#777777"),
+        )
         self.assertEqual(slices["decoration-inactive-top"][(0, 2)], _hex(grey))
-        for fill in _rect_fills(self.tree, "decoration-inactive-top"):
-            self.assertNotIn(fill, ("#FFFFFF", "#777777"))
 
     def test_inactive_bevel_has_no_highlight(self):
         slices = render_slices(self.tree)
@@ -419,13 +443,9 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
             "decoration-inactive-bottom",
         ):
             with self.subTest(slice=name):
-                expected = {
-                    point: "#CCCCCC" if fill == "#FFFFFF" else fill
-                    for point, fill in slices[name.replace("inactive-", "")].items()
-                }
-                assert_slice_pixels(self, slices, name, expected)
-                for fill in _rect_fills(self.tree, name):
-                    self.assertNotEqual(fill, "#FFFFFF")
+                _assert_flattened_inactive_tile(
+                    self, self.tree, slices, name, ("#FFFFFF",)
+                )
 
     def test_inactive_corners_flatten_active_corners(self):
         # The inactive corners are hand-derived, and test_inactive_slices_present
@@ -444,13 +464,9 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
             "decoration-inactive-bottomright",
         ):
             with self.subTest(slice=name):
-                expected = {
-                    point: "#CCCCCC" if fill in ("#FFFFFF", "#777777") else fill
-                    for point, fill in slices[name.replace("inactive-", "")].items()
-                }
-                assert_slice_pixels(self, slices, name, expected)
-                for fill in _rect_fills(self.tree, name):
-                    self.assertNotIn(fill, ("#FFFFFF", "#777777"))
+                _assert_flattened_inactive_tile(
+                    self, self.tree, slices, name, ("#FFFFFF", "#777777")
+                )
 
     # The reference frame's borders, at the coordinate each tile's local
     # origin maps to: the left border starts at its outer black column x=7,
@@ -601,7 +617,7 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                     if fill in ("#888888", "#222222"):
                         self.assertEqual(inactive[point], fill, point)
                     else:
-                        self.assertEqual(inactive[point], "#CCCCCC", point)
+                        self.assertEqual(inactive[point], INACTIVE_GREY, point)
 
     def test_inactive_zoom_glyph_survives(self):
         close = render_slices(ET.parse(CLOSE_SVG))["inactive-center"]
