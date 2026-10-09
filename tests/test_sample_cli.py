@@ -19,7 +19,7 @@ from tools import sample  # noqa: E402
 from cli_fixtures import CliTestCase  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
 from png_fixtures import rgb_image, solid_rgb  # noqa: E402
-from theme_install import run  # noqa: E402
+from theme_install import run_captured  # noqa: E402
 
 TOOL = REPO_ROOT / "tools" / "sample.py"
 
@@ -43,10 +43,8 @@ class TestSampleCli(CliTestCase):
         _, data = solid_rgb(1, 1)
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write(Path(tmp), "reference.png", data)
-            result = run(
+            result = run_captured(
                 [sys.executable, str(TOOL), path, "0", "0"],
-                capture_output=True,
-                text=True,
             )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)

@@ -19,7 +19,7 @@ from check_references_fixtures import (
     reference_set,
 )
 from error_assertions import assert_escapes_escape_character
-from theme_install import run
+from theme_install import run_captured
 
 
 def _capture(function, *args):
@@ -190,11 +190,9 @@ class TestScriptEntryPoint(unittest.TestCase):
     """
 
     def test_self_test_runs_by_path(self):
-        result = run(
+        result = run_captured(
             [sys.executable, CHECKER, "--self-test"],
             cwd=ROOT,
-            capture_output=True,
-            text=True,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("cases passed", result.stdout)

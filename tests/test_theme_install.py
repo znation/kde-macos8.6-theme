@@ -396,11 +396,9 @@ class TestHelp(unittest.TestCase):
         env = dict(os.environ)
         env.pop("CHECK_PATTERN", None)
         env.pop("MAKEFLAGS", None)
-        result = theme_install.run(
+        result = theme_install.run_captured(
             ["make", "help"],
             cwd=theme_install.ROOT,
-            capture_output=True,
-            text=True,
             env=env,
         )
         self.assertEqual(result.returncode, 0, result.stderr)

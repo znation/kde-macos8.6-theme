@@ -136,6 +136,18 @@ def run(argv, **kwargs):
     )
 
 
+def run_captured(argv, **kwargs):
+    """Run `argv` under `run`, capturing its output as decoded text.
+
+    A caller that reads the child's `stdout`/`stderr` as `str` gets
+    `capture_output` and `text` defaulted here; the rest (`cwd`, `env`,
+    `timeout`) is forwarded to `run`.
+    """
+    kwargs.setdefault("capture_output", True)
+    kwargs.setdefault("text", True)
+    return run(argv, **kwargs)
+
+
 def run_make(args, env=None):
     """Run `make *args*` at the repository root under the suite's timeout runner.
 
@@ -144,11 +156,9 @@ def run_make(args, env=None):
     `make -n` with a controlled one. The return is `run`'s CompletedProcess,
     so a caller reads `returncode`, `stdout` and `stderr`.
     """
-    return run(
+    return run_captured(
         ["make", *args],
         cwd=ROOT,
-        capture_output=True,
-        text=True,
         env=env,
     )
 

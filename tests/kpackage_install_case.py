@@ -11,7 +11,7 @@ suite subclasses `KPackageInstallCase`, sets `KPACKAGETOOL_TYPE`,
 import os
 import tempfile
 
-from theme_install import run
+from theme_install import run_captured
 
 
 class KPackageInstallCase:
@@ -29,7 +29,7 @@ class KPackageInstallCase:
 
     def test_kpackagetool6_installs_package(self):
         with tempfile.TemporaryDirectory() as tmp:
-            result = run(
+            result = run_captured(
                 [
                     "kpackagetool6",
                     "-t",
@@ -39,8 +39,6 @@ class KPackageInstallCase:
                     "-i",
                     self.PACKAGE_DIR,
                 ],
-                capture_output=True,
-                text=True,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertTrue(

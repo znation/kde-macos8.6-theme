@@ -17,7 +17,7 @@ from theme_install import (
     install,
     installed_color_scheme,
     installed_color_scheme_dir,
-    run,
+    run_captured,
     shadow_command_env,
     staging_sibling,
     uninstall,
@@ -181,21 +181,17 @@ class TestRestartRoundTrip(unittest.TestCase):
                 XDG_DATA_DIRS=data + os.pathsep + "/usr/share",
             )
             cli_id = os.path.basename(SCHEME).split(".", 1)[0]
-            applied = run(
+            applied = run_captured(
                 ["plasma-apply-colorscheme", cli_id],
                 env=env,
-                capture_output=True,
-                text=True,
             )
             self.assertEqual(applied.returncode, 0, applied.stderr)
             with open(kdeglobals, encoding="utf-8") as handle:
                 written = handle.read()
             self.assertIn(f"ColorScheme={cli_id}", written)
-            restarted = run(
+            restarted = run_captured(
                 ["plasma-apply-colorscheme"],
                 env=env,
-                capture_output=True,
-                text=True,
             )
             self.assertNotIn(
                 "Could not find",

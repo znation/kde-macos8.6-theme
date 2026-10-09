@@ -26,7 +26,7 @@ from png_fixtures import (  # noqa: E402
     rgb_image,
     solid_rgb,
 )
-from theme_install import run  # noqa: E402
+from theme_install import run_captured  # noqa: E402
 
 TOOL = REPO_ROOT / "tools" / "fidelity.py"
 
@@ -125,10 +125,8 @@ class TestCli(CliTestCase):
         _, reference = solid_rgb(1, 1)
         with tempfile.TemporaryDirectory() as tmp:
             path = self._write(Path(tmp), "reference.png", reference)
-            result = run(
+            result = run_captured(
                 [sys.executable, str(TOOL), path, path],
-                capture_output=True,
-                text=True,
             )
         self._assert_pass(result)
 

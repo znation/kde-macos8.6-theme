@@ -39,7 +39,7 @@ from svg_assertions import (
     assert_root_canvas,
     assert_unique_ids,
 )
-from theme_install import install, run, shadow_command_env
+from theme_install import install, run_captured, shadow_command_env
 
 
 # configparser reads the KDE `[plasmarc][Theme]` header greedily, so the
@@ -183,19 +183,15 @@ class TestApplyDesktopTheme(unittest.TestCase):
                 XDG_DATA_HOME=os.path.join(tmp, "share"),
                 XDG_CONFIG_HOME=os.path.join(tmp, "config"),
             )
-            listed = run(
+            listed = run_captured(
                 ["plasma-apply-desktoptheme", "--list-themes"],
                 env=env,
-                capture_output=True,
-                text=True,
             )
             self.assertEqual(listed.returncode, 0, listed.stderr)
             self.assertIn(DTHEME_ID, listed.stdout)
-            applied = run(
+            applied = run_captured(
                 ["plasma-apply-desktoptheme", DTHEME_ID],
                 env=env,
-                capture_output=True,
-                text=True,
             )
             self.assertEqual(applied.returncode, 0, applied.stderr)
             parser = read_kde_config(os.path.join(tmp, "config", "plasmarc"))
