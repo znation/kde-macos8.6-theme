@@ -30,6 +30,21 @@ def run_captured(argv, **kwargs):
     return process_runner.run(argv, **kwargs)
 
 
+def make_env(*names):
+    """Return a copy of `os.environ` with *names* and `MAKEFLAGS` removed.
+
+    A caller's `make VAR=...` reaches a child `make` both as a `VAR`
+    environment variable and as a command-line variable definition inside
+    `MAKEFLAGS`, and the child re-reads the latter; a test that pins a make
+    variable must drop both so the ambient value does not win. *names* are the
+    variables the test means to control (e.g. `CHECK_PATTERN`, `PYTHON`).
+    """
+    env = dict(os.environ)
+    for name in (*names, "MAKEFLAGS"):
+        env.pop(name, None)
+    return env
+
+
 def run_make(args, env=None):
     """Run `make *args*` at the repository root under the suite's timeout runner.
 

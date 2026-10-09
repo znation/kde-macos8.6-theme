@@ -12,6 +12,7 @@ import os
 import re
 import tempfile
 import unittest
+import unittest.mock
 
 import theme_install
 from process_assertions import assert_failed, assert_succeeded
@@ -31,6 +32,34 @@ def _assert_both_targets_refused(case, env, args, expected):
             assert_failed(case, result)
             for substring in expected:
                 case.assertIn(substring, result.stderr)
+
+
+class TestMakeEnv(unittest.TestCase):
+    """`make_env` drops `MAKEFLAGS` and each named variable, and nothing else.
+
+    The child `make` re-reads a caller's `make VAR=...` from `MAKEFLAGS`, so a
+    test that pins a make variable must drop both forms; a sibling variable it
+    did not name must survive so the child environment stays representative.
+    """
+
+    def test_removes_makeflags_and_each_named_variable(self):
+        with unittest.mock.patch.dict(
+            os.environ,
+            {
+                "MAKEFLAGS": "-- check",
+                "CHECK_PATTERN": "test_x.py",
+                "KEEP_ME": "yes",
+            },
+        ):
+            env = theme_install.make_env("CHECK_PATTERN")
+        self.assertNotIn("MAKEFLAGS", env)
+        self.assertNotIn("CHECK_PATTERN", env)
+        self.assertEqual(env["KEEP_ME"], "yes")
+
+    def test_removes_makeflags_even_without_a_named_variable(self):
+        with unittest.mock.patch.dict(os.environ, {"MAKEFLAGS": "-s"}):
+            env = theme_install.make_env()
+        self.assertNotIn("MAKEFLAGS", env)
 
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):
@@ -238,13 +267,11 @@ class TestCheckPattern(unittest.TestCase):
         # A caller's `make check CHECK_PATTERN=...` reaches the recipe both as
         # a CHECK_PATTERN environment variable and as a command-line variable
         # definition inside MAKEFLAGS; the child `make` re-reads the latter and
-        # would otherwise use the ambient pattern for the default case. Drop
-        # both so each case pins the pattern it means to; a command-line
-        # assignment passed below still overrides the Makefile default.
-        env = dict(os.environ)
-        env.pop("CHECK_PATTERN", None)
-        env.pop("CHECK_TESTS", None)
-        env.pop("MAKEFLAGS", None)
+        # would otherwise use the ambient pattern for the default case.
+        # `make_env` drops both so each case pins the pattern it means to; a
+        # command-line assignment passed below still overrides the Makefile
+        # default.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
         result = theme_install.run_make(["-n", "check", *extra], env=env)
         assert_succeeded(self, result)
         return result.stdout
@@ -277,9 +304,7 @@ class TestCheckPattern(unittest.TestCase):
         # must refuse it with a diagnostic naming CHECK_TESTS. The second word
         # is a real test module, so a guard regression still finishes quickly
         # instead of running the whole suite.
-        env = dict(os.environ)
-        env.pop("CHECK_TESTS", None)
-        env.pop("MAKEFLAGS", None)
+        env = theme_install.make_env("CHECK_TESTS")
         result = theme_install.run_make(
             ["check", "CHECK_TESTS=-x test_byteops"], env=env
         )
@@ -302,9 +327,7 @@ class TestPythonInterpreter(unittest.TestCase):
     """
 
     def _assert_refused(self, *, command_line=None, environment=None):
-        env = dict(os.environ)
-        env.pop("PYTHON", None)
-        env.pop("MAKEFLAGS", None)
+        env = theme_install.make_env("PYTHON")
         args = ["check"]
         if command_line is not None:
             args.append(f"PYTHON={command_line}")
@@ -344,9 +367,7 @@ class TestPythonVersion(unittest.TestCase):
             with open(fake, "w", encoding="utf-8") as handle:
                 handle.write("#!/bin/sh\nexit 3\n")
             os.chmod(fake, 0o755)
-            env = dict(os.environ)
-            env.pop("PYTHON", None)
-            env.pop("MAKEFLAGS", None)
+            env = theme_install.make_env("PYTHON")
             result = theme_install.run_make(
                 [target, f"PYTHON={fake}"], env=env
             )
@@ -375,9 +396,7 @@ class TestHelp(unittest.TestCase):
     """
 
     def _output(self):
-        env = dict(os.environ)
-        env.pop("CHECK_PATTERN", None)
-        env.pop("MAKEFLAGS", None)
+        env = theme_install.make_env("CHECK_PATTERN")
         result = theme_install.run_captured(
             ["make", "help"],
             cwd=theme_install.ROOT,
