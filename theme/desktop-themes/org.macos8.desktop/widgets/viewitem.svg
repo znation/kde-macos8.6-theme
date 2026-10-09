@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" view item.
+
+     The generic item highlight KSvg.FrameSvgItem draws behind
+     PlasmaComponents.MenuItem (components/MenuItem.qml, prefix "hover"),
+     PlasmaExtras.Highlight (extras/Highlight.qml, prefix "selected+hover"
+     while pressed and hovered, "selected" while pressed, "hover" while
+     hovered, else "normal") and the kicker/quicklaunch/desktop-containment
+     hover highlights that read widgets/viewitem. A missing prefix or slice
+     renders nothing and there is no cross-theme fallback once this file
+     exists, so all four prefixes ship.
+
+     Mac OS 8.6 highlights are flat, square and un-outlined, so `hover`,
+     `selected` and `selected+hover` are each a flat #CCCCFF rectangle with
+     square corners, no bevel and no outline. That value is the project's
+     sampled [Colors:Selection] BackgroundNormal=204,204,255 token reused by
+     semantic role: the reference set has no open-menu screenshot, so the
+     menu-item highlight has no per-pixel menu sample. The unhighlighted
+     `normal` slices paint nothing perceptible: a nine-slice element with no
+     rendered content has no bounding box for KSvg to read margins from, so
+     they carry style="fill:#FFFFFF" fill-opacity="0.01" geometry that
+     contributes the 3px margins while painting effectively nothing.
+
+     The nine-slice contract is a 3px border around a 6px centre tile on a
+     tight 12x12 canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="normal-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="normal-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="hover-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="hover-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="hover-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="hover-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="selected-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="selected-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="selected-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="selected-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="selected+hover-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="selected+hover-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="selected+hover-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="selected+hover-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+
+  <!-- Normal: an unhighlighted item paints the view background, so every
+       slice is a transparent 0.01-opacity placeholder that only carries the
+       margins. -->
+  <g id="normal-top" transform="translate(3,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-left" transform="translate(0,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-right" transform="translate(9,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-center" transform="translate(3,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topleft">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topright" transform="translate(9,0)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+
+  <!-- Hover: the flat #CCCCFF highlight, square corners, no bevel. -->
+  <g id="hover-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-topleft">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+
+  <!-- Selected: the flat #CCCCFF highlight, square corners, no bevel. -->
+  <g id="selected-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-topleft">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+
+  <!-- Selected+hover: the flat #CCCCFF highlight, square corners, no bevel. -->
+  <g id="selected+hover-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-topleft">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="selected+hover-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+</svg>

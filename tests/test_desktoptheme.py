@@ -28,6 +28,7 @@ from desktoptheme_paths import (
     RADIOBUTTON_SVG,
     SCROLLBAR_SVG,
     SLIDER_SVG,
+    VIEWITEM_SVG,
 )
 from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
@@ -60,6 +61,7 @@ SVG_CANVASES = (
     ("button.svg", BUTTON_SVG, 12, 12),
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
     ("listitem.svg", LISTITEM_SVG, 12, 12),
+    ("viewitem.svg", VIEWITEM_SVG, 12, 12),
     ("scrollbar.svg", SCROLLBAR_SVG, 16, 16),
     ("slider.svg", SLIDER_SVG, 16, 16),
     ("background.svg", BACKGROUND_SVG, 16, 16),
@@ -150,6 +152,7 @@ class TestInstall(
         os.path.join("widgets", "checkmarks.svg"),
         os.path.join("widgets", "lineedit.svg"),
         os.path.join("widgets", "listitem.svg"),
+        os.path.join("widgets", "viewitem.svg"),
         os.path.join("widgets", "scrollbar.svg"),
         os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "background.svg"),
