@@ -6,6 +6,7 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -37,6 +38,15 @@ class TestSampleCli(CliTestCase):
         """Write a 4x3 PNG whose pixel ``(x, y)`` is ``(x, y, x + y)``."""
         _, data = rgb_image(4, 3, lambda x, y: (x, y, x + y))
         return self._write(directory, "reference.png", data)
+
+    def _assert_usage_error(
+        self, result: subprocess.CompletedProcess, *needles: str
+    ) -> None:
+        """Assert *result* is a clean exit-2 usage error naming *needles*."""
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        for needle in needles:
+            self.assertIn(needle, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
 
     def test_script_entry_point(self):
         """The CLI still runs end to end as ``python3 tools/sample.py``.
@@ -130,11 +140,8 @@ class TestSampleCli(CliTestCase):
             for option, value in (("--width", "0"), ("--height", "-1")):
                 with self.subTest(option=option):
                     result = self._run(path, "0", "0", option, value)
-                    self.assertEqual(
-                        result.returncode, 2, result.stdout + result.stderr
-                    )
-                    self.assertIn(
-                        f"{option} must be at least 1", result.stderr
+                    self._assert_usage_error(
+                        result, f"{option} must be at least 1"
                     )
 
     def test_region_past_edge_is_error(self):
@@ -143,9 +150,8 @@ class TestSampleCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "2", "1", "--width", "3")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn(
-            "region (2, 1) 3x1 is outside the 4x3 image", result.stderr
+        self._assert_usage_error(
+            result, "region (2, 1) 3x1 is outside the 4x3 image"
         )
 
     def test_region_past_bottom_edge_is_error(self):
@@ -159,9 +165,8 @@ class TestSampleCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "0", "1", "--height", "3")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn(
-            "region (0, 1) 1x3 is outside the 4x3 image", result.stderr
+        self._assert_usage_error(
+            result, "region (0, 1) 1x3 is outside the 4x3 image"
         )
         self.assertNotIn("region", result.stdout)
         self.assertNotIn("(0, 1):", result.stdout)
@@ -172,30 +177,25 @@ class TestSampleCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "4", "1")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn("outside the 4x3 image", result.stderr)
+        self._assert_usage_error(result, "outside the 4x3 image")
 
     def test_negative_coordinate_is_error(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "-1", "0")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn("outside the 4x3 image", result.stderr)
+        self._assert_usage_error(result, "outside the 4x3 image")
 
     def test_missing_file_is_error(self):
         with tempfile.TemporaryDirectory() as tmp:
             missing = str(Path(tmp) / "absent.png")
             result = self._run(missing, "0", "0")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn("cannot read", result.stderr)
-        self.assertIn(missing, result.stderr)
+        self._assert_usage_error(result, "cannot read", missing)
 
     def test_non_integer_coordinate_is_usage_error(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "a", "0")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn("x must be an integer", result.stderr)
+        self._assert_usage_error(result, "x must be an integer")
 
     def test_python_literal_coordinates_rejected(self):
         # int() would accept "1_0" as 10 and "\u0661" as 1, silently naming a
@@ -205,11 +205,8 @@ class TestSampleCli(CliTestCase):
             for bad in ("1_0", "\u0661", " 1"):
                 with self.subTest(value=bad):
                     result = self._run(path, bad, "0")
-                    self.assertEqual(
-                        result.returncode, 2, result.stdout + result.stderr
-                    )
-                    self.assertIn(
-                        "x must be a plain ASCII integer", result.stderr
+                    self._assert_usage_error(
+                        result, "x must be a plain ASCII integer"
                     )
 
     def test_help_documents_exit_status(self):
@@ -226,7 +223,7 @@ class TestSampleCli(CliTestCase):
         # byte to the terminal.
         with control_named_missing() as missing:
             result = self._run(missing, "0", "0")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self._assert_usage_error(result)
         assert_escapes_escape_character(self, result.stderr)
 
     def test_success_output_escapes_control_characters_in_path(self):
@@ -244,8 +241,7 @@ class TestSampleCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "0", "0", "evil\x1b[31m.png")
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn("unrecognized arguments", result.stderr)
+        self._assert_usage_error(result, "unrecognized arguments")
         assert_escapes_escape_character(self, result.stderr)
 
 
