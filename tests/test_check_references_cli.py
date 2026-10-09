@@ -108,7 +108,20 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 1, out + err)
         self.assertIn("extra.png", err)
-        self.assertIn("1 problem(s) in the reference set", err)
+        # One problem takes the singular noun: the summary used to print the
+        # literal "1 problem(s)".
+        self.assertIn("1 problem in the reference set", err)
+
+    def test_broken_set_counts_problems_in_the_plural(self):
+        module = load_checker()
+        with reference_set(
+            module,
+            "",
+            {"one.png": module.PNG_MAGIC, "two.png": module.PNG_MAGIC},
+        ) as root:
+            code, out, err = self._run_no_args(module, root)
+        self.assertEqual(code, 1, out + err)
+        self.assertIn("2 problems in the reference set", err)
 
 
 class TestArgumentsExcludeProgramName(unittest.TestCase):
@@ -146,6 +159,14 @@ class TestUnknownArgumentEscaping(unittest.TestCase):
         self.assertIn("unknown argument", err.getvalue())
         self.assertNotIn("\x1b", err.getvalue())
         self.assertIn("\\u001b", err.getvalue())
+
+    def test_two_unknown_arguments_are_named_in_the_plural(self):
+        module = load_checker()
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            code = module.main(["one", "two"])
+        self.assertEqual(code, 2)
+        self.assertIn("unknown arguments: one two", err.getvalue())
 
 
 if __name__ == "__main__":

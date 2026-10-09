@@ -457,6 +457,16 @@ def _self_test() -> int:
     return 0
 
 
+def _plural(count: int, singular: str) -> str:
+    """Return *singular*, pluralized with ``s`` when *count* is not one.
+
+    Both count-bearing diagnostics this module prints (the unknown-argument
+    error and the problem summary) read as broken English when a single item
+    is followed by ``(s)``; this picks the form from the actual count.
+    """
+    return singular if count == 1 else singular + "s"
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the checker; *argv* is the argument list without a program name.
 
@@ -473,7 +483,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args:
         print(
-            f"error: unknown argument(s): {escape_controls(' '.join(args))}",
+            f"error: unknown {_plural(len(args), 'argument')}: "
+            f"{escape_controls(' '.join(args))}",
             file=sys.stderr,
         )
         print(USAGE, end="", file=sys.stderr)
@@ -484,7 +495,11 @@ def main(argv: list[str] | None = None) -> int:
     if problems:
         for problem in problems:
             print(problem, file=sys.stderr)
-        print(f"{len(problems)} problem(s) in the reference set", file=sys.stderr)
+        print(
+            f"{len(problems)} {_plural(len(problems), 'problem')} "
+            "in the reference set",
+            file=sys.stderr,
+        )
         return 1
     print(f"{directory}: reference set is consistent")
     return 0
