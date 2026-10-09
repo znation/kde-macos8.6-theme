@@ -339,6 +339,19 @@ class TestSplashQml(unittest.TestCase):
             "width: parent.width * Math.min(1, root.stage / 6)", _read_qml()
         )
 
+    def test_progress_fill_stretches_to_the_track_height(self):
+        # The fill's width binding is pinned above, but its vertical extent is
+        # not. The fill declares no `height` of its own, so it is drawn only
+        # because `anchors.top` and `anchors.bottom` stretch it to the track's
+        # inside; dropping either collapses it to a 0px line, an empty-looking
+        # progress well, while the width test and every colour test still pass.
+        # `anchors.left` places its origin on the track's left edge. Pin all
+        # three so the fill keeps spanning the well as the stage advances.
+        fill = _object_source(_read_qml(), "fill")
+        self.assertIn("anchors.left: parent.left", fill)
+        self.assertIn("anchors.top: parent.top", fill)
+        self.assertIn("anchors.bottom: parent.bottom", fill)
+
     def test_unit_scales_the_reference_grid_without_collapsing(self):
         # Every geometry binding is a reference-grid literal times `root.unit`,
         # but no test pinned `unit` itself. A definition that dropped the
