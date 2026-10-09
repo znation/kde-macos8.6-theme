@@ -23,6 +23,7 @@ from __future__ import annotations
 import fnmatch
 import importlib
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -30,8 +31,29 @@ import unittest
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 # The default of the Makefile's CHECK_PATTERN, which `make check` passes to
-# `unittest discover -p`.
+# `unittest discover -p`. test_discovery_pattern_matches_the_makefile_default
+# pins it to the Makefile so the guard cannot silently check a pattern the
+# suite no longer runs with.
 DISCOVERY_PATTERN = "test*.py"
+
+
+def makefile_check_pattern():
+    """Return the Makefile's literal ``CHECK_PATTERN ?=`` default.
+
+    ``make check`` passes ``$(CHECK_PATTERN)`` to ``unittest discover -p``,
+    and this module's guards mirror that discovery with
+    :data:`DISCOVERY_PATTERN`. Reading the default from the Makefile lets the
+    guard compare against the pattern the suite really uses instead of a
+    second copy that could drift. Only the literal right-hand side is read,
+    matching ``TestHelp._tunable_defaults``.
+    """
+    makefile = os.path.join(os.path.dirname(TESTS_DIR), "Makefile")
+    with open(makefile, encoding="utf-8") as handle:
+        for line in handle:
+            match = re.match(r"CHECK_PATTERN\s*\?=(.*)$", line)
+            if match:
+                return match.group(1).split("#", 1)[0].strip()
+    raise AssertionError("Makefile has no `CHECK_PATTERN ?=` default")
 
 
 def test_module_names(directory):
@@ -132,6 +154,12 @@ class TestSuiteDiscovery(unittest.TestCase):
             "cases to the repo's *_fixtures.py/_case.py convention): "
             + ", ".join(misnamed),
         )
+
+    def test_discovery_pattern_matches_the_makefile_default(self):
+        # `make check` discovers with the Makefile's CHECK_PATTERN; this
+        # module's guards use DISCOVERY_PATTERN. If the two disagree, a
+        # module the real run misses can slip past the guard, so pin them.
+        self.assertEqual(DISCOVERY_PATTERN, makefile_check_pattern())
 
     def test_a_misnamed_test_module_is_reported(self):
         # Prove the guard bites: a module that collects tests but is not
