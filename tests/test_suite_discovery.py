@@ -20,6 +20,7 @@ so its tests silently never run. The second check loads every other
 
 from __future__ import annotations
 
+import contextlib
 import fnmatch
 import importlib
 import os
@@ -122,6 +123,24 @@ def modules_without_tests(directory):
     return empty
 
 
+@contextlib.contextmanager
+def probe_module(directory, filename, source):
+    """Import a *source* probe module from *directory*, undoing it on exit.
+
+    The guard-bites tests import a probe by bare name, so they must put its
+    directory on ``sys.path`` and drop the module from ``sys.modules`` again;
+    writing the file and undoing both is what the two tests share.
+    """
+    with open(os.path.join(directory, filename), "w", encoding="utf-8") as handle:
+        handle.write(source)
+    sys.path.insert(0, directory)
+    try:
+        yield
+    finally:
+        sys.path.remove(directory)
+        sys.modules.pop(filename[: -len(".py")], None)
+
+
 class TestSuiteDiscovery(unittest.TestCase):
     def test_every_test_module_contributes_tests(self):
         names = test_module_names(TESTS_DIR)
@@ -166,41 +185,29 @@ class TestSuiteDiscovery(unittest.TestCase):
         # named test*.py is exactly what
         # test_every_test_case_module_matches_the_discovery_pattern must
         # catch. Import it by bare name, then take it back out.
+        source = (
+            "import unittest\n\n"
+            "class TestProbe(unittest.TestCase):\n"
+            "    def test_ok(self):\n"
+            "        self.assertTrue(True)\n"
+        )
         with tempfile.TemporaryDirectory() as tmp:
-            probe = os.path.join(tmp, "checks_guard_probe.py")
-            with open(probe, "w", encoding="utf-8") as handle:
-                handle.write(
-                    "import unittest\n\n"
-                    "class TestProbe(unittest.TestCase):\n"
-                    "    def test_ok(self):\n"
-                    "        self.assertTrue(True)\n"
-                )
-            sys.path.insert(0, tmp)
-            try:
+            with probe_module(tmp, "checks_guard_probe.py", source):
                 self.assertEqual(
                     misnamed_test_modules(tmp), ["checks_guard_probe"]
                 )
-            finally:
-                sys.path.remove(tmp)
-                sys.modules.pop("checks_guard_probe", None)
 
     def test_a_test_module_without_tests_is_reported(self):
         # Prove the guard bites: a matched module with no TestCase is exactly
         # what test_every_test_module_contributes_tests must catch. The probe
         # is imported by bare name, so put its directory on sys.path for the
         # call and take both it and its module back out afterwards.
+        source = '"""A probe module that defines no tests."""\n'
         with tempfile.TemporaryDirectory() as tmp:
-            probe = os.path.join(tmp, "test_empty_guard_probe.py")
-            with open(probe, "w", encoding="utf-8") as handle:
-                handle.write('"""A probe module that defines no tests."""\n')
-            sys.path.insert(0, tmp)
-            try:
+            with probe_module(tmp, "test_empty_guard_probe.py", source):
                 self.assertEqual(
                     modules_without_tests(tmp), ["test_empty_guard_probe"]
                 )
-            finally:
-                sys.path.remove(tmp)
-                sys.modules.pop("test_empty_guard_probe", None)
 
 
 if __name__ == "__main__":
