@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum menu-bar item widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum menu-bar item widget for the desktop theme (done 2026-10-09)
 
 **Planned 2026-10-09 by plan.** The follow-up the done viewitem plan left unplanned.
 Independent of every done widget plan: it adds one artwork file to the existing
@@ -126,8 +130,6 @@ uniform 6px border and a 22x22 centre tile.
   choice for the appmenu titles.
 - The uniform 3px margins are the project's tight 12x12 grid; the reference set has no
   menu-open screenshot to measure a per-side menu-title padding from.
-
-## Done
 
 ### Mac OS 8.6 Platinum view item widget for the desktop theme (done 2026-10-09)
 

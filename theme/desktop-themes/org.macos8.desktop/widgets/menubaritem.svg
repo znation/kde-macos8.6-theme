@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" menu-bar item.
+
+     The menu-bar title background the appmenu application-menu titles
+     (org.kde.plasma.appmenu contents/ui/MenuDelegate.qml, prefix "pressed"
+     while the title's menu is open, "hover" while merely hovered, else
+     "normal") and the windowlist task-menu button
+     (org.kde.plasma.windowlist contents/ui/MenuButton.qml, the same three
+     prefixes) draw. A missing prefix or slice renders nothing and there is no
+     cross-theme fallback once this file exists, so all three prefixes ship.
+
+     Mac OS 8.6 highlights a menu-bar title only while its menu is open, not on
+     hover, so `normal` and `hover` paint nothing perceptible: their slices are
+     transparent 0.01-opacity placeholders that carry the 3px margins while
+     painting effectively nothing (a nine-slice element with no rendered
+     content has no bounding box for KSvg to read margins from). The `pressed`
+     slices are the flat #CCCCFF rectangle with square corners, no bevel and no
+     outline. That value is the project's sampled
+     [Colors:Selection] BackgroundNormal=204,204,255 token reused by semantic
+     role, as widgets/viewitem.svg and widgets/listitem.svg already do: the
+     reference set has no menu-open screenshot, so the pressed fill has no
+     per-pixel menu sample.
+
+     The nine-slice contract is a 3px border around a 6px centre tile on a
+     tight 12x12 canvas. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="normal-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="normal-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="hover-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="hover-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="hover-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="hover-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="pressed-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+
+  <!-- Normal: an idle title paints the menu-bar strip, so every slice is a
+       transparent 0.01-opacity placeholder that only carries the margins. -->
+  <g id="normal-top" transform="translate(3,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-left" transform="translate(0,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-right" transform="translate(9,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-center" transform="translate(3,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topleft">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topright" transform="translate(9,0)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+
+  <!-- Hover: Mac OS 8.6 does not highlight a merely hovered title, so every
+       slice is the same transparent placeholder as normal. -->
+  <g id="hover-top" transform="translate(3,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-left" transform="translate(0,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-right" transform="translate(9,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-center" transform="translate(3,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-topleft">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-topright" transform="translate(9,0)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="hover-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+
+  <!-- Pressed: the flat #CCCCFF highlight while the title's menu is open,
+       square corners, no bevel. -->
+  <g id="pressed-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-topleft">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="pressed-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#CCCCFF"/>
+  </g>
+</svg>
