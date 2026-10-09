@@ -37,6 +37,36 @@ present but need a display server, so the feature loop could only land dead code
 objection the refusal records. Clear the refusal once a headless render path exists, then route
 the entry to PLANS.md.
 
+### Uninstalling the scheme while it is selected leaves KDE warning `Could not find color scheme "MacOS8"` (found 2026-10-09)
+
+**Symptom:** A KDE/Qt app started from a terminal prints
+`Could not find color scheme "MacOS8" falling back to BreezeLight` and runs with BreezeLight
+instead of the selected scheme. The user hit it in an unrelated terminal session.
+
+**How to reproduce:** `make install`; select the scheme directly with
+`plasma-apply-colorscheme MacOS8` (or apply the global theme), which writes
+`[General] ColorScheme=MacOS8` to the user's `kdeglobals`; `make uninstall`; then start a KDE app —
+it warns and falls back. Observed on this machine: `~/.config/kdeglobals` `[General]` has
+`ColorScheme=MacOS8` while `~/.local/share/color-schemes/` is empty and `/usr/share/color-schemes/`
+has no `MacOS8.colors`.
+
+**Suspected cause:** `make uninstall` removes the installed `MacOS8.colors` (and the packages) but
+leaves the `[General] ColorScheme=MacOS8` selection in the user's `kdeglobals`. KDE resolves the
+stored id to `<id>.colors`, finds no file, and falls back to BreezeLight on each start without
+rewriting the stale key; `uninstall` is documented to remove only the artifacts `install` copied,
+so it never touches the user's config.
+
+**Next step:** Decide the lifecycle fix. Options: (a) have `make uninstall` read
+`$XDG_CONFIG_HOME/kdeglobals` (default `$HOME/.config/kdeglobals`) and, when `[General]
+ColorScheme=MacOS8` still selects the removed scheme, print a clear warning naming the reset
+command (`plasma-apply-colorscheme BreezeLight`), without editing the file; (b) document the
+dangling-selection hazard in README.md's Installing section; (c) reset the key automatically
+(touches user config — riskiest). Recommend (a) plus (b). Add a test: the existing
+`TestRestartRoundTrip.test_applied_id_survives_restart` in `tests/test_colorscheme_install.py`
+covers only the installed case, not the post-uninstall dangling one; a new case can drive
+`make uninstall` against a throwaway `XDG_CONFIG_HOME` whose `kdeglobals` selects `MacOS8` and
+assert the warning is printed.
+
 ## Fixed
 
 ### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07; fixed 2026-10-08)
