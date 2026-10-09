@@ -124,14 +124,15 @@ class TestFlockTimeout(unittest.TestCase):
     """An invalid FLOCK_TIMEOUT must be refused before the lock is taken.
 
     FLOCK_TIMEOUT is a make variable a caller can set, but `flock -w` accepts
-    only a non-negative integer number of seconds. An empty or non-numeric
-    value otherwise reaches flock, which fails with its own "invalid timeout
-    value" message that does not name the variable -- after `install` has
-    already created the data home. The guard must name FLOCK_TIMEOUT and
-    leave the tree untouched. `install` and `uninstall` share the guard.
+    only a non-negative integer number of seconds that fits its 64-bit signed
+    timer. An empty, non-numeric, or too-large value otherwise reaches flock,
+    which fails with its own "invalid timeout value" or "cannot set up timer"
+    message that does not name the variable -- after `install` has already
+    created the data home. The guard must name FLOCK_TIMEOUT and leave the
+    tree untouched. `install` and `uninstall` share the guard.
     """
 
-    def _assert_refused(self, value):
+    def _assert_refused(self, value, extra=None):
         with tempfile.TemporaryDirectory() as tmp:
             for target in ("install", "uninstall"):
                 with self.subTest(target=target):
@@ -150,6 +151,8 @@ class TestFlockTimeout(unittest.TestCase):
                         result.stderr,
                     )
                     self.assertIn(f"'{value}'", result.stderr)
+                    if extra is not None:
+                        self.assertIn(extra, result.stderr)
             data_home = os.path.join(
                 tmp, theme_install.XDG_DATA_HOME.lstrip("/")
             )
@@ -160,6 +163,16 @@ class TestFlockTimeout(unittest.TestCase):
 
     def test_non_numeric_is_refused_before_creating_the_data_home(self):
         self._assert_refused("60s")
+
+    def test_above_the_timer_limit_is_refused_before_creating_the_data_home(self):
+        # `flock -w` stores the timeout in a signed 64-bit timer field, so a
+        # value above 2**63 - 1 reaches it and fails with its own "cannot set
+        # up timer: Invalid argument" after the data home exists. The guard
+        # must reject it and name the limit.
+        self._assert_refused(
+            "9223372036854775808",
+            "at most 9223372036854775807",
+        )
 
 
 class TestCheckPattern(unittest.TestCase):

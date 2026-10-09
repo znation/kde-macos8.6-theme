@@ -118,12 +118,16 @@ FLOCK_CONFLICT_EXIT := 75
 
 # FLOCK_TIMEOUT is a make variable a caller can override (`make install
 # FLOCK_TIMEOUT=5`) or leave to the environment, but `flock -w` accepts only a
-# non-negative whole number of seconds. An empty value (`?=` keeps one from the
-# environment) or a typo like `60s` otherwise reaches flock and fails with its
-# own "invalid timeout value" message that never names the variable -- after
-# `install` has already created the data home. Refuse first with a diagnostic
-# that names FLOCK_TIMEOUT. $(1) names the target.
-require_flock_timeout = case "$(FLOCK_TIMEOUT)" in ''|*[!0-9]*) echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds: '$(FLOCK_TIMEOUT)'" >&2; exit 2;; esac
+# non-negative whole number of seconds that fits its 64-bit signed timer. An
+# empty value (`?=` keeps one from the environment), a typo like `60s`, or a
+# value above 2**63 - 1 otherwise reaches flock and fails with its own
+# "invalid timeout value" or "cannot set up timer" message that never names
+# the variable -- after `install` has already created the data home. Refuse
+# first with a diagnostic that names FLOCK_TIMEOUT. A value with more than 19
+# digits is above the limit outright; a 19-digit one is compared as text,
+# where equal-length decimal strings sort by value, so the guard never asks
+# the shell to do big-integer arithmetic. $(1) names the target.
+require_flock_timeout = set -- "$(FLOCK_TIMEOUT)"; case "$$1" in ''|*[!0-9]*) echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds: '$$1'" >&2; exit 2;; esac; if [ "$${\#1}" -gt 19 ] || { [ "$${\#1}" -eq 19 ] && [ "$$1" \> 9223372036854775807 ]; }; then echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds at most 9223372036854775807 (flock's 64-bit timer limit): '$$1'" >&2; exit 2; fi
 
 # Run the internal target $(1) under the data-home lock, naming $(2) when the
 # bounded wait expires instead of letting the command's own failure be blamed.
