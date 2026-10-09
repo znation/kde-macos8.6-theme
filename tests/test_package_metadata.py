@@ -39,6 +39,7 @@ def _case(method, metadata):
     collect it and run its mixin methods against the unset class attributes.
     """
     class _Case(PackageMetadata, unittest.TestCase):
+        METADATA_PATH = "metadata.json"
         PACKAGE_STRUCTURE = "Plasma/Theme"
         PACKAGE_ID = "org.example.desktop"
         PLASMA_API_KEY = "X-Plasma-API"
@@ -127,6 +128,29 @@ class TestPackageMetadata(unittest.TestCase):
         metadata["KPackageStructure"] = "Plasma/LookAndFeel"
         with self.assertRaises(AssertionError):
             _case("test_package_structure", metadata).test_package_structure()
+
+    def test_kplugin_guard_names_the_file_and_field(self):
+        # A metadata.json that decodes to an object but whose KPlugin is
+        # missing or not an object used to fail with a bare KeyError/TypeError
+        # naming neither the file nor the field; the mixin must name both.
+        for value in (None, "text", [], 7):
+            with self.subTest(kplugin=value):
+                metadata = _metadata()
+                if value is None:
+                    del metadata["KPlugin"]
+                else:
+                    metadata["KPlugin"] = value
+                for method in (
+                    "test_plugin_id_and_name",
+                    "test_plugin_version",
+                    "test_plugin_description_and_license_are_non_empty",
+                ):
+                    with self.subTest(method=method):
+                        with self.assertRaises(AssertionError) as caught:
+                            getattr(_case(method, metadata), method)()
+                        message = str(caught.exception)
+                        self.assertIn("metadata.json", message)
+                        self.assertIn("KPlugin", message)
 
     def test_plugin_id_and_name_guard(self):
         for key, value in (("Id", "org.other.desktop"), ("Name", "Something")):

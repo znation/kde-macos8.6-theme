@@ -53,18 +53,35 @@ class PackageMetadata:
     def setUp(self):
         self.metadata = load_metadata(self.METADATA_PATH)
 
+    def _plugin(self):
+        """Return the metadata's `KPlugin` object, failing with the path.
+
+        The Id/Name/Version/Description/License checks below read `KPlugin`,
+        but a metadata.json missing it raises a bare ``KeyError`` and one
+        whose ``KPlugin`` is not an object (a string, list or number) raises
+        a bare ``TypeError`` from indexing it -- neither names the file or
+        the field. Report the actual value instead.
+        """
+        plugin = self.metadata.get("KPlugin")
+        if not isinstance(plugin, dict):
+            self.fail(
+                f"{self.METADATA_PATH}: KPlugin must be a JSON object, not "
+                f"{type(plugin).__name__}"
+            )
+        return plugin
+
     def test_package_structure(self):
         self.assertEqual(
             self.metadata.get("KPackageStructure"), self.PACKAGE_STRUCTURE
         )
 
     def test_plugin_id_and_name(self):
-        plugin = self.metadata["KPlugin"]
+        plugin = self._plugin()
         self.assertEqual(plugin["Id"], self.PACKAGE_ID)
         self.assertEqual(plugin["Name"], "Mac OS 8.6")
 
     def test_plugin_version(self):
-        version = self.metadata["KPlugin"].get("Version")
+        version = self._plugin().get("Version")
         self.assertIsInstance(version, str, "KPlugin.Version")
         self.assertTrue(version.strip(), "KPlugin.Version must not be blank")
 
@@ -77,7 +94,7 @@ class PackageMetadata:
         # Description is shown in System Settings and License is the package's
         # legal metadata; a blank or non-string value installs cleanly but
         # misreports the package, so pin both here.
-        plugin = self.metadata["KPlugin"]
+        plugin = self._plugin()
         for key in ("Description", "License"):
             value = plugin.get(key)
             self.assertIsInstance(value, str, key)
