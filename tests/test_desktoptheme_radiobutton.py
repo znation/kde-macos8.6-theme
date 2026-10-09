@@ -10,6 +10,7 @@ from svg_assertions import (
     assert_no_script_elements,
     attribute_values,
     children_named,
+    circle_geometry,
     elements_by_id,
 )
 
@@ -36,26 +37,18 @@ class TestRadioButton(unittest.TestCase):
         by_id = elements_by_id(tree)
         circles = children_named(by_id["normal"], "circle")
         self.assertEqual(
-            [
-                (float(el.get("cx")), float(el.get("cy")),
-                 float(el.get("r")), el.get("fill"))
-                for el in circles
-            ],
+            [circle_geometry(el) + (el.get("fill"),) for el in circles],
             [(8, 8, 8, "#000000"), (8, 8, 7, "#FFFFFF")],
         )
         symbol = by_id["symbol"]
         self.assertEqual(
-            (float(symbol.get("cx")), float(symbol.get("cy")),
-             float(symbol.get("r")), symbol.get("fill")),
+            circle_geometry(symbol) + (symbol.get("fill"),),
             (40, 8, 3, "#000000"),
         )
         # KSvg reads the hint circle's size (not its colour) to size the
         # widget, so its centre and radius are part of the contract too.
         hint = by_id["hint-size"]
-        self.assertEqual(
-            (float(hint.get("cx")), float(hint.get("cy")), float(hint.get("r"))),
-            (24, 8, 8),
-        )
+        self.assertEqual(circle_geometry(hint), (24, 8, 8))
 
 
 if __name__ == "__main__":

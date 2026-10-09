@@ -18,6 +18,7 @@ from svg_assertions import (
     arc_center,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    circle_geometry,
     nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
@@ -251,6 +252,17 @@ class TestNineSliceHintGeometry(unittest.TestCase):
                 **nine_slice_margins("pressed", 3, 6),
             },
         )
+
+
+class TestCircleGeometry(unittest.TestCase):
+    def test_reads_centre_and_radius_as_floats(self):
+        # The radiobutton and checkmarks tests compare this against float
+        # tuples, so a string passthrough would fail there; pin the conversion
+        # (a decimal cx) and the argument order directly.
+        element = ET.fromstring(
+            '<circle cx="7.5" cy="24" r="3" fill="#000000"/>'
+        )
+        self.assertEqual(circle_geometry(element), (7.5, 24.0, 3.0))
 
 
 class TestRenderSlices(unittest.TestCase):

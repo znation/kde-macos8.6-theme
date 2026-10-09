@@ -338,6 +338,21 @@ def rect_geometry(tree):
     return geometry
 
 
+def circle_geometry(element):
+    """Return *element*'s circle geometry as ``(cx, cy, r)`` floats.
+
+    KSvg reads a circle hint's centre and radius to size and place the widget,
+    so a circle nudged off-centre or resized lays the widget out wrong even
+    while its id and fill pass the contract tests. ElementTree hands the
+    attributes back as strings; convert the three numeric ones here.
+    """
+    return (
+        float(element.get("cx")),
+        float(element.get("cy")),
+        float(element.get("r")),
+    )
+
+
 def nine_slice_margins(prefix, border, size):
     """Return the four margin-hint rects of a centred nine-slice tile.
 
