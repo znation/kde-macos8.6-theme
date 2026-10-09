@@ -30,6 +30,8 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     assert_unique_ids,
+    attribute_values,
+    children_named,
     circle_geometry,
     face_edge_bands,
     groups_with_id,
@@ -855,6 +857,89 @@ class TestGroupsWithId(unittest.TestCase):
     def test_yields_nothing_when_no_group_has_an_id(self):
         tree = self._tree('<rect id="center"/><g><rect id="x"/></g>')
         self.assertEqual(list(groups_with_id(tree)), [])
+
+
+class TestAttributeValues(unittest.TestCase):
+    def _tree(self, body):
+        return ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                f"{body}</svg>"
+            )
+        )
+
+    def test_collects_values_from_every_descendant(self):
+        # The ids sit at different depths -- a root child, a nested group and
+        # a rect under a nested group -- so a helper that scanned only the
+        # root's children would miss the deeper ones.
+        tree = self._tree(
+            '<rect id="top"/>'
+            '<g id="group"><rect id="nested"/>'
+            '<g><path id="deep"/></g></g>'
+        )
+        self.assertEqual(
+            attribute_values(tree, "id"),
+            {"top", "group", "nested", "deep"},
+        )
+
+    def test_omits_elements_that_lack_the_attribute(self):
+        # An element without `fill` contributes nothing: the set must not hold
+        # None, which would make every widget's fill assertion fail.
+        tree = self._tree(
+            '<rect fill="#000000"/><rect/><g><path fill="#FFFFFF"/></g>'
+        )
+        self.assertEqual(
+            attribute_values(tree, "fill"), {"#000000", "#FFFFFF"}
+        )
+
+    def test_deduplicates_repeated_values(self):
+        tree = self._tree(
+            '<rect fill="#000000"/><rect fill="#000000"/>'
+        )
+        self.assertEqual(attribute_values(tree, "fill"), {"#000000"})
+
+    def test_returns_an_empty_set_when_no_element_has_the_attribute(self):
+        tree = self._tree('<rect id="center"/><g id="top"/>')
+        self.assertEqual(attribute_values(tree, "stroke"), set())
+
+
+class TestChildrenNamed(unittest.TestCase):
+    def _first_child(self, body):
+        root = ET.fromstring(
+            '<svg xmlns="http://www.w3.org/2000/svg">'
+            f"{body}</svg>"
+        )
+        return root[0]
+
+    def test_returns_only_the_direct_children_with_the_tag(self):
+        # A rect nested inside a child <g> is a grandchild, not a child: the
+        # helper reads a group's own shapes and must not descend into nested
+        # groups, or a widget would read another slice's rect.
+        group = self._first_child(
+            '<g id="top">'
+            '<rect id="direct-1"/>'
+            '<path id="direct-2"/>'
+            '<g id="inner"><rect id="grandchild"/></g>'
+            "</g>"
+        )
+        self.assertEqual(
+            [r.get("id") for r in children_named(group, "rect")],
+            ["direct-1"],
+        )
+
+    def test_matches_the_local_name_of_a_namespaced_element(self):
+        # ElementTree reports the tag as `{namespace}rect`; the helper must
+        # match on the local name or every widget test would see no shapes.
+        group = self._first_child('<g id="top"><rect id="r"/></g>')
+        self.assertEqual(
+            [c.get("id") for c in children_named(group, "rect")], ["r"]
+        )
+
+    def test_returns_empty_when_only_descendants_match(self):
+        group = self._first_child(
+            '<g id="top"><g id="inner"><rect id="grandchild"/></g></g>'
+        )
+        self.assertEqual(children_named(group, "rect"), [])
 
 
 class TestNoScriptElements(unittest.TestCase):
