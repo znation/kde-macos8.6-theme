@@ -4,8 +4,8 @@ Every desktop-theme widget test reaches these helpers only over its own
 current artwork, so a helper that mis-orders a band, mirrors the wrong sides
 or drops the size would weaken all of them at once. These tests prove each
 assertion passes a correct layout and can actually fail a broken one, and pin
-the tree-validation guards (missing slice ids, duplicate ids, scripts, canvas
-geometry).
+the tree-validation guards (missing slice ids, duplicate ids, scripts, style
+elements, external references, canvas geometry).
 """
 
 from __future__ import annotations
