@@ -29,15 +29,27 @@ from png_fixtures import (  # noqa: E402
 )
 
 
+def _value_error(case, func, *args, **kwargs):
+    """Call *func* and return the ``ValueError`` message it raises.
+
+    Every fixture guard tested here reports a malformed argument by raising
+    ``ValueError``, and each test reads that message to pin what it names. The
+    ``assertRaises``/``str(ctx.exception)`` pair was copy-pasted at every call
+    site; this names the shared expectation once. *case* is the calling
+    ``unittest.TestCase``, so a failure is reported against the right test.
+    """
+    with case.assertRaises(ValueError) as ctx:
+        func(*args, **kwargs)
+    return str(ctx.exception)
+
+
 class TestMakePng(unittest.TestCase):
     def test_rejects_row_with_wrong_length(self):
         # make_png's rows are raw scanlines: a row that is not width*channels
         # bytes shifts every later scanline, and the fixture decodes with a
         # length error that points at the decoder rather than the bad row. The
         # helper must name the offending row and the expected length.
-        with self.assertRaises(ValueError) as ctx:
-            make_png(2, 1, [bytes([1, 2, 3])])
-        message = str(ctx.exception)
+        message = _value_error(self, make_png, 2, 1, [bytes([1, 2, 3])])
         self.assertIn("row 0", message)
         self.assertIn("3 bytes", message)
         self.assertIn("needs 6", message)
@@ -46,18 +58,18 @@ class TestMakePng(unittest.TestCase):
         # There is one filter type per row, so listing the wrong number is a
         # fixture bug: a short list used to raise a bare IndexError and a long
         # one was silently ignored.
-        with self.assertRaises(ValueError) as ctx:
-            make_png(1, 1, [bytes([0])], filter_types=[0, 0])
-        message = str(ctx.exception)
+        message = _value_error(
+            self, make_png, 1, 1, [bytes([0])], filter_types=[0, 0]
+        )
         self.assertIn("2 entries", message)
         self.assertIn("for 1 rows", message)
 
     def test_rejects_unsupported_color_type(self):
         # An unknown color type is a fixture bug too; the dict lookup used to
         # escape as a bare KeyError that named only the number.
-        with self.assertRaises(ValueError) as ctx:
-            make_png(1, 1, [bytes([0])], color_type=5)
-        message = str(ctx.exception)
+        message = _value_error(
+            self, make_png, 1, 1, [bytes([0])], color_type=5
+        )
         self.assertIn("color_type 5", message)
         self.assertIn("[0, 2, 3, 4, 6]", message)
 
@@ -67,9 +79,7 @@ class TestMakePng(unittest.TestCase):
         # built a degenerate PNG. Both are fixture bugs and must be named.
         for width, height in ((0, 1), (1, 0), (-1, 1), (1, -1), (0, 0)):
             with self.subTest(width=width, height=height):
-                with self.assertRaises(ValueError) as ctx:
-                    make_png(width, height, [])
-                message = str(ctx.exception)
+                message = _value_error(self, make_png, width, height, [])
                 self.assertIn("make_png", message)
                 self.assertIn(f"{width}x{height}", message)
 
@@ -86,9 +96,9 @@ class TestWithIhdrByte(unittest.TestCase):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         for offset in (-1, 13, 100):
             with self.subTest(offset=offset):
-                with self.assertRaises(ValueError) as ctx:
-                    with_ihdr_byte(data, offset, 0)
-                message = str(ctx.exception)
+                message = _value_error(
+                    self, with_ihdr_byte, data, offset, 0
+                )
                 self.assertIn(f"offset {offset}", message)
                 self.assertIn("0 <= offset < 13", message)
 
@@ -98,9 +108,7 @@ class TestWithIhdrByte(unittest.TestCase):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         for value in (-1, 256, 1000):
             with self.subTest(value=value):
-                with self.assertRaises(ValueError) as ctx:
-                    with_ihdr_byte(data, 8, value)
-                message = str(ctx.exception)
+                message = _value_error(self, with_ihdr_byte, data, 8, value)
                 self.assertIn(f"value {value}", message)
                 self.assertIn("0 <= value <= 255", message)
 
@@ -173,9 +181,7 @@ class TestRgbFromRows(unittest.TestCase):
     def test_rejects_an_unsupported_color_type(self):
         # Palette output depends on the PLTE table, which this helper does not
         # read; returning RGB for it would be bytes no decode could match.
-        with self.assertRaises(ValueError) as ctx:
-            rgb_from_rows([bytes([0])], 3)
-        message = str(ctx.exception)
+        message = _value_error(self, rgb_from_rows, [bytes([0])], 3)
         self.assertIn("color_type 3", message)
         self.assertIn("[0, 2, 4, 6]", message)
 
@@ -187,9 +193,9 @@ class TestPngWithIdat(unittest.TestCase):
         # struct.error instead of naming the argument.
         for width, height in ((0, 1), (1, 0), (-1, 1), (1, -1)):
             with self.subTest(width=width, height=height):
-                with self.assertRaises(ValueError) as ctx:
-                    png_with_idat(b"", width=width, height=height)
-                message = str(ctx.exception)
+                message = _value_error(
+                    self, png_with_idat, b"", width=width, height=height
+                )
                 self.assertIn("png_with_idat", message)
                 self.assertIn(f"{width}x{height}", message)
 
@@ -201,37 +207,54 @@ class TestRgbImage(unittest.TestCase):
         # later assertion would read as valid. It must name the coordinate.
         for value in (3, None):
             with self.subTest(value=value):
-                with self.assertRaises(ValueError) as ctx:
-                    rgb_image(1, 1, lambda x, y: value)
-                message = str(ctx.exception)
+                message = _value_error(
+                    self, rgb_image, 1, 1, lambda x, y: value
+                )
                 self.assertIn("pixel(0, 0)", message)
                 self.assertIn("(r, g, b)", message)
 
     def test_rejects_wrong_channel_count(self):
         for value in ((1, 2), (1, 2, 3, 4)):
             with self.subTest(value=value):
-                with self.assertRaises(ValueError) as ctx:
-                    rgb_image(1, 1, lambda x, y: value)
-                message = str(ctx.exception)
+                message = _value_error(
+                    self, rgb_image, 1, 1, lambda x, y: value
+                )
                 self.assertIn(f"{len(value)} channels", message)
                 self.assertIn("expected 3", message)
 
     def test_rejects_a_non_integer_channel(self):
-        with self.assertRaises(ValueError) as ctx:
-            rgb_image(1, 1, lambda x, y: (1, "2", 3))
-        message = str(ctx.exception)
+        message = _value_error(
+            self, rgb_image, 1, 1, lambda x, y: (1, "2", 3)
+        )
         self.assertIn("channel g", message)
         self.assertIn("not an integer", message)
 
     def test_rejects_an_out_of_range_channel(self):
         for value in ((1, 2, 256), (-1, 2, 3)):
             with self.subTest(value=value):
-                with self.assertRaises(ValueError) as ctx:
-                    rgb_image(1, 1, lambda x, y: value)
-                message = str(ctx.exception)
+                message = _value_error(
+                    self, rgb_image, 1, 1, lambda x, y: value
+                )
                 self.assertIn("outside 0-255", message)
 
     def test_accepts_a_valid_triple(self):
         image, data = rgb_image(2, 1, lambda x, y: (x * 100, 50, 200))
         self.assertEqual(image.rgb, bytes([0, 50, 200, 100, 50, 200]))
         self.assertEqual(png.decode_png(data).rgb, image.rgb)
+
+
+class TestValueError(unittest.TestCase):
+    def test_returns_the_message_from_a_value_error(self):
+        def reject():
+            raise ValueError("row 0 needs 6 bytes")
+
+        self.assertEqual(_value_error(self, reject), "row 0 needs 6 bytes")
+
+    def test_lets_another_exception_type_propagate(self):
+        # The helper names ValueError as the expected failure; a different
+        # exception must reach the test rather than being swallowed as a pass.
+        def reject():
+            raise TypeError("not a ValueError")
+
+        with self.assertRaises(TypeError):
+            _value_error(self, reject)
