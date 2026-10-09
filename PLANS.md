@@ -16,7 +16,11 @@ screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveor
 and there is no icon, cursor, or Qt widget-style theme either. The widget sequence should not be
 treated as the whole of the prompt until these surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum dialog / applet-popup background for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum dialog / applet-popup background for the desktop theme (done 2026-10-08)
 
 **Planned 2026-10-08 by plan.** Independent of the done widget plans: it adds one
 artwork file to the existing `org.macos8.desktop` desktop-theme package under a new
@@ -104,7 +108,7 @@ is a separate plan.
 with separate consumers; Mac OS 8.6 menus are white, so that plan will use a white face
 and treat the rare `PlasmaComponents.Popup`/`Drawer` as the same menu-like surface.
 
-## Done
+**Docs.** `README.md`'s status block and Installing inventory now name `dialogs/background.svg`.
 
 ### Mac OS 8.6 Platinum scroll bar widget for the desktop theme (done 2026-10-08)
 

@@ -97,6 +97,7 @@ class TestInstall(
         os.path.join("widgets", "lineedit.svg"),
         os.path.join("widgets", "listitem.svg"),
         os.path.join("widgets", "scrollbar.svg"),
+        os.path.join("dialogs", "background.svg"),
     )
 
     def reinstall_failure_env(self, tmp):

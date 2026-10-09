@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" dialog / applet-popup window body.
+
+     The frameless Plasma surfaces PlasmaQuick paints from `dialogs/background`:
+     a PlasmaCore.Dialog and a PlasmaCore.AppletPopup (the popups applets and
+     Plasma dialogs use) both resolve to this element via
+     BackgroundMetrics.qml. Before this file the theme shipped no `dialogs/`
+     artwork and inherited Breeze's translucent rounded `background.svgz`; this
+     is the raised grey Platinum window body instead.
+
+     Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
+     canvas, square corners. The frame is a #DDDDDD face
+     ([Colors:Window] BackgroundNormal=221,221,221) with a 1px #000000 outline
+     and a 1px bevel inside it (#FFFFFF on top/left, #999999 on bottom/right,
+     the same bevel rule as button.svg's normal state and scrollbar.svg's
+     thumb). The reference set shows the same grey window bodies
+     (about_betawiki.png, setup_emaculation.png) but they are dithered 8-bit
+     captures, so no single pixel is screenshot-anchored: the values are
+     palette-derived and recorded as such.
+
+     Known deviation: the default theme's `dialogs/background.svgz` also
+     carries a `shadow-*` element set. This file defines only the main frame
+     and makes no claim about a themed drop shadow. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="10" height="10" style="fill:#ff6600"/>
+  <rect id="hint-top-margin" x="3" y="0" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="hint-bottom-margin" x="3" y="13" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="hint-left-margin" x="0" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="hint-right-margin" x="13" y="3" width="3" height="10" style="fill:#ff00ff"/>
+
+  <!-- Edges, outer-to-inner: #000000 outline, #FFFFFF bevel highlight on
+       top/left (mirrored to #999999 shadow on bottom/right), #DDDDDD face. -->
+  <g id="top" transform="translate(3,0)">
+    <rect width="10" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="10" height="1" fill="#FFFFFF"/>
+    <rect y="0" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="bottom" transform="translate(3,13)">
+    <rect width="10" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="10" height="1" fill="#999999"/>
+    <rect y="2" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="left" transform="translate(0,3)">
+    <rect width="3" height="10" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="10" fill="#FFFFFF"/>
+    <rect x="0" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="right" transform="translate(13,3)">
+    <rect width="3" height="10" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="10" fill="#999999"/>
+    <rect x="2" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="center" transform="translate(3,3)">
+    <rect width="10" height="10" fill="#DDDDDD"/>
+  </g>
+
+  <!-- Square corners: the black L outline with the white highlight corner and
+       the grey shadow corner, the same 3x3 patterns as scrollbar.svg's thumb. -->
+  <g id="topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="3" height="1" fill="#FFFFFF"/>
+    <rect x="1" width="1" height="3" fill="#FFFFFF"/>
+    <rect y="0" width="3" height="1" fill="#000000"/>
+    <rect x="0" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="topright" transform="translate(13,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="3" height="1" fill="#FFFFFF"/>
+    <rect x="1" width="1" height="3" fill="#999999"/>
+    <rect y="0" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="bottomleft" transform="translate(0,13)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="3" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="3" fill="#FFFFFF"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="0" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="bottomright" transform="translate(13,13)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="3" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="3" fill="#999999"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+</svg>
