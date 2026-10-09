@@ -7,10 +7,18 @@ exit-status and output contract.
 
 import contextlib
 import io
+import sys
 import unittest
 import unittest.mock
 
-from check_references_fixtures import good_reference, load_checker, reference_set
+from check_references_fixtures import (
+    CHECKER,
+    ROOT,
+    good_reference,
+    load_checker,
+    reference_set,
+)
+from theme_install import run
 
 
 class TestSelfTestDiagnostics(unittest.TestCase):
@@ -167,6 +175,30 @@ class TestUnknownArgumentEscaping(unittest.TestCase):
             code = module.main(["one", "two"])
         self.assertEqual(code, 2)
         self.assertIn("unknown arguments: one two", err.getvalue())
+
+
+class TestScriptEntryPoint(unittest.TestCase):
+    """The checker must still run as ``python3 tools/check_references.py``.
+
+    Every other test loads the module through ``importlib`` with the
+    repository root on ``sys.path``, so ``from tools.terminal import ...``
+    succeeds and the module's ``except ImportError`` direct-run fallback is
+    never executed. ``make check-references`` and the README both invoke the
+    script by path, where ``sys.path[0]`` is ``tools/`` and ``tools.terminal``
+    is not importable, so the fallback is the only thing keeping the
+    documented workflow working. Spawn the script to keep it covered.
+    """
+
+    def test_self_test_runs_by_path(self):
+        result = run(
+            [sys.executable, CHECKER, "--self-test"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("cases passed", result.stdout)
+        self.assertNotIn("Traceback", result.stderr)
 
 
 if __name__ == "__main__":
