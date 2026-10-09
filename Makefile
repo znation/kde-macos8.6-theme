@@ -71,7 +71,19 @@ endef
 # `discover`, not as `python3 -m unittest tests.<module>`).
 CHECK_PATTERN ?= test*.py
 
+# PYTHON is a make variable a caller can override (`make check
+# PYTHON=python3.12`) or leave to the environment, but `?=` keeps an empty
+# environment value. An empty value leaves the `check` recipe line starting
+# with `-`, which make reads as its ignore-errors prefix: the command becomes
+# `m -m unittest ...`, fails with status 127, and make exits 0 -- a green run
+# that executed no tests. A value that is whitespace, or begins (after leading
+# whitespace) with `-`, has the same effect, and no interpreter name begins
+# with a dash. Refuse both first with a diagnostic that names PYTHON. $(1)
+# names the target.
+require_python = set -- "$(PYTHON)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in ''|-*) echo "$(1): PYTHON must name an interpreter, not an empty or option-like value: '$$1'" >&2; exit 2;; esac
+
 check:
+	@$(call require_python,check)
 	$(PYTHON) -m unittest discover -s tests -v -p '$(CHECK_PATTERN)'
 
 # Print the contributor-facing targets and the variables that tune them, so
@@ -97,6 +109,7 @@ help:
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
 # out of `check`. The deterministic self-test runs first and fails fast.
 check-references:
+	@$(call require_python,check-references)
 	$(PYTHON) tools/check_references.py --self-test
 	$(PYTHON) tools/check_references.py
 

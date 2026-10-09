@@ -208,6 +208,46 @@ class TestCheckPattern(unittest.TestCase):
         )
 
 
+class TestPythonInterpreter(unittest.TestCase):
+    """`make check` must refuse a PYTHON that make would read as a flag.
+
+    PYTHON is a make variable a caller can set from the environment or the
+    command line, but `?=` keeps an empty environment value. An empty value
+    leaves the `check` recipe line starting with `-`, which make reads as its
+    ignore-errors prefix: it runs `m -m unittest ...`, fails with status 127,
+    and exits 0 -- a green run that executed no tests. A leading dash (after
+    any leading whitespace) has the same effect. The guard must refuse with a
+    diagnostic naming PYTHON instead of reporting success. The child never
+    reaches the suite: a refused recipe stops at the guard, so each case is
+    fast even if the guard regresses (the swallowed command fails at once).
+    """
+
+    def _assert_refused(self, *, command_line=None, environment=None):
+        env = dict(os.environ)
+        env.pop("PYTHON", None)
+        env.pop("MAKEFLAGS", None)
+        args = ["check"]
+        if command_line is not None:
+            args.append(f"PYTHON={command_line}")
+        if environment is not None:
+            env["PYTHON"] = environment
+        result = theme_install.run_make(args, env=env)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn("PYTHON must name an interpreter", result.stderr)
+
+    def test_empty_from_the_command_line_is_refused(self):
+        self._assert_refused(command_line="")
+
+    def test_empty_from_the_environment_is_refused(self):
+        self._assert_refused(environment="")
+
+    def test_leading_dash_is_refused(self):
+        self._assert_refused(command_line="-m")
+
+    def test_whitespace_only_is_refused(self):
+        self._assert_refused(environment=" ")
+
+
 class TestHelp(unittest.TestCase):
     """`make help` lists every public target and tunable-variable default.
 
