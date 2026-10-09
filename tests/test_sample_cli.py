@@ -6,7 +6,6 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -17,7 +16,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import sample  # noqa: E402
-from cli_fixtures import run_main  # noqa: E402
+from cli_fixtures import CliTestCase  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
 from png_fixtures import rgb_image, solid_rgb  # noqa: E402
 from theme_install import run  # noqa: E402
@@ -25,23 +24,9 @@ from theme_install import run  # noqa: E402
 TOOL = REPO_ROOT / "tools" / "sample.py"
 
 
-class TestSampleCli(unittest.TestCase):
-    def _run(self, *args: str) -> subprocess.CompletedProcess:
-        """Run the sampling CLI's ``main`` with *args* and capture its output.
-
-        Every assertion here reads only the exit status and the printed
-        diagnostics, both of which live in ``sample.main``; spawning
-        ``python3 tools/sample.py`` per assertion would pay interpreter
-        startup and module import for each one. Calling ``main`` in-process
-        exercises the same argument parsing, output and statuses. The script
-        entry point itself is covered once by :meth:`test_script_entry_point`.
-        """
-        return run_main(sample.main, "sample", args)
-
-    def _write(self, directory: Path, name: str, data: bytes) -> str:
-        path = directory / name
-        path.write_bytes(data)
-        return str(path)
+class TestSampleCli(CliTestCase):
+    MAIN = staticmethod(sample.main)
+    PROGRAM = "sample"
 
     def _image(self, directory: Path) -> str:
         """Write a 4x3 PNG whose pixel ``(x, y)`` is ``(x, y, x + y)``."""

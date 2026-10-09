@@ -17,7 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import fidelity  # noqa: E402
-from cli_fixtures import run_main  # noqa: E402
+from cli_fixtures import CliTestCase  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
@@ -31,24 +31,9 @@ from theme_install import run  # noqa: E402
 TOOL = REPO_ROOT / "tools" / "fidelity.py"
 
 
-class TestCli(unittest.TestCase):
-    def _run(self, *args: str) -> subprocess.CompletedProcess:
-        """Run the fidelity CLI's ``main`` with *args* and capture its output.
-
-        Every assertion here reads only the exit status and the printed
-        diagnostics, both of which live in ``fidelity.main``; spawning
-        ``python3 tools/fidelity.py`` per assertion would pay ~70 ms of
-        interpreter startup and module import for each one. Calling ``main``
-        in-process exercises the same argument parsing, output and statuses.
-        The script entry point itself is covered once by
-        :meth:`test_script_entry_point`.
-        """
-        return run_main(fidelity.main, "fidelity", args)
-
-    def _write(self, directory: Path, name: str, data: bytes) -> str:
-        path = directory / name
-        path.write_bytes(data)
-        return str(path)
+class TestCli(CliTestCase):
+    MAIN = staticmethod(fidelity.main)
+    PROGRAM = "fidelity"
 
     def _write_altered_pair(self, directory: Path) -> tuple[str, str]:
         """Write a 3x3 candidate and a one-pixel-altered copy of it.
