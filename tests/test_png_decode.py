@@ -367,11 +367,13 @@ class TestDecode(unittest.TestCase):
         with self.assertRaises(png.PngError):
             png.decode_png(b"not a png")
 
-    def test_names_the_format_of_a_non_png_image(self):
+    def test_names_the_format_and_fix_of_a_non_png_image(self):
         # A reference from the set is often a JPEG (and sherlock_fandom.jpg is
         # a WebP payload), so a user can hand decode_png the wrong file. "not
         # a PNG file" alone reads as a corrupt PNG; naming the actual format
-        # says which input was wrong.
+        # says which input was wrong, and naming the fix says what to do with
+        # it. The reference set is the reason a user hits this, and its
+        # workflow (README's fidelity check) is to save the surface as PNG.
         cases = (
             (b"\xff\xd8\xff\xe0" + b"\x00" * 8, "JPEG"),
             (b"GIF89a" + b"\x00" * 6, "GIF"),
@@ -383,13 +385,16 @@ class TestDecode(unittest.TestCase):
                 message = self._decode_error(data)
                 self.assertIn("not a PNG file", message)
                 self.assertIn(expected, message)
+                self.assertIn("convert it to PNG", message)
 
     def test_unknown_bytes_keep_the_bare_not_a_png_message(self):
-        # Only a known raster signature earns the format hint; arbitrary bytes
-        # must not be described as an image.
+        # Only a known raster signature earns the format and fix hints;
+        # arbitrary bytes must not be described as an image, nor told to
+        # convert a format the decoder never identified.
         message = self._decode_error(b"not a png")
         self.assertIn("not a PNG file", message)
         self.assertNotIn("image", message)
+        self.assertNotIn("convert", message)
 
     def test_rejects_png_without_ihdr(self):
         # A chunk stream that reaches IDAT/IEND with no IHDR leaves decode_png

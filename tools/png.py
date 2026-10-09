@@ -416,7 +416,8 @@ def decode_png(data: bytes) -> Image:
         detected = _other_image_format(data)
         if detected is not None:
             raise PngError(
-                f"not a PNG file: the input is a {detected} image, not a PNG"
+                f"not a PNG file: the input is a {detected} image, not a PNG; "
+                "convert it to PNG first"
             )
         raise PngError("not a PNG file")
     header = None
