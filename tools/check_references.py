@@ -26,8 +26,20 @@ import tempfile
 from pathlib import Path
 
 try:
+    from tools.image_format import (
+        JPEG_MAGIC,
+        LFS_POINTER_MAGIC,
+        PNG_MAGIC,
+        is_image,
+    )
     from tools.terminal import escape_controls
 except ImportError:  # run directly: python3 tools/check_references.py
+    from image_format import (
+        JPEG_MAGIC,
+        LFS_POINTER_MAGIC,
+        PNG_MAGIC,
+        is_image,
+    )
     from terminal import escape_controls
 
 REFERENCE_DIR = "macos8.6-screenshots"
@@ -38,16 +50,6 @@ SEPARATOR = " | "
 # on U+2028/U+2029, NEL and the C0 separators, so a version label containing
 # one would split into a phantom line and be reported as a malformed entry.
 _LINE_BREAK = re.compile(r"\r\n|\r|\n")
-# First line of a Git LFS pointer file; a real image never starts with this text.
-LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
-
-# Leading bytes of the raster formats the reference set uses. The extension is
-# deliberately not consulted: sherlock_fandom.jpg is a WebP payload.
-PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
-JPEG_MAGIC = b"\xff\xd8\xff"
-GIF_MAGICS = (b"GIF87a", b"GIF89a")
-IMAGE_MAGICS = (PNG_MAGIC, JPEG_MAGIC, *GIF_MAGICS)
-
 USAGE = """\
 usage: check_references.py [--self-test | --help]
 
@@ -73,9 +75,7 @@ def _looks_like_image(path: Path) -> bool:
     """
     with path.open("rb") as handle:
         head = handle.read(12)
-    if any(head.startswith(magic) for magic in IMAGE_MAGICS):
-        return True
-    return head[:4] == b"RIFF" and head[8:12] == b"WEBP"
+    return is_image(head)
 
 
 # RFC 3986 scheme: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ). Any other

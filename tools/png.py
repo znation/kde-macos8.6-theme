@@ -21,18 +21,18 @@ from pathlib import Path
 
 if __package__:
     from tools.byteops import require_equal_lengths
+    from tools.image_format import (
+        LFS_POINTER_MAGIC,
+        PNG_MAGIC,
+        other_image_format,
+    )
 else:  # run as a top-level module, e.g. imported by tools/fidelity.py
     from byteops import require_equal_lengths
-
-_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-
-# Signatures of the raster formats the reference set uses besides PNG. Handing
-# one of these to decode_png makes "not a PNG file" true but hides the
-# actionable fact: the input is a JPEG/GIF/WebP, so it is the wrong file, not a
-# corrupt PNG. tools/check_references.py carries the same signatures for its
-# whole-set check.
-_JPEG_MAGIC = b"\xff\xd8\xff"
-_GIF_MAGICS = (b"GIF87a", b"GIF89a")
+    from image_format import (
+        LFS_POINTER_MAGIC,
+        PNG_MAGIC,
+        other_image_format,
+    )
 
 # The PNG spec caps a chunk's payload length at 2**31 - 1 bytes: the field is
 # 32-bit unsigned, but values with the high bit set are reserved. A file
@@ -40,15 +40,6 @@ _GIF_MAGICS = (b"GIF87a", b"GIF89a")
 # against the bytes present and reported as a truncated chunk, which points at
 # a missing tail instead of the invalid length.
 _MAX_CHUNK_LENGTH = (1 << 31) - 1
-
-# First line of an unmaterialized Git LFS pointer file. The reference
-# screenshots are stored with Git LFS, so a fresh clone that has not run
-# `git lfs pull` hands read_png a small text pointer under an image name.
-# Decoding it reports only "not a PNG file", which reads as a corrupt image
-# rather than a missing fetch, so read_png names the pointer and the fix. The
-# same literal is in tools/check_references.py, which reports the condition
-# for the whole reference set.
-_LFS_POINTER_MAGIC = b"version https://git-lfs.github.com/spec/v1"
 
 # color_type -> channels per pixel at bit depth 8
 _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
@@ -122,7 +113,7 @@ def _chunk_name(ctype: bytes) -> str:
 
 
 def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
-    pos = len(_PNG_SIGNATURE)
+    pos = len(PNG_MAGIC)
     while pos + 8 <= len(data):
         (length,) = struct.unpack(">I", data[pos : pos + 4])
         ctype = data[pos + 4 : pos + 8]
@@ -393,26 +384,10 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     raise PngError(f"unsupported PNG color type {color_type}")
 
 
-def _other_image_format(data: bytes) -> str | None:
-    """Return the non-PNG raster format *data* starts with, or ``None``.
-
-    Names the formats the reference set uses besides PNG (JPEG, GIF and WebP)
-    so a decode failure can say which wrong file was passed instead of only
-    "not a PNG file". Bytes decide, never the extension.
-    """
-    if data.startswith(_JPEG_MAGIC):
-        return "JPEG"
-    if any(data.startswith(magic) for magic in _GIF_MAGICS):
-        return "GIF"
-    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
-        return "WebP"
-    return None
-
-
 def decode_png(data: bytes) -> Image:
     """Decode an 8-bit, non-interlaced PNG into an :class:`Image`."""
-    if not data.startswith(_PNG_SIGNATURE):
-        detected = _other_image_format(data)
+    if not data.startswith(PNG_MAGIC):
+        detected = other_image_format(data)
         if detected is not None:
             raise PngError(
                 f"not a PNG file: the input is a {detected} image, not a PNG; "
@@ -562,7 +537,7 @@ def read_png(path: str | Path) -> Image:
             f"cannot read {path}: file is {file_stat.st_size} bytes, larger "
             f"than the {_MAX_FILE_BYTES}-byte limit"
         )
-    if data.startswith(_LFS_POINTER_MAGIC):
+    if data.startswith(LFS_POINTER_MAGIC):
         raise PngError(
             f"cannot decode {path}: the file is an unmaterialized Git LFS "
             "pointer, not image data; run `git lfs pull` to fetch it"
