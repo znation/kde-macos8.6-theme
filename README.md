@@ -51,7 +51,9 @@ also ships `widgets/background.svg` (the flat white Platinum body for
 `PlasmaCore.Dialog` and `PlasmaCore.AppletPopup` draw, replacing Breeze's
 translucent rounded rectangle). `make
 uninstall` removes the three installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/` and `desktoptheme/`
-directories and anything else in them in place. `make check` runs the test suite.
+directories and anything else in them in place. `make check` runs the test suite, and `make help`
+lists the public targets and the variables that tune them; a run can be narrowed to the test
+modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`.
 
 ## Reference screenshots
 

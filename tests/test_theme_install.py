@@ -12,6 +12,7 @@ are quoted.
 
 import contextlib
 import os
+import re
 import signal
 import subprocess
 import sys
@@ -405,7 +406,8 @@ class TestHelp(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         return result.stdout
 
-    def test_lists_every_public_target(self):
+    def _public_targets(self):
+        """Return the `.PHONY` targets other than the `_`-prefixed internals."""
         makefile = os.path.join(theme_install.ROOT, "Makefile")
         with open(makefile, encoding="utf-8") as handle:
             phony = next(
@@ -413,17 +415,39 @@ class TestHelp(unittest.TestCase):
                 for line in handle
                 if line.startswith(".PHONY:")
             )
-        targets = [
+        return [
             name
             for name in phony.split(":", 1)[1].split()
             if not name.startswith("_")
         ]
+
+    def test_lists_every_public_target(self):
         lines = self._output().splitlines()
-        for target in targets:
+        for target in self._public_targets():
             with self.subTest(target=target):
                 self.assertTrue(
                     any(line.startswith(f"  {target} ") for line in lines),
                     f"help does not list target {target!r}",
+                )
+
+    def test_readme_names_every_public_target(self):
+        r"""README is the entry point, so it must name every public target.
+
+        `make help` is only discoverable if a contributor already knows it
+        exists, so the README has to mention each target; a target added to
+        the Makefile without a README line otherwise stays invisible. The
+        `(?![-\w])` guard keeps a shorter target from matching as a prefix of
+        a longer one (`check` inside `check-references`).
+        """
+        readme = os.path.join(theme_install.ROOT, "README.md")
+        with open(readme, encoding="utf-8") as handle:
+            text = handle.read()
+        for target in self._public_targets():
+            with self.subTest(target=target):
+                self.assertRegex(
+                    text,
+                    rf"make {re.escape(target)}(?![-\w])",
+                    f"README does not name target {target!r}",
                 )
 
     def test_names_check_pattern_default(self):
