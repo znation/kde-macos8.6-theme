@@ -46,7 +46,17 @@ class TestMetadata(PackageMetadata, unittest.TestCase):
     PLASMA_API_VERSION = "2"
 
     def test_keywords_non_empty(self):
-        self.assertTrue(self.metadata.get("Keywords"))
+        # A metadata.json that drops Keywords used to fail as ``None is not
+        # true``, naming neither the file nor the key; a non-string or blank
+        # value named neither either. Name the file and key for all three.
+        keywords = self._top_level_field("Keywords")
+        self.assertIsInstance(
+            keywords, str, f"{METADATA}: top-level 'Keywords'"
+        )
+        self.assertTrue(
+            keywords.strip(),
+            f"{METADATA}: top-level 'Keywords' must not be blank",
+        )
 
 
 class TestDefaults(unittest.TestCase):

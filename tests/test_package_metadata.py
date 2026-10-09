@@ -29,6 +29,7 @@ def _metadata():
             "Version": "0.1.0",
         },
         "X-Plasma-API": "5.0",
+        "Keywords": "Desktop;Workspace;Appearance;",
     }
 
 
@@ -204,6 +205,26 @@ class TestPackageMetadata(unittest.TestCase):
         with self.assertRaises(AssertionError) as caught:
             _case("test_package_structure", metadata).test_package_structure()
         self.assertIn("metadata.json", str(caught.exception))
+
+    def test_top_level_field_returns_the_value(self):
+        case = _case("test_package_structure", _metadata())
+        self.assertEqual(
+            case._top_level_field("Keywords"), _metadata()["Keywords"]
+        )
+
+    def test_top_level_field_missing_names_the_file_and_field(self):
+        # `test_lookandfeel`'s `test_keywords_non_empty` reads Keywords through
+        # this helper; a metadata.json that drops it used to fail as ``None is
+        # not true``, naming neither the file nor the key.
+        metadata = _metadata()
+        del metadata["Keywords"]
+        with self.assertRaises(AssertionError) as caught:
+            _case(
+                "test_package_structure", metadata
+            )._top_level_field("Keywords")
+        message = str(caught.exception)
+        self.assertIn("metadata.json", message)
+        self.assertIn("Keywords", message)
 
     def test_kplugin_guard_names_the_file_and_field(self):
         # A metadata.json that decodes to an object but whose KPlugin is

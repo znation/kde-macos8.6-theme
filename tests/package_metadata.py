@@ -112,6 +112,23 @@ class PackageMetadata:
             )
         return plugin[key]
 
+    def _top_level_field(self, key, expected=None):
+        """Return top-level *key*, naming the file and key when it is absent.
+
+        `Keywords`, `KPackageStructure` and the Plasma API key are top-level
+        strings. A metadata.json that drops one raises a bare ``KeyError``
+        from indexing it or makes the caller's truthiness check fail on
+        ``None``; neither names the file or the key. Name both here, with
+        *expected* (when given) so a missing key also shows the value the
+        package must carry.
+        """
+        if key not in self.metadata:
+            suffix = "" if expected is None else f" (expected {expected!r})"
+            self.fail(
+                f"{self.METADATA_PATH}: missing top-level {key!r}{suffix}"
+            )
+        return self.metadata[key]
+
     def _top_level(self, key, expected):
         """Assert top-level *key* equals *expected*, naming the file and key.
 
@@ -120,13 +137,8 @@ class PackageMetadata:
         expected``, naming neither the file nor the missing key, so name both
         when the key is absent and label a mismatched value with the file too.
         """
-        if key not in self.metadata:
-            self.fail(
-                f"{self.METADATA_PATH}: missing top-level {key!r} "
-                f"(expected {expected!r})"
-            )
         self.assertEqual(
-            self.metadata[key],
+            self._top_level_field(key, expected),
             expected,
             f"{self.METADATA_PATH}: top-level {key!r}",
         )
