@@ -2,9 +2,9 @@
 
 The splash artwork is authored on the 240x180 grid of the reference thumbnail
 ``macos8.6-screenshots/boot2_betawiki.png``. These tests tie the QML's colour
-and rectangle literals back to pixels and colour scans of that reference, so a
-literal that drifts from the reference fails here rather than only looking
-wrong on screen.
+and rectangle literals and the logo SVG's fills back to pixels and colour scans
+of that reference, so a literal that drifts from the reference fails here
+rather than only looking wrong on screen.
 """
 
 from __future__ import annotations
@@ -12,6 +12,7 @@ from __future__ import annotations
 import os
 import re
 import unittest
+import xml.etree.ElementTree as ET
 
 from reference_image import skip_unless_materialized
 from theme_install import ROOT
@@ -210,6 +211,21 @@ class TestSplashReference(SplashReferenceCase):
         self.assertEqual(self.pixel(120, 100), FILL)
         self.assertEqual(qml_color("trackColor"), "#DDDDDD")
         self.assertEqual(qml_color("fillColor"), "#ADADAD")
+
+    def test_logo_colours_match_reference(self):
+        # The logo SVG's two fills are the blues of the reference's logo
+        # rectangle. (107, 48) is an exact #7286D6 highlight pixel and
+        # (111, 48) an exact #4C65CB face pixel; pin each fill to the pixel it
+        # was sampled from, so a fill that drifts from the reference fails
+        # here instead of only looking wrong on screen.
+        highlight = self.pixel(107, 48)
+        face = self.pixel(111, 48)
+        self.assertEqual(highlight, (114, 134, 214))
+        self.assertEqual(face, (76, 101, 203))
+        self.assertEqual(
+            attribute_values(ET.parse(LOGO), "fill"),
+            {"#%02X%02X%02X" % highlight, "#%02X%02X%02X" % face},
+        )
 
 
 class TestSplashGeometry(SplashReferenceCase):
