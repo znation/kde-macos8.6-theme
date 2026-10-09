@@ -22,6 +22,7 @@ from tools import png  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
+    ihdr_end,
     make_png,
     png_with_idat,
     rgb_image,
@@ -70,13 +71,13 @@ class TestDecode(unittest.TestCase):
         # and pHYs chunk after the fixed 25-byte IHDR chunk and compare to the
         # same PNG without them.
         image, data = rgb_image(2, 1, lambda x, y: (x * 40, 7, 200))
-        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        boundary = ihdr_end(data)
         ancillary = (
             _chunk(b"gAMA", struct.pack(">I", 45455))
             + _chunk(b"tEXt", b"Software\x00Mac OS 8.6")
             + _chunk(b"pHYs", struct.pack(">IIB", 2835, 2835, 1))
         )
-        augmented = data[:ihdr_end] + ancillary + data[ihdr_end:]
+        augmented = data[:boundary] + ancillary + data[boundary:]
         self.assertEqual(png.decode_png(augmented), image)
 
     def test_rejects_unknown_critical_chunk(self):
@@ -86,9 +87,9 @@ class TestDecode(unittest.TestCase):
         # ignored, could decode the image wrong with no sign of a skipped
         # chunk; the error names the offending type.
         _, data = solid_rgb(1, 1)
-        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        boundary = ihdr_end(data)
         unknown = _chunk(b"XYZW", b"\x00\x01")
-        message = self._decode_error(data[:ihdr_end] + unknown + data[ihdr_end:])
+        message = self._decode_error(data[:boundary] + unknown + data[boundary:])
         self.assertIn("unknown critical PNG chunk", message)
         self.assertIn("'XYZW'", message)
 
@@ -100,11 +101,11 @@ class TestDecode(unittest.TestCase):
         # chunk and be ignored. Reject it by name instead of silently skipping
         # malformed framing.
         _, data = solid_rgb(1, 1)
-        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        boundary = ihdr_end(data)
         for ctype in (b"ab1d", b"a bd", b"ab\xffd"):
             with self.subTest(ctype=ctype):
                 message = self._decode_error(
-                    data[:ihdr_end] + _chunk(ctype, b"\x00") + data[ihdr_end:]
+                    data[:boundary] + _chunk(ctype, b"\x00") + data[boundary:]
                 )
                 self.assertIn("invalid PNG chunk type", message)
                 self.assertIn("four ASCII letters", message)
@@ -118,9 +119,9 @@ class TestDecode(unittest.TestCase):
         # as a truncated chunk, which blames the file's tail instead of its
         # invalid length. The error names the chunk, offset and declared length.
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
-        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        boundary = ihdr_end(data)
         oversized = struct.pack(">I", 0x80000000) + b"IDAT"
-        message = self._decode_error(data[:ihdr_end] + oversized)
+        message = self._decode_error(data[:boundary] + oversized)
         self.assertIn("'IDAT'", message)
         self.assertIn("offset", message)
         self.assertIn("2147483648", message)
@@ -132,10 +133,10 @@ class TestDecode(unittest.TestCase):
         # damaged IHDR/IDAT region, so it must be rejected by name even though
         # decode_png would otherwise discard it.
         _, data = solid_rgb(1, 1)
-        ihdr_end = len(_PNG_SIGNATURE) + 4 + 4 + 13 + 4
+        boundary = ihdr_end(data)
         text = _chunk(b"tEXt", b"note")
         corrupt = text[:-1] + bytes([text[-1] ^ 0xFF])
-        message = self._decode_error(data[:ihdr_end] + corrupt + data[ihdr_end:])
+        message = self._decode_error(data[:boundary] + corrupt + data[boundary:])
         self.assertIn("tEXt", message)
         self.assertIn("CRC", message)
 

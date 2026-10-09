@@ -16,6 +16,8 @@ if str(REPO_ROOT) not in sys.path:
 
 from tools import png  # noqa: E402
 from png_fixtures import (  # noqa: E402
+    _chunk,
+    ihdr_end,
     make_png,
     png_with_idat,
     rgb_image,
@@ -106,6 +108,18 @@ class TestWithIhdrByte(unittest.TestCase):
         with self.assertRaises(png.PngError) as ctx:
             png.decode_png(broken)
         self.assertIn("interlaced", str(ctx.exception))
+
+
+class TestIhdrEnd(unittest.TestCase):
+    def test_returns_the_offset_where_the_next_chunk_begins(self):
+        # The decode tests splice chunks in at this boundary. Splicing must
+        # leave the pixels unchanged: an offset inside IHDR would corrupt it,
+        # and one inside the following chunk would split that chunk.
+        _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
+        boundary = ihdr_end(data)
+        self.assertEqual(data[12:16], b"IHDR")
+        spliced = data[:boundary] + _chunk(b"tEXt", b"note") + data[boundary:]
+        self.assertEqual(png.decode_png(spliced), png.decode_png(data))
 
 
 class TestPngWithIdat(unittest.TestCase):

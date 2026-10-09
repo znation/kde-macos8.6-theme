@@ -31,6 +31,20 @@ def _chunk(ctype: bytes, payload: bytes) -> bytes:
     )
 
 
+def ihdr_end(data: bytes) -> int:
+    """Return the offset just past the IHDR chunk in *data*.
+
+    IHDR's payload is fixed at 13 bytes, but reading the chunk's own length
+    field keeps this correct for any framing: the 8-byte signature, then the
+    4-byte length, 4-byte type, payload and 4-byte CRC. The decode tests
+    splice deliberately malformed chunks in after IHDR and so need this
+    boundary rather than re-deriving it at each site.
+    """
+    start = len(_PNG_SIGNATURE)
+    length = struct.unpack(">I", data[start : start + 4])[0]
+    return start + 8 + length + 4
+
+
 def _paeth(a: int, b: int, c: int) -> int:
     p = a + b - c
     pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
