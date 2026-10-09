@@ -9,7 +9,7 @@ from desktoptheme_paths import SCROLLBAR_SVG
 from svg_assertions import (
     assert_center_tile_is,
     assert_corner_pixels,
-    assert_edge_band_pixels,
+    assert_edge_bevels,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
@@ -62,11 +62,9 @@ class TestScrollbar(unittest.TestCase):
             assert_center_tile_is(
                 self, slices, f"{prefix}-center", TROUGH, size=10
             )
-            for side in ("top", "bottom", "left", "right"):
-                band = outward if side in ("top", "left") else mirrored
-                assert_edge_band_pixels(
-                    self, slices, f"{prefix}-{side}", side, band, size=10
-                )
+            assert_edge_bevels(
+                self, slices, prefix, outward, mirrored, size=10
+            )
             assert_corner_pixels(
                 self, slices, f"{prefix}-topleft",
                 (BLACK, BLACK, BLACK, BLACK, TROUGH, TROUGH, BLACK, TROUGH, TROUGH),
@@ -100,11 +98,9 @@ class TestScrollbar(unittest.TestCase):
             assert_center_tile_is(
                 self, slices, f"{prefix}-center", FACE, size=10
             )
-            for side in ("top", "bottom", "left", "right"):
-                band = outward if side in ("top", "left") else mirrored
-                assert_edge_band_pixels(
-                    self, slices, f"{prefix}-{side}", side, band, size=10
-                )
+            assert_edge_bevels(
+                self, slices, prefix, outward, mirrored, size=10
+            )
             assert_corner_pixels(
                 self, slices, f"{prefix}-topleft",
                 (BLACK, BLACK, BLACK, BLACK, WHITE, WHITE, BLACK, WHITE, FACE),

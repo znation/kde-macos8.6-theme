@@ -9,7 +9,7 @@ from desktoptheme_paths import BUTTON_SVG
 from svg_assertions import (
     arc_center,
     assert_center_tile_is,
-    assert_edge_band_pixels,
+    assert_edge_bevels,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slice_pixels,
@@ -189,11 +189,9 @@ class TestButton(unittest.TestCase):
             "pressed": ("#DDDDDD", "#FFFFFF", "#000000"),
         }
         for prefix in ("normal", "pressed"):
-            for side in ("top", "bottom", "left", "right"):
-                band = (outward if side in ("top", "left") else mirrored)[prefix]
-                assert_edge_band_pixels(
-                    self, slices, f"{prefix}-{side}", side, band
-                )
+            assert_edge_bevels(
+                self, slices, prefix, outward[prefix], mirrored[prefix]
+            )
 
     def test_button_center_tiles_are_face(self):
         # `test_button_colours` pins only the set of fills, so a centre tile

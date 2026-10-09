@@ -11,7 +11,7 @@ from desktoptheme_paths import DTHEME_ID, FRAME_SVG
 from svg_assertions import (
     assert_center_tile_is,
     assert_corner_pixels,
-    assert_edge_band_pixels,
+    assert_edge_bevels,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
@@ -180,13 +180,9 @@ class TestFrame(unittest.TestCase):
             "sunken": ("#DDDDDD", "#FFFFFF", "#000000"),
         }
         for prefix in FRAME_PREFIXES:
-            for side in ("top", "bottom", "left", "right"):
-                band = (
-                    outward if side in ("top", "left") else mirrored
-                )[prefix]
-                assert_edge_band_pixels(
-                    self, slices, f"{prefix}-{side}", side, band
-                )
+            assert_edge_bevels(
+                self, slices, prefix, outward[prefix], mirrored[prefix]
+            )
             # The centre tile is one body rect, so every pixel is the face.
             assert_center_tile_is(self, slices, f"{prefix}-center", "#DDDDDD", size=6)
 

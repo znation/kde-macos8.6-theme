@@ -9,7 +9,7 @@ from desktoptheme_paths import LINEEDIT_SVG
 from svg_assertions import (
     assert_center_tile_is,
     assert_corner_pixels,
-    assert_edge_band_pixels,
+    assert_edge_bevels,
     assert_no_script_elements,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
@@ -61,9 +61,7 @@ class TestLineEdit(unittest.TestCase):
         # The bottom/right edges mirror the top/left: the outline stays on the
         # outer edge while the bevel colour swaps sides.
         mirrored = ("#FFFFFF", "#FFFFFF", "#000000")
-        for side in ("top", "bottom", "left", "right"):
-            band = outward if side in ("top", "left") else mirrored
-            assert_edge_band_pixels(self, slices, f"base-{side}", side, band)
+        assert_edge_bevels(self, slices, "base", outward, mirrored)
 
     def test_lineedit_corner_bevels_turn_the_corner(self):
         # The edge bevel must continue into the corner and meet there; a

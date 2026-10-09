@@ -171,8 +171,8 @@ def assert_edge_band_pixels(case, slices, name, side, band, size=6):
     *size* rows of three, each running outer to inner. *band* is the three
     colours in the slice's own top-to-bottom (horizontal edge) or
     left-to-right (vertical edge) order, so a bottom or right edge passes the
-    mirrored band -- the part the button, frame and lineedit edge tests each
-    otherwise recompute. *size* is the slice's length along the edge: 6 for
+    mirrored band; `assert_edge_bevels` supplies that mirroring for a
+    widget's four edges. *size* is the slice's length along the edge: 6 for
     the button/frame/lineedit tiles, 10 for the scroll bar.
     """
     if side in ("top", "bottom"):
@@ -185,6 +185,27 @@ def assert_edge_band_pixels(case, slices, name, side, band, size=6):
     actual = tuple(pixels.get(point) for point in points)
     with case.subTest(slice=name):
         case.assertEqual(actual, expected, name)
+
+
+def assert_edge_bevels(case, slices, prefix, outward, mirrored, size=6):
+    """Assert each of *prefix*'s four edge tiles paints its bevel band.
+
+    A widget's bevel runs the same way along all four edges, so the bottom
+    and right bands mirror the top and left ones: *outward* is the (outer
+    outline, bevel, inner face) band read from a top/left slice's outer edge
+    inward, and *mirrored* is the bottom/right band, whose outline stays on
+    the outer edge while the bevel colour swaps sides. Each band is checked
+    by `assert_edge_band_pixels`, so *size* is the tile's length along the
+    edge (6 for the button/frame/lineedit tiles, 10 for the scroll bar).
+    *prefix* names the state (``"normal"``, ``"slider"``); pass ``""`` for
+    an unprefixed SVG. *case* is the calling ``unittest.TestCase``.
+    """
+    sep = "-" if prefix else ""
+    for side in ("top", "bottom", "left", "right"):
+        band = outward if side in ("top", "left") else mirrored
+        assert_edge_band_pixels(
+            case, slices, f"{prefix}{sep}{side}", side, band, size
+        )
 
 
 def assert_corner_pixels(case, slices, name, expected):
