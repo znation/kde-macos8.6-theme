@@ -93,6 +93,10 @@ class TestImage(unittest.TestCase):
 
 
 class TestPixelAt(unittest.TestCase):
+    def _pixel_error(self, image, x, y):
+        """Assert pixel_at rejects the coordinate and return the message."""
+        return error_message(self, ValueError, png.pixel_at, image, x, y)
+
     def test_reads_the_pixel_at_a_coordinate(self):
         # Four distinct pixels, so a wrong offset or a row wrap reads a
         # different one instead of passing by coincidence.
@@ -126,9 +130,7 @@ class TestPixelAt(unittest.TestCase):
             (0, "0", "y"),
         ):
             with self.subTest(x=x, y=y):
-                message = error_message(
-                    self, ValueError, png.pixel_at, image, x, y
-                )
+                message = self._pixel_error(image, x, y)
                 self.assertIn("must be an integer", message)
                 value = x if named == "x" else y
                 self.assertIn(f"{named}={value!r}", message)
@@ -141,8 +143,6 @@ class TestPixelAt(unittest.TestCase):
         image = png.Image(2, 3, bytes(2 * 3 * 3))
         for x, y in ((2, 0), (0, 3), (-1, 0), (0, -1), (5, 5)):
             with self.subTest(x=x, y=y):
-                message = error_message(
-                    self, ValueError, png.pixel_at, image, x, y
-                )
+                message = self._pixel_error(image, x, y)
                 self.assertIn(f"({x}, {y})", message)
                 self.assertIn("2x3", message)
