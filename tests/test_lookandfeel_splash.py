@@ -395,6 +395,19 @@ class TestSplashQml(unittest.TestCase):
         self.assertIn("height: 180 * root.unit", content)
         self.assertIn("anchors.centerIn: parent", content)
 
+    def test_wordmark_sits_on_the_panel_at_its_reference_position(self):
+        # The "Mac OS" wordmark is the only element placed relative to the
+        # panel rather than the grid: `test_wordmark_colour_matches_reference`
+        # pins its colour and `test_reference_colours_are_painted` its colour
+        # binding, but nothing pins where it is drawn. A changed `y` literal or
+        # a dropped `anchors.horizontalCenter` would slide the wordmark off the
+        # panel while every colour and rectangle test still passed.
+        wordmark = _object_source(_read_qml(), "wordmark")
+        self.assertIn("y: 71 * root.unit", wordmark)
+        self.assertIn(
+            "anchors.horizontalCenter: panel.horizontalCenter", wordmark
+        )
+
     def test_reference_colours_are_painted(self):
         """Each anchor colour must be bound to the object at its reference rect.
 
