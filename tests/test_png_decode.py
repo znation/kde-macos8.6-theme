@@ -500,9 +500,9 @@ class TestDecode(unittest.TestCase):
             # offset 12 is the interlace field.
             "interlaced": (with_ihdr_byte(data, 12, 1), "interlaced"),
             # offset 3 is the last width byte; the 1x1 image's width becomes 0.
-            "zero width": (with_ihdr_byte(data, 3, 0), "zero width or height"),
+            "zero width": (with_ihdr_byte(data, 3, 0), "zero width or height: 0x1"),
             # offset 7 is the last height byte.
-            "zero height": (with_ihdr_byte(data, 7, 0), "zero width or height"),
+            "zero height": (with_ihdr_byte(data, 7, 0), "zero width or height: 1x0"),
         }
         for label, (broken, expected) in cases.items():
             with self.subTest(label=label):

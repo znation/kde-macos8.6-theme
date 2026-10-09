@@ -469,7 +469,12 @@ def decode_png(data: bytes) -> Image:
     if color_type not in _CHANNELS:
         raise PngError(f"unsupported PNG color type {color_type}")
     if width == 0 or height == 0:
-        raise PngError("PNG has zero width or height")
+        # Name the declared dimensions so the operator can tell which field is
+        # zero (and in which header) instead of having to dump the bytes.
+        raise PngError(
+            f"PNG header declares zero width or height: {width}x{height}; "
+            "both dimensions must be positive"
+        )
     channels = _CHANNELS[color_type]
     # Bound the work by the header before zlib sees any data: reject an image
     # too large to be a screenshot, then decompress at most the exact unfiltered
