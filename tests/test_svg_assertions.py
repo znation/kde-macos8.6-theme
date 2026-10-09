@@ -33,6 +33,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     circle_geometry,
+    elements_by_id,
     face_edge_bands,
     groups_with_id,
     flat_face_corners,
@@ -940,6 +941,53 @@ class TestChildrenNamed(unittest.TestCase):
             '<g id="top"><g id="inner"><rect id="grandchild"/></g></g>'
         )
         self.assertEqual(children_named(group, "rect"), [])
+
+
+class TestElementsById(unittest.TestCase):
+    def _tree(self, body):
+        return ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                f"{body}</svg>"
+            )
+        )
+
+    def test_keeps_elements_that_are_not_groups(self):
+        # Unlike groups_with_id, this map must keep a <circle> or <path>:
+        # radiobutton reads its selection dot and checkmarks their glyphs by
+        # id, and both are non-<g> elements.
+        tree = self._tree(
+            '<g id="top"><rect id="r"/></g>'
+            '<circle id="dot"/><path id="glyph"/>'
+        )
+        self.assertEqual(
+            sorted(elements_by_id(tree)), ["dot", "glyph", "r", "top"]
+        )
+
+    def test_maps_each_id_to_its_element(self):
+        # Callers read the element's own attributes, so the value must be the
+        # parsed element, not a copy or its id string.
+        tree = self._tree('<circle id="dot" r="3"/>')
+        self.assertEqual(elements_by_id(tree)["dot"].get("r"), "3")
+
+    def test_later_element_wins_when_an_id_repeats(self):
+        # The docstring promises later-in-document order wins; pin it so a
+        # future rewrite cannot silently flip which duplicate a widget reads.
+        tree = self._tree(
+            '<rect id="dup" fill="#000000"/>'
+            '<rect id="dup" fill="#FFFFFF"/>'
+        )
+        self.assertEqual(elements_by_id(tree)["dup"].get("fill"), "#FFFFFF")
+
+    def test_omits_elements_without_an_id(self):
+        # An id-less element must contribute no key -- not even None -- or
+        # callers looking up a real id could collide with it.
+        tree = self._tree('<rect/><g><path id="glyph"/></g>')
+        self.assertEqual(sorted(elements_by_id(tree)), ["glyph"])
+
+    def test_returns_an_empty_map_when_no_element_has_an_id(self):
+        tree = self._tree('<rect/><g><path/></g>')
+        self.assertEqual(elements_by_id(tree), {})
 
 
 class TestNoScriptElements(unittest.TestCase):
