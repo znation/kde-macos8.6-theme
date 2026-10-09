@@ -1,11 +1,11 @@
-"""Shared fixtures for the tools/check_references.py test modules.
+"""Shared fixtures for the tests that exercise ``tools/check_references.py``.
 
 The checker is a script rather than an installed package, so these helpers
 load it from its path and build throwaway reference directories for it to
-check. ``test_check_references_io``, ``test_check_references_validation`` and
-``test_check_references_cli`` each import the pieces they use, so the loading,
-fixture construction and shared problem assertion live here once instead of in
-each module.
+check. ``test_check_references_io``, ``test_check_references_validation``,
+``test_check_references_cli`` and ``test_readme_references`` each import the
+pieces they use, so the loading, fixture construction and shared problem
+assertion live here once instead of in each module.
 """
 
 import contextlib
