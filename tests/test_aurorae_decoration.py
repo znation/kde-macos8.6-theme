@@ -226,8 +226,25 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         second = next(y for y in blacks if y > first + 1)
         return second - first + 1
 
-    def _close_box_size(self):
-        """Return the (width, height) of the close box's #888888 bounding box."""
+    def _frame_edges(self):
+        """Return the frame's (left, right, top) reference coordinates.
+
+        At the title bar's top row (y=25) the black outline spans the frame's
+        full width, so its first and last black pixels are the outer left and
+        right edges; the first black pixel down the clear column x=250 is the
+        outer top edge. These are the edges the button offsets are measured
+        from.
+        """
+        top_row = [self.reference_pixel(x, 25) for x in range(0, 400)]
+        blacks = [x for x, colour in enumerate(top_row) if colour == (0, 0, 0)]
+        column = [self.reference_pixel(250, y) for y in range(20, 60)]
+        top = 20 + next(
+            i for i, colour in enumerate(column) if colour == (0, 0, 0)
+        )
+        return blacks[0], blacks[-1], top
+
+    def _close_box_bounds(self):
+        """Return the (x, y, width, height) of the close box's #888888 face."""
         points = [
             (x, y)
             for y in range(26, 44)
@@ -236,7 +253,24 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         ]
         xs = [x for x, _ in points]
         ys = [y for _, y in points]
-        return max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
+        return min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
+
+    def _zoom_box_bounds(self):
+        """Return the (x, y, width, height) of the zoom box's #888888 face."""
+        points = [
+            (x, y)
+            for y in range(26, 44)
+            for x in range(338, 360)
+            if self.reference_pixel(x, y) == (136, 136, 136)
+        ]
+        xs = [x for x, _ in points]
+        ys = [y for _, y in points]
+        return min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
+
+    def _close_box_size(self):
+        """Return the (width, height) of the close box's #888888 bounding box."""
+        _, _, width, height = self._close_box_bounds()
+        return width, height
 
     def test_layout_metrics_match_reference(self):
         layout = "Layout"
@@ -251,6 +285,30 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         self.assertEqual(int(self.parser.get(layout, "BorderBottom")), bottom)
         self.assertEqual(int(self.parser.get(layout, "ButtonWidth")), box_w)
         self.assertEqual(int(self.parser.get(layout, "ButtonHeight")), box_h)
+
+    def test_button_offsets_match_reference(self):
+        # The close and zoom boxes are drawn over the frame at the offsets the
+        # rc names: Aurorae anchors the left button group TitleEdgeLeft from
+        # the frame's left edge and the right group TitleEdgeRight from its
+        # right edge, both ButtonMarginTop below the frame's top edge, and the
+        # decoration declares no padding hints, so those rc values are the
+        # boxes' frame-local offsets. Re-deriving them from the reference is
+        # what pins the rc to the artwork instead of trusting it.
+        layout = "Layout"
+        left, right, top = self._frame_edges()
+        close_x, close_y, _, _ = self._close_box_bounds()
+        zoom_x, zoom_y, zoom_w, _ = self._zoom_box_bounds()
+        self.assertEqual(close_y, zoom_y)
+        self.assertEqual(
+            int(self.parser.get(layout, "TitleEdgeLeft")), close_x - left
+        )
+        self.assertEqual(
+            int(self.parser.get(layout, "TitleEdgeRight")),
+            right - (zoom_x + zoom_w - 1),
+        )
+        self.assertEqual(
+            int(self.parser.get(layout, "ButtonMarginTop")), close_y - top
+        )
 
     def test_title_bar_colours_match_reference(self):
         # The pinstripe field is uniform along the bar, so one clear column
