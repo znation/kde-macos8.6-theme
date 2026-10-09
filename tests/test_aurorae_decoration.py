@@ -427,6 +427,31 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
                 for fill in _rect_fills(self.tree, name):
                     self.assertNotEqual(fill, "#FFFFFF")
 
+    def test_inactive_corners_flatten_active_corners(self):
+        # The inactive corners are hand-derived, and test_inactive_slices_present
+        # only checks their ids: a wrong inactive corner passed every test.
+        # They mirror the active corners with the 1px #FFFFFF highlight and
+        # the #777777 pinstripes flattened to #CCCCCC (KDE-required
+        # provenance: the reference set has no inactive window). The active
+        # corners are pinned against the reference by TestCorners, so tying
+        # each inactive corner to its active one makes a wrong hand-derived
+        # corner fail here.
+        slices = render_slices(self.tree)
+        for name in (
+            "decoration-inactive-topleft",
+            "decoration-inactive-topright",
+            "decoration-inactive-bottomleft",
+            "decoration-inactive-bottomright",
+        ):
+            with self.subTest(slice=name):
+                expected = {
+                    point: "#CCCCCC" if fill in ("#FFFFFF", "#777777") else fill
+                    for point, fill in slices[name.replace("inactive-", "")].items()
+                }
+                assert_slice_pixels(self, slices, name, expected)
+                for fill in _rect_fills(self.tree, name):
+                    self.assertNotIn(fill, ("#FFFFFF", "#777777"))
+
     # The reference frame's borders, at the coordinate each tile's local
     # origin maps to: the left border starts at its outer black column x=7,
     # the right border at its inner black column x=354, and the bottom border
