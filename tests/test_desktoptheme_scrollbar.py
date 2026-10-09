@@ -11,6 +11,7 @@ from svg_assertions import (
     assert_corner_pixels,
     assert_edge_bevels,
     assert_no_script_elements,
+    assert_raised_face_bevel,
     assert_slice_ids_present,
     assert_tiles_placed_by_margins,
     attribute_values,
@@ -92,31 +93,8 @@ class TestScrollbar(unittest.TestCase):
                 self.assertEqual(
                     pixels, slices["mouseover-" + name], name
                 )
-        outward = (BLACK, WHITE, FACE)
-        mirrored = (FACE, GREY, BLACK)
         for prefix in THUMB_PREFIXES:
-            assert_center_tile_is(
-                self, slices, f"{prefix}-center", FACE, size=10
-            )
-            assert_edge_bevels(
-                self, slices, prefix, outward, mirrored, size=10
-            )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-topleft",
-                (BLACK, BLACK, BLACK, BLACK, WHITE, WHITE, BLACK, WHITE, FACE),
-            )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-topright",
-                (BLACK, BLACK, BLACK, WHITE, GREY, BLACK, FACE, GREY, BLACK),
-            )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-bottomleft",
-                (BLACK, WHITE, FACE, BLACK, WHITE, GREY, BLACK, BLACK, BLACK),
-            )
-            assert_corner_pixels(
-                self, slices, f"{prefix}-bottomright",
-                (FACE, GREY, BLACK, GREY, GREY, BLACK, BLACK, BLACK, BLACK),
-            )
+            assert_raised_face_bevel(self, slices, prefix, size=10)
 
     def test_scrollbar_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the

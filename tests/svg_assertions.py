@@ -293,6 +293,62 @@ def assert_center_tile_is(case, slices, name, colour, size):
     assert_slice_pixels(case, slices, name, expected)
 
 
+# The four 3x3 corner slices of the raised #DDDDDD face painted by the
+# scroll-bar thumb and the dialog body, row-major in slice-local coordinates:
+# the 1px #000000 outline on the two outer edges, a #FFFFFF highlight inside
+# the top/left edges and a #999999 shadow inside the bottom/right ones,
+# meeting over the #DDDDDD face. The frame's raised state shares the edges and
+# three corners but turns its bottom-left corner differently (a #999999 pixel
+# where these have #FFFFFF), so it keeps its own corner table.
+RAISED_FACE_CORNERS = {
+    "topleft": (
+        "#000000", "#000000", "#000000",
+        "#000000", "#FFFFFF", "#FFFFFF",
+        "#000000", "#FFFFFF", "#DDDDDD",
+    ),
+    "topright": (
+        "#000000", "#000000", "#000000",
+        "#FFFFFF", "#999999", "#000000",
+        "#DDDDDD", "#999999", "#000000",
+    ),
+    "bottomleft": (
+        "#000000", "#FFFFFF", "#DDDDDD",
+        "#000000", "#FFFFFF", "#999999",
+        "#000000", "#000000", "#000000",
+    ),
+    "bottomright": (
+        "#DDDDDD", "#999999", "#000000",
+        "#999999", "#999999", "#000000",
+        "#000000", "#000000", "#000000",
+    ),
+}
+
+
+def assert_raised_face_bevel(case, slices, prefix, size=6):
+    """Assert *prefix*'s nine-slice paints the raised #DDDDDD face bevel.
+
+    This is the bevel shared by the scroll-bar thumb and the dialog body: a
+    #DDDDDD centre tile, a 1px #000000 outline with a #FFFFFF highlight inside
+    the top/left edges and a #999999 shadow inside the bottom/right ones, and
+    the four `RAISED_FACE_CORNERS` slices where those bands turn the corner.
+    *prefix* names the state, ``""`` for an unprefixed SVG, and *size* is the
+    centre and edge tile length (10 for both the scroll bar and the dialog).
+    *case* is the calling ``unittest.TestCase``.
+    """
+    sep = "-" if prefix else ""
+    assert_center_tile_is(
+        case, slices, f"{prefix}{sep}center", "#DDDDDD", size
+    )
+    assert_edge_bevels(
+        case, slices, prefix,
+        ("#000000", "#FFFFFF", "#DDDDDD"),
+        ("#DDDDDD", "#999999", "#000000"),
+        size,
+    )
+    for name, expected in RAISED_FACE_CORNERS.items():
+        assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
+
+
 _PATH_COMMAND = re.compile(r"([MALZ])([^MALZ]*)")
 _PATH_LETTER = re.compile(r"[A-Za-z]")
 _SUPPORTED_PATH_COMMANDS = frozenset("MALZ")
