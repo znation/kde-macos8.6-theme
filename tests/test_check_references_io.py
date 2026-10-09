@@ -9,7 +9,9 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
+from allocation_fixtures import peak_allocation
 from check_references_fixtures import (
     CheckerTestCase,
     assert_problem,
@@ -75,12 +77,37 @@ class TestUnreadableSources(CheckerTestCase):
     def test_unreadable_sources_file_is_reported_not_raised(self):
         assert_sources_failure(
             self,
-            "read_text",
+            "open",
             PermissionError,
             13,
             "Permission denied",
             "could not be read",
         )
+
+
+class TestOversizeSources(CheckerTestCase):
+    """An oversized sources.txt is rejected before it is loaded whole.
+
+    The provenance record is contributor-supplied, so a multi-gigabyte
+    ``sources.txt`` must surface as a problem line instead of being read into
+    memory and exhausting it. The checker stops reading one byte past its cap
+    and reports the file, the way ``read_png`` rejects an oversize image.
+    """
+
+    def test_oversize_sources_is_reported_without_reading_it_all(self):
+        module = self.checker
+        limit = 4096
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / module.SOURCES_NAME).write_bytes(b"#" * (limit + 1))
+            with mock.patch.object(module, "_MAX_SOURCES_BYTES", limit):
+                problems, peak = peak_allocation(
+                    lambda: module.check_references(root)
+                )
+        assert_problem(
+            self, problems, str(root / module.SOURCES_NAME), "larger than"
+        )
+        self.assertLess(peak, limit + 1024 * 1024)
 
 
 class TestUndecodableSources(CheckerTestCase):

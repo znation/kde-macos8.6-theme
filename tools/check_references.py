@@ -46,6 +46,12 @@ REFERENCE_DIR = "macos8.6-screenshots"
 SOURCES_NAME = "sources.txt"
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 SEPARATOR = " | "
+# The provenance record is contributor-supplied, so a checked-in (or LFS-
+# smudged) multi-gigabyte sources.txt must not be loaded whole: read_text()
+# would allocate it and exhaust memory instead of reporting a diagnostic.
+# The real file is a few kilobytes; 1 MiB leaves ample room for growth while
+# bounding the read the way read_png bounds an oversize image.
+_MAX_SOURCES_BYTES = 1 << 20
 # Only CR, LF and CRLF end a sources.txt line. ``str.splitlines`` also breaks
 # on U+2028/U+2029, NEL and the C0 separators, so a version label containing
 # one would split into a phantom line and be reported as a malformed entry.
@@ -178,13 +184,23 @@ def check_references(directory: Path) -> list[str]:
         return [f"{sources}: missing sources file"]
 
     try:
-        # utf-8-sig strips a leading UTF-8 BOM that an editor may have added.
-        # The BOM is invisible, so decoding as plain UTF-8 folds it into the
-        # first filename and the check reports a phantom missing file instead
-        # of the real one, which then looks undeclared.
-        sources_text = sources.read_text(encoding="utf-8-sig")
+        # Read at most one byte past the cap, so an oversize file is detected
+        # without loading the rest of it, then decode the bytes. utf-8-sig
+        # strips a leading UTF-8 BOM that an editor may have added: the BOM is
+        # invisible, so decoding as plain UTF-8 folds it into the first
+        # filename and the check reports a phantom missing file instead of the
+        # real one, which then looks undeclared.
+        with sources.open("rb") as handle:
+            data = handle.read(_MAX_SOURCES_BYTES + 1)
     except OSError as exc:
         return [f"{sources}: could not be read: {exc}"]
+    if len(data) > _MAX_SOURCES_BYTES:
+        return [
+            f"{sources}: is larger than the {_MAX_SOURCES_BYTES}-byte limit "
+            "for a provenance record"
+        ]
+    try:
+        sources_text = data.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
         return [f"{sources}: not valid UTF-8 text: {exc}"]
 
