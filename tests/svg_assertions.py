@@ -46,6 +46,19 @@ def attribute_values(tree, name):
     return {element.get(name) for element in tree.iter() if element.get(name)}
 
 
+def assert_ids_present(case, tree, names):
+    """Assert every id in *names* is present in *tree*.
+
+    The contract tests read an SVG's ids through `attribute_values` and pin
+    that each id the artwork must declare is there; *case* is the calling
+    ``unittest.TestCase``, so a missing id fails against the right test and
+    names itself.
+    """
+    ids = attribute_values(tree, "id")
+    for name in names:
+        case.assertIn(name, ids, name)
+
+
 def assert_slice_ids_present(case, tree, prefixes):
     """Assert each state's nine-slice, margin-hint and centre ids are present.
 

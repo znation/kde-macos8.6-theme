@@ -6,6 +6,7 @@ import unittest
 
 from desktoptheme_paths import CHECKMARKS_SVG
 from svg_assertions import (
+    assert_ids_present,
     assert_no_script_elements,
     attribute_values,
     children_named,
@@ -20,9 +21,7 @@ class TestCheckmarks(SvgCase, unittest.TestCase):
     SVG_PATH = CHECKMARKS_SVG
 
     def test_checkmarks_contract(self):
-        ids = attribute_values(self.tree, "id")
-        for name in ("checkbox", "radiobutton"):
-            self.assertIn(name, ids, name)
+        assert_ids_present(self, self.tree, ("checkbox", "radiobutton"))
         strokes = attribute_values(self.tree, "stroke")
         self.assertEqual(strokes, {"#000000"})
         fills = attribute_values(self.tree, "fill")

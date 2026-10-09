@@ -6,6 +6,7 @@ import unittest
 
 from desktoptheme_paths import RADIOBUTTON_SVG
 from svg_assertions import (
+    assert_ids_present,
     assert_no_script_elements,
     attribute_values,
     children_named,
@@ -19,9 +20,7 @@ class TestRadioButton(SvgCase, unittest.TestCase):
     SVG_PATH = RADIOBUTTON_SVG
 
     def test_radiobutton_contract(self):
-        ids = attribute_values(self.tree, "id")
-        for name in ("normal", "symbol", "hint-size"):
-            self.assertIn(name, ids, name)
+        assert_ids_present(self, self.tree, ("normal", "symbol", "hint-size"))
         fills = attribute_values(self.tree, "fill")
         self.assertEqual(fills, {"#FFFFFF", "#000000"})
         assert_no_script_elements(self, self.tree)
