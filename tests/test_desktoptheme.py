@@ -35,6 +35,7 @@ from kde_config import read as read_kde_config
 from package_metadata import PackageMetadata, kplugin, load_metadata
 from svg_assertions import (
     assert_no_external_references,
+    assert_no_script_elements,
     assert_no_style_elements,
     assert_root_canvas,
     assert_unique_ids,
@@ -96,14 +97,16 @@ class TestSvgRootCanvas(unittest.TestCase):
         # The per-widget pixel tests composite only the rects and groups
         # `render_slices` models, so a `<style>` element or a reference to
         # another file would be skipped silently and the widget could pass
-        # while rendering wrong (or blank). Pin both structural properties
-        # for every registered SVG, not only the widgets whose tests happen
-        # to reach them.
+        # while rendering wrong (or blank), and a `<script>` element is
+        # executed by KSvg rather than drawn. Pin all three structural
+        # properties for every registered SVG, not only the widgets whose
+        # tests happen to reach them.
         for name, path, _, _ in SVG_CANVASES:
             with self.subTest(svg=name):
                 tree = ET.parse(path)
                 assert_no_style_elements(self, tree)
                 assert_no_external_references(self, tree)
+                assert_no_script_elements(self, tree)
 
     def test_registry_covers_every_shipped_svg(self):
         # The canvas pin above only visits the SVGs listed in SVG_CANVASES, so
