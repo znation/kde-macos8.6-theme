@@ -25,6 +25,23 @@ from theme_install import (
 )
 
 
+def write_selected_scheme(tmp, scheme_id):
+    """Create `<tmp>/config` selecting *scheme_id* as the user's scheme.
+
+    Writes `<tmp>/config/kdeglobals` with `[General] ColorScheme=<scheme_id>`,
+    the value `plasma-apply-colorscheme` leaves behind and KDE resolves on the
+    next start. Returns the config directory, for use as `XDG_CONFIG_HOME`
+    (and for reading the file back to prove a command did not edit it).
+    """
+    config = os.path.join(tmp, "config")
+    os.makedirs(config, exist_ok=True)
+    with open(
+        os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
+    ) as handle:
+        handle.write(f"[General]\nColorScheme={scheme_id}\n")
+    return config
+
+
 class TestInstall(unittest.TestCase):
     def test_make_install_copies_scheme_byte_for_byte(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -159,12 +176,9 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
             assert_succeeded(self, installed)
-            config = os.path.join(tmp, "config")
-            os.makedirs(config)
+            config = write_selected_scheme(tmp, "MacOS8")
             kdeglobals = os.path.join(config, "kdeglobals")
             original = "[General]\nColorScheme=MacOS8\n"
-            with open(kdeglobals, "w", encoding="utf-8") as handle:
-                handle.write(original)
 
             removed = uninstall(
                 tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
@@ -184,12 +198,7 @@ class TestInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             installed = install(tmp)
             assert_succeeded(self, installed)
-            config = os.path.join(tmp, "config")
-            os.makedirs(config)
-            with open(
-                os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
-            ) as handle:
-                handle.write("[General]\nColorScheme=BreezeLight\n")
+            config = write_selected_scheme(tmp, "BreezeLight")
 
             removed = uninstall(
                 tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
@@ -207,12 +216,7 @@ class TestInstall(unittest.TestCase):
             extra = [f"COLOR_SCHEME={source}"]
             installed = install(tmp, extra=extra)
             assert_succeeded(self, installed)
-            config = os.path.join(tmp, "config")
-            os.makedirs(config)
-            with open(
-                os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
-            ) as handle:
-                handle.write("[General]\nColorScheme=My Scheme\n")
+            config = write_selected_scheme(tmp, "My Scheme")
 
             removed = uninstall(
                 tmp,
@@ -240,14 +244,11 @@ class TestRestartRoundTrip(unittest.TestCase):
     def test_applied_id_survives_restart(self):
         with tempfile.TemporaryDirectory() as tmp:
             data = os.path.join(tmp, "data")
-            config = os.path.join(tmp, "config")
             schemes = os.path.join(data, "color-schemes")
             os.makedirs(schemes)
-            os.makedirs(config)
+            config = write_selected_scheme(tmp, "BreezeLight")
             shutil.copy(SCHEME, os.path.join(schemes, os.path.basename(SCHEME)))
             kdeglobals = os.path.join(config, "kdeglobals")
-            with open(kdeglobals, "w", encoding="utf-8") as handle:
-                handle.write("[General]\nColorScheme=BreezeLight\n")
             env = dict(
                 os.environ,
                 XDG_DATA_HOME=data,
