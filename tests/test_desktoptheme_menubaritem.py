@@ -9,6 +9,7 @@ from nine_slice_case import NineSliceCase
 from svg_assertions import (
     assert_hint_geometry,
     assert_slices_fill_their_tiles,
+    assert_slices_have_no_fill,
     assert_slices_uniform,
     attribute_values,
     render_slices,
@@ -30,10 +31,7 @@ class TestMenuBarItem(NineSliceCase, unittest.TestCase):
         # An idle or merely hovered title paints nothing perceptible: the
         # normal and hover rects carry no `fill` attribute and a 0.01 opacity,
         # so only their margins apply.
-        slices = render_slices(self.tree)
-        for prefix in ("normal", "hover"):
-            assert_slices_uniform(self, slices, prefix, None)
-        self.assertEqual(attribute_values(self.tree, "fill-opacity"), {"0.01"})
+        assert_slices_have_no_fill(self, self.tree, "normal", "hover")
 
     def test_menubaritem_pressed_is_flat_selection_colour(self):
         # Every pressed slice must be the flat selection fill, so the open-menu

@@ -17,7 +17,7 @@ from .geometry import (
     tile_origins,
 )
 from .render import pixel_map, render_slices
-from .tree import SLICE_IDS, local_name
+from .tree import SLICE_IDS, attribute_values, local_name
 
 def assert_slice_pixels(case, slices, name, expected):
     """Assert slice *name* renders exactly the *expected* {(x, y): colour} map.
@@ -46,6 +46,23 @@ def assert_slices_uniform(case, slices, prefix, colour):
         with case.subTest(slice=slice_name):
             for point, value in slices[slice_name].items():
                 case.assertEqual(value, colour, f"{slice_name} {point}")
+
+def assert_slices_have_no_fill(case, tree, *prefixes):
+    """Assert each *prefix*'s slices paint nothing, and pin the placeholder opacity.
+
+    A state that must not paint (an idle item, a merely hovered title) is
+    drawn as transparent 0.01-opacity rects that carry only its margins;
+    `render_slices` reads those rects as ``None``, so every pixel of every
+    ``<prefix>-<name>`` slice must be ``None``. The whole tree's
+    ``fill-opacity`` values must also be exactly ``{"0.01"}``, so the
+    placeholder cannot become fully opaque. *case* is the calling
+    ``unittest.TestCase``; *prefixes* are the widget states that must stay
+    invisible.
+    """
+    slices = render_slices(tree)
+    for prefix in prefixes:
+        assert_slices_uniform(case, slices, prefix, None)
+    case.assertEqual(attribute_values(tree, "fill-opacity"), {"0.01"})
 
 def assert_slices_fill_their_tiles(case, slices, prefix_colours, border, tile):
     """Assert each ``<prefix>-<name>`` slice fills its exact tile with *colour*.

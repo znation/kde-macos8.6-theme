@@ -9,6 +9,7 @@ from nine_slice_case import NineSliceCase
 from svg_assertions import (
     assert_hint_geometry,
     assert_slices_fill_their_tiles,
+    assert_slices_have_no_fill,
     assert_slices_uniform,
     attribute_values,
     render_slices,
@@ -36,8 +37,7 @@ class TestListItem(NineSliceCase, unittest.TestCase):
     def test_listitem_normal_has_no_fill(self):
         # An unselected row paints nothing perceptible: the normal rects carry
         # no `fill` attribute and a 0.01 opacity, so only their margins apply.
-        assert_slices_uniform(self, render_slices(self.tree), "normal", None)
-        self.assertEqual(attribute_values(self.tree, "fill-opacity"), {"0.01"})
+        assert_slices_have_no_fill(self, self.tree, "normal")
 
     def test_listitem_slices_fill_their_tiles(self):
         # The colour tests above iterate each slice's pixels, so a rect one

@@ -82,6 +82,7 @@ from .checks import (
     assert_root_canvas,
     assert_slice_pixels,
     assert_slices_fill_their_tiles,
+    assert_slices_have_no_fill,
     assert_slices_stay_within_their_tiles,
     assert_slices_uniform,
     assert_tiles_placed_by_margins,

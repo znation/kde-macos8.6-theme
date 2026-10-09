@@ -27,6 +27,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_slice_pixels,
     assert_slices_fill_their_tiles,
+    assert_slices_have_no_fill,
     assert_slices_stay_within_their_tiles,
     assert_slices_uniform,
     assert_tiles_placed_by_margins,
@@ -505,6 +506,32 @@ class TestPixelAssertions(unittest.TestCase):
         case = NoSubTest()
         with case.assertRaises(KeyError):
             assert_slices_uniform(case, missing, "pressed", colour)
+
+    def test_slices_have_no_fill_pins_the_placeholder_and_rejects_a_fill(self):
+        # The transparent-placeholder convention: every slice of an invisible
+        # state renders None and the tree's only fill-opacity is 0.01.
+        def transparent(fill=None, opacity="0.01"):
+            rect = f' fill="{fill}"' if fill else ""
+            body = "".join(
+                f'<g id="normal-{name}">'
+                f'<rect width="1" height="1"{rect} '
+                f'fill-opacity="{opacity}"/>'
+                "</g>"
+                for name in SLICE_IDS
+            )
+            return _svg_tree(body)
+
+        assert_slices_have_no_fill(self, transparent(), "normal")
+        # A slice that paints a colour must fail: render_slices reads the fill,
+        # so the uniform-None check catches it.
+        assert_rejects(
+            assert_slices_have_no_fill, transparent("#CCCCFF"), "normal"
+        )
+        # A placeholder that is fully opaque must fail too: the helper pins the
+        # artwork's 0.01, not merely "some transparency".
+        assert_rejects(
+            assert_slices_have_no_fill, transparent(opacity="0"), "normal"
+        )
 
     def test_slices_fill_their_tiles_pins_every_tile_and_rejects_a_gap(self):
         colour = "#CCCCFF"
