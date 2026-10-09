@@ -97,7 +97,7 @@ class TestXdgDataHomeDefault(unittest.TestCase):
             with self.subTest(target=target):
                 result = theme_install.run_make([target], env=env)
                 self.assertNotEqual(result.returncode, 0, result.stdout)
-                self.assertIn("HOME is not an absolute path", result.stderr)
+                self.assertIn("HOME is unset", result.stderr)
 
     def test_relative_home_without_an_absolute_data_home_is_refused(self):
         # A relative HOME makes the fallback a relative path, so `install -d`
@@ -118,6 +118,25 @@ class TestXdgDataHomeDefault(unittest.TestCase):
                     self.assertIn(
                         "HOME is not an absolute path", result.stderr
                     )
+                    # The guard names the offending HOME so a contributor can
+                    # see which value it read, not just that one was bad.
+                    self.assertIn("('relative')", result.stderr)
+
+    def test_guard_names_the_relative_data_home_it_refused(self):
+        # XDG_DATA_HOME_ENV is exported so the guard can name the raw value
+        # the caller gave; without the export the recipe shell sees no such
+        # variable and the diagnostic shows an empty ('') value instead.
+        env = dict(os.environ, HOME="relative", XDG_DATA_HOME="relative/share")
+        env.pop("XDG_DATA_HOME_ENV", None)
+        with tempfile.TemporaryDirectory() as tmp:
+            result = theme_install.run_make(
+                ["install", f"DESTDIR={tmp}"], env=env
+            )
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertIn(
+            "XDG_DATA_HOME is not an absolute path ('relative/share')",
+            result.stderr,
+        )
 
 
 class TestFlockTimeout(unittest.TestCase):

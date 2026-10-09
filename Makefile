@@ -10,6 +10,10 @@ PYTHON ?= python3
 # environment value so the guard below can tell an explicit absolute path from
 # the fallback.
 XDG_DATA_HOME_ENV := $(XDG_DATA_HOME)
+# Export the raw value so the guard below can name it in its diagnostic. The
+# recipe shell would otherwise see the make variable XDG_DATA_HOME, which the
+# line below rewrites to the $HOME fallback for a relative or empty input.
+export XDG_DATA_HOME_ENV
 XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)
 
 # The fallback needs an absolute $HOME: with XDG_DATA_HOME unset or relative
@@ -19,7 +23,7 @@ XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(H
 # with a diagnostic instead of guessing. $(1) names the target. An absolute
 # XDG_DATA_HOME -- including a command-line one -- resolves without $HOME and
 # passes.
-require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(filter /%,$(HOME))" ]; then echo "$(1): XDG_DATA_HOME is unset or relative and HOME is not an absolute path; set XDG_DATA_HOME to an absolute path" >&2; exit 2; fi
+require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(filter /%,$(HOME))" ]; then if [ -z "$(HOME)" ]; then echo "$(1): HOME is unset and XDG_DATA_HOME is not an absolute path ('$$XDG_DATA_HOME_ENV'); set XDG_DATA_HOME to an absolute path or export an absolute HOME" >&2; else echo "$(1): HOME is not an absolute path ('$$HOME') and XDG_DATA_HOME is not an absolute path ('$$XDG_DATA_HOME_ENV'); set XDG_DATA_HOME to an absolute path or export an absolute HOME" >&2; fi; exit 2; fi
 
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
