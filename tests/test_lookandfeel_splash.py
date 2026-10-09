@@ -70,6 +70,18 @@ def qml_int(name):
     return int(match.group(1))
 
 
+def qml_rect(name):
+    """Return the QML ``(X, Y, Width, Height)`` integer literals for *name*.
+
+    Each reference rectangle's four coordinates are ``readonly property int``
+    literals sharing the ``<name>X/Y/Width/Height`` suffix pattern, so the
+    geometry test compares the whole rectangle with one call.
+    """
+    return tuple(
+        qml_int(f"{name}{part}") for part in ("X", "Y", "Width", "Height")
+    )
+
+
 def qml_color(name):
     """Return the uppercase ``#RRGGBB`` of ``readonly property color <name>``."""
     match = re.search(
@@ -237,15 +249,7 @@ class TestSplashGeometry(SplashReferenceCase):
             face[2] + 2 * border,
             face[3] + 2 * border,
         )
-        self.assertEqual(
-            (
-                qml_int("panelX"),
-                qml_int("panelY"),
-                qml_int("panelWidth"),
-                qml_int("panelHeight"),
-            ),
-            panel,
-        )
+        self.assertEqual(qml_rect("panel"), panel)
         self.assertEqual(qml_border_width(), border)
 
         bevel = _rect(
@@ -254,15 +258,7 @@ class TestSplashGeometry(SplashReferenceCase):
             for x in range(self.image.width)
             if not _field_like(self.pixel(x, y))
         )
-        self.assertEqual(
-            (
-                qml_int("bevelX"),
-                qml_int("bevelY"),
-                qml_int("bevelWidth"),
-                qml_int("bevelHeight"),
-            ),
-            bevel,
-        )
+        self.assertEqual(qml_rect("bevel"), bevel)
 
         logo = _rect(
             (x, y)
@@ -270,15 +266,7 @@ class TestSplashGeometry(SplashReferenceCase):
             for x in LOGO_FACE[0]
             if self.pixel(x, y)[2] - self.pixel(x, y)[0] > 40
         )
-        self.assertEqual(
-            (
-                qml_int("logoX"),
-                qml_int("logoY"),
-                qml_int("logoWidth"),
-                qml_int("logoHeight"),
-            ),
-            logo,
-        )
+        self.assertEqual(qml_rect("logo"), logo)
 
         track = _rect(
             (x, y)
@@ -286,15 +274,7 @@ class TestSplashGeometry(SplashReferenceCase):
             for x in TRACK_BAND[0]
             if max(self.pixel(x, y)) < 200
         )
-        self.assertEqual(
-            (
-                qml_int("trackX"),
-                qml_int("trackY"),
-                qml_int("trackWidth"),
-                qml_int("trackHeight"),
-            ),
-            track,
-        )
+        self.assertEqual(qml_rect("track"), track)
 
         # Every reference pixel the colour test samples must lie inside the
         # rectangle the QML paints the matching colour on, so the geometry
