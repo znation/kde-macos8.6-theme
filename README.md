@@ -91,6 +91,22 @@ naming no host, except for a `file://` URL).
 `make check-references` runs the self-test and then the repository check; it needs the Git LFS
 images materialized, so it stays separate from `make check`.
 
+## Sampling reference pixels
+
+`python3 tools/sample.py IMAGE X Y` prints the RGB value of one pixel of a reference
+screenshot, in both forms the theme files use:
+
+```
+$ python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 5 5
+image: macos8.6-screenshots/boot2_betawiki.png  240x180
+pixel (5, 5): 99,99,156  #63639C
+```
+
+The `99,99,156` triple is copied into a `.colors` file; the `#63639C` literal is copied
+into an SVG or QML file. Coordinates are plain ASCII integers; a coordinate outside the
+image, a missing file, or an unreadable PNG exits 2 with a diagnostic naming the
+coordinate, image size or path.
+
 ## Fidelity checking
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
