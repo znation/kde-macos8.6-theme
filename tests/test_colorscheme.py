@@ -116,6 +116,17 @@ class TestStructure(unittest.TestCase):
         resolved = os.path.join(os.path.dirname(SCHEME), cli_id + ".colors")
         self.assertTrue(os.path.isfile(resolved), resolved)
 
+    def test_general_name_is_the_product_name(self):
+        # System Settings lists the scheme by `General/Name`, but the section
+        # and key registry above checks only that the key exists, so a blank
+        # or mistyped name ships without another test noticing. Pin it to the
+        # product name both package metadata files also carry.
+        self.assertEqual(
+            self.parser.get("General", "Name"),
+            "Mac OS 8.6",
+            "General/Name",
+        )
+
     def test_colors_sections_and_keys(self):
         for section in COLORS_SECTIONS:
             self.assertTrue(self.parser.has_section(section), section)
