@@ -57,16 +57,24 @@ def makefile_check_pattern():
     raise AssertionError("Makefile has no `CHECK_PATTERN ?=` default")
 
 
-def test_module_names(directory):
-    """Return the ``test*.py`` module names in *directory*, sorted.
+def _module_names(directory, predicate):
+    """Return the sorted ``.py`` module names in *directory* matching *predicate*.
 
     Only the directory itself is listed: ``discover -s tests`` does not recurse
-    into a subdirectory without an ``__init__.py``, so neither does this guard.
+    into a subdirectory without an ``__init__.py``, so neither do these guards.
+    *predicate* takes a filename and decides whether its module is listed.
     """
     return sorted(
         filename[: -len(".py")]
         for filename in os.listdir(directory)
-        if filename.endswith(".py") and fnmatch.fnmatch(filename, DISCOVERY_PATTERN)
+        if filename.endswith(".py") and predicate(filename)
+    )
+
+
+def test_module_names(directory):
+    """Return the ``test*.py`` module names in *directory*, sorted."""
+    return _module_names(
+        directory, lambda filename: fnmatch.fnmatch(filename, DISCOVERY_PATTERN)
     )
 
 
@@ -75,16 +83,30 @@ def non_test_module_names(directory):
 
     These are the modules discovery does not import. The dunder names
     (``__init__``) are excluded: they are package plumbing, not test modules,
-    and ``importlib`` cannot import ``__init__`` by that name. Only the
-    directory itself is listed, as in :func:`test_module_names`.
+    and ``importlib`` cannot import ``__init__`` by that name.
     """
-    return sorted(
-        filename[: -len(".py")]
-        for filename in os.listdir(directory)
-        if filename.endswith(".py")
-        and not filename.startswith("__")
-        and not fnmatch.fnmatch(filename, DISCOVERY_PATTERN)
+    return _module_names(
+        directory,
+        lambda filename: not filename.startswith("__")
+        and not fnmatch.fnmatch(filename, DISCOVERY_PATTERN),
     )
+
+
+def _modules_by_test_count(directory, names, want_tests):
+    """Return the *names*-listed modules in *directory* with or without tests.
+
+    Each name is imported and loaded with the default loader; *want_tests*
+    selects the modules whose loaded suite has at least one case (``True``) or
+    none at all (``False``).
+    """
+    loader = unittest.defaultTestLoader
+    found = []
+    for name in names(directory):
+        module = importlib.import_module(name)
+        has_tests = loader.loadTestsFromModule(module).countTestCases() > 0
+        if has_tests == want_tests:
+            found.append(name)
+    return found
 
 
 def misnamed_test_modules(directory):
@@ -92,35 +114,20 @@ def misnamed_test_modules(directory):
 
     A module discovery does not import is only a problem when it defines test
     cases: a helper that holds shared cases (a mixin) collects none and is
-    correctly left out. Each name is imported and loaded with the default
-    loader, and a module whose loaded suite has at least one case is reported,
-    so the check catches exactly the files whose tests never run.
+    correctly left out, so the check catches exactly the files whose tests
+    never run.
     """
-    loader = unittest.defaultTestLoader
-    misnamed = []
-    for name in non_test_module_names(directory):
-        module = importlib.import_module(name)
-        if loader.loadTestsFromModule(module).countTestCases() > 0:
-            misnamed.append(name)
-    return misnamed
+    return _modules_by_test_count(directory, non_test_module_names, want_tests=True)
 
 
 def modules_without_tests(directory):
     """Return the ``test*.py`` module names in *directory* that collect no tests.
 
-    Each name is imported (the discovery run has usually imported it already,
-    so the cached module is reused) and loaded with the default loader; a
-    module whose loaded suite has zero cases is reported. The loader is the
-    same one ``discover`` uses, so a module the loader collects something from
-    is a module the suite runs.
+    The discovery run has usually imported each name already, so the cached
+    module is reused; the loader is the same one ``discover`` uses, so a
+    module the loader collects something from is a module the suite runs.
     """
-    loader = unittest.defaultTestLoader
-    empty = []
-    for name in test_module_names(directory):
-        module = importlib.import_module(name)
-        if loader.loadTestsFromModule(module).countTestCases() == 0:
-            empty.append(name)
-    return empty
+    return _modules_by_test_count(directory, test_module_names, want_tests=False)
 
 
 @contextlib.contextmanager
