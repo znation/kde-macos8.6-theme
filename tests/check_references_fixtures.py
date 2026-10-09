@@ -11,14 +11,12 @@ assertion live here once instead of in each module.
 import contextlib
 import importlib.util
 import os
-import sys
 import tempfile
 import unittest.mock
 from pathlib import Path
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
+from repo_root import ROOT
+
 CHECKER = os.path.join(ROOT, "tools", "check_references.py")
 
 

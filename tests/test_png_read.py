@@ -18,10 +18,7 @@ from unittest import mock
 
 from error_assertions import error_message
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
+import repo_root
 from tools import png  # noqa: E402
 from png_fixtures import rgb_image  # noqa: E402
 
@@ -168,7 +165,7 @@ class TestReadPng(unittest.TestCase):
                     "-c",
                     "import sys; sys.path.insert(0, sys.argv[1]); import png; "
                     "png.read_png(sys.argv[2])",
-                    str(REPO_ROOT / "tools"),
+                    str(repo_root.ROOT / "tools"),
                     str(fifo),
                 ],
                 capture_output=True,

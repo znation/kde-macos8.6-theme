@@ -7,15 +7,10 @@ shared function's contract directly, so a change to its predicate or escape
 format is caught here instead of silently weakening both tools' terminal safety.
 """
 
-import sys
 import unittest
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from tools import terminal  # noqa: E402
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from tools import terminal
 
 
 class TestEscapeControls(unittest.TestCase):

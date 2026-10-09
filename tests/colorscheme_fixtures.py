@@ -9,8 +9,8 @@ here once instead of in each module.
 import os
 
 from kde_config import read as read_kde_config
+from repo_root import ROOT
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
 

@@ -9,8 +9,7 @@ throwaway `DESTDIR` and inspect the result there. Child processes go through
 import os
 
 import process_runner
-
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from repo_root import ROOT
 
 # The data home inside each test's throwaway DESTDIR.
 XDG_DATA_HOME = "/share"

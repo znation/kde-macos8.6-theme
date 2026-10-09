@@ -10,6 +10,7 @@ from __future__ import annotations
 import math
 import re
 
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.ints import is_plain_int
 
 

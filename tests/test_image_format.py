@@ -12,15 +12,10 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
-import sys
 import unittest
-from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from tools import image_format  # noqa: E402
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from tools import image_format
 
 
 # A representative leading byte string per format, with trailing bytes so a

@@ -19,6 +19,7 @@ import zlib
 from collections.abc import Callable
 from pathlib import Path
 
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
 from tools.ints import is_plain_int
 

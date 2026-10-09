@@ -8,16 +8,11 @@ Run with the project's check harness (stdlib unittest):
 from __future__ import annotations
 
 import random
-import sys
 import unittest
-from pathlib import Path
 from unittest import mock
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from tools import png  # noqa: E402
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from tools import png
 from error_assertions import assert_rejects_unequal_lengths  # noqa: E402
 from png_fixtures import _paeth, make_png, rgb_from_rows  # noqa: E402
 

@@ -7,14 +7,10 @@ pinned by ``test_colorscheme`` alone.
 """
 
 import os
-import sys
 import unittest
 
 from colorscheme_fixtures import ROOT, load_scheme
 from error_assertions import error_message
-
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
 
 from tools import png  # noqa: E402
 

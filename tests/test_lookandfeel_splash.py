@@ -11,13 +11,9 @@ from __future__ import annotations
 
 import os
 import re
-import sys
 import unittest
 
 from theme_install import ROOT
-
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
 
 from tools import png  # noqa: E402
 from svg_assertions import (  # noqa: E402

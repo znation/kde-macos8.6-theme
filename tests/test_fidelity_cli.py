@@ -12,10 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
+import repo_root
 from tools import fidelity  # noqa: E402
 from cli_fixtures import CliTestCase  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
@@ -30,7 +27,7 @@ from png_fixtures import (  # noqa: E402
 )
 from theme_install import run_captured  # noqa: E402
 
-TOOL = REPO_ROOT / "tools" / "fidelity.py"
+TOOL = repo_root.ROOT / "tools" / "fidelity.py"
 
 
 class TestCli(CliTestCase):

@@ -8,19 +8,14 @@ Run with the project's check harness (stdlib unittest):
 from __future__ import annotations
 
 import struct
-import sys
 import tracemalloc
 import unittest
 import zlib
-from pathlib import Path
 
 from error_assertions import error_message
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
-from tools import png  # noqa: E402
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from tools import png
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
