@@ -146,9 +146,7 @@ class TestCli(CliTestCase):
             self._assert_fail(outside)
 
             default = self._run(candidate, altered)
-            self.assertEqual(
-                default.returncode, 1, default.stdout + default.stderr
-            )
+            self._assert_fail(default)
 
     def test_explicit_budget_replaces_default_gate(self):
         # A budget set with --max-mae is the verdict criterion, not an extra
@@ -205,7 +203,7 @@ class TestCli(CliTestCase):
         changed[3] = 50  # red channel of pixel (1, 0)
         b_png = make_png(2, 1, [bytes(changed)])
         result = self._run_png_pair(a_png, b_png)
-        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self._assert_fail(result)
         self.assertIn("max channel delta: 50 at (1, 0)", result.stdout)
 
     def test_reports_per_channel_mae(self):
@@ -214,7 +212,7 @@ class TestCli(CliTestCase):
         a, a_png = solid_rgb(1, 1)
         b_png = make_png(1, 1, [bytes([10, 0, 0])])
         result = self._run_png_pair(a_png, b_png)
-        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self._assert_fail(result)
         self.assertIn(
             "per-channel MAE (R, G, B): 10.0000 0.0000 0.0000", result.stdout
         )
