@@ -17,7 +17,119 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum view item widget for the desktop theme (planned 2026-10-09)
+
+**Planned 2026-10-09 by plan.** Independent of the done listitem, background, and menu-bar
+plans: it adds one widget file to the existing `org.macos8.desktop` desktop-theme package and one
+new test module; it touches no existing SVG and needs none of them to land first.
+
+**Goal.** Ship `widgets/viewitem.svg` in the `org.macos8.desktop` desktop theme so the Platinum
+flat selection fill replaces Breeze's rounded translucent blue for the generic item highlight:
+every `PlasmaComponents.MenuItem` in a `PlasmaComponents.Menu` (right-click context menus, dialog
+and applet menus), `PlasmaExtras.Highlight` (icon-grid and applet-item selection), and the
+kicker/quicklaunch/desktop-containment hover highlights. Today the theme ships no `viewitem.svg`,
+so `KSvg` resolves the name to the default theme's Breeze file and those surfaces stay Breeze.
+
+**Consumers (verified in installed Plasma 6.3.6 QML).**
+- `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/MenuItem.qml`: its `background` is a
+  `KSvg.FrameSvgItem` with `imagePath: "widgets/viewitem"` and `prefix: "hover"`, at opacity 1 when
+  `controlRoot.highlighted || controlRoot.hovered || controlRoot.down`.
+- `.../plasma/extras/Highlight.qml`: `imagePath: "widgets/viewitem"` with `prefix` `"selected+hover"`
+  when pressed and hovered, `"selected"` when pressed, `"hover"` when hovered, else `"normal"`.
+- `.../plasma/private/containmentlayoutmanager/PlaceHolder.qml`,
+  `.../org.kde.desktopcontainment/contents/ui/BackButtonItem.qml` and `main.qml`,
+  `.../org.kde.plasma.quicklaunch/contents/ui/IconItem.qml`, and
+  `.../org.kde.plasma.kicker/contents/ui/ItemGridView.qml` also read `widgets/viewitem`.
+- A missing prefix or slice renders nothing and there is no cross-theme fallback once the file
+  exists, so every prefix a consumer names must ship or that consumer draws no highlight.
+
+**Default contract.** `zcat /usr/share/plasma/desktoptheme/default/widgets/viewitem.svgz` carries
+the nine-slice ids `{normal,hover,selected,selected+hover}-{center,top,bottom,left,right,topleft,
+topright,bottomleft,bottomright}`, one shared `hint-tile-center`, and no per-state margin hints. Its
+corners are rounded and its `selected` fill is a translucent `ColorScheme-ButtonFocus`.
+
+**Grounding.**
+- Palette: `[Colors:Selection] BackgroundNormal=204,204,255` (#CCCCFF) in
+  `theme/color-schemes/MacOS8.colors`. The listitem plan already grounds that token in
+  `macos8.6-screenshots/firstboot_betawiki.png` (`TestReferenceAnchors.test_selection_background`,
+  the selected Setup Assistant row at y=63), and `[Colors:Selection] ForegroundNormal=0,0,0` is the
+  `Kirigami.Theme.highlightedTextColor` `MenuItem.qml` switches its label to while highlighted.
+- The reference set has no open-menu screenshot: the desktop and Finder shots' menu-bar rows carry
+  only the menu-bar greys, and a scan of `desktop_betawiki.png` for #CCCCFF finds 164 scattered
+  anti-aliasing pixels rather than a highlight block. The menu-item highlight therefore reuses the
+  project's sampled `[Colors:Selection]` token by semantic role, not a per-pixel menu sample; record
+  that provenance in the SVG comment, as the tooltip token already does.
+- Mac OS 8.6 highlights are flat, square and un-outlined, and this theme has no hover animation or
+  drop shadow, so the file follows `widgets/listitem.svg` exactly: square corners, one flat fill,
+  and a transparent placeholder for the unhighlighted state.
+
+**Approach.**
+1. New file `widgets/viewitem.svg` in the `org.macos8.desktop` package: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">` with a
+   comment naming the widget, its consumers, the four prefixes and the #CCCCFF provenance note.
+   - Mirror `widgets/listitem.svg`'s 3px border / 6px centre tile on the 12x12 canvas and its
+     per-prefix hint rects: `hint-tile-center` 6x6 at (3,3), plus
+     `{prefix}-hint-{top,bottom,left,right}-margin` for each of `normal`, `hover`, `selected`,
+     `selected+hover` (any opaque `style` colour; `KSvg` reads geometry, not colour).
+   - `normal`: the nine slice groups, each a `<g transform="translate(...)">` holding one rect of
+     the slice's size with `style="fill:#FFFFFF" fill-opacity="0.01"` and no `fill` attribute, so
+     an unhighlighted item paints nothing perceptible but still contributes the margins.
+   - `hover`, `selected`, `selected+hover`: the same nine groups at the same origins, each holding
+     one rect of the slice's size with `fill="#CCCCFF"` — flat fill, square corners, no bevel and no
+     outline.
+   No `focus-*`, `separator`, `class="ColorScheme-*"`, `currentColor`, or `<script>`, and no element
+   outside the 12x12 canvas.
+2. `tests/desktoptheme_paths.py` (edit): add
+   `VIEWITEM_SVG = os.path.join(PACKAGE, "widgets", "viewitem.svg")` beside `LISTITEM_SVG`.
+3. New `test_desktoptheme_viewitem.py` module beside the existing `tests/test_desktoptheme_listitem.py` with
+   `class TestViewItem(NineSliceCase, unittest.TestCase)`, importing `VIEWITEM_SVG` from
+   `desktoptheme_paths` and `assert_hint_geometry`, `assert_slice_pixels`, `assert_slices_uniform`,
+   `attribute_values`, `nine_slice_tile_sizes`, `pixel_map`, `render_slices` from `svg_assertions`.
+   Set `SVG_PATH = VIEWITEM_SVG` and
+   `PREFIXES = ("normal", "hover", "selected", "selected+hover")`; the `NineSliceCase` base then
+   supplies `test_slice_ids_present`, `test_tiles_placed_by_margins`,
+   `test_tiles_stay_within_their_margins` and `test_no_script_elements`.
+   - `test_viewitem_hint_geometry`: `assert_hint_geometry(self, self.tree, self.PREFIXES, 3, 6)`.
+   - `test_viewitem_normal_has_no_fill`: `assert_slices_uniform(render_slices(self.tree),
+     "normal", None)` and `attribute_values(self.tree, "fill-opacity") == {"0.01"}`.
+   - `test_viewitem_highlights_are_flat_selection_colour`: for each prefix in
+     `("hover", "selected", "selected+hover")`, `assert_slices_uniform(render_slices(self.tree),
+     prefix, "#CCCCFF")`.
+   - `test_viewitem_slices_fill_their_tiles`: like `TestListItem.test_listitem_slices_fill_their_
+     tiles`, pinning every slice of all four prefixes to its exact tile region (flat #CCCCFF for the
+     three highlight prefixes, `None` for `normal`).
+   - `test_viewitem_colours`: `attribute_values(self.tree, "fill") == {"#CCCCFF"}` (the hints and
+     the normal slices use `style`, so they are excluded).
+4. `tests/test_desktoptheme.py` (edit): add `("viewitem.svg", VIEWITEM_SVG, 12, 12)` to
+   `SVG_CANVASES` and `os.path.join("widgets", "viewitem.svg")` to `TestInstall.INSTALLED_FILES`.
+5. `README.md` (edit): add "view item" to the `tumwater:status` block's desktop-theme widget
+   parenthetical, and `widgets/viewitem.svg` (the flat #CCCCFF highlight for menu items and
+   icon-grid selection) to the Installing section's desktop-theme sentence.
+
+**Files touched.** New: `viewitem.svg` in the package's `widgets/` subdirectory and
+`test_desktoptheme_viewitem.py` beside `tests/test_desktoptheme_listitem.py`. Edited:
+`tests/desktoptheme_paths.py` (`VIEWITEM_SVG`), `tests/test_desktoptheme.py` (`SVG_CANVASES`,
+`TestInstall` `INSTALLED_FILES`), `README.md`. No change to the color scheme, the look-and-feel
+package, the Makefile, or the other widgets.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestViewItem` passing and the extended `TestInstall` byte-identity
+  assertion.
+- The viewitem SVG parses and contains the 36 `{normal,hover,selected,selected+hover}-{slice}` ids,
+  the 16 per-prefix margin-hint ids and `hint-tile-center`; every `hover`/`selected`/`selected+hover`
+  slice renders entirely #CCCCFF; every `normal` slice has no `fill` attribute and a `fill-opacity`
+  of 0.01; the only parsed `fill` attribute value is #CCCCFF.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/viewitem.svg` byte-identical to source
+  (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a right-click context menu and an applet
+  `PlasmaComponents.Menu` show the hovered/highlighted row as a flat #CCCCFF rectangle with black
+  text and no Breeze blue gradient or rounded corners; a selected icon-grid item shows the same flat
+  highlight; every other widget is unchanged.
+
+**Follow-up (not planned here).** `widgets/menubaritem.svg` (the appmenu title highlight, whose
+`hover` state must stay transparent because Mac OS 8.6 highlights a menu-bar title only while its
+menu is open), then `tabbar`, `tooltip`, and the `actionbutton`/`busy`/`switch` surfaces.
 
 ## Done
 
