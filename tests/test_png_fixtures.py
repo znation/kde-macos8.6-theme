@@ -6,8 +6,10 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
+import struct
 import sys
 import unittest
+import zlib
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -17,6 +19,7 @@ if str(REPO_ROOT) not in sys.path:
 from tools import png  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _chunk,
+    ihdr_chunk,
     ihdr_end,
     make_png,
     png_with_idat,
@@ -120,6 +123,23 @@ class TestIhdrEnd(unittest.TestCase):
         self.assertEqual(data[12:16], b"IHDR")
         spliced = data[:boundary] + _chunk(b"tEXt", b"note") + data[boundary:]
         self.assertEqual(png.decode_png(spliced), png.decode_png(data))
+
+
+class TestIhdrChunk(unittest.TestCase):
+    def test_builds_the_fixed_8_bit_non_interlaced_header(self):
+        # The header's fixed defaults (8-bit depth, zero compression, filter
+        # and interlace methods) are easy to get subtly wrong when written by
+        # hand; pin them and the big-endian width/height so a bad change fails
+        # here instead of as an opaque decode error downstream.
+        chunk = ihdr_chunk(3, 5, 2)
+        self.assertEqual(chunk[:8], struct.pack(">I", 13) + b"IHDR")
+        self.assertEqual(
+            chunk[8:21], struct.pack(">IIBBBBB", 3, 5, 8, 2, 0, 0, 0)
+        )
+        self.assertEqual(
+            chunk[21:],
+            struct.pack(">I", zlib.crc32(chunk[4:21]) & 0xFFFFFFFF),
+        )
 
 
 class TestPngWithIdat(unittest.TestCase):

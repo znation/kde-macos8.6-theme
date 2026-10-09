@@ -22,6 +22,7 @@ from tools import png  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
+    ihdr_chunk,
     ihdr_end,
     make_png,
     png_with_idat,
@@ -253,7 +254,7 @@ class TestDecode(unittest.TestCase):
         # A PNG truncated before its IDAT chunk, or one whose IDAT is empty,
         # must be named as missing image data rather than surfacing zlib's
         # opaque "incomplete or truncated stream".
-        ihdr = _chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+        ihdr = ihdr_chunk(1, 1, 2)
         cases = {
             "no IDAT": _PNG_SIGNATURE + ihdr + _chunk(b"IEND", b""),
             "empty IDAT": (
@@ -475,7 +476,7 @@ class TestDecode(unittest.TestCase):
     def test_rejects_truncated_chunk_payload(self):
         # A chunk header declaring more payload than the file holds must name
         # the chunk, its offset, and the byte counts, not just say "truncated".
-        ihdr = _chunk(b"IHDR", struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0))
+        ihdr = ihdr_chunk(1, 1, 2)
         data = _PNG_SIGNATURE + ihdr + struct.pack(">I", 100) + b"IDAT" + b"\x00\x01"
         message = self._decode_error(data)
         self.assertIn("truncated PNG chunk 'IDAT'", message)

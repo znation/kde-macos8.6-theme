@@ -45,6 +45,18 @@ def ihdr_end(data: bytes) -> int:
     return start + 8 + length + 4
 
 
+def ihdr_chunk(width: int, height: int, color_type: int) -> bytes:
+    """Return the complete IHDR chunk for an 8-bit, non-interlaced image.
+
+    Every fixture here writes the same header layout: 8 bits per channel and
+    zero compression, filter and interlace methods. Centralizing the 13-byte
+    payload keeps those defaults in one place for the fixtures and for the
+    decode tests that build a bare IHDR to splice malformed chunks after.
+    """
+    payload = struct.pack(">IIBBBBB", width, height, 8, color_type, 0, 0, 0)
+    return _chunk(b"IHDR", payload)
+
+
 def _paeth(a: int, b: int, c: int) -> int:
     p = a + b - c
     pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
@@ -138,8 +150,7 @@ def make_png(
         ftype = filter_types[index] if filter_types is not None else 0
         filtered += bytes([ftype]) + _filter_line(ftype, row, prev, bpp)
         prev = row
-    ihdr = struct.pack(">IIBBBBB", width, height, 8, color_type, 0, 0, 0)
-    out = _PNG_SIGNATURE + _chunk(b"IHDR", ihdr)
+    out = _PNG_SIGNATURE + ihdr_chunk(width, height, color_type)
     if palette is not None:
         out += _chunk(b"PLTE", palette)
     out += _chunk(b"IDAT", zlib.compress(bytes(filtered))) + _chunk(b"IEND", b"")
@@ -188,10 +199,9 @@ def png_with_idat(
     closed with IEND.
     """
     _require_positive_dimensions("png_with_idat", width, height)
-    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
     return (
         _PNG_SIGNATURE
-        + _chunk(b"IHDR", ihdr)
+        + ihdr_chunk(width, height, 2)
         + _chunk(b"IDAT", payload)
         + _chunk(b"IEND", b"")
     )
