@@ -58,10 +58,11 @@ modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.
 
 ## Reference screenshots
 
-`macos8.6-screenshots/` is the visual reference set for this theme: 28 images of **Mac OS 8.6**
-(released 1999-05-10), collected from the internet and used as the source of truth when matching
-menu bar, window chrome, widget metrics, icons and colour palette in the Plasma 6 port. They are
-reference material only — the theme does not ship them.
+`macos8.6-screenshots/` is the visual reference set for this theme: 28 images for **Mac OS 8.6**
+(released 1999-05-10) — retail screenshots and beta builds, one 8.5 supplement and two
+photographs — collected from the internet and used as the source of truth when matching menu bar,
+window chrome, widget metrics, icons and colour palette in the Plasma 6 port. They are reference
+material only — the theme does not ship them.
 
 | Surface | Count | Files |
 | --- | --- | --- |

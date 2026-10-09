@@ -21,6 +21,12 @@ from check_references_fixtures import load_checker
 _TOKEN = re.compile(r"`([^`]+)`")
 _GLOB_CHARS = "*?["
 
+# The intro states the collection's size; the table's per-row counts are pinned
+# separately, but nothing ties the prose number to the provenance record.
+_PROSE_COUNT = re.compile(
+    r"the visual reference set for this theme:\s*(\d+)\s+images"
+)
+
 
 def reference_table(text):
     """Return ``(surface, count, tokens)`` for each row of README's table.
@@ -130,7 +136,8 @@ class TestReadmeReferenceTable(unittest.TestCase):
         with open(
             os.path.join(theme_install.ROOT, "README.md"), encoding="utf-8"
         ) as handle:
-            cls.rows = reference_table(handle.read())
+            cls.text = handle.read()
+        cls.rows = reference_table(cls.text)
         # The checker reads sources.txt as UTF-8 with an optional BOM; match it
         # so a BOM does not glue itself to the first declared file name.
         with open(
@@ -159,6 +166,18 @@ class TestReadmeReferenceTable(unittest.TestCase):
             len(listed), len(set(listed)), "an image is listed more than once"
         )
         self.assertEqual(set(listed), self.declared)
+
+    def test_prose_count_matches_the_declared_set(self):
+        # The intro says how many images the collection holds, and the label
+        # below marks the 8.5 supplement, beta builds and photos; adding or
+        # removing an image updates the table but can leave the prose count
+        # stale. Derive the number from sources.txt and require the prose to
+        # state it, so the two cannot drift apart silently.
+        match = _PROSE_COUNT.search(self.text)
+        self.assertIsNotNone(
+            match, "README no longer states the reference-set image count"
+        )
+        self.assertEqual(int(match.group(1)), len(self.declared))
 
 
 if __name__ == "__main__":
