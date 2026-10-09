@@ -69,6 +69,21 @@ class TestLoadMetadata(unittest.TestCase):
         self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8")
         self.assertEqual(metadata["Name"], "Caf\u00e9")
 
+    def test_malformed_json_names_the_path_and_keeps_the_detail(self):
+        # Two packages ship a metadata.json, so a bare JSONDecodeError names
+        # neither which file is broken nor where; the guard must add the path
+        # and keep the decoder's own line/column detail (and its cause).
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "metadata.json"
+            path.write_text('{\n  "KPlugin": ,\n}', encoding="utf-8")
+            with self.assertRaises(ValueError) as caught:
+                load_metadata(path)
+        message = str(caught.exception)
+        self.assertIn(str(path), message)
+        self.assertIn("invalid JSON", message)
+        self.assertIn("line 2", message)
+        self.assertIsInstance(caught.exception.__cause__, json.JSONDecodeError)
+
     def test_non_object_json_names_the_type_and_path(self):
         # Valid JSON of the wrong top-level shape reaches the mixin's
         # ``self.metadata.get(...)`` as a bare AttributeError; the guard must

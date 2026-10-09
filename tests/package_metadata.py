@@ -13,14 +13,21 @@ import json
 def load_metadata(path):
     """Read the JSON object at *path*, naming the file when it is not one.
 
-    A ``metadata.json`` is a JSON object at the top level. Valid JSON of
-    another shape -- an array, a string, a number or ``null`` -- would
-    otherwise reach the mixin's ``self.metadata.get(...)`` and fail with a
-    bare ``AttributeError`` naming neither the file nor the type, so reject
-    it here with both.
+    A ``metadata.json`` is a JSON object at the top level. A malformed file
+    would otherwise surface as a bare ``json.JSONDecodeError`` and a
+    well-formed file of another shape (an array, string, number or ``null``)
+    as a bare ``AttributeError`` from the mixin's ``self.metadata.get(...)``;
+    both name neither the file nor the type, so both are rejected here --
+    with the path, and for the shape error the decoded type as well.
     """
     with open(path, encoding="utf-8") as handle:
-        metadata = json.load(handle)
+        try:
+            metadata = json.load(handle)
+        except json.JSONDecodeError as exc:
+            # Two packages ship a metadata.json, so the decoder's own message
+            # (which names line and column but not the file) is ambiguous;
+            # prepend the path and keep the original detail.
+            raise ValueError(f"{path}: invalid JSON: {exc}") from exc
     if not isinstance(metadata, dict):
         raise ValueError(
             f"{path} decoded to {type(metadata).__name__}, not a JSON object: "
