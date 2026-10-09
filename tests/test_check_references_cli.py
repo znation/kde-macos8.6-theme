@@ -22,6 +22,20 @@ from error_assertions import assert_escapes_escape_character
 from theme_install import run
 
 
+def _capture(function, *args):
+    """Run *function* with stdout and stderr captured.
+
+    The checker's entry points report through ``print`` -- usage and self-test
+    summaries on stdout, problem lists on stderr -- and return their exit
+    status. Every test here reads a status beside one of those streams, so
+    capture both once and let each test unpack the one it needs.
+    """
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        status = function(*args)
+    return status, out.getvalue(), err.getvalue()
+
+
 class TestSelfTestDiagnostics(unittest.TestCase):
     """The self-test's failure output names the failing case, not its image."""
 
@@ -29,11 +43,8 @@ class TestSelfTestDiagnostics(unittest.TestCase):
         module = load_checker()
         # Force every fixture to fail so _self_test prints its diagnostics.
         module.check_references = lambda directory: ["boom"]
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            code = module._self_test()
+        code, printed, _ = _capture(module._self_test)
         self.assertEqual(code, 1)
-        printed = out.getvalue()
         self.assertIn("self-test 'undeclared image'", printed)
         self.assertNotIn("self-test 'extra.png'", printed)
 
@@ -49,10 +60,8 @@ class TestSelfTestPasses(unittest.TestCase):
 
     def test_built_in_fixtures_all_pass(self):
         module = load_checker()
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            code = module._self_test()
-        self.assertEqual(code, 0, out.getvalue())
+        code, out, _ = _capture(module._self_test)
+        self.assertEqual(code, 0, out)
 
 
 class TestSelfTestExactProblems(unittest.TestCase):
@@ -97,11 +106,8 @@ class TestRepositoryCheckEntryPoint(unittest.TestCase):
     """
 
     def _run_no_args(self, module, directory):
-        out, err = io.StringIO(), io.StringIO()
         with unittest.mock.patch.object(module, "REFERENCE_DIR", str(directory)):
-            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-                code = module.main([])
-        return code, out.getvalue(), err.getvalue()
+            return _capture(module.main, [])
 
     def test_clean_set_exits_zero(self):
         module = load_checker()
@@ -144,11 +150,9 @@ class TestArgumentsExcludeProgramName(unittest.TestCase):
 
     def test_help_as_first_argument_prints_usage(self):
         module = load_checker()
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            code = module.main(["--help"])
+        code, out, _ = _capture(module.main, ["--help"])
         self.assertEqual(code, 0)
-        self.assertIn("usage:", out.getvalue())
+        self.assertIn("usage:", out)
 
 
 class TestUnknownArgumentEscaping(unittest.TestCase):
@@ -161,20 +165,16 @@ class TestUnknownArgumentEscaping(unittest.TestCase):
 
     def test_unknown_argument_escapes_control_characters(self):
         module = load_checker()
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            code = module.main(["evil\x1b[31m.png"])
+        code, _, err = _capture(module.main, ["evil\x1b[31m.png"])
         self.assertEqual(code, 2)
-        self.assertIn("unknown argument", err.getvalue())
-        assert_escapes_escape_character(self, err.getvalue())
+        self.assertIn("unknown argument", err)
+        assert_escapes_escape_character(self, err)
 
     def test_two_unknown_arguments_are_named_in_the_plural(self):
         module = load_checker()
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            code = module.main(["one", "two"])
+        code, _, err = _capture(module.main, ["one", "two"])
         self.assertEqual(code, 2)
-        self.assertIn("unknown arguments: one two", err.getvalue())
+        self.assertIn("unknown arguments: one two", err)
 
 
 class TestScriptEntryPoint(unittest.TestCase):
