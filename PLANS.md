@@ -5,7 +5,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+**Scope drift (2026-10-08, steward):** The initial prompt asks for "the UI of MacOS 8.6,
+getting as close as possible to pixel-perfect theming." Shipped so far: the `MacOS8` color
+scheme, the `org.macos8.desktop` global theme, and the desktop theme's eight widget SVGs
+(panel background, frame, button, radio button, checkmarks, lineedit, list item, scroll bar).
+README.md describes the reference set as the source of truth for "menu bar, window chrome,
+widget metrics, icons and colour palette", and the set includes Finder/dialog/desktop
+screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveorg.jpg`,
+`splash_macbase.gif`). No shipped or planned artifact covers window decoration or boot/splash,
+and there is no icon, cursor, or Qt widget-style theme either. The widget sequence should not be
+treated as the whole of the prompt until these surfaces are planned or explicitly ruled out.
 
 ## Done
 
