@@ -145,11 +145,33 @@ def assert_no_style_elements(case, tree):
         case.assertNotEqual(tag, "style", f"<{tag}> element")
 
 
+# CSS/SVG ``url(...)`` target: unquoted, single-quoted or double-quoted,
+# padded with whitespace. SVG uses the form in presentation attributes such as
+# ``fill``, ``filter``, ``clip-path`` and ``mask``, and in an inline ``style``.
+_URL_REFERENCE = re.compile(
+    r"""url\(\s*(?:'([^']*)'|"([^"]*)"|([^)]*?))\s*\)""",
+    re.IGNORECASE,
+)
+
+
+def _url_targets(value):
+    """Yield the target of every ``url(...)`` reference in an attribute value.
+
+    The target may be unquoted or wrapped in single or double quotes and
+    padded with whitespace; it is returned without that quoting or padding so
+    the caller can tell an in-file ``#id`` from a file or ``data:`` reference.
+    """
+    for match in _URL_REFERENCE.finditer(value):
+        target = next(group for group in match.groups() if group is not None)
+        yield target.strip()
+
+
 def assert_no_external_references(case, tree):
     """Assert every reference in *tree* is a same-document ``#id``.
 
-    The package is installed by copying its directory, so an ``<image>`` or an
-    ``href``/``xlink:href`` that names a file (or a ``data:`` URI) points at
+    The package is installed by copying its directory, so an ``<image>``, an
+    ``href``/``xlink:href``, or a ``url(...)`` in a presentation attribute or
+    inline ``style`` that names a file (or a ``data:`` URI) points at
     something the installed theme does not ship, so the reference cannot
     resolve. The pixel tests composite only rects and groups, so they cannot
     notice one; *case* is the calling ``unittest.TestCase`` and its assertion
@@ -167,6 +189,12 @@ def assert_no_external_references(case, tree):
                 case.fail(
                     f"<{tag}> reference {value!r} is not an in-file #id"
                 )
+            for target in _url_targets(value):
+                if not target.startswith("#"):
+                    case.fail(
+                        f"<{tag}> {name} reference {target!r} is not an "
+                        f"in-file #id"
+                    )
 
 
 def assert_unique_ids(case, tree):

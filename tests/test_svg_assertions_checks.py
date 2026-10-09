@@ -346,6 +346,64 @@ class TestNoExternalReferences(unittest.TestCase):
             ),
         )
 
+    def test_passes_an_in_file_url_reference(self):
+        # `fill="url(#id)"` names a same-document paint, so it is allowed.
+        tree = _svg_tree('<rect id="center" fill="url(#gradient)"/>')
+        assert_no_external_references(self, tree)
+
+    def test_passes_a_quoted_padded_url_reference(self):
+        tree = _svg_tree(
+            "<rect id=\"center\" fill=\"url( '#gradient' )\"/>"
+        )
+        assert_no_external_references(self, tree)
+
+    def test_catches_an_external_url_in_fill(self):
+        # A `url(...)` target that is not a `#id` names another file, which
+        # the copied install does not ship.
+        tree = _svg_tree(
+            '<rect id="center" fill="url(other.svg#gradient)"/>'
+        )
+        self.assertIn(
+            "other.svg#gradient",
+            error_message(
+                self,
+                AssertionError,
+                assert_no_external_references,
+                self,
+                tree,
+            ),
+        )
+
+    def test_catches_an_external_url_in_an_inline_style(self):
+        tree = _svg_tree(
+            '<rect id="center" style="filter:url(other.svg#blur)"/>'
+        )
+        self.assertIn(
+            "other.svg#blur",
+            error_message(
+                self,
+                AssertionError,
+                assert_no_external_references,
+                self,
+                tree,
+            ),
+        )
+
+    def test_catches_a_data_uri_url(self):
+        tree = _svg_tree(
+            '<rect id="center" fill="url(data:image/svg+xml,x)"/>'
+        )
+        self.assertIn(
+            "data:",
+            error_message(
+                self,
+                AssertionError,
+                assert_no_external_references,
+                self,
+                tree,
+            ),
+        )
+
 
 class TestUniqueIds(unittest.TestCase):
     def test_passes_a_tree_with_unique_ids(self):
