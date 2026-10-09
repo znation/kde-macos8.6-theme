@@ -53,6 +53,9 @@ class TestReferenceAnchors(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # The scheme file is read-only for the suite, so parse it once for the
+        # class instead of re-reading and re-parsing it per anchor assertion.
+        cls.parser = load_scheme()
         cls.images = {}
         cls.image_errors = {}
         for path, max_rows in (
@@ -82,7 +85,7 @@ class TestReferenceAnchors(unittest.TestCase):
 
     def assert_anchor_at(self, section, key, x, y, path=REFERENCE_DESKTOP):
         value = tuple(
-            int(part) for part in load_scheme().get(section, key).split(",")
+            int(part) for part in self.parser.get(section, key).split(",")
         )
         self.assertEqual(
             self.pixel(path, x, y),

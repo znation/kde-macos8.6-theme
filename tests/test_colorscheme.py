@@ -101,8 +101,11 @@ BOOLEAN_VALUES = [
 
 
 class TestStructure(unittest.TestCase):
-    def setUp(self):
-        self.parser = load_scheme()
+    @classmethod
+    def setUpClass(cls):
+        # The scheme file is read-only for the suite, so parse it once for the
+        # class instead of re-reading and re-parsing it in every test's setUp.
+        cls.parser = load_scheme()
 
     def test_parses(self):
         self.assertTrue(self.parser.sections())
@@ -238,8 +241,10 @@ class TestAnchors(unittest.TestCase):
     reference in the set shows a tooltip, so it is not a sampled anchor.
     """
 
-    def setUp(self):
-        self.parser = load_scheme()
+    @classmethod
+    def setUpClass(cls):
+        # Shared read-only parse; see TestStructure.setUpClass.
+        cls.parser = load_scheme()
 
     def assert_value(self, section, key, expected):
         self.assertEqual(self.parser.get(section, key), expected, f"{section}/{key}")
