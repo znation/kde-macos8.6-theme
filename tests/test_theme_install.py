@@ -97,7 +97,27 @@ class TestXdgDataHomeDefault(unittest.TestCase):
             with self.subTest(target=target):
                 result = theme_install.run_make([target], env=env)
                 self.assertNotEqual(result.returncode, 0, result.stdout)
-                self.assertIn("HOME is unset", result.stderr)
+                self.assertIn("HOME is not an absolute path", result.stderr)
+
+    def test_relative_home_without_an_absolute_data_home_is_refused(self):
+        # A relative HOME makes the fallback a relative path, so `install -d`
+        # would create a tree under the current directory (and `uninstall`
+        # delete from it). DESTDIR is rooted at a temp dir so a guard that
+        # wrongly let the run through cannot write into the checkout; the
+        # guard reads HOME, not DESTDIR, so the refusal still exercises the
+        # relative-HOME branch.
+        env = dict(os.environ, HOME="relative")
+        env.pop("XDG_DATA_HOME", None)
+        with tempfile.TemporaryDirectory() as tmp:
+            for target in ("install", "uninstall"):
+                with self.subTest(target=target):
+                    result = theme_install.run_make(
+                        [target, f"DESTDIR={tmp}"], env=env
+                    )
+                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    self.assertIn(
+                        "HOME is not an absolute path", result.stderr
+                    )
 
 
 class TestFlockTimeout(unittest.TestCase):

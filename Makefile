@@ -12,13 +12,14 @@ PYTHON ?= python3
 XDG_DATA_HOME_ENV := $(XDG_DATA_HOME)
 XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)
 
-# The fallback needs $HOME: with XDG_DATA_HOME unset or relative and HOME also
-# unset, $(HOME)/.local/share is /.local/share, so `make install` would write
-# into the filesystem root (and `make uninstall` delete from it). Refuse with a
-# diagnostic instead of guessing. $(1) names the target. An absolute
+# The fallback needs an absolute $HOME: with XDG_DATA_HOME unset or relative
+# and HOME also unset, $(HOME)/.local/share is /.local/share, so `make install`
+# would write into the filesystem root (and `make uninstall` delete from it);
+# with HOME relative the fallback is a path under the current directory. Refuse
+# with a diagnostic instead of guessing. $(1) names the target. An absolute
 # XDG_DATA_HOME -- including a command-line one -- resolves without $HOME and
 # passes.
-require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(HOME)" ]; then echo "$(1): XDG_DATA_HOME is unset or relative and HOME is unset; set XDG_DATA_HOME to an absolute path" >&2; exit 2; fi
+require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(filter /%,$(HOME))" ]; then echo "$(1): XDG_DATA_HOME is unset or relative and HOME is not an absolute path; set XDG_DATA_HOME to an absolute path" >&2; exit 2; fi
 
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
