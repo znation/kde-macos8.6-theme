@@ -143,6 +143,24 @@ class TestSampleCli(CliTestCase):
             "region (2, 1) 3x1 is outside the 4x3 image", result.stderr
         )
 
+    def test_region_past_bottom_edge_is_error(self):
+        # The bounds check has two disjuncts, one per axis. The test above
+        # exercises only the horizontal one (x + width past the right edge),
+        # so a regression that dropped the vertical check would still pass it
+        # and then run the region loop off the bottom: pixel_at is not guarded
+        # inside the loop, so the run would traceback after a partial dump.
+        # A region that overshoots only the bottom must instead fail as one
+        # diagnostic before any pixel is printed.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self._image(Path(tmp))
+            result = self._run(path, "0", "1", "--height", "3")
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn(
+            "region (0, 1) 1x3 is outside the 4x3 image", result.stderr
+        )
+        self.assertNotIn("region", result.stdout)
+        self.assertNotIn("(0, 1):", result.stdout)
+
     def test_coordinate_past_edge_is_error(self):
         # x == width and y == height are the first coordinates outside the
         # image; pixel_at must name both the coordinate and the image size.
