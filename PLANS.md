@@ -16,7 +16,89 @@ screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveor
 and there is no icon, cursor, or Qt widget-style theme either. The widget sequence should not be
 treated as the whole of the prompt until these surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum startup splash (`contents/splash/`) for the global theme (planned 2026-10-08)
+
+**Planned 2026-10-08 by plan.**
+
+**Goal.** Ship the `org.macos8.desktop` global theme's Plasma startup splash: a full-screen
+Platinum field with a centred panel carrying the Mac OS face logo, the "Mac OS" wordmark and a
+progress bar that fills as Plasma starts. Today the `org.macos8.desktop` look-and-feel package holds
+only `metadata.json` and `contents/defaults`, so applying the global theme leaves the Breeze
+splash, and README's Status says "no ... splash assets exist yet". This is the boot/splash
+surface the steward's 2026-10-08 scope-drift note names as uncovered.
+
+**Reference.** `macos8.6-screenshots/boot2_betawiki.png` (240x180, lossless PNG; `sources.txt`
+line 11 labels it "Mac OS 8.6 (boot screen)"). Sampling it with `tools/png.py` gives the values
+this plan pins:
+- field `(99,99,156)` = `#63639C` at `(5,5)` and `(200,150)`;
+- panel face `#FFFFFF`; panel outer bevel `(221,221,221)` = `#DDDDDD` at `(74,60)`, inner rule
+  `(191,191,191)` = `#BFBFBF` at `(78,60)`;
+- logo darkest blue `(76,101,203)` = `#4C65CB`, lighter blue `(114,134,214)` = `#7286D6`;
+- progress track `(221,221,221)` = `#DDDDDD` at `(145,100)`, fill `(173,173,173)` = `#ADADAD` at
+  `(120,100)`; wordmark black.
+- reference grid rectangles (240x180 pixels): the panel is the bounding box of every pixel that
+  is not the field colour, `x=70..169, y=31..108`; the logo is the bounding box of the blue
+  pixels, `x=107..132, y=45..65` (26x21); the progress fill is the bounding box of the
+  `#ADADAD` pixels, `x=106..138, y=95..102`; the progress track is the `#DDDDDD` band
+  `y=89..104`; the wordmark sits in the band `y=71..85`.
+The 240x180 frame is a 4:3 thumbnail of the 640x480 Mac OS 8.6 screen; the plan keeps the
+reference's own grid and scales it by whole pixels rather than re-deriving 640x480 values.
+
+**Approach.**
+- Add a `Splash.qml` under the look-and-feel package's `contents/splash/`. It is a full-screen
+  `Rectangle` with `color: "#63639C"` and
+  `readonly property int unit: Math.max(1, Math.floor(Math.min(width / 240, height / 180)))`,
+  so the reference grid scales by whole pixels and keeps its proportions on any screen. A centred
+  `Item` is authored entirely in the 240x180 grid times `unit`:
+  - a panel `Rectangle` at the reference's panel bounding box, `#FFFFFF` face, `#DDDDDD` outer
+    border and `#BFBFBF` inner rule;
+  - an `Image` of `images/macos-logo.svg` at the logo bounding box;
+  - a `Text` "Mac OS" in black on the wordmark band;
+  - a progress `Rectangle` track across the panel's lower band (`#DDDDDD`) whose `#ADADAD` fill
+    width binds to the KDE splash `stage` (0..6): `width: track.width * Math.min(1, stage / 6)`,
+    so the reference's roughly three-quarter fill is `stage` 5 of 6.
+  The `stage` handler and an `OpacityAnimator` intro follow
+  `/usr/share/plasma/look-and-feel/org.kde.breeze.desktop/contents/splash/Splash.qml`.
+- Add an `images/macos-logo.svg` under that splash directory: the Mac OS face, a periwinkle rounded rectangle
+  (`#4C65CB` with a `#7286D6` highlight) traced from the reference logo rectangle. The reference
+  logo is only 26x21, so this one element is traced by eye; the test pins its `viewBox`, fills and
+  structure rather than every path point.
+- `contents/defaults` needs no `[KSplash]` key: applying the global theme already writes
+  `[KSplash] Engine=KSplashQML` / `Theme=org.macos8.desktop` into `kdedefaults/ksplashrc`
+  (verified this tick with `lookandfeeltool -a org.macos8.desktop` under a throwaway
+  `HOME`/`XDG_*` tree, which exited 0 and wrote that file).
+- Extend `tests/test_lookandfeel.py::TestInstall.INSTALLED_FILES` with
+  `contents/splash/Splash.qml` and `contents/splash/images/macos-logo.svg`, so the byte-identical
+  install check covers them.
+
+**Files touched.**
+- `contents/splash/Splash.qml` in the look-and-feel package (new)
+- `contents/splash/images/macos-logo.svg` in the look-and-feel package (new)
+- a new `test_lookandfeel_splash.py` test module
+- `tests/test_lookandfeel.py` (`INSTALLED_FILES`)
+- `README.md` (Status: the global theme now ships the splash)
+
+**Acceptance criteria.**
+- `make check` exits 0; the new splash test module and the extended
+  `tests/test_lookandfeel.py` pass.
+- `TestSplashReference.test_field_colour_matches_reference` reads
+  `macos8.6-screenshots/boot2_betawiki.png` pixel `(5,5)` through `tools/png.py` and asserts it is
+  the `#63639C` literal `Splash.qml` uses; `test_progress_colours_match_reference` does the same
+  for the track `#DDDDDD` at `(145,100)` and the fill `#ADADAD` at `(120,100)`.
+- `TestSplashQml.test_grid_geometry` parses the panel/logo/progress grid literals out of
+  `Splash.qml` and asserts they equal rectangles the test re-derives from
+  `macos8.6-screenshots/boot2_betawiki.png` by colour scan (panel = bounding box of non-field
+  pixels, logo = bounding box of blue pixels, fill = bounding box of `#ADADAD` pixels);
+  `test_uses_the_logo_image` asserts the `Image` source is `images/macos-logo.svg`.
+- `TestLogo.test_logo_svg` parses `images/macos-logo.svg`, asserts `viewBox` is 26x21, that
+  `assert_no_script_elements` and `assert_unique_ids` pass, and that the fill set is exactly
+  `{#4C65CB, #7286D6}`.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml` and its logo
+  byte-identical to source, and `make uninstall` removes the package.
+- Manual smoke test (needs a Plasma session, outside `make check`): applying the global theme
+  selects the splash (`[KSplash] Theme=org.macos8.desktop`), and the startup screen shows the
+  `#63639C` field, the panel and a progress bar that advances with `stage`.
 
 ## Done
 
