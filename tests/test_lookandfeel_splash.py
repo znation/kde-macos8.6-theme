@@ -59,17 +59,31 @@ def _read_qml():
         return handle.read()
 
 
+def _match_qml(text, pattern, message):
+    """Return the first match of *pattern* in *text*, or fail naming *message*.
+
+    The QML-literal and QML-object probes below read their value through one
+    regex, so a pattern that no longer matches must fail with the file named
+    rather than a bare ``AttributeError`` on ``None``; *message* says what was
+    looked for.
+    """
+    match = re.search(pattern, text)
+    if match is None:
+        raise AssertionError(f"{SPLASH}: {message}")
+    return match
+
+
 def qml_int(name):
     """Return the integer literal of ``readonly property int <name>: N``.
 
     The QML declares every reference-grid coordinate this way, so the geometry
     test reads the same number the artwork uses instead of a second copy.
     """
-    match = re.search(
-        rf"readonly property int {re.escape(name)}:\s*(\d+)", _read_qml()
+    match = _match_qml(
+        _read_qml(),
+        rf"readonly property int {re.escape(name)}:\s*(\d+)",
+        f"no integer literal for {name}",
     )
-    if match is None:
-        raise AssertionError(f"{SPLASH}: no integer literal for {name}")
     return int(match.group(1))
 
 
@@ -87,21 +101,22 @@ def qml_rect(name):
 
 def qml_color(name):
     """Return the uppercase ``#RRGGBB`` of ``readonly property color <name>``."""
-    match = re.search(
+    match = _match_qml(
+        _read_qml(),
         rf'readonly property color {re.escape(name)}:\s*'
         r'"(#[0-9A-Fa-f]{6})"',
-        _read_qml(),
+        f"no colour literal for {name}",
     )
-    if match is None:
-        raise AssertionError(f"{SPLASH}: no colour literal for {name}")
     return match.group(1).upper()
 
 
 def qml_border_width():
     """Return the integer factor of the panel's ``border.width`` binding."""
-    match = re.search(r"border\.width:\s*(\d+) \* root\.unit", _read_qml())
-    if match is None:
-        raise AssertionError(f"{SPLASH}: no integer border width")
+    match = _match_qml(
+        _read_qml(),
+        r"border\.width:\s*(\d+) \* root\.unit",
+        "no integer border width",
+    )
     return int(match.group(1))
 
 
@@ -115,9 +130,11 @@ def qml_unit_expression():
     is one line today but may wrap, so collapse its whitespace before comparing
     it to the canonical expression.
     """
-    match = re.search(r"readonly property int unit:[ \t]*(.+)", _read_qml())
-    if match is None:
-        raise AssertionError(f"{SPLASH}: no unit property definition")
+    match = _match_qml(
+        _read_qml(),
+        r"readonly property int unit:[ \t]*(.+)",
+        "no unit property definition",
+    )
     return " ".join(match.group(1).split())
 
 
@@ -155,9 +172,11 @@ def _object_source(qml, object_id):
     lets the painting test assert a colour binding on the same object whose
     geometry binding the geometry test pins.
     """
-    match = re.search(rf"\bid:\s*{re.escape(object_id)}\b", qml)
-    if match is None:
-        raise AssertionError(f"{SPLASH}: no object with id {object_id}")
+    match = _match_qml(
+        qml,
+        rf"\bid:\s*{re.escape(object_id)}\b",
+        f"no object with id {object_id}",
+    )
     start = qml.rfind("{", 0, match.start())
     if start < 0:
         raise AssertionError(f"{SPLASH}: id {object_id} is not in an object")
