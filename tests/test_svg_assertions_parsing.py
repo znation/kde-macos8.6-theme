@@ -40,6 +40,21 @@ from svg_assertions import (
 from svg_fixtures import SvgBodyCase, _svg_tree
 
 
+def _face_substituted(table, face):
+    """Return *table* with each #DDDDDD face pixel replaced by *face*.
+
+    The sunken and flat corner tables are parameterised by the face colour,
+    so a test that pins the #DDDDDD table can derive the expected table for
+    another face by swapping only the face pixels.
+    """
+    return {
+        name: tuple(
+            face if colour == "#DDDDDD" else colour for colour in pixels
+        )
+        for name, pixels in table.items()
+    }
+
+
 class TestPathArcs(unittest.TestCase):
     def test_tracks_the_current_point_through_commands(self):
         # An arc's start point is the current point the preceding M/L left, not
@@ -305,13 +320,7 @@ class TestSunkenFaceCorners(unittest.TestCase):
         )
         self.assertEqual(
             sunken_face_corners("#FFFFFF"),
-            {
-                name: tuple(
-                    "#FFFFFF" if colour == "#DDDDDD" else colour
-                    for colour in pixels
-                )
-                for name, pixels in sunken.items()
-            },
+            _face_substituted(sunken, "#FFFFFF"),
         )
 
 
@@ -349,13 +358,7 @@ class TestFlatFaceCorners(unittest.TestCase):
         )
         self.assertEqual(
             flat_face_corners("#EEEEEE"),
-            {
-                name: tuple(
-                    "#EEEEEE" if colour == "#DDDDDD" else colour
-                    for colour in pixels
-                )
-                for name, pixels in flat.items()
-            },
+            _face_substituted(flat, "#EEEEEE"),
         )
 
 
