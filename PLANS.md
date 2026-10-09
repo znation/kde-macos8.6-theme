@@ -89,6 +89,72 @@ A later reference or a human can correct these three choices without touching th
   focusing and unfocusing a window switches the title bar and boxes between the pinstriped active
   artwork and the flat grey inactive artwork.
 
+### Wire the Mac OS 8.6 window decoration into the global theme (`theme/look-and-feel/org.macos8.desktop/contents/defaults`) (planned 2026-10-09)
+
+**Planned 2026-10-09 by plan.**
+
+**Goal.** Applying the global theme (`lookandfeeltool -a org.macos8.desktop`) currently selects the
+`MacOS8` color scheme, the `org.macos8.desktop` desktop theme and the Platinum splash, but leaves
+the window decoration on Breeze: `contents/defaults` has only `[kdeglobals][General]` and
+`[plasmarc][Theme]`, so a freshly applied global theme still wears Breeze title bars until the user
+manually picks the Aurorae theme in System Settings → Window Decorations. Add the
+`[kwinrc][org.kde.kdecoration2]` defaults so the global theme selects the shipped
+`org.macos8.desktop` Aurorae theme and the reference's button layout (close box on the left, zoom
+box on the right, no collapse box). This is the global-theme wiring Part A's Follow-ups lists but
+leaves unplanned; it is independent of the part B1 inactive-artwork plan (different files, and it
+uses the already-landed active theme).
+
+**Reference.** `aboutsystem_betawiki.png` (1024x768, lossless PNG) is the clean window: the close
+box sits on the left (x=11..22) and the zoom box on the right (x=343..354) and there is no collapse
+box. The key names and codes are KDE-required provenance, read from the installed KWin settings
+schema `/usr/share/config.kcfg/kwindecorationsettings.kcfg` (the `[org.kde.kdecoration2]` group,
+`ButtonsOnLeft`/`ButtonsOnRight`; `X` = Close, `A` = Maximize).
+
+**Approach.**
+- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: append a third section
+  `[kwinrc][org.kde.kdecoration2]` with `library=org.kde.kwin.aurorae`,
+  `theme=__aurorae__svg__org.macos8.desktop`, `ButtonsOnLeft=X`, `ButtonsOnRight=A`.
+  `library` is the Aurorae decoration factory — the installed plugin is
+  `…/org.kde.kdecoration3/org.kde.kwin.aurorae.so` and the kcfg's fallback plugin name is
+  `org.kde.kwin.aurorae`. `theme` is the `__aurorae__svg__`-prefixed Aurorae theme id, the form the
+decoration KCM writes (the `__aurorae__svg__` literal is in `kcm_auroraedecoration.so`) and the id
+  Part A's smoke test already records; the Part A Follow-ups note's bare `theme=org.macos8.desktop`
+  is wrong and this plan corrects it. Breeze's own `contents/defaults`
+  (`/usr/share/plasma/look-and-feel/org.kde.breeze.desktop/contents/defaults`) is the working
+example of the `[kwinrc][org.kde.kdecoration2]` section in an LNF package.
+- `tests/test_lookandfeel.py`: extend `TestDefaults` (criteria below).
+- `README.md`: the paragraph describing what the global theme applies gains one sentence that it
+also selects the `org.macos8.desktop` window decoration with the close box on the left and the zoom
+  box on the right.
+- No `Makefile` or `test_aurorae_decoration.py` change: the decoration package already installs, and
+  this only adds config that points KWin at it.
+
+**Files touched.**
+- `theme/look-and-feel/org.macos8.desktop/contents/defaults`
+- `tests/test_lookandfeel.py`
+- `README.md`
+- `PLANS.md` (this entry)
+
+**Acceptance criteria.**
+- `make check` exits 0; the extended `test_lookandfeel.py` passes and the install, lifecycle and
+  Aurorae suites still pass unchanged.
+- `TestDefaults.test_the_expected_sections_and_keys_are_set` expects the three sections in file
+  order (`kdeglobals][General`, `plasmarc][Theme`, `kwinrc][org.kde.kdecoration2`) with options
+  `ColorScheme`; `name`; and `library`, `theme`, `ButtonsOnLeft`, `ButtonsOnRight`.
+- New `TestDefaults.test_window_decoration_names_the_shipped_theme` asserts
+  `library == "org.kde.kwin.aurorae"` and `theme == "__aurorae__svg__" + <the theme directory
+  name>`, where the id is taken from the directory holding
+  `theme/aurorae/themes/org.macos8.desktop/metadata.desktop`, via a module constant, so a rename of
+  the Aurorae package fails the test instead of silently pointing KWin at a theme that is not
+  installed; it also asserts that directory contains `metadata.desktop` (KWin's discovery
+  requirement recorded in Part A).
+- New `TestDefaults.test_titlebar_buttons_match_the_reference` asserts `ButtonsOnLeft == "X"` and
+  `ButtonsOnRight == "A"` — close on the left, zoom on the right, no collapse box — the layout
+  `aboutsystem_betawiki.png` shows.
+- Manual smoke test (needs a Plasma session, outside `make check`): after `make install` and
+  `lookandfeeltool -a org.macos8.desktop`, a new window wears the pinstriped Platinum title bar with
+  the close box on the left and the zoom box on the right, with no manual Window Decorations step.
+
 ## Done
 
 ### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part A: active frame, close and zoom widgets (done 2026-10-08)
