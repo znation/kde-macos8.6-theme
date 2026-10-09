@@ -39,6 +39,7 @@ from svg_assertions import (
     flat_face_corners,
     nine_slice_hint_geometry,
     nine_slice_margins,
+    local_name,
     nine_slice_tile_sizes,
     path_arcs,
     pixel_map,
@@ -988,6 +989,33 @@ class TestElementsById(unittest.TestCase):
     def test_returns_an_empty_map_when_no_element_has_an_id(self):
         tree = self._tree('<rect/><g><path/></g>')
         self.assertEqual(elements_by_id(tree), {})
+
+
+class TestLocalName(unittest.TestCase):
+    def test_strips_the_svg_namespace_prefix(self):
+        # Every shipped SVG declares the default SVG namespace, so ElementTree
+        # reports each tag as `{namespace}local`; the helper must return the
+        # local part, which is what every widget test matches on.
+        root = ET.fromstring(
+            '<svg xmlns="http://www.w3.org/2000/svg"><g id="g"/></svg>'
+        )
+        self.assertEqual(local_name(root), "svg")
+        self.assertEqual(local_name(root[0]), "g")
+
+    def test_returns_an_unprefixed_tag_unchanged(self):
+        # A tree parsed without an xmlns has no `{namespace}` prefix at all.
+        # The widget tests never build one, so a helper that sliced a fixed
+        # prefix (or assumed a `}` is always present) would pass them while
+        # corrupting every unprefixed tag; pin the bare tag here.
+        root = ET.fromstring("<svg><rect id=\"r\"/></svg>")
+        self.assertEqual(local_name(root), "svg")
+        self.assertEqual(local_name(root[0]), "rect")
+
+    def test_strips_a_namespace_that_is_not_svg(self):
+        # The prefix is the element's own namespace, not a hardcoded SVG one;
+        # a foreign-namespaced element must still reduce to its local name.
+        element = ET.Element("{http://example.test/ns}widget")
+        self.assertEqual(local_name(element), "widget")
 
 
 class TestNoScriptElements(unittest.TestCase):
