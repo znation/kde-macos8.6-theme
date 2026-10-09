@@ -100,9 +100,17 @@ class PackageMetadata:
         )
 
     def test_plugin_id_and_name(self):
+        # Indexing Id/Name directly would raise a bare KeyError naming only
+        # the key, with neither the file nor the expected value; report both
+        # so a metadata.json that drops a field is diagnosable.
         plugin = self._plugin()
-        self.assertEqual(plugin["Id"], self.PACKAGE_ID)
-        self.assertEqual(plugin["Name"], "Mac OS 8.6")
+        for key, expected in (("Id", self.PACKAGE_ID), ("Name", "Mac OS 8.6")):
+            if key not in plugin:
+                self.fail(
+                    f"{self.METADATA_PATH}: KPlugin is missing {key!r} "
+                    f"(expected {expected!r})"
+                )
+            self.assertEqual(plugin[key], expected)
 
     def test_plugin_version(self):
         version = self._plugin().get("Version")

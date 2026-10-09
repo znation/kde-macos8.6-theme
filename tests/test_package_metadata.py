@@ -212,6 +212,22 @@ class TestPackageMetadata(unittest.TestCase):
                         "test_plugin_id_and_name", metadata
                     ).test_plugin_id_and_name()
 
+    def test_plugin_id_and_name_missing_key_names_the_file_and_field(self):
+        # A metadata.json whose KPlugin drops Id or Name used to fail with a
+        # bare KeyError naming only the key, with neither the file nor the
+        # expected value; the mixin must name the file and the field.
+        for key in ("Id", "Name"):
+            with self.subTest(key=key):
+                metadata = _metadata()
+                del metadata["KPlugin"][key]
+                with self.assertRaises(AssertionError) as caught:
+                    _case(
+                        "test_plugin_id_and_name", metadata
+                    ).test_plugin_id_and_name()
+                message = str(caught.exception)
+                self.assertIn("metadata.json", message)
+                self.assertIn(key, message)
+
     def test_plugin_version_guard(self):
         for value in (None, "", "   ", 7):
             with self.subTest(version=value):
