@@ -535,7 +535,10 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     if depth != 8:
         raise PngError(f"unsupported PNG bit depth {depth} (need 8)")
     if interlace != 0:
-        raise PngError("interlaced PNG is not supported")
+        raise PngError(
+            "interlaced PNG is not supported; re-export it without "
+            "interlacing"
+        )
     if compression != 0:
         raise PngError(
             f"unsupported PNG compression method {compression} (need 0)"
@@ -543,7 +546,14 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     if filt != 0:
         raise PngError(f"unsupported PNG filter method {filt} (need 0)")
     if color_type not in _CHANNELS:
-        raise PngError(f"unsupported PNG color type {color_type}")
+        # Name the set the decoder handles, the way the bit-depth,
+        # compression and filter messages name their required value, so the
+        # operator does not have to look up which PNG color types are valid.
+        supported = ", ".join(str(value) for value in sorted(_CHANNELS))
+        raise PngError(
+            f"unsupported PNG color type {color_type} "
+            f"(need one of {supported})"
+        )
     if width == 0 or height == 0:
         # Name the declared dimensions so the operator can tell which field is
         # zero (and in which header) instead of having to dump the bytes.

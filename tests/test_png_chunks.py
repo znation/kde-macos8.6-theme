@@ -250,3 +250,25 @@ class TestChunkFraming(unittest.TestCase):
         for label, (broken, expected) in cases.items():
             with self.subTest(label=label):
                 self.assertIn(expected, decode_error(self, broken))
+
+    def test_unsupported_color_type_names_the_supported_set(self):
+        # The color type decides how scanlines are interpreted, so a rejected
+        # value must name the types the decoder handles instead of leaving the
+        # operator to look up which PNG color types are valid. The set is the
+        # five the PNG spec defines; pin the literal text so a wrong set in
+        # the diagnostic fails here rather than reading as plausible.
+        _, data = solid_rgb(1, 1)
+        broken = with_ihdr_byte(data, 9, 5)
+        message = decode_error(self, broken)
+        self.assertIn("unsupported PNG color type 5", message)
+        self.assertIn("need one of 0, 2, 3, 4, 6", message)
+
+    def test_interlaced_png_names_the_re_export_fix(self):
+        # An interlaced PNG cannot be decoded here, and the operator's fix is
+        # to re-export it without interlacing; name that fix the way the
+        # wrong-format message names its conversion.
+        _, data = solid_rgb(1, 1)
+        broken = with_ihdr_byte(data, 12, 1)
+        self.assertIn(
+            "re-export it without interlacing", decode_error(self, broken)
+        )
