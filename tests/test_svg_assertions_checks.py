@@ -85,6 +85,44 @@ def _nine_slice_tree(origins=None, sizes=None):
     )
 
 
+# A base state with hints plus a hintless alias state that reuses them, the
+# shape the inactive Aurorae frame has. The alias tiles sit at the base
+# origins; the SVG carries no `alias-hint-*-margin` ids.
+_ALIAS_HINTS = (
+    '<rect id="hint-tile-center" x="4" y="4" width="4" height="4"/>'
+    '<rect id="base-hint-top-margin" x="4" y="0" width="4" height="4"/>'
+    '<rect id="base-hint-bottom-margin" x="4" y="8" width="4" height="4"/>'
+    '<rect id="base-hint-left-margin" x="0" y="4" width="4" height="4"/>'
+    '<rect id="base-hint-right-margin" x="8" y="4" width="4" height="4"/>'
+)
+
+
+def _aliased_nine_slice_tree(alias_origins=None):
+    """Build a nine-slice tree whose alias state reuses the base's hints.
+
+    *alias_origins* defaults to the base layout; overriding one lets a caller
+    place an alias tile where the base hints do not, so the alias-aware guard
+    can be proven to reject it.
+    """
+    alias_origins = _ORIGINS if alias_origins is None else alias_origins
+
+    def groups(prefix, origins):
+        sep = "-" if prefix else ""
+        return "".join(
+            f'<g id="{prefix}{sep}{name}" transform="translate({x},{y})">'
+            '<rect x="0" y="0" width="4" height="4" fill="#000000"/>'
+            "</g>"
+            for name, (x, y) in origins.items()
+        )
+
+    body = (
+        _ALIAS_HINTS
+        + groups("base", _ORIGINS)
+        + groups("alias", alias_origins)
+    )
+    return _svg_tree(body, width="12", height="12", viewBox="0 0 12 12")
+
+
 class _NoSubTest(unittest.TestCase):
     """A real TestCase whose ``subTest`` is a no-op frame.
 
@@ -169,6 +207,32 @@ class TestStructuralGuards(unittest.TestCase):
             [""],
         )
 
+    def test_tiles_placed_by_margins_uses_the_alias_hints(self):
+        assert_tiles_placed_by_margins(
+            self,
+            _aliased_nine_slice_tree(),
+            ["base", "alias"],
+            {"alias": "base"},
+        )
+
+    def test_tiles_placed_by_margins_catches_a_misplaced_alias_tile(self):
+        origins = dict(_ORIGINS)
+        origins["top"] = (0, 0)
+        _assert_rejects(
+            assert_tiles_placed_by_margins,
+            _aliased_nine_slice_tree(alias_origins=origins),
+            ["base", "alias"],
+            {"alias": "base"},
+        )
+
+    def test_slices_within_their_tiles_uses_the_alias_hints(self):
+        assert_slices_stay_within_their_tiles(
+            self,
+            _aliased_nine_slice_tree(),
+            ["base", "alias"],
+            {"alias": "base"},
+        )
+
     def test_hint_geometry_passes_a_correct_layout(self):
         assert_hint_geometry(self, _svg_tree(_HINTS), [""], 4, 4)
 
@@ -248,6 +312,23 @@ class TestSliceIdsPresent(unittest.TestCase):
         with self.assertRaises(AssertionError):
             assert_slice_ids_present(
                 self, _id_tree(omit=("hint-tile-center",)), [""]
+            )
+
+    def test_accepts_a_hintless_alias(self):
+        # The alias state carries the nine slice ids but no hint ids; its
+        # tiles are placed by the base hints, so the guard must not demand
+        # `alias-hint-*-margin` once the alias is declared.
+        assert_slice_ids_present(
+            self,
+            _aliased_nine_slice_tree(),
+            ["base", "alias"],
+            {"alias": "base"},
+        )
+
+    def test_requires_the_alias_hints_when_no_alias_is_declared(self):
+        with self.assertRaises(AssertionError):
+            assert_slice_ids_present(
+                self, _aliased_nine_slice_tree(), ["base", "alias"]
             )
 
     def test_catches_a_missing_id_in_a_later_prefix(self):

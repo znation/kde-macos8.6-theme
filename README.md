@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: four artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/` (with its Mac OS 8.6 startup splash under `contents/splash/`), the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, scroll bar, and menu/popup body widgets, plus the dialog / applet-popup window body), and the `org.macos8.desktop` Aurorae window decoration in `theme/aurorae/themes/` (the active Platinum title bar with close and zoom widgets).
+Pre-alpha: four artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/` (with its Mac OS 8.6 startup splash under `contents/splash/`), the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, scroll bar, and menu/popup body widgets, plus the dialog / applet-popup window body), and the `org.macos8.desktop` Aurorae window decoration in `theme/aurorae/themes/` (the active and inactive Platinum title bars with their close and zoom widgets).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -54,10 +54,11 @@ translucent rounded rectangle). The window decoration ships
 `metadata.json` and `metadata.desktop` (the KPackage and KWin-discovery
 metadata), `org.macos8.desktoprc` (the Aurorae layout: a 22px title bar, 6px
 side and bottom borders, and 12x12 close/zoom widgets), `decoration.svg` (the
-active frame) with its gzipped `decoration.svgz` (the form `kpackagetool6`
-requires), and `close.svg`, `maximize.svg`, `restore.svg` (the widgets); select
-it in System Settings → Window Decorations. This first slice draws only the
-active state, so an unfocused window reuses it. `make
+active and inactive frames) with its gzipped `decoration.svgz` (the form
+`kpackagetool6` requires), and `close.svg`, `maximize.svg`, `restore.svg` (the
+active and inactive widgets); select it in System Settings → Window
+Decorations. An unfocused window wears the flat grey inactive frame and
+boxes. `make
 uninstall` removes the four installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/` and
 `aurorae/themes/`
 directories and anything else in them in place. `make check` runs the test suite, and `make help`

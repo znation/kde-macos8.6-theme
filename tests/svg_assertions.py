@@ -53,21 +53,27 @@ def assert_ids_present(case, tree, names):
         case.assertIn(name, ids, name)
 
 
-def assert_slice_ids_present(case, tree, prefixes):
+def assert_slice_ids_present(case, tree, prefixes, hint_aliases=None):
     """Assert each state's nine-slice, margin-hint and centre ids are present.
 
     *prefixes* lists each state prefix in *tree* -- ``("plain", "raised",
     "sunken")`` for frame, ``["base"]`` for lineedit, ``[""]`` for an
-    unprefixed SVG. Every state must carry all nine ``SLICE_IDS`` and the four
-    margin hints KSvg reads to size the nine-slice; the shared
-    ``hint-tile-center`` is checked once. *case* is the calling
-    ``unittest.TestCase``.
+    unprefixed SVG. Every state must carry all nine ``SLICE_IDS``; the shared
+    ``hint-tile-center`` is checked once. Unless *hint_aliases* exempts it, a
+    state must also carry the four margin hints KSvg reads to size the
+    nine-slice. *hint_aliases* maps a prefix that declares no margin hints of
+    its own to the prefix whose hints it reuses (KSvg then falls back to the
+    aliased element sizes); pass ``None`` (the default) when every state
+    declares its own hints. *case* is the calling ``unittest.TestCase``.
     """
     ids = attribute_values(tree, "id")
+    aliases = hint_aliases or {}
     for prefix in prefixes:
         sep = "-" if prefix else ""
         for name in SLICE_IDS:
             case.assertIn(f"{prefix}{sep}{name}", ids, name)
+        if prefix in aliases:
+            continue
         for side in ("top", "bottom", "left", "right"):
             case.assertIn(f"{prefix}{sep}hint-{side}-margin", ids, side)
     case.assertIn("hint-tile-center", ids)
@@ -977,7 +983,7 @@ def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):
     case.assertEqual(rect_geometry(tree), expected)
 
 
-def assert_tiles_placed_by_margins(case, tree, prefixes):
+def assert_tiles_placed_by_margins(case, tree, prefixes, hint_aliases=None):
     """Assert every nine-slice tile group sits where its margin hints place it.
 
     A margin hint names a border: its width/height is the border's thickness
@@ -985,13 +991,19 @@ def assert_tiles_placed_by_margins(case, tree, prefixes):
     tile's origin from those hints pins the artwork against the layout KSvg
     reads, so a group translated to the wrong canvas region fails even though
     `render_slices` ignores transforms. *prefixes* lists each state prefix in
-    *tree* (pass ``[""]`` for an unprefixed SVG).
+    *tree* (pass ``[""]`` for an unprefixed SVG). *hint_aliases* maps a
+    prefix that declares no hints of its own to the prefix whose hints place
+    its tiles; pass ``None`` (the default) when every state declares its own.
     """
     origins = tile_origins(tree)
     hints = rect_geometry(tree)
+    aliases = hint_aliases or {}
     expected = {}
     for prefix in prefixes:
-        sep, top, bottom, left, right = _margin_hints(hints, prefix)
+        _, top, bottom, left, right = _margin_hints(
+            hints, aliases.get(prefix, prefix)
+        )
+        sep = "-" if prefix else ""
         border_x = int(left[0]) + int(left[2])
         border_y = int(top[1]) + int(top[3])
         expected.update({
@@ -1008,7 +1020,7 @@ def assert_tiles_placed_by_margins(case, tree, prefixes):
     case.assertEqual(origins, expected)
 
 
-def assert_slices_stay_within_their_tiles(case, tree, prefixes):
+def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=None):
     """Assert no nine-slice tile paints outside the region its hints define.
 
     A margin hint names a border: for a horizontal edge its height is the
@@ -1023,12 +1035,18 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes):
     KSvg samples that region into the neighbouring tile, yet the per-slice
     pixel tests read only points inside the tile and pass. Fail on any
     painted point outside the region. *prefixes* lists each state prefix in
-    *tree* (pass ``[""]`` for an unprefixed SVG).
+    *tree* (pass ``[""]`` for an unprefixed SVG). *hint_aliases* maps a
+    prefix that declares no hints of its own to the prefix whose hints size
+    its tiles; pass ``None`` (the default) when every state declares its own.
     """
     slices = render_slices(tree)
     hints = rect_geometry(tree)
+    aliases = hint_aliases or {}
     for prefix in prefixes:
-        sep, top, bottom, left, right = _margin_hints(hints, prefix)
+        _, top, bottom, left, right = _margin_hints(
+            hints, aliases.get(prefix, prefix)
+        )
+        sep = "-" if prefix else ""
         left_w, right_w = int(left[2]), int(right[2])
         top_h, bottom_h = int(top[3]), int(bottom[3])
         # The right/bottom margin rects reach the canvas edge, so their far

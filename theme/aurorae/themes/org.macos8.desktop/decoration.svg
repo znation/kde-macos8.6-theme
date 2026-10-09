@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mac OS 8.6 "Platinum" window decoration frame (active state).
+<!-- Mac OS 8.6 "Platinum" window decoration frame (active and inactive states).
 
      The `decoration` nine-slice KWin's Aurorae engine draws for an
      active window: the 22px pinstriped Platinum title bar on top and the
@@ -7,6 +7,16 @@
      macos8.6-screenshots/aboutsystem_betawiki.png (the "About This
      Computer" window); see tests/test_aurorae_decoration.py, which
      re-derives every pinned value from that image.
+
+     The `decoration-inactive` nine-slice mirrors the active geometry and
+     paints the flat grey unfocused frame: the title field and the bevel
+     highlight are #CCCCCC in place of the #FFFFFF/#777777 pinstripes, the
+     #000000 outlines and #999999 shadow rows are unchanged, and the centre
+     stays the #FFFFFF body. The reference set has no inactive window, so
+     these greys are KDE-required provenance, not sampled. The inactive
+     state declares no margin hints of its own: KSvg looks up
+     `decoration-inactive-hint-*-margin`, finds none, and falls back to the
+     `decoration-inactive-*` element sizes, which mirror the active tiles.
 
      Canvas: an 18x34 nine-slice with a 6px side/bottom border, a 22px
      top border and a 6x6 centre tile. The centre is a plain #FFFFFF body
@@ -330,6 +340,247 @@
     <rect x="5" y="0" width="1" height="1" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#FFFFFF"/>
     <rect x="2" y="1" width="2" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="1" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="2" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="2" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="3" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="3" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="4" width="5" height="1" fill="#999999"/>
+    <rect x="5" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="5" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-topleft" transform="translate(0,0)">
+    <rect x="0" y="0" width="6" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="2" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="3" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="4" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="5" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="5" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="6" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="6" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="7" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="7" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="8" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="8" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="9" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="9" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="10" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="10" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="11" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="11" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="12" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="12" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="13" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="13" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="14" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="14" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="15" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="15" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="16" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="16" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="17" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="17" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="18" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="18" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="19" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="19" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="20" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="20" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="20" width="2" height="1" fill="#999999"/>
+    <rect x="0" y="21" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="21" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="21" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="21" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-top" transform="translate(6,0)">
+    <rect x="0" y="0" width="6" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="2" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="3" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="4" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="5" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="6" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="7" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="8" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="9" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="10" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="11" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="12" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="13" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="14" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="15" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="16" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="17" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="18" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="19" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="20" width="6" height="1" fill="#999999"/>
+    <rect x="0" y="21" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-topright" transform="translate(12,0)">
+    <rect x="0" y="0" width="6" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="2" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="2" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="3" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="3" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="4" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="4" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="5" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="5" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="5" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="6" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="6" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="6" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="7" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="7" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="7" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="8" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="8" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="8" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="9" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="9" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="9" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="10" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="10" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="10" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="11" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="11" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="11" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="12" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="12" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="12" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="13" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="13" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="13" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="14" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="14" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="14" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="15" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="15" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="15" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="16" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="16" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="16" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="17" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="17" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="17" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="18" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="18" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="18" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="19" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="19" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="19" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="20" width="1" height="1" fill="#999999"/>
+    <rect x="1" y="20" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="20" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="20" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="21" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="21" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="21" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="21" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-left" transform="translate(0,22)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="1" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="2" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="2" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="3" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="3" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="4" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="4" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="5" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="5" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="5" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="5" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-center" transform="translate(6,22)">
+    <rect x="0" y="0" width="6" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="2" width="6" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="3" width="6" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="4" width="6" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="5" width="6" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="decoration-inactive-right" transform="translate(12,22)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="1" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="2" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="2" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="3" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="3" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="4" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="4" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="5" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="5" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="5" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="5" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-bottomleft" transform="translate(0,28)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="2" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="2" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="3" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="3" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="4" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="4" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="2" y="4" width="4" height="1" fill="#999999"/>
+    <rect x="0" y="5" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-bottom" transform="translate(6,28)">
+    <rect x="0" y="0" width="6" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="2" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="3" width="6" height="1" fill="#CCCCCC"/>
+    <rect x="0" y="4" width="6" height="1" fill="#999999"/>
+    <rect x="0" y="5" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="decoration-inactive-bottomright" transform="translate(12,28)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="4" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="5" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="4" height="1" fill="#CCCCCC"/>
     <rect x="4" y="1" width="1" height="1" fill="#999999"/>
     <rect x="5" y="1" width="1" height="1" fill="#000000"/>
     <rect x="0" y="2" width="4" height="1" fill="#CCCCCC"/>

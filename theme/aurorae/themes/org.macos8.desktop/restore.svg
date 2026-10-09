@@ -4,7 +4,11 @@
      The reference set has no maximized window, so this reuses the zoom
      box artwork (macos8.6-screenshots/aboutsystem_betawiki.png at
      x=343..354, y=29..40); the KDE-required provenance is recorded in
-     PLANS.md. Re-derived by tests/test_aurorae_decoration.py. -->
+     PLANS.md. Re-derived by tests/test_aurorae_decoration.py.
+
+     The `inactive-center` group flattens the gradient face to #CCCCCC
+     (KDE-required provenance: the reference set has no inactive window)
+     and keeps the outlines and the zoom glyph. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
   <g id="active-center" transform="translate(0,0)">
     <rect x="0" y="0" width="12" height="1" fill="#888888"/>
@@ -61,6 +65,51 @@
     <rect x="5" y="9" width="2" height="1" fill="#DDDDDD"/>
     <rect x="7" y="9" width="2" height="1" fill="#EEEEEE"/>
     <rect x="9" y="9" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="10" y="9" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="9" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="10" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="10" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="10" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="10" width="8" height="1" fill="#888888"/>
+    <rect x="11" y="10" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="11" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="11" width="11" height="1" fill="#222222"/>
+  </g>
+  <g id="inactive-center" transform="translate(0,0)">
+    <rect x="0" y="0" width="12" height="1" fill="#888888"/>
+    <rect x="0" y="1" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="1" width="11" height="1" fill="#222222"/>
+    <rect x="0" y="2" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="2" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="2" width="9" height="1" fill="#CCCCCC"/>
+    <rect x="11" y="2" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="3" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="3" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="3" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="3" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="3" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="4" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="4" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="4" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="4" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="4" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="5" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="5" width="11" height="1" fill="#222222"/>
+    <rect x="0" y="6" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="6" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="6" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="6" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="6" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="7" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="7" width="11" height="1" fill="#222222"/>
+    <rect x="0" y="8" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="8" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="8" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="8" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="8" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="9" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="9" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="9" width="8" height="1" fill="#CCCCCC"/>
     <rect x="10" y="9" width="1" height="1" fill="#888888"/>
     <rect x="11" y="9" width="1" height="1" fill="#222222"/>
     <rect x="0" y="10" width="1" height="1" fill="#888888"/>

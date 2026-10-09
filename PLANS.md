@@ -17,78 +17,6 @@ the window decoration is now planned by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part B1: inactive frame and inactive widget state (planned 2026-10-08)
-
-**Planned 2026-10-08 by plan.**
-
-**Depends on.** Part A (now under `## Done`), which creates the `org.macos8.desktop` Aurorae theme tree and its
-`test_aurorae_decoration.py` module; land Part A first. This is the first slice of the Part B work
-Part A's Follow-ups list; the hover/pressed/deactivated button states, the `decoration-maximized`
-frame, the collapse (`minimize.svg`) and secondary widgets, and the global-theme wiring stay
-unplanned siblings.
-
-**Goal.** Give the decoration a distinct inactive state: the flat grey Platinum title bar and the
-greyed close/zoom boxes an unfocused window wears. Part A ships only the active `decoration-*`
-slices and `active-center` button groups, so Aurorae reuses the active artwork for every unfocused
-window and two overlapping windows look equally active. This is the front-window separation Mac OS
-8.6 relies on.
-
-**Reference.** The reference set has no clean inactive window: `aboutsystem_betawiki.png`
-(1024x768, lossless) is the only clean window and it is active, `desktop_betawiki.png` shows no
-window, and `desktop_fandom.png`/`desktop_archiveorg8.6hd.png` are noisy or unscannable. The
-inactive values are therefore recorded as **KDE-required provenance** rather than sampled, and are
-the one place this plan leaves the sampled palette:
-- Inactive top tile: the active top tile's 22px geometry with its six `#FFFFFF` and six `#777777`
-  pinstripe rows replaced by the `#CCCCCC` field sampled at `aboutsystem_betawiki.png` (250,27);
-  the 1px `#000000` top, 1px `#FFFFFF` highlight, 4px `#CCCCCC`, 1px `#999999` and 1px `#000000`
-  bottom rows are unchanged.
-- Inactive left/right/bottom bevel: the active bevel's 6px geometry (sampled at y=100:
-  `#000000`, `#FFFFFF`, `#CCCCCC`, `#CCCCCC`, `#999999`, `#000000`) with the `#FFFFFF` highlight
-  row replaced by `#CCCCCC`.
-- Inactive close/zoom box: the active box's 12x12 geometry and `#888888` top/left and `#222222`
-  inner outlines (sampled at x=11..22, y=29..40) with the `#CCCCCC`→`#FFFFFF` diagonal replaced by
-  a flat `#CCCCCC` face.
-A later reference or a human can correct these three choices without touching the rest.
-
-**Approach.**
-- `decoration.svg`: add a second nine-slice on the `decoration-inactive` prefix —
-  `decoration-inactive-{top,topleft,topright,left,right,center,bottomleft,bottom,bottomright}` —
-  mirroring the active groups' geometry and rects, with the provenance greying above. The inactive
-  state declares no margin-hint ids of its own: the installed `irixium` theme's
-  `decoration-inactive-*` groups carry none, so reuse whatever margins the active state declares
-  and add no `decoration-inactive-hint-*`.
-- `close.svg`, `maximize.svg`, `restore.svg`: add an `inactive-center` group drawing the flat grey
-  box, mirroring the existing `active-center` geometry.
-- `org.macos8.desktoprc`: no change — Part A already sets `InactiveTextColor=153,153,153`, and
-  Aurorae selects the inactive artwork by group prefix alone.
-- Part A's `test_aurorae_decoration.py`: extend it (criteria below).
-
-**Files touched.**
-- Part A's `decoration.svg`
-- Part A's `close.svg`, `maximize.svg`, `restore.svg`
-- Part A's `test_aurorae_decoration.py`
-- `PLANS.md` (this entry)
-
-**Acceptance criteria.**
-- `make check` exits 0; the extended `test_aurorae_decoration.py` passes and the install and
-  desktop-theme suites still pass unchanged.
-- `TestDecorationSvg.test_inactive_slices_present` parses `decoration.svg` and asserts all nine
-  `decoration-inactive-*` slice ids are present, and that `assert_unique_ids` and
-  `assert_no_script_elements` pass.
-- `TestDecorationSvg.test_inactive_top_tile_is_flat_grey` re-derives `#CCCCCC` from
-  `aboutsystem_betawiki.png` (250,27) through `tools/png.py`, composites `decoration.svg` with
-  `svg_assertions.render_slices`, and asserts `decoration-inactive-top` equals the active top
-  tile's geometry with every pinstripe row filled `#CCCCCC` (`pixel_map`/`assert_slice_pixels`);
-  no rect in the slice fills `#FFFFFF` or `#777777`.
-- `TestDecorationSvg.test_inactive_bevel_has_no_highlight` asserts the `decoration-inactive-left`,
-  `-right` and `-bottom` slices keep the active bevel's geometry and contain no `#FFFFFF` rect.
-- `TestButtons.test_inactive_center_is_flat` asserts each of `close.svg`, `maximize.svg`,
-  `restore.svg` carries an `inactive-center` group whose `render_slices` map is a flat `#CCCCCC`
-  face with the `#888888`/`#222222` outlines, and that `assert_unique_ids` passes.
-- Manual smoke test (needs a Plasma session, outside `make check`): with both themes installed,
-  focusing and unfocusing a window switches the title bar and boxes between the pinstriped active
-  artwork and the flat grey inactive artwork.
-
 ### Wire the Mac OS 8.6 window decoration into the global theme (`theme/look-and-feel/org.macos8.desktop/contents/defaults`) (planned 2026-10-09)
 
 **Planned 2026-10-09 by plan.**
@@ -156,6 +84,86 @@ also selects the `org.macos8.desktop` window decoration with the close box on th
   the close box on the left and the zoom box on the right, with no manual Window Decorations step.
 
 ## Done
+
+### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part B1: inactive frame and inactive widget state (done 2026-10-09)
+
+**Planned 2026-10-08 by plan.**
+
+**Depends on.** Part A (now under `## Done`), which creates the `org.macos8.desktop` Aurorae theme tree and its
+`test_aurorae_decoration.py` module; land Part A first. This is the first slice of the Part B work
+Part A's Follow-ups list; the hover/pressed/deactivated button states, the `decoration-maximized`
+frame, the collapse (`minimize.svg`) and secondary widgets, and the global-theme wiring stay
+unplanned siblings.
+
+**Goal.** Give the decoration a distinct inactive state: the flat grey Platinum title bar and the
+greyed close/zoom boxes an unfocused window wears. Part A ships only the active `decoration-*`
+slices and `active-center` button groups, so Aurorae reuses the active artwork for every unfocused
+window and two overlapping windows look equally active. This is the front-window separation Mac OS
+8.6 relies on.
+
+**Reference.** The reference set has no clean inactive window: `aboutsystem_betawiki.png`
+(1024x768, lossless) is the only clean window and it is active, `desktop_betawiki.png` shows no
+window, and `desktop_fandom.png`/`desktop_archiveorg8.6hd.png` are noisy or unscannable. The
+inactive values are therefore recorded as **KDE-required provenance** rather than sampled, and are
+the one place this plan leaves the sampled palette:
+- Inactive top tile: the active top tile's 22px geometry with its six `#FFFFFF` and six `#777777`
+  pinstripe rows and its 1px `#FFFFFF` highlight row replaced by the `#CCCCCC` field sampled at
+  `aboutsystem_betawiki.png` (250,27), so the bar is fully flat; the 1px `#000000` top and the 1px
+  `#999999` and 1px `#000000` bottom rows are unchanged.
+- Inactive left/right/bottom bevel: the active bevel's 6px geometry (sampled at y=100:
+  `#000000`, `#FFFFFF`, `#CCCCCC`, `#CCCCCC`, `#999999`, `#000000`) with the `#FFFFFF` highlight
+  row replaced by `#CCCCCC`.
+- Inactive close/zoom box: the active box's 12x12 geometry and `#888888` top/left and `#222222`
+  inner outlines (sampled at x=11..22, y=29..40) with the `#CCCCCC`→`#FFFFFF` diagonal replaced by
+  a flat `#CCCCCC` face.
+A later reference or a human can correct these three choices without touching the rest.
+
+**Approach.**
+- `decoration.svg`: add a second nine-slice on the `decoration-inactive` prefix —
+  `decoration-inactive-{top,topleft,topright,left,right,center,bottomleft,bottom,bottomright}` —
+  mirroring the active groups' geometry and rects, with the provenance greying above. The inactive
+  state declares no margin-hint ids of its own: the installed `irixium` theme's
+  `decoration-inactive-*` groups carry none, so reuse whatever margins the active state declares
+  and add no `decoration-inactive-hint-*`.
+- `close.svg`, `maximize.svg`, `restore.svg`: add an `inactive-center` group drawing the flat grey
+  box, mirroring the existing `active-center` geometry.
+- `org.macos8.desktoprc`: no change — Part A already sets `InactiveTextColor=153,153,153`, and
+  Aurorae selects the inactive artwork by group prefix alone.
+- Part A's `test_aurorae_decoration.py`: extend it, and teach the shared nine-slice test
+  helpers that a state may declare no margin hints of its own: `svg_assertions`'
+  `assert_slice_ids_present`, `assert_tiles_placed_by_margins` and
+  `assert_slices_stay_within_their_tiles` take a `hint_aliases` map (default off) and
+  `nine_slice_case.NineSliceCase` carries `HINT_ALIASES` (criteria below).
+
+**Files touched.**
+- Part A's `decoration.svg`
+- Part A's `close.svg`, `maximize.svg`, `restore.svg`
+- Part A's `test_aurorae_decoration.py`
+- `tests/svg_assertions.py`, `tests/nine_slice_case.py`, `tests/test_svg_assertions_checks.py`
+  (the `hint_aliases` mechanism and its tests)
+- `PLANS.md` (this entry)
+
+**Acceptance criteria.**
+- `make check` exits 0; the extended `test_aurorae_decoration.py` passes and the install and
+  desktop-theme suites still pass unchanged.
+- `TestDecorationSvg.test_inactive_slices_present` parses `decoration.svg` and asserts all nine
+  `decoration-inactive-*` slice ids are present, and that `assert_unique_ids` and
+  `assert_no_script_elements` pass.
+- `TestDecorationSvg.test_inactive_top_tile_is_flat_grey` re-derives `#CCCCCC` from
+  `aboutsystem_betawiki.png` (250,27) through `tools/png.py`, composites `decoration.svg` with
+  `svg_assertions.render_slices`, and asserts `decoration-inactive-top` equals the active top
+  tile's geometry with every `#FFFFFF`/`#777777` row (pinstripes and the 1px highlight) filled
+  `#CCCCCC` (`assert_slice_pixels`); no rect in the slice fills `#FFFFFF` or `#777777`.
+- `TestDecorationSvg.test_inactive_bevel_has_no_highlight` asserts the `decoration-inactive-left`,
+  `-right` and `-bottom` slices keep the active bevel's geometry and contain no `#FFFFFF` rect.
+- `TestButtons.test_inactive_center_is_flat` asserts each of `close.svg`, `maximize.svg`,
+  `restore.svg` carries an `inactive-center` group whose `render_slices` map keeps every
+  `#888888`/`#222222` outline pixel and paints the rest of the face `#CCCCCC`, and that
+  `assert_unique_ids` passes; `test_inactive_zoom_glyph_survives` pins that the 18-pixel
+  `#222222` zoom glyph still differs from the inactive close box.
+- Manual smoke test (needs a Plasma session, outside `make check`): with both themes installed,
+  focusing and unfocusing a window switches the title bar and boxes between the pinstriped active
+  artwork and the flat grey inactive artwork.
 
 ### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part A: active frame, close and zoom widgets (done 2026-10-08)
 

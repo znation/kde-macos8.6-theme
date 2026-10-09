@@ -22,31 +22,41 @@ class NineSliceCase(SvgCase):
     """Mixin: the structural checks shared by the nine-slice widgets.
 
     Subclasses set `SVG_PATH` to the widget SVG and `PREFIXES` to each state
-    prefix in it (``("",)`` for an unprefixed SVG). It is a plain mixin, not a
-    `TestCase`, so importing it does not collect an unconfigured base. The
+    prefix in it (``("",)`` for an unprefixed SVG). A state that paints its
+    own tiles but declares no margin hints of its own is listed in
+    `HINT_ALIASES`, mapping it to the state whose hints size its tiles (the
+    inactive Aurorae frame reuses the active one's). It is a plain mixin, not
+    a `TestCase`, so importing it does not collect an unconfigured base. The
     widget's own pixel test pins the painted result; the checks here guard the
     structure that pixel test does not read. `SvgCase` parses `SVG_PATH` once
     per test into `self.tree`.
     """
 
     PREFIXES = ("",)
+    HINT_ALIASES = {}
 
     def test_slice_ids_present(self):
-        assert_slice_ids_present(self, self.tree, self.PREFIXES)
+        assert_slice_ids_present(
+            self, self.tree, self.PREFIXES, self.HINT_ALIASES
+        )
 
     def test_tiles_placed_by_margins(self):
         # The widget's pixel test composites each slice from its rects but
         # ignores the group's translate, so a group moved off its slice draws
         # from the wrong canvas region and still passes. Pin each tile's origin
         # against the margins that size the nine-slice.
-        assert_tiles_placed_by_margins(self, self.tree, self.PREFIXES)
+        assert_tiles_placed_by_margins(
+            self, self.tree, self.PREFIXES, self.HINT_ALIASES
+        )
 
     def test_tiles_stay_within_their_margins(self):
         # The widget's pixel test reads only points inside each tile, so an
         # oversized rect spilling into the neighbouring canvas region -- which
         # KSvg samples into that adjacent tile -- passes. Pin every slice to
         # the tile region its hints define.
-        assert_slices_stay_within_their_tiles(self, self.tree, self.PREFIXES)
+        assert_slices_stay_within_their_tiles(
+            self, self.tree, self.PREFIXES, self.HINT_ALIASES
+        )
 
     def test_no_script_elements(self):
         assert_no_script_elements(self, self.tree)
