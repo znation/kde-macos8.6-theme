@@ -10,6 +10,8 @@ from __future__ import annotations
 import math
 import re
 
+from tools.ints import is_plain_int
+
 
 SLICE_IDS = [
     "center", "top", "bottom", "left", "right",
@@ -305,7 +307,7 @@ def pixel_map(colours, width, height):
     zero width would surface as a bare ``ZeroDivisionError``.
     """
     for name, value in (("width", width), ("height", height)):
-        if isinstance(value, bool) or not isinstance(value, int):
+        if not is_plain_int(value):
             raise ValueError(
                 f"pixel_map {name} must be an integer: {name}={value!r}"
             )

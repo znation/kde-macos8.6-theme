@@ -21,9 +21,11 @@ from dataclasses import dataclass
 
 if __package__:
     from tools.byteops import require_equal_lengths
+    from tools.ints import is_plain_int
     from tools.png import Image
 else:  # imported from inside tools/: python3 -c 'import fidelity_metrics'
     from byteops import require_equal_lengths
+    from ints import is_plain_int
     from png import Image
 
 
@@ -177,10 +179,7 @@ def crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
         ("width", width),
         ("height", height),
     ):
-        # bool is an int subclass, so True/False would pass an isinstance
-        # check as 1/0 and silently crop a different rectangle; require a
-        # genuine integer.
-        if isinstance(value, bool) or not isinstance(value, int):
+        if not is_plain_int(value):
             return f"crop rectangle values must be integers: {name}={value!r}"
     if x < 0 or y < 0:
         return (
@@ -222,13 +221,7 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     line rejects both as usage errors; this is the same bound for a caller
     that uses the comparison directly.
     """
-    # bool is an int subclass, so True would pass the isinstance check as a
-    # tolerance of 1 and silently widen the gate; require a genuine integer.
-    if (
-        isinstance(tolerance, bool)
-        or not isinstance(tolerance, int)
-        or not 0 <= tolerance <= 255
-    ):
+    if not is_plain_int(tolerance) or not 0 <= tolerance <= 255:
         raise FidelityError(
             f"tolerance must be a per-channel delta between 0 and 255: "
             f"{tolerance!r}"

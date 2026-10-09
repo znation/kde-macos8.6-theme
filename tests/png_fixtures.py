@@ -16,6 +16,7 @@ import zlib
 from collections.abc import Callable
 
 from tools import png
+from tools.ints import is_plain_int
 
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
@@ -278,7 +279,7 @@ def _pixel_channels(x: int, y: int, value: object) -> bytes:
             f"({value!r}); expected 3 (r, g, b)"
         )
     for name, channel in zip(("r", "g", "b"), channels):
-        if isinstance(channel, bool) or not isinstance(channel, int):
+        if not is_plain_int(channel):
             raise ValueError(
                 f"rgb_image: pixel({x}, {y}) channel {name} is not an "
                 f"integer: {channel!r}"

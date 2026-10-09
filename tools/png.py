@@ -26,6 +26,7 @@ if __package__:
         PNG_MAGIC,
         other_image_format,
     )
+    from tools.ints import is_plain_int
 else:  # run as a top-level module, e.g. imported by tools/fidelity.py
     from byteops import require_equal_lengths
     from image_format import (
@@ -33,6 +34,7 @@ else:  # run as a top-level module, e.g. imported by tools/fidelity.py
         PNG_MAGIC,
         other_image_format,
     )
+    from ints import is_plain_int
 
 # The PNG spec caps a chunk's payload length at 2**31 - 1 bytes: the field is
 # 32-bit unsigned, but values with the high bit set are reserved. A file
@@ -73,13 +75,12 @@ class Image:
     rgb: bytes
 
     def __post_init__(self) -> None:
-        # bool is an int subclass, so True/False would pass an isinstance check
-        # as 1/0 and silently build a 1x1 image; a non-int dimension reaches
-        # the comparison below as an opaque TypeError (or, for a float, a byte
-        # count that is not a whole number). Require genuine integers here and
-        # name the offending dimension.
+        # A non-int dimension reaches the comparison below as an opaque
+        # TypeError (or, for a float, a byte count that is not a whole
+        # number); require genuine integers here and name the offending
+        # dimension.
         for name, value in (("width", self.width), ("height", self.height)):
-            if isinstance(value, bool) or not isinstance(value, int):
+            if not is_plain_int(value):
                 raise PngError(
                     f"Image {name} must be an integer: {name}={value!r}"
                 )
@@ -506,7 +507,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
             "both dimensions must be positive"
         )
     if max_rows is not None:
-        if isinstance(max_rows, bool) or not isinstance(max_rows, int):
+        if not is_plain_int(max_rows):
             raise PngError(
                 f"max_rows must be an integer or None: max_rows={max_rows!r}"
             )
