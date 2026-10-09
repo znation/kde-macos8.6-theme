@@ -1,45 +1,17 @@
-"""Validate the Mac OS 8.6 Platinum color scheme and its install path."""
+"""Validate the Mac OS 8.6 Platinum color scheme file.
+
+The scheme's structure, its palette anchors, and the provenance note on the
+tooltip token. The reference-screenshot anchors and the install/uninstall
+lifecycle live in ``test_colorscheme_reference`` and
+``test_colorscheme_install``.
+"""
 
 import math
 import os
 import re
-import shutil
-import sys
-import tempfile
 import unittest
 
-from kde_config import read as read_kde_config
-from theme_install import (
-    ROOT,
-    assert_files_identical,
-    install,
-    installed_color_scheme,
-    installed_color_scheme_dir,
-    run,
-    shadow_command_env,
-    staging_sibling,
-    uninstall,
-)
-
-if ROOT not in sys.path:
-    sys.path.insert(0, ROOT)
-
-from tools import png  # noqa: E402
-
-SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
-
-# The retail screenshot the PNG-sourced anchors were sampled from. It is stored
-# with Git LFS, so a clone without it skips the anchors sampled from it rather
-# than failing `make check`.
-REFERENCE_DESKTOP = os.path.join(
-    ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
-)
-
-# The Setup Assistant list selection (Colors:Selection) was sampled from this
-# retail 8.6 PNG. It is stored with Git LFS too.
-REFERENCE_FIRSTBOOT = os.path.join(
-    ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
-)
+from colorscheme_fixtures import SCHEME, load_scheme
 
 # configparser reads the KDE `[Colors:Header][Inactive]` header greedily, so the
 # section key includes the inner bracket pair.
@@ -124,10 +96,6 @@ BOOLEAN_VALUES = [
     ("ColorEffects:Inactive", "Enable"),
     ("General", "shadeSortColumn"),
 ]
-
-
-def load_scheme():
-    return read_kde_config(SCHEME)
 
 
 class TestStructure(unittest.TestCase):
@@ -245,94 +213,6 @@ class TestAnchors(unittest.TestCase):
         self.assert_value("Colors:Window", "ForegroundNormal", "0,0,0")
 
 
-class TestReferenceAnchors(unittest.TestCase):
-    """Each sampled anchor must still be the pixel it was sampled from.
-
-    ``TestAnchors`` pins the scheme file to hard-coded strings, so it proves
-    only that the file is self-consistent: a wrong anchor, or a reference image
-    swapped for a different one, passed unnoticed. Each point below was sampled
-    from a retail PNG (``desktop_archiveorg8.6hd.png`` for the face/view/chrome
-    anchors, ``firstboot_betawiki.png`` for the selection anchor) and is
-    asserted against the scheme's own value, so the file and the reference image
-    must agree. ``[Colors:Tooltip]`` has no reference screenshot in the set: it
-    is a KDE-required semantic role whose value comes from the classic Platinum
-    palette, so it stays pinned by ``TestAnchors`` alone.
-    """
-
-    @classmethod
-    def setUpClass(cls):
-        cls.images = {}
-        cls.image_errors = {}
-        for path in (REFERENCE_DESKTOP, REFERENCE_FIRSTBOOT):
-            try:
-                cls.images[path] = png.read_png(path)
-            except png.PngError as exc:
-                # `make check` must not require the Git LFS reference set (that
-                # is what `make check-references` is for), so a test whose
-                # reference image is not materialized skips instead of failing.
-                # Each image loads on its own, so a missing one skips only the
-                # anchors sampled from it, not the whole class.
-                cls.image_errors[path] = exc
-
-    def pixel(self, path, x, y):
-        if path not in self.images:
-            self.skipTest(
-                f"{path} is not a materialized PNG: {self.image_errors[path]}"
-            )
-        image = self.images[path]
-        offset = (y * image.width + x) * 3
-        return tuple(image.rgb[offset : offset + 3])
-
-    def assert_anchor_at(self, section, key, x, y, path=REFERENCE_DESKTOP):
-        value = tuple(
-            int(part) for part in load_scheme().get(section, key).split(",")
-        )
-        self.assertEqual(
-            self.pixel(path, x, y),
-            value,
-            f"{section}/{key} is {value} in the scheme but "
-            f"{self.pixel(path, x, y)} at ({x}, {y}) in {path}",
-        )
-
-    def test_menu_bar_face(self):
-        # The Platinum menu bar (and the window/button faces it shares) is the
-        # flat #DDDDDD band across the top of the screen.
-        for section in ("Colors:Window", "Colors:Button", "Colors:Header"):
-            with self.subTest(section=section):
-                self.assert_anchor_at(section, "BackgroundNormal", 400, 5)
-
-    def test_window_view_background(self):
-        # A window's content area is white.
-        self.assert_anchor_at("Colors:View", "BackgroundNormal", 470, 300)
-
-    def test_window_chrome_foreground(self):
-        # The 1px black rule along the bottom of a window is the chrome
-        # foreground (Window/ForegroundNormal).
-        self.assert_anchor_at("Colors:Window", "ForegroundNormal", 408, 226)
-
-    def test_selection_background(self):
-        # The Setup Assistant's list selection is a full-width highlighted row;
-        # (200, 63) is inside the first row, clear of its label text.
-        self.assert_anchor_at(
-            "Colors:Selection",
-            "BackgroundNormal",
-            200,
-            63,
-            path=REFERENCE_FIRSTBOOT,
-        )
-
-    def test_missing_reference_skips_only_its_own_anchor(self):
-        # A reference that failed to load must skip only the anchors sampled
-        # from it; the other reference stays usable.
-        self.images = {
-            REFERENCE_DESKTOP: png.Image(1, 1, bytes([221, 221, 221]))
-        }
-        self.image_errors = {REFERENCE_FIRSTBOOT: png.PngError("missing")}
-        self.assertEqual(self.pixel(REFERENCE_DESKTOP, 0, 0), (221, 221, 221))
-        with self.assertRaises(unittest.SkipTest):
-            self.pixel(REFERENCE_FIRSTBOOT, 0, 0)
-
-
 class TestProvenanceNote(unittest.TestCase):
     """The scheme header must not present the tooltip as reference-sampled.
 
@@ -353,186 +233,6 @@ class TestProvenanceNote(unittest.TestCase):
             text,
             r"\[Colors:Tooltip\][\s\S]{0,300}?\b(no|not)\b",
         )
-
-
-class TestInstall(unittest.TestCase):
-    def test_make_install_copies_scheme_byte_for_byte(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(tmp)
-            self.assertEqual(result.returncode, 0, result.stderr)
-            installed = installed_color_scheme(tmp)
-            assert_files_identical(self, SCHEME, installed)
-
-    def test_failed_reinstall_keeps_the_previous_scheme(self):
-        """A copy that dies partway must not truncate the installed scheme.
-
-        `make install` stages the scheme as a hidden sibling and renames it
-        in, so a copy that fails or is interrupted leaves the working installed
-        scheme intact.
-        """
-        with tempfile.TemporaryDirectory() as tmp:
-            first = install(tmp)
-            self.assertEqual(first.returncode, 0, first.stderr)
-            installed = installed_color_scheme(tmp)
-            with open(installed, "rb") as handle:
-                good = handle.read()
-
-            # Shadow `install` so the scheme copy writes part of the file then
-            # dies, like a killed or out-of-space install would. Directory
-            # creation (`install -d`) still passes through to the real tool.
-            real_install = shutil.which("install")
-            env = shadow_command_env(
-                tmp,
-                "install",
-                "#!/bin/sh\n"
-                'case "$1" in\n'
-                '  -d) exec "%s" "$@";;\n'
-                "  -D*)\n"
-                "    for last; do :; done\n"
-                '    mkdir -p "$(dirname "$last")"\n'
-                '    printf partial > "$last"\n'
-                "    exit 1;;\n"
-                "esac\n"
-                'exec "%s" "$@"\n' % (real_install, real_install),
-            )
-            result = install(tmp, env=env)
-            self.assertNotEqual(result.returncode, 0, result.stdout)
-            self.assertFalse(
-                os.path.exists(
-                    staging_sibling(
-                        installed_color_scheme_dir(tmp), "MacOS8.colors"
-                    )
-                ),
-                "staging file leaked after a failed install",
-            )
-            self.assertTrue(os.path.isfile(installed), installed)
-            with open(installed, "rb") as handle:
-                self.assertEqual(handle.read(), good)
-
-    def test_make_install_names_the_scheme_after_its_source_basename(self):
-        # KDE derives the scheme id from the installed filename, so install must
-        # follow the source basename: a hardcoded destination name would install
-        # a renamed scheme under the old id and break its restart resolution.
-        with tempfile.TemporaryDirectory() as tmp:
-            source = os.path.join(tmp, "Platinum.colors")
-            shutil.copy(SCHEME, source)
-            result = install(tmp, extra=[f"COLOR_SCHEME={source}"])
-            self.assertEqual(result.returncode, 0, result.stderr)
-            installed = installed_color_scheme(tmp, "Platinum.colors")
-            assert_files_identical(self, source, installed)
-            self.assertFalse(
-                os.path.exists(installed_color_scheme(tmp)),
-                "the old hardcoded name should not be installed",
-            )
-
-    def test_make_uninstall_removes_the_scheme_under_its_source_basename(self):
-        # `uninstall` must remove the same basename `install` wrote: a hardcoded
-        # name would leave a renamed scheme behind and delete the wrong file.
-        with tempfile.TemporaryDirectory() as tmp:
-            source = os.path.join(tmp, "Platinum.colors")
-            shutil.copy(SCHEME, source)
-            installed = install(tmp, extra=[f"COLOR_SCHEME={source}"])
-            self.assertEqual(installed.returncode, 0, installed.stderr)
-            schemes = installed_color_scheme_dir(tmp)
-            renamed = os.path.join(schemes, "Platinum.colors")
-            self.assertTrue(os.path.isfile(renamed), renamed)
-            decoy = os.path.join(schemes, "MacOS8.colors")
-            with open(decoy, "w", encoding="utf-8") as handle:
-                handle.write("[General]\nName=Decoy\n")
-
-            removed = uninstall(tmp, extra=[f"COLOR_SCHEME={source}"])
-            self.assertEqual(removed.returncode, 0, removed.stderr)
-            self.assertFalse(
-                os.path.exists(renamed),
-                "the renamed scheme should have been uninstalled",
-            )
-            self.assertTrue(
-                os.path.isfile(decoy),
-                "uninstall must not remove a file it did not install",
-            )
-
-    def test_make_uninstall_removes_only_the_scheme_it_installed(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            installed = install(tmp)
-            self.assertEqual(installed.returncode, 0, installed.stderr)
-            schemes = installed_color_scheme_dir(tmp)
-            other = os.path.join(schemes, "Other.colors")
-            with open(other, "w", encoding="utf-8") as handle:
-                handle.write("[General]\nName=Other\n")
-
-            # SIGKILL cannot be trapped, so an install killed mid-copy leaves
-            # the hidden staging file behind. `uninstall` must remove it too.
-            staging = staging_sibling(schemes, "MacOS8.colors")
-            with open(staging, "w", encoding="utf-8") as handle:
-                handle.write("[General]\nName=Partial\n")
-
-            removed = uninstall(tmp)
-            self.assertEqual(removed.returncode, 0, removed.stderr)
-            self.assertFalse(
-                os.path.exists(os.path.join(schemes, "MacOS8.colors")),
-                "the installed scheme should be gone",
-            )
-            self.assertFalse(
-                os.path.exists(staging),
-                "the staging file leaked after uninstall",
-            )
-            self.assertTrue(os.path.isfile(other), other)
-
-            again = uninstall(tmp)
-            self.assertEqual(again.returncode, 0, again.stderr)
-
-
-@unittest.skipUnless(
-    shutil.which("plasma-apply-colorscheme"), "needs plasma-apply-colorscheme"
-)
-class TestRestartRoundTrip(unittest.TestCase):
-    """Applying the listed id must leave a config KDE resolves on restart.
-
-    `plasma-apply-colorscheme <id>` writes `[General] ColorScheme=<id>`; the next
-    start resolves that value to `<id>.colors`. A dotted filename makes the
-    listed id differ from the resolvable value, so the scheme falls back to
-    BreezeLight after a restart.
-    """
-
-    def test_applied_id_survives_restart(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            data = os.path.join(tmp, "data")
-            config = os.path.join(tmp, "config")
-            schemes = os.path.join(data, "color-schemes")
-            os.makedirs(schemes)
-            os.makedirs(config)
-            shutil.copy(SCHEME, os.path.join(schemes, os.path.basename(SCHEME)))
-            kdeglobals = os.path.join(config, "kdeglobals")
-            with open(kdeglobals, "w", encoding="utf-8") as handle:
-                handle.write("[General]\nColorScheme=BreezeLight\n")
-            env = dict(
-                os.environ,
-                XDG_DATA_HOME=data,
-                XDG_CONFIG_HOME=config,
-                XDG_DATA_DIRS=data + os.pathsep + "/usr/share",
-            )
-            cli_id = os.path.basename(SCHEME).split(".", 1)[0]
-            applied = run(
-                ["plasma-apply-colorscheme", cli_id],
-                env=env,
-                capture_output=True,
-                text=True,
-            )
-            self.assertEqual(applied.returncode, 0, applied.stderr)
-            with open(kdeglobals, encoding="utf-8") as handle:
-                written = handle.read()
-            self.assertIn(f"ColorScheme={cli_id}", written)
-            restarted = run(
-                ["plasma-apply-colorscheme"],
-                env=env,
-                capture_output=True,
-                text=True,
-            )
-            self.assertNotIn(
-                "Could not find",
-                restarted.stdout + restarted.stderr,
-                "applied scheme id did not resolve on restart",
-            )
 
 
 if __name__ == "__main__":

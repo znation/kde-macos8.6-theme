@@ -1,7 +1,7 @@
 """Run the repository's `make install` / `make uninstall` against a temp tree.
 
 The installed artifacts land under `$(DESTDIR)$(XDG_DATA_HOME)`, so the install
-tests in `test_colorscheme`, `test_lookandfeel` and `test_desktoptheme` pass a
+tests in `test_colorscheme_install`, `test_lookandfeel` and `test_desktoptheme` pass a
 throwaway `DESTDIR` and inspect the result there.
 """
 

@@ -1004,7 +1004,8 @@ recorded as assertions in the test: `desktop_archiveorg8.6hd.png` (menu bar and 
    `^\d{1,3},\d{1,3},\d{1,3}$` with components 0–255; and the sampled anchors hold
    (`Window`/`Button`/`Header` `BackgroundNormal == 221,221,221`, `View BackgroundNormal ==
    255,255,255`, `Selection BackgroundNormal == 206,206,255`, `Tooltip BackgroundNormal ==
-   255,255,204`, `Window ForegroundNormal == 0,0,0`). A `TestInstall` case runs
+   255,255,204`, `Window ForegroundNormal == 0,0,0`). A `tests/test_colorscheme_install.py`
+   `TestInstall` case runs
    `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` in a subprocess and asserts
    `<tmp>/share/color-schemes/MacOS8.colors` is byte-identical to the source.
 3. `Makefile` (new) — `check` runs `$(PYTHON) -m unittest discover -s tests -v`; `install` runs

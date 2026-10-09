@@ -41,7 +41,7 @@ the entry to PLANS.md.
 
 ### Palette anchors are not re-derivable from the reference screenshots (structural risk, found 2026-10-07; fixed 2026-10-08)
 
-**Symptom:** `tests/test_colorscheme.py`'s `TestReferenceAnchors` ties the menu-bar face
+**Symptom:** `tests/test_colorscheme_reference.py`'s `TestReferenceAnchors` ties the menu-bar face
 (`Window`/`Button`/`Header`), view background and chrome foreground to pixels of
 `desktop_archiveorg8.6hd.png`, and the selection background to a pixel of `firstboot_betawiki.png`,
 but the tooltip anchor (`255,255,204`) had no reference pixel: in `macos8.6-screenshots/` that
@@ -167,10 +167,10 @@ filename containing a dot therefore has a CLI id that no longer names the file.
 **Fix:** Renamed the scheme file from its old dotted name to `MacOS8.colors` and set its `[General]
 ColorScheme=MacOS8`, so the filename stem KDE lists as the CLI id equals the value it writes into
 `kdeglobals` and resolves back to the file. Updated the `Makefile` install target, the install-path
-assertion in `tests/test_colorscheme.py`, the README Installing section, and the look-and-feel
+assertion in `tests/test_colorscheme_install.py`, the README Installing section, and the look-and-feel
 plan's `ColorScheme`. `tests/test_colorscheme.py` adds
 `test_cli_id_matches_filename_and_config_value` (asserts the filename stem equals `[General]
-ColorScheme` and that `<stem>.colors` exists) and
+ColorScheme` and that `<stem>.colors` exists), and `tests/test_colorscheme_install.py` adds
 `TestRestartRoundTrip.test_applied_id_survives_restart` (applies the listed id in a temp
 `XDG_DATA_HOME`/`XDG_CONFIG_HOME`, then runs `plasma-apply-colorscheme` with no argument and fails
 if it prints `Could not find`); both fail against the dotted filename and pass after the rename.
