@@ -131,3 +131,19 @@ def assert_problem(case, problems, *needles):
         any(all(needle in line for needle in needles) for line in problems),
         problems,
     )
+
+
+def assert_sources_failure(case, method, error_type, errno, message, needle):
+    """Assert a failure on sources.txt is reported, not raised.
+
+    The checker reads and resolves ``sources.txt`` during a run, so a test
+    drives one filesystem failure on that path by patching ``Path.<method>``
+    to raise and asserts the checker returns a problem line naming the path
+    and *needle* rather than letting the ``OSError`` escape.
+    """
+    module = load_checker()
+    with good_reference(module) as root:
+        sources = root / module.SOURCES_NAME
+        with path_method_raises(method, sources, error_type, errno, message):
+            problems = module.check_references(root)
+    assert_problem(case, problems, str(sources), needle)

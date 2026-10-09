@@ -12,7 +12,7 @@ from pathlib import Path
 
 from check_references_fixtures import (
     assert_problem,
-    good_reference,
+    assert_sources_failure,
     load_checker,
     path_method_raises,
     reference_set,
@@ -73,14 +73,14 @@ class TestUnreadableSources(unittest.TestCase):
     """
 
     def test_unreadable_sources_file_is_reported_not_raised(self):
-        module = load_checker()
-        with good_reference(module) as root:
-            sources = root / module.SOURCES_NAME
-            with path_method_raises(
-                "read_text", sources, PermissionError, 13, "Permission denied"
-            ):
-                problems = module.check_references(root)
-        assert_problem(self, problems, str(sources), "could not be read")
+        assert_sources_failure(
+            self,
+            "read_text",
+            PermissionError,
+            13,
+            "Permission denied",
+            "could not be read",
+        )
 
 
 class TestUndecodableSources(unittest.TestCase):
@@ -197,18 +197,14 @@ class TestResolveFailureIsFailClosed(unittest.TestCase):
     """
 
     def test_unresolvable_sources_path_is_reported_not_raised(self):
-        module = load_checker()
-        with good_reference(module) as root:
-            sources = root / module.SOURCES_NAME
-            with path_method_raises(
-                "resolve",
-                sources,
-                OSError,
-                40,
-                "Too many levels of symbolic links",
-            ):
-                problems = module.check_references(root)
-        assert_problem(self, problems, str(sources), "outside")
+        assert_sources_failure(
+            self,
+            "resolve",
+            OSError,
+            40,
+            "Too many levels of symbolic links",
+            "outside",
+        )
 
 
 if __name__ == "__main__":
