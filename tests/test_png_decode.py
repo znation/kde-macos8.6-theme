@@ -8,10 +8,10 @@ Run with the project's check harness (stdlib unittest):
 from __future__ import annotations
 
 import struct
-import tracemalloc
 import unittest
 import zlib
 
+from allocation_fixtures import peak_allocation
 from error_assertions import error_message
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -294,12 +294,7 @@ class TestDecode(unittest.TestCase):
         declared = 4  # 1x1 RGB: one filter byte + three channels
         bomb = bytes(declared) + bytes(16 * 1024 * 1024)
         data = png_with_idat(zlib.compress(bomb))
-        tracemalloc.start()
-        try:
-            message = self._decode_error(data)
-            peak = tracemalloc.get_traced_memory()[1]
-        finally:
-            tracemalloc.stop()
+        message, peak = peak_allocation(lambda: self._decode_error(data))
         self.assertIn("more than the 4 bytes", message)
         self.assertLess(peak, 4 * 1024 * 1024)
 

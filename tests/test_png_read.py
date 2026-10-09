@@ -11,11 +11,11 @@ import os
 import subprocess
 import sys
 import tempfile
-import tracemalloc
 import unittest
 from pathlib import Path
 from unittest import mock
 
+from allocation_fixtures import peak_allocation
 from error_assertions import error_message
 from process_assertions import assert_failed
 
@@ -47,14 +47,11 @@ class TestReadPng(unittest.TestCase):
             path = Path(tmp) / "oversize.png"
             path.write_bytes(b"\x00" * (limit + 1))
             with mock.patch.object(png, "_MAX_FILE_BYTES", limit):
-                tracemalloc.start()
-                try:
-                    message = error_message(
+                message, peak = peak_allocation(
+                    lambda: error_message(
                         self, png.PngError, png.read_png, path
                     )
-                    peak = tracemalloc.get_traced_memory()[1]
-                finally:
-                    tracemalloc.stop()
+                )
         self.assertIn(str(limit), message)
         self.assertIn(f"{limit + 1} bytes", message)
         self.assertLess(peak, limit + 1024 * 1024)
