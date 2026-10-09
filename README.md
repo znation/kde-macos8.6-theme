@@ -73,7 +73,8 @@ it after the uninstall and falls back to BreezeLight on the next start, so
 `make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
 as the reset. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
-modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`.
+modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`, or to
+one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`.
 
 ## Reference screenshots
 

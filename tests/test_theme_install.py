@@ -243,6 +243,7 @@ class TestCheckPattern(unittest.TestCase):
         # assignment passed below still overrides the Makefile default.
         env = dict(os.environ)
         env.pop("CHECK_PATTERN", None)
+        env.pop("CHECK_TESTS", None)
         env.pop("MAKEFLAGS", None)
         result = theme_install.run_make(["-n", "check", *extra], env=env)
         assert_succeeded(self, result)
@@ -256,6 +257,34 @@ class TestCheckPattern(unittest.TestCase):
             "-p 'test_byteops.py'",
             self._dry_run("CHECK_PATTERN=test_byteops.py"),
         )
+
+    def test_tests_variable_runs_the_named_specs(self):
+        # CHECK_TESTS names a module, class or method directly, which the
+        # filename glob CHECK_PATTERN cannot do. The specs run from tests/ so
+        # the modules' bare-name imports resolve as under `discover`.
+        output = self._dry_run(
+            "CHECK_TESTS=test_byteops.TestRequireEqualLengths"
+        )
+        self.assertIn("cd tests &&", output)
+        self.assertIn(
+            "-m unittest -v test_byteops.TestRequireEqualLengths", output
+        )
+        self.assertNotIn("discover", output)
+
+    def test_option_like_tests_variable_is_refused(self):
+        # A leading `-` makes unittest read the value as an option (`-x`
+        # aborts on the first failure) instead of a test name, so the guard
+        # must refuse it with a diagnostic naming CHECK_TESTS. The second word
+        # is a real test module, so a guard regression still finishes quickly
+        # instead of running the whole suite.
+        env = dict(os.environ)
+        env.pop("CHECK_TESTS", None)
+        env.pop("MAKEFLAGS", None)
+        result = theme_install.run_make(
+            ["check", "CHECK_TESTS=-x test_byteops"], env=env
+        )
+        assert_failed(self, result)
+        self.assertIn("CHECK_TESTS must name", result.stderr)
 
 
 class TestPythonInterpreter(unittest.TestCase):

@@ -84,6 +84,13 @@ endef
 # `discover`, not as `python3 -m unittest tests.<module>`).
 CHECK_PATTERN ?= test*.py
 
+# A caller who wants one test module, class or method rather than a whole-file
+# glob sets CHECK_TESTS, e.g. `make check CHECK_TESTS=test_colorscheme.TestAnchors`
+# or `make check CHECK_TESTS='test_a test_b.TestC'`. The named specs run from
+# tests/ with the same interpreter, so the test modules' bare-name imports
+# resolve as they do under `discover`.
+CHECK_TESTS ?=
+
 # PYTHON is a make variable a caller can override (`make check
 # PYTHON=python3.12`) or leave to the environment, but `?=` keeps an empty
 # environment value. An empty value leaves the `check` recipe line starting
@@ -95,9 +102,21 @@ CHECK_PATTERN ?= test*.py
 # names the target.
 require_python = set -- "$(PYTHON)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in ''|-*) echo "$(1): PYTHON must name an interpreter, not an empty or option-like value: '$$1'" >&2; exit 2;; esac
 
+# CHECK_TESTS names tests instead of discovering them, so a value beginning
+# (after leading whitespace) with `-` would reach `unittest` as an option --
+# `-x` aborts on the first failure and `-k` filters by pattern -- silently
+# changing the run instead of naming a test. Refuse it with a diagnostic that
+# names CHECK_TESTS. $(1) names the target.
+require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac
+
 check:
 	@$(call require_python,check)
+	@$(call require_check_tests,check)
+ifeq ($(strip $(CHECK_TESTS)),)
 	$(PYTHON) -m unittest discover -s tests -v -p '$(CHECK_PATTERN)'
+else
+	cd tests && $(PYTHON) -m unittest -v $(CHECK_TESTS)
+endif
 
 # Print the contributor-facing targets and the variables that tune them, so
 # the workflow is discoverable without reading this file's comments. `check`
@@ -114,6 +133,7 @@ help:
 	@echo ""
 	@echo "Variables (make VAR=value TARGET):"
 	@echo "  CHECK_PATTERN=glob  test modules 'check' discovers (default test*.py)"
+	@echo "  CHECK_TESTS=spec    test modules/classes/methods to run instead of discovering"
 	@echo "  PYTHON=path         interpreter for check and check-references (default python3)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
