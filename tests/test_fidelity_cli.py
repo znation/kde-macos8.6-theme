@@ -22,6 +22,7 @@ from error_assertions import assert_escapes_escape_character  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
+    control_named_missing,
     control_named_png,
     make_png,
     rgb_image,
@@ -486,8 +487,7 @@ class TestCli(CliTestCase):
         # workflow hands this tool a reference file from the contributor-owned
         # screenshot directory, so a missing name carrying an ESC must not
         # print the raw byte to the terminal.
-        with tempfile.TemporaryDirectory() as tmp:
-            missing = str(Path(tmp) / "evil\x1b[31m.png")
+        with control_named_missing() as missing:
             result = self._run(missing, missing)
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         assert_escapes_escape_character(self, result.stderr)

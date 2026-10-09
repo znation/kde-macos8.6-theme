@@ -18,7 +18,12 @@ if str(REPO_ROOT) not in sys.path:
 from tools import sample  # noqa: E402
 from cli_fixtures import CliTestCase  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
-from png_fixtures import control_named_png, rgb_image, solid_rgb  # noqa: E402
+from png_fixtures import (  # noqa: E402
+    control_named_missing,
+    control_named_png,
+    rgb_image,
+    solid_rgb,
+)
 from theme_install import run_captured  # noqa: E402
 
 TOOL = REPO_ROOT / "tools" / "sample.py"
@@ -219,8 +224,7 @@ class TestSampleCli(CliTestCase):
         # workflow hands this tool a file from the contributor-owned screenshot
         # directory, so a missing name carrying an ESC must not print the raw
         # byte to the terminal.
-        with tempfile.TemporaryDirectory() as tmp:
-            missing = str(Path(tmp) / "evil\x1b[31m.png")
+        with control_named_missing() as missing:
             result = self._run(missing, "0", "0")
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         assert_escapes_escape_character(self, result.stderr)

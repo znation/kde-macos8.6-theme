@@ -21,6 +21,7 @@ if str(REPO_ROOT) not in sys.path:
 from tools import png  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _chunk,
+    control_named_missing,
     control_named_png,
     ihdr_chunk,
     ihdr_end,
@@ -283,3 +284,13 @@ class TestControlNamedPng(unittest.TestCase):
                 png.decode_png(Path(path).read_bytes()),
                 png.Image(1, 1, b"\x00\x00\x00"),
             )
+
+
+class TestControlNamedMissing(unittest.TestCase):
+    def test_yields_a_missing_path_whose_name_carries_an_escape(self):
+        # The CLI error-escaping tests read the path from this fixture; pin
+        # that no file exists there and that the name still carries the CSI
+        # colour escape those tests are about.
+        with control_named_missing() as path:
+            self.assertTrue(path.endswith("evil\x1b[31m.png"))
+            self.assertFalse(Path(path).exists())

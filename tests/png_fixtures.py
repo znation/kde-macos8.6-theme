@@ -344,3 +344,17 @@ def control_named_png():
         path.write_bytes(data)
         yield str(path)
 
+
+@contextlib.contextmanager
+def control_named_missing():
+    """Yield the path of a missing file whose name carries a control sequence.
+
+    The name is ``evil`` + ESC + ``[31m`` + ``.png`` -- a CSI colour sequence
+    -- and no file exists at the path, so a CLI that reports the path in an
+    error line has a missing input that still must be escaped. Defining the
+    name once keeps the fidelity and sample error-escaping tests on the same
+    case.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        yield str(Path(tmp) / "evil\x1b[31m.png")
+
