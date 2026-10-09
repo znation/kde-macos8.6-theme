@@ -382,6 +382,19 @@ class TestSplashQml(unittest.TestCase):
         self.assertIn("from: 0", animator)
         self.assertIn("to: 1", animator)
 
+    def test_content_is_the_centred_reference_grid(self):
+        # Every child rect is positioned in the 240x180 reference grid, but the
+        # `content` item those coordinates are relative to is unpinned: if its
+        # size dropped a grid literal, or its `anchors.centerIn` moved the
+        # item's origin off centre, the whole composition would shrink or
+        # shift while every child-binding and colour test still passed.
+        # `anchors.centerIn` centres the item's own rect, so its size and its
+        # anchor are one position and must be pinned together.
+        content = _object_source(_read_qml(), "content")
+        self.assertIn("width: 240 * root.unit", content)
+        self.assertIn("height: 180 * root.unit", content)
+        self.assertIn("anchors.centerIn: parent", content)
+
     def test_reference_colours_are_painted(self):
         """Each anchor colour must be bound to the object at its reference rect.
 
