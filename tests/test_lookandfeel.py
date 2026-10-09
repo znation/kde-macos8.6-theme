@@ -38,6 +38,41 @@ def load_defaults():
     return read_kde_config(DEFAULTS)
 
 
+class _DataHomeLock:
+    """A data home whose install lock this process holds.
+
+    `make install` stages under fixed hidden names in the data home and takes
+    an exclusive `flock` over it, so two overlapping runs would share them. A
+    test that means to hold that lock must take the same kernel lock before it
+    starts the install, which this does on construction. `release` drops the
+    lock early (the waiting-install test must release it before it joins the
+    blocked install); `close` releases it if still held and closes the
+    descriptor, so it can be registered with `addCleanup`.
+    """
+
+    def __init__(self, tmp):
+        self.data_home = os.path.join(tmp, "share")
+        os.makedirs(self.data_home)
+        self.package = installed_package(tmp, "look-and-feel", LNF_ID)
+        self._fd = os.open(self.data_home, os.O_RDONLY)
+        self._locked = False
+        try:
+            fcntl.flock(self._fd, fcntl.LOCK_EX)
+        except OSError:
+            os.close(self._fd)
+            raise
+        self._locked = True
+
+    def release(self):
+        if self._locked:
+            fcntl.flock(self._fd, fcntl.LOCK_UN)
+            self._locked = False
+
+    def close(self):
+        self.release()
+        os.close(self._fd)
+
+
 class TestMetadata(PackageMetadata, unittest.TestCase):
     METADATA_PATH = METADATA
     PACKAGE_STRUCTURE = "Plasma/LookAndFeel"
@@ -126,21 +161,10 @@ class TestInstall(
         no changes, then completes once the lock is released.
         """
         with tempfile.TemporaryDirectory() as tmp:
-            data_home = os.path.join(tmp, "share")
-            os.makedirs(data_home)
-            package = os.path.join(
-                data_home, "plasma", "look-and-feel", LNF_ID
-            )
+            lock = _DataHomeLock(tmp)
+            self.addCleanup(lock.close)
+            package = lock.package
             real_flock = shutil.which("flock")
-            # Hold the same kernel lock the `flock` in the Makefile takes,
-            # before starting the install, so the install can never win a race
-            # for the lock the test means to hold.
-            lock_fd = os.open(data_home, os.O_RDONLY)
-            # `start` below can raise before the body's unlock runs (a missing
-            # `make`), so close the fd as cleanup as well; without it the fd
-            # and its flock would leak for the rest of the suite.
-            self.addCleanup(os.close, lock_fd)
-            fcntl.flock(lock_fd, fcntl.LOCK_EX)
             # Shadow `flock` so the install records the moment it reaches the
             # lock step. The test waits for that record instead of guessing
             # with a sleep, so an install that skips the lock is caught when it
@@ -180,7 +204,7 @@ class TestInstall(
                 finally:
                     # Release the lock before `finish` waits, or the blocked
                     # install would only time out.
-                    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+                    lock.release()
                 _, err = process_runner.finish(proc)
             self.assertTrue(
                 reached_lock, "install did not take the data-home lock"
@@ -204,23 +228,14 @@ class TestInstall(
         nothing.
         """
         with tempfile.TemporaryDirectory() as tmp:
-            data_home = os.path.join(tmp, "share")
-            os.makedirs(data_home)
-            package = os.path.join(
-                data_home, "plasma", "look-and-feel", LNF_ID
-            )
-            lock_fd = os.open(data_home, os.O_RDONLY)
-            fcntl.flock(lock_fd, fcntl.LOCK_EX)
-            try:
-                # FLOCK_TIMEOUT=0 makes the bounded wait expire immediately,
-                # so the test does not spend the default 60s proving the bound.
-                result = install(tmp, extra=["FLOCK_TIMEOUT=0"])
-            finally:
-                fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                os.close(lock_fd)
+            lock = _DataHomeLock(tmp)
+            self.addCleanup(lock.close)
+            # FLOCK_TIMEOUT=0 makes the bounded wait expire immediately,
+            # so the test does not spend the default 60s proving the bound.
+            result = install(tmp, extra=["FLOCK_TIMEOUT=0"])
             self.assertNotEqual(result.returncode, 0, result.stdout)
             self.assertIn("lock", result.stderr)
-            self.assertFalse(os.path.exists(package), package)
+            self.assertFalse(os.path.exists(lock.package), lock.package)
 
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
