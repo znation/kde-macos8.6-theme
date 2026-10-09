@@ -361,7 +361,6 @@ rounded `background.svgz`.
 3. Add `tests/test_desktoptheme_background.py` with `TestBackground`, modelled on
    `tests/test_desktoptheme_panel.py` and `tests/test_desktoptheme_dialog.py`:
    - `test_background_slice_ids`: `assert_slice_ids_present(self, tree, [""])`.
-   - `test_hint_ids_present`: every `HINT_IDS` name is present.
    - `test_background_hint_geometry`: `rect_geometry(tree)` equals the exact dict of the
      tile-centre, four margin and four inset rects.
    - `test_background_tiles_placed_by_margins`: `assert_tiles_placed_by_margins(self, tree,

@@ -17,13 +17,6 @@ SLICE_IDS = [
     "center", "top", "bottom", "left", "right",
     "topleft", "topright", "bottomleft", "bottomright",
 ]
-HINT_IDS = [
-    "hint-tile-center",
-    "hint-top-margin", "hint-bottom-margin",
-    "hint-left-margin", "hint-right-margin",
-    "hint-top-inset", "hint-bottom-inset",
-    "hint-left-inset", "hint-right-inset",
-]
 
 
 def local_name(element):
