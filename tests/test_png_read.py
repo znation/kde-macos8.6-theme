@@ -1,5 +1,5 @@
-"""Tests for tools/png.py's read_png -- the file-size cap and the
-regular-file guard.
+"""Tests for tools/png.py's read_png -- its input guards (the file-size cap
+and the regular-file check) and its error paths.
 
 Run with the project's check harness (stdlib unittest):
     python3 -m unittest discover -s tests -v
