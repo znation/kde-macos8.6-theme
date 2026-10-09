@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import (
     BUTTON_SVG,
     CHECKMARKS_SVG,
+    DIALOG_BACKGROUND_SVG,
     DTHEME_ID,
     FRAME_SVG,
     LINEEDIT_SVG,
@@ -40,9 +41,10 @@ from theme_install import install, run, shadow_command_env
 PLASMA_SECTION = "plasmarc][Theme"
 
 
-# Each widget SVG's root canvas. Five nine-slice widgets share a tight 12x12
-# canvas and the scrollbar is 16x16; checkmarks is two stacked 16x16 cells and
-# radiobutton two side-by-side, so their canvases are 16x32 and 48x16.
+# Each shipped SVG's root canvas. Five nine-slice widgets share a tight 12x12
+# canvas, the scrollbar and the dialog window body are 16x16; checkmarks is two
+# stacked 16x16 cells and radiobutton two side-by-side, so their canvases are
+# 16x32 and 48x16.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 12),
     ("frame.svg", FRAME_SVG, 12, 12),
@@ -52,6 +54,7 @@ SVG_CANVASES = (
     ("scrollbar.svg", SCROLLBAR_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
+    ("dialogs/background.svg", DIALOG_BACKGROUND_SVG, 16, 16),
 )
 
 
