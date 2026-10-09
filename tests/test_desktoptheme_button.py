@@ -6,6 +6,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import BUTTON_SVG
+from platinum_palette import PLATINUM_FILLS
 from svg_assertions import (
     arc_center,
     assert_center_tile_is,
@@ -70,9 +71,7 @@ class TestButton(unittest.TestCase):
         # would otherwise make a text search pass without any Platinum grey.
         tree = ET.parse(BUTTON_SVG)
         fills = attribute_values(tree, "fill")
-        self.assertEqual(
-            fills, {"#FFFFFF", "#DDDDDD", "#999999", "#000000"}
-        )
+        self.assertEqual(fills, PLATINUM_FILLS)
 
     def test_no_script_elements(self):
         assert_no_script_elements(self, ET.parse(BUTTON_SVG))

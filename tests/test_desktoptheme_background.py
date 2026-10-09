@@ -6,6 +6,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import BACKGROUND_SVG
+from platinum_palette import BLACK, WHITE
 from svg_assertions import (
     HINT_IDS,
     assert_face_bevel,
@@ -17,10 +18,6 @@ from svg_assertions import (
     attribute_values,
     render_slices,
 )
-
-
-BLACK = "#000000"
-WHITE = "#FFFFFF"
 
 
 class TestBackground(unittest.TestCase):

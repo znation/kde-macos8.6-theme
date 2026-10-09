@@ -6,6 +6,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import PANEL_SVG
+from platinum_palette import PLATINUM_FILLS
 from svg_assertions import (
     HINT_IDS,
     assert_center_tile_is,
@@ -90,9 +91,7 @@ class TestPanelBackground(unittest.TestCase):
         # header comment names all four colours, so a text search would pass
         # even if the artwork used none of them.
         fills = attribute_values(self.tree, "fill")
-        self.assertEqual(
-            fills, {"#FFFFFF", "#DDDDDD", "#999999", "#000000"}
-        )
+        self.assertEqual(fills, PLATINUM_FILLS)
 
     def test_panel_background_pixels(self):
         # `test_platinum_colours_present` pins only the set of fills, so a

@@ -6,6 +6,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import SCROLLBAR_SVG
+from platinum_palette import FACE, PLATINUM_FILLS
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -21,10 +22,6 @@ TROUGH_PREFIXES = ("background-vertical", "background-horizontal")
 THUMB_PREFIXES = ("slider", "mouseover-slider")
 PREFIXES = TROUGH_PREFIXES + THUMB_PREFIXES
 
-BLACK = "#000000"
-WHITE = "#FFFFFF"
-GREY = "#999999"
-FACE = "#DDDDDD"
 TROUGH = "#EEEEEE"
 
 
@@ -77,7 +74,7 @@ class TestScrollbar(unittest.TestCase):
         # bevel shadow.
         self.assertEqual(
             attribute_values(ET.parse(SCROLLBAR_SVG), "fill"),
-            {BLACK, WHITE, GREY, FACE, TROUGH},
+            PLATINUM_FILLS | {TROUGH},
         )
 
     def test_no_script_elements(self):

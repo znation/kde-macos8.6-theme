@@ -6,6 +6,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import DIALOG_BACKGROUND_SVG
+from platinum_palette import FACE, PLATINUM_FILLS
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -18,11 +19,6 @@ from svg_assertions import (
 
 
 PREFIXES = ("",)
-
-BLACK = "#000000"
-WHITE = "#FFFFFF"
-GREY = "#999999"
-FACE = "#DDDDDD"
 
 
 class TestDialogBackground(unittest.TestCase):
@@ -57,7 +53,7 @@ class TestDialogBackground(unittest.TestCase):
         # artwork palette: face, outline, bevel highlight and bevel shadow.
         self.assertEqual(
             attribute_values(ET.parse(DIALOG_BACKGROUND_SVG), "fill"),
-            {BLACK, WHITE, GREY, FACE},
+            PLATINUM_FILLS,
         )
 
     def test_no_script_elements(self):
