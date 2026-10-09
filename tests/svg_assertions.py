@@ -346,6 +346,41 @@ RAISED_FACE_CORNERS = {
 }
 
 
+def sunken_face_corners(face):
+    """Return the four 3x3 sunken-face corner slices painted for *face*.
+
+    A sunken face is a 1px #000000 outline with a 1px bevel inside it -- a
+    #999999 shadow on the top/left edges and a #FFFFFF highlight on the
+    bottom/right ones -- meeting over *face*. The frame's sunken state and the
+    line edit's field share this geometry but paint a #DDDDDD and #FFFFFF face
+    respectively, so the face is the parameter. The raised face keeps its own
+    `RAISED_FACE_CORNERS` because the frame's raised bottom-left corner turns
+    differently.
+    """
+    return {
+        "topleft": (
+            "#000000", "#000000", "#000000",
+            "#000000", "#999999", "#999999",
+            "#000000", "#999999", face,
+        ),
+        "topright": (
+            "#000000", "#000000", "#000000",
+            "#999999", "#FFFFFF", "#000000",
+            face, "#FFFFFF", "#000000",
+        ),
+        "bottomleft": (
+            "#000000", "#999999", face,
+            "#000000", "#FFFFFF", "#FFFFFF",
+            "#000000", "#000000", "#000000",
+        ),
+        "bottomright": (
+            face, "#FFFFFF", "#000000",
+            "#FFFFFF", "#FFFFFF", "#000000",
+            "#000000", "#000000", "#000000",
+        ),
+    }
+
+
 def assert_raised_face_bevel(case, slices, prefix, size=6):
     """Assert *prefix*'s nine-slice paints the raised #DDDDDD face bevel.
 

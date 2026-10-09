@@ -19,6 +19,7 @@ from svg_assertions import (
     nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
+    sunken_face_corners,
 )
 from theme_install import assert_files_identical, install, installed_package
 
@@ -54,28 +55,7 @@ CORNER_PIXELS = {
             "#000000", "#000000", "#000000",
         ),
     },
-    "sunken": {
-        "topleft": (
-            "#000000", "#000000", "#000000",
-            "#000000", "#999999", "#999999",
-            "#000000", "#999999", "#DDDDDD",
-        ),
-        "topright": (
-            "#000000", "#000000", "#000000",
-            "#999999", "#FFFFFF", "#000000",
-            "#DDDDDD", "#FFFFFF", "#000000",
-        ),
-        "bottomleft": (
-            "#000000", "#999999", "#DDDDDD",
-            "#000000", "#FFFFFF", "#FFFFFF",
-            "#000000", "#000000", "#000000",
-        ),
-        "bottomright": (
-            "#DDDDDD", "#FFFFFF", "#000000",
-            "#FFFFFF", "#FFFFFF", "#000000",
-            "#000000", "#000000", "#000000",
-        ),
-    },
+    "sunken": sunken_face_corners("#DDDDDD"),
 }
 
 

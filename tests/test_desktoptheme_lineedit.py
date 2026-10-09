@@ -18,6 +18,7 @@ from svg_assertions import (
     nine_slice_hint_geometry,
     rect_geometry,
     render_slices,
+    sunken_face_corners,
 )
 
 
@@ -70,26 +71,8 @@ class TestLineEdit(unittest.TestCase):
         # pixel of each corner slice.
         slices = render_slices(ET.parse(LINEEDIT_SVG))
         expected = {
-            "base-topleft": (
-                "#000000", "#000000", "#000000",
-                "#000000", "#999999", "#999999",
-                "#000000", "#999999", "#FFFFFF",
-            ),
-            "base-topright": (
-                "#000000", "#000000", "#000000",
-                "#999999", "#FFFFFF", "#000000",
-                "#FFFFFF", "#FFFFFF", "#000000",
-            ),
-            "base-bottomleft": (
-                "#000000", "#999999", "#FFFFFF",
-                "#000000", "#FFFFFF", "#FFFFFF",
-                "#000000", "#000000", "#000000",
-            ),
-            "base-bottomright": (
-                "#FFFFFF", "#FFFFFF", "#000000",
-                "#FFFFFF", "#FFFFFF", "#000000",
-                "#000000", "#000000", "#000000",
-            ),
+            f"base-{name}": pixels
+            for name, pixels in sunken_face_corners("#FFFFFF").items()
         }
         for name, colours in expected.items():
             assert_corner_pixels(self, slices, name, colours)

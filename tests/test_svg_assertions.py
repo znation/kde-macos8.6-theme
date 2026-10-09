@@ -26,6 +26,7 @@ from svg_assertions import (
     pixel_map,
     rect_geometry,
     render_slices,
+    sunken_face_corners,
     tile_origins,
 )
 
@@ -272,6 +273,50 @@ class TestNineSliceHintGeometry(unittest.TestCase):
                 "hint-tile-center": ("3", "3", "6", "6"),
                 **nine_slice_margins("normal", 3, 6),
                 **nine_slice_margins("pressed", 3, 6),
+            },
+        )
+
+
+class TestSunkenFaceCorners(unittest.TestCase):
+    def test_paints_the_outline_shadow_and_highlight_around_the_face(self):
+        # The frame's sunken state and the line edit's field both read their
+        # corner pixels from this generator, so a swapped band would weaken
+        # both tests at once. Pin the full #DDDDDD table, then check the
+        # #FFFFFF face substitutes only the face pixels.
+        sunken = sunken_face_corners("#DDDDDD")
+        self.assertEqual(
+            sunken,
+            {
+                "topleft": (
+                    "#000000", "#000000", "#000000",
+                    "#000000", "#999999", "#999999",
+                    "#000000", "#999999", "#DDDDDD",
+                ),
+                "topright": (
+                    "#000000", "#000000", "#000000",
+                    "#999999", "#FFFFFF", "#000000",
+                    "#DDDDDD", "#FFFFFF", "#000000",
+                ),
+                "bottomleft": (
+                    "#000000", "#999999", "#DDDDDD",
+                    "#000000", "#FFFFFF", "#FFFFFF",
+                    "#000000", "#000000", "#000000",
+                ),
+                "bottomright": (
+                    "#DDDDDD", "#FFFFFF", "#000000",
+                    "#FFFFFF", "#FFFFFF", "#000000",
+                    "#000000", "#000000", "#000000",
+                ),
+            },
+        )
+        self.assertEqual(
+            sunken_face_corners("#FFFFFF"),
+            {
+                name: tuple(
+                    "#FFFFFF" if colour == "#DDDDDD" else colour
+                    for colour in pixels
+                )
+                for name, pixels in sunken.items()
             },
         )
 
