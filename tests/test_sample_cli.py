@@ -48,14 +48,14 @@ class TestSampleCli(CliTestCase):
             result = run_captured(
                 [sys.executable, str(TOOL), path, "0", "0"],
             )
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)
 
     def test_reports_rgb_and_hex(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "2", "1")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         self.assertIn("image: " + path + "  4x3", result.stdout)
         # Pixel (2, 1) is (2, 1, 3); each channel is zero-padded to two hex
         # digits, so the low green value reads "01" rather than "1".
@@ -70,9 +70,7 @@ class TestSampleCli(CliTestCase):
             ):
                 with self.subTest(x=x, y=y):
                     result = self._run(path, x, y)
-                    self.assertEqual(
-                        result.returncode, 0, result.stdout + result.stderr
-                    )
+                    self._assert_success(result)
                     self.assertIn(
                         f"pixel ({x}, {y}): {expected}", result.stdout
                     )
@@ -82,7 +80,7 @@ class TestSampleCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "1", "1", "--width", "3")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         self.assertIn("region (1, 1) 3x1:", result.stdout)
         for line in (
             "(1, 1): 1,1,2  #010102",
@@ -95,7 +93,7 @@ class TestSampleCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "0", "0", "--height", "3")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         self.assertIn("region (0, 0) 1x3:", result.stdout)
         for line in (
             "(0, 0): 0,0,0  #000000",
@@ -108,7 +106,7 @@ class TestSampleCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = self._image(Path(tmp))
             result = self._run(path, "1", "0", "--width", "2", "--height", "2")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         self.assertIn("region (1, 0) 2x2:", result.stdout)
         expected = [
             "(1, 0): 1,0,1  #010001",
@@ -198,7 +196,7 @@ class TestSampleCli(CliTestCase):
 
     def test_help_documents_exit_status(self):
         result = self._run("--help")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         self.assertIn(
             "exit status: 0 on success, 2 usage or read error", result.stdout
         )
@@ -218,7 +216,7 @@ class TestSampleCli(CliTestCase):
         # directory passes a contributor-supplied filename through unchanged.
         with control_named_png() as path:
             result = self._run(path, "0", "0")
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         assert_escapes_escape_character(self, result.stdout)
 
     def test_usage_error_escapes_control_characters_in_arguments(self):

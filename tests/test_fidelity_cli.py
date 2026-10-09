@@ -97,7 +97,7 @@ class TestCli(CliTestCase):
 
     def _assert_pass(self, result: subprocess.CompletedProcess) -> None:
         """Assert *result* is a clean exit-0 pass whose stdout says PASS."""
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         self.assertIn("PASS", result.stdout)
 
     def _assert_fail(self, result: subprocess.CompletedProcess) -> None:
@@ -240,11 +240,9 @@ class TestCli(CliTestCase):
         with tempfile.TemporaryDirectory() as tmp:
             candidate, padded = self._write_padded_surface_pair(Path(tmp))
             cropped = self._run(candidate, padded, "--crop", "1,1,2,2")
-        self.assertEqual(cropped.returncode, 0, cropped.stdout + cropped.stderr)
+        self._assert_success(cropped)
         self.assertIn("reference crop: 1,1,2,2", cropped.stdout)
-        self.assertEqual(
-            uncropped.returncode, 0, uncropped.stdout + uncropped.stderr
-        )
+        self._assert_success(uncropped)
         self.assertNotIn("reference crop:", uncropped.stdout)
 
     def test_crop_accepts_whitespace_between_fields(self):
@@ -256,8 +254,8 @@ class TestCli(CliTestCase):
             candidate, reference = self._write_padded_surface_pair(Path(tmp))
             tight = self._run(candidate, reference, "--crop", "1,1,2,2")
             spaced = self._run(candidate, reference, "--crop", "1, 1, 2, 2")
-        self.assertEqual(tight.returncode, 0, tight.stdout + tight.stderr)
-        self.assertEqual(spaced.returncode, 0, spaced.stdout + spaced.stderr)
+        self._assert_success(tight)
+        self._assert_success(spaced)
         # Identical output proves the spaced form selects the same rectangle.
         self.assertEqual(spaced.stdout, tight.stdout)
 
@@ -266,7 +264,7 @@ class TestCli(CliTestCase):
         # promises the legend, and a caller scripting the tool cannot tell a
         # tolerance FAIL (1) from a usage or read error (2) without it.
         result = self._run("--help")
-        self.assertEqual(result.returncode, 0, result.stderr)
+        self._assert_success(result)
         help_text = " ".join(result.stdout.split())
         self.assertIn(
             "exit status: 0 when the comparison passes, 1 when it fails, "
@@ -465,9 +463,7 @@ class TestCli(CliTestCase):
         for extra, verdict in cases:
             with self.subTest(extra=extra):
                 result = self._run(reference, reference, *extra)
-                self.assertEqual(
-                    result.returncode, 0, result.stdout + result.stderr
-                )
+                self._assert_success(result)
                 self.assertIn(verdict, result.stdout)
 
     def test_error_message_escapes_control_characters_in_path(self):
@@ -485,7 +481,7 @@ class TestCli(CliTestCase):
         # directory passes a contributor-supplied filename through unchanged.
         with control_named_png() as path:
             result = self._run(path, path)
-        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self._assert_success(result)
         assert_escapes_escape_character(self, result.stdout)
 
     def test_usage_error_escapes_control_characters_in_arguments(self):

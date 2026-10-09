@@ -62,6 +62,15 @@ class CliTestCase(unittest.TestCase):
         path.write_bytes(data)
         return str(path)
 
+    def _assert_success(self, result: subprocess.CompletedProcess) -> None:
+        """Assert *result* is a clean exit-0 run.
+
+        A passing run prints its report on stdout and reports a read failure
+        on stderr, so both streams are attached to a failure message rather
+        than only one. This is the counterpart of ``_assert_usage_error``.
+        """
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def _assert_usage_error(
         self, result: subprocess.CompletedProcess, *needles: str
     ) -> None:
