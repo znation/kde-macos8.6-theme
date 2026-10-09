@@ -100,6 +100,48 @@ class TestXdgDataHomeDefault(unittest.TestCase):
                 self.assertIn("HOME is unset", result.stderr)
 
 
+class TestFlockTimeout(unittest.TestCase):
+    """An invalid FLOCK_TIMEOUT must be refused before the lock is taken.
+
+    FLOCK_TIMEOUT is a make variable a caller can set, but `flock -w` accepts
+    only a non-negative integer number of seconds. An empty or non-numeric
+    value otherwise reaches flock, which fails with its own "invalid timeout
+    value" message that does not name the variable -- after `install` has
+    already created the data home. The guard must name FLOCK_TIMEOUT and
+    leave the tree untouched. `install` and `uninstall` share the guard.
+    """
+
+    def _assert_refused(self, value):
+        with tempfile.TemporaryDirectory() as tmp:
+            for target in ("install", "uninstall"):
+                with self.subTest(target=target):
+                    result = theme_install.run_make(
+                        [
+                            target,
+                            f"DESTDIR={tmp}",
+                            f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                            f"FLOCK_TIMEOUT={value}",
+                        ]
+                    )
+                    self.assertNotEqual(result.returncode, 0, result.stdout)
+                    self.assertIn(
+                        "FLOCK_TIMEOUT must be a non-negative integer "
+                        "number of seconds",
+                        result.stderr,
+                    )
+                    self.assertIn(f"'{value}'", result.stderr)
+            data_home = os.path.join(
+                tmp, theme_install.XDG_DATA_HOME.lstrip("/")
+            )
+            self.assertFalse(os.path.exists(data_home), data_home)
+
+    def test_empty_is_refused_before_creating_the_data_home(self):
+        self._assert_refused("")
+
+    def test_non_numeric_is_refused_before_creating_the_data_home(self):
+        self._assert_refused("60s")
+
+
 class TestCheckPattern(unittest.TestCase):
     """`make check` defaults to the whole suite and accepts a narrowing glob.
 

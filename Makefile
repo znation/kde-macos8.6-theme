@@ -115,12 +115,22 @@ check-references:
 FLOCK_TIMEOUT ?= 60
 FLOCK_CONFLICT_EXIT := 75
 
+# FLOCK_TIMEOUT is a make variable a caller can override (`make install
+# FLOCK_TIMEOUT=5`) or leave to the environment, but `flock -w` accepts only a
+# non-negative whole number of seconds. An empty value (`?=` keeps one from the
+# environment) or a typo like `60s` otherwise reaches flock and fails with its
+# own "invalid timeout value" message that never names the variable -- after
+# `install` has already created the data home. Refuse first with a diagnostic
+# that names FLOCK_TIMEOUT. $(1) names the target.
+require_flock_timeout = case "$(FLOCK_TIMEOUT)" in ''|*[!0-9]*) echo "$(1): FLOCK_TIMEOUT must be a non-negative integer number of seconds: '$(FLOCK_TIMEOUT)'" >&2; exit 2;; esac
+
 # Run the internal target $(1) under the data-home lock, naming $(2) when the
 # bounded wait expires instead of letting the command's own failure be blamed.
 run_locked = flock -w $(FLOCK_TIMEOUT) -E $(FLOCK_CONFLICT_EXIT) "$(DATA_HOME)" $(MAKE) --no-print-directory $(1) || { status=$$?; if [ $$status -eq $(FLOCK_CONFLICT_EXIT) ]; then echo "$(2): gave up after $(FLOCK_TIMEOUT)s waiting for the $(DATA_HOME) lock; another install or uninstall holds it" >&2; fi; exit $$status; }
 
 install:
 	@$(call require_data_home,install)
+	@$(call require_flock_timeout,install)
 	@install -d "$(DATA_HOME)"
 	@$(call run_locked,_install,install)
 
@@ -145,6 +155,7 @@ _install:
 # `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
 	@$(call require_data_home,uninstall)
+	@$(call require_flock_timeout,uninstall)
 	@install -d "$(DATA_HOME)"
 	@$(call run_locked,_uninstall,uninstall)
 
