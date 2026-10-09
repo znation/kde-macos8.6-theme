@@ -156,14 +156,25 @@ class TestCompare(unittest.TestCase):
         The diagnostic names the ``must be integers`` precondition rather than
         surfacing the raw ``TypeError`` from slicing the byte string.
         """
-        image, _ = solid_rgb(4, 4)
         for args in rects:
             with self.subTest(args=args):
-                message = error_message(
-                    self, fidelity_metrics.FidelityError,
-                    fidelity_metrics.crop, image, *args,
-                )
+                message = self._crop_message(*args)
                 self.assertIn("must be integers", message)
+
+    def _crop_message(self, x, y, width, height):
+        """Return the diagnostic ``crop`` raises for a rectangle.
+
+        Each crop-rejection test that pins the diagnostic builds it the same
+        way: a 4x4 image, large enough for the in-bounds rectangles to reach
+        the guard under test and for the out-of-bounds ones to overrun it.
+        Passing the four coordinates directly keeps each test to the values it
+        rejects and the wording it pins.
+        """
+        image, _ = solid_rgb(4, 4)
+        return error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, x, y, width, height,
+        )
 
     def test_identical_is_zero(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x * 5, y * 5, 100))
@@ -323,31 +334,19 @@ class TestCompare(unittest.TestCase):
     def test_crop_nonpositive_rect_error_names_values(self):
         # The message must echo the rejected rectangle so a CLI user can see
         # which of x/y/w/h was wrong without re-deriving it from the input.
-        image, _ = solid_rgb(4, 4)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
-            image, 0, 0, 0, 2,
-        )
+        message = self._crop_message(0, 0, 0, 2)
         self.assertIn("x=0 y=0 w=0 h=2", message)
 
     def test_crop_error_distinguishes_origin_from_size(self):
         # x=0/y=0 is the top-left pixel, a valid origin, so a zero width is a
         # size fault. Naming both the origin and the size as "positive" would
         # send the reader after x/y instead of the field that is actually bad.
-        image, _ = solid_rgb(4, 4)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
-            image, 0, 0, 0, 2,
-        )
+        message = self._crop_message(0, 0, 0, 2)
         self.assertIn("positive size", message)
         self.assertNotIn("origin", message)
 
     def test_crop_negative_origin_error_names_origin(self):
-        image, _ = solid_rgb(4, 4)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
-            image, -1, 0, 2, 2,
-        )
+        message = self._crop_message(-1, 0, 2, 2)
         self.assertIn("origin must not be negative", message)
         self.assertIn("x=-1 y=0 w=2 h=2", message)
 
@@ -356,11 +355,7 @@ class TestCompare(unittest.TestCase):
         # covered above. A negative y with a valid x must be rejected too: if
         # it slipped past, the row loop would start at a negative row and
         # Python's negative slicing would return the wrong pixels silently.
-        image, _ = solid_rgb(4, 4)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
-            image, 0, -1, 2, 2,
-        )
+        message = self._crop_message(0, -1, 2, 2)
         self.assertIn("origin must not be negative", message)
         self.assertIn("x=0 y=-1 w=2 h=2", message)
 
@@ -369,11 +364,7 @@ class TestCompare(unittest.TestCase):
         # is covered above. A zero height with a positive width is a size
         # fault, so it must name the rectangle rather than yield a zero-row
         # image that fails later with an Image-dimensions error.
-        image, _ = solid_rgb(4, 4)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
-            image, 0, 0, 2, 0,
-        )
+        message = self._crop_message(0, 0, 2, 0)
         self.assertIn("positive size", message)
         self.assertIn("x=0 y=0 w=2 h=0", message)
 
@@ -396,11 +387,7 @@ class TestCompare(unittest.TestCase):
     def test_crop_out_of_bounds_error_names_rect_and_image(self):
         # The message must name both the offending rectangle and the image it
         # was measured against, since neither is otherwise visible.
-        image, _ = solid_rgb(4, 4)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
-            image, 3, 3, 2, 2,
-        )
+        message = self._crop_message(3, 3, 2, 2)
         self.assertIn("x=3 y=3 w=2 h=2", message)
         self.assertIn("4x4", message)
 
@@ -412,11 +399,7 @@ class TestCompare(unittest.TestCase):
         # rejected with the same rectangle-and-image diagnostic instead of
         # slicing a short final row and failing later as an Image byte-count
         # error.
-        image, _ = solid_rgb(4, 4)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
-            image, 0, 3, 2, 2,
-        )
+        message = self._crop_message(0, 3, 2, 2)
         self.assertIn("x=0 y=3 w=2 h=2", message)
         self.assertIn("4x4", message)
 
