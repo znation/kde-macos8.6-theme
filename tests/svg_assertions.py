@@ -948,23 +948,28 @@ def tile_origins(tree):
     return origins
 
 
-def _margin_hints(hints, prefix):
-    """Return one state's margin hints as ``(sep, top, bottom, left, right)``.
+def _state_margin_hints(tree, prefixes, hint_aliases=None):
+    """Yield each state's margin hints as ``(state, top, bottom, left, right)``.
 
-    A margin hint names an edge tile's canvas region; *prefix* selects one
-    state (``""`` for an unprefixed SVG), whose hint ids carry no separator.
-    *hints* is the rect map from `rect_geometry`. The returned *sep* is the
-    prefix separator both callers reuse when naming the tiles those hints
-    place.
+    A margin hint names an edge tile's canvas region. For every prefix in
+    *prefixes*, the four rects name that state's edge tiles and *state* is the
+    id prefix its tile ids carry (``""`` for the unprefixed state). *tree*
+    supplies the rects via `rect_geometry`; *hint_aliases* maps a state that
+    declares no hints of its own to the state whose hints place its tiles.
     """
-    sep = "-" if prefix else ""
-    return (
-        sep,
-        hints[f"{prefix}{sep}hint-top-margin"],
-        hints[f"{prefix}{sep}hint-bottom-margin"],
-        hints[f"{prefix}{sep}hint-left-margin"],
-        hints[f"{prefix}{sep}hint-right-margin"],
-    )
+    hints = rect_geometry(tree)
+    aliases = hint_aliases or {}
+    for prefix in prefixes:
+        state = f"{prefix}-" if prefix else ""
+        source = aliases.get(prefix, prefix)
+        source_sep = "-" if source else ""
+        yield (
+            state,
+            hints[f"{source}{source_sep}hint-top-margin"],
+            hints[f"{source}{source_sep}hint-bottom-margin"],
+            hints[f"{source}{source_sep}hint-left-margin"],
+            hints[f"{source}{source_sep}hint-right-margin"],
+        )
 
 
 def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):
@@ -996,26 +1001,22 @@ def assert_tiles_placed_by_margins(case, tree, prefixes, hint_aliases=None):
     its tiles; pass ``None`` (the default) when every state declares its own.
     """
     origins = tile_origins(tree)
-    hints = rect_geometry(tree)
-    aliases = hint_aliases or {}
     expected = {}
-    for prefix in prefixes:
-        _, top, bottom, left, right = _margin_hints(
-            hints, aliases.get(prefix, prefix)
-        )
-        sep = "-" if prefix else ""
+    for state, top, bottom, left, right in _state_margin_hints(
+        tree, prefixes, hint_aliases
+    ):
         border_x = int(left[0]) + int(left[2])
         border_y = int(top[1]) + int(top[3])
         expected.update({
-            f"{prefix}{sep}top": (int(top[0]), int(top[1])),
-            f"{prefix}{sep}bottom": (int(bottom[0]), int(bottom[1])),
-            f"{prefix}{sep}left": (int(left[0]), int(left[1])),
-            f"{prefix}{sep}right": (int(right[0]), int(right[1])),
-            f"{prefix}{sep}center": (border_x, border_y),
-            f"{prefix}{sep}topleft": (int(left[0]), int(top[1])),
-            f"{prefix}{sep}topright": (int(right[0]), int(top[1])),
-            f"{prefix}{sep}bottomleft": (int(left[0]), int(bottom[1])),
-            f"{prefix}{sep}bottomright": (int(right[0]), int(bottom[1])),
+            f"{state}top": (int(top[0]), int(top[1])),
+            f"{state}bottom": (int(bottom[0]), int(bottom[1])),
+            f"{state}left": (int(left[0]), int(left[1])),
+            f"{state}right": (int(right[0]), int(right[1])),
+            f"{state}center": (border_x, border_y),
+            f"{state}topleft": (int(left[0]), int(top[1])),
+            f"{state}topright": (int(right[0]), int(top[1])),
+            f"{state}bottomleft": (int(left[0]), int(bottom[1])),
+            f"{state}bottomright": (int(right[0]), int(bottom[1])),
         })
     case.assertEqual(origins, expected)
 
@@ -1040,13 +1041,9 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
     its tiles; pass ``None`` (the default) when every state declares its own.
     """
     slices = render_slices(tree)
-    hints = rect_geometry(tree)
-    aliases = hint_aliases or {}
-    for prefix in prefixes:
-        _, top, bottom, left, right = _margin_hints(
-            hints, aliases.get(prefix, prefix)
-        )
-        sep = "-" if prefix else ""
+    for state, top, bottom, left, right in _state_margin_hints(
+        tree, prefixes, hint_aliases
+    ):
         left_w, right_w = int(left[2]), int(right[2])
         top_h, bottom_h = int(top[3]), int(bottom[3])
         # The right/bottom margin rects reach the canvas edge, so their far
@@ -1060,7 +1057,7 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
             region = {
                 (px, py) for py in range(height) for px in range(width)
             }
-            slice_id = f"{prefix}{sep}{name}"
+            slice_id = f"{state}{name}"
             with case.subTest(slice=slice_id):
                 case.assertEqual(
                     set(slices[slice_id]) - region, set(), slice_id
