@@ -266,6 +266,22 @@ class TestCompare(unittest.TestCase):
         self.assertIn("candidate 2x2", message)
         self.assertIn("reference 1x1", message)
 
+    def test_size_mismatch_only_in_height_names_both_sizes(self):
+        # The guard is ``candidate.width != reference.width or
+        # candidate.height != reference.height``; the case above differs in
+        # both dimensions, so the short circuit never evaluates the height
+        # arm. Same width but a different height must still be rejected with
+        # both sizes named, not reach _abs_diff as an opaque unequal-length
+        # ValueError.
+        candidate, _ = solid_rgb(2, 2)
+        reference, _ = solid_rgb(2, 1)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.compare,
+            candidate, reference,
+        )
+        self.assertIn("candidate 2x2", message)
+        self.assertIn("reference 2x1", message)
+
     def test_crop_extracts_region(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x, y, 0))
         region = fidelity_metrics.crop(image, 1, 2, 2, 2)
@@ -386,6 +402,22 @@ class TestCompare(unittest.TestCase):
             image, 3, 3, 2, 2,
         )
         self.assertIn("x=3 y=3 w=2 h=2", message)
+        self.assertIn("4x4", message)
+
+    def test_crop_out_of_bounds_only_vertically_names_rect_and_image(self):
+        # The bounds guard is ``x + width > image.width or y + height >
+        # image.height``; every other out-of-bounds case overflows on the
+        # width side, so the short circuit never evaluates the height arm. A
+        # crop that fits horizontally but runs past the bottom edge must be
+        # rejected with the same rectangle-and-image diagnostic instead of
+        # slicing a short final row and failing later as an Image byte-count
+        # error.
+        image, _ = solid_rgb(4, 4)
+        message = error_message(
+            self, fidelity_metrics.FidelityError, fidelity_metrics.crop,
+            image, 0, 3, 2, 2,
+        )
+        self.assertIn("x=0 y=3 w=2 h=2", message)
         self.assertIn("4x4", message)
 
 
