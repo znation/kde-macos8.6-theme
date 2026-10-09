@@ -183,19 +183,58 @@ def png_with_idat(
     )
 
 
+def _pixel_channels(x: int, y: int, value: object) -> bytes:
+    """Validate one ``pixel(x, y)`` result and return its three channel bytes.
+
+    The callback contract is an ``(r, g, b)`` triple of 0-255 ints. ``bytes``
+    accepts a plain int as a length, so a callback that returned ``3`` would
+    silently build three zero bytes and a wrong image instead of failing;
+    converting to a tuple first turns that into an error naming the
+    coordinate. Each channel is checked too, so a non-integer or out-of-range
+    value names the coordinate and channel instead of escaping as a bare
+    ``bytes`` error.
+    """
+    try:
+        channels = tuple(value)
+    except TypeError:
+        raise ValueError(
+            f"rgb_image: pixel({x}, {y}) returned {value!r}; "
+            "expected an (r, g, b) triple"
+        ) from None
+    if len(channels) != 3:
+        raise ValueError(
+            f"rgb_image: pixel({x}, {y}) returned {len(channels)} channels "
+            f"({value!r}); expected 3 (r, g, b)"
+        )
+    for name, channel in zip(("r", "g", "b"), channels):
+        if isinstance(channel, bool) or not isinstance(channel, int):
+            raise ValueError(
+                f"rgb_image: pixel({x}, {y}) channel {name} is not an "
+                f"integer: {channel!r}"
+            )
+        if not 0 <= channel <= 255:
+            raise ValueError(
+                f"rgb_image: pixel({x}, {y}) channel {name} is outside "
+                f"0-255: {channel}"
+            )
+    return bytes(channels)
+
+
 def rgb_image(
     width: int, height: int, pixel: Callable[[int, int], tuple[int, int, int]]
 ) -> tuple[png.Image, bytes]:
     """Return an RGB image and its PNG bytes.
 
     The ``pixel`` callback is called with ``(x, y)`` and returns an
-    ``(r, g, b)`` triple for that coordinate.
+    ``(r, g, b)`` triple for that coordinate. A result that is not three
+    0-255 integers is reported with the coordinate, so a malformed callback
+    fails here instead of building a wrong image or raising a bare error.
     """
     rows = []
     for y in range(height):
         row = bytearray()
         for x in range(width):
-            row += bytes(pixel(x, y))
+            row += _pixel_channels(x, y, pixel(x, y))
         rows.append(bytes(row))
     image = png.Image(width, height, b"".join(rows))
     return image, make_png(width, height, rows)
