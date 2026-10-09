@@ -28,6 +28,7 @@ from kde_config import read as read_kde_config
 from kpackage_install_case import KPackageInstallCase
 from nine_slice_case import NineSliceCase
 from package_metadata import kplugin, load_metadata
+from reference_image import skip_unless_materialized
 from svg_assertions import (
     SLICE_IDS,
     assert_ids_present,
@@ -110,10 +111,7 @@ class ReferenceImageCase:
             cls.image_error = exc
 
     def reference_pixel(self, x, y):
-        if self.image is None:
-            self.skipTest(
-                f"{REFERENCE} is not a materialized PNG: {self.image_error}"
-            )
+        skip_unless_materialized(self, REFERENCE, self.image_error)
         return png.pixel_at(self.image, x, y)
 
 

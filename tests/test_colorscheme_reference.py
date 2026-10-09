@@ -11,6 +11,7 @@ import unittest
 
 from colorscheme_fixtures import ROOT, load_scheme
 from error_assertions import error_message
+from reference_image import skip_unless_materialized
 
 from tools import png  # noqa: E402
 
@@ -76,10 +77,7 @@ class TestReferenceAnchors(unittest.TestCase):
         any other sampler; this adds only the skip when the reference image is
         not materialized.
         """
-        if path not in self.images:
-            self.skipTest(
-                f"{path} is not a materialized PNG: {self.image_errors[path]}"
-            )
+        skip_unless_materialized(self, path, self.image_errors.get(path))
         return png.pixel_at(self.images[path], x, y)
 
     def assert_anchor_at(self, section, key, x, y, path=REFERENCE_DESKTOP):

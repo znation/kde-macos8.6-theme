@@ -13,6 +13,7 @@ import os
 import re
 import unittest
 
+from reference_image import skip_unless_materialized
 from theme_install import ROOT
 
 from tools import png  # noqa: E402
@@ -170,10 +171,7 @@ class SplashReferenceCase(unittest.TestCase):
             cls.image_error = exc
 
     def setUp(self):
-        if self.image is None:
-            self.skipTest(
-                f"{REFERENCE} is not a materialized PNG: {self.image_error}"
-            )
+        skip_unless_materialized(self, REFERENCE, self.image_error)
 
     def pixel(self, x, y):
         return png.pixel_at(self.image, x, y)
