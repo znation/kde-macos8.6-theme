@@ -240,28 +240,50 @@ def _paeth_delta_table() -> bytes:
     return table
 
 
+def _lane_masks(length: int) -> tuple[int, int]:
+    """Return the low-seven-bit and high-bit masks for *length* packed bytes.
+
+    The two masks :func:`_lane_add` needs to add one byte per big-integer
+    lane without a carry crossing between lanes.
+    """
+    return (
+        int.from_bytes(b"\x7f" * length, "little"),
+        int.from_bytes(b"\x80" * length, "little"),
+    )
+
+
+def _lane_add(x: int, y: int, low7: int, high: int) -> int:
+    """Return *x* and *y* added byte-wise modulo 256, with no inter-byte carry.
+
+    *x* and *y* are big integers packing one byte per lane; *low7* and *high*
+    are the masks :func:`_lane_masks` returns for their shared length. Adding
+    the two integers directly would let a carry cross from one byte into the
+    next.  Keeping only the low seven bits of each input bounds every per-byte
+    sum below 256, so no byte can carry, and XORing back the bit-7 difference
+    restores the top bit.  The result equals
+    ``bytes((a + b) & 0xFF for a, b in zip(...))`` at C speed.
+    """
+    return ((x & low7) + (y & low7)) ^ ((x ^ y) & high)
+
+
 def _byte_add(a: bytes, b: bytes) -> bytes:
     """Return ``a`` and ``b`` added byte-wise modulo 256.
 
-    Adding the two strings as big integers would let a carry cross from one
-    byte into the next.  Keeping only the low seven bits of each input bounds
-    every per-byte sum below 256, so no byte can carry, and XORing back the
-    bit-7 difference restores the top bit.  The result equals
-    ``bytes((x + y) & 0xFF for x, y in zip(a, b))`` at C speed.
-
-    Both byte strings must be the same length; :func:`require_equal_lengths`
-    rejects a mismatch and returns the shared length.
+    Packs both byte strings into one lane per byte and applies
+    :func:`_lane_add`.  They must be the same length;
+    :func:`require_equal_lengths` rejects a mismatch and returns the shared
+    length.
     """
     length = require_equal_lengths(a, b, "_byte_add")
     if length == 0:
         return b""
-    low7 = int.from_bytes(b"\x7f" * length, "little")
-    high = int.from_bytes(b"\x80" * length, "little")
-    x = int.from_bytes(a, "little")
-    y = int.from_bytes(b, "little")
-    return (((x & low7) + (y & low7)) ^ ((x ^ y) & high)).to_bytes(
-        length, "little"
-    )
+    low7, high = _lane_masks(length)
+    return _lane_add(
+        int.from_bytes(a, "little"),
+        int.from_bytes(b, "little"),
+        low7,
+        high,
+    ).to_bytes(length, "little")
 
 
 def _prefix_sum(channel: bytes) -> bytes:
@@ -269,21 +291,20 @@ def _prefix_sum(channel: bytes) -> bytes:
 
     Equivalent to ``out[0] = channel[0]`` and
     ``out[i] = (out[i] + out[i - 1]) & 0xFF``.  A Hillis-Steele scan adds a
-    doubling span at each of ``log2(len(channel))`` steps, using the same
-    carry-free lane addition as :func:`_byte_add`, so a whole channel's Sub
+    doubling span at each of ``log2(len(channel))`` steps, each one the
+    carry-free lane addition of :func:`_lane_add`, so a whole channel's Sub
     filter runs at C speed instead of a Python loop per byte.
     """
     length = len(channel)
     if length <= 1:
         return bytes(channel)
-    low7 = int.from_bytes(b"\x7f" * length, "little")
-    high = int.from_bytes(b"\x80" * length, "little")
+    low7, high = _lane_masks(length)
     mask = (1 << (length * 8)) - 1
     value = int.from_bytes(channel, "little")
     step = 1
     while step < length:
         shifted = (value << (step * 8)) & mask
-        value = ((value & low7) + (shifted & low7)) ^ ((value ^ shifted) & high)
+        value = _lane_add(value, shifted, low7, high)
         step <<= 1
     return value.to_bytes(length, "little")
 
