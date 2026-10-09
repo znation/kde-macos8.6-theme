@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: three artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/`, and the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, scroll bar, and menu/popup body widgets, plus the dialog / applet-popup window body); no window-decoration or splash assets exist yet.
+Pre-alpha: three artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/` (with its Mac OS 8.6 startup splash under `contents/splash/`), and the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, scroll bar, and menu/popup body widgets, plus the dialog / applet-popup window body); no window-decoration assets exist yet.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -28,9 +28,11 @@ first dot and resolves an applied ID back to `<ID>.colors`). Select it in System
 resolves again on the next start.
 
 The global theme applies that same scheme as one selection: `lookandfeeltool -a
-org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). The desktop theme can be
-selected on its own with `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies
-it through `[plasmarc][Theme]` in its `contents/defaults`. The desktop theme ships
+org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). Applying the global
+theme also selects its startup splash (`contents/splash/Splash.qml`), which the KDE splash engine
+reads. The desktop theme can be selected on its own with
+`plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
+`[plasmarc][Theme]` in its `contents/defaults`. The desktop theme ships
 `widgets/panel-background.svg` (the menu bar), `widgets/frame.svg` (the Platinum
 plain/raised/sunken frame used by `PlasmaComponents.Frame`, `GroupBox`, the kicker
 application-menu sidebar and applet `FrameSvg` consumers), `widgets/button.svg` (the

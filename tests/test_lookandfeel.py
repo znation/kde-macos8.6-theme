@@ -94,7 +94,12 @@ class TestInstall(
     KIND = "look-and-feel"
     PACKAGE_ID = LNF_ID
     PACKAGE_DIR = PACKAGE
-    INSTALLED_FILES = ("metadata.json", os.path.join("contents", "defaults"))
+    INSTALLED_FILES = (
+        "metadata.json",
+        os.path.join("contents", "defaults"),
+        os.path.join("contents", "splash", "Splash.qml"),
+        os.path.join("contents", "splash", "images", "macos-logo.svg"),
+    )
 
     def reinstall_failure_env(self, tmp):
         # Shadow `cp` with a fake that writes part of the tree, then fails,

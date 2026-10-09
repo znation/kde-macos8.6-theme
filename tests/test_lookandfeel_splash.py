@@ -1,0 +1,388 @@
+"""Tests for the org.macos8.desktop look-and-feel startup splash.
+
+The splash artwork is authored on the 240x180 grid of the reference thumbnail
+``macos8.6-screenshots/boot2_betawiki.png``. These tests tie the QML's colour
+and rectangle literals back to pixels and colour scans of that reference, so a
+literal that drifts from the reference fails here rather than only looking
+wrong on screen.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import sys
+import unittest
+import xml.etree.ElementTree as ET
+
+from theme_install import ROOT
+
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+from tools import png  # noqa: E402
+from svg_assertions import (  # noqa: E402
+    assert_no_script_elements,
+    assert_unique_ids,
+    attribute_values,
+)
+
+LNF_ID = "org.macos8.desktop"
+PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
+SPLASH = os.path.join(PACKAGE, "contents", "splash", "Splash.qml")
+LOGO = os.path.join(PACKAGE, "contents", "splash", "images", "macos-logo.svg")
+REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "boot2_betawiki.png"
+)
+
+# The exact reference pixels the QML colours are pinned to. (74,60) is the
+# #DDDDDD bevel and (78,60) the #BFBFBF rule that bounds the white face at
+# (100,60); (135,96) is the #DDDDDD track at the unfilled right end of the
+# progress well and (120,100) the #ADADAD fill.
+FIELD = (99, 99, 156)
+PANEL_BEVEL = (221, 221, 221)
+PANEL_RULE = (191, 191, 191)
+TRACK = (221, 221, 221)
+FILL = (173, 173, 173)
+
+# The logo is the only blue region inside the panel's white face; the progress
+# well is the only region darker than the panel's #DDDDDD in the lower band.
+LOGO_FACE = (range(80, 160), range(39, 89))
+TRACK_BAND = (range(80, 160), range(90, 105))
+
+
+def _read_qml():
+    with open(SPLASH, encoding="utf-8") as handle:
+        return handle.read()
+
+
+def qml_int(name):
+    """Return the integer literal of ``readonly property int <name>: N``.
+
+    The QML declares every reference-grid coordinate this way, so the geometry
+    test reads the same number the artwork uses instead of a second copy.
+    """
+    match = re.search(
+        rf"readonly property int {re.escape(name)}:\s*(\d+)", _read_qml()
+    )
+    if match is None:
+        raise AssertionError(f"{SPLASH}: no integer literal for {name}")
+    return int(match.group(1))
+
+
+def qml_color(name):
+    """Return the uppercase ``#RRGGBB`` of ``readonly property color <name>``."""
+    match = re.search(
+        rf'readonly property color {re.escape(name)}:\s*'
+        r'"(#[0-9A-Fa-f]{6})"',
+        _read_qml(),
+    )
+    if match is None:
+        raise AssertionError(f"{SPLASH}: no colour literal for {name}")
+    return match.group(1).upper()
+
+
+def qml_border_width():
+    """Return the integer factor of the panel's ``border.width`` binding."""
+    match = re.search(r"border\.width:\s*(\d+) \* root\.unit", _read_qml())
+    if match is None:
+        raise AssertionError(f"{SPLASH}: no integer border width")
+    return int(match.group(1))
+
+
+def _field_like(rgb):
+    """True for the reference's dithered #63639C field.
+
+    The thumbnail is a downscaled frame, so the field is not one exact colour:
+    it dithers with ``b - r`` in 44..61 around r=99, and the four rounded-corner
+    pixels are (49,49,77). This predicate accepts those and no panel, logo or
+    progress-bar pixel.
+    """
+    r, g, b = rgb
+    return abs(r - g) <= 6 and 20 <= b - r <= 80 and r <= 130 and g <= 130
+
+
+def _rect(points):
+    """Return ``(x, y, width, height)`` for an iterable of ``(x, y)`` points."""
+    points = list(points)
+    xs = [x for x, _ in points]
+    ys = [y for _, y in points]
+    return (min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1)
+
+
+def _contains(rect, x, y):
+    """True when ``(x, y)`` is inside the half-open grid rect ``(x, y, w, h)``."""
+    rx, ry, width, height = rect
+    return rx <= x < rx + width and ry <= y < ry + height
+
+
+def _object_source(qml, object_id):
+    """Return the brace-balanced QML object whose ``id`` is ``object_id``.
+
+    ``id`` is written just inside the object's opening brace, so the nearest
+    preceding ``{`` opens that object and the matching ``}`` closes it. This
+    lets the painting test assert a colour binding on the same object whose
+    geometry binding the geometry test pins.
+    """
+    match = re.search(rf"\bid:\s*{re.escape(object_id)}\b", qml)
+    if match is None:
+        raise AssertionError(f"{SPLASH}: no object with id {object_id}")
+    start = qml.rfind("{", 0, match.start())
+    if start < 0:
+        raise AssertionError(f"{SPLASH}: id {object_id} is not in an object")
+    depth = 0
+    for index in range(start, len(qml)):
+        if qml[index] == "{":
+            depth += 1
+        elif qml[index] == "}":
+            depth -= 1
+            if depth == 0:
+                return qml[start : index + 1]
+    raise AssertionError(f"{SPLASH}: object {object_id} is not brace-balanced")
+
+
+class SplashReferenceCase(unittest.TestCase):
+    """Load the Git LFS reference once; skip the class when it is absent.
+
+    ``make check`` must not require the LFS reference set (that is what
+    ``make check-references`` is for), so a clone without the thumbnail skips
+    the reference-derived tests instead of failing.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.image = None
+        cls.image_error = None
+        try:
+            cls.image = png.read_png(REFERENCE)
+        except png.PngError as exc:
+            cls.image_error = exc
+
+    def setUp(self):
+        if self.image is None:
+            self.skipTest(
+                f"{REFERENCE} is not a materialized PNG: {self.image_error}"
+            )
+
+    def pixel(self, x, y):
+        offset = (y * self.image.width + x) * 3
+        return tuple(self.image.rgb[offset : offset + 3])
+
+
+class TestSplashReference(SplashReferenceCase):
+    def test_field_colour_matches_reference(self):
+        # The field is one flat #63639C, unlike the dithered panel edge: pin
+        # both a corner and the opposite quadrant to the QML's literal.
+        self.assertEqual(self.pixel(5, 5), FIELD)
+        self.assertEqual(self.pixel(200, 150), FIELD)
+        self.assertEqual(FIELD, (0x63, 0x63, 0x9C))
+        self.assertEqual(qml_color("fieldColor"), "#63639C")
+
+    def test_panel_colours_match_reference(self):
+        # The panel's white face, #BFBFBF rule and #DDDDDD bevel are the greys
+        # the QML names; the sample points are on the panel's left edge, clear
+        # of the logo and wordmark.
+        self.assertEqual(self.pixel(74, 60), PANEL_BEVEL)
+        self.assertEqual(self.pixel(78, 60), PANEL_RULE)
+        self.assertEqual(self.pixel(100, 60), (255, 255, 255))
+        self.assertEqual(qml_color("panelBevelColor"), "#DDDDDD")
+        self.assertEqual(qml_color("panelRuleColor"), "#BFBFBF")
+        self.assertEqual(qml_color("panelColor"), "#FFFFFF")
+
+    def test_wordmark_colour_matches_reference(self):
+        # The "Mac OS" wordmark is the only pure black inside the panel face;
+        # (97,73) is one of its glyph pixels.
+        self.assertEqual(self.pixel(97, 73), (0, 0, 0))
+        self.assertEqual(qml_color("wordmarkColor"), "#000000")
+
+    def test_progress_colours_match_reference(self):
+        # (135,96) is the #DDDDDD track at the unfilled right end of the
+        # progress well; (120,100) is the flat #ADADAD fill.
+        self.assertEqual(self.pixel(135, 96), TRACK)
+        self.assertEqual(self.pixel(120, 100), FILL)
+        self.assertEqual(qml_color("trackColor"), "#DDDDDD")
+        self.assertEqual(qml_color("fillColor"), "#ADADAD")
+
+
+class TestSplashGeometry(SplashReferenceCase):
+    def test_grid_geometry(self):
+        # The panel is the #BFBFBF rule that bounds the reference's white face,
+        # the bevel the bounding box of every non-field pixel, the logo the
+        # bounding box of the blue pixels inside the white face, and the
+        # progress well the bounding box of the pixels darker than the panel's
+        # #DDDDDD in the lower band. Re-derive each and require the QML
+        # literals to match, so a moved rectangle fails here.
+        face = _rect(
+            (x, y)
+            for y in range(self.image.height)
+            for x in range(self.image.width)
+            if self.pixel(x, y) == (255, 255, 255)
+        )
+        self.assertEqual(face, (80, 39, 80, 50))
+
+        # The rule is the exact #BFBFBF pixel left of the face; the gap from
+        # the face to it is the border width the QML must draw, and the rule
+        # bounding box is the panel rectangle.
+        rule_left = min(
+            x
+            for y in range(face[1], face[1] + face[3])
+            for x in range(60, face[0])
+            if self.pixel(x, y) == PANEL_RULE
+        )
+        border = face[0] - rule_left
+        self.assertEqual(border, 2)
+        panel = (
+            face[0] - border,
+            face[1] - border,
+            face[2] + 2 * border,
+            face[3] + 2 * border,
+        )
+        self.assertEqual(
+            (
+                qml_int("panelX"),
+                qml_int("panelY"),
+                qml_int("panelWidth"),
+                qml_int("panelHeight"),
+            ),
+            panel,
+        )
+        self.assertEqual(qml_border_width(), border)
+
+        bevel = _rect(
+            (x, y)
+            for y in range(self.image.height)
+            for x in range(self.image.width)
+            if not _field_like(self.pixel(x, y))
+        )
+        self.assertEqual(
+            (
+                qml_int("bevelX"),
+                qml_int("bevelY"),
+                qml_int("bevelWidth"),
+                qml_int("bevelHeight"),
+            ),
+            bevel,
+        )
+
+        logo = _rect(
+            (x, y)
+            for y in LOGO_FACE[1]
+            for x in LOGO_FACE[0]
+            if self.pixel(x, y)[2] - self.pixel(x, y)[0] > 40
+        )
+        self.assertEqual(
+            (
+                qml_int("logoX"),
+                qml_int("logoY"),
+                qml_int("logoWidth"),
+                qml_int("logoHeight"),
+            ),
+            logo,
+        )
+
+        track = _rect(
+            (x, y)
+            for y in TRACK_BAND[1]
+            for x in TRACK_BAND[0]
+            if max(self.pixel(x, y)) < 200
+        )
+        self.assertEqual(
+            (
+                qml_int("trackX"),
+                qml_int("trackY"),
+                qml_int("trackWidth"),
+                qml_int("trackHeight"),
+            ),
+            track,
+        )
+
+        # Every reference pixel the colour test samples must lie inside the
+        # rectangle the QML paints the matching colour on, so the geometry
+        # literals and the colour literals pin the same position.
+        for rect, sample in (
+            (bevel, (74, 60)),
+            (panel, (78, 60)),
+            (panel, (100, 60)),
+            (track, (135, 96)),
+            (track, (120, 100)),
+        ):
+            self.assertTrue(
+                _contains(rect, *sample), f"{sample} outside {rect}"
+            )
+
+
+class TestSplashQml(unittest.TestCase):
+    """QML structure checks that need no reference image.
+
+    They run in a clone without the LFS thumbnail, where ``SplashReferenceCase``
+    skips; the logo source and the ``stage`` binding must still be checked.
+    """
+
+    def test_uses_the_logo_image(self):
+        self.assertIn('source: "images/macos-logo.svg"', _read_qml())
+
+    def test_progress_fill_follows_stage(self):
+        # The fill width binds to the KDE splash `stage` (0..6), so the
+        # reference's mostly-full bar is stage 5 of 6. Pin the binding, or a
+        # fill that ignores `stage` would look plausible but never advance.
+        self.assertIn(
+            "width: parent.width * Math.min(1, root.stage / 6)", _read_qml()
+        )
+
+    def test_reference_colours_are_painted(self):
+        """Each anchor colour must be bound to the object at its reference rect.
+
+        A declared colour property proves nothing about the screen: the pixel
+        and geometry tests would still pass if no object bound the colour, or
+        bound it to the wrong rectangle. This ties every anchor colour property
+        to the object whose geometry literals ``test_grid_geometry`` pins to
+        the reference rectangle, so the pair can only hold when that object
+        paints that colour over that rectangle.
+        """
+        qml = _read_qml()
+        self.assertIn("color: root.fieldColor", qml)
+        expected = {
+            "bevel": (
+                "color: root.panelBevelColor",
+                "x: root.bevelX * root.unit",
+                "y: root.bevelY * root.unit",
+                "width: root.bevelWidth * root.unit",
+                "height: root.bevelHeight * root.unit",
+            ),
+            "panel": (
+                "color: root.panelColor",
+                "border.color: root.panelRuleColor",
+                "x: root.panelX * root.unit",
+                "y: root.panelY * root.unit",
+                "width: root.panelWidth * root.unit",
+                "height: root.panelHeight * root.unit",
+            ),
+            "track": (
+                "color: root.trackColor",
+                "x: root.trackX * root.unit",
+                "y: root.trackY * root.unit",
+                "width: root.trackWidth * root.unit",
+                "height: root.trackHeight * root.unit",
+            ),
+            "fill": ("color: root.fillColor",),
+            "wordmark": ("color: root.wordmarkColor",),
+        }
+        for object_id, bindings in expected.items():
+            block = _object_source(qml, object_id)
+            for binding in bindings:
+                self.assertIn(binding, block, f"{object_id}: {binding}")
+
+
+class TestLogo(unittest.TestCase):
+    def test_logo_svg(self):
+        tree = ET.parse(LOGO)
+        self.assertEqual(tree.getroot().get("viewBox"), "0 0 26 21")
+        assert_no_script_elements(self, tree)
+        assert_unique_ids(self, tree)
+        self.assertEqual(
+            attribute_values(tree, "fill"), {"#4C65CB", "#7286D6"}
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

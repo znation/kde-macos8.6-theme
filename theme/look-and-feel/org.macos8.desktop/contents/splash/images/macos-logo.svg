@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    The Mac OS face from the startup splash. Traced by eye from the logo
+    rectangle (x=107..132, y=45..65) of the 240x180 reference thumbnail
+    macos8.6-screenshots/boot2_betawiki.png; the two fills are the blues
+    sampled from that rectangle.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="26" height="21" viewBox="0 0 26 21">
+  <rect id="face" x="0" y="0" width="26" height="21" rx="5" fill="#4C65CB"/>
+  <path id="highlight" d="M 4 3 L 22 3 Q 24 3 24 5 L 24 9 Q 19 6 4 6 Z" fill="#7286D6"/>
+</svg>
