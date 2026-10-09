@@ -62,6 +62,11 @@ METADATA = os.path.join(AURORAE_DIR, "metadata.json")
 METADATA_DESKTOP = os.path.join(AURORAE_DIR, "metadata.desktop")
 DECORATION_SVGZ = os.path.join(AURORAE_DIR, "decoration.svgz")
 
+# The three Aurorae button SVGs: the close widget on the left, and the
+# maximize and restore states of the zoom widget on the right.
+BUTTON_SVGS = (CLOSE_SVG, MAXIMIZE_SVG, RESTORE_SVG)
+ZOOM_SVGS = (MAXIMIZE_SVG, RESTORE_SVG)
+
 REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "aboutsystem_betawiki.png"
 )
@@ -71,6 +76,16 @@ REFERENCE_ROWS = 425
 
 def _hex(rgb):
     return "#%02X%02X%02X" % rgb
+
+
+def _parsed_svgs(paths):
+    """Return each SVG in *paths* as a ``(basename, parsed tree)`` pair.
+
+    The button tests parse one or more of the button SVGs and label each
+    subTest with the file's basename; pairing the name and the tree here keeps
+    that parse-and-label step in one place.
+    """
+    return [(os.path.basename(path), ET.parse(path)) for path in paths]
 
 
 def _kde(rgb):
@@ -472,9 +487,9 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         # The reference's zoom box (x=343..354) differs from its close box: it
         # carries an inner #222222 glyph. Pin every pixel against the zoom box.
         expected = self.reference_box(343, 29)
-        for path in (MAXIMIZE_SVG, RESTORE_SVG):
-            with self.subTest(svg=os.path.basename(path)):
-                slices = render_slices(ET.parse(path))
+        for name, tree in _parsed_svgs(ZOOM_SVGS):
+            with self.subTest(svg=name):
+                slices = render_slices(tree)
                 self.assertEqual(slices["active-center"], expected)
 
     def test_zoom_glyph_is_the_reference_glyph(self):
@@ -501,9 +516,8 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         # flattens its gradient face to #CCCCCC (KDE-required provenance: the
         # reference set has no inactive window). The zoom glyph is #222222, so
         # it survives over the flat face.
-        for path in (CLOSE_SVG, MAXIMIZE_SVG, RESTORE_SVG):
-            with self.subTest(svg=os.path.basename(path)):
-                tree = ET.parse(path)
+        for name, tree in _parsed_svgs(BUTTON_SVGS):
+            with self.subTest(svg=name):
                 assert_unique_ids(self, tree)
                 slices = render_slices(tree)
                 active = slices["active-center"]
@@ -517,16 +531,15 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
 
     def test_inactive_zoom_glyph_survives(self):
         close = render_slices(ET.parse(CLOSE_SVG))["inactive-center"]
-        for path in (MAXIMIZE_SVG, RESTORE_SVG):
-            with self.subTest(svg=os.path.basename(path)):
-                zoom = render_slices(ET.parse(path))["inactive-center"]
+        for name, tree in _parsed_svgs(ZOOM_SVGS):
+            with self.subTest(svg=name):
+                zoom = render_slices(tree)["inactive-center"]
                 glyph = {point for point in zoom if zoom[point] != close[point]}
                 self.assertEqual(glyph, self.ZOOM_GLYPH)
 
     def test_button_svgs_are_self_contained(self):
-        for path in (CLOSE_SVG, MAXIMIZE_SVG, RESTORE_SVG):
-            with self.subTest(svg=os.path.basename(path)):
-                tree = ET.parse(path)
+        for name, tree in _parsed_svgs(BUTTON_SVGS):
+            with self.subTest(svg=name):
                 assert_unique_ids(self, tree)
                 assert_no_script_elements(self, tree)
 
