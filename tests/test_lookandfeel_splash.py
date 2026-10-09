@@ -22,7 +22,10 @@ if ROOT not in sys.path:
 
 from tools import png  # noqa: E402
 from svg_assertions import (  # noqa: E402
+    assert_no_external_references,
     assert_no_script_elements,
+    assert_no_style_elements,
+    assert_root_canvas,
     assert_unique_ids,
     attribute_values,
 )
@@ -355,9 +358,18 @@ class TestSplashQml(unittest.TestCase):
 
 class TestLogo(unittest.TestCase):
     def test_logo_svg(self):
+        # The logo is the look-and-feel package's only shipped SVG, so it gets
+        # the same structural guard the desktop-theme SVGs get centrally: a
+        # pinned canvas (a width/height that drifts from the viewBox would
+        # rescale the logo), no <style> element, and no reference to a file
+        # the package does not ship. `attribute_values` reads fills only from
+        # attributes, so a CSS-styled or externally-referenced logo could
+        # otherwise pass this test while rendering wrong or blank.
         tree = ET.parse(LOGO)
-        self.assertEqual(tree.getroot().get("viewBox"), "0 0 26 21")
+        assert_root_canvas(self, tree, 26, 21)
         assert_no_script_elements(self, tree)
+        assert_no_style_elements(self, tree)
+        assert_no_external_references(self, tree)
         assert_unique_ids(self, tree)
         self.assertEqual(
             attribute_values(tree, "fill"), {"#4C65CB", "#7286D6"}
