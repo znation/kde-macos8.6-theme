@@ -27,10 +27,14 @@ from __future__ import annotations
 import argparse
 import math
 import sys
-from collections.abc import Callable
 from typing import TypeVar
 
 if __package__:
+    from tools.cli import (
+        EscapingArgumentParser,
+        is_plain_ascii_number,
+        plain_number,
+    )
     from tools.fidelity_metrics import (
         FidelityError,
         compare,
@@ -40,37 +44,10 @@ if __package__:
     from tools.png import PngError, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
+    from cli import EscapingArgumentParser, is_plain_ascii_number, plain_number
     from fidelity_metrics import FidelityError, compare, crop, crop_rect_problem
     from png import PngError, read_png
     from terminal import escape_controls
-
-
-class _ArgumentParser(argparse.ArgumentParser):
-    """ArgumentParser whose error diagnostics escape control characters.
-
-    argparse formats some of its own errors (notably ``unrecognized
-    arguments: ...``) from raw argv. The documented workflow fills argv from a
-    shell glob over the contributor-owned screenshot directory, so those bytes
-    never pass through ``main``'s escaping of the candidate and reference
-    paths; escaping the message here closes that gap at the output boundary.
-    """
-
-    def error(self, message: str) -> None:
-        super().error(escape_controls(message))
-
-
-def _is_plain_ascii_number(value: str) -> bool:
-    """Return True when *value* is ASCII numeric text with no Python extras.
-
-    ``int()``/``float()`` accept forms a command-line number should not:
-    underscore digit separators (``1_0`` is 10), non-ASCII decimal digits
-    (``\u0661\u0662`` is 12), and surrounding whitespace. Each silently turns
-    a stray character into a different value, so the CLI checks the text
-    before parsing it. Callers that parse a structured value (the crop
-    rectangle) strip each field first, so this whitespace rule applies to the
-    scalar options.
-    """
-    return value.isascii() and "_" not in value and value == value.strip()
 
 
 def _parse_crop(value: str) -> tuple[int, int, int, int]:
@@ -78,7 +55,7 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
     # comma-separated field ("0, 0, 10, 10") is the conventional way to write
     # the rectangle, not a stray character that changes the value, so accept
     # it here. The scalar options still reject surrounding whitespace through
-    # _is_plain_ascii_number, where it signals a quoting mistake.
+    # is_plain_ascii_number, where it signals a quoting mistake.
     parts = [part.strip() for part in value.split(",")]
     if len(parts) != 4:
         raise argparse.ArgumentTypeError(f"crop must be X,Y,W,H: {value!r}")
@@ -91,7 +68,7 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
             raise argparse.ArgumentTypeError(
                 f"crop field {position} is empty: {value!r}"
             )
-        if not _is_plain_ascii_number(part):
+        if not is_plain_ascii_number(part):
             raise argparse.ArgumentTypeError(
                 f"crop values must be plain ASCII integers: {part!r}"
             )
@@ -109,35 +86,6 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
 
 
 _Number = TypeVar("_Number", int, float)
-
-
-def _plain_number(
-    value: str,
-    option: str,
-    noun: str,
-    article: str,
-    parse: Callable[[str], _Number],
-) -> _Number:
-    """Return ``parse(value)``, rejecting Python-only numeric text.
-
-    ``int()``/``float()`` accept forms a command-line number should not --
-    underscore digit separators, non-ASCII decimal digits and surrounding
-    whitespace -- so the text is checked before parsing. *noun* names the
-    value in the diagnostics ("number" for a float option, "integer" for an
-    int one) and *article* is its indefinite article ("a" or "an"); *parse*
-    is the stdlib constructor whose ``ValueError`` becomes the option-named
-    rejection.
-    """
-    if not _is_plain_ascii_number(value):
-        raise argparse.ArgumentTypeError(
-            f"{option} must be a plain ASCII {noun}: {value!r}"
-        )
-    try:
-        return parse(value)
-    except ValueError as exc:
-        raise argparse.ArgumentTypeError(
-            f"{option} must be {article} {noun}: {value!r}"
-        ) from exc
 
 
 def _channel_amount(
@@ -161,7 +109,7 @@ def _channel_amount(
 
 
 def _finite_float(value: str, option: str) -> float:
-    number = _plain_number(value, option, "number", "a", float)
+    number = plain_number(value, option, "number", "a", float)
     if not math.isfinite(number):
         raise argparse.ArgumentTypeError(f"{option} must be finite: {value!r}")
     return number
@@ -182,7 +130,7 @@ def _max_frac(value: str) -> float:
 
 
 def _tolerance(value: str) -> int:
-    number = _plain_number(value, "--tolerance", "integer", "an", int)
+    number = plain_number(value, "--tolerance", "integer", "an", int)
     return _channel_amount(value, number, "--tolerance", "delta")
 
 
@@ -192,7 +140,7 @@ def main(argv: list[str] | None = None) -> int:
     Following ``argparse`` and the sibling ``tools/check_references.py``,
     ``None`` reads ``sys.argv``.
     """
-    parser = _ArgumentParser(
+    parser = EscapingArgumentParser(
         prog="fidelity",
         description="Measure a rendered PNG surface against a reference PNG.",
         epilog=(

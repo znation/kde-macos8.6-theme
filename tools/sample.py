@@ -11,48 +11,16 @@ or QML file.
 
 from __future__ import annotations
 
-import argparse
 import sys
 
 if __package__:
+    from tools.cli import EscapingArgumentParser, plain_number
     from tools.png import PngError, pixel_at, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
+    from cli import EscapingArgumentParser, plain_number
     from png import PngError, pixel_at, read_png
     from terminal import escape_controls
-
-
-class _ArgumentParser(argparse.ArgumentParser):
-    """ArgumentParser whose error diagnostics escape control characters.
-
-    argparse formats some of its own errors (notably ``unrecognized
-    arguments: ...``) from raw argv. A path or coordinate carrying an ESC or
-    newline must not reach the operator's terminal unescaped, so the message
-    is escaped here at the output boundary.
-    """
-
-    def error(self, message: str) -> None:
-        super().error(escape_controls(message))
-
-
-def _coordinate(value: str, name: str) -> int:
-    """Return *value* as an integer coordinate, rejecting Python-only text.
-
-    ``int()`` accepts forms a command-line coordinate should not: underscore
-    digit separators (``1_0`` is 10), non-ASCII decimal digits and surrounding
-    whitespace. Each silently names a different pixel than the operator wrote,
-    so the text is checked before it is parsed.
-    """
-    if not value.isascii() or "_" in value or value != value.strip():
-        raise argparse.ArgumentTypeError(
-            f"{name} must be a plain ASCII integer: {value!r}"
-        )
-    try:
-        return int(value)
-    except ValueError as exc:
-        raise argparse.ArgumentTypeError(
-            f"{name} must be an integer: {value!r}"
-        ) from exc
 
 
 def _hex(rgb: tuple[int, int, int]) -> str:
@@ -66,17 +34,21 @@ def main(argv: list[str] | None = None) -> int:
     Following ``argparse`` and the sibling ``tools/fidelity.py``, ``None``
     reads ``sys.argv``.
     """
-    parser = _ArgumentParser(
+    parser = EscapingArgumentParser(
         prog="sample",
         description="Print a reference screenshot pixel's RGB and hex value.",
         epilog="exit status: 0 on success, 2 usage or read error",
     )
     parser.add_argument("image", help="reference image (PNG)")
     parser.add_argument(
-        "x", type=lambda value: _coordinate(value, "x"), help="pixel column"
+        "x",
+        type=lambda value: plain_number(value, "x", "integer", "an", int),
+        help="pixel column",
     )
     parser.add_argument(
-        "y", type=lambda value: _coordinate(value, "y"), help="pixel row"
+        "y",
+        type=lambda value: plain_number(value, "y", "integer", "an", int),
+        help="pixel row",
     )
     args = parser.parse_args(argv)
 
