@@ -627,6 +627,19 @@ def flat_face_corners(face):
     }
 
 
+def _require_known_bevel(bevel):
+    """Raise ValueError unless *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``.
+
+    `face_edge_bands` and `face_corners` both dispatch on the same three
+    bevel names, so the vocabulary -- and the diagnostic naming the accepted
+    values -- lives here once instead of in each dispatcher.
+    """
+    if bevel not in ("raised", "sunken", "flat"):
+        raise ValueError(
+            f"unknown bevel {bevel!r}; expected 'raised', 'sunken' or 'flat'"
+        )
+
+
 def face_edge_bands(face, bevel):
     """Return the (outward, mirrored) edge bands for a *bevel* on *face*.
 
@@ -639,17 +652,16 @@ def face_edge_bands(face, bevel):
     colours; a flat face has no bevel, so both inner bands are *face*.
     *face* is the widget's face colour (#DDDDDD for the button, frame and
     scroll-bar thumb, #FFFFFF for the line edit, #EEEEEE for the scroll-bar
-    trough) and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``.
+    trough) and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``; any
+    other value is rejected by `_require_known_bevel`.
     """
+    _require_known_bevel(bevel)
     if bevel == "raised":
         return ("#000000", "#FFFFFF", face), (face, "#999999", "#000000")
     if bevel == "sunken":
         return ("#000000", "#999999", face), (face, "#FFFFFF", "#000000")
     if bevel == "flat":
         return ("#000000", face, face), (face, face, "#000000")
-    raise ValueError(
-        f"unknown bevel {bevel!r}; expected 'raised', 'sunken' or 'flat'"
-    )
 
 
 def face_corners(face, bevel):
@@ -660,18 +672,16 @@ def face_corners(face, bevel):
     corner geometry here: the fixed `RAISED_FACE_CORNERS` (#DDDDDD) for a
     raised face, and the *face*-derived `sunken_face_corners` and
     `flat_face_corners` tables otherwise. *face* is the widget's face colour
-    and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``; an unknown
-    *bevel* raises ValueError naming it, matching `face_edge_bands`.
+    and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``; any other value
+    is rejected by `_require_known_bevel`.
     """
+    _require_known_bevel(bevel)
     if bevel == "raised":
         return RAISED_FACE_CORNERS
     if bevel == "sunken":
         return sunken_face_corners(face)
     if bevel == "flat":
         return flat_face_corners(face)
-    raise ValueError(
-        f"unknown bevel {bevel!r}; expected 'raised', 'sunken' or 'flat'"
-    )
 
 
 def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
