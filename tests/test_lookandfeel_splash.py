@@ -351,6 +351,37 @@ class TestSplashQml(unittest.TestCase):
             "Math.max(1, Math.floor(Math.min(width / 240, height / 180)))",
         )
 
+    def test_stage_two_starts_the_intro_animation(self):
+        # The QML follows Breeze's stage protocol: the splash stays hidden
+        # until the session reaches stage 2, then fades in. `stage` drives
+        # both the progress fill and this reveal, but only the fill was
+        # pinned. Dropping the handler, changing the stage it tests, or
+        # assigning a different animator would leave the splash permanently
+        # invisible while every other test still passed. Tie the stage number
+        # to the assignment in one match so they cannot drift apart.
+        match = re.search(
+            r"onStageChanged:\s*\{\s*if \(stage == (\d+)\)\s*\{\s*"
+            r"introAnimation\.running = true\s*\}",
+            _read_qml(),
+        )
+        self.assertIsNotNone(
+            match, "onStageChanged must start introAnimation"
+        )
+        self.assertEqual(match.group(1), "2")
+
+    def test_intro_animation_fades_content_in(self):
+        # The reveal is only correct as a whole chain: `content` must start
+        # transparent, and the animator must target that same item and fade it
+        # from 0 to 1. A retargeted animator, or a `content` that starts
+        # opaque (a visible flash before the fade), would otherwise pass every
+        # other test while looking wrong on screen.
+        qml = _read_qml()
+        self.assertIn("opacity: 0", _object_source(qml, "content"))
+        animator = _object_source(qml, "introAnimation")
+        self.assertIn("target: content", animator)
+        self.assertIn("from: 0", animator)
+        self.assertIn("to: 1", animator)
+
     def test_reference_colours_are_painted(self):
         """Each anchor colour must be bound to the object at its reference rect.
 
