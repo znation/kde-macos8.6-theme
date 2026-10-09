@@ -236,15 +236,13 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     # ``_abs_diff`` turns it into that channel's absolute deltas as a byte
     # string, and integer sums feed the metrics.  The equivalent per-byte
     # Python loop dominated runtime on screenshot-sized inputs (tens of
-    # millions of bytes).
-    dr = _abs_diff(pa[0::3], pb[0::3])
-    dg = _abs_diff(pa[1::3], pb[1::3])
-    db = _abs_diff(pa[2::3], pb[2::3])
-
-    total_abs_r = sum(dr)
-    total_abs_g = sum(dg)
-    total_abs_b = sum(db)
-    total_sq = _sum_squares(dr) + _sum_squares(dg) + _sum_squares(db)
+    # millions of bytes).  The list is ordered R, G, B.
+    deltas = [
+        _abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)
+    ]
+    totals = [sum(delta) for delta in deltas]
+    total_abs_r, total_abs_g, total_abs_b = totals
+    total_sq = sum(_sum_squares(delta) for delta in deltas)
 
     # One bit-sliced pass per channel gives both that channel's maximum and
     # the first byte reaching it, replacing a ``max`` walk plus a ``find``
@@ -252,21 +250,15 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     # first offset among the channels that actually reach it.  A channel's
     # byte offset equals its pixel offset, because the three slices are the
     # same length.
-    r_index = _max_byte_index(dr)
-    g_index = _max_byte_index(dg)
-    b_index = _max_byte_index(db)
-    r_max, g_max, b_max = dr[r_index], dg[g_index], db[b_index]
-    max_delta = max(r_max, g_max, b_max)
+    indices = [_max_byte_index(delta) for delta in deltas]
+    maxima = [delta[index] for delta, index in zip(deltas, indices)]
+    max_delta = max(maxima)
     max_x = 0
     max_y = 0
     if max_delta:
         first = min(
             index
-            for index, channel_max in (
-                (r_index, r_max),
-                (g_index, g_max),
-                (b_index, b_max),
-            )
+            for index, channel_max in zip(indices, maxima)
             if channel_max == max_delta
         )
         max_x = first % candidate.width
@@ -277,9 +269,9 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     # and popcount it, so a pixel with several differing channels counts once.
     over = bytes(1 if value > tolerance else 0 for value in range(256))
     differing = (
-        int.from_bytes(dr.translate(over), "little")
-        | int.from_bytes(dg.translate(over), "little")
-        | int.from_bytes(db.translate(over), "little")
+        int.from_bytes(deltas[0].translate(over), "little")
+        | int.from_bytes(deltas[1].translate(over), "little")
+        | int.from_bytes(deltas[2].translate(over), "little")
     ).bit_count()
 
     pixels = candidate.width * candidate.height
