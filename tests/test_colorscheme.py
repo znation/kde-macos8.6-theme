@@ -130,21 +130,26 @@ class TestStructure(unittest.TestCase):
             "General/Name",
         )
 
-    def test_colors_sections_and_keys(self):
-        for section in COLORS_SECTIONS:
-            self.assertTrue(self.parser.has_section(section), section)
-            for key in COLORS_KEYS:
-                self.assertTrue(
-                    self.parser.has_option(section, key), f"{section}/{key}"
-                )
+    def assert_sections_and_keys(self, section_keys):
+        """Assert every ``(section, keys)`` pair is present in the scheme.
 
-    def test_other_sections_and_keys(self):
-        for section, keys in OTHER_SECTIONS.items():
+        The two presence tests below differ only in the registry they walk;
+        each key is reported as ``section/key`` so a missing one is locatable.
+        """
+        for section, keys in section_keys:
             self.assertTrue(self.parser.has_section(section), section)
             for key in keys:
                 self.assertTrue(
                     self.parser.has_option(section, key), f"{section}/{key}"
                 )
+
+    def test_colors_sections_and_keys(self):
+        self.assert_sections_and_keys(
+            (section, COLORS_KEYS) for section in COLORS_SECTIONS
+        )
+
+    def test_other_sections_and_keys(self):
+        self.assert_sections_and_keys(OTHER_SECTIONS.items())
 
     def test_section_and_key_registries_cover_the_scheme(self):
         """The registries must name every section and key the scheme defines.
