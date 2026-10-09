@@ -16,6 +16,7 @@ import xml.etree.ElementTree as ET
 
 from svg_assertions import (
     arc_center,
+    assert_root_canvas,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     circle_geometry,
@@ -521,6 +522,84 @@ class TestStructuralGuards(unittest.TestCase):
             assert_slices_stay_within_their_tiles(
                 _NoSubTest(), _nine_slice_tree(sizes={"top": (5, 4)}), [""]
             )
+
+
+# Two margin rects whose far edges reach a 12x12 canvas. `assert_root_canvas`
+# only inspects the right/bottom margin rects, so this minimal tree exercises
+# the canvas tie without the full nine-slice layout.
+_ROOT_CANVAS_HINTS = (
+    '<rect id="hint-right-margin" x="8" y="4" width="4" height="4"/>'
+    '<rect id="hint-bottom-margin" x="4" y="8" width="4" height="4"/>'
+)
+
+
+def _root_canvas_tree(viewbox="0 0 12 12", width="12", height="12",
+                      hints=_ROOT_CANVAS_HINTS):
+    """Build a minimal root <svg> for `assert_root_canvas` to inspect.
+
+    The two margin rects reach the 12x12 canvas edge; *viewbox*, *width*,
+    *height* and *hints* each let a caller break one declared value at a time.
+    """
+    return ET.ElementTree(
+        ET.fromstring(
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" '
+            f'height="{height}" viewBox="{viewbox}">{hints}</svg>'
+        )
+    )
+
+
+class TestRootCanvas(unittest.TestCase):
+    def test_passes_a_1_to_1_canvas_with_margins_at_the_edge(self):
+        # Positive control: viewBox/width/height agree and each margin rect's
+        # far edge is the canvas edge, so the guard must accept the tree.
+        assert_root_canvas(self, _root_canvas_tree(), 12, 12)
+
+    def test_rejects_a_root_that_is_not_svg(self):
+        # KSvg draws from the root element, so a tree whose root is not <svg>
+        # declares no canvas to lay the artwork out in; the guard must reject
+        # it rather than read a viewBox off an unrelated element.
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<g xmlns="http://www.w3.org/2000/svg" width="12" '
+                'height="12" viewBox="0 0 12 12"/>'
+            )
+        )
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(self, tree, 12, 12)
+
+    def test_rejects_a_viewbox_that_disagrees_with_the_canvas(self):
+        # A viewBox narrower than the declared width rescales the whole widget
+        # horizontally while every per-element coordinate test still passes.
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(
+                self, _root_canvas_tree(viewbox="0 0 11 12"), 12, 12
+            )
+
+    def test_rejects_a_width_that_disagrees_with_the_viewbox(self):
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(self, _root_canvas_tree(width="11"), 12, 12)
+
+    def test_rejects_a_height_that_disagrees_with_the_viewbox(self):
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(self, _root_canvas_tree(height="11"), 12, 12)
+
+    def test_rejects_a_right_margin_that_stops_short_of_the_canvas(self):
+        # A right-margin rect one pixel short leaves the right border short of
+        # the canvas edge, so KSvg samples the wrong region into that tile.
+        hints = (
+            '<rect id="hint-right-margin" x="7" y="4" width="4" height="4"/>'
+            '<rect id="hint-bottom-margin" x="4" y="8" width="4" height="4"/>'
+        )
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(self, _root_canvas_tree(hints=hints), 12, 12)
+
+    def test_rejects_a_bottom_margin_that_stops_short_of_the_canvas(self):
+        hints = (
+            '<rect id="hint-right-margin" x="8" y="4" width="4" height="4"/>'
+            '<rect id="hint-bottom-margin" x="4" y="7" width="4" height="4"/>'
+        )
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(self, _root_canvas_tree(hints=hints), 12, 12)
 
 
 if __name__ == "__main__":
