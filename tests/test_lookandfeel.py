@@ -13,6 +13,7 @@ from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
 from kpackage_install_case import KPackageInstallCase
 from package_metadata import PackageMetadata
+import process_runner
 import theme_install
 from kde_config import read as read_kde_config
 from theme_install import (
@@ -156,7 +157,7 @@ class TestInstall(
             # `running` kills the install's whole process group if the poll
             # below raises, so an abandoned install cannot keep running and
             # holding the data-home lock after the test has failed.
-            with theme_install.running(
+            with process_runner.running(
                 [
                     "make", "install",
                     f"DESTDIR={tmp}",
@@ -169,7 +170,7 @@ class TestInstall(
                 env=env,
             ) as proc:
                 try:
-                    deadline = time.monotonic() + theme_install.SUBPROCESS_TIMEOUT
+                    deadline = time.monotonic() + process_runner.SUBPROCESS_TIMEOUT
                     while (
                         not os.path.exists(invoked)
                         and proc.poll() is None
@@ -182,7 +183,7 @@ class TestInstall(
                     # Release the lock before `finish` waits, or the blocked
                     # install would only time out.
                     fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                _, err = theme_install.finish(proc)
+                _, err = process_runner.finish(proc)
             self.assertTrue(
                 reached_lock, "install did not take the data-home lock"
             )
