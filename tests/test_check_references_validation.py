@@ -230,7 +230,9 @@ class TestAcceptedImageFormats(unittest.TestCase):
 
     The built-in self-test does not exercise the GIF signatures, so a
     regression in GIF handling would flag the reference set's 1 GIF file as a
-    non-image without any test noticing.
+    non-image without any test noticing. The WebP signature is pinned here
+    too, including the reference set's WebP payload named
+    ``sherlock_fandom.jpg``.
     """
 
     def _problems_for(self, module, filename, content):
@@ -256,6 +258,16 @@ class TestAcceptedImageFormats(unittest.TestCase):
     def test_gif89a_signature_is_accepted(self):
         module = load_checker()
         problems = self._problems_for(module, "anim.gif", b"GIF89a" + b"\x00" * 6)
+        self.assertEqual(problems, [])
+
+    def test_webp_signature_is_accepted(self):
+        module = load_checker()
+        # The reference set's sherlock_fandom.jpg is a WebP payload, so the
+        # RIFF/WEBP signature must be accepted even under a .jpg name; only
+        # the bytes decide, never the extension.
+        problems = self._problems_for(
+            module, "sherlock_fandom.jpg", b"RIFF\x24\x00\x00\x00WEBPVP8 "
+        )
         self.assertEqual(problems, [])
 
     def test_riff_container_that_is_not_webp_is_rejected(self):
