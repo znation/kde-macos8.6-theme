@@ -209,13 +209,16 @@ class TestCheckPattern(unittest.TestCase):
 
 
 class TestHelp(unittest.TestCase):
-    """`make help` lists every public target and the CHECK_PATTERN default.
+    """`make help` lists every public target and tunable-variable default.
 
     The Makefile documents each target and variable in a comment, but a
     contributor does not read those; the help target is the discoverable
     index. The public targets are the `.PHONY` names other than the
     `_`-prefixed internals, so reading that line catches a target added
-    without a help line instead of pinning a hand-copied list here.
+    without a help line instead of pinning a hand-copied list here. Each
+    `?=` variable's help line names its literal default, and that default is
+    derived from the Makefile rather than copied here, so changing one
+    without the other fails.
     """
 
     def _output(self):
@@ -244,6 +247,30 @@ class TestHelp(unittest.TestCase):
             for name in phony.split(":", 1)[1].split()
             if not name.startswith("_")
         ]
+
+    def _tunable_defaults(self):
+        """Return the literal defaults of the Makefile's `?=` variables.
+
+        A `?=` assignment is the tunable-variable contract: the help target
+        documents each one and states its default. Deriving the default from
+        the Makefile keeps this test from pinning a second copy that could
+        itself drift; only the literal right-hand side is read, so a value
+        built from other variables (none today) is out of scope.
+        """
+        makefile = os.path.join(theme_install.ROOT, "Makefile")
+        defaults = {}
+        with open(makefile, encoding="utf-8") as handle:
+            for line in handle:
+                match = re.match(
+                    r"([A-Za-z_][A-Za-z0-9_]*)\s*\?=(.*)$", line
+                )
+                if match:
+                    # A `#` starts a Make comment, so an inline note after the
+                    # value is not part of it; strip it before comparing.
+                    value = match.group(2).split("#", 1)[0].strip()
+                    if value:
+                        defaults[match.group(1)] = value
+        return defaults
 
     def test_lists_every_public_target(self):
         lines = self._output().splitlines()
@@ -274,14 +301,29 @@ class TestHelp(unittest.TestCase):
                     f"README does not name target {target!r}",
                 )
 
-    def test_names_check_pattern_default(self):
-        self.assertTrue(
-            any(
-                "CHECK_PATTERN" in line and "test*.py" in line
-                for line in self._output().splitlines()
-            ),
-            "help does not name the CHECK_PATTERN default",
-        )
+    def test_names_every_tunable_variable_default(self):
+        """Each `?=` variable's help line names the Makefile's own default.
+
+        The help text states a default per variable, and a default changed in
+        the Makefile but not the help (or the reverse) would mislead a
+        contributor who reads the index. The expected value comes from the
+        Makefile, so the two are compared instead of pinning a third copy.
+        """
+        lines = self._output().splitlines()
+        defaults = self._tunable_defaults()
+        self.assertTrue(defaults, "Makefile has no `?=` variables to check")
+        for name, default in defaults.items():
+            with self.subTest(variable=name):
+                named = [
+                    line
+                    for line in lines
+                    if line.strip().startswith(f"{name}=")
+                ]
+                self.assertTrue(named, f"help does not list variable {name!r}")
+                self.assertTrue(
+                    any(f"(default {default})" in line for line in named),
+                    f"help does not name the {name} default {default!r}",
+                )
 
 
 if __name__ == "__main__":
