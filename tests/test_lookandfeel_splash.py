@@ -331,6 +331,19 @@ class TestSplashQml(unittest.TestCase):
     def test_uses_the_logo_image(self):
         self.assertIn('source: "images/macos-logo.svg"', _read_qml())
 
+    def test_logo_rasterizes_at_its_displayed_size(self):
+        # `test_uses_the_logo_image` pins the source path and
+        # `test_grid_geometry` pins the 26x21 grid rect it is drawn into, but
+        # nothing pins the size the SVG is rasterized at. The SVG's intrinsic
+        # size is that same 26x21, so on any `unit` above 1 (the splash scales
+        # its whole grid by whole pixels) an Image without `sourceSize` would
+        # load a 26x21 bitmap and scale it up, softening the logo while every
+        # geometry and colour test still passed. Bind the raster size to the
+        # item's displayed size.
+        logo = _object_source(_read_qml(), "logo")
+        self.assertIn("sourceSize.width: width", logo)
+        self.assertIn("sourceSize.height: height", logo)
+
     def test_progress_fill_follows_stage(self):
         # The fill width binds to the KDE splash `stage` (0..6), so the
         # reference's mostly-full bar is stage 5 of 6. Pin the binding, or a
