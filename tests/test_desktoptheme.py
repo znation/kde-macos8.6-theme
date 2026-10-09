@@ -31,7 +31,7 @@ from install_failure_cases import FailedInstallPreservesPackage
 from install_lifecycle_cases import InstallLifecycleCases
 from kpackage_install_case import KPackageInstallCase
 from kde_config import read as read_kde_config
-from package_metadata import PackageMetadata, load_metadata
+from package_metadata import PackageMetadata, kplugin, load_metadata
 from svg_assertions import assert_root_canvas
 from theme_install import install, run, shadow_command_env
 
@@ -95,7 +95,7 @@ class TestDefaultsWiring(unittest.TestCase):
         parser = read_kde_config(LNF_DEFAULTS)
         self.assertEqual(
             parser.get(PLASMA_SECTION, "name"),
-            load_metadata(METADATA)["KPlugin"]["Id"],
+            kplugin(load_metadata(METADATA), METADATA)["Id"],
         )
 
 

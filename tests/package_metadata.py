@@ -36,6 +36,24 @@ def load_metadata(path):
     return metadata
 
 
+def kplugin(metadata, path):
+    """Return *metadata*'s ``KPlugin`` object, naming *path* when it is not one.
+
+    ``KPlugin`` holds the Id/Name/Version/Description/License fields, so every
+    reader treats it as an object. A metadata.json missing it raises a bare
+    ``KeyError`` from that read and one whose ``KPlugin`` is a string, list or
+    number raises a bare ``TypeError``; neither names the file or the field, so
+    both are rejected here with both. The mixin's ``_plugin`` and the
+    desktop-theme wiring check share this guard.
+    """
+    plugin = metadata.get("KPlugin")
+    if not isinstance(plugin, dict):
+        raise ValueError(
+            f"{path}: KPlugin must be a JSON object, not {type(plugin).__name__}"
+        )
+    return plugin
+
+
 class PackageMetadata:
     """Mixin: assert the shape of a KDE package's `metadata.json`.
 
@@ -62,13 +80,10 @@ class PackageMetadata:
         a bare ``TypeError`` from indexing it -- neither names the file or
         the field. Report the actual value instead.
         """
-        plugin = self.metadata.get("KPlugin")
-        if not isinstance(plugin, dict):
-            self.fail(
-                f"{self.METADATA_PATH}: KPlugin must be a JSON object, not "
-                f"{type(plugin).__name__}"
-            )
-        return plugin
+        try:
+            return kplugin(self.metadata, self.METADATA_PATH)
+        except ValueError as exc:
+            self.fail(str(exc))
 
     def test_package_structure(self):
         self.assertEqual(

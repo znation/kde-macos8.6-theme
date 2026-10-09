@@ -14,7 +14,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from package_metadata import PackageMetadata, load_metadata
+from package_metadata import PackageMetadata, kplugin, load_metadata
 
 
 def _metadata():
@@ -104,6 +104,40 @@ class TestLoadMetadata(unittest.TestCase):
                 message = str(caught.exception)
                 self.assertIn(decoded_type, message)
                 self.assertIn(str(path), message)
+
+
+class TestKPluginHelper(unittest.TestCase):
+    """The shared `KPlugin` guard used by the mixin and the wiring check.
+
+    `PackageMetadata._plugin` and `test_desktoptheme`'s defaults-wiring check
+    both read `KPlugin`; pin the shared guard's message directly so either
+    caller names the file and the offending type on a malformed metadata.json.
+    """
+
+    def test_returns_the_kplugin_object(self):
+        self.assertEqual(
+            kplugin(_metadata(), "metadata.json"), _metadata()["KPlugin"]
+        )
+
+    def test_names_the_path_and_type_when_not_an_object(self):
+        for value, type_name in (
+            (None, "NoneType"),
+            ("text", "str"),
+            ([], "list"),
+            (7, "int"),
+        ):
+            with self.subTest(kplugin=value):
+                metadata = _metadata()
+                if value is None:
+                    del metadata["KPlugin"]
+                else:
+                    metadata["KPlugin"] = value
+                with self.assertRaises(ValueError) as caught:
+                    kplugin(metadata, "metadata.json")
+                message = str(caught.exception)
+                self.assertIn("metadata.json", message)
+                self.assertIn("KPlugin", message)
+                self.assertIn(type_name, message)
 
 
 class TestPackageMetadata(unittest.TestCase):
