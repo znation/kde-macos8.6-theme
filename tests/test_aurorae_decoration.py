@@ -427,6 +427,53 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
                 for fill in _rect_fills(self.tree, name):
                     self.assertNotEqual(fill, "#FFFFFF")
 
+    # The reference frame's borders, at the coordinate each tile's local
+    # origin maps to: the left border starts at its outer black column x=7,
+    # the right border at its inner black column x=354, and the bottom border
+    # at its inner black row y=419. A clear row y=100 (between the title
+    # bar and the bottom border) and a clear column x=250 cross each border
+    # away from the corners and the button footprints.
+    EDGE_CLEAR_Y = 100
+    EDGE_CLEAR_X = 250
+    LEFT_BORDER_X = 7
+    RIGHT_BORDER_X = 354
+    BOTTOM_BORDER_Y = 419
+
+    def test_side_and_bottom_tiles_match_reference(self):
+        # The title bar (TestRc.test_title_bar_colours_match_reference) and the
+        # four corners (TestCorners) are pinned against the reference, but the
+        # stretched edge tiles were only pinned through the inactive tiles
+        # derived from them, so a wrong active bevel row passed every test.
+        # The reference border is uniform along its length and the artwork's
+        # edge tile is constant across the edge, so each tile repeats one
+        # cross-section sampled from the reference.
+        slices = render_slices(self.tree)
+        # (slice, reference x0, reference y0, cross-section runs along x)
+        edges = (
+            ("decoration-left", self.LEFT_BORDER_X, self.EDGE_CLEAR_Y, True),
+            ("decoration-right", self.RIGHT_BORDER_X, self.EDGE_CLEAR_Y, True),
+            ("decoration-bottom", self.EDGE_CLEAR_X, self.BOTTOM_BORDER_Y, False),
+        )
+        for name, x0, y0, along_x in edges:
+            with self.subTest(slice=name):
+                if along_x:
+                    cross = [
+                        _hex(self.reference_pixel(x0 + step, y0))
+                        for step in range(6)
+                    ]
+                    expected = {
+                        (x, y): cross[x] for x in range(6) for y in range(6)
+                    }
+                else:
+                    cross = [
+                        _hex(self.reference_pixel(x0, y0 + step))
+                        for step in range(6)
+                    ]
+                    expected = {
+                        (x, y): cross[y] for x in range(6) for y in range(6)
+                    }
+                assert_slice_pixels(self, slices, name, expected)
+
     def test_svgz_is_the_compressed_svg(self):
         # `kpackagetool6 -t KWin/Aurorae` requires `decoration.svgz`, while the
         # Aurorae runtime prefers the uncompressed `decoration.svg`; pin that
