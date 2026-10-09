@@ -22,6 +22,7 @@ from svg_assertions import (
     nine_slice_hint_geometry,
     nine_slice_margins,
     path_arcs,
+    rect_geometry,
     render_slices,
     tile_origins,
 )
@@ -282,6 +283,40 @@ class TestCircleGeometry(unittest.TestCase):
             '<circle cx="7.5" cy="24" r="3" fill="#000000"/>'
         )
         self.assertEqual(circle_geometry(element), (7.5, 24.0, 3.0))
+
+
+class TestRectGeometry(unittest.TestCase):
+    def test_reads_the_four_dimensions_of_each_id_bearing_rect(self):
+        # The layout guards and the per-widget hint tests read geometry
+        # through this map, so a missing or reordered value would mispin the
+        # nine-slice layout. Pin the order and that a rect without an id is
+        # left out.
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="a" x="1" y="2" width="3" height="4"/>'
+                '<rect x="9" y="9" width="9" height="9"/>'
+                "</svg>"
+            )
+        )
+        self.assertEqual(rect_geometry(tree), {"a": ("1", "2", "3", "4")})
+
+    def test_missing_dimension_names_the_rect_and_the_attribute(self):
+        # ElementTree hands an absent attribute back as None, and the layout
+        # guards convert each value with int(); the error must name the rect
+        # and the attribute rather than surfacing as a bare TypeError.
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="hint-top-margin" y="0" width="4" height="4"/>'
+                "</svg>"
+            )
+        )
+        with self.assertRaises(ValueError) as caught:
+            rect_geometry(tree)
+        message = str(caught.exception)
+        self.assertIn("hint-top-margin", message)
+        self.assertIn("'x'", message)
 
 
 class TestRenderSlices(unittest.TestCase):

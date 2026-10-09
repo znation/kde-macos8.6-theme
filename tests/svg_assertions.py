@@ -330,6 +330,22 @@ def arc_center(start, arc, end):
     return (factor * y1p + (x1 + x2) / 2, -factor * x1p + (y1 + y2) / 2)
 
 
+def _rect_dimension(element, rect_id, name):
+    """Return *element*'s *name* attribute, naming the rect when absent.
+
+    ElementTree hands back ``None`` for an attribute the rect omits, and the
+    geometry helpers convert each value with ``int()``; a bare None would
+    surface as a TypeError that never says which rect is malformed.
+    """
+    value = element.get(name)
+    if value is None:
+        raise ValueError(
+            f"rect {rect_id!r} has no {name!r} attribute: an id-bearing rect "
+            "must declare x, y, width and height"
+        )
+    return value
+
+
 def rect_geometry(tree):
     """Return {id: (x, y, width, height)} for every id-bearing <rect>.
 
@@ -338,13 +354,18 @@ def rect_geometry(tree):
     tile size or border lays the widget out wrong. The artwork rects in these
     nine-slice SVGs live inside id-bearing <g> elements, so the only
     id-bearing rects are the hints and this is each SVG's full hint geometry.
+
+    Raise ValueError, naming the rect and the missing attribute, when an
+    id-bearing rect omits one of the four; the layout guards convert these
+    values with ``int()``, so an unnamed None would read as a bare TypeError.
     """
     geometry = {}
     for element in tree.iter():
         if local_name(element) == "rect" and element.get("id"):
-            geometry[element.get("id")] = (
-                element.get("x"), element.get("y"),
-                element.get("width"), element.get("height"),
+            rect_id = element.get("id")
+            geometry[rect_id] = tuple(
+                _rect_dimension(element, rect_id, name)
+                for name in ("x", "y", "width", "height")
             )
     return geometry
 
