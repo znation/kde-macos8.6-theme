@@ -6,8 +6,6 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
-import contextlib
-import io
 import subprocess
 import sys
 import tempfile
@@ -19,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from tools import fidelity  # noqa: E402
+from cli_fixtures import run_main  # noqa: E402
 from error_assertions import assert_escapes_escape_character  # noqa: E402
 from png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
@@ -44,21 +43,7 @@ class TestCli(unittest.TestCase):
         The script entry point itself is covered once by
         :meth:`test_script_entry_point`.
         """
-        stdout, stderr = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(
-            stderr
-        ):
-            try:
-                returncode = fidelity.main(list(args))
-            except SystemExit as exc:
-                # argparse exits through SystemExit: 0 for --help and 2 for a
-                # usage error. ``main`` itself returns its status instead.
-                returncode = 0 if exc.code is None else exc.code
-                if not isinstance(returncode, int):
-                    returncode = 1
-        return subprocess.CompletedProcess(
-            ["fidelity", *args], returncode, stdout.getvalue(), stderr.getvalue()
-        )
+        return run_main(fidelity.main, "fidelity", args)
 
     def _write(self, directory: Path, name: str, data: bytes) -> str:
         path = directory / name
