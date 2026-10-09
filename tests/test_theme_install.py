@@ -289,5 +289,46 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
             self.assertFalse(os.path.exists(dtheme), dtheme)
 
 
+class TestXdgDataHomeDefault(unittest.TestCase):
+    """An empty or relative $XDG_DATA_HOME must fall back to the XDG default.
+
+    The XDG Base Directory spec resolves $XDG_DATA_HOME to $HOME/.local/share
+    when it is unset or empty, and treats a relative value as invalid and
+    ignores it; README's Installing section documents the same default. `?=`
+    alone kept an empty environment value, so `make install` targeted
+    $(DESTDIR) itself (or, with no DESTDIR, ran `install -d ""`). Drive
+    `make -n` with a controlled environment and read the data-home path the
+    recipe would use.
+    """
+
+    HOME = "/tmp/tumwater-test-home"
+
+    def _install_dry_run(self, xdg):
+        """Return the `make -n install` output for *xdg* in the environment."""
+        env = dict(os.environ, HOME=self.HOME, XDG_DATA_HOME=xdg)
+        result = theme_install.run(
+            ["make", "-n", "install"],
+            cwd=theme_install.ROOT,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    def test_empty_falls_back_to_the_xdg_default(self):
+        out = self._install_dry_run("")
+        self.assertIn(f'install -d "{self.HOME}/.local/share"', out)
+
+    def test_relative_falls_back_to_the_xdg_default(self):
+        out = self._install_dry_run("relative/share")
+        self.assertIn(f'install -d "{self.HOME}/.local/share"', out)
+        self.assertNotIn("relative/share", out)
+
+    def test_absolute_is_kept(self):
+        out = self._install_dry_run("/custom/share")
+        self.assertIn('install -d "/custom/share"', out)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,13 @@
 PYTHON ?= python3
-XDG_DATA_HOME ?= $(HOME)/.local/share
+# The XDG Base Directory spec resolves $XDG_DATA_HOME to $HOME/.local/share when
+# it is unset or empty, and treats a relative value as invalid and ignores it;
+# README's Installing section documents the same default. `?=` alone would keep
+# an empty environment value, so `make install` would target $(DESTDIR) itself
+# (and, with no DESTDIR, run `install -d ""`). Fall back for an empty or
+# relative value; an absolute environment value is kept. A command-line
+# assignment (make install XDG_DATA_HOME=...) overrides this line as make
+# always lets it, so it is used as given.
+XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME)),$(XDG_DATA_HOME),$(HOME)/.local/share)
 
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)

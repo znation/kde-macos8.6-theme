@@ -16,7 +16,8 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 
 ## Installing
 
-`make install` copies three artifacts into `${XDG_DATA_HOME:-$HOME/.local/share}`: the color scheme
+`make install` copies three artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
+`$HOME/.local/share` when it is unset, empty, or relative): the color scheme
 `theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
 into `plasma/look-and-feel/`, and the `org.macos8.desktop` desktop theme into
 `plasma/desktoptheme/`.
