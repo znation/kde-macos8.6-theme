@@ -78,6 +78,21 @@ class TestRenderSlices(unittest.TestCase):
         self.assertIn("'x'", message)
         self.assertIn("'nope'", message)
 
+    def test_rect_transform_is_rejected(self):
+        # render_slices composites a tile's rects at their own x/y and never
+        # applies a rect-level transform, so a transformed rect would be read
+        # from its untransformed pixels and every pixel assertion built on it
+        # would pin the wrong position. Reject it, naming the rect and value.
+        tree = _svg_tree(
+            '<g id="g">'
+            '<rect id="face" x="0" y="0" width="1" height="1" '
+            'transform="translate(2,0)" fill="#111111"/>'
+            "</g>"
+        )
+        message = error_message(self, ValueError, render_slices, tree)
+        self.assertIn("'face'", message)
+        self.assertIn("translate(2,0)", message)
+
 
 class TestPixelMap(unittest.TestCase):
     def test_builds_a_row_major_map(self):

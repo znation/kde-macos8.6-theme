@@ -316,13 +316,22 @@ def render_slices(tree):
     slice's appearance is its rects painted in document order, with a later
     rect overriding an earlier one as KSvg composites one nine-slice tile.
     Raise ValueError, naming the rect, when one of its width/height attributes
-    is absent, non-integer or non-positive, or its x/y is non-integer; a
-    silently empty or mis-sampled tile would otherwise pass the pixel checks.
+    is absent, non-integer or non-positive, its x/y is non-integer, or it
+    carries a `transform`; a silently empty or mis-sampled tile would
+    otherwise pass the pixel checks.
     """
     slices = {}
     for group in groups_with_id(tree):
         pixels = {}
         for rect in children_named(group, "rect"):
+            transform = rect.get("transform")
+            if transform is not None:
+                raise ValueError(
+                    f"{_slice_where(rect)} has a transform {transform!r}: "
+                    "render_slices composites tile rects slice-local and "
+                    "does not apply a rect-level transform, so the tile "
+                    "would be read from the wrong pixels"
+                )
             x = _slice_offset(rect, "x")
             y = _slice_offset(rect, "y")
             for dx in range(_slice_extent(rect, "width")):
