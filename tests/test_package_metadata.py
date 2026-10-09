@@ -185,6 +185,20 @@ class TestPackageMetadata(unittest.TestCase):
             getattr(_case(method, metadata), method)()
         return str(caught.exception)
 
+    def _assert_guard_names(self, method, metadata, *names):
+        """Assert guard *method* rejects *metadata*, naming the file and *names*.
+
+        Every guard message names the ``metadata.json`` it came from so the
+        two packages' failures are distinguishable, plus the field or field
+        path it rejected. This wraps `_guard_message` for the cases that pin
+        both, so the file name is asserted in one place.
+        """
+        message = self._guard_message(method, metadata)
+        self.assertIn("metadata.json", message)
+        for name in names:
+            self.assertIn(name, message)
+        return message
+
     def test_accepts_well_formed_metadata(self):
         # Positive control: every guard passes on the shape the real packages
         # use, so a guard that rejects everything cannot pass the failure
@@ -218,17 +232,14 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(key=key):
                 metadata = _metadata()
                 del metadata[key]
-                message = self._guard_message(method, metadata)
-                self.assertIn("metadata.json", message)
-                self.assertIn(key, message)
+                self._assert_guard_names(method, metadata, key)
 
     def test_top_level_key_mismatch_names_the_file(self):
         # The mismatch case used to report only the two values; label it with
         # the metadata.json the value came from.
         metadata = _metadata()
         metadata["KPackageStructure"] = "Plasma/LookAndFeel"
-        message = self._guard_message("test_package_structure", metadata)
-        self.assertIn("metadata.json", message)
+        self._assert_guard_names("test_package_structure", metadata)
 
     def test_top_level_field_returns_the_value(self):
         case = _case("test_package_structure", _metadata())
@@ -264,9 +275,7 @@ class TestPackageMetadata(unittest.TestCase):
                     "test_plugin_description_and_license_are_non_empty",
                 ):
                     with self.subTest(method=method):
-                        message = self._guard_message(method, metadata)
-                        self.assertIn("metadata.json", message)
-                        self.assertIn("KPlugin", message)
+                        self._assert_guard_names(method, metadata, "KPlugin")
 
     def test_plugin_id_and_name_guard(self):
         for key, value in (("Id", "org.other.desktop"), ("Name", "Something")):
@@ -283,9 +292,9 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(key=key):
                 metadata = _metadata()
                 del metadata["KPlugin"][key]
-                message = self._guard_message("test_plugin_id_and_name", metadata)
-                self.assertIn("metadata.json", message)
-                self.assertIn(key, message)
+                self._assert_guard_names(
+                    "test_plugin_id_and_name", metadata, key
+                )
 
     def test_plugin_string_field_missing_names_the_file_and_field(self):
         # A metadata.json whose KPlugin drops Version, Description or License
@@ -299,17 +308,14 @@ class TestPackageMetadata(unittest.TestCase):
             with self.subTest(key=key):
                 metadata = _metadata()
                 del metadata["KPlugin"][key]
-                message = self._guard_message(method, metadata)
-                self.assertIn("metadata.json", message)
-                self.assertIn(key, message)
+                self._assert_guard_names(method, metadata, key)
 
     def test_plugin_version_guard(self):
         for value in (None, "", "   ", 7):
             with self.subTest(version=value):
                 metadata = _metadata()
                 metadata["KPlugin"]["Version"] = value
-                message = self._guard_message("test_plugin_version", metadata)
-                self.assertIn("metadata.json", message)
+                self._assert_guard_names("test_plugin_version", metadata)
 
     def test_plasma_api_version_guard(self):
         metadata = _metadata()
@@ -322,11 +328,10 @@ class TestPackageMetadata(unittest.TestCase):
                 with self.subTest(key=key, value=value):
                     metadata = _metadata()
                     metadata["KPlugin"][key] = value
-                    message = self._guard_message(
+                    self._assert_guard_names(
                         "test_plugin_description_and_license_are_non_empty",
                         metadata,
                     )
-                    self.assertIn("metadata.json", message)
 
     def test_plugin_authors_guard(self):
         # Both packages ship Authors as a list of named objects, but nothing
@@ -336,34 +341,31 @@ class TestPackageMetadata(unittest.TestCase):
         # pin each rejection with the file and the offending field.
         metadata = _metadata()
         del metadata["KPlugin"]["Authors"]
-        message = self._guard_message("test_plugin_authors_are_named", metadata)
-        self.assertIn("metadata.json", message)
-        self.assertIn("Authors", message)
+        self._assert_guard_names(
+            "test_plugin_authors_are_named", metadata, "Authors"
+        )
 
         for value in (None, "text", 7):
             with self.subTest(authors=value):
                 metadata = _metadata()
                 metadata["KPlugin"]["Authors"] = value
-                message = self._guard_message(
-                    "test_plugin_authors_are_named", metadata
+                self._assert_guard_names(
+                    "test_plugin_authors_are_named", metadata, "Authors"
                 )
-                self.assertIn("metadata.json", message)
-                self.assertIn("Authors", message)
 
         metadata = _metadata()
         metadata["KPlugin"]["Authors"] = []
-        message = self._guard_message("test_plugin_authors_are_named", metadata)
-        self.assertIn("Authors", message)
+        self._assert_guard_names(
+            "test_plugin_authors_are_named", metadata, "Authors"
+        )
 
         for author in ("text", 7, {"Name": ""}, {"Name": "   "}, {"Name": 7}, {}):
             with self.subTest(author=author):
                 metadata = _metadata()
                 metadata["KPlugin"]["Authors"] = [author]
-                message = self._guard_message(
-                    "test_plugin_authors_are_named", metadata
+                self._assert_guard_names(
+                    "test_plugin_authors_are_named", metadata, "Authors[0]"
                 )
-                self.assertIn("Authors[0]", message)
-                self.assertIn("metadata.json", message)
 
 
 if __name__ == "__main__":
