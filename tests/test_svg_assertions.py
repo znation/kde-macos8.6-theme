@@ -15,8 +15,15 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from svg_assertions import (
+    RAISED_FACE_CORNERS,
     arc_center,
+    assert_center_tile_is,
+    assert_corner_pixels,
+    assert_edge_band_pixels,
+    assert_edge_bevels,
+    assert_raised_face_bevel,
     assert_root_canvas,
+    assert_slice_pixels,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     circle_geometry,
@@ -786,6 +793,202 @@ class TestRootCanvas(unittest.TestCase):
         )
         with self.assertRaises(AssertionError):
             assert_root_canvas(self, _root_canvas_tree(hints=hints), 12, 12)
+
+
+# A distinct three-colour band for the pixel-assertion tests, so a reversed
+# band cannot be confused with the artwork's real bevel colours.
+_EDGE_BAND = ("#AA0000", "#00BB00", "#0000CC")
+
+
+def _horizontal_band(band, size):
+    """A *size* x 3 map: three rows, one band colour across each whole row."""
+    return pixel_map(
+        (band[0],) * size + (band[1],) * size + (band[2],) * size,
+        size,
+        3,
+    )
+
+
+def _vertical_band(band, size):
+    """A 3 x *size* map: three columns, one band colour down each column."""
+    return pixel_map(band * size, 3, size)
+
+
+def _bevel_slices(outward, mirrored, size, prefix=""):
+    """Build the four edge slices `assert_edge_bevels` reads for *prefix*.
+
+    The top/left edges paint *outward* and the bottom/right paint *mirrored*,
+    matching the helper's own mirroring rule.
+    """
+    sep = "-" if prefix else ""
+    return {
+        f"{prefix}{sep}top": _horizontal_band(outward, size),
+        f"{prefix}{sep}bottom": _horizontal_band(mirrored, size),
+        f"{prefix}{sep}left": _vertical_band(outward, size),
+        f"{prefix}{sep}right": _vertical_band(mirrored, size),
+    }
+
+
+def _raised_face_slices(size, prefix=""):
+    """Build a nine-slice that `assert_raised_face_bevel` accepts for *prefix*.
+
+    The edges come from `_bevel_slices` and the corners from the exported
+    `RAISED_FACE_CORNERS`, so a failure here means the helper's wiring changed,
+    not the pinned corner table (which the widget tests pin against artwork).
+    """
+    sep = "-" if prefix else ""
+    outward = ("#000000", "#FFFFFF", "#DDDDDD")
+    mirrored = ("#DDDDDD", "#999999", "#000000")
+    slices = _bevel_slices(outward, mirrored, size, prefix)
+    slices[f"{prefix}{sep}center"] = pixel_map(
+        ("#DDDDDD",) * (size * size), size, size
+    )
+    for name, colours in RAISED_FACE_CORNERS.items():
+        slices[f"{prefix}{sep}{name}"] = pixel_map(colours, 3, 3)
+    return slices
+
+
+class TestPixelAssertions(unittest.TestCase):
+    """Direct pass/fail tests for the pixel-comparison assertion helpers.
+
+    Each widget test reaches these only over its own current artwork, so a
+    helper that mis-orders a band, mirrors the wrong sides or drops the size
+    check could still pass every widget test. These pin the helpers on maps
+    built independently of the artwork, and prove each can fail.
+    """
+
+    def test_slice_pixels_pins_the_full_map(self):
+        expected = pixel_map(("#FFFFFF",) * 4, 2, 2)
+        slices = {"center": pixel_map(("#FFFFFF",) * 4, 2, 2)}
+        assert_slice_pixels(self, slices, "center", expected)
+        # An extra pixel outside the 2x2 body must fail: a full-map compare
+        # catches a resized or shifted slice that a colour check would miss.
+        slices["center"][(2, 2)] = "#FFFFFF"
+        with self.assertRaises(AssertionError):
+            assert_slice_pixels(_NoSubTest(), slices, "center", expected)
+
+    def test_edge_band_pixels_pins_a_top_band_and_rejects_its_mirror(self):
+        size = 6
+        slices = {"top": _horizontal_band(_EDGE_BAND, size)}
+        assert_edge_band_pixels(self, slices, "top", "top", _EDGE_BAND, size)
+        mirrored = tuple(reversed(_EDGE_BAND))
+        with self.assertRaises(AssertionError):
+            assert_edge_band_pixels(
+                _NoSubTest(), slices, "top", "top", mirrored, size
+            )
+
+    def test_edge_band_pixels_pins_a_left_band_and_rejects_its_mirror(self):
+        size = 6
+        slices = {"left": _vertical_band(_EDGE_BAND, size)}
+        assert_edge_band_pixels(self, slices, "left", "left", _EDGE_BAND, size)
+        mirrored = tuple(reversed(_EDGE_BAND))
+        with self.assertRaises(AssertionError):
+            assert_edge_band_pixels(
+                _NoSubTest(), slices, "left", "left", mirrored, size
+            )
+
+    def test_edge_bevels_supplies_the_bottom_and_right_mirror(self):
+        size = 6
+        outward = ("#000000", "#FFFFFF", "#DDDDDD")
+        mirrored = ("#DDDDDD", "#999999", "#000000")
+        assert_edge_bevels(
+            self, _bevel_slices(outward, mirrored, size), "", outward,
+            mirrored, size,
+        )
+        # `assert_edge_bevels`, not the caller, supplies the mirroring, and
+        # each edge is read on its own. Break only the bottom, then only the
+        # right, then only the left, so a helper that skips an edge (say its
+        # loop ends `("top", "bottom", "bottom", "right")` or
+        # `("top", "bottom", "left", "left")`) still fails.
+        broken_bottom = _bevel_slices(outward, mirrored, size)
+        broken_bottom["bottom"] = _horizontal_band(outward, size)
+        with self.assertRaises(AssertionError):
+            assert_edge_bevels(
+                _NoSubTest(), broken_bottom, "", outward, mirrored, size
+            )
+
+        broken_left = _bevel_slices(outward, mirrored, size)
+        broken_left["left"] = _vertical_band(mirrored, size)
+        with self.assertRaises(AssertionError):
+            assert_edge_bevels(
+                _NoSubTest(), broken_left, "", outward, mirrored, size
+            )
+
+        broken_right = _bevel_slices(outward, mirrored, size)
+        broken_right["right"] = _vertical_band(outward, size)
+        with self.assertRaises(AssertionError):
+            assert_edge_bevels(
+                _NoSubTest(), broken_right, "", outward, mirrored, size
+            )
+
+    def test_edge_bevels_names_each_slice_by_prefix(self):
+        size = 6
+        outward = ("#000000", "#FFFFFF", "#DDDDDD")
+        mirrored = ("#DDDDDD", "#999999", "#000000")
+        slices = _bevel_slices(outward, mirrored, size, prefix="normal")
+        assert_edge_bevels(self, slices, "normal", outward, mirrored, size)
+
+    def test_corner_pixels_pins_all_nine_pixels(self):
+        # Nine distinct colours: no pixel can stand in for another, so a
+        # helper that reads only some of the nine (or only the diagonal) is
+        # not saved by a repeated colour.
+        colours = (
+            "#000001", "#000002", "#000003",
+            "#000004", "#000005", "#000006",
+            "#000007", "#000008", "#000009",
+        )
+        slices = {"topleft": pixel_map(colours, 3, 3)}
+        assert_corner_pixels(self, slices, "topleft", colours)
+        # Break one pixel at a time; each must be noticed on its own.
+        for index in range(9):
+            broken = list(colours)
+            broken[index] = "#FFFFFF"
+            with self.assertRaises(AssertionError):
+                assert_corner_pixels(
+                    _NoSubTest(),
+                    {"topleft": pixel_map(tuple(broken), 3, 3)},
+                    "topleft",
+                    colours,
+                )
+
+    def test_center_tile_is_pins_the_full_square_and_its_size(self):
+        colour = "#DDDDDD"
+        slices = {"center": pixel_map((colour,) * 36, 6, 6)}
+        assert_center_tile_is(self, slices, "center", colour, 6)
+        # A 7x7 centre has the right colour everywhere but the wrong tile
+        # size, which the declared-size pin must reject.
+        bigger = {"center": pixel_map((colour,) * 49, 7, 7)}
+        with self.assertRaises(AssertionError):
+            assert_center_tile_is(_NoSubTest(), bigger, "center", colour, 6)
+
+    def test_raised_face_bevel_pins_centre_edges_and_corners(self):
+        size = 10
+        assert_raised_face_bevel(
+            self, _raised_face_slices(size), "", size=size
+        )
+        # Each component assertion can fail on its own: the centre tile, an
+        # edge band, and a corner slice. Break one at a time so a helper that
+        # checked only the centre would not pass this test.
+        broken_center = _raised_face_slices(size)
+        broken_center["center"] = pixel_map(("#EEEEEE",) * 100, size, size)
+        with self.assertRaises(AssertionError):
+            assert_raised_face_bevel(
+                _NoSubTest(), broken_center, "", size=size
+            )
+
+        broken_edge = _raised_face_slices(size)
+        broken_edge["top"] = _horizontal_band(
+            ("#DDDDDD", "#999999", "#000000"), size
+        )
+        with self.assertRaises(AssertionError):
+            assert_raised_face_bevel(_NoSubTest(), broken_edge, "", size=size)
+
+        broken_corner = _raised_face_slices(size)
+        broken_corner["topleft"] = pixel_map(("#FFFFFF",) * 9, 3, 3)
+        with self.assertRaises(AssertionError):
+            assert_raised_face_bevel(
+                _NoSubTest(), broken_corner, "", size=size
+            )
 
 
 if __name__ == "__main__":
