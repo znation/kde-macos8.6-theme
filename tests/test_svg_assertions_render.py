@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import unittest
 
-from error_assertions import error_message
+from error_assertions import assert_error_names, error_message
 from svg_assertions import pixel_map, render_slices
 from svg_fixtures import _svg_tree
 
@@ -59,10 +59,13 @@ class TestRenderSlices(unittest.TestCase):
                     f'<g id="g"><rect id="face" x="0" y="0" {other}="1" '
                     f'{attr}="{value}" fill="#111111"/></g>'
                 )
-                message = error_message(self, ValueError, render_slices, tree)
-                self.assertIn("'face'", message)
-                self.assertIn(f"'{attr}'", message)
-                self.assertIn(f"'{value}'", message)
+                assert_error_names(
+                    self,
+                    ValueError,
+                    render_slices,
+                    tree,
+                    needles=("'face'", f"'{attr}'", f"'{value}'"),
+                )
 
     def test_non_integer_offset_names_the_rect(self):
         # An SVG rect's x/y default to 0, but a present non-integer one is
@@ -73,10 +76,13 @@ class TestRenderSlices(unittest.TestCase):
             'fill="#111111"/>'
             "</g>"
         )
-        message = error_message(self, ValueError, render_slices, tree)
-        self.assertIn("'face'", message)
-        self.assertIn("'x'", message)
-        self.assertIn("'nope'", message)
+        assert_error_names(
+            self,
+            ValueError,
+            render_slices,
+            tree,
+            needles=("'face'", "'x'", "'nope'"),
+        )
 
     def test_rect_transform_is_rejected(self):
         # render_slices composites a tile's rects at their own x/y and never
@@ -89,9 +95,13 @@ class TestRenderSlices(unittest.TestCase):
             'transform="translate(2,0)" fill="#111111"/>'
             "</g>"
         )
-        message = error_message(self, ValueError, render_slices, tree)
-        self.assertIn("'face'", message)
-        self.assertIn("translate(2,0)", message)
+        assert_error_names(
+            self,
+            ValueError,
+            render_slices,
+            tree,
+            needles=("'face'", "translate(2,0)"),
+        )
 
 
 class TestPixelMap(unittest.TestCase):
@@ -115,12 +125,15 @@ class TestPixelMap(unittest.TestCase):
         # and the shape that was declared.
         for colours in (("#111111",) * 3, ("#111111",) * 5):
             with self.subTest(colours=len(colours)):
-                message = error_message(
-                    self, ValueError, pixel_map, colours, 2, 2
+                assert_error_names(
+                    self,
+                    ValueError,
+                    pixel_map,
+                    colours,
+                    2,
+                    2,
+                    needles=(str(len(colours)), "2x2", "4"),
                 )
-                self.assertIn(str(len(colours)), message)
-                self.assertIn("2x2", message)
-                self.assertIn("4", message)
 
     def test_non_positive_dimension_is_rejected(self):
         # width=0 would divide by zero in the comprehension and a negative one

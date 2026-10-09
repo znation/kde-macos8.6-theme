@@ -10,7 +10,7 @@ import os
 import unittest
 
 from colorscheme_fixtures import ROOT, load_scheme
-from error_assertions import error_message
+from error_assertions import assert_error_names, error_message
 from reference_image import skip_unless_materialized
 
 from tools import png  # noqa: E402
@@ -141,11 +141,15 @@ class TestReferenceAnchors(unittest.TestCase):
         self.image_errors = {}
         for x, y in ((4, 0), (0, 3), (-1, 0), (0, -1)):
             with self.subTest(x=x, y=y):
-                message = error_message(
-                    self, ValueError, self.pixel, REFERENCE_DESKTOP, x, y
+                assert_error_names(
+                    self,
+                    ValueError,
+                    self.pixel,
+                    REFERENCE_DESKTOP,
+                    x,
+                    y,
+                    needles=(f"({x}, {y})", "4x3"),
                 )
-                self.assertIn(f"({x}, {y})", message)
-                self.assertIn("4x3", message)
 
 
 if __name__ == "__main__":

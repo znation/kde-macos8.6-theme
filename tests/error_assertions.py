@@ -5,6 +5,10 @@ exception's message to pin what it names. This names that expectation once::
 
     message = error_message(self, ValueError, circle_geometry, element)
 
+A test that pins several substrings of that message at once uses
+``assert_error_names``, which extracts the message and asserts each name in
+it.
+
 ``case.assertRaises`` reports a failure against the calling test when
 *function* does not raise *exception*; a different exception propagates.
 
@@ -40,6 +44,22 @@ def error_message(case, exception, function, *args, **kwargs):
     with case.assertRaises(exception) as caught:
         function(*args, **kwargs)
     return str(caught.exception)
+
+
+def assert_error_names(case, exception, function, *args, needles=(), **kwargs):
+    """Assert *function* raises *exception* whose message names each *needle*.
+
+    A test that rejects a bad input and pins several substrings the
+    diagnostic must carry would extract the message with ``error_message``
+    and then repeat ``assertIn`` per substring; this names that expectation
+    once. *args* and *kwargs* are forwarded to *function*; ``needles`` is
+    consumed here and never forwarded. Returns the message, so a test that
+    must read it further still can.
+    """
+    message = error_message(case, exception, function, *args, **kwargs)
+    for needle in needles:
+        case.assertIn(needle, message)
+    return message
 
 
 def assert_escapes_escape_character(case, text):

@@ -12,7 +12,7 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from error_assertions import error_message
+from error_assertions import assert_error_names, error_message
 from svg_assertions import (
     RAISED_FACE_CORNERS,
     arc_center,
@@ -113,10 +113,13 @@ class TestPathArcs(unittest.TestCase):
             ("M1,1 Z5", "Z", 1),
         ):
             with self.subTest(d=d):
-                message = error_message(self, ValueError, list, path_arcs(d))
-                self.assertIn(f"command {command}", message)
-                self.assertIn(f"got {count}", message)
-                self.assertIn(repr(d), message)
+                assert_error_names(
+                    self,
+                    ValueError,
+                    list,
+                    path_arcs(d),
+                    needles=(f"command {command}", f"got {count}", repr(d)),
+                )
 
 
 class TestArcCenter(unittest.TestCase):
@@ -141,22 +144,28 @@ class TestArcCenter(unittest.TestCase):
         # start == end has no perpendicular bisector, so the centre is
         # undefined. Before the guard this was a bare ZeroDivisionError that
         # named neither the arc nor its defect.
-        message = error_message(
-            self, ValueError, arc_center, (2.0, 2.0), (3, 3, 0, 1), (2.0, 2.0)
+        assert_error_names(
+            self,
+            ValueError,
+            arc_center,
+            (2.0, 2.0),
+            (3, 3, 0, 1),
+            (2.0, 2.0),
+            needles=("(2.0, 2.0)", "zero-length chord"),
         )
-        self.assertIn("(2.0, 2.0)", message)
-        self.assertIn("zero-length chord", message)
 
     def test_radius_too_small_names_the_arc_and_the_chord(self):
         # Endpoints 6 apart need radius >= 3; a radius of 2 cannot reach both
         # and the square root would fail with "math domain error".
-        message = error_message(
-            self, ValueError, arc_center, (0.0, 0.0), (2, 2, 0, 1), (6.0, 0.0)
+        assert_error_names(
+            self,
+            ValueError,
+            arc_center,
+            (0.0, 0.0),
+            (2, 2, 0, 1),
+            (6.0, 0.0),
+            needles=("(0.0, 0.0)", "(6.0, 0.0)", "radius 2", "half its chord 3"),
         )
-        self.assertIn("(0.0, 0.0)", message)
-        self.assertIn("(6.0, 0.0)", message)
-        self.assertIn("radius 2", message)
-        self.assertIn("half its chord 3", message)
 
 
 class TestTileOrigins(unittest.TestCase):
@@ -447,9 +456,10 @@ class TestCircleGeometry(unittest.TestCase):
         # name the circle and the attribute rather than surfacing as a bare
         # TypeError.
         element = ET.fromstring('<circle id="symbol" cy="8" r="3"/>')
-        message = error_message(self, ValueError, circle_geometry, element)
-        self.assertIn("symbol", message)
-        self.assertIn("'cx'", message)
+        assert_error_names(
+            self, ValueError, circle_geometry, element,
+            needles=("symbol", "'cx'"),
+        )
 
     def test_anonymous_missing_dimension_still_names_the_attribute(self):
         # The radiobutton face and checkmarks dot carry no id of their own, so
@@ -467,16 +477,17 @@ class TestCircleGeometry(unittest.TestCase):
         element = ET.fromstring(
             '<circle id="symbol" cx="8" cy="8" r="3px"/>'
         )
-        message = error_message(self, ValueError, circle_geometry, element)
-        self.assertIn("symbol", message)
-        self.assertIn("'r'", message)
-        self.assertIn("'3px'", message)
+        assert_error_names(
+            self, ValueError, circle_geometry, element,
+            needles=("symbol", "'r'", "'3px'"),
+        )
 
     def test_anonymous_non_numeric_dimension_still_names_the_attribute(self):
         element = ET.fromstring('<circle cx="8" cy="8" r="3px"/>')
-        message = error_message(self, ValueError, circle_geometry, element)
-        self.assertIn("'r'", message)
-        self.assertIn("'3px'", message)
+        assert_error_names(
+            self, ValueError, circle_geometry, element,
+            needles=("'r'", "'3px'"),
+        )
 
 
 class TestRectGeometry(unittest.TestCase):
@@ -498,9 +509,10 @@ class TestRectGeometry(unittest.TestCase):
         tree = _svg_tree(
             '<rect id="hint-top-margin" y="0" width="4" height="4"/>'
         )
-        message = error_message(self, ValueError, rect_geometry, tree)
-        self.assertIn("hint-top-margin", message)
-        self.assertIn("'x'", message)
+        assert_error_names(
+            self, ValueError, rect_geometry, tree,
+            needles=("hint-top-margin", "'x'"),
+        )
 
     def test_non_integer_dimension_names_the_rect_attribute_and_value(self):
         # A hint rect is never rendered by render_slices (it lives outside
@@ -512,7 +524,7 @@ class TestRectGeometry(unittest.TestCase):
             '<rect id="hint-top-margin" x="4px" y="0" width="4" '
             'height="4"/>'
         )
-        message = error_message(self, ValueError, rect_geometry, tree)
-        self.assertIn("hint-top-margin", message)
-        self.assertIn("'x'", message)
-        self.assertIn("'4px'", message)
+        assert_error_names(
+            self, ValueError, rect_geometry, tree,
+            needles=("hint-top-margin", "'x'", "'4px'"),
+        )

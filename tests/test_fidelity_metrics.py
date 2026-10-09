@@ -13,6 +13,7 @@ import unittest
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import fidelity_metrics
 from error_assertions import (  # noqa: E402
+    assert_error_names,
     assert_rejects_unequal_lengths,
     error_message,
 )
@@ -266,11 +267,14 @@ class TestCompare(unittest.TestCase):
     def test_size_mismatch_raises(self):
         a, _ = solid_rgb(2, 2)
         b, _ = solid_rgb(1, 1)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.compare, a, b
+        assert_error_names(
+            self,
+            fidelity_metrics.FidelityError,
+            fidelity_metrics.compare,
+            a,
+            b,
+            needles=("candidate 2x2", "reference 1x1"),
         )
-        self.assertIn("candidate 2x2", message)
-        self.assertIn("reference 1x1", message)
 
     def test_size_mismatch_only_in_height_names_both_sizes(self):
         # The guard is ``candidate.width != reference.width or
@@ -281,12 +285,14 @@ class TestCompare(unittest.TestCase):
         # ValueError.
         candidate, _ = solid_rgb(2, 2)
         reference, _ = solid_rgb(2, 1)
-        message = error_message(
-            self, fidelity_metrics.FidelityError, fidelity_metrics.compare,
-            candidate, reference,
+        assert_error_names(
+            self,
+            fidelity_metrics.FidelityError,
+            fidelity_metrics.compare,
+            candidate,
+            reference,
+            needles=("candidate 2x2", "reference 2x1"),
         )
-        self.assertIn("candidate 2x2", message)
-        self.assertIn("reference 2x1", message)
 
     def test_crop_extracts_region(self):
         image, _ = rgb_image(4, 4, lambda x, y: (x, y, 0))
