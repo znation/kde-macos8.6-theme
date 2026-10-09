@@ -33,14 +33,14 @@ from typing import TypeVar
 if __package__:
     from tools.fidelity_metrics import (
         FidelityError,
-        _crop_rect_problem,
         compare,
         crop,
+        crop_rect_problem,
     )
     from tools.png import PngError, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
-    from fidelity_metrics import FidelityError, _crop_rect_problem, compare, crop
+    from fidelity_metrics import FidelityError, compare, crop, crop_rect_problem
     from png import PngError, read_png
     from terminal import escape_controls
 
@@ -102,7 +102,7 @@ def _parse_crop(value: str) -> tuple[int, int, int, int]:
                 f"crop values must be integers: {part!r}"
             ) from exc
     x, y, width, height = numbers
-    problem = _crop_rect_problem(x, y, width, height)
+    problem = crop_rect_problem(x, y, width, height)
     if problem is not None:
         raise argparse.ArgumentTypeError(problem)
     return x, y, width, height

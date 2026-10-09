@@ -9,9 +9,10 @@ worst per-channel delta and the coordinate where it occurs, and the fraction of
 pixels whose worst channel differs by more than a tolerance.
 
 PNG decoding lives in the sibling module ``tools/png.py`` and the command-line
-entry point in ``tools/fidelity.py``; this module holds only the comparison
-math. It uses only the Python standard library, keeping the check
-self-contained and deterministic.
+entry point in ``tools/fidelity.py``; this module holds the comparison math
+and the crop geometry the CLI and :func:`crop` both validate against
+(:func:`crop_rect_problem`). It uses only the Python standard library, keeping
+the check self-contained and deterministic.
 """
 
 from __future__ import annotations
@@ -156,8 +157,13 @@ class Metrics:
     frac_differing: float
 
 
-def _crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
+def crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
     """Return why ``(x, y, width, height)`` is not a valid crop rectangle.
+
+    Public because it is the shared crop-rectangle contract: the CLI's
+    ``--crop`` parser calls it before reading an image, and :func:`crop`
+    calls it before slicing one, so both reject the same rectangles with the
+    same wording.
 
     Every value must be an integer: :func:`crop` slices the image's RGB byte
     string, so a float coordinate would reach the slice as a raw
@@ -191,7 +197,7 @@ def _crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
 
 def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
     """Return the ``width x height`` region of ``image`` at ``(x, y)``."""
-    problem = _crop_rect_problem(x, y, width, height)
+    problem = crop_rect_problem(x, y, width, height)
     if problem is not None:
         raise FidelityError(problem)
     if x + width > image.width or y + height > image.height:
