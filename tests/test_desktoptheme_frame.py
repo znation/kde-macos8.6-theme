@@ -19,6 +19,7 @@ from svg_assertions import (
     face_edge_bands,
     flat_face_corners,
     nine_slice_hint_geometry,
+    RAISED_FACE_CORNERS,
     rect_geometry,
     render_slices,
     sunken_face_corners,
@@ -34,26 +35,17 @@ FRAME_PREFIXES = ("plain", "raised", "sunken")
 # into the corner and meet there. A corner that stops the bevel one pixel short
 # leaves a face-coloured (#DDDDDD) notch where the side tile shows highlight or
 # shadow, so pinning the pixels makes that defect fail the suite.
+#
+# The raised state reuses `RAISED_FACE_CORNERS`' top-left, top-right and
+# bottom-right corners; only its bottom-left corner turns differently, with a
+# #999999 shadow where the scroll-bar thumb and dialog body show a #FFFFFF
+# highlight.
 CORNER_PIXELS = {
     "raised": {
-        "topleft": (
-            "#000000", "#000000", "#000000",
-            "#000000", "#FFFFFF", "#FFFFFF",
-            "#000000", "#FFFFFF", "#DDDDDD",
-        ),
-        "topright": (
-            "#000000", "#000000", "#000000",
-            "#FFFFFF", "#999999", "#000000",
-            "#DDDDDD", "#999999", "#000000",
-        ),
+        **RAISED_FACE_CORNERS,
         "bottomleft": (
             "#000000", "#FFFFFF", "#DDDDDD",
             "#000000", "#999999", "#999999",
-            "#000000", "#000000", "#000000",
-        ),
-        "bottomright": (
-            "#DDDDDD", "#999999", "#000000",
-            "#999999", "#999999", "#000000",
             "#000000", "#000000", "#000000",
         ),
     },

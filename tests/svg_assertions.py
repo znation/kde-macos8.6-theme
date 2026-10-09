@@ -320,8 +320,8 @@ def assert_center_tile_is(case, slices, name, colour, size):
 # the 1px #000000 outline on the two outer edges, a #FFFFFF highlight inside
 # the top/left edges and a #999999 shadow inside the bottom/right ones,
 # meeting over the #DDDDDD face. The frame's raised state shares the edges and
-# three corners but turns its bottom-left corner differently (a #999999 pixel
-# where these have #FFFFFF), so it keeps its own corner table.
+# three of these corners but turns its bottom-left corner differently (a
+# #999999 pixel where these have #FFFFFF), so it overrides only that corner.
 RAISED_FACE_CORNERS = {
     "topleft": (
         "#000000", "#000000", "#000000",
