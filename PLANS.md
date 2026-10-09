@@ -13,11 +13,15 @@ README.md describes the reference set as the source of truth for "menu bar, wind
 widget metrics, icons and colour palette", and the set includes Finder/dialog/desktop
 screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveorg.jpg`,
 `splash_macbase.gif`). The startup splash is covered by the done `contents/splash/` entry below;
-the window decoration is now planned by the two `aurorae/themes/` entries below, but there is
+the window decoration is now shipped by the two `aurorae/themes/` entries below, but there is
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Wire the Mac OS 8.6 window decoration into the global theme (`theme/look-and-feel/org.macos8.desktop/contents/defaults`) (planned 2026-10-09)
+_None yet._
+
+## Done
+
+### Wire the Mac OS 8.6 window decoration into the global theme defaults (done 2026-10-09)
 
 **Planned 2026-10-09 by plan.**
 
@@ -82,8 +86,6 @@ also selects the `org.macos8.desktop` window decoration with the close box on th
 - Manual smoke test (needs a Plasma session, outside `make check`): after `make install` and
   `lookandfeeltool -a org.macos8.desktop`, a new window wears the pinstriped Platinum title bar with
   the close box on the left and the zoom box on the right, with no manual Window Decorations step.
-
-## Done
 
 ### Mac OS 8.6 Platinum window decoration (`aurorae/themes/`) part B1: inactive frame and inactive widget state (done 2026-10-09)
 

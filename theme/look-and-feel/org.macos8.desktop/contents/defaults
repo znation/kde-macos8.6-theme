@@ -3,3 +3,9 @@ ColorScheme=MacOS8
 
 [plasmarc][Theme]
 name=org.macos8.desktop
+
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.kwin.aurorae
+theme=__aurorae__svg__org.macos8.desktop
+ButtonsOnLeft=X
+ButtonsOnRight=A

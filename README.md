@@ -33,7 +33,9 @@ resolves again on the next start.
 The global theme applies that same scheme as one selection: `lookandfeeltool -a
 org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). Applying the global
 theme also selects its startup splash (`contents/splash/Splash.qml`), which the KDE splash engine
-reads. The desktop theme can be selected on its own with
+reads, and its window decoration through `[kwinrc][org.kde.kdecoration2]`, so a new window wears
+the `org.macos8.desktop` Platinum title bar with the close box on the left and the zoom box on
+the right. The desktop theme can be selected on its own with
 `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
 `[plasmarc][Theme]` in its `contents/defaults`. The desktop theme ships
 `widgets/panel-background.svg` (the menu bar), `widgets/frame.svg` (the Platinum

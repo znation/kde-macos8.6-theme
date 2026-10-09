@@ -27,11 +27,15 @@ PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
 DEFAULTS = os.path.join(PACKAGE, "contents", "defaults")
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
+AURORAE_DIR = os.path.join(
+    ROOT, "theme", "aurorae", "themes", "org.macos8.desktop"
+)
 
 # configparser reads the KDE `[kdeglobals][General]` header greedily, so the
 # section key includes the inner bracket pair.
 DEFAULTS_SECTION = "kdeglobals][General"
 PLASMA_SECTION = "plasmarc][Theme"
+KWIN_SECTION = "kwinrc][org.kde.kdecoration2"
 
 
 def load_defaults():
@@ -100,10 +104,45 @@ class TestDefaults(unittest.TestCase):
 
     def test_the_expected_sections_and_keys_are_set(self):
         self.assertEqual(
-            self.parser.sections(), [DEFAULTS_SECTION, PLASMA_SECTION]
+            self.parser.sections(),
+            [DEFAULTS_SECTION, PLASMA_SECTION, KWIN_SECTION],
         )
         self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme"])
         self.assertEqual(self.parser.options(PLASMA_SECTION), ["name"])
+        self.assertEqual(
+            self.parser.options(KWIN_SECTION),
+            ["library", "theme", "ButtonsOnLeft", "ButtonsOnRight"],
+        )
+
+    def test_window_decoration_names_the_shipped_theme(self):
+        """The global theme must select the Aurorae theme this repo ships.
+
+        The id is the directory holding the installed package's
+        `metadata.desktop`, so renaming the Aurorae directory without updating
+        `defaults` fails here instead of pointing KWin at a theme that is not
+        installed.
+        """
+        self.assertEqual(
+            self.parser.get(KWIN_SECTION, "library"), "org.kde.kwin.aurorae"
+        )
+        theme_id = os.path.basename(AURORAE_DIR)
+        self.assertEqual(
+            self.parser.get(KWIN_SECTION, "theme"),
+            "__aurorae__svg__" + theme_id,
+        )
+        self.assertTrue(
+            os.path.isfile(os.path.join(AURORAE_DIR, "metadata.desktop")),
+            "KWin's Aurorae discovery needs metadata.desktop",
+        )
+
+    def test_titlebar_buttons_match_the_reference(self):
+        """`aboutsystem_betawiki.png` shows close on the left, zoom on the right.
+
+        `X` is Close and `A` is Maximize in the KWin decoration button codes,
+        and there is no collapse box on either side.
+        """
+        self.assertEqual(self.parser.get(KWIN_SECTION, "ButtonsOnLeft"), "X")
+        self.assertEqual(self.parser.get(KWIN_SECTION, "ButtonsOnRight"), "A")
 
     def test_color_scheme_matches_the_scheme_file(self):
         """The package must apply the scheme this repository actually ships.
