@@ -98,6 +98,22 @@ class TestFilenameMustBeBare(unittest.TestCase):
             problems = module.check_references(root)
         assert_problem(self, problems, "../escape.png", "bare filename")
 
+    def test_bare_parent_directory_is_rejected_as_a_bare_name(self):
+        # A lone `..` names a directory, not a file, but ``Path("..").name``
+        # is "..", so the path-shape clause alone accepts it: only the
+        # explicit (".", "..") guard rejects it as non-bare. Without that
+        # guard the entry reaches the symlink-escape check, which reports it
+        # as pointing outside the directory and blames the wrong thing.
+        module = load_checker()
+        problems = check_references_in(
+            module,
+            ".. | https://example.test/e.png | label\n",
+        )
+        assert_problem(self, problems, "'..'", "must be a bare filename")
+        self.assertFalse(
+            any("symlink escape" in line for line in problems), problems
+        )
+
 
 class TestAbsoluteUrlSchemeShape(unittest.TestCase):
     """A source entry must be a scheme followed by a non-empty remainder.
