@@ -6,8 +6,19 @@ PYTHON ?= python3
 # (and, with no DESTDIR, run `install -d ""`). Fall back for an empty or
 # relative value; an absolute environment value is kept. A command-line
 # assignment (make install XDG_DATA_HOME=...) overrides this line as make
-# always lets it, so it is used as given.
-XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME)),$(XDG_DATA_HOME),$(HOME)/.local/share)
+# always lets it, so it is used as given. XDG_DATA_HOME_ENV keeps the raw
+# environment value so the guard below can tell an explicit absolute path from
+# the fallback.
+XDG_DATA_HOME_ENV := $(XDG_DATA_HOME)
+XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)
+
+# The fallback needs $HOME: with XDG_DATA_HOME unset or relative and HOME also
+# unset, $(HOME)/.local/share is /.local/share, so `make install` would write
+# into the filesystem root (and `make uninstall` delete from it). Refuse with a
+# diagnostic instead of guessing. $(1) names the target. An absolute
+# XDG_DATA_HOME -- including a command-line one -- resolves without $HOME and
+# passes.
+require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(HOME)" ]; then echo "$(1): XDG_DATA_HOME is unset or relative and HOME is unset; set XDG_DATA_HOME to an absolute path" >&2; exit 2; fi
 
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
@@ -89,6 +100,7 @@ FLOCK_CONFLICT_EXIT := 75
 run_locked = flock -w $(FLOCK_TIMEOUT) -E $(FLOCK_CONFLICT_EXIT) "$(DATA_HOME)" $(MAKE) --no-print-directory $(1) || { status=$$?; if [ $$status -eq $(FLOCK_CONFLICT_EXIT) ]; then echo "$(2): gave up after $(FLOCK_TIMEOUT)s waiting for the $(DATA_HOME) lock; another install or uninstall holds it" >&2; fi; exit $$status; }
 
 install:
+	@$(call require_data_home,install)
 	@install -d "$(DATA_HOME)"
 	@$(call run_locked,_install,install)
 
@@ -112,6 +124,7 @@ _install:
 # EXIT trap, so remove them here too instead of leaking them past uninstall.
 # `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
+	@$(call require_data_home,uninstall)
 	@install -d "$(DATA_HOME)"
 	@$(call run_locked,_uninstall,uninstall)
 

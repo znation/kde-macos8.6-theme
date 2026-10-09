@@ -338,6 +338,27 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         out = self._install_dry_run("/custom/share")
         self.assertIn('install -d "/custom/share"', out)
 
+    def test_unset_home_without_an_absolute_data_home_is_refused(self):
+        # The fallback is $HOME/.local/share, so with HOME unset it becomes
+        # /.local/share at the filesystem root. Both targets must refuse
+        # rather than write there or delete from it. XDG_DATA_HOME is dropped
+        # from the environment (not passed on the command line), so the
+        # fallback -- and the guard -- actually run.
+        env = dict(os.environ)
+        env.pop("HOME", None)
+        env.pop("XDG_DATA_HOME", None)
+        for target in ("install", "uninstall"):
+            with self.subTest(target=target):
+                result = theme_install.run(
+                    ["make", target],
+                    cwd=theme_install.ROOT,
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                )
+                self.assertNotEqual(result.returncode, 0, result.stdout)
+                self.assertIn("HOME is unset", result.stderr)
+
 
 class TestCheckPattern(unittest.TestCase):
     """`make check` defaults to the whole suite and accepts a narrowing glob.
