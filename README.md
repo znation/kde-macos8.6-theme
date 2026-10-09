@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: three artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/`, and the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, and scroll bar widgets, plus the dialog / applet-popup window body); no window-decoration or splash assets exist yet.
+Pre-alpha: three artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/`, and the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, scroll bar, and menu/popup body widgets, plus the dialog / applet-popup window body); no window-decoration or splash assets exist yet.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -40,7 +40,9 @@ compatibility dot), `widgets/lineedit.svg` (the white sunken field for
 `TextField`/`TextArea`/`SpinBox`), `widgets/listitem.svg` (the flat #CCCCFF
 selection row for list and applet item delegates), and `widgets/scrollbar.svg` (the
 raised grey thumb and flat grey trough for `PlasmaComponents.ScrollBar`). The package
-also ships `dialogs/background.svg` (the raised grey Platinum window body
+also ships `widgets/background.svg` (the flat white Platinum body for
+`PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers) and
+`dialogs/background.svg` (the raised grey Platinum window body
 `PlasmaCore.Dialog` and `PlasmaCore.AppletPopup` draw, replacing Breeze's
 translucent rounded rectangle). `make
 uninstall` removes the three installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/` and `desktoptheme/`

@@ -16,7 +16,11 @@ screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveor
 and there is no icon, cursor, or Qt widget-style theme either. The widget sequence should not be
 treated as the whole of the prompt until these surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum menu / popup background (`widgets/background.svg`) for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum menu / popup background (`widgets/background.svg`) for the desktop theme (done 2026-10-08)
 
 **Planned 2026-10-08 by plan.** The follow-up the done dialog/background plan left
 unplanned. Independent of every done widget plan: it adds one artwork file to the
@@ -108,8 +112,6 @@ rounded `background.svgz`.
   `""`), matching the flat Platinum look.
 
 **Docs.** README.md's status block and Installing inventory name `widgets/background.svg`.
-
-## Done
 
 ### Mac OS 8.6 Platinum dialog / applet-popup background for the desktop theme (done 2026-10-08)
 
