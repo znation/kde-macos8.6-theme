@@ -676,6 +676,31 @@ def nine_slice_hint_geometry(prefixes, border, size):
     return geometry
 
 
+def nine_slice_tile_sizes(canvas_w, canvas_h, left, right, top, bottom):
+    """Return the ``(width, height)`` of each of a nine-slice's nine tiles.
+
+    *left*, *right*, *top* and *bottom* are the four border thicknesses and
+    the canvas is *canvas_w* x *canvas_h*. Each corner tile is border x
+    border; each edge tile spans the canvas between its two opposite borders
+    and is one border thick; the centre is the canvas inside all four
+    borders. Keys are the tile names (``top``, ``topleft``, ...) that the
+    margin-hint ids and the slice group ids share.
+    """
+    edge_w = canvas_w - left - right
+    edge_h = canvas_h - top - bottom
+    return {
+        "top": (edge_w, top),
+        "bottom": (edge_w, bottom),
+        "left": (left, edge_h),
+        "right": (right, edge_h),
+        "center": (edge_w, edge_h),
+        "topleft": (left, top),
+        "topright": (right, top),
+        "bottomleft": (left, bottom),
+        "bottomright": (right, bottom),
+    }
+
+
 _TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")
 
 
@@ -781,20 +806,9 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes):
         # edge is the canvas size (the same tie `assert_root_canvas` makes).
         canvas_w = int(right[0]) + right_w
         canvas_h = int(bottom[1]) + bottom_h
-        edge_w = canvas_w - left_w - right_w
-        edge_h = canvas_h - top_h - bottom_h
-        # (width, height) of each tile region.
-        regions = {
-            "top": (edge_w, top_h),
-            "bottom": (edge_w, bottom_h),
-            "left": (left_w, edge_h),
-            "right": (right_w, edge_h),
-            "center": (edge_w, edge_h),
-            "topleft": (left_w, top_h),
-            "topright": (right_w, top_h),
-            "bottomleft": (left_w, bottom_h),
-            "bottomright": (right_w, bottom_h),
-        }
+        regions = nine_slice_tile_sizes(
+            canvas_w, canvas_h, left_w, right_w, top_h, bottom_h
+        )
         for name, (width, height) in regions.items():
             region = {
                 (px, py) for py in range(height) for px in range(width)

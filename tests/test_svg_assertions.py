@@ -24,6 +24,7 @@ from svg_assertions import (
     flat_face_corners,
     nine_slice_hint_geometry,
     nine_slice_margins,
+    nine_slice_tile_sizes,
     path_arcs,
     pixel_map,
     rect_geometry,
@@ -275,6 +276,45 @@ class TestNineSliceHintGeometry(unittest.TestCase):
                 "hint-tile-center": ("3", "3", "6", "6"),
                 **nine_slice_margins("normal", 3, 6),
                 **nine_slice_margins("pressed", 3, 6),
+            },
+        )
+
+
+class TestNineSliceTileSizes(unittest.TestCase):
+    def test_derives_each_tile_from_the_borders_and_canvas(self):
+        # assert_slices_stay_within_their_tiles and the list-item test both
+        # build their tile map here, so a wrong edge or centre size would make
+        # both pin the wrong regions. The 12x12 canvas with 4px borders matches
+        # the _HINTS fixture: every tile is 4x4.
+        self.assertEqual(
+            nine_slice_tile_sizes(12, 12, 4, 4, 4, 4),
+            {
+                "top": (4, 4),
+                "bottom": (4, 4),
+                "left": (4, 4),
+                "right": (4, 4),
+                "center": (4, 4),
+                "topleft": (4, 4),
+                "topright": (4, 4),
+                "bottomleft": (4, 4),
+                "bottomright": (4, 4),
+            },
+        )
+        # Distinct borders (left 2, right 4, top 3, bottom 5 on a 16x10 canvas)
+        # must stretch each edge tile by canvas minus its two opposite borders,
+        # not to a shared size.
+        self.assertEqual(
+            nine_slice_tile_sizes(16, 10, 2, 4, 3, 5),
+            {
+                "top": (10, 3),
+                "bottom": (10, 5),
+                "left": (2, 2),
+                "right": (4, 2),
+                "center": (10, 2),
+                "topleft": (2, 3),
+                "topright": (4, 3),
+                "bottomleft": (2, 5),
+                "bottomright": (4, 5),
             },
         )
 

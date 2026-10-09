@@ -14,6 +14,7 @@ from svg_assertions import (
     assert_tiles_placed_by_margins,
     attribute_values,
     nine_slice_hint_geometry,
+    nine_slice_tile_sizes,
     pixel_map,
     rect_geometry,
     render_slices,
@@ -60,13 +61,10 @@ class TestListItem(unittest.TestCase):
         # 0.01-opacity style), so render_slices reads it as None.
         slices = render_slices(ET.parse(LISTITEM_SVG))
         border, tile = 3, 6
-        sizes = {
-            "center": (tile, tile),
-            "top": (tile, border), "bottom": (tile, border),
-            "left": (border, tile), "right": (border, tile),
-            "topleft": (border, border), "topright": (border, border),
-            "bottomleft": (border, border), "bottomright": (border, border),
-        }
+        sizes = nine_slice_tile_sizes(
+            tile + 2 * border, tile + 2 * border,
+            border, border, border, border,
+        )
         for prefix, colour in (("pressed", "#CCCCFF"), ("normal", None)):
             for name, (width, height) in sizes.items():
                 expected = pixel_map((colour,) * (width * height), width, height)
