@@ -9,7 +9,6 @@ from nine_slice_case import NineSliceCase
 from platinum_palette import PLATINUM_FILLS
 from svg_assertions import (
     assert_center_tile_is,
-    assert_slice_ids_present,
     assert_slice_pixels,
     attribute_values,
     pixel_map,
@@ -40,11 +39,8 @@ PANEL_EDGE_PIXELS = {
 class TestPanelBackground(NineSliceCase, unittest.TestCase):
     SVG_PATH = PANEL_SVG
 
-    def test_nine_slice_ids_present(self):
-        assert_slice_ids_present(self, self.tree, [""])
-
     def test_panel_background_hint_geometry(self):
-        # `test_hint_ids_present` pins only the hint ids, so a margin or inset
+        # `test_slice_ids_present` pins only the hint ids, so a margin or inset
         # rect with the wrong position or size passes it. KSvg reads this
         # geometry to size the menu bar's nine-slice, so pin each hint.
         self.assertEqual(

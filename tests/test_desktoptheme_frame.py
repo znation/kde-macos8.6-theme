@@ -5,18 +5,14 @@ from __future__ import annotations
 import os
 import tempfile
 import unittest
-import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import DTHEME_ID, FRAME_SVG
+from nine_slice_case import NineSliceCase
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
     assert_face_corners,
     assert_hint_geometry,
-    assert_no_script_elements,
-    assert_slice_ids_present,
-    assert_slices_stay_within_their_tiles,
-    assert_tiles_placed_by_margins,
     face_edge_bands,
     flat_face_corners,
     RAISED_FACE_CORNERS,
@@ -52,43 +48,27 @@ CORNER_PIXELS = {
 }
 
 
-class TestFrame(unittest.TestCase):
-    def test_frame_svg_contract(self):
-        tree = ET.parse(FRAME_SVG)
-        assert_slice_ids_present(self, tree, FRAME_PREFIXES)
+class TestFrame(NineSliceCase, unittest.TestCase):
+    SVG_PATH = FRAME_SVG
+    PREFIXES = FRAME_PREFIXES
+
+    def test_frame_palette(self):
         # Read the raw file for the palette: the frame's hints deliberately
         # avoid the Platinum colours, so every hit here comes from the artwork.
         with open(FRAME_SVG, encoding="utf-8") as handle:
             text = handle.read()
         for colour in ("#DDDDDD", "#FFFFFF", "#999999", "#000000"):
             self.assertIn(colour, text)
-        assert_no_script_elements(self, tree)
 
     def test_frame_hint_geometry(self):
-        # `test_frame_svg_contract` pins only the hint ids, so a margin hint
+        # `test_slice_ids_present` pins only the hint ids, so a margin hint
         # naming the wrong tile size or border passes it. KSvg reads this
         # geometry to lay out the nine-slice, so pin each state's margins and
         # the shared centre tile.
-        assert_hint_geometry(self, ET.parse(FRAME_SVG), FRAME_PREFIXES, 3, 6)
-
-    def test_frame_tiles_placed_by_margins(self):
-        # The pixel tests composite each slice from its rects but ignore the
-        # group's translate, so a tile translated off its slice draws from the
-        # wrong canvas region and still passes. Pin every state's tile origins
-        # against its margin hints.
-        assert_tiles_placed_by_margins(self, ET.parse(FRAME_SVG), FRAME_PREFIXES)
-
-    def test_frame_tiles_stay_within_their_margins(self):
-        # The edge/corner pixel tests composite each slice but read only points
-        # inside its tile, so an oversized rect spilling into the neighbouring
-        # canvas region -- which KSvg samples into that adjacent tile --
-        # passes. Pin every slice to the tile region its hints define.
-        assert_slices_stay_within_their_tiles(
-            self, ET.parse(FRAME_SVG), FRAME_PREFIXES
-        )
+        assert_hint_geometry(self, self.tree, FRAME_PREFIXES, 3, 6)
 
     def test_frame_corner_bevels_turn_the_corner(self):
-        slices = render_slices(ET.parse(FRAME_SVG))
+        slices = render_slices(self.tree)
         for prefix, corners in CORNER_PIXELS.items():
             assert_face_corners(self, slices, prefix, corners)
 
@@ -100,7 +80,7 @@ class TestFrame(unittest.TestCase):
         # should be and passes every existing test. Pin every plain-corner
         # pixel: the face plus the 1px black outline on the two outer edges,
         # with no bevel.
-        slices = render_slices(ET.parse(FRAME_SVG))
+        slices = render_slices(self.tree)
         assert_face_corners(self, slices, "plain", flat_face_corners("#DDDDDD"))
 
     def test_frame_edge_bevels(self):
@@ -110,7 +90,7 @@ class TestFrame(unittest.TestCase):
         # the shadow colour (or a plain edge that grew a bevel) passes every
         # existing test. Pin each edge's pixels from its outer edge in, and
         # each state's centre tile to the face.
-        slices = render_slices(ET.parse(FRAME_SVG))
+        slices = render_slices(self.tree)
         # (outer outline, bevel, inner face) read from the slice's outer edge
         # inward; plain has no bevel, so its middle band is the face.
         directions = {"plain": "flat", "raised": "raised", "sunken": "sunken"}

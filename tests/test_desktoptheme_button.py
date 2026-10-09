@@ -3,20 +3,16 @@
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import BUTTON_SVG
+from nine_slice_case import NineSliceCase
 from platinum_palette import PLATINUM_FILLS
 from svg_assertions import (
     arc_center,
     assert_center_tile_is,
     assert_edge_bevels,
     assert_hint_geometry,
-    assert_no_script_elements,
-    assert_slice_ids_present,
     assert_slice_pixels,
-    assert_slices_stay_within_their_tiles,
-    assert_tiles_placed_by_margins,
     attribute_values,
     children_named,
     elements_by_id,
@@ -30,51 +26,31 @@ from svg_assertions import (
 BUTTON_PREFIXES = ("normal", "pressed", "focus")
 
 
-class TestButton(unittest.TestCase):
-    def test_button_slice_ids(self):
-        assert_slice_ids_present(self, ET.parse(BUTTON_SVG), BUTTON_PREFIXES)
+class TestButton(NineSliceCase, unittest.TestCase):
+    SVG_PATH = BUTTON_SVG
+    PREFIXES = BUTTON_PREFIXES
 
     def test_button_hint_geometry(self):
-        # `test_button_slice_ids` pins only the hint ids, so a margin hint
+        # `test_slice_ids_present` pins only the hint ids, so a margin hint
         # naming the wrong tile size or border passes it. KSvg reads this
         # geometry to lay out the nine-slice, and normal/pressed use a 3px
         # border while focus uses 2px, so pin every state's margins and the
         # shared centre tile.
         assert_hint_geometry(
             self,
-            ET.parse(BUTTON_SVG),
+            self.tree,
             ("normal", "pressed"),
             3,
             6,
             nine_slice_margins("focus", 2, 8),
         )
 
-    def test_button_tiles_placed_by_margins(self):
-        # `test_button_hint_geometry` pins the margins but not the artwork's
-        # `transform`s, and `render_slices` ignores them; a tile translated off
-        # its slice would draw from the wrong canvas region. Focus uses a 2px
-        # border, so its centre sits at (2,2), not the shared hint's (3,3).
-        assert_tiles_placed_by_margins(self, ET.parse(BUTTON_SVG), BUTTON_PREFIXES)
-
-    def test_button_tiles_stay_within_their_margins(self):
-        # The edge/corner/centre pixel tests read only points inside each tile,
-        # so a rect wider or taller than its tile spills into the neighbouring
-        # canvas region -- which KSvg samples into that adjacent tile -- and
-        # still passes. Pin every slice to the tile region its hints define.
-        assert_slices_stay_within_their_tiles(
-            self, ET.parse(BUTTON_SVG), BUTTON_PREFIXES
-        )
-
     def test_button_colours(self):
         # Read the parsed artwork's fill attributes, not the raw file: the
         # header comment and the hint rects (which set colour through `style`)
         # would otherwise make a text search pass without any Platinum grey.
-        tree = ET.parse(BUTTON_SVG)
-        fills = attribute_values(tree, "fill")
+        fills = attribute_values(self.tree, "fill")
         self.assertEqual(fills, PLATINUM_FILLS)
-
-    def test_no_script_elements(self):
-        assert_no_script_elements(self, ET.parse(BUTTON_SVG))
 
     def test_button_bevel_direction(self):
         # `test_button_colours` sees the same four fills whichever way the
@@ -82,7 +58,7 @@ class TestButton(unittest.TestCase):
         # the direction: normal is #FFFFFF inside top/left and #999999 inside
         # bottom/right, and pressed is the exact inverse. Composite the edge
         # slices (their rects) and read the corner paths' document order.
-        slices = render_slices(ET.parse(BUTTON_SVG))
+        slices = render_slices(self.tree)
         # (outer outline, bevel, inner face), from the slice's outer edge in.
         outward = {
             "normal-top": ("#000000", "#FFFFFF", "#DDDDDD"),
@@ -107,8 +83,7 @@ class TestButton(unittest.TestCase):
         # The corner paths carry no rects, so `render_slices` cannot composite
         # them; pin the order they are painted in instead: the black outline,
         # the corner's bevel colour, then the face.
-        tree = ET.parse(BUTTON_SVG)
-        by_id = elements_by_id(tree)
+        by_id = elements_by_id(self.tree)
         corners = {
             "normal-topleft": ("#000000", "#FFFFFF", "#DDDDDD"),
             "normal-topright": ("#000000", "#FFFFFF", "#999999", "#DDDDDD"),
@@ -151,8 +126,7 @@ class TestButton(unittest.TestCase):
             "focus-bottomleft": ((2, 0), (2, 1)),
             "focus-bottomright": ((0, 0), (2, 1)),
         }
-        tree = ET.parse(BUTTON_SVG)
-        by_id = elements_by_id(tree)
+        by_id = elements_by_id(self.tree)
         for name, (center, radii) in expected.items():
             entries = [
                 entry
@@ -180,7 +154,7 @@ class TestButton(unittest.TestCase):
         # rect narrowed to one pixel -- an outline or bevel missing along most
         # of the edge -- still passes. The frame and lineedit edge tests pin
         # every pixel; do the same for the button's normal/pressed bands.
-        slices = render_slices(ET.parse(BUTTON_SVG))
+        slices = render_slices(self.tree)
         # (outer outline, bevel, inner face) for top/left, read from the
         # slice's outer edge in; bottom/right mirror it, with the outline
         # still on the outer edge and the bevel colour swapped.
@@ -194,7 +168,7 @@ class TestButton(unittest.TestCase):
         # recoloured to another Platinum grey (#FFFFFF or #999999) passes it,
         # and neither bevel test reads the centre. The centre is the button
         # face for both states, so pin every pixel.
-        slices = render_slices(ET.parse(BUTTON_SVG))
+        slices = render_slices(self.tree)
         for name in ("normal-center", "pressed-center"):
             assert_center_tile_is(self, slices, name, "#DDDDDD", size=6)
 
@@ -206,7 +180,7 @@ class TestButton(unittest.TestCase):
         # pinning the pixels keeps the ring from sliding to the inner pixel,
         # being recoloured to another Platinum grey, or the centre from being
         # filled in.
-        slices = render_slices(ET.parse(BUTTON_SVG))
+        slices = render_slices(self.tree)
         expected = {
             "focus-top": {(x, 0): "#000000" for x in range(8)},
             "focus-bottom": {(x, 1): "#000000" for x in range(8)},
@@ -219,8 +193,7 @@ class TestButton(unittest.TestCase):
 
         # The rounded corners are paths, so `render_slices` cannot composite
         # them; pin that each carries exactly the one black ring path.
-        tree = ET.parse(BUTTON_SVG)
-        by_id = elements_by_id(tree)
+        by_id = elements_by_id(self.tree)
         for name in (
             "focus-topleft", "focus-topright",
             "focus-bottomleft", "focus-bottomright",

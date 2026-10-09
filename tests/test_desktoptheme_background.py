@@ -10,7 +10,6 @@ from platinum_palette import BLACK, WHITE
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
-    assert_slice_ids_present,
     attribute_values,
     render_slices,
 )
@@ -19,11 +18,8 @@ from svg_assertions import (
 class TestBackground(NineSliceCase, unittest.TestCase):
     SVG_PATH = BACKGROUND_SVG
 
-    def test_background_slice_ids(self):
-        assert_slice_ids_present(self, self.tree, [""])
-
     def test_background_hint_geometry(self):
-        # `test_background_slice_ids` pins only the hint ids, so a margin or
+        # `test_slice_ids_present` pins only the hint ids, so a margin or
         # inset rect with the wrong position or size passes it while KSvg lays
         # the menu body out wrong. Pin every hint: a 3px border around a 10px
         # centre tile on the 16x16 canvas, plus the zero-size inset rects.
