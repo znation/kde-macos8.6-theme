@@ -6,11 +6,10 @@ import unittest
 
 from desktoptheme_paths import DIALOG_BACKGROUND_SVG
 from nine_slice_case import NineSliceCase
-from platinum_palette import FACE, PLATINUM_FILLS
+from platinum_palette import FACE, assert_fill_palette
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
-    attribute_values,
     render_slices,
 )
 
@@ -41,10 +40,7 @@ class TestDialogBackground(NineSliceCase, unittest.TestCase):
     def test_dialog_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the
         # artwork palette: face, outline, bevel highlight and bevel shadow.
-        self.assertEqual(
-            attribute_values(self.tree, "fill"),
-            PLATINUM_FILLS,
-        )
+        assert_fill_palette(self, self.tree)
 
 
 if __name__ == "__main__":

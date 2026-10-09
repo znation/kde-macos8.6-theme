@@ -6,19 +6,17 @@ import unittest
 
 from desktoptheme_paths import SLIDER_SVG
 from nine_slice_case import NineSliceCase
-from platinum_palette import FACE, PLATINUM_FILLS
+from platinum_palette import FACE, TROUGH, assert_fill_palette
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
     assert_slice_pixels,
     assert_unique_ids,
-    attribute_values,
     render_slices,
 )
 
 
 GROOVE = "groove"
-TROUGH = "#EEEEEE"
 
 # The two handle groups are id-bearing but are not nine-slice tiles, so they
 # sit outside the margin-hint layout and must be pinned at the origin.
@@ -103,10 +101,7 @@ class TestSlider(NineSliceCase, unittest.TestCase):
         # The hints use `style`, so the parsed `fill` set is exactly the
         # artwork palette: trough, thumb face, outline, bevel highlight and
         # bevel shadow.
-        self.assertEqual(
-            attribute_values(self.tree, "fill"),
-            PLATINUM_FILLS | {TROUGH},
-        )
+        assert_fill_palette(self, self.tree, {TROUGH})
 
 
 if __name__ == "__main__":

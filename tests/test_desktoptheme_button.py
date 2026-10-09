@@ -6,14 +6,13 @@ import unittest
 
 from desktoptheme_paths import BUTTON_SVG
 from nine_slice_case import NineSliceCase
-from platinum_palette import PLATINUM_FILLS
+from platinum_palette import assert_fill_palette
 from svg_assertions import (
     arc_center,
     assert_center_tile_is,
     assert_edge_bevels,
     assert_hint_geometry,
     assert_slice_pixels,
-    attribute_values,
     children_named,
     elements_by_id,
     face_edge_bands,
@@ -49,8 +48,7 @@ class TestButton(NineSliceCase, unittest.TestCase):
         # Read the parsed artwork's fill attributes, not the raw file: the
         # header comment and the hint rects (which set colour through `style`)
         # would otherwise make a text search pass without any Platinum grey.
-        fills = attribute_values(self.tree, "fill")
-        self.assertEqual(fills, PLATINUM_FILLS)
+        assert_fill_palette(self, self.tree)
 
     def test_button_bevel_direction(self):
         # `test_button_colours` sees the same four fills whichever way the

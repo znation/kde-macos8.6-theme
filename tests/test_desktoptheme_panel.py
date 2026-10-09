@@ -6,11 +6,10 @@ import unittest
 
 from desktoptheme_paths import PANEL_SVG
 from nine_slice_case import NineSliceCase
-from platinum_palette import PLATINUM_FILLS
+from platinum_palette import assert_fill_palette
 from svg_assertions import (
     assert_center_tile_is,
     assert_slice_pixels,
-    attribute_values,
     pixel_map,
     rect_geometry,
     render_slices,
@@ -62,8 +61,7 @@ class TestPanelBackground(NineSliceCase, unittest.TestCase):
         # Read the parsed artwork's fill attributes, not the raw file: the
         # header comment names all four colours, so a text search would pass
         # even if the artwork used none of them.
-        fills = attribute_values(self.tree, "fill")
-        self.assertEqual(fills, PLATINUM_FILLS)
+        assert_fill_palette(self, self.tree)
 
     def test_panel_background_pixels(self):
         # `test_platinum_colours_present` pins only the set of fills, so a
