@@ -122,8 +122,7 @@ class TestSubprocessTimeout(unittest.TestCase):
         """
         process = process_runner.start(
             [sys.executable, "-c", "import time; time.sleep(30)"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         )
         with _short_subprocess_timeout():
             with self.assertRaises(subprocess.TimeoutExpired):
@@ -131,6 +130,26 @@ class TestSubprocessTimeout(unittest.TestCase):
         self._assert_process_dies(
             process.pid, "child survived finish()'s timeout"
         )
+
+    def test_start_capture_output_pipes_the_streams(self):
+        """`start` must expand `capture_output` into the two `Popen` pipes.
+
+        `run` and `running` forward `capture_output` to `start`, so a child
+        that prints on both streams must have them captured; a `start` that
+        ignored the flag would inherit the suite's fds and `finish` would
+        report `None` for both.
+        """
+        process = process_runner.start(
+            [
+                sys.executable,
+                "-c",
+                "import sys; print('out'); print('err', file=sys.stderr)",
+            ],
+            capture_output=True,
+        )
+        stdout, stderr = process_runner.finish(process)
+        self.assertEqual(stdout, b"out\n")
+        self.assertEqual(stderr, b"err\n")
 
     def _kill_escaped(self, pidfile):
         """SIGKILL the escaped grandchild whose pid *pidfile* holds, if any."""
@@ -172,8 +191,7 @@ class TestSubprocessTimeout(unittest.TestCase):
             )
             process = process_runner.start(
                 [sys.executable, "-c", child, pidfile, readyfile, grandchild],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
             )
             try:
                 # The grandchild writes `readyfile` only after setsid(), so
@@ -218,8 +236,7 @@ class TestSubprocessTimeout(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             with process_runner.running(
                 [sys.executable, "-c", "import time; time.sleep(30)"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
             ) as process:
                 raise RuntimeError("poll failed")
         self.assertIsNotNone(process.poll())
@@ -234,8 +251,7 @@ class TestSubprocessTimeout(unittest.TestCase):
         """
         with process_runner.running(
             [sys.executable, "-c", "pass"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         ) as process:
             process_runner.finish(process)
         self.assertEqual(process.returncode, 0)
@@ -253,8 +269,7 @@ class TestSubprocessTimeout(unittest.TestCase):
         """
         with process_runner.running(
             [sys.executable, "-c", "pass"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
         ) as process:
             deadline = time.monotonic() + 5.0
             while process.poll() is None and time.monotonic() < deadline:

@@ -37,9 +37,14 @@ def start(argv, **kwargs):
 
     A test that must observe a child while it runs starts it here instead of
     with `subprocess.Popen` directly, so `finish` can kill the child's whole
-    process group when it outlives its timeout. `start_new_session` is forced,
-    not defaulted, so that group is never the suite's own.
+    process group when it outlives its timeout. `capture_output` is expanded
+    here into the two pipes `Popen` takes directly, so `start` and `running`
+    accept it as `run` does. `start_new_session` is forced, not defaulted, so
+    that group is never the suite's own.
     """
+    if kwargs.pop("capture_output", False):
+        kwargs.setdefault("stdout", subprocess.PIPE)
+        kwargs.setdefault("stderr", subprocess.PIPE)
     kwargs["start_new_session"] = True
     return subprocess.Popen(argv, **kwargs)
 
@@ -119,13 +124,9 @@ def run(argv, **kwargs):
     `flock ... make _install`: `subprocess.run`'s timeout SIGKILLs only the
     outer `make`, so the inner make and flock survive as orphans -- still
     running against the throwaway DESTDIR and still holding the data-home
-    lock. `capture_output` is expanded here because `Popen` does not take it
-    directly.
+    lock. `capture_output` is accepted as for `start`.
     """
     timeout = kwargs.pop("timeout", SUBPROCESS_TIMEOUT)
-    if kwargs.pop("capture_output", False):
-        kwargs.setdefault("stdout", subprocess.PIPE)
-        kwargs.setdefault("stderr", subprocess.PIPE)
     process = start(argv, **kwargs)
     stdout, stderr = finish(process, timeout)
     return subprocess.CompletedProcess(
