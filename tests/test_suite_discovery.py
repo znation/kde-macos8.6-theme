@@ -10,7 +10,12 @@ the loader and fails naming the ones that collect nothing.
 Helper modules that hold shared cases but are not discovered themselves use the
 repository's other naming conventions (``*_fixtures.py``, ``*_case.py``,
 ``*_assertions.py``, ``package_metadata.py``), so they do not match ``test*.py``
-and are not reported here.
+and are not reported by the check above.
+
+The opposite mistake is guarded too: a file that defines test cases but does
+not match ``test*.py`` (say ``png_checks.py``) is never imported by discovery,
+so its tests silently never run. The second check loads every other
+``tests/*.py`` file and fails naming any that collects test cases.
 """
 
 from __future__ import annotations
@@ -40,6 +45,41 @@ def test_module_names(directory):
         for filename in os.listdir(directory)
         if filename.endswith(".py") and fnmatch.fnmatch(filename, DISCOVERY_PATTERN)
     )
+
+
+def non_test_module_names(directory):
+    """Return the ``tests/*.py`` module names in *directory* the pattern misses.
+
+    These are the modules discovery does not import. The dunder names
+    (``__init__``) are excluded: they are package plumbing, not test modules,
+    and ``importlib`` cannot import ``__init__`` by that name. Only the
+    directory itself is listed, as in :func:`test_module_names`.
+    """
+    return sorted(
+        filename[: -len(".py")]
+        for filename in os.listdir(directory)
+        if filename.endswith(".py")
+        and not filename.startswith("__")
+        and not fnmatch.fnmatch(filename, DISCOVERY_PATTERN)
+    )
+
+
+def misnamed_test_modules(directory):
+    """Return the non-matching module names in *directory* that collect tests.
+
+    A module discovery does not import is only a problem when it defines test
+    cases: a helper that holds shared cases (a mixin) collects none and is
+    correctly left out. Each name is imported and loaded with the default
+    loader, and a module whose loaded suite has at least one case is reported,
+    so the check catches exactly the files whose tests never run.
+    """
+    loader = unittest.defaultTestLoader
+    misnamed = []
+    for name in non_test_module_names(directory):
+        module = importlib.import_module(name)
+        if loader.loadTestsFromModule(module).countTestCases() > 0:
+            misnamed.append(name)
+    return misnamed
 
 
 def modules_without_tests(directory):
@@ -76,6 +116,45 @@ class TestSuiteDiscovery(unittest.TestCase):
             "*_fixtures.py/_case.py convention): "
             + ", ".join(empty),
         )
+
+    def test_every_test_case_module_matches_the_discovery_pattern(self):
+        names = non_test_module_names(TESTS_DIR)
+        # Without this, a broken directory listing would make the assertion
+        # below pass vacuously (no modules checked, no misnamed ones found).
+        self.assertIn("repo_root", names)
+        misnamed = misnamed_test_modules(TESTS_DIR)
+        self.assertEqual(
+            misnamed,
+            [],
+            "these tests/*.py modules define test cases but do not match "
+            "`make check`'s test*.py discovery pattern, so their tests "
+            "silently never run; rename each to test_*.py (or move shared "
+            "cases to the repo's *_fixtures.py/_case.py convention): "
+            + ", ".join(misnamed),
+        )
+
+    def test_a_misnamed_test_module_is_reported(self):
+        # Prove the guard bites: a module that collects tests but is not
+        # named test*.py is exactly what
+        # test_every_test_case_module_matches_the_discovery_pattern must
+        # catch. Import it by bare name, then take it back out.
+        with tempfile.TemporaryDirectory() as tmp:
+            probe = os.path.join(tmp, "checks_guard_probe.py")
+            with open(probe, "w", encoding="utf-8") as handle:
+                handle.write(
+                    "import unittest\n\n"
+                    "class TestProbe(unittest.TestCase):\n"
+                    "    def test_ok(self):\n"
+                    "        self.assertTrue(True)\n"
+                )
+            sys.path.insert(0, tmp)
+            try:
+                self.assertEqual(
+                    misnamed_test_modules(tmp), ["checks_guard_probe"]
+                )
+            finally:
+                sys.path.remove(tmp)
+                sys.modules.pop("checks_guard_probe", None)
 
     def test_a_test_module_without_tests_is_reported(self):
         # Prove the guard bites: a matched module with no TestCase is exactly
