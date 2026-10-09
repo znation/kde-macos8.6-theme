@@ -61,3 +61,12 @@ class CliTestCase(unittest.TestCase):
         path = directory / name
         path.write_bytes(data)
         return str(path)
+
+    def _assert_usage_error(
+        self, result: subprocess.CompletedProcess, *needles: str
+    ) -> None:
+        """Assert *result* is a clean exit-2 usage error naming *needles*."""
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        for needle in needles:
+            self.assertIn(needle, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)

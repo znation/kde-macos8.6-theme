@@ -6,7 +6,6 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -35,15 +34,6 @@ class TestSampleCli(CliTestCase):
         """Write a 4x3 PNG whose pixel ``(x, y)`` is ``(x, y, x + y)``."""
         _, data = rgb_image(4, 3, lambda x, y: (x, y, x + y))
         return self._write(directory, "reference.png", data)
-
-    def _assert_usage_error(
-        self, result: subprocess.CompletedProcess, *needles: str
-    ) -> None:
-        """Assert *result* is a clean exit-2 usage error naming *needles*."""
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        for needle in needles:
-            self.assertIn(needle, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
 
     def test_script_entry_point(self):
         """The CLI still runs end to end as ``python3 tools/sample.py``.

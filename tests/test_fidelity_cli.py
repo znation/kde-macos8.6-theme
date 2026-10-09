@@ -95,15 +95,6 @@ class TestCli(CliTestCase):
         _, data = solid_rgb(1, 1)
         return self._write(Path(tmp.name), "reference.png", data)
 
-    def _assert_usage_error(
-        self, result: subprocess.CompletedProcess, *needles: str
-    ) -> None:
-        """Assert *result* is a clean exit-2 usage error naming *needles*."""
-        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        for needle in needles:
-            self.assertIn(needle, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
-
     def _assert_pass(self, result: subprocess.CompletedProcess) -> None:
         """Assert *result* is a clean exit-0 pass whose stdout says PASS."""
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
