@@ -69,6 +69,12 @@ def _case(method, metadata):
 
 
 class TestLoadMetadata(unittest.TestCase):
+    def _load_error(self, path):
+        """Assert `load_metadata` rejects *path* and return the raised ValueError."""
+        with self.assertRaises(ValueError) as caught:
+            load_metadata(path)
+        return caught.exception
+
     def test_reads_json(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "metadata.json"
@@ -95,13 +101,12 @@ class TestLoadMetadata(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "metadata.json"
             path.write_text('{\n  "KPlugin": ,\n}', encoding="utf-8")
-            with self.assertRaises(ValueError) as caught:
-                load_metadata(path)
-        message = str(caught.exception)
+            error = self._load_error(path)
+        message = str(error)
         self.assertIn(str(path), message)
         self.assertIn("invalid JSON", message)
         self.assertIn("line 2", message)
-        self.assertIsInstance(caught.exception.__cause__, json.JSONDecodeError)
+        self.assertIsInstance(error.__cause__, json.JSONDecodeError)
 
     def test_non_utf8_bytes_name_the_path_and_keep_the_detail(self):
         # A metadata.json saved in another encoding (say Latin-1) or corrupted
@@ -111,13 +116,12 @@ class TestLoadMetadata(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "metadata.json"
             path.write_bytes(b'{"Name": "Caf\xff"}')
-            with self.assertRaises(ValueError) as caught:
-                load_metadata(path)
-        message = str(caught.exception)
+            error = self._load_error(path)
+        message = str(error)
         self.assertIn(str(path), message)
         self.assertIn("UTF-8", message)
         self.assertIn("0xff", message)
-        self.assertIsInstance(caught.exception.__cause__, UnicodeDecodeError)
+        self.assertIsInstance(error.__cause__, UnicodeDecodeError)
 
     def test_non_object_json_names_the_type_and_path(self):
         # Valid JSON of the wrong top-level shape reaches the mixin's
@@ -133,9 +137,8 @@ class TestLoadMetadata(unittest.TestCase):
                 with tempfile.TemporaryDirectory() as tmp:
                     path = Path(tmp) / "metadata.json"
                     path.write_text(text, encoding="utf-8")
-                    with self.assertRaises(ValueError) as caught:
-                        load_metadata(path)
-                message = str(caught.exception)
+                    error = self._load_error(path)
+                message = str(error)
                 self.assertIn(decoded_type, message)
                 self.assertIn(str(path), message)
 
