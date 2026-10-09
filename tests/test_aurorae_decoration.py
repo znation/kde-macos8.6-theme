@@ -131,6 +131,19 @@ class ReferenceImageCase:
         skip_unless_materialized(self, REFERENCE, self.image_error)
         return png.pixel_at(self.image, x, y)
 
+    def reference_box(self, x0, y0, size=12):
+        """Return a *size* x *size* reference region as {(x, y): '#RRGGBB'}.
+
+        The keys are the region-local coordinates (0, 0)..(*size*-1,
+        *size*-1), so the map can be compared directly against a rendered
+        slice. Used for the two 12x12 button boxes.
+        """
+        return {
+            (x, y): _hex(self.reference_pixel(x0 + x, y0 + y))
+            for y in range(size)
+            for x in range(size)
+        }
+
 
 class TestMetadata(unittest.TestCase):
     def test_metadata_identifies_the_aurorae_package(self):
@@ -446,23 +459,19 @@ class TestCorners(ReferenceImageCase, unittest.TestCase):
 
 
 class TestButtons(ReferenceImageCase, unittest.TestCase):
+    # The zoom glyph: two horizontal #222222 bars at local y=5 and y=7
+    # spanning x=2..10.
+    ZOOM_GLYPH = frozenset((x, y) for x in range(2, 11) for y in (5, 7))
+
     def test_close_box_matches_reference(self):
-        expected = {
-            (x, y): _hex(self.reference_pixel(11 + x, 29 + y))
-            for y in range(12)
-            for x in range(12)
-        }
+        expected = self.reference_box(11, 29)
         slices = render_slices(ET.parse(CLOSE_SVG))
         self.assertEqual(slices["active-center"], expected)
 
     def test_zoom_box_matches_reference(self):
         # The reference's zoom box (x=343..354) differs from its close box: it
         # carries an inner #222222 glyph. Pin every pixel against the zoom box.
-        expected = {
-            (x, y): _hex(self.reference_pixel(343 + x, 29 + y))
-            for y in range(12)
-            for x in range(12)
-        }
+        expected = self.reference_box(343, 29)
         for path in (MAXIMIZE_SVG, RESTORE_SVG):
             with self.subTest(svg=os.path.basename(path)):
                 slices = render_slices(ET.parse(path))
@@ -479,8 +488,7 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
             for x in range(12)
             if zoom[(x, y)] != close[(x, y)]
         }
-        expected = {(x, y) for x in range(2, 11) for y in (5, 7)}
-        self.assertEqual(glyph, expected)
+        self.assertEqual(glyph, self.ZOOM_GLYPH)
         for x, y in sorted(glyph):
             self.assertEqual(
                 zoom[(x, y)],
@@ -509,12 +517,11 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
 
     def test_inactive_zoom_glyph_survives(self):
         close = render_slices(ET.parse(CLOSE_SVG))["inactive-center"]
-        expected = {(x, y) for x in range(2, 11) for y in (5, 7)}
         for path in (MAXIMIZE_SVG, RESTORE_SVG):
             with self.subTest(svg=os.path.basename(path)):
                 zoom = render_slices(ET.parse(path))["inactive-center"]
                 glyph = {point for point in zoom if zoom[point] != close[point]}
-                self.assertEqual(glyph, expected)
+                self.assertEqual(glyph, self.ZOOM_GLYPH)
 
     def test_button_svgs_are_self_contained(self):
         for path in (CLOSE_SVG, MAXIMIZE_SVG, RESTORE_SVG):
