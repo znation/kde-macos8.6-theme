@@ -75,6 +75,20 @@ class TestSvgRootCanvas(unittest.TestCase):
             with self.subTest(svg=name):
                 assert_root_canvas(self, ET.parse(path), width, height)
 
+    def test_registry_covers_every_shipped_svg(self):
+        # The canvas pin above only visits the SVGs listed in SVG_CANVASES, so
+        # a newly shipped SVG that is never added to the registry silently
+        # escapes the check and its canvas is unpinned. Derive the shipped set
+        # from the package on disk and require it to equal the registry, so
+        # adding or removing an SVG without updating SVG_CANVASES fails here.
+        registered = {path for _, path, _, _ in SVG_CANVASES}
+        shipped = set()
+        for dirpath, _, filenames in os.walk(PACKAGE):
+            for filename in filenames:
+                if filename.endswith(".svg"):
+                    shipped.add(os.path.join(dirpath, filename))
+        self.assertEqual(shipped, registered)
+
 
 class TestDefaultsWiring(unittest.TestCase):
     def test_defaults_select_the_desktop_theme(self):
