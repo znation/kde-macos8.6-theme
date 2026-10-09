@@ -8,6 +8,35 @@ unclear-invariant).
 
 ## Open
 
+### Scheduler keeps bugfix in rotation and defers other roles on a stale "feature/bugfix backlog open" verdict (found 2026-10-09)
+
+**Symptom:** The failure digest's "Fleet state changes" record five roles — `clean`, `security`,
+`perf`, `robustness`, `readme` — deferred with the identical reason "feature/bugfix backlog open",
+and its top loss cause by time is "0.3 h · $0.09 — 35 ticks: no_change on bugfix". But the
+harness's own actionable-backlog index (the one injected into this tick's prompt) names no
+feature or bugfix entry a role can act on: PLANS.md `## Planned` (lines 6-21) holds only the
+steward scope-drift note and `_None yet._`, and BUGS.md `## Open` holds only the render/capture
+entry whose `**Refused 2026-10-07 by bugfix**` note the bugfix loop skips. The scheduler verdict
+and the backlog index disagree.
+
+**How to reproduce:** Read the digest's "Fleet state changes" (five `deferred — feature/bugfix
+backlog open` lines), "Outcome by role" (`bugfix` 35 no_change) and "Top loss causes by time"
+(`no_change on bugfix`, 35 ticks, 0.3 h, $0.09); then read PLANS.md lines 6-21 and the BUGS.md
+`## Open` section and confirm neither has an entry any role can act on. Normalized cluster key:
+`no_change on bugfix`; fleet-state reason: `feature/bugfix backlog open`.
+
+**Suspected cause:** The scheduler decides "feature/bugfix backlog open" from the presence of
+entries in BUGS.md `## Open` / PLANS.md `## Planned` without honoring the `**Refused …**` marker,
+so a Refused-only `## Open` never reads as empty. Bugfix stays in rotation and returns `no_change`
+on every pass, while the lower-priority roles are held on the same false reason. Correlated merged
+commit: `faf0dda` (2026-10-08, "Record routing for the render/capture bug: a refused bug, not a
+plan") is the commit that left `## Open` with only the Refused entry; `c2b0481` (2026-10-09, the
+last real bugfix landing) is the last time `## Open` held work bugfix would take.
+
+**Next step:** Make the scheduler's backlog-open test treat an entry carrying a `Refused` note as
+not actionable (the bugfix loop already does), so a Refused-only `## Open` plus an empty
+`## Planned` reads as no backlog and the deferred roles resume.
+
 ### No automated Plasma render/capture step feeding the fidelity check (found 2026-10-07)
 
 **Symptom:** `tools/fidelity.py` can measure a candidate PNG against a reference, but nothing
