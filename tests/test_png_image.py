@@ -117,6 +117,33 @@ class TestPixelAt(unittest.TestCase):
             with self.subTest(x=x, y=y):
                 self.assertEqual(png.pixel_at(image, x, y), expected)
 
+    def test_rejects_non_integer_coordinates_naming_the_value(self):
+        # bool is an int subclass, so True/False passed the bounds comparison
+        # as 1/0 and silently read a different pixel; a float, str or None
+        # raised an opaque TypeError from the comparison ("'<=' not supported
+        # between instances of 'int' and 'str'") or the RGB index ("byte
+        # indices must be integers or slices, not float") that named neither
+        # the coordinate nor pixel_at. Require a genuine integer, as the
+        # Image dimensions already do, and name the offending value.
+        image = png.Image(2, 2, bytes(range(1, 13)))
+        for x, y, named in (
+            (True, 0, "x"),
+            (False, 0, "x"),
+            (1.0, 0, "x"),
+            ("1", 0, "x"),
+            (None, 0, "x"),
+            (0, True, "y"),
+            (0, 1.0, "y"),
+            (0, "0", "y"),
+        ):
+            with self.subTest(x=x, y=y):
+                message = error_message(
+                    self, ValueError, png.pixel_at, image, x, y
+                )
+                self.assertIn("must be an integer", message)
+                value = x if named == "x" else y
+                self.assertIn(f"{named}={value!r}", message)
+
     def test_rejects_coordinates_outside_the_image(self):
         # A coordinate outside the image must not be read: the RGB slice would
         # be empty, and an x past the row end would wrap to the next row and

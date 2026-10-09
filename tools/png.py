@@ -116,7 +116,19 @@ def pixel_at(image: Image, x: int, y: int) -> tuple[int, int, int]:
     and return the wrong pixel. Naming the coordinate and the image size turns
     that silent misread into a diagnostic. Sampling a reference screenshot's
     palette or metric value goes through this accessor.
+
+    Both coordinates must be genuine integers, checked as the :class:`Image`
+    dimensions are: ``bool`` is an ``int`` subclass, so ``True``/``False``
+    would pass the bounds comparison as 1/0 and silently read a different
+    pixel, while a float, string or ``None`` raised an opaque ``TypeError``
+    from the comparison or the RGB index that named neither the coordinate nor
+    this function.
     """
+    for name, value in (("x", x), ("y", y)):
+        if not is_plain_int(value):
+            raise ValueError(
+                f"pixel coordinate {name} must be an integer: {name}={value!r}"
+            )
     if not (0 <= x < image.width and 0 <= y < image.height):
         raise ValueError(
             f"pixel ({x}, {y}) is outside the {image.width}x{image.height} image"
