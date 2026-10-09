@@ -1,20 +1,19 @@
-"""Direct tests for tests/svg_assertions.py's assertion helpers.
+"""Direct tests for tests/svg_assertions.py's layout and pixel assertions.
 
 Every desktop-theme widget test reaches these helpers only over its own
 current artwork, so a helper that mis-orders a band, mirrors the wrong sides
 or drops the size would weaken all of them at once. These tests prove each
-assertion passes a correct layout and can actually fail a broken one, and pin
-the tree-validation guards (missing slice ids, duplicate ids, scripts, style
-elements, external references, canvas geometry).
+assertion passes a correct layout and can actually fail a broken one. The
+document-safety guards (scripts, style elements, external references,
+duplicate ids) have their own module, ``test_svg_assertions_safety.py``.
 """
 
 from __future__ import annotations
 
-import contextlib
 import unittest
 import xml.etree.ElementTree as ET
 
-from error_assertions import error_message
+from error_assertions import NoSubTest, assert_rejects
 from svg_assertions import (
     SLICE_IDS,
     assert_center_tile_is,
@@ -24,16 +23,12 @@ from svg_assertions import (
     assert_face_bevel,
     assert_face_corners,
     assert_hint_geometry,
-    assert_no_script_elements,
-    assert_no_external_references,
-    assert_no_style_elements,
     assert_root_canvas,
     assert_slice_ids_present,
     assert_slice_pixels,
     assert_slices_stay_within_their_tiles,
     assert_slices_uniform,
     assert_tiles_placed_by_margins,
-    assert_unique_ids,
     face_corners,
     face_edge_bands,
     pixel_map,
@@ -123,64 +118,6 @@ def _aliased_nine_slice_tree(alias_origins=None):
     return _svg_tree(body, width="12", height="12", viewBox="0 0 12 12")
 
 
-class _NoSubTest(unittest.TestCase):
-    """A real TestCase whose ``subTest`` is a no-op frame.
-
-    The structural guards report a bad slice through ``case.subTest``;
-    unittest records a subTest failure on the result and keeps going rather
-    than raising, so an ``assertRaises`` around the guard would never see it.
-    Dropping the subTest frame keeps the real ``assertEqual`` (which raises)
-    so the guard's failure is observable here.
-
-    The pixel guards compare whole ``{(x, y): colour}`` maps, and every use of
-    this stub is a deliberately broken map whose only observable is that the
-    guard raises. ``assertEqual`` on two dicts dispatches to
-    ``assertDictEqual``, whose failure path pretty-prints both maps and runs
-    them through difflib -- a large, pure-diagnostic cost these callers never
-    read. Compare without that diff; a mismatch still raises
-    ``AssertionError``, so the guard's failure stays observable.
-    """
-
-    def subTest(self, **kwargs):
-        return contextlib.nullcontext()
-
-    def assertDictEqual(self, d1, d2, msg=None):
-        self.assertIsInstance(d1, dict, "First argument is not a dictionary")
-        self.assertIsInstance(d2, dict, "Second argument is not a dictionary")
-        if d1 != d2:
-            self.fail(self._formatMessage(msg, "the maps differ"))
-
-
-def _assert_rejects(guard, *args, **kwargs):
-    """Assert *guard* rejects a broken input instead of accepting it.
-
-    A guard that reports a bad slice through ``case.subTest`` does not raise:
-    unittest records the failure and keeps going, so ``assertRaises`` would
-    never observe it. Giving the guard the ``_NoSubTest`` case drops the
-    subTest frame so the underlying assertion raises instead; a guard that
-    raises directly is unaffected. *args* and *kwargs* are the guard's own
-    parameters after ``case``.
-    """
-    case = _NoSubTest()
-    with case.assertRaises(AssertionError):
-        guard(case, *args, **kwargs)
-
-
-def _rejection_message(guard, *args, **kwargs):
-    """Return the AssertionError message *guard* raises for a broken input.
-
-    `_assert_rejects` proves a guard rejects an input; a test that also pins
-    what the diagnostic names needs the message. Like that helper this gives
-    the guard a ``_NoSubTest`` case, so a guard that reports through
-    ``case.subTest`` still raises. *args* and *kwargs* are the guard's own
-    parameters after ``case``.
-    """
-    case = _NoSubTest()
-    return error_message(
-        case, AssertionError, guard, case, *args, **kwargs
-    )
-
-
 class TestStructuralGuards(unittest.TestCase):
     def test_tiles_placed_by_margins_passes_a_correct_layout(self):
         assert_tiles_placed_by_margins(self, _nine_slice_tree(), [""])
@@ -188,7 +125,7 @@ class TestStructuralGuards(unittest.TestCase):
     def test_tiles_placed_by_margins_catches_a_misplaced_group(self):
         origins = dict(_ORIGINS)
         origins["top"] = (0, 0)
-        _assert_rejects(
+        assert_rejects(
             assert_tiles_placed_by_margins,
             _nine_slice_tree(origins=origins),
             [""],
@@ -201,7 +138,7 @@ class TestStructuralGuards(unittest.TestCase):
         # A rect one pixel wider than its tile spills into the neighbouring
         # canvas region, which KSvg samples into that tile; the guard must
         # report the overflow instead of silently accepting it.
-        _assert_rejects(
+        assert_rejects(
             assert_slices_stay_within_their_tiles,
             _nine_slice_tree(sizes={"top": (5, 4)}),
             [""],
@@ -218,7 +155,7 @@ class TestStructuralGuards(unittest.TestCase):
     def test_tiles_placed_by_margins_catches_a_misplaced_alias_tile(self):
         origins = dict(_ORIGINS)
         origins["top"] = (0, 0)
-        _assert_rejects(
+        assert_rejects(
             assert_tiles_placed_by_margins,
             _aliased_nine_slice_tree(alias_origins=origins),
             ["base", "alias"],
@@ -340,168 +277,6 @@ class TestSliceIdsPresent(unittest.TestCase):
                 _id_tree(("plain", "raised"), omit=("raised-top",)),
                 ["plain", "raised"],
             )
-
-
-class TestNoScriptElements(unittest.TestCase):
-    def test_passes_a_tree_without_a_script(self):
-        tree = _svg_tree('<rect id="center"/>')
-        assert_no_script_elements(self, tree)
-
-    def test_catches_a_script_after_another_element(self):
-        tree = _svg_tree(
-            '<rect id="center"/><script>alert(1)</script>'
-        )
-        with self.assertRaises(AssertionError):
-            assert_no_script_elements(self, tree)
-
-    def test_catches_a_script_nested_below_the_root(self):
-        # The guard walks every descendant, not just the root's children.
-        tree = _svg_tree(
-            '<g id="top"><g><script>alert(1)</script></g></g>'
-        )
-        with self.assertRaises(AssertionError):
-            assert_no_script_elements(self, tree)
-
-
-class TestNoStyleElements(unittest.TestCase):
-    def test_passes_a_tree_without_a_style_element(self):
-        # An inline `style` attribute is how every shipped SVG states its
-        # colours; only a `<style>` element is rejected.
-        tree = _svg_tree('<rect id="center" style="fill:#ff6600"/>')
-        assert_no_style_elements(self, tree)
-
-    def test_catches_a_style_element_naming_it(self):
-        tree = _svg_tree(
-            '<rect id="center"/><style>rect{fill:#ff6600}</style>'
-        )
-        self.assertIn(
-            "style",
-            _rejection_message(assert_no_style_elements, tree),
-        )
-
-    def test_catches_a_style_element_nested_below_the_root(self):
-        # The guard walks every descendant, not just the root's children.
-        tree = _svg_tree(
-            '<g id="top"><style>rect{fill:#ff6600}</style></g>'
-        )
-        with self.assertRaises(AssertionError):
-            assert_no_style_elements(self, tree)
-
-
-class TestNoExternalReferences(unittest.TestCase):
-    def test_passes_a_tree_with_no_references(self):
-        tree = _svg_tree('<rect id="center" style="fill:#ff6600"/>')
-        assert_no_external_references(self, tree)
-
-    def test_passes_a_same_document_fragment_reference(self):
-        # An internal `#id` reference stays inside the file, so it is allowed.
-        tree = _svg_tree('<use href="#center"/>')
-        assert_no_external_references(self, tree)
-
-    def test_catches_an_image_element(self):
-        tree = _svg_tree('<image href="panel.png"/>')
-        self.assertIn(
-            "image",
-            _rejection_message(assert_no_external_references, tree),
-        )
-
-    def test_catches_a_file_href_naming_the_value(self):
-        tree = _svg_tree('<use href="other.svg#center"/>')
-        self.assertIn(
-            "other.svg#center",
-            _rejection_message(assert_no_external_references, tree),
-        )
-
-    def test_catches_an_xlink_href(self):
-        # A declared xlink namespace makes ElementTree report the attribute as
-        # `{http://www.w3.org/1999/xlink}href`; the guard must strip it and
-        # still reject the file reference.
-        tree = _svg_tree(
-            '<use xlink:href="other.svg#center"/>',
-            **{"xmlns:xlink": "http://www.w3.org/1999/xlink"},
-        )
-        self.assertIn(
-            "other.svg#center",
-            _rejection_message(assert_no_external_references, tree),
-        )
-
-    def test_catches_a_data_uri_href(self):
-        # A `data:` URI is self-contained but still not an in-file #id, so the
-        # guard rejects it like any other non-fragment reference.
-        tree = _svg_tree('<use href="data:image/png;base64,AAAA"/>')
-        self.assertIn(
-            "data:",
-            _rejection_message(assert_no_external_references, tree),
-        )
-
-    def test_passes_an_in_file_url_reference(self):
-        # `fill="url(#id)"` names a same-document paint, so it is allowed.
-        tree = _svg_tree('<rect id="center" fill="url(#gradient)"/>')
-        assert_no_external_references(self, tree)
-
-    def test_passes_a_quoted_padded_url_reference(self):
-        tree = _svg_tree(
-            "<rect id=\"center\" fill=\"url( '#gradient' )\"/>"
-        )
-        assert_no_external_references(self, tree)
-
-    def test_catches_an_external_url_in_fill(self):
-        # A `url(...)` target that is not a `#id` names another file, which
-        # the copied install does not ship.
-        tree = _svg_tree(
-            '<rect id="center" fill="url(other.svg#gradient)"/>'
-        )
-        self.assertIn(
-            "other.svg#gradient",
-            _rejection_message(assert_no_external_references, tree),
-        )
-
-    def test_catches_an_external_url_in_an_inline_style(self):
-        tree = _svg_tree(
-            '<rect id="center" style="filter:url(other.svg#blur)"/>'
-        )
-        self.assertIn(
-            "other.svg#blur",
-            _rejection_message(assert_no_external_references, tree),
-        )
-
-    def test_catches_a_data_uri_url(self):
-        tree = _svg_tree(
-            '<rect id="center" fill="url(data:image/svg+xml,x)"/>'
-        )
-        self.assertIn(
-            "data:",
-            _rejection_message(assert_no_external_references, tree),
-        )
-
-
-class TestUniqueIds(unittest.TestCase):
-    def test_passes_a_tree_with_unique_ids(self):
-        tree = _svg_tree(
-            '<rect id="center"/><g id="top"><rect id="top-body"/></g>'
-        )
-        assert_unique_ids(self, tree)
-
-    def test_passes_a_tree_whose_elements_have_no_ids(self):
-        tree = _svg_tree("<rect/>")
-        assert_unique_ids(self, tree)
-
-    def test_catches_a_duplicate_id_naming_it(self):
-        tree = _svg_tree('<rect id="center"/><rect id="center"/>')
-        self.assertIn(
-            "center",
-            _rejection_message(assert_unique_ids, tree),
-        )
-
-    def test_catches_a_duplicate_id_nested_below_the_root(self):
-        # The guard walks every descendant, not just the root's children.
-        tree = _svg_tree(
-            '<rect id="center"/><g><rect id="center"/></g>'
-        )
-        self.assertIn(
-            "center",
-            _rejection_message(assert_unique_ids, tree),
-        )
 
 
 # Two margin rects whose far edges reach a 12x12 canvas. `assert_root_canvas`
@@ -647,7 +422,7 @@ class TestPixelAssertions(unittest.TestCase):
         # An extra pixel outside the 2x2 body must fail: a full-map compare
         # catches a resized or shifted slice that a colour check would miss.
         slices["center"][(2, 2)] = "#FFFFFF"
-        _assert_rejects(assert_slice_pixels, slices, "center", expected)
+        assert_rejects(assert_slice_pixels, slices, "center", expected)
 
     def test_slices_uniform_pins_every_pixel_and_rejects_a_break(self):
         colour = "#CCCCFF"
@@ -669,13 +444,13 @@ class TestPixelAssertions(unittest.TestCase):
         recoloured["pressed-center"] = pixel_map(
             ("#FFFFFF",) + (colour,) * 3, 2, 2
         )
-        _assert_rejects(assert_slices_uniform, recoloured, "pressed", colour)
+        assert_rejects(assert_slices_uniform, recoloured, "pressed", colour)
         # A missing slice must fail on the lookup rather than be skipped; the
         # key is read inside the subTest frame, so use the stub case to let
         # the KeyError surface.
         missing = dict(slices)
         del missing["pressed-topleft"]
-        case = _NoSubTest()
+        case = NoSubTest()
         with case.assertRaises(KeyError):
             assert_slices_uniform(case, missing, "pressed", colour)
 
@@ -684,7 +459,7 @@ class TestPixelAssertions(unittest.TestCase):
         slices = {"top": _horizontal_band(_EDGE_BAND, size)}
         assert_edge_band_pixels(self, slices, "top", "top", _EDGE_BAND, size)
         mirrored = tuple(reversed(_EDGE_BAND))
-        _assert_rejects(
+        assert_rejects(
             assert_edge_band_pixels, slices, "top", "top", mirrored, size
         )
 
@@ -693,7 +468,7 @@ class TestPixelAssertions(unittest.TestCase):
         slices = {"left": _vertical_band(_EDGE_BAND, size)}
         assert_edge_band_pixels(self, slices, "left", "left", _EDGE_BAND, size)
         mirrored = tuple(reversed(_EDGE_BAND))
-        _assert_rejects(
+        assert_rejects(
             assert_edge_band_pixels, slices, "left", "left", mirrored, size
         )
 
@@ -712,19 +487,19 @@ class TestPixelAssertions(unittest.TestCase):
         # `("top", "bottom", "left", "left")`) still fails.
         broken_bottom = _bevel_slices(outward, mirrored, size)
         broken_bottom["bottom"] = _horizontal_band(outward, size)
-        _assert_rejects(
+        assert_rejects(
             assert_edge_bevels, broken_bottom, "", outward, mirrored, size
         )
 
         broken_left = _bevel_slices(outward, mirrored, size)
         broken_left["left"] = _vertical_band(mirrored, size)
-        _assert_rejects(
+        assert_rejects(
             assert_edge_bevels, broken_left, "", outward, mirrored, size
         )
 
         broken_right = _bevel_slices(outward, mirrored, size)
         broken_right["right"] = _vertical_band(outward, size)
-        _assert_rejects(
+        assert_rejects(
             assert_edge_bevels, broken_right, "", outward, mirrored, size
         )
 
@@ -750,7 +525,7 @@ class TestPixelAssertions(unittest.TestCase):
         for index in range(9):
             broken = list(colours)
             broken[index] = "#FFFFFF"
-            _assert_rejects(
+            assert_rejects(
                 assert_corner_pixels,
                 {"topleft": pixel_map(tuple(broken), 3, 3)},
                 "topleft",
@@ -766,7 +541,7 @@ class TestPixelAssertions(unittest.TestCase):
         # the prefixed key, so a helper that dropped or doubled the prefix
         # would not find it. A wrong pixel must also fail.
         broken = {"state-topleft": pixel_map(("#FFFFFF",) * 9, 3, 3)}
-        _assert_rejects(assert_face_corners, broken, "state", corners)
+        assert_rejects(assert_face_corners, broken, "state", corners)
 
     def test_center_tile_is_pins_the_full_square_and_its_size(self):
         colour = "#DDDDDD"
@@ -775,7 +550,7 @@ class TestPixelAssertions(unittest.TestCase):
         # A 7x7 centre has the right colour everywhere but the wrong tile
         # size, which the declared-size pin must reject.
         bigger = {"center": pixel_map((colour,) * 49, 7, 7)}
-        _assert_rejects(assert_center_tile_is, bigger, "center", colour, 6)
+        assert_rejects(assert_center_tile_is, bigger, "center", colour, 6)
 
     def test_face_bevel_pins_centre_edges_and_corners(self):
         size = 10
@@ -798,7 +573,7 @@ class TestPixelAssertions(unittest.TestCase):
                 broken_center["center"] = pixel_map(
                     ("#CCCCCC",) * (size * size), size, size
                 )
-                _assert_rejects(
+                assert_rejects(
                     assert_face_bevel, broken_center, "", face, bevel,
                     size=size,
                 )
@@ -806,14 +581,14 @@ class TestPixelAssertions(unittest.TestCase):
                 _, mirrored = face_edge_bands(face, bevel)
                 broken_edge = _face_slices(face, bevel, size)
                 broken_edge["top"] = _horizontal_band(mirrored, size)
-                _assert_rejects(
+                assert_rejects(
                     assert_face_bevel, broken_edge, "", face, bevel,
                     size=size,
                 )
 
                 broken_corner = _face_slices(face, bevel, size)
                 broken_corner["topleft"] = pixel_map(("#FFFFFF",) * 9, 3, 3)
-                _assert_rejects(
+                assert_rejects(
                     assert_face_bevel, broken_corner, "", face, bevel,
                     size=size,
                 )

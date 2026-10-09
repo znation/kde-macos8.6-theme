@@ -15,11 +15,19 @@ tools' output is expected to have: no raw ESC byte, its visible escape shown.
 ``tools.byteops.require_equal_lengths`` precondition: the packed-lane byte
 helpers in ``tools/png.py`` and ``tools/fidelity_metrics.py`` both reject a
 length mismatch, and each must name itself in the diagnostic.
+
+``NoSubTest``, ``assert_rejects`` and ``rejection_message`` observe the other
+kind of failure: a ``tests/svg_assertions.py`` guard that reports a bad slice
+through ``case.subTest`` records a failure on the result and keeps going
+instead of raising, so ``assertRaises`` would never see it. They drop the
+subTest frame so the underlying assertion raises and its message is readable.
 """
 
 from __future__ import annotations
 
+import contextlib
 import re
+import unittest
 
 
 def error_message(case, exception, function, *args, **kwargs):
@@ -66,3 +74,61 @@ def assert_rejects_unequal_lengths(case, function):
                 rf"{re.escape(function.__name__)}\(\) requires equal-length",
             ):
                 function(a, b)
+
+
+class NoSubTest(unittest.TestCase):
+    """A real TestCase whose ``subTest`` is a no-op frame.
+
+    The structural guards report a bad slice through ``case.subTest``;
+    unittest records a subTest failure on the result and keeps going rather
+    than raising, so an ``assertRaises`` around the guard would never see it.
+    Dropping the subTest frame keeps the real ``assertEqual`` (which raises)
+    so the guard's failure is observable here.
+
+    The pixel guards compare whole ``{(x, y): colour}`` maps, and every use of
+    this stub is a deliberately broken map whose only observable is that the
+    guard raises. ``assertEqual`` on two dicts dispatches to
+    ``assertDictEqual``, whose failure path pretty-prints both maps and runs
+    them through difflib -- a large, pure-diagnostic cost these callers never
+    read. Compare without that diff; a mismatch still raises
+    ``AssertionError``, so the guard's failure stays observable.
+    """
+
+    def subTest(self, **kwargs):
+        return contextlib.nullcontext()
+
+    def assertDictEqual(self, d1, d2, msg=None):
+        self.assertIsInstance(d1, dict, "First argument is not a dictionary")
+        self.assertIsInstance(d2, dict, "Second argument is not a dictionary")
+        if d1 != d2:
+            self.fail(self._formatMessage(msg, "the maps differ"))
+
+
+def assert_rejects(guard, *args, **kwargs):
+    """Assert *guard* rejects a broken input instead of accepting it.
+
+    A guard that reports a bad slice through ``case.subTest`` does not raise:
+    unittest records the failure and keeps going, so ``assertRaises`` would
+    never observe it. Giving the guard the ``NoSubTest`` case drops the
+    subTest frame so the underlying assertion raises instead; a guard that
+    raises directly is unaffected. *args* and *kwargs* are the guard's own
+    parameters after ``case``.
+    """
+    case = NoSubTest()
+    with case.assertRaises(AssertionError):
+        guard(case, *args, **kwargs)
+
+
+def rejection_message(guard, *args, **kwargs):
+    """Return the AssertionError message *guard* raises for a broken input.
+
+    `assert_rejects` proves a guard rejects an input; a test that also pins
+    what the diagnostic names needs the message. Like that helper this gives
+    the guard a ``NoSubTest`` case, so a guard that reports through
+    ``case.subTest`` still raises. *args* and *kwargs* are the guard's own
+    parameters after ``case``.
+    """
+    case = NoSubTest()
+    return error_message(
+        case, AssertionError, guard, case, *args, **kwargs
+    )
