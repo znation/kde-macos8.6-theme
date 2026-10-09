@@ -381,5 +381,60 @@ class TestCheckPattern(unittest.TestCase):
         )
 
 
+class TestHelp(unittest.TestCase):
+    """`make help` lists every public target and the CHECK_PATTERN default.
+
+    The Makefile documents each target and variable in a comment, but a
+    contributor does not read those; the help target is the discoverable
+    index. The public targets are the `.PHONY` names other than the
+    `_`-prefixed internals, so reading that line catches a target added
+    without a help line instead of pinning a hand-copied list here.
+    """
+
+    def _output(self):
+        env = dict(os.environ)
+        env.pop("CHECK_PATTERN", None)
+        env.pop("MAKEFLAGS", None)
+        result = theme_install.run(
+            ["make", "help"],
+            cwd=theme_install.ROOT,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return result.stdout
+
+    def test_lists_every_public_target(self):
+        makefile = os.path.join(theme_install.ROOT, "Makefile")
+        with open(makefile, encoding="utf-8") as handle:
+            phony = next(
+                line
+                for line in handle
+                if line.startswith(".PHONY:")
+            )
+        targets = [
+            name
+            for name in phony.split(":", 1)[1].split()
+            if not name.startswith("_")
+        ]
+        lines = self._output().splitlines()
+        for target in targets:
+            with self.subTest(target=target):
+                self.assertTrue(
+                    any(line.startswith(f"  {target} ") for line in lines),
+                    f"help does not list target {target!r}",
+                )
+
+    def test_names_check_pattern_default(self):
+        self.assertTrue(
+            any(
+                "CHECK_PATTERN" in line and "test*.py" in line
+                for line in self._output().splitlines()
+            ),
+            "help does not name the CHECK_PATTERN default",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

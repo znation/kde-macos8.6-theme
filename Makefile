@@ -61,7 +61,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: check check-references install uninstall _install _uninstall
+.PHONY: help check check-references install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -72,6 +72,26 @@ CHECK_PATTERN ?= test*.py
 
 check:
 	$(PYTHON) -m unittest discover -s tests -v -p '$(CHECK_PATTERN)'
+
+# Print the contributor-facing targets and the variables that tune them, so
+# the workflow is discoverable without reading this file's comments. `check`
+# stays the default goal because it is defined above; the test suite reads the
+# .PHONY line and pins that every public target appears here, so a target
+# added without a help line fails `make check`.
+help:
+	@echo "Targets:"
+	@echo "  help              show this message"
+	@echo "  check             run the test suite"
+	@echo "  check-references  validate the reference screenshot set (needs git lfs pull)"
+	@echo "  install           install the color scheme and theme packages"
+	@echo "  uninstall         remove the installed artifacts"
+	@echo ""
+	@echo "Variables (make VAR=value TARGET):"
+	@echo "  CHECK_PATTERN=glob  test modules 'check' discovers (default test*.py)"
+	@echo "  PYTHON=path         interpreter for check and check-references (default python3)"
+	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
+	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
+	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
 # out of `check`. The deterministic self-test runs first and fails fast.
