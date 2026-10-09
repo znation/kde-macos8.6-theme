@@ -309,9 +309,21 @@ def _prefix_sum(channel: bytes) -> bytes:
     return value.to_bytes(length, "little")
 
 
+def _raw_byte_length(width: int, height: int, channels: int) -> int:
+    """Return the unfiltered byte count the header declares.
+
+    Every one of *height* scanlines holds *width* pixels of *channels*
+    samples plus one leading filter-type byte, so a stream shorter than this
+    is truncated. Both the decode-time decompression bound and the later
+    length check derive the declared size from this one formula, so they
+    cannot disagree about it.
+    """
+    return height * (width * channels + 1)
+
+
 def _require_raw_length(raw: bytes, width: int, height: int, channels: int) -> None:
     """Reject scanline data shorter than the header's declared size."""
-    expected = height * (width * channels + 1)
+    expected = _raw_byte_length(width, height, channels)
     if len(raw) < expected:
         raise PngError(
             f"PNG image data is shorter than its header declares: got "
@@ -558,7 +570,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
             f"PNG declares {width}x{height} ({width * height} pixels), larger "
             f"than the {_MAX_PIXELS}-pixel limit"
         )
-    expected_raw = height * (width * channels + 1)
+    expected_raw = _raw_byte_length(width, height, channels)
     if not idat:
         # A PNG truncated before its IDAT chunk, or one whose IDAT is empty,
         # reaches zlib with no compressed data; zlib then reports an opaque
