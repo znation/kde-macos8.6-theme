@@ -94,6 +94,24 @@ class PackageMetadata:
         except ValueError as exc:
             self.fail(str(exc))
 
+    def _plugin_field(self, key, expected=None):
+        """Return `KPlugin`'s *key*, naming the file and field when it is absent.
+
+        Id/Name/Version/Description/License are required `KPlugin` strings. A
+        metadata.json that drops Id or Name raises a bare ``KeyError``, and one
+        that drops Version/Description/License makes the caller's type check
+        fail on ``None``; neither names the file or the field's parent. Name
+        both here, with *expected* (when given) so a missing Id/Name also shows
+        the value the package must carry.
+        """
+        plugin = self._plugin()
+        if key not in plugin:
+            suffix = "" if expected is None else f" (expected {expected!r})"
+            self.fail(
+                f"{self.METADATA_PATH}: KPlugin is missing {key!r}{suffix}"
+            )
+        return plugin[key]
+
     def _top_level(self, key, expected):
         """Assert top-level *key* equals *expected*, naming the file and key.
 
@@ -120,19 +138,22 @@ class PackageMetadata:
         # Indexing Id/Name directly would raise a bare KeyError naming only
         # the key, with neither the file nor the expected value; report both
         # so a metadata.json that drops a field is diagnosable.
-        plugin = self._plugin()
         for key, expected in (("Id", self.PACKAGE_ID), ("Name", "Mac OS 8.6")):
-            if key not in plugin:
-                self.fail(
-                    f"{self.METADATA_PATH}: KPlugin is missing {key!r} "
-                    f"(expected {expected!r})"
-                )
-            self.assertEqual(plugin[key], expected)
+            self.assertEqual(
+                self._plugin_field(key, expected),
+                expected,
+                f"{self.METADATA_PATH}: KPlugin.{key}",
+            )
 
     def test_plugin_version(self):
-        version = self._plugin().get("Version")
-        self.assertIsInstance(version, str, "KPlugin.Version")
-        self.assertTrue(version.strip(), "KPlugin.Version must not be blank")
+        version = self._plugin_field("Version")
+        self.assertIsInstance(
+            version, str, f"{self.METADATA_PATH}: KPlugin.Version"
+        )
+        self.assertTrue(
+            version.strip(),
+            f"{self.METADATA_PATH}: KPlugin.Version must not be blank",
+        )
 
     def test_plasma_api_version(self):
         self._top_level(self.PLASMA_API_KEY, self.PLASMA_API_VERSION)
@@ -141,8 +162,12 @@ class PackageMetadata:
         # Description is shown in System Settings and License is the package's
         # legal metadata; a blank or non-string value installs cleanly but
         # misreports the package, so pin both here.
-        plugin = self._plugin()
         for key in ("Description", "License"):
-            value = plugin.get(key)
-            self.assertIsInstance(value, str, key)
-            self.assertTrue(value.strip(), f"KPlugin.{key} must not be blank")
+            value = self._plugin_field(key)
+            self.assertIsInstance(
+                value, str, f"{self.METADATA_PATH}: KPlugin.{key}"
+            )
+            self.assertTrue(
+                value.strip(),
+                f"{self.METADATA_PATH}: KPlugin.{key} must not be blank",
+            )

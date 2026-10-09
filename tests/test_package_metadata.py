@@ -254,13 +254,32 @@ class TestPackageMetadata(unittest.TestCase):
                 self.assertIn("metadata.json", message)
                 self.assertIn(key, message)
 
+    def test_plugin_string_field_missing_names_the_file_and_field(self):
+        # A metadata.json whose KPlugin drops Version, Description or License
+        # used to fail as a ``None`` type check naming neither the file nor
+        # the field's parent; the mixin must name the file and the field.
+        for key, method in (
+            ("Version", "test_plugin_version"),
+            ("Description", "test_plugin_description_and_license_are_non_empty"),
+            ("License", "test_plugin_description_and_license_are_non_empty"),
+        ):
+            with self.subTest(key=key):
+                metadata = _metadata()
+                del metadata["KPlugin"][key]
+                with self.assertRaises(AssertionError) as caught:
+                    getattr(_case(method, metadata), method)()
+                message = str(caught.exception)
+                self.assertIn("metadata.json", message)
+                self.assertIn(key, message)
+
     def test_plugin_version_guard(self):
         for value in (None, "", "   ", 7):
             with self.subTest(version=value):
                 metadata = _metadata()
                 metadata["KPlugin"]["Version"] = value
-                with self.assertRaises(AssertionError):
+                with self.assertRaises(AssertionError) as caught:
                     _case("test_plugin_version", metadata).test_plugin_version()
+                self.assertIn("metadata.json", str(caught.exception))
 
     def test_plasma_api_version_guard(self):
         metadata = _metadata()
@@ -276,11 +295,12 @@ class TestPackageMetadata(unittest.TestCase):
                 with self.subTest(key=key, value=value):
                     metadata = _metadata()
                     metadata["KPlugin"][key] = value
-                    with self.assertRaises(AssertionError):
+                    with self.assertRaises(AssertionError) as caught:
                         _case(
                             "test_plugin_description_and_license_are_non_empty",
                             metadata,
                         ).test_plugin_description_and_license_are_non_empty()
+                    self.assertIn("metadata.json", str(caught.exception))
 
 
 if __name__ == "__main__":
