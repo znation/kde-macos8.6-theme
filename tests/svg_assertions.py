@@ -373,6 +373,24 @@ def assert_slice_pixels(case, slices, name, expected):
         case.assertEqual(slices[name], expected, name)
 
 
+def assert_slices_uniform(case, slices, prefix, colour):
+    """Assert every pixel of every ``<prefix>-<name>`` slice is *colour*.
+
+    *prefix* names the widget state (``"pressed"``, ``"normal"``); pass
+    ``""`` for an unprefixed SVG. Each of the nine ``SLICE_IDS`` is read from
+    *slices* and every one of its pixels compared to *colour* -- ``None`` for
+    a slice whose rects carry no ``fill`` attribute -- so a recoloured slice
+    fails, and a missing slice fails on the lookup. *case* is the calling
+    ``unittest.TestCase``.
+    """
+    sep = "-" if prefix else ""
+    for name in SLICE_IDS:
+        slice_name = f"{prefix}{sep}{name}"
+        with case.subTest(slice=slice_name):
+            for point, value in slices[slice_name].items():
+                case.assertEqual(value, colour, f"{slice_name} {point}")
+
+
 def assert_edge_band_pixels(case, slices, name, side, band, size=6):
     """Assert edge slice *name* paints *band* from its outer edge in.
 

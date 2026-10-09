@@ -31,6 +31,7 @@ from svg_assertions import (
     assert_slice_ids_present,
     assert_slice_pixels,
     assert_slices_stay_within_their_tiles,
+    assert_slices_uniform,
     assert_tiles_placed_by_margins,
     assert_unique_ids,
     face_corners,
@@ -566,6 +567,36 @@ class TestPixelAssertions(unittest.TestCase):
         # catches a resized or shifted slice that a colour check would miss.
         slices["center"][(2, 2)] = "#FFFFFF"
         _assert_rejects(assert_slice_pixels, slices, "center", expected)
+
+    def test_slices_uniform_pins_every_pixel_and_rejects_a_break(self):
+        colour = "#CCCCFF"
+        slices = {
+            f"pressed-{name}": pixel_map((colour,) * 4, 2, 2)
+            for name in SLICE_IDS
+        }
+        assert_slices_uniform(self, slices, "pressed", colour)
+        # The empty prefix names the slices directly, with no separator.
+        assert_slices_uniform(
+            self,
+            {name: slices[f"pressed-{name}"] for name in SLICE_IDS},
+            "",
+            colour,
+        )
+        # One recoloured pixel in one slice must fail, so a helper that
+        # skipped a slice (or compared loosely) would not pass.
+        recoloured = dict(slices)
+        recoloured["pressed-center"] = pixel_map(
+            ("#FFFFFF",) + (colour,) * 3, 2, 2
+        )
+        _assert_rejects(assert_slices_uniform, recoloured, "pressed", colour)
+        # A missing slice must fail on the lookup rather than be skipped; the
+        # key is read inside the subTest frame, so use the stub case to let
+        # the KeyError surface.
+        missing = dict(slices)
+        del missing["pressed-topleft"]
+        case = _NoSubTest()
+        with case.assertRaises(KeyError):
+            assert_slices_uniform(case, missing, "pressed", colour)
 
     def test_edge_band_pixels_pins_a_top_band_and_rejects_its_mirror(self):
         size = 6

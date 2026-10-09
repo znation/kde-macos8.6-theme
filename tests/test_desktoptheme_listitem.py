@@ -7,9 +7,9 @@ import unittest
 from desktoptheme_paths import LISTITEM_SVG
 from nine_slice_case import NineSliceCase
 from svg_assertions import (
-    SLICE_IDS,
     assert_hint_geometry,
     assert_slice_pixels,
+    assert_slices_uniform,
     attribute_values,
     nine_slice_tile_sizes,
     pixel_map,
@@ -31,18 +31,14 @@ class TestListItem(NineSliceCase, unittest.TestCase):
     def test_listitem_selection_is_flat_selection_colour(self):
         # Every pressed slice must be the flat selection fill, so the
         # selection cannot silently gain a bevel or the grey button face.
-        slices = render_slices(self.tree)
-        for name in SLICE_IDS:
-            for point, colour in slices[f"pressed-{name}"].items():
-                self.assertEqual(colour, "#CCCCFF", f"pressed-{name} {point}")
+        assert_slices_uniform(
+            self, render_slices(self.tree), "pressed", "#CCCCFF"
+        )
 
     def test_listitem_normal_has_no_fill(self):
         # An unselected row paints nothing perceptible: the normal rects carry
         # no `fill` attribute and a 0.01 opacity, so only their margins apply.
-        slices = render_slices(self.tree)
-        for name in SLICE_IDS:
-            for point, colour in slices[f"normal-{name}"].items():
-                self.assertIsNone(colour, f"normal-{name} {point}")
+        assert_slices_uniform(self, render_slices(self.tree), "normal", None)
         self.assertEqual(attribute_values(self.tree, "fill-opacity"), {"0.01"})
 
     def test_listitem_slices_fill_their_tiles(self):
