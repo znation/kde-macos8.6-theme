@@ -16,13 +16,16 @@ import xml.etree.ElementTree as ET
 
 from svg_assertions import (
     RAISED_FACE_CORNERS,
+    SLICE_IDS,
     arc_center,
     assert_center_tile_is,
     assert_corner_pixels,
     assert_edge_band_pixels,
     assert_edge_bevels,
+    assert_no_script_elements,
     assert_raised_face_bevel,
     assert_root_canvas,
+    assert_slice_ids_present,
     assert_slice_pixels,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
@@ -715,6 +718,104 @@ class TestStructuralGuards(unittest.TestCase):
             assert_slices_stay_within_their_tiles(
                 _NoSubTest(), _nine_slice_tree(sizes={"top": (5, 4)}), [""]
             )
+
+
+def _id_tree(prefixes=("",), omit=()):
+    """Build a minimal SVG carrying every id `assert_slice_ids_present` reads.
+
+    Each prefix contributes the nine slice ids and four margin hints, joined by
+    the same separator the helper uses; the shared ``hint-tile-center`` is
+    added once. *omit* names ids to leave out, so a caller can assert the guard
+    reports a missing one. The elements are bare rects because the helper reads
+    only the ``id`` attribute.
+    """
+    ids = []
+    for prefix in prefixes:
+        sep = "-" if prefix else ""
+        ids.extend(f"{prefix}{sep}{name}" for name in SLICE_IDS)
+        ids.extend(
+            f"{prefix}{sep}hint-{side}-margin"
+            for side in ("top", "bottom", "left", "right")
+        )
+    ids.append("hint-tile-center")
+    body = "".join(
+        f'<rect id="{name}"/>' for name in ids if name not in omit
+    )
+    return ET.ElementTree(
+        ET.fromstring(f'<svg xmlns="http://www.w3.org/2000/svg">{body}</svg>')
+    )
+
+
+class TestSliceIdsPresent(unittest.TestCase):
+    def test_passes_a_tree_with_every_slice_and_margin_id(self):
+        assert_slice_ids_present(self, _id_tree(), [""])
+
+    def test_passes_prefixed_ids_joined_by_the_separator(self):
+        assert_slice_ids_present(
+            self, _id_tree(("plain", "raised")), ["plain", "raised"]
+        )
+
+    def test_catches_each_missing_slice_id(self):
+        for name in SLICE_IDS:
+            with self.subTest(name=name):
+                with self.assertRaises(AssertionError):
+                    assert_slice_ids_present(self, _id_tree(omit=(name,)), [""])
+
+    def test_catches_each_missing_margin_hint(self):
+        for side in ("top", "bottom", "left", "right"):
+            with self.subTest(side=side):
+                with self.assertRaises(AssertionError):
+                    assert_slice_ids_present(
+                        self, _id_tree(omit=(f"hint-{side}-margin",)), [""]
+                    )
+
+    def test_catches_a_missing_tile_centre(self):
+        with self.assertRaises(AssertionError):
+            assert_slice_ids_present(
+                self, _id_tree(omit=("hint-tile-center",)), [""]
+            )
+
+    def test_catches_a_missing_id_in_a_later_prefix(self):
+        # A guard that only checks the first prefix would pass the two-prefix
+        # positive control; the missing id is in the second state.
+        with self.assertRaises(AssertionError):
+            assert_slice_ids_present(
+                self,
+                _id_tree(("plain", "raised"), omit=("raised-top",)),
+                ["plain", "raised"],
+            )
+
+
+class TestNoScriptElements(unittest.TestCase):
+    def test_passes_a_tree_without_a_script(self):
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="center"/></svg>'
+            )
+        )
+        assert_no_script_elements(self, tree)
+
+    def test_catches_a_script_after_another_element(self):
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<rect id="center"/><script>alert(1)</script></svg>'
+            )
+        )
+        with self.assertRaises(AssertionError):
+            assert_no_script_elements(self, tree)
+
+    def test_catches_a_script_nested_below_the_root(self):
+        # The guard walks every descendant, not just the root's children.
+        tree = ET.ElementTree(
+            ET.fromstring(
+                '<svg xmlns="http://www.w3.org/2000/svg">'
+                '<g id="top"><g><script>alert(1)</script></g></g></svg>'
+            )
+        )
+        with self.assertRaises(AssertionError):
+            assert_no_script_elements(self, tree)
 
 
 # Two margin rects whose far edges reach a 12x12 canvas. `assert_root_canvas`
