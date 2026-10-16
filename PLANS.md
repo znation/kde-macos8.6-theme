@@ -200,6 +200,105 @@ unprefixed nine-slice on a 40x40 canvas: `hint-tile-center` plus `top`/`bottom`/
 - The file ships no `separator` element and `widgets/listitem.svg` gains none, so `ToolBar`'s child
   separator stays undrawn (Mac OS 8.6 has no row separators).
 
+### Mac OS 8.6 Platinum popup / dropdown arrow widget for the desktop theme
+
+**Planned 2026-10-16 by plan.** Independent of every done widget plan and of the planned
+`tabbar`/`toolbar` plans: it adds one artwork file to the existing `org.macos8.desktop`
+desktop-theme package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new
+test module under `tests/` (`test_desktoptheme_arrows.py`) with the `TestArrows` class, one
+`SVG_CANVASES` entry and one `TestInstall.INSTALLED_FILES` tuple entry in
+`tests/test_desktoptheme.py`, and the README inventory lines. It touches no other `widgets/*.svg`,
+`dialogs/background.svg`, `metadata.json`, or the color scheme.
+
+**Goal.** Ship `widgets/arrows.svg` so `PlasmaComponents.ComboBox`'s dropdown indicator and
+`ButtonContent`'s menu-button indicator draw a solid black Platinum triangle instead of inheriting
+Breeze's `arrows.svgz`. Today the theme ships no `widgets/arrows`, so `KSvg` resolves the name to
+the default theme's Breeze file.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree; a grep for `widgets/arrows`).**
+- `org.kde.plasma.components/ComboBox.qml`: the `indicator: KSvg.SvgItem` names
+  `imagePath: "widgets/arrows"`, `elementId: "down-arrow"`, `colorSet: KSvg.Svg.Button`, sized
+  `Kirigami.Units.iconSizes.small` square and anchored to the right edge.
+- `org.kde.plasma.components/private/ButtonContent.qml`: an `KSvg.SvgItem` names
+  `imagePath: "widgets/arrows"` and `elementId: "down-arrow"`, sized
+  `Kirigami.Units.iconSizes.small` square, `visible` only when
+  `Accessible.role === Accessible.ButtonMenu`.
+
+Both render the element by its own bounds scaled into the item's `Kirigami.Units.iconSizes.small`
+square, so the element's bounding rect must be square and the triangle drawn inside it (the
+default's 14x14 bounding rect is the same trick).
+
+**Default contract.** `zcat /usr/share/plasma/desktoptheme/default/widgets/arrows.svgz` is a 44x44
+canvas holding four element ids -- `up-arrow`, `down-arrow`, `left-arrow`, `right-arrow` -- each a
+group with a 14x14 invisible bounding rect plus one `class="ColorScheme-Text"` / `fill="currentColor"`
+chevron path; the four groups are the same chevron under a rotation transform. The package test's
+`assert_no_style_elements` forbids `<style>`, so the artwork's colours must sit on literal `fill`
+attributes the pixel and palette tests can read; the Platinum file paints the fill literally.
+
+**Grounding.**
+- No reference screenshot in `macos8.6-screenshots/` shows a combo box or menu button (the set is
+  desktop, boot/splash, installer, About/System Profiler, Finder/dialogs, photographs and the 8.5
+  supplement), so the arrows have no per-pixel reference. Their fill reuses the grounded
+  Platinum black (`#000000`) that `tests/test_desktoptheme_checkmarks.py` already pins, and the SVG
+  comment records that provenance, as `dialogs/background.svg` records its palette.
+- Mac OS 8.6 popup buttons and combo boxes show a solid down triangle, unlike Breeze's open
+  chevron, so the artwork is a filled path (no stroke), not a stroked one.
+
+**Approach.**
+1. Add `widgets/arrows.svg` to the package: a 16x16 canvas
+   (`width="16" height="16" viewBox="0 0 16 16"`) holding four groups at the origin, each with an
+   invisible 16x16 bounding `<rect>` (`fill="none"`, no `id`) and one solid `fill="#000000"`
+   triangle path:
+   - `down-arrow`: `M 4,5 L 12,5 L 8,11 Z`
+   - `up-arrow`: `M 4,11 L 12,11 L 8,5 Z`
+   - `left-arrow`: `M 11,4 L 11,12 L 5,8 Z`
+   - `right-arrow`: `M 5,4 L 5,12 L 11,8 Z`
+
+   The bounding rect pins each element's KSvg bounds to a full 16x16 square so the consumer scales
+   the triangle into its square `iconSizes.small` item without stretching (the
+   `widgets/checkmarks.svg` groups use the same trick). Give
+   the file a header comment naming `widgets/arrows`, the two consumers and the provenance above.
+   Use no `class`, `currentColor`, `<style>`, `<script>` or external reference.
+2. Add `ARROWS_SVG = os.path.join(PACKAGE, "widgets", "arrows.svg")` to
+   `tests/desktoptheme_paths.py`.
+3. Add the new module `tests/test_desktoptheme_arrows.py` with
+   `TestArrows(SvgCase, unittest.TestCase)`, `SVG_PATH = ARROWS_SVG`, modelled on
+   `tests/test_desktoptheme_checkmarks.py`:
+   - `test_arrows_contract`: `assert_ids_present(self, self.tree, ("down-arrow", "up-arrow",
+     "left-arrow", "right-arrow"))`; `attribute_values(self.tree, "fill") == {"none", "#000000"}`;
+     `assert_no_script_elements`.
+   - `test_arrows_geometry`: `elements_by_id(self.tree)`; for each of the four ids assert the group
+     holds exactly one `rect` and one `path`, that the rect's `(x, y, width, height, fill)` is
+     `("0", "0", "16", "16", "none")`, and that the path's `d` is the exact string above with
+     `fill == "#000000"`.
+4. Add `("arrows.svg", ARROWS_SVG, 16, 16)` to `SVG_CANVASES` and
+   `os.path.join("widgets", "arrows.svg")` to `TestInstall.INSTALLED_FILES` in
+   `tests/test_desktoptheme.py`, so `TestSvgRootCanvas`, the id/uniqueness and self-containment
+   checks, the registry-coverage check and `TestInstall` cover the new file.
+5. Name `widgets/arrows.svg` in README.md's status-block widget list and its Installing inventory
+   paragraph.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestArrows` passing and `TestSvgRootCanvas` / `TestInstall` covering
+  the new file.
+- The SVG parses and contains the four element ids; each element holds one invisible 16x16 bounding
+  rect and one solid `#000000` triangle path with the exact `d` above; the parsed `fill` attribute
+  values are exactly `none` and `#000000`.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/arrows.svg` byte-identical to source
+  (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a `ComboBox` dropdown and a button whose
+  `Accessible.role` is `ButtonMenu` draw a solid black Platinum triangle; every other widget is
+  unchanged.
+
+**Known deviations (recorded, not fixed here).**
+- The reference set has no combo-box / menu-button screenshot, so the arrows have no per-pixel
+  reference and reuse the grounded Platinum black by semantic role; the triangle geometry is a
+  KDE-required shape the reference set does not show, pinned exactly by the test.
+- The file ships one fill for all states; the default also ships no disabled variant, so a disabled
+  `ComboBox` arrow stays black rather than Mac OS 8.6's grey (Plasma applies no separate disabled
+  colour to a literal fill).
+
 ## Done
 
 ### Mac OS 8.6 Platinum menu-bar item widget for the desktop theme (done 2026-10-09)
