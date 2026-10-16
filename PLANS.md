@@ -17,7 +17,108 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum tab-bar highlight widget for the desktop theme
+
+**Planned 2026-10-15 by plan.** The next follow-up the done menubaritem plan named ("then
+`tabbar`, `tooltip`, and the `actionbutton`/`busy`/`switch` surfaces"). Independent of every
+done widget plan: it adds one artwork file to the existing `org.macos8.desktop` desktop-theme
+package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new
+test module under `tests/` (`test_desktoptheme_tabbar.py`) with the `TestTabBar` class, one `SVG_CANVASES`
+entry and one `TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the
+README inventory lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`,
+`metadata.json`, or the color scheme.
+
+**Goal.** Ship `widgets/tabbar.svg` so the Plasma active-tab / expanded-applet highlights draw a
+Platinum raised tab instead of inheriting Breeze's `tabbar.svgz`. Today the theme ships no
+`tabbar.svg`, so `KSvg` resolves the name to the default theme's Breeze file.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree; a grep for `widgets/tabbar`).**
+- `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/TabBar.qml` and `TabButton.qml`:
+  prefix `"north-active-tab"` for `TabBar.position === Header`, else `"south-active-tab"`.
+  `TabButton` also sets `enabledBorders` (left/right plus top and/or bottom).
+- `/usr/share/plasma/plasmoids/org.kde.plasma.kickoff/contents/ui/Footer.qml`: the
+  Applications/Places tab highlight, north/south by `tabBar.position`.
+- `CurrentItemHighLight.qml` (systemtray), `showdesktop/contents/ui/main.qml`,
+  `shells/org.kde.plasma.desktop/contents/applet/CompactApplet.qml` and `.../views/Panel.qml`:
+  a directional prefix by `Plasmoid.location` / `containment.plasmoid.location`
+  (`west`/`north`/`east`/`south`), each followed by `if (!hasElementPrefix(prefix)) prefix =
+  "active-tab"`.
+- A missing prefix or slice renders nothing, and once this file exists there is no cross-theme
+  fallback, so all four directional prefixes ship. Shipping all four keeps the `active-tab`
+  fallback dead, exactly as the default theme does (it ships the same four and no `active-tab`).
+
+**Default contract.** `zcat /usr/share/plasma/desktoptheme/default/widgets/tabbar.svgz` carries
+the nine-slice ids
+`{north,south,east,west}-active-tab-{center,top,bottom,left,right,topleft,topright,bottomleft,bottomright}`
+with per-state margin hints; each state's **inner** edge -- the one facing the panel content
+(bottom for north, top for south, right for west, left for east) -- is its distinctive edge
+(Breeze paints it with `ColorScheme-ButtonFocus`), so the four directions are not
+interchangeable.
+
+**Grounding.**
+- No reference screenshot in `macos8.6-screenshots/` shows a tab control, so the tab has no
+  per-pixel reference. Its fills reuse the grounded Platinum raised-face palette (`#000000`
+  outline, `#FFFFFF` highlight, `#999999` shadow, `#DDDDDD` face) that
+  `tests/test_desktoptheme_frame.py` already pins, and the SVG comment records that provenance,
+  as the tooltip token records its KDE-required-role provenance.
+- The raised bevel is the same 1px-outline-plus-bevel `widgets/frame.svg`'s `raised` state
+  paints, so the active tab is the Platinum raised surface; the inner edge is left open (face
+  only, no outline) so the tab merges with the content the way a Platinum tab does.
+
+**Approach.**
+1. Add the tab-bar artwork to the package's `widgets/` directory as `tabbar.svg`: four directional nine-slices
+   on the tight 12x12 canvas, 3px border, 6x6 centre tile (the `widgets/frame.svg` /
+   `widgets/menubaritem.svg` grid), one shared `hint-tile-center` and four margin hints per
+   prefix.
+   - Each prefix is a raised Platinum tab: `#DDDDDD` face, a 1px `#000000` outline on the three
+     outer edges, a 1px `#FFFFFF` highlight inside the top/left outline and a 1px `#999999`
+     shadow inside the bottom/right outline, square corners.
+   - The inner edge is open (face only): `north-active-tab` bottom, `south-active-tab` top,
+     `west-active-tab` right, `east-active-tab` left.
+   - The closed edges use the `face_edge_bands("#DDDDDD", "raised")` bands -- top/left
+     `("#000000", "#FFFFFF", "#DDDDDD")`, bottom/right `("#DDDDDD", "#999999", "#000000")`;
+     the two fully-raised corners use `face_corners("#DDDDDD", "raised")`; each mixed corner
+     where the open edge meets a raised edge extends that raised edge's band across its 3x3 tile
+     (so a north `bottomleft` is three `#000000 #FFFFFF #DDDDDD` rows, a north `bottomright`
+     three `#DDDDDD #999999 #000000` rows, and east/west transpose the same rule).
+2. Add `TABBAR_SVG = os.path.join(PACKAGE, "widgets", "tabbar.svg")` to
+   `tests/desktoptheme_paths.py`.
+3. Add the new test module `test_desktoptheme_tabbar.py` under `tests/` with `TestTabBar(NineSliceCase, unittest.TestCase)`,
+   `SVG_PATH = TABBAR_SVG`, `PREFIXES = ("north-active-tab", "south-active-tab",
+   "east-active-tab", "west-active-tab")`, modelled on `tests/test_desktoptheme_frame.py`:
+   - `test_tabbar_hint_geometry`: `assert_hint_geometry(self, self.tree, self.PREFIXES, 3, 6)`.
+   - `test_tabbar_centres_are_the_face`: `assert_center_tile_is` on each `-center` slice,
+     `"#DDDDDD"`, 6.
+   - `test_tabbar_closed_edges_are_raised` / `test_tabbar_inner_edges_are_open`:
+     `assert_edge_band_pixels` for each edge with the raised band or the flat `("#DDDDDD",) * 3`.
+   - `test_tabbar_corners`: `assert_corner_pixels` for each corner with the raised table or the
+     band-extended table above.
+   - `test_tabbar_colours`: `assert_fill_palette(self, self.tree)` from `platinum_palette`.
+4. Add `("tabbar.svg", TABBAR_SVG, 12, 12)` to `SVG_CANVASES` and
+   `os.path.join("widgets", "tabbar.svg")` to `TestInstall.INSTALLED_FILES` in
+   `tests/test_desktoptheme.py`.
+5. Name `widgets/tabbar.svg` in README.md's status block widget list and Installing inventory.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestTabBar` passing and `TestSvgRootCanvas` / `TestInstall` covering
+  the new file.
+- The SVG parses and contains the 36 `{north,south,east,west}-active-tab-{slice}` ids, the 16
+  per-prefix margin-hint ids and `hint-tile-center`; each prefix's centre tile is a solid #DDDDDD
+  6x6; the three closed edges and their corners paint the raised bevel; each inner edge is solid
+  #DDDDDD; the parsed `fill` attribute values are exactly #000000, #FFFFFF, #999999 and #DDDDDD.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/tabbar.svg` byte-identical to
+  source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): Kickoff's Applications/Places tab highlight and the
+  `PC3.TabBar` highlight draw a square Platinum raised tab with no Breeze blue line or rounded
+  corner; a top/bottom panel's expanded applet and the system-tray current-item highlight draw
+  the same; every other widget is unchanged.
+
+**Known deviations (recorded, not fixed here).**
+- The reference set has no tab-control screenshot, so the four directions have no per-pixel
+  reference and reuse the grounded Platinum raised palette by semantic role.
+- `Panel.qml` may pass an empty prefix (`""`) when there is no containment; the file ships no
+  unprefixed slices, exactly as the default theme does, so that case draws nothing.
 
 ## Done
 
