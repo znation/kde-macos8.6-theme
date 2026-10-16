@@ -120,6 +120,86 @@ interchangeable.
 - `Panel.qml` may pass an empty prefix (`""`) when there is no containment; the file ships no
   unprefixed slices, exactly as the default theme does, so that case draws nothing.
 
+### Mac OS 8.6 Platinum toolbar background widget for the desktop theme
+
+**Planned 2026-10-15 by plan.** The follow-up the done menubaritem plan named alongside
+`tabbar`/`tooltip`/`actionbutton`/`busy`/`switch`. Independent of every done widget plan and of the
+planned `tabbar` plan: it adds one artwork file to the existing `org.macos8.desktop` desktop-theme
+package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new test module
+under `tests/` (`test_desktoptheme_toolbar.py`) with the `TestToolBar` class, one `SVG_CANVASES` entry and one
+`TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the README inventory
+lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`, `metadata.json`, or the color
+scheme.
+
+**Goal.** Ship `widgets/toolbar.svg` so the `PlasmaComponents.ToolBar` background draws the raised
+grey Platinum surface instead of inheriting Breeze's `toolbar.svgz`. Today the theme ships no
+`widgets/toolbar`, so `KSvg` resolves the name to the default theme's Breeze file.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree; a grep for `widgets/toolbar`).**
+- `org.kde.plasma.components/ToolBar.qml` sets `imagePath: "widgets/toolbar"` on its background
+  `KSvg.FrameSvgItem` (`implicitHeight: 40`) and reads that frame's margins for its padding. Its
+  child separator `KSvg.SvgItem` reads `widgets/listitem` element `separator`; the theme's
+  `widgets/listitem.svg` deliberately ships no `separator`, so no separator draws and this plan
+  leaves that file unchanged.
+- Installed QML that instantiates a `ToolBar`: kickoff `contents/ui/Footer.qml` (the
+  Applications/Places strip), `private/systemtray` `contents/ui/ExpandedRepresentation.qml` (the
+  expanded-tray bottom bar), the desktop shell's `WidgetExplorer.qml` and
+  `configuration/ShellContainmentConfiguration.qml`.
+
+**Default contract.** `zcat /usr/share/plasma/desktoptheme/default/widgets/toolbar.svgz` is an
+unprefixed nine-slice on a 40x40 canvas: `hint-tile-center` plus `top`/`bottom`/`left`/`right`/
+`center`/`topleft`/`topright`/`bottomleft`/`bottomright` and the four margin hints, painted a flat
+`ColorScheme-Background` with no bevel and no outline.
+
+**Grounding.**
+- No reference screenshot in `macos8.6-screenshots/` shows a Plasma toolbar (it is a Plasma-only
+  surface with no Mac OS 8.6 counterpart), so the toolbar has no per-pixel reference. Its fills
+  reuse the grounded raised Platinum window-body palette (`#000000` outline, `#FFFFFF` highlight,
+  `#999999` shadow, `#DDDDDD` face) that `tests/test_desktoptheme_dialog.py` already pins, and the
+  SVG comment records that provenance, as `dialogs/background.svg` records it.
+- The raised grey surface is exactly `dialogs/background.svg`'s body: the same
+  `[Colors:Window] BackgroundNormal=221,221,221` face and the same bevel rule. A Plasma desktop
+  theme cannot alias one SVG to another `imagePath`, so the toolbar needs its own file even though
+  the two share geometry.
+
+**Approach.**
+1. Add `widgets/toolbar.svg` to the package: one unprefixed nine-slice on the same 16x16 canvas as
+   `dialogs/background.svg` -- 3px border, 10px centre tile, square corners -- a raised #DDDDDD
+   face with the 1px #000000 outline and the 1px bevel inside it (`#FFFFFF` on top/left, `#999999`
+   on bottom/right). Copy `dialogs/background.svg`'s slice geometry and give the file its own
+   header comment naming `widgets/toolbar` and the provenance above.
+2. Add `TOOLBAR_SVG = os.path.join(PACKAGE, "widgets", "toolbar.svg")` to
+   `tests/desktoptheme_paths.py`.
+3. Add the new module under `tests/` (`test_desktoptheme_toolbar.py`) with `TestToolBar(NineSliceCase, unittest.TestCase)`,
+   `SVG_PATH = TOOLBAR_SVG`, `PREFIXES = ("",)`, modelled on `tests/test_desktoptheme_dialog.py`:
+   - `test_toolbar_hint_geometry`: `assert_hint_geometry(self, self.tree, [""], 3, 10)`.
+   - `test_toolbar_frame_bevel`: `assert_face_bevel(self, render_slices(self.tree), "", FACE,
+     "raised", size=10)`.
+   - `test_toolbar_colours`: `assert_fill_palette(self, self.tree)`.
+4. Add `("toolbar.svg", TOOLBAR_SVG, 16, 16)` to `SVG_CANVASES` and
+   `os.path.join("widgets", "toolbar.svg")` to `TestInstall.INSTALLED_FILES` in
+   `tests/test_desktoptheme.py`.
+5. Name `widgets/toolbar.svg` in README.md's status block widget list and Installing inventory.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestToolBar` passing and `TestSvgRootCanvas` / `TestInstall` covering
+  the new file.
+- The SVG parses and contains the nine unprefixed slice ids and the five hint ids; the centre tile
+  is a solid #DDDDDD 10x10; the four edge bands and four corners paint the raised bevel; the parsed
+  `fill` attribute values are exactly #000000, #FFFFFF, #999999 and #DDDDDD.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/toolbar.svg` byte-identical to source
+  (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): the Widget Explorer's toolbar strip and the expanded
+  system tray's bottom bar draw a raised grey Platinum surface with no Breeze translucent/rounded
+  background; every other widget is unchanged.
+
+**Known deviations (recorded, not fixed here).**
+- The reference set has no toolbar screenshot, so the surface has no per-pixel reference and reuses
+  the grounded raised Platinum grey window-body palette by semantic role.
+- The file ships no `separator` element and `widgets/listitem.svg` gains none, so `ToolBar`'s child
+  separator stays undrawn (Mac OS 8.6 has no row separators).
+
 ## Done
 
 ### Mac OS 8.6 Platinum menu-bar item widget for the desktop theme (done 2026-10-09)
