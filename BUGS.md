@@ -8,6 +8,23 @@ unclear-invariant).
 
 ## Open
 
+### Test suite fails with 43 failures and 3 errors (found 2026-10-16)
+
+**Symptom:** Running `make check` reports `Ran 712 tests in 9.646s FAILED (failures=43, errors=3)`. The failures and errors are all in `test_desktoptheme_tabbar.py`, affecting the tabbar widget's SVG assertions.
+
+**How to reproduce:** `cd /home/zach/kde-macos8.6-theme/.tumwater/worktrees/_slot-1 && make check`.
+
+The specific failures are:
+- 43 failures in `test_tabbar_closed_edges_are_raised` (all slices and all directions) due to edge band pixel mismatches
+- 3 errors in `test_tabbar_colours`, `test_tabbar_corners`, and `test_tabbar_installed` due to missing helper methods and undefined functions
+
+**Suspected cause:** The test file `tests/test_desktoptheme_tabbar.py` has incomplete/buggy code:
+1. `test_tabbar_colours` calls `self.attribute_values(slices, "fill")` but `NineSliceCase` doesn't define `attribute_values`
+2. `test_tabbar_corners` accesses `RAISED_FACE_CORNERS["raised"]` but `RAISED_FACE_CORNERS` has corner keys directly, not nested under "raised"
+3. `test_tabbar_installed` uses `assert_files_identical` which is not defined in the test file
+
+**Next step:** Fix `tests/test_desktoptheme_tabbar.py` by adding the missing helper method and correcting the corner reference lookup.
+
 ### Scheduler keeps bugfix in rotation and defers other roles on a stale "feature/bugfix backlog open" verdict (found 2026-10-09)
 
 **Symptom:** The failure digest's "Fleet state changes" record five roles — `clean`, `security`,
