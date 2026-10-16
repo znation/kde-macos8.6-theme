@@ -19,7 +19,7 @@ as the whole of the prompt until the remaining surfaces are planned or explicitl
 
 ### Mac OS 8.6 Platinum tab-bar highlight widget for the desktop theme
 
-**Planned 2026-10-15 by plan.** The next follow-up the done menubaritem plan named ("then
+**Done 2026-10-15 by plan**. The next follow-up the done menubaritem plan named ("then
 `tabbar`, `tooltip`, and the `actionbutton`/`busy`/`switch` surfaces"). Independent of every
 done widget plan: it adds one artwork file to the existing `org.macos8.desktop` desktop-theme
 package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new

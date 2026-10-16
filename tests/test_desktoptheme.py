@@ -28,6 +28,7 @@ from desktoptheme_paths import (
     RADIOBUTTON_SVG,
     SCROLLBAR_SVG,
     SLIDER_SVG,
+    TABBAR_SVG,
     VIEWITEM_SVG,
 )
 from install_failure_cases import FailedInstallPreservesPackage
@@ -68,6 +69,7 @@ SVG_CANVASES = (
     ("background.svg", BACKGROUND_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
+    ("tabbar.svg", TABBAR_SVG, 12, 12),
     ("dialogs/background.svg", DIALOG_BACKGROUND_SVG, 16, 16),
 )
 
@@ -155,6 +157,7 @@ class TestInstall(
         os.path.join("widgets", "listitem.svg"),
         os.path.join("widgets", "viewitem.svg"),
         os.path.join("widgets", "menubaritem.svg"),
+        os.path.join("widgets", "tabbar.svg"),
         os.path.join("widgets", "scrollbar.svg"),
         os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "background.svg"),

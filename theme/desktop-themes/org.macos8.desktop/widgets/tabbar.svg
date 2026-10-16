@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" tab-bar highlight.
+
+     Tab highlights for Plasma TabBar, TabButton, kickoff footer, systemtray
+     current-item, and panel expanded applets. Directional nine-slices:
+     north-active-tab, south-active-tab, east-active-tab, west-active-tab.
+     Each is a raised Platinum tab with a 1px #000000 outer outline, a 1px
+     #FFFFFF highlight on the outer top/left edge, and a 1px #999999 shadow
+     on the outer bottom/right edge. The inner edge is open (face only) so
+     the tab merges with its panel content.
+
+     The nine-slice contract is a 3px border around a 6px centre tile on a
+     tight 12x12 canvas, the same as frame.svg and menubaritem.svg.
+
+     Provenance: raised bevel reuses the Platinum raised-face palette from
+     test_desktoptheme_frame.py; the inner edge is face-only (#DDDDDD) as
+     a Platinum tab should. No screenshot reference exists for tabs, so this
+     is palette-derived. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="north-active-tab-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="north-active-tab-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="north-active-tab-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="north-active-tab-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="south-active-tab-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="south-active-tab-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="south-active-tab-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="south-active-tab-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="east-active-tab-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="east-active-tab-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="east-active-tab-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="east-active-tab-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="west-active-tab-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="west-active-tab-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="west-active-tab-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="west-active-tab-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+
+  <!-- North-active-tab: raised tab. Top edge has highlight (white) + outline
+       (black) from outermost inward; bottom edge is open (face only).
+       SVG layering: later elements render on top. -->
+  <g id="north-active-tab-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="north-active-tab-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="north-active-tab-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#FFFFFF"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="north-active-tab-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#999999"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="north-active-tab-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="north-active-tab-topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="1" width="1" height="2" fill="#FFFFFF"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="north-active-tab-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#FFFFFF"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="north-active-tab-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="1" x="1" width="1" height="2" fill="#999999"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="north-active-tab-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#999999"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+  </g>
+
+  <!-- South-active-tab: raised tab. Bottom edge has shadow (grey) + outline
+       (black) from outermost inward; top edge is open (face only). -->
+  <g id="south-active-tab-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="south-active-tab-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="south-active-tab-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#000000"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="south-active-tab-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="south-active-tab-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="south-active-tab-topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="south-active-tab-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="south-active-tab-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="south-active-tab-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+  </g>
+
+  <!-- East-active-tab: raised tab. Left edge has highlight (white) + outline
+       (black) from outermost inward; right edge is open (face only). -->
+  <g id="east-active-tab-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#000000"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="east-active-tab-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="east-active-tab-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="1" width="1" height="6" fill="#FFFFFF"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="east-active-tab-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect width="1" height="6" fill="#000000"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="east-active-tab-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="east-active-tab-topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="2" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="1" width="1" height="2" fill="#FFFFFF"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="east-active-tab-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#FFFFFF"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="east-active-tab-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect y="1" x="1" width="1" height="2" fill="#999999"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="east-active-tab-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#999999"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+  </g>
+
+  <!-- West-active-tab: raised tab. Right edge has shadow (grey) + outline
+       (black) from outermost inward; left edge is open (face only). -->
+  <g id="west-active-tab-top" transform="translate(3,0)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#000000"/>
+    <rect width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="west-active-tab-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" fill="#DDDDDD"/>
+    <rect y="1" width="6" height="1" fill="#999999"/>
+    <rect y="2" width="6" height="1" fill="#000000"/>
+  </g>
+  <g id="west-active-tab-left" transform="translate(0,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect width="1" height="6" fill="#000000"/>
+    <rect x="1" width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="west-active-tab-right" transform="translate(9,3)">
+    <rect width="3" height="6" fill="#DDDDDD"/>
+    <rect x="2" width="1" height="6" fill="#000000"/>
+    <rect width="1" height="6" fill="#000000"/>
+  </g>
+  <g id="west-active-tab-center" transform="translate(3,3)">
+    <rect width="6" height="6" fill="#DDDDDD"/>
+  </g>
+  <g id="west-active-tab-topleft">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="west-active-tab-topright" transform="translate(9,0)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="west-active-tab-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="west-active-tab-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" fill="#DDDDDD"/>
+    <rect x="1" y="1" width="1" height="2" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+    <rect x="2" width="1" height="2" fill="#000000"/>
+  </g>
+</svg>
