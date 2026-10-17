@@ -25,8 +25,8 @@ Rectangle {
     readonly property color panelBevelColor: "#DDDDDD"
     readonly property color panelColor: "#FFFFFF"
     readonly property color panelRuleColor: "#BFBFBF"
-    readonly property color trackColor: "#DDDDDD"
-    readonly property color fillColor: "#ADADAD"
+    readonly property color trackColor: "#ADADAD"
+    readonly property color fillColor: "#9B9BEA"
     readonly property color wordmarkColor: "#000000"
 
     // Reference rectangles, in the 240x180 grid. The bevel is the bounding box
@@ -46,9 +46,9 @@ Rectangle {
     readonly property int logoWidth: 26
     readonly property int logoHeight: 21
     readonly property int trackX: 101
-    readonly property int trackY: 94
+    readonly property int trackY: 99
     readonly property int trackWidth: 38
-    readonly property int trackHeight: 9
+    readonly property int trackHeight: 4
 
     property int stage
 

@@ -40,18 +40,19 @@ REFERENCE = os.path.join(
 
 # The exact reference pixels the QML colours are pinned to. (74,60) is the
 # #DDDDDD bevel and (78,60) the #BFBFBF rule that bounds the white face at
-# (100,60); (135,96) is the #DDDDDD track at the unfilled right end of the
-# progress well and (120,100) the #ADADAD fill.
+# (100,60); (120,100) is the #ADADAD unfilled track of the progress well and
+# (102,100) the #9B9BEA lavender fill at its left end.
 FIELD = (99, 99, 156)
 PANEL_BEVEL = (221, 221, 221)
 PANEL_RULE = (191, 191, 191)
-TRACK = (221, 221, 221)
-FILL = (173, 173, 173)
+TRACK = (173, 173, 173)
+FILL = (155, 155, 234)
 
 # The logo is the only blue region inside the panel's white face; the progress
-# well is the only region darker than the panel's #DDDDDD in the lower band.
+# well is the only region darker than #C8C8C8 in the rows below the "Starting
+# Up" text (y=94..97) and above the panel's lower bevel.
 LOGO_FACE = (range(80, 160), range(39, 89))
-TRACK_BAND = (range(80, 160), range(90, 105))
+TRACK_BAND = (range(80, 160), range(98, 105))
 
 
 def _read_qml():
@@ -242,12 +243,12 @@ class TestSplashReference(SplashReferenceCase):
         self.assertEqual(qml_color("wordmarkColor"), "#000000")
 
     def test_progress_colours_match_reference(self):
-        # (135,96) is the #DDDDDD track at the unfilled right end of the
-        # progress well; (120,100) is the flat #ADADAD fill.
-        self.assertEqual(self.pixel(135, 96), TRACK)
-        self.assertEqual(self.pixel(120, 100), FILL)
-        self.assertEqual(qml_color("trackColor"), "#DDDDDD")
-        self.assertEqual(qml_color("fillColor"), "#ADADAD")
+        # (120,100) is the #ADADAD unfilled track of the progress well;
+        # (102,100) is the #9B9BEA lavender fill at the well's left end.
+        self.assertEqual(self.pixel(120, 100), TRACK)
+        self.assertEqual(self.pixel(102, 100), FILL)
+        self.assertEqual(qml_color("trackColor"), "#ADADAD")
+        self.assertEqual(qml_color("fillColor"), "#9B9BEA")
 
     def test_logo_colours_match_reference(self):
         # The logo SVG's two fills are the blues of the reference's logo
@@ -270,8 +271,8 @@ class TestSplashGeometry(SplashReferenceCase):
         # The panel is the #BFBFBF rule that bounds the reference's white face,
         # the bevel the bounding box of every non-field pixel, the logo the
         # bounding box of the blue pixels inside the white face, and the
-        # progress well the bounding box of the pixels darker than the panel's
-        # #DDDDDD in the lower band. Re-derive each and require the QML
+        # progress well the bounding box of the pixels darker than #C8C8C8
+        # in the rows below the "Starting Up" text. Re-derive each and require the QML
         # literals to match, so a moved rectangle fails here.
         face = _rect(
             (x, y)
@@ -332,8 +333,8 @@ class TestSplashGeometry(SplashReferenceCase):
             (bevel, (74, 60)),
             (panel, (78, 60)),
             (panel, (100, 60)),
-            (track, (135, 96)),
             (track, (120, 100)),
+            (track, (102, 100)),
         ):
             self.assertTrue(
                 _contains(rect, *sample), f"{sample} outside {rect}"
@@ -372,9 +373,8 @@ class TestSplashQml(unittest.TestCase):
         self.assertIn("asynchronous: true", logo)
 
     def test_progress_fill_follows_stage(self):
-        # The fill width binds to the KDE splash `stage` (0..6), so the
-        # reference's mostly-full bar is stage 5 of 6. Pin the binding, or a
-        # fill that ignores `stage` would look plausible but never advance.
+        # The fill width binds to the KDE splash `stage` (0..6). Pin the
+        # binding, or a fill that ignores `stage` would look plausible but never advance.
         self.assertIn(
             "width: parent.width * Math.min(1, root.stage / 6)", _read_qml()
         )

@@ -68,7 +68,9 @@ present but need a display server, so the feature loop could only land dead code
 objection the refusal records. Clear the refusal once a headless render path exists, then route
 the entry to PLANS.md.
 
-### Splash progress bar pins the panel face and the empty track as its track and fill colours (found by the plan role 2026-10-17)
+## Fixed
+
+### Splash progress bar pins the panel face and the empty track as its track and fill colours (found by the plan role 2026-10-17; fixed 2026-10-17 by the bugfix role)
 
 **Symptom:** `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml` draws the boot
 progress bar with `trackColor: "#DDDDDD"` and a grey `fillColor: "#ADADAD"`.
@@ -95,7 +97,9 @@ progress-well rectangle against rows y=99..102. The PLANS.md entry "Mac OS 8.6 P
 bar widget (`widgets/bar_meter_horizontal.svg`) for the desktop theme" pins the same pixels, and
 neither change depends on the other.
 
-## Fixed
+**Fixed:** `Splash.qml` now paints `trackColor: "#ADADAD"` (the unfilled track at `(120,100)`) and `fillColor: "#9B9BEA"` (the lavender fill at `(102,100)`). The track rectangle is `(101,99,38,4)`: `test_grid_geometry` now re-derives it from the pixels darker than `#C8C8C8` in rows y=98..104, below the "Starting Up" text, where the old rectangle `(101,94,38,9)` included that text's rows. The fill-width binding to `stage` is unchanged. The PLANS.md progress-bar widget entry pins the same pixels and is independent of this fix.
+
+**Validation gap:** none — the existing splash tests re-sample the reference, so re-pointing them at the correct pixels failed against the old QML and passes against the new.
 
 ### Test suite fails with 43 failures and 3 errors (found 2026-10-16; fixed 2026-10-17 by the bugfix role)
 
