@@ -30,6 +30,7 @@ SCROLLBAR_SVG = os.path.join(PACKAGE, "widgets", "scrollbar.svg")
 SLIDER_SVG = os.path.join(PACKAGE, "widgets", "slider.svg")
 BACKGROUND_SVG = os.path.join(PACKAGE, "widgets", "background.svg")
 DIALOG_BACKGROUND_SVG = os.path.join(PACKAGE, "dialogs", "background.svg")
+TOOLBAR_SVG = os.path.join(PACKAGE, "widgets", "toolbar.svg")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"

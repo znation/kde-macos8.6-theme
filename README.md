@@ -50,7 +50,9 @@ selection row for list and applet item delegates), `widgets/viewitem.svg` (the f
 highlight for menu items and icon-grid selection), `widgets/menubaritem.svg` (the
 flat #CCCCFF title fill an application-menu title shows while its menu is open, with
 no hover highlight), `widgets/tabbar.svg` (the raised Platinum tab highlights for
-Plasma TabBar, TabButton, kickoff footer, and panel applets), and `widgets/scrollbar.svg` (the
+Plasma TabBar, TabButton, kickoff footer, and panel applets), `widgets/toolbar.svg` (the
+raised grey Platinum toolbar background for `PlasmaComponents.ToolBar` and its
+consumers in kickoff, the system tray, and the desktop shell), and `widgets/scrollbar.svg` (the
 raised grey thumb and flat grey trough for `PlasmaComponents.ScrollBar`).
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
