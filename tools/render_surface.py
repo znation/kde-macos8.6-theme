@@ -23,6 +23,7 @@ Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 from __future__ import annotations
 
 import argparse
+import contextlib
 import os
 import re
 import shlex
@@ -133,6 +134,27 @@ def _run(argv: list[str], env: dict[str, str], log: Path, timeout: float) -> int
         finally:
             _kill_group(process)
             process.wait()
+
+
+@contextlib.contextmanager
+def _exit_on_termination():
+    """Turn SIGTERM and SIGHUP into ``SystemExit`` so the ``finally`` blocks run.
+
+    The kwin session runs in its own session, so a terminated render would
+    otherwise leave it running with no timeout, and the scratch root behind it.
+    Exits with the shell convention 128 + signal number.
+    """
+
+    def handler(signum, frame):
+        raise SystemExit(128 + signum)
+
+    signals = (signal.SIGTERM, signal.SIGHUP)
+    previous = [signal.signal(number, handler) for number in signals]
+    try:
+        yield
+    finally:
+        for number, old in zip(signals, previous):
+            signal.signal(number, old)
 
 
 def _failure(message: str, log: Path | None = None) -> int:
@@ -331,7 +353,8 @@ def main(argv: list[str] | None = None) -> int:
     for tool in REQUIRED_TOOLS:
         if shutil.which(tool) is None:
             return report_error(TOOL, f"required tool not found on PATH: {tool}")
-    return _render(args)
+    with _exit_on_termination():
+        return _render(args)
 
 
 if __name__ == "__main__":

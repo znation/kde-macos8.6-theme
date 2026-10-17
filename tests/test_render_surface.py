@@ -6,9 +6,12 @@ import contextlib
 import io
 import os
 import shutil
+import signal
 import stat
 import sys
+import subprocess
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -226,6 +229,27 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
         pid = int(pidfile.read_text(encoding="utf-8"))
+        with self.assertRaises(ProcessLookupError):
+            os.kill(pid, 0)
+
+    def test_sigterm_kills_the_session_group_and_removes_scratch(self):
+        pidfile = self.root / "pid"
+        self.stub("dbus-run-session", f'echo $$ > "{pidfile}"; exec sleep 60')
+        env = dict(os.environ, TMPDIR=str(self.scratch_parent))
+        argv = [sys.executable, render_surface.__file__, str(self.root / "o.png")]
+        with process_runner.running(
+            argv, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        ) as process:
+            deadline = time.monotonic() + 30
+            while not (pidfile.is_file() and pidfile.read_text(encoding="utf-8").strip()):
+                self.assertIsNone(process.poll(), "render exited before the session started")
+                self.assertLess(time.monotonic(), deadline, "session never started")
+                time.sleep(0.05)
+            pid = int(pidfile.read_text(encoding="utf-8"))
+            process.send_signal(signal.SIGTERM)
+            process_runner.finish(process)
+        self.assertEqual(128 + signal.SIGTERM, process.returncode)
+        self.assert_scratch_removed()
         with self.assertRaises(ProcessLookupError):
             os.kill(pid, 0)
 
