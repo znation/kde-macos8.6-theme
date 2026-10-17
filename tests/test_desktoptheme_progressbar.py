@@ -7,6 +7,7 @@ import unittest
 
 from desktoptheme_paths import BAR_METER_HORIZONTAL_SVG
 from nine_slice_case import NineSliceCase
+from platinum_palette import hex_colour
 from reference_image import skip_unless_materialized
 from theme_install import ROOT
 
@@ -42,10 +43,6 @@ REFERENCE_PIXELS = (
 )
 
 TILE = 4
-
-
-def _hex(rgb):
-    return "#%02X%02X%02X" % tuple(rgb)
 
 
 class TestProgressBar(NineSliceCase, unittest.TestCase):
@@ -124,7 +121,7 @@ class TestProgressBarReference(unittest.TestCase):
         # progress bar pixel, not a guess.
         for colour, (x, y) in REFERENCE_PIXELS:
             with self.subTest(colour=colour, pixel=(x, y)):
-                self.assertEqual(_hex(png.pixel_at(self.image, x, y)), colour)
+                self.assertEqual(hex_colour(png.pixel_at(self.image, x, y)), colour)
 
 
 if __name__ == "__main__":

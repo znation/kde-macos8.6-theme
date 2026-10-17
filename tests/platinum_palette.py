@@ -30,6 +30,11 @@ PLATINUM_FILLS = frozenset({BLACK, WHITE, GREY, FACE})
 TROUGH = "#EEEEEE"
 
 
+def hex_colour(rgb):
+    """Return the ``#RRGGBB`` form of the sampled pixel *rgb*, as an SVG fill is written."""
+    return "#%02X%02X%02X" % tuple(rgb)
+
+
 def assert_fill_palette(case, tree, extra=frozenset()):
     """Assert *tree*'s parsed fill set is exactly the Platinum artwork palette.
 

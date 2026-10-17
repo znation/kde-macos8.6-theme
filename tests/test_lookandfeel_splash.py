@@ -14,6 +14,7 @@ import re
 import unittest
 import xml.etree.ElementTree as ET
 
+from platinum_palette import hex_colour
 from reference_image import skip_unless_materialized
 from theme_install import ROOT
 
@@ -262,7 +263,7 @@ class TestSplashReference(SplashReferenceCase):
         self.assertEqual(face, (76, 101, 203))
         self.assertEqual(
             attribute_values(ET.parse(LOGO), "fill"),
-            {"#%02X%02X%02X" % highlight, "#%02X%02X%02X" % face},
+            {hex_colour(highlight), hex_colour(face)},
         )
 
 

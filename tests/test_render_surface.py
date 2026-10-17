@@ -15,7 +15,7 @@ from unittest import mock
 
 import repo_root  # noqa: F401
 import process_runner
-from platinum_palette import FACE
+from platinum_palette import FACE, hex_colour
 from tools import render_surface  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 
@@ -262,7 +262,7 @@ class TestRender(unittest.TestCase):
 
     def test_window_body_is_the_platinum_face(self):
         pixel = pixel_at(read_png(self.output), 300, 200)
-        self.assertEqual(FACE, "#%02X%02X%02X" % pixel)
+        self.assertEqual(FACE, hex_colour(pixel))
 
 
 if __name__ == "__main__":

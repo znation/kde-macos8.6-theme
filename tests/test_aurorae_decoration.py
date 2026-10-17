@@ -28,6 +28,7 @@ from kde_config import read as read_kde_config
 from kpackage_install_case import KPackageInstallCase
 from nine_slice_case import NineSliceCase
 from package_metadata import assert_named_authors, kplugin, load_metadata
+from platinum_palette import hex_colour
 from reference_image import skip_unless_materialized
 from svg_assertions import (
     SLICE_IDS,
@@ -85,10 +86,6 @@ REFERENCE_ROWS = 425
 # this value is KDE-required provenance: it is the active title field's flat
 # row, sampled at (250, 27).
 INACTIVE_GREY = "#CCCCCC"
-
-
-def _hex(rgb):
-    return "#%02X%02X%02X" % rgb
 
 
 def _read_capped(path, opener, limit=_MAX_DECORATION_SVG_BYTES):
@@ -219,7 +216,7 @@ class ReferenceImageCase:
         slice. Used for the two 12x12 button boxes.
         """
         return {
-            (x, y): _hex(self.reference_pixel(x0 + x, y0 + y))
+            (x, y): hex_colour(self.reference_pixel(x0 + x, y0 + y))
             for y in range(size)
             for x in range(size)
         }
@@ -414,7 +411,7 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         for local_y in range(22):
             self.assertEqual(
                 top[(0, local_y)],
-                _hex(self.reference_pixel(250, 25 + local_y)),
+                hex_colour(self.reference_pixel(250, 25 + local_y)),
                 local_y,
             )
 
@@ -465,7 +462,7 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         # row (250,27). The inactive top tile is the active tile with every
         # #FFFFFF/#777777 pinstripe (and the 1px highlight) flattened.
         grey = self.reference_pixel(250, 27)
-        self.assertEqual(_hex(grey), INACTIVE_GREY)
+        self.assertEqual(hex_colour(grey), INACTIVE_GREY)
         slices = render_slices(self.tree)
         _assert_flattened_inactive_tile(
             self,
@@ -474,7 +471,7 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
             "decoration-inactive-top",
             ("#FFFFFF", "#777777"),
         )
-        self.assertEqual(slices["decoration-inactive-top"][(0, 2)], _hex(grey))
+        self.assertEqual(slices["decoration-inactive-top"][(0, 2)], hex_colour(grey))
 
     def test_inactive_bevel_has_no_highlight(self):
         slices = render_slices(self.tree)
@@ -539,7 +536,7 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         for name, x0, y0, along_x in edges:
             with self.subTest(slice=name):
                 cross = [
-                    _hex(
+                    hex_colour(
                         self.reference_pixel(
                             x0 + (step if along_x else 0),
                             y0 + (0 if along_x else step),
@@ -606,7 +603,7 @@ class TestCorners(ReferenceImageCase, unittest.TestCase):
                 for x, y in _unmasked_points(width, height, mask):
                     self.assertEqual(
                         slices[name][(x, y)],
-                        _hex(self.reference_pixel(x0 + x, y0 + y)),
+                        hex_colour(self.reference_pixel(x0 + x, y0 + y)),
                         (x, y),
                     )
 
@@ -645,7 +642,7 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         for x, y in sorted(glyph):
             self.assertEqual(
                 zoom[(x, y)],
-                _hex(self.reference_pixel(343 + x, 29 + y)),
+                hex_colour(self.reference_pixel(343 + x, 29 + y)),
                 (x, y),
             )
 
