@@ -208,8 +208,9 @@ class TestToRgbUnsupportedColorType(unittest.TestCase):
     """``_to_rgb`` names a color type it has no expansion for.
 
     ``decode_png`` rejects a color type outside ``_CHANNELS`` before calling
-    ``_to_rgb``, so the five types it handles are the only ones a real PNG can
-    present. The helper's final guard is the contract that keeps a future
+    ``_to_rgb``, so the four types it handles (0, 2, 3 and 4; ``decode_png``
+    expands type 6 itself) are the only ones a real PNG can reach it with. The
+    helper's final guard is the contract that keeps a future
     ``_CHANNELS`` entry from silently decoding with the wrong expansion: adding
     a color type there without a matching branch here must fail loudly, naming
     the type. No PNG can drive that branch through ``decode_png``, so call the

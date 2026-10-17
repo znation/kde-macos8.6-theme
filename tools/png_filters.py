@@ -115,8 +115,8 @@ def _prefix_sum(channel: bytes) -> bytes:
     """Return the inclusive prefix sum of ``channel`` modulo 256.
 
     Equivalent to ``out[0] = channel[0]`` and
-    ``out[i] = (out[i] + out[i - 1]) & 0xFF``.  A Hillis-Steele scan adds a
-    doubling span at each of ``log2(len(channel))`` steps, each one the
+    ``out[i] = (channel[i] + out[i - 1]) & 0xFF``.  A Hillis-Steele scan adds a
+    doubling span at each of ``ceil(log2(len(channel)))`` steps, each one the
     carry-free lane addition of :func:`_lane_add`, so a whole channel's Sub
     filter runs at C speed instead of a Python loop per byte.
     """

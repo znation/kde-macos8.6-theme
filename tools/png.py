@@ -301,9 +301,9 @@ def _drop_alpha(raw: bytes, width: int, height: int) -> bytes:
     PNG filters reference only same-channel neighbours, so an alpha byte never
     influences a colour channel's predictor.  Removing alpha before
     unfiltering lets a colour-type-6 image unfilter as three channels instead
-    of four and leaves the result already RGB -- the dropped bytes are the
-    ones ``_to_rgb`` used to strip after the fact.  The filter-type byte at the
-    start of each scanline is kept.
+    of four and leaves the result already RGB, so ``_to_rgb`` has no
+    colour-type-6 case.  The filter-type byte at the start of each scanline is
+    kept.
     """
     _require_raw_length(raw, width, height, 4)
     stride = width * 4
@@ -491,8 +491,8 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
         )
     if not decompressor.eof:
         # A stream cut before its end marker can still yield exactly
-        # expected_raw bytes; without this the adler32 trailer that
-        # zlib.decompress used to verify would be dropped silently.
+        # expected_raw bytes; without this its adler32 trailer would go
+        # unverified silently.
         raise PngError(
             "PNG image data is truncated: the compressed stream ends before "
             "its final block"
