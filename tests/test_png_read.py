@@ -26,6 +26,18 @@ from png_fixtures import rgb_image  # noqa: E402
 
 class TestReadPng(unittest.TestCase):
 
+    def _tmp_dir(self) -> Path:
+        """Return a temp dir that is removed when the test ends."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return Path(tmp.name)
+
+    def _file(self, name: str, data: bytes) -> Path:
+        """Write *data* to *name* in a fresh temp dir and return its path."""
+        path = self._tmp_dir() / name
+        path.write_bytes(data)
+        return path
+
     def _assert_png_error_names_path(self, path: Path, *needles: str) -> None:
         """Assert ``read_png(path)`` raises ``PngError`` naming *path*.
 
@@ -43,15 +55,11 @@ class TestReadPng(unittest.TestCase):
         # an oversize file would be loaded into memory first. The read must
         # stop at the cap. Patch the cap down so the fixture stays small.
         limit = 4096
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "oversize.png"
-            path.write_bytes(b"\x00" * (limit + 1))
-            with mock.patch.object(png, "_MAX_FILE_BYTES", limit):
-                message, peak = peak_allocation(
-                    lambda: error_message(
-                        self, png.PngError, png.read_png, path
-                    )
-                )
+        path = self._file("oversize.png", b"\x00" * (limit + 1))
+        with mock.patch.object(png, "_MAX_FILE_BYTES", limit):
+            message, peak = peak_allocation(
+                lambda: error_message(self, png.PngError, png.read_png, path)
+            )
         self.assertIn(str(limit), message)
         self.assertIn(f"{limit + 1} bytes", message)
         self.assertLess(peak, limit + 1024 * 1024)
@@ -59,10 +67,9 @@ class TestReadPng(unittest.TestCase):
     def test_read_png_names_undecodable_file(self):
         # A decode failure must name the file it came from, so a two-input
         # invocation can tell which of the candidate/reference was bad.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "broken.png"
-            path.write_bytes(b"not a png")
-            self._assert_png_error_names_path(path)
+        self._assert_png_error_names_path(
+            self._file("broken.png", b"not a png")
+        )
 
     def test_read_png_names_an_unmaterialized_lfs_pointer(self):
         # The reference screenshots are stored with Git LFS. On a fresh clone
@@ -72,25 +79,21 @@ class TestReadPng(unittest.TestCase):
         # command that fetches it. The pointer text is written out literally,
         # not read from the module constant, so the test fails if the constant
         # stops matching a real Git LFS pointer.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "pointer.png"
-            path.write_bytes(
-                b"version https://git-lfs.github.com/spec/v1\n"
-                b"oid sha256:" + b"0" * 64 + b"\n"
-                b"size 12345\n"
-            )
-            self._assert_png_error_names_path(
-                path, "Git LFS pointer", "git lfs pull"
-            )
+        path = self._file(
+            "pointer.png",
+            b"version https://git-lfs.github.com/spec/v1\n"
+            b"oid sha256:" + b"0" * 64 + b"\n"
+            b"size 12345\n",
+        )
+        self._assert_png_error_names_path(
+            path, "Git LFS pointer", "git lfs pull"
+        )
 
     def test_read_png_forwards_max_rows(self):
         # The early-stop bound is why read_png takes a second argument; pin
         # that it reaches decode_png instead of being dropped.
         image, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "image.png"
-            path.write_bytes(data)
-            top = png.read_png(path, max_rows=2)
+        top = png.read_png(self._file("image.png", data), max_rows=2)
         self.assertEqual(top, png.Image(3, 2, image.rgb[: 3 * 2 * 3]))
 
     def test_read_png_names_a_read_failure(self):
@@ -99,22 +102,20 @@ class TestReadPng(unittest.TestCase):
         # the fidelity CLI catches only PngError and FidelityError, so a leak
         # would crash it with a traceback instead of its exit-2 read-error
         # path. Patch fdopen to hand back the real handle with a failing read.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "unreadable.png"
-            path.write_bytes(b"x")
-            real_fdopen = png.os.fdopen
+        path = self._file("unreadable.png", b"x")
+        real_fdopen = png.os.fdopen
 
-            def failing_fdopen(fd, *args, **kwargs):
-                handle = real_fdopen(fd, *args, **kwargs)
-                handle.read = mock.Mock(
-                    side_effect=OSError(5, "Input/output error")
-                )
-                return handle
+        def failing_fdopen(fd, *args, **kwargs):
+            handle = real_fdopen(fd, *args, **kwargs)
+            handle.read = mock.Mock(
+                side_effect=OSError(5, "Input/output error")
+            )
+            return handle
 
-            with mock.patch.object(png.os, "fdopen", failing_fdopen):
-                self._assert_png_error_names_path(
-                    path, "cannot read", "Input/output error"
-                )
+        with mock.patch.object(png.os, "fdopen", failing_fdopen):
+            self._assert_png_error_names_path(
+                path, "cannot read", "Input/output error"
+            )
 
     def test_read_png_closes_the_fd_when_fstat_fails(self):
         # os.fstat runs on the open fd before os.fdopen takes ownership; if it
@@ -122,23 +123,21 @@ class TestReadPng(unittest.TestCase):
         # every failed read leaks a descriptor. The except converts the raw
         # OSError into a PngError naming the file, so the fidelity CLI stays
         # on its exit-2 path instead of tracing back.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "unstattable.png"
-            path.write_bytes(b"x")
-            real_close = png.os.close
-            closed_fds = []
+        path = self._file("unstattable.png", b"x")
+        real_close = png.os.close
+        closed_fds = []
 
-            def recording_close(fd):
-                closed_fds.append(fd)
-                return real_close(fd)
+        def recording_close(fd):
+            closed_fds.append(fd)
+            return real_close(fd)
 
-            with mock.patch.object(
-                png.os, "fstat", side_effect=OSError(5, "Input/output error")
-            ):
-                with mock.patch.object(png.os, "close", recording_close):
-                    self._assert_png_error_names_path(
-                        path, "cannot read", "Input/output error"
-                    )
+        with mock.patch.object(
+            png.os, "fstat", side_effect=OSError(5, "Input/output error")
+        ):
+            with mock.patch.object(png.os, "close", recording_close):
+                self._assert_png_error_names_path(
+                    path, "cannot read", "Input/output error"
+                )
 
         # The finally block closed exactly the fd os.open handed out, so it is
         # no longer a valid descriptor.
@@ -154,21 +153,20 @@ class TestReadPng(unittest.TestCase):
         # to exit before the timeout.
         if not hasattr(os, "mkfifo"):
             self.skipTest("os.mkfifo is not available on this platform")
-        with tempfile.TemporaryDirectory() as tmp:
-            fifo = Path(tmp) / "pipe.png"
-            os.mkfifo(fifo)
-            child = subprocess.run(
-                [
-                    sys.executable,
-                    "-c",
-                    "import sys; sys.path.insert(0, sys.argv[1]); import png; "
-                    "png.read_png(sys.argv[2])",
-                    str(repo_root.ROOT / "tools"),
-                    str(fifo),
-                ],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
+        fifo = self._tmp_dir() / "pipe.png"
+        os.mkfifo(fifo)
+        child = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import sys; sys.path.insert(0, sys.argv[1]); import png; "
+                "png.read_png(sys.argv[2])",
+                str(repo_root.ROOT / "tools"),
+                str(fifo),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
         assert_failed(self, child)
         self.assertIn("not a regular file", child.stderr)
