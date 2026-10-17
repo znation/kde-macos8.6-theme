@@ -12,7 +12,7 @@ import os
 import re
 import unittest
 
-from reference_image import read_reference, skip_unless_materialized
+from reference_image import ReferenceScreenshotMixin
 from theme_install import ROOT
 
 from tools import png  # noqa: E402
@@ -94,13 +94,8 @@ class TestLayout(unittest.TestCase):
         self.assertNotIn("loadTemplate", self.text)
 
 
-class TestPanelHeightMatchesReference(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.image, cls.image_error = read_reference(REFERENCE)
-
-    def setUp(self):
-        skip_unless_materialized(self, REFERENCE, self.image_error)
+class TestPanelHeightMatchesReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = REFERENCE
 
     def test_panel_height_matches_the_reference(self):
         height = menu_bar_rows(self.image, SAMPLE_COLUMN)
@@ -108,7 +103,7 @@ class TestPanelHeightMatchesReference(unittest.TestCase):
 
     def test_reference_bar_rows(self):
         height = menu_bar_rows(self.image, SAMPLE_COLUMN)
-        pixel = lambda y: png.pixel_at(self.image, SAMPLE_COLUMN, y)
+        pixel = lambda y: self.pixel(SAMPLE_COLUMN, y)
         self.assertEqual(WHITE, pixel(0))
         self.assertEqual(BEVEL_GREY, pixel(height - 2))
         self.assertEqual(BLACK, pixel(height - 1))

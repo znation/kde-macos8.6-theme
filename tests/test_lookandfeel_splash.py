@@ -15,10 +15,9 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from platinum_palette import hex_colour
-from reference_image import read_reference, skip_unless_materialized
+from reference_image import ReferenceScreenshotMixin
 from theme_install import ROOT
 
-from tools import png  # noqa: E402
 from svg_assertions import (  # noqa: E402
     assert_no_external_references,
     assert_no_script_elements,
@@ -193,7 +192,7 @@ def _object_source(qml, object_id):
     raise AssertionError(f"{SPLASH}: object {object_id} is not brace-balanced")
 
 
-class SplashReferenceCase(unittest.TestCase):
+class SplashReferenceCase(ReferenceScreenshotMixin, unittest.TestCase):
     """Load the Git LFS reference once; skip the class when it is absent.
 
     ``make check`` must not require the LFS reference set (that is what
@@ -201,15 +200,7 @@ class SplashReferenceCase(unittest.TestCase):
     the reference-derived tests instead of failing.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.image, cls.image_error = read_reference(REFERENCE)
-
-    def setUp(self):
-        skip_unless_materialized(self, REFERENCE, self.image_error)
-
-    def pixel(self, x, y):
-        return png.pixel_at(self.image, x, y)
+    REFERENCE = REFERENCE
 
 
 class TestSplashReference(SplashReferenceCase):

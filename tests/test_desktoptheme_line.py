@@ -6,7 +6,8 @@ import os
 import unittest
 
 from desktoptheme_paths import LINE_SVG
-from reference_image import read_reference, skip_unless_materialized
+from platinum_palette import hex_colour
+from reference_image import ReferenceScreenshotMixin
 from svg_assertions import (
     assert_ids_present,
     assert_no_external_references,
@@ -21,8 +22,6 @@ from svg_assertions import (
 )
 from svg_case import SvgCase
 from theme_install import ROOT
-
-from tools import png
 
 DARK = "#888888"
 LIGHT = "#FFFFFF"
@@ -55,22 +54,14 @@ class TestLine(SvgCase, unittest.TestCase):
         self.assertEqual(by_id["horizontal-line"].get("transform"), "translate(3,0)")
 
 
-class TestLineReference(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.image, cls.image_error = read_reference(REFERENCE)
-
-    def setUp(self):
-        skip_unless_materialized(self, REFERENCE, self.image_error)
-
-    def pixel(self, x, y):
-        return png.pixel_at(self.image, x, y)
+class TestLineReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = REFERENCE
 
     def assert_rule(self, dark_at, light_at, before, after):
         self.assertEqual(self.pixel(*dark_at), (0x88, 0x88, 0x88))
         self.assertEqual(self.pixel(*light_at), (0xFF, 0xFF, 0xFF))
-        self.assertEqual("#%02X%02X%02X" % self.pixel(*dark_at), DARK)
-        self.assertEqual("#%02X%02X%02X" % self.pixel(*light_at), LIGHT)
+        self.assertEqual(hex_colour(self.pixel(*dark_at)), DARK)
+        self.assertEqual(hex_colour(self.pixel(*light_at)), LIGHT)
         self.assertEqual(self.pixel(*before), BODY)
         self.assertEqual(self.pixel(*after), BODY)
 

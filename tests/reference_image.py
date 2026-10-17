@@ -6,6 +6,9 @@ materialized skips instead of failing. The loaders differ -- one image per
 class, a dict of images, a lazily read pixel -- but the diagnostic and the
 skip are the same, so they live here once; `read_reference` also loads the
 one-image-per-class case.
+
+`ReferenceScreenshotMixin` packages that one-image-per-class case for the
+common test class, so a class names its image once.
 """
 
 from __future__ import annotations
@@ -37,3 +40,25 @@ def skip_unless_materialized(case, path, error):
     """
     if error is not None:
         case.skipTest(f"{path} is not a materialized PNG: {error}")
+
+
+class ReferenceScreenshotMixin:
+    """Mix in before ``unittest.TestCase``: load ``REFERENCE`` once, skip without it.
+
+    A class sets ``REFERENCE`` to the PNG path. ``setUpClass`` reads it into
+    ``cls.image`` / ``cls.image_error``, ``setUp`` skips each test when the
+    image is not materialized, and `pixel` reads one pixel of it. A mixin, not
+    a ``TestCase``, so importing it never makes a test module collect it.
+    """
+
+    REFERENCE = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.image, cls.image_error = read_reference(cls.REFERENCE)
+
+    def setUp(self):
+        skip_unless_materialized(self, self.REFERENCE, self.image_error)
+
+    def pixel(self, x, y):
+        return png.pixel_at(self.image, x, y)

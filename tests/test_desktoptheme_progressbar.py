@@ -8,10 +8,9 @@ import unittest
 from desktoptheme_paths import BAR_METER_HORIZONTAL_SVG
 from nine_slice_case import NineSliceCase
 from platinum_palette import hex_colour
-from reference_image import read_reference, skip_unless_materialized
+from reference_image import ReferenceScreenshotMixin
 from theme_install import ROOT
 
-from tools import png  # noqa: E402
 from svg_assertions import (  # noqa: E402
     assert_center_tile_is,
     assert_corner_pixels,
@@ -103,20 +102,15 @@ class TestProgressBar(NineSliceCase, unittest.TestCase):
         )
 
 
-class TestProgressBarReference(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.image, cls.image_error = read_reference(REFERENCE)
-
-    def setUp(self):
-        skip_unless_materialized(self, REFERENCE, self.image_error)
+class TestProgressBarReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = REFERENCE
 
     def test_colours_match_reference(self):
         # Every colour the slice tests pin is the value of a boot-screen
         # progress bar pixel, not a guess.
         for colour, (x, y) in REFERENCE_PIXELS:
             with self.subTest(colour=colour, pixel=(x, y)):
-                self.assertEqual(hex_colour(png.pixel_at(self.image, x, y)), colour)
+                self.assertEqual(hex_colour(self.pixel(x, y)), colour)
 
 
 if __name__ == "__main__":
