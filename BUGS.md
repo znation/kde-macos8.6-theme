@@ -12,6 +12,21 @@ _None yet._
 
 ## Fixed
 
+### `make render` runs the whole render before reporting an unwritable output, and cannot write an output path starting with `-` (found by the bugfix role 2026-10-17; fixed 2026-10-17 by the bugfix role)
+
+**Symptom:** `tools/render_surface.py` only tried to write `OUTPUT` after the `make install` and the
+headless session (up to the 90s timeout). `make render RENDER_OUTPUT=` (empty), an output that is a
+directory, or one in a missing directory therefore failed with `cannot write ...` only after the
+full render. `make render RENDER_OUTPUT=-x.png` passed `"-x.png"` to the tool, which argparse read
+as an option and rejected with "the following arguments are required: output".
+**Reproduce:** `make render RENDER_OUTPUT=` ran the render, then exited 1 with `cannot write <cwd>: [Errno 21] Is a directory`.
+**Fix:** `main` checks the output path right after the tool lookup (`_output_problem`: a directory,
+a missing parent directory, or an unwritable parent) and exits 2 with a `cannot write` diagnostic
+before any scratch or install; the Makefile passes `--` before the output path.
+**Tests:** `TestFailurePaths.test_unwritable_output_is_refused_before_installing` and
+`test_make_render_passes_a_dash_leading_output_as_a_path` in `tests/test_render_surface.py`; both failed before the fix.
+**Validation gap:** none — the stubbed-tool harness and `make -n` reproduced both.
+
 ### `make render` installs the theme outside its scratch data home when `DESTDIR` is set in the environment (found by the bugfix role 2026-10-17; fixed 2026-10-17 by the bugfix role)
 
 **Symptom:** `tools/render_surface.py` runs `make install XDG_DATA_HOME=<scratch>/data` with the

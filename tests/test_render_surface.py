@@ -194,6 +194,37 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_unwritable_output_is_refused_before_installing(self):
+        marker = self.root / "make-ran"
+        self.stub("make", f"touch {marker}")
+        for label, output in (
+            ("a directory", self.root),
+            ("an empty path", Path("")),
+            ("a missing directory", self.root / "missing" / "out.png"),
+        ):
+            with self.subTest(label):
+                status, stderr = call_main(str(output))
+                self.assertEqual(2, status)
+                self.assertIn("render_surface: error: cannot write", stderr)
+                self.assertFalse(marker.exists())
+                self.assert_scratch_removed()
+
+    def test_make_render_passes_a_dash_leading_output_as_a_path(self):
+        real_path = os.pathsep.join(
+            entry
+            for entry in os.environ["PATH"].split(os.pathsep)
+            if entry != str(self.bin)
+        )
+        result = subprocess.run(
+            ["make", "-n", "render", "RENDER_OUTPUT=-x.png"],
+            cwd=repo_root.ROOT,
+            env={**os.environ, "PATH": real_path},
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        self.assertIn('render_surface.py -- "-x.png"', result.stdout)
+
     def test_session_receives_the_geometry_and_the_themed_configs(self):
         record = self.root / "args"
         self.stub(

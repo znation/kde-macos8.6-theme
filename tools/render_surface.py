@@ -180,6 +180,17 @@ def _session_script() -> str:
     )
 
 
+def _output_problem(output: Path) -> str | None:
+    """Return why *output* cannot be written, or None when it looks writable."""
+    if output.is_dir():
+        return "is a directory"
+    if not output.parent.is_dir():
+        return "its directory does not exist"
+    if not os.access(output.parent, os.W_OK | os.X_OK):
+        return "its directory is not writable"
+    return None
+
+
 def _render(args: argparse.Namespace) -> int:
     output = Path(args.output).absolute()
     scratch = Path(tempfile.mkdtemp(prefix="render-surface-"))
@@ -314,7 +325,7 @@ def main(argv: list[str] | None = None) -> int:
         ),
         epilog=(
             "exit status: 0 when OUTPUT was written, 1 when the render or "
-            "capture failed, 2 usage error or missing external tool"
+            "capture failed, 2 usage error, unwritable OUTPUT or missing external tool"
         ),
     )
     parser.add_argument("output", help="PNG file to write")
@@ -353,6 +364,9 @@ def main(argv: list[str] | None = None) -> int:
     for tool in REQUIRED_TOOLS:
         if shutil.which(tool) is None:
             return report_error(TOOL, f"required tool not found on PATH: {tool}")
+    problem = _output_problem(Path(args.output).absolute())
+    if problem is not None:
+        return report_error(TOOL, f"cannot write {args.output!r}: {problem}")
     with _exit_on_termination():
         return _render(args)
 

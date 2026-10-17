@@ -171,7 +171,7 @@ RENDER_OUTPUT ?= render.png
 render:
 	@$(call require_python,render)
 	@$(call require_python_version,render)
-	$(PYTHON) tools/render_surface.py "$(RENDER_OUTPUT)"
+	$(PYTHON) tools/render_surface.py -- "$(RENDER_OUTPUT)"
 
 # `install` and `uninstall` share fixed hidden `.staging`/`.old` names under
 # the data home, so overlapping runs can clobber each other's staging, and an
