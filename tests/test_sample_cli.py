@@ -6,9 +6,7 @@ Run with the project's check harness (stdlib unittest):
 
 from __future__ import annotations
 
-import tempfile
 import unittest
-from pathlib import Path
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import sample  # noqa: E402
@@ -27,14 +25,9 @@ class TestSampleCli(CliTestCase):
     PROGRAM = "sample"
 
     def _image(self) -> str:
-        """Write a 4x3 PNG whose pixel ``(x, y)`` is ``(x, y, x + y)``.
-
-        The file lives in a temp dir removed when the test ends.
-        """
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
+        """Write a 4x3 PNG whose pixel ``(x, y)`` is ``(x, y, x + y)``."""
         _, data = rgb_image(4, 3, lambda x, y: (x, y, x + y))
-        return self._write(Path(tmp.name), "reference.png", data)
+        return self._write(self._tmp_dir(), "reference.png", data)
 
     def test_script_entry_point(self):
         """The CLI still runs end to end as ``python3 tools/sample.py``.
@@ -44,9 +37,9 @@ class TestSampleCli(CliTestCase):
         and the module's direct-run import path stay covered.
         """
         _, data = solid_rgb(1, 1)
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._write(Path(tmp), "reference.png", data)
-            result = self._run_script(path, "0", "0")
+        tmp = self._tmp_dir()
+        path = self._write(tmp, "reference.png", data)
+        result = self._run_script(path, "0", "0")
         self._assert_success(result)
         self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)
 
@@ -160,9 +153,9 @@ class TestSampleCli(CliTestCase):
         self._assert_usage_error(result, "outside the 4x3 image")
 
     def test_missing_file_is_error(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            missing = str(Path(tmp) / "absent.png")
-            result = self._run(missing, "0", "0")
+        tmp = self._tmp_dir()
+        missing = str(tmp / "absent.png")
+        result = self._run(missing, "0", "0")
         self._assert_usage_error(result, "cannot read", missing)
 
     def test_non_integer_coordinate_is_usage_error(self):

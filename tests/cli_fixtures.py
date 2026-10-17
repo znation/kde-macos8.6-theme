@@ -13,6 +13,7 @@ import contextlib
 import io
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -73,6 +74,12 @@ class CliTestCase(unittest.TestCase):
         """
         script = ROOT / "tools" / f"{self.PROGRAM}.py"
         return run_captured([sys.executable, str(script), *args])
+
+    def _tmp_dir(self) -> Path:
+        """Return a fresh temp dir that is removed when the test ends."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        return Path(tmp.name)
 
     def _write(self, directory: Path, name: str, data: bytes) -> str:
         path = directory / name

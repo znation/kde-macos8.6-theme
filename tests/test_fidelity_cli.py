@@ -7,7 +7,6 @@ Run with the project's check harness (stdlib unittest):
 from __future__ import annotations
 
 import subprocess
-import tempfile
 import unittest
 from pathlib import Path
 
@@ -54,14 +53,12 @@ class TestCli(CliTestCase):
         """Write two PNGs to a temp dir and run the CLI on them.
 
         *candidate_png* is written as ``candidate.png`` and *reference_png* as
-        ``reference.png``. The temp dir is removed before the result returns,
-        which is safe because ``_run`` reads both files before it returns.
+        ``reference.png``.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate = self._write(tmpdir, "candidate.png", candidate_png)
-            reference = self._write(tmpdir, "reference.png", reference_png)
-            return self._run(candidate, reference)
+        tmp = self._tmp_dir()
+        candidate = self._write(tmp, "candidate.png", candidate_png)
+        reference = self._write(tmp, "reference.png", reference_png)
+        return self._run(candidate, reference)
 
     def _write_padded_surface_pair(self, directory: Path) -> tuple[str, str]:
         """Write a 2x2 surface PNG and a 4x4 reference with a 1px black border.
@@ -85,11 +82,9 @@ class TestCli(CliTestCase):
         )
 
     def _solid_reference(self) -> str:
-        """Write a 1x1 black PNG to a temp dir removed when the test ends."""
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
+        """Write a 1x1 black PNG to a fresh temp dir and return its path."""
         _, data = solid_rgb(1, 1)
-        return self._write(Path(tmp.name), "reference.png", data)
+        return self._write(self._tmp_dir(), "reference.png", data)
 
     def _assert_pass(self, result: subprocess.CompletedProcess) -> None:
         """Assert *result* is a clean exit-0 pass whose stdout says PASS."""
@@ -109,26 +104,24 @@ class TestCli(CliTestCase):
         wrapper and the module's direct-run import path stay covered.
         """
         _, reference = solid_rgb(1, 1)
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._write(Path(tmp), "reference.png", reference)
-            result = self._run_script(path, path)
+        tmp = self._tmp_dir()
+        path = self._write(tmp, "reference.png", reference)
+        result = self._run_script(path, path)
         self._assert_pass(result)
 
     def test_pass_and_fail(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmpdir = Path(tmp)
-            candidate, altered = self._write_altered_pair(tmpdir)
-            # The reference is byte-identical to the candidate, so this first
-            # run must pass before the altered copy is shown to fail.
-            reference = candidate
+        candidate, altered = self._write_altered_pair(self._tmp_dir())
+        # The reference is byte-identical to the candidate, so this first
+        # run must pass before the altered copy is shown to fail.
+        reference = candidate
 
-            same = self._run(candidate, reference)
-            self._assert_pass(same)
+        same = self._run(candidate, reference)
+        self._assert_pass(same)
 
-            different = self._run(candidate, altered)
-            self._assert_fail(different)
-            self.assertIn("differing pixels: 1 / 9", different.stdout)
-            self.assertIn("max channel delta: 50 at (1, 0)", different.stdout)
+        different = self._run(candidate, altered)
+        self._assert_fail(different)
+        self.assertIn("differing pixels: 1 / 9", different.stdout)
+        self.assertIn("max channel delta: 50 at (1, 0)", different.stdout)
 
     def test_tolerance_is_the_default_gate(self):
         # --tolerance alone decides the verdict: a candidate whose worst
@@ -136,66 +129,66 @@ class TestCli(CliTestCase):
         # mean absolute error is non-zero, because no aggregate budget is set
         # by default. Before the fix, --max-mae defaulted to 0 and forced a
         # FAIL here.
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate, altered = self._write_altered_pair(Path(tmp))
+        tmp = self._tmp_dir()
+        candidate, altered = self._write_altered_pair(tmp)
 
-            within = self._run(candidate, altered, "--tolerance", "50")
-            self._assert_pass(within)
+        within = self._run(candidate, altered, "--tolerance", "50")
+        self._assert_pass(within)
 
-            outside = self._run(candidate, altered, "--tolerance", "49")
-            self._assert_fail(outside)
+        outside = self._run(candidate, altered, "--tolerance", "49")
+        self._assert_fail(outside)
 
-            default = self._run(candidate, altered)
-            self._assert_fail(default)
+        default = self._run(candidate, altered)
+        self._assert_fail(default)
 
     def test_explicit_budget_replaces_default_gate(self):
         # A budget set with --max-mae is the verdict criterion, not an extra
         # constraint on top of the default all-pixels-within-tolerance gate:
         # the candidate has a 50-level pixel but passes when its MAE (50/27,
         # about 1.85) is within the budget.
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate, altered = self._write_altered_pair(Path(tmp))
+        tmp = self._tmp_dir()
+        candidate, altered = self._write_altered_pair(tmp)
 
-            generous = self._run(candidate, altered, "--max-mae", "2")
-            self._assert_pass(generous)
+        generous = self._run(candidate, altered, "--max-mae", "2")
+        self._assert_pass(generous)
 
-            tight = self._run(candidate, altered, "--max-mae", "1")
-            self._assert_fail(tight)
+        tight = self._run(candidate, altered, "--max-mae", "1")
+        self._assert_fail(tight)
 
     def test_max_frac_budget_is_the_verdict(self):
         # --max-frac is a budget on its own: with no --max-mae, the verdict is
         # the differing-pixel fraction against the threshold, not the default
         # no-differing-pixel gate. The candidate differs at 1 of 9 pixels
         # (fraction 1/9, about 0.111).
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate, altered = self._write_altered_pair(Path(tmp))
+        tmp = self._tmp_dir()
+        candidate, altered = self._write_altered_pair(tmp)
 
-            generous = self._run(candidate, altered, "--max-frac", "0.12")
-            self._assert_pass(generous)
+        generous = self._run(candidate, altered, "--max-frac", "0.12")
+        self._assert_pass(generous)
 
-            tight = self._run(candidate, altered, "--max-frac", "0.10")
-            self._assert_fail(tight)
+        tight = self._run(candidate, altered, "--max-frac", "0.10")
+        self._assert_fail(tight)
 
     def test_both_budgets_must_be_met(self):
         # --max-mae and --max-frac are both budgets: when both are set the run
         # passes only when each is met, so one generous and one tight budget
         # fails. If the verdict used any() instead of all(), each mixed case
         # here would pass and hide a budget that is not being enforced.
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate, altered = self._write_altered_pair(Path(tmp))
+        tmp = self._tmp_dir()
+        candidate, altered = self._write_altered_pair(tmp)
 
-            both = self._run(
-                candidate, altered, "--max-mae", "2", "--max-frac", "0.12"
-            )
-            self._assert_pass(both)
+        both = self._run(
+            candidate, altered, "--max-mae", "2", "--max-frac", "0.12"
+        )
+        self._assert_pass(both)
 
-            for extra in (
-                ("--max-mae", "2", "--max-frac", "0.10"),  # frac fails
-                ("--max-mae", "1", "--max-frac", "0.12"),  # mae fails
-            ):
-                with self.subTest(extra=extra):
-                    result = self._run(candidate, altered, *extra)
-                    self._assert_fail(result)
+        for extra in (
+            ("--max-mae", "2", "--max-frac", "0.10"),  # frac fails
+            ("--max-mae", "1", "--max-frac", "0.12"),  # mae fails
+        ):
+            with self.subTest(extra=extra):
+                result = self._run(candidate, altered, *extra)
+                self._assert_fail(result)
 
     def test_reports_worst_delta_location(self):
         a, a_png = solid_rgb(2, 1)
@@ -218,10 +211,10 @@ class TestCli(CliTestCase):
         )
 
     def test_crop_region_passes(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate, reference = self._write_padded_surface_pair(Path(tmp))
-            result = self._run(candidate, reference, "--crop", "1,1,2,2")
-            self._assert_pass(result)
+        tmp = self._tmp_dir()
+        candidate, reference = self._write_padded_surface_pair(tmp)
+        result = self._run(candidate, reference, "--crop", "1,1,2,2")
+        self._assert_pass(result)
 
     def test_crop_rectangle_is_echoed_for_reproducibility(self):
         # The reference line prints the cropped size, which does not say where
@@ -229,9 +222,9 @@ class TestCli(CliTestCase):
         # rectangle. A run without --crop must not print the line at all.
         reference = self._solid_reference()
         uncropped = self._run(reference, reference)
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate, padded = self._write_padded_surface_pair(Path(tmp))
-            cropped = self._run(candidate, padded, "--crop", "1,1,2,2")
+        tmp = self._tmp_dir()
+        candidate, padded = self._write_padded_surface_pair(tmp)
+        cropped = self._run(candidate, padded, "--crop", "1,1,2,2")
         self._assert_success(cropped)
         self.assertIn("reference crop: 1,1,2,2", cropped.stdout)
         self._assert_success(uncropped)
@@ -242,10 +235,10 @@ class TestCli(CliTestCase):
         # after each comma ("0, 0, 10, 10"); that whitespace is formatting,
         # not a value, so --crop must accept it. The scalar options still
         # reject surrounding whitespace (test_python_literal_numeric_args_rejected).
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate, reference = self._write_padded_surface_pair(Path(tmp))
-            tight = self._run(candidate, reference, "--crop", "1,1,2,2")
-            spaced = self._run(candidate, reference, "--crop", "1, 1, 2, 2")
+        tmp = self._tmp_dir()
+        candidate, reference = self._write_padded_surface_pair(tmp)
+        tight = self._run(candidate, reference, "--crop", "1,1,2,2")
+        spaced = self._run(candidate, reference, "--crop", "1, 1, 2, 2")
         self._assert_success(tight)
         self._assert_success(spaced)
         # Identical output proves the spaced form selects the same rectangle.
@@ -276,23 +269,23 @@ class TestCli(CliTestCase):
             + _chunk(b"IEND", b"")
         )
         reference = self._solid_reference()
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate = self._write(Path(tmp), "broken.png", short_ihdr)
-            result = self._run(candidate, reference)
-            self._assert_usage_error(result, "error")
+        tmp = self._tmp_dir()
+        candidate = self._write(tmp, "broken.png", short_ihdr)
+        result = self._run(candidate, reference)
+        self._assert_usage_error(result, "error")
 
     def test_decode_error_names_offending_file(self):
         # With two file inputs, the error must say which one could not be
         # decoded; the message is otherwise identical for either ordering.
         reference = self._solid_reference()
-        with tempfile.TemporaryDirectory() as tmp:
-            candidate = self._write(Path(tmp), "broken.png", b"not a png")
-            for first, second in ((candidate, reference), (reference, candidate)):
-                with self.subTest(first=first):
-                    result = self._run(first, second)
-                    self._assert_usage_error(result, "error")
-                    self.assertIn(candidate, result.stderr)
-                    self.assertNotIn(reference, result.stderr)
+        tmp = self._tmp_dir()
+        candidate = self._write(tmp, "broken.png", b"not a png")
+        for first, second in ((candidate, reference), (reference, candidate)):
+            with self.subTest(first=first):
+                result = self._run(first, second)
+                self._assert_usage_error(result, "error")
+                self.assertIn(candidate, result.stderr)
+                self.assertNotIn(reference, result.stderr)
 
     def test_missing_file_is_error(self):
         reference = self._solid_reference()
@@ -312,11 +305,11 @@ class TestCli(CliTestCase):
     def test_crop_outside_reference_is_error(self):
         # A crop with valid syntax can still fall outside the reference; crop()
         # raises FidelityError and main() must report it at exit 2, not crash.
-        with tempfile.TemporaryDirectory() as tmp:
-            _, reference = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-            path = self._write(Path(tmp), "reference.png", reference)
-            result = self._run(path, path, "--crop", "1,1,2,2")
-            self._assert_usage_error(result, "falls outside")
+        tmp = self._tmp_dir()
+        _, reference = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+        path = self._write(tmp, "reference.png", reference)
+        result = self._run(path, path, "--crop", "1,1,2,2")
+        self._assert_usage_error(result, "falls outside")
 
     def test_invalid_numeric_args_are_usage_errors(self):
         # Negative/NaN thresholds silently invert the verdict (a negative
@@ -380,22 +373,22 @@ class TestCli(CliTestCase):
         # not have to re-derive which field was wrong. Both paths are
         # nonexistent: a crop that reached the comparison would instead fail as
         # a read error, without argparse's "argument --crop:" prefix.
-        with tempfile.TemporaryDirectory() as tmp:
-            missing = str(Path(tmp) / "missing.png")
-            base = [missing, missing]
-            for extra, expected in (
-                (["--crop", "1,2,3"], "1,2,3"),
-                (["--crop", "a,2,3,4"], "'a'"),
-                (["--crop", "1,,3,4"], "field 2 is empty"),
-                (["--crop", "1, ,3,4"], "field 2 is empty"),
-                (["--crop", "0,0,0,2"], "x=0 y=0 w=0 h=2"),
-                (["--crop=-1,0,2,2"], "x=-1 y=0 w=2 h=2"),
-            ):
-                with self.subTest(extra=extra):
-                    result = self._run(*base, *extra)
-                    self._assert_usage_error(
-                        result, expected, "argument --crop:"
-                    )
+        tmp = self._tmp_dir()
+        missing = str(tmp / "missing.png")
+        base = [missing, missing]
+        for extra, expected in (
+            (["--crop", "1,2,3"], "1,2,3"),
+            (["--crop", "a,2,3,4"], "'a'"),
+            (["--crop", "1,,3,4"], "field 2 is empty"),
+            (["--crop", "1, ,3,4"], "field 2 is empty"),
+            (["--crop", "0,0,0,2"], "x=0 y=0 w=0 h=2"),
+            (["--crop=-1,0,2,2"], "x=-1 y=0 w=2 h=2"),
+        ):
+            with self.subTest(extra=extra):
+                result = self._run(*base, *extra)
+                self._assert_usage_error(
+                    result, expected, "argument --crop:"
+                )
 
     def test_tolerance_above_channel_range_rejected(self):
         # A per-channel delta is at most 255, so a larger tolerance can never
