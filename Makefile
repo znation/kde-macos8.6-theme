@@ -68,9 +68,10 @@ WALLPAPER_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/wallpapers
 # the last working package installed instead of deleting it. $(1) is the
 # package id, $(2) its source directory, $(3) the install dir.
 define install_package
-	@staging='$(3)/.$(1).staging'; \
-	old='$(3)/.$(1).old'; \
-	trap 'rm -rf "$$staging"; if [ ! -e "$(3)/$(1)" ] && [ -e "$$old" ]; then mv "$$old" "$(3)/$(1)"; fi' EXIT; \
+	@staging="$(3)/.$(1).staging"; \
+	old="$(3)/.$(1).old"; \
+	final="$(3)/$(1)"; \
+	trap 'rm -rf "$$staging"; if [ ! -e "$$final" ] && [ -e "$$old" ]; then mv "$$old" "$$final"; fi' EXIT; \
 	if [ ! -e "$(3)/$(1)" ] && [ -e "$$old" ]; then mv "$$old" "$(3)/$(1)"; fi && \
 	rm -rf "$$staging" "$$old" && \
 	cp -r "$(2)" "$$staging" && \
@@ -217,7 +218,7 @@ _install:
 # Stage the scheme as a hidden sibling and rename it in, so a copy that fails
 # or is interrupted cannot truncate the working installed scheme. The rename
 # replaces atomically, and the EXIT trap removes the staging file on failure.
-	@staging='$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging'; \
+	@staging="$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging"; \
 	trap 'rm -f "$$staging"' EXIT; \
 	install -Dm644 "$(COLOR_SCHEME)" "$$staging" && \
 	mv "$$staging" "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"

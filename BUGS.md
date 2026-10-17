@@ -12,6 +12,15 @@ _None yet._
 
 ## Fixed
 
+### `make install` fails with a shell syntax error when `XDG_DATA_HOME` or `DESTDIR` contains an apostrophe (found by the bugfix role 2026-10-17; fixed 2026-10-17 by the bugfix role)
+
+**Symptom:** `make install XDG_DATA_HOME="$d/it's"` exited 2 with `Syntax error: Unterminated quoted string` (or, for the package steps, a `mv` to a mangled path), after creating the empty data home. A home directory such as `O'Brien` hits this.
+**Reproduce:** `make install XDG_DATA_HOME="/var/tmp/x/it's"`; `make uninstall` was unaffected because its words are double-quoted.
+**Fix:** the `staging=`/`old=` assignments in `_install` and the `install_package` macro are double-quoted like the rest of the recipes, and the package trap reads a `final` shell variable instead of embedding `$(3)/$(1)` inside its single-quoted body.
+**Not covered:** a double quote, backtick or backslash in the path still breaks the recipes (every path word is double-quoted); not fixed here.
+**Tests:** `TestWhitespaceInInstallPaths.test_install_and_uninstall_under_a_path_with_an_apostrophe` in `tests/test_theme_install.py`; it failed before the fix.
+**Validation gap:** none — the existing install harness reproduced it once given an apostrophe path.
+
 ### `make render` runs the whole render before reporting an unwritable output, and cannot write an output path starting with `-` (found by the bugfix role 2026-10-17; fixed 2026-10-17 by the bugfix role)
 
 **Symptom:** `tools/render_surface.py` only tried to write `OUTPUT` after the `make install` and the

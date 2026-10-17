@@ -105,6 +105,34 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
             self.assertFalse(os.path.exists(aurorae), aurorae)
             self.assertFalse(os.path.exists(wallpaper), wallpaper)
 
+    def test_install_and_uninstall_under_a_path_with_an_apostrophe(self):
+        # The staging/old/trap words are shell-quoted; a single-quoted word
+        # holding the path ended at the apostrophe and the recipe died with a
+        # shell syntax error, e.g. under a home directory named `O'Brien`.
+        with tempfile.TemporaryDirectory() as tmp:
+            destdir = os.path.join(tmp, "O'Brien's root")
+            assert_succeeded(self, theme_install.install(destdir))
+
+            paths = [
+                theme_install.installed_color_scheme(destdir),
+                os.path.join(
+                    theme_install.installed_plasma_dir(destdir, "look-and-feel"),
+                    "org.macos8.desktop",
+                ),
+                os.path.join(
+                    theme_install.installed_plasma_dir(destdir, "desktoptheme"),
+                    "org.macos8.desktop",
+                ),
+                theme_install.installed_aurorae_theme(destdir, "org.macos8.desktop"),
+                theme_install.installed_wallpaper(destdir, "org.macos8.desktop"),
+            ]
+            for path in paths:
+                self.assertTrue(os.path.exists(path), path)
+
+            assert_succeeded(self, theme_install.uninstall(destdir))
+            for path in paths:
+                self.assertFalse(os.path.exists(path), path)
+
 
 class TestXdgDataHomeDefault(unittest.TestCase):
     """An empty or relative $XDG_DATA_HOME must fall back to the XDG default.
