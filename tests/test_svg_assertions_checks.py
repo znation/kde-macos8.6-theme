@@ -59,6 +59,8 @@ _ORIGINS = {
     "bottomleft": (0, 8),
     "bottomright": (8, 8),
 }
+# The correct layout with the top tile moved off its margin hint.
+_ORIGINS_TOP_MISPLACED = {**_ORIGINS, "top": (0, 0)}
 
 
 def _nine_slice_tree(origins=None, sizes=None):
@@ -157,11 +159,9 @@ class TestStructuralGuards(unittest.TestCase):
         assert_tiles_placed_by_margins(self, _nine_slice_tree(), [""])
 
     def test_tiles_placed_by_margins_catches_a_misplaced_group(self):
-        origins = dict(_ORIGINS)
-        origins["top"] = (0, 0)
         assert_rejects(
             assert_tiles_placed_by_margins,
-            _nine_slice_tree(origins=origins),
+            _nine_slice_tree(origins=_ORIGINS_TOP_MISPLACED),
             [""],
         )
 
@@ -187,11 +187,9 @@ class TestStructuralGuards(unittest.TestCase):
         )
 
     def test_tiles_placed_by_margins_catches_a_misplaced_alias_tile(self):
-        origins = dict(_ORIGINS)
-        origins["top"] = (0, 0)
         assert_rejects(
             assert_tiles_placed_by_margins,
-            _aliased_nine_slice_tree(alias_origins=origins),
+            _aliased_nine_slice_tree(alias_origins=_ORIGINS_TOP_MISPLACED),
             _ALIAS_PREFIXES,
             _ALIAS_HINT_MAP,
         )
