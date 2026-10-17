@@ -145,11 +145,12 @@ class TestLoadMetadata(unittest.TestCase):
 
 
 class TestKPluginHelper(unittest.TestCase):
-    """The shared `KPlugin` guard used by the mixin and the wiring check.
+    """The shared `KPlugin` guard used by the mixin and the metadata tests.
 
-    `PackageMetadata._plugin` and `test_desktoptheme`'s defaults-wiring check
-    both read `KPlugin`; pin the shared guard's message directly so either
-    caller names the file and the offending type on a malformed metadata.json.
+    `PackageMetadata._plugin`, `test_desktoptheme`'s defaults-wiring check and
+    `test_aurorae_decoration` all read `KPlugin`; pin the shared guard's
+    message directly so each caller names the file and the offending type on
+    a malformed metadata.json.
     """
 
     def test_returns_the_kplugin_object(self):

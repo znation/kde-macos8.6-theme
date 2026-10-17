@@ -52,8 +52,9 @@ def kplugin(metadata, path):
     reader treats it as an object. A metadata.json missing it raises a bare
     ``KeyError`` from that read and one whose ``KPlugin`` is a string, list or
     number raises a bare ``TypeError``; neither names the file or the field, so
-    both are rejected here with both. The mixin's ``_plugin`` and the
-    desktop-theme wiring check share this guard.
+    both are rejected here with both. The mixin's ``_plugin``, the
+    desktop-theme wiring check and the Aurorae decoration tests share this
+    guard.
     """
     plugin = metadata.get("KPlugin")
     if not isinstance(plugin, dict):
