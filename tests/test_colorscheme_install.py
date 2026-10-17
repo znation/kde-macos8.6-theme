@@ -43,6 +43,13 @@ def write_selected_scheme(tmp, scheme_id):
     return config
 
 
+def uninstall_with_config(tmp, config, extra=()):
+    """Run `make uninstall` with *config* as the user's `XDG_CONFIG_HOME`."""
+    return uninstall(
+        tmp, extra=extra, env=dict(os.environ, XDG_CONFIG_HOME=config)
+    )
+
+
 class TestInstall(unittest.TestCase):
     def test_make_install_copies_scheme_byte_for_byte(self):
         with installed_destdir(self) as tmp:
@@ -173,9 +180,7 @@ class TestInstall(unittest.TestCase):
             kdeglobals = os.path.join(config, "kdeglobals")
             original = "[General]\nColorScheme=MacOS8\n"
 
-            removed = uninstall(
-                tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
-            )
+            removed = uninstall_with_config(tmp, config)
             assert_succeeded(self, removed)
             self.assertIn(
                 "plasma-apply-colorscheme BreezeLight", removed.stderr
@@ -191,9 +196,7 @@ class TestInstall(unittest.TestCase):
         with installed_destdir(self) as tmp:
             config = write_selected_scheme(tmp, "BreezeLight")
 
-            removed = uninstall(
-                tmp, env=dict(os.environ, XDG_CONFIG_HOME=config)
-            )
+            removed = uninstall_with_config(tmp, config)
             assert_succeeded(self, removed)
             self.assertNotIn("is still selected", removed.stderr)
 
@@ -209,11 +212,7 @@ class TestInstall(unittest.TestCase):
             assert_succeeded(self, installed)
             config = write_selected_scheme(tmp, "My Scheme")
 
-            removed = uninstall(
-                tmp,
-                extra=extra,
-                env=dict(os.environ, XDG_CONFIG_HOME=config),
-            )
+            removed = uninstall_with_config(tmp, config, extra=extra)
             assert_succeeded(self, removed)
             self.assertIn(
                 "color scheme My Scheme is still selected", removed.stderr
