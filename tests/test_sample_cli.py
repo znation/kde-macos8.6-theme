@@ -26,10 +26,15 @@ class TestSampleCli(CliTestCase):
     MAIN = staticmethod(sample.main)
     PROGRAM = "sample"
 
-    def _image(self, directory: Path) -> str:
-        """Write a 4x3 PNG whose pixel ``(x, y)`` is ``(x, y, x + y)``."""
+    def _image(self) -> str:
+        """Write a 4x3 PNG whose pixel ``(x, y)`` is ``(x, y, x + y)``.
+
+        The file lives in a temp dir removed when the test ends.
+        """
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
         _, data = rgb_image(4, 3, lambda x, y: (x, y, x + y))
-        return self._write(directory, "reference.png", data)
+        return self._write(Path(tmp.name), "reference.png", data)
 
     def test_script_entry_point(self):
         """The CLI still runs end to end as ``python3 tools/sample.py``.
@@ -46,9 +51,8 @@ class TestSampleCli(CliTestCase):
         self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)
 
     def test_reports_rgb_and_hex(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "2", "1")
+        path = self._image()
+        result = self._run(path, "2", "1")
         self._assert_success(result)
         self.assertIn("image: " + path + "  4x3", result.stdout)
         # Pixel (2, 1) is (2, 1, 3); each channel is zero-padded to two hex
@@ -56,24 +60,22 @@ class TestSampleCli(CliTestCase):
         self.assertIn("pixel (2, 1): 2,1,3  #020103", result.stdout)
 
     def test_corner_pixels_are_addressable(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            for x, y, expected in (
-                ("0", "0", "0,0,0  #000000"),
-                ("3", "2", "3,2,5  #030205"),
-            ):
-                with self.subTest(x=x, y=y):
-                    result = self._run(path, x, y)
-                    self._assert_success(result)
-                    self.assertIn(
-                        f"pixel ({x}, {y}): {expected}", result.stdout
-                    )
+        path = self._image()
+        for x, y, expected in (
+            ("0", "0", "0,0,0  #000000"),
+            ("3", "2", "3,2,5  #030205"),
+        ):
+            with self.subTest(x=x, y=y):
+                result = self._run(path, x, y)
+                self._assert_success(result)
+                self.assertIn(
+                    f"pixel ({x}, {y}): {expected}", result.stdout
+                )
 
     def test_width_samples_a_row(self):
         # --width extends the sample to the right of (x, y).
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "1", "1", "--width", "3")
+        path = self._image()
+        result = self._run(path, "1", "1", "--width", "3")
         self._assert_success(result)
         self.assertIn("region (1, 1) 3x1:", result.stdout)
         for line in (
@@ -84,9 +86,8 @@ class TestSampleCli(CliTestCase):
             self.assertIn(line, result.stdout)
 
     def test_height_samples_a_column(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "0", "0", "--height", "3")
+        path = self._image()
+        result = self._run(path, "0", "0", "--height", "3")
         self._assert_success(result)
         self.assertIn("region (0, 0) 1x3:", result.stdout)
         for line in (
@@ -97,9 +98,8 @@ class TestSampleCli(CliTestCase):
             self.assertIn(line, result.stdout)
 
     def test_region_is_row_major(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "1", "0", "--width", "2", "--height", "2")
+        path = self._image()
+        result = self._run(path, "1", "0", "--width", "2", "--height", "2")
         self._assert_success(result)
         self.assertIn("region (1, 0) 2x2:", result.stdout)
         expected = [
@@ -114,21 +114,19 @@ class TestSampleCli(CliTestCase):
     def test_zero_or_negative_extent_is_usage_error(self):
         # --width/--height count pixels, so 0 and negative would name an empty
         # or inverted region; both must be rejected with the option named.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            for option, value in (("--width", "0"), ("--height", "-1")):
-                with self.subTest(option=option):
-                    result = self._run(path, "0", "0", option, value)
-                    self._assert_usage_error(
-                        result, f"{option} must be at least 1"
-                    )
+        path = self._image()
+        for option, value in (("--width", "0"), ("--height", "-1")):
+            with self.subTest(option=option):
+                result = self._run(path, "0", "0", option, value)
+                self._assert_usage_error(
+                    result, f"{option} must be at least 1"
+                )
 
     def test_region_past_edge_is_error(self):
         # The whole rectangle is validated before any pixel is printed, so an
         # out-of-bounds region names the region and the image size once.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "2", "1", "--width", "3")
+        path = self._image()
+        result = self._run(path, "2", "1", "--width", "3")
         self._assert_usage_error(
             result, "region (2, 1) 3x1 is outside the 4x3 image"
         )
@@ -141,9 +139,8 @@ class TestSampleCli(CliTestCase):
         # inside the loop, so the run would traceback after a partial dump.
         # A region that overshoots only the bottom must instead fail as one
         # diagnostic before any pixel is printed.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "0", "1", "--height", "3")
+        path = self._image()
+        result = self._run(path, "0", "1", "--height", "3")
         self._assert_usage_error(
             result, "region (0, 1) 1x3 is outside the 4x3 image"
         )
@@ -153,15 +150,13 @@ class TestSampleCli(CliTestCase):
     def test_coordinate_past_edge_is_error(self):
         # x == width and y == height are the first coordinates outside the
         # image; pixel_at must name both the coordinate and the image size.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "4", "1")
+        path = self._image()
+        result = self._run(path, "4", "1")
         self._assert_usage_error(result, "outside the 4x3 image")
 
     def test_negative_coordinate_is_error(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "-1", "0")
+        path = self._image()
+        result = self._run(path, "-1", "0")
         self._assert_usage_error(result, "outside the 4x3 image")
 
     def test_missing_file_is_error(self):
@@ -171,22 +166,20 @@ class TestSampleCli(CliTestCase):
         self._assert_usage_error(result, "cannot read", missing)
 
     def test_non_integer_coordinate_is_usage_error(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "a", "0")
+        path = self._image()
+        result = self._run(path, "a", "0")
         self._assert_usage_error(result, "x must be an integer")
 
     def test_python_literal_coordinates_rejected(self):
         # int() would accept "1_0" as 10 and "\u0661" as 1, silently naming a
         # different pixel; both must be rejected as usage errors.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            for bad in ("1_0", "\u0661", " 1"):
-                with self.subTest(value=bad):
-                    result = self._run(path, bad, "0")
-                    self._assert_usage_error(
-                        result, "x must be a plain ASCII integer"
-                    )
+        path = self._image()
+        for bad in ("1_0", "\u0661", " 1"):
+            with self.subTest(value=bad):
+                result = self._run(path, bad, "0")
+                self._assert_usage_error(
+                    result, "x must be a plain ASCII integer"
+                )
 
     def test_help_documents_exit_status(self):
         result = self._run("--help")
@@ -217,9 +210,8 @@ class TestSampleCli(CliTestCase):
         # argparse builds its own "unrecognized arguments: ..." diagnostic from
         # raw argv, so it bypasses main()'s escaping of the image path. An
         # ESC-bearing extra positional must not print the raw byte.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = self._image(Path(tmp))
-            result = self._run(path, "0", "0", "evil\x1b[31m.png")
+        path = self._image()
+        result = self._run(path, "0", "0", "evil\x1b[31m.png")
         self._assert_usage_error(result, "unrecognized arguments")
         assert_escapes_escape_character(self, result.stderr)
 
