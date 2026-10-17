@@ -70,68 +70,37 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
     All five artifacts must install and uninstall under a spaced root.
     """
 
+    def _assert_round_trip(self, destdir):
+        """Install all five artifacts under *destdir*, then uninstall them."""
+        assert_succeeded(self, theme_install.install(destdir))
+        package = "org.macos8.desktop"
+        scheme = theme_install.installed_color_scheme(destdir)
+        directories = [
+            os.path.join(
+                theme_install.installed_plasma_dir(destdir, kind), package
+            )
+            for kind in ("look-and-feel", "desktoptheme")
+        ]
+        directories.append(theme_install.installed_aurorae_theme(destdir, package))
+        directories.append(theme_install.installed_wallpaper(destdir, package))
+        self.assertTrue(os.path.isfile(scheme), scheme)
+        for path in directories:
+            self.assertTrue(os.path.isdir(path), path)
+
+        assert_succeeded(self, theme_install.uninstall(destdir))
+        for path in [scheme, *directories]:
+            self.assertFalse(os.path.exists(path), path)
+
     def test_install_and_uninstall_under_a_path_with_a_space(self):
         with tempfile.TemporaryDirectory() as tmp:
-            destdir = os.path.join(tmp, "spaced root")
-            result = theme_install.install(destdir)
-            assert_succeeded(self, result)
-
-            scheme = theme_install.installed_color_scheme(destdir)
-            self.assertTrue(os.path.isfile(scheme), scheme)
-            lnf = os.path.join(
-                theme_install.installed_plasma_dir(destdir, "look-and-feel"),
-                "org.macos8.desktop",
-            )
-            self.assertTrue(os.path.isdir(lnf), lnf)
-            dtheme = os.path.join(
-                theme_install.installed_plasma_dir(destdir, "desktoptheme"),
-                "org.macos8.desktop",
-            )
-            self.assertTrue(os.path.isdir(dtheme), dtheme)
-            aurorae = theme_install.installed_aurorae_theme(
-                destdir, "org.macos8.desktop"
-            )
-            self.assertTrue(os.path.isdir(aurorae), aurorae)
-            wallpaper = theme_install.installed_wallpaper(
-                destdir, "org.macos8.desktop"
-            )
-            self.assertTrue(os.path.isdir(wallpaper), wallpaper)
-
-            removed = theme_install.uninstall(destdir)
-            assert_succeeded(self, removed)
-            self.assertFalse(os.path.exists(scheme), scheme)
-            self.assertFalse(os.path.exists(lnf), lnf)
-            self.assertFalse(os.path.exists(dtheme), dtheme)
-            self.assertFalse(os.path.exists(aurorae), aurorae)
-            self.assertFalse(os.path.exists(wallpaper), wallpaper)
+            self._assert_round_trip(os.path.join(tmp, "spaced root"))
 
     def test_install_and_uninstall_under_a_path_with_an_apostrophe(self):
         # The staging/old/trap words are shell-quoted; a single-quoted word
         # holding the path ended at the apostrophe and the recipe died with a
         # shell syntax error, e.g. under a home directory named `O'Brien`.
         with tempfile.TemporaryDirectory() as tmp:
-            destdir = os.path.join(tmp, "O'Brien's root")
-            assert_succeeded(self, theme_install.install(destdir))
-
-            paths = [
-                theme_install.installed_color_scheme(destdir),
-                os.path.join(
-                    theme_install.installed_plasma_dir(destdir, "look-and-feel"),
-                    "org.macos8.desktop",
-                ),
-                os.path.join(
-                    theme_install.installed_plasma_dir(destdir, "desktoptheme"),
-                    "org.macos8.desktop",
-                ),
-                theme_install.installed_aurorae_theme(destdir, "org.macos8.desktop"),
-                theme_install.installed_wallpaper(destdir, "org.macos8.desktop"),
-            ]
-            for path in paths:
-                self.assertTrue(os.path.exists(path), path)
-
-            assert_succeeded(self, theme_install.uninstall(destdir))
-            for path in paths:
-                self.assertFalse(os.path.exists(path), path)
+            self._assert_round_trip(os.path.join(tmp, "O'Brien's root"))
 
 
 class TestXdgDataHomeDefault(unittest.TestCase):
