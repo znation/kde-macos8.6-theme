@@ -6,10 +6,10 @@
      sunken grey track, prefix "bar-inactive", across the full width, and a
      lavender fill, prefix "bar-active", over the finished part. Both are the
      same 1px sunken bevel on a 10x10 canvas: #9A9A9A shadow on the top row and
-     left column, a light edge on the bottom row and right column (#B8B8B8
-     on the track, #7878D1 on the fill), and a flat face inside (#ADADAD
-     track, #9B9BEA fill). The shadow takes the top-right and bottom-left
-     pixels, the light edge the bottom-right one. The nine-slice contract is a
+     left column, a lower edge on the bottom row and right column (#B8B8B8
+     on the track, #7878D1 on the fill, darker than its face), and a flat
+     face inside (#ADADAD track, #9B9BEA fill). The shadow takes the top-right and bottom-left
+     pixels, the lower edge the bottom-right one. The nine-slice contract is a
      3px border around a 4px centre tile; hint-bar-size makes the item 10px
      tall.
 
