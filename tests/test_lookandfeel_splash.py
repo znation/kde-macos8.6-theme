@@ -15,7 +15,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from platinum_palette import hex_colour
-from reference_image import skip_unless_materialized
+from reference_image import read_reference, skip_unless_materialized
 from theme_install import ROOT
 
 from tools import png  # noqa: E402
@@ -203,12 +203,7 @@ class SplashReferenceCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.image = None
-        cls.image_error = None
-        try:
-            cls.image = png.read_png(REFERENCE)
-        except png.PngError as exc:
-            cls.image_error = exc
+        cls.image, cls.image_error = read_reference(REFERENCE)
 
     def setUp(self):
         skip_unless_materialized(self, REFERENCE, self.image_error)

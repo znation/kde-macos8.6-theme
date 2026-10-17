@@ -8,7 +8,7 @@ import unittest
 from desktoptheme_paths import BAR_METER_HORIZONTAL_SVG
 from nine_slice_case import NineSliceCase
 from platinum_palette import hex_colour
-from reference_image import skip_unless_materialized
+from reference_image import read_reference, skip_unless_materialized
 from theme_install import ROOT
 
 from tools import png  # noqa: E402
@@ -106,12 +106,7 @@ class TestProgressBar(NineSliceCase, unittest.TestCase):
 class TestProgressBarReference(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.image = None
-        cls.image_error = None
-        try:
-            cls.image = png.read_png(REFERENCE)
-        except png.PngError as exc:
-            cls.image_error = exc
+        cls.image, cls.image_error = read_reference(REFERENCE)
 
     def setUp(self):
         skip_unless_materialized(self, REFERENCE, self.image_error)

@@ -29,7 +29,7 @@ from kpackage_install_case import KPackageInstallCase
 from nine_slice_case import NineSliceCase
 from package_metadata import assert_named_authors, kplugin, load_metadata
 from platinum_palette import hex_colour
-from reference_image import skip_unless_materialized
+from reference_image import read_reference, skip_unless_materialized
 from svg_assertions import (
     SLICE_IDS,
     assert_ids_present,
@@ -198,11 +198,9 @@ class ReferenceImageCase:
 
     @classmethod
     def setUpClass(cls):
-        try:
-            cls.image = png.read_png(REFERENCE, max_rows=REFERENCE_ROWS)
-        except png.PngError as exc:
-            cls.image = None
-            cls.image_error = exc
+        cls.image, cls.image_error = read_reference(
+            REFERENCE, max_rows=REFERENCE_ROWS
+        )
 
     def reference_pixel(self, x, y):
         skip_unless_materialized(self, REFERENCE, self.image_error)
