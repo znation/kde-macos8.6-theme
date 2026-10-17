@@ -261,31 +261,38 @@ def _unfilter(
                 a = line[i - channels] if i >= channels else 0
                 line[i] = (line[i] + ((a + prev[i]) >> 1)) & 0xFF
         elif ftype == 4:
-            table = _paeth_delta_table()
-            # A predictor only ever references same-channel neighbours, so the
-            # channels unfilter independently and can be done one at a time.
-            # Iterating each channel's stream with ``zip`` lets the left
-            # neighbour be a carried local instead of a ``line[i - channels]``
-            # read, and appending the reconstructed bytes to a list avoids a
-            # per-byte ``line[i] = ...`` store; the result is byte-identical
-            # and roughly a third faster than the interleaved loop.
-            for c in range(channels):
-                filtered = line[c::channels]
-                above = prev[c::channels]
-                # The first pixel of a row has no left or above-left neighbour,
-                # so the predictor is just the above byte.
-                left = (filtered[0] + above[0]) & 0xFF
-                unfiltered = [left]
-                for value, up, upleft in zip(filtered[1:], above[1:], above):
-                    da = left - upleft + 255
-                    db = up - upleft + 255
-                    left = (value + upleft + table[(da << 9) + db]) & 0xFF
-                    unfiltered.append(left)
-                line[c::channels] = bytes(unfiltered)
+            _unfilter_paeth(line, prev, channels)
         out[dst : dst + stride] = line
         dst += stride
         prev = line
     return bytes(out)
+
+
+def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
+    """Undo the Paeth filter on *line* in place, given the previous row *prev*.
+
+    A predictor only ever references same-channel neighbours, so the
+    channels unfilter independently and can be done one at a time.
+    Iterating each channel's stream with ``zip`` lets the left neighbour be a
+    carried local instead of a ``line[i - channels]`` read, and appending the
+    reconstructed bytes to a list avoids a per-byte ``line[i] = ...`` store;
+    the result is byte-identical and roughly a third faster than the
+    interleaved loop.
+    """
+    table = _paeth_delta_table()
+    for c in range(channels):
+        filtered = line[c::channels]
+        above = prev[c::channels]
+        # The first pixel of a row has no left or above-left neighbour, so the
+        # predictor is just the above byte.
+        left = (filtered[0] + above[0]) & 0xFF
+        unfiltered = [left]
+        for value, up, upleft in zip(filtered[1:], above[1:], above):
+            da = left - upleft + 255
+            db = up - upleft + 255
+            left = (value + upleft + table[(da << 9) + db]) & 0xFF
+            unfiltered.append(left)
+        line[c::channels] = bytes(unfiltered)
 
 
 def _drop_alpha(raw: bytes, width: int, height: int) -> bytes:
@@ -335,20 +342,22 @@ def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
         try:
             return b"".join(map(table.__getitem__, samples))
         except IndexError:
-            # An out-of-range index must still name the first offending index
-            # and the palette size; only this failure path scans for it. The
-            # sibling PLTE-length error counts entries, so name the entry
-            # count here as well as the byte count.
-            entry_word = "entry" if entries == 1 else "entries"
-            for index in samples:
-                if index >= entries:
-                    raise PngError(
-                        f"palette PNG index {index} is outside PLTE "
-                        f"(palette has {entries} {entry_word} in "
-                        f"{len(palette)} bytes)"
-                    ) from None
-            raise
+            index = next(i for i in samples if i >= entries)
+            raise _palette_index_error(index, entries, len(palette)) from None
     raise PngError(f"unsupported PNG color type {color_type}")
+
+
+def _palette_index_error(index: int, entries: int, palette_bytes: int) -> PngError:
+    """Build the error for the first out-of-range palette *index*.
+
+    The sibling PLTE-length error counts entries, so this one names the entry
+    count as well as the byte count.
+    """
+    entry_word = "entry" if entries == 1 else "entries"
+    return PngError(
+        f"palette PNG index {index} is outside PLTE "
+        f"(palette has {entries} {entry_word} in {palette_bytes} bytes)"
+    )
 
 
 def decode_png(data: bytes, max_rows: int | None = None) -> Image:
