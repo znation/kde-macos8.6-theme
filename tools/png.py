@@ -4,9 +4,13 @@ Decodes 8-bit, non-interlaced PNG images (color types 0, 2, 3, 4 and 6) into
 tightly packed RGB bytes, using only the Python standard library. The fidelity
 comparison in ``tools/fidelity_metrics.py`` and the CLI in ``tools/fidelity.py``
 are the consumers today; keeping the reader separate lets a future capture or
-render step read PNGs without pulling in the comparison and CLI layers. The
-Sub/Up lane arithmetic and Paeth delta table the scanline unfilter is built
-from live in the sibling module ``tools/png_filters.py``.
+render step read PNGs without pulling in the comparison and CLI layers. This
+module holds the decode pipeline (header validation, bounds, inflate, color
+expansion) and :func:`read_png`; the pieces it is built from live in sibling
+modules: ``tools/png_image.py`` (``PngError``, ``Image``, ``pixel_at``, all
+re-exported here), ``tools/png_chunks.py`` (chunk framing),
+``tools/png_scanlines.py`` (unfiltering) and ``tools/png_filters.py`` (the
+Sub/Up lane arithmetic and Paeth delta table).
 
 Raises :class:`PngError` for a malformed or unsupported PNG.
 """
@@ -17,8 +21,6 @@ import os
 import stat
 import struct
 import zlib
-from collections.abc import Iterator
-from dataclasses import dataclass
 from pathlib import Path
 
 if __package__:
@@ -28,7 +30,9 @@ if __package__:
         other_image_format,
     )
     from tools.ints import is_plain_int
-    from tools.png_filters import _byte_add, _paeth_delta_table, _prefix_sum
+    from tools.png_chunks import chunk_name, iter_chunks
+    from tools.png_image import Image, PngError, pixel_at
+    from tools.png_scanlines import drop_alpha, raw_byte_length, unfilter
 else:  # run as a top-level module, e.g. imported by tools/fidelity.py
     from image_format import (
         LFS_POINTER_MAGIC,
@@ -36,14 +40,11 @@ else:  # run as a top-level module, e.g. imported by tools/fidelity.py
         other_image_format,
     )
     from ints import is_plain_int
-    from png_filters import _byte_add, _paeth_delta_table, _prefix_sum
+    from png_chunks import chunk_name, iter_chunks
+    from png_image import Image, PngError, pixel_at
+    from png_scanlines import drop_alpha, raw_byte_length, unfilter
 
-# The PNG spec caps a chunk's payload length at 2**31 - 1 bytes: the field is
-# 32-bit unsigned, but values with the high bit set are reserved. A file
-# declaring more is malformed; without this check the length is compared
-# against the bytes present and reported as a truncated chunk, which points at
-# a missing tail instead of the invalid length.
-_MAX_CHUNK_LENGTH = (1 << 31) - 1
+__all__ = ["Image", "PngError", "decode_png", "pixel_at", "read_png"]
 
 # color_type -> channels per pixel at bit depth 8
 _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
@@ -62,262 +63,6 @@ _MAX_PIXELS = 64_000_000
 # same order as the decoder's own worst-case allocation for the largest image
 # it accepts.
 _MAX_FILE_BYTES = 512 * 1024 * 1024
-
-
-class PngError(Exception):
-    """A PNG file could not be read or decoded."""
-
-
-@dataclass(frozen=True)
-class Image:
-    """An 8-bit RGB image with tightly packed ``width * height * 3`` bytes."""
-
-    width: int
-    height: int
-    rgb: bytes
-
-    def __post_init__(self) -> None:
-        # A non-int dimension reaches the comparison below as an opaque
-        # TypeError (or, for a float, a byte count that is not a whole
-        # number); require genuine integers here and name the offending
-        # dimension.
-        for name, value in (("width", self.width), ("height", self.height)):
-            if not is_plain_int(value):
-                raise PngError(
-                    f"Image {name} must be an integer: {name}={value!r}"
-                )
-        if self.width <= 0 or self.height <= 0:
-            raise PngError(
-                f"Image dimensions must be positive: {self.width}x{self.height}"
-            )
-        # The annotation says bytes, but only the length was checked: a str
-        # or list of the right length passed here and reached fidelity_metrics'
-        # _abs_diff as an opaque TypeError ("can only concatenate str (not
-        # bytes) to str") that named neither the field nor its type. bytes and
-        # bytearray are both accepted -- the decoder returns bytes and a caller
-        # may build a buffer in place, and a bytearray supports every operation
-        # the tool performs -- while anything else is rejected by type here.
-        if not isinstance(self.rgb, (bytes, bytearray)):
-            raise PngError(
-                f"Image rgb must be bytes or bytearray, not "
-                f"{type(self.rgb).__name__}"
-            )
-        expected = self.width * self.height * 3
-        if len(self.rgb) != expected:
-            raise PngError(
-                f"Image has {len(self.rgb)} RGB bytes; a {self.width}x"
-                f"{self.height} image needs {expected} (width*height*3)"
-            )
-
-
-def pixel_at(image: Image, x: int, y: int) -> tuple[int, int, int]:
-    """Return the RGB pixel at ``(x, y)`` in *image*.
-
-    A coordinate outside the image is rejected instead of read: the RGB slice
-    would be empty, and an ``x`` past the row end would wrap to the next row
-    and return the wrong pixel. Naming the coordinate and the image size turns
-    that silent misread into a diagnostic. Sampling a reference screenshot's
-    palette or metric value goes through this accessor.
-
-    Both coordinates must be genuine integers, checked as the :class:`Image`
-    dimensions are: ``bool`` is an ``int`` subclass, so ``True``/``False``
-    would pass the bounds comparison as 1/0 and silently read a different
-    pixel, while a float, string or ``None`` raised an opaque ``TypeError``
-    from the comparison or the RGB index that named neither the coordinate nor
-    this function.
-    """
-    for name, value in (("x", x), ("y", y)):
-        if not is_plain_int(value):
-            raise ValueError(
-                f"pixel coordinate {name} must be an integer: {name}={value!r}"
-            )
-    if not (0 <= x < image.width and 0 <= y < image.height):
-        raise ValueError(
-            f"pixel ({x}, {y}) is outside the {image.width}x{image.height} image"
-        )
-    offset = (y * image.width + x) * 3
-    return (image.rgb[offset], image.rgb[offset + 1], image.rgb[offset + 2])
-
-
-def _chunk_name(ctype: bytes) -> str:
-    """The chunk type as a printable ``repr`` for error messages."""
-    return repr(ctype.decode("ascii", "replace"))
-
-
-def _iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
-    pos = len(PNG_MAGIC)
-    while pos + 8 <= len(data):
-        (length,) = struct.unpack(">I", data[pos : pos + 4])
-        ctype = data[pos + 4 : pos + 8]
-        if length > _MAX_CHUNK_LENGTH:
-            raise PngError(
-                f"PNG chunk {_chunk_name(ctype)} at offset {pos} declares "
-                f"{length} payload bytes, above the {_MAX_CHUNK_LENGTH}-byte "
-                "maximum the PNG spec allows"
-            )
-        # The PNG spec restricts a chunk type to four ASCII letters, and the
-        # first byte alone decides whether the chunk is critical. A type with
-        # a digit, space or non-ASCII byte is not a valid code: without this
-        # check such a chunk is not recognized as critical (its first byte is
-        # not an uppercase letter) and falls through decode_png's ancillary
-        # branch, silently skipping malformed framing. Reject it by name.
-        if not ctype.isalpha():
-            raise PngError(
-                f"invalid PNG chunk type {_chunk_name(ctype)} at offset "
-                f"{pos}: chunk types are four ASCII letters"
-            )
-        payload = data[pos + 8 : pos + 8 + length]
-        if len(payload) != length:
-            raise PngError(
-                f"truncated PNG chunk {_chunk_name(ctype)} at "
-                f"offset {pos}: declared {length} payload bytes, only "
-                f"{len(payload)} present"
-            )
-        checksum = data[pos + 8 + length : pos + 12 + length]
-        if len(checksum) != 4:
-            raise PngError(
-                f"truncated PNG chunk {_chunk_name(ctype)} CRC "
-                f"at offset {pos + 8 + length}: expected 4 bytes, got "
-                f"{len(checksum)}"
-            )
-        (expected,) = struct.unpack(">I", checksum)
-        actual = zlib.crc32(ctype + payload) & 0xFFFFFFFF
-        if actual != expected:
-            raise PngError(
-                f"PNG chunk {_chunk_name(ctype)} at offset {pos} "
-                f"has a bad CRC: stored 0x{expected:08x}, computed "
-                f"0x{actual:08x}"
-            )
-        yield ctype, payload
-        pos += 12 + length
-
-
-def _raw_byte_length(width: int, height: int, channels: int) -> int:
-    """Return the unfiltered byte count the header declares.
-
-    Every one of *height* scanlines holds *width* pixels of *channels*
-    samples plus one leading filter-type byte, so a stream shorter than this
-    is truncated. Both the decode-time decompression bound and the later
-    length check derive the declared size from this one formula, so they
-    cannot disagree about it.
-    """
-    return height * (width * channels + 1)
-
-
-def _require_raw_length(raw: bytes, width: int, height: int, channels: int) -> None:
-    """Reject scanline data shorter than the header's declared size."""
-    expected = _raw_byte_length(width, height, channels)
-    if len(raw) < expected:
-        raise PngError(
-            f"PNG image data is shorter than its header declares: got "
-            f"{len(raw)} bytes, expected {expected} for a {width}x{height} image"
-        )
-
-
-def _unfilter(
-    raw: bytes,
-    width: int,
-    height: int,
-    channels: int,
-    max_rows: int | None = None,
-) -> bytes:
-    """Unfilter scanlines, returning at most *max_rows* rows of samples.
-
-    Every scanline's filter type is validated, but when a bound is given only
-    the first *max_rows* rows are actually unfiltered: the per-byte predictor
-    work is what dominates decoding a large screenshot, so a caller that reads
-    only its top rows skips that work for the rest without giving up the
-    filter-type check. The returned bytes are ``max_rows * width * channels``
-    long (or the whole image when no bound is given).
-    """
-    stride = width * channels
-    _require_raw_length(raw, width, height, channels)
-    rows = height if max_rows is None else min(max_rows, height)
-    out = bytearray(rows * stride)
-    prev = bytearray(stride)
-    src = 0
-    dst = 0
-    for row in range(height):
-        ftype = raw[src]
-        src += 1
-        if ftype > 4:
-            raise PngError(
-                f"unsupported PNG filter type {ftype} in row {row}"
-            )
-        if row >= rows:
-            # Past the requested bound: the filter type above is still
-            # checked, but the predictor work is skipped.
-            src += stride
-            continue
-        line = bytearray(raw[src : src + stride])
-        src += stride
-        if ftype == 1:
-            for c in range(channels):
-                line[c::channels] = _prefix_sum(line[c::channels])
-        elif ftype == 2:
-            line = _byte_add(line, prev)
-        elif ftype == 3:
-            for i in range(stride):
-                a = line[i - channels] if i >= channels else 0
-                line[i] = (line[i] + ((a + prev[i]) >> 1)) & 0xFF
-        elif ftype == 4:
-            _unfilter_paeth(line, prev, channels)
-        out[dst : dst + stride] = line
-        dst += stride
-        prev = line
-    return bytes(out)
-
-
-def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
-    """Undo the Paeth filter on *line* in place, given the previous row *prev*.
-
-    A predictor only ever references same-channel neighbours, so the
-    channels unfilter independently and can be done one at a time.
-    Iterating each channel's stream with ``zip`` lets the left neighbour be a
-    carried local instead of a ``line[i - channels]`` read, and appending the
-    reconstructed bytes to a list avoids a per-byte ``line[i] = ...`` store.
-    """
-    table = _paeth_delta_table()
-    for c in range(channels):
-        filtered = line[c::channels]
-        above = prev[c::channels]
-        # The first pixel of a row has no left or above-left neighbour, so the
-        # predictor is just the above byte.
-        left = (filtered[0] + above[0]) & 0xFF
-        unfiltered = [left]
-        for value, up, upleft in zip(filtered[1:], above[1:], above):
-            da = left - upleft + 255
-            db = up - upleft + 255
-            left = (value + upleft + table[(da << 9) + db]) & 0xFF
-            unfiltered.append(left)
-        line[c::channels] = bytes(unfiltered)
-
-
-def _drop_alpha(raw: bytes, width: int, height: int) -> bytes:
-    """Return ``raw`` with the alpha byte of every pixel removed.
-
-    PNG filters reference only same-channel neighbours, so an alpha byte never
-    influences a colour channel's predictor.  Removing alpha before
-    unfiltering lets a colour-type-6 image unfilter as three channels instead
-    of four and leaves the result already RGB, so ``_to_rgb`` has no
-    colour-type-6 case.  The filter-type byte at the start of each scanline is
-    kept.
-    """
-    _require_raw_length(raw, width, height, 4)
-    stride = width * 4
-    out = bytearray(height * (width * 3 + 1))
-    src = 0
-    dst = 0
-    for _ in range(height):
-        out[dst] = raw[src]
-        src += 1
-        dst += 1
-        line = bytearray(raw[src : src + stride])
-        del line[3::4]
-        out[dst : dst + width * 3] = line
-        src += stride
-        dst += width * 3
-    return bytes(out)
 
 
 def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
@@ -379,7 +124,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     palette = None
     idat = bytearray()
     saw_iend = False
-    for ctype, payload in _iter_chunks(data):
+    for ctype, payload in iter_chunks(data):
         if ctype == b"IHDR":
             header = payload
         elif ctype == b"PLTE":
@@ -403,7 +148,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
             # (lowercase first byte) is ignored could decode the image wrong
             # with no sign that anything was skipped, so refuse it by name.
             raise PngError(
-                f"unknown critical PNG chunk {_chunk_name(ctype)}"
+                f"unknown critical PNG chunk {chunk_name(ctype)}"
             )
     if header is None:
         raise PngError("PNG has no IHDR chunk")
@@ -470,7 +215,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
             f"PNG declares {width}x{height} ({width * height} pixels), larger "
             f"than the {_MAX_PIXELS}-pixel limit"
         )
-    expected_raw = _raw_byte_length(width, height, channels)
+    expected_raw = raw_byte_length(width, height, channels)
     if not idat:
         # A PNG truncated before its IDAT chunk, or one whose IDAT is empty,
         # reaches zlib with no compressed data; zlib then reports an opaque
@@ -498,11 +243,11 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     if color_type == 6:
         # Alpha is discarded and the result is already RGB, so unfilter the
         # three colour channels directly instead of all four.
-        samples = _unfilter(
-            _drop_alpha(raw, width, height), width, height, 3, rows
+        samples = unfilter(
+            drop_alpha(raw, width, height), width, height, 3, rows
         )
         return Image(width, rows, samples)
-    samples = _unfilter(raw, width, height, channels, rows)
+    samples = unfilter(raw, width, height, channels, rows)
     return Image(width, rows, _to_rgb(color_type, samples, palette))
 
 
@@ -553,4 +298,3 @@ def read_png(path: str | Path, max_rows: int | None = None) -> Image:
         return decode_png(data, max_rows)
     except PngError as exc:
         raise PngError(f"cannot decode {path}: {exc}") from exc
-

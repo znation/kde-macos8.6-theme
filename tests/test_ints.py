@@ -1,6 +1,6 @@
 """Tests for tools/ints.py -- the shared genuine-integer predicate.
 
-``tools/png.py``, ``tools/fidelity_metrics.py`` and the test helpers
+``tools/png.py``, ``tools/png_image.py``, ``tools/fidelity_metrics.py`` and the test helpers
 ``tests/png_fixtures.py`` and the ``tests/svg_assertions/`` package all call
 ``is_plain_int`` before using a caller-supplied number as a dimension,
 coordinate, channel or tolerance. Their own tests exercise the rejection

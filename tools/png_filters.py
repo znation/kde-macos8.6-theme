@@ -1,17 +1,17 @@
 """The byte-lane arithmetic and Paeth delta table the PNG scanline unfilter uses.
 
-``tools/png.py``'s Sub and Up filters reconstruct a whole scanline at once by
-packing each byte into a big-integer lane, and its Paeth filter indexes a
-precomputed predictor-delta table. Those helpers are pure byte-in/value-out
-math with no dependency on the codec's framing, image type or error class, so
-they live here and are pinned directly by ``tests/test_png_filters.py``.
+``tools/png_scanlines.py``'s Sub and Up filters reconstruct a whole scanline
+at once by packing each byte into a big-integer lane, and its Paeth filter
+indexes a precomputed predictor-delta table. Those helpers are pure
+byte-in/value-out math with no dependency on the codec's framing, image type
+or error class, so they live here and are pinned directly by ``tests/test_png_filters.py``.
 """
 
 from __future__ import annotations
 
 if __package__:
     from tools.byteops import require_equal_lengths
-else:  # run as a top-level module, e.g. imported by tools/png.py
+else:  # run as a top-level module, e.g. imported by tools/png_scanlines.py
     from byteops import require_equal_lengths
 
 

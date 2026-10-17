@@ -17,7 +17,7 @@ tools' output is expected to have: no raw ESC byte, its visible escape shown.
 
 ``assert_rejects_unequal_lengths`` names the caller side of the shared
 ``tools.byteops.require_equal_lengths`` precondition: the packed-lane byte
-helpers in ``tools/png.py`` and ``tools/fidelity_metrics.py`` both reject a
+helpers in ``tools/png_filters.py`` and ``tools/fidelity_metrics.py`` both reject a
 length mismatch, and each must name itself in the diagnostic.
 
 ``NoSubTest``, ``assert_rejects`` and ``rejection_message`` observe the other
