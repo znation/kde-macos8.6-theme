@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import contextlib
 import io
-import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 import repo_root  # noqa: F401
+from tmp_dir import make_tmp_dir
 from tools import make_wallpaper, png  # noqa: E402
 from tools.png_write import encode_png  # noqa: E402
 
@@ -45,9 +44,7 @@ class TestTileFromReferenceBounds(unittest.TestCase):
 
 class TestMain(unittest.TestCase):
     def setUp(self):
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        self.root = Path(tmp.name)
+        self.root = make_tmp_dir(self)
         patches = (
             mock.patch.object(make_wallpaper, "ROOT", self.root),
             mock.patch.object(make_wallpaper, "RESOLUTIONS", SMALL_RESOLUTIONS),

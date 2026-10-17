@@ -10,7 +10,6 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -18,6 +17,7 @@ from unittest import mock
 from allocation_fixtures import peak_allocation
 from error_assertions import error_message
 from process_assertions import assert_failed
+from tmp_dir import make_tmp_dir
 
 import repo_root
 from tools import png  # noqa: E402
@@ -26,15 +26,9 @@ from png_fixtures import rgb_image  # noqa: E402
 
 class TestReadPng(unittest.TestCase):
 
-    def _tmp_dir(self) -> Path:
-        """Return a temp dir that is removed when the test ends."""
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        return Path(tmp.name)
-
     def _file(self, name: str, data: bytes) -> Path:
         """Write *data* to *name* in a fresh temp dir and return its path."""
-        path = self._tmp_dir() / name
+        path = make_tmp_dir(self) / name
         path.write_bytes(data)
         return path
 
@@ -153,7 +147,7 @@ class TestReadPng(unittest.TestCase):
         # to exit before the timeout.
         if not hasattr(os, "mkfifo"):
             self.skipTest("os.mkfifo is not available on this platform")
-        fifo = self._tmp_dir() / "pipe.png"
+        fifo = make_tmp_dir(self) / "pipe.png"
         os.mkfifo(fifo)
         child = subprocess.run(
             [

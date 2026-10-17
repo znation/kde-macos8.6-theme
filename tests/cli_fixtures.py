@@ -13,13 +13,13 @@ import contextlib
 import io
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 
 from process_assertions import assert_succeeded
 from repo_root import ROOT
 from theme_install import run_captured
+from tmp_dir import make_tmp_dir
 
 
 def run_main(main, program, args):
@@ -77,9 +77,7 @@ class CliTestCase(unittest.TestCase):
 
     def _tmp_dir(self) -> Path:
         """Return a fresh temp dir that is removed when the test ends."""
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        return Path(tmp.name)
+        return make_tmp_dir(self)
 
     def _write(self, directory: Path, name: str, data: bytes) -> str:
         path = directory / name

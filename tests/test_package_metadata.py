@@ -9,12 +9,11 @@ metadata here, and pin `load_metadata`'s explicit UTF-8 decode and JSON-object g
 """
 
 import json
-import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 from package_metadata import PackageMetadata, kplugin, load_metadata
+from tmp_dir import make_tmp_dir
 
 
 def _metadata():
@@ -78,9 +77,7 @@ class TestLoadMetadata(unittest.TestCase):
     def _metadata_file(self, content):
         """Write *content* (str, UTF-8 encoded, or bytes) to a metadata.json
         in a temp dir removed when the test ends, and return its path."""
-        tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(tmp.cleanup)
-        path = Path(tmp.name) / "metadata.json"
+        path = make_tmp_dir(self) / "metadata.json"
         if isinstance(content, str):
             content = content.encode("utf-8")
         path.write_bytes(content)
