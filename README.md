@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: four artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), and the `org.macos8.desktop` Aurorae window decoration.
+Pre-alpha: five artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, and the `org.macos8.desktop` wallpaper package.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -88,6 +88,13 @@ modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.
 one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Both
 `check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
+
+## Generating the wallpaper
+
+`python3 tools/make_wallpaper.py` rewrites the wallpaper package's images in
+theme/wallpapers/org.macos8.desktop/contents/images/ from the reference desktop screenshot
+(`macos8.6-screenshots/desktop_betawiki.png`, which needs its Git LFS image materialized). The
+output is deterministic, so re-running it rewrites identical bytes.
 
 ## Reference screenshots
 
