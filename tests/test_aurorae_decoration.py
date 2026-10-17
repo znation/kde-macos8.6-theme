@@ -120,6 +120,21 @@ def _parsed_svgs(paths):
     return [(os.path.basename(path), ET.parse(path)) for path in paths]
 
 
+def _unmasked_points(width, height, mask):
+    """Yield every (x, y) of a width x height region that is not in *mask*."""
+    for y in range(height):
+        for x in range(width):
+            if (x, y) not in mask:
+                yield x, y
+
+
+def _inactive_fill(active_fill):
+    """The inactive box keeps the #888888/#222222 outlines, flattens the rest."""
+    if active_fill in ("#888888", "#222222"):
+        return active_fill
+    return INACTIVE_GREY
+
+
 def _kde(rgb):
     return ",".join(str(channel) for channel in rgb)
 
@@ -523,22 +538,20 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         )
         for name, x0, y0, along_x in edges:
             with self.subTest(slice=name):
-                if along_x:
-                    cross = [
-                        _hex(self.reference_pixel(x0 + step, y0))
-                        for step in range(6)
-                    ]
-                    expected = {
-                        (x, y): cross[x] for x in range(6) for y in range(6)
-                    }
-                else:
-                    cross = [
-                        _hex(self.reference_pixel(x0, y0 + step))
-                        for step in range(6)
-                    ]
-                    expected = {
-                        (x, y): cross[y] for x in range(6) for y in range(6)
-                    }
+                cross = [
+                    _hex(
+                        self.reference_pixel(
+                            x0 + (step if along_x else 0),
+                            y0 + (0 if along_x else step),
+                        )
+                    )
+                    for step in range(6)
+                ]
+                expected = {
+                    (x, y): cross[x if along_x else y]
+                    for x in range(6)
+                    for y in range(6)
+                }
                 assert_slice_pixels(self, slices, name, expected)
 
     def test_svgz_is_the_compressed_svg(self):
@@ -590,15 +603,12 @@ class TestCorners(ReferenceImageCase, unittest.TestCase):
         for name, (x0, y0, width, height) in self.REGIONS.items():
             mask = self.BUTTON_MASK.get(name, set())
             with self.subTest(slice=name):
-                for y in range(height):
-                    for x in range(width):
-                        if (x, y) in mask:
-                            continue
-                        self.assertEqual(
-                            slices[name][(x, y)],
-                            _hex(self.reference_pixel(x0 + x, y0 + y)),
-                            (x, y),
-                        )
+                for x, y in _unmasked_points(width, height, mask):
+                    self.assertEqual(
+                        slices[name][(x, y)],
+                        _hex(self.reference_pixel(x0 + x, y0 + y)),
+                        (x, y),
+                    )
 
 
 class TestButtons(ReferenceImageCase, unittest.TestCase):
@@ -652,10 +662,9 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                 inactive = slices["inactive-center"]
                 self.assertEqual(set(inactive), set(active))
                 for point, fill in active.items():
-                    if fill in ("#888888", "#222222"):
-                        self.assertEqual(inactive[point], fill, point)
-                    else:
-                        self.assertEqual(inactive[point], INACTIVE_GREY, point)
+                    self.assertEqual(
+                        inactive[point], _inactive_fill(fill), point
+                    )
 
     def test_inactive_zoom_glyph_survives(self):
         close = render_slices(ET.parse(CLOSE_SVG))["inactive-center"]
