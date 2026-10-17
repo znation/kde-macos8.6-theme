@@ -63,8 +63,10 @@ raised grey Platinum toolbar background for `PlasmaComponents.ToolBar` and its
 consumers in kickoff, the system tray, and the desktop shell), `widgets/arrows.svg` (the solid
 black triangles `ComboBox` and menu buttons draw as their dropdown indicator),
 `widgets/scrollbar.svg` (the raised grey thumb and flat grey trough for
-`PlasmaComponents.ScrollBar`), and `widgets/bar_meter_horizontal.svg` (the sunken grey
-track with a lavender fill for `PlasmaComponents.ProgressBar`).
+`PlasmaComponents.ScrollBar`), `widgets/bar_meter_horizontal.svg` (the sunken grey
+track with a lavender fill for `PlasmaComponents.ProgressBar`), and `widgets/line.svg` (the 2px
+Platinum etched separator, `#888888` then `#FFFFFF`, that list section headers, spin boxes and
+the kicker, system-tray and notification separators draw).
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. The package

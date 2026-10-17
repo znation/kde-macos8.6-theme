@@ -20,6 +20,7 @@ from desktoptheme_paths import (
     DIALOG_BACKGROUND_SVG,
     DTHEME_ID,
     FRAME_SVG,
+    LINE_SVG,
     LINEEDIT_SVG,
     LISTITEM_SVG,
     LNF_DEFAULTS,
@@ -60,7 +61,7 @@ PLASMA_SECTION = "plasmarc][Theme"
 # 12x12 canvas; the scrollbar, slider, toolbar, arrows, menu body and dialog
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
-# is a 10x10 canvas.
+# is a 10x10 canvas and the etched separator a 4x2 canvas.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 12),
     ("frame.svg", FRAME_SVG, 12, 12),
@@ -78,6 +79,7 @@ SVG_CANVASES = (
     ("tabbar.svg", TABBAR_SVG, 12, 12),
     ("toolbar.svg", TOOLBAR_SVG, 16, 16),
     ("arrows.svg", ARROWS_SVG, 16, 16),
+    ("line.svg", LINE_SVG, 4, 2),
     ("dialogs/background.svg", DIALOG_BACKGROUND_SVG, 16, 16),
 )
 
@@ -168,6 +170,7 @@ class TestInstall(
         os.path.join("widgets", "tabbar.svg"),
         os.path.join("widgets", "toolbar.svg"),
         os.path.join("widgets", "arrows.svg"),
+        os.path.join("widgets", "line.svg"),
         os.path.join("widgets", "scrollbar.svg"),
         os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "bar_meter_horizontal.svg"),

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" etched separator (widgets/line).
+
+     The 2px etched rule (a dark grey line with a white line beside it) that
+     PlasmaComponents.SpinBox, PlasmaExtras.ListSectionHeader and
+     ExpandableListItem, and the kicker, system tray, notifications,
+     digital-clock calendar, volume, network, bluetooth, margins-separator and
+     konsole-profiles plasmoids draw. Consumers read two elements through
+     KSvg.SvgItem or elementSize(): `horizontal-line` (1 wide x 2 tall,
+     stretched along the line) and `vertical-line` (2 wide x 1 tall). The
+     thickness of each is its natural size across the line. Column 2 stays
+     empty so the two elements' bounds do not touch.
+
+     Provenance: macos8.6-screenshots/systemprofiler_betawiki.png (lossless
+     PNG), group-box rules on the #EEEEEE window body. Horizontal rule:
+     #888888 at (260,153), #FFFFFF at (260,154). Vertical rule: #888888 at
+     (241,128), #FFFFFF at (242,128). Dark first (top / left), white second
+     (bottom / right). Fills are literal attributes (no class, currentColor
+     or style).
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="4" height="2" viewBox="0 0 4 2">
+  <g id="vertical-line">
+    <rect width="1" height="1" fill="#888888"/>
+    <rect x="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="horizontal-line" transform="translate(3,0)">
+    <rect width="1" height="1" fill="#888888"/>
+    <rect y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+</svg>

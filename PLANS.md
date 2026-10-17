@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum etched separator (`widgets/line.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum etched separator (`widgets/line.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Planned 2026-10-17 by plan.** Independent of every other entry: it adds one widget file to the
 existing `org.macos8.desktop` desktop-theme package and one new test module, touches no shipped
@@ -112,7 +116,6 @@ directory.
 - Manual smoke test (needs a Plasma session): the system-tray popup's header separator and a
   kicker submenu separator show a grey line over a white line, with no translucent hairline.
 
-## Done
 
 ### Mac OS 8.6 menu-bar desktop layout for the global theme (`contents/layouts/`) (planned 2026-10-17 by the plan role; done 2026-10-17)
 
