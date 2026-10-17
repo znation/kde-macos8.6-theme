@@ -21,6 +21,8 @@ from check_references_fixtures import (
 from error_assertions import assert_escapes_escape_character
 from process_assertions import assert_succeeded
 from theme_install import run_captured
+from tools.check_references_selftest import problems_match
+from tools.image_format import PNG_MAGIC
 
 
 def _capture(function, *args):
@@ -65,7 +67,7 @@ class TestSelfTestPasses(CheckerTestCase):
         self.assertEqual(code, 0, out)
 
 
-class TestSelfTestExactProblems(CheckerTestCase):
+class TestSelfTestExactProblems(unittest.TestCase):
     """A fixture's expected problems must match exactly, not as a subset.
 
     The self-test once accepted any problem list that merely contained the
@@ -75,25 +77,21 @@ class TestSelfTestExactProblems(CheckerTestCase):
     """
 
     def test_matching_problems_pass(self):
-        module = self.checker
         self.assertTrue(
-            module._problems_match(
+            problems_match(
                 ["a: bad url", "a: image has no entry"],
                 ["bad url", "image has no entry"],
             )
         )
 
     def test_extra_problem_fails(self):
-        module = self.checker
-        self.assertFalse(module._problems_match(["bad url", "spurious"], ["bad url"]))
+        self.assertFalse(problems_match(["bad url", "spurious"], ["bad url"]))
 
     def test_missing_problem_fails(self):
-        module = self.checker
-        self.assertFalse(module._problems_match([], ["bad url"]))
+        self.assertFalse(problems_match([], ["bad url"]))
 
     def test_one_expected_substring_consumes_only_one_problem(self):
-        module = self.checker
-        self.assertFalse(module._problems_match(["bad url"], ["bad", "url"]))
+        self.assertFalse(problems_match(["bad url"], ["bad", "url"]))
 
 
 class TestRepositoryCheckEntryPoint(CheckerTestCase):
@@ -120,7 +118,7 @@ class TestRepositoryCheckEntryPoint(CheckerTestCase):
 
     def test_broken_set_exits_one_and_names_each_problem(self):
         module = self.checker
-        with reference_set(module, "", {"extra.png": module.PNG_MAGIC}) as root:
+        with reference_set(module, "", {"extra.png": PNG_MAGIC}) as root:
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 1, out + err)
         self.assertIn("extra.png", err)
@@ -133,7 +131,7 @@ class TestRepositoryCheckEntryPoint(CheckerTestCase):
         with reference_set(
             module,
             "",
-            {"one.png": module.PNG_MAGIC, "two.png": module.PNG_MAGIC},
+            {"one.png": PNG_MAGIC, "two.png": PNG_MAGIC},
         ) as root:
             code, out, err = self._run_no_args(module, root)
         self.assertEqual(code, 1, out + err)

@@ -20,6 +20,7 @@ from check_references_fixtures import (
     reference_set,
     symlinked_reference,
 )
+from tools.image_format import PNG_MAGIC
 
 
 class TestUnreadableImage(CheckerTestCase):
@@ -35,7 +36,7 @@ class TestUnreadableImage(CheckerTestCase):
         with reference_set(
             module,
             "locked.png | https://example.test/l.png | label\n",
-            {"locked.png": module.PNG_MAGIC},
+            {"locked.png": PNG_MAGIC},
         ) as root:
             image = root / "locked.png"
             with path_method_raises(
@@ -57,7 +58,7 @@ class TestUnreadableUndeclaredImage(CheckerTestCase):
 
     def test_unreadable_undeclared_file_is_reported_not_raised(self):
         module = self.checker
-        with reference_set(module, "", {"stray.bin": module.PNG_MAGIC}) as root:
+        with reference_set(module, "", {"stray.bin": PNG_MAGIC}) as root:
             stray = root / "stray.bin"
             with path_method_raises(
                 "open", stray, PermissionError, 13, "Permission denied"
@@ -166,7 +167,7 @@ class TestSymlinkEscape(CheckerTestCase):
         with symlinked_reference(
             module,
             "link.png",
-            module.PNG_MAGIC + b"secret",
+            PNG_MAGIC + b"secret",
             "link.png | https://example.test/l.png | label\n",
         ) as ref:
             problems = module.check_references(ref)
@@ -183,7 +184,7 @@ class TestSymlinkEscape(CheckerTestCase):
         """
         module = self.checker
         with symlinked_reference(
-            module, "leak", module.PNG_MAGIC + b"secret", ""
+            module, "leak", PNG_MAGIC + b"secret", ""
         ) as ref:
             problems = module.check_references(ref)
         joined = "\n".join(problems)

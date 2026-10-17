@@ -17,6 +17,7 @@ from check_references_fixtures import (
     reference_set,
 )
 from error_assertions import assert_escapes_escape_character
+from tools.image_format import PNG_MAGIC
 
 
 def assert_url_problem_not_the_scheme(case, url, *needles):
@@ -31,7 +32,7 @@ def assert_url_problem_not_the_scheme(case, url, *needles):
     problems = check_references_in(
         module,
         f"bad.png | {url} | label\n",
-        {"bad.png": module.PNG_MAGIC},
+        {"bad.png": PNG_MAGIC},
     )
     assert_problem(case, problems, *needles)
     case.assertFalse(
@@ -53,7 +54,7 @@ class TestLineSplitting(CheckerTestCase):
         problems = check_references_in(
             module,
             "good.png | https://example.test/g.png | Mac OS 8.6\u2028retail\n",
-            {"good.png": module.PNG_MAGIC},
+            {"good.png": PNG_MAGIC},
         )
         self.assertEqual(problems, [])
 
@@ -63,7 +64,7 @@ class TestLineSplitting(CheckerTestCase):
             module,
             "good.png | https://example.test/g.png | label\r"
             "bad.png | https://example.test/b.png | label\r",
-            {"good.png": module.PNG_MAGIC, "bad.png": b"not an image"},
+            {"good.png": PNG_MAGIC, "bad.png": b"not an image"},
         )
         assert_problem(self, problems, "bad.png", "not a PNG")
 
@@ -81,7 +82,7 @@ class TestFilenameMustBeBare(CheckerTestCase):
         with reference_set(
             module,
             "sub/good.png | https://example.test/g.png | label\n",
-            {"sub/good.png": module.PNG_MAGIC},
+            {"sub/good.png": PNG_MAGIC},
         ) as root:
             problems = module.check_references(root)
         assert_problem(self, problems, "sub/good.png", "bare filename")
@@ -95,7 +96,7 @@ class TestFilenameMustBeBare(CheckerTestCase):
                 "../escape.png | https://example.test/e.png | label\n",
                 encoding="utf-8",
             )
-            (root.parent / "escape.png").write_bytes(module.PNG_MAGIC)
+            (root.parent / "escape.png").write_bytes(PNG_MAGIC)
             problems = module.check_references(root)
         assert_problem(self, problems, "../escape.png", "bare filename")
 
@@ -148,7 +149,7 @@ class TestAbsoluteUrlSchemeShape(CheckerTestCase):
             (root / module.SOURCES_NAME).write_text(
                 "good.png | https:// | label\n", encoding="utf-8"
             )
-            (root / "good.png").write_bytes(module.PNG_MAGIC)
+            (root / "good.png").write_bytes(PNG_MAGIC)
             problems = module.check_references(root)
         assert_problem(self, problems, "absolute URL")
 
@@ -340,7 +341,7 @@ class TestControlCharactersInFilenames(CheckerTestCase):
     """
 
     def _undeclared(self, module, filename):
-        return check_references_in(module, "", {filename: module.PNG_MAGIC})
+        return check_references_in(module, "", {filename: PNG_MAGIC})
 
     def test_escape_sequence_in_name_is_escaped(self):
         module = self.checker
