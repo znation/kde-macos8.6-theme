@@ -1,7 +1,7 @@
-"""Shared install/uninstall lifecycle cases for the two theme packages.
+"""Shared install/uninstall lifecycle cases for the installable packages.
 
-The look-and-feel and desktop-theme suites both install their package into a
-temporary data home and check the same lifecycle: the installed files match the
+The look-and-feel, desktop-theme, Aurorae and wallpaper suites each install
+their package into a temporary data home and check the same lifecycle: the installed files match the
 source byte for byte, a second install succeeds, and `make uninstall` removes
 the package along with any staging/old leftovers. Each suite subclasses
 `InstallLifecycleCases`, sets `KIND`, `PACKAGE_ID`, `PACKAGE_DIR` and
@@ -23,7 +23,7 @@ from theme_install import (
 
 
 class InstallLifecycleCases(InstalledPackageLocation):
-    """Mixin: the install/uninstall lifecycle shared by both packages.
+    """Mixin: the install/uninstall lifecycle shared by the installable packages.
 
     `InstalledPackageLocation` supplies `installed_parent` and
     `installed_package_dir` from `KIND`/`PACKAGE_ID`; subclasses additionally

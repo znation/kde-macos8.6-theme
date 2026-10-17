@@ -1,11 +1,11 @@
 """Tests for tests/package_metadata.py -- the shared `metadata.json` mixin.
 
-`test_lookandfeel` and `test_desktoptheme` each run these checks against their
-own real `metadata.json`, so the passing path is exercised twice over. Every
-guard, though, is only ever fed good data: a guard that stopped rejecting a
-blank Description, a missing Version or a mismatched package structure would
-keep both suites green. Pin each guard against deliberately broken metadata
-here, and pin `load_metadata`'s explicit UTF-8 decode and JSON-object guard.
+`test_lookandfeel`, `test_desktoptheme` and `test_wallpaper` each run these
+checks against their own real `metadata.json`, so the passing path is
+exercised three times over. Every guard, though, is only ever fed good data: a
+guard that stopped rejecting a blank Description, a missing Version or a
+mismatched package structure would keep all three suites green. Pin each guard against deliberately broken
+metadata here, and pin `load_metadata`'s explicit UTF-8 decode and JSON-object guard.
 """
 
 import json
@@ -102,7 +102,7 @@ class TestLoadMetadata(unittest.TestCase):
         self.assertEqual(metadata["Name"], "Caf\u00e9")
 
     def test_malformed_json_names_the_path_and_keeps_the_detail(self):
-        # Two packages ship a metadata.json, so a bare JSONDecodeError names
+        # Several packages ship a metadata.json, so a bare JSONDecodeError names
         # neither which file is broken nor where; the guard must add the path
         # and keep the decoder's own line/column detail (and its cause).
         path = self._metadata_file('{\n  "KPlugin": ,\n}')
@@ -116,7 +116,7 @@ class TestLoadMetadata(unittest.TestCase):
     def test_non_utf8_bytes_name_the_path_and_keep_the_detail(self):
         # A metadata.json saved in another encoding (say Latin-1) or corrupted
         # mid-write raises a bare UnicodeDecodeError from the read that names
-        # the byte but neither of the two packages' files; the guard must add
+        # the byte but not the file; the guard must add
         # the path and keep the decoder's own byte detail (and its cause).
         path = self._metadata_file(b'{"Name": "Caf\xff"}')
         error = self._load_error(path)
@@ -191,7 +191,7 @@ class TestPackageMetadata(unittest.TestCase):
         """Assert guard *method* rejects *metadata*, naming the file and *names*.
 
         Every guard message names the ``metadata.json`` it came from so the
-        two packages' failures are distinguishable, plus the field or field
+        different packages' failures are distinguishable, plus the field or field
         path it rejected. This wraps `_guard_message` for the cases that pin
         both, so the file name is asserted in one place.
         """
@@ -336,7 +336,7 @@ class TestPackageMetadata(unittest.TestCase):
                     )
 
     def test_plugin_authors_guard(self):
-        # Both packages ship Authors as a list of named objects, but nothing
+        # The packages ship Authors as a list of named objects, but nothing
         # pinned that shape. A metadata.json that drops the field used to be
         # ignored entirely; one whose Authors is not a list, is empty, holds a
         # non-object entry, or blanks an entry's Name installs cleanly too, so

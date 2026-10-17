@@ -123,7 +123,7 @@ class TestStructure(unittest.TestCase):
         # System Settings lists the scheme by `General/Name`, but the section
         # and key registry above checks only that the key exists, so a blank
         # or mistyped name ships without another test noticing. Pin it to the
-        # product name both package metadata files also carry.
+        # product name the package metadata files also carry.
         self.assertEqual(
             self.parser.get("General", "Name"),
             "Mac OS 8.6",

@@ -1,8 +1,8 @@
 """Shared cases for a failed `make install` that must preserve the old package.
 
-The look-and-feel and desktop-theme installers both copy into a hidden staging
-sibling and swap it in with a rename, so the same two failure modes apply to
-either package. Each suite subclasses `FailedInstallPreservesPackage`, sets
+The look-and-feel, desktop-theme, Aurorae and wallpaper installers each copy into
+a hidden staging sibling and swap it in with a rename, so the same two failure
+modes apply to every package. Each suite subclasses `FailedInstallPreservesPackage`, sets
 `KIND`/`PACKAGE_ID`, and supplies the copy-failure environment; the flow and
 assertions live here once.
 """

@@ -1,10 +1,12 @@
-"""Shared `metadata.json` checks for the look-and-feel and desktop-theme packages.
+"""Shared `metadata.json` checks for the look-and-feel, desktop-theme and wallpaper suites.
 
-Both packages ship a `metadata.json` with the same shape, so the checks that do
+Those packages ship a `metadata.json` with the same shape, so the checks that do
 not depend on the package kind — a plugin Version, a non-blank Description and
 License, and a named Author — and the ones that differ only by constants — the
 package structure, the plugin Id/Name and the Plasma API key/value — live here
-once. Each suite subclasses `PackageMetadata` and sets the class attributes.
+once. Each suite subclasses `PackageMetadata` and sets the class attributes. The
+Aurorae suite does not subclass it but calls the module-level helpers
+`load_metadata`, `kplugin` and `assert_named_authors`.
 """
 
 import json
@@ -27,15 +29,15 @@ def load_metadata(path):
         try:
             metadata = json.load(handle)
         except json.JSONDecodeError as exc:
-            # Two packages ship a metadata.json, so the decoder's own message
+            # Several packages ship a metadata.json, so the decoder's own message
             # (which names line and column but not the file) is ambiguous;
             # prepend the path and keep the original detail.
             raise ValueError(f"{path}: invalid JSON: {exc}") from exc
         except UnicodeDecodeError as exc:
             # The read decodes as UTF-8, so bytes in another encoding (or a
             # file corrupted mid-write) raise the decoder's own message,
-            # which names the byte but neither of the two metadata.json
-            # files; prepend the path and keep the byte detail.
+            # which names the byte but not the metadata.json file; prepend
+            # the path and keep the byte detail.
             raise ValueError(f"{path}: not valid UTF-8 text: {exc}") from exc
     if not isinstance(metadata, dict):
         raise ValueError(
@@ -199,8 +201,8 @@ class PackageMetadata:
         self._top_level(self.PLASMA_API_KEY, self.PLASMA_API_VERSION)
 
     def test_plugin_authors_are_named(self):
-        # Both metadata.json files declare KPlugin.Authors as a non-empty list
-        # of objects, and KDE's About dialog reads each entry's Name. Nothing
+        # The packages' metadata.json files declare KPlugin.Authors as a
+        # non-empty list of objects, and KDE's About dialog reads each entry's Name. Nothing
         # else pins that shape: a metadata.json that drops Authors, replaces
         # the list with a string, empties it, or blanks an entry's Name still
         # installs, so pin it here with the rest of the KPlugin contract. The
