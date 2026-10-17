@@ -50,6 +50,20 @@ def uninstall_with_config(tmp, config, extra=()):
     )
 
 
+def install_renamed_scheme(case, tmp, filename):
+    """Copy the scheme to `<tmp>/<filename>` and `make install` it from there.
+
+    Asserts the install succeeds. Returns `(source, extra)`: the copied scheme
+    and the `COLOR_SCHEME=<source>` argument list a later `uninstall` needs to
+    target the same basename.
+    """
+    source = os.path.join(tmp, filename)
+    shutil.copy(SCHEME, source)
+    extra = [f"COLOR_SCHEME={source}"]
+    assert_succeeded(case, install(tmp, extra=extra))
+    return source, extra
+
+
 class TestInstall(unittest.TestCase):
     def test_make_install_copies_scheme_byte_for_byte(self):
         with installed_destdir(self) as tmp:
@@ -105,10 +119,7 @@ class TestInstall(unittest.TestCase):
         # follow the source basename: a hardcoded destination name would install
         # a renamed scheme under the old id and break its restart resolution.
         with tempfile.TemporaryDirectory() as tmp:
-            source = os.path.join(tmp, "Platinum.colors")
-            shutil.copy(SCHEME, source)
-            result = install(tmp, extra=[f"COLOR_SCHEME={source}"])
-            assert_succeeded(self, result)
+            source, _ = install_renamed_scheme(self, tmp, "Platinum.colors")
             installed = installed_color_scheme(tmp, "Platinum.colors")
             assert_files_identical(self, source, installed)
             self.assertFalse(
@@ -120,10 +131,7 @@ class TestInstall(unittest.TestCase):
         # `uninstall` must remove the same basename `install` wrote: a hardcoded
         # name would leave a renamed scheme behind and delete the wrong file.
         with tempfile.TemporaryDirectory() as tmp:
-            source = os.path.join(tmp, "Platinum.colors")
-            shutil.copy(SCHEME, source)
-            installed = install(tmp, extra=[f"COLOR_SCHEME={source}"])
-            assert_succeeded(self, installed)
+            _, extra = install_renamed_scheme(self, tmp, "Platinum.colors")
             schemes = installed_color_scheme_dir(tmp)
             renamed = os.path.join(schemes, "Platinum.colors")
             self.assertTrue(os.path.isfile(renamed), renamed)
@@ -131,7 +139,7 @@ class TestInstall(unittest.TestCase):
             with open(decoy, "w", encoding="utf-8") as handle:
                 handle.write("[General]\nName=Decoy\n")
 
-            removed = uninstall(tmp, extra=[f"COLOR_SCHEME={source}"])
+            removed = uninstall(tmp, extra=extra)
             assert_succeeded(self, removed)
             self.assertFalse(
                 os.path.exists(renamed),
@@ -205,11 +213,7 @@ class TestInstall(unittest.TestCase):
         # whitespace word-splitting would compare `My Scheme` to `My` and miss
         # the warning for a renamed scheme.
         with tempfile.TemporaryDirectory() as tmp:
-            source = os.path.join(tmp, "My Scheme.colors")
-            shutil.copy(SCHEME, source)
-            extra = [f"COLOR_SCHEME={source}"]
-            installed = install(tmp, extra=extra)
-            assert_succeeded(self, installed)
+            _, extra = install_renamed_scheme(self, tmp, "My Scheme.colors")
             config = write_selected_scheme(tmp, "My Scheme")
 
             removed = uninstall_with_config(tmp, config, extra=extra)
