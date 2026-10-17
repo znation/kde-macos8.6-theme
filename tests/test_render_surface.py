@@ -209,6 +209,14 @@ class TestFailurePaths(StubTools):
         self.assertTrue(Path(last[0]).parent.name.startswith("render-surface-"))
         self.assertEqual(1, len(last), "WAYLAND_DISPLAY and DISPLAY leaked")
 
+    def test_install_ignores_a_destdir_from_the_environment(self):
+        record = self.root / "make-env"
+        self.stub("make", f'echo "[$DESTDIR] $*" > "{record}"')
+        with mock.patch.dict(os.environ, {"DESTDIR": str(self.root / "stage")}):
+            self.run_main()
+        argv = record.read_text(encoding="utf-8")
+        self.assertTrue(argv.startswith("[] install XDG_DATA_HOME="), argv)
+
     def test_timeout_kills_the_session_group_and_exits_1(self):
         pidfile = self.root / "pid"
         self.stub("dbus-run-session", f'echo $$ > "{pidfile}"; exec sleep 60')

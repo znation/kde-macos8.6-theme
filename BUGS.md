@@ -12,6 +12,20 @@ _None yet._
 
 ## Fixed
 
+### `make render` installs the theme outside its scratch data home when `DESTDIR` is set in the environment (found by the bugfix role 2026-10-17; fixed 2026-10-17 by the bugfix role)
+
+**Symptom:** `tools/render_surface.py` runs `make install XDG_DATA_HOME=<scratch>/data` with the
+caller's environment. The Makefile builds its install paths as `$(DESTDIR)$(XDG_DATA_HOME)/...`
+and make imports environment variables, so an exported `DESTDIR` put the theme under
+`$DESTDIR<scratch>/data`. The headless session then looked in `<scratch>/data`, found no theme,
+and `spectacle` captured an unthemed window with exit status 0.
+**Reproduce:** `DESTDIR=/stage make -n install XDG_DATA_HOME=/var/tmp/x` prints paths under
+`/stage/var/tmp/x`; `tests/test_render_surface.py::TestFailurePaths::test_install_ignores_a_destdir_from_the_environment`
+failed with the stub `make` seeing `DESTDIR` before the fix.
+**Fix:** `_render` drops `DESTDIR` from the environment it hands to the child processes, as it
+already drops `WAYLAND_DISPLAY` and `DISPLAY`.
+**Validation gap:** none — the stubbed-tool test harness reproduced it directly.
+
 ### Splash progress bar pins the panel face and the empty track as its track and fill colours (found by the plan role 2026-10-17; fixed 2026-10-17 by the bugfix role)
 
 **Symptom:** `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml` draws the boot

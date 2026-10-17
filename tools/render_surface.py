@@ -173,7 +173,7 @@ def _render(args: argparse.Namespace) -> int:
         env = {
             key: value
             for key, value in os.environ.items()
-            if key not in ("WAYLAND_DISPLAY", "DISPLAY")
+            if key not in ("WAYLAND_DISPLAY", "DISPLAY", "DESTDIR")
         }
         env.update(
             XDG_RUNTIME_DIR=str(runtime),
