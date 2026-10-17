@@ -17,109 +17,6 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum tab-bar highlight widget for the desktop theme
-
-**Done 2026-10-15 by plan**. The next follow-up the done menubaritem plan named ("then
-`tabbar`, `tooltip`, and the `actionbutton`/`busy`/`switch` surfaces"). Independent of every
-done widget plan: it adds one artwork file to the existing `org.macos8.desktop` desktop-theme
-package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new
-test module under `tests/` (`test_desktoptheme_tabbar.py`) with the `TestTabBar` class, one `SVG_CANVASES`
-entry and one `TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the
-README inventory lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`,
-`metadata.json`, or the color scheme.
-
-**Goal.** Ship `widgets/tabbar.svg` so the Plasma active-tab / expanded-applet highlights draw a
-Platinum raised tab instead of inheriting Breeze's `tabbar.svgz`. Today the theme ships no
-`tabbar.svg`, so `KSvg` resolves the name to the default theme's Breeze file.
-
-**Consumers (verified in the installed Plasma 6.3.6 tree; a grep for `widgets/tabbar`).**
-- `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/TabBar.qml` and `TabButton.qml`:
-  prefix `"north-active-tab"` for `TabBar.position === Header`, else `"south-active-tab"`.
-  `TabButton` also sets `enabledBorders` (left/right plus top and/or bottom).
-- `/usr/share/plasma/plasmoids/org.kde.plasma.kickoff/contents/ui/Footer.qml`: the
-  Applications/Places tab highlight, north/south by `tabBar.position`.
-- `CurrentItemHighLight.qml` (systemtray), `showdesktop/contents/ui/main.qml`,
-  `shells/org.kde.plasma.desktop/contents/applet/CompactApplet.qml` and `.../views/Panel.qml`:
-  a directional prefix by `Plasmoid.location` / `containment.plasmoid.location`
-  (`west`/`north`/`east`/`south`), each followed by `if (!hasElementPrefix(prefix)) prefix =
-  "active-tab"`.
-- A missing prefix or slice renders nothing, and once this file exists there is no cross-theme
-  fallback, so all four directional prefixes ship. Shipping all four keeps the `active-tab`
-  fallback dead, exactly as the default theme does (it ships the same four and no `active-tab`).
-
-**Default contract.** `zcat /usr/share/plasma/desktoptheme/default/widgets/tabbar.svgz` carries
-the nine-slice ids
-`{north,south,east,west}-active-tab-{center,top,bottom,left,right,topleft,topright,bottomleft,bottomright}`
-with per-state margin hints; each state's **inner** edge -- the one facing the panel content
-(bottom for north, top for south, right for west, left for east) -- is its distinctive edge
-(Breeze paints it with `ColorScheme-ButtonFocus`), so the four directions are not
-interchangeable.
-
-**Grounding.**
-- No reference screenshot in `macos8.6-screenshots/` shows a tab control, so the tab has no
-  per-pixel reference. Its fills reuse the grounded Platinum raised-face palette (`#000000`
-  outline, `#FFFFFF` highlight, `#999999` shadow, `#DDDDDD` face) that
-  `tests/test_desktoptheme_frame.py` already pins, and the SVG comment records that provenance,
-  as the tooltip token records its KDE-required-role provenance.
-- The raised bevel is the same 1px-outline-plus-bevel `widgets/frame.svg`'s `raised` state
-  paints, so the active tab is the Platinum raised surface; the inner edge is left open (face
-  only, no outline) so the tab merges with the content the way a Platinum tab does.
-
-**Approach.**
-1. Add the tab-bar artwork to the package's `widgets/` directory as `tabbar.svg`: four directional nine-slices
-   on the tight 12x12 canvas, 3px border, 6x6 centre tile (the `widgets/frame.svg` /
-   `widgets/menubaritem.svg` grid), one shared `hint-tile-center` and four margin hints per
-   prefix.
-   - Each prefix is a raised Platinum tab: `#DDDDDD` face, a 1px `#000000` outline on the three
-     outer edges, a 1px `#FFFFFF` highlight inside the top/left outline and a 1px `#999999`
-     shadow inside the bottom/right outline, square corners.
-   - The inner edge is open (face only): `north-active-tab` bottom, `south-active-tab` top,
-     `west-active-tab` right, `east-active-tab` left.
-   - The closed edges use the `face_edge_bands("#DDDDDD", "raised")` bands -- top/left
-     `("#000000", "#FFFFFF", "#DDDDDD")`, bottom/right `("#DDDDDD", "#999999", "#000000")`;
-     the two fully-raised corners use `face_corners("#DDDDDD", "raised")`; each mixed corner
-     where the open edge meets a raised edge extends that raised edge's band across its 3x3 tile
-     (so a north `bottomleft` is three `#000000 #FFFFFF #DDDDDD` rows, a north `bottomright`
-     three `#DDDDDD #999999 #000000` rows, and east/west transpose the same rule).
-2. Add `TABBAR_SVG = os.path.join(PACKAGE, "widgets", "tabbar.svg")` to
-   `tests/desktoptheme_paths.py`.
-3. Add the new test module `test_desktoptheme_tabbar.py` under `tests/` with `TestTabBar(NineSliceCase, unittest.TestCase)`,
-   `SVG_PATH = TABBAR_SVG`, `PREFIXES = ("north-active-tab", "south-active-tab",
-   "east-active-tab", "west-active-tab")`, modelled on `tests/test_desktoptheme_frame.py`:
-   - `test_tabbar_hint_geometry`: `assert_hint_geometry(self, self.tree, self.PREFIXES, 3, 6)`.
-   - `test_tabbar_centres_are_the_face`: `assert_center_tile_is` on each `-center` slice,
-     `"#DDDDDD"`, 6.
-   - `test_tabbar_closed_edges_are_raised` / `test_tabbar_inner_edges_are_open`:
-     `assert_edge_band_pixels` for each edge with the raised band or the flat `("#DDDDDD",) * 3`.
-   - `test_tabbar_corners`: `assert_corner_pixels` for each corner with the raised table or the
-     band-extended table above.
-   - `test_tabbar_colours`: `assert_fill_palette(self, self.tree)` from `platinum_palette`.
-4. Add `("tabbar.svg", TABBAR_SVG, 12, 12)` to `SVG_CANVASES` and
-   `os.path.join("widgets", "tabbar.svg")` to `TestInstall.INSTALLED_FILES` in
-   `tests/test_desktoptheme.py`.
-5. Name `widgets/tabbar.svg` in README.md's status block widget list and Installing inventory.
-
-**Acceptance criteria.**
-- `make check` exits 0 with `TestTabBar` passing and `TestSvgRootCanvas` / `TestInstall` covering
-  the new file.
-- The SVG parses and contains the 36 `{north,south,east,west}-active-tab-{slice}` ids, the 16
-  per-prefix margin-hint ids and `hint-tile-center`; each prefix's centre tile is a solid #DDDDDD
-  6x6; the three closed edges and their corners paint the raised bevel; each inner edge is solid
-  #DDDDDD; the parsed `fill` attribute values are exactly #000000, #FFFFFF, #999999 and #DDDDDD.
-- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
-  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/tabbar.svg` byte-identical to
-  source (via the extended `TestInstall` tuple).
-- Manual smoke test (needs a Plasma session): Kickoff's Applications/Places tab highlight and the
-  `PC3.TabBar` highlight draw a square Platinum raised tab with no Breeze blue line or rounded
-  corner; a top/bottom panel's expanded applet and the system-tray current-item highlight draw
-  the same; every other widget is unchanged.
-
-**Known deviations (recorded, not fixed here).**
-- The reference set has no tab-control screenshot, so the four directions have no per-pixel
-  reference and reuse the grounded Platinum raised palette by semantic role.
-- `Panel.qml` may pass an empty prefix (`""`) when there is no containment; the file ships no
-  unprefixed slices, exactly as the default theme does, so that case draws nothing.
-
 ### Mac OS 8.6 Platinum toolbar background widget for the desktop theme
 
 **Planned 2026-10-15 by plan.** The follow-up the done menubaritem plan named alongside
@@ -300,6 +197,109 @@ attributes the pixel and palette tests can read; the Platinum file paints the fi
   colour to a literal fill).
 
 ## Done
+
+### Mac OS 8.6 Platinum tab-bar highlight widget for the desktop theme (done 2026-10-17)
+
+**Planned 2026-10-15 by plan.** The next follow-up the done menubaritem plan named ("then
+`tabbar`, `tooltip`, and the `actionbutton`/`busy`/`switch` surfaces"). Independent of every
+done widget plan: it adds one artwork file to the existing `org.macos8.desktop` desktop-theme
+package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new
+test module under `tests/` (`test_desktoptheme_tabbar.py`) with the `TestTabBar` class, one `SVG_CANVASES`
+entry and one `TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the
+README inventory lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`,
+`metadata.json`, or the color scheme.
+
+**Goal.** Ship `widgets/tabbar.svg` so the Plasma active-tab / expanded-applet highlights draw a
+Platinum raised tab instead of inheriting Breeze's `tabbar.svgz`. Today the theme ships no
+`tabbar.svg`, so `KSvg` resolves the name to the default theme's Breeze file.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree; a grep for `widgets/tabbar`).**
+- `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/TabBar.qml` and `TabButton.qml`:
+  prefix `"north-active-tab"` for `TabBar.position === Header`, else `"south-active-tab"`.
+  `TabButton` also sets `enabledBorders` (left/right plus top and/or bottom).
+- `/usr/share/plasma/plasmoids/org.kde.plasma.kickoff/contents/ui/Footer.qml`: the
+  Applications/Places tab highlight, north/south by `tabBar.position`.
+- `CurrentItemHighLight.qml` (systemtray), `showdesktop/contents/ui/main.qml`,
+  `shells/org.kde.plasma.desktop/contents/applet/CompactApplet.qml` and `.../views/Panel.qml`:
+  a directional prefix by `Plasmoid.location` / `containment.plasmoid.location`
+  (`west`/`north`/`east`/`south`), each followed by `if (!hasElementPrefix(prefix)) prefix =
+  "active-tab"`.
+- A missing prefix or slice renders nothing, and once this file exists there is no cross-theme
+  fallback, so all four directional prefixes ship. Shipping all four keeps the `active-tab`
+  fallback dead, exactly as the default theme does (it ships the same four and no `active-tab`).
+
+**Default contract.** `zcat /usr/share/plasma/desktoptheme/default/widgets/tabbar.svgz` carries
+the nine-slice ids
+`{north,south,east,west}-active-tab-{center,top,bottom,left,right,topleft,topright,bottomleft,bottomright}`
+with per-state margin hints; each state's **inner** edge -- the one facing the panel content
+(bottom for north, top for south, right for west, left for east) -- is its distinctive edge
+(Breeze paints it with `ColorScheme-ButtonFocus`), so the four directions are not
+interchangeable.
+
+**Grounding.**
+- No reference screenshot in `macos8.6-screenshots/` shows a tab control, so the tab has no
+  per-pixel reference. Its fills reuse the grounded Platinum raised-face palette (`#000000`
+  outline, `#FFFFFF` highlight, `#999999` shadow, `#DDDDDD` face) that
+  `tests/test_desktoptheme_frame.py` already pins, and the SVG comment records that provenance,
+  as the tooltip token records its KDE-required-role provenance.
+- The raised bevel is the same 1px-outline-plus-bevel `widgets/frame.svg`'s `raised` state
+  paints, so the active tab is the Platinum raised surface; the inner edge is left open (face
+  only, no outline) so the tab merges with the content the way a Platinum tab does.
+
+**Approach.**
+1. Add the tab-bar artwork to the package's `widgets/` directory as `tabbar.svg`: four directional nine-slices
+   on the tight 12x12 canvas, 3px border, 6x6 centre tile (the `widgets/frame.svg` /
+   `widgets/menubaritem.svg` grid), one shared `hint-tile-center` and four margin hints per
+   prefix.
+   - Each prefix is a raised Platinum tab: `#DDDDDD` face, a 1px `#000000` outline on the three
+     outer edges, a 1px `#FFFFFF` highlight inside the top/left outline and a 1px `#999999`
+     shadow inside the bottom/right outline, square corners.
+   - The inner edge is open (face only): `north-active-tab` bottom, `south-active-tab` top,
+     `west-active-tab` right, `east-active-tab` left.
+   - The closed edges use the `face_edge_bands("#DDDDDD", "raised")` bands -- top/left
+     `("#000000", "#FFFFFF", "#DDDDDD")`, bottom/right `("#DDDDDD", "#999999", "#000000")`;
+     the two fully-raised corners use `face_corners("#DDDDDD", "raised")`; each mixed corner
+     where the open edge meets a raised edge extends that raised edge's band across its 3x3 tile
+     (so a north `bottomleft` is three `#000000 #FFFFFF #DDDDDD` rows, a north `bottomright`
+     three `#DDDDDD #999999 #000000` rows, and east/west transpose the same rule).
+2. Add `TABBAR_SVG = os.path.join(PACKAGE, "widgets", "tabbar.svg")` to
+   `tests/desktoptheme_paths.py`.
+3. Add the new test module `test_desktoptheme_tabbar.py` under `tests/` with `TestTabBar(NineSliceCase, unittest.TestCase)`,
+   `SVG_PATH = TABBAR_SVG`, `PREFIXES = ("north-active-tab", "south-active-tab",
+   "east-active-tab", "west-active-tab")`, modelled on `tests/test_desktoptheme_frame.py`:
+   - `test_tabbar_hint_geometry`: `assert_hint_geometry(self, self.tree, self.PREFIXES, 3, 6)`.
+   - `test_tabbar_centres_are_the_face`: `assert_center_tile_is` on each `-center` slice,
+     `"#DDDDDD"`, 6.
+   - `test_tabbar_closed_edges_are_raised` / `test_tabbar_inner_edges_are_open`:
+     `assert_edge_band_pixels` for each edge with the raised band or the flat `("#DDDDDD",) * 3`.
+   - `test_tabbar_corners`: `assert_corner_pixels` for each corner with the raised table or the
+     band-extended table above.
+   - `test_tabbar_colours`: `assert_fill_palette(self, self.tree)` from `platinum_palette`.
+4. Add `("tabbar.svg", TABBAR_SVG, 12, 12)` to `SVG_CANVASES` and
+   `os.path.join("widgets", "tabbar.svg")` to `TestInstall.INSTALLED_FILES` in
+   `tests/test_desktoptheme.py`.
+5. Name `widgets/tabbar.svg` in README.md's status block widget list and Installing inventory.
+
+**Acceptance criteria.**
+- `make check` exits 0 with `TestTabBar` passing and `TestSvgRootCanvas` / `TestInstall` covering
+  the new file.
+- The SVG parses and contains the 36 `{north,south,east,west}-active-tab-{slice}` ids, the 16
+  per-prefix margin-hint ids and `hint-tile-center`; each prefix's centre tile is a solid #DDDDDD
+  6x6; the three closed edges and their corners paint the raised bevel; each inner edge is solid
+  #DDDDDD; the parsed `fill` attribute values are exactly #000000, #FFFFFF, #999999 and #DDDDDD.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
+  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/tabbar.svg` byte-identical to
+  source (via the extended `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): Kickoff's Applications/Places tab highlight and the
+  `PC3.TabBar` highlight draw a square Platinum raised tab with no Breeze blue line or rounded
+  corner; a top/bottom panel's expanded applet and the system-tray current-item highlight draw
+  the same; every other widget is unchanged.
+
+**Known deviations (recorded, not fixed here).**
+- The reference set has no tab-control screenshot, so the four directions have no per-pixel
+  reference and reuse the grounded Platinum raised palette by semantic role.
+- `Panel.qml` may pass an empty prefix (`""`) when there is no containment; the file ships no
+  unprefixed slices, exactly as the default theme does, so that case draws nothing.
 
 ### Mac OS 8.6 Platinum menu-bar item widget for the desktop theme (done 2026-10-09)
 
@@ -1215,136 +1215,7 @@ and treat the rare `PlasmaComponents.Popup`/`Drawer` as the same menu-like surfa
 
 **Docs.** `README.md`'s status block and Installing inventory now name `dialogs/background.svg`.
 
-### Mac OS 8.6 Platinum scroll bar widget for the desktop theme (done 2026-10-08)
-
-**Planned 2026-10-08 by plan.** Independent of the done frame, button, radio-button,
-checkmarks, text-field, and list-item plans: it adds one widget file to the existing
-`org.macos8.desktop` desktop-theme package, a new scrollbar test module in `tests/`
-with the `TestScrollbar` class, and one `TestInstall` tuple entry in
-`tests/test_desktoptheme.py`. It does not touch `button.svg`, `frame.svg`,
-`radiobutton.svg`, `checkmarks.svg`, `lineedit.svg`, `listitem.svg`, or
-`panel-background.svg`.
-
-**Goal.** Ship `widgets/scrollbar.svg` in the `org.macos8.desktop` desktop theme so
-`PlasmaComponents.ScrollBar` (the bar used by `PlasmaComponents.ScrollView`, `Menu`,
-`ComboBox` and the clipboard applet) draws the Platinum raised grey thumb and flat grey
-trough instead of Breeze's thin rounded translucent handle, and the theme stops inheriting
-`widgets/scrollbar.svgz` from the default theme.
-
-**Grounding.**
-- Consumer verified in the installed Plasma 6.3.6 QML under
-  `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/`:
-  `components/ScrollBar.qml` is a `T.ScrollBar` whose `background` is a `KSvg.FrameSvgItem`
-  with `imagePath: "widgets/scrollbar"` and
-  `prefix: controlRoot.horizontal ? "background-horizontal" : "background-vertical"`, and
-  whose `contentItem` (the handle) uses
-  `prefix: interactive && (pressed || hovered) && enabled ? "mouseover-slider" : "slider"`.
-  Its `background` implicit size is
-  `max(elementSize("hint-scrollbar-size"), fixedMargins.left + fixedMargins.right)`; its
-  `leftPadding`/`rightPadding`/`topPadding`/`bottomPadding` read
-  `{handle.usedPrefix}-hint-{side}-inset` and its `leftInset`/`rightInset`/`topInset`/
-  `bottomInset` read `{bgFrame.usedPrefix}-hint-{side}-inset`; its `separator` is visible
-  only when `private-hint-show-separator` exists.
-  `components/ScrollView.qml`, `components/Menu.qml`, `components/ComboBox.qml` and the
-  clipboard pages construct `PlasmaComponents3.ScrollBar`.
-- `find /usr/share/plasma/desktoptheme -name 'scrollbar.svg*'` returns only
-  `default/widgets/scrollbar.svgz` (a 6px Breeze bar whose `hint-tile-center` is 2x2), so
-  today the theme inherits Breeze.
-- Palette-derived greys, matching the done button/frame bevel convention: a #DDDDDD face
-  with a 1px #000000 outline and a 1px bevel (#FFFFFF top/left, #999999 bottom/right) for
-  the thumb, and a #EEEEEE trough (`[Colors:View] BackgroundAlternate=238,238,238`) with
-  the same 1px #000000 outline. These are not screenshot-anchored: `TestReferenceAnchors`
-  records no scroll-bar pixel, and the reference screenshots that show scroll bars are
-  JPEGs, which the project's `tools/png.py` cannot decode.
-- Plasma 6 limitations the SVG cannot change and the plan does not try to: the `background`
-  (trough) is drawn only while the pointer hovers the bar
-  (`opacity: hovered && interactive`), and the QML computes but never uses `arrowPresent`
-  (`//TODO: support arrows?`), so the Mac OS 8.6 arrow boxes at the trough ends cannot be
-  drawn. The plan ships the correct trough and thumb and records both deviations in the
-  SVG comment.
-
-**Approach.**
-1. New `widgets/scrollbar.svg` in the package: root
-   `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">`
-   with a comment naming the widget, its consumers, the four prefixes, and the two Plasma
-   deviations (hover-only trough, no arrow boxes).
-   - Hints (rects, any opaque `style` colour; KSvg reads geometry): `hint-tile-center`
-     10x10 at (3,3); `hint-scrollbar-size` 16x16 at (0,0); and for each of the four
-     prefixes `background-vertical`, `background-horizontal`, `slider`,
-     `mouseover-slider`: `{prefix}-hint-top-margin` 10x3 at (3,0),
-     `{prefix}-hint-bottom-margin` 10x3 at (3,13), `{prefix}-hint-left-margin` 3x10 at
-     (0,3), `{prefix}-hint-right-margin` 3x10 at (13,3). No `-inset` hints (so the QML
-     falls back to zero padding and the handle fills the 16px track) and no
-     `private-hint-show-separator`.
-   - Trough nine-slice, identical for `background-vertical` and `background-horizontal`:
-     each of the nine `<g id="{prefix}-{slice}">` groups holds a #EEEEEE rect of the
-     slice size with a 1px #000000 line along each outer edge (top slice: black row 0;
-     bottom: black row 2; left: black column 0; right: black column 2; each corner: its
-     two outer edges), square corners.
-   - Thumb nine-slice, identical for `slider` and `mouseover-slider`: each group holds a
-     #DDDDDD rect of the slice size, a 1px #000000 line along each outer edge, and a 1px
-     bevel inside it (#FFFFFF top/left, #999999 bottom/right), square corners, the same
-     bevel rule as `button.svg`'s `normal` state.
-   - Group origins match the other widgets: top translate(3,0), bottom translate(3,13),
-     left translate(0,3), right translate(13,3), center translate(3,3), corners at
-     (0,0)/(13,0)/(0,13)/(13,13).
-2. `tests/desktoptheme_paths.py` (edit): add
-   `SCROLLBAR_SVG = os.path.join(PACKAGE, "widgets", "scrollbar.svg")`.
-3. `tests/test_desktoptheme.py` (edit): add `("scrollbar.svg", SCROLLBAR_SVG, 16, 16)` to
-   `SVG_CANVASES`, update the stale `SVG_CANVASES` comment (it calls the 12x12 nine-slice
-   widgets "four"), and add `os.path.join("widgets", "scrollbar.svg")` to
-   `TestInstall.INSTALLED_FILES`.
-4. New scrollbar test module in `tests/`, named after the existing
-   `test_desktoptheme_listitem.py` pattern, with `class TestScrollbar`, importing `SCROLLBAR_SVG` and `assert_slice_ids_present`,
-   `assert_tiles_placed_by_margins`, `assert_corner_pixels`, `assert_no_script_elements`,
-   `attribute_values`, `rect_geometry`, `render_slices` from `svg_assertions`:
-   - `test_scrollbar_slice_ids`: `assert_slice_ids_present(self, tree,
-     ["background-vertical", "background-horizontal", "slider", "mouseover-slider"])`.
-   - `test_scrollbar_hint_geometry`: `rect_geometry` equals the exact hint dict above.
-   - `test_scrollbar_tiles_placed_by_margins`: `assert_tiles_placed_by_margins` for the
-     four prefixes.
-   - `test_scrollbar_trough_outline`: `render_slices`; every centre pixel of both trough
-     prefixes is #EEEEEE, each trough edge slice's outer row/column is #000000, and each
-     corner matches `assert_corner_pixels` with its outer edges black and interior #EEEEEE.
-   - `test_scrollbar_thumb_bevel`: `slider` and `mouseover-slider` render identically;
-     every centre pixel is #DDDDDD; the top slice's three rows are #000000/#FFFFFF/#DDDDDD,
-     the bottom's #DDDDDD/#999999/#000000, the left's three columns
-     #000000/#FFFFFF/#DDDDDD, the right's #DDDDDD/#999999/#000000, and each corner matches
-     `assert_corner_pixels` with its outline, bevel and face pixels.
-   - `test_scrollbar_colours`:
-     `attribute_values(tree, "fill") == {"#000000", "#FFFFFF", "#999999", "#DDDDDD", "#EEEEEE"}`.
-   - `test_no_script_elements`.
-5. `README.md` (edit): add "scroll bar" to the `tumwater:status` block's desktop-theme
-   widget parenthetical, and `widgets/scrollbar.svg` (the raised grey thumb and flat grey
-   trough for `PlasmaComponents.ScrollBar`) to the Installing section's desktop-theme
-   sentence.
-
-**Files touched.** New: `scrollbar.svg` in the package's `widgets/` subdirectory and a
-scrollbar test module in `tests/` beside the existing `test_desktoptheme_listitem.py`.
-Edited:
-`tests/desktoptheme_paths.py` (`SCROLLBAR_SVG`), `tests/test_desktoptheme.py`
-(`SVG_CANVASES`, `TestInstall` `INSTALLED_FILES`), `README.md`. No change to the color
-scheme, the look-and-feel package, the Makefile, or the other widgets.
-
-**Acceptance criteria.**
-- `make check` exits 0 with `TestScrollbar` passing and the extended `TestInstall`
-  byte-identity assertion.
-- The scrollbar SVG parses and contains the 36 `{prefix}-{slice}` ids for the four
-  prefixes, the 16 margin hints, `hint-tile-center` and `hint-scrollbar-size`; every trough
-  centre is #EEEEEE and every thumb centre #DDDDDD; the only parsed `fill` values are
-  #000000, #FFFFFF, #999999, #DDDDDD and #EEEEEE.
-- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` leaves
-  `<tmp>/share/plasma/desktoptheme/org.macos8.desktop/widgets/scrollbar.svg` byte-identical
-  to source.
-- Manual smoke test (needs a Plasma session): a `PlasmaComponents.ScrollView`, `Menu` or
-  `ComboBox` shows a 16px-wide raised #DDDDDD thumb with a black outline and bevel; the
-  trough appears while hovered as a flat #EEEEEE bar with a black outline; the Mac arrow
-  boxes at the ends are absent (Plasma does not render them).
-
-**Follow-up (not planned here).** `widgets/background.svg` for dialog/popup/applet
-backgrounds: the same SVG serves `Menu` (white in Mac OS 8.6) and `Dialog`/applet
-containers (grey), so it needs a decision before it can be planned.
-
+- Mac OS 8.6 Platinum scroll bar widget for the desktop theme (planned 2026-10-08, done 2026-10-08; commit 9f51d5b)
 - Mac OS 8.6 Platinum list item widget for the desktop theme (planned 2026-10-08, done 2026-10-08; commit 7fe6ddc)
 - Mac OS 8.6 Platinum text field widget for the desktop theme (planned 2026-10-08, done 2026-10-08; commit 0fe5213)
 - Mac OS 8.6 Platinum checkmarks widget for the desktop theme (planned 2026-10-08, done 2026-10-08; commit 7313acd)
