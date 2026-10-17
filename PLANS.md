@@ -17,7 +17,100 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum etched separator (`widgets/line.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+
+**Planned 2026-10-17 by plan.** Independent of every other entry: it adds one widget file to the
+existing `org.macos8.desktop` desktop-theme package and one new test module, touches no shipped
+SVG, and needs no other plan to land first.
+
+**Goal.** Ship `widgets/line.svg` so Plasma's separators draw the Platinum etched rule (a dark
+grey line with a white line beside it) instead of Breeze's 20%-opacity text-colour hairline.
+`widgets/line` is the most-read desktop-theme element the package still lacks: grepping the
+installed QML for `imagePath: "widgets/line"` finds it in `PlasmaComponents.SpinBox`,
+`PlasmaExtras.ListSectionHeader`, `PlasmaExtras.ExpandableListItem`, and in the kicker, system
+tray, notifications, digital-clock calendar, volume, network, bluetooth, margins-separator and
+konsole-profiles plasmoids. `ls theme/desktop-themes/org.macos8.desktop/widgets/` shows no
+`line.svg`, and no PLANS.md entry covers it.
+
+**Consumer contract (verified in installed Plasma 6 QML and Breeze).** Consumers read exactly two
+element ids, `horizontal-line` (10 uses) and `vertical-line` (3 uses), through `KSvg.SvgItem`
+(whose implicit size is the element's natural size; `ListSectionHeader.qml` stretches it with
+`Layout.fillWidth`, the system tray anchors it left/right) or through
+`lineSvg.elementSize("horizontal-line").height` (kicker's `horLineHeight`). Breeze's
+`/usr/share/plasma/desktoptheme/default/widgets/line.svgz` draws each as one 1x1 rect inside a
+`<g id>`. So the thickness of each element is its natural size across the line, and the element
+is stretched along the line.
+
+**Reference and provenance.** `macos8.6-screenshots/systemprofiler_betawiki.png` (1024x768
+lossless PNG, `sources.txt` "Mac OS 8.6, Japanese (Apple System Profiler …)") shows the Platinum
+etched group-box rules on the `#EEEEEE` window body. `python3 tools/sample.py
+macos8.6-screenshots/systemprofiler_betawiki.png X Y` gives:
+- horizontal rule: `(136,136,136)` = `#888888` at `(260,153)`, `(255,255,255)` = `#FFFFFF` at
+  `(260,154)`, body `#EEEEEE` at `(260,152)` and `(260,155)`;
+- vertical rule: `#888888` at `(241,128)`, `#FFFFFF` at `(242,128)`, body `#EEEEEE` at
+  `(240,128)` and `(243,128)`.
+The rule is therefore 2px thick: dark first (top / left), white second (bottom / right). The same
+`#888888`/`#FFFFFF` pair recurs at `(678,128)`/`(679,128)` (another vertical rule).
+
+**Approach.**
+1. New `theme/desktop-themes/org.macos8.desktop/widgets/line.svg`: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="4" height="2" viewBox="0 0 4 2">` with a
+   comment naming the widget, its two element ids, the consumers named above and the
+   provenance above (file, coordinates, colours).
+   - `<g id="vertical-line">` (no transform) holding `<rect width="1" height="1" fill="#888888"/>`
+     and `<rect x="1" width="1" height="1" fill="#FFFFFF"/>`: a 2-wide x 1-tall element at (0,0).
+   - `<g id="horizontal-line" transform="translate(3,0)">` holding
+     `<rect width="1" height="1" fill="#888888"/>` and
+     `<rect y="1" width="1" height="1" fill="#FFFFFF"/>`: a 1-wide x 2-tall element at (3,0).
+   - Column 2 stays empty so the two elements' bounds do not touch. Rects carry no `id`, no
+     `transform`, and literal `fill` attributes. No `class=`, `<style>`, `<script>`, `style=`
+     attribute, hint rect or any other id.
+2. `tests/desktoptheme_paths.py`: add `LINE_SVG = os.path.join(PACKAGE, "widgets", "line.svg")`
+   beside `ARROWS_SVG`.
+3. `tests/test_desktoptheme.py`: import `LINE_SVG`; add `("line.svg", LINE_SVG, 4, 2)` to
+   `SVG_CANVASES` (and mention the 4x2 canvas in the comment above it); add
+   `os.path.join("widgets", "line.svg")` to `TestInstall.INSTALLED_FILES`.
+4. New `tests/test_desktoptheme_line.py`, modelled on `tests/test_desktoptheme_arrows.py`
+   (`SvgCase` with `SVG_PATH = LINE_SVG`), with module constants `DARK = "#888888"` and
+   `LIGHT = "#FFFFFF"` used by both classes:
+   - `TestLine` (see acceptance criteria).
+   - `TestLineReference(unittest.TestCase)`: `setUpClass` calls
+     `reference_image.read_reference(REFERENCE)`, `setUp` calls `skip_unless_materialized`, and a
+     `pixel` helper wraps `png.pixel_at` (follow `SplashReferenceCase` in
+     `tests/test_lookandfeel_splash.py`).
+5. `README.md`: in the Installing section's desktop-theme inventory, name `widgets/line.svg`
+   (the 2px Platinum etched separator, `#888888` then `#FFFFFF`, that list section headers,
+   spin boxes and the kicker, system-tray and notification separators draw).
+   `tests/test_readme_theme_files.py` fails until README names it.
+
+**Files touched.** New: `widgets/line.svg`, `tests/test_desktoptheme_line.py`. Edited:
+`tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move this
+entry to Done). The Makefile does not change: `make install` already copies the whole widgets
+directory.
+
+**Acceptance criteria.**
+- `make check` exits 0, including the new module, `tests/test_desktoptheme.py` (canvas pin,
+  `TestInstall`) and `tests/test_readme_theme_files.py`.
+- `TestLine.test_line_contract`: `assert_ids_present(self, tree, ("horizontal-line",
+  "vertical-line"))`; `{g.get("id") for g in groups_with_id(tree)} == {"horizontal-line",
+  "vertical-line"}`; `assert_unique_ids`, `assert_no_script_elements`,
+  `assert_no_style_elements` and `assert_no_external_references` pass; and
+  `attribute_values(tree, "fill") == {DARK, LIGHT}`.
+- `TestLine.test_line_pixels`: `render_slices(tree)["horizontal-line"] == pixel_map((DARK,
+  LIGHT), 1, 2)` and `render_slices(tree)["vertical-line"] == pixel_map((DARK, LIGHT), 2, 1)`.
+- `TestLine.test_line_placement`: the `vertical-line` group has no `transform` and the
+  `horizontal-line` group's `transform` is exactly `"translate(3,0)"`, so the elements' canvas
+  bounds are 2x1 at (0,0) and 1x2 at (3,0) (the natural sizes consumers read).
+- `TestLineReference.test_horizontal_rule_matches_reference` asserts `pixel(260,153) ==
+  (0x88,0x88,0x88)`, `pixel(260,154) == (0xFF,0xFF,0xFF)`, and `pixel(260,152) ==
+  pixel(260,155) == (0xEE,0xEE,0xEE)`; `test_vertical_rule_matches_reference` asserts the same
+  at `(241,128)`, `(242,128)`, `(240,128)` and `(243,128)`. Each also asserts that
+  `"#%02X%02X%02X" % pixel(...)` equals `DARK` / `LIGHT`, tying the sample to the SVG literal.
+  Both skip (not fail) when the LFS image is not materialized.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` installs `widgets/line.svg` byte-identical to
+  the source (checked by the extended `TestInstall.INSTALLED_FILES`).
+- Manual smoke test (needs a Plasma session): the system-tray popup's header separator and a
+  kicker submenu separator show a grey line over a white line, with no translucent hairline.
 
 ## Done
 
