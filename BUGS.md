@@ -8,34 +8,7 @@ unclear-invariant).
 
 ## Open
 
-### No automated Plasma render/capture step feeding the fidelity check (found 2026-10-07)
-
-**Symptom:** `tools/fidelity.py` can measure a candidate PNG against a reference, but nothing
-produces the candidate: there is no scripted way to render a themed surface and capture it to PNG,
-so a fidelity check still starts from a hand-made screenshot.
-
-**How to reproduce:** Look for a command that renders a Plasma surface with the theme applied and
-writes a PNG. None exists; `make check` exercises the installed packages and the comparison tool,
-but nothing renders a surface.
-
-**Suspected cause:** The desktop theme now ships `widgets/panel-background.svg`, so there is a
-surface to render, but no offline render path exists: capturing a themed Plasma surface needs a
-running session or a QML harness, neither of which `make check` can drive.
-
-**Next step:** With the Platinum panel background now shipping, add a bounded, non-interactive
-render-and-capture script (fixed surface size) that writes the candidate PNG this tool consumes,
-once an offline render path is available, and wire it into `make check`.
-
-**Refused 2026-10-07 by bugfix: no offline QML/Plasma render path is available, so a render harness now would be untestable dead code.**
-
-**Routing (2026-10-08, director):** this stays a bug, not a plan, and no loop promotes it
-automatically. The plan loop writes PLANS.md features from the project brief and PLANS.md's
-`## Planned` section and does not scan BUGS.md; the bugfix loop skips Refused entries, so the
-entry is inert as written. A PLANS.md entry now would be unimplementable: no `xvfb-run`/`Xvfb`
-and no `qml`/`qmlscene` binary are installed, and `plasmashell`, `spectacle` and `import` are
-present but need a display server, so the feature loop could only land dead code — the same
-objection the refusal records. Clear the refusal once a headless render path exists, then route
-the entry to PLANS.md.
+_None yet._
 
 ## Fixed
 

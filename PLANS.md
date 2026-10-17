@@ -17,7 +17,95 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Headless Plasma render-and-capture script that feeds `tools/fidelity.py` (planned 2026-10-17 by the director role, from the BUGS.md entry "No automated Plasma render/capture step feeding the fidelity check")
+
+**Provenance.** This replaces the BUGS.md entry "No automated Plasma render/capture step feeding
+the fidelity check" (found 2026-10-07). That entry was refused on 2026-10-07 because no offline
+render path existed. At the user's direction it is now a plan, because a headless path does
+exist on this machine. On 2026-10-17 the director probed it with no display server and isolated
+`XDG_*` directories, and every step below exited 0:
+- `make install XDG_DATA_HOME=<tmp>/data`;
+- seeding `<tmp>/cfg/kwinrc` and `<tmp>/cfg/plasmarc` (below);
+- `dbus-run-session -- kwin_wayland --virtual --no-lockscreen --width 320 --height 240 --socket
+  <name> --exit-with-session "sh -c 'plasmawindowed org.kde.plasma.calculator & sleep 8;
+  spectacle -b -n -f -o <out.png>'"`.
+
+The result was a 320x240 PNG showing the Platinum Aurorae title bar and Platinum push buttons. The
+window body pixels sampled `#DDDDDD` (`tests/platinum_palette.py` `FACE`). Without the seeded
+config the same capture rendered Breeze. Two things did not work, and the approach avoids them:
+- `plasma-apply-colorscheme` run *outside* the KWin session dumped core.
+- `lookandfeeltool -a` run inside the session wrote `kdeglobals` but not the `kwinrc`
+  decoration keys.
+`xvfb-run`, `Xvfb` and `qml`/`qmlscene` are still absent; the path above needs none of them.
+
+**Goal.** Add one bounded, non-interactive command that renders a themed Plasma surface at a fixed
+size and writes it as the candidate PNG `tools/fidelity.py` consumes. Pin it with a test that
+`make check` runs.
+
+**Approach.**
+- New `tools/render_surface.py`. Use the standard library only, following the argparse /
+  `report_error` style of `tools/fidelity.py` and `tools/cli.py`.
+  - CLI: `python3 tools/render_surface.py OUTPUT [--applet ID] [--width W] [--height H]
+    [--settle SECONDS] [--timeout SECONDS]`.
+  - Defaults: `--applet org.kde.plasma.calculator`, 320x240, `--settle 8`, `--timeout 90`.
+  - Exit status: 0 when written, 1 when the render or capture fails, 2 for usage errors or
+    missing tools.
+  - `main()` creates a `tempfile.mkdtemp()` scratch root holding `rt/` (mode 0700, used as
+    `XDG_RUNTIME_DIR`), `cfg/` (`XDG_CONFIG_HOME`) and `data/` (`XDG_DATA_HOME`). It removes the
+    root in a `finally`. The user's real config and session are never touched.
+  - It runs `make install XDG_DATA_HOME=<data>` from the repo root.
+  - It writes `cfg/kwinrc` and `cfg/plasmarc` from the `[kwinrc][org.kde.kdecoration2]` and
+    `[plasmarc][Theme]` groups of `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
+    parsed by a small helper `_defaults_groups()`. That way the render follows the global theme
+    rather than a second copy of its keys.
+  - It launches `dbus-run-session -- kwin_wayland --virtual --no-lockscreen --width W --height H
+    --socket render-surface --exit-with-session <sh -c script>`. The script runs these steps in
+    order:
+    1. `plasma-apply-colorscheme MacOS8`;
+    2. `plasmawindowed <applet> &`;
+    3. `sleep <settle>`;
+    4. `spectacle -b -n -f -o <OUTPUT>`.
+  - The child environment drops `WAYLAND_DISPLAY` and `DISPLAY` and sets the three `XDG_*` paths.
+    The child runs in its own session (`start_new_session=True`). On `--timeout` the script
+    kills the whole process group, as `tests/process_runner.py` does, and exits 1.
+  - Before launching, the script checks every external binary above with `shutil.which` and
+    exits 2 naming the first one missing.
+  - After the run it checks that `OUTPUT` exists and decodes with `tools/png.py` `read_png` at
+    exactly W x H. Otherwise it exits 1.
+- `Makefile`: add a public `render` target, `$(PYTHON) tools/render_surface.py
+  $(RENDER_OUTPUT)`, with `RENDER_OUTPUT ?= render.png`. List it and `RENDER_OUTPUT` in `make
+  help`. Add `render.png` to `.gitignore`.
+- New `tests/test_render_surface.py`:
+  - `TestDefaultsGroups` always runs and parses the real `contents/defaults`. It asserts that
+    `_defaults_groups()` returns the `kwinrc` decoration theme
+    `__aurorae__svg__org.macos8.desktop` and the `plasmarc` theme name.
+  - `TestMissingTool` always runs. It puts an empty directory on `PATH` and asserts exit 2
+    with the missing binary named on stderr.
+  - `TestRender` is decorated `unittest.skipUnless` all of `kwin_wayland`, `dbus-run-session`,
+    `plasmawindowed`, `spectacle` and `plasma-apply-colorscheme` are on `PATH`. In
+    `setUpClass` it renders once to a temp file, using `process_runner.start` and
+    `process_runner.finish(..., timeout=150)`. It asserts:
+    - exit 0;
+    - a 320x240 PNG;
+    - the pixel at (300, 200) in the window body equals `platinum_palette.FACE`.
+  - The render test is slow (about 10–15 s; this machine can throttle under load). Run it once
+    per class, never per method.
+- `README.md`: one sentence in the `make check`/`make help` paragraph naming `make render` and
+  what it writes. Also update the `tools/fidelity.py` module docstring sentence "The Plasma
+  render step that produces the candidate image is outside this tool" to name
+  `tools/render_surface.py`.
+
+**Out of scope.** These belong to a later plan once a render exists to compare:
+- choosing a reference crop and `tools/fidelity.py` thresholds for a rendered surface;
+- rendering a `plasmashell` panel.
+
+**Acceptance criteria.**
+- `make render` on this machine writes a 320x240 `render.png` whose window body pixel is
+  `#DDDDDD`. It leaves `$HOME/.config` and `$HOME/.local/share` unmodified, and removes its
+  scratch root.
+- `make check` passes. `TestRender` runs here and skips cleanly where the tools are absent.
+- No process from the render outlives the script. After `make render`, `pgrep -f
+  'socket render-surface'` finds nothing.
 
 
 ## Done
