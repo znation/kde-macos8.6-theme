@@ -1,11 +1,11 @@
 """Tests for tools/cli.py -- the shared argument-parsing helpers.
 
-``tools/fidelity.py`` and ``tools/sample.py`` both parse their command lines
-through this module, but their own tests reach the helpers only through a
-tool's usage diagnostic. These tests pin the helpers' contracts directly, so a
+``tools/fidelity.py``, ``tools/sample.py`` and ``tools/render_surface.py`` parse
+their command lines through this module, but their own tests reach the helpers
+only through a tool's usage diagnostic. These tests pin the helpers' contracts directly, so a
 change to the plain-ASCII predicate, the option-named rejection or the
 control-character escaping of argparse's own diagnostics is caught here
-instead of through one tool and not the other.
+instead of through one tool and not the others.
 
 Run with the project's check harness (stdlib unittest):
     python3 -m unittest discover -s tests -v

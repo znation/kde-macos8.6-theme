@@ -1,10 +1,10 @@
 """Tests for tools/terminal.py -- escaping contributor text for terminal output.
 
-Both command-line tools route repository- and shell-supplied text through
+The command-line tools route repository- and shell-supplied text through
 `escape_controls` before printing it, but their tests pass only three control
 bytes (ESC, newline and BEL) through the tools themselves. These tests pin the
 shared function's contract directly, so a change to its predicate or escape
-format is caught here instead of silently weakening both tools' terminal safety.
+format is caught here instead of silently weakening the tools' terminal safety.
 """
 
 import unittest

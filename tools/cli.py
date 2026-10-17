@@ -7,7 +7,8 @@ characters, a numeric option must reject Python-only spellings (underscore
 separators, non-ASCII digits, surrounding whitespace) that would silently
 name a different value, and a caught read/comparison failure is reported as
 one escaped, tool-named line with exit status 2. All three live here so
-``tools/fidelity.py`` and ``tools/sample.py`` share one implementation.
+``tools/fidelity.py``, ``tools/sample.py`` and ``tools/render_surface.py`` share
+one implementation.
 """
 
 from __future__ import annotations
@@ -40,12 +41,12 @@ class EscapingArgumentParser(argparse.ArgumentParser):
 def report_error(tool: str, message: str) -> int:
     """Print ``tool: error: <escaped message>`` to stderr and return 2.
 
-    Both tools report every operator-facing failure the same way: one
-    control-character-escaped diagnostic line prefixed with the tool's name,
-    and exit status 2. Keeping the format here means the prefix and the
-    escaping cannot drift between ``tools/fidelity.py`` and
-    ``tools/sample.py``. *message* is the unescaped text; a caller passes an
-    exception's ``str()`` or a diagnostic it built itself.
+    The tools that call this report an operator-facing failure the same way:
+    one control-character-escaped diagnostic line prefixed with the tool's
+    name, and exit status 2. Keeping the format here means the prefix and the
+    escaping cannot drift between ``tools/fidelity.py``, ``tools/sample.py``
+    and ``tools/render_surface.py``. *message* is the unescaped text; a caller
+    passes an exception's ``str()`` or a diagnostic it built itself.
     """
     print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
     return 2
