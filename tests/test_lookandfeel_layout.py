@@ -53,7 +53,8 @@ def panel_height(text):
 def menu_bar_rows(image, x):
     """Return the bar height at column *x*: the row after its black bottom rule.
 
-    The rule is the first #000000 pixel whose next row is not bar grey.
+    The rule is the first #000000 pixel whose next row is neither bar grey nor
+    bevel grey.
     """
     for y in range(image.height - 1):
         if png.pixel_at(image, x, y) != BLACK:

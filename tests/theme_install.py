@@ -1,9 +1,11 @@
 """Run the repository's `make install` / `make uninstall` against a temp tree.
 
 The installed artifacts land under `$(DESTDIR)$(XDG_DATA_HOME)`, so the install
-tests in `test_colorscheme_install`, `test_lookandfeel` and `test_desktoptheme` pass a
-throwaway `DESTDIR` and inspect the result there. Child processes go through
-`process_runner`, which applies the suite's timeout and process-group cleanup.
+tests of each artifact (color scheme, global theme, desktop theme, Aurorae
+decoration, wallpaper) pass a throwaway `DESTDIR` and inspect the result there.
+Child processes go through `process_runner`, which applies the suite's timeout
+and process-group cleanup. The module also re-exports `ROOT` (from
+`repo_root`) and defines `run_captured` for tests that need a captured child.
 """
 
 import contextlib
