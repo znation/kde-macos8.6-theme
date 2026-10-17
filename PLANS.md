@@ -17,7 +17,156 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Wallpaper, part 1/2: Mac OS 8.6 default desktop pattern as a Plasma wallpaper package (planned 2026-10-17 by the plan role)
+
+**Goal.** The theme still shows Plasma's default wallpaper, but the desktop is the largest
+surface in every reference. In the retail desktop `macos8.6-screenshots/desktop_betawiki.png`
+(1024x768, lossless), the desktop picture is a **128x128 tile anchored at screen (0,0)**. The
+tile at `x=0..127, y=128..255` is byte-identical to 32 other 128-aligned tiles. Each tile in
+row `y=0` differs in 2560 pixels (128 x 20, the menu bar's height); tiles under icons and
+windows differ too. The tile has 42 colours; the most common is `#63639C`, followed by
+`#65659E`, `#64649D`, `#6767A0`, `#66669F` and `#62629B`. Part 1 ships that tile as a Plasma
+wallpaper package (`Wallpaper/Images`) of full-screen PNGs. Part 2 ("Install the Mac OS 8.6
+wallpaper package and select it from the global theme", which requires this part) installs the
+package and has the global theme select it.
+
+**Why full-screen PNGs and not an SVG or a single tile.** The Plasma look-and-feel `[Wallpaper]`
+defaults group takes only `Image=<package id>`. Breeze's
+`/usr/share/plasma/look-and-feel/org.kde.breeze.desktop/contents/defaults` uses `Image=Next`.
+`lookandfeeltool` and `kcm_lookandfeel.so` contain no `FillMode` string, so a theme cannot ask
+for tiling. Plasma therefore scales the package image whose size is nearest the screen
+("Scaled and Cropped"). An exact-size PNG renders the tile 1:1; a scaled SVG pattern or tile
+would blur the 1-px dither. This follows Breeze's `Next` package, which ships
+`contents/images/<W>x<H>.png` per resolution.
+
+**Approach.**
+- `tools/png_write.py` (new, standard library only: `zlib`, `struct`): add
+  `encode_png(width, height, rgb) -> bytes`. It writes 8-bit RGB (colour type 2),
+  non-interlaced, filter type 0 on every row, one IDAT compressed at `zlib` level 9, and
+  `IHDR`/`IDAT`/`IEND` with CRCs. It raises `ValueError` when `rgb` is not bytes/bytearray of
+  exactly `width*height*3`, or when either dimension is not a positive int. This is a separate
+  module because `tools/png.py` is the reader and is already over 500 lines.
+- `tools/make_wallpaper.py` (new): define these constants:
+  - `REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"`
+  - `TILE_ORIGIN = (0, 128)`
+  - `TILE_SIZE = 128`
+  - `RESOLUTIONS`: `(1024,768)`, `(1280,800)`, `(1280,1024)`, `(1366,768)`, `(1440,900)`,
+    `(1600,900)`, `(1680,1050)`, `(1920,1080)`, `(1920,1200)`, `(2560,1440)`, `(2560,1600)`,
+    `(3840,2160)`
+  - `PACKAGE_DIR = "theme/wallpapers/org.macos8.desktop"`
+
+  Also add these functions:
+  - `tile_from_reference(image) -> bytes`: the 128x128 RGB block at `TILE_ORIGIN`, read from a
+    `tools.png.Image`.
+  - `tiled_rgb(tile, width, height) -> bytes`: pixel `(x, y)` is `tile[y % 128][x % 128]`. Build
+    each row by repeating the tile row and slicing; do not loop per pixel.
+  - `main()`: reads the reference with `tools.png.read_png` and writes
+    `PACKAGE_DIR/contents/images/<W>x<H>.png` for each resolution with `encode_png`. Each image
+    starts at the tile origin, matching the reference's screen-anchored pattern. The output is
+    deterministic, so re-running produces identical bytes.
+
+  The files total about 670 KB at level 9 (measured: 1024x768 ≈ 28 KB, 3840x2160 ≈ 146 KB).
+  They are committed like the other PNGs, so they go through Git LFS per `.gitattributes`.
+- `theme/wallpapers/org.macos8.desktop/metadata.json` (new): `KPlugin` with
+  `"Id": "org.macos8.desktop"` and `"Name": "Mac OS 8.6"`. Copy
+  `"Authors": [{"Name": "kde-macos8.6-theme"}]`, `"License": "GPL-2.0-or-later"` and
+  `"Version": "0.1.0"` from `theme/look-and-feel/org.macos8.desktop/metadata.json`. Add a
+  `Description` ("Mac OS 8.6 default desktop pattern") and
+  `"KPackageStructure": "Wallpaper/Images"`.
+- Generate the images by running `python3 tools/make_wallpaper.py` once, and commit them.
+
+**Files touched.** `tools/png_write.py`, `tools/make_wallpaper.py`,
+`theme/wallpapers/org.macos8.desktop/metadata.json`,
+`theme/wallpapers/org.macos8.desktop/contents/images/*.png` (generated),
+`tests/test_png_write.py`, `tests/test_wallpaper.py`.
+
+**Acceptance criteria.**
+- `tests/test_png_write.py`:
+  - `encode_png` output decodes with `tools.png.decode_png` back to the same width, height and
+    `rgb`, for a 1x1 image and for a multi-row image of distinct pixels.
+  - A wrong-length `rgb`, a zero dimension and a `bool` dimension each raise `ValueError`.
+- `tests/test_wallpaper.py`, `TestMetadata`: reuse `tests/package_metadata.PackageMetadata` the
+  way `tests/test_lookandfeel.py::TestMetadata` does. Pin `KPackageStructure == "Wallpaper/Images"`
+  and `Id == "org.macos8.desktop"`.
+- `tests/test_wallpaper.py`, `TestImages` (each read goes through
+  `tests/reference_image.skip_unless_materialized`, since the shipped PNGs are LFS objects):
+  - `contents/images/` holds exactly `<W>x<H>.png` for each of `make_wallpaper.RESOLUTIONS`.
+  - Each image decodes to its named size.
+  - Each image's `rgb` equals `make_wallpaper.tiled_rgb(tile, W, H)`, where `tile` is the
+    top-left 128x128 block of the shipped `1024x768.png`. This proves every image is the same
+    tile, anchored at (0,0).
+- `tests/test_wallpaper.py`, `TestReferenceTile` (skip unless `desktop_betawiki.png` is
+  materialized):
+  - `tile_from_reference(read_png(REFERENCE))` equals the shipped tile.
+  - The block at `TILE_ORIGIN` equals the reference block at `(384, 384)` and at `(768, 512)`,
+    two other 128-aligned positions, which re-derives the 128 px period.
+  - The reference pixel at `(300, 500)` is `#63639C` and equals tile pixel
+    `(300 % 128, 500 % 128)`.
+- `tests/test_wallpaper.py`, `TestPackageValid(KPackageInstallCase)` with
+  `KPACKAGETOOL_TYPE = "Wallpaper/Images"`: `kpackagetool6 -i` accepts the package.
+- `make check` passes.
+
+### Wallpaper, part 2/2: Install the Mac OS 8.6 wallpaper package and select it from the global theme (planned 2026-10-17 by the plan role, "requires part 1/2 landed")
+
+**Goal.** Make part 1's `theme/wallpapers/org.macos8.desktop` package (see "Mac OS 8.6 default
+desktop pattern as a Plasma wallpaper package") reach the user. `make install` copies it into
+`${XDG_DATA_HOME}/wallpapers/`, the user-local directory Plasma's image wallpaper and
+`kpackagetool6 -t Wallpaper/Images` search. `make uninstall` removes it. Applying the global
+theme selects it.
+
+**Approach.**
+- `Makefile`:
+  - Add `WALLPAPER_ID := org.macos8.desktop`,
+    `WALLPAPER_PACKAGE := theme/wallpapers/$(WALLPAPER_ID)` and
+    `WALLPAPER_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/wallpapers` next to the `AURORAE_*`
+    variables.
+  - In `_install`, add `install -d "$(WALLPAPER_INSTALL_DIR)"` plus
+    `$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR))`.
+  - In `_uninstall`, add the matching `rm -rf` of the package and its `.staging`/`.old`
+    siblings, the same way as the Aurorae line.
+  - Update the `_uninstall` comment's list of shared parents.
+- `tests/theme_install.py`: add `installed_wallpaper_dir(destdir)`
+  (`<destdir>/<XDG_DATA_HOME>/wallpapers`) and `installed_wallpaper(destdir, package_id)`,
+  modelled on `installed_aurorae_dir` / `installed_aurorae_theme`.
+- `tests/test_wallpaper.py`: add
+  `TestInstall(FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase)`,
+  shaped like `tests/test_aurorae_decoration.py::TestInstall`:
+  - `KIND = "wallpapers"`
+  - `PACKAGE_ID`
+  - `PACKAGE_DIR`
+  - `INSTALLED_FILES`: `metadata.json` and `contents/images/1024x768.png` (add more only if
+    the cases accept nested paths; check `tests/install_lifecycle_cases.py`)
+  - `COPY_FAILURE_GLOB = "*/wallpapers/*"`
+  - overrides of `installed_parent` / `installed_package_dir`
+- `tests/test_theme_install.py`: the spaced-root lifecycle test that asserts the scheme, the
+  look-and-feel, the desktop theme and the Aurorae theme are installed and then removed also
+  asserts the wallpaper package.
+- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: append `[Wallpaper]` with
+  `Image=org.macos8.desktop`, the same form as Breeze's `Image=Next`.
+- `tests/test_lookandfeel.py`:
+  - Add the `"Wallpaper"` section and its `["Image"]` option to
+    `TestDefaults.test_the_expected_sections_and_keys_are_set`.
+  - Add `test_wallpaper_names_the_shipped_package`: `Image` equals the `KPlugin.Id` of
+    `theme/wallpapers/org.macos8.desktop/metadata.json`.
+- `README.md` "Installing" (outside the tumwater markers): the artifact count goes from four to
+  five; name `wallpapers/` among the destinations and the shared directories `make uninstall`
+  leaves in place. Add one sentence: the wallpaper is the retail 128x128 desktop pattern,
+  shipped at fixed resolutions so it renders 1:1 when the screen matches one. Keep
+  `tests/test_readme_theme_files.py` and `tests/test_readme_commands.py` green.
+
+**Files touched.** `Makefile`, `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
+`tests/theme_install.py`, `tests/test_wallpaper.py`, `tests/test_theme_install.py`,
+`tests/test_lookandfeel.py`, `README.md`.
+
+**Acceptance criteria.**
+- `make install DESTDIR=<tmp>` creates
+  `<tmp><XDG_DATA_HOME>/wallpapers/org.macos8.desktop/metadata.json`, and
+  `make uninstall` removes that package and its `.staging`/`.old` siblings while leaving
+  `wallpapers/` and any other package in it.
+- The `TestInstall` lifecycle and failed-copy cases pass for the wallpaper.
+- `TestDefaults` pins `[Wallpaper] Image=org.macos8.desktop` and ties it to the package
+  metadata `Id`.
+- `make check` passes.
 
 
 ## Done
