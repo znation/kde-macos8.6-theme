@@ -17,7 +17,72 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Wallpaper, part 1/2: Mac OS 8.6 default desktop pattern as a Plasma wallpaper package (planned 2026-10-17 by the plan role)
+### Wallpaper, part 2/2: Install the Mac OS 8.6 wallpaper package and select it from the global theme (planned 2026-10-17 by the plan role, "requires part 1/2 landed")
+
+**Goal.** Make part 1's `theme/wallpapers/org.macos8.desktop` package (see "Mac OS 8.6 default
+desktop pattern as a Plasma wallpaper package") reach the user. `make install` copies it into
+`${XDG_DATA_HOME}/wallpapers/`, the user-local directory Plasma's image wallpaper and
+`kpackagetool6 -t Wallpaper/Images` search. `make uninstall` removes it. Applying the global
+theme selects it.
+
+**Approach.**
+- `Makefile`:
+  - Add `WALLPAPER_ID := org.macos8.desktop`,
+    `WALLPAPER_PACKAGE := theme/wallpapers/$(WALLPAPER_ID)` and
+    `WALLPAPER_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/wallpapers` next to the `AURORAE_*`
+    variables.
+  - In `_install`, add `install -d "$(WALLPAPER_INSTALL_DIR)"` plus
+    `$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR))`.
+  - In `_uninstall`, add the matching `rm -rf` of the package and its `.staging`/`.old`
+    siblings, the same way as the Aurorae line.
+  - Update the `_uninstall` comment's list of shared parents.
+- `tests/theme_install.py`: add `installed_wallpaper_dir(destdir)`
+  (`<destdir>/<XDG_DATA_HOME>/wallpapers`) and `installed_wallpaper(destdir, package_id)`,
+  modelled on `installed_aurorae_dir` / `installed_aurorae_theme`.
+- `tests/test_wallpaper.py`: add
+  `TestInstall(FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase)`,
+  shaped like `tests/test_aurorae_decoration.py::TestInstall`:
+  - `KIND = "wallpapers"`
+  - `PACKAGE_ID`
+  - `PACKAGE_DIR`
+  - `INSTALLED_FILES`: `metadata.json` and `contents/images/1024x768.png` (add more only if
+    the cases accept nested paths; check `tests/install_lifecycle_cases.py`)
+  - `COPY_FAILURE_GLOB = "*/wallpapers/*"`
+  - overrides of `installed_parent` / `installed_package_dir`
+- `tests/test_theme_install.py`: the spaced-root lifecycle test that asserts the scheme, the
+  look-and-feel, the desktop theme and the Aurorae theme are installed and then removed also
+  asserts the wallpaper package.
+- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: append `[Wallpaper]` with
+  `Image=org.macos8.desktop`, the same form as Breeze's `Image=Next`.
+- `tests/test_lookandfeel.py`:
+  - Add the `"Wallpaper"` section and its `["Image"]` option to
+    `TestDefaults.test_the_expected_sections_and_keys_are_set`.
+  - Add `test_wallpaper_names_the_shipped_package`: `Image` equals the `KPlugin.Id` of
+    `theme/wallpapers/org.macos8.desktop/metadata.json`.
+- `README.md` "Installing" (outside the tumwater markers): the artifact count goes from four to
+  five; name `wallpapers/` among the destinations and the shared directories `make uninstall`
+  leaves in place. Add one sentence: the wallpaper is the retail 128x128 desktop pattern,
+  shipped at fixed resolutions so it renders 1:1 when the screen matches one. Keep
+  `tests/test_readme_theme_files.py` and `tests/test_readme_commands.py` green.
+
+**Files touched.** `Makefile`, `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
+`tests/theme_install.py`, `tests/test_wallpaper.py`, `tests/test_theme_install.py`,
+`tests/test_lookandfeel.py`, `README.md`.
+
+**Acceptance criteria.**
+- `make install DESTDIR=<tmp>` creates
+  `<tmp><XDG_DATA_HOME>/wallpapers/org.macos8.desktop/metadata.json`, and
+  `make uninstall` removes that package and its `.staging`/`.old` siblings while leaving
+  `wallpapers/` and any other package in it.
+- The `TestInstall` lifecycle and failed-copy cases pass for the wallpaper.
+- `TestDefaults` pins `[Wallpaper] Image=org.macos8.desktop` and ties it to the package
+  metadata `Id`.
+- `make check` passes.
+
+
+## Done
+
+### Wallpaper, part 1/2: Mac OS 8.6 default desktop pattern as a Plasma wallpaper package (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Goal.** The theme still shows Plasma's default wallpaper, but the desktop is the largest
 surface in every reference. In the retail desktop `macos8.6-screenshots/desktop_betawiki.png`
@@ -105,71 +170,6 @@ would blur the 1-px dither. This follows Breeze's `Next` package, which ships
 - `tests/test_wallpaper.py`, `TestPackageValid(KPackageInstallCase)` with
   `KPACKAGETOOL_TYPE = "Wallpaper/Images"`: `kpackagetool6 -i` accepts the package.
 - `make check` passes.
-
-### Wallpaper, part 2/2: Install the Mac OS 8.6 wallpaper package and select it from the global theme (planned 2026-10-17 by the plan role, "requires part 1/2 landed")
-
-**Goal.** Make part 1's `theme/wallpapers/org.macos8.desktop` package (see "Mac OS 8.6 default
-desktop pattern as a Plasma wallpaper package") reach the user. `make install` copies it into
-`${XDG_DATA_HOME}/wallpapers/`, the user-local directory Plasma's image wallpaper and
-`kpackagetool6 -t Wallpaper/Images` search. `make uninstall` removes it. Applying the global
-theme selects it.
-
-**Approach.**
-- `Makefile`:
-  - Add `WALLPAPER_ID := org.macos8.desktop`,
-    `WALLPAPER_PACKAGE := theme/wallpapers/$(WALLPAPER_ID)` and
-    `WALLPAPER_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/wallpapers` next to the `AURORAE_*`
-    variables.
-  - In `_install`, add `install -d "$(WALLPAPER_INSTALL_DIR)"` plus
-    `$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR))`.
-  - In `_uninstall`, add the matching `rm -rf` of the package and its `.staging`/`.old`
-    siblings, the same way as the Aurorae line.
-  - Update the `_uninstall` comment's list of shared parents.
-- `tests/theme_install.py`: add `installed_wallpaper_dir(destdir)`
-  (`<destdir>/<XDG_DATA_HOME>/wallpapers`) and `installed_wallpaper(destdir, package_id)`,
-  modelled on `installed_aurorae_dir` / `installed_aurorae_theme`.
-- `tests/test_wallpaper.py`: add
-  `TestInstall(FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase)`,
-  shaped like `tests/test_aurorae_decoration.py::TestInstall`:
-  - `KIND = "wallpapers"`
-  - `PACKAGE_ID`
-  - `PACKAGE_DIR`
-  - `INSTALLED_FILES`: `metadata.json` and `contents/images/1024x768.png` (add more only if
-    the cases accept nested paths; check `tests/install_lifecycle_cases.py`)
-  - `COPY_FAILURE_GLOB = "*/wallpapers/*"`
-  - overrides of `installed_parent` / `installed_package_dir`
-- `tests/test_theme_install.py`: the spaced-root lifecycle test that asserts the scheme, the
-  look-and-feel, the desktop theme and the Aurorae theme are installed and then removed also
-  asserts the wallpaper package.
-- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: append `[Wallpaper]` with
-  `Image=org.macos8.desktop`, the same form as Breeze's `Image=Next`.
-- `tests/test_lookandfeel.py`:
-  - Add the `"Wallpaper"` section and its `["Image"]` option to
-    `TestDefaults.test_the_expected_sections_and_keys_are_set`.
-  - Add `test_wallpaper_names_the_shipped_package`: `Image` equals the `KPlugin.Id` of
-    `theme/wallpapers/org.macos8.desktop/metadata.json`.
-- `README.md` "Installing" (outside the tumwater markers): the artifact count goes from four to
-  five; name `wallpapers/` among the destinations and the shared directories `make uninstall`
-  leaves in place. Add one sentence: the wallpaper is the retail 128x128 desktop pattern,
-  shipped at fixed resolutions so it renders 1:1 when the screen matches one. Keep
-  `tests/test_readme_theme_files.py` and `tests/test_readme_commands.py` green.
-
-**Files touched.** `Makefile`, `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
-`tests/theme_install.py`, `tests/test_wallpaper.py`, `tests/test_theme_install.py`,
-`tests/test_lookandfeel.py`, `README.md`.
-
-**Acceptance criteria.**
-- `make install DESTDIR=<tmp>` creates
-  `<tmp><XDG_DATA_HOME>/wallpapers/org.macos8.desktop/metadata.json`, and
-  `make uninstall` removes that package and its `.staging`/`.old` siblings while leaving
-  `wallpapers/` and any other package in it.
-- The `TestInstall` lifecycle and failed-copy cases pass for the wallpaper.
-- `TestDefaults` pins `[Wallpaper] Image=org.macos8.desktop` and ties it to the package
-  metadata `Id`.
-- `make check` passes.
-
-
-## Done
 
 ### Mac OS 8.6 Platinum progress bar widget (`widgets/bar_meter_horizontal.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 
