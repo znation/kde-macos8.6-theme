@@ -75,22 +75,29 @@ class TestLoadMetadata(unittest.TestCase):
             load_metadata(path)
         return caught.exception
 
+    def _metadata_file(self, content):
+        """Write *content* (str, UTF-8 encoded, or bytes) to a metadata.json
+        in a temp dir removed when the test ends, and return its path."""
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        path = Path(tmp.name) / "metadata.json"
+        if isinstance(content, str):
+            content = content.encode("utf-8")
+        path.write_bytes(content)
+        return path
+
     def test_reads_json(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "metadata.json"
-            path.write_text(json.dumps(_metadata()), encoding="utf-8")
-            self.assertEqual(load_metadata(path), _metadata())
+        path = self._metadata_file(json.dumps(_metadata()))
+        self.assertEqual(load_metadata(path), _metadata())
 
     def test_values_are_read_as_utf8(self):
         # A package Description or Author name can hold non-ASCII text; the
         # file must be decoded as UTF-8 rather than the platform locale's
         # encoding. The locale here is UTF-8, so pin the argument passed to
         # open() instead.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "metadata.json"
-            path.write_text('{"Name": "Caf\u00e9"}', encoding="utf-8")
-            with mock.patch("builtins.open", wraps=open) as spy:
-                metadata = load_metadata(path)
+        path = self._metadata_file('{"Name": "Caf\u00e9"}')
+        with mock.patch("builtins.open", wraps=open) as spy:
+            metadata = load_metadata(path)
         self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8")
         self.assertEqual(metadata["Name"], "Caf\u00e9")
 
@@ -98,10 +105,8 @@ class TestLoadMetadata(unittest.TestCase):
         # Two packages ship a metadata.json, so a bare JSONDecodeError names
         # neither which file is broken nor where; the guard must add the path
         # and keep the decoder's own line/column detail (and its cause).
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "metadata.json"
-            path.write_text('{\n  "KPlugin": ,\n}', encoding="utf-8")
-            error = self._load_error(path)
+        path = self._metadata_file('{\n  "KPlugin": ,\n}')
+        error = self._load_error(path)
         message = str(error)
         self.assertIn(str(path), message)
         self.assertIn("invalid JSON", message)
@@ -113,10 +118,8 @@ class TestLoadMetadata(unittest.TestCase):
         # mid-write raises a bare UnicodeDecodeError from the read that names
         # the byte but neither of the two packages' files; the guard must add
         # the path and keep the decoder's own byte detail (and its cause).
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "metadata.json"
-            path.write_bytes(b'{"Name": "Caf\xff"}')
-            error = self._load_error(path)
+        path = self._metadata_file(b'{"Name": "Caf\xff"}')
+        error = self._load_error(path)
         message = str(error)
         self.assertIn(str(path), message)
         self.assertIn("UTF-8", message)
@@ -134,10 +137,8 @@ class TestLoadMetadata(unittest.TestCase):
             ("null", "NoneType"),
         ):
             with self.subTest(json=text):
-                with tempfile.TemporaryDirectory() as tmp:
-                    path = Path(tmp) / "metadata.json"
-                    path.write_text(text, encoding="utf-8")
-                    error = self._load_error(path)
+                path = self._metadata_file(text)
+                error = self._load_error(path)
                 message = str(error)
                 self.assertIn(decoded_type, message)
                 self.assertIn(str(path), message)
