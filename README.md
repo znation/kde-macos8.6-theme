@@ -42,7 +42,7 @@ the right. The theme also ships a desktop layout,
 `lookandfeeltool -a org.macos8.desktop --resetLayout` (or with "Desktop and window layout" ticked
 in System Settings → Global Theme) replaces your existing panels with one flush 20px top menu bar
 holding the Apple menu (kicker), the application menu, a spacer, the system tray, the clock and
-the window list (the Application menu). Plasma replaces your panels only when the layout is
+the window list. Plasma replaces your panels only when the layout is
 applied; applying the theme without it leaves them alone. The desktop theme can be selected on its own with
 `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
 `[plasmarc][Theme]` in its `contents/defaults`. The desktop theme ships
