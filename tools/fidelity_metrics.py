@@ -43,11 +43,11 @@ _SQUARES_HIGH = bytes((value * value) >> 8 for value in range(256))
 def _sum_squares(channel: bytes) -> int:
     """Return the sum of the squares of one channel's byte values.
 
-    ``bytes.map`` over a per-byte lookup is the obvious spelling, but it
-    makes a Python-level call per byte.  Splitting each square into its low
-    and high byte tables keeps the work inside ``bytes.translate`` and
-    ``sum``, which run at C speed; the result is identical because
-    ``value**2 == (value**2 & 0xFF) + ((value**2 >> 8) << 8)``.
+    ``sum(value * value for value in channel)`` is the obvious spelling, but
+    it runs a Python-level generator step per byte.  Splitting each square
+    into its low and high byte tables keeps the work inside
+    ``bytes.translate`` and ``sum``, which run in C; the result is identical
+    because ``value**2 == (value**2 & 0xFF) + ((value**2 >> 8) << 8)``.
     """
     return sum(channel.translate(_SQUARES_LOW)) + (
         sum(channel.translate(_SQUARES_HIGH)) << 8
@@ -84,13 +84,12 @@ def _max_byte_index(data: bytes) -> int:
 def _abs_diff(a: bytes, b: bytes) -> bytes:
     """Return the per-byte absolute difference of two equal-length byte strings.
 
-    ``bytes(map(abs, map(sub, a, b)))`` is the obvious spelling, but it makes a
-    Python-level call per byte.  This computes the same bytes with a handful of
-    big-integer operations: the input is packed two bytes per 16-bit lane, each
-    lane gets a guard bit so a subtraction cannot borrow into its neighbour,
-    and the absolute value is selected from the two per-lane differences.  On
-    screenshot-sized inputs it is ~2.7x faster than the ``map()`` form and
-    returns byte-identical output.
+    ``bytes(map(abs, map(sub, a, b)))`` is the obvious spelling, but it walks
+    both strings one Python int at a time.  This computes the same bytes with
+    a handful of big-integer operations: the input is packed two bytes per
+    16-bit lane, each lane gets a guard bit so a subtraction cannot borrow
+    into its neighbour, and the absolute value is selected from the two
+    per-lane differences.
 
     Both byte strings must be the same length; :func:`require_equal_lengths`
     rejects a mismatch and returns the shared length.

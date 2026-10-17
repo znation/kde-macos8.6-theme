@@ -1,14 +1,15 @@
 """Print the RGB and hex value of one pixel in a reference screenshot.
 
 The reference screenshots are the source of truth for the theme's palette and
-metrics, and PLANS.md samples their pixels by hand to pin each value. This
-tool makes that sampling a command: it reads the image through ``tools/png.py``
-so the same LFS-aware ``read_png`` and bounds-checked ``pixel_at`` apply, then
-prints the pixel in the two forms the theme files use -- the ``R,G,B`` triple
-copied into a ``.colors`` file and the ``#RRGGBB`` literal copied into an SVG
-or QML file. ``--width``/``--height`` extend that from one pixel to a
-rectangle (default 1x1), printed row-major, so grounding a title bar's column
-or a widget's box takes one command instead of one per pixel.
+metrics, so each palette or metric value is pinned by reading a pixel from
+one. This tool makes that sampling a command: it reads the image through
+``tools/png.py`` so the same LFS-aware ``read_png`` and bounds-checked
+``pixel_at`` apply, then prints the pixel in the two forms the theme files
+use -- the ``R,G,B`` triple copied into a ``.colors`` file and the ``#RRGGBB``
+literal copied into an SVG or QML file. ``--width``/``--height`` extend that
+from one pixel to a rectangle (default 1x1), printed row-major, so grounding a
+title bar's column or a widget's box takes one command instead of one per
+pixel.
 """
 
 from __future__ import annotations
