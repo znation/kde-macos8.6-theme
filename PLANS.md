@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Headless Plasma render-and-capture script that feeds `tools/fidelity.py` (planned 2026-10-17 by the director role, from the BUGS.md entry "No automated Plasma render/capture step feeding the fidelity check")
+_None yet._
+
+## Done
+
+### Headless Plasma render-and-capture script that feeds `tools/fidelity.py` (planned 2026-10-17 by the director role, from the BUGS.md entry "No automated Plasma render/capture step feeding the fidelity check"; done 2026-10-17)
 
 **Provenance.** This replaces the BUGS.md entry "No automated Plasma render/capture step feeding
 the fidelity check" (found 2026-10-07). That entry was refused on 2026-10-07 because no offline
@@ -107,8 +111,12 @@ size and writes it as the candidate PNG `tools/fidelity.py` consumes. Pin it wit
 - No process from the render outlives the script. After `make render`, `pgrep -f
   'socket render-surface'` finds nothing.
 
+**As built (2026-10-17, feature role).** `REQUIRED_TOOLS` also lists `make`, which the script runs
+for the install. The capture is written inside the scratch root and copied to `OUTPUT` only after
+it decodes at exactly W x H, so a failed run never leaves a stale or partial `OUTPUT`. Beyond the
+plan, `tests/test_render_surface.py` covers argument validation and the failure and timeout paths
+against shell stubs of the external tools, so those run where KDE is absent.
 
-## Done
 
 ### Wallpaper, part 2/2: Install the Mac OS 8.6 wallpaper package and select it from the global theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 

@@ -79,7 +79,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check check-references install uninstall _install _uninstall
+.PHONY: help check check-references render install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -141,6 +141,7 @@ help:
 	@echo "  help              show this message"
 	@echo "  check             run the test suite"
 	@echo "  check-references  validate the reference screenshot set (needs git lfs pull)"
+	@echo "  render            render a themed Plasma surface headlessly to RENDER_OUTPUT"
 	@echo "  install           install the color scheme and theme packages"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
@@ -148,6 +149,7 @@ help:
 	@echo "  CHECK_PATTERN=glob  test modules 'check' discovers (default test*.py)"
 	@echo "  CHECK_TESTS=spec    test modules/classes/methods to run instead of discovering"
 	@echo "  PYTHON=path         Python 3.10+ interpreter for check and check-references (default python3)"
+	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
@@ -159,6 +161,17 @@ check-references:
 	@$(call require_python_version,check-references)
 	$(PYTHON) tools/check_references.py --self-test
 	$(PYTHON) tools/check_references.py
+
+# Opt-in: the render needs a Plasma 6 session's tools (kwin_wayland, spectacle,
+# plasmawindowed), so it stays out of `check`. It installs into a scratch data
+# home and leaves the user's configuration alone; tools/render_surface.py
+# documents the steps and exits 2 when a tool is missing.
+RENDER_OUTPUT ?= render.png
+
+render:
+	@$(call require_python,render)
+	@$(call require_python_version,render)
+	$(PYTHON) tools/render_surface.py "$(RENDER_OUTPUT)"
 
 # `install` and `uninstall` share fixed hidden `.staging`/`.old` names under
 # the data home, so overlapping runs can clobber each other's staging, and an

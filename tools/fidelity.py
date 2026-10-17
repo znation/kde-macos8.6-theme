@@ -7,7 +7,7 @@ per-channel delta and where it occurs, and the fraction of differing pixels.
 
 Only PNG is read, so the harness crops a reference screenshot to a surface and
 saves it as PNG before comparing. The Plasma render step that produces the
-candidate image is outside this tool.
+candidate image is outside this tool; ``tools/render_surface.py`` does it.
 
 Usage::
 

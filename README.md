@@ -88,6 +88,10 @@ modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.
 one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Both
 `check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
+`make render` renders the installed theme in a headless KWin session and writes a screenshot PNG
+(a 320x240 Plasma calculator window by default) to `RENDER_OUTPUT` (`render.png`); it needs
+`kwin_wayland`, `spectacle` and `plasmawindowed` and exits 2 naming the first missing tool. It
+installs into a scratch data home and leaves your own Plasma configuration alone.
 
 ## Generating the wallpaper
 
@@ -179,5 +183,5 @@ By default a run passes only when no pixel differs from the reference by more th
 (a per-channel delta; 0, i.e. byte-exact, unless given). `--max-mae F` and `--max-frac F` set
 aggregate budgets instead: when either is given, a run passes when each given budget is met —
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
-the default no-differing-pixel gate no longer applies. Producing the candidate render is not yet
-automated (see BUGS.md).
+the default no-differing-pixel gate no longer applies. `make render` (`tools/render_surface.py`)
+produces a candidate render; no reference crop or threshold for a rendered surface is chosen yet.
