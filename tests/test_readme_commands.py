@@ -1,0 +1,73 @@
+"""Commands and paths README tells a reader to use must exist.
+
+README names `make` targets, `tools/*.py` scripts and a few package paths. A
+renamed target or script leaves the instruction pointing at nothing; these
+tests derive the names from README and fail when one has no counterpart.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import unittest
+
+from theme_install import ROOT
+
+_MAKE_TARGET = re.compile(r"\bmake\s+([a-z][a-z-]*)\b")
+_TOOL_SCRIPT = re.compile(r"\btools/[A-Za-z0-9_]+\.py\b")
+_PACKAGE_PATH = re.compile(r"`((?:theme|contents)/[A-Za-z0-9_./-]+)`")
+_MAKEFILE_TARGET = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*)\s*:(?!=)", re.MULTILINE)
+LOOK_AND_FEEL = os.path.join(ROOT, "theme", "look-and-feel", "org.macos8.desktop")
+
+
+def read(name):
+    with open(os.path.join(ROOT, name), encoding="utf-8") as handle:
+        return handle.read()
+
+
+class TestReadmeCommands(unittest.TestCase):
+    def test_every_make_target_in_readme_is_defined(self):
+        named = set(_MAKE_TARGET.findall(read("README.md")))
+        defined = set(_MAKEFILE_TARGET.findall(read("Makefile")))
+        self.assertTrue(named, "README names no make targets")
+        self.assertEqual(
+            set(), named - defined, "README names make targets the Makefile lacks"
+        )
+
+    def test_every_tool_script_in_readme_exists(self):
+        named = set(_TOOL_SCRIPT.findall(read("README.md")))
+        self.assertTrue(named, "README names no tools/ scripts")
+        missing = {n for n in named if not os.path.isfile(os.path.join(ROOT, n))}
+        self.assertEqual(set(), missing, "README names tools/ scripts not on disk")
+
+    def test_every_package_path_in_readme_exists(self):
+        named = set(_PACKAGE_PATH.findall(read("README.md")))
+        self.assertTrue(named, "README names no theme/ or contents/ paths")
+        missing = set()
+        for path in named:
+            base = ROOT if path.startswith("theme/") else LOOK_AND_FEEL
+            if not os.path.isfile(os.path.join(base, path)):
+                missing.add(path)
+        self.assertEqual(set(), missing, "README names package files not on disk")
+
+
+class TestReadmeCommandParsing(unittest.TestCase):
+    """Pin the token rules on synthetic text."""
+
+    def test_make_target_spans_a_line_break(self):
+        self.assertEqual(["uninstall"], _MAKE_TARGET.findall("`make\nuninstall`"))
+
+    def test_make_target_ignores_variables_and_capitalised_words(self):
+        self.assertEqual([], _MAKE_TARGET.findall("make CHECK_TESTS=x; Make Check"))
+
+    def test_tool_script_needs_the_tools_directory(self):
+        text = "python3 tools/sample.py x; other/sample.py"
+        self.assertEqual(["tools/sample.py"], _TOOL_SCRIPT.findall(text))
+
+    def test_makefile_target_skips_variable_assignments(self):
+        text = "CC := x\ncheck:\n\tx\n_priv:\nhelp: check\n"
+        self.assertEqual(["check", "help"], _MAKEFILE_TARGET.findall(text))
+
+
+if __name__ == "__main__":
+    unittest.main()
