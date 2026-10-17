@@ -68,6 +68,33 @@ present but need a display server, so the feature loop could only land dead code
 objection the refusal records. Clear the refusal once a headless render path exists, then route
 the entry to PLANS.md.
 
+### Splash progress bar pins the panel face and the empty track as its track and fill colours (found by the plan role 2026-10-17)
+
+**Symptom:** `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml` draws the boot
+progress bar with `trackColor: "#DDDDDD"` and a grey `fillColor: "#ADADAD"`.
+`tests/test_lookandfeel_splash.py::test_progress_colours_match_reference` pins `TRACK` from
+`(135,96)` and `FILL` from `(120,100)` of `macos8.6-screenshots/boot2_betawiki.png`. But sampling
+the bar's rows shows `(135,96)` is the panel face above the bar (y=94..97 holds the "Starting Up"
+text; x=134 reads `#DDDDDD` at y=93..96), and the bar itself is y=99..102. In that bar, the
+`#ADADAD` at `(120,100)` is the *unfilled* track. The filled portion is the lavender run at
+x=101..105, for example `(155,155,234)` = `#9B9BEA` at `(102,100)` and `(120,120,209)` = `#7878D1`
+at `(102,101)`. So the splash shows a grey bar filling with grey, where Mac OS 8.6 fills a grey
+track with lavender.
+
+**How to reproduce:** `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png 100 98
+--width 10 --height 6` shows the lavender fill at x=101..105, and `python3 tools/sample.py
+macos8.6-screenshots/boot2_betawiki.png 134 92 --height 13` shows `#DDDDDD` at y=93..96 above
+the `#9A9A9A`/`#ADADAD`/`#B8B8B8` bar rows y=99..102.
+
+**Suspected cause:** The splash plan took "pixels darker than `#DDDDDD`" as the progress well and
+read the grey in it as the fill, without spotting the 5-column lavender fill at the bar's left end.
+
+**Next step:** Re-pin the splash's track to `#ADADAD` at `(120,100)` and its fill to `#9B9BEA` at
+`(102,100)`, update `Splash.qml` and the splash tests together, and re-check the
+progress-well rectangle against rows y=99..102. The PLANS.md entry "Mac OS 8.6 Platinum progress
+bar widget (`widgets/bar_meter_horizontal.svg`) for the desktop theme" pins the same pixels, and
+neither change depends on the other.
+
 ## Fixed
 
 ### Test suite fails with 43 failures and 3 errors (found 2026-10-16; fixed 2026-10-17 by the bugfix role)

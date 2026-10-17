@@ -17,7 +17,113 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum progress bar widget (`widgets/bar_meter_horizontal.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+
+**Planned 2026-10-17 by plan.** Independent of every other entry: it adds one widget file to the
+existing `org.macos8.desktop` desktop-theme package and one new test module, touches no existing
+SVG, and needs no other plan to land first. It does not depend on the BUGS.md entry "Splash
+progress bar pins the panel face and the empty track as its track and fill colours (found by the
+plan role 2026-10-17)". That bug and this plan read the same reference pixels, and neither
+change needs the other.
+
+**Goal.** Ship `widgets/bar_meter_horizontal.svg` so `PlasmaComponents.ProgressBar` draws the
+Platinum progress bar (a sunken grey track with a lavender fill) instead of Breeze's. Today the
+package has no `bar_meter_horizontal` file (`grep -rln "bar_meter" theme tests` finds nothing), so
+the notification job progress (`org.kde.plasma.notifications/contents/ui/components/JobItem.qml`),
+the task-manager progress overlay (`org.kde.plasma.taskmanager/contents/ui/TaskProgressOverlay.qml`)
+and the media controller's `ExpandedRepresentation.qml` fall back to Breeze.
+
+**Consumer (verified in installed Plasma 6 QML).**
+`/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/ProgressBar.qml` declares a
+`KSvg.Svg` with `imagePath: "widgets/bar_meter_horizontal"` and two `KSvg.FrameSvgItem`s on the
+same `imagePath`: the `background` uses `prefix: "bar-inactive"` across the full width, and the
+`contentItem` uses `prefix: "bar-active"`, which is `position * availableWidth` wide (for an
+indeterminate bar, a quarter-width chunk that slides back and forth) and is hidden when narrower
+than `fixedMargins.left + fixedMargins.right`. Both items are
+`barSvg.elementSize("hint-bar-size").height` tall when the SVG has a `hint-bar-size` element,
+and otherwise top margin plus bottom margin. `widgets/bar_meter_vertical` is out of scope:
+`ProgressBar.qml` never reads it.
+
+**Reference and provenance.** `macos8.6-screenshots/boot2_betawiki.png` (240x180 lossless PNG,
+`sources.txt` "Mac OS 8.6 (boot screen)") shows the "Starting Up" bar just after it starts. It is
+a 0.375x thumbnail of the 640x480 screen. In the thumbnail, the bar occupies rows y=99..102 and
+columns x=101..138: x=101..105 hold the lavender filled portion, and x=106..138 the grey unfilled
+track. `python3 tools/sample.py macos8.6-screenshots/boot2_betawiki.png X Y` gives these exact
+values, which this plan pins:
+- track shadow (top row) `(154,154,154)` = `#9A9A9A` at `(120,99)`;
+- track face `(173,173,173)` = `#ADADAD` at `(120,100)`;
+- track light edge (bottom row) `(184,184,184)` = `#B8B8B8` at `(120,102)`;
+- fill face `(155,155,234)` = `#9B9BEA` at `(102,100)`;
+- fill dark edge (lower row) `(120,120,209)` = `#7878D1` at `(102,101)`.
+The thumbnail cannot resolve the bar's pixel geometry, so its shape is provenance, recorded here.
+The bar is a classic 1px sunken bevel: shadow on the top and left, light on the bottom and right.
+The fill draws the same shadow on its top/left and `#7878D1` on its bottom/right. The bar is 10px
+tall (the thumbnail's 4 rows / 0.375 ≈ 10.7), with 3px nine-slice borders.
+
+**Approach.**
+1. New `theme/desktop-themes/org.macos8.desktop/widgets/bar_meter_horizontal.svg`: root
+   `<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10">` with a
+   comment naming the widget, its consumer and both prefixes, and the provenance above.
+   - Hints (id-bearing rects; KSvg reads only their geometry): `hint-tile-center` 4x4 at (3,3).
+     For each of `bar-inactive` and `bar-active`: `{prefix}-hint-top-margin` 4x3 at (3,0),
+     `-hint-bottom-margin` 4x3 at (3,7), `-hint-left-margin` 3x4 at (0,3), `-hint-right-margin`
+     3x4 at (7,3). Also `hint-bar-size` 10x10 at (0,0). These are exactly
+     `nine_slice_hint_geometry(["bar-inactive", "bar-active"], 3, 4)` plus that one extra rect.
+   - Both prefixes have nine `<g id="{prefix}-{slice}">` groups (`topleft`, `top`, `topright`,
+     `left`, `center`, `right`, `bottomleft`, `bottom`, `bottomright`). The groups sit at the
+     canvas origins the margin hints give them: corners at (0,0)/(7,0)/(0,7)/(7,7), top (3,0),
+     bottom (3,7), left (0,3), right (7,3), centre (3,3). Draw both prefixes over the same region,
+     as frame.svg does for its states. Inside the groups, plain rects with no id and literal
+     `fill` attributes paint each prefix's 10x10 bar as follows. The outer top row and outer left
+     column are the shadow (`#9A9A9A` for both prefixes). The outer bottom row and outer right
+     column are the light edge (`#B8B8B8` inactive, `#7878D1` active). Every other pixel is the
+     face (`#ADADAD` inactive, `#9B9BEA` active). At the two mixed corners the shadow takes the
+     top-right pixel (0-based (9,0)) and the bottom-left pixel ((0,9)), and the light edge takes
+     the bottom-right pixel ((9,9)).
+   - Leave out `class=`, `<style>`, `<script>`, any `-inset` hint and any other prefix.
+2. `tests/desktoptheme_paths.py`: add `BAR_METER_HORIZONTAL_SVG = os.path.join(PACKAGE, "widgets",
+   "bar_meter_horizontal.svg")` beside `SLIDER_SVG`.
+3. `tests/test_desktoptheme.py`: import it, add `("bar_meter_horizontal.svg",
+   BAR_METER_HORIZONTAL_SVG, 10, 10)` to `SVG_CANVASES`, and add `os.path.join("widgets",
+   "bar_meter_horizontal.svg")` to `TestInstall.INSTALLED_FILES`.
+4. New `tests/test_desktoptheme_progressbar.py` with `class TestProgressBar(NineSliceCase, …)`
+   (follow `tests/test_desktoptheme_slider.py`), with `SVG_PATH = BAR_METER_HORIZONTAL_SVG` and
+   `PREFIXES = ("bar-inactive", "bar-active")`, plus a `TestProgressBarReference` class that reads
+   the reference through `tools.png` and calls `reference_image.skip_unless_materialized`
+   (follow the `pixel` helper in `tests/test_lookandfeel_splash.py`).
+5. `README.md`: in the Installing section's desktop-theme inventory, name
+   `widgets/bar_meter_horizontal.svg` (the sunken grey Platinum track with a lavender fill for
+   `PlasmaComponents.ProgressBar`).
+
+**Files touched.** New: `widgets/bar_meter_horizontal.svg`, `tests/test_desktoptheme_progressbar.py`.
+Edited: `tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move
+this entry to Done). Nothing in the Makefile changes, because `cp -r` already installs new widget
+files. No shared assertion helper changes: the tests below use only existing `svg_assertions` exports.
+
+**Acceptance criteria.**
+- `make check` exits 0. The new module passes, and so do the package, install and other widget suites.
+- The inherited `NineSliceCase` tests pass for both prefixes: `test_slice_ids_present`,
+  `test_tiles_placed_by_margins`, `test_tiles_stay_within_their_margins` and
+  `test_no_script_elements`. `test_progressbar_ids_are_unique` runs `assert_unique_ids`.
+- `test_progressbar_hint_geometry` runs `assert_hint_geometry(self, tree, ["bar-inactive",
+  "bar-active"], 3, 4, extra={"hint-bar-size": ("0", "0", "10", "10")})`.
+- `test_track_pixels` and `test_fill_pixels` use `render_slices` and pin every pixel of each
+  prefix's nine slices, using `assert_edge_band_pixels` (size 4) for the four edges,
+  `assert_corner_pixels` for the four corners and `assert_center_tile_is(…, size=4)` for the centre.
+  The values are the shadow, light and face colours above, including the corner rule (for
+  example `bar-inactive-topright` is `("#9A9A9A",)*3 + ("#ADADAD", "#ADADAD", "#B8B8B8")*2`).
+- `test_progressbar_colours` asserts `attribute_values(tree, "fill") ==
+  {"#9A9A9A", "#ADADAD", "#B8B8B8", "#9B9BEA", "#7878D1"}`, plus whatever fill the hint rects carry.
+  Either give the hints one of these five colours, or state the hint colour in the test.
+- `TestProgressBarReference.test_colours_match_reference` re-derives all five pixels from
+  `boot2_betawiki.png` at the coordinates listed above. It also asserts that each sampled value
+  equals the SVG literal the slice tests pin, defined once as a module constant used by both.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` installs
+  `widgets/bar_meter_horizontal.svg` byte-identical to the source (checked by the extended
+  `TestInstall` tuple).
+- Manual smoke test (needs a Plasma session): a notification file-copy job shows a 10px sunken grey
+  track filling from the left with lavender, with no Breeze blue.
+
 
 ## Done
 
