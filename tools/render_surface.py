@@ -23,13 +23,9 @@ Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 from __future__ import annotations
 
 import argparse
-import contextlib
 import os
-import re
 import shlex
 import shutil
-import signal
-import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -37,17 +33,18 @@ from pathlib import Path
 if __package__:
     from tools.cli import EscapingArgumentParser, plain_number, report_error
     from tools.png import PngError, read_png
+    from tools.process_group import exit_on_termination, run_logged
     from tools.terminal import escape_controls
+    from tools.theme_defaults import write_configs
 else:  # run directly: python3 tools/render_surface.py
     from cli import EscapingArgumentParser, plain_number, report_error
     from png import PngError, read_png
+    from process_group import exit_on_termination, run_logged
     from terminal import escape_controls
+    from theme_defaults import write_configs
 
 TOOL = "render_surface"
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULTS = (
-    ROOT / "theme" / "look-and-feel" / "org.macos8.desktop" / "contents" / "defaults"
-)
 REQUIRED_TOOLS = (
     "make",
     "dbus-run-session",
@@ -63,98 +60,7 @@ COLOR_SCHEME = "MacOS8"
 SOCKET = "render-surface"
 INSTALL_TIMEOUT = 60.0
 
-_FILE_GROUP = re.compile(r"\[([^\[\]]+)\]\[([^\[\]]+)\]$")
-_ANY_HEADING = re.compile(r"\[[^\]]*\]")
 _LOG_TAIL_LINES = 12
-
-
-def _defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, str]]:
-    """Return ``{(file, group): {key: value}}`` for the ``[file][group]`` sections.
-
-    The global theme's ``contents/defaults`` names each target config file in
-    the first bracket pair (``[kwinrc][org.kde.kdecoration2]``). A plain
-    ``[Wallpaper]`` section names no file and is skipped.
-    """
-    groups: dict[tuple[str, str], dict[str, str]] = {}
-    current: dict[str, str] | None = None
-    for raw in path.read_text(encoding="utf-8").splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
-            continue
-        if _ANY_HEADING.match(line):
-            match = _FILE_GROUP.match(line)
-            current = groups.setdefault(match.groups(), {}) if match else None
-        elif current is not None and "=" in line:
-            key, value = line.split("=", 1)
-            current[key.strip()] = value.strip()
-    return groups
-
-
-def _write_configs(config_home: Path) -> None:
-    groups = _defaults_groups()
-    for name in CONFIG_FILES:
-        lines: list[str] = []
-        for (file, group), values in groups.items():
-            if file != name:
-                continue
-            lines.append(f"[{group}]")
-            lines.extend(f"{key}={value}" for key, value in values.items())
-            lines.append("")
-        (config_home / name).write_text("\n".join(lines), encoding="utf-8")
-
-
-def _kill_group(process: subprocess.Popen) -> None:
-    try:
-        os.killpg(process.pid, signal.SIGKILL)
-    except OSError:
-        pass
-
-
-def _run(argv: list[str], env: dict[str, str], log: Path, timeout: float) -> int | None:
-    """Run *argv* in its own session logging to *log*; None means it timed out.
-
-    Output goes to a file, not a pipe, so a descendant that outlives the
-    child cannot keep the wait open. The whole process group is killed on the
-    way out, whatever happened.
-    """
-    with log.open("wb") as sink:
-        process = subprocess.Popen(
-            argv,
-            cwd=ROOT,
-            env=env,
-            stdin=subprocess.DEVNULL,
-            stdout=sink,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
-        try:
-            return process.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            return None
-        finally:
-            _kill_group(process)
-            process.wait()
-
-
-@contextlib.contextmanager
-def _exit_on_termination():
-    """Turn SIGTERM and SIGHUP into ``SystemExit`` so the ``finally`` blocks run.
-
-    The kwin session runs in its own session, so a terminated render would
-    otherwise leave it running with no timeout, and the scratch root behind it.
-    Exits with the shell convention 128 + signal number.
-    """
-
-    def handler(signum, frame):
-        raise SystemExit(128 + signum)
-
-    signals = (signal.SIGTERM, signal.SIGHUP)
-    previous = [signal.signal(number, handler) for number in signals]
-    try:
-        yield
-    finally:
-        for number, old in zip(signals, previous):
-            signal.signal(number, old)
 
 
 def _failure(message: str, log: Path | None = None) -> int:
@@ -215,17 +121,18 @@ def _render(args: argparse.Namespace) -> int:
         )
 
         install_log = scratch / "install.log"
-        status = _run(
+        status = run_logged(
             ["make", "install", f"XDG_DATA_HOME={data}"],
             env,
             install_log,
             INSTALL_TIMEOUT,
+            ROOT,
         )
         if status != 0:
             reason = "timed out" if status is None else f"exited {status}"
             return _failure(f"make install {reason}", install_log)
 
-        _write_configs(config)
+        write_configs(config, CONFIG_FILES)
 
         session = shlex.join(
             [
@@ -239,7 +146,7 @@ def _render(args: argparse.Namespace) -> int:
             ]
         )
         render_log = scratch / "render.log"
-        status = _run(
+        status = run_logged(
             [
                 "dbus-run-session",
                 "--",
@@ -258,6 +165,7 @@ def _render(args: argparse.Namespace) -> int:
             env,
             render_log,
             args.timeout,
+            ROOT,
         )
         if status is None:
             return _failure(f"render timed out after {args.timeout:g}s", render_log)
@@ -367,7 +275,7 @@ def main(argv: list[str] | None = None) -> int:
     problem = _output_problem(Path(args.output).absolute())
     if problem is not None:
         return report_error(TOOL, f"cannot write {args.output!r}: {problem}")
-    with _exit_on_termination():
+    with exit_on_termination():
         return _render(args)
 
 
