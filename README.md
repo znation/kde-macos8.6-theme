@@ -37,7 +37,13 @@ org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). Applyin
 theme also selects its startup splash (`contents/splash/Splash.qml`), which the KDE splash engine
 reads, and its window decoration through `[kwinrc][org.kde.kdecoration2]`, so a new window wears
 the `org.macos8.desktop` Platinum title bar with the close box on the left and the zoom box on
-the right. The desktop theme can be selected on its own with
+the right. The theme also ships a desktop layout,
+`contents/layouts/org.kde.plasma.desktop-layout.js`: applying the theme with
+`lookandfeeltool -a org.macos8.desktop --resetLayout` (or with "Desktop and window layout" ticked
+in System Settings → Global Theme) replaces your existing panels with one flush 20px top menu bar
+holding the Apple menu (kicker), the application menu, a spacer, the system tray, the clock and
+the window list (the Application menu). Plasma replaces your panels only when the layout is
+applied; applying the theme without it leaves them alone. The desktop theme can be selected on its own with
 `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
 `[plasmarc][Theme]` in its `contents/defaults`. The desktop theme ships
 `widgets/panel-background.svg` (the menu bar), `widgets/frame.svg` (the Platinum

@@ -186,6 +186,7 @@ class TestInstall(
     INSTALLED_FILES = (
         "metadata.json",
         os.path.join("contents", "defaults"),
+        os.path.join("contents", "layouts", "org.kde.plasma.desktop-layout.js"),
         os.path.join("contents", "splash", "Splash.qml"),
         os.path.join("contents", "splash", "images", "macos-logo.svg"),
     )

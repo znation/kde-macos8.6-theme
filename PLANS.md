@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 menu-bar desktop layout for the global theme (`contents/layouts/`) (planned 2026-10-17 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 menu-bar desktop layout for the global theme (`contents/layouts/`) (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Goal.** Make applying the global theme with its desktop layout give one Mac OS 8.6 menu bar:
 a single 20px panel across the top of the screen, holding the Apple menu at the left, the
@@ -105,8 +109,6 @@ shipped icon), the Mac OS 8.6 menu-title metrics for `appmenu`, and the clock fo
   `<tmp>/plasma/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`,
   and `kpackagetool6 --type Plasma/LookAndFeel --show org.macos8.desktop` still validates (via the
   existing `TestPackageValid`).
-
-## Done
 
 ### Headless Plasma render-and-capture script that feeds `tools/fidelity.py` (planned 2026-10-17 by the director role, from the BUGS.md entry "No automated Plasma render/capture step feeding the fidelity check"; done 2026-10-17)
 
