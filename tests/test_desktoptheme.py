@@ -12,6 +12,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import (
+    ARROWS_SVG,
     BACKGROUND_SVG,
     BUTTON_SVG,
     CHECKMARKS_SVG,
@@ -72,6 +73,7 @@ SVG_CANVASES = (
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
     ("tabbar.svg", TABBAR_SVG, 12, 12),
     ("toolbar.svg", TOOLBAR_SVG, 16, 16),
+    ("arrows.svg", ARROWS_SVG, 16, 16),
     ("dialogs/background.svg", DIALOG_BACKGROUND_SVG, 16, 16),
 )
 
@@ -161,6 +163,7 @@ class TestInstall(
         os.path.join("widgets", "menubaritem.svg"),
         os.path.join("widgets", "tabbar.svg"),
         os.path.join("widgets", "toolbar.svg"),
+        os.path.join("widgets", "arrows.svg"),
         os.path.join("widgets", "scrollbar.svg"),
         os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "background.svg"),

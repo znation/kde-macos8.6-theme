@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: four artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/` (with its Mac OS 8.6 startup splash under `contents/splash/`), the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, view item, menu-bar item, scroll bar, slider, and menu/popup body widgets, plus the dialog / applet-popup window body), and the `org.macos8.desktop` Aurorae window decoration in `theme/aurorae/themes/` (the active and inactive Platinum title bars with their close and zoom widgets).
+Pre-alpha: four artifacts have landed — the Mac OS 8.6 "Platinum" color scheme in `theme/color-schemes/`, the `org.macos8.desktop` global theme in `theme/look-and-feel/` (with its Mac OS 8.6 startup splash under `contents/splash/`), the `org.macos8.desktop` desktop theme in `theme/desktop-themes/` (menu bar, frame, push button, radio button, checkbox, text field, list item, view item, menu-bar item, tab bar, toolbar, popup arrow, scroll bar, slider, and menu/popup body widgets, plus the dialog / applet-popup window body), and the `org.macos8.desktop` Aurorae window decoration in `theme/aurorae/themes/` (the active and inactive Platinum title bars with their close and zoom widgets).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -52,8 +52,10 @@ flat #CCCCFF title fill an application-menu title shows while its menu is open, 
 no hover highlight), `widgets/tabbar.svg` (the raised Platinum tab highlights for
 Plasma TabBar, TabButton, kickoff footer, and panel applets), `widgets/toolbar.svg` (the
 raised grey Platinum toolbar background for `PlasmaComponents.ToolBar` and its
-consumers in kickoff, the system tray, and the desktop shell), and `widgets/scrollbar.svg` (the
-raised grey thumb and flat grey trough for `PlasmaComponents.ScrollBar`).
+consumers in kickoff, the system tray, and the desktop shell), `widgets/arrows.svg` (the solid
+black triangles `ComboBox` and menu buttons draw as their dropdown indicator), and
+`widgets/scrollbar.svg` (the raised grey thumb and flat grey trough for
+`PlasmaComponents.ScrollBar`).
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. The package

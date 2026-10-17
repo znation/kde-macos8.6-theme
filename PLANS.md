@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum popup / dropdown arrow widget for the desktop theme
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum popup / dropdown arrow widget for the desktop theme (done 2026-10-17)
 
 **Planned 2026-10-16 by plan.** Independent of every done widget plan and of the planned
 `tabbar`/`toolbar` plans: it adds one artwork file to the existing `org.macos8.desktop`
@@ -115,8 +119,6 @@ attributes the pixel and palette tests can read; the Platinum file paints the fi
 - The file ships one fill for all states; the default also ships no disabled variant, so a disabled
   `ComboBox` arrow stays black rather than Mac OS 8.6's grey (Plasma applies no separate disabled
   colour to a literal fill).
-
-## Done
 
 ### Mac OS 8.6 Platinum toolbar background widget for the desktop theme (done 2026-10-17)
 

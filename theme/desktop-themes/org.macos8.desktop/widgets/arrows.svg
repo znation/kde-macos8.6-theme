@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" arrows (widgets/arrows).
+
+     The solid black triangles that PlasmaComponents.ComboBox (its dropdown
+     indicator) and the private ButtonContent (the menu-button indicator,
+     shown when Accessible.role is ButtonMenu) draw from the element
+     `down-arrow`; the other three ids complete the default theme's contract.
+     Each element is a group holding an invisible 16x16 bounding rect plus the
+     triangle: both consumers scale the element by its bounds into a square
+     Kirigami.Units.iconSizes.small item, and the rect pins those bounds to a
+     square so the triangle is not stretched.
+
+     Provenance: no reference screenshot shows a combo box or menu button, so
+     the fill reuses the grounded Platinum black (#000000) that
+     widgets/checkmarks.svg pins; the triangle geometry is a KDE-required
+     shape the reference set does not show. The fill is a literal attribute
+     (no class, currentColor or style) and is the same in every state.
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <g id="down-arrow">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <path d="M 4,5 L 12,5 L 8,11 Z" fill="#000000"/>
+  </g>
+
+  <g id="up-arrow">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <path d="M 4,11 L 12,11 L 8,5 Z" fill="#000000"/>
+  </g>
+
+  <g id="left-arrow">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <path d="M 11,4 L 11,12 L 5,8 Z" fill="#000000"/>
+  </g>
+
+  <g id="right-arrow">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <path d="M 5,4 L 5,12 L 11,8 Z" fill="#000000"/>
+  </g>
+</svg>
