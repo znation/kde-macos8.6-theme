@@ -17,7 +17,94 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 menu-bar desktop layout for the global theme (`contents/layouts/`) (planned 2026-10-17 by the plan role)
+
+**Goal.** Make applying the global theme with its desktop layout give one Mac OS 8.6 menu bar:
+a single 20px panel across the top of the screen, holding the Apple menu at the left, the
+application's menus after it, and the clock and Application menu at the right. Today
+`theme/look-and-feel/org.macos8.desktop/contents/` ships no `layouts/` directory. So
+`lookandfeeltool -a org.macos8.desktop --resetLayout` (or ticking "Desktop and window layout" in
+System Settings → Global Theme) keeps Breeze's bottom taskbar, which `widgets/panel-background.svg`
+then draws as a menu-bar bevel at the wrong edge and height.
+
+**Grounding (sampled 2026-10-17 with `tools/png.read_png` + `pixel_at`).** In
+`macos8.6-screenshots/desktop_betawiki.png` (retail, 1024x768), at both x=300 and x=400:
+row 0 is `#FFFFFF`, rows 1–17 are `#DDDDDD`, row 18 is `#999999`, row 19 is `#000000`, and
+row 20 is the desktop pattern `#63639C`. So the menu bar is 20px tall, and its bottom rule ends
+at row 19. `desktop_betawiki86b9.png` has the same rows, but it is a beta, so it is not
+evidence. `desktop_archiveorg8.6hd.png` (800x600) has a shorter, resampled bar, so ignore it.
+These rows match the 2px bottom margin (`#999999` over `#000000`) that
+`tests/test_desktoptheme_panel.py` `PANEL_EDGE_PIXELS` already pins.
+
+**Approach.**
+- New `theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`,
+  modelled on `/usr/share/plasma/layout-templates/org.kde.plasma.desktop.appmenubar/contents/layout.js`
+  and on Breeze's `org.kde.breeze.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`. It does
+  exactly this, with no `loadTemplate` call (Breeze's `defaultPanel` template is the bottom taskbar
+  this replaces):
+  - `var panel = new Panel;`
+  - `panel.location = "top";`
+  - `panel.height = 20;` (a literal, not `gridUnit`-derived; comment it with the sampled rows
+    above).
+  - `panel.floating = false;` (Plasma 6 panels float by default, which would detach the bar
+    from the screen edge. `floating` is a Panel scripting property: the string sits next to
+    `lengthMode`/`hiding` in `plasmashell`.)
+  - `panel.addWidget(...)` in this order:
+    1. `org.kde.plasma.kicker` (the Apple menu; this plan does not configure its icon)
+    2. `org.kde.plasma.appmenu` (the global menu, as the stock appmenubar template uses)
+    3. `org.kde.plasma.panelspacer`
+    4. `org.kde.plasma.systemtray` (kept so that notifications and status icons still have a
+       home; Mac OS 8.6 has no equivalent)
+    5. `org.kde.plasma.digitalclock`
+    6. `org.kde.plasma.windowlist` (the 8.6 Application menu at the far right: it shows the
+       active window and switches between windows)
+
+    All six plasmoids are installed under `/usr/share/plasma/plasmoids/`.
+  - Then Breeze's wallpaper loop over `desktopsForActivity(currentActivity())`, setting
+    `wallpaperPlugin = 'org.kde.image'`, so the `[Wallpaper] Image=org.macos8.desktop` default in
+    `contents/defaults` has an image wallpaper to select.
+- New `tests/test_lookandfeel_layout.py` (stdlib only, regex over the JS text; no JS engine).
+  Put a module-level `LAYOUT` path constant next to the test.
+  - `test_layout_file_is_shipped`: the file exists under the package's `contents/layouts/`.
+  - `test_exactly_one_panel`: `new Panel` occurs once.
+  - `test_panel_is_a_flush_top_bar`: matches `panel.location = "top"`, `panel.floating = false`
+    and `panel.height = (\d+)`.
+  - `test_panel_height_matches_the_reference`: re-derives the height from
+    `desktop_betawiki.png` and checks it equals the JS `panel.height`. Wrap the read in
+    `reference_image.read_reference` / `skip_unless_materialized`, as the other reference
+    tests do. Derive the height as the first row y at column 400 whose pixel is `#000000` and
+    whose next row is not panel grey, plus 1; it must be 20. Also assert that row 0 is
+    `#FFFFFF` and row y-1 is `#999999`, so that a moved bevel fails the test.
+  - `test_widgets_in_menu_bar_order`: the ordered list of `addWidget("…")` ids equals the six
+    above, which pins that `org.kde.plasma.taskmanager`/`icontasks`/`kickoff` are absent.
+  - `test_desktops_use_the_image_wallpaper`: matches `wallpaperPlugin = 'org.kde.image'`.
+- `tests/test_lookandfeel.py` `TestPackageValid` already validates the installed package, and
+  `make install` copies the whole package directory through `install_package`. So no Makefile
+  change is needed. Confirm that the installed tree contains `contents/layouts/` (extend an
+  existing install assertion only if one lists package files).
+- README.md: in the paragraph that describes the global theme, add one sentence. It names
+  `contents/layouts/org.kde.plasma.desktop-layout.js`, says that applying the theme with
+  `lookandfeeltool -a org.macos8.desktop --resetLayout` (or with "Desktop and window layout"
+  ticked) replaces the panels with the single 20px top menu bar, and lists the widgets.
+  Plasma replaces the user's existing panels only when the layout is applied, so state that
+  plainly.
+
+**Files touched.** `theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`
+(new), `tests/test_lookandfeel_layout.py` (new), `README.md`.
+
+**Out of scope (later plans).** The Apple-logo icon for kicker (needs an icon theme or a
+shipped icon), the Mac OS 8.6 menu-title metrics for `appmenu`, and the clock format.
+
+**Acceptance criteria.**
+- `make check` passes, including the new `tests/test_lookandfeel_layout.py`. Its reference-height
+  test runs (does not skip) when the LFS image is materialized, and reads `20`.
+- Changing `panel.height` to any value other than the re-derived height, adding a second
+  `new Panel`, dropping `panel.floating = false`, or reordering or adding an `addWidget` id each
+  makes a named test fail.
+- `make install XDG_DATA_HOME=<tmp>` installs
+  `<tmp>/plasma/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`,
+  and `kpackagetool6 --type Plasma/LookAndFeel --show org.macos8.desktop` still validates (via the
+  existing `TestPackageValid`).
 
 ## Done
 
