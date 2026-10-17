@@ -565,11 +565,11 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
     def test_svgz_decompression_bomb_is_refused(self):
         # A small `.svgz` can expand to far more than its file size; the capped
         # read must refuse it after the limit instead of allocating the whole
-        # expansion. 64 MiB expands from a few KB.
+        # expansion. 8 MiB expands from a few KB and is 8x the limit.
         with tempfile.TemporaryDirectory() as tmp:
             bomb = os.path.join(tmp, "bomb.svgz")
             with gzip.open(bomb, "wb") as handle:
-                for _ in range(64):
+                for _ in range(8):
                     handle.write(b"\x00" * _MAX_DECORATION_SVG_BYTES)
             with self.assertRaises(AssertionError) as caught:
                 _read_capped(bomb, gzip.open)
