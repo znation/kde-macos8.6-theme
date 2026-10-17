@@ -5,45 +5,87 @@ from __future__ import annotations
 import os
 import unittest
 
-from desktoptheme_paths import TABBAR_SVG
+from desktoptheme_paths import DTHEME_ID, TABBAR_SVG
 from nine_slice_case import NineSliceCase
+from platinum_palette import assert_fill_palette
 from process_assertions import assert_succeeded
 from svg_assertions import (
     assert_center_tile_is,
-    assert_corner_pixels,
-    assert_edge_bevels,
+    assert_edge_band_pixels,
     assert_face_corners,
     assert_hint_geometry,
-    assert_no_script_elements,
+    face_corners,
     face_edge_bands,
     render_slices,
-    RAISED_FACE_CORNERS,
 )
-from theme_install import installed_destdir, installed_package
+from theme_install import (
+    assert_files_identical,
+    install,
+    installed_destdir,
+    installed_package,
+)
 
 
 TABBAR_PREFIXES = ("north-active-tab", "south-active-tab", "east-active-tab", "west-active-tab")
 
-# Every pixel of each raised 3x3 corner slice, row-major in slice-local
-# coordinates. The bevel must turn the corner: the edge bevel colours continue
-# into the corner and meet there. A corner that stops the bevel one pixel short
-# leaves a face-coloured (#DDDDDD) notch where the side tile shows highlight or
-# shadow, so pinning the pixels makes that defect fail the suite.
-#
-# The raised state reuses `RAISED_FACE_CORNERS`' top-left, top-right and
-# bottom-right corners; only its bottom-left corner turns differently, with a
-# #999999 shadow where the scroll-bar thumb and dialog body show a #FFFFFF
-# highlight.
-CORNER_PIXELS = {
-    "raised": {
-        **RAISED_FACE_CORNERS,
-        "bottomleft": (
-            "#000000", "#FFFFFF", "#DDDDDD",
-            "#000000", "#999999", "#999999",
-            "#000000", "#000000", "#000000",
-        ),
-    },
+# The edge that faces the panel content is open (face only) so the tab merges
+# with it; the other three edges carry the raised bevel.
+OPEN_EDGE = {
+    "north-active-tab": "bottom",
+    "south-active-tab": "top",
+    "east-active-tab": "left",
+    "west-active-tab": "right",
 }
+
+FACE = "#DDDDDD"
+FLAT_BAND = (FACE,) * 3
+TOP_LEFT_BAND, BOTTOM_RIGHT_BAND = face_edge_bands(FACE, "raised")
+EDGE_BANDS = {
+    "top": TOP_LEFT_BAND,
+    "left": TOP_LEFT_BAND,
+    "bottom": BOTTOM_RIGHT_BAND,
+    "right": BOTTOM_RIGHT_BAND,
+}
+
+
+def band_rows(band):
+    """The 3x3 corner whose rows are each the colour of *band* in turn."""
+    return tuple(colour for colour in band for _ in range(3))
+
+
+def band_columns(band):
+    """The 3x3 corner whose rows each repeat *band* left to right."""
+    return band * 3
+
+
+def tab_corners(open_edge):
+    """The four 3x3 corners of a tab whose *open_edge* is left open.
+
+    A corner between two raised edges is the raised-face corner. A corner
+    where the open edge meets a raised edge extends that raised edge's band
+    across its whole tile, because the open side contributes only face.
+    """
+    corners = dict(face_corners(FACE, "raised"))
+    mixed = {
+        "bottom": {
+            "bottomleft": band_columns(EDGE_BANDS["left"]),
+            "bottomright": band_columns(EDGE_BANDS["right"]),
+        },
+        "top": {
+            "topleft": band_columns(EDGE_BANDS["left"]),
+            "topright": band_columns(EDGE_BANDS["right"]),
+        },
+        "left": {
+            "topleft": band_rows(EDGE_BANDS["top"]),
+            "bottomleft": band_rows(EDGE_BANDS["bottom"]),
+        },
+        "right": {
+            "topright": band_rows(EDGE_BANDS["top"]),
+            "bottomright": band_rows(EDGE_BANDS["bottom"]),
+        },
+    }
+    corners.update(mixed[open_edge])
+    return corners
 
 
 class TestTabBar(NineSliceCase, unittest.TestCase):
@@ -68,103 +110,37 @@ class TestTabBar(NineSliceCase, unittest.TestCase):
     def test_tabbar_centres_are_the_face(self):
         slices = render_slices(self.tree)
         for prefix in TABBAR_PREFIXES:
-            assert_center_tile_is(self, slices, f"{prefix}-center", "#DDDDDD", size=6)
+            assert_center_tile_is(self, slices, f"{prefix}-center", FACE, size=6)
 
     def test_tabbar_closed_edges_are_raised(self):
         slices = render_slices(self.tree)
         for prefix in TABBAR_PREFIXES:
-            # Determine which edges are closed (have bevel) and which are open
-            # (face only)
-            if prefix == "north-active-tab":
-                # bottom is open
-                edges = {
-                    "top": "raised",
-                    "left": "raised",
-                    "right": "raised",
-                    "bottom": ("#DDDDDD",) * 3,
-                }
-            elif prefix == "south-active-tab":
-                # top is open
-                edges = {
-                    "top": ("#DDDDDD",) * 3,
-                    "left": "raised",
-                    "right": "raised",
-                    "bottom": "raised",
-                }
-            elif prefix == "east-active-tab":
-                # left is open
-                edges = {
-                    "top": "raised",
-                    "left": ("#DDDDDD",) * 3,
-                    "right": "raised",
-                    "bottom": "raised",
-                }
-            else:  # west-active-tab
-                # right is open
-                edges = {
-                    "top": "raised",
-                    "left": "raised",
-                    "right": ("#DDDDDD",) * 3,
-                    "bottom": "raised",
-                }
-            for edge, band in edges.items():
-                if isinstance(band, tuple):
-                    # Face-only edge: both outward and mirrored are the face band
-                    assert_edge_bevels(self, slices, prefix, band, band, size=3)
-                else:
-                    # Raised edge: outward is the raised bevel, mirrored is the mirrored bevel
-                    outward, mirrored = face_edge_bands("#DDDDDD", "raised")
-                    assert_edge_bevels(self, slices, prefix, outward, mirrored, size=3)
+            for side, band in EDGE_BANDS.items():
+                if side != OPEN_EDGE[prefix]:
+                    assert_edge_band_pixels(
+                        self, slices, f"{prefix}-{side}", side, band
+                    )
+
+    def test_tabbar_inner_edges_are_open(self):
+        slices = render_slices(self.tree)
+        for prefix in TABBAR_PREFIXES:
+            side = OPEN_EDGE[prefix]
+            assert_edge_band_pixels(
+                self, slices, f"{prefix}-{side}", side, FLAT_BAND
+            )
 
     def test_tabbar_corners(self):
         slices = render_slices(self.tree)
         for prefix in TABBAR_PREFIXES:
-            if prefix == "north-active-tab":
-                corners = {
-                    "topleft": RAISED_FACE_CORNERS["raised"]["topleft"],
-                    "topright": RAISED_FACE_CORNERS["raised"]["topright"],
-                    "bottomleft": CORNER_PIXELS["raised"]["bottomleft"],
-                    "bottomright": RAISED_FACE_CORNERS["raised"]["bottomright"],
-                }
-            elif prefix == "south-active-tab":
-                corners = {
-                    "topleft": RAISED_FACE_CORNERS["raised"]["topleft"],
-                    "topright": RAISED_FACE_CORNERS["raised"]["topright"],
-                    "bottomleft": RAISED_FACE_CORNERS["raised"]["bottomleft"],
-                    "bottomright": CORNER_PIXELS["raised"]["bottomright"],
-                }
-            elif prefix == "east-active-tab":
-                corners = {
-                    "topleft": RAISED_FACE_CORNERS["raised"]["topleft"],
-                    "topright": RAISED_FACE_CORNERS["raised"]["topright"],
-                    "bottomleft": RAISED_FACE_CORNERS["raised"]["bottomleft"],
-                    "bottomright": RAISED_FACE_CORNERS["raised"]["bottomright"],
-                }
-            else:  # west-active-tab
-                corners = {
-                    "topleft": RAISED_FACE_CORNERS["raised"]["topleft"],
-                    "topright": RAISED_FACE_CORNERS["raised"]["topright"],
-                    "bottomleft": RAISED_FACE_CORNERS["raised"]["bottomleft"],
-                    "bottomright": RAISED_FACE_CORNERS["raised"]["bottomright"],
-                }
-            assert_corner_pixels(self, slices, prefix, corners)
+            assert_face_corners(self, slices, prefix, tab_corners(OPEN_EDGE[prefix]))
 
     def test_tabbar_colours(self):
-        slices = render_slices(self.tree)
-        assert self.attribute_values(slices, "fill") == {
-            "#000000",
-            "#FFFFFF",
-            "#999999",
-            "#DDDDDD",
-        }
-
-    def test_tabbar_no_script_elements(self):
-        assert_no_script_elements(self, self.tree)
+        assert_fill_palette(self, self.tree)
 
     def test_tabbar_installed(self):
         with installed_destdir(self) as tmp:
             target = os.path.join(
-                installed_package(tmp, "desktoptheme", "org.macos8.desktop"),
+                installed_package(tmp, "desktoptheme", DTHEME_ID),
                 "widgets", "tabbar.svg",
             )
             assert_files_identical(self, TABBAR_SVG, target)
