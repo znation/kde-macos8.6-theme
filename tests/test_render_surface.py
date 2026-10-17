@@ -246,7 +246,7 @@ class TestRender(unittest.TestCase):
         cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
         cls.output = os.path.join(cls.directory, "render.png")
         process = process_runner.start(
-            [sys.executable, SCRIPT, cls.output],
+            [sys.executable, SCRIPT, "--settle", "3", cls.output],
             capture_output=True,
             text=True,
         )
