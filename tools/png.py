@@ -275,9 +275,7 @@ def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
     channels unfilter independently and can be done one at a time.
     Iterating each channel's stream with ``zip`` lets the left neighbour be a
     carried local instead of a ``line[i - channels]`` read, and appending the
-    reconstructed bytes to a list avoids a per-byte ``line[i] = ...`` store;
-    the result is byte-identical and roughly a third faster than the
-    interleaved loop.
+    reconstructed bytes to a list avoids a per-byte ``line[i] = ...`` store.
     """
     table = _paeth_delta_table()
     for c in range(channels):
