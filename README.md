@@ -53,9 +53,10 @@ no hover highlight), `widgets/tabbar.svg` (the raised Platinum tab highlights fo
 Plasma TabBar, TabButton, kickoff footer, and panel applets), `widgets/toolbar.svg` (the
 raised grey Platinum toolbar background for `PlasmaComponents.ToolBar` and its
 consumers in kickoff, the system tray, and the desktop shell), `widgets/arrows.svg` (the solid
-black triangles `ComboBox` and menu buttons draw as their dropdown indicator), and
+black triangles `ComboBox` and menu buttons draw as their dropdown indicator),
 `widgets/scrollbar.svg` (the raised grey thumb and flat grey trough for
-`PlasmaComponents.ScrollBar`).
+`PlasmaComponents.ScrollBar`), and `widgets/bar_meter_horizontal.svg` (the sunken grey
+track with a lavender fill for `PlasmaComponents.ProgressBar`).
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. The package

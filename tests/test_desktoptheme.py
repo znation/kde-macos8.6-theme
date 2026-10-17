@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 from desktoptheme_paths import (
     ARROWS_SVG,
     BACKGROUND_SVG,
+    BAR_METER_HORIZONTAL_SVG,
     BUTTON_SVG,
     CHECKMARKS_SVG,
     DIALOG_BACKGROUND_SVG,
@@ -57,7 +58,8 @@ PLASMA_SECTION = "plasmarc][Theme"
 # Each shipped SVG's root canvas. Five nine-slice widgets share a tight 12x12
 # canvas; the scrollbar, the slider, the menu body and the dialog window body
 # are 16x16; checkmarks is two stacked 16x16 cells and radiobutton two
-# side-by-side, so their canvases are 16x32 and 48x16.
+# side-by-side, so their canvases are 16x32 and 48x16; the progress bar is a
+# 10x10 canvas.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 12),
     ("frame.svg", FRAME_SVG, 12, 12),
@@ -68,6 +70,7 @@ SVG_CANVASES = (
     ("menubaritem.svg", MENUBARITEM_SVG, 12, 12),
     ("scrollbar.svg", SCROLLBAR_SVG, 16, 16),
     ("slider.svg", SLIDER_SVG, 16, 16),
+    ("bar_meter_horizontal.svg", BAR_METER_HORIZONTAL_SVG, 10, 10),
     ("background.svg", BACKGROUND_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
@@ -166,6 +169,7 @@ class TestInstall(
         os.path.join("widgets", "arrows.svg"),
         os.path.join("widgets", "scrollbar.svg"),
         os.path.join("widgets", "slider.svg"),
+        os.path.join("widgets", "bar_meter_horizontal.svg"),
         os.path.join("widgets", "background.svg"),
         os.path.join("dialogs", "background.svg"),
     )

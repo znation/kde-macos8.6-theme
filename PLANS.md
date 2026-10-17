@@ -17,7 +17,12 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum progress bar widget (`widgets/bar_meter_horizontal.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+_None yet._
+
+
+## Done
+
+### Mac OS 8.6 Platinum progress bar widget (`widgets/bar_meter_horizontal.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Planned 2026-10-17 by plan.** Independent of every other entry: it adds one widget file to the
 existing `org.macos8.desktop` desktop-theme package and one new test module, touches no existing
@@ -124,8 +129,6 @@ files. No shared assertion helper changes: the tests below use only existing `sv
 - Manual smoke test (needs a Plasma session): a notification file-copy job shows a 10px sunken grey
   track filling from the left with lavender, with no Breeze blue.
 
-
-## Done
 
 ### Mac OS 8.6 Platinum popup / dropdown arrow widget for the desktop theme (done 2026-10-17)
 
