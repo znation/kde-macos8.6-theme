@@ -109,6 +109,19 @@ def declared_files(sources_text, separator):
     return names
 
 
+def declared_reference_names(checker):
+    """Return the file names the reference set's ``sources.txt`` declares.
+
+    The checker reads sources.txt as UTF-8 with an optional BOM; match it so a
+    BOM does not glue itself to the first declared file name.
+    """
+    path = os.path.join(
+        theme_install.ROOT, checker.REFERENCE_DIR, checker.SOURCES_NAME
+    )
+    with open(path, encoding="utf-8-sig") as handle:
+        return declared_files(handle.read(), checker.SEPARATOR)
+
+
 def lfs_filter_states(output):
     """Return ``{file name: filter state}`` from ``git check-attr`` output.
 
@@ -163,13 +176,7 @@ class TestReadmeReferenceTable(CheckerTestCase):
         ) as handle:
             cls.text = handle.read()
         cls.rows = reference_table(cls.text)
-        # The checker reads sources.txt as UTF-8 with an optional BOM; match it
-        # so a BOM does not glue itself to the first declared file name.
-        with open(
-            os.path.join(cls.directory, cls.checker.SOURCES_NAME),
-            encoding="utf-8-sig",
-        ) as handle:
-            cls.declared = declared_files(handle.read(), cls.checker.SEPARATOR)
+        cls.declared = declared_reference_names(cls.checker)
 
     def test_table_is_present(self):
         # A README restructuring that drops the table would make the coverage
@@ -232,11 +239,7 @@ class TestReferenceLfsTracking(CheckerTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.relative_dir = cls.checker.REFERENCE_DIR
-        with open(
-            os.path.join(theme_install.ROOT, cls.relative_dir, cls.checker.SOURCES_NAME),
-            encoding="utf-8-sig",
-        ) as handle:
-            cls.declared = declared_files(handle.read(), cls.checker.SEPARATOR)
+        cls.declared = declared_reference_names(cls.checker)
 
     def test_every_declared_file_is_routed_through_lfs(self):
         # Ask git for the effective attribute rather than re-implementing its
