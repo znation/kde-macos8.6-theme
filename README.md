@@ -16,14 +16,16 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 
 ## Installing
 
-`make install` copies four artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
+`make install` copies five artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
 `$HOME/.local/share` when it is unset, empty, or relative; `make install` and `make uninstall`
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
 absolute path): the
 color scheme
 `theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
 into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
-`plasma/desktoptheme/`, and the `org.macos8.desktop` window decoration into `aurorae/themes/`.
+`plasma/desktoptheme/`, the `org.macos8.desktop` window decoration into `aurorae/themes/`, and the
+`org.macos8.desktop` wallpaper into `wallpapers/`. Applying the global theme selects that wallpaper: the retail 128x128 desktop
+pattern, shipped at fixed resolutions so it renders 1:1 when the screen matches one.
 
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
@@ -73,8 +75,8 @@ active and inactive frames) with its gzipped `decoration.svgz` (the form
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make
-uninstall` removes the four installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/` and
-`aurorae/themes/`
+uninstall` removes the five installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
+`aurorae/themes/` and `wallpapers/`
 directories and anything else in them in place. It removes only the artifacts
 `install` copied, never the user's configuration: if the removed scheme is still
 the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve

@@ -173,6 +173,21 @@ def installed_aurorae_theme(destdir, theme_id):
     return os.path.join(installed_aurorae_dir(destdir), theme_id)
 
 
+def installed_wallpaper_dir(destdir):
+    """Directory `make install` writes the wallpaper package into.
+
+    The Makefile installs it under `$(DESTDIR)$(XDG_DATA_HOME)/wallpapers`,
+    the user-local directory Plasma's image wallpaper searches;
+    `installed_wallpaper` joins a package's own directory onto the result.
+    """
+    return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "wallpapers")
+
+
+def installed_wallpaper(destdir, package_id):
+    """Directory `make install` writes one wallpaper package into."""
+    return os.path.join(installed_wallpaper_dir(destdir), package_id)
+
+
 def installed_color_scheme_dir(destdir):
     """Directory `make install` writes the color scheme into.
 

@@ -17,7 +17,12 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Wallpaper, part 2/2: Install the Mac OS 8.6 wallpaper package and select it from the global theme (planned 2026-10-17 by the plan role, "requires part 1/2 landed")
+_None yet._
+
+
+## Done
+
+### Wallpaper, part 2/2: Install the Mac OS 8.6 wallpaper package and select it from the global theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Goal.** Make part 1's `theme/wallpapers/org.macos8.desktop` package (see "Mac OS 8.6 default
 desktop pattern as a Plasma wallpaper package") reach the user. `make install` copies it into
@@ -79,8 +84,6 @@ theme selects it.
   metadata `Id`.
 - `make check` passes.
 
-
-## Done
 
 ### Wallpaper, part 1/2: Mac OS 8.6 default desktop pattern as a Plasma wallpaper package (planned 2026-10-17 by the plan role; done 2026-10-17)
 

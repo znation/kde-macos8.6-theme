@@ -1,6 +1,7 @@
 """Validate the org.macos8.desktop look-and-feel global theme package."""
 
 import fcntl
+import json
 import os
 import shlex
 import shutil
@@ -38,6 +39,10 @@ AURORAE_DIR = os.path.join(
 DEFAULTS_SECTION = "kdeglobals][General"
 PLASMA_SECTION = "plasmarc][Theme"
 KWIN_SECTION = "kwinrc][org.kde.kdecoration2"
+WALLPAPER_SECTION = "Wallpaper"
+WALLPAPER_METADATA = os.path.join(
+    ROOT, "theme", "wallpapers", "org.macos8.desktop", "metadata.json"
+)
 
 
 def load_defaults():
@@ -107,13 +112,21 @@ class TestDefaults(unittest.TestCase):
     def test_the_expected_sections_and_keys_are_set(self):
         self.assertEqual(
             self.parser.sections(),
-            [DEFAULTS_SECTION, PLASMA_SECTION, KWIN_SECTION],
+            [DEFAULTS_SECTION, PLASMA_SECTION, KWIN_SECTION, WALLPAPER_SECTION],
         )
         self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme"])
         self.assertEqual(self.parser.options(PLASMA_SECTION), ["name"])
         self.assertEqual(
             self.parser.options(KWIN_SECTION),
             ["library", "theme", "ButtonsOnLeft", "ButtonsOnRight"],
+        )
+        self.assertEqual(self.parser.options(WALLPAPER_SECTION), ["Image"])
+
+    def test_wallpaper_names_the_shipped_package(self):
+        with open(WALLPAPER_METADATA, encoding="utf-8") as handle:
+            package_id = json.load(handle)["KPlugin"]["Id"]
+        self.assertEqual(
+            self.parser.get(WALLPAPER_SECTION, "Image"), package_id
         )
 
     def test_window_decoration_names_the_shipped_theme(self):

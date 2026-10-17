@@ -6,10 +6,12 @@ import os
 import shutil
 import unittest
 
+from install_failure_cases import FailedInstallPreservesPackage
+from install_lifecycle_cases import InstallLifecycleCases
 from kpackage_install_case import KPackageInstallCase
 from package_metadata import PackageMetadata
 from reference_image import skip_unless_materialized
-from theme_install import ROOT
+from theme_install import ROOT, installed_wallpaper, installed_wallpaper_dir
 
 from tools import make_wallpaper, png  # noqa: E402
 
@@ -138,6 +140,25 @@ class TestPackageValid(KPackageInstallCase, unittest.TestCase):
     KPACKAGETOOL_TYPE = "Wallpaper/Images"
     PACKAGE_DIR = PACKAGE
     PACKAGE_ID = WALLPAPER_ID
+
+
+class TestInstall(
+    FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
+):
+    KIND = "wallpapers"
+    PACKAGE_ID = WALLPAPER_ID
+    PACKAGE_DIR = PACKAGE
+    INSTALLED_FILES = ("metadata.json",) + tuple(
+        f"contents/images/{width}x{height}.png"
+        for width, height in make_wallpaper.RESOLUTIONS
+    )
+    COPY_FAILURE_GLOB = "*/wallpapers/*"
+
+    def installed_parent(self, tmp):
+        return installed_wallpaper_dir(tmp)
+
+    def installed_package_dir(self, tmp):
+        return installed_wallpaper(tmp, self.PACKAGE_ID)
 
 
 if __name__ == "__main__":
