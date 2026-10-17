@@ -37,6 +37,7 @@ from .safety import (
 )
 
 from .render import (
+    _MAX_RENDERED_PIXELS,
     _slice_extent,
     _slice_offset,
     _slice_where,

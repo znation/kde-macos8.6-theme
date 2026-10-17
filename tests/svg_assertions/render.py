@@ -12,6 +12,14 @@ from tools.ints import is_plain_int
 
 from .tree import _numeric_attribute, children_named, groups_with_id
 
+# render_slices stores one dict entry per rect pixel, so a rect's width*height
+# is the amplification a tiny attribute can demand: a contributor-supplied SVG
+# with width="100000" height="100000" would allocate 10^10 entries and exhaust
+# `make check`. The cap is 256x256 pixels across one SVG; the largest total
+# rect area in any shipped theme SVG (measured by summing every rect's
+# width*height per file) is 1408, so real artwork sits far below it.
+_MAX_RENDERED_PIXELS = 1 << 16
+
 def _slice_where(rect):
     """Name *rect* for an error, by id when it has one."""
     rect_id = rect.get("id")
@@ -67,11 +75,13 @@ def render_slices(tree):
     slice's appearance is its rects painted in document order, with a later
     rect overriding an earlier one as KSvg composites one nine-slice tile.
     Raise ValueError, naming the rect, when one of its width/height attributes
-    is absent, non-integer or non-positive, its x/y is non-integer, or it
-    carries a `transform`; a silently empty or mis-sampled tile would
-    otherwise pass the pixel checks.
+    is absent, non-integer or non-positive, its x/y is non-integer, it carries
+    a `transform`, or the rects together paint past ``_MAX_RENDERED_PIXELS``; a
+    silently empty or mis-sampled tile would otherwise pass the pixel checks,
+    and an unbounded extent would exhaust memory before any check ran.
     """
     slices = {}
+    painted = 0
     for group in groups_with_id(tree):
         pixels = {}
         for rect in children_named(group, "rect"):
@@ -89,6 +99,15 @@ def render_slices(tree):
             # rect, so read and validate each once instead of per column.
             width = _slice_extent(rect, "width")
             height = _slice_extent(rect, "height")
+            painted += width * height
+            if painted > _MAX_RENDERED_PIXELS:
+                raise ValueError(
+                    f"{_slice_where(rect)} has a {width}x{height} extent, "
+                    f"which paints past the {_MAX_RENDERED_PIXELS}-pixel "
+                    "render limit across the SVG: a nine-slice tile is a "
+                    "small source rect, so this is malformed or hostile "
+                    "artwork"
+                )
             fill = rect.get("fill")
             for dx in range(width):
                 for dy in range(height):

@@ -10,7 +10,7 @@ from __future__ import annotations
 import unittest
 
 from error_assertions import assert_error_names, error_message
-from svg_assertions import pixel_map, render_slices
+from svg_assertions import _MAX_RENDERED_PIXELS, pixel_map, render_slices
 from svg_fixtures import _svg_tree
 
 
@@ -102,6 +102,36 @@ class TestRenderSlices(unittest.TestCase):
             tree,
             needles=("'face'", "translate(2,0)"),
         )
+
+    def test_oversized_tile_is_refused_before_it_is_painted(self):
+        # render_slices stores one entry per rect pixel, so a tiny
+        # width/height pair is an amplification: a contributor-supplied SVG
+        # with a huge rect would allocate until `make check` is OOM-killed.
+        # A tile far larger than any real source rect must be refused by
+        # name before any pixel is painted.
+        tree = _svg_tree(
+            '<g id="g"><rect id="face" x="0" y="0" width="300" '
+            'height="300" fill="#111111"/></g>'
+        )
+        message = error_message(self, ValueError, render_slices, tree)
+        self.assertIn("'face'", message)
+        self.assertIn("300x300", message)
+
+    def test_render_limit_is_cumulative_across_rects_and_inclusive(self):
+        # The limit bounds the whole SVG, not each rect: many modest rects
+        # must not add up past it. A total exactly at the limit still renders.
+        self.assertEqual(_MAX_RENDERED_PIXELS, 256 * 256)
+        half = _MAX_RENDERED_PIXELS // 2
+        at_limit = (
+            f'<rect x="0" y="0" width="{half}" height="1" fill="#111111"/>'
+            f'<rect x="0" y="1" width="{half}" height="1" fill="#222222"/>'
+        )
+        pixels = render_slices(_svg_tree(f'<g id="g">{at_limit}</g>'))["g"]
+        self.assertEqual(len(pixels), 2 * half)
+        over = f'<g id="g">{at_limit}<rect id="extra" width="1" height="1"/></g>'
+        message = error_message(self, ValueError, render_slices, _svg_tree(over))
+        self.assertIn("'extra'", message)
+        self.assertIn("1x1", message)
 
 
 class TestPixelMap(unittest.TestCase):
