@@ -12,6 +12,7 @@ the package along with any staging/old leftovers. Each suite subclasses
 import os
 
 from process_assertions import assert_succeeded
+from shipped_files import shipped_files
 from theme_install import (
     InstalledPackageLocation,
     assert_files_identical,
@@ -54,14 +55,7 @@ class InstallLifecycleCases(InstalledPackageLocation):
         the package directory and require it to equal the registry, so adding
         or removing a file without updating `INSTALLED_FILES` fails here.
         """
-        shipped = set()
-        for dirpath, _, filenames in os.walk(self.PACKAGE_DIR):
-            for filename in filenames:
-                shipped.add(
-                    os.path.relpath(
-                        os.path.join(dirpath, filename), self.PACKAGE_DIR
-                    )
-                )
+        shipped = shipped_files(self.PACKAGE_DIR)
         self.assertEqual(shipped, set(self.INSTALLED_FILES))
 
     def test_make_install_is_repeatable(self):

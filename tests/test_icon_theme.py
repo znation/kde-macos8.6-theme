@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 from install_lifecycle_cases import InstallLifecycleCases
 from kde_config import read as read_kde_config
 from platinum_palette import PLATINUM_FILLS
+from shipped_files import shipped_files
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -91,12 +92,7 @@ class TestIndex(unittest.TestCase):
                 )
 
     def test_icon_theme_ships_exactly_the_tracked_icons(self):
-        shipped = set()
-        for dirpath, _, filenames in os.walk(PACKAGE):
-            for filename in filenames:
-                shipped.add(
-                    os.path.relpath(os.path.join(dirpath, filename), PACKAGE)
-                )
+        shipped = shipped_files(PACKAGE)
         self.assertEqual(shipped, {"index.theme", *SHIPPED_ICONS})
 
     def test_placeholder_register_matches_the_icon_art(self):

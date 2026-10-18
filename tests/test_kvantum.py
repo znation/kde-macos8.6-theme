@@ -24,6 +24,7 @@ from platinum_palette import (
     hex_colour,
 )
 from process_assertions import assert_succeeded
+from shipped_files import shipped_files
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -330,12 +331,7 @@ class TestButtonBevelPixels(unittest.TestCase):
 
 class TestPackage(unittest.TestCase):
     def test_package_ships_exactly_the_theme_files(self):
-        shipped = set()
-        for dirpath, _, filenames in os.walk(PACKAGE):
-            for filename in filenames:
-                shipped.add(
-                    os.path.relpath(os.path.join(dirpath, filename), PACKAGE)
-                )
+        shipped = shipped_files(PACKAGE)
         self.assertEqual(shipped, set(SHIPPED_FILES))
 
 

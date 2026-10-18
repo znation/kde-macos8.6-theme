@@ -44,6 +44,7 @@ from kpackage_install_case import KPackageInstallCase
 from kde_config import read as read_kde_config
 from package_metadata import PackageMetadata, kplugin, load_metadata
 from process_assertions import assert_succeeded
+from shipped_files import shipped_files
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -151,12 +152,10 @@ class TestSvgRootCanvas(unittest.TestCase):
         # escapes the check and its canvas is unpinned. Derive the shipped set
         # from the package on disk and require it to equal the registry, so
         # adding or removing an SVG without updating SVG_CANVASES fails here.
-        registered = {path for _, path, _, _ in SVG_CANVASES}
-        shipped = set()
-        for dirpath, _, filenames in os.walk(PACKAGE):
-            for filename in filenames:
-                if filename.endswith(".svg"):
-                    shipped.add(os.path.join(dirpath, filename))
+        registered = {
+            os.path.relpath(path, PACKAGE) for _, path, _, _ in SVG_CANVASES
+        }
+        shipped = shipped_files(PACKAGE, suffix=".svg")
         self.assertEqual(shipped, registered)
 
 
