@@ -402,6 +402,29 @@ class TestUninstall(unittest.TestCase):
         self.assertTrue(hook.is_symlink())
         self.assertEqual("keep me", target.read_text(encoding="utf-8"))
 
+    def test_reports_a_hook_it_cannot_remove(self):
+        # The hook it wrote can still fail to unlink (a read-only hooks
+        # directory, for example). The OSError must become the tool's own
+        # exit-2 diagnostic naming the path -- not a traceback -- and the
+        # hook must stay in place so the operator can retry.
+        repo = make_repo(self)
+        assert_succeeded(self, run_tool(repo, "install"))
+        hook = hook_path(repo)
+        complete = hook.read_bytes()
+
+        def failing_unlink(path, *args, **kwargs):
+            raise OSError("simulated unlink failure")
+
+        with mock.patch.object(Path, "unlink", failing_unlink):
+            result = run_tool(repo, "uninstall")
+
+        assert_failed(self, result)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("cannot remove", result.stderr)
+        self.assertIn(str(hook), result.stderr)
+        self.assertEqual(hook.read_bytes(), complete)
+
     def test_a_missing_hook_is_not_an_error(self):
         repo = make_repo(self)
         result = run_tool(repo, "uninstall")
