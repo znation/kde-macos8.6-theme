@@ -12,6 +12,53 @@ _None yet._
 
 ## Fixed
 
+### `test_url_check.py` fails to import when run as the only `CHECK_TESTS` module (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `make check CHECK_TESTS='test_url_check'` exited 2 with
+`ModuleNotFoundError: No module named 'tools'` before running any test, so a
+contributor could not run this module's tests on its own. The Makefile
+documents `CHECK_TESTS` as a supported way to run one module, class or method.
+
+**Cause:** `test_url_check.py` was the only `tests/test_*.py` module whose
+first import was `tools.*` rather than `support`; it only ever passed because
+unittest discovery imports other modules (which import `support.repo_root`,
+the import that puts the repository root on `sys.path`) before it.
+
+**Fix:** `test_url_check.py` now imports `support.repo_root` first, matching
+every other test module.
+
+**Test:** `make check CHECK_TESTS='test_url_check'` (the focused run exited 2
+with the `ModuleNotFoundError` before the fix and exits 0 after).
+
+**Validation gap:** none — the documented focused-run command reproduced the
+failure and confirmed the fix.
+
+### `tools/url_check.py` accepts a malformed bracketed host as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `None` for `https://[]/x`,
+`https://[::1/x`, `https://[not-an-ip]/x` and `https://exa[mple].test/x`, so
+`tools/check_references.py` would accept a `sources.txt` row citing any of them
+as a well-formed absolute URL. Each names no usable host, so the citation
+points nowhere while the provenance check reports it clean.
+
+**Cause:** the host was taken as
+`authority.rsplit("@", 1)[-1].split(":", 1)[0]`, which for a bracketed
+authority is the literal `[` — truthy, so the empty-host guard never fired and
+the bracket contents were never examined.
+
+**Fix:** `_authority_host` parses an RFC 3986 authority: a bracketed host must
+be closed and hold an IPv6 or IPvFuture address (`_is_ip_literal`, using the
+stdlib `ipaddress`), and an unbracketed host must not carry a bracket. The
+empty-host message and the `file://` exemption are unchanged.
+
+**Test:** `tests/test_url_check.py::TestBracketedHosts` (a scratch run of
+`url_problem` returned `None` for the four malformed URLs before the fix; the
+class passes after).
+
+**Validation gap:** unclear-invariant — the code never stated the bracketed
+host rule, so I had to reconstruct RFC 3986's IP-literal form before I could
+call the acceptance a bug.
+
 ### `test_invariants.py` lets a register reference with a NUL byte escape as an unrelated exception (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** a register row whose test reference contained a NUL byte (the

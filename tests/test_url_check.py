@@ -7,6 +7,7 @@ with no raw whitespace or control characters.
 
 import unittest
 
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.url_check import is_absolute_url
 
 
@@ -106,6 +107,41 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             "https://example.test/a\x01b.png",
         ):
             self.assertFalse(self.is_absolute(url), repr(url))
+
+
+class TestBracketedHosts(unittest.TestCase):
+    """A bracketed host must be a closed RFC 3986 IP-literal.
+
+    A bracketed authority must name a host, so ``[]`` and an unclosed
+    ``[::1`` are rejected, as is a bracket in an unbracketed host; the
+    previously accepted forms let a malformed citation pass as provenance.
+    """
+
+    def test_valid_ip_literals_are_accepted(self):
+        for url in (
+            "https://[::1]/x",
+            "https://[::1]:8080/x",
+            "https://user@[2001:db8::1]/x",
+            "https://[v1.fe80::a]/x",
+            "file://[::1]/x",
+        ):
+            self.assertTrue(is_absolute_url(url), url)
+
+    def test_malformed_bracketed_hosts_are_rejected(self):
+        for url in (
+            "https://[]/x",
+            "https://[::1/x",
+            "https://[not-an-ip]/x",
+            "https://[::1]extra/x",
+        ):
+            self.assertFalse(is_absolute_url(url), url)
+
+    def test_brackets_outside_a_bracketed_host_are_rejected(self):
+        for url in (
+            "https://exa[mple].test/x",
+            "https://example.test]/x",
+        ):
+            self.assertFalse(is_absolute_url(url), url)
 
 
 if __name__ == "__main__":

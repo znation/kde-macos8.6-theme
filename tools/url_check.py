@@ -7,6 +7,9 @@
 
 from __future__ import annotations
 
+import ipaddress
+import re
+
 # RFC 3986 scheme: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ). Any other
 # character (a space from a copy-paste, a stray "!") means the token is not a
 # scheme, however absolute the rest of the URL looks.
@@ -16,6 +19,45 @@ _SCHEME_PUNCTUATION = frozenset("+-.")
 # host, while a network scheme with an empty host (``https:///path``) is a
 # citation with nowhere to point.
 _SCHEMES_ALLOWING_EMPTY_HOST = frozenset({"file"})
+
+# RFC 3986 IPvFuture: "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" ).
+_IPV_FUTURE = re.compile(r"v[0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+")
+
+
+def _is_ip_literal(text: str) -> bool:
+    """Return True when *text* is an RFC 3986 IPv6address or IPvFuture."""
+    if _IPV_FUTURE.fullmatch(text):
+        return True
+    try:
+        ipaddress.IPv6Address(text)
+    except ValueError:
+        return False
+    return True
+
+
+def _authority_host(authority: str) -> tuple[str, str | None]:
+    """Return ``(host, problem)`` for an RFC 3986 *authority*.
+
+    The host is what follows any ``userinfo@`` prefix and precedes any
+    ``:port`` suffix. A bracketed IP-literal (``[::1]``) must be closed and
+    hold an IPv6 or IPvFuture address; a bracket in an unbracketed host is
+    malformed. *problem* is a diagnostic for a malformed authority, and
+    *host* is empty when the authority names no host at all.
+    """
+    hostport = authority.rsplit("@", 1)[-1]
+    if hostport.startswith("["):
+        end = hostport.find("]")
+        if end == -1:
+            return "", "must close the bracketed host with ']'"
+        if end + 1 < len(hostport) and hostport[end + 1] != ":":
+            return "", "must put only a port after the bracketed host"
+        host = hostport[1:end]
+        if host and not _is_ip_literal(host):
+            return "", "must bracket an IPv6 or IPvFuture address"
+        return host, None
+    if "[" in hostport or "]" in hostport:
+        return "", "must not put '[' or ']' in a host"
+    return hostport.split(":", 1)[0], None
 
 
 def url_problem(url: str) -> str | None:
@@ -35,7 +77,9 @@ def url_problem(url: str) -> str | None:
     (or a malformed) scheme needs a source, one whose scheme is fine but which
     carries a space or control character only needs that character
     percent-encoded, and one with an empty authority needs a host. Blaming the
-    scheme for the latter two sends the reader after the wrong thing.
+    scheme for the latter two sends the reader after the wrong thing. A
+    bracketed host is held to its RFC 3986 form: ``[::1]`` is a host, while
+    ``[]``, an unclosed ``[::1`` and a bracket in an unbracketed host are not.
     """
     scheme, sep, rest = url.partition("://")
     if (
@@ -55,7 +99,9 @@ def url_problem(url: str) -> str | None:
     # authority that is empty, or holds only userinfo or only a port, names no
     # host at all (``scheme:///path``, ``scheme://@/path``, ``scheme://:80/p``).
     authority = rest.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
-    host = authority.rsplit("@", 1)[-1].split(":", 1)[0]
+    host, problem = _authority_host(authority)
+    if problem is not None:
+        return problem
     if not host and scheme.lower() not in _SCHEMES_ALLOWING_EMPTY_HOST:
         return (
             "must name a host between the scheme and the path "
