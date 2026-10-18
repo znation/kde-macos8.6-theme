@@ -41,7 +41,8 @@ collapse box on the right. The theme also ships a desktop layout,
 `contents/layouts/org.kde.plasma.desktop-layout.js`: applying the theme with
 `lookandfeeltool -a org.macos8.desktop --resetLayout` (or with "Desktop and window layout" ticked
 in System Settings → Global Theme) replaces your existing panels with one flush 20px top menu bar
-holding the Apple menu (kicker), the application menu, a spacer, the system tray, the clock and
+holding the Apple menu (kicker), the application menu, a spacer, the system tray, the clock (12-hour time with AM/PM, no date or
+seconds, as the Mac OS 8.6 menu bar shows it) and
 the window list. Plasma replaces your panels only when the layout is
 applied; applying the theme without it leaves them alone. The layout also switches each desktop
 in the current activity to the image wallpaper plugin. The desktop theme can be selected on its own with

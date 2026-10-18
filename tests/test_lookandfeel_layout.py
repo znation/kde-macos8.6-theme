@@ -64,6 +64,36 @@ def menu_bar_rows(image, x):
     raise AssertionError(f"no menu-bar bottom rule at column {x}")
 
 
+CLOCK_ID = "org.kde.plasma.digitalclock"
+CLOCK_FORMAT = {"showDate": False, "showSeconds": 0, "use24hFormat": 0}
+JS_LITERALS = {"false": False, "true": True}
+
+
+def clock_variable(text):
+    match = re.search(
+        r'^var\s+(\w+)\s*=\s*panel\.addWidget\("%s"\)\s*;' % re.escape(CLOCK_ID),
+        text,
+        re.M,
+    )
+    return match.group(1) if match else None
+
+
+def clock_config(text):
+    """Return the clock's ``writeConfig`` calls as ``{key: value}`` (JS literals)."""
+    name = clock_variable(text)
+    if name is None:
+        return {}
+    calls = re.findall(
+        r'^%s\.writeConfig\("([^"]+)",\s*(\w+)\s*\)\s*;' % re.escape(name),
+        text,
+        re.M,
+    )
+    return {
+        key: JS_LITERALS[raw] if raw in JS_LITERALS else int(raw)
+        for key, raw in calls
+    }
+
+
 class TestLayout(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -81,11 +111,31 @@ class TestLayout(unittest.TestCase):
         self.assertIsNotNone(panel_height(self.text), "no literal panel.height")
 
     def test_widgets_in_menu_bar_order(self):
-        ids = re.findall(r'^panel\.addWidget\("([^"]+)"\)\s*;', self.text, re.M)
+        ids = re.findall(
+            r'^(?:var\s+\w+\s*=\s*)?panel\.addWidget\("([^"]+)"\)\s*;',
+            self.text,
+            re.M,
+        )
         self.assertEqual(MENU_BAR_WIDGETS, ids)
         self.assertEqual(
             len(MENU_BAR_WIDGETS), self.text.count("addWidget("), "addWidget count"
         )
+
+    def test_clock_writes_the_appearance_group(self):
+        name = clock_variable(self.text)
+        self.assertIsNotNone(name, "clock widget handle is not kept in a variable")
+        group = re.search(
+            r'^%s\.currentConfigGroup\s*=\s*\["Appearance"\]\s*;' % re.escape(name),
+            self.text,
+            re.M,
+        )
+        self.assertIsNotNone(group, "no currentConfigGroup = [\"Appearance\"]")
+        first_write = re.search(r"^%s\.writeConfig\(" % re.escape(name), self.text, re.M)
+        self.assertIsNotNone(first_write, "no writeConfig call")
+        self.assertLess(group.start(), first_write.start())
+
+    def test_clock_format_matches_reference(self):
+        self.assertEqual(CLOCK_FORMAT, clock_config(self.text))
 
     def test_desktops_use_the_image_wallpaper(self):
         self.assertRegex(self.text, r"wallpaperPlugin\s*=\s*'org\.kde\.image'")
@@ -107,6 +157,53 @@ class TestPanelHeightMatchesReference(ReferenceScreenshotMixin, unittest.TestCas
         self.assertEqual(WHITE, pixel(0))
         self.assertEqual(BEVEL_GREY, pixel(height - 2))
         self.assertEqual(BLACK, pixel(height - 1))
+
+
+class TestClockMatchesReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = REFERENCE
+
+    CLOCK_LEFT = 882
+    CLOCK_RIGHT = 925
+    CLOCK_TOP = 5
+    CLOCK_BOTTOM = 13
+    PM_LEFT = 909
+    PM_GLYPH = [
+        "#####..##......##",
+        "##..##.##......##",
+        "##..##.###....###",
+        "##..##.###....###",
+        "#####..#.##..#.##",
+        "##.....#.##..#.##",
+        "##.....#..###..##",
+        "##.....#..###..##",
+        "##.....#...#...##",
+    ]
+
+    def dark(self, x, y):
+        return self.pixel(x, y)[0] < 100
+
+    def test_reference_clock_is_one_line(self):
+        dark = [
+            (x, y)
+            for y in range(1, 18)
+            for x in range(800, 933)
+            if self.dark(x, y)
+        ]
+        columns = [x for x, _ in dark]
+        self.assertEqual((self.CLOCK_LEFT, self.CLOCK_RIGHT), (min(columns), max(columns)))
+        rows = [y for _, y in dark]
+        self.assertGreaterEqual(min(rows), self.CLOCK_TOP)
+        self.assertLessEqual(max(rows), self.CLOCK_BOTTOM)
+
+    def test_reference_clock_has_am_pm_suffix(self):
+        glyph = [
+            "".join(
+                "#" if self.dark(x, y) else "."
+                for x in range(self.PM_LEFT, self.CLOCK_RIGHT + 1)
+            )
+            for y in range(self.CLOCK_TOP, self.CLOCK_BOTTOM + 1)
+        ]
+        self.assertEqual(self.PM_GLYPH, glyph)
 
 
 if __name__ == "__main__":
