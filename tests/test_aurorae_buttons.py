@@ -51,13 +51,11 @@ def _parsed_svgs(paths):
     return [(os.path.basename(path), ET.parse(path)) for path in paths]
 
 
-
 def _inactive_fill(active_fill):
     """The inactive box keeps the #888888/#222222 outlines, flattens the rest."""
     if active_fill in ("#888888", "#222222"):
         return active_fill
     return INACTIVE_GREY
-
 
 
 class TestButtons(ReferenceImageCase, unittest.TestCase):

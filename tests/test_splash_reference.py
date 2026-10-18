@@ -64,6 +64,7 @@ def _contains(rect, x, y):
     rx, ry, width, height = rect
     return rx <= x < rx + width and ry <= y < ry + height
 
+
 class TestSplashReference(SplashReferenceCase):
     def test_field_colour_matches_reference(self):
         # The field is one flat #63639C, unlike the dithered panel edge: pin
@@ -187,7 +188,6 @@ class TestSplashGeometry(SplashReferenceCase):
             self.assertTrue(
                 _contains(rect, *sample), f"{sample} outside {rect}"
             )
-
 
 
 if __name__ == "__main__":

@@ -66,14 +66,12 @@ def _read_capped(path, opener, limit=_MAX_DECORATION_SVG_BYTES):
     return data
 
 
-
 def _unmasked_points(width, height, mask):
     """Yield every (x, y) of a width x height region that is not in *mask*."""
     for y in range(height):
         for x in range(width):
             if (x, y) not in mask:
                 yield x, y
-
 
 
 def _rect_fills(tree, group_id):
@@ -105,7 +103,6 @@ def _assert_flattened_inactive_tile(case, tree, slices, name, flattened):
     assert_slice_pixels(case, slices, name, expected)
     for fill in _rect_fills(tree, name):
         case.assertNotIn(fill, flattened)
-
 
 
 class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):

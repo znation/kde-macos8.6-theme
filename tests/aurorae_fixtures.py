@@ -43,7 +43,6 @@ INACTIVE_GREY = "#CCCCCC"
 ZOOM_BOX_X = 5
 
 
-
 class ReferenceImageCase:
     """Mixin: load the reference once and skip when it is not materialized.
 

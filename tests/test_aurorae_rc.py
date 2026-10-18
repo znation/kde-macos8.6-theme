@@ -28,7 +28,6 @@ def _kde(rgb):
     return ",".join(str(channel) for channel in rgb)
 
 
-
 def _black_run_length(colours, start=0):
     """Return the length of the first black->black run in *colours*.
 
@@ -44,7 +43,6 @@ def _black_run_length(colours, start=0):
     first = blacks[0]
     second = next(index for index in blacks if index > first + 1)
     return second - first + 1
-
 
 
 class TestRc(ReferenceImageCase, unittest.TestCase):

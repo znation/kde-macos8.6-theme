@@ -109,7 +109,6 @@ class TestInstall(
         return installed_aurorae_theme(tmp, self.PACKAGE_ID)
 
 
-
 @unittest.skipUnless(shutil.which("kpackagetool6"), "needs kpackagetool6")
 class TestPackageValid(KPackageInstallCase, unittest.TestCase):
     KPACKAGETOOL_TYPE = "KWin/Aurorae"
