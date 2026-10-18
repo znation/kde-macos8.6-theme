@@ -90,6 +90,30 @@ def _session_env() -> dict[str, str]:
     return env
 
 
+def _run_best_effort(
+    scratch: Path,
+    env: dict[str, str],
+    argv: list[str],
+    log_name: str,
+    *,
+    label: str,
+    consequence: str,
+) -> None:
+    """Run *argv*, noting a timeout or non-zero exit; never change the status.
+
+    *label* names the command in the note and *consequence* completes the
+    sentence with what happens because the command did not run. The missing-
+    tool note is the caller's, since each tool needs a different remedy. A
+    successful run prints nothing.
+    """
+    log = scratch / log_name
+    status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
+    if status is None:
+        _note(f"{label} timed out after {COMMAND_TIMEOUT:g}s; {consequence}")
+    elif status != 0:
+        _note(f"{label} exited {status}; {consequence}")
+
+
 def _reconfigure_kwin(scratch: Path, env: dict[str, str]) -> int:
     """Ask KWin to reload the decoration; a failure is a note, never an error.
 
@@ -104,24 +128,14 @@ def _reconfigure_kwin(scratch: Path, env: dict[str, str]) -> int:
             "on its next start"
         )
         return 0
-    log = scratch / "qdbus.log"
-    status = run_logged(
-        [qdbus, "org.kde.KWin", "/KWin", "reconfigure"],
+    _run_best_effort(
+        scratch,
         env,
-        log,
-        COMMAND_TIMEOUT,
-        ROOT,
+        [qdbus, "org.kde.KWin", "/KWin", "reconfigure"],
+        "qdbus.log",
+        label="KWin reconfigure",
+        consequence="KWin reloads the decoration on its next start",
     )
-    if status is None:
-        _note(
-            f"KWin reconfigure timed out after {COMMAND_TIMEOUT:g}s; KWin "
-            "reloads the decoration on its next start"
-        )
-    elif status != 0:
-        _note(
-            f"KWin reconfigure exited {status}; KWin reloads the decoration "
-            "on its next start"
-        )
     return 0
 
 
@@ -141,24 +155,14 @@ def _select_kvantum_theme(scratch: Path, env: dict[str, str]) -> int:
             f"{KVANTUM_THEME} theme in System Settings -> Application Style"
         )
         return 0
-    log = scratch / "kvantummanager.log"
-    status = run_logged(
-        [manager, "--set", KVANTUM_THEME],
+    _run_best_effort(
+        scratch,
         env,
-        log,
-        COMMAND_TIMEOUT,
-        ROOT,
+        [manager, "--set", KVANTUM_THEME],
+        "kvantummanager.log",
+        label="kvantummanager --set",
+        consequence="the widgets fall back to another style",
     )
-    if status is None:
-        _note(
-            f"kvantummanager --set timed out after {COMMAND_TIMEOUT:g}s; the "
-            "widgets fall back to another style"
-        )
-    elif status != 0:
-        _note(
-            f"kvantummanager --set exited {status}; the widgets fall back to "
-            "another style"
-        )
     return 0
 
 
