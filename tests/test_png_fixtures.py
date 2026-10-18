@@ -1,6 +1,7 @@
 """Tests for tests/support/png_fixtures.py -- the PNG encoder the image tests share.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

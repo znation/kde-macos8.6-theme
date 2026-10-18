@@ -8,7 +8,8 @@ returns on success nor the full diagnostic. These tests pin that shared
 contract directly, so a change to the check or its wording is caught here
 instead of in both callers at once.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

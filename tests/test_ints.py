@@ -8,7 +8,8 @@ through each caller's diagnostic, so none of them pins the predicate's
 boundary directly; these tests do, so a change to the check is caught here
 rather than in every caller at once.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

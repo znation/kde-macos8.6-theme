@@ -8,7 +8,8 @@ each rejection and the resource limit that bounds it, plus the entry guards
 for a non-PNG file and an unsupported colour type. Chunk framing lives in
 ``test_png_chunks``; successful decoding lives in ``test_png_decode``.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

@@ -1,6 +1,7 @@
 """Tests for the reference-pixel sampling CLI in tools/sample.py.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

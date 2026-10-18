@@ -5,7 +5,8 @@ colour types, palette expansion and the ``max_rows`` bound. The chunk-framing
 tests live in ``test_png_chunks``; the rejections for malformed image data and
 the resource limits live in ``test_png_malformed``.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

@@ -9,7 +9,8 @@ unsupported IHDR fields. Scanline decoding lives in ``test_png_decode``; the
 malformed-image-data and resource-limit rejections live in
 ``test_png_malformed``.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

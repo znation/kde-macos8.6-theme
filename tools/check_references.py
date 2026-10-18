@@ -10,7 +10,8 @@ format (such as an HTML error page saved under an image name), and source URLs
 that are not well-formed absolute URLs (a bare host, a relative path, or a raw
 space is a broken citation).
 
-Usage:
+Usage::
+
     python3 tools/check_references.py              # check the repository
     python3 tools/check_references.py --self-test  # exercise the checks
     python3 tools/check_references.py --help       # show usage

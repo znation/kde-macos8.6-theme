@@ -8,7 +8,8 @@ change to the plain-ASCII predicate, the option-named rejection or the
 control-character escaping of argparse's own diagnostics is caught here
 instead of through one tool and not the others.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

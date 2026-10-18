@@ -5,7 +5,8 @@ The Sub/Up round-trip below decodes through ``tools/png.py``, whose
 ``tools/png_scanlines.py`` imports these primitives; the lane and table helpers themselves live in
 ``tools/png_filters.py``.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 

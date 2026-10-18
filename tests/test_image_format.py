@@ -6,7 +6,8 @@ only the formats its current fixtures happen to use. These tests pin the
 shared signatures and detection directly, so a change to a magic or to the
 WebP container test is caught here instead of in one tool and not the other.
 
-Run with the project's check harness (stdlib unittest):
+Run with the project's check harness (stdlib unittest)::
+
     python3 -m unittest discover -s tests -v
 """
 
