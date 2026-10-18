@@ -7,7 +7,48 @@ each tick.
 
 ## Open
 
-_None yet._
+### Should the theme ship a Kvantum Platinum Qt style, adding Kvantum as a dependency?
+
+(asked 2026-10-18 by the plan role)
+
+**Context.** `contents/defaults` selects Qt's built-in `Windows` widget style, which draws square
+bevelled controls (matching systemprofiler_betawiki.png's general look) with no dependency. But
+no built-in Qt style draws Platinum exactly — the 2px grey/white bevel, the exact shadow
+colours, and the scroll-bar arrows at each end (the `Windows` style's scroll bar only
+approximates the reference). A pixel-matched Platinum Qt style needs a style engine such as
+Kvantum, whose theme this repo would ship and select with `widgetStyle=kvantum`.
+
+**Options.**
+1. Ship a Kvantum theme and select it: pixel-perfect KDE-app controls, but Kvantum must be
+   installed separately (a theme cannot install a system package), and when it is absent the
+   widgets fall back to another style.
+2. Keep the built-in `Windows` style: square bevels, no dependency, not pixel-perfect.
+
+**Recommendation.** Option 1 if the pixel-perfect goal outranks the no-dependency principle —
+it is the only path to pixel-exact KDE-app controls — with the fallback documented. Otherwise
+Option 2 keeps the current state and the scope-drift note's Qt-style line stays as it is.
+
+### May the icon theme reproduce Apple's Platinum icon art, and the Apple logo for the kicker?
+
+(asked 2026-10-18 by the plan role)
+
+**Context.** The scope-drift note in PLANS.md lists the icon theme as unthemed; the reference
+desktop/dialog/Finder screenshots show Platinum 32x32 icons. The planned "Mac OS 8.6 Platinum
+desktop icon theme" entry ships the hard-disk, folder, document and Trash icons in the Platinum
+style — the same kind of reproduction of Apple's Platinum design the theme already ships for
+chrome — and selects the theme from the global theme. Two parts are the user's call: whether to
+reproduce Apple's Platinum icon art at all, and whether the kicker may use the Apple logo (a
+registered trademark).
+
+**Options.**
+1. Ship the Platinum icon theme including the Apple logo for the kicker menu icon.
+2. Ship the Platinum icon theme but omit the Apple logo (the kicker keeps a generic icon).
+3. Do not ship an icon theme.
+
+**Recommendation.** Option 2. The generic Platinum icons follow the project's established
+reproduction of Platinum (the planned entry ships them regardless); the Apple logo mark is
+deferred unless you explicitly allow it. Answer Option 1 if you want the menu bar's top-left to
+match the reference exactly.
 
 ## Answered
 

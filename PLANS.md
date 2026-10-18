@@ -12,15 +12,20 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 `widgets/` plus `dialogs/background.svg`); the Aurorae window decoration (frame, close, zoom and
 collapse boxes); the desktop wallpaper package; and the render and fidelity tooling that checks
 them against `macos8.6-screenshots/`. README.md describes the reference set as the source of
-truth for "menu bar, window chrome, widget metrics, icons and colour palette". Still not
-themed, none of them planned or ruled out in this file: an icon theme (the Finder, desktop and
-dialog references show Platinum icons; the Apple-logo icon for kicker is deferred to one, see
-the "Out of scope (later plans)" paragraph of the menu-bar desktop layout plan), a cursor theme, a Qt widget style
-for KDE applications (the desktop theme styles only Plasma shell widgets, so a KDE app's own
-buttons, menus and scroll bars keep the Breeze look), and system sounds. A Qt widget style needs
-a style engine such as Kvantum, which would be a new dependency; the plan role should either
-plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
-the user's. Until then the shipped work should not be treated as the whole of the prompt.
+truth for "menu bar, window chrome, widget metrics, icons and colour palette". The prompt's
+surfaces the theme does not ship are each tracked here (updated 2026-10-18 by the plan role): an
+**icon theme** (the Finder, desktop and dialog references show Platinum icons; the Apple-logo
+icon for kicker is deferred to one, see the "Out of scope (later plans)" paragraph of the
+menu-bar desktop layout plan) is the "Mac OS 8.6 Platinum desktop icon theme" plan below, and
+whether the theme may draw the Apple logo for kicker is QUESTIONS.md ## Open; a **Qt widget
+style** for KDE applications (the desktop theme styles only Plasma shell widgets, so a KDE app's
+own buttons, menus and scroll bars would keep the Breeze look) is served by the global theme's
+selection of Qt's built-in `Windows` style, and a pixel-matched Platinum style needs a style
+engine such as Kvantum — a new dependency, so the call is QUESTIONS.md ## Open; a **cursor
+theme** is out of scope (no reference screenshot shows a cursor, so no pixel ground truth exists
+to match); and **system sounds** are out of scope (not a visual surface, so the reference set
+cannot ground them). Until the two open surfaces resolve, the shipped work should not be treated
+as the whole of the prompt.
 
 ### Local theme apply, part 1/2: `make apply` installs and re-applies the theme to the running Plasma session (planned 2026-10-18 by the director role)
 
@@ -106,6 +111,62 @@ committed or pushed, so other clones and contributors are unaffected.
 - `uninstall` removes a hook this tool installed and leaves a foreign one.
 - `make -n install-local-hook` shows the Python invocation, and `help` lists both targets.
 - `make check` passes.
+
+### Mac OS 8.6 Platinum desktop icon theme: a minimal `org.macos8.desktop` icon package for the icons the desktop shows (planned 2026-10-18 by the plan role)
+
+**Goal.** The desktop's icons still wear the default Breeze icons. Ship the first
+`org.macos8.desktop` icon-theme package so the hard-disk, folder, document and Trash icons the
+reference desktop shows (`desktop_betawiki.png`: one 32px column at x=960..991; the 32x32
+hard-disk block near rows 47..78 and the 32x32 Trash block near rows 668..699, each with its
+13-row label below) render as their Platinum 32x32 art, and select the theme from the global
+theme's `contents/defaults`. Scope: the icons a default desktop shows, at 32x32 only;
+everything else inherits Breeze. The Apple-logo kicker icon is out of scope — whether the theme
+may draw the Apple mark is QUESTIONS.md ## Open, so this entry ships no Apple logo.
+
+**Approach.**
+- New package `theme/icons/org.macos8.desktop/`: `index.theme` (name `org.macos8.desktop`,
+  `Inherits=Breeze`, a `Directories` entry for the shipped size context) and one 32x32 PNG per
+  icon under `32x32/<context>/`. Names to ship (confirm each against the Breeze icon theme the
+  installed Plasma ships, and add the alias names KDE resolves a desktop item to):
+  `drive-harddisk` (the hard-disk block), `user-trash` (the Trash block), `folder` (and
+  `inode-directory`), and `text-x-generic` (a generic document). Draw each icon's pixels from
+  its reference block, re-deriving the exact 32x32 extents with `python3 tools/sample.py`
+  first: keep the black outline and the flat fills the blocks show. PNGs, not SVGs, so a 32px
+  icon is pixel-exact at the desktop's `iconSize 1` (32px, set by the layout).
+- Global theme `contents/defaults`: add `[kdeglobals][Icons] Theme=org.macos8.desktop` (the LNF
+  defaults mechanism applies this key), and update `tests/test_lookandfeel.py::TestDefaults` —
+  `test_the_expected_sections_and_keys_are_set` pins the section list and per-section keys, so
+  it gains the new `[kdeglobals][Icons]` group.
+- Makefile: add `ICON_THEME_ID`/`ICON_THEME_PACKAGE`/`ICON_THEME_INSTALL_DIR` (install dir
+  `$(DESTDIR)$(XDG_DATA_HOME)/icons`) and install/uninstall the package in
+  `_install`/`_uninstall` beside the five existing artifacts, so `make install`, `make
+  uninstall` and `make render`'s scratch install (which runs `make install`) all cover it.
+- `tests/test_icon_theme.py` (new): `index.theme` names the theme and inherits Breeze; each
+  shipped 32x32 icon's pixels re-derive its reference block via `ReferenceScreenshotMixin` on
+  `desktop_betawiki.png` (skips when the LFS image is missing); `make install
+  XDG_DATA_HOME=<tmp>` copies the package under `<tmp>/icons/org.macos8.desktop/` and `make
+  uninstall` removes it.
+- `README.md`: list the icon theme as the sixth artifact and say the desktop's icons come from a
+  Platinum icon package the global theme selects.
+
+**Files touched.** `theme/icons/org.macos8.desktop/` (new), `contents/defaults`,
+`tests/test_lookandfeel.py`, `tests/test_icon_theme.py` (new), `Makefile`, `README.md`.
+
+**Out of scope.** The Apple-logo kicker icon (QUESTIONS.md ## Open); sizes other than 32x32
+(the menu bar and app menus want 16px — a later sub-plan, worded `requires part 1/2 landed`
+when planned); the full Platinum icon set (Breeze fills the rest).
+
+**Acceptance criteria.**
+- Each shipped icon's pixels equal its reference block's pixels (reference test; skips when the
+  LFS image is missing).
+- `contents/defaults` holds `[kdeglobals][Icons] Theme=org.macos8.desktop`, pinned by
+  `TestDefaults`.
+- `make install XDG_DATA_HOME=<tmp>` installs `<tmp>/icons/org.macos8.desktop/` and `make
+  uninstall` removes it; the existing five artifacts' install/uninstall tests still pass.
+- `index.theme` declares `Inherits=Breeze` (pinned), so every name the package does not ship
+  keeps its Breeze look.
+- README documents the artifact and the selection.
+- `make check` is green.
 
 ## Done
 
