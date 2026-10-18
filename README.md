@@ -36,8 +36,8 @@ The global theme applies that same scheme as one selection: `lookandfeeltool -a
 org.macos8.desktop` (list installed packages with `lookandfeeltool -l`). Applying the global
 theme also selects its startup splash (`contents/splash/Splash.qml`), which the KDE splash engine
 reads, and its window decoration through `[kwinrc][org.kde.kdecoration2]`, so a new window wears
-the `org.macos8.desktop` Platinum title bar with the close box on the left and the zoom box on
-the right. The theme also ships a desktop layout,
+the `org.macos8.desktop` Platinum title bar with the close box on the left and the zoom box and
+collapse box on the right. The theme also ships a desktop layout,
 `contents/layouts/org.kde.plasma.desktop-layout.js`: applying the theme with
 `lookandfeeltool -a org.macos8.desktop --resetLayout` (or with "Desktop and window layout" ticked
 in System Settings → Global Theme) replaces your existing panels with one flush 20px top menu bar
@@ -80,9 +80,9 @@ also ships `widgets/background.svg` (the flat white Platinum body for
 translucent rounded rectangle). The window decoration ships
 `metadata.json` and `metadata.desktop` (the KPackage and KWin-discovery
 metadata), `org.macos8.desktoprc` (the Aurorae layout: a 22px title bar, 6px
-side and bottom borders, and 12x12 close/zoom widgets), `decoration.svg` (the
+side and bottom borders, and 12x12 close/zoom/collapse widgets), `decoration.svg` (the
 active and inactive frames) with its gzipped `decoration.svgz` (the form
-`kpackagetool6` requires), and `close.svg`, `maximize.svg`, `restore.svg` (the
+`kpackagetool6` requires), and `close.svg`, `maximize.svg`, `restore.svg`, `shade.svg` (the
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make

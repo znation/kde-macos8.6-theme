@@ -151,13 +151,14 @@ class TestDefaults(unittest.TestCase):
         )
 
     def test_titlebar_buttons_match_the_reference(self):
-        """`aboutsystem_betawiki.png` shows close on the left, zoom on the right.
+        """`systemprofiler_betawiki.png` shows close, zoom and collapse boxes.
 
-        `X` is Close and `A` is Maximize in the KWin decoration button codes,
-        and there is no collapse box on either side.
+        `X` is Close, `A` is Maximize (the zoom box) and `L` is Shade (the
+        collapse box) in the KWin decoration button codes; close sits on the
+        left and zoom then collapse at the far right.
         """
         self.assertEqual(self.parser.get(KWIN_SECTION, "ButtonsOnLeft"), "X")
-        self.assertEqual(self.parser.get(KWIN_SECTION, "ButtonsOnRight"), "A")
+        self.assertEqual(self.parser.get(KWIN_SECTION, "ButtonsOnRight"), "AL")
 
     def test_color_scheme_matches_the_scheme_file(self):
         """The package must apply the scheme this repository actually ships.

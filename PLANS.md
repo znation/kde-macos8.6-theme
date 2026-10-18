@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 zoom box glyph and collapse (windowshade) box for the Aurorae decoration (planned 2026-10-17 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 zoom box glyph and collapse (windowshade) box for the Aurorae decoration (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Planned 2026-10-17 by plan.** Independent of every other entry: it touches only the
 `org.macos8.desktop` Aurorae package, one line of the global theme's `contents/defaults`, their
@@ -120,8 +124,6 @@ the whole package directory.
 - `make install` installs `shade.svg` (pinned by `TestInstall`). `kpackagetool6` still accepts
   the package wherever `TestPackageValid` runs.
 - README names `shade.svg`, and `make check` passes.
-
-## Done
 
 ### Mac OS 8.6 Platinum applet-popup heading (`widgets/plasmoidheading.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 

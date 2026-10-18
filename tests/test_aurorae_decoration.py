@@ -59,6 +59,7 @@ DECORATION_SVG = os.path.join(AURORAE_DIR, "decoration.svg")
 CLOSE_SVG = os.path.join(AURORAE_DIR, "close.svg")
 MAXIMIZE_SVG = os.path.join(AURORAE_DIR, "maximize.svg")
 RESTORE_SVG = os.path.join(AURORAE_DIR, "restore.svg")
+SHADE_SVG = os.path.join(AURORAE_DIR, "shade.svg")
 METADATA = os.path.join(AURORAE_DIR, "metadata.json")
 METADATA_DESKTOP = os.path.join(AURORAE_DIR, "metadata.desktop")
 DECORATION_SVGZ = os.path.join(AURORAE_DIR, "decoration.svgz")
@@ -70,9 +71,10 @@ DECORATION_SVGZ = os.path.join(AURORAE_DIR, "decoration.svgz")
 # allocating its expansion whole.
 _MAX_DECORATION_SVG_BYTES = 1 << 20
 
-# The three Aurorae button SVGs: the close widget on the left, and the
-# maximize and restore states of the zoom widget on the right.
-BUTTON_SVGS = (CLOSE_SVG, MAXIMIZE_SVG, RESTORE_SVG)
+# The four Aurorae button SVGs: the close widget on the left, and on the right
+# the maximize and restore states of the zoom widget plus the collapse
+# (windowshade) widget.
+BUTTON_SVGS = (CLOSE_SVG, MAXIMIZE_SVG, RESTORE_SVG, SHADE_SVG)
 ZOOM_SVGS = (MAXIMIZE_SVG, RESTORE_SVG)
 
 REFERENCE = os.path.join(
@@ -80,6 +82,13 @@ REFERENCE = os.path.join(
 )
 # The deepest reference row this module reads is the bottom border at y=424.
 REFERENCE_ROWS = 425
+# The retail Japanese 8.6 System Profiler window shows the close, zoom and
+# collapse boxes in one title bar (aboutsystem's window cannot be zoomed).
+PROFILER_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "systemprofiler_betawiki.png"
+)
+# The deepest profiler row this module reads is the box bottom at y=37.
+PROFILER_ROWS = 38
 
 # The flat grey every inactive-state tile uses in place of the active tile's
 # highlight and pinstripe fills. The reference set has no inactive window, so
@@ -195,6 +204,8 @@ class ReferenceImageCase:
 
     image = None
     image_error = None
+    profiler_image = None
+    profiler_error = None
 
     @classmethod
     def setUpClass(cls):
@@ -205,6 +216,26 @@ class ReferenceImageCase:
     def reference_pixel(self, x, y):
         skip_unless_materialized(self, REFERENCE, self.image_error)
         return png.pixel_at(self.image, x, y)
+
+    @classmethod
+    def load_profiler_reference(cls):
+        cls.profiler_image, cls.profiler_error = read_reference(
+            PROFILER_REFERENCE, max_rows=PROFILER_ROWS
+        )
+
+    def profiler_pixel(self, x, y):
+        skip_unless_materialized(
+            self, PROFILER_REFERENCE, self.profiler_error
+        )
+        return png.pixel_at(self.profiler_image, x, y)
+
+    def profiler_box(self, x0, y0, size=12):
+        """Return a *size* x *size* profiler region as {(x, y): '#RRGGBB'}."""
+        return {
+            (x, y): hex_colour(self.profiler_pixel(x0 + x, y0 + y))
+            for y in range(size)
+            for x in range(size)
+        }
 
     def reference_box(self, x0, y0, size=12):
         """Return a *size* x *size* reference region as {(x, y): '#RRGGBB'}.
@@ -293,6 +324,7 @@ class TestInstall(
         "close.svg",
         "maximize.svg",
         "restore.svg",
+        "shade.svg",
     )
     COPY_FAILURE_GLOB = "*/aurorae/themes/*"
 
@@ -304,6 +336,11 @@ class TestInstall(
 
 
 class TestRc(ReferenceImageCase, unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.load_profiler_reference()
+
     def setUp(self):
         self.parser = read_kde_config(RC)
 
@@ -342,8 +379,8 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
     def _box_bounds(self, x0, x1):
         """Return the (x, y, width, height) of a #888888 button face.
 
-        The close and zoom boxes are the only #888888 faces in this band of
-        the title bar; ``x0`` and ``x1`` bound the columns searched so each
+        The close and collapse boxes are the only #888888 faces in this band
+        of the title bar of aboutsystem's window; ``x0`` and ``x1`` bound the columns searched so each
         box's bounds are measured from its own face.
         """
         points = [
@@ -376,7 +413,7 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         self.assertEqual(int(self.parser.get(layout, "ButtonHeight")), box_h)
 
     def test_button_offsets_match_reference(self):
-        # The close and zoom boxes are drawn over the frame at the offsets the
+        # The close and collapse boxes are drawn over the frame at the offsets the
         # rc names: Aurorae anchors the left button group TitleEdgeLeft from
         # the frame's left edge and the right group TitleEdgeRight from its
         # right edge, both ButtonMarginTop below the frame's top edge, and the
@@ -386,17 +423,50 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         layout = "Layout"
         left, right, top = self._frame_edges()
         close_x, close_y, _, _ = self._box_bounds(8, 26)
-        zoom_x, zoom_y, zoom_w, _ = self._box_bounds(338, 360)
-        self.assertEqual(close_y, zoom_y)
+        collapse_x, collapse_y, collapse_w, _ = self._box_bounds(338, 360)
+        self.assertEqual(close_y, collapse_y)
         self.assertEqual(
             int(self.parser.get(layout, "TitleEdgeLeft")), close_x - left
         )
         self.assertEqual(
             int(self.parser.get(layout, "TitleEdgeRight")),
-            right - (zoom_x + zoom_w - 1),
+            right - (collapse_x + collapse_w - 1),
+        )
+        # The profiler window has the same right-hand offset: its outline's
+        # last black pixel on row y=22 (x<816) against the collapse face's
+        # right edge at x=808.
+        outline = [
+            x
+            for x in range(0, 816)
+            if self.profiler_pixel(x, 22) == (0, 0, 0)
+        ]
+        self.assertEqual(
+            int(self.parser.get(layout, "TitleEdgeRight")),
+            outline[-1] - 808,
         )
         self.assertEqual(
             int(self.parser.get(layout, "ButtonMarginTop")), close_y - top
+        )
+
+    def test_button_spacing_matches_reference(self):
+        # ButtonSpacing is the gap between the zoom and collapse faces:
+        # the profiler's #888888 columns split into two runs, one per box.
+        columns = sorted(
+            {
+                x
+                for y in range(26, 38)
+                for x in range(775, 816)
+                if self.profiler_pixel(x, y) == (136, 136, 136)
+            }
+        )
+        jumps = [
+            (a, b) for a, b in zip(columns, columns[1:]) if b - a > 1
+        ]
+        self.assertEqual(len(jumps), 1, columns)
+        zoom_right, collapse_left = jumps[0]
+        self.assertEqual(
+            int(self.parser.get("Layout", "ButtonSpacing")),
+            collapse_left - zoom_right - 1,
         )
 
     def test_title_bar_colours_match_reference(self):
@@ -607,39 +677,65 @@ class TestCorners(ReferenceImageCase, unittest.TestCase):
 
 
 class TestButtons(ReferenceImageCase, unittest.TestCase):
-    # The zoom glyph: two horizontal #222222 bars at local y=5 and y=7
+    # The collapse glyph: two horizontal #222222 bars at local y=5 and y=7
     # spanning x=2..10.
-    ZOOM_GLYPH = frozenset((x, y) for x in range(2, 11) for y in (5, 7))
+    COLLAPSE_GLYPH = frozenset((x, y) for x in range(2, 11) for y in (5, 7))
+    # The zoom glyph: the inner square's top and left sides, at local x=7 for
+    # y=2..6 and local y=7 for x=2..7.
+    ZOOM_GLYPH = frozenset(
+        [(7, y) for y in range(2, 7)] + [(x, 7) for x in range(2, 8)]
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.load_profiler_reference()
 
     def test_close_box_matches_reference(self):
         expected = self.reference_box(11, 29)
         slices = render_slices(ET.parse(CLOSE_SVG))
         self.assertEqual(slices["active-center"], expected)
+        self.assertEqual(slices["active-center"], self.profiler_box(213, 26))
 
     def test_zoom_box_matches_reference(self):
-        # The reference's zoom box (x=343..354) differs from its close box: it
-        # carries an inner #222222 glyph. Pin every pixel against the zoom box.
-        expected = self.reference_box(343, 29)
+        # The profiler's zoom box (x=781..792) is the close box plus the
+        # inner square. Pin every pixel against it.
+        expected = self.profiler_box(781, 26)
         for name, tree in _parsed_svgs(ZOOM_SVGS):
             with self.subTest(svg=name):
                 slices = render_slices(tree)
                 self.assertEqual(slices["active-center"], expected)
 
+    def test_collapse_box_matches_reference(self):
+        # The collapse box is identical in aboutsystem (343,29) and the
+        # profiler (797,26).
+        slices = render_slices(ET.parse(SHADE_SVG))
+        self.assertEqual(slices["active-center"], self.reference_box(343, 29))
+        self.assertEqual(slices["active-center"], self.profiler_box(797, 26))
+
+    def _glyph(self, path, base_path, group):
+        art = render_slices(ET.parse(path))[group]
+        base = render_slices(ET.parse(base_path))[group]
+        return art, {p for p in art if art[p] != base[p]}
+
     def test_zoom_glyph_is_the_reference_glyph(self):
-        # Pin the glyph itself, not only the whole-box comparison: two
-        # horizontal #222222 bars at local y=5 and y=7 spanning x=2..10.
-        zoom = render_slices(ET.parse(MAXIMIZE_SVG))["active-center"]
-        close = render_slices(ET.parse(CLOSE_SVG))["active-center"]
-        glyph = {
-            (x, y)
-            for y in range(12)
-            for x in range(12)
-            if zoom[(x, y)] != close[(x, y)]
-        }
-        self.assertEqual(glyph, self.ZOOM_GLYPH)
+        for name, path in (("maximize", MAXIMIZE_SVG), ("restore", RESTORE_SVG)):
+            with self.subTest(svg=name):
+                zoom, glyph = self._glyph(path, CLOSE_SVG, "active-center")
+                self.assertEqual(glyph, self.ZOOM_GLYPH)
+                for x, y in sorted(glyph):
+                    self.assertEqual(
+                        zoom[(x, y)],
+                        hex_colour(self.profiler_pixel(781 + x, 26 + y)),
+                        (x, y),
+                    )
+
+    def test_collapse_glyph_is_the_reference_glyph(self):
+        collapse, glyph = self._glyph(SHADE_SVG, CLOSE_SVG, "active-center")
+        self.assertEqual(glyph, self.COLLAPSE_GLYPH)
         for x, y in sorted(glyph):
             self.assertEqual(
-                zoom[(x, y)],
+                collapse[(x, y)],
                 hex_colour(self.reference_pixel(343 + x, 29 + y)),
                 (x, y),
             )
@@ -647,8 +743,8 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
     def test_inactive_center_is_flat(self):
         # The inactive box keeps the active box's #888888/#222222 outlines and
         # flattens its gradient face to #CCCCCC (KDE-required provenance: the
-        # reference set has no inactive window). The zoom glyph is #222222, so
-        # it survives over the flat face.
+        # reference set has no inactive window). The glyphs are #222222, so
+        # they survive over the flat face.
         for name, tree in _parsed_svgs(BUTTON_SVGS):
             with self.subTest(svg=name):
                 assert_unique_ids(self, tree)
@@ -661,13 +757,17 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                         inactive[point], _inactive_fill(fill), point
                     )
 
-    def test_inactive_zoom_glyph_survives(self):
-        close = render_slices(ET.parse(CLOSE_SVG))["inactive-center"]
-        for name, tree in _parsed_svgs(ZOOM_SVGS):
-            with self.subTest(svg=name):
-                zoom = render_slices(tree)["inactive-center"]
-                glyph = {point for point in zoom if zoom[point] != close[point]}
-                self.assertEqual(glyph, self.ZOOM_GLYPH)
+    def test_inactive_glyphs_survive(self):
+        for glyph, svgs in (
+            (self.ZOOM_GLYPH, ZOOM_SVGS),
+            (self.COLLAPSE_GLYPH, (SHADE_SVG,)),
+        ):
+            for name, tree in _parsed_svgs(svgs):
+                with self.subTest(svg=name):
+                    art = render_slices(tree)["inactive-center"]
+                    close = render_slices(ET.parse(CLOSE_SVG))["inactive-center"]
+                    differing = {p for p in art if art[p] != close[p]}
+                    self.assertEqual(differing, glyph)
 
     def test_button_svgs_are_self_contained(self):
         for name, tree in _parsed_svgs(BUTTON_SVGS):

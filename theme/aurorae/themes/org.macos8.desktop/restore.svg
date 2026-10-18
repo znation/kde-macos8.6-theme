@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mac OS 8.6 "Platinum" restore (un-zoom) widget.
 
-     The reference set has no maximized window, so this reuses the zoom
-     box artwork (macos8.6-screenshots/aboutsystem_betawiki.png at
-     x=343..354, y=29..40); the KDE-required provenance is recorded in
-     PLANS.md. Re-derived by tests/test_aurorae_decoration.py.
+     Mac OS does not change the zoom box when a window is zoomed, so this
+     reuses the zoom box artwork (macos8.6-screenshots/systemprofiler_betawiki.png
+     at x=781..792, y=26..37). The reference set has no zoomed window; the
+     KDE-required provenance is recorded in PLANS.md. Re-derived by
+     tests/test_aurorae_decoration.py.
 
      The `inactive-center` group flattens the gradient face to #CCCCCC
      (KDE-required provenance: the reference set has no inactive window)
@@ -17,14 +18,17 @@
     <rect x="0" y="2" width="1" height="1" fill="#888888"/>
     <rect x="1" y="2" width="1" height="1" fill="#222222"/>
     <rect x="2" y="2" width="1" height="1" fill="#FFFFFF"/>
-    <rect x="3" y="2" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="2" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="2" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="2" width="3" height="1" fill="#CCCCCC"/>
     <rect x="11" y="2" width="1" height="1" fill="#222222"/>
     <rect x="0" y="3" width="1" height="1" fill="#888888"/>
     <rect x="1" y="3" width="1" height="1" fill="#222222"/>
     <rect x="2" y="3" width="1" height="1" fill="#CCCCCC"/>
     <rect x="3" y="3" width="2" height="1" fill="#999999"/>
     <rect x="5" y="3" width="2" height="1" fill="#AAAAAA"/>
-    <rect x="7" y="3" width="2" height="1" fill="#BBBBBB"/>
+    <rect x="7" y="3" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="3" width="1" height="1" fill="#BBBBBB"/>
     <rect x="9" y="3" width="1" height="1" fill="#CCCCCC"/>
     <rect x="10" y="3" width="1" height="1" fill="#888888"/>
     <rect x="11" y="3" width="1" height="1" fill="#222222"/>
@@ -33,23 +37,37 @@
     <rect x="2" y="4" width="1" height="1" fill="#CCCCCC"/>
     <rect x="3" y="4" width="1" height="1" fill="#999999"/>
     <rect x="4" y="4" width="2" height="1" fill="#AAAAAA"/>
-    <rect x="6" y="4" width="2" height="1" fill="#BBBBBB"/>
+    <rect x="6" y="4" width="1" height="1" fill="#BBBBBB"/>
+    <rect x="7" y="4" width="1" height="1" fill="#222222"/>
     <rect x="8" y="4" width="2" height="1" fill="#CCCCCC"/>
     <rect x="10" y="4" width="1" height="1" fill="#888888"/>
     <rect x="11" y="4" width="1" height="1" fill="#222222"/>
     <rect x="0" y="5" width="1" height="1" fill="#888888"/>
-    <rect x="1" y="5" width="11" height="1" fill="#222222"/>
+    <rect x="1" y="5" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="5" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="5" width="2" height="1" fill="#AAAAAA"/>
+    <rect x="5" y="5" width="2" height="1" fill="#BBBBBB"/>
+    <rect x="7" y="5" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="5" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="9" y="5" width="1" height="1" fill="#DDDDDD"/>
+    <rect x="10" y="5" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="5" width="1" height="1" fill="#222222"/>
     <rect x="0" y="6" width="1" height="1" fill="#888888"/>
     <rect x="1" y="6" width="1" height="1" fill="#222222"/>
     <rect x="2" y="6" width="1" height="1" fill="#CCCCCC"/>
     <rect x="3" y="6" width="1" height="1" fill="#AAAAAA"/>
     <rect x="4" y="6" width="2" height="1" fill="#BBBBBB"/>
-    <rect x="6" y="6" width="2" height="1" fill="#CCCCCC"/>
+    <rect x="6" y="6" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="6" width="1" height="1" fill="#222222"/>
     <rect x="8" y="6" width="2" height="1" fill="#DDDDDD"/>
     <rect x="10" y="6" width="1" height="1" fill="#888888"/>
     <rect x="11" y="6" width="1" height="1" fill="#222222"/>
     <rect x="0" y="7" width="1" height="1" fill="#888888"/>
-    <rect x="1" y="7" width="11" height="1" fill="#222222"/>
+    <rect x="1" y="7" width="7" height="1" fill="#222222"/>
+    <rect x="8" y="7" width="1" height="1" fill="#DDDDDD"/>
+    <rect x="9" y="7" width="1" height="1" fill="#EEEEEE"/>
+    <rect x="10" y="7" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="7" width="1" height="1" fill="#222222"/>
     <rect x="0" y="8" width="1" height="1" fill="#888888"/>
     <rect x="1" y="8" width="1" height="1" fill="#222222"/>
     <rect x="2" y="8" width="1" height="1" fill="#CCCCCC"/>
@@ -81,27 +99,43 @@
     <rect x="1" y="1" width="11" height="1" fill="#222222"/>
     <rect x="0" y="2" width="1" height="1" fill="#888888"/>
     <rect x="1" y="2" width="1" height="1" fill="#222222"/>
-    <rect x="2" y="2" width="9" height="1" fill="#CCCCCC"/>
+    <rect x="2" y="2" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="2" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="2" width="3" height="1" fill="#CCCCCC"/>
     <rect x="11" y="2" width="1" height="1" fill="#222222"/>
     <rect x="0" y="3" width="1" height="1" fill="#888888"/>
     <rect x="1" y="3" width="1" height="1" fill="#222222"/>
-    <rect x="2" y="3" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="2" y="3" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="3" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="3" width="2" height="1" fill="#CCCCCC"/>
     <rect x="10" y="3" width="1" height="1" fill="#888888"/>
     <rect x="11" y="3" width="1" height="1" fill="#222222"/>
     <rect x="0" y="4" width="1" height="1" fill="#888888"/>
     <rect x="1" y="4" width="1" height="1" fill="#222222"/>
-    <rect x="2" y="4" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="2" y="4" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="4" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="4" width="2" height="1" fill="#CCCCCC"/>
     <rect x="10" y="4" width="1" height="1" fill="#888888"/>
     <rect x="11" y="4" width="1" height="1" fill="#222222"/>
     <rect x="0" y="5" width="1" height="1" fill="#888888"/>
-    <rect x="1" y="5" width="11" height="1" fill="#222222"/>
+    <rect x="1" y="5" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="5" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="5" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="5" width="2" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="5" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="5" width="1" height="1" fill="#222222"/>
     <rect x="0" y="6" width="1" height="1" fill="#888888"/>
     <rect x="1" y="6" width="1" height="1" fill="#222222"/>
-    <rect x="2" y="6" width="8" height="1" fill="#CCCCCC"/>
+    <rect x="2" y="6" width="5" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="6" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="6" width="2" height="1" fill="#CCCCCC"/>
     <rect x="10" y="6" width="1" height="1" fill="#888888"/>
     <rect x="11" y="6" width="1" height="1" fill="#222222"/>
     <rect x="0" y="7" width="1" height="1" fill="#888888"/>
-    <rect x="1" y="7" width="11" height="1" fill="#222222"/>
+    <rect x="1" y="7" width="7" height="1" fill="#222222"/>
+    <rect x="8" y="7" width="2" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="7" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="7" width="1" height="1" fill="#222222"/>
     <rect x="0" y="8" width="1" height="1" fill="#888888"/>
     <rect x="1" y="8" width="1" height="1" fill="#222222"/>
     <rect x="2" y="8" width="8" height="1" fill="#CCCCCC"/>

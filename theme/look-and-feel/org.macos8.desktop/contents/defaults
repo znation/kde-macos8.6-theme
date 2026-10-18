@@ -8,7 +8,7 @@ name=org.macos8.desktop
 library=org.kde.kwin.aurorae
 theme=__aurorae__svg__org.macos8.desktop
 ButtonsOnLeft=X
-ButtonsOnRight=A
+ButtonsOnRight=AL
 
 [Wallpaper]
 Image=org.macos8.desktop
