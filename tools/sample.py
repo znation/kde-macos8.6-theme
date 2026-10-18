@@ -3,7 +3,7 @@
 The reference screenshots are the source of truth for the theme's palette and
 metrics, so each palette or metric value is pinned by reading a pixel from
 one. This tool makes that sampling a command: it reads the image through
-``tools/png.py`` so the same LFS-aware ``read_png`` and bounds-checked
+``tools/png/__init__.py`` so the same LFS-aware ``read_png`` and bounds-checked
 ``pixel_at`` apply, then prints the pixel in the two forms the theme files
 use -- the ``R,G,B`` triple copied into a ``.colors`` file and the ``#RRGGBB``
 literal copied into an SVG or QML file. ``--width``/``--height`` extend that

@@ -1,4 +1,4 @@
-"""Tests for tools/png.py's decode_png -- malformed image data and limits.
+"""Tests for tools/png/__init__.py's decode_png -- malformed image data and limits.
 
 After the chunk stream is well formed, the image data can still be
 untrustworthy: a palette index can fall outside its table, the IDAT stream can

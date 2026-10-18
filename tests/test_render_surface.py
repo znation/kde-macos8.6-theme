@@ -21,7 +21,7 @@ from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.platinum_palette import FACE, hex_colour
 from tools import render_surface  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
-from tools.png_write import encode_png  # noqa: E402
+from tools.png.write import encode_png  # noqa: E402
 
 SCRIPT = str(repo_root.ROOT / "tools" / "render_surface.py")
 

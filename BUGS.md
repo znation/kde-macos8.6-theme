@@ -305,11 +305,11 @@ but the tooltip anchor (`255,255,204`) had no reference pixel: in `macos8.6-scre
 colour occurs only as anti-aliasing fragments — diagonal edges and a few small glyph-like clusters
 — never as a balloon, so there was no pixel to re-derive it from.
 
-**How to reproduce:** Decode every PNG in `macos8.6-screenshots/` with `tools/png.py` and search
+**How to reproduce:** Decode every PNG in `macos8.6-screenshots/` with `tools/png/__init__.py` and search
 for `255,255,204`. The largest connected region is a 185-pixel diagonal edge at (966–984, 289–311)
 in `desktop_betawiki.png` and `firstboot_betawiki.png`, plus small glyph clusters near (388–397,
 77–88) in `firstboot_betawiki.png` — no balloon. Decoding the JPEGs (via a converter, since
-`tools/png.py` cannot read them) and searching likewise finds no pale-yellow balloon.
+`tools/png/__init__.py` cannot read them) and searching likewise finds no pale-yellow balloon.
 
 **Suspected cause:** The palette was sampled by hand with ImageMagick while planning; the tooltip
 token has no recorded sample point, and none of the collected reference screenshots happens to show
@@ -345,7 +345,7 @@ test fails: `(204, 204, 255) != (206, 206, 255)`.
 **Fix:** Corrected `[Colors:Selection] BackgroundNormal`/`BackgroundAlternate` to `204,204,255` in
 `theme/color-schemes/MacOS8.colors`, updated `TestAnchors`, and added
 `TestReferenceAnchors.test_selection_background`, which decodes `firstboot_betawiki.png` with
-`tools/png.py` and asserts the selection fill at `(200, 63)`. The tooltip token is not a sampled
+`tools/png/__init__.py` and asserts the selection fill at `(200, 63)`. The tooltip token is not a sampled
 anchor (see the Fixed palette-anchor entry above).
 
 **Validation gap:** unclear-invariant — confirming the bug meant deciding which reference was
@@ -453,7 +453,7 @@ their provenance, but no code compared a captured surface against the retail-lab
 **Fix:** The fidelity tooling decodes PNG candidates and references (8-bit, non-interlaced, color
 types 0/2/3/4/6) with only the standard library, crops a reference to a surface region, and reports
 objective metrics — mean absolute error, RMSE, worst per-channel delta, and differing-pixel
-fraction — exiting non-zero when the result is outside the requested tolerance. `tools/png.py`
+fraction — exiting non-zero when the result is outside the requested tolerance. `tools/png/__init__.py`
 holds the decoder, `tools/fidelity_metrics.py` the comparison math, and `tools/fidelity.py` the CLI.
 `tests/test_png_decode.py` covers decoding (palette plus every PNG filter type);
 `tests/test_fidelity_metrics.py` covers the metrics and cropping, and

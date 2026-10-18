@@ -1902,7 +1902,7 @@ size and writes it as the candidate PNG `tools/fidelity.py` consumes. Pin it wit
     kills the whole process group, as `tests/support/process_runner.py` does, and exits 1.
   - Before launching, the script checks every external binary above with `shutil.which` and
     exits 2 naming the first one missing.
-  - After the run it checks that `OUTPUT` exists and decodes with `tools/png.py` `read_png` at
+  - After the run it checks that `OUTPUT` exists and decodes with `tools/png/__init__.py` `read_png` at
     exactly W x H. Otherwise it exits 1.
 - `Makefile`: add a public `render` target, `$(PYTHON) tools/render_surface.py
   $(RENDER_OUTPUT)`, with `RENDER_OUTPUT ?= render.png`. List it and `RENDER_OUTPUT` in `make
@@ -2032,12 +2032,12 @@ would blur the 1-px dither. This follows Breeze's `Next` package, which ships
 `contents/images/<W>x<H>.png` per resolution.
 
 **Approach.**
-- `tools/png_write.py` (new, standard library only: `zlib`, `struct`): add
+- `tools/png/write.py` (new, standard library only: `zlib`, `struct`): add
   `encode_png(width, height, rgb) -> bytes`. It writes 8-bit RGB (colour type 2),
   non-interlaced, filter type 0 on every row, one IDAT compressed at `zlib` level 9, and
   `IHDR`/`IDAT`/`IEND` with CRCs. It raises `ValueError` when `rgb` is not bytes/bytearray of
   exactly `width*height*3`, or when either dimension is not a positive int. This is a separate
-  module because `tools/png.py` is the reader and is already over 500 lines.
+  module because `tools/png/__init__.py` is the reader and is already over 500 lines.
 - `tools/make_wallpaper.py` (new): define these constants:
   - `REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"`
   - `TILE_ORIGIN = (0, 128)`
@@ -2067,7 +2067,7 @@ would blur the 1-px dither. This follows Breeze's `Next` package, which ships
   `"KPackageStructure": "Wallpaper/Images"`.
 - Generate the images by running `python3 tools/make_wallpaper.py` once, and commit them.
 
-**Files touched.** `tools/png_write.py`, `tools/make_wallpaper.py`,
+**Files touched.** `tools/png/write.py`, `tools/make_wallpaper.py`,
 `theme/wallpapers/org.macos8.desktop/metadata.json`,
 `theme/wallpapers/org.macos8.desktop/contents/images/*.png` (generated),
 `tests/test_png_write.py`, `tests/test_wallpaper.py`.

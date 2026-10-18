@@ -3,7 +3,7 @@
 The close, maximize, restore and collapse (windowshade) widget SVGs with
 their active and inactive states, re-derived from
 `macos8.6-screenshots/aboutsystem_betawiki.png` and
-`systemprofiler_betawiki.png` through `tools/png.py`. The inactive greys are
+`systemprofiler_betawiki.png` through `tools/png/__init__.py`. The inactive greys are
 KDE-required provenance (the reference set has no inactive window). The
 references are stored with Git LFS, so a clone without them skips these
 tests rather than failing `make check`.

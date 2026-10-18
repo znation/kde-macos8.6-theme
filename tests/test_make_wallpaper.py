@@ -12,7 +12,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
 from tools import make_wallpaper, png  # noqa: E402
-from tools.png_write import encode_png  # noqa: E402
+from tools.png.write import encode_png  # noqa: E402
 
 TILE = make_wallpaper.TILE_SIZE
 X0, Y0 = make_wallpaper.TILE_ORIGIN

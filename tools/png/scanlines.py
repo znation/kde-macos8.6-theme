@@ -2,18 +2,14 @@
 
 Turns the inflated IDAT bytes (one filter-type byte plus the filtered samples
 per row) into plain samples. The Sub/Up lane arithmetic and Paeth delta table
-live in ``tools/png_filters.py``; the chunk framing in ``tools/png_chunks.py``
-and the color-type expansion in ``tools/png.py``.
+live in ``tools/png/filters.py``; the chunk framing in ``tools/png/chunks.py``
+and the color-type expansion in ``tools/png/__init__.py``.
 """
 
 from __future__ import annotations
 
-if __package__:
-    from tools.png_filters import _byte_add, _paeth_delta_table, _prefix_sum
-    from tools.png_image import PngError
-else:  # run as a top-level module, e.g. imported by tools/png.py
-    from png_filters import _byte_add, _paeth_delta_table, _prefix_sum
-    from png_image import PngError
+from .filters import _byte_add, _paeth_delta_table, _prefix_sum
+from .image import PngError
 
 
 def raw_byte_length(width: int, height: int, channels: int) -> int:

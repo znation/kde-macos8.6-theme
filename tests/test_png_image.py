@@ -1,4 +1,4 @@
-"""Tests for tools/png_image.py's Image type -- the decoded-image container.
+"""Tests for tools/png/image.py's Image type -- the decoded-image container.
 
 Run with the project's check harness (stdlib unittest)::
 

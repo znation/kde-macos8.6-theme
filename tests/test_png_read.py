@@ -1,4 +1,4 @@
-"""Tests for tools/png.py's read_png -- its input guards (the file-size cap
+"""Tests for tools/png/__init__.py's read_png -- its input guards (the file-size cap
 and the regular-file check) and its error paths.
 
 Run with the project's check harness (stdlib unittest)::

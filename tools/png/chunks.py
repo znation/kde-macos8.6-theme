@@ -3,7 +3,7 @@
 :func:`iter_chunks` walks the chunk stream after the signature and yields
 ``(type, payload)`` for each chunk, rejecting an oversized length, an invalid
 type code, a truncated payload or CRC, and a bad checksum by name. What the
-chunks mean (IHDR, PLTE, IDAT, IEND) is ``tools/png.py``'s concern.
+chunks mean (IHDR, PLTE, IDAT, IEND) is ``tools/png/__init__.py``'s concern.
 """
 
 from __future__ import annotations
@@ -12,12 +12,12 @@ import struct
 import zlib
 from collections.abc import Iterator
 
-if __package__:
+try:
     from tools.image_format import PNG_MAGIC
-    from tools.png_image import PngError
-else:  # run as a top-level module, e.g. imported by tools/png.py
+except ImportError:  # imported as the top-level package `png` by a directly run tool
     from image_format import PNG_MAGIC
-    from png_image import PngError
+
+from .image import PngError
 
 # The PNG spec caps a chunk's payload length at 2**31 - 1 bytes: the field is
 # 32-bit unsigned, but values with the high bit set are reserved. A file

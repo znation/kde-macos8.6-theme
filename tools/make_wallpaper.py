@@ -18,10 +18,10 @@ from pathlib import Path
 
 if __package__:
     from tools.png import Image, PngError, read_png
-    from tools.png_write import encode_png
+    from tools.png.write import encode_png
 else:  # run directly: python3 tools/make_wallpaper.py
     from png import Image, PngError, read_png
-    from png_write import encode_png
+    from png.write import encode_png
 
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"

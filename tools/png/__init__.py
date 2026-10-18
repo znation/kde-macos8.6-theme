@@ -7,9 +7,9 @@ are the consumers today; keeping the reader separate lets a future capture or
 render step read PNGs without pulling in the comparison and CLI layers. This
 module holds the decode pipeline (header validation, bounds, inflate, color
 expansion) and :func:`read_png`; the pieces it is built from live in sibling
-modules: ``tools/png_image.py`` (``PngError``, ``Image``, ``pixel_at``, all
-re-exported here), ``tools/png_chunks.py`` (chunk framing),
-``tools/png_scanlines.py`` (unfiltering) and ``tools/png_filters.py`` (the
+modules: ``tools/png/image.py`` (``PngError``, ``Image``, ``pixel_at``, all
+re-exported here), ``tools/png/chunks.py`` (chunk framing),
+``tools/png/scanlines.py`` (unfiltering) and ``tools/png/filters.py`` (the
 Sub/Up lane arithmetic and Paeth delta table).
 
 Raises :class:`PngError` for a malformed or unsupported PNG.
@@ -23,26 +23,24 @@ import struct
 import zlib
 from pathlib import Path
 
-if __package__:
+try:
     from tools.image_format import (
         LFS_POINTER_MAGIC,
         PNG_MAGIC,
         other_image_format,
     )
     from tools.ints import is_plain_int
-    from tools.png_chunks import chunk_name, iter_chunks
-    from tools.png_image import Image, PngError, pixel_at
-    from tools.png_scanlines import drop_alpha, raw_byte_length, unfilter
-else:  # run as a top-level module, e.g. imported by tools/fidelity.py
+except ImportError:  # imported as the top-level package `png` by a directly run tool
     from image_format import (
         LFS_POINTER_MAGIC,
         PNG_MAGIC,
         other_image_format,
     )
     from ints import is_plain_int
-    from png_chunks import chunk_name, iter_chunks
-    from png_image import Image, PngError, pixel_at
-    from png_scanlines import drop_alpha, raw_byte_length, unfilter
+
+from .chunks import chunk_name, iter_chunks
+from .image import Image, PngError, pixel_at
+from .scanlines import drop_alpha, raw_byte_length, unfilter
 
 __all__ = ["Image", "PngError", "decode_png", "pixel_at", "read_png"]
 

@@ -4,7 +4,7 @@
 :class:`Image` is the 8-bit RGB buffer the decoder returns and the fidelity
 tools compare, and :func:`pixel_at` is the bounds-checked accessor the palette
 and metric tests sample through. They carry no decoding logic, so a consumer
-can build or inspect an image without importing the codec; ``tools/png.py``
+can build or inspect an image without importing the codec; ``tools/png/__init__.py``
 re-exports all three.
 """
 
@@ -12,9 +12,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-if __package__:
+try:
     from tools.ints import is_plain_int
-else:  # run as a top-level module, e.g. imported by tools/png.py
+except ImportError:  # imported as the top-level package `png` by a directly run tool
     from ints import is_plain_int
 
 

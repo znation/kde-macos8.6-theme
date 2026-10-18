@@ -1,4 +1,4 @@
-"""Tests for tools/png.py's decode_png -- chunk framing.
+"""Tests for tools/png/__init__.py's decode_png -- chunk framing.
 
 The PNG stream is a sequence of length/type/payload/CRC chunks. These tests
 pin the container layer: that a valid image may split its zlib stream across

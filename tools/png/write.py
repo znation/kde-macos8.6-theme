@@ -1,6 +1,6 @@
 """Encode an 8-bit RGB image as a PNG file using only the standard library.
 
-``tools/png.py`` is the reader; this is its minimal inverse, used to generate
+``tools/png/__init__.py`` is the reader; this is its minimal inverse, used to generate
 the wallpaper images. The output is deterministic: every row uses filter type
 0 and one IDAT chunk is compressed at zlib level 9, so the same pixels always
 produce the same bytes.

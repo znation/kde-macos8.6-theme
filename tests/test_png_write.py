@@ -1,4 +1,4 @@
-"""Tests for tools/png_write.py's encode_png."""
+"""Tests for tools/png/write.py's encode_png."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png  # noqa: E402
-from tools.png_write import encode_png  # noqa: E402
+from tools.png.write import encode_png  # noqa: E402
 
 
 class TestEncodePng(unittest.TestCase):

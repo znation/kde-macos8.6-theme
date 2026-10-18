@@ -1,9 +1,9 @@
-"""Tests for tools/png_filters.py's scanline-filter internals -- the Sub/Up
+"""Tests for tools/png/filters.py's scanline-filter internals -- the Sub/Up
 lane arithmetic and the Paeth delta table.
 
-The Sub/Up round-trip below decodes through ``tools/png.py``, whose
-``tools/png_scanlines.py`` imports these primitives; the lane and table helpers themselves live in
-``tools/png_filters.py``.
+The Sub/Up round-trip below decodes through ``tools/png/__init__.py``, whose
+``tools/png/scanlines.py`` imports these primitives; the lane and table helpers themselves live in
+``tools/png/filters.py``.
 
 Run with the project's check harness (stdlib unittest)::
 
@@ -18,7 +18,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
-from tools import png_filters
+from tools.png import filters
 from support.error_assertions import assert_rejects_unequal_lengths  # noqa: E402
 from support.png_fixtures import _paeth, make_png, rgb_from_rows  # noqa: E402
 
@@ -35,16 +35,16 @@ class TestUnfilterLanes(unittest.TestCase):
                 a = bytes(rng.randrange(256) for _ in range(length))
                 b = bytes(rng.randrange(256) for _ in range(length))
                 expected = bytes((x + y) & 0xFF for x, y in zip(a, b))
-                self.assertEqual(png_filters._byte_add(a, b), expected)
+                self.assertEqual(filters._byte_add(a, b), expected)
 
     def test_byte_add_unequal_lengths_raise(self):
-        assert_rejects_unequal_lengths(self, png_filters._byte_add)
+        assert_rejects_unequal_lengths(self, filters._byte_add)
 
     def test_byte_add_wraps_without_carrying_between_bytes(self):
         # 0xFF + 0x01 must wrap to 0x00 without carrying into the next byte;
         # a leaked carry would turn the following byte into 0x01 instead.
         self.assertEqual(
-            png_filters._byte_add(bytes([0xFF, 0x00, 0xFF]), bytes([0x01, 0x00, 0x01])),
+            filters._byte_add(bytes([0xFF, 0x00, 0xFF]), bytes([0x01, 0x00, 0x01])),
             bytes([0x00, 0x00, 0x00]),
         )
 
@@ -56,7 +56,7 @@ class TestUnfilterLanes(unittest.TestCase):
                 out = bytearray(channel)
                 for i in range(1, len(out)):
                     out[i] = (out[i] + out[i - 1]) & 0xFF
-                self.assertEqual(png_filters._prefix_sum(channel), bytes(out))
+                self.assertEqual(filters._prefix_sum(channel), bytes(out))
 
     def test_sub_and_up_filters_roundtrip_random_rows(self):
         # Encode random rows using only Sub and Up filters and decode them
@@ -103,11 +103,11 @@ class TestPaethDeltaTable(unittest.TestCase):
                 expected[base + db + 255] = _paeth(da, db, 0) & 0xFF
         # The table is memoized in a module global; clear it so this call
         # rebuilds it, and `patch.object` restores the original afterwards.
-        with mock.patch.object(png_filters, "_PAETH_DELTA", None):
-            table = png_filters._paeth_delta_table()
+        with mock.patch.object(filters, "_PAETH_DELTA", None):
+            table = filters._paeth_delta_table()
         self.assertEqual(table, bytes(expected))
 
     def test_table_is_built_once_and_reused(self):
-        with mock.patch.object(png_filters, "_PAETH_DELTA", None):
-            first = png_filters._paeth_delta_table()
-            self.assertIs(png_filters._paeth_delta_table(), first)
+        with mock.patch.object(filters, "_PAETH_DELTA", None):
+            first = filters._paeth_delta_table()
+            self.assertIs(filters._paeth_delta_table(), first)
