@@ -27,6 +27,8 @@ from svg_assertions import (
     assert_no_style_elements,
     assert_unique_ids,
     attribute_values,
+    children_named,
+    elements_by_id,
 )
 
 # The nine-sliced frame elements and the states the SVG ships. Kvantum names
@@ -77,6 +79,26 @@ INTERIOR_STATES = {
 ARROW_DIRECTIONS = ("up", "down", "left", "right")
 ARROW_STATES = ("normal", "focused", "pressed", "disabled")
 
+# Each indicator arrow is one 9x9 triangle whose `d` is the same in every
+# state; only the disabled state greys its fill. The four `d` values are the
+# up/down/left/right triangles, so pinning them by direction catches a path
+# rotated or mirrored onto the wrong direction, which the id-only check above
+# passes. The fills are pinned by state because #000000 and #999999 are both
+# in the palette, so a disabled arrow painted black still passes the palette
+# test.
+ARROW_PATH_D = {
+    "up": "M4.5,0 L9,9 L0,9 Z",
+    "down": "M0,0 L9,0 L4.5,9 Z",
+    "left": "M9,0 L9,9 L0,4.5 Z",
+    "right": "M0,0 L9,4.5 L0,9 Z",
+}
+ARROW_FILL = {
+    "normal": "#000000",
+    "focused": "#000000",
+    "pressed": "#000000",
+    "disabled": "#999999",
+}
+
 
 class TestSvg(unittest.TestCase):
     def setUp(self):
@@ -108,6 +130,18 @@ class TestSvg(unittest.TestCase):
             for state in ARROW_STATES:
                 with self.subTest(direction=direction, state=state):
                     self.assertIn(f"arrow-{direction}-{state}", self.ids)
+
+    def test_indicator_arrows_draw_the_pinned_triangle_and_fill(self):
+        by_id = elements_by_id(self.tree)
+        for direction in ARROW_DIRECTIONS:
+            for state in ARROW_STATES:
+                paths = children_named(
+                    by_id[f"arrow-{direction}-{state}"], "path"
+                )
+                with self.subTest(direction=direction, state=state):
+                    self.assertEqual(len(paths), 1)
+                    self.assertEqual(paths[0].get("d"), ARROW_PATH_D[direction])
+                    self.assertEqual(paths[0].get("fill"), ARROW_FILL[state])
 
     def test_every_element_the_config_names_has_art(self):
         parser = read_kde_config(KVCONFIG)
