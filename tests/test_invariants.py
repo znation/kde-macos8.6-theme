@@ -102,6 +102,17 @@ class TestHelpers(unittest.TestCase):
             )
         )
 
+    def assert_cross_check_rejects(self, reference, message):
+        """Assert `cross_check` rejects a register whose row names *reference*.
+
+        The register is otherwise valid, so the failure isolates the
+        malformed *reference*, and *message* is a regex the diagnostic must
+        match.
+        """
+        register = self._valid_register([("The thing holds.", reference)])
+        with self.assertRaisesRegex(AssertionError, message):
+            cross_check(self.root, register)
+
     def test_parse_rows_reads_sections_and_rows(self):
         sections = parse_rows(
             "## aurorae\n\n"
@@ -201,11 +212,9 @@ class TestHelpers(unittest.TestCase):
         # to that file's tests. A file that defines no test case pins nothing;
         # accepting it would leave the guarantee unchecked while the register
         # reads as if it were covered.
-        register = self._valid_register(
-            [("The thing holds.", self.NO_TESTS_MODULE)]
+        self.assert_cross_check_rejects(
+            self.NO_TESTS_MODULE, "defines no test case"
         )
-        with self.assertRaisesRegex(AssertionError, "defines no test case"):
-            cross_check(self.root, register)
 
     def test_cross_check_accepts_a_test_case_inherited_from_a_module_base(self):
         # `path::TestViaMixin` reaches `unittest.TestCase` through a base
@@ -303,11 +312,9 @@ class TestHelpers(unittest.TestCase):
             cross_check(self.root, register)
 
     def test_cross_check_rejects_a_missing_test_file(self):
-        register = self._valid_register(
-            [("The thing holds.", "absent_module::TestFake")]
+        self.assert_cross_check_rejects(
+            "absent_module::TestFake", "missing file"
         )
-        with self.assertRaisesRegex(AssertionError, "missing file"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_reference_to_an_unparseable_file(self):
         # `check_reference` reads the named module with `ast.parse` to find its
@@ -353,82 +360,63 @@ class TestHelpers(unittest.TestCase):
         # `ValueError: embedded null character in path` before the
         # isfile/parse guards. That exception names neither the section nor
         # the reference, so the row that broke the register is unidentifiable.
-        register = self._valid_register(
-            [("The thing holds.", f"{self.MODULE}\x00::TestFake")]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}\x00::TestFake", "NUL"
         )
-        with self.assertRaisesRegex(AssertionError, "NUL"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_missing_class(self):
-        register = self._valid_register(
-            [("The thing holds.", f"{self.MODULE}::TestNope")]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestNope", "missing class TestNope"
         )
-        with self.assertRaisesRegex(AssertionError, "missing class TestNope"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_an_empty_qualifier(self):
         # `path::` names no class, so it pins the guarantee to no test. The
         # bare `path` form is the documented way to name the whole file, so
         # the trailing `::` is a malformed reference, not a file reference.
-        register = self._valid_register(
-            [("The thing holds.", f"{self.MODULE}::")]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::", "names no class or method"
         )
-        with self.assertRaisesRegex(AssertionError, "names no class or method"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_reference_with_a_trailing_segment(self):
         # `path::Class::method::junk` names the class and method but then a
         # fourth segment that the reference grammar has no room for; accepting
         # it would let a malformed reference pin a guarantee to a test it may
         # not actually name.
-        register = self._valid_register(
-            [("The thing holds.", f"{self.MODULE}::TestFake::test_ok::junk")]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestFake::test_ok::junk",
+            "more than a class and method",
         )
-        with self.assertRaisesRegex(AssertionError, "more than a class and method"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_missing_method(self):
-        register = self._valid_register(
-            [("The thing holds.", f"{self.MODULE}::TestFake::test_nope")]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestFake::test_nope", "missing method test_nope"
         )
-        with self.assertRaisesRegex(AssertionError, "missing method test_nope"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_reference_to_a_non_test_method(self):
         # `path::Class::setUp` names a method that exists but is not a test,
         # so the row pins its guarantee to a helper instead of the test that
         # enforces it. Only `test`-prefixed methods are tests unittest runs.
-        register = self._valid_register(
-            [("The thing holds.", f"{self.MODULE}::TestFake::setUp")]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestFake::setUp", "not a test"
         )
-        with self.assertRaisesRegex(AssertionError, "not a test"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_class_with_no_tests(self):
         # `path::Helper` names a class that exists but is not a test case, so
         # the row pins its guarantee to a helper class instead of the tests
         # that enforce it. A class reference must resolve to a collected test.
-        register = self._valid_register(
-            [("The thing holds.", f"{self.MODULE}::Helper")]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::Helper", "not a test case"
         )
-        with self.assertRaisesRegex(AssertionError, "not a test case"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_method_on_a_class_with_no_test_case(self):
         # `path::NotATestCase::test_looks_like_a_test` names a test-prefixed
         # method on a class with no TestCase base, so unittest never collects
         # it; accepting the reference would pin the guarantee to a method that
         # never runs. The class check must apply to method references too.
-        register = self._valid_register(
-            [
-                (
-                    "The thing holds.",
-                    f"{self.MODULE}::NotATestCase::test_looks_like_a_test",
-                )
-            ]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::NotATestCase::test_looks_like_a_test",
+            "not a test case",
         )
-        with self.assertRaisesRegex(AssertionError, "not a test case"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_local_base_that_only_looks_like_a_test_case(self):
         # `path::TestNotCollected` inherits from `FakeTestCase`, a class
@@ -436,16 +424,9 @@ class TestHelpers(unittest.TestCase):
         # The `*TestCase` name suffix is a heuristic for bases imported from
         # elsewhere; applying it to a locally defined base would accept a
         # class unittest never collects, pinning the guarantee to no test.
-        register = self._valid_register(
-            [
-                (
-                    "The thing holds.",
-                    f"{self.MODULE}::TestNotCollected::test_ok",
-                )
-            ]
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestNotCollected::test_ok", "not a test case"
         )
-        with self.assertRaisesRegex(AssertionError, "not a test case"):
-            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_reference_outside_the_repository(self):
         # `check_reference` joins the register's path onto the repository
