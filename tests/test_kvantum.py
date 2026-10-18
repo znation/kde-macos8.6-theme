@@ -10,8 +10,8 @@ the container and text surfaces: tabs and their frame, menus and the menu bar,
 group boxes, tooltips, item views, toolbars and the menu item interiors. These
 tests pin the palette against the MacOS8 color scheme, the 2px/1px frame
 margins, the SVG's ids, palette and safety, and the install/uninstall
-lifecycle. The style is installed but not selected until part 4/4, so nothing
-here asserts a `widgetStyle` selection.
+lifecycle. The global theme selects this style (`widgetStyle=kvantum`) as of
+part 4/4, but nothing here asserts that selection.
 """
 
 from __future__ import annotations

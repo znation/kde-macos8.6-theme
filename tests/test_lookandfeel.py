@@ -134,12 +134,12 @@ class TestDefaults(unittest.TestCase):
         )
         self.assertEqual(self.parser.options(WALLPAPER_SECTION), ["Image"])
 
-    def test_widget_style_is_the_built_in_windows_style(self):
-        """Qt's built-in QWindowsStyle draws square bevelled buttons and an arrow
-        at each end of the scroll bar, as systemprofiler_betawiki.png shows. It
-        is compiled into QtWidgets, so it adds no dependency; Kvantum for a
-        pixel-matched style is deferred."""
-        self.assertEqual(self.parser.get(STYLE_SECTION, "widgetStyle"), "Windows")
+    def test_widget_style_is_kvantum(self):
+        """The global theme selects our Kvantum widget style, which draws the
+        Platinum bevels and scroll-bar arrows Qt's built-in styles only
+        approximate. Kvantum is a separate engine the theme cannot install, so
+        when it is absent the widgets fall back to another style."""
+        self.assertEqual(self.parser.get(STYLE_SECTION, "widgetStyle"), "kvantum")
 
     def test_wallpaper_names_the_shipped_package(self):
         with open(WALLPAPER_METADATA, encoding="utf-8") as handle:

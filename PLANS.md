@@ -18,10 +18,10 @@ source of truth for "menu bar, window chrome, widget metrics, icons and colour p
 prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-18 by the plan
 role): a **Qt widget style** for KDE applications (the desktop theme styles only Plasma shell
 widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
-by the global theme's selection of Qt's built-in `Windows` style, and the user answered
+by the global theme's selection of our Kvantum theme: the user answered
 2026-10-18 that a pixel-matched Platinum style should ship as a Kvantum theme (a new
-dependency) — planned as the four-part "Mac OS 8.6 Kvantum widget style" series below (each part
-waits on the one before); a **cursor theme** is out of scope (no reference screenshot shows a
+dependency) — shipped as the four-part "Mac OS 8.6 Kvantum widget style" series (each part
+waited on the one before); a **cursor theme** is out of scope (no reference screenshot shows a
 cursor, so no pixel ground truth exists to match); and **system sounds** are out of scope (not a
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
@@ -66,42 +66,6 @@ test, and the tooltip provenance exception is recorded.
 - `tests/test_invariants.py` fails when a row names a missing test, when a subsystem has no row,
 and when a guarantee cell is blank; a scratch check (delete a row, rename a test) demonstrates each
 failure.
-- `make check` is green.
-
-### Mac OS 8.6 Kvantum widget style, part 4/4: select the Kvantum style from the global theme (planned 2026-10-18 by the plan role; requires part 3/4 landed)
-
-**Goal.** With the theme complete, switch the global theme from Qt's built-in `Windows` style to
-`kvantum`, select our theme name in the running session, and document the fallback when Kvantum is
-not installed.
-
-**Approach.**
-- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: change the `[kdeglobals][KDE]`
-  `widgetStyle` value from `Windows` to `kvantum`.
-- `tests/test_lookandfeel.py`: replace `test_widget_style_is_the_built_in_windows_style` with
-  `test_widget_style_is_kvantum`, pinning `"kvantum"` and recording that the theme is our own
-  Kvantum theme (a separately installed engine); the section/key list is unchanged.
-- `tools/apply_theme.py`: add a best-effort `_select_kvantum_theme` step mirroring
-  `_reconfigure_kwin` — run `kvantummanager --set org.macos8.desktop` when `shutil.which` finds
-  `kvantummanager`, otherwise print a note and continue. `kvantummanager` is not added to
-  `REQUIRED_TOOLS`, so `make apply` still succeeds without Kvantum. Derive the theme name from the
-  same `org.macos8.desktop` id the Makefile installs so the two cannot drift.
-- `tests/test_apply_theme.py`: `TestCommandOrder` expects the `kvantummanager --set
-  org.macos8.desktop` call in the recorded order, and a new test asserts the step is skipped with a
-  note when the stub is removed.
-- `README.md`: the widget-style sentence now says the global theme selects our Kvantum theme; when
-  Kvantum is not installed the widgets fall back to another style (choose one in System Settings →
-  Application Style), and `make apply` runs `kvantummanager --set` when it is available.
-
-**Files touched.** `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
-`tests/test_lookandfeel.py`, `tools/apply_theme.py`, `tests/test_apply_theme.py`, `README.md`.
-
-**Acceptance criteria.**
-- `contents/defaults` has `[kdeglobals][KDE] widgetStyle=kvantum`; the section order and key lists in
-  `TestDefaults.test_the_expected_sections_and_keys_are_set` are unchanged, and the renamed test
-  pins the value.
-- With a `kvantummanager` stub on `PATH`, `make apply` records `kvantummanager --set
-  org.macos8.desktop`; with the stub removed it prints a note and still exits 0.
-- README documents the selection and the no-Kvantum fallback.
 - `make check` is green.
 
 ### Mac OS 8.6 Platinum switch widget (`widgets/switch.svg`) for the desktop theme (planned 2026-10-18 by the plan role)
@@ -177,6 +141,45 @@ Kvantum series edits.
 - `make check` is green.
 
 ## Done
+
+### Mac OS 8.6 Kvantum widget style, part 4/4: select the Kvantum style from the global theme (planned 2026-10-18 by the plan role; requires part 3/4 landed) — done 2026-10-18
+
+**Goal.** With the theme complete, switch the global theme from Qt's built-in `Windows` style to
+`kvantum`, select our theme name in the running session, and document the fallback when Kvantum is
+not installed.
+
+**Approach.**
+- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: change the `[kdeglobals][KDE]`
+  `widgetStyle` value from `Windows` to `kvantum`.
+- `tests/test_lookandfeel.py`: replace `test_widget_style_is_the_built_in_windows_style` with
+  `test_widget_style_is_kvantum`, pinning `"kvantum"` and recording that the theme is our own
+  Kvantum theme (a separately installed engine); the section/key list is unchanged.
+- `tools/apply_theme.py`: add a best-effort `_select_kvantum_theme` step mirroring
+  `_reconfigure_kwin` — run `kvantummanager --set org.macos8.desktop` when `shutil.which` finds
+  `kvantummanager`, otherwise print a note and continue. `kvantummanager` is not added to
+  `REQUIRED_TOOLS`, so `make apply` still succeeds without Kvantum. Define the theme name as one
+  `KVANTUM_THEME` constant and pin it to the shipped `theme/kvantum/` package directory so the
+  selection cannot drift from what `make install` copies.
+- `tests/test_apply_theme.py`: `TestCommandOrder` expects the `kvantummanager --set
+  org.macos8.desktop` call in the recorded order, a new test asserts the step is skipped with a
+  note when the stub is removed, and a drift test pins `KVANTUM_THEME` to the shipped package
+  directory.
+- `README.md`: the widget-style sentence now says the global theme selects our Kvantum theme; when
+  Kvantum is not installed the widgets fall back to another style (choose one in System Settings →
+  Application Style), and `make apply` runs `kvantummanager --set` when it is available.
+
+**Files touched.** `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`, `tests/test_lookandfeel.py`,
+`tools/apply_theme.py`, `tests/test_apply_theme.py`, `README.md`, `Makefile`.
+
+**Acceptance criteria.**
+- `contents/defaults` has `[kdeglobals][KDE] widgetStyle=kvantum`; the section order and key lists in
+  `TestDefaults.test_the_expected_sections_and_keys_are_set` are unchanged, and the renamed test
+  pins the value.
+- With a `kvantummanager` stub on `PATH`, `make apply` records `kvantummanager --set
+  org.macos8.desktop`; with the stub removed it prints a note and still exits 0.
+- README documents the selection and the no-Kvantum fallback.
+- `make check` is green.
 
 ### Mac OS 8.6 Kvantum widget style, part 3/4: the Platinum surface controls (planned 2026-10-18 by the plan role; done 2026-10-18)
 

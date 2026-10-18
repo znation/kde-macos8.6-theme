@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: seven artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), and the `org.macos8.desktop` Kvantum widget style (installed but not selected yet).
+Pre-alpha: seven artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), and the `org.macos8.desktop` Kvantum widget style (selected by the global theme).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -29,10 +29,12 @@ into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 `themes/org.macos8.desktop/Kvantum/`. Applying the global theme selects that wallpaper: the retail 128x128 desktop
 pattern, shipped at fixed resolutions so it renders 1:1 when the screen matches one.
 
-The `org.macos8.desktop` Kvantum widget style is installed but not selected yet: the global theme
-keeps Qt's built-in `Windows` style until the rest of the Kvantum art lands (PLANS.md, part 4/4).
-Once Kvantum is installed, opt in with `kvantummanager --set org.macos8.desktop` and choose
-"Kvantum" in System Settings → Application Style; its Platinum palette and core-control art live in
+The `org.macos8.desktop` Kvantum widget style is selected by the global theme
+(`widgetStyle=kvantum`). Kvantum is a separate engine the theme cannot install, so when it is absent
+the widgets fall back to another style — choose one in System Settings → Application Style, or
+install Kvantum and select our theme with `kvantummanager --set org.macos8.desktop`; `make apply`
+runs that selection when `kvantummanager` is on `PATH`. Its Platinum palette and core-control art
+live in
 `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` and
 `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`. Kvantum searches
 `$HOME/.local/share/themes/<name>/Kvantum/` with that literal path, so it finds the theme only
@@ -63,10 +65,10 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `org.macos8.desktop` icon theme through `[kdeglobals][Icons]` in the same `contents/defaults`; it
 ships our own Platinum-style art for the desktop's hard-disk, folder, document and Trash icons
 and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's),
-drawn for this theme, not traced from Apple's artwork, and inherits Breeze for every other name. The global theme also selects Qt's built-in
-`Windows` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw square
-bevelled Platinum-like controls instead of Breeze's rounded ones; choose another style in System
-Settings → Application Style. The desktop theme ships
+drawn for this theme, not traced from Apple's artwork, and inherits Breeze for every other name. The global theme also selects the
+`kvantum` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw the Platinum
+bevelled controls instead of Breeze's rounded ones; when Kvantum is not installed they fall back to
+another style, which you can choose in System Settings → Application Style. The desktop theme ships
 `widgets/panel-background.svg` (the menu bar; a top menu bar draws its white top highlight from a
 top-panel `north-` state), `widgets/frame.svg` (the Platinum
 plain/raised/sunken frame used by `PlasmaComponents.Frame`, `GroupBox`, the kicker
@@ -126,12 +128,13 @@ one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAn
 `make apply` installs the seven artifacts exactly as `make install` does and then re-applies them to
 the running Plasma session, so the just-built theme becomes current without a logout: it re-selects
 the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
-`MacOS8` color scheme and the `org.macos8.desktop` desktop theme, then asks KWin to reconfigure so
-the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed it notes that and
-leaves KWin to reload on its next start). It refuses a non-empty `DESTDIR`, since applying a staged
-tree to the running session is wrong, and it needs `lookandfeeltool`, `plasma-apply-colorscheme` and
-`plasma-apply-desktoptheme`, exiting 2 naming the first one that is missing. The startup splash is
-read at login, so a splash change appears only on the next login.
+`MacOS8` color scheme and the `org.macos8.desktop` desktop theme, tells Kvantum to draw our theme
+when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
+KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed
+it notes that and leaves KWin to reload on its next start). It refuses a non-empty `DESTDIR`, since
+applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
+`plasma-apply-colorscheme` and `plasma-apply-desktoptheme`, exiting 2 naming the first one that is
+missing. The startup splash is read at login, so a splash change appears only on the next login.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
 directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every
 commit installs and re-applies the theme from the committing worktree; the hook is uncommitted, so

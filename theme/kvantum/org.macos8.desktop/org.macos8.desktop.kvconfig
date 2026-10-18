@@ -6,9 +6,10 @@
 # the MacOS8 color scheme (see theme/color-schemes/MacOS8.colors) and from the
 # Platinum bevel palette; tests/test_kvantum.py re-derives every one of them.
 #
-# The theme is installed but not selected yet: the global theme keeps Qt's
-# built-in Windows style until the remaining widget art lands (PLANS.md,
-# "Mac OS 8.6 Kvantum widget style", part 4/4).
+# The global theme selects this style (`widgetStyle=kvantum` in its
+# `contents/defaults`), and `make apply` runs
+# `kvantummanager --set org.macos8.desktop`; without Kvantum installed the
+# widgets fall back to another style.
 
 [%General]
 author=The kde-macos8.6-theme project

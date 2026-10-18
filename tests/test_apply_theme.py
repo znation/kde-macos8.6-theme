@@ -1,6 +1,6 @@
 """Tests for tools/apply_theme.py and the `make apply` target.
 
-`apply_theme.main` runs the four re-selection commands against fake
+`apply_theme.main` runs the re-selection commands against fake
 executables on `PATH`, which record their argv and the
 `DBUS_SESSION_BUS_ADDRESS` they saw, so the order, the ``--resetLayout``
 omission, the session-bus default and the failure paths are pinned without a
@@ -44,6 +44,7 @@ class StubTools(unittest.TestCase):
         for name in apply_theme.REQUIRED_TOOLS:
             self.stub(name)
         self.stub("qdbus6")
+        self.stub("kvantummanager")
         patch = mock.patch.dict(os.environ, {"PATH": str(self.bin)})
         patch.start()
         self.addCleanup(patch.stop)
@@ -77,7 +78,7 @@ class StubTools(unittest.TestCase):
 
 
 class TestCommandOrder(StubTools):
-    def test_runs_the_four_steps_in_order(self):
+    def test_runs_the_steps_in_order(self):
         status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertEqual(
@@ -85,6 +86,7 @@ class TestCommandOrder(StubTools):
                 "lookandfeeltool -a org.macos8.desktop",
                 "plasma-apply-colorscheme MacOS8",
                 "plasma-apply-desktoptheme org.macos8.desktop",
+                "kvantummanager --set org.macos8.desktop",
                 "qdbus6 org.kde.KWin /KWin reconfigure",
             ],
             self.recorded(),
@@ -122,11 +124,27 @@ class TestFailurePaths(StubTools):
         self.assertIn("note", stderr)
         self.assertIn("qdbus", stderr)
 
+    def test_missing_kvantummanager_prints_a_note_and_exits_0(self):
+        self.unstub("kvantummanager")
+        status, stderr = call_main(apply_theme.main)
+        self.assertEqual(0, status, stderr)
+        self.assertIn("note", stderr)
+        self.assertIn("kvantummanager", stderr)
+        self.assertNotIn("kvantummanager --set", " ".join(self.recorded()))
+
     def test_failing_qdbus_prints_a_note_and_exits_0(self):
         self.stub("qdbus6", "echo reconfigure failed >&2\nexit 3")
         status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn("note", stderr)
+
+    def test_failing_kvantummanager_prints_a_note_and_exits_0(self):
+        self.stub("kvantummanager", "echo set failed >&2\nexit 5")
+        status, stderr = call_main(apply_theme.main)
+        self.assertEqual(0, status, stderr)
+        self.assertIn("note", stderr)
+        self.assertIn("kvantummanager --set exited 5", stderr)
+        self.assertIn("fall back", stderr)
 
 
 class TestTimeoutPaths(StubTools):
@@ -161,6 +179,21 @@ class TestTimeoutPaths(StubTools):
             f"KWin reconfigure timed out after {apply_theme.COMMAND_TIMEOUT:g}s",
             stderr,
         )
+
+    def test_a_kvantum_selection_timeout_prints_a_note_and_exits_0(self):
+        def run_logged(argv, env, log, timeout, cwd):
+            # The three required steps succeed; the Kvantum selection times out.
+            return None if argv[0].endswith("kvantummanager") else 0
+
+        with mock.patch.object(apply_theme, "run_logged", side_effect=run_logged):
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(0, status, stderr)
+        self.assertIn(
+            "kvantummanager --set timed out after "
+            f"{apply_theme.COMMAND_TIMEOUT:g}s",
+            stderr,
+        )
+        self.assertIn("fall back", stderr)
 
 
 class TestMissingTool(unittest.TestCase):
@@ -224,6 +257,18 @@ class TestSessionBus(StubTools):
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn("qdbus6 DBUS=", self.env_recorded())
+
+
+class TestKvantumSelection(unittest.TestCase):
+    def test_the_selected_theme_is_the_shipped_package(self):
+        """`make install` copies the `theme/kvantum/` package into Kvantum's
+        search path, so the name `apply_theme` selects must be that package's
+        directory name; otherwise the selection silently misses."""
+        package_root = Path(apply_theme.ROOT) / "theme" / "kvantum"
+        shipped = {
+            entry.name for entry in package_root.iterdir() if entry.is_dir()
+        }
+        self.assertEqual({apply_theme.KVANTUM_THEME}, shipped)
 
 
 class TestMakeApply(unittest.TestCase):

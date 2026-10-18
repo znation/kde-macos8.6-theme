@@ -2,8 +2,9 @@
 
 ``make apply`` runs ``make install`` and then this script. It re-selects the
 global theme, the color scheme and the desktop theme so Plasma and KDE
-applications reread the freshly installed files without a logout, and asks
-KWin to reconfigure so the window decoration reloads. The startup splash is
+applications reread the freshly installed files without a logout, tells
+Kvantum which of its installed themes to draw, and asks KWin to reconfigure
+so the window decoration reloads. The startup splash is
 read at login, so a splash change appears only on the next login.
 
 The global theme is applied without ``--resetLayout``: Plasma replaces the
@@ -42,10 +43,14 @@ ROOT = Path(__file__).resolve().parents[1]
 LNF_ID = "org.macos8.desktop"
 DTHEME_ID = "org.macos8.desktop"
 COLOR_SCHEME = "MacOS8"
+# The Kvantum theme name, i.e. the directory under ``theme/kvantum/`` that
+# ``make install`` copies into Kvantum's search path. tests/test_apply_theme.py
+# pins it to that shipped package so the two cannot drift.
+KVANTUM_THEME = "org.macos8.desktop"
 
-# The commands steps 1-3 need; a missing one is a hard error. qdbus is not in
-# this list: the KWin reconfigure is best-effort, so a missing qdbus6/qdbus
-# only prints a note.
+# The commands steps 1-3 need; a missing one is a hard error. qdbus and
+# kvantummanager are not in this list: the KWin reconfigure and the Kvantum
+# theme selection are best-effort, so a missing one only prints a note.
 REQUIRED_TOOLS = (
     "lookandfeeltool",
     "plasma-apply-colorscheme",
@@ -120,8 +125,45 @@ def _reconfigure_kwin(scratch: Path, env: dict[str, str]) -> int:
     return 0
 
 
+def _select_kvantum_theme(scratch: Path, env: dict[str, str]) -> int:
+    """Select our Kvantum theme; a missing engine is a note, never an error.
+
+    The global theme sets ``widgetStyle=kvantum``, but Kvantum draws whichever
+    of its installed themes was selected last; this points it at ours. The
+    selection is best-effort because Kvantum is a separate package the theme
+    cannot install: without ``kvantummanager`` the widgets fall back to another
+    style and the apply still succeeds.
+    """
+    manager = shutil.which("kvantummanager")
+    if manager is None:
+        _note(
+            "kvantummanager is not on PATH; install Kvantum and choose its "
+            f"{KVANTUM_THEME} theme in System Settings -> Application Style"
+        )
+        return 0
+    log = scratch / "kvantummanager.log"
+    status = run_logged(
+        [manager, "--set", KVANTUM_THEME],
+        env,
+        log,
+        COMMAND_TIMEOUT,
+        ROOT,
+    )
+    if status is None:
+        _note(
+            f"kvantummanager --set timed out after {COMMAND_TIMEOUT:g}s; the "
+            "widgets fall back to another style"
+        )
+    elif status != 0:
+        _note(
+            f"kvantummanager --set exited {status}; the widgets fall back to "
+            "another style"
+        )
+    return 0
+
+
 def _apply() -> int:
-    """Run the required steps, then the best-effort KWin reconfigure."""
+    """Run the required steps, then the best-effort selections."""
     scratch = Path(tempfile.mkdtemp(prefix="apply-theme-"))
     try:
         env = _session_env()
@@ -134,6 +176,7 @@ def _apply() -> int:
                 )
             if status != 0:
                 return report_failure(TOOL, f"{tool} exited {status}", log)
+        _select_kvantum_theme(scratch, env)
         return _reconfigure_kwin(scratch, env)
     finally:
         shutil.rmtree(scratch, ignore_errors=True)

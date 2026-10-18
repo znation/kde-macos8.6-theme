@@ -194,8 +194,9 @@ render:
 # sub-make so this reuses its guards and lock. A non-empty DESTDIR is refused
 # first: applying a staged tree to the running session is wrong.
 # tools/apply_theme.py re-selects the global theme (without --resetLayout, so
-# the user's panels survive), the color scheme and the desktop theme, then asks
-# KWin to reconfigure. The startup splash changes only on the next login.
+# the user's panels survive), the color scheme and the desktop theme, selects
+# the Kvantum widget theme when kvantummanager is available, then asks KWin to
+# reconfigure. The startup splash changes only on the next login.
 apply:
 	@if [ -n "$(DESTDIR)" ]; then echo "apply: DESTDIR must be empty (applying a staged tree to the running Plasma session is wrong): '$(DESTDIR)'" >&2; exit 2; fi
 	@$(call require_python,apply)
