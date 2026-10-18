@@ -5,7 +5,8 @@ guarantee a surface must keep and the test that pins it, so a future bug is
 confirmable without reconstructing the intent from the test's body. Nothing
 otherwise ties the register to the repository: this module parses its sections
 and table rows and fails when a ``theme/`` subsystem directory has no section,
-when a row names a test file, class or method that does not exist, when a row
+when a section names no ``theme/`` subsystem or registered extra section, when
+a row names a test file, class or method that does not exist, when a row
 names a method that is not a test, when a row names a file that defines no test
 case, when a row names no test, or when a guarantee cell is blank.
 
@@ -265,9 +266,10 @@ def cross_check(root, register):
 
     Returns ``{section name: [Row, ...]}``; raises :class:`AssertionError` for a
     ``theme/`` subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
-    an empty section, a blank guarantee cell, a malformed table row, a data row
-    that names no test, a bare file reference to a file that defines no test
-    case, or an unresolvable test reference.
+    a section that names neither a ``theme/`` subsystem nor an
+    ``EXTRA_SECTIONS`` entry, an empty section, a blank guarantee cell, a
+    malformed table row, a data row that names no test, a bare file reference
+    to a file that defines no test case, or an unresolvable test reference.
     """
     with open(register, encoding="utf-8") as handle:
         sections = parse_rows(handle.read())
@@ -283,6 +285,17 @@ def cross_check(root, register):
     for name in EXTRA_SECTIONS:
         if name not in sections:
             raise AssertionError(f"{name} has no section in {register}")
+    known = set(subsystems) | set(EXTRA_SECTIONS)
+    for name in sections:
+        if name not in known:
+            # A section for a surface that is not there -- a stale heading left
+            # after a directory rename, or a typo -- reads as a pinned guarantee
+            # while nothing enforces it. Reject it by name instead of letting the
+            # register overstate what it covers.
+            raise AssertionError(
+                f"section {name} in {register} names no {THEME_DIR}/ subsystem "
+                "or registered extra section"
+            )
     for name, rows in sections.items():
         if not rows:
             raise AssertionError(f"section {name} in {register} has no rows")

@@ -221,6 +221,22 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "tooling has no section"):
             cross_check(self.root, register)
 
+    def test_cross_check_rejects_a_section_for_a_missing_subsystem(self):
+        # A section for a subsystem that is not there -- a stale heading left
+        # after a rename, or a typo -- reads as a pinned guarantee while no
+        # surface enforces it. Reject it by name instead of letting the
+        # register overstate what it covers.
+        register = self._register(
+            "# Invariants\n\n## aurorae\n\n"
+            + self._table([("The thing holds.", f"{self.MODULE}::TestFake")])
+            + "\n## ghost\n\n"
+            + self._table([("The ghost holds.", f"{self.MODULE}::TestFake")])
+            + "\n## tooling\n\n"
+            + self._table([("The gate holds.", f"{self.MODULE}::TestFake")])
+        )
+        with self.assertRaisesRegex(AssertionError, "section ghost .* names no"):
+            cross_check(self.root, register)
+
     def test_cross_check_rejects_a_blank_guarantee(self):
         register = self._valid_register([("", f"{self.MODULE}::TestFake")])
         with self.assertRaisesRegex(AssertionError, "blank guarantee"):
