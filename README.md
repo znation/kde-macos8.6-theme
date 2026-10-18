@@ -252,8 +252,9 @@ aggregate budgets instead: when either is given, a run passes when each given bu
 the default no-differing-pixel gate no longer applies. `make render` (`tools/render_surface.py`)
 produces a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
 window and byte-compares the title-bar strip (candidate `30,0,80,22` against reference
-`30,25,80,22`) and the side and bottom border strips of `aboutsystem_betawiki.png`, cropping each
-strip with the same `crop`/`compare` the fidelity tool uses.
+`30,25,80,22`), the close, zoom and collapse box regions, and the side and bottom border strips of
+`aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each
+region with the same `crop`/`compare` the fidelity tool uses.
 
 ## Invariants
 

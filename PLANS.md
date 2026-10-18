@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Fidelity gate for the rendered window's title-bar boxes (close, zoom, collapse) (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Fidelity gate for the rendered window's title-bar boxes (close, zoom, collapse) (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** The rendered-window fidelity gate byte-compares the title-bar's middle strip and the
 side and bottom borders, but not the three Platinum title-bar boxes, so a regression in how
@@ -75,8 +79,6 @@ time.
 - Each region is pinned to zero differing pixels: shifting any crop by one pixel, or changing the
   box art or the Aurorae box geometry in `org.macos8.desktoprc`, makes the test fail.
 - `docs/invariants.md` resolves the new `tooling` row, and `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 opaque menu bar: ship the `solid/widgets/panel-background.svg` copy (planned 2026-10-18 by the plan role) — done 2026-10-18
 

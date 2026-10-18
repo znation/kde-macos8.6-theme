@@ -29,6 +29,11 @@ SCRIPT = str(repo_root.ROOT / "tools" / "render_surface.py")
 REFERENCE = str(
     repo_root.ROOT / "macos8.6-screenshots" / "aboutsystem_betawiki.png"
 )
+# The retail Japanese 8.6 System Profiler window shows a zoom box; the
+# aboutsystem window cannot be zoomed, so its title bar has none.
+PROFILER_REFERENCE = str(
+    repo_root.ROOT / "macos8.6-screenshots" / "systemprofiler_betawiki.png"
+)
 # The render's title bar sits at the top of the 320x240 capture (row 0 is the
 # top outline, row 21 the bottom outline); the reference screenshot has the
 # same chrome at y=25..46, so the strips are compared at those offsets.
@@ -46,6 +51,17 @@ RIGHT_BORDER_CANDIDATE = (314, 22, 6, 212)
 RIGHT_BORDER_REFERENCE = (354, 47, 6, 212)
 BOTTOM_BORDER_CANDIDATE = (6, 234, 308, 6)
 BOTTOM_BORDER_REFERENCE = (13, 419, 308, 6)
+# The title-bar boxes: the 13x13 close and collapse boxes and the 21x13 zoom
+# canvas (its stripe-free gap plus the 13px box). The render puts the window
+# at the capture's origin; aboutsystem's window is at (7, 25), so its close
+# box sits at (11, 29) and its collapse box at (343, 29), while the profiler
+# window's zoom canvas is at (776, 26).
+CLOSE_CANDIDATE = (4, 4, 13, 13)
+CLOSE_REFERENCE = (11, 29, 13, 13)
+COLLAPSE_CANDIDATE = (303, 4, 13, 13)
+COLLAPSE_REFERENCE = (343, 29, 13, 13)
+ZOOM_CANDIDATE = (282, 4, 21, 13)
+ZOOM_REFERENCE = (776, 26, 21, 13)
 
 
 class TestArguments(unittest.TestCase):
@@ -473,7 +489,9 @@ class TestRender(unittest.TestCase):
         pixel = pixel_at(read_png(self.output), 300, 200)
         self.assertEqual(FACE, hex_colour(pixel))
 
-    def assert_strip_pixels_match(self, candidate_crop, reference_crop):
+    def assert_strip_pixels_match(
+        self, candidate_crop, reference_crop, reference_path=REFERENCE
+    ):
         """Byte-compare one strip with the same ``crop``/``compare`` the CLI calls.
 
         Each strip is compared in process, reusing the process-cached
@@ -482,14 +500,25 @@ class TestRender(unittest.TestCase):
         ``--candidate-crop`` and ``--crop`` in one run, stay covered end to
         end by ``tests/test_fidelity_cli.py``.
         """
-        reference, error = read_reference(REFERENCE)
-        skip_unless_materialized(self, REFERENCE, error)
+        reference, error = read_reference(reference_path)
+        skip_unless_materialized(self, reference_path, error)
         candidate = crop(read_png(self.output), *candidate_crop)
         expected = crop(reference, *reference_crop)
         self.assertEqual(0, compare(candidate, expected).differing)
 
     def test_title_bar_matches_the_reference(self):
         self.assert_strip_pixels_match(CANDIDATE_CROP, REFERENCE_CROP)
+
+    def test_title_bar_boxes_match_the_reference(self):
+        for candidate_crop, reference_crop, reference_path in (
+            (CLOSE_CANDIDATE, CLOSE_REFERENCE, REFERENCE),
+            (COLLAPSE_CANDIDATE, COLLAPSE_REFERENCE, REFERENCE),
+            (ZOOM_CANDIDATE, ZOOM_REFERENCE, PROFILER_REFERENCE),
+        ):
+            with self.subTest(candidate_crop=candidate_crop):
+                self.assert_strip_pixels_match(
+                    candidate_crop, reference_crop, reference_path
+                )
 
     def test_frame_borders_match_the_reference(self):
         for candidate_crop, reference_crop in (
