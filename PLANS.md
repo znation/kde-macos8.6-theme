@@ -22,7 +22,65 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Qt widget style: select Qt's built-in square-bevel `Windows` style from the global theme (planned 2026-10-18 by the plan role)
+
+**Goal.** Applying the global theme today changes only the Plasma shell, the window decoration and
+the colours. Every KDE application keeps drawing its own buttons, scroll bars, tabs and menus with
+Breeze: rounded corners, flat fills and a blue focus glow. The Mac OS 8.6 references show none of
+these. This plan answers the "Qt widget style" item in the steward's scope-drift note at the top
+of `## Planned`, without adding a dependency. It sets the global theme's
+`[kdeglobals][KDE] widgetStyle` to Qt's built-in `Windows` style (`QWindowsStyle`, compiled into
+`libQt6Widgets`, so nothing new is installed). It is independent of the menu-title-spacing plan.
+
+**Why `Windows`, and its provenance.** The reference set cannot pick a QStyle by pixel, so this
+records the qualitative match, per the principle on KDE-required values the references do not
+show. `systemprofiler_betawiki.png` (and the Platinum frame this repo already ships in
+`widgets/frame.svg`) show square, unrounded controls. Their 3D bevel is light at the top-left and
+dark at the bottom-right, and the scroll bar has an arrow button at each end of its trough.
+`QWindowsStyle` draws exactly that geometry (square bevelled buttons, an arrow at each end of the
+scroll bar), with colours from the `QPalette` that KDE builds from `MacOS8.colors`. `Fusion` (the
+other built-in style) rounds its corners and adds gradients, and Breeze rounds its corners and
+draws a focus glow. A pixel-matched Platinum Qt style would need a style engine such as Kvantum,
+which is a new dependency. It stays out of scope here, and asking the user whether to take on that
+dependency is a separate QUESTIONS.md entry for a later run. The key and value form follows
+Breeze's own `/usr/share/plasma/look-and-feel/org.kde.breeze.desktop/contents/defaults`
+(`[kdeglobals][KDE]` / `widgetStyle=Breeze`). Plasma's platform theme hands the value to
+`QStyleFactory::create`, whose keys on this machine include `Windows` and `Fusion`.
+
+**Approach.**
+1. `theme/look-and-feel/org.macos8.desktop/contents/defaults`: add a first group
+   `[kdeglobals][KDE]` with the single key `widgetStyle=Windows`, placed before
+   `[kdeglobals][General]` as in Breeze's file.
+2. `tests/test_lookandfeel.py`: add the constant `STYLE_SECTION = "kdeglobals][KDE"` beside
+   `DEFAULTS_SECTION`. In `TestDefaults.test_the_expected_sections_and_keys_are_set`, expect
+   `[STYLE_SECTION, DEFAULTS_SECTION, PLASMA_SECTION, KWIN_SECTION, WALLPAPER_SECTION]` and
+   `options(STYLE_SECTION) == ["widgetStyle"]`. Add
+   `TestDefaults.test_widget_style_is_the_built_in_windows_style`, asserting the value is exactly
+   `"Windows"`. Its docstring records the provenance above (square bevels and an arrow at each end
+   of the scroll bar in `systemprofiler_betawiki.png`; built into QtWidgets, so no new dependency;
+   Kvantum deferred).
+3. `README.md` (outside the tumwater markers): in the "Installing" paragraph that lists what
+   applying the global theme selects, add one sentence: the global theme also selects Qt's
+   built-in `Windows` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw
+   square bevelled Platinum-like controls instead of Breeze's rounded ones. Choose another style in
+   System Settings → Application Style.
+
+**Files touched.** `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
+`tests/test_lookandfeel.py`, `README.md`.
+
+**Acceptance criteria.**
+- `contents/defaults` has a `[kdeglobals][KDE]` group holding only `widgetStyle=Windows`. The
+  existing groups and keys are unchanged (shown by `git diff` on the file).
+- `test_the_expected_sections_and_keys_are_set` pins the new section order and key list, and
+  `test_widget_style_is_the_built_in_windows_style` pins the value. Each fails when the line is
+  removed or the value changed.
+- The existing `TestPackageValid` (kpackagetool validation) and install tests still pass. `make
+  check` is green.
+- README.md describes the selected style and how to change it.
+
+**Out of scope.** A pixel-matched Platinum Qt style (Kvantum or a custom QStyle: a new dependency,
+so the user's call). Fonts (Charcoal does not ship, and the LNF `defaults` file does not set
+fonts). The icon theme, cursor theme and sounds from the scope-drift note.
 
 ## Done
 
