@@ -31,16 +31,24 @@ import tempfile
 from pathlib import Path
 
 if __package__:
-    from tools.cli import EscapingArgumentParser, plain_number, report_error
+    from tools.cli import (
+        EscapingArgumentParser,
+        plain_number,
+        report_error,
+        report_failure,
+    )
     from tools.png import PngError, read_png
     from tools.process_group import exit_on_termination, run_logged
-    from tools.terminal import escape_controls
     from tools.theme_defaults import write_configs
 else:  # run directly: python3 tools/render_surface.py
-    from cli import EscapingArgumentParser, plain_number, report_error
+    from cli import (
+        EscapingArgumentParser,
+        plain_number,
+        report_error,
+        report_failure,
+    )
     from png import PngError, read_png
     from process_group import exit_on_termination, run_logged
-    from terminal import escape_controls
     from theme_defaults import write_configs
 
 TOOL = "render_surface"
@@ -60,18 +68,6 @@ CONFIG_FILES = ("kwinrc", "plasmarc")
 COLOR_SCHEME = "MacOS8"
 SOCKET = "render-surface"
 INSTALL_TIMEOUT = 60.0
-
-_LOG_TAIL_LINES = 12
-
-
-def _failure(message: str, log: Path | None = None) -> int:
-    text = f"{TOOL}: error: {escape_controls(message)}"
-    if log is not None and log.is_file():
-        tail = log.read_text(encoding="utf-8", errors="replace").splitlines()
-        for line in tail[-_LOG_TAIL_LINES:]:
-            text += f"\n  {escape_controls(line)}"
-    print(text, file=sys.stderr)
-    return 1
 
 
 def _session_script() -> str:
@@ -146,7 +142,7 @@ def _render(args: argparse.Namespace) -> int:
         )
         if status != 0:
             reason = "timed out" if status is None else f"exited {status}"
-            return _failure(f"make install {reason}", install_log)
+            return report_failure(TOOL, f"make install {reason}", install_log)
 
         write_configs(config, CONFIG_FILES)
 
@@ -184,16 +180,21 @@ def _render(args: argparse.Namespace) -> int:
             ROOT,
         )
         if status is None:
-            return _failure(f"render timed out after {args.timeout:g}s", render_log)
+            return report_failure(
+                TOOL, f"render timed out after {args.timeout:g}s", render_log
+            )
         if status != 0:
-            return _failure(f"render session exited {status}", render_log)
+            return report_failure(TOOL, f"render session exited {status}", render_log)
 
         try:
             image = read_png(str(surface))
         except (PngError, OSError) as exc:
-            return _failure(f"capture is not a readable PNG: {exc}", render_log)
+            return report_failure(
+                TOOL, f"capture is not a readable PNG: {exc}", render_log
+            )
         if (image.width, image.height) != (args.width, args.height):
-            return _failure(
+            return report_failure(
+                TOOL,
                 f"capture is {image.width}x{image.height}, "
                 f"expected {args.width}x{args.height}",
                 render_log,
@@ -201,7 +202,7 @@ def _render(args: argparse.Namespace) -> int:
         try:
             _publish(surface, output)
         except OSError as exc:
-            return _failure(f"cannot write {output}: {exc}")
+            return report_failure(TOOL, f"cannot write {output}: {exc}")
         return 0
     finally:
         shutil.rmtree(scratch, ignore_errors=True)

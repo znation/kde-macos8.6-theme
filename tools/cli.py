@@ -1,14 +1,15 @@
 """Shared argument-parsing helpers for the command-line tools.
 
 Each tool in this directory takes contributor-supplied paths and numbers on
-its command line. Three concerns recur across them: argparse's own
+its command line. Four concerns recur across them: argparse's own
 diagnostics are formatted from raw argv and must not print control
 characters, a numeric option must reject Python-only spellings (underscore
 separators, non-ASCII digits, surrounding whitespace) that would silently
-name a different value, and a caught read/comparison failure is reported as
-one escaped, tool-named line with exit status 2. All three live here so
-``tools/fidelity.py``, ``tools/sample.py`` and ``tools/render_surface.py`` share
-one implementation.
+name a different value, a caught read/comparison failure is reported as one
+escaped, tool-named line with exit status 2, and a failed external command as
+that same line plus a tail of its log with exit status 1. All of these live
+here so ``tools/fidelity.py``, ``tools/sample.py``, ``tools/render_surface.py``
+and ``tools/apply_theme.py`` share one implementation.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Callable
+from pathlib import Path
 from typing import TypeVar
 
 if __package__:
@@ -50,6 +52,28 @@ def report_error(tool: str, message: str) -> int:
     """
     print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
     return 2
+
+
+_LOG_TAIL_LINES = 12
+
+
+def report_failure(tool: str, message: str, log: Path | None = None) -> int:
+    """Print ``tool: error: <escaped message>`` and a log tail; return 1.
+
+    A tool whose external command failed reports it the same way: one
+    control-character-escaped diagnostic line prefixed with the tool's name,
+    the last ``_LOG_TAIL_LINES`` lines of the command's log (each escaped and
+    indented) when *log* names a file, and exit status 1. *message* is the
+    unescaped text. ``tools/apply_theme.py`` and ``tools/render_surface.py``
+    both return this result directly as the process exit status.
+    """
+    text = f"{tool}: error: {escape_controls(message)}"
+    if log is not None and log.is_file():
+        tail = log.read_text(encoding="utf-8", errors="replace").splitlines()
+        for line in tail[-_LOG_TAIL_LINES:]:
+            text += f"\n  {escape_controls(line)}"
+    print(text, file=sys.stderr)
+    return 1
 
 
 def is_plain_ascii_number(value: str) -> bool:

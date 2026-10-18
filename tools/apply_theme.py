@@ -29,11 +29,11 @@ import tempfile
 from pathlib import Path
 
 if __package__:
-    from tools.cli import EscapingArgumentParser, report_error
+    from tools.cli import EscapingArgumentParser, report_error, report_failure
     from tools.process_group import exit_on_termination, run_logged
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_theme.py
-    from cli import EscapingArgumentParser, report_error
+    from cli import EscapingArgumentParser, report_error, report_failure
     from process_group import exit_on_termination, run_logged
     from terminal import escape_controls
 
@@ -58,19 +58,6 @@ STEPS = (
     ("plasma-apply-desktoptheme", ["plasma-apply-desktoptheme", DTHEME_ID]),
 )
 COMMAND_TIMEOUT = 60.0
-
-_LOG_TAIL_LINES = 12
-
-
-def _failure(message: str, log: Path | None = None) -> int:
-    """Print ``apply_theme: error: <message>`` plus a log tail; return 1."""
-    text = f"{TOOL}: error: {escape_controls(message)}"
-    if log is not None and log.is_file():
-        tail = log.read_text(encoding="utf-8", errors="replace").splitlines()
-        for line in tail[-_LOG_TAIL_LINES:]:
-            text += f"\n  {escape_controls(line)}"
-    print(text, file=sys.stderr)
-    return 1
 
 
 def _note(message: str) -> None:
@@ -142,9 +129,11 @@ def _apply() -> int:
             log = scratch / f"{tool}.log"
             status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
             if status is None:
-                return _failure(f"{tool} timed out after {COMMAND_TIMEOUT:g}s", log)
+                return report_failure(
+                    TOOL, f"{tool} timed out after {COMMAND_TIMEOUT:g}s", log
+                )
             if status != 0:
-                return _failure(f"{tool} exited {status}", log)
+                return report_failure(TOOL, f"{tool} exited {status}", log)
         return _reconfigure_kwin(scratch, env)
     finally:
         shutil.rmtree(scratch, ignore_errors=True)

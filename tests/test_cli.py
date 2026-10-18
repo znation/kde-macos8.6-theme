@@ -1,8 +1,9 @@
 """Tests for tools/cli.py -- the shared argument-parsing helpers.
 
-``tools/fidelity.py``, ``tools/sample.py`` and ``tools/render_surface.py`` parse
-their command lines through this module, but their own tests reach the helpers
-only through a tool's usage diagnostic. These tests pin the helpers' contracts directly, so a
+``tools/fidelity.py``, ``tools/sample.py``, ``tools/render_surface.py`` and
+``tools/apply_theme.py`` parse their command lines through this module, but
+their own tests reach the helpers only through a tool's usage diagnostic.
+These tests pin the helpers' contracts directly, so a
 change to the plain-ASCII predicate, the option-named rejection or the
 control-character escaping of argparse's own diagnostics is caught here
 instead of through one tool and not the others.
@@ -20,6 +21,7 @@ import unittest
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import cli
+from tmp_dir import make_tmp_dir
 
 
 class TestIsPlainAsciiNumber(unittest.TestCase):
@@ -176,6 +178,58 @@ class TestReportError(unittest.TestCase):
         self.assertNotIn("\x1b", err)
         self.assertIn("\\u001b", err)
         self.assertIn("\\u000a", err)
+
+
+class TestReportFailure(unittest.TestCase):
+    def _report(self, message, log=None):
+        """Call report_failure and return its status and stderr text."""
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            status = cli.report_failure("apply_theme", message, log)
+        return status, stderr.getvalue()
+
+    def test_prefixes_the_tool_name_and_returns_one(self):
+        # The tools that call this return its result directly as the process
+        # exit status, so the helper must supply the 1 itself.
+        status, err = self._report("make install exited 2")
+        self.assertEqual(status, 1)
+        self.assertEqual(err, "apply_theme: error: make install exited 2\n")
+
+    def test_escapes_control_characters_in_the_message(self):
+        status, err = self._report("bad \x1b[31m path\nname")
+        self.assertEqual(status, 1)
+        self.assertNotIn("\x1b", err)
+        self.assertIn("\\u001b", err)
+        self.assertIn("\\u000a", err)
+
+    def test_appends_the_log_tail_indented_and_escaped(self):
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_text("one\nbad \x1b[31m\ntwo\n", encoding="utf-8")
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertEqual(
+            err,
+            "apply_theme: error: command failed\n"
+            "  one\n"
+            "  bad \\u001b[31m\n"
+            "  two\n",
+        )
+
+    def test_keeps_only_the_last_twelve_log_lines(self):
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_text(
+            "".join(f"line {i}\n" for i in range(15)), encoding="utf-8"
+        )
+        _, err = self._report("command failed", log)
+        self.assertNotIn("line 2\n", err)
+        self.assertIn("  line 3\n", err)
+        self.assertIn("  line 14\n", err)
+
+    def test_a_missing_log_adds_no_tail(self):
+        log = make_tmp_dir(self) / "absent.log"
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertEqual(err, "apply_theme: error: command failed\n")
 
 
 if __name__ == "__main__":
