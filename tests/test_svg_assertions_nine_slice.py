@@ -10,6 +10,7 @@ import unittest
 
 from svg_assertions import (
     nine_slice_hint_geometry,
+    nine_slice_inset_hints,
     nine_slice_margins,
     nine_slice_tile_sizes,
     tile_origins,
@@ -93,6 +94,36 @@ class TestNineSliceHintGeometry(unittest.TestCase):
                 "hint-tile-center": ("3", "3", "6", "6"),
                 **nine_slice_margins("normal", 3, 6),
                 **nine_slice_margins("pressed", 3, 6),
+            },
+        )
+
+
+class TestNineSliceInsetHints(unittest.TestCase):
+    def test_derives_the_four_insets_from_the_centre_tile(self):
+        # The background and tooltip tests build their inset band here, so a
+        # wrong coordinate would make both pin the wrong fillable area. A 3px
+        # border around a 10px tile puts the band's far edge at 16.
+        self.assertEqual(
+            nine_slice_inset_hints("", 3, 10, 10),
+            {
+                "hint-top-inset": ("3", "0", "10", "0"),
+                "hint-bottom-inset": ("3", "16", "10", "0"),
+                "hint-left-inset": ("0", "3", "0", "10"),
+                "hint-right-inset": ("16", "3", "0", "10"),
+            },
+        )
+
+    def test_prefixes_the_ids_and_stretches_a_non_square_tile(self):
+        # The menu bar's `north` state has a taller centre tile, so the
+        # left/right insets span its height while the top/bottom span its
+        # width; the prefix keeps the two states' ids apart.
+        self.assertEqual(
+            nine_slice_inset_hints("north", 2, 8, 18),
+            {
+                "north-hint-top-inset": ("2", "0", "8", "0"),
+                "north-hint-bottom-inset": ("2", "22", "8", "0"),
+                "north-hint-left-inset": ("0", "2", "0", "18"),
+                "north-hint-right-inset": ("12", "2", "0", "18"),
             },
         )
 

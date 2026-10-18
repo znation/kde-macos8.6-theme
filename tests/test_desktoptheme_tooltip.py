@@ -12,6 +12,7 @@ from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
     attribute_values,
+    nine_slice_inset_hints,
     render_slices,
 )
 
@@ -22,12 +23,14 @@ class TestTooltip(NineSliceCase, unittest.TestCase):
     def test_tooltip_hint_geometry(self):
         # The 3px margins are the tooltip's text padding (ToolTip.qml reads
         # them as its paddings), so pin every hint, not only the ids.
-        assert_hint_geometry(self, self.tree, [""], 3, 10, {
-            "hint-top-inset": ("3", "0", "10", "0"),
-            "hint-bottom-inset": ("3", "16", "10", "0"),
-            "hint-left-inset": ("0", "3", "0", "10"),
-            "hint-right-inset": ("16", "3", "0", "10"),
-        })
+        assert_hint_geometry(
+            self,
+            self.tree,
+            [""],
+            3,
+            10,
+            nine_slice_inset_hints("", 3, 10, 10),
+        )
 
     def test_tooltip_pixels(self):
         slices = render_slices(self.tree)

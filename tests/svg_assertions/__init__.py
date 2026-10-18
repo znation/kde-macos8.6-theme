@@ -77,6 +77,7 @@ from .nine_slice import (
     _TRANSLATE,
     _state_margin_hints,
     nine_slice_hint_geometry,
+    nine_slice_inset_hints,
     nine_slice_margins,
     nine_slice_tile_sizes,
     tile_origins,

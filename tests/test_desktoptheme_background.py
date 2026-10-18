@@ -11,6 +11,7 @@ from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
     attribute_values,
+    nine_slice_inset_hints,
     render_slices,
 )
 
@@ -23,12 +24,14 @@ class TestBackground(NineSliceCase, unittest.TestCase):
         # inset rect with the wrong position or size passes it while KSvg lays
         # the menu body out wrong. Pin every hint: a 3px border around a 10px
         # centre tile on the 16x16 canvas, plus the zero-size inset rects.
-        assert_hint_geometry(self, self.tree, [""], 3, 10, {
-            "hint-top-inset": ("3", "0", "10", "0"),
-            "hint-bottom-inset": ("3", "16", "10", "0"),
-            "hint-left-inset": ("0", "3", "0", "10"),
-            "hint-right-inset": ("16", "3", "0", "10"),
-        })
+        assert_hint_geometry(
+            self,
+            self.tree,
+            [""],
+            3,
+            10,
+            nine_slice_inset_hints("", 3, 10, 10),
+        )
 
     def test_background_pixels(self):
         # The body is a flat #FFFFFF face: a 1px #000000 outline on the outer

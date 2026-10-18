@@ -41,6 +41,35 @@ def nine_slice_margins(prefix, border, size):
     }
 
 
+def nine_slice_inset_hints(prefix, border, width, height):
+    """Return the four inset-band hints of a centred nine-slice SVG.
+
+    An inset band is the fillable area inside the border: four
+    zero-thickness hints spanning the centre tile, each flush against the
+    border. The top/bottom pair runs *width* wide and the left/right pair
+    *height* tall, so the band fits a non-square centre tile as well as a
+    square one. *prefix* is the state prefix (``""`` for an unprefixed
+    SVG); *width* and *height* are the centre tile's dimensions.
+    """
+    sep = "-" if prefix else ""
+    right = border + width + border
+    bottom = border + height + border
+    return {
+        f"{prefix}{sep}hint-top-inset": (
+            str(border), "0", str(width), "0"
+        ),
+        f"{prefix}{sep}hint-bottom-inset": (
+            str(border), str(bottom), str(width), "0"
+        ),
+        f"{prefix}{sep}hint-left-inset": (
+            "0", str(border), "0", str(height)
+        ),
+        f"{prefix}{sep}hint-right-inset": (
+            str(right), str(border), "0", str(height)
+        ),
+    }
+
+
 def nine_slice_hint_geometry(prefixes, border, size):
     """Return the full hint geometry of a centred nine-slice SVG.
 
@@ -49,7 +78,8 @@ def nine_slice_hint_geometry(prefixes, border, size):
     alongside each state's four margin hints from `nine_slice_margins`.
     *prefixes* lists every state prefix (pass ``[""]`` for an unprefixed
     SVG). Callers whose SVG declares extra hints (an inset band, a track
-    size) merge those in themselves.
+    size) merge those in themselves; `nine_slice_inset_hints` builds the
+    common inset band.
     """
     geometry = {
         "hint-tile-center": (str(border), str(border), str(size), str(size))

@@ -14,6 +14,7 @@ from support.repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_slice_pixels,
+    nine_slice_inset_hints,
     pixel_map,
     rect_geometry,
     render_slices,
@@ -76,18 +77,12 @@ class TestPanelBackground(NineSliceCase, unittest.TestCase):
                 "hint-bottom-margin": ("2", "10", "2", "2"),
                 "hint-left-margin": ("0", "2", "2", "2"),
                 "hint-right-margin": ("10", "2", "2", "2"),
-                "hint-top-inset": ("2", "0", "8", "0"),
-                "hint-bottom-inset": ("2", "12", "8", "0"),
-                "hint-left-inset": ("0", "2", "0", "8"),
-                "hint-right-inset": ("12", "2", "0", "8"),
+                **nine_slice_inset_hints("", 2, 8, 8),
                 "north-hint-top-margin": ("2", "0", "2", "2"),
                 "north-hint-bottom-margin": ("2", "20", "2", "2"),
                 "north-hint-left-margin": ("0", "2", "2", "2"),
                 "north-hint-right-margin": ("10", "2", "2", "2"),
-                "north-hint-top-inset": ("2", "0", "8", "0"),
-                "north-hint-bottom-inset": ("2", "22", "8", "0"),
-                "north-hint-left-inset": ("0", "2", "0", "18"),
-                "north-hint-right-inset": ("12", "2", "0", "18"),
+                **nine_slice_inset_hints("north", 2, 8, 18),
             },
         )
 
