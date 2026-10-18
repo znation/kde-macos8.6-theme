@@ -203,6 +203,27 @@ class TestFailurePaths(StubTools):
                 self.assertFalse(marker.exists())
                 self.assert_scratch_removed()
 
+    def test_a_read_only_output_directory_is_refused_before_installing(self):
+        # The last branch of `_output_problem`: the directory exists but this
+        # user may not write it. `os.access` is the only check that sees that,
+        # and a refusal here keeps the failure a named diagnostic instead of
+        # letting the copy fail later with an errno the operator has to read
+        # out of a traceback.
+        marker = self.root / "make-ran"
+        self.stub("make", f"touch {marker}")
+        locked = self.root / "locked"
+        locked.mkdir()
+        locked.chmod(0o500)
+        self.addCleanup(locked.chmod, 0o700)
+        if os.access(locked, os.W_OK):
+            self.skipTest("directory permissions are not enforced for this user")
+        status, stderr = call_main(render_surface.main, str(locked / "out.png"))
+        self.assertEqual(2, status)
+        self.assertIn("render_surface: error: cannot write", stderr)
+        self.assertIn("its directory is not writable", stderr)
+        self.assertFalse(marker.exists())
+        self.assert_scratch_removed()
+
     def hidden_files(self):
         return [name for name in os.listdir(self.root) if name.startswith(".")]
 
