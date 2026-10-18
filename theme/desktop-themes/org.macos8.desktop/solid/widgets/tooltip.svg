@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" tooltip.
+
+     Plasma tooltips: PlasmaComponents.ToolTip paints `solid/widgets/tooltip`
+     (a byte-identical copy of this file ships at solid/widgets/tooltip.svg,
+     because KSvg does not map that path onto `widgets/tooltip`) and panel
+     ToolTipArea tooltips paint `widgets/tooltip`. Before this file the theme
+     shipped neither and both inherited Breeze's rounded translucent tooltip.
+
+     Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
+     canvas, square corners; the 3px margins are the tooltip's text padding.
+     The face is a flat #FFFFCC with a 1px #000000 outline on the outer edge
+     of every slice and no bevel.
+
+     Provenance: no reference screenshot shows a Balloon Help balloon, so no
+     pixel is screenshot-anchored. The face is `[Colors:Tooltip]
+     BackgroundNormal=255,255,204`, a KDE-required role taken from the classic
+     Platinum palette (QUESTIONS.md "How should the tooltip palette anchor be
+     grounded?", option 2); the outline is the same 1px black square outline
+     widgets/background.svg (the menu body) draws.
+
+     Known deviations: no `shadow-*` element set (nothing is drawn for the
+     `shadow` prefix, as in widgets/button.svg), no `blurred` prefixes, and no
+     balloon tail (Plasma tooltips are rectangular frames). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Nine-slice hints: tile size, border margins, and zero-size insets. KSvg
+       reads their geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="10" height="10" style="fill:#ff6600"/>
+  <rect id="hint-top-margin" x="3" y="0" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="hint-bottom-margin" x="3" y="13" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="hint-left-margin" x="0" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="hint-right-margin" x="13" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="hint-top-inset" x="3" y="0" width="10" height="0" style="fill:#00ff00"/>
+  <rect id="hint-bottom-inset" x="3" y="16" width="10" height="0" style="fill:#00ff00"/>
+  <rect id="hint-left-inset" x="0" y="3" width="0" height="10" style="fill:#00ff00"/>
+  <rect id="hint-right-inset" x="16" y="3" width="0" height="10" style="fill:#00ff00"/>
+
+  <!-- Edges: flat #FFFFCC face with the 1px black outline on the outer edge
+       (top y=0, bottom y=2, left x=0, right x=2). -->
+  <g id="top" transform="translate(3,0)">
+    <rect width="10" height="3" fill="#FFFFCC"/>
+    <rect y="0" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="bottom" transform="translate(3,13)">
+    <rect width="10" height="3" fill="#FFFFCC"/>
+    <rect y="2" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="left" transform="translate(0,3)">
+    <rect width="3" height="10" fill="#FFFFCC"/>
+    <rect x="0" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="right" transform="translate(13,3)">
+    <rect width="3" height="10" fill="#FFFFCC"/>
+    <rect x="2" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="center" transform="translate(3,3)">
+    <rect width="10" height="10" fill="#FFFFCC"/>
+  </g>
+
+  <!-- Square corners: the black L outline on the two outer edges over the
+       #FFFFCC face. -->
+  <g id="topleft">
+    <rect width="3" height="3" fill="#FFFFCC"/>
+    <rect y="0" width="3" height="1" fill="#000000"/>
+    <rect x="0" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="topright" transform="translate(13,0)">
+    <rect width="3" height="3" fill="#FFFFCC"/>
+    <rect y="0" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="bottomleft" transform="translate(0,13)">
+    <rect width="3" height="3" fill="#FFFFCC"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="0" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="bottomright" transform="translate(13,13)">
+    <rect width="3" height="3" fill="#FFFFCC"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+</svg>

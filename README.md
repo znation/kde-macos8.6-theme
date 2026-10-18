@@ -75,7 +75,10 @@ etched `#888888`/`#FFFFFF` rule).
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. The package
 also ships `widgets/background.svg` (the flat white Platinum body for
-`PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers) and
+`PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers),
+`widgets/tooltip.svg` (the flat `#FFFFCC` Platinum tooltip with a black outline, for panel and
+`PlasmaComponents.ToolTip` tooltips; a byte-identical copy ships at `solid/widgets/tooltip.svg`,
+where `PlasmaComponents.ToolTip` looks for it) and
 `dialogs/background.svg` (the raised grey Platinum window body
 `PlasmaCore.Dialog` and `PlasmaCore.AppletPopup` draw, replacing Breeze's
 translucent rounded rectangle). The window decoration ships

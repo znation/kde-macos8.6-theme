@@ -22,7 +22,12 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-### Mac OS 8.6 Platinum tooltip (`widgets/tooltip.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+_None yet._
+
+
+## Done
+
+### Mac OS 8.6 Platinum tooltip (`widgets/tooltip.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Goal.** Plasma tooltips should stop falling back to Breeze's rounded, translucent tooltip and
 draw a flat Platinum one: a square `#FFFFCC` face with a 1px `#000000` outline. Two consumers read
@@ -99,9 +104,6 @@ and the tooltip text font.
   diverge; moving or resizing a margin hint; leaving either file out of `SVG_CANVASES`.
 - `make install XDG_DATA_HOME=<tmp>` installs both `widgets/tooltip.svg` and
   `solid/widgets/tooltip.svg` under `plasma/desktoptheme/org.macos8.desktop/`.
-
-
-## Done
 
 ### Mac OS 8.6 menu-bar clock format: 12-hour time with AM/PM, no date, no seconds (planned 2026-10-17 by the plan role; done 2026-10-17)
 

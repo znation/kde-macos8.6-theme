@@ -32,8 +32,10 @@ from desktoptheme_paths import (
     RADIOBUTTON_SVG,
     SCROLLBAR_SVG,
     SLIDER_SVG,
+    SOLID_TOOLTIP_SVG,
     TABBAR_SVG,
     TOOLBAR_SVG,
+    TOOLTIP_SVG,
     VIEWITEM_SVG,
 )
 from install_failure_cases import FailedInstallPreservesPackage
@@ -59,8 +61,8 @@ PLASMA_SECTION = "plasmarc][Theme"
 
 # Each shipped SVG's root canvas. Nine widgets (the menu bar, frame, button,
 # line edit, list item, view item, menu-bar item, tab bar and plasmoid heading) share a tight
-# 12x12 canvas; the scrollbar, slider, toolbar, arrows, menu body and dialog
-# window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
+# 12x12 canvas; the scrollbar, slider, toolbar, arrows, menu body, tooltip (and its
+# solid/ copy) and dialog window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
 # is a 10x10 canvas and the etched separator a 4x2 canvas.
 SVG_CANVASES = (
@@ -82,6 +84,8 @@ SVG_CANVASES = (
     ("arrows.svg", ARROWS_SVG, 16, 16),
     ("line.svg", LINE_SVG, 4, 2),
     ("plasmoidheading.svg", PLASMOIDHEADING_SVG, 12, 12),
+    ("tooltip.svg", TOOLTIP_SVG, 16, 16),
+    ("solid/widgets/tooltip.svg", SOLID_TOOLTIP_SVG, 16, 16),
     ("dialogs/background.svg", DIALOG_BACKGROUND_SVG, 16, 16),
 )
 
@@ -178,6 +182,8 @@ class TestInstall(
         os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "bar_meter_horizontal.svg"),
         os.path.join("widgets", "background.svg"),
+        os.path.join("widgets", "tooltip.svg"),
+        os.path.join("solid", "widgets", "tooltip.svg"),
         os.path.join("dialogs", "background.svg"),
     )
     COPY_FAILURE_GLOB = "*/desktop-themes/*"

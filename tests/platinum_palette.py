@@ -29,6 +29,11 @@ PLATINUM_FILLS = frozenset({BLACK, WHITE, GREY, FACE})
 # set above, so a widget test that draws it passes it as `extra`.
 TROUGH = "#EEEEEE"
 
+# The tooltip face: `[Colors:Tooltip] BackgroundNormal`, a KDE-required role
+# taken from the classic Platinum palette. No reference screenshot shows a
+# tooltip, so it is not screenshot-sampled.
+TOOLTIP_FACE = "#FFFFCC"
+
 
 def hex_colour(rgb):
     """Return the ``#RRGGBB`` form of the sampled pixel *rgb*, as an SVG fill is written."""

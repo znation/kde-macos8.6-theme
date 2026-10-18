@@ -37,6 +37,8 @@ TOOLBAR_SVG = os.path.join(PACKAGE, "widgets", "toolbar.svg")
 ARROWS_SVG = os.path.join(PACKAGE, "widgets", "arrows.svg")
 LINE_SVG = os.path.join(PACKAGE, "widgets", "line.svg")
 PLASMOIDHEADING_SVG = os.path.join(PACKAGE, "widgets", "plasmoidheading.svg")
+TOOLTIP_SVG = os.path.join(PACKAGE, "widgets", "tooltip.svg")
+SOLID_TOOLTIP_SVG = os.path.join(PACKAGE, "solid", "widgets", "tooltip.svg")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"
