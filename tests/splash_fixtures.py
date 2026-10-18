@@ -25,6 +25,7 @@ REFERENCE = os.path.join(
 
 
 def read_qml():
+    """Return the splash QML source as one string."""
     with open(SPLASH, encoding="utf-8") as handle:
         return handle.read()
 

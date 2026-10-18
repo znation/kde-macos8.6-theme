@@ -75,6 +75,7 @@ def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
 
 
 def main() -> int:
+    """Write the tiled wallpaper PNG for every resolution; return 0, or 2 on error."""
     try:
         tile = tile_from_reference(read_png(ROOT / REFERENCE))
     except (PngError, ValueError) as exc:

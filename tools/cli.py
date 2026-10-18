@@ -41,6 +41,7 @@ class EscapingArgumentParser(argparse.ArgumentParser):
     """
 
     def error(self, message: str) -> None:
+        """Report *message* with control characters escaped; argparse exits 2."""
         super().error(escape_controls(message))
 
 

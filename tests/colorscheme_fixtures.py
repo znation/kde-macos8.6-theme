@@ -15,4 +15,5 @@ SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
 
 def load_scheme():
+    """Return the parsed MacOS8 color scheme."""
     return read_kde_config(SCHEME)

@@ -33,6 +33,11 @@ def chunk_name(ctype: bytes) -> str:
 
 
 def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
+    """Yield ``(type, payload)`` for each chunk in *data* after the signature.
+
+    A declared length above the PNG spec's maximum, an invalid type code, a
+    truncated payload or CRC, and a bad checksum raise :class:`PngError`.
+    """
     pos = len(PNG_MAGIC)
     while pos + 8 <= len(data):
         (length,) = struct.unpack(">I", data[pos : pos + 4])
