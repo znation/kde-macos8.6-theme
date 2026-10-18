@@ -121,10 +121,14 @@ def _render(args: argparse.Namespace) -> int:
         runtime.chmod(0o700)
         surface = scratch / "surface.png"
 
+        # DESTDIR must not reach the install: the theme has to land in the
+        # scratch data home. It arrives both as an environment variable and,
+        # when the caller ran `make DESTDIR=... render`, through MAKEFLAGS,
+        # which the child make imports as a command-line override.
         env = {
             key: value
             for key, value in os.environ.items()
-            if key not in ("WAYLAND_DISPLAY", "DISPLAY", "DESTDIR")
+            if key not in ("WAYLAND_DISPLAY", "DISPLAY", "DESTDIR", "MAKEFLAGS")
         }
         env.update(
             XDG_RUNTIME_DIR=str(runtime),

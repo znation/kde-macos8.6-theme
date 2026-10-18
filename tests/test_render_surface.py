@@ -78,6 +78,8 @@ class StubTools(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix="render-surface-test-"))
         self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        # Capture the real make before the stub directory goes on PATH.
+        self.real_make = shutil.which("make")
         self.bin = self.root / "bin"
         self.bin.mkdir()
         self.scratch_parent = self.root / "tmp"
@@ -249,6 +251,23 @@ class TestFailurePaths(StubTools):
             self.run_main()
         argv = record.read_text(encoding="utf-8")
         self.assertTrue(argv.startswith("[] install XDG_DATA_HOME="), argv)
+
+    def test_install_ignores_a_destdir_from_the_outer_make_command_line(self):
+        # `make DESTDIR=/stage render` exports the command-line variable through
+        # MAKEFLAGS as well as the environment, so dropping DESTDIR alone leaves
+        # the inner `make install` staging the theme outside the scratch home.
+        # Run the real make so it imports MAKEFLAGS the way the outer one would.
+        record = self.root / "make-destdir"
+        makefile = self.root / "install.mk"
+        makefile.write_text(
+            f'install:\n\t@echo "[$(DESTDIR)]" > "{record}"\n', encoding="utf-8"
+        )
+        self.stub("make", f'exec "{self.real_make}" -f "{makefile}" "$@"')
+        with mock.patch.dict(
+            os.environ, {"MAKEFLAGS": f"-- DESTDIR={self.root / 'stage'}"}
+        ):
+            self.run_main()
+        self.assertEqual("[]", record.read_text(encoding="utf-8").strip())
 
     def test_timeout_kills_the_session_group_and_exits_1(self):
         pidfile = self.root / "pid"

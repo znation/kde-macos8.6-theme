@@ -12,6 +12,25 @@ _None yet._
 
 ## Fixed
 
+### `make render` installs the theme outside its scratch data home when `DESTDIR` is on the outer make command line (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** The earlier fix dropped `DESTDIR` from the environment `tools/render_surface.py`
+hands to its child processes, but a caller who runs `make DESTDIR=/stage render` sets `DESTDIR`
+as a *command-line* variable, and GNU make exports command-line variables to sub-makes through
+`MAKEFLAGS` (`-- DESTDIR=/stage`). The inner `make install XDG_DATA_HOME=<scratch>/data` imported
+it, so the Makefile built its paths as `/stage<scratch>/data/...` and the theme landed outside the
+scratch data home. The headless session then found no theme and `spectacle` captured an unthemed
+window with exit status 0.
+**Reproduce:** `make DESTDIR=/stage render` (a real render). Offline, the stub test
+execs the real make so it imports `MAKEFLAGS`:
+`tests/test_render_surface.py::TestFailurePaths::test_install_ignores_a_destdir_from_the_outer_make_command_line`
+recorded `[/...stage]` before the fix and `[]` after.
+**Fix:** `_render` also drops `MAKEFLAGS` from the environment it hands to the child processes, so
+the child make cannot import the caller's command-line variable overrides. This also keeps the
+scratch install from inheriting a jobserver it cannot use.
+**Validation gap:** none — the stubbed-tool test harness reproduced it directly once its stub ran
+the real make.
+
 ### README lists three tools `make render` needs, but `REQUIRED_TOOLS` has six (found by the qa role 2026-10-17) — fixed 2026-10-17 by the bugfix role
 
 README "Installing" says `make render` "needs `kwin_wayland`, `spectacle` and `plasmawindowed` and exits 2
