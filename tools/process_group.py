@@ -12,7 +12,9 @@ import contextlib
 import os
 import signal
 import subprocess
+from collections.abc import Iterator
 from pathlib import Path
+from types import FrameType
 
 
 def _kill_group(process: subprocess.Popen) -> None:
@@ -51,7 +53,7 @@ def run_logged(
 
 
 @contextlib.contextmanager
-def exit_on_termination():
+def exit_on_termination() -> Iterator[None]:
     """Turn SIGTERM and SIGHUP into ``SystemExit`` so the ``finally`` blocks run.
 
     A child started with :func:`run_logged` runs in its own session, so a
@@ -60,7 +62,7 @@ def exit_on_termination():
     signal number.
     """
 
-    def handler(signum, frame):
+    def handler(signum: int, frame: FrameType | None) -> None:
         raise SystemExit(128 + signum)
 
     signals = (signal.SIGTERM, signal.SIGHUP)

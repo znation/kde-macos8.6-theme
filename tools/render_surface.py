@@ -28,6 +28,7 @@ import shlex
 import shutil
 import sys
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
 
 if __package__:
@@ -230,7 +231,7 @@ def _render(args: argparse.Namespace) -> int:
         shutil.rmtree(scratch, ignore_errors=True)
 
 
-def _seconds(option: str, minimum: float):
+def _seconds(option: str, minimum: float) -> Callable[[str], float]:
     def parse(value: str) -> float:
         number = plain_number(value, option, "number", "a", float)
         # `not number >= minimum` also rejects NaN.
