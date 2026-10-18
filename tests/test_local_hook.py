@@ -183,6 +183,24 @@ class TestInstall(unittest.TestCase):
         self.assertIn(str(hook), result.stderr)
         self.assertEqual(foreign, hook.read_bytes())
 
+    def test_refuses_an_oversize_hook_without_reading_it_whole(self):
+        # A hook far larger than the read cap cannot be one this tool wrote.
+        # The tool must refuse it by name instead of loading the whole file
+        # into memory; a multi-gigabyte hook would otherwise raise MemoryError
+        # (which is not an OSError) and escape as a traceback.
+        repo = make_repo(self)
+        hook = hook_path(repo)
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
+        hook.write_bytes(oversize)
+        result = run_tool(repo, "install")
+        assert_failed(self, result)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn(str(hook), result.stderr)
+        self.assertIn("larger than", result.stderr)
+        self.assertEqual(oversize, hook.read_bytes())
+
     def test_refuses_a_dangling_symlinked_hook_without_writing_through(self):
         repo = make_repo(self)
         hook = hook_path(repo)
@@ -303,6 +321,19 @@ class TestUninstall(unittest.TestCase):
         assert_failed(self, result)
         self.assertIn(str(hook), result.stderr)
         self.assertEqual(foreign, hook.read_bytes())
+
+    def test_refuses_an_oversize_hook(self):
+        repo = make_repo(self)
+        hook = hook_path(repo)
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
+        hook.write_bytes(oversize)
+        result = run_tool(repo, "uninstall")
+        assert_failed(self, result)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("larger than", result.stderr)
+        self.assertEqual(oversize, hook.read_bytes())
 
     def test_refuses_a_symlinked_hook(self):
         repo = make_repo(self)

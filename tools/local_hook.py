@@ -17,8 +17,8 @@ Usage::
     python3 tools/local_hook.py uninstall
 
 Exit status: 0 on success, 2 when an existing hook blocks the operation (a
-foreign hook, a symlink, a non-regular file, or an unreadable file), a git
-invocation fails, or the arguments are a usage error.
+foreign hook, a symlink, a non-regular file, an oversize file, or an
+unreadable file), a git invocation fails, or the arguments are a usage error.
 """
 
 from __future__ import annotations
@@ -39,6 +39,14 @@ HOOK_NAME = "post-commit"
 # The line that marks a hook as this tool's; a hook without it is foreign.
 MARKER = "# installed by kde-macos8.6-theme: make install-local-hook"
 COMMAND_TIMEOUT = 30.0
+# The hook this tool writes is a few hundred bytes. An existing hook is read
+# only to look for MARKER, and the path holds whatever another tool or the
+# user put there, at any size, so a huge file must not be loaded whole: a
+# multi-gigabyte hook would exhaust memory and raise MemoryError (which is not
+# an OSError and would escape as a traceback) instead of the documented exit-2
+# refusal. Read at most this many bytes plus one; a longer file is refused by
+# name rather than read.
+_MAX_HOOK_BYTES = 1 << 20
 
 # The hook body. It re-derives the worktree root at run time so a commit in
 # any linked worktree applies that worktree's tree, sends both output streams
@@ -109,8 +117,9 @@ def _existing_hook(path: Path) -> bytes | None:
     symlink (a dangling one included) is refused: writing through it could
     clobber a file outside the hooks directory. A non-regular file and an
     unreadable file are refused too, so the marker check can never silently
-    pass. Each refusal raises `LocalHookError`, which the callers report with
-    exit status 2.
+    pass. A file larger than ``_MAX_HOOK_BYTES`` is refused without being read
+    whole, so an oversize hook cannot exhaust memory. Each refusal raises
+    `LocalHookError`, which the callers report with exit status 2.
     """
     try:
         mode = path.lstat().st_mode
@@ -123,9 +132,18 @@ def _existing_hook(path: Path) -> bytes | None:
     if not stat.S_ISREG(mode):
         raise LocalHookError(f"refusing to touch a non-regular hook: {path}")
     try:
-        return path.read_bytes()
+        # Read at most one byte past the cap: enough to detect an oversize
+        # hook without loading the rest of it.
+        with path.open("rb") as handle:
+            data = handle.read(_MAX_HOOK_BYTES + 1)
     except OSError as exc:
         raise LocalHookError(f"cannot read {path}: {exc}") from exc
+    if len(data) > _MAX_HOOK_BYTES:
+        raise LocalHookError(
+            f"refusing to touch a hook larger than {_MAX_HOOK_BYTES} bytes: "
+            f"{path}"
+        )
+    return data
 
 
 def _write_hook(path: Path, content: str) -> None:
@@ -199,9 +217,9 @@ def main(argv: list[str] | None = None) -> int:
         ),
         epilog=(
             "exit status: 0 on success, 2 when an existing hook blocks the "
-            "operation (a foreign hook, a symlink, a non-regular file, or an "
-            "unreadable file), a git invocation fails, or the arguments are a "
-            "usage error"
+            "operation (a foreign hook, a symlink, a non-regular file, an "
+            "oversize file, or an unreadable file), a git invocation fails, "
+            "or the arguments are a usage error"
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
