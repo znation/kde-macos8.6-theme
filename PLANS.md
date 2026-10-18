@@ -362,7 +362,7 @@ applications reread the new files.
   Steps 2-3 run after step 1 because `lookandfeeltool` applies the theme's defaults wholesale; the
   explicit component selections then hold whatever the user had chosen. Steps 1-3 are required: a
   missing tool exits 2 naming it (`shutil.which`), a non-zero command exits 1 with the output
-  tail, mirroring `tools/render_surface.py`'s `_failure` shape and the `REQUIRED_TOOLS` guard.
+  tail, mirroring `tools.cli.report_failure` and `tools.cli.report_missing_tool`.
 - When `DBUS_SESSION_BUS_ADDRESS` is unset, `$XDG_RUNTIME_DIR` is an absolute path, and
   `$XDG_RUNTIME_DIR/bus` exists, default the variable to `unix:path=$XDG_RUNTIME_DIR/bus`, so the
   command works from a non-login shell (the hook in part 2). Otherwise leave it alone.
