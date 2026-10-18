@@ -53,6 +53,39 @@ class TestEncodePng(unittest.TestCase):
         with self.assertRaises(ValueError):
             encode_png(1, True, bytes(3))
 
+    def test_negative_dimension_is_rejected_naming_the_field(self):
+        # A negative extent is neither positive nor zero, so a guard that only
+        # rejected zero would let it reach struct.pack(">I", ...), which raises
+        # struct.error naming neither the dimension nor this function. The
+        # guard must reject it as a ValueError naming the field and value.
+        for name, width, height in (("width", -1, 1), ("height", 1, -1)):
+            value = width if name == "width" else height
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError) as caught:
+                    encode_png(width, height, bytes(3))
+                self.assertIn(
+                    f"PNG {name} must be a positive integer", str(caught.exception)
+                )
+                self.assertIn(f"{name}={value!r}", str(caught.exception))
+
+    def test_non_integer_dimension_is_rejected_naming_the_field(self):
+        # A float or str extent would otherwise reach the RGB length check (a
+        # float byte count) or struct.pack (a bare struct.error), naming
+        # neither the dimension nor this function. The guard must reject it as
+        # a ValueError naming the field and value, as Image.__post_init__ does.
+        for name, width, height, value in (
+            ("width", 1.5, 1, 1.5),
+            ("height", 1, 1.5, 1.5),
+            ("width", "1", 1, "1"),
+        ):
+            with self.subTest(name=name, value=value):
+                with self.assertRaises(ValueError) as caught:
+                    encode_png(width, height, bytes(3))
+                self.assertIn(
+                    f"PNG {name} must be a positive integer", str(caught.exception)
+                )
+                self.assertIn(f"{name}={value!r}", str(caught.exception))
+
 
 if __name__ == "__main__":
     unittest.main()
