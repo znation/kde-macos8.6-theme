@@ -1,11 +1,14 @@
 """Pixel and layout assertions for the SVG test helpers.
 
 The assertions a widget test calls: each compares rendered slice pixels, a
-bevel band, a corner tile, a centre tile or a hint geometry against the values
-the artwork must paint, naming the failing slice in its message.
+bevel band, a bevel half-disc's arc, a corner tile, a centre tile or a hint
+geometry against the values the artwork must paint, naming the failing slice
+in its message.
 """
 
 from __future__ import annotations
+
+import math
 
 from .elements import rect_geometry
 from .faces import face_corners, face_edge_bands
@@ -15,6 +18,7 @@ from .nine_slice import (
     nine_slice_tile_sizes,
     tile_origins,
 )
+from .paths import arc_center, path_arcs
 from .render import pixel_map, render_slices
 from .tree import SLICE_IDS, attribute_values, local_name
 
@@ -203,6 +207,38 @@ def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
     outward, mirrored = face_edge_bands(face, bevel)
     assert_edge_bevels(case, slices, prefix, outward, mirrored, size)
     assert_face_corners(case, slices, prefix, face_corners(face, bevel))
+
+
+def assert_diagonal_half_disc(case, path, index, radius, center):
+    """Assert *path* is the *index*-th half-disc of a raised diagonal bevel.
+
+    The bevel's two half-discs split along the disc centre's bottom-left to
+    top-right diagonal: the first runs bottom-left -> top-right and the second
+    top-right -> bottom-left, both swept (sweep 1) so the first covers the
+    top-left side a raised bevel paints its highlight on. A half-disc rotated
+    onto the other diagonal would still centre on the disc at the same radius,
+    so pin both endpoints and the sweep that picks the top-left side, not only
+    the radius and centre. *case* is the calling ``unittest.TestCase``;
+    *index* is the half-disc's document-order index (0 or 1); *radius* is the
+    bevel radius and *center* the disc's ``(x, y)`` centre.
+    """
+    entries = list(path_arcs(path.get("d")))
+    case.assertEqual(len(entries), 1)
+    start, arc, end = entries[0]
+    case.assertEqual((arc[0], arc[1]), (radius, radius))
+    case.assertEqual((arc[2], arc[3]), (0, 1))
+    diagonal = radius / math.sqrt(2)
+    cx, cy = center
+    expected_start, expected_end = (
+        ((cx - diagonal, cy + diagonal), (cx + diagonal, cy - diagonal)),
+        ((cx + diagonal, cy - diagonal), (cx - diagonal, cy + diagonal)),
+    )[index]
+    for got, want in ((start, expected_start), (end, expected_end)):
+        case.assertAlmostEqual(got[0], want[0], delta=1e-3)
+        case.assertAlmostEqual(got[1], want[1], delta=1e-3)
+    centre = arc_center(start, arc, end)
+    case.assertAlmostEqual(centre[0], center[0], places=2)
+    case.assertAlmostEqual(centre[1], center[1], places=2)
 
 
 def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):

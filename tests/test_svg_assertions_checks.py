@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 from support.error_assertions import assert_rejects
 from svg_assertions import (
     SLICE_IDS,
+    assert_diagonal_half_disc,
     assert_hint_geometry,
     assert_root_canvas,
     assert_slice_ids_present,
@@ -142,6 +143,29 @@ def _aliased_nine_slice_tree(alias_origins=None):
     return _svg_tree(body, width="12", height="12", viewBox="0 0 12 12")
 
 
+def _bevel_half_disc(index, radius=16.0, center=(18.0, 18.0), rotated=False):
+    """Return a ``<path>`` holding a raised-bevel half-disc arc.
+
+    *index* selects the document-order half-disc (0 or 1); *rotated* puts its
+    endpoints on the other diagonal, the defect `assert_diagonal_half_disc`
+    must catch.
+    """
+    diagonal = radius / 2 ** 0.5
+    cx, cy = center
+    if rotated:
+        start, end = (cx, cy - radius), (cx, cy + radius)
+    else:
+        start, end = (
+            (cx - diagonal, cy + diagonal), (cx + diagonal, cy - diagonal)
+        )
+    if index:
+        start, end = end, start
+    return ET.fromstring(
+        f'<path d="M {start[0]},{start[1]} A {radius},{radius} 0 0 1 '
+        f'{end[0]},{end[1]}"/>'
+    )
+
+
 class TestStructuralGuards(unittest.TestCase):
     def test_tiles_placed_by_margins_passes_a_correct_layout(self):
         assert_tiles_placed_by_margins(self, _nine_slice_tree(), [""])
@@ -235,6 +259,22 @@ class TestStructuralGuards(unittest.TestCase):
         )
         with self.assertRaises(AssertionError):
             assert_hint_geometry(self, _svg_tree(moved), [""], 4, 4)
+
+    def test_diagonal_half_disc_passes_a_correct_arc(self):
+        for index in (0, 1):
+            with self.subTest(index=index):
+                assert_diagonal_half_disc(
+                    self, _bevel_half_disc(index), index, 16.0, (18.0, 18.0)
+                )
+
+    def test_diagonal_half_disc_catches_a_rotated_arc(self):
+        assert_rejects(
+            assert_diagonal_half_disc,
+            _bevel_half_disc(0, rotated=True),
+            0,
+            16.0,
+            (18.0, 18.0),
+        )
 
 
 def _id_tree(prefixes=("",), omit=()):

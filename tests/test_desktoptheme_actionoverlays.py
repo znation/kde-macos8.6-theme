@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import math
 import unittest
 
 from support.desktoptheme_paths import ACTION_OVERLAYS_SVG
 from support.platinum_palette import BLACK, FACE, GREY, PLATINUM_FILLS, WHITE
 from support.svg_case import SvgCase
 from svg_assertions import (
-    arc_center,
+    assert_diagonal_half_disc,
     assert_ids_present,
     assert_no_script_elements,
     attribute_values,
@@ -17,7 +16,6 @@ from svg_assertions import (
     circle_geometry_and_fill,
     elements_by_id,
     local_name,
-    path_arcs,
 )
 
 
@@ -25,17 +23,6 @@ CENTER = (8.0, 8.0)
 # The bevel half-discs are radius 6: the outline is r=7 and the face r=5, so
 # the bevel is the 1px annulus between them.
 BEVEL_RADIUS = 6
-# The two half-disc endpoints on the top-right to bottom-left diagonal, in
-# document order. The first half runs bottom-left -> top-right and the second
-# top-right -> bottom-left, both swept (sweep 1) so the first covers the
-# top-left half the raised bevel paints #FFFFFF.
-_DIAGONAL = BEVEL_RADIUS / math.sqrt(2)
-BEVEL_ENDPOINTS = (
-    ((CENTER[0] - _DIAGONAL, CENTER[1] + _DIAGONAL),
-     (CENTER[0] + _DIAGONAL, CENTER[1] - _DIAGONAL)),
-    ((CENTER[0] + _DIAGONAL, CENTER[1] - _DIAGONAL),
-     (CENTER[0] - _DIAGONAL, CENTER[1] + _DIAGONAL)),
-)
 # Every group's invisible bounding rect: KSvg scales an element by its bounds,
 # so all nine groups must span the same canvas.
 BOUNDS_RECT = ["0", "0", "16", "16", "none"]
@@ -130,24 +117,10 @@ class TestActionOverlays(SvgCase, unittest.TestCase):
                     for index, (path, fill) in enumerate(
                         zip(paths[:2], BEVEL_FILLS[state])
                     ):
-                        entries = list(path_arcs(path.get("d")))
-                        self.assertEqual(len(entries), 1)
-                        start, arc, end = entries[0]
-                        self.assertEqual(
-                            (arc[0], arc[1]), (BEVEL_RADIUS, BEVEL_RADIUS)
+                        assert_diagonal_half_disc(
+                            self, path, index, BEVEL_RADIUS, CENTER
                         )
-                        # A half-disc rotated onto the other diagonal would
-                        # still centre on (8,8) at r=6, so pin both endpoints
-                        # and the sweep that picks the top-left side.
-                        self.assertEqual((arc[2], arc[3]), (0, 1))
-                        expected_start, expected_end = BEVEL_ENDPOINTS[index]
-                        for got, want in ((start, expected_start), (end, expected_end)):
-                            self.assertAlmostEqual(got[0], want[0], delta=1e-3)
-                            self.assertAlmostEqual(got[1], want[1], delta=1e-3)
                         self.assertEqual(path.get("fill"), fill)
-                        centre = arc_center(start, arc, end)
-                        self.assertAlmostEqual(centre[0], CENTER[0], places=2)
-                        self.assertAlmostEqual(centre[1], CENTER[1], places=2)
                     glyph = paths[2]
                     for attribute, expected in GLYPHS[kind].items():
                         self.assertEqual(glyph.get(attribute), expected)
