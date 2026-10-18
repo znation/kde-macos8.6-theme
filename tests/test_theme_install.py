@@ -10,12 +10,12 @@ glob, and that `make help` indexes the public targets the README names.
 
 import os
 import re
-import tempfile
 import unittest
 import unittest.mock
 
 import theme_install
 from process_assertions import assert_failed, assert_succeeded
+from tmp_dir import make_tmp_dir
 
 
 def _assert_both_targets_refused(case, env, args, expected):
@@ -92,15 +92,15 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
             self.assertFalse(os.path.exists(path), path)
 
     def test_install_and_uninstall_under_a_path_with_a_space(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            self._assert_round_trip(os.path.join(tmp, "spaced root"))
+        tmp = make_tmp_dir(self)
+        self._assert_round_trip(os.path.join(tmp, "spaced root"))
 
     def test_install_and_uninstall_under_a_path_with_an_apostrophe(self):
         # The staging/old/trap words are shell-quoted; a single-quoted word
         # holding the path ended at the apostrophe and the recipe died with a
         # shell syntax error, e.g. under a home directory named `O'Brien`.
-        with tempfile.TemporaryDirectory() as tmp:
-            self._assert_round_trip(os.path.join(tmp, "O'Brien's root"))
+        tmp = make_tmp_dir(self)
+        self._assert_round_trip(os.path.join(tmp, "O'Brien's root"))
 
 
 class TestXdgDataHomeDefault(unittest.TestCase):
@@ -157,18 +157,18 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         # relative-HOME branch.
         env = dict(os.environ, HOME="relative")
         env.pop("XDG_DATA_HOME", None)
-        with tempfile.TemporaryDirectory() as tmp:
-            _assert_both_targets_refused(
-                self,
-                env,
-                (f"DESTDIR={tmp}",),
-                (
-                    "HOME is not an absolute path",
-                    # The guard names the offending HOME so a contributor can
-                    # see which value it read, not just that one was bad.
-                    "('relative')",
-                ),
-            )
+        tmp = make_tmp_dir(self)
+        _assert_both_targets_refused(
+            self,
+            env,
+            (f"DESTDIR={tmp}",),
+            (
+                "HOME is not an absolute path",
+                # The guard names the offending HOME so a contributor can
+                # see which value it read, not just that one was bad.
+                "('relative')",
+            ),
+        )
 
     def test_guard_names_the_relative_data_home_it_refused(self):
         # XDG_DATA_HOME_ENV is exported so the guard can name the raw value
@@ -176,10 +176,8 @@ class TestXdgDataHomeDefault(unittest.TestCase):
         # variable and the diagnostic shows an empty ('') value instead.
         env = dict(os.environ, HOME="relative", XDG_DATA_HOME="relative/share")
         env.pop("XDG_DATA_HOME_ENV", None)
-        with tempfile.TemporaryDirectory() as tmp:
-            result = theme_install.run_make(
-                ["install", f"DESTDIR={tmp}"], env=env
-            )
+        tmp = make_tmp_dir(self)
+        result = theme_install.run_make(["install", f"DESTDIR={tmp}"], env=env)
         assert_failed(self, result)
         self.assertIn(
             "XDG_DATA_HOME is not an absolute path ('relative/share')",
@@ -210,21 +208,19 @@ class TestFlockTimeout(unittest.TestCase):
         ]
         if extra is not None:
             expected.append(extra)
-        with tempfile.TemporaryDirectory() as tmp:
-            _assert_both_targets_refused(
-                self,
-                None,
-                (
-                    f"DESTDIR={tmp}",
-                    f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
-                    f"FLOCK_TIMEOUT={value}",
-                ),
-                expected,
-            )
-            data_home = os.path.join(
-                tmp, theme_install.XDG_DATA_HOME.lstrip("/")
-            )
-            self.assertFalse(os.path.exists(data_home), data_home)
+        tmp = make_tmp_dir(self)
+        _assert_both_targets_refused(
+            self,
+            None,
+            (
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                f"FLOCK_TIMEOUT={value}",
+            ),
+            expected,
+        )
+        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_empty_is_refused_before_creating_the_data_home(self):
         self._assert_refused("")
@@ -247,13 +243,13 @@ class TestFlockTimeout(unittest.TestCase):
         # than 19 characters but a value of 1. The length check must strip the
         # zeros before calling it too large; flock parses the value as 1
         # second, so the install must proceed and install the scheme.
-        with tempfile.TemporaryDirectory() as tmp:
-            result = theme_install.install(
-                tmp, extra=["FLOCK_TIMEOUT=00000000000000000001"]
-            )
-            assert_succeeded(self, result)
-            scheme = theme_install.installed_color_scheme(tmp)
-            self.assertTrue(os.path.isfile(scheme), result.stderr)
+        tmp = str(make_tmp_dir(self))
+        result = theme_install.install(
+            tmp, extra=["FLOCK_TIMEOUT=00000000000000000001"]
+        )
+        assert_succeeded(self, result)
+        scheme = theme_install.installed_color_scheme(tmp)
+        self.assertTrue(os.path.isfile(scheme), result.stderr)
 
 
 class TestCheckPattern(unittest.TestCase):
@@ -364,15 +360,12 @@ class TestPythonVersion(unittest.TestCase):
     """
 
     def _assert_refused(self, target):
-        with tempfile.TemporaryDirectory() as tmp:
-            fake = os.path.join(tmp, "python")
-            with open(fake, "w", encoding="utf-8") as handle:
-                handle.write("#!/bin/sh\nexit 3\n")
-            os.chmod(fake, 0o755)
-            env = theme_install.make_env("PYTHON")
-            result = theme_install.run_make(
-                [target, f"PYTHON={fake}"], env=env
-            )
+        fake = os.path.join(make_tmp_dir(self), "python")
+        with open(fake, "w", encoding="utf-8") as handle:
+            handle.write("#!/bin/sh\nexit 3\n")
+        os.chmod(fake, 0o755)
+        env = theme_install.make_env("PYTHON")
+        result = theme_install.run_make([target, f"PYTHON={fake}"], env=env)
         assert_failed(self, result)
         self.assertIn("Python 3.10 or newer", result.stderr)
         self.assertIn(fake, result.stderr)
