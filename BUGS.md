@@ -77,7 +77,7 @@ already drops `WAYLAND_DISPLAY` and `DISPLAY`.
 
 **Symptom:** `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml` draws the boot
 progress bar with `trackColor: "#DDDDDD"` and a grey `fillColor: "#ADADAD"`.
-`tests/test_lookandfeel_splash.py::test_progress_colours_match_reference` pins `TRACK` from
+`tests/test_splash_reference.py::test_progress_colours_match_reference` pins `TRACK` from
 `(135,96)` and `FILL` from `(120,100)` of `macos8.6-screenshots/boot2_betawiki.png`. But sampling
 the bar's rows shows `(135,96)` is the panel face above the bar (y=94..97 holds the "Starting Up"
 text; x=134 reads `#DDDDDD` at y=93..96), and the bar itself is y=99..102. In that bar, the

@@ -652,7 +652,7 @@ The rule is therefore 2px thick: dark first (top / left), white second (bottom /
    - `TestLineReference(unittest.TestCase)`: `setUpClass` calls
      `reference_image.read_reference(REFERENCE)`, `setUp` calls `skip_unless_materialized`, and a
      `pixel` helper wraps `png.pixel_at` (follow `SplashReferenceCase` in
-     `tests/test_lookandfeel_splash.py`).
+     `tests/splash_fixtures.py`).
 5. `README.md`: in the Installing section's desktop-theme inventory, name `widgets/line.svg`
    (the 2px Platinum etched separator, `#888888` then `#FFFFFF`, that list section headers,
    spin boxes and the kicker, system-tray and notification separators draw).
@@ -1099,7 +1099,7 @@ tall (the thumbnail's 4 rows / 0.375 ≈ 10.7), with 3px nine-slice borders.
    (follow `tests/test_desktoptheme_slider.py`), with `SVG_PATH = BAR_METER_HORIZONTAL_SVG` and
    `PREFIXES = ("bar-inactive", "bar-active")`, plus a `TestProgressBarReference` class that reads
    the reference through `tools.png` and calls `reference_image.skip_unless_materialized`
-   (follow the `pixel` helper in `tests/test_lookandfeel_splash.py`).
+   (follow the `pixel` helper in `tests/splash_fixtures.py`).
 5. `README.md`: in the Installing section's desktop-theme inventory, name
    `widgets/bar_meter_horizontal.svg` (the sunken grey Platinum track with a lavender fill for
    `PlasmaComponents.ProgressBar`).

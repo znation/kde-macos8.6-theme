@@ -12,7 +12,7 @@ import QtQuick
     The artwork is authored on the 240x180 grid of the reference thumbnail
     `macos8.6-screenshots/boot2_betawiki.png`; `unit` scales that grid by whole
     pixels so the layout keeps its proportions on any screen. The colour and
-    rectangle literals below are pinned by `tests/test_lookandfeel_splash.py`
+    rectangle literals below are pinned by `tests/test_splash_reference.py`
     to pixels and colour scans of that reference.
 */
 Rectangle {
