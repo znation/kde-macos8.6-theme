@@ -14,13 +14,13 @@ import os
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 import unittest
 import unittest.mock
 
 import process_runner
 import theme_install
+from tmp_dir import make_tmp_dir
 
 
 def _process_alive(pid):
@@ -67,14 +67,14 @@ class TestSubprocessTimeout(unittest.TestCase):
         self.assertFalse(_process_alive(pid), message)
 
     def test_install_times_out_when_make_hangs(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            env = theme_install.shadow_command_env(
-                tmp, "make", "#!/bin/sh\nexec sleep 5\n"
-            )
-            with unittest.mock.patch.dict(os.environ, env):
-                with _short_subprocess_timeout():
-                    with self.assertRaises(subprocess.TimeoutExpired):
-                        theme_install.install(tmp)
+        tmp = str(make_tmp_dir(self))
+        env = theme_install.shadow_command_env(
+            tmp, "make", "#!/bin/sh\nexec sleep 5\n"
+        )
+        with unittest.mock.patch.dict(os.environ, env):
+            with _short_subprocess_timeout():
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    theme_install.install(tmp)
 
     def test_timeout_kills_grandchildren(self):
         """A timeout must kill the whole make/flock/make chain, not just make.
@@ -86,31 +86,31 @@ class TestSubprocessTimeout(unittest.TestCase):
         records its pid, so the test can tell whether that descendant outlived
         the timeout.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            pidfile = os.path.join(tmp, "grandchild.pid")
-            env = theme_install.shadow_command_env(
-                tmp,
-                "make",
-                "#!/bin/sh\n"
-                "sleep 5 &\n"
-                'echo "$!" > "$GRANDCHILD_PIDFILE"\n'
-                "exec sleep 5\n",
-            )
-            env["GRANDCHILD_PIDFILE"] = pidfile
-            # The fake make must background its sleep and write the pidfile
-            # before the timeout kills it, so this test alone keeps the
-            # longer bound; the others have no such setup to finish.
-            with _short_subprocess_timeout(seconds=0.5):
-                with self.assertRaises(subprocess.TimeoutExpired):
-                    theme_install.install(tmp, env=env)
+        tmp = str(make_tmp_dir(self))
+        pidfile = os.path.join(tmp, "grandchild.pid")
+        env = theme_install.shadow_command_env(
+            tmp,
+            "make",
+            "#!/bin/sh\n"
+            "sleep 5 &\n"
+            'echo "$!" > "$GRANDCHILD_PIDFILE"\n'
+            "exec sleep 5\n",
+        )
+        env["GRANDCHILD_PIDFILE"] = pidfile
+        # The fake make must background its sleep and write the pidfile
+        # before the timeout kills it, so this test alone keeps the
+        # longer bound; the others have no such setup to finish.
+        with _short_subprocess_timeout(seconds=0.5):
+            with self.assertRaises(subprocess.TimeoutExpired):
+                theme_install.install(tmp, env=env)
 
-            with open(pidfile, encoding="utf-8") as handle:
-                grandchild = int(handle.read())
-            # The grandchild sleeps for five seconds, so it is still alive at
-            # the deadline exactly when the timeout failed to kill it.
-            self._assert_process_dies(
-                grandchild, "grandchild survived the timeout"
-            )
+        with open(pidfile, encoding="utf-8") as handle:
+            grandchild = int(handle.read())
+        # The grandchild sleeps for five seconds, so it is still alive at
+        # the deadline exactly when the timeout failed to kill it.
+        self._assert_process_dies(
+            grandchild, "grandchild survived the timeout"
+        )
 
     def test_finish_kills_a_hung_child(self):
         """A caller-started child that times out must be killed, not leaked.
@@ -173,55 +173,55 @@ class TestSubprocessTimeout(unittest.TestCase):
         and times out a second time; finish must report the timeout with no
         captured output instead of blocking on the escaped descendant.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            pidfile = os.path.join(tmp, "escaped.pid")
-            readyfile = os.path.join(tmp, "escaped.ready")
-            grandchild = (
-                "import os, sys, time\n"
-                "os.setsid()\n"
-                "open(sys.argv[1], 'w').write('ok')\n"
-                "time.sleep(30)\n"
+        tmp = str(make_tmp_dir(self))
+        pidfile = os.path.join(tmp, "escaped.pid")
+        readyfile = os.path.join(tmp, "escaped.ready")
+        grandchild = (
+            "import os, sys, time\n"
+            "os.setsid()\n"
+            "open(sys.argv[1], 'w').write('ok')\n"
+            "time.sleep(30)\n"
+        )
+        child = (
+            "import subprocess, sys, time\n"
+            "p = subprocess.Popen(\n"
+            "    [sys.executable, '-c', sys.argv[3], sys.argv[2]])\n"
+            "open(sys.argv[1], 'w').write(str(p.pid))\n"
+            "time.sleep(30)\n"
+        )
+        process = process_runner.start(
+            [sys.executable, "-c", child, pidfile, readyfile, grandchild],
+            capture_output=True,
+        )
+        try:
+            # The grandchild writes `readyfile` only after setsid(), so
+            # the group kill below cannot race its escape.
+            deadline = time.monotonic() + 5.0
+            while (
+                not os.path.exists(readyfile)
+                and time.monotonic() < deadline
+            ):
+                time.sleep(0.01)
+            self.assertTrue(
+                os.path.exists(readyfile),
+                "the child did not spawn an escaped grandchild",
             )
-            child = (
-                "import subprocess, sys, time\n"
-                "p = subprocess.Popen(\n"
-                "    [sys.executable, '-c', sys.argv[3], sys.argv[2]])\n"
-                "open(sys.argv[1], 'w').write(str(p.pid))\n"
-                "time.sleep(30)\n"
-            )
-            process = process_runner.start(
-                [sys.executable, "-c", child, pidfile, readyfile, grandchild],
-                capture_output=True,
-            )
-            try:
-                # The grandchild writes `readyfile` only after setsid(), so
-                # the group kill below cannot race its escape.
-                deadline = time.monotonic() + 5.0
-                while (
-                    not os.path.exists(readyfile)
-                    and time.monotonic() < deadline
-                ):
-                    time.sleep(0.01)
-                self.assertTrue(
-                    os.path.exists(readyfile),
-                    "the child did not spawn an escaped grandchild",
-                )
-                with _short_subprocess_timeout():
-                    with self.assertRaises(subprocess.TimeoutExpired) as caught:
-                        process_runner.finish(process)
-                # The escaped-descendant path re-raises with no captured
-                # output; the normal path drains the killed child's pipes and
-                # includes their (empty) bytes.
-                self.assertIsNone(caught.exception.output)
-                self.assertIsNone(caught.exception.stderr)
-            finally:
-                self._kill_escaped(pidfile)
-                if process.poll() is None:
-                    process.kill()
-                process.wait()
-                for stream in (process.stdout, process.stderr):
-                    if stream is not None:
-                        stream.close()
+            with _short_subprocess_timeout():
+                with self.assertRaises(subprocess.TimeoutExpired) as caught:
+                    process_runner.finish(process)
+            # The escaped-descendant path re-raises with no captured
+            # output; the normal path drains the killed child's pipes and
+            # includes their (empty) bytes.
+            self.assertIsNone(caught.exception.output)
+            self.assertIsNone(caught.exception.stderr)
+        finally:
+            self._kill_escaped(pidfile)
+            if process.poll() is None:
+                process.kill()
+            process.wait()
+            for stream in (process.stdout, process.stderr):
+                if stream is not None:
+                    stream.close()
 
     def test_running_kills_the_child_when_the_block_raises(self):
         """An abandoned started child must be killed, not left running.

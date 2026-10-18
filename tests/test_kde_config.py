@@ -7,20 +7,18 @@ defaults — `%` is literal, and key names keep their case — and that the file
 is explicitly decoded as UTF-8.
 """
 
-import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 import kde_config
+from tmp_dir import make_tmp_dir
 
 
 class TestReadKdeConfig(unittest.TestCase):
     def _read(self, text):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "theme.ini"
-            path.write_text(text, encoding="utf-8")
-            return kde_config.read(path)
+        path = make_tmp_dir(self) / "theme.ini"
+        path.write_text(text, encoding="utf-8")
+        return kde_config.read(path)
 
     def test_percent_in_value_is_not_interpolated(self):
         # Plasma values may contain a literal '%' (e.g. a colour or a path).
@@ -44,11 +42,10 @@ class TestReadKdeConfig(unittest.TestCase):
         # locale here is UTF-8, so the decoded text cannot distinguish the
         # explicit encoding from the default; pin the argument read() passes
         # to open() instead.
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "theme.ini"
-            path.write_text("[Desktop Entry]\nName=Caf\u00e9\n", encoding="utf-8")
-            with mock.patch.object(kde_config, "open", create=True, wraps=open) as spy:
-                parser = kde_config.read(path)
+        path = make_tmp_dir(self) / "theme.ini"
+        path.write_text("[Desktop Entry]\nName=Caf\u00e9\n", encoding="utf-8")
+        with mock.patch.object(kde_config, "open", create=True, wraps=open) as spy:
+            parser = kde_config.read(path)
         self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8")
         self.assertEqual(parser.get("Desktop Entry", "Name"), "Caf\u00e9")
 
