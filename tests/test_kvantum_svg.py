@@ -29,6 +29,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     elements_by_id,
+    local_name,
 )
 
 # The nine-sliced frame elements and the states the SVG ships. Kvantum names
@@ -100,6 +101,59 @@ ARROW_FILL = {
 }
 
 
+def _rect(x, y, width, height, fill):
+    return ("rect", {"x": x, "y": y, "width": width, "height": height, "fill": fill})
+
+
+def _circle(cx, cy, r, fill):
+    return ("circle", {"cx": cx, "cy": cy, "r": r, "fill": fill})
+
+
+def _drawing_elements(element):
+    """Return *element*'s child drawing elements as ``(tag, attributes)``.
+
+    In document order, so an added, removed, reordered or re-drawn child
+    changes the tuple. Check box and radio button interiors hold only drawing
+    elements (rects and circles) directly under their state group.
+    """
+    return tuple(
+        (local_name(child), dict(child.attrib)) for child in element
+    )
+
+
+# The check box and radio button interiors are multi-element groups that the
+# tests above read only by id: a wrong dot radius, a wrong inner-face size or a
+# black/white fill swap (both are in the palette, so `assert_fill_palette`
+# cannot see it) would pass. Pin each state's child drawing elements (tag and
+# attributes) in document order, the way `TestIconGeometry` pins the icon art.
+_CHECKBOX_FACE = (
+    _rect("0", "0", "14", "14", "#000000"),
+    _rect("1", "1", "12", "12", "#FFFFFF"),
+)
+_CHECKBOX_CHECK = (
+    _rect("3", "7", "2", "2", "#000000"),
+    _rect("5", "9", "2", "2", "#000000"),
+    _rect("7", "7", "2", "2", "#000000"),
+    _rect("9", "5", "2", "2", "#000000"),
+    _rect("11", "3", "2", "2", "#000000"),
+)
+_RADIO_FACE = (
+    _circle("7", "7", "6.5", "#000000"),
+    _circle("7", "7", "5.5", "#FFFFFF"),
+)
+_RADIO_DOT = (_circle("7", "7", "2.5", "#000000"),)
+INTERIOR_SHAPES = {
+    "checkbox-normal": _CHECKBOX_FACE,
+    "checkbox-focused": _CHECKBOX_FACE,
+    "checkbox-checked-normal": _CHECKBOX_FACE + _CHECKBOX_CHECK,
+    "checkbox-checked-focused": _CHECKBOX_FACE + _CHECKBOX_CHECK,
+    "radio-normal": _RADIO_FACE,
+    "radio-focused": _RADIO_FACE,
+    "radio-checked-normal": _RADIO_FACE + _RADIO_DOT,
+    "radio-checked-focused": _RADIO_FACE + _RADIO_DOT,
+}
+
+
 class TestSvg(unittest.TestCase):
     def setUp(self):
         self.tree = ET.parse(SVG)
@@ -142,6 +196,20 @@ class TestSvg(unittest.TestCase):
                     self.assertEqual(len(paths), 1)
                     self.assertEqual(paths[0].get("d"), ARROW_PATH_D[direction])
                     self.assertEqual(paths[0].get("fill"), ARROW_FILL[state])
+
+    def test_checkbox_and_radio_interiors_draw_the_pinned_shapes(self):
+        by_id = elements_by_id(self.tree)
+        expected_ids = {
+            f"{element}-{state}"
+            for element in ("checkbox", "radio")
+            for state in INTERIOR_STATES[element]
+        }
+        # Every check box and radio button state must have a pinned shape, so a
+        # newly shipped state cannot escape the per-state pins below.
+        self.assertEqual(set(INTERIOR_SHAPES), expected_ids)
+        for element, expected in INTERIOR_SHAPES.items():
+            with self.subTest(element=element):
+                self.assertEqual(_drawing_elements(by_id[element]), expected)
 
     def test_every_element_the_config_names_has_art(self):
         parser = read_kde_config(KVCONFIG)

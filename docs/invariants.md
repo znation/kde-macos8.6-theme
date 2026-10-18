@@ -71,6 +71,7 @@ guarantee cell fails `make check`.
 | Every core and special control section resolves to the grounded frame margin. | `tests/test_kvantum_config.py::TestFrameMargins` | none |
 | The SVG ships each frame element's centre and eight slices. | `tests/test_kvantum_svg.py::TestSvg` | none |
 | Each indicator arrow draws its pinned triangle and its per-state fill. | `tests/test_kvantum_svg.py::TestSvg` | none |
+| Each check box and radio button interior draws its pinned child shapes in document order. | `tests/test_kvantum_svg.py::TestSvg` | none |
 
 ## look-and-feel
 
