@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Fidelity gate for the rendered window frame's side and bottom borders (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Fidelity gate for the rendered window frame's side and bottom borders (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** The rendered-window fidelity gate compares only the title-bar strip
 (`TestRender::test_title_bar_matches_the_reference`). The frame's six-pixel left, right and
@@ -79,8 +83,6 @@ border between the two corners (308 columns). Byte-exact comparisons:
   `theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc`, or the border colours in
   `decoration.svg`, makes a named test fail.
 - `tests/test_invariants.py` still resolves every register row against the repository.
-
-## Done
 
 ### Fidelity gate for the rendered window decoration: byte-compare the title-bar strip to `aboutsystem_betawiki.png` (planned 2026-10-18 by the plan role) — done 2026-10-18
 

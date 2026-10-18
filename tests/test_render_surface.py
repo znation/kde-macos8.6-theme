@@ -34,6 +34,18 @@ REFERENCE = str(
 # same chrome at y=25..46, so the strips are compared at those offsets.
 CANDIDATE_CROP = (30, 0, 80, 22)
 REFERENCE_CROP = (30, 25, 80, 22)
+# The frame's side and bottom borders sit at the render's edges; the reference
+# screenshot has the same chrome offset by its window position (left outline
+# x=7, top outline y=25). The reference window is taller than the render, so
+# the side strips cover only the straight run between the title bar and the
+# bottom border (212 rows), and the bottom strip the border between the two
+# corners (308 columns).
+LEFT_BORDER_CANDIDATE = (0, 22, 6, 212)
+LEFT_BORDER_REFERENCE = (7, 47, 6, 212)
+RIGHT_BORDER_CANDIDATE = (314, 22, 6, 212)
+RIGHT_BORDER_REFERENCE = (354, 47, 6, 212)
+BOTTOM_BORDER_CANDIDATE = (6, 234, 308, 6)
+BOTTOM_BORDER_REFERENCE = (13, 419, 308, 6)
 
 
 class TestArguments(unittest.TestCase):
@@ -461,10 +473,13 @@ class TestRender(unittest.TestCase):
         pixel = pixel_at(read_png(self.output), 300, 200)
         self.assertEqual(FACE, hex_colour(pixel))
 
-    def test_title_bar_matches_the_reference(self):
-        # The reference set is Git LFS material; skip, don't fail, when it is
-        # absent. The strips are byte-compared through the real CLI, so the
-        # candidate-crop option and the crop geometry are covered end to end.
+    def assert_strip_matches(self, candidate_crop, reference_crop):
+        """Byte-compare one candidate strip against the same reference strip.
+
+        The reference set is Git LFS material; skip, don't fail, when it is
+        absent. The strips are byte-compared through the real CLI, so the
+        candidate-crop option and the crop geometry are covered end to end.
+        """
         _, error = read_reference(REFERENCE)
         skip_unless_materialized(self, REFERENCE, error)
         result = process_runner.run(
@@ -474,16 +489,28 @@ class TestRender(unittest.TestCase):
                 self.output,
                 REFERENCE,
                 "--candidate-crop",
-                ",".join(str(value) for value in CANDIDATE_CROP),
+                ",".join(str(value) for value in candidate_crop),
                 "--crop",
-                ",".join(str(value) for value in REFERENCE_CROP),
+                ",".join(str(value) for value in reference_crop),
             ],
             capture_output=True,
             text=True,
         )
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-        pixels = CANDIDATE_CROP[2] * CANDIDATE_CROP[3]
+        pixels = candidate_crop[2] * candidate_crop[3]
         self.assertIn(f"differing pixels: 0 / {pixels}", result.stdout)
+
+    def test_title_bar_matches_the_reference(self):
+        self.assert_strip_matches(CANDIDATE_CROP, REFERENCE_CROP)
+
+    def test_frame_borders_match_the_reference(self):
+        for candidate_crop, reference_crop in (
+            (LEFT_BORDER_CANDIDATE, LEFT_BORDER_REFERENCE),
+            (RIGHT_BORDER_CANDIDATE, RIGHT_BORDER_REFERENCE),
+            (BOTTOM_BORDER_CANDIDATE, BOTTOM_BORDER_REFERENCE),
+        ):
+            with self.subTest(candidate_crop=candidate_crop):
+                self.assert_strip_matches(candidate_crop, reference_crop)
 
 
 if __name__ == "__main__":

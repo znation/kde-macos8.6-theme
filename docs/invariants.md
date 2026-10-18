@@ -96,3 +96,4 @@ guarantee cell fails `make check`.
 | --- | --- | --- |
 | The fidelity gate passes only when no pixel differs beyond its tolerance, or within an aggregate budget when one is given. | `tests/test_fidelity_cli.py::TestCli` | none |
 | The rendered window's title-bar strip is byte-identical to the same strip of the reference screenshot. | `tests/test_render_surface.py::TestRender::test_title_bar_matches_the_reference` | none |
+| The rendered window's side and bottom border strips are byte-identical to the same strips of the reference screenshot. | `tests/test_render_surface.py::TestRender::test_frame_borders_match_the_reference` | none |
