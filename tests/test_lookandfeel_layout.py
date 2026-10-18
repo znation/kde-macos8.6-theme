@@ -247,26 +247,34 @@ class TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase
     ICON_BODY = range(960, 992)
     LABEL_LINE = 13
 
-    def differs_from_wallpaper(self, x, y):
+    def differing_columns(self, y, left, right):
+        """The x in ``[left, right)`` whose pixel in row *y* is not the tiled wallpaper."""
+        rgb, width = self.image.rgb, self.image.width
         tile_x, tile_y = make_wallpaper.TILE_ORIGIN
         size = make_wallpaper.TILE_SIZE
-        tile = self.pixel(tile_x + x % size, tile_y + y % size)
-        return self.pixel(x, y) != tile
+        start = ((tile_y + y % size) * width + tile_x) * 3
+        expected = rgb[start : start + size * 3] * (width // size + 1)
+        row = rgb[y * width * 3 : (y + 1) * width * 3]
+        if row[left * 3 : right * 3] == expected[left * 3 : right * 3]:
+            return []
+        return [
+            x
+            for x in range(left, right)
+            if row[x * 3 : x * 3 + 3] != expected[x * 3 : x * 3 + 3]
+        ]
 
     def test_icons_sit_in_one_right_column(self):
         stray = [
             (x, y)
             for y in self.SCAN_ROWS
-            for x in range(self.RIGHT_COLUMN_LEFT)
-            if self.differs_from_wallpaper(x, y)
+            for x in self.differing_columns(y, 0, self.RIGHT_COLUMN_LEFT)
         ]
         self.assertEqual([], stray[:5])
         width = self.image.width
         self.assertTrue(
             any(
-                self.differs_from_wallpaper(x, y)
+                self.differing_columns(y, self.RIGHT_COLUMN_LEFT, width)
                 for y in self.FIRST_ICON_ROWS
-                for x in range(self.RIGHT_COLUMN_LEFT, width)
             ),
             "no icon at the top of the right-hand column",
         )
@@ -275,8 +283,7 @@ class TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase
         columns = {
             x
             for y in self.ICON_ROWS
-            for x in range(self.image.width)
-            if self.differs_from_wallpaper(x, y)
+            for x in self.differing_columns(y, 0, self.image.width)
         }
         self.assertEqual((960, 991), (min(columns), max(columns)))
         self.assertEqual(32, max(columns) - min(columns) + 1)
@@ -291,16 +298,14 @@ class TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase
             rows = [
                 y
                 for y in margin
-                if any(
-                    self.differs_from_wallpaper(x, y)
-                    for x in range(self.RIGHT_COLUMN_LEFT, width)
-                )
+                if self.differing_columns(y, self.RIGHT_COLUMN_LEFT, width)
             ]
             self.assertEqual(list(range(top, bottom + 1)), rows)
             label_rows = [
                 y
                 for y in margin
-                if any(self.differs_from_wallpaper(x, y) for x in beside_body)
+                if set(self.differing_columns(y, self.RIGHT_COLUMN_LEFT, width))
+                & set(beside_body)
             ]
             if label_rows:
                 self.assertEqual(
