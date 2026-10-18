@@ -72,7 +72,7 @@ SVG_CANVASES = (
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
     ("listitem.svg", LISTITEM_SVG, 12, 12),
     ("viewitem.svg", VIEWITEM_SVG, 12, 12),
-    ("menubaritem.svg", MENUBARITEM_SVG, 12, 12),
+    ("menubaritem.svg", MENUBARITEM_SVG, 20, 12),
     ("scrollbar.svg", SCROLLBAR_SVG, 16, 16),
     ("slider.svg", SLIDER_SVG, 16, 16),
     ("bar_meter_horizontal.svg", BAR_METER_HORIZONTAL_SVG, 10, 10),

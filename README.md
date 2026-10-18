@@ -60,7 +60,7 @@ compatibility dot), `widgets/lineedit.svg` (the white sunken field for
 selection row for list and applet item delegates), `widgets/viewitem.svg` (the flat #CCCCFF
 highlight for menu items and icon-grid selection), `widgets/menubaritem.svg` (the
 flat #CCCCFF title fill an application-menu title shows while its menu is open, with
-no hover highlight), `widgets/tabbar.svg` (the raised Platinum tab highlights for
+no hover highlight; its 7px side padding spaces the titles as the reference menu bar does), `widgets/tabbar.svg` (the raised Platinum tab highlights for
 Plasma TabBar, TabButton, kickoff footer, and panel applets), `widgets/toolbar.svg` (the
 raised grey Platinum toolbar background for `PlasmaComponents.ToolBar` and its
 consumers in kickoff, the system tray, and the desktop shell), `widgets/arrows.svg` (the solid

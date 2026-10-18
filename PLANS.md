@@ -22,7 +22,11 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-### Mac OS 8.6 menu-title spacing: 7px horizontal padding in `widgets/menubaritem.svg` (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 menu-title spacing: 7px horizontal padding in `widgets/menubaritem.svg` (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** Space the application-menu titles in the menu bar as Mac OS 8.6 does. The
 `org.kde.plasma.appmenu` title padding comes from `widgets/menubaritem.svg`'s margin hints. In
@@ -111,8 +115,6 @@ the same 7px padding. The reference's right-hand menu is not measured here, beca
 icon need a custom plasmoid (see the desktop-layout plan's out-of-scope list). The glyph gaps
 also depend on the KDE font's side bearings, since Charcoal does not ship, so the rendered gap
 will be within a pixel or two of the reference, not exactly equal.
-
-## Done
 
 ### Mac OS 8.6 desktop icon labels: one line of text under each icon (planned 2026-10-18 by the plan role; done 2026-10-18)
 
