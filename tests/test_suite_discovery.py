@@ -16,6 +16,11 @@ The opposite mistake is guarded too: a file that defines test cases but does
 not match ``test*.py`` (say ``png_checks.py``) is never imported by discovery,
 so its tests silently never run. The second check loads every other
 ``tests/**/*.py`` file and fails naming any that collects test cases.
+
+A third mistake is guarded: ``discover`` recurses into a subdirectory only
+when it is a package (one holding ``__init__.py``), so a ``test*.py`` file
+inside a plain subdirectory is never imported either. The third check walks
+the same tree and fails naming each such file.
 """
 
 from __future__ import annotations
@@ -143,6 +148,44 @@ def modules_without_tests(directory):
     return _modules_by_test_count(directory, test_module_names, want_tests=False)
 
 
+def _skipped_test_modules(directory, prefix, hidden):
+    """Return the discovery-skipped ``test*.py`` files below *directory*.
+
+    *prefix* is the path of *directory* relative to the walk's start, ending
+    in ``os.sep`` (empty at the start). *hidden* becomes True once the walk
+    enters a directory discovery does not recurse into; every ``test*.py``
+    below it is then reported, including one inside a package nested under
+    the non-package directory, which discovery never reaches either.
+    """
+    names = []
+    for entry in sorted(os.listdir(directory)):
+        full = os.path.join(directory, entry)
+        if entry.endswith(".py"):
+            if hidden and fnmatch.fnmatch(entry, DISCOVERY_PATTERN):
+                names.append(prefix + entry)
+        elif os.path.isdir(full) and entry != "__pycache__":
+            names.extend(
+                _skipped_test_modules(
+                    full,
+                    prefix + entry + os.sep,
+                    hidden or not _is_package(full),
+                )
+            )
+    return names
+
+
+def skipped_test_modules(directory):
+    """Return the ``test*.py`` files under *directory* discovery never imports.
+
+    ``discover`` recurses into a subdirectory only when it is a package (one
+    holding ``__init__.py``), so a ``test*.py`` file inside a directory that
+    is not a package is never imported and its tests silently never run. The
+    returned names are each file's path relative to *directory*, so the
+    diagnostic can name the file to move or the ``__init__.py`` to add.
+    """
+    return sorted(_skipped_test_modules(directory, "", False))
+
+
 @contextlib.contextmanager
 def probe_module(directory, filename, source):
     """Import a *source* probe module from *directory*, undoing it on exit.
@@ -220,6 +263,26 @@ class TestSuiteDiscovery(unittest.TestCase):
             + ", ".join(misnamed),
         )
 
+    def test_every_test_module_lives_in_a_directory_discovery_recurses_into(self):
+        # A test*.py file under a subdirectory without __init__.py is never
+        # imported by `unittest discover`, so its tests silently never run.
+        # The other two checks walk the modules discovery does import; this
+        # one walks the files it walks past.
+        names = test_module_names(TESTS_DIR)
+        # Without this, a broken directory listing would make the assertion
+        # below pass vacuously (no modules checked, no skipped files found).
+        self.assertIn("test_suite_discovery", names)
+        skipped = skipped_test_modules(TESTS_DIR)
+        self.assertEqual(
+            skipped,
+            [],
+            "these tests/test*.py files sit under a directory that is not a "
+            "package (it has no __init__.py), so `unittest discover` never "
+            "imports them and their tests silently never run; add an "
+            "__init__.py to every directory between tests/ and the file (or "
+            "move the file into tests/): " + ", ".join(skipped),
+        )
+
     def test_discovery_pattern_matches_the_makefile_default(self):
         # `make check` discovers with the Makefile's CHECK_PATTERN; this
         # module's guards use DISCOVERY_PATTERN. If the two disagree, a
@@ -265,6 +328,45 @@ class TestSuiteDiscovery(unittest.TestCase):
             self.assertEqual(
                 modules_without_tests(tmp), ["guard_probe_pkg.test_empty_probe"]
             )
+
+    def test_a_test_module_under_a_non_package_directory_is_reported(self):
+        # Prove the guard bites: a test*.py file under a directory without
+        # __init__.py is exactly what
+        # test_every_test_module_lives_in_a_directory_discovery_recurses_into
+        # must catch.
+        tmp = make_tmp_dir(self)
+        hidden = tmp / "hidden"
+        hidden.mkdir()
+        (hidden / "test_probe.py").write_text("", encoding="utf-8")
+        self.assertEqual(
+            skipped_test_modules(str(tmp)),
+            [os.path.join("hidden", "test_probe.py")],
+        )
+
+    def test_a_test_module_inside_a_package_is_not_reported(self):
+        # The negative control: discovery does recurse into a package, so a
+        # test*.py file there must not be reported.
+        tmp = make_tmp_dir(self)
+        package = tmp / "guard_probe_pkg"
+        package.mkdir()
+        (package / "__init__.py").write_text("", encoding="utf-8")
+        (package / "test_probe.py").write_text("", encoding="utf-8")
+        self.assertEqual(skipped_test_modules(str(tmp)), [])
+
+    def test_a_test_module_in_a_package_under_a_non_package_is_reported(self):
+        # A package nested under a non-package directory is unreachable too:
+        # discovery stops at the non-package directory, so the test file in
+        # the package must be reported even though its own directory has an
+        # __init__.py.
+        tmp = make_tmp_dir(self)
+        package = tmp / "hidden" / "guard_probe_pkg"
+        package.mkdir(parents=True)
+        (package / "__init__.py").write_text("", encoding="utf-8")
+        (package / "test_probe.py").write_text("", encoding="utf-8")
+        self.assertEqual(
+            skipped_test_modules(str(tmp)),
+            [os.path.join("hidden", "guard_probe_pkg", "test_probe.py")],
+        )
 
     def test_a_misnamed_test_module_inside_a_package_is_reported(self):
         # The reverse mistake inside a package: a module that defines tests but
