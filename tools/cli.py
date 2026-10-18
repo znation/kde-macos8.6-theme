@@ -64,7 +64,7 @@ def report_error(tool: str, message: str) -> int:
 # U+000B, U+000C, the C0 separators, NEL and U+2028/U+2029, so a log line
 # carrying one (an escaped byte, a form feed in captured output) would be
 # split into two reported lines and, at the twelve-line tail boundary, push a
-# complete line out of the diagnostic. ``reference_checks`` splits its
+# complete line out of the diagnostic. ``reference_validation`` splits its
 # contributor-supplied record for the same reason.
 _LINE_BREAK = re.compile(r"\r\n|\r|\n")
 _LOG_TAIL_LINES = 12

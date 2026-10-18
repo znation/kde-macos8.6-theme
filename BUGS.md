@@ -140,7 +140,7 @@ fails without the fix.
 full Unicode set of line breaks rather than only the CR, LF and CRLF that end a command's log line.
 
 **Fix:** `tools/cli.py` now splits the decoded window with a `re` pattern of `\r\n|\r|\n` (the
-same rule `tools/reference_checks.py` uses for its contributor-supplied record) and drops the single
+same rule `tools/reference_validation.py` uses for its contributor-supplied record) and drops the single
 trailing empty element `re.split` adds when the window ends in a break, so `str.splitlines`'
 trailing-element behavior is preserved.
 

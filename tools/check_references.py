@@ -24,7 +24,7 @@ from pathlib import Path
 
 try:
     from tools.check_references_selftest import run_self_test
-    from tools.reference_checks import (
+    from tools.reference_validation import (
         SOURCES_NAME,
         _check_entries,
         _check_undeclared,
@@ -34,7 +34,7 @@ try:
     from tools.terminal import escape_controls
 except ImportError:  # run directly: python3 tools/check_references.py
     from check_references_selftest import run_self_test
-    from reference_checks import (
+    from reference_validation import (
         SOURCES_NAME,
         _check_entries,
         _check_undeclared,

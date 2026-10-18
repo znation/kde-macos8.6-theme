@@ -25,7 +25,7 @@ import unittest
 from support import theme_install
 from support.check_references_fixtures import CheckerTestCase
 from support.process_assertions import assert_succeeded
-from tools import reference_checks
+from tools import reference_validation
 
 _TOKEN = re.compile(r"`([^`]+)`")
 _GLOB_CHARS = "*?["
@@ -120,7 +120,7 @@ def declared_reference_names(checker):
         theme_install.ROOT, checker.REFERENCE_DIR, checker.SOURCES_NAME
     )
     with open(path, encoding="utf-8-sig") as handle:
-        return declared_files(handle.read(), reference_checks.SEPARATOR)
+        return declared_files(handle.read(), reference_validation.SEPARATOR)
 
 
 def lfs_filter_states(output):
