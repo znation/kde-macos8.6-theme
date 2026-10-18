@@ -15,7 +15,7 @@ import unittest
 from reference_image import ReferenceScreenshotMixin
 from theme_install import ROOT
 
-from tools import png  # noqa: E402
+from tools import make_wallpaper, png  # noqa: E402
 
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)
@@ -67,6 +67,7 @@ def menu_bar_rows(image, x):
 CLOCK_ID = "org.kde.plasma.digitalclock"
 CLOCK_FORMAT = {"showDate": False, "showSeconds": 0, "use24hFormat": 0}
 JS_LITERALS = {"false": False, "true": True}
+DESKTOP_ICONS = {"arrangement": 1, "alignment": 1, "iconSize": 1}
 
 
 def clock_variable(text):
@@ -92,6 +93,16 @@ def clock_config(text):
         key: JS_LITERALS[raw] if raw in JS_LITERALS else int(raw)
         for key, raw in calls
     }
+
+
+def desktop_config(text):
+    """Return the desktop's ``writeConfig`` calls as ``{key: int}``."""
+    calls = re.findall(
+        r'^\s*desktopsArray\[j\]\.writeConfig\("([^"]+)",\s*(\d+)\s*\)\s*;',
+        text,
+        re.M,
+    )
+    return {key: int(raw) for key, raw in calls}
 
 
 class TestLayout(unittest.TestCase):
@@ -139,6 +150,22 @@ class TestLayout(unittest.TestCase):
 
     def test_desktops_use_the_image_wallpaper(self):
         self.assertRegex(self.text, r"wallpaperPlugin\s*=\s*'org\.kde\.image'")
+
+    def test_desktop_writes_the_general_group(self):
+        loop = re.search(r"for \(var j", self.text)
+        group = re.search(
+            r'(?m)^\s*desktopsArray\[j\]\.currentConfigGroup\s*=\s*\["General"\]\s*;',
+            self.text,
+        )
+        first_write = re.search(r"desktopsArray\[j\]\.writeConfig\(", self.text)
+        self.assertIsNotNone(loop, "no desktop loop")
+        self.assertIsNotNone(group, 'no currentConfigGroup = ["General"]')
+        self.assertIsNotNone(first_write, "no desktop writeConfig call")
+        self.assertLess(loop.start(), group.start())
+        self.assertLess(group.start(), first_write.start())
+
+    def test_desktop_icon_arrangement(self):
+        self.assertEqual(DESKTOP_ICONS, desktop_config(self.text))
 
     def test_no_taskbar_template_is_loaded(self):
         self.assertNotIn("loadTemplate", self.text)
@@ -204,6 +231,49 @@ class TestClockMatchesReference(ReferenceScreenshotMixin, unittest.TestCase):
             for y in range(self.CLOCK_TOP, self.CLOCK_BOTTOM + 1)
         ]
         self.assertEqual(self.PM_GLYPH, glyph)
+
+
+class TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = REFERENCE
+
+    RIGHT_COLUMN_LEFT = 880
+    SCAN_ROWS = range(20, 700)
+    FIRST_ICON_ROWS = range(40, 81)
+    ICON_ROWS = range(284, 329)
+
+    def differs_from_wallpaper(self, x, y):
+        tile_x, tile_y = make_wallpaper.TILE_ORIGIN
+        size = make_wallpaper.TILE_SIZE
+        tile = self.pixel(tile_x + x % size, tile_y + y % size)
+        return self.pixel(x, y) != tile
+
+    def test_icons_sit_in_one_right_column(self):
+        stray = [
+            (x, y)
+            for y in self.SCAN_ROWS
+            for x in range(self.RIGHT_COLUMN_LEFT)
+            if self.differs_from_wallpaper(x, y)
+        ]
+        self.assertEqual([], stray[:5])
+        width = self.image.width
+        self.assertTrue(
+            any(
+                self.differs_from_wallpaper(x, y)
+                for y in self.FIRST_ICON_ROWS
+                for x in range(self.RIGHT_COLUMN_LEFT, width)
+            ),
+            "no icon at the top of the right-hand column",
+        )
+
+    def test_icon_body_is_32_columns_wide(self):
+        columns = {
+            x
+            for y in self.ICON_ROWS
+            for x in range(self.image.width)
+            if self.differs_from_wallpaper(x, y)
+        }
+        self.assertEqual((960, 991), (min(columns), max(columns)))
+        self.assertEqual(32, max(columns) - min(columns) + 1)
 
 
 if __name__ == "__main__":

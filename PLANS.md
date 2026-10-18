@@ -22,7 +22,12 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-### Mac OS 8.6 desktop icon arrangement: one right-aligned column of 32px icons (planned 2026-10-18 by the plan role)
+_None yet._
+
+
+## Done
+
+### Mac OS 8.6 desktop icon arrangement: one right-aligned column of 32px icons (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** Mac OS 8.6 puts its desktop icons in one column at the right edge of the screen, from
 the top down, at 32x32. Plasma's desktop Folder View defaults to rows from the top-left at 64px.
@@ -93,9 +98,6 @@ needed.
 **Out of scope.** Pinning the Trash to the bottom-right corner (Folder View has no such
 setting), the icon label style (Mac OS 8.6 draws a white label box), and the icons themselves
 (the icon-theme question in the scope-drift note above).
-
-
-## Done
 
 ### Mac OS 8.6 Platinum tooltip (`widgets/tooltip.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 
