@@ -68,52 +68,6 @@ and when a guarantee cell is blank; a scratch check (delete a row, rename a test
 failure.
 - `make check` is green.
 
-### Mac OS 8.6 Kvantum widget style, part 3/4: the Platinum surface controls (planned 2026-10-18 by the plan role; requires part 2/4 landed)
-
-**Goal.** Part 2 shipped the track and value controls. This part adds our own Platinum art and
-`.kvconfig` sections for the container and text surfaces — tabs, menus and the menu bar, group
-boxes, tooltips, item views, headers and toolbars — so every control the theme draws is ours rather
-than falling back to Kvantum's compiled-in default shapes. Part 4/4 then selects the style.
-
-**Approach.**
-- Extend `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` with sections modelled on
-  `default.kvconfig`: `[Tab]`/`[TabFrame]`/`[TabBarFrame]` (2px; `[TabBarFrame]` draws no frame),
-  `[MenuItem]` (frame=false, `interior.element=menuitem`), `[MenuBarItem]` (2px,
-  `interior.element=menubaritem`), `[MenuBar]` (top/bottom 0, left/right 2,
-  `frame.element=menuitem`), `[Menu]` (2px, `frame.element=menu`, `interior.element=menu`),
-  `[GroupBox]` (2px, `frame.element=group`), `[ToolTip]` (2px, `frame.element=tooltip`,
-  `interior.element=tooltip`), `[ItemView]` (2px), `[HeaderSection]` (inherits `PanelButtonCommand`
-  and reuses the part 1 `button` art) and `[Toolbar]` (`frame.element=toolbar`,
-  `interior.element=toolbar`, `indicator.element=toolbar`, `indicator.size=5`). Raised faces keep
-  2px margins, sunken fields 1px; the menu and item-view selection fill is `#CCCCFF`
-  (`[Colors:Selection] BackgroundNormal`), and the tooltip face is `#FFFFCC` (`[Colors:Tooltip]
-  BackgroundNormal`).
-- Extend `org.macos8.desktop.svg` with the matching elements in the same nine-slice convention and
-  fill attributes: the frame elements `tab`, `tabframe`, `menu`, `group`, `tooltip`, `itemview` and
-  `toolbar` ship their centre and eight slices; the interior elements `menuitem` and `menubaritem`
-  ship the state ids Kvantum renders for them.
-- Add `SELECTION = "#CCCCFF"` to `tests/support/platinum_palette.py` beside `TROUGH` and `TOOLTIP_FACE`,
-  its docstring naming `[Colors:Selection] BackgroundNormal` as the source.
-- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the menu
-  bar's 0/2 margins in a named assertion; add the new elements to `FRAME_STATES`/`INTERIOR_STATES`;
-  widen `test_uses_exactly_the_platinum_palette` to
-  `assert_fill_palette(self, self.tree, extra=frozenset({TROUGH, TOOLTIP_FACE, SELECTION}))`.
-
-**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
-`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`,
-`tests/support/platinum_palette.py`.
-
-**Acceptance criteria.**
-- The `.kvconfig` holds the new sections, each uniform raised frame resolving to 2px and each
-  sunken field to 1px, with the menu bar's 0/2 margins pinned by name.
-- The SVG's parsed `fill` set is exactly
-  `PLATINUM_FILLS | {TROUGH, TOOLTIP_FACE, SELECTION}`; every element the new config sections name
-  ships its centre and eight slices (frames) or its state ids (interiors); the four safety
-  assertions pass.
-- The part 1 and part 2 palette, core-control and track-control assertions are unchanged and still
-  pass.
-- `make check` is green.
-
 ### Mac OS 8.6 Kvantum widget style, part 4/4: select the Kvantum style from the global theme (planned 2026-10-18 by the plan role; requires part 3/4 landed)
 
 **Goal.** With the theme complete, switch the global theme from Qt's built-in `Windows` style to
@@ -223,6 +177,60 @@ Kvantum series edits.
 - `make check` is green.
 
 ## Done
+
+### Mac OS 8.6 Kvantum widget style, part 3/4: the Platinum surface controls (planned 2026-10-18 by the plan role; done 2026-10-18)
+
+**Goal.** Part 2 shipped the track and value controls. This part adds our own Platinum art and
+`.kvconfig` sections for the container and text surfaces — tabs, menus and the menu bar, group
+boxes, tooltips, item views, headers and toolbars — so every control the theme draws is ours rather
+than falling back to Kvantum's compiled-in default shapes. Part 4/4 then selects the style.
+
+**Approach.**
+- Extend `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` with sections modelled on
+  `default.kvconfig`: `[Tab]`/`[TabFrame]`/`[TabBarFrame]` (2px; `[TabBarFrame]` draws no frame),
+  `[MenuItem]` (frame=false, `interior.element=menuitem`), `[MenuBarItem]` (2px,
+  `frame.element=menubaritem`, `interior.element=menubaritem`), `[MenuBar]` (top/bottom 0, left/right 2,
+  `frame.element=menuitem`), `[Menu]` (2px, `frame.element=menu`, `interior.element=menu`),
+  `[GroupBox]` (2px, `frame.element=group`), `[ToolTip]` (2px, `frame.element=tooltip`,
+  `interior.element=tooltip`), `[ItemView]` (2px), `[HeaderSection]` (inherits `PanelButtonCommand`
+  and reuses the part 1 `button` art) and `[Toolbar]` (`frame.element=toolbar`,
+  `interior.element=toolbar`, `indicator.element=toolbar`, `indicator.size=5`). Raised faces keep
+  2px margins; the item view is the 2px sunken white field. The menu and item-view selection is a
+  flat `#CCCCFF` fill with no bevel or outline (`[Colors:Selection] BackgroundNormal`), matching
+  the desktop theme's `viewitem.svg`/`listitem.svg` highlight, and the tooltip face is `#FFFFCC`
+  (`[Colors:Tooltip] BackgroundNormal`).
+- Extend `org.macos8.desktop.svg` with the matching elements in the same nine-slice convention and
+  fill attributes: the frame elements `tab`, `tabframe`, `menu`, `group`, `tooltip`, `itemview` and
+  `toolbar` ship their centre and eight slices, and `menubaritem` ships the pressed and toggled
+  slices `[MenuBarItem]` draws (Kvantum draws no menu-bar-item frame in the normal state); the
+  interior elements `menuitem` and `menubaritem` ship the state ids Kvantum renders for them. The
+  selected tab keeps the raised bevel the desktop theme's active tab paints, and the menu-item,
+  menu-bar-item and item-view selection states are flat `#CCCCFF`.
+- Add `SELECTION = "#CCCCFF"` to `tests/support/platinum_palette.py` beside `TROUGH` and
+  `TOOLTIP_FACE`, its docstring naming `[Colors:Selection] BackgroundNormal` as the source.
+- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the menu
+  bar's 0/2 margins in a named assertion; pin each surface section's frame, interior and indicator
+  element in `SURFACE_CONTROL_CONFIG` (including `[MenuBarItem]`'s `frame.element=menubaritem`, which
+  would otherwise inherit `button`); add the new elements to `FRAME_STATES`/`INTERIOR_STATES`; widen
+  `test_uses_exactly_the_platinum_palette` to
+  `assert_fill_palette(self, self.tree, extra=frozenset({TROUGH, TOOLTIP_FACE, SELECTION}))`; and add
+  `TestSurfaceBevelPixels`, which renders each new frame state's nine slices and compares them pixel
+  for pixel (a `flat` selection state must be a solid `#CCCCFF` with no bevel).
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`,
+`tests/support/platinum_palette.py`.
+
+**Acceptance criteria.**
+- The `.kvconfig` holds the new sections, each uniform raised frame resolving to 2px, with the
+  menu bar's 0/2 margins and `[MenuBarItem]`'s `frame.element=menubaritem` pinned by name.
+- The SVG's parsed `fill` set is exactly
+  `PLATINUM_FILLS | {TROUGH, TOOLTIP_FACE, SELECTION}`; every element the new config sections name
+  ships its centre and eight slices (frames) or its state ids (interiors), each new frame state's
+  nine slices are pixel-checked, and the four safety assertions pass.
+- The part 1 and part 2 palette, core-control and track-control assertions are unchanged and still
+  pass.
+- `make check` is green.
 
 ### Mac OS 8.6 Kvantum widget style, part 2/4: the Platinum track and value controls (planned 2026-10-18 by the plan role; done 2026-10-18)
 

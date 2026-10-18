@@ -2,14 +2,15 @@
 
 The per-widget test modules name the colours their artwork is painted from --
 the black outline, the white bevel highlight, the grey bevel shadow, the
-#DDDDDD face, the flat #EEEEEE trough and the flat #FFFFCC tooltip face -- and
-assert their fill sets. Naming the values here gives those modules one place
-to import the palette from instead of redefining it. `test_colorscheme_reference`
-remains the test that grounds these values in the reference screenshots; the
-trough, painted from `[Colors:View] BackgroundAlternate`, is pinned only by the
-widget tests that draw it, and the tooltip face is a KDE-required
-`[Colors:Tooltip]` role no screenshot shows, pinned by the tooltip widget test
-and by `test_colorscheme`.
+#DDDDDD face, the flat #EEEEEE trough, the flat #FFFFCC tooltip face and the
+flat #CCCCFF selection -- and assert their fill sets. Naming the values here
+gives those modules one place to import the palette from instead of
+redefining it. `test_colorscheme_reference` remains the test that grounds
+these values in the reference screenshots; the trough, painted from
+`[Colors:View] BackgroundAlternate`, is pinned only by the widget tests that
+draw it, and the tooltip face and the selection fill are KDE-required
+`[Colors:Tooltip]` and `[Colors:Selection]` roles no screenshot shows,
+pinned by the widget tests that draw them and by `test_colorscheme`.
 """
 
 from __future__ import annotations
@@ -35,6 +36,11 @@ TROUGH = "#EEEEEE"
 # taken from the classic Platinum palette. No reference screenshot shows a
 # tooltip, so it is not screenshot-sampled.
 TOOLTIP_FACE = "#FFFFCC"
+
+# The flat selection fill the menu and item-view artwork paints from
+# `[Colors:Selection] BackgroundNormal`, the same #CCCCFF the desktop theme's
+# listitem.svg and viewitem.svg draw.
+SELECTION = "#CCCCFF"
 
 
 def hex_colour(rgb):
