@@ -149,6 +149,17 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_a_capture_of_the_wrong_size_exits_1_and_writes_nothing(self):
+        # spectacle can hand back a surface captured at the wrong geometry. The
+        # render must refuse it: publishing that PNG would report success for a
+        # size the fidelity comparison never asked to check.
+        self.stub_capture()
+        status, stderr, output = self.run_main("--width", "64", "--height", "48")
+        self.assertEqual(1, status)
+        self.assertIn("capture is 320x240, expected 64x48", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_unwritable_output_is_refused_before_installing(self):
         marker = self.root / "make-ran"
         self.stub("make", f"touch {marker}")
