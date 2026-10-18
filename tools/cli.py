@@ -1,22 +1,25 @@
 """Shared argument-parsing helpers for the command-line tools.
 
 Each tool in this directory takes contributor-supplied paths and numbers on
-its command line. Four concerns recur across them: argparse's own
+its command line. Five concerns recur across them: argparse's own
 diagnostics are formatted from raw argv and must not print control
 characters, a numeric option must reject Python-only spellings (underscore
 separators, non-ASCII digits, surrounding whitespace) that would silently
 name a different value, a caught read/comparison failure is reported as one
-escaped, tool-named line with exit status 2, and a failed external command as
-that same line plus a tail of its log with exit status 1. All of these live
-here so ``tools/fidelity.py``, ``tools/sample.py``, ``tools/render_surface.py``
-and ``tools/apply_theme.py`` share one implementation.
+escaped, tool-named line with exit status 2, a failed external command as
+that same line plus a tail of its log with exit status 1, and a tool that
+needs external commands refuses to run when one is absent from PATH. All of
+these live here so ``tools/fidelity.py``, ``tools/sample.py``,
+``tools/render_surface.py`` and ``tools/apply_theme.py`` share one
+implementation.
 """
 
 from __future__ import annotations
 
 import argparse
+import shutil
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import TypeVar
 
@@ -74,6 +77,20 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
             text += f"\n  {escape_controls(line)}"
     print(text, file=sys.stderr)
     return 1
+
+
+def report_missing_tool(tool: str, required: Iterable[str]) -> int | None:
+    """Return the missing-tool exit status, or None when every tool is on PATH.
+
+    ``tools/apply_theme.py`` and ``tools/render_surface.py`` both refuse to run
+    when an external command they need is absent, naming the first missing one
+    in the shared ``report_error`` diagnostic. *required* is checked in order,
+    so the tool the message names is deterministic.
+    """
+    for name in required:
+        if shutil.which(name) is None:
+            return report_error(tool, f"required tool not found on PATH: {name}")
+    return None
 
 
 def is_plain_ascii_number(value: str) -> bool:

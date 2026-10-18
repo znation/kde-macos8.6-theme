@@ -36,6 +36,7 @@ if __package__:
         plain_number,
         report_error,
         report_failure,
+        report_missing_tool,
     )
     from tools.png import PngError, read_png
     from tools.process_group import exit_on_termination, run_logged
@@ -46,6 +47,7 @@ else:  # run directly: python3 tools/render_surface.py
         plain_number,
         report_error,
         report_failure,
+        report_missing_tool,
     )
     from png import PngError, read_png
     from process_group import exit_on_termination, run_logged
@@ -286,9 +288,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    for tool in REQUIRED_TOOLS:
-        if shutil.which(tool) is None:
-            return report_error(TOOL, f"required tool not found on PATH: {tool}")
+    missing = report_missing_tool(TOOL, REQUIRED_TOOLS)
+    if missing is not None:
+        return missing
     problem = _output_problem(Path(args.output).absolute())
     if problem is not None:
         return report_error(TOOL, f"cannot write {args.output!r}: {problem}")

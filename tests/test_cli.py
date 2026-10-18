@@ -18,6 +18,7 @@ import argparse
 import contextlib
 import io
 import unittest
+from unittest import mock
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import cli
@@ -178,6 +179,42 @@ class TestReportError(unittest.TestCase):
         self.assertNotIn("\x1b", err)
         self.assertIn("\\u001b", err)
         self.assertIn("\\u000a", err)
+
+
+class TestReportMissingTool(unittest.TestCase):
+    def _report(self, tool, required, present=()):
+        """Call report_missing_tool with which() finding only *present*."""
+        stderr = io.StringIO()
+        with mock.patch.object(
+            cli.shutil, "which", lambda name: name if name in present else None
+        ):
+            with contextlib.redirect_stderr(stderr):
+                status = cli.report_missing_tool(tool, required)
+        return status, stderr.getvalue()
+
+    def test_returns_none_and_prints_nothing_when_all_are_present(self):
+        # None means "proceed": the callers continue only when every required
+        # tool was found, so the helper must not report a success line.
+        status, err = self._report("sample", ("a", "b"), present=("a", "b"))
+        self.assertIsNone(status)
+        self.assertEqual(err, "")
+
+    def test_names_the_first_missing_tool_in_order(self):
+        # The tools depend on the order, so the first absent name is the one
+        # reported even when a later one is missing too.
+        status, err = self._report(
+            "render_surface", ("a", "b", "c"), present=("a", "c")
+        )
+        self.assertEqual(status, 2)
+        self.assertEqual(
+            err, "render_surface: error: required tool not found on PATH: b\n"
+        )
+
+    def test_escapes_control_characters_in_the_tool_name(self):
+        status, err = self._report("apply_theme", ("bad\x1b[31m",))
+        self.assertEqual(status, 2)
+        self.assertNotIn("\x1b", err)
+        self.assertIn("\\u001b", err)
 
 
 class TestReportFailure(unittest.TestCase):

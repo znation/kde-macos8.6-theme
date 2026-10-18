@@ -29,11 +29,11 @@ import tempfile
 from pathlib import Path
 
 if __package__:
-    from tools.cli import EscapingArgumentParser, report_error, report_failure
+    from tools.cli import EscapingArgumentParser, report_failure, report_missing_tool
     from tools.process_group import exit_on_termination, run_logged
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_theme.py
-    from cli import EscapingArgumentParser, report_error, report_failure
+    from cli import EscapingArgumentParser, report_failure, report_missing_tool
     from process_group import exit_on_termination, run_logged
     from terminal import escape_controls
 
@@ -154,9 +154,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.parse_args(argv)
 
-    for tool in REQUIRED_TOOLS:
-        if shutil.which(tool) is None:
-            return report_error(TOOL, f"required tool not found on PATH: {tool}")
+    missing = report_missing_tool(TOOL, REQUIRED_TOOLS)
+    if missing is not None:
+        return missing
     with exit_on_termination():
         return _apply()
 
