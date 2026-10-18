@@ -4,7 +4,7 @@
 # element the theme SVG lacks from its compiled-in default.svg, so this file
 # only states what the Platinum style changes. The palette values come from
 # the MacOS8 color scheme (see theme/color-schemes/MacOS8.colors) and from the
-# Platinum bevel palette; tests/test_kvantum.py re-derives every one of them.
+# Platinum bevel palette; tests/test_kvantum_config.py re-derives every one of them.
 #
 # The global theme selects this style (`widgetStyle=kvantum` in its
 # `contents/defaults`), and `make apply` runs

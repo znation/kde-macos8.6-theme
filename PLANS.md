@@ -325,7 +325,7 @@ than falling back to Kvantum's compiled-in default shapes. Part 4/4 then selects
   menu-bar-item and item-view selection states are flat `#CCCCFF`.
 - Add `SELECTION = "#CCCCFF"` to `tests/support/platinum_palette.py` beside `TROUGH` and
   `TOOLTIP_FACE`, its docstring naming `[Colors:Selection] BackgroundNormal` as the source.
-- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the menu
+- Extend `tests/test_kvantum_config.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the menu
   bar's 0/2 margins in a named assertion; pin each surface section's frame, interior and indicator
   element in `SURFACE_CONTROL_CONFIG` (including `[MenuBarItem]`'s `frame.element=menubaritem`, which
   would otherwise inherit `button`); add the new elements to `FRAME_STATES`/`INTERIOR_STATES`; widen
@@ -335,7 +335,7 @@ than falling back to Kvantum's compiled-in default shapes. Part 4/4 then selects
   for pixel (a `flat` selection state must be a solid `#CCCCFF` with no bevel).
 
 **Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
-`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`,
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum_*.py`,
 `tests/support/platinum_palette.py`.
 
 **Acceptance criteria.**
@@ -372,16 +372,16 @@ default shapes. Part 3/4 adds the surface controls and part 4/4 selects the styl
   fill attributes: the frame elements `scrollbarslider`, `slider`, `progress`, `spin` and `splitter`
   ship their centre and eight slices; the interior/indicator elements `slidercursor`,
   `progress-pattern`, `splitter-grip` and `grip` ship the state ids Kvantum renders for them.
-- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the
+- Extend `tests/test_kvantum_config.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the
   splitter's 0/1 and the groove's 0/4 margins in a named assertion; add the new elements to
   `FRAME_STATES`/`INTERIOR_STATES`; widen `test_uses_exactly_the_platinum_palette` to
   `assert_fill_palette(self, self.tree, extra=frozenset({TROUGH}))`.
 - Update the series references that still name the old three-part numbering: the
-  `org.macos8.desktop.kvconfig` header comment and the `tests/test_kvantum.py` module docstring now
+  `org.macos8.desktop.kvconfig` header comment and the `tests/test_kvantum_config.py` module docstring now
   say part 4/4, and README.md's Kvantum-selection sentence names part 4/4.
 
 **Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
-`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`, `README.md`.
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum_*.py`, `README.md`.
 
 **Acceptance criteria.**
 - The `.kvconfig` holds the new sections; each uniform raised frame resolves to 2px, the splitter's
@@ -505,7 +505,7 @@ part 4, so a machine without Kvantum is unaffected.
    directory, so the package-directory swap of `install_package` does not fit), and in `_uninstall`
    remove them and their staging names. `install -d` the `themes/$(KVANTUM_ID)/Kvantum` path; leave
    the shared `themes/` parent alone.
-4. `tests/test_kvantum.py` (new): parse the `.kvconfig` with `tests/support/kde_config.read`; assert every
+4. `tests/test_kvantum_config.py`, `tests/test_kvantum_svg.py` and `tests/test_kvantum_install.py` (new): parse the `.kvconfig` with `tests/support/kde_config.read`; assert every
    `[GeneralColors]` key equals the `MacOS8.colors` value or `platinum_palette` constant named in
    the mapping above; assert `[%General] scroll_width == "16"` and `scroll_arrows == "true"`; assert
    each core section's `frame.top/bottom/left/right` is `"2"` (`[Focus]` is `"1"`); parse the SVG
@@ -520,11 +520,11 @@ part 4, so a machine without Kvantum is unaffected.
    Kvantum finds it only when `$(XDG_DATA_HOME)` is the default `$HOME/.local/share`, and update the
    status line's artifact count.
 
-**Implementation note.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` and `...svg` ship the palette, the frame metrics and our own art; `make install` stages the two files into `themes/org.macos8.desktop/Kvantum/` (they sit directly in a `Kvantum/` directory, so the package-directory swap does not fit) and `make uninstall` removes them and their staging names. Kvantum renders check boxes, radio buttons and the arrows as single interior/indicator elements rather than nine-sliced frames (`renderElement` draws `checkbox-normal`, `checkbox-checked-normal`, `radio-*` and `arrow-<dir>-<state>` whole, while `renderFrame` slices `button`, `lineedit`, `common` and `focus`), so `tests/test_kvantum.py` pins the centre plus eight slices for the frame elements and the state ids for the interior/indicator ones; the focus ring's centre id is `focus` (no state), as Kvantum's own themes name it. The SVG uses only the four `PLATINUM_FILLS` and passes the four safety guards. The pressed and toggled buttons paint the sunken bevel -- a `#999999` shadow inside the top/left outline and a `#FFFFFF` highlight inside the bottom/right one -- which `tests/test_kvantum.py` pins pixel by pixel for every button state, so a pressed state repeating the raised art fails. The style is not selected: `contents/defaults` is byte-unchanged. `tests/test_theme_install.py`'s spaced/apostrophe install round trip now covers the two Kvantum files, and its artifact count reads seven.
+**Implementation note.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` and `...svg` ship the palette, the frame metrics and our own art; `make install` stages the two files into `themes/org.macos8.desktop/Kvantum/` (they sit directly in a `Kvantum/` directory, so the package-directory swap does not fit) and `make uninstall` removes them and their staging names. Kvantum renders check boxes, radio buttons and the arrows as single interior/indicator elements rather than nine-sliced frames (`renderElement` draws `checkbox-normal`, `checkbox-checked-normal`, `radio-*` and `arrow-<dir>-<state>` whole, while `renderFrame` slices `button`, `lineedit`, `common` and `focus`), so `tests/test_kvantum_svg.py` pins the centre plus eight slices for the frame elements and the state ids for the interior/indicator ones; the focus ring's centre id is `focus` (no state), as Kvantum's own themes name it. The SVG uses only the four `PLATINUM_FILLS` and passes the four safety guards. The pressed and toggled buttons paint the sunken bevel -- a `#999999` shadow inside the top/left outline and a `#FFFFFF` highlight inside the bottom/right one -- which `tests/test_kvantum_bevel_pixels.py` pins pixel by pixel for every button state, so a pressed state repeating the raised art fails. The style is not selected: `contents/defaults` is byte-unchanged. `tests/test_theme_install.py`'s spaced/apostrophe install round trip now covers the two Kvantum files, and its artifact count reads seven.
 
 **Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` (new),
 `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg` (new), `Makefile`,
-`tests/test_kvantum.py` (new), `README.md`.
+`tests/test_kvantum_*.py` (new), `README.md`.
 
 **Acceptance criteria.**
 - The `.kvconfig` parses; each `[GeneralColors]` value equals the mapped `.colors` role or

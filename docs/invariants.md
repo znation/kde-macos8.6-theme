@@ -64,9 +64,9 @@ that does not exist, or a blank guarantee cell fails `make check`.
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
-| Every `GeneralColors` entry is grounded in the color scheme or the Platinum palette. | `tests/test_kvantum.py::TestGeneralColors` | none |
-| Every core and special control section resolves to the grounded frame margin. | `tests/test_kvantum.py::TestFrameMargins` | none |
-| The SVG ships each frame element's centre and eight slices. | `tests/test_kvantum.py::TestSvg` | none |
+| Every `GeneralColors` entry is grounded in the color scheme or the Platinum palette. | `tests/test_kvantum_config.py::TestGeneralColors` | none |
+| Every core and special control section resolves to the grounded frame margin. | `tests/test_kvantum_config.py::TestFrameMargins` | none |
+| The SVG ships each frame element's centre and eight slices. | `tests/test_kvantum_svg.py::TestSvg` | none |
 
 ## look-and-feel
 
