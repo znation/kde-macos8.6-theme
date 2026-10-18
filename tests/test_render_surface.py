@@ -106,6 +106,43 @@ class TestPublishMode(unittest.TestCase):
             self.assertEqual(0o640, stat.S_IMODE(output.stat().st_mode))
 
 
+class TestSessionScript(unittest.TestCase):
+    """The in-session shell script applies the scheme and captures the applet.
+
+    It is the only place the colour scheme is applied inside the throwaway
+    session and the only place ``spectacle`` is told what to capture. A
+    dropped flag or a wrong positional parameter there renders an unthemed or
+    empty surface, which the fidelity gate then reports as a pixel difference
+    rather than as the renderer's own bug.
+    """
+
+    def test_applies_the_scheme_before_opening_the_applet(self):
+        script = render_surface._session_script()
+        # The installed scheme id, applied inside the session; `|| exit 1`
+        # aborts the session on a failed apply instead of capturing an
+        # unthemed window. The applet opens before the settle sleep, so the
+        # sleep is the wait for it to paint.
+        self.assertIn(
+            f"plasma-apply-colorscheme {render_surface.COLOR_SCHEME} || exit 1",
+            script,
+        )
+        self.assertLess(script.index("plasmawindowed"), script.index("sleep"))
+
+    def test_captures_to_the_third_positional_argument_with_spectacle(self):
+        # `-b` runs without a GUI, `-n` suppresses the notification, `-f`
+        # captures the full screen, and `-o` writes the surface path that
+        # `_render` passes as the third positional parameter.
+        self.assertIn('spectacle -b -n -f -o "$3"', render_surface._session_script())
+
+    def test_stops_the_applet_and_exits_with_the_capture_status(self):
+        script = render_surface._session_script()
+        self.assertIn('kill "$applet"', script)
+        self.assertIn("exit $status", script)
+        # The applet is stopped before the session exits, so no applet
+        # outlives the capture.
+        self.assertLess(script.index("kill"), script.index("exit $status"))
+
+
 class StubTools(unittest.TestCase):
     """Base for tests that run `main` against shell stubs of the external tools."""
 
