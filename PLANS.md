@@ -183,6 +183,61 @@ not installed.
 - README documents the selection and the no-Kvantum fallback.
 - `make check` is green.
 
+### Mac OS 8.6 kicker logo: our own non-infringing `start-here-kde-symbolic` icon (planned 2026-10-18 by the plan role)
+
+**Goal.** The menu bar's top-left button is the `org.kde.plasma.kicker` applet, whose icon
+config defaults to `start-here-kde-symbolic`. The icon theme (`theme/icons/org.macos8.desktop/`)
+ships no icon of that name, so it falls through to Breeze's KDE mark. The reference menu bar
+(`macos8.6-screenshots/desktop_betawiki.png`, lossless, 1024x768) shows a logo there — its
+bounding box is x=17..27, y=2..15 (about 11x14px, so a 16px icon) — and the 2026-10-18 answer in
+QUESTIONS.md says the theme must draw its own non-infringing logo rather than reproduce Apple's.
+The icon-theme plan deferred exactly this ("The Apple-logo kicker icon is out of scope") and the
+menu-bar layout plan named it a later plan. Ship our own logo at the two panel icon sizes so the
+kicker resolves it from the theme with no layout change. Independent of the Kvantum series.
+
+**Approach.**
+1. New `theme/icons/org.macos8.desktop/16x16/places/start-here-kde-symbolic.svg` and
+   `theme/icons/org.macos8.desktop/22x22/places/start-here-kde-symbolic.svg`: our own mark, a
+   Platinum-style computer glyph drawn on each grid — a 1px `#000000` outlined monitor with a
+   `#DDDDDD` face, a 1px `#FFFFFF` top/left highlight, a 1px `#999999` bottom/right bevel, and a
+   black stand (a short centred neck and a horizontal foot) below it. The 22x22 art is the same
+   shape scaled to the larger grid, not the 16x16 art with a bigger viewBox. The fills are
+   `platinum_palette.PLATINUM_FILLS` only, with no `<style>`, no `<script>` and no external
+   reference (the same guards the other icons pass). This is our own geometric drawing; it
+   reproduces neither Apple's apple shape nor its rainbow palette.
+2. `theme/icons/org.macos8.desktop/index.theme`: add `16x16/places` and `22x22/places` to
+   `Directories`, each with `Size=16`/`Size=22`, `Context=Places`, `Type=Fixed`. The kicker's
+   default `start-here-kde-symbolic` then resolves to ours before Breeze's inherited copy.
+3. `tests/test_icon_theme.py`: add both paths to `SHIPPED_ICONS` and to
+   `TestInstall.INSTALLED_FILES`; rename
+   `TestIndex.test_every_shipped_icon_lives_in_a_declared_32px_directory` to
+   `..._declared_size_directory` and derive the expected `Size` from the icon path's leading
+   `NNxNN` directory component instead of hard-coding `32`; rename
+   `TestIcons.test_each_icon_is_a_32_pixel_svg` to `..._square_svg_of_its_declared_size` and
+   assert `width`, `height` and `viewBox` from that same component. The palette,
+   full-palette and safety tests already iterate `SHIPPED_ICONS`, so they cover the new art
+   unchanged; `PLACEHOLDERS.md` stays empty (this is final art, not a placeholder).
+4. `README.md`: in the icon-theme sentence, add that the theme also draws the menu bar's
+   kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's).
+
+**Files touched.** `theme/icons/org.macos8.desktop/16x16/places/start-here-kde-symbolic.svg`
+(new), `theme/icons/org.macos8.desktop/22x22/places/start-here-kde-symbolic.svg` (new),
+`theme/icons/org.macos8.desktop/index.theme`, `tests/test_icon_theme.py`, `README.md`.
+
+**Acceptance criteria.**
+- `index.theme` declares `16x16/places` and `22x22/places` with `Size` 16 and 22, and each
+  shipped icon's directory declared size matches its path's leading `NNxNN`, pinned by name.
+- Both new SVGs have `width`/`height`/`viewBox` equal to their grid (16 and 22), parse to
+  `attribute_values(tree, "fill") <= platinum_palette.PLATINUM_FILLS`, and pass
+  `assert_no_script_elements`, `assert_no_style_elements`, `assert_no_external_references` and
+  `assert_unique_ids`.
+- `make install XDG_DATA_HOME=<tmp>` installs
+  `<tmp>/icons/org.macos8.desktop/16x16/places/start-here-kde-symbolic.svg` and the 22px one, and
+  `make uninstall` removes them; the other artifacts' install/uninstall tests still pass.
+- `contents/layouts/org.kde.plasma.desktop-layout.js` is byte-unchanged (the kicker's default
+  icon name already matches), shown by `git diff`.
+- README names the kicker logo and `make check` is green.
+
 ## Done
 
 ### Mac OS 8.6 Platinum icon theme: replace the placeholder art with final non-infringing art (planned 2026-10-18 by the feature role; done 2026-10-18)
