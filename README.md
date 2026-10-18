@@ -117,6 +117,13 @@ leaves KWin to reload on its next start). It refuses a non-empty `DESTDIR`, sinc
 tree to the running session is wrong, and it needs `lookandfeeltool`, `plasma-apply-colorscheme` and
 `plasma-apply-desktoptheme`, exiting 2 naming the first one that is missing. The startup splash is
 read at login, so a splash change appears only on the next login.
+`make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
+directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every
+commit installs and re-applies the theme from the committing worktree; the hook is uncommitted, so
+other clones and contributors are unaffected, and `make apply` is the manual equivalent. A
+fast-forward merge creates no commit, so it does not trigger the hook. `tools/local_hook.py`
+refuses to overwrite or remove a `post-commit` hook it did not write -- this clone's Git LFS hook
+is one -- naming the path instead, so `make uninstall-local-hook` removes only its own hook.
 `make render` renders the installed theme in a headless KWin session and writes a screenshot PNG
 (a 320x240 Plasma calculator window by default) to `RENDER_OUTPUT` (`render.png`); it needs
 `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and

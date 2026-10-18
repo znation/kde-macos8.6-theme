@@ -80,7 +80,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check check-references render apply install uninstall _install _uninstall
+.PHONY: help check check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -144,6 +144,8 @@ help:
 	@echo "  check-references  validate the reference screenshot set (needs git lfs pull)"
 	@echo "  render            render a themed Plasma surface headlessly to RENDER_OUTPUT"
 	@echo "  apply             install and re-apply the theme to the running Plasma session"
+	@echo "  install-local-hook  install a post-commit hook that runs 'make apply' (this clone only)"
+	@echo "  uninstall-local-hook  remove that post-commit hook"
 	@echo "  install           install the color scheme and theme packages"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
@@ -187,6 +189,20 @@ apply:
 	@$(call require_python_version,apply)
 	$(MAKE) --no-print-directory install
 	$(PYTHON) tools/apply_theme.py
+
+# Write a local-only post-commit hook (this clone's git hooks directory, never
+# committed) so every commit re-runs `make apply`. tools/local_hook.py refuses
+# to overwrite or remove a post-commit hook it did not write, so another tool's
+# hook (Git LFS, for example) is left alone with a diagnostic.
+install-local-hook:
+	@$(call require_python,install-local-hook)
+	@$(call require_python_version,install-local-hook)
+	$(PYTHON) tools/local_hook.py install
+
+uninstall-local-hook:
+	@$(call require_python,uninstall-local-hook)
+	@$(call require_python_version,uninstall-local-hook)
+	$(PYTHON) tools/local_hook.py uninstall
 
 # `install` and `uninstall` share fixed hidden `.staging`/`.old` names under
 # the data home, so overlapping runs can clobber each other's staging, and an

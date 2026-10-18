@@ -27,45 +27,6 @@ to match); and **system sounds** are out of scope (not a visual surface, so the 
 cannot ground them). Until the two open surfaces resolve, the shipped work should not be treated
 as the whole of the prompt.
 
-### Local theme apply, part 2/2: `make install-local-hook` writes an uncommitted `post-commit` hook that runs `make apply` (planned 2026-10-18 by the director role; "requires part 1/2 landed")
-
-**Goal.** After every commit in this clone, the newest theme is automatically installed and
-applied, through a `post-commit` hook that lives only in this clone's git directory and is never
-committed or pushed, so other clones and contributors are unaffected.
-
-**Approach.**
-- Add `tools/local_hook.py`, stdlib-only, with `install` and `uninstall` subcommands (argparse via
-  `tools/cli.py`'s `EscapingArgumentParser`):
-  - Resolve the hooks directory with `git rev-parse --git-path hooks` (in this clone the common
-    `.git/hooks`, shared by the `.tumwater/worktrees/*` linked worktrees) and the repository top
-    level with `git rev-parse --show-toplevel`.
-  - Write an executable `post-commit` shell script carrying the marker line
-    `# installed by kde-macos8.6-theme: make install-local-hook`. Its body runs
-    `cd "$(git rev-parse --show-toplevel)" && make apply`, sends output to stderr, and swallows a
-    non-zero status so a failed apply never blocks the commit.
-  - `install` refuses, with a diagnostic naming the path, to overwrite an existing `post-commit`
-    that lacks the marker; a re-run over its own hook is idempotent (same bytes).
-  - `uninstall` removes the file only when the marker is present and refuses on a foreign hook.
-- Add `install-local-hook` and `uninstall-local-hook` targets to `Makefile` (`.PHONY` and `help`),
-  each running `$(PYTHON) tools/local_hook.py <subcommand>` under the Python guards.
-- Document the local-only workflow in README.md: the hook is uncommitted so other clones are
-  unaffected; every commit in this clone, including the feature worktrees under
-  `.tumwater/worktrees/`, re-applies the theme from the committing worktree; `make apply` is the
-  manual equivalent; a fast-forward merge creates no commit and so does not trigger the hook.
-
-**Files touched.** `Makefile`, `tools/local_hook.py` (new), `tests/test_local_hook.py` (new),
-`README.md`.
-
-**Acceptance criteria.**
-- In a throwaway `git init` repo (under `tests/tmp_dir.py`), `tools/local_hook.py install` creates
-  an executable `<hooks>/post-commit` whose bytes carry the marker and whose body names `make
-  apply`; a second install succeeds and leaves the bytes unchanged.
-- An existing non-marker `post-commit` makes both `install` and `uninstall` exit non-zero naming
-  the path, and leaves its bytes untouched.
-- `uninstall` removes a hook this tool installed and leaves a foreign one.
-- `make -n install-local-hook` shows the Python invocation, and `help` lists both targets.
-- `make check` passes.
-
 ### Mac OS 8.6 Platinum desktop icon theme: a minimal `org.macos8.desktop` icon package for the icons the desktop shows (planned 2026-10-18 by the plan role)
 
 **Goal.** The desktop's icons still wear the default Breeze icons. Ship the first
@@ -123,6 +84,45 @@ when planned); the full Platinum icon set (Breeze fills the rest).
 - `make check` is green.
 
 ## Done
+
+### Local theme apply, part 2/2: `make install-local-hook` writes an uncommitted `post-commit` hook that runs `make apply` (planned 2026-10-18 by the director role; done 2026-10-18)
+
+**Goal.** After every commit in this clone, the newest theme is automatically installed and
+applied, through a `post-commit` hook that lives only in this clone's git directory and is never
+committed or pushed, so other clones and contributors are unaffected.
+
+**Approach.**
+- Add `tools/local_hook.py`, stdlib-only, with `install` and `uninstall` subcommands (argparse via
+  `tools/cli.py`'s `EscapingArgumentParser`):
+  - Resolve the hooks directory with `git rev-parse --git-path hooks` (in this clone the common
+    `.git/hooks`, shared by the `.tumwater/worktrees/*` linked worktrees) and the repository top
+    level with `git rev-parse --show-toplevel`.
+  - Write an executable `post-commit` shell script carrying the marker line
+    `# installed by kde-macos8.6-theme: make install-local-hook`. Its body runs
+    `cd "$(git rev-parse --show-toplevel)" && make apply`, sends output to stderr, and swallows a
+    non-zero status so a failed apply never blocks the commit.
+  - `install` refuses, with a diagnostic naming the path, to overwrite an existing `post-commit`
+    that lacks the marker; a re-run over its own hook is idempotent (same bytes).
+  - `uninstall` removes the file only when the marker is present and refuses on a foreign hook.
+- Add `install-local-hook` and `uninstall-local-hook` targets to `Makefile` (`.PHONY` and `help`),
+  each running `$(PYTHON) tools/local_hook.py <subcommand>` under the Python guards.
+- Document the local-only workflow in README.md: the hook is uncommitted so other clones are
+  unaffected; every commit in this clone, including the feature worktrees under
+  `.tumwater/worktrees/`, re-applies the theme from the committing worktree; `make apply` is the
+  manual equivalent; a fast-forward merge creates no commit and so does not trigger the hook.
+
+**Files touched.** `Makefile`, `tools/local_hook.py` (new), `tests/test_local_hook.py` (new),
+`README.md`.
+
+**Acceptance criteria.**
+- In a throwaway `git init` repo (under `tests/tmp_dir.py`), `tools/local_hook.py install` creates
+  an executable `<hooks>/post-commit` whose bytes carry the marker and whose body names `make
+  apply`; a second install succeeds and leaves the bytes unchanged.
+- An existing non-marker `post-commit` makes both `install` and `uninstall` exit non-zero naming
+  the path, and leaves its bytes untouched.
+- `uninstall` removes a hook this tool installed and leaves a foreign one.
+- `make -n install-local-hook` shows the Python invocation, and `help` lists both targets.
+- `make check` passes.
 
 ### Local theme apply, part 1/2: `make apply` installs and re-applies the theme to the running Plasma session (planned 2026-10-18 by the director role; done 2026-10-18)
 
