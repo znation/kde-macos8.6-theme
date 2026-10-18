@@ -2,14 +2,17 @@
 
 The decoration package itself (metadata, install lifecycle) and the artwork the
 Aurorae engine draws: the active `decoration` nine-slice, the inactive
-`decoration-inactive` nine-slice, and the close/zoom widget SVGs with their
-active and inactive states. Every sampled value is re-derived from
-`macos8.6-screenshots/aboutsystem_betawiki.png` through `tools/png.py`, so a
-theme that drifts from the reference fails here. The inactive greys are
-KDE-required provenance (the reference set has no inactive window) and are
-pinned against the active artwork they grey. The reference is stored with
-Git LFS, so a clone without it skips the artwork tests rather than failing
-`make check`.
+`decoration-inactive` nine-slice, and the close/zoom/collapse widget SVGs with
+their active and inactive states. The sampled values are re-derived through
+`tools/png.py` from `macos8.6-screenshots/aboutsystem_betawiki.png` (the
+frame, the close and collapse boxes, the collapse glyph, and the button
+offsets) or `macos8.6-screenshots/systemprofiler_betawiki.png` (the zoom box
+and glyph, `ButtonSpacing`, and a second check of the close box, the collapse
+box, and `TitleEdgeRight`), so a theme that drifts from the reference fails
+here. The inactive greys are KDE-required provenance (the reference set has no
+inactive window) and are pinned against the active artwork they grey. The
+reference is stored with Git LFS, so a clone without it skips the artwork
+tests rather than failing `make check`.
 """
 
 from __future__ import annotations
