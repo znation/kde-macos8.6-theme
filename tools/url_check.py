@@ -35,29 +35,45 @@ def _is_ip_literal(text: str) -> bool:
     return True
 
 
+def _is_port(port: str) -> bool:
+    """Return True when *port* is an RFC 3986 port.
+
+    A port is ``*DIGIT`` -- zero or more ASCII digits -- so an empty string
+    (the ``host:`` form) is well formed and ``80:90`` and ``abc`` are not.
+    """
+    return all(ch in "0123456789" for ch in port)
+
+
 def _authority_host(authority: str) -> tuple[str, str | None]:
     """Return ``(host, problem)`` for an RFC 3986 *authority*.
 
     The host is what follows any ``userinfo@`` prefix and precedes any
     ``:port`` suffix. A bracketed IP-literal (``[::1]``) must be closed and
     hold an IPv6 or IPvFuture address; a bracket in an unbracketed host is
-    malformed. *problem* is a diagnostic for a malformed authority, and
-    *host* is empty when the authority names no host at all.
+    malformed, as is a port holding anything but ASCII digits. *problem* is a
+    diagnostic for a malformed authority, and *host* is empty when the
+    authority names no host at all.
     """
     hostport = authority.rsplit("@", 1)[-1]
     if hostport.startswith("["):
         end = hostport.find("]")
         if end == -1:
             return "", "must close the bracketed host with ']'"
-        if end + 1 < len(hostport) and hostport[end + 1] != ":":
-            return "", "must put only a port after the bracketed host"
+        if end + 1 < len(hostport):
+            if hostport[end + 1] != ":":
+                return "", "must put only a port after the bracketed host"
+            if not _is_port(hostport[end + 2 :]):
+                return "", "must put only digits in the port after the bracketed host"
         host = hostport[1:end]
         if host and not _is_ip_literal(host):
             return "", "must bracket an IPv6 or IPvFuture address"
         return host, None
     if "[" in hostport or "]" in hostport:
         return "", "must not put '[' or ']' in a host"
-    return hostport.split(":", 1)[0], None
+    host, sep, port = hostport.partition(":")
+    if sep and not _is_port(port):
+        return "", "must put only digits in the port"
+    return host, None
 
 
 def url_problem(url: str) -> str | None:
@@ -80,6 +96,8 @@ def url_problem(url: str) -> str | None:
     scheme for the latter two sends the reader after the wrong thing. A
     bracketed host is held to its RFC 3986 form: ``[::1]`` is a host, while
     ``[]``, an unclosed ``[::1`` and a bracket in an unbracketed host are not.
+    A port must be ASCII digits (or empty), so ``host:80:90`` and
+    ``host:abc`` are malformed citations.
     """
     scheme, sep, rest = url.partition("://")
     if (

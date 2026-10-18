@@ -144,5 +144,36 @@ class TestBracketedHosts(unittest.TestCase):
             self.assertFalse(is_absolute_url(url), url)
 
 
+class TestAuthorityPorts(unittest.TestCase):
+    """A port is ``*DIGIT``; anything else is a malformed citation.
+
+    The authority parser used to take everything before the first ``:`` as the
+    host and ignore the rest, so ``https://host:80:90/x`` and
+    ``https://host:abc/x`` passed as well-formed provenance.
+    """
+
+    def test_digit_and_empty_ports_are_accepted(self):
+        for url in (
+            "https://host:80/x",
+            "https://host:/x",
+            "https://user:pass@host:8080/x",
+            "https://[::1]:80/x",
+            "https://[::1]:/x",
+            "file://host:80/x",
+        ):
+            self.assertTrue(is_absolute_url(url), url)
+
+    def test_non_digit_ports_are_rejected(self):
+        for url in (
+            "https://host:abc/x",
+            "https://host:80:90/x",
+            "https://host:8 0/x",
+            "https://user@host:1:2/x",
+            "https://[::1]:abc/x",
+            "https://[::1]:80:90/x",
+        ):
+            self.assertFalse(is_absolute_url(url), url)
+
+
 if __name__ == "__main__":
     unittest.main()

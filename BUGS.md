@@ -12,6 +12,32 @@ _None yet._
 
 ## Fixed
 
+### `tools/url_check.py` accepts a non-numeric or doubled port as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `None` for `https://host:80:90/x`,
+`https://host:abc/x`, `https://[::1]:80:90/x` and `https://[::1]:abc/x`, so
+`tools/check_references.py` would accept a `sources.txt` row citing any of them
+as a well-formed absolute URL. RFC 3986 defines a port as `*DIGIT`, so each is
+malformed while the provenance check reports it clean.
+
+**Cause:** `_authority_host` took the unbracketed host as
+`hostport.split(":", 1)[0]` and ignored everything after the first colon, and
+for a bracketed host it only checked that the character after `]` was a colon;
+neither path examined the port's contents.
+
+**Fix:** a new `_is_port` helper accepts only ASCII digits (an empty port, the
+`host:` form, stays valid because `*DIGIT` allows zero digits), and
+`_authority_host` applies it to the port after both an unbracketed host and a
+bracketed one. The host and empty-host messages are unchanged.
+
+**Test:** `tests/test_url_check.py::TestAuthorityPorts` (a scratch run of
+`url_problem` returned `None` for the four malformed URLs before the fix; the
+class passes after).
+
+**Validation gap:** unclear-invariant — the module never stated the port rule,
+so I had to reconstruct RFC 3986's `*DIGIT` form before I could call the
+acceptance a bug.
+
 ### `test_url_check.py` fails to import when run as the only `CHECK_TESTS` module (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `make check CHECK_TESTS='test_url_check'` exited 2 with
