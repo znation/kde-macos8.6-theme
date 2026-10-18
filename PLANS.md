@@ -26,7 +26,78 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Platinum busy indicator (`widgets/busywidget.svg`) for the desktop theme (planned 2026-10-18 by the plan role)
+
+**Goal.** Ship `widgets/busywidget.svg` so `PlasmaComponents.BusyIndicator` spins a Platinum ring
+instead of inheriting Breeze's blue arc. The theme ships no `widgets/busywidget`, so `KSvg` resolves
+the name to the default theme's Breeze file. It is the next of the two surfaces the done
+tabbar/toolbar plans still name ("then `tabbar`, `tooltip`, and the `actionbutton`/`busy`/`switch`
+surfaces"; `switch` is done, `actionbutton` and `busy` remain). Independent of the planned
+invariants register and of every shipped widget: it adds one artwork file, one path constant, one
+test module and registry/README lines.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree).**
+`/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/BusyIndicator.qml` draws one
+`KSvg.SvgItem` with `imagePath: "widgets/busywidget"` and `elementId: "busywidget"`, sized to the
+smaller side of its parent and rotated continuously by a `RotationAnimator` (0 to 360 degrees over
+2s), so the artwork is a single static square element and its gap is what makes the rotation read.
+`BusyIndicator` shows in the default session: `/usr/share/plasma/plasmoids/org.kde.panel/contents/ui/main.qml`
+overlays one on a busy applet, and the system-tray, notification and network-management plasmoids
+use it while loading. A grep for `widgets/busywidget` over the installed QML finds only this one
+consumer.
+
+**Provenance.** No Mac OS 8.6 screenshot in the reference set shows a spinner, so the shape and
+metrics are KDE-required; the fills reuse the grounded Platinum face and outline the other widgets
+ship, the `#DDDDDD` raised face and the `#000000` outline.
+
+**Approach.**
+- New `theme/desktop-themes/org.macos8.desktop/widgets/busywidget.svg`, a 36x36 canvas:
+  - one `busywidget` group holding a single invisible `fill="none"` 36x36 bounding rect at the
+    origin. The gap makes the ring paths' own bounds asymmetric, and `KSvg` scales an element by
+    its bounds, so the rect keeps the ring centred, exactly as `arrows.svg`'s per-element rect
+    does.
+  - a "C" ring, centred at (18,18), spanning the 270 degrees a 90-degree gap centred on the +x
+    axis leaves (the gap's endpoints lie on the 45-degree rays above and below the +x axis): a
+    `#000000` outline ring with outer radius 16 and inner radius 11, then the `#DDDDDD` face ring
+    with outer radius 15 and inner radius 12, so the outline shows as a 1px edge on both sides of
+    a 3px face. Each ring is one closed path in the `M`/`A`/`L`/`A`/`Z` form `path_arcs` reads (two
+    270-degree arcs joined by the gap chords), so `path_arcs` yields exactly two arcs per path.
+  - no `hint-rotation-angle` element: `BusyIndicator` rotates the whole item itself, and the
+    installed `libKF6Svg` and the `org.kde.ksvg` plugin carry no `hint-rotation-angle` string (only
+    `hint-tile-center`, `hint-stretch-borders`, `hint-compose-over-border` and the overlay hints),
+    so no consumer reads one.
+- `tests/support/desktoptheme_paths.py`: add `BUSYWIDGET_SVG = os.path.join(PACKAGE, "widgets",
+  "busywidget.svg")`.
+- New `tests/test_desktoptheme_busywidget.py`, modelled on `tests/test_desktoptheme_checkmarks.py`
+  (a path-based, non-nine-slice widget):
+  - `TestBusyWidget(SvgCase, unittest.TestCase)` with `SVG_PATH = BUSYWIDGET_SVG`.
+  - `test_busywidget_contract`: `assert_ids_present(self, self.tree, ("busywidget",))`, the parsed
+    fill set is exactly `{"none", BLACK, FACE}`, and `assert_no_script_elements`.
+  - `test_busywidget_ring_geometry`: read the `busywidget` group's two `path` children; for each,
+    `path_arcs` yields two arcs and `arc_center` reconstructs (18,18) for both; the outline path's
+    radii are (16,16) then (11,11) and the face path's (15,15) then (12,12); every arc has
+    `large_arc=1`; and the two paths' gap endpoints lie on the same pair of rays from the centre,
+    so a full circle or a gap on another axis fails.
+- `tests/test_desktoptheme.py`: add `("busywidget.svg", BUSYWIDGET_SVG, 36, 36)` to `SVG_CANVASES`
+  (the registry equality check then requires the shipped file) and `os.path.join("widgets",
+  "busywidget.svg")` to `TestInstall.INSTALLED_FILES`.
+- `README.md`: add `widgets/busywidget.svg` to the desktop theme's widget inventory sentence.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/busywidget.svg` (new),
+`tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_busywidget.py` (new),
+`tests/test_desktoptheme.py`, `README.md`.
+
+**Acceptance criteria.**
+- `busywidget.svg` parses with a 36x36 root canvas and one `busywidget` group; its painted fills are
+  exactly `#000000` and `#DDDDDD`, plus the invisible rect's `none`.
+- Each ring path is a 270-degree C whose two arcs both reconstruct the centre (18,18) with the
+  specified radii and `large_arc=1`, and both paths share the same gap rays, all pinned by name.
+- The element carries a full-canvas invisible bounding rect, so the gap does not shift the element's
+  natural centre.
+- `make install` copies the busy indicator into the installed desktop theme and `make uninstall`
+  removes it (through `TestInstall`), the SVG registry covers it (through
+  `TestSvgRootCanvas.test_registry_covers_every_shipped_svg`), and the README lists it.
+- `make check` is green.
 
 ## Done
 
