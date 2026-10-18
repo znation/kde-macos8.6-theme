@@ -12,6 +12,27 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` accepts a register reference ending in `::`, pinning a guarantee to no test (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `check_reference` treats a reference whose qualifier is empty as the bare `path`
+form and returns without error. A row like `` `tests/test_desktoptheme_switch.py::` `` therefore
+passes `cross_check` even though it names no class or method, so the register reports the
+invariant as pinned to a test when it is tied to nothing but the file. The same function already
+rejects `path::Class::` (an empty method), so the trailing-`::` typo was the one malformed form
+that slipped through silently.
+**Reproduce:** call `check_reference(root, "fake_module::", "aurorae")` against a root holding
+`fake_module`; it returned None instead of raising. The new
+`TestHelpers.test_cross_check_rejects_an_empty_qualifier` recorded the missing `AssertionError`
+before the fix and passes after.
+**Cause:** `path, _, qualifier = reference.partition("::")` discarded the separator, so the code
+could not tell the documented bare `path` reference from `path::` with an empty qualifier; both
+have `qualifier == ""`.
+**Fix:** keep the separator and, when the qualifier is empty but a `::` was present, raise an
+`AssertionError` naming the reference, so `path::` is rejected while a bare `path` still resolves.
+**Validation gap:** no-observability — no shipped register row ends in `::`, so the malformed
+reference produced no failure or diagnostic; it surfaced only by reading the validation logic and
+confirming with a scratch reproduction.
+
 ### `test_placeholders.py` ignores `PLACEHOLDER:` markers in the theme's `.kvconfig` file (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `tests/test_placeholders.py` `TEXT_EXTENSIONS` listed the theme's text formats but not

@@ -86,13 +86,19 @@ def check_reference(root, reference, section):
     """Assert *reference* names an existing test in *root*.
 
     A reference is ``path``, ``path::Class`` or ``path::Class::method``; raises
-    :class:`AssertionError` naming *section* and the first missing piece.
+    :class:`AssertionError` naming *section* and the first missing piece. A
+    reference ending in ``::`` names no class and is rejected too, so it cannot
+    silently pin a guarantee to no test.
     """
-    path, _, qualifier = reference.partition("::")
+    path, sep, qualifier = reference.partition("::")
     file_path = os.path.join(root, path)
     if not os.path.isfile(file_path):
         raise AssertionError(f"{section}: {reference} names a missing file")
     if not qualifier:
+        if sep:
+            raise AssertionError(
+                f"{section}: {reference} names no class or method after '::'"
+            )
         return
     names = qualifier.split("::")
     classes = _defined_names(file_path)
@@ -251,6 +257,16 @@ class TestHelpers(unittest.TestCase):
             [("The thing holds.", f"{self.MODULE}::TestNope")]
         )
         with self.assertRaisesRegex(AssertionError, "missing class TestNope"):
+            cross_check(self.root, register)
+
+    def test_cross_check_rejects_an_empty_qualifier(self):
+        # `path::` names no class, so it pins the guarantee to no test. The
+        # bare `path` form is the documented way to name the whole file, so
+        # the trailing `::` is a malformed reference, not a file reference.
+        register = self._valid_register(
+            [("The thing holds.", f"{self.MODULE}::")]
+        )
+        with self.assertRaisesRegex(AssertionError, "names no class or method"):
             cross_check(self.root, register)
 
     def test_cross_check_rejects_a_missing_method(self):
