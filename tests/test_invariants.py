@@ -156,6 +156,23 @@ class TestHelpers(unittest.TestCase):
                         + malformed
                     )
 
+    def test_parse_rows_rejects_a_duplicate_section(self):
+        # Two ``## aurorae`` headings would otherwise merge into one section
+        # (``setdefault``), silently attributing both tables' guarantees to the
+        # same subsystem and hiding a section that was mis-split by a rename or
+        # a copy-paste.
+        with self.assertRaisesRegex(AssertionError, "duplicate section aurorae"):
+            parse_rows(
+                "## aurorae\n\n"
+                "| Guarantee | Test | Provenance exception |\n"
+                "| --- | --- | --- |\n"
+                f"| The thing holds. | `{self.MODULE}::TestFake` | none |\n"
+                "\n## aurorae\n\n"
+                "| Guarantee | Test | Provenance exception |\n"
+                "| --- | --- | --- |\n"
+                f"| The other thing holds. | `{self.MODULE}::TestFake` | none |\n"
+            )
+
     def test_cross_check_rejects_a_data_row_without_a_test_reference(self):
         # A data row whose Test cell lost its backticks is malformed, not a
         # header; dropping it silently would leave its guarantee unpinned.

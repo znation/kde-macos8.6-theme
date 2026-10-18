@@ -6,9 +6,10 @@ confirmable without reconstructing the intent from the test's body. Nothing
 otherwise ties the register to the repository: this module parses its sections
 and table rows and fails when a ``theme/`` subsystem directory has no section,
 when a section names no ``theme/`` subsystem or registered extra section, when
-a row names a test file, class or method that does not exist, when a row
-names a method that is not a test, when a row names a file that defines no test
-case, when a row names no test, or when a guarantee cell is blank.
+a section heading repeats an earlier one, when a row names a test file, class or
+method that does not exist, when a row names a method that is not a test, when a
+row names a file that defines no test case, when a row names no test, or when a
+guarantee cell is blank.
 
 ``tests/test_invariants.py`` drives these checks.
 """
@@ -92,7 +93,10 @@ def parse_rows(text):
     Test cell names no test, so :func:`cross_check` can reject that row instead
     of losing its guarantee. A line that starts with a pipe but does not split
     into three cells raises :class:`AssertionError`, naming the line, so a
-    malformed row cannot be dropped silently.
+    malformed row cannot be dropped silently. A section heading that repeats a
+    name already seen raises too: two ``## aurorae`` headings would otherwise
+    merge into one section, attributing both tables' guarantees to the same
+    surface with no error.
     """
     sections = {}
     current = None
@@ -100,7 +104,11 @@ def parse_rows(text):
         match = SECTION.match(line)
         if match:
             current = match.group("name")
-            sections.setdefault(current, [])
+            if current in sections:
+                raise AssertionError(
+                    f"duplicate section {current} in the register"
+                )
+            sections[current] = []
             continue
         if current is None or not line.lstrip().startswith("|"):
             continue
@@ -267,8 +275,9 @@ def cross_check(root, register):
     Returns ``{section name: [Row, ...]}``; raises :class:`AssertionError` for a
     ``theme/`` subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
     a section that names neither a ``theme/`` subsystem nor an
-    ``EXTRA_SECTIONS`` entry, an empty section, a blank guarantee cell, a
-    malformed table row, a data row that names no test, a bare file reference
+    ``EXTRA_SECTIONS`` entry, a repeated section heading, an empty section, a
+    blank guarantee cell, a malformed table row, a data row that names no test,
+    a bare file reference
     to a file that defines no test case, or an unresolvable test reference.
     """
     with open(register, encoding="utf-8") as handle:
