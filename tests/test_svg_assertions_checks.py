@@ -17,12 +17,14 @@ import xml.etree.ElementTree as ET
 from support.error_assertions import assert_rejects
 from svg_assertions import (
     SLICE_IDS,
+    assert_bounds_rect,
     assert_diagonal_half_disc,
     assert_hint_geometry,
     assert_root_canvas,
     assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
+    elements_by_id,
 )
 from support.svg_fixtures import _svg_tree
 
@@ -450,3 +452,45 @@ class TestRootCanvas(unittest.TestCase):
             assert_root_canvas(self, tree, 12, 22)
         with self.assertRaises(AssertionError):
             assert_root_canvas(self, tree, 12, 22, origin_states=("north",))
+
+
+# One group carrying the invisible full-canvas bounds rect `assert_bounds_rect`
+# reads; the rect itself is anonymous.
+_BOUNDS_RECT_BODY = (
+    '<g id="normal">'
+    '<rect x="0" y="0" width="16" height="16" fill="none"/>'
+    "</g>"
+)
+
+
+class TestBoundsRect(unittest.TestCase):
+    def test_passes_a_group_with_one_matching_rect(self):
+        # Positive control: the group holds exactly the expected rect, so the
+        # guard must accept it.
+        group = elements_by_id(_svg_tree(_BOUNDS_RECT_BODY))["normal"]
+        assert_bounds_rect(self, group, ["0", "0", "16", "16", "none"])
+
+    def test_rejects_a_group_with_no_rect(self):
+        # Without the bounds rect KSvg scales the element by its artwork's
+        # natural size instead of the cell, so the guard must fail.
+        group = elements_by_id(_svg_tree('<g id="normal"/>'))["normal"]
+        with self.assertRaises(AssertionError):
+            assert_bounds_rect(self, group, ["0", "0", "16", "16", "none"])
+
+    def test_rejects_a_group_with_a_second_rect(self):
+        # A second rect adds to the composited bounds, so the guard must reject
+        # the group even though the first rect matches.
+        body = _BOUNDS_RECT_BODY.replace(
+            "</g>", '<rect x="0" y="0" width="1" height="1"/></g>'
+        )
+        group = elements_by_id(_svg_tree(body))["normal"]
+        with self.assertRaises(AssertionError):
+            assert_bounds_rect(self, group, ["0", "0", "16", "16", "none"])
+
+    def test_rejects_a_rect_with_a_wrong_fill(self):
+        # The fill is part of the pinned tuple, so a recoloured bounds rect
+        # fails even with the geometry unchanged.
+        body = _BOUNDS_RECT_BODY.replace('fill="none"', 'fill="#000000"')
+        group = elements_by_id(_svg_tree(body))["normal"]
+        with self.assertRaises(AssertionError):
+            assert_bounds_rect(self, group, ["0", "0", "16", "16", "none"])

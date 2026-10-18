@@ -8,6 +8,7 @@ from support.desktoptheme_paths import ACTION_OVERLAYS_SVG
 from support.platinum_palette import BLACK, FACE, GREY, PLATINUM_FILLS, WHITE
 from support.svg_case import SvgCase
 from svg_assertions import (
+    assert_bounds_rect,
     assert_diagonal_half_disc,
     assert_ids_present,
     assert_no_script_elements,
@@ -99,12 +100,7 @@ class TestActionOverlays(SvgCase, unittest.TestCase):
                 with self.subTest(element=f"{kind}-{state}"):
                     group = by_id[f"{kind}-{state}"]
                     self.assertEqual(local_name(group), "g")
-                    rects = children_named(group, "rect")
-                    self.assertEqual(len(rects), 1)
-                    self.assertEqual(
-                        [rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
-                        BOUNDS_RECT,
-                    )
+                    assert_bounds_rect(self, group, BOUNDS_RECT)
                     self.assertEqual(
                         [
                             circle_geometry_and_fill(el)

@@ -6,6 +6,7 @@ import unittest
 
 from support.desktoptheme_paths import ARROWS_SVG
 from svg_assertions import (
+    assert_bounds_rect,
     assert_ids_present,
     assert_no_script_elements,
     attribute_values,
@@ -40,14 +41,9 @@ class TestArrows(SvgCase, unittest.TestCase):
             with self.subTest(element=element_id):
                 group = by_id[element_id]
                 self.assertEqual(local_name(group), "g")
-                rects = children_named(group, "rect")
+                assert_bounds_rect(self, group, ["0", "0", "16", "16", "none"])
                 paths = children_named(group, "path")
-                self.assertEqual(len(rects), 1)
                 self.assertEqual(len(paths), 1)
-                self.assertEqual(
-                    [rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
-                    ["0", "0", "16", "16", "none"],
-                )
                 self.assertEqual(paths[0].get("d"), path_d)
                 self.assertEqual(paths[0].get("fill"), "#000000")
 

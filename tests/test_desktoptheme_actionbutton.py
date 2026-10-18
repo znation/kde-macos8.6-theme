@@ -9,6 +9,7 @@ from support.platinum_palette import BLACK, FACE, GREY, PLATINUM_FILLS, WHITE
 from support.svg_case import SvgCase
 from svg_assertions import (
     arc_center,
+    assert_bounds_rect,
     assert_diagonal_half_disc,
     assert_ids_present,
     assert_no_script_elements,
@@ -69,12 +70,7 @@ class TestActionButton(SvgCase, unittest.TestCase):
             with self.subTest(state=state):
                 group = by_id[state]
                 self.assertEqual(local_name(group), "g")
-                rects = children_named(group, "rect")
-                self.assertEqual(len(rects), 1)
-                self.assertEqual(
-                    [rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
-                    BOUNDS_RECT,
-                )
+                assert_bounds_rect(self, group, BOUNDS_RECT)
         for state, bevel_fills in (
             ("normal", NORMAL_BEVEL_FILLS),
             ("pressed", PRESSED_BEVEL_FILLS),

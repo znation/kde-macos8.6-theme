@@ -10,6 +10,7 @@ from support.platinum_palette import BLACK, FACE
 from support.svg_case import SvgCase
 from svg_assertions import (
     arc_center,
+    assert_bounds_rect,
     assert_ids_present,
     assert_no_script_elements,
     attribute_values,
@@ -47,14 +48,9 @@ class TestBusyWidget(SvgCase, unittest.TestCase):
         by_id = elements_by_id(self.tree)
         group = by_id["busywidget"]
         self.assertEqual(local_name(group), "g")
-        rects = children_named(group, "rect")
+        assert_bounds_rect(self, group, ["0", "0", "36", "36", "none"])
         paths = children_named(group, "path")
-        self.assertEqual(len(rects), 1)
         self.assertEqual(len(paths), 2)
-        self.assertEqual(
-            [rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
-            ["0", "0", "36", "36", "none"],
-        )
         for path, radii, fill in zip(paths, RING_RADII, RING_FILLS):
             entries = list(path_arcs(path.get("d")))
             self.assertEqual([arc[0] for _, arc, _ in entries], list(radii))

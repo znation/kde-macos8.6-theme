@@ -6,6 +6,7 @@ import unittest
 
 from support.desktoptheme_paths import CHECKMARKS_SVG
 from svg_assertions import (
+    assert_bounds_rect,
     assert_ids_present,
     assert_no_script_elements,
     attribute_values,
@@ -39,14 +40,9 @@ class TestCheckmarks(SvgCase, unittest.TestCase):
 
         checkbox = by_id["checkbox"]
         self.assertEqual(local_name(checkbox), "g")
-        check_rects = children_named(checkbox, "rect")
+        assert_bounds_rect(self, checkbox, ["0", "0", "16", "16", "none"])
         check_paths = children_named(checkbox, "path")
-        self.assertEqual(len(check_rects), 1)
         self.assertEqual(len(check_paths), 1)
-        self.assertEqual(
-            [check_rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
-            ["0", "0", "16", "16", "none"],
-        )
         self.assertEqual(
             check_paths[0].get("d"),
             "M 3.5,8.5 L 6.5,11.5 L 12.5,5.5",
@@ -65,14 +61,9 @@ class TestCheckmarks(SvgCase, unittest.TestCase):
 
         radiobutton = by_id["radiobutton"]
         self.assertEqual(local_name(radiobutton), "g")
-        radio_rects = children_named(radiobutton, "rect")
+        assert_bounds_rect(self, radiobutton, ["0", "16", "16", "16", "none"])
         radio_circles = children_named(radiobutton, "circle")
-        self.assertEqual(len(radio_rects), 1)
         self.assertEqual(len(radio_circles), 1)
-        self.assertEqual(
-            [radio_rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
-            ["0", "16", "16", "16", "none"],
-        )
         # The dot must stay centred in the bottom 16x16 cell at (8, 24) so
         # the fallback indicator draws concentric with the radio face; the
         # contract test only checks the fill set, so a dot nudged off-centre

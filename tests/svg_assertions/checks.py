@@ -1,9 +1,9 @@
 """Pixel and layout assertions for the SVG test helpers.
 
 The assertions a widget test calls: each compares rendered slice pixels, a
-bevel band, a bevel half-disc's arc, a corner tile, a centre tile or a hint
-geometry against the values the artwork must paint, naming the failing slice
-in its message.
+bevel band, a bevel half-disc's arc, a bounds rect, a corner tile, a centre
+tile or a hint geometry against the values the artwork must paint, naming the
+failing slice in its message.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from .nine_slice import (
 )
 from .paths import arc_center, path_arcs
 from .render import pixel_map, render_slices
-from .tree import SLICE_IDS, attribute_values, local_name
+from .tree import SLICE_IDS, attribute_values, children_named, local_name
 
 
 def assert_slice_pixels(case, slices, name, expected):
@@ -372,3 +372,22 @@ def assert_root_canvas(case, tree, width, height, origin_states=()):
             case.assertLessEqual(far, canvas, name)
         else:
             case.assertEqual(far, canvas, name)
+
+
+def assert_bounds_rect(case, group, expected):
+    """Assert *group* holds exactly one rect with the *expected* bounds values.
+
+    KSvg scales a widget element by its invisible full-canvas bounds rect, so
+    that rect fixes the element's natural size and the group must hold exactly
+    one: a missing rect, a second one, or a changed geometry or fill rescales
+    or recolours the widget even while the contract and path tests pass.
+    *case* is the calling ``unittest.TestCase``, *group* the parsed ``<g>``,
+    and *expected* the five attribute strings in
+    ``(x, y, width, height, fill)`` order.
+    """
+    rects = children_named(group, "rect")
+    case.assertEqual(len(rects), 1)
+    case.assertEqual(
+        [rects[0].get(k) for k in ("x", "y", "width", "height", "fill")],
+        expected,
+    )
