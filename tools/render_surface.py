@@ -99,10 +99,28 @@ def _output_problem(output: Path) -> str | None:
 
 
 def _publish(source: Path, output: Path) -> None:
-    """Copy *source* to *output* so *output* is either the old file or the whole new one."""
-    partial = output.with_name(f".render-{os.getpid()}.tmp")
+    """Copy *source* to *output* so *output* is either the old file or the whole new one.
+
+    The bytes go to a fresh temporary file whose name the OS picks in
+    *output*'s directory, then that file is renamed over *output*. A fixed,
+    guessable name would let another local user who can write the directory
+    park a symlink there first and make the copy overwrite whatever file it
+    names.
+    """
+    descriptor, partial_name = tempfile.mkstemp(
+        dir=output.parent, prefix=".render-", suffix=".tmp"
+    )
+    partial = Path(partial_name)
     try:
-        shutil.copyfile(source, partial)
+        with os.fdopen(descriptor, "wb") as destination:
+            # mkstemp opens the file 0600; the plain copy this replaces
+            # created it with the process umask applied, so restore that mode
+            # and leave the output's permissions unchanged.
+            umask = os.umask(0)
+            os.umask(umask)
+            os.chmod(destination.fileno(), 0o666 & ~umask)
+            with source.open("rb") as origin:
+                shutil.copyfileobj(origin, destination)
         os.replace(partial, output)
     except BaseException:
         partial.unlink(missing_ok=True)

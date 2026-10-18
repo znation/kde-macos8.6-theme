@@ -60,6 +60,28 @@ class TestArguments(unittest.TestCase):
         self.assert_usage_error()
 
 
+class TestPublish(unittest.TestCase):
+    """`_publish` must not write through a symlink planted at a guessable name."""
+
+    def test_a_planted_symlink_does_not_redirect_the_copy(self):
+        with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
+            root = Path(directory)
+            source = root / "source.png"
+            source.write_bytes(b"the new render")
+            victim = root / "victim.txt"
+            victim.write_bytes(b"do not overwrite")
+            output = root / "render.png"
+            # The fixed temporary name the tool used to build; a local user who
+            # can write the output directory can create it before the copy.
+            planted = output.with_name(f".render-{os.getpid()}.tmp")
+            planted.symlink_to(victim)
+
+            render_surface._publish(source, output)
+
+            self.assertEqual(b"do not overwrite", victim.read_bytes())
+            self.assertEqual(b"the new render", output.read_bytes())
+
+
 class StubTools(unittest.TestCase):
     """Base for tests that run `main` against shell stubs of the external tools."""
 
@@ -198,10 +220,10 @@ class TestFailurePaths(StubTools):
         output.write_bytes(b"previous good render")
 
         def die_midway(src, dst):
-            Path(dst).write_bytes(b"half a PNG")
+            dst.write(b"half a PNG")
             raise OSError(errno.ENOSPC, "No space left on device")
 
-        with mock.patch.object(shutil, "copyfile", die_midway):
+        with mock.patch.object(shutil, "copyfileobj", die_midway):
             status, stderr = call_main(render_surface.main, str(output))
         self.assertEqual(1, status)
         self.assertIn("cannot write", stderr)
