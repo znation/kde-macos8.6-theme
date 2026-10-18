@@ -310,6 +310,43 @@ class TestCheckPattern(unittest.TestCase):
         )
         self.assertNotIn("discover", output)
 
+    def test_relative_python_path_is_resolved_before_cd(self):
+        # The CHECK_TESTS recipe changes into tests/ before it runs the
+        # interpreter, so a relative PYTHON path (`./.venv/bin/python`) would
+        # resolve against tests/ and fail to start, though the discovery
+        # recipe, run from the repository root, works with it. The recipe
+        # resolves a path-shaped PYTHON against the repository root first.
+        output = self._dry_run(
+            "CHECK_TESTS=test_byteops.TestRequireEqualLengths",
+            "PYTHON=./.venv/bin/python",
+        )
+        resolved = os.path.join(
+            str(theme_install.ROOT), ".venv", "bin", "python"
+        )
+        self.assertIn(f"cd tests && {resolved} -m unittest", output)
+        self.assertNotIn("cd tests && ./.venv/bin/python", output)
+
+    def test_bare_python_name_is_left_for_the_path_lookup(self):
+        # A bare interpreter name has no path separator, so it is left as-is
+        # for the shell to resolve through PATH, independent of the recipe's
+        # directory.
+        output = self._dry_run(
+            "CHECK_TESTS=test_byteops.TestRequireEqualLengths",
+            "PYTHON=python3",
+        )
+        self.assertIn("cd tests && python3 -m unittest", output)
+
+    def test_python_value_with_arguments_is_left_whole(self):
+        # A PYTHON carrying arguments has whitespace, so it must not be run
+        # through `abspath`, which would rewrite each word into a path.
+        output = self._dry_run(
+            "CHECK_TESTS=test_byteops.TestRequireEqualLengths",
+            "PYTHON=/usr/bin/python3 -X dev",
+        )
+        self.assertIn(
+            "cd tests && /usr/bin/python3 -X dev -m unittest", output
+        )
+
     def test_option_like_tests_variable_is_refused(self):
         # A leading `-` makes unittest read the value as an option (`-x`
         # aborts on the first failure) instead of a test name, so the guard

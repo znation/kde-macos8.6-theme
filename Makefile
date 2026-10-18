@@ -135,6 +135,17 @@ require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.ver
 # names CHECK_TESTS. $(1) names the target.
 require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac
 
+# The CHECK_TESTS recipe runs `cd tests` before it invokes the interpreter, so
+# a relative PYTHON path (`PYTHON=./.venv/bin/python`) would resolve against
+# tests/ and fail to start -- even though the discovery recipe, which runs
+# from the repository root, works with it. Resolve a whitespace-free,
+# path-shaped PYTHON against make's working directory first. A bare command
+# name (`python3`) has no separator, so it is left for the shell's PATH lookup
+# (independent of the recipe's directory); a value carrying arguments
+# (`/usr/bin/python3 -X dev`) has whitespace, so it is left whole rather than
+# split and rewritten by `abspath`.
+PYTHON_RUN := $(if $(filter 1,$(words $(PYTHON))),$(if $(findstring /,$(PYTHON)),$(abspath $(PYTHON)),$(PYTHON)),$(PYTHON))
+
 check:
 	@$(call require_python,check)
 	@$(call require_python_version,check)
@@ -142,7 +153,7 @@ check:
 ifeq ($(strip $(CHECK_TESTS)),)
 	$(PYTHON) -m unittest discover -s tests -v -p '$(CHECK_PATTERN)'
 else
-	cd tests && $(PYTHON) -m unittest -v $(CHECK_TESTS)
+	cd tests && $(PYTHON_RUN) -m unittest -v $(CHECK_TESTS)
 endif
 
 # Print the contributor-facing targets and the variables that tune them, so
