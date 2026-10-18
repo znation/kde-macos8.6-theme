@@ -65,7 +65,7 @@ consumers in kickoff, the system tray, and the desktop shell), `widgets/arrows.s
 black triangles `ComboBox` and menu buttons draw as their dropdown indicator),
 `widgets/scrollbar.svg` (the raised grey thumb and flat grey trough for
 `PlasmaComponents.ScrollBar`), `widgets/bar_meter_horizontal.svg` (the sunken grey
-track with a lavender fill for `PlasmaComponents.ProgressBar`), and `widgets/line.svg` (the 2px
+track with a lavender fill for `PlasmaComponents.ProgressBar`), `widgets/line.svg` (the 2px
 Platinum etched separator, `#888888` then `#FFFFFF`, that list section headers, spin boxes and
 the kicker, system-tray and notification separators draw), and `widgets/plasmoidheading.svg`
 (the transparent header and footer bands of applet popups, divided from the body by the same
