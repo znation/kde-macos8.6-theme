@@ -10,7 +10,7 @@
 
      The `inactive-center` group flattens the gradient face to #CCCCCC
      (KDE-required provenance: the reference set has no inactive window)
-     and keeps the outlines and the zoom glyph. -->
+     and keeps the outlines and the collapse glyph. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
   <g id="active-center" transform="translate(0,0)">
     <rect x="0" y="0" width="12" height="1" fill="#888888"/>
