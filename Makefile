@@ -80,7 +80,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check check-references render install uninstall _install _uninstall
+.PHONY: help check check-references render apply install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -143,6 +143,7 @@ help:
 	@echo "  check             run the test suite"
 	@echo "  check-references  validate the reference screenshot set (needs git lfs pull)"
 	@echo "  render            render a themed Plasma surface headlessly to RENDER_OUTPUT"
+	@echo "  apply             install and re-apply the theme to the running Plasma session"
 	@echo "  install           install the color scheme and theme packages"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
@@ -173,6 +174,19 @@ render:
 	@$(call require_python,render)
 	@$(call require_python_version,render)
 	$(PYTHON) tools/render_surface.py -- "$(RENDER_OUTPUT)"
+
+# Apply the just-built theme to the running Plasma session. `install` runs as a
+# sub-make so this reuses its guards and lock. A non-empty DESTDIR is refused
+# first: applying a staged tree to the running session is wrong.
+# tools/apply_theme.py re-selects the global theme (without --resetLayout, so
+# the user's panels survive), the color scheme and the desktop theme, then asks
+# KWin to reconfigure. The startup splash changes only on the next login.
+apply:
+	@if [ -n "$(DESTDIR)" ]; then echo "apply: DESTDIR must be empty (applying a staged tree to the running Plasma session is wrong): '$(DESTDIR)'" >&2; exit 2; fi
+	@$(call require_python,apply)
+	@$(call require_python_version,apply)
+	$(MAKE) --no-print-directory install
+	$(PYTHON) tools/apply_theme.py
 
 # `install` and `uninstall` share fixed hidden `.staging`/`.old` names under
 # the data home, so overlapping runs can clobber each other's staging, and an

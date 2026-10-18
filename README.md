@@ -108,6 +108,15 @@ modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.
 one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Both
 `check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
+`make apply` installs the five artifacts exactly as `make install` does and then re-applies them to
+the running Plasma session, so the just-built theme becomes current without a logout: it re-selects
+the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
+`MacOS8` color scheme and the `org.macos8.desktop` desktop theme, then asks KWin to reconfigure so
+the window decoration reloads (when neither `qdbus6` nor `qdbus` is installed it notes that and
+leaves KWin to reload on its next start). It refuses a non-empty `DESTDIR`, since applying a staged
+tree to the running session is wrong, and it needs `lookandfeeltool`, `plasma-apply-colorscheme` and
+`plasma-apply-desktoptheme`, exiting 2 naming the first one that is missing. The startup splash is
+read at login, so a splash change appears only on the next login.
 `make render` renders the installed theme in a headless KWin session and writes a screenshot PNG
 (a 320x240 Plasma calculator window by default) to `RENDER_OUTPUT` (`render.png`); it needs
 `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and

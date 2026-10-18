@@ -1,0 +1,176 @@
+"""Install the built theme and re-apply it to the running Plasma session.
+
+``make apply`` runs ``make install`` and then this script. It re-selects the
+global theme, the color scheme and the desktop theme so Plasma and KDE
+applications reread the freshly installed files without a logout, and asks
+KWin to reconfigure so the window decoration reloads. The startup splash is
+read at login, so a splash change appears only on the next login.
+
+The global theme is applied without ``--resetLayout``: Plasma replaces the
+user's panels only when that flag is given, so applying the theme this way
+leaves them alone. The color scheme and desktop theme are selected after the
+global theme because ``lookandfeeltool`` applies the theme's defaults
+wholesale; the explicit selections then hold whatever the user had chosen.
+
+Usage::
+
+    python3 tools/apply_theme.py
+
+Exit status: 0 when the theme was applied, 1 when a required command failed,
+2 for a usage error or a missing external tool.
+"""
+
+from __future__ import annotations
+
+import os
+import shutil
+import sys
+import tempfile
+from pathlib import Path
+
+if __package__:
+    from tools.cli import EscapingArgumentParser, report_error
+    from tools.process_group import exit_on_termination, run_logged
+    from tools.terminal import escape_controls
+else:  # run directly: python3 tools/apply_theme.py
+    from cli import EscapingArgumentParser, report_error
+    from process_group import exit_on_termination, run_logged
+    from terminal import escape_controls
+
+TOOL = "apply_theme"
+ROOT = Path(__file__).resolve().parents[1]
+LNF_ID = "org.macos8.desktop"
+DTHEME_ID = "org.macos8.desktop"
+COLOR_SCHEME = "MacOS8"
+
+# The commands steps 1-3 need; a missing one is a hard error. qdbus is not in
+# this list: the KWin reconfigure is best-effort, so a missing qdbus6/qdbus
+# only prints a note.
+REQUIRED_TOOLS = (
+    "lookandfeeltool",
+    "plasma-apply-colorscheme",
+    "plasma-apply-desktoptheme",
+)
+# Each required step as (tool name, argv), in the order it runs.
+STEPS = (
+    ("lookandfeeltool", ["lookandfeeltool", "-a", LNF_ID]),
+    ("plasma-apply-colorscheme", ["plasma-apply-colorscheme", COLOR_SCHEME]),
+    ("plasma-apply-desktoptheme", ["plasma-apply-desktoptheme", DTHEME_ID]),
+)
+COMMAND_TIMEOUT = 60.0
+
+_LOG_TAIL_LINES = 12
+
+
+def _failure(message: str, log: Path | None = None) -> int:
+    """Print ``apply_theme: error: <message>`` plus a log tail; return 1."""
+    text = f"{TOOL}: error: {escape_controls(message)}"
+    if log is not None and log.is_file():
+        tail = log.read_text(encoding="utf-8", errors="replace").splitlines()
+        for line in tail[-_LOG_TAIL_LINES:]:
+            text += f"\n  {escape_controls(line)}"
+    print(text, file=sys.stderr)
+    return 1
+
+
+def _note(message: str) -> None:
+    """Print ``apply_theme: note: <message>`` to stderr."""
+    print(f"{TOOL}: note: {escape_controls(message)}", file=sys.stderr)
+
+
+def _session_env() -> dict[str, str]:
+    """Return ``os.environ`` with the session bus address defaulted if needed.
+
+    A non-login shell (the local post-commit hook, for example) may run
+    without ``DBUS_SESSION_BUS_ADDRESS`` set. When it is unset, the runtime
+    directory is an absolute path, and ``$XDG_RUNTIME_DIR/bus`` exists, point
+    the variable at that socket so the ``plasma-apply-*`` tools can reach the
+    running session. Otherwise the environment is returned unchanged.
+    """
+    env = dict(os.environ)
+    if env.get("DBUS_SESSION_BUS_ADDRESS"):
+        return env
+    runtime = env.get("XDG_RUNTIME_DIR", "")
+    if os.path.isabs(runtime):
+        bus = Path(runtime) / "bus"
+        if bus.exists():
+            env["DBUS_SESSION_BUS_ADDRESS"] = f"unix:path={bus}"
+    return env
+
+
+def _reconfigure_kwin(scratch: Path, env: dict[str, str]) -> int:
+    """Ask KWin to reload the decoration; a failure is a note, never an error.
+
+    The reconfigure is best-effort: KWin reloads the decoration on its next
+    start anyway, so a missing qdbus6/qdbus, a timeout, or a non-zero exit
+    only prints a note and leaves the exit status at 0.
+    """
+    qdbus = shutil.which("qdbus6") or shutil.which("qdbus")
+    if qdbus is None:
+        _note(
+            "neither qdbus6 nor qdbus is on PATH; KWin reloads the decoration "
+            "on its next start"
+        )
+        return 0
+    log = scratch / "qdbus.log"
+    status = run_logged(
+        [qdbus, "org.kde.KWin", "/KWin", "reconfigure"],
+        env,
+        log,
+        COMMAND_TIMEOUT,
+        ROOT,
+    )
+    if status is None:
+        _note(
+            f"KWin reconfigure timed out after {COMMAND_TIMEOUT:g}s; KWin "
+            "reloads the decoration on its next start"
+        )
+    elif status != 0:
+        _note(
+            f"KWin reconfigure exited {status}; KWin reloads the decoration "
+            "on its next start"
+        )
+    return 0
+
+
+def _apply() -> int:
+    """Run the required steps, then the best-effort KWin reconfigure."""
+    scratch = Path(tempfile.mkdtemp(prefix="apply-theme-"))
+    try:
+        env = _session_env()
+        for tool, argv in STEPS:
+            log = scratch / f"{tool}.log"
+            status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
+            if status is None:
+                return _failure(f"{tool} timed out after {COMMAND_TIMEOUT:g}s", log)
+            if status != 0:
+                return _failure(f"{tool} exited {status}", log)
+        return _reconfigure_kwin(scratch, env)
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+
+
+def main(argv: list[str] | None = None) -> int:
+    """Run the apply CLI; *argv* is the argument list without a program name."""
+    parser = EscapingArgumentParser(
+        prog="apply_theme",
+        description=(
+            "Install and re-apply the Mac OS 8.6 theme to the running Plasma "
+            "session."
+        ),
+        epilog=(
+            "exit status: 0 when the theme was applied, 1 when a required "
+            "command failed, 2 usage error or missing external tool"
+        ),
+    )
+    parser.parse_args(argv)
+
+    for tool in REQUIRED_TOOLS:
+        if shutil.which(tool) is None:
+            return report_error(TOOL, f"required tool not found on PATH: {tool}")
+    with exit_on_termination():
+        return _apply()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

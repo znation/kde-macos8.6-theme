@@ -27,52 +27,6 @@ to match); and **system sounds** are out of scope (not a visual surface, so the 
 cannot ground them). Until the two open surfaces resolve, the shipped work should not be treated
 as the whole of the prompt.
 
-### Local theme apply, part 1/2: `make apply` installs and re-applies the theme to the running Plasma session (planned 2026-10-18 by the director role)
-
-**Goal.** A single command, `make apply`, makes the just-built theme the running Plasma session's
-current theme without a logout: it installs the five artifacts exactly as `make install` does,
-then re-selects the color scheme, desktop theme and global theme so the shell, KWin and KDE
-applications reread the new files.
-
-**Approach.**
-- Add `tools/apply_theme.py`, a Python 3.10+ stdlib-only script with the same `if __package__:`
-  import guard as `tools/render_surface.py`. It runs these commands in order and exits 0 only when
-  every required one succeeds:
-  1. `lookandfeeltool -a org.macos8.desktop` — re-applies the global theme. Do **not** pass
-     `--resetLayout` (README's Installing section: the desktop layout is replaced only when that
-     flag is given, so the user's panels survive).
-  2. `plasma-apply-colorscheme MacOS8`
-  3. `plasma-apply-desktoptheme org.macos8.desktop`
-  4. `qdbus6 org.kde.KWin /KWin reconfigure`, falling back to `qdbus`; when neither exists, print a
-     note and continue (the decoration then reloads on the next KWin restart).
-  Steps 2-3 run after step 1 because `lookandfeeltool` applies the theme's defaults wholesale; the
-  explicit component selections then hold whatever the user had chosen. Steps 1-3 are required: a
-  missing tool exits 2 naming it (`shutil.which`), a non-zero command exits 1 with the output
-  tail, mirroring `tools/render_surface.py`'s `_failure` shape and the `REQUIRED_TOOLS` guard.
-- When `DBUS_SESSION_BUS_ADDRESS` is unset, `$XDG_RUNTIME_DIR` is an absolute path, and
-  `$XDG_RUNTIME_DIR/bus` exists, default the variable to `unix:path=$XDG_RUNTIME_DIR/bus`, so the
-  command works from a non-login shell (the hook in part 2). Otherwise leave it alone.
-- Add an `apply` target to `Makefile` whose recipe first refuses a non-empty `DESTDIR` with a
-  diagnostic naming it (applying a staged tree to the running session is wrong), then runs
-  `$(MAKE) --no-print-directory install`, then `$(PYTHON) tools/apply_theme.py` under
-  `require_python`/`require_python_version`. Add `apply` to the `.PHONY` line and a `help` line.
-- Document `make apply` in README.md's Installing section, including that the startup splash
-  changes only appear on the next login.
-
-**Files touched.** `Makefile`, `tools/apply_theme.py` (new), `tests/test_apply_theme.py` (new),
-`README.md`.
-
-**Acceptance criteria.**
-- `tools/apply_theme.py` invokes the four commands in the order above, never passes `--resetLayout`,
-  and defaults `DBUS_SESSION_BUS_ADDRESS` only under the three conditions above. Test with fake
-  executables on `PATH` built like `tests/process_runner.py`'s fakes, recording each argv.
-- A missing required tool exits 2 naming it; a failing command exits 1 and prints its output tail;
-  a missing `qdbus6`/`qdbus` only prints a note and still exits 0.
-- `make apply DESTDIR=<dir>` exits non-zero with a diagnostic naming `DESTDIR`, and does not run
-  the apply script.
-- `make -n apply` shows `install` running before the script, and `help` lists `apply`.
-- `make check` passes.
-
 ### Local theme apply, part 2/2: `make install-local-hook` writes an uncommitted `post-commit` hook that runs `make apply` (planned 2026-10-18 by the director role; "requires part 1/2 landed")
 
 **Goal.** After every commit in this clone, the newest theme is automatically installed and
@@ -169,6 +123,52 @@ when planned); the full Platinum icon set (Breeze fills the rest).
 - `make check` is green.
 
 ## Done
+
+### Local theme apply, part 1/2: `make apply` installs and re-applies the theme to the running Plasma session (planned 2026-10-18 by the director role; done 2026-10-18)
+
+**Goal.** A single command, `make apply`, makes the just-built theme the running Plasma session's
+current theme without a logout: it installs the five artifacts exactly as `make install` does,
+then re-selects the color scheme, desktop theme and global theme so the shell, KWin and KDE
+applications reread the new files.
+
+**Approach.**
+- Add `tools/apply_theme.py`, a Python 3.10+ stdlib-only script with the same `if __package__:`
+  import guard as `tools/render_surface.py`. It runs these commands in order and exits 0 only when
+  every required one succeeds:
+  1. `lookandfeeltool -a org.macos8.desktop` — re-applies the global theme. Do **not** pass
+     `--resetLayout` (README's Installing section: the desktop layout is replaced only when that
+     flag is given, so the user's panels survive).
+  2. `plasma-apply-colorscheme MacOS8`
+  3. `plasma-apply-desktoptheme org.macos8.desktop`
+  4. `qdbus6 org.kde.KWin /KWin reconfigure`, falling back to `qdbus`; when neither exists, print a
+     note and continue (the decoration then reloads on the next KWin restart).
+  Steps 2-3 run after step 1 because `lookandfeeltool` applies the theme's defaults wholesale; the
+  explicit component selections then hold whatever the user had chosen. Steps 1-3 are required: a
+  missing tool exits 2 naming it (`shutil.which`), a non-zero command exits 1 with the output
+  tail, mirroring `tools/render_surface.py`'s `_failure` shape and the `REQUIRED_TOOLS` guard.
+- When `DBUS_SESSION_BUS_ADDRESS` is unset, `$XDG_RUNTIME_DIR` is an absolute path, and
+  `$XDG_RUNTIME_DIR/bus` exists, default the variable to `unix:path=$XDG_RUNTIME_DIR/bus`, so the
+  command works from a non-login shell (the hook in part 2). Otherwise leave it alone.
+- Add an `apply` target to `Makefile` whose recipe first refuses a non-empty `DESTDIR` with a
+  diagnostic naming it (applying a staged tree to the running session is wrong), then runs
+  `$(MAKE) --no-print-directory install`, then `$(PYTHON) tools/apply_theme.py` under
+  `require_python`/`require_python_version`. Add `apply` to the `.PHONY` line and a `help` line.
+- Document `make apply` in README.md's Installing section, including that the startup splash
+  changes only appear on the next login.
+
+**Files touched.** `Makefile`, `tools/apply_theme.py` (new), `tests/test_apply_theme.py` (new),
+`README.md`.
+
+**Acceptance criteria.**
+- `tools/apply_theme.py` invokes the four commands in the order above, never passes `--resetLayout`,
+  and defaults `DBUS_SESSION_BUS_ADDRESS` only under the three conditions above. Test with fake
+  executables on `PATH` built like `tests/process_runner.py`'s fakes, recording each argv.
+- A missing required tool exits 2 naming it; a failing command exits 1 and prints its output tail;
+  a missing `qdbus6`/`qdbus` only prints a note and still exits 0.
+- `make apply DESTDIR=<dir>` exits non-zero with a diagnostic naming `DESTDIR`, and does not run
+  the apply script.
+- `make -n apply` shows `install` running before the script, and `help` lists `apply`.
+- `make check` passes.
 
 ### Mac OS 8.6 menu-bar top highlight: a `north-` panel-background state whose centre carries the white row 0 (planned 2026-10-18 by the plan role; done 2026-10-18)
 
