@@ -117,17 +117,32 @@ def parse_rows(text):
 
 
 def _defined_names(path):
-    """Return ``{class name: {method name, ...}}`` defined at *path*'s top level."""
+    """Return ``{class name: (method names, is a test case)}`` at *path*'s top level.
+
+    A class is a test case when it names ``unittest.TestCase`` or a
+    ``*TestCase`` base, so a class that inherits its tests from a mixin while
+    also listing ``TestCase`` is recognised even though it defines no test
+    itself.
+    """
     with open(path, encoding="utf-8") as handle:
         tree = ast.parse(handle.read(), filename=path)
     classes = {}
     for node in tree.body:
         if isinstance(node, ast.ClassDef):
-            classes[node.name] = {
+            methods = {
                 child.name
                 for child in node.body
                 if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
             }
+            test_case = any(
+                (isinstance(base, ast.Attribute) and base.attr == "TestCase")
+                or (
+                    isinstance(base, ast.Name)
+                    and (base.id == "TestCase" or base.id.endswith("TestCase"))
+                )
+                for base in node.bases
+            )
+            classes[node.name] = (methods, test_case)
     return classes
 
 
@@ -140,7 +155,9 @@ def check_reference(root, reference, section):
     ``::`` segment is rejected too, so neither can silently pin a guarantee to
     no test. A named method must be a test (a ``test``-prefixed name, the only
     kind unittest runs), so a helper cannot stand in for the test that pins the
-    guarantee.
+    guarantee. A named class must either be a ``TestCase`` or define at least
+    one ``test``-prefixed method, so a helper class cannot stand in for the
+    tests that pin the guarantee.
     """
     path, sep, qualifier = reference.partition("::")
     file_path = os.path.join(root, path)
@@ -161,9 +178,16 @@ def check_reference(root, reference, section):
     class_name = names[0]
     if class_name not in classes:
         raise AssertionError(f"{section}: {reference} names a missing class {class_name}")
+    methods, test_case = classes[class_name]
+    if len(names) == 1 and not test_case and not any(
+        method.startswith("test") for method in methods
+    ):
+        raise AssertionError(
+            f"{section}: {reference} names a class with no tests {class_name}"
+        )
     if len(names) > 1:
         method_name = names[1]
-        if method_name not in classes[class_name]:
+        if method_name not in methods:
             raise AssertionError(
                 f"{section}: {reference} names a missing method {method_name}"
             )
@@ -230,6 +254,10 @@ class TestHelpers(unittest.TestCase):
             "        pass\n"
             "\n"
             "    def test_ok(self):\n"
+            "        pass\n"
+            "\n\n"
+            "class Helper:\n"
+            "    def helper(self):\n"
             "        pass\n",
         )
 
@@ -421,6 +449,16 @@ class TestHelpers(unittest.TestCase):
             [("The thing holds.", f"{self.MODULE}::TestFake::setUp")]
         )
         with self.assertRaisesRegex(AssertionError, "not a test"):
+            cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_class_with_no_tests(self):
+        # `path::Helper` names a class that exists but defines no test, so the
+        # row pins its guarantee to a helper class instead of the tests that
+        # enforce it. A class reference must resolve to at least one test.
+        register = self._valid_register(
+            [("The thing holds.", f"{self.MODULE}::Helper")]
+        )
+        with self.assertRaisesRegex(AssertionError, "class with no tests"):
             cross_check(self.root, register)
 
 
