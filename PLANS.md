@@ -17,7 +17,105 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Clear the title-bar pinstripes around the zoom box, as Mac OS 8.6 does (planned 2026-10-17 by the plan role)
+
+**Goal.** In the reference the pinstripes stop short of the right-hand box group, and the 3px
+space between the zoom and collapse boxes is flat `#CCCCCC`. The theme draws the
+`decoration-top` stripes right up to the zoom box and through the `ButtonSpacing` gap, because
+Aurorae paints the uniform top tile under the button row and leaves the spacing undrawn.
+`systemprofiler_betawiki.png` rows y=26..38:
+- x=770..775: the stripes. `#FFFFFF` on even rows (26..36), `#777777` on odd rows (27..37).
+- x=776: `#777777` on the odd rows, `#CCCCCC` on the even rows and on row 38. The grey stripe is
+  offset 1px to the right of the white one, so it ends one column later.
+- x=777..780: `#CCCCCC`.
+- x=781..792: the zoom face, and x=793 its highlight column.
+- x=794..796: `#CCCCCC`. This is the spacing.
+- x=797: the collapse face begins.
+
+`aboutsystem_betawiki.png` shows the same 5-column gap to the left of its collapse box
+(x=338..342), so the gap belongs to whichever box is leftmost in the right-hand group.
+`ButtonsOnRight=AL` in `theme/look-and-feel/org.macos8.desktop/contents/defaults` makes that
+box the zoom box. Aurorae keeps a disabled button visible (`AuroraeButton.qml` hides a button
+only when its SVG path is empty), so a non-maximizable window still shows a zoom box.
+
+**Approach.** Bake the gap and the spacing into the zoom widget. The installed Aurorae plugin
+reads a per-button `ButtonWidthMaximizeRestore` key: `strings` over
+`/usr/lib/x86_64-linux-gnu/qt6/plugins/org.kde.kdecoration3/org.kde.kwin.aurorae.so` lists it
+next to `ButtonWidthClose` and `ButtonWidthShade`. The `AuroraeMaximizeButton.qml` width
+reads it, and the `KSvg.FrameSvgItem` fills the button (`anchors.fill: parent`), so a 21x13
+center-only SVG renders 1:1.
+- `org.macos8.desktoprc` `[Layout]`:
+  - add `ButtonWidthMaximizeRestore=21`. That is the 5 gap columns, the 12 face columns, the
+    highlight column and the 3 spacing columns.
+  - set `ButtonSpacing=0`.
+  - keep `ButtonWidth=13`, which the close and collapse buttons still use.
+
+  The collapse box keeps `TitleEdgeRight=4`. The zoom face lands 3px left of the collapse
+  face's left edge plus the highlight, as before, and the close box is unchanged: the left group
+  has a single button, so the spacing never applied to it.
+- `maximize.svg` and `restore.svg`:
+  - Make the canvas `width="21" viewBox="0 0 21 13"`.
+  - Shift every existing rect in both groups by +5 in x. Do it with a mechanical rewrite of the
+    `x` attributes. A group-level translate is not an option, and the renderer refuses
+    rect-level transforms.
+  - In `active-center`, add the gap and spacing rects. Local column 0 is `#777777` on odd local
+    rows 1..11 and `#CCCCCC` on the even rows 0..12. Columns 1..4 and 18..20 are `#CCCCCC` on
+    all 13 rows.
+  - In `inactive-center`, the same columns are all `#CCCCCC`, the flat inactive title bar.
+  - Update each file's header comment with the new canvas and the provenance above.
+- `shade.svg`, `close.svg` and `decoration.svg` are untouched.
+
+**Tests** (`tests/test_aurorae_decoration.py`):
+- Add `ReferenceImageCase.profiler_region(x0, y0, width, height)`, returning region-local
+  `{(x, y): '#RRGGBB'}`, and make `profiler_box` call it.
+- Add a module constant `ZOOM_BOX_X = 5`, the face's local x in the zoom canvas.
+- `TestRc.test_button_spacing_matches_reference`: keep the derivation of the 3-column gap
+  between the zoom highlight and the collapse face. Assert `ButtonSpacing` is `0`, and that the
+  derived gap equals `ButtonWidthMaximizeRestore - ZOOM_BOX_X - 13`.
+- New `TestRc.test_zoom_button_width_matches_reference`. Find the last `#777777` column on
+  profiler rows 26..37 in x=760..780; it must be 776. Assert `ButtonWidthMaximizeRestore`
+  equals the collapse face's first column (797, found as in the spacing test) minus that column.
+  Also assert that `ZOOM_BOX_X` equals the zoom face's first column (781) minus that column.
+- `TestButtons.test_zoom_box_matches_reference`: compare each zoom SVG's `active-center`
+  against `self.profiler_region(776, 26, 21, 13)`. That covers every gap, face, highlight and
+  spacing pixel.
+- `TestButtons._glyph(path, group, offset=0)`: compare `art[(x + offset, y)]` with
+  `base[(x, y)]` over the close box's points, and return the differing points in box-local
+  coordinates. Pass `offset=ZOOM_BOX_X` for both zoom SVGs in `test_zoom_glyph_is_the_reference_glyph`
+  and `test_inactive_glyphs_survive`, so `ZOOM_GLYPH` and the x0=781 reference lookup stay as
+  they are.
+- `test_inactive_center_is_flat` needs no change: `_inactive_fill` already maps `#777777` to
+  `#CCCCCC`. Check that it passes against the wider canvas.
+- Update the module docstring's list of what the file pins.
+
+**Docs.** In README.md, change "13x13 close/zoom/collapse widgets" so it says the close and
+collapse widgets are 13x13 and the zoom widget is 21x13: its box plus the stripe-free gap to
+its left and the flat spacing to its right.
+
+**Files touched.** `theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc`, `maximize.svg`,
+`restore.svg`, `tests/test_aurorae_decoration.py`, `README.md`.
+
+**Acceptance criteria.**
+- The rc has `ButtonSpacing=0`, `ButtonWidthMaximizeRestore=21` and `ButtonWidth=13`, each
+  re-derived from the profiler image by the tests above.
+- Both zoom SVGs' `active-center` renders exactly the profiler pixels x=776..796, y=26..38. Their
+  `inactive-center` is that region with every fill except `#888888`/`#222222` flattened to
+  `#CCCCCC`, and the zoom glyph survives.
+- `close.svg`, `shade.svg` and `decoration.svg` are byte-identical to before (`git diff --stat`).
+- `make check` passes.
+
+**Trade-off, decided here.** The zoom button's click area grows by 5px on its left and 3px on its
+right, over pixels Mac OS paints as title bar. Zoom is non-destructive and reversible, and the
+brief asks for pixel fidelity, so the gap ships.
+
+**Out of scope.**
+- The matching 4px gap and 1px offset to the right of the close box (aboutsystem x=24..28,
+  profiler x=226..230). It would widen the close button's click area to the right
+  (`ButtonWidthClose=18`), so a click 5px right of the box would close the window. QUESTIONS.md
+  "Should the close button's click area widen to clear the pinstripes beside it?" asks for that
+  decision.
+- The cleared band around the title text. Aurorae has no title-background element.
+
 
 ## Done
 

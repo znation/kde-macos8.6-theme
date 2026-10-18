@@ -7,7 +7,27 @@ each tick.
 
 ## Open
 
-_None yet._
+### Should the close button's click area widen to clear the pinstripes beside it?
+
+(asked 2026-10-17 by the plan role)
+
+**Context.** In Mac OS 8.6 the title-bar pinstripes stop short of the close box. After its
+white highlight column come 4 `#CCCCCC` columns, then one column where only the white stripe
+rows resume (`aboutsystem_betawiki.png` x=24..28, `systemprofiler_betawiki.png` x=226..230).
+Aurorae paints its title-bar tile uniformly under the buttons. The only way to draw that gap is
+to widen the close widget to 18px (`ButtonWidthClose=18` in `org.macos8.desktoprc`, with the
+gap drawn inside `close.svg`). Then a click up to 5px right of the box, which Mac OS treats as
+title bar (a drag), would close the window. The planned zoom-box gap makes the same trade for
+the zoom box, where a misclick only toggles maximize.
+
+**Options.**
+1. Widen the close button: pixel-exact title bar, slightly larger destructive click target.
+2. Keep the close button 13px: the stripes run up to the close box's highlight, a 5-column
+   difference from the reference.
+
+**Recommendation.** Option 2. Closing a window by accident costs more than 5 columns of
+pinstripe.
+
 
 ## Answered
 
