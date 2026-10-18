@@ -15,7 +15,7 @@ and are not reported by the check above.
 The opposite mistake is guarded too: a file that defines test cases but does
 not match ``test*.py`` (say ``png_checks.py``) is never imported by discovery,
 so its tests silently never run. The second check loads every other
-``tests/*.py`` file and fails naming any that collects test cases.
+``tests/**/*.py`` file and fails naming any that collects test cases.
 """
 
 from __future__ import annotations
@@ -58,18 +58,30 @@ def makefile_check_pattern():
     raise AssertionError("Makefile has no `CHECK_PATTERN ?=` default")
 
 
-def _module_names(directory, predicate):
-    """Return the sorted ``.py`` module names in *directory* matching *predicate*.
+def _is_package(directory):
+    """Return True when *directory* is a package ``discover`` recurses into."""
+    return os.path.isfile(os.path.join(directory, "__init__.py"))
 
-    Only the directory itself is listed: ``discover -s tests`` does not recurse
-    into a subdirectory without an ``__init__.py``, so neither do these guards.
-    *predicate* takes a filename and decides whether its module is listed.
+
+def _module_names(directory, predicate, prefix=""):
+    """Return the sorted dotted module names under *directory* matching *predicate*.
+
+    ``discover -s tests`` recurses into every subdirectory that is a package
+    (one holding ``__init__.py``), importing each module the pattern matches,
+    so these guards walk the same tree. A module inside a package is named by
+    its dotted path (``svg_assertions.checks``); *prefix* is the dotted name of
+    the package *directory* sits in and is empty at the top level. *predicate*
+    takes a filename and decides whether its module is listed.
     """
-    return sorted(
-        filename[: -len(".py")]
-        for filename in os.listdir(directory)
-        if filename.endswith(".py") and predicate(filename)
-    )
+    names = []
+    for entry in sorted(os.listdir(directory)):
+        full = os.path.join(directory, entry)
+        if entry.endswith(".py"):
+            if predicate(entry):
+                names.append(prefix + entry[: -len(".py")])
+        elif _is_package(full):
+            names.extend(_module_names(full, predicate, prefix + entry + "."))
+    return sorted(names)
 
 
 def test_module_names(directory):
@@ -80,7 +92,7 @@ def test_module_names(directory):
 
 
 def non_test_module_names(directory):
-    """Return the ``tests/*.py`` module names in *directory* the pattern misses.
+    """Return the non-``test*.py`` module names under *directory*, sorted.
 
     These are the modules discovery does not import. The dunder names
     (``__init__``) are excluded: they are package plumbing, not test modules,
@@ -149,6 +161,32 @@ def probe_module(directory, filename, source):
         sys.modules.pop(filename[: -len(".py")], None)
 
 
+@contextlib.contextmanager
+def probe_package(directory, package, modules):
+    """Create *package* under *directory* from *modules*, undoing it on exit.
+
+    The package's ``__init__.py`` is created empty. *modules* maps a filename
+    inside the package to its source. The guard walks packages the way
+    ``discover`` does, so a probe lives in one; the dotted names it imports are
+    dropped from ``sys.modules`` again on exit.
+    """
+    package_dir = os.path.join(directory, package)
+    os.makedirs(package_dir)
+    with open(os.path.join(package_dir, "__init__.py"), "w", encoding="utf-8"):
+        pass
+    for filename, source in modules.items():
+        with open(os.path.join(package_dir, filename), "w", encoding="utf-8") as handle:
+            handle.write(source)
+    sys.path.insert(0, directory)
+    try:
+        yield
+    finally:
+        sys.path.remove(directory)
+        for filename in modules:
+            sys.modules.pop(f"{package}.{filename[: -len('.py')]}", None)
+        sys.modules.pop(package, None)
+
+
 class TestSuiteDiscovery(unittest.TestCase):
     def test_every_test_module_contributes_tests(self):
         names = test_module_names(TESTS_DIR)
@@ -215,6 +253,33 @@ class TestSuiteDiscovery(unittest.TestCase):
         with probe_module(tmp, "test_empty_guard_probe.py", source):
             self.assertEqual(
                 modules_without_tests(tmp), ["test_empty_guard_probe"]
+            )
+
+    def test_a_test_module_without_tests_inside_a_package_is_reported(self):
+        # `discover` recurses into tests/svg_assertions because it is a
+        # package, so a test*.py module there that defines no tests is skipped
+        # exactly as a top-level one is; the guard must walk packages too.
+        source = '"""A probe module that defines no tests."""\n'
+        tmp = str(make_tmp_dir(self))
+        with probe_package(tmp, "guard_probe_pkg", {"test_empty_probe.py": source}):
+            self.assertEqual(
+                modules_without_tests(tmp), ["guard_probe_pkg.test_empty_probe"]
+            )
+
+    def test_a_misnamed_test_module_inside_a_package_is_reported(self):
+        # The reverse mistake inside a package: a module that defines tests but
+        # does not match test*.py is never imported by discovery, so its tests
+        # silently never run.
+        source = (
+            "import unittest\n\n"
+            "class TestProbe(unittest.TestCase):\n"
+            "    def test_ok(self):\n"
+            "        self.assertTrue(True)\n"
+        )
+        tmp = str(make_tmp_dir(self))
+        with probe_package(tmp, "guard_probe_pkg", {"checks_probe.py": source}):
+            self.assertEqual(
+                misnamed_test_modules(tmp), ["guard_probe_pkg.checks_probe"]
             )
 
 
