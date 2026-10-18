@@ -18,6 +18,7 @@ from support.check_references_fixtures import (
     reference_set,
     symlinked_reference,
 )
+from tools import reference_checks
 from tools.image_format import PNG_MAGIC
 
 
@@ -97,7 +98,7 @@ class TestOversizeSources(CheckerTestCase):
         module = self.checker
         limit = 4096
         with reference_set(module, b"#" * (limit + 1)) as root:
-            with mock.patch.object(module, "_MAX_SOURCES_BYTES", limit):
+            with mock.patch.object(reference_checks, "_MAX_SOURCES_BYTES", limit):
                 problems, peak = peak_allocation(
                     lambda: module.check_references(root)
                 )
