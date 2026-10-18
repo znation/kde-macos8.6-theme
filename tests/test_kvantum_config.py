@@ -1,11 +1,11 @@
 """Validate the org.macos8.desktop Kvantum style's `.kvconfig` settings.
 
 The Platinum palette grounded in the MacOS8 color scheme, the scroll metrics,
-the 2px/1px frame margins, and the SVG element each track/value and
-container/text surface section draws. Part 1 of the Kvantum series ships the
-core controls, part 2 the track and value controls, and part 3 the container
-and text surfaces; these tests pin each section's mapping so a wrong element
-name that happens to exist elsewhere in the SVG fails here rather than
+the 2px/1px frame margins, and the SVG element each core control, track/value
+and container/text surface section draws. Part 1 of the Kvantum series ships
+the core controls, part 2 the track and value controls, and part 3 the
+container and text surfaces; these tests pin each section's mapping so a wrong
+element name that happens to exist elsewhere in the SVG fails here rather than
 rendering the wrong control. The global theme selects this style
 (`widgetStyle=kvantum`) as of part 4/4, but nothing here asserts that
 selection.
@@ -75,6 +75,53 @@ CORE_FRAME_MARGINS = {
     "ItemView": 2,
     "HeaderSection": 2,
     "Toolbar": 2,
+}
+
+# The core controls added in part 1/4: the SVG element Kvantum draws for each
+# core section's frame, interior and indicator, following `inherits`. The
+# generic art-existence check cannot see these: a wrong element name that
+# happens to exist elsewhere in the SVG still passes it, while Kvantum renders
+# the wrong control (a check box drawn from the radio art, say). The
+# track/value and surface sections have their own tables below, and
+# `test_every_core_section_mapping_is_pinned` keeps the three tables together
+# covering every section in CORE_FRAME_MARGINS.
+CORE_CONTROL_CONFIG = {
+    "PanelButtonCommand": {
+        "frame.element": "button",
+        "interior.element": "button",
+        "indicator.element": "arrow",
+    },
+    "PanelButtonTool": {
+        "frame.element": "button",
+        "interior.element": "button",
+    },
+    "LineEdit": {
+        "frame.element": "lineedit",
+        "interior.element": "lineedit",
+    },
+    "ComboBox": {
+        "frame.element": "button",
+        "interior.element": "button",
+        "indicator.element": "arrow",
+    },
+    "CheckBox": {
+        "frame.element": "button",
+        "interior.element": "checkbox",
+    },
+    "RadioButton": {
+        "frame.element": "button",
+        "interior.element": "radio",
+    },
+    "Focus": {
+        "frame.element": "focus",
+    },
+    "GenericFrame": {
+        "frame.element": "common",
+        "interior.element": "common",
+    },
+    "IndicatorArrow": {
+        "indicator.element": "arrow",
+    },
 }
 
 # The sections the plan slices differently from the 2px raised face: the
@@ -271,6 +318,36 @@ class TestFrameMargins(unittest.TestCase):
                 self.assertEqual(
                     _resolved(parser, "MenuBar", f"frame.{side}"), str(margin)
                 )
+
+
+class TestCoreControlElements(unittest.TestCase):
+    """Pin which SVG element each core control section draws.
+
+    The core sections (``CORE_FRAME_MARGINS``) previously had only their frame
+    margins pinned, so a `frame.element`/`interior.element`/`indicator.element`
+    pointing at another element that exists in the SVG (CheckBox drawn from
+    `radio`) passed every test while Kvantum rendered the wrong control. The
+    track/value and surface sections have their own tables; together the three
+    cover every core section.
+    """
+
+    def test_every_core_section_mapping_is_pinned(self):
+        # The three element-mapping tables must cover every core section, so a
+        # section added to CORE_FRAME_MARGINS without an element pin fails
+        # here instead of shipping unchecked.
+        covered = (
+            set(CORE_CONTROL_CONFIG)
+            | set(TRACK_CONTROL_CONFIG)
+            | set(SURFACE_CONTROL_CONFIG)
+        )
+        self.assertEqual(set(CORE_FRAME_MARGINS) - covered, set())
+
+    def test_every_core_control_section_maps_to_its_element(self):
+        parser = read_kde_config(KVCONFIG)
+        for section, expected in CORE_CONTROL_CONFIG.items():
+            for key, value in expected.items():
+                with self.subTest(section=section, key=key):
+                    self.assertEqual(_resolved(parser, section, key), value)
 
 
 class TestTrackAndValueElements(unittest.TestCase):
