@@ -166,3 +166,23 @@ def plain_number(
         raise argparse.ArgumentTypeError(
             f"{option} must be {article} {noun}: {value!r}"
         ) from exc
+
+
+def positive_int(option: str) -> Callable[[str], int]:
+    """Return an ``argparse`` type parser accepting integers of at least 1.
+
+    ``tools/sample.py``'s and ``tools/render_surface.py``'s
+    ``--width``/``--height`` all count pixels, so zero or negative would name
+    an empty region; the returned parser rejects them, naming *option*, and
+    delegates the plain-ASCII check to ``plain_number``.
+    """
+
+    def parse(value: str) -> int:
+        number = plain_number(value, option, "integer", "an", int)
+        if number < 1:
+            raise argparse.ArgumentTypeError(
+                f"{option} must be at least 1: {value!r}"
+            )
+        return number
+
+    return parse

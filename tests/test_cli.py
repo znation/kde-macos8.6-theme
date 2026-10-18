@@ -114,6 +114,38 @@ class TestPlainNumber(unittest.TestCase):
         self.assertIsInstance(caught.exception.__cause__, ValueError)
 
 
+class TestPositiveInt(unittest.TestCase):
+    def test_returns_the_parsed_integer(self):
+        self.assertEqual(cli.positive_int("--width")("7"), 7)
+
+    def test_zero_and_negative_are_rejected_naming_the_option(self):
+        for value in ("0", "-3"):
+            with self.subTest(value=value):
+                with self.assertRaises(argparse.ArgumentTypeError) as caught:
+                    cli.positive_int("--height")(value)
+                self.assertEqual(
+                    str(caught.exception),
+                    f"--height must be at least 1: {value!r}",
+                )
+
+    def test_plain_ascii_check_is_delegated_to_plain_number(self):
+        # A Python-only spelling must be rejected with the plain-ASCII
+        # wording, so the helper does not parse it as a different value.
+        with self.assertRaises(argparse.ArgumentTypeError) as caught:
+            cli.positive_int("--width")("1_0")
+        self.assertEqual(
+            str(caught.exception),
+            "--width must be a plain ASCII integer: '1_0'",
+        )
+
+    def test_the_option_is_interpolated(self):
+        # Two options share the helper; the returned parser must carry the
+        # option it was built with, not a hardcoded one.
+        with self.assertRaises(argparse.ArgumentTypeError) as caught:
+            cli.positive_int("--height")("0")
+        self.assertIn("--height", str(caught.exception))
+
+
 class TestEscapingArgumentParser(unittest.TestCase):
     def _run(self, call):
         """Call *call* and return its SystemExit status and stderr text."""

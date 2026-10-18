@@ -34,6 +34,7 @@ if __package__:
     from tools.cli import (
         EscapingArgumentParser,
         plain_number,
+        positive_int,
         report_error,
         report_failure,
         report_missing_tool,
@@ -45,6 +46,7 @@ else:  # run directly: python3 tools/render_surface.py
     from cli import (
         EscapingArgumentParser,
         plain_number,
+        positive_int,
         report_error,
         report_failure,
         report_missing_tool,
@@ -210,16 +212,6 @@ def _render(args: argparse.Namespace) -> int:
         shutil.rmtree(scratch, ignore_errors=True)
 
 
-def _positive_int(option: str):
-    def parse(value: str) -> int:
-        number = plain_number(value, option, "integer", "an", int)
-        if number < 1:
-            raise argparse.ArgumentTypeError(f"{option} must be at least 1: {value!r}")
-        return number
-
-    return parse
-
-
 def _seconds(option: str, minimum: float):
     def parse(value: str) -> float:
         number = plain_number(value, option, "number", "a", float)
@@ -264,13 +256,13 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--width",
-        type=_positive_int("--width"),
+        type=positive_int("--width"),
         default=320,
         help="output width in pixels (default 320)",
     )
     parser.add_argument(
         "--height",
-        type=_positive_int("--height"),
+        type=positive_int("--height"),
         default=240,
         help="output height in pixels (default 240)",
     )

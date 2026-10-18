@@ -14,15 +14,24 @@ pixel.
 
 from __future__ import annotations
 
-import argparse
 import sys
 
 if __package__:
-    from tools.cli import EscapingArgumentParser, plain_number, report_error
+    from tools.cli import (
+        EscapingArgumentParser,
+        plain_number,
+        positive_int,
+        report_error,
+    )
     from tools.png import PngError, pixel_at, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
-    from cli import EscapingArgumentParser, plain_number, report_error
+    from cli import (
+        EscapingArgumentParser,
+        plain_number,
+        positive_int,
+        report_error,
+    )
     from png import PngError, pixel_at, read_png
     from terminal import escape_controls
 
@@ -30,21 +39,6 @@ else:  # run directly: python3 tools/sample.py
 def _hex(rgb: tuple[int, int, int]) -> str:
     """Return the ``#RRGGBB`` form of *rgb*, zero-padding each channel."""
     return "#{:02X}{:02X}{:02X}".format(*rgb)
-
-
-def _extent(value: str, option: str) -> int:
-    """Return the positive pixel count *value*, naming *option* otherwise.
-
-    ``--width`` and ``--height`` count pixels, so zero and negative are
-    rejected with the option named instead of producing an empty or inverted
-    region.
-    """
-    number = plain_number(value, option, "integer", "an", int)
-    if number < 1:
-        raise argparse.ArgumentTypeError(
-            f"{option} must be at least 1: {value!r}"
-        )
-    return number
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -71,14 +65,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--width",
-        type=lambda value: _extent(value, "--width"),
+        type=positive_int("--width"),
         default=1,
         metavar="W",
         help="pixels to sample to the right of x (default 1)",
     )
     parser.add_argument(
         "--height",
-        type=lambda value: _extent(value, "--height"),
+        type=positive_int("--height"),
         default=1,
         metavar="H",
         help="pixels to sample below y (default 1)",
