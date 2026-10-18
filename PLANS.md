@@ -22,7 +22,11 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-### Mac OS 8.6 desktop icon labels: one line of text under each icon (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 desktop icon labels: one line of text under each icon (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** Mac OS 8.6 shows each desktop icon's name on one line under the icon. A long name is
 cut off, not wrapped. Plasma's desktop Folder View wraps names onto up to 2 lines
@@ -91,8 +95,11 @@ setting is not used there, so the stock plasmoid cannot draw that box. Also out 
 cutting a name off at the screen edge where Plasma elides it with "…", which no Folder View
 setting changes.
 
-
-## Done
+**Implementation note (2026-10-18, feature).** The first block measures 44 rows (157..200), not 45,
+so "block height minus 32 is 13" does not hold for every block. `test_each_label_is_one_line`
+instead asserts each block is bounded as listed and that, where the label is wider than the body
+(x outside `ICON_BODY` 960..991), the label rows are exactly the last `LABEL_LINE` = 13 rows of the
+block. The `ICON_BODY` constant is the column range, not a row count.
 
 ### Mac OS 8.6 desktop icon arrangement: one right-aligned column of 32px icons (planned 2026-10-18 by the plan role; done 2026-10-18)
 

@@ -68,7 +68,7 @@ def menu_bar_rows(image, x):
 CLOCK_ID = "org.kde.plasma.digitalclock"
 CLOCK_FORMAT = {"showDate": False, "showSeconds": 0, "use24hFormat": 0}
 JS_LITERALS = {"false": False, "true": True}
-DESKTOP_ICONS = {"arrangement": 1, "alignment": 1, "iconSize": 1}
+DESKTOP_ICONS = {"arrangement": 1, "alignment": 1, "iconSize": 1, "textLines": 1}
 
 
 def clock_variable(text):
@@ -242,6 +242,9 @@ class TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase
     SCAN_ROWS = range(20, 700)
     FIRST_ICON_ROWS = range(40, 81)
     ICON_ROWS = range(284, 329)
+    LABELLED_ICON_ROWS = [(157, 200), (220, 264), (284, 328), (348, 392), (668, 712)]
+    ICON_BODY = range(960, 992)
+    LABEL_LINE = 13
 
     def differs_from_wallpaper(self, x, y):
         tile_x, tile_y = make_wallpaper.TILE_ORIGIN
@@ -276,6 +279,32 @@ class TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase
         }
         self.assertEqual((960, 991), (min(columns), max(columns)))
         self.assertEqual(32, max(columns) - min(columns) + 1)
+
+    def test_each_label_is_one_line(self):
+        width = self.image.width
+        beside_body = [
+            x for x in range(self.RIGHT_COLUMN_LEFT, width) if x not in self.ICON_BODY
+        ]
+        for top, bottom in self.LABELLED_ICON_ROWS:
+            margin = range(top - 5, bottom + 6)
+            rows = [
+                y
+                for y in margin
+                if any(
+                    self.differs_from_wallpaper(x, y)
+                    for x in range(self.RIGHT_COLUMN_LEFT, width)
+                )
+            ]
+            self.assertEqual(list(range(top, bottom + 1)), rows)
+            label_rows = [
+                y
+                for y in margin
+                if any(self.differs_from_wallpaper(x, y) for x in beside_body)
+            ]
+            if label_rows:
+                self.assertEqual(
+                    list(range(bottom - self.LABEL_LINE + 1, bottom + 1)), label_rows
+                )
 
 
 if __name__ == "__main__":

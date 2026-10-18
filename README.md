@@ -46,7 +46,7 @@ seconds, as the Mac OS 8.6 menu bar shows it) and
 the window list. Plasma replaces your panels only when the layout is
 applied; applying the theme without it leaves them alone. The layout also switches each desktop
 in the current activity to the image wallpaper plugin and lines its icons up in one 32px column
-at the right edge, as Mac OS 8.6 does. The desktop theme can be selected on its own with
+at the right edge with each icon's name on one line under it, as Mac OS 8.6 does. The desktop theme can be selected on its own with
 `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
 `[plasmarc][Theme]` in its `contents/defaults`. The desktop theme ships
 `widgets/panel-background.svg` (the menu bar), `widgets/frame.svg` (the Platinum
