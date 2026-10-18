@@ -119,11 +119,12 @@ def parse_rows(text):
 def _defined_names(path):
     """Return ``{class name: (method names, is a test case)}`` at *path*'s top level.
 
-    A class is a test case when it names ``unittest.TestCase`` or a
-    ``*TestCase`` base, directly or through a base class defined in the same
-    module. A class unittest never collects is not a test case however many
-    ``test``-prefixed methods it defines, so the check follows bases rather
-    than trusting a test-shaped method name.
+    A class is a test case when it names ``unittest.TestCase``, when it
+    reaches one through a base class defined in the same module, or when it
+    names a ``*TestCase`` base the module does not define (an imported base
+    whose own bases cannot be inspected here). A class unittest never collects
+    is not a test case however many ``test``-prefixed methods it defines, so
+    the check follows bases rather than trusting a test-shaped method name.
     """
     with open(path, encoding="utf-8") as handle:
         tree = ast.parse(handle.read(), filename=path)
@@ -145,9 +146,10 @@ def _defined_names(path):
             return False
         seen.add(name)
         for base in base_names(nodes[name]):
-            if base == "TestCase" or base.endswith("TestCase"):
-                return True
-            if base in nodes and is_test_case(base, seen):
+            if base in nodes:
+                if is_test_case(base, seen):
+                    return True
+            elif base == "TestCase" or base.endswith("TestCase"):
                 return True
         return False
 
@@ -292,6 +294,13 @@ class TestHelpers(unittest.TestCase):
             "    pass\n"
             "\n\n"
             "class TestViaMixin(MixinCase):\n"
+            "    def test_ok(self):\n"
+            "        pass\n"
+            "\n\n"
+            "class FakeTestCase:\n"
+            "    pass\n"
+            "\n\n"
+            "class TestNotCollected(FakeTestCase):\n"
             "    def test_ok(self):\n"
             "        pass\n",
         )
@@ -515,6 +524,23 @@ class TestHelpers(unittest.TestCase):
                 (
                     "The thing holds.",
                     f"{self.MODULE}::NotATestCase::test_looks_like_a_test",
+                )
+            ]
+        )
+        with self.assertRaisesRegex(AssertionError, "not a test case"):
+            cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_local_base_that_only_looks_like_a_test_case(self):
+        # `path::TestNotCollected` inherits from `FakeTestCase`, a class
+        # defined in the same module that does not reach `unittest.TestCase`.
+        # The `*TestCase` name suffix is a heuristic for bases imported from
+        # elsewhere; applying it to a locally defined base would accept a
+        # class unittest never collects, pinning the guarantee to no test.
+        register = self._valid_register(
+            [
+                (
+                    "The thing holds.",
+                    f"{self.MODULE}::TestNotCollected::test_ok",
                 )
             ]
         )

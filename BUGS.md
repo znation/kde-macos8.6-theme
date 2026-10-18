@@ -12,6 +12,33 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` accepts a class whose locally defined base only looks like a test case (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `check_reference` accepted a reference such as
+`fake_module.py::TestNotCollected::test_ok` where `TestNotCollected` inherits
+from `FakeTestCase`, a class defined in the same module that does not reach
+`unittest.TestCase`: `unittest` collects nothing, yet the row passed, so a
+guarantee could be pinned to a class that never runs.
+
+**Cause:** `_defined_names`'s `is_test_case` accepted any base whose name ends
+with `TestCase` before checking whether the module defines it. That suffix is
+meant for an imported base whose own bases cannot be inspected; applied to a
+locally defined base it skipped the recursion that would have found no
+`TestCase`.
+
+**Fix:** a base the module defines is now resolved only by recursion; the
+`*TestCase` suffix is consulted only for a base the module does not define.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_local_base_that_only_looks_like_a_test_case`
+(a scratch reproduction showed `check_reference` accepting the reference while
+`unittest.defaultTestLoader` collected no tests before the fix; the test passes
+after).
+
+**Validation gap:** no-observability -- the accepting reference resolved and
+the row passed, so no existing test or real run could surface it; it was found
+by reading the base-name heuristic and confirmed with a scratch reproduction.
+
 ### `test_invariants.py` accepts a register reference that escapes the repository (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `check_reference` accepted a reference such as
