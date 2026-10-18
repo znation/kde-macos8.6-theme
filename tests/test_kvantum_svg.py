@@ -153,6 +153,86 @@ INTERIOR_SHAPES = {
     "radio-checked-focused": _RADIO_FACE + _RADIO_DOT,
 }
 
+# The remaining multi-element interiors are also read only by id: the slider
+# cursor, the progress-bar pattern, and the two grip indicators. A wrong rect
+# size or offset, or a swapped fill (every colour here is in the palette, so
+# `assert_fill_palette` cannot see it) would pass. The slider cursor is the one
+# interior whose pressed state swaps the raised bevel's highlight and shadow
+# (#FFFFFF top/left, #999999 bottom/right) for the sunken one, so pinning only
+# `slidercursor-normal` would miss a pressed state repeating the resting art.
+_SLIDER_RAISED = (
+    _rect("0", "0", "16", "16", "#DDDDDD"),
+    _rect("0", "1", "16", "1", "#FFFFFF"),
+    _rect("0", "14", "16", "1", "#999999"),
+    _rect("1", "0", "1", "16", "#FFFFFF"),
+    _rect("14", "0", "1", "16", "#999999"),
+    _rect("0", "0", "16", "1", "#000000"),
+    _rect("0", "15", "16", "1", "#000000"),
+    _rect("0", "0", "1", "16", "#000000"),
+    _rect("15", "0", "1", "16", "#000000"),
+)
+_SLIDER_SUNKEN = (
+    _rect("0", "0", "16", "16", "#DDDDDD"),
+    _rect("0", "1", "16", "1", "#999999"),
+    _rect("0", "14", "16", "1", "#FFFFFF"),
+    _rect("1", "0", "1", "16", "#999999"),
+    _rect("14", "0", "1", "16", "#FFFFFF"),
+    _rect("0", "0", "16", "1", "#000000"),
+    _rect("0", "15", "16", "1", "#000000"),
+    _rect("0", "0", "1", "16", "#000000"),
+    _rect("15", "0", "1", "16", "#000000"),
+)
+_SLIDER_DISABLED = (
+    _rect("0", "0", "16", "16", "#999999"),
+    _rect("0", "0", "16", "1", "#000000"),
+    _rect("0", "15", "16", "1", "#000000"),
+    _rect("0", "0", "1", "16", "#000000"),
+    _rect("15", "0", "1", "16", "#000000"),
+)
+_PROGRESS_PATTERN = (
+    _rect("0", "0", "4", "4", "#EEEEEE"),
+    _rect("0", "1", "4", "2", "#000000"),
+)
+_PROGRESS_PATTERN_DISABLED = (
+    _rect("0", "0", "4", "4", "#EEEEEE"),
+    _rect("0", "1", "4", "2", "#999999"),
+)
+_SPLITTER_GRIP = (
+    _rect("7", "3", "2", "2", "#000000"),
+    _rect("7", "7", "2", "2", "#000000"),
+    _rect("7", "11", "2", "2", "#000000"),
+)
+_GRIP = (
+    _rect("4", "3", "1", "7", "#000000"),
+    _rect("6", "3", "1", "7", "#000000"),
+    _rect("8", "3", "1", "7", "#000000"),
+)
+INTERIOR_GROUP_SHAPES = {
+    "slidercursor-normal": _SLIDER_RAISED,
+    "slidercursor-focused": _SLIDER_RAISED,
+    "slidercursor-pressed": _SLIDER_SUNKEN,
+    "slidercursor-disabled": _SLIDER_DISABLED,
+    "progress-pattern-normal": _PROGRESS_PATTERN,
+    "progress-pattern-focused": _PROGRESS_PATTERN,
+    "progress-pattern-toggled": _PROGRESS_PATTERN,
+    "progress-pattern-disabled": _PROGRESS_PATTERN_DISABLED,
+    "splitter-grip-normal": _SPLITTER_GRIP,
+    "splitter-grip-focused": _SPLITTER_GRIP,
+    "splitter-grip-pressed": _SPLITTER_GRIP,
+    "grip-normal": _GRIP,
+    "grip-focused": _GRIP,
+    "grip-pressed": _GRIP,
+}
+
+
+def _interior_state_ids(*elements):
+    """Return every ``<element>-<state>`` id *elements* ship, from the table."""
+    return {
+        f"{element}-{state}"
+        for element in elements
+        for state in INTERIOR_STATES[element]
+    }
+
 
 class TestSvg(unittest.TestCase):
     def setUp(self):
@@ -199,15 +279,24 @@ class TestSvg(unittest.TestCase):
 
     def test_checkbox_and_radio_interiors_draw_the_pinned_shapes(self):
         by_id = elements_by_id(self.tree)
-        expected_ids = {
-            f"{element}-{state}"
-            for element in ("checkbox", "radio")
-            for state in INTERIOR_STATES[element]
-        }
         # Every check box and radio button state must have a pinned shape, so a
         # newly shipped state cannot escape the per-state pins below.
-        self.assertEqual(set(INTERIOR_SHAPES), expected_ids)
+        self.assertEqual(
+            set(INTERIOR_SHAPES), _interior_state_ids("checkbox", "radio")
+        )
         for element, expected in INTERIOR_SHAPES.items():
+            with self.subTest(element=element):
+                self.assertEqual(_drawing_elements(by_id[element]), expected)
+
+    def test_remaining_interiors_draw_the_pinned_shapes(self):
+        by_id = elements_by_id(self.tree)
+        elements = ("slidercursor", "progress-pattern", "splitter-grip", "grip")
+        # Every remaining multi-element interior state must have a pinned
+        # shape, so a newly shipped state cannot escape the pins below.
+        self.assertEqual(
+            set(INTERIOR_GROUP_SHAPES), _interior_state_ids(*elements)
+        )
+        for element, expected in INTERIOR_GROUP_SHAPES.items():
             with self.subTest(element=element):
                 self.assertEqual(_drawing_elements(by_id[element]), expected)
 
