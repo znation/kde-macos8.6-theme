@@ -6,9 +6,7 @@ must not let it read outside the reference directory.
 """
 
 import os
-import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 from allocation_fixtures import peak_allocation
@@ -98,9 +96,7 @@ class TestOversizeSources(CheckerTestCase):
     def test_oversize_sources_is_reported_without_reading_it_all(self):
         module = self.checker
         limit = 4096
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_bytes(b"#" * (limit + 1))
+        with reference_set(module, b"#" * (limit + 1)) as root:
             with mock.patch.object(module, "_MAX_SOURCES_BYTES", limit):
                 problems, peak = peak_allocation(
                     lambda: module.check_references(root)
@@ -204,9 +200,7 @@ class TestUndeclaredDanglingImageSymlink(CheckerTestCase):
 
     def test_dangling_image_symlink_is_reported(self):
         module = self.checker
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text("", encoding="utf-8")
+        with reference_set(module, "") as root:
             os.symlink(root / "gone.png", root / "dangling.png")
             problems = module.check_references(root)
         assert_problem(self, problems, "dangling.png", "no entry")

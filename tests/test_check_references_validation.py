@@ -122,13 +122,11 @@ class TestEmptyUrlRemainder(CheckerTestCase):
 
     def test_empty_remainder_is_reported_by_the_checker(self):
         module = self.checker
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / module.SOURCES_NAME).write_text(
-                "good.png | https:// | label\n", encoding="utf-8"
-            )
-            (root / "good.png").write_bytes(PNG_MAGIC)
-            problems = module.check_references(root)
+        problems = check_references_in(
+            module,
+            "good.png | https:// | label\n",
+            {"good.png": PNG_MAGIC},
+        )
         assert_problem(self, problems, "absolute URL")
 
 
