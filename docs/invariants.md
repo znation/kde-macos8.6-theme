@@ -34,28 +34,28 @@ a row naming no test, a malformed table row, or a blank guarantee cell fails
 | Every shipped desktop-theme SVG shares one root canvas. | `tests/test_desktoptheme.py::TestSvgRootCanvas` | none |
 | `widgets/actionbutton.svg` draws the Platinum round action button. | `tests/test_desktoptheme_actionbutton.py::TestActionButton` | none |
 | `widgets/action-overlays.svg` draws the Platinum desktop icon action buttons. | `tests/test_desktoptheme_actionoverlays.py::TestActionOverlays` | none |
-| `arrows.svg` draws the popup and dropdown arrows. | `tests/test_desktoptheme_arrows.py::TestArrows` | none |
+| `widgets/arrows.svg` draws the popup and dropdown arrows. | `tests/test_desktoptheme_arrows.py::TestArrows` | none |
 | `widgets/background.svg` draws the Platinum menu body. | `tests/test_desktoptheme_background.py::TestBackground` | none |
-| `busywidget.svg` draws the Platinum busy indicator ring. | `tests/test_desktoptheme_busywidget.py::TestBusyWidget` | none |
-| `button.svg` draws the normal and pressed push button. | `tests/test_desktoptheme_button.py::TestButton` | none |
-| `checkmarks.svg` draws the black check and the radio indicator dot. | `tests/test_desktoptheme_checkmarks.py::TestCheckmarks` | none |
+| `widgets/busywidget.svg` draws the Platinum busy indicator ring. | `tests/test_desktoptheme_busywidget.py::TestBusyWidget` | none |
+| `widgets/button.svg` draws the normal and pressed push button. | `tests/test_desktoptheme_button.py::TestButton` | none |
+| `widgets/checkmarks.svg` draws the black check and the radio indicator dot. | `tests/test_desktoptheme_checkmarks.py::TestCheckmarks` | none |
 | `dialogs/background.svg` draws the Platinum window body. | `tests/test_desktoptheme_dialog.py::TestDialogBackground` | none |
-| `frame.svg` draws the Platinum plain, raised and sunken frames. | `tests/test_desktoptheme_frame.py::TestFrame` | none |
-| `lineedit.svg` draws the white sunken text field. | `tests/test_desktoptheme_lineedit.py::TestLineEdit` | none |
-| `line.svg` draws the etched separator. | `tests/test_desktoptheme_line.py::TestLine` | none |
-| `listitem.svg` draws the selection row. | `tests/test_desktoptheme_listitem.py::TestListItem` | none |
-| `menubaritem.svg` draws the menu-bar title background. | `tests/test_desktoptheme_menubaritem.py::TestMenuBarItem` | none |
+| `widgets/frame.svg` draws the Platinum plain, raised and sunken frames. | `tests/test_desktoptheme_frame.py::TestFrame` | none |
+| `widgets/lineedit.svg` draws the white sunken text field. | `tests/test_desktoptheme_lineedit.py::TestLineEdit` | none |
+| `widgets/line.svg` draws the etched separator. | `tests/test_desktoptheme_line.py::TestLine` | none |
+| `widgets/listitem.svg` draws the selection row. | `tests/test_desktoptheme_listitem.py::TestListItem` | none |
+| `widgets/menubaritem.svg` draws the menu-bar title background. | `tests/test_desktoptheme_menubaritem.py::TestMenuBarItem` | none |
 | `widgets/panel-background.svg` draws the menu bar, including its top-panel north state. | `tests/test_desktoptheme_panel.py::TestPanelBackground` | none |
-| `plasmoidheading.svg` draws the popup band. | `tests/test_desktoptheme_plasmoidheading.py::TestPlasmoidHeading` | none |
-| `bar_meter_horizontal.svg` draws the Platinum progress bar. | `tests/test_desktoptheme_progressbar.py::TestProgressBar` | none |
-| `radiobutton.svg` draws the white radio face and its selection dot. | `tests/test_desktoptheme_radiobutton.py::TestRadioButton` | none |
-| `scrollbar.svg` draws the Platinum scroll bar and its arrows. | `tests/test_desktoptheme_scrollbar.py::TestScrollbar` | none |
-| `slider.svg` draws the Platinum slider groove and handle. | `tests/test_desktoptheme_slider.py::TestSlider` | none |
-| `switch.svg` draws the Platinum toggle track and thumb. | `tests/test_desktoptheme_switch.py::TestSwitch` | none |
-| `tabbar.svg` draws the Platinum tab bar. | `tests/test_desktoptheme_tabbar.py::TestTabBar` | none |
+| `widgets/plasmoidheading.svg` draws the popup band. | `tests/test_desktoptheme_plasmoidheading.py::TestPlasmoidHeading` | none |
+| `widgets/bar_meter_horizontal.svg` draws the Platinum progress bar. | `tests/test_desktoptheme_progressbar.py::TestProgressBar` | none |
+| `widgets/radiobutton.svg` draws the white radio face and its selection dot. | `tests/test_desktoptheme_radiobutton.py::TestRadioButton` | none |
+| `widgets/scrollbar.svg` draws the Platinum scroll bar trough and thumb. | `tests/test_desktoptheme_scrollbar.py::TestScrollbar` | none |
+| `widgets/slider.svg` draws the Platinum slider groove and handle. | `tests/test_desktoptheme_slider.py::TestSlider` | none |
+| `widgets/switch.svg` draws the Platinum toggle track and thumb. | `tests/test_desktoptheme_switch.py::TestSwitch` | none |
+| `widgets/tabbar.svg` draws the Platinum tab bar. | `tests/test_desktoptheme_tabbar.py::TestTabBar` | none |
 | `widgets/toolbar.svg` draws the Platinum toolbar background. | `tests/test_desktoptheme_toolbar.py::TestToolBar` | none |
 | `widgets/tooltip.svg` draws the Platinum tooltip. | `tests/test_desktoptheme_tooltip.py::TestTooltip` | none |
-| `viewitem.svg` draws the generic item highlight. | `tests/test_desktoptheme_viewitem.py::TestViewItem` | none |
+| `widgets/viewitem.svg` draws the generic item highlight. | `tests/test_desktoptheme_viewitem.py::TestViewItem` | none |
 
 ## icons
 
