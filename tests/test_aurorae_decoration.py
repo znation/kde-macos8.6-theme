@@ -384,8 +384,8 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         """Return the (x, y, width, height) of a #888888 button face.
 
         The close and collapse boxes are the only #888888 faces in this band
-        of the title bar of aboutsystem's window; ``x0`` and ``x1`` bound the columns searched so each
-        box's bounds are measured from its own face.
+        of the title bar of aboutsystem's window; ``x0`` and ``x1`` bound the
+        columns searched so each box's bounds are measured from its own face.
         """
         points = [
             (x, y)

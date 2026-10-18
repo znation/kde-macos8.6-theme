@@ -5,7 +5,8 @@ The command-line tools in this directory (``check_references.py``,
 ``cli.py``) print file paths and arguments that can come from the repository
 or from a shell glob. Printed raw, a control character in such a name would
 drive the operator's terminal (an ESC sequence) or forge an extra diagnostic
-line (a newline), so they route that text through :func:`escape_controls` before it reaches stdout or stderr.
+line (a newline), so they route that text through :func:`escape_controls`
+before it reaches stdout or stderr.
 """
 
 from __future__ import annotations

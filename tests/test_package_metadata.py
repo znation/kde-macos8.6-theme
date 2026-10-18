@@ -4,8 +4,9 @@
 checks against their own real `metadata.json`, so the passing path is
 exercised three times over. Every guard, though, is only ever fed good data: a
 guard that stopped rejecting a blank Description, a missing Version or a
-mismatched package structure would keep all three suites green. Pin each guard against deliberately broken
-metadata here, and pin `load_metadata`'s explicit UTF-8 decode and JSON-object guard.
+mismatched package structure would keep all three suites green. Pin each
+guard against deliberately broken metadata here, and pin `load_metadata`'s
+explicit UTF-8 decode and JSON-object guard.
 """
 
 import json
