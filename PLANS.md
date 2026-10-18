@@ -28,7 +28,49 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 splash: draw the reference's full "Mac OS 8.6" wordmark (planned 2026-10-18 by the plan role)
+
+**Goal.** The startup splash's wordmark draws the truncated label `Mac OS`;
+`macos8.6-screenshots/boot2_betawiki.png` shows the full `Mac OS 8.6`. Draw the full label so the
+login splash matches the reference.
+
+**Grounding.** In `macos8.6-screenshots/boot2_betawiki.png` (240x180, the retail 8.6 boot screen
+whose `8.6` is legible) the wordmark's black glyphs occupy `x=89..150, y=71..83` — 62 of the 80
+columns of the panel's white face (`x=80..159, y=39..88`, re-derived by
+`tests/test_splash_reference.py::TestSplashGeometry::test_grid_geometry`). `Splash.qml`'s
+`wordmark` Text draws `text: "Mac OS"`, roughly 38 columns centred on the panel, leaving the
+reference's leftmost (`x=89..~100`) and rightmost (`x=~140..150`) glyph columns blank. The
+original splash plan (PLANS.md `## Done`, "Mac OS 8.6 Platinum startup splash") and
+`tests/test_splash_qml.py::test_wordmark_shows_the_reference_label_at_its_grid_size` both call
+`Mac OS` the reference label, which the thumbnail does not support.
+
+**Approach.**
+- `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml`: change the `wordmark`
+  `Text`'s `text` from `"Mac OS"` to `"Mac OS 8.6"`. Leave its `y: 71 * root.unit`,
+  `anchors.horizontalCenter: panel.horizontalCenter` and `font.pixelSize: 12 * root.unit`
+  unchanged: the 12-row band and the panel centring already match the reference.
+- `tests/test_splash_qml.py`: change `test_wordmark_shows_the_reference_label_at_its_grid_size`
+  to require `text: "Mac OS 8.6"` and correct its comment, which calls `Mac OS` the reference
+  label.
+- `tests/test_splash_reference.py`: add `test_wordmark_spans_the_reference_band` to
+  `TestSplashGeometry`. Derive the wordmark's black-pixel bounding box from the thumbnail (dark
+  pixels with all three channels below a fixed threshold in the band `y=68..86`, `x=84..156`,
+  which excludes the logo stem above `y=68`) and assert its width is at least 55 of the face's 80
+  columns, so a reference whose label is no wider than `Mac OS` fails instead of silently passing.
+
+**Files touched.** `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml`,
+`tests/test_splash_qml.py`, `tests/test_splash_reference.py`.
+
+**Acceptance criteria.**
+- The `wordmark` Text's `text` is exactly `"Mac OS 8.6"`; any other string fails
+  `test_wordmark_shows_the_reference_label_at_its_grid_size`.
+- `test_wordmark_spans_the_reference_band` re-derives the reference wordmark bbox on
+  `boot2_betawiki.png` and passes; a label that spans fewer than 55 face columns fails it.
+- `make check` exits 0.
+- Recorded deviation (not fixed here): the reference wordmark is a high-contrast serif (Apple's
+  Garamond-family wordmark) while the QML draws the system UI font, so glyph shapes still differ;
+  shipping a typeface is out of scope and the reference set has no larger boot capture to ground
+  one.
 
 ## Done
 
