@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import os
 import unittest
+import xml.etree.ElementTree as ET
 
 from desktoptheme_paths import PANEL_SVG
 from nine_slice_case import NineSliceCase
-from platinum_palette import assert_fill_palette
+from platinum_palette import assert_fill_palette, hex_colour
+from reference_image import ReferenceScreenshotMixin
+from repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_slice_pixels,
@@ -35,8 +39,30 @@ PANEL_EDGE_PIXELS = {
 }
 
 
+# Every pixel of each `north-` slice (the top-edge panel state), row-major in
+# slice-local coordinates. Row 0 of the 8x18 centre is the bar's white
+# highlight, which Plasma never lets the top slices draw; rows 1..17 are the
+# #DDDDDD body. The side slices continue that row 0 highlight.
+NORTH_EDGE_PIXELS = {
+    "north-top": (8, 2, ("#FFFFFF",) * 8 + ("#DDDDDD",) * 8),
+    "north-bottom": (8, 2, ("#999999",) * 8 + ("#000000",) * 8),
+    "north-left": (
+        2, 18, ("#FFFFFF", "#FFFFFF") + ("#FFFFFF", "#DDDDDD") * 17
+    ),
+    "north-right": (
+        2, 18, ("#FFFFFF", "#999999") + ("#DDDDDD", "#999999") * 17
+    ),
+    "north-center": (8, 18, ("#FFFFFF",) * 8 + ("#DDDDDD",) * 136),
+    "north-topleft": (2, 2, ("#FFFFFF", "#FFFFFF", "#FFFFFF", "#DDDDDD")),
+    "north-topright": (2, 2, ("#FFFFFF", "#999999", "#DDDDDD", "#999999")),
+    "north-bottomleft": (2, 2, ("#999999", "#999999", "#000000", "#000000")),
+    "north-bottomright": (2, 2, ("#999999", "#999999", "#000000", "#000000")),
+}
+
+
 class TestPanelBackground(NineSliceCase, unittest.TestCase):
     SVG_PATH = PANEL_SVG
+    PREFIXES = ("", "north")
 
     def test_panel_background_hint_geometry(self):
         # `test_slice_ids_present` pins only the hint ids, so a margin or inset
@@ -54,6 +80,14 @@ class TestPanelBackground(NineSliceCase, unittest.TestCase):
                 "hint-bottom-inset": ("2", "12", "8", "0"),
                 "hint-left-inset": ("0", "2", "0", "8"),
                 "hint-right-inset": ("12", "2", "0", "8"),
+                "north-hint-top-margin": ("2", "0", "2", "2"),
+                "north-hint-bottom-margin": ("2", "20", "2", "2"),
+                "north-hint-left-margin": ("0", "2", "2", "2"),
+                "north-hint-right-margin": ("10", "2", "2", "2"),
+                "north-hint-top-inset": ("2", "0", "8", "0"),
+                "north-hint-bottom-inset": ("2", "22", "8", "0"),
+                "north-hint-left-inset": ("0", "2", "0", "18"),
+                "north-hint-right-inset": ("12", "2", "0", "18"),
             },
         )
 
@@ -74,6 +108,40 @@ class TestPanelBackground(NineSliceCase, unittest.TestCase):
             )
         # The centre tile is one body rect, so every pixel is the same face.
         assert_center_tile_is(self, slices, "center", "#DDDDDD", size=8)
+
+    def test_north_state_pixels(self):
+        # A top-edge panel draws the `north-` state, and Plasma draws only its
+        # centre and bottom slices on the full-width bar, so the white row 0
+        # must be in the centre's first row. Pin every pixel of all nine.
+        slices = render_slices(self.tree)
+        for name, (width, height, expected) in NORTH_EDGE_PIXELS.items():
+            assert_slice_pixels(
+                self, slices, name, pixel_map(expected, width, height)
+            )
+
+
+class TestNorthStateMatchesReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = os.path.join(
+        ROOT, "macos8.6-screenshots", "desktop_betawiki.png"
+    )
+
+    def test_bar_column_equals_north_center_and_bottom(self):
+        # Column 10 is clear of the screen corners and the Apple menu: rows
+        # 0..17 are the centre tile's rows and rows 18..19 the bottom slice's.
+        tree = ET.parse(PANEL_SVG)
+        slices = render_slices(tree)
+
+        def hex_at(y):
+            return hex_colour(self.pixel(10, y))
+
+        for y in range(18):
+            with self.subTest(row=y):
+                self.assertEqual(hex_at(y), slices["north-center"][(0, y)])
+        for y in (18, 19):
+            with self.subTest(row=y):
+                self.assertEqual(
+                    hex_at(y), slices["north-bottom"][(0, y - 18)]
+                )
 
 
 if __name__ == "__main__":

@@ -52,7 +52,8 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `Windows` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw square
 bevelled Platinum-like controls instead of Breeze's rounded ones; choose another style in System
 Settings → Application Style. The desktop theme ships
-`widgets/panel-background.svg` (the menu bar), `widgets/frame.svg` (the Platinum
+`widgets/panel-background.svg` (the menu bar; a top menu bar draws its white top highlight from a
+top-panel `north-` state), `widgets/frame.svg` (the Platinum
 plain/raised/sunken frame used by `PlasmaComponents.Frame`, `GroupBox`, the kicker
 application-menu sidebar and applet `FrameSvg` consumers), `widgets/button.svg` (the
 normal/pressed push button and focus ring), `widgets/radiobutton.svg` (the white,

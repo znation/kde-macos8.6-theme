@@ -292,7 +292,7 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
                     set(slices[slice_id]) - region, set(), slice_id
                 )
 
-def assert_root_canvas(case, tree, width, height):
+def assert_root_canvas(case, tree, width, height, origin_states=()):
     """Assert *tree*'s root <svg> declares a *width* x *height* canvas 1:1.
 
     KSvg draws the artwork in the root coordinate space, so a viewBox that
@@ -301,14 +301,25 @@ def assert_root_canvas(case, tree, width, height):
     artwork's own coordinates, so nothing else would notice. A nine-slice
     SVG's right/bottom margin rects must also reach the canvas edge: their far
     edge is where that border ends, so the canvas is the layout they imply.
+    *origin_states* lists state prefixes (``""`` for the unprefixed state)
+    that sit at the canvas origin of a canvas grown to hold a taller state:
+    their margin rects need only lie inside the canvas, not reach its edge.
     """
+    exempt = {f"{s}-" if s else "" for s in origin_states}
     root = tree.getroot()
     case.assertEqual(local_name(root), "svg")
     case.assertEqual(root.get("viewBox"), f"0 0 {width} {height}")
     case.assertEqual(root.get("width"), str(width))
     case.assertEqual(root.get("height"), str(height))
     for name, (x, y, w, h) in rect_geometry(tree).items():
+        sep_prefix = name.rsplit("hint-", 1)[0]
         if name.endswith("hint-right-margin"):
-            case.assertEqual(int(x) + int(w), width, name)
+            far, canvas = int(x) + int(w), width
         elif name.endswith("hint-bottom-margin"):
-            case.assertEqual(int(y) + int(h), height, name)
+            far, canvas = int(y) + int(h), height
+        else:
+            continue
+        if sep_prefix in exempt:
+            case.assertLessEqual(far, canvas, name)
+        else:
+            case.assertEqual(far, canvas, name)

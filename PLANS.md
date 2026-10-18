@@ -22,7 +22,11 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-### Mac OS 8.6 menu-bar top highlight: a `north-` panel-background state whose centre carries the white row 0 (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 menu-bar top highlight: a `north-` panel-background state whose centre carries the white row 0 (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** The reference menu bar's row 0 is a 1px `#FFFFFF` highlight across the whole bar
 (`desktop_betawiki.png`: (10,0), (300,0), (301,0) are `#FFFFFF`; rows 1..17 `#DDDDDD`, row 18
@@ -101,7 +105,12 @@ known limits.
   column 10.
 - `make check` is green.
 
-## Done
+**Implementation note (2026-10-18, feature).** Growing the canvas to 12x22 made the unprefixed
+`hint-bottom-margin` (ends at y=12) fail `assert_root_canvas`'s far-edge tie, so that helper gained
+an `origin_states` argument (`tests/svg_assertions/checks.py`, covered in
+`tests/test_svg_assertions_checks.py`); `tests/test_desktoptheme.py` passes `("",)` for the panel
+SVG and pins its canvas as 12x22. `north-topright` copies the unprefixed `topright` pixels, whose
+shadow overwrites the highlight at (1,0).
 
 ### Mac OS 8.6 Qt widget style: select Qt's built-in square-bevel `Windows` style from the global theme (planned 2026-10-18 by the plan role; done 2026-10-18)
 

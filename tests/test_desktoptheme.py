@@ -59,15 +59,15 @@ from theme_install import installed_destdir, run_captured
 PLASMA_SECTION = "plasmarc][Theme"
 
 
-# Each shipped SVG's root canvas. Eight widgets (the menu bar, frame, button,
+# Each shipped SVG's root canvas. Seven widgets (the frame, button,
 # line edit, list item, view item, tab bar and plasmoid heading) share a tight
-# 12x12 canvas; the menu-bar item is 20x12 (7px side borders); the scrollbar,
+# 12x12 canvas; the menu bar is 12x22 (its `north-` state is 18px tall in the centre); the menu-bar item is 20x12 (7px side borders); the scrollbar,
 # slider, toolbar, arrows, menu body, tooltip (and its solid/ copy) and dialog
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
 # is a 10x10 canvas and the etched separator a 4x2 canvas.
 SVG_CANVASES = (
-    ("panel-background.svg", PANEL_SVG, 12, 12),
+    ("panel-background.svg", PANEL_SVG, 12, 22),
     ("frame.svg", FRAME_SVG, 12, 12),
     ("button.svg", BUTTON_SVG, 12, 12),
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
@@ -99,6 +99,11 @@ class TestMetadata(PackageMetadata, unittest.TestCase):
     PLASMA_API_VERSION = "5.0"
 
 
+# The menu bar's unprefixed state sits at the origin of the 12x22 canvas grown
+# for its taller `north-` state, so its margin rects stop above the bottom.
+ORIGIN_STATES = {"panel-background.svg": ("",)}
+
+
 class TestSvgRootCanvas(unittest.TestCase):
     def test_root_canvas_matches_the_artwork_layout(self):
         # A root viewBox/width/height change rescales the whole widget while
@@ -106,7 +111,13 @@ class TestSvgRootCanvas(unittest.TestCase):
         # widget and tie it to the margin hints where there are any.
         for name, path, width, height in SVG_CANVASES:
             with self.subTest(svg=name):
-                assert_root_canvas(self, ET.parse(path), width, height)
+                assert_root_canvas(
+                    self,
+                    ET.parse(path),
+                    width,
+                    height,
+                    ORIGIN_STATES.get(name, ()),
+                )
 
     def test_every_svg_declares_unique_ids(self):
         # `elements_by_id` and `rect_geometry` key their maps by id, and

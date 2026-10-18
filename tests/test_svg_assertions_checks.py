@@ -404,6 +404,25 @@ class TestRootCanvas(unittest.TestCase):
         with self.assertRaises(AssertionError):
             assert_root_canvas(self, _root_canvas_tree(hints=hints), 12, 12)
 
+    def test_origin_state_may_stop_short_of_a_taller_canvas(self):
+        # A state at the origin of a canvas grown for a taller state ends
+        # above the canvas bottom; listing it as an origin state accepts that,
+        # while the taller prefixed state must still reach the edge.
+        hints = (
+            '<rect id="hint-right-margin" x="8" y="4" width="4" height="4"/>'
+            '<rect id="hint-bottom-margin" x="4" y="8" width="4" height="4"/>'
+            '<rect id="north-hint-right-margin" x="8" y="4" width="4" height="4"/>'
+            '<rect id="north-hint-bottom-margin" x="4" y="18" width="4" height="4"/>'
+        )
+        tree = _root_canvas_tree(
+            viewbox="0 0 12 22", height="22", hints=hints
+        )
+        assert_root_canvas(self, tree, 12, 22, origin_states=("",))
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(self, tree, 12, 22)
+        with self.assertRaises(AssertionError):
+            assert_root_canvas(self, tree, 12, 22, origin_states=("north",))
+
 
 # A distinct three-colour band for the pixel-assertion tests, so a reversed
 # band cannot be confused with the artwork's real bevel colours.
