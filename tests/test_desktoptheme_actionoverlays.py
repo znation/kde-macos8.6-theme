@@ -125,6 +125,27 @@ class TestActionOverlays(SvgCase, unittest.TestCase):
                     for attribute, expected in GLYPHS[kind].items():
                         self.assertEqual(glyph.get(attribute), expected)
 
+    def test_actionoverlays_glyph_stroke_ends_stay_square(self):
+        # The plus and minus are stroked paths with the SVG default cap and
+        # join: a butt cap ends each arm flush with its endpoint, and a miter
+        # join keeps the plus's inner corner sharp. `d`, `stroke-width` and
+        # the paint alone do not fix the drawn glyph -- adding a round cap or
+        # join would round the arm ends or the corner while every other
+        # assertion still passed -- so pin the effective values the way the
+        # checkmark test pins its explicit `square`/`miter`. `open` is a
+        # filled triangle and carries no stroke, so it is not read here.
+        by_id = elements_by_id(self.tree)
+        for kind in ("add", "remove"):
+            for state in STATES:
+                with self.subTest(element=f"{kind}-{state}"):
+                    glyph = children_named(by_id[f"{kind}-{state}"], "path")[2]
+                    self.assertEqual(
+                        glyph.get("stroke-linecap", "butt"), "butt"
+                    )
+                    self.assertEqual(
+                        glyph.get("stroke-linejoin", "miter"), "miter"
+                    )
+
 
 if __name__ == "__main__":
     unittest.main()
