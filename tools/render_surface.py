@@ -98,6 +98,17 @@ def _output_problem(output: Path) -> str | None:
     return None
 
 
+def _publish(source: Path, output: Path) -> None:
+    """Copy *source* to *output* so *output* is either the old file or the whole new one."""
+    partial = output.with_name(f".render-{os.getpid()}.tmp")
+    try:
+        shutil.copyfile(source, partial)
+        os.replace(partial, output)
+    except BaseException:
+        partial.unlink(missing_ok=True)
+        raise
+
+
 def _render(args: argparse.Namespace) -> int:
     output = Path(args.output).absolute()
     scratch = Path(tempfile.mkdtemp(prefix="render-surface-"))
@@ -184,7 +195,7 @@ def _render(args: argparse.Namespace) -> int:
                 render_log,
             )
         try:
-            shutil.copyfile(surface, output)
+            _publish(surface, output)
         except OSError as exc:
             return _failure(f"cannot write {output}: {exc}")
         return 0

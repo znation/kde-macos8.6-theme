@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import io
 import os
 import shutil
@@ -21,6 +22,7 @@ import process_runner
 from platinum_palette import FACE, hex_colour
 from tools import render_surface  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
+from tools.png_write import encode_png  # noqa: E402
 
 SCRIPT = str(repo_root.ROOT / "tools" / "render_surface.py")
 
@@ -171,6 +173,40 @@ class TestFailurePaths(StubTools):
                 self.assertIn("render_surface: error: cannot write", stderr)
                 self.assertFalse(marker.exists())
                 self.assert_scratch_removed()
+
+    def hidden_files(self):
+        return [name for name in os.listdir(self.root) if name.startswith(".")]
+
+    def stub_capture(self):
+        """Make the stubbed session write a valid 320x240 PNG where spectacle would."""
+        fixture = self.root / "capture.png"
+        fixture.write_bytes(encode_png(320, 240, bytes(320 * 240 * 3)))
+        self.stub("dbus-run-session", f'for a; do :; done; cp "{fixture}" "${{a##* }}"')
+        return fixture
+
+    def test_a_capture_is_copied_to_the_output(self):
+        fixture = self.stub_capture()
+        status, stderr, output = self.run_main()
+        self.assertEqual((0, ""), (status, stderr))
+        self.assertEqual(fixture.read_bytes(), output.read_bytes())
+        self.assertEqual([], self.hidden_files())
+
+    def test_a_failed_copy_keeps_the_previous_output_and_leaves_no_partial_file(self):
+        self.stub_capture()
+        output = self.root / "out.png"
+        output.write_bytes(b"previous good render")
+
+        def die_midway(src, dst):
+            Path(dst).write_bytes(b"half a PNG")
+            raise OSError(errno.ENOSPC, "No space left on device")
+
+        with mock.patch.object(shutil, "copyfile", die_midway):
+            status, stderr = call_main(str(output))
+        self.assertEqual(1, status)
+        self.assertIn("cannot write", stderr)
+        self.assertEqual(b"previous good render", output.read_bytes())
+        self.assertEqual([], self.hidden_files())
+        self.assert_scratch_removed()
 
     def test_make_render_passes_a_dash_leading_output_as_a_path(self):
         real_path = os.pathsep.join(
