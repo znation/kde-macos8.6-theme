@@ -56,6 +56,10 @@ WALLPAPER_ID := org.macos8.desktop
 WALLPAPER_PACKAGE := theme/wallpapers/$(WALLPAPER_ID)
 WALLPAPER_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/wallpapers
 
+ICON_THEME_ID := org.macos8.desktop
+ICON_THEME_PACKAGE := theme/icons/$(ICON_THEME_ID)
+ICON_THEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/icons
+
 # Stage a directory package as a sibling, then swap it in with a rename, so a
 # copy that fails or is interrupted cannot leave a partial package installed or
 # delete the working one. The old package is moved aside rather than deleted
@@ -260,9 +264,11 @@ _install:
 	$(call install_package,$(AURORAE_ID),$(AURORAE_PACKAGE),$(AURORAE_INSTALL_DIR))
 	install -d "$(WALLPAPER_INSTALL_DIR)"
 	$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR))
+	install -d "$(ICON_THEME_INSTALL_DIR)"
+	$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR))
 
 # Remove only the artifacts `install` copied: the parent directories are shared
-# (other color schemes, other look-and-feel/desktop-theme/Aurorae/wallpaper
+# (other color schemes, other look-and-feel/desktop-theme/Aurorae/wallpaper/icon
 # packages), so leave
 # them and everything else in them alone. The hidden `.staging`/`.old` siblings
 # are install's own temporary state: an install killed by SIGKILL cannot run its
@@ -280,6 +286,7 @@ _uninstall:
 	rm -rf "$(DTHEME_INSTALL_DIR)/$(DTHEME_ID)" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).staging" "$(DTHEME_INSTALL_DIR)/.$(DTHEME_ID).old"
 	rm -rf "$(AURORAE_INSTALL_DIR)/$(AURORAE_ID)" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).staging" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).old"
 	rm -rf "$(WALLPAPER_INSTALL_DIR)/$(WALLPAPER_ID)" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).staging" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).old"
+	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"
 # Removing the scheme does not touch the user's `[General] ColorScheme`
 # selection. If it still names the scheme just removed, KDE cannot resolve the
 # id and falls back to BreezeLight on every start without rewriting the stale

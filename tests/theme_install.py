@@ -2,7 +2,8 @@
 
 The installed artifacts land under `$(DESTDIR)$(XDG_DATA_HOME)`, so the install
 tests of each artifact (color scheme, global theme, desktop theme, Aurorae
-decoration, wallpaper) pass a throwaway `DESTDIR` and inspect the result there.
+decoration, wallpaper, icon theme) pass a throwaway `DESTDIR` and inspect the
+result there.
 Child processes go through `process_runner`, which applies the suite's timeout
 and process-group cleanup. The module also re-exports `ROOT` (from
 `repo_root`) and defines `run_captured` for tests that need a captured child.
@@ -188,6 +189,21 @@ def installed_wallpaper_dir(destdir):
 def installed_wallpaper(destdir, package_id):
     """Directory `make install` writes one wallpaper package into."""
     return os.path.join(installed_wallpaper_dir(destdir), package_id)
+
+
+def installed_icons_dir(destdir):
+    """Directory `make install` writes the icon theme into.
+
+    The Makefile installs it under `$(DESTDIR)$(XDG_DATA_HOME)/icons`, the
+    user-local directory the icon-theme spec searches;
+    `installed_icon_theme` joins a theme's own directory onto the result.
+    """
+    return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "icons")
+
+
+def installed_icon_theme(destdir, theme_id):
+    """Directory `make install` writes one icon theme into."""
+    return os.path.join(installed_icons_dir(destdir), theme_id)
 
 
 def installed_color_scheme_dir(destdir):

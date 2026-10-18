@@ -1,0 +1,21 @@
+[Icon Theme]
+Name=org.macos8.desktop
+Comment=Mac OS 8.6 Platinum placeholder icons
+Inherits=breeze
+
+Directories=32x32/devices,32x32/mimetypes,32x32/places
+
+[32x32/devices]
+Size=32
+Context=Devices
+Type=Fixed
+
+[32x32/mimetypes]
+Size=32
+Context=MimeTypes
+Type=Fixed
+
+[32x32/places]
+Size=32
+Context=Places
+Type=Fixed

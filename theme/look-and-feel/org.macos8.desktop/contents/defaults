@@ -4,6 +4,9 @@ widgetStyle=Windows
 [kdeglobals][General]
 ColorScheme=MacOS8
 
+[kdeglobals][Icons]
+Theme=org.macos8.desktop
+
 [plasmarc][Theme]
 name=org.macos8.desktop
 

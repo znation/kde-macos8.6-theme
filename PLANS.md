@@ -10,22 +10,21 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
 (startup splash, desktop layout, defaults); the desktop theme (eighteen widget SVGs under
 `widgets/` plus `dialogs/background.svg`); the Aurorae window decoration (frame, close, zoom and
-collapse boxes); the desktop wallpaper package; and the render and fidelity tooling that checks
-them against `macos8.6-screenshots/`. README.md describes the reference set as the source of
-truth for "menu bar, window chrome, widget metrics, icons and colour palette". The prompt's
-surfaces the theme does not ship are each tracked here (updated 2026-10-18 by the plan role): an
-**icon theme** (the Finder, desktop and dialog references show Platinum icons; the user answered
-2026-10-18 that the theme must not reproduce Apple's icon art, so it ships our own placeholder
-art tracked in `PLACEHOLDERS.md`, and the Apple-logo kicker icon is not drawn) is the "Mac OS
-8.6 desktop icon theme" plan below; a **Qt widget style** for KDE applications (the desktop
-theme styles only Plasma shell widgets, so a KDE app's own buttons, menus and scroll bars would
-keep the Breeze look) is served by the global theme's selection of Qt's built-in `Windows`
-style, and the user answered 2026-10-18 that a pixel-matched Platinum style should ship as a
-Kvantum theme (a new dependency) — planned as the three-part
-"Mac OS 8.6 Kvantum widget style" series below (parts 2 and 3 wait on part 1); a **cursor theme** is out of scope (no
-reference screenshot shows a cursor, so no pixel ground truth exists to match); and **system
-sounds** are out of scope (not a visual surface, so the reference set cannot ground them). The
-shipped work should not be treated as the whole of the prompt.
+collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon theme (our own
+placeholder 32x32 art for the desktop's hard-disk, folder, document and Trash icons, tracked in
+`PLACEHOLDERS.md`; the Apple-logo kicker icon is not drawn); and the render and fidelity tooling
+that checks them against `macos8.6-screenshots/`. README.md describes the reference set as the
+source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
+prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-18 by the plan
+role): a **Qt widget style** for KDE applications (the desktop theme styles only Plasma shell
+widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
+by the global theme's selection of Qt's built-in `Windows` style, and the user answered
+2026-10-18 that a pixel-matched Platinum style should ship as a Kvantum theme (a new
+dependency) — planned as the three-part "Mac OS 8.6 Kvantum widget style" series below (parts 2
+and 3 wait on part 1); a **cursor theme** is out of scope (no reference screenshot shows a
+cursor, so no pixel ground truth exists to match); and **system sounds** are out of scope (not a
+visual surface, so the reference set cannot ground them). The shipped work should not be treated
+as the whole of the prompt.
 
 ### Mac OS 8.6 Kvantum widget style, part 1/3: ship the `org.macos8.desktop` Kvantum theme with the Platinum palette and the core-control art (planned 2026-10-18 by the plan role)
 
@@ -184,19 +183,19 @@ not installed.
 - README documents the selection and the no-Kvantum fallback.
 - `make check` is green.
 
-### Own icon art, part 1/2: `PLACEHOLDERS.md` register and a test that keeps it complete (planned 2026-10-18 by the plan role)
+### Own icon art: `PLACEHOLDER:` markers and a test that keeps `PLACEHOLDERS.md` complete (planned 2026-10-18 by the plan role)
 
 **Goal.** The user answered 2026-10-18 that the theme's own artwork ships as placeholders for
 now and that the placeholders must be tracked "so we don't forget to replace them all
 eventually". Establish that tracking: every placeholder asset in the shipped theme carries a
 `PLACEHOLDER:` comment naming what it stands in for, and one register, `PLACEHOLDERS.md`, lists
-each one. The icon plan below (part 2/2) populates it.
+each one. The `org.macos8.desktop` icon theme already shipped the register and its five
+icons, so this entry adds the marker convention and the test that keeps the register complete.
 
 **Approach.**
-- New `PLACEHOLDERS.md` at the repository root: a short intro and a table with one row per
-  placeholder asset, columns `File` (the repository-relative path in backticks) and `Stands in
-  for`. It ships with no rows and a "none yet" note, so the register exists before the first
-  placeholder does.
+- `PLACEHOLDERS.md` at the repository root (shipped with the icon theme): a short intro and a
+  table with one row per placeholder asset. Add the `PLACEHOLDER:` marker to each registered
+  asset.
 - Marker convention: a placeholder asset carries the literal token `PLACEHOLDER:` in a comment
   in its own file format — `<!-- PLACEHOLDER: <what it stands in for> -->` for SVG, a `#`
   comment for text config.
@@ -206,80 +205,102 @@ each one. The icon plan below (part 2/2) populates it.
   helper that parses the table's backticked paths. Tests: every marker file is in the register;
   every register path exists on disk and carries a marker; the register's row set equals the
   marker set. Synthetic fixtures under `tmp_dir.make_tmp_dir` pin both helpers (a marker found, a
-  register missing its path, a register path with no marker), so the mechanism is tested before
-  any real placeholder exists.
-- `README.md`: a short "Placeholders" paragraph under the shipped-artifact description pointing
-  at `PLACEHOLDERS.md` and stating that a placeholder asset carries the `PLACEHOLDER:` marker.
+  register missing its path, a register path with no marker), so the mechanism is tested on a
+  populated register.
+- `README.md`: the shipped-artifact description already points at `PLACEHOLDERS.md`; state
+  there that a placeholder asset carries the `PLACEHOLDER:` marker.
 
-**Files touched.** `PLACEHOLDERS.md` (new), `tests/test_placeholders.py` (new), `README.md`.
+**Files touched.** `PLACEHOLDERS.md`, `tests/test_placeholders.py` (new), the placeholder SVGs,
+`README.md`.
 
 **Acceptance criteria.**
-- `PLACEHOLDERS.md` exists and its table parses to the empty set while no marker is shipped.
+- Every register path exists on disk and carries a `PLACEHOLDER:` marker; the register's row
+  set equals the marker set.
 - With a fixture file carrying `PLACEHOLDER:` under a temp theme root, `markers` finds it; a
   register missing its path fails the cross-check, and a register path with no marker fails it.
 - The repository's own `theme/` tree is cross-checked against `PLACEHOLDERS.md`, so the first
   placeholder added without a register row fails `make check`.
-- README points at `PLACEHOLDERS.md`.
+- README states the marker convention and points at `PLACEHOLDERS.md`.
 - `make check` is green.
 
-### Own icon art, part 2/2: Mac OS 8.6 desktop icon theme with our own placeholder art selected by the global theme (planned 2026-10-18 by the plan role; requires part 1/2 landed)
+### Mac OS 8.6 Platinum icon theme: replace the placeholder art with final non-infringing art (planned 2026-10-18 by the feature role)
 
-**Goal.** The desktop's icons still wear the default Breeze icons, and the user answered
-2026-10-18 that the theme must not reproduce Apple's Platinum icon art. Ship the first
-`org.macos8.desktop` icon-theme package with our own, obviously-placeholder 32x32 art for the
-icons a default desktop shows — hard disk, folder, document and Trash — and select it from the
-global theme's `contents/defaults`. Every placeholder asset is registered in `PLACEHOLDERS.md`
-(the part 1/2 register) so the final art stays a tracked follow-up. Scope: the names a default
-desktop resolves, at 32x32 only; everything else inherits Breeze. The kicker icon is out of
-scope: the Apple logo is not drawn, and our own logo is a later plan.
+**Goal.** The `org.macos8.desktop` icon theme shipped our own placeholder art for
+the desktop's hard-disk, folder, document and Trash icons, tracked in PLACEHOLDERS.md. Replace
+each placeholder with final, non-infringing Mac OS 8.6-style art so the desktop icons read as
+Platinum without reproducing Apple's artwork, keeping the package layout, its 32x32 grid and the
+global theme's selection unchanged. The Apple-logo kicker icon stays out of scope.
 
 **Approach.**
-- New package `theme/icons/org.macos8.desktop/`: `index.theme` (Name `org.macos8.desktop`,
-  `Inherits=Breeze`, `Directories=` the shipped size contexts) and one 32x32 SVG per icon under
-  `32x32/<context>/`. Names to ship (confirm each against the installed Breeze theme, and add
-  the alias names KDE resolves a desktop item to): `drive-harddisk`, `user-trash`,
-  `folder`/`inode-directory`, and `text-x-generic`. Each SVG draws our own simple placeholder
-  shape (for example a flat grey face with a black outline), not a pixel copy of any reference
-  block, and carries `<!-- PLACEHOLDER: <what it stands in for> -->`. SVG, not PNG, so the
-  placeholder needs no sampled pixels and the marker lives in the file; the final-art follow-up
-  may switch a name to PNG.
-- Add each shipped SVG to `PLACEHOLDERS.md` (one row per file), so the part 1/2 test's
-  repository cross-check passes.
-- Global theme `contents/defaults`: add `[kdeglobals][Icons] Theme=org.macos8.desktop` (the LNF
-  defaults mechanism applies this key). Update `tests/test_lookandfeel.py::TestDefaults`:
-  `test_the_expected_sections_and_keys_are_set` pins the section list and per-section keys, so
-  it gains the `[kdeglobals][Icons]` group; add a test that the value names the shipped
-  package's `index.theme` directory.
-- Makefile: add `ICON_THEME_ID`/`ICON_THEME_PACKAGE`/`ICON_THEME_INSTALL_DIR` (install dir
-  `$(DESTDIR)$(XDG_DATA_HOME)/icons`) and install/uninstall the package in `_install`/
-  `_uninstall` through the existing `install_package` define, beside the five artifacts, so
-  `make install`, `make uninstall` and `make render`'s scratch install cover it.
-- `tests/test_icon_theme.py` (new): `index.theme` names the theme and declares `Inherits=Breeze`;
-  each shipped SVG carries a `PLACEHOLDER:` marker; `make install XDG_DATA_HOME=<tmp>` copies the
-  package under `<tmp>/icons/org.macos8.desktop/` and `make uninstall` removes it, reusing the
-  `tests/theme_install.py` helpers.
-- `README.md`: list the icon theme as the sixth artifact, state that the desktop's icons come
-  from a placeholder icon package the global theme selects, and point at `PLACEHOLDERS.md`.
+- Draw each of the five icons PLACEHOLDERS.md lists (`drive-harddisk`, `text-x-generic`,
+  `folder`, `inode-directory`, `user-trash`) as our own 32x32 art on the pixel grid, in the
+  Platinum grey/black palette; keep the file names, contexts and `index.theme` the icon theme
+  shipped, so only the SVG contents change.
+- Record how the art was derived in this entry when it lands (drawn here, not traced from a
+  reference icon).
+- Remove each replaced icon's row from PLACEHOLDERS.md, and delete the file when the last row
+  goes; update `tests/test_icon_theme.py` so the placeholder registry is checked to match the
+  shipped set exactly (empty once the last placeholder is replaced).
 
-**Files touched.** `theme/icons/org.macos8.desktop/` (new), `contents/defaults`,
-`tests/test_lookandfeel.py`, `tests/test_icon_theme.py` (new), `Makefile`, `README.md`,
-`PLACEHOLDERS.md`.
+**Files touched.** `theme/icons/org.macos8.desktop/32x32/` (the five SVGs), `PLACEHOLDERS.md`,
+`tests/test_icon_theme.py`.
 
 **Acceptance criteria.**
-- `index.theme` names `org.macos8.desktop` and declares `Inherits=Breeze` (pinned), so every
-  name the package does not ship keeps its Breeze look.
-- Each shipped SVG carries a `PLACEHOLDER:` marker and has a row in `PLACEHOLDERS.md`; the part
-  1/2 register test passes on the populated theme.
+- Each shipped icon is final art, and PLACEHOLDERS.md lists exactly the icons that are still
+  placeholders (none when the plan is done).
+- `tests/test_icon_theme.py` passes with an empty or removed placeholder registry.
+- The global theme still selects `org.macos8.desktop`, and `make check` is green.
+
+## Done
+
+### Mac OS 8.6 Platinum desktop icon theme: a minimal `org.macos8.desktop` icon package for the icons the desktop shows (planned 2026-10-18 by the plan role; done 2026-10-18)
+
+**Goal.** The desktop's icons wore the default Breeze icons. Ship the first
+`org.macos8.desktop` icon-theme package with our own placeholder art for the hard-disk, folder,
+document and Trash icons the desktop shows, select it from the global theme's `contents/defaults`,
+and track each placeholder in PLACEHOLDERS.md so the final non-infringing art can replace them
+(the 2026-10-18 answer in QUESTIONS.md asks for our own art, not a reproduction of Apple's
+Platinum icons). Scope: the icons a default desktop shows, at 32x32 only; everything else
+inherits Breeze. The Apple-logo kicker icon is out of scope.
+
+**Approach.**
+- New package `theme/icons/org.macos8.desktop/`: `index.theme` (name `org.macos8.desktop`,
+  `Inherits=breeze`, a `Directories` entry for each shipped context) and one 32x32 SVG per icon
+  under `32x32/<context>/`: `drive-harddisk` (devices), `text-x-generic` (mimetypes), and
+  `folder`, `inode-directory` and `user-trash` (places). SVGs rather than PNGs so the placeholder
+  art needs no alpha channel and no Git LFS object; each draws on the 32x32 grid so the final art
+  can keep the same shape. PLACEHOLDERS.md lists every one.
+- Global theme `contents/defaults`: add `[kdeglobals][Icons] Theme=org.macos8.desktop`; the LNF
+  defaults mechanism applies this key. `tests/test_lookandfeel.py::TestDefaults` gains the new
+  section and a test that the selection names the shipped package.
+- Makefile: `ICON_THEME_ID`/`ICON_THEME_PACKAGE`/`ICON_THEME_INSTALL_DIR` (install dir
+  `$(DESTDIR)$(XDG_DATA_HOME)/icons`) installed and uninstalled in `_install`/`_uninstall`
+  beside the other five artifacts.
+- `tests/test_icon_theme.py` (new): `index.theme` names the theme and inherits Breeze; every
+  shipped icon is a 32x32 SVG in a declared `Size=32` directory; PLACEHOLDERS.md names each one;
+  `make install` copies the package under `<tmp>/icons/org.macos8.desktop/` and `make uninstall`
+  removes it, checked through `InstallLifecycleCases`.
+- `README.md`: list the icon theme as the sixth artifact and say the global theme selects it.
+
+**Files touched.** `theme/icons/org.macos8.desktop/` (new), `PLACEHOLDERS.md` (new),
+`contents/defaults`, `tests/test_lookandfeel.py`, `tests/test_icon_theme.py` (new),
+`tests/theme_install.py`, `tests/install_lifecycle_cases.py`, `tests/test_theme_install.py`,
+`Makefile`, `README.md`.
+
+**Out of scope.** The Apple-logo kicker icon; final icon art (the replacement entry under
+`## Planned`); sizes other than 32x32 (the menu bar and app menus want 16px); the full Platinum
+icon set (Breeze fills the rest).
+
+**Acceptance criteria.**
+- `index.theme` declares `Name=org.macos8.desktop` and `Inherits=breeze` (pinned), and every
+  shipped icon sits in a declared `Size=32` directory.
 - `contents/defaults` holds `[kdeglobals][Icons] Theme=org.macos8.desktop`, pinned by
   `TestDefaults`.
 - `make install XDG_DATA_HOME=<tmp>` installs `<tmp>/icons/org.macos8.desktop/` and `make
-  uninstall` removes it; the existing five artifacts' install/uninstall tests still pass.
-- No shipped file reproduces a reference screenshot's pixels (the icons are our own
-  placeholders).
-- README documents the artifact, the selection and the placeholder status.
+  uninstall` removes it; the other artifacts' install/uninstall tests still pass.
+- Every shipped icon is a 32x32 SVG and every one is named in PLACEHOLDERS.md.
+- README documents the artifact and the selection.
 - `make check` is green.
-
-## Done
 
 ### Local theme apply, part 2/2: `make install-local-hook` writes an uncommitted `post-commit` hook that runs `make apply` (planned 2026-10-18 by the director role; done 2026-10-18)
 

@@ -33,11 +33,13 @@ SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 AURORAE_DIR = os.path.join(
     ROOT, "theme", "aurorae", "themes", "org.macos8.desktop"
 )
+ICON_THEME_DIR = os.path.join(ROOT, "theme", "icons", "org.macos8.desktop")
 
 # configparser reads a KDE header such as `[kdeglobals][General]` greedily, so
 # the section key includes the inner bracket pair.
 STYLE_SECTION = "kdeglobals][KDE"
 DEFAULTS_SECTION = "kdeglobals][General"
+ICONS_SECTION = "kdeglobals][Icons"
 PLASMA_SECTION = "plasmarc][Theme"
 KWIN_SECTION = "kwinrc][org.kde.kdecoration2"
 WALLPAPER_SECTION = "Wallpaper"
@@ -116,6 +118,7 @@ class TestDefaults(unittest.TestCase):
             [
                 STYLE_SECTION,
                 DEFAULTS_SECTION,
+                ICONS_SECTION,
                 PLASMA_SECTION,
                 KWIN_SECTION,
                 WALLPAPER_SECTION,
@@ -123,6 +126,7 @@ class TestDefaults(unittest.TestCase):
         )
         self.assertEqual(self.parser.options(STYLE_SECTION), ["widgetStyle"])
         self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme"])
+        self.assertEqual(self.parser.options(ICONS_SECTION), ["Theme"])
         self.assertEqual(self.parser.options(PLASMA_SECTION), ["name"])
         self.assertEqual(
             self.parser.options(KWIN_SECTION),
@@ -142,6 +146,20 @@ class TestDefaults(unittest.TestCase):
             package_id = json.load(handle)["KPlugin"]["Id"]
         self.assertEqual(
             self.parser.get(WALLPAPER_SECTION, "Image"), package_id
+        )
+
+    def test_icon_theme_names_the_shipped_package(self):
+        """The global theme must select the icon theme this repo ships.
+
+        KDE resolves `[Icons] Theme` to the directory under `icons/`, so
+        renaming the package without updating `defaults` fails here instead of
+        leaving the desktop on Breeze.
+        """
+        theme_id = os.path.basename(ICON_THEME_DIR)
+        self.assertEqual(self.parser.get(ICONS_SECTION, "Theme"), theme_id)
+        self.assertTrue(
+            os.path.isfile(os.path.join(ICON_THEME_DIR, "index.theme")),
+            "the icon theme lookup needs index.theme",
         )
 
     def test_window_decoration_names_the_shipped_theme(self):
