@@ -325,6 +325,21 @@ class TestReportFailure(unittest.TestCase):
         self.assertIn(f"  {lines[-12]}\n", err)
         self.assertNotIn(lines[-13], err)
 
+    def test_tail_window_starting_after_a_carriage_return_keeps_its_first_line(self):
+        # A log's bounded window can begin right after a `\r` (a progress line
+        # the command rewrote in place). `splitlines` treats `\r` as a line
+        # break, so that byte is a line boundary too: the window's first line
+        # is complete and must not be dropped as a partial one. Build a log
+        # whose byte immediately before the read window is exactly `\r`.
+        body = b"FIRST\nSECOND\nTHIRD\n"
+        body += b"x" * (cli._LOG_TAIL_BYTES - len(body))
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_bytes(b"f\r" + body)
+        self.assertEqual(log.stat().st_size, cli._LOG_TAIL_BYTES + 2)
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertIn("  FIRST\n", err)
+
 
 if __name__ == "__main__":
     unittest.main()
