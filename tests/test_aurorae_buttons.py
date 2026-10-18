@@ -70,10 +70,7 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         [(7, y) for y in range(2, 7)] + [(x, 7) for x in range(2, 8)]
     )
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.load_profiler_reference()
+    needs_profiler = True
 
     def test_close_box_matches_reference(self):
         expected = self.reference_box(11, 29)

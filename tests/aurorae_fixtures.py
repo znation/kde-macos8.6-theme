@@ -57,12 +57,17 @@ class ReferenceImageCase:
     image_error = None
     profiler_image = None
     profiler_error = None
+    # A class that reads the System Profiler screenshot sets this True, so
+    # ``setUpClass`` loads PROFILER_REFERENCE as well as REFERENCE.
+    needs_profiler = False
 
     @classmethod
     def setUpClass(cls):
         cls.image, cls.image_error = read_reference(
             REFERENCE, max_rows=REFERENCE_ROWS
         )
+        if cls.needs_profiler:
+            cls.load_profiler_reference()
 
     def reference_pixel(self, x, y):
         skip_unless_materialized(self, REFERENCE, self.image_error)

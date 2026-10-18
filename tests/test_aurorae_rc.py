@@ -48,10 +48,7 @@ def _black_run_length(colours, start=0):
 
 
 class TestRc(ReferenceImageCase, unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.load_profiler_reference()
+    needs_profiler = True
 
     def setUp(self):
         self.parser = read_kde_config(RC)
