@@ -108,6 +108,78 @@ not installed.
 - README documents the selection and the no-Kvantum fallback.
 - `make check` is green.
 
+### Mac OS 8.6 Platinum switch widget (`widgets/switch.svg`) for the desktop theme (planned 2026-10-18 by the plan role)
+
+**Goal.** Ship `widgets/switch.svg` so `PlasmaComponents.Switch` draws a Platinum track-and-thumb
+toggle instead of inheriting Breeze's rounded pill. The theme ships no `widgets/switch`, so `KSvg`
+resolves the name to the default theme's Breeze file. Independent of the Kvantum series and of every
+shipped widget: it adds one artwork file, one path constant, one test module and registry/README
+lines.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree).**
+`/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/SwitchIndicator.qml` reads
+`imagePath: "widgets/switch"` and draws three parts: an `inactive` `FrameSvgItem` sized by
+`hint-bar-size` (the whole track), an `active` `FrameSvgItem` anchored from the track's left edge to
+`button.right` (the filled portion), and an `SvgItem` whose element id is `handle`, `handle-hover`,
+`handle-pressed` or `handle-focus` (the thumb). The switch shows in the default session: the
+notifications popup's "Do Not Disturb" toggle and the bluetooth/network applet toggles are
+`Switch`es.
+
+**Provenance.** No Mac OS 8.6 screenshot in the reference set shows a switch, so the shape and
+metrics are KDE-required; the fills reuse shipped, grounded Platinum faces. The `inactive` track is
+the flat `#EEEEEE` trough (`widgets/scrollbar.svg`'s trough, `[Colors:View] BackgroundAlternate`),
+the `active` track is the flat `#FFFFFF` field face (`widgets/lineedit.svg`, `[Colors:View]
+BackgroundNormal`), and the thumb is the raised `#DDDDDD` slider thumb (`widgets/slider.svg`'s
+`horizontal-slider-handle`). No new palette constant is introduced, so the file touches nothing the
+Kvantum series edits.
+
+**Approach.**
+- New `theme/desktop-themes/org.macos8.desktop/widgets/switch.svg`, a 30x18 canvas modelled on
+  `widgets/slider.svg`:
+  - hints: one shared `hint-tile-center` (3,3,10,10), per-state
+    `inactive-hint-{top,bottom,left,right}-margin` and `active-hint-*` (3px), and `hint-bar-size`
+    (0,0,30,16) so the track renders 30x16 while the thumb overhangs it.
+  - `inactive` and `active` nine-slice frames: a flat face with a 1px `#000000` outline, the
+    `slider.svg` groove recipe; `inactive` face `#EEEEEE`, `active` face `#FFFFFF`.
+  - thumb groups, 12x18 at the origin: `handle` and `handle-hover` byte-identical raised `#DDDDDD`
+    thumbs (the `slider.svg` `horizontal-slider-handle` recipe); `handle-pressed` the same thumb
+    with the sunken bevel (a `#999999` shadow inside the top/left outline, a `#FFFFFF` highlight
+    inside the bottom/right one, as `widgets/button.svg`'s pressed state); `handle-focus` a 1px
+    `#000000` outline ring.
+- `tests/support/desktoptheme_paths.py`: add `SWITCH_SVG = os.path.join(PACKAGE, "widgets",
+  "switch.svg")`.
+- New `tests/test_desktoptheme_switch.py`, modelled on `tests/test_desktoptheme_slider.py`:
+  - `TestSwitch(NineSliceCase, unittest.TestCase)` with `SVG_PATH = SWITCH_SVG`,
+    `PREFIXES = ("inactive", "active")` and `EXTRA_GROUPS` mapping the four thumb groups to (0,0).
+  - `test_switch_ids_are_unique` (`assert_unique_ids`), because the thumb groups sit outside the
+    nine-slice layout.
+  - `test_switch_hint_geometry`: `assert_hint_geometry(self, self.tree, ["inactive", "active"], 3,
+    10, {"hint-bar-size": ("0", "0", "30", "16")})`.
+  - `test_switch_tracks`: `assert_face_bevel(self, slices, "inactive", TROUGH, "flat", size=10)`
+    and `assert_face_bevel(self, slices, "active", WHITE, "flat", size=10)`.
+  - `test_switch_thumb_bevel`: local `raised_thumb_pixels(12, 18)` / `sunken_thumb_pixels(12, 18)` /
+    ring helpers (as `tests/test_desktoptheme_slider.py` keeps its thumb helper local) pin every
+    pixel of `handle`, `handle-hover`, `handle-pressed` and `handle-focus`.
+  - `test_switch_colours`: `assert_fill_palette(self, self.tree, {TROUGH})`.
+- `tests/test_desktoptheme.py`: add `("switch.svg", SWITCH_SVG, 30, 18)` to `SVG_CANVASES` and
+  `os.path.join("widgets", "switch.svg")` to `TestInstall.INSTALLED_FILES`.
+- `README.md`: add `widgets/switch.svg` to the desktop theme's widget inventory sentence.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/switch.svg` (new),
+`tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_switch.py` (new),
+`tests/test_desktoptheme.py`, `README.md`.
+
+**Acceptance criteria.**
+- `switch.svg` parses with a 30x18 root canvas; its hint rects are the 3px/10px nine-slice with
+  `hint-bar-size` 30x16; every tile sits at the origin its margins imply and stays inside its tile.
+- `inactive` is a flat `#EEEEEE` track and `active` a flat `#FFFFFF` track, each with the 1px
+  `#000000` outline; `handle`/`handle-hover` are the raised 12x18 thumb, `handle-pressed` the
+  sunken one and `handle-focus` the 1px outline ring, all pinned pixel by pixel.
+- The parsed `fill` set is exactly `PLATINUM_FILLS | {TROUGH}`.
+- `make install` copies the switch into the installed desktop theme and `make uninstall` removes it
+  (through `TestInstall`), and the README lists the widget.
+- `make check` is green.
+
 ## Done
 
 ### Mac OS 8.6 Kvantum widget style, part 2/4: the Platinum track and value controls (planned 2026-10-18 by the plan role; done 2026-10-18)
