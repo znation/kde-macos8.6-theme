@@ -173,15 +173,19 @@ class TestSurfaceBevelPixels(unittest.TestCase):
     def setUp(self):
         self.slices = render_slices(ET.parse(SVG))
 
+    def _assert_surface_state(self, prefix, bevel, face):
+        """Assert one surface state paints its flat or beveled art."""
+        if bevel == "flat":
+            self._assert_flat_state(prefix, face)
+        else:
+            self._assert_bevel_state(prefix, bevel, face)
+
     def test_every_surface_state_paints_its_bevel(self):
         for element, states in SURFACE_STATES.items():
             for state, (bevel, face) in states.items():
                 prefix = f"{element}-{state}"
                 with self.subTest(element=element, state=state):
-                    if bevel == "flat":
-                        self._assert_flat_state(prefix, face)
-                    else:
-                        self._assert_bevel_state(prefix, bevel, face)
+                    self._assert_surface_state(prefix, bevel, face)
 
     def _assert_flat_state(self, prefix, face):
         for name, (width, height) in SURFACE_SLICE_SIZES.items():

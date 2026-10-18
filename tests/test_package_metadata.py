@@ -50,6 +50,16 @@ def _metadata_with_kplugin(value):
     return metadata
 
 
+# The `PackageMetadata` methods that read KPlugin: each must name the field
+# when KPlugin itself is missing or malformed.
+KPLUGIN_GUARD_METHODS = (
+    "test_plugin_id_and_name",
+    "test_plugin_version",
+    "test_plugin_authors_are_named",
+    "test_plugin_description_and_license_are_non_empty",
+)
+
+
 def _case(method, metadata):
     """Return a configured `PackageMetadata` case, without running setUp.
 
@@ -261,21 +271,20 @@ class TestPackageMetadata(unittest.TestCase):
         self.assertIn("metadata.json", message)
         self.assertIn("Keywords", message)
 
+    def _assert_kplugin_guard_names_each_method(self, value):
+        """Assert every KPlugin-reading guard names the field for *value*."""
+        metadata = _metadata_with_kplugin(value)
+        for method in KPLUGIN_GUARD_METHODS:
+            with self.subTest(method=method):
+                self._assert_guard_names(method, metadata, "KPlugin")
+
     def test_kplugin_guard_names_the_file_and_field(self):
         # A metadata.json that decodes to an object but whose KPlugin is
         # missing or not an object used to fail with a bare KeyError/TypeError
         # naming neither the file nor the field; the mixin must name both.
         for value in (None, "text", [], 7):
             with self.subTest(kplugin=value):
-                metadata = _metadata_with_kplugin(value)
-                for method in (
-                    "test_plugin_id_and_name",
-                    "test_plugin_version",
-                    "test_plugin_authors_are_named",
-                    "test_plugin_description_and_license_are_non_empty",
-                ):
-                    with self.subTest(method=method):
-                        self._assert_guard_names(method, metadata, "KPlugin")
+                self._assert_kplugin_guard_names_each_method(value)
 
     def test_plugin_id_and_name_guard(self):
         for key, value in (("Id", "org.other.desktop"), ("Name", "Something")):

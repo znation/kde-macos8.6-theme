@@ -239,14 +239,18 @@ class TestSvg(unittest.TestCase):
         self.tree = ET.parse(SVG)
         self.ids = attribute_values(self.tree, "id")
 
+    def _assert_frame_element_slices(self, element, state):
+        """Assert one frame state's centre and each nine-slice id exist."""
+        prefix = f"{element}-{state}"
+        self.assertIn(prefix, self.ids)
+        for slice_name in SLICE_NAMES:
+            self.assertIn(f"{prefix}-{slice_name}", self.ids)
+
     def test_every_frame_element_ships_its_centre_and_eight_slices(self):
         for element, states in FRAME_STATES.items():
             for state in states:
-                prefix = f"{element}-{state}"
                 with self.subTest(element=element, state=state):
-                    self.assertIn(prefix, self.ids)
-                    for slice_name in SLICE_NAMES:
-                        self.assertIn(f"{prefix}-{slice_name}", self.ids)
+                    self._assert_frame_element_slices(element, state)
 
     def test_the_focus_ring_ships_its_centre_and_eight_slices(self):
         self.assertIn("focus", self.ids)

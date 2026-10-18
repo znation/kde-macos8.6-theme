@@ -81,14 +81,21 @@ class TestRunLogged(unittest.TestCase):
 
 
 class TestExitOnTermination(unittest.TestCase):
+    def _kill_self_under_exit_on_termination(self, number):
+        """Send *number* to this process and return the shell-convention code."""
+        with process_group.exit_on_termination():
+            with self.assertRaises(SystemExit) as caught:
+                os.kill(os.getpid(), number)
+                time.sleep(5)
+        return caught.exception.code
+
     def test_sigterm_and_sighup_raise_system_exit_with_shell_codes(self):
         for number in (signal.SIGTERM, signal.SIGHUP):
             with self.subTest(signal=number.name):
-                with process_group.exit_on_termination():
-                    with self.assertRaises(SystemExit) as caught:
-                        os.kill(os.getpid(), number)
-                        time.sleep(5)
-                self.assertEqual(128 + number, caught.exception.code)
+                self.assertEqual(
+                    128 + number,
+                    self._kill_self_under_exit_on_termination(number),
+                )
 
     def test_previous_handlers_are_restored_even_after_an_exception(self):
         before = (signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP))

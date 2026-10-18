@@ -86,6 +86,30 @@ class TestActionOverlays(SvgCase, unittest.TestCase):
         self.assertEqual(attribute_values(self.tree, "stroke"), {BLACK})
         assert_no_script_elements(self, self.tree)
 
+    def _assert_action_overlay_group(self, group, kind, state):
+        """Assert one overlay group's bounds, circles, bevel half-discs and glyph."""
+        self.assertEqual(local_name(group), "g")
+        assert_bounds_rect(self, group, BOUNDS_RECT)
+        self.assertEqual(
+            [
+                circle_geometry_and_fill(el)
+                for el in children_named(group, "circle")
+            ],
+            list(FACE_CIRCLES[state]),
+        )
+        paths = children_named(group, "path")
+        self.assertEqual(len(paths), 3)
+        for index, (path, fill) in enumerate(
+            zip(paths[:2], BEVEL_FILLS[state])
+        ):
+            assert_diagonal_half_disc(
+                self, path, index, BEVEL_RADIUS, CENTER
+            )
+            self.assertEqual(path.get("fill"), fill)
+        glyph = paths[2]
+        for attribute, expected in GLYPHS[kind].items():
+            self.assertEqual(glyph.get(attribute), expected)
+
     def test_actionoverlays_geometry(self):
         # FolderItemActionButton draws `normal` while the pointer is away,
         # `hover` while over it and `pressed` while down, for the `add`,
@@ -98,28 +122,9 @@ class TestActionOverlays(SvgCase, unittest.TestCase):
         for kind in KINDS:
             for state in STATES:
                 with self.subTest(element=f"{kind}-{state}"):
-                    group = by_id[f"{kind}-{state}"]
-                    self.assertEqual(local_name(group), "g")
-                    assert_bounds_rect(self, group, BOUNDS_RECT)
-                    self.assertEqual(
-                        [
-                            circle_geometry_and_fill(el)
-                            for el in children_named(group, "circle")
-                        ],
-                        list(FACE_CIRCLES[state]),
+                    self._assert_action_overlay_group(
+                        by_id[f"{kind}-{state}"], kind, state
                     )
-                    paths = children_named(group, "path")
-                    self.assertEqual(len(paths), 3)
-                    for index, (path, fill) in enumerate(
-                        zip(paths[:2], BEVEL_FILLS[state])
-                    ):
-                        assert_diagonal_half_disc(
-                            self, path, index, BEVEL_RADIUS, CENTER
-                        )
-                        self.assertEqual(path.get("fill"), fill)
-                    glyph = paths[2]
-                    for attribute, expected in GLYPHS[kind].items():
-                        self.assertEqual(glyph.get(attribute), expected)
 
     def test_actionoverlays_glyph_stroke_ends_stay_square(self):
         # The plus and minus are stroked paths with the SVG default cap and

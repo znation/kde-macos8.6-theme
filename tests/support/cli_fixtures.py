@@ -66,6 +66,23 @@ def call_main(main, *args):
     return status, stderr
 
 
+def _write_tool_stub(directory, name):
+    """Write an executable ``#!/bin/sh`` stub for *name* into *directory*."""
+    tool = Path(directory) / name
+    tool.write_text("#!/bin/sh\n", encoding="utf-8")
+    tool.chmod(0o755)
+
+
+def _run_without_tool(main, required, missing, argv):
+    """Run *main* with a PATH holding every tool in *required* but *missing*."""
+    with tempfile.TemporaryDirectory() as directory:
+        for name in required:
+            if name != missing:
+                _write_tool_stub(directory, name)
+        with mock.patch.dict(os.environ, {"PATH": directory}):
+            return call_main(main, *argv)
+
+
 def assert_missing_tool_named(case, main, required, argv=()):
     """Assert *main* names each tool in *required* when it alone is absent.
 
@@ -75,14 +92,7 @@ def assert_missing_tool_named(case, main, required, argv=()):
     """
     for missing in required:
         with case.subTest(missing=missing):
-            with tempfile.TemporaryDirectory() as directory:
-                for name in required:
-                    if name != missing:
-                        tool = Path(directory) / name
-                        tool.write_text("#!/bin/sh\n", encoding="utf-8")
-                        tool.chmod(0o755)
-                with mock.patch.dict(os.environ, {"PATH": directory}):
-                    status, stderr = call_main(main, *argv)
+            status, stderr = _run_without_tool(main, required, missing, argv)
             case.assertEqual(2, status, stderr)
             case.assertTrue(stderr.rstrip().endswith(missing), stderr)
 

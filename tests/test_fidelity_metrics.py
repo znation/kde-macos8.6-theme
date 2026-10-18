@@ -8,6 +8,7 @@ Run with the project's check harness (stdlib unittest)::
 
 from __future__ import annotations
 
+import itertools
 import random
 import unittest
 
@@ -56,15 +57,13 @@ class TestAbsDiff(unittest.TestCase):
     def test_extreme_values(self):
         # 0/255 is where a borrow or carry would show up first, for both an
         # even and an odd byte count.
-        for length in (1, 2, 7):
-            for x in (0, 255):
-                for y in (0, 255):
-                    a = bytes([x]) * length
-                    b = bytes([y]) * length
-                    with self.subTest(length=length, x=x, y=y):
-                        self.assertEqual(
-                            fidelity_metrics._abs_diff(a, b), self._reference(a, b)
-                        )
+        for length, x, y in itertools.product((1, 2, 7), (0, 255), (0, 255)):
+            a = bytes([x]) * length
+            b = bytes([y]) * length
+            with self.subTest(length=length, x=x, y=y):
+                self.assertEqual(
+                    fidelity_metrics._abs_diff(a, b), self._reference(a, b)
+                )
 
 
 class TestSumSquares(unittest.TestCase):
