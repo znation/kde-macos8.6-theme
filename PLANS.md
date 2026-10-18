@@ -28,7 +28,57 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Fidelity gate for the rendered window frame's side and bottom borders (planned 2026-10-18 by the plan role)
+
+**Goal.** The rendered-window fidelity gate compares only the title-bar strip
+(`TestRender::test_title_bar_matches_the_reference`). The frame's six-pixel left, right and
+bottom borders are still pinned only by the SVG unit tests (`tests/test_aurorae_frame.py`) and the
+rc test (`tests/test_aurorae_rc.py`), so nothing checks that KWin paints them at the reference
+geometry. Extend the same render-and-byte-compare gate to those three border strips. It reuses
+the one render `TestRender.setUpClass` already makes; no second render runs.
+
+**Grounding (sampled 2026-10-18 with `tools/png.read_png` + `pixel_at` on a render from
+`tools/render_surface.py --settle 3`).** The 320x240 render puts the window at (0,0): a 6px left
+border at x=0..5, a 6px right border at x=314..319 and a 6px bottom border at y=234..239.
+`aboutsystem_betawiki.png`'s window has its left outline at x=7 and top outline at y=25, so its
+left border is x=7..12, its right border x=354..359 and its bottom border y=419..424. The
+reference window is taller than the render, so the side strips compare only the straight part
+between the title bar and the bottom border (212 rows), and the bottom strip the horizontal
+border between the two corners (308 columns). Byte-exact comparisons:
+- left: candidate `(0, 22, 6, 212)` vs reference `(7, 47, 6, 212)` — 0 differing of 1272;
+- right: candidate `(314, 22, 6, 212)` vs reference `(354, 47, 6, 212)` — 0 differing of 1272;
+- bottom: candidate `(6, 234, 308, 6)` vs reference `(13, 419, 308, 6)` — 0 differing of 1848.
+
+**Approach.**
+- `tests/test_render_surface.py`: keep `CANDIDATE_CROP`/`REFERENCE_CROP` for the title bar and add
+  six module constants beside them — `LEFT_BORDER_CANDIDATE = (0, 22, 6, 212)`,
+  `LEFT_BORDER_REFERENCE = (7, 47, 6, 212)`, `RIGHT_BORDER_CANDIDATE = (314, 22, 6, 212)`,
+  `RIGHT_BORDER_REFERENCE = (354, 47, 6, 212)`, `BOTTOM_BORDER_CANDIDATE = (6, 234, 308, 6)`,
+  `BOTTOM_BORDER_REFERENCE = (13, 419, 308, 6)`, each with its grounding row above as its comment.
+  Extract the body of `test_title_bar_matches_the_reference` (the `read_reference` +
+  `skip_unless_materialized` guard and the `process_runner.run` of the real `FIDELITY` CLI with
+  `--candidate-crop`/`--crop`) into a helper method
+  `assert_strip_matches(self, candidate_crop, reference_crop)`; the title-bar test keeps its name
+  and calls the helper with its two constants. Add
+  `test_frame_borders_match_the_reference`, which loops the three `(candidate, reference)` border
+  pairs and calls the helper under `self.subTest`, so a failure names the strip.
+- `docs/invariants.md`: add a second `tooling` row
+  `| The rendered window's side and bottom border strips are byte-identical to the same strips of
+  the reference screenshot. | tests/test_render_surface.py::TestRender::test_frame_borders_match_the_reference | none |`.
+- `README.md`: in the Fidelity checking paragraph's `make check` sentence, extend the compared
+  region from the title-bar strip to the title bar and the side and bottom borders.
+
+**Files touched.** `tests/test_render_surface.py`, `docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- `make check` passes. `test_frame_borders_match_the_reference` runs (does not skip) where the
+  render tools are on `PATH` and the LFS reference is materialized, and skips when the reference
+  is an unmaterialized pointer; the existing title-bar test still passes.
+- Each strip reports `differing pixels: 0 / 1272` (left and right) and `0 / 1848` (bottom).
+- Changing `BorderLeft`, `BorderRight` or `BorderBottom` in
+  `theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc`, or the border colours in
+  `decoration.svg`, makes a named test fail.
+- `tests/test_invariants.py` still resolves every register row against the repository.
 
 ## Done
 
