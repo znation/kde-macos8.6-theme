@@ -205,16 +205,21 @@ class TestMissingTool(unittest.TestCase):
 
 
 class TestSessionBus(StubTools):
-    def test_defaults_the_address_from_an_absolute_runtime_dir(self):
-        runtime = self.root / "rt"
-        runtime.mkdir()
-        (runtime / "bus").write_text("", encoding="utf-8")
+    def _apply_with_runtime(self, runtime):
+        """Run `apply_theme.main` with *runtime* as `XDG_RUNTIME_DIR` and no
+        `DBUS_SESSION_BUS_ADDRESS`, asserting a clean exit."""
         with mock.patch.dict(
             os.environ, {"XDG_RUNTIME_DIR": str(runtime)}, clear=False
         ):
             os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
+
+    def test_defaults_the_address_from_an_absolute_runtime_dir(self):
+        runtime = self.root / "rt"
+        runtime.mkdir()
+        (runtime / "bus").write_text("", encoding="utf-8")
+        self._apply_with_runtime(runtime)
         self.assertIn(
             f"qdbus6 DBUS=unix:path={runtime}/bus", self.env_recorded()
         )
@@ -230,24 +235,14 @@ class TestSessionBus(StubTools):
         self.assertIn("qdbus6 DBUS=unix:path=/existing", self.env_recorded())
 
     def test_does_not_default_from_a_relative_runtime_dir(self):
-        with mock.patch.dict(
-            os.environ, {"XDG_RUNTIME_DIR": "relative"}, clear=False
-        ):
-            os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
-            status, stderr = call_main(apply_theme.main)
-        self.assertEqual(0, status, stderr)
+        self._apply_with_runtime("relative")
         self.assertIn("qdbus6 DBUS=", self.env_recorded())
         self.assertNotIn("unix:path=relative", self.env_recorded())
 
     def test_does_not_default_when_the_bus_socket_is_absent(self):
         runtime = self.root / "empty-runtime"
         runtime.mkdir()
-        with mock.patch.dict(
-            os.environ, {"XDG_RUNTIME_DIR": str(runtime)}, clear=False
-        ):
-            os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
-            status, stderr = call_main(apply_theme.main)
-        self.assertEqual(0, status, stderr)
+        self._apply_with_runtime(runtime)
         self.assertIn("qdbus6 DBUS=", self.env_recorded())
 
 
