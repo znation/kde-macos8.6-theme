@@ -22,7 +22,95 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 menu-title spacing: 7px horizontal padding in `widgets/menubaritem.svg` (planned 2026-10-18 by the plan role)
+
+**Goal.** Space the application-menu titles in the menu bar as Mac OS 8.6 does. The
+`org.kde.plasma.appmenu` title padding comes from `widgets/menubaritem.svg`'s margin hints. In
+`/usr/share/plasma/plasmoids/org.kde.plasma.appmenu/contents/ui/MenuDelegate.qml`,
+`leftPadding`/`rightPadding`/`topPadding`/`bottomPadding` are the `rest` `FrameSvgItem`'s
+`margins`, and `main.qml` sets `columnSpacing: 0`. Today every margin is 3px, so two titles'
+text sits 6px apart plus the font's side bearings. The reference has about twice that. The done
+menu-bar layout plan listed "the Mac OS 8.6 menu-title metrics for `appmenu`" as a later plan.
+This is that plan. It is independent of the desktop-icon-labels plan.
+
+**Grounding (`macos8.6-screenshots/desktop_betawiki.png`, 1024x768, lossless).** Scan columns
+x=32..259 over menu-bar rows y=1..17 (row 0 is the white highlight, row 18 the bevel). A column
+is ink when any of its pixels is exactly `#000000`. Group ink columns into titles, starting a
+new title at a gap of 8 or more blank columns. Inside a title the largest gap is 2. That gives
+File x=44..63, Edit 79..101, View 115..145, Special 160..203, Help 219..244. The blank gaps
+between neighbours are 15, 13, 14 and 15 columns (sum 57). Mac OS 8.6 highlights an open title
+in a rectangle that meets its neighbour's, so each side gets half the gap:
+`57 // (2 * 4) = 7`. The padding is therefore 7px left and 7px right. Top and bottom stay 3px.
+`main.qml` sets `Layout.minimumHeight: implicitHeight`, so a larger vertical margin would push
+the applet past the 20px panel, and the panel's height is already pinned against the reference
+by `TestPanelHeightMatchesReference`.
+
+**Approach.**
+1. `theme/desktop-themes/org.macos8.desktop/widgets/menubaritem.svg`: make the canvas 20x12
+   (`width="20" height="12" viewBox="0 0 20 12"`) with a 7px left and right border, a 3px top
+   and bottom border, and the same 6x6 centre tile:
+   - `hint-tile-center` at (7,3,6,6).
+   - For each of `normal`, `hover` and `pressed`: `-hint-top-margin` (7,0,6,3),
+     `-hint-bottom-margin` (7,9,6,3), `-hint-left-margin` (0,3,7,6) and
+     `-hint-right-margin` (13,3,7,6).
+   - Each state's nine slice groups move to the new tile origins: topleft (0,0) 7x3, top (7,0)
+     6x3, topright (13,0) 7x3, left (0,3) 7x6, center (7,3) 6x6, right (13,3) 7x6, bottomleft
+     (0,9) 7x3, bottom (7,9) 6x3, bottomright (13,9) 7x3. Each rect fills its tile. `pressed` rects
+     stay `fill="#CCCCFF"`. `normal`/`hover` rects stay `style="fill:#FFFFFF"
+     fill-opacity="0.01"` with no `fill` attribute.
+   - Rewrite the header comment's contract sentence ("3px border around a 6px centre tile on a
+     tight 12x12 canvas") to give the new border, and add the grounding above: the reference,
+     the four title gaps, and the `// 8` rule.
+2. `tests/test_desktoptheme_menubaritem.py`:
+   - Add module constants `LEFT = RIGHT = 7`, `TOP = BOTTOM = 3`, `TILE = 6`, and
+     `SIZES = nine_slice_tile_sizes(20, 12, LEFT, RIGHT, TOP, BOTTOM)`. `nine_slice_tile_sizes`
+     is in `svg_assertions` and is already used by `tests/test_desktoptheme_plasmoidheading.py`.
+   - `test_menubaritem_hint_geometry`: `assert_hint_geometry` and `nine_slice_margins` assume
+     one square border, so compare `rect_geometry(self.tree)` (from `svg_assertions`) with an
+     explicit dict: `hint-tile-center` plus the twelve margin hints listed in step 1, as string
+     tuples like the helpers produce. Update its comment.
+   - `test_menubaritem_slices_fill_their_tiles`: `assert_slices_fill_their_tiles` is square-only,
+     so loop over `SIZES` for each `(prefix, colour)` pair and call `assert_slice_pixels(case,
+     slices, f"{prefix}-{name}", pixel_map((colour,) * (w * h), w, h))`, as the shared helper's
+     body does. Do not change the shared helper.
+   - Add `TestMenuTitleSpacingMatchesReference(ReferenceScreenshotMixin, unittest.TestCase)`
+     (from `tests/reference_image.py`) with `REFERENCE` = the `desktop_betawiki.png` path (built
+     from `theme_install.ROOT` as `tests/test_lookandfeel_layout.py` does). Add a module helper
+     `title_gaps(image)` that applies the scan rule from Grounding with `png.pixel_at` and
+     returns the blank-gap list. Tests:
+     - `test_reference_title_gaps`: `title_gaps(self.image) == [15, 13, 14, 15]`.
+     - `test_horizontal_margin_is_half_the_mean_gap`: the `width` of `normal-hint-left-margin`
+       and `normal-hint-right-margin` (read through `rect_geometry`) both equal
+       `str(sum(gaps) // (2 * len(gaps)))`.
+3. `tests/test_desktoptheme.py`: change the `SVG_CANVASES` entry to
+   `("menubaritem.svg", MENUBARITEM_SVG, 20, 12)`.
+4. README.md: in the `widgets/menubaritem.svg` inventory sentence, add that its 7px side
+   padding spaces the application-menu titles as the reference menu bar does.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/menubaritem.svg`,
+`tests/test_desktoptheme_menubaritem.py`, `tests/test_desktoptheme.py`, `README.md`.
+
+**Acceptance criteria.**
+- `make check` passes. `TestMenuTitleSpacingMatchesReference` runs (does not skip) when the LFS
+  image is materialized. The inherited `NineSliceCase` tests (`test_tiles_placed_by_margins`,
+  `test_tiles_stay_within_their_margins`, `test_slice_ids_present`) pass against the new
+  geometry. If one assumes a square border, extend that helper with a test in
+  `tests/test_svg_assertions_*.py` rather than skipping it.
+- Each of these makes a named test fail: a left or right margin hint other than 7 wide, a top
+  or bottom hint other than 3 high, a slice rect one pixel short of its tile, or a canvas other
+  than 20x12.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` still installs a byte-identical
+  `widgets/menubaritem.svg` (the existing `TestInstall`).
+- Manual smoke test (needs a Plasma session): with a KDE app focused, the appmenu titles sit
+  about 14px apart plus side bearings. A title's open-menu `#CCCCFF` fill extends 7px past its
+  text on each side.
+
+**Known deviations (recorded, not fixed here).** `org.kde.plasma.windowlist`'s `MenuButton.qml`
+also reads `leftPadding`/`rightPadding` from this file, so the right-hand application menu gains
+the same 7px padding. The reference's right-hand menu is not measured here, because its grip and
+icon need a custom plasmoid (see the desktop-layout plan's out-of-scope list). The glyph gaps
+also depend on the KDE font's side bearings, since Charcoal does not ship, so the rendered gap
+will be within a pixel or two of the reference, not exactly equal.
 
 ## Done
 
