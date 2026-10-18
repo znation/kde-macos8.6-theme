@@ -129,6 +129,40 @@ class TestFailurePaths(StubTools):
         self.assertIn("note", stderr)
 
 
+class TestTimeoutPaths(StubTools):
+    """The ``run_logged`` timeout result (``None``) at both call sites.
+
+    ``run_logged`` returns ``None`` when a command exceeds the 60s
+    ``COMMAND_TIMEOUT``. A real timeout would need a hung child and the full
+    timeout, so these patch ``run_logged`` to report the timeout directly and
+    pin the diagnostic each call site prints. ``test_render_surface`` covers
+    the process-group kill that produces the ``None`` in the first place.
+    """
+
+    def test_a_required_step_timeout_exits_1_naming_the_tool(self):
+        with mock.patch.object(apply_theme, "run_logged", return_value=None):
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(1, status)
+        self.assertIn(
+            f"lookandfeeltool timed out after {apply_theme.COMMAND_TIMEOUT:g}s",
+            stderr,
+        )
+        self.assertNotIn("Traceback", stderr)
+
+    def test_a_kwin_reconfigure_timeout_prints_a_note_and_exits_0(self):
+        def run_logged(argv, env, log, timeout, cwd):
+            # The three required steps succeed; the KWin reconfigure times out.
+            return None if argv[0].endswith("qdbus6") else 0
+
+        with mock.patch.object(apply_theme, "run_logged", side_effect=run_logged):
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(0, status, stderr)
+        self.assertIn(
+            f"KWin reconfigure timed out after {apply_theme.COMMAND_TIMEOUT:g}s",
+            stderr,
+        )
+
+
 class TestMissingTool(unittest.TestCase):
     def test_names_the_first_missing_required_tool_and_exits_2(self):
         for missing in apply_theme.REQUIRED_TOOLS:
