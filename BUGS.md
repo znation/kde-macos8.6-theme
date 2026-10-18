@@ -12,6 +12,28 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` drops a register row whose Test cell has no backticked reference (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `parse_rows` skipped every row whose Test cell held no backticked reference, so a
+data row that lost its backticks was treated as a header row and silently dropped. When the
+section had other rows the guarantee went unpinned with no error; when it was the section's only
+data row, `cross_check` failed with the misleading "section <name> ... has no rows".
+
+**Cause:** `parse_rows` used "the Test cell names at least one backticked test" both to skip the
+table header/separator and to decide whether a row was data, so a malformed data row and the
+scaffold were indistinguishable.
+
+**Fix:** `parse_rows` skips only the structural header and separator rows (`_is_table_scaffold`)
+and keeps every other three-cell row even when its Test cell names no test; `cross_check` then
+raises "has a row with no test reference" for it.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_data_row_without_a_test_reference`
+(failed before, passes after).
+
+**Validation gap:** no-observability — the malformed row was dropped without an error, and
+`docs/invariants.md` contains no such row, so no existing test or real run could surface it.
+
 ### `test_invariants.py` drops a register row whose cell contains an escaped pipe (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `_cells` splits a table row on every `|`, so a Markdown-escaped literal pipe

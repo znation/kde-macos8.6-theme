@@ -5,8 +5,8 @@ guarantee a surface must keep and the test that pins it, so a future bug is
 confirmable without reconstructing the intent from the test's body. Nothing
 otherwise ties the register to the repository: this module parses its sections
 and table rows and fails when a ``theme/`` subsystem directory has no section,
-when a row names a test file, class or method that does not exist, or when a
-guarantee cell is blank.
+when a row names a test file, class or method that does not exist, when a row
+names no test, or when a guarantee cell is blank.
 """
 
 from __future__ import annotations
@@ -28,6 +28,10 @@ EXTRA_SECTIONS = ("tooling",)
 
 SECTION = re.compile(r"^##\s+(?P<name>.+?)\s*$")
 REFERENCE = re.compile(r"`([^`]+)`")
+# A separator cell is a run of dashes, optionally bounded by a colon on
+# either side (``---``, ``:--``, ``--:``, ``:-:``).
+SEPARATOR_CELL = re.compile(r"^:?-+:?$")
+HEADER_CELLS = ("guarantee", "test", "provenance exception")
 
 Row = namedtuple("Row", "guarantee tests provenance")
 
@@ -71,11 +75,20 @@ def _cells(line):
     return cells
 
 
+def _is_table_scaffold(cells):
+    """Return True for a table's header or separator row, not a data row."""
+    if all(SEPARATOR_CELL.match(cell) for cell in cells):
+        return True
+    return tuple(cell.lower() for cell in cells) == HEADER_CELLS
+
+
 def parse_rows(text):
     """Return ``{section name: [Row, ...]}`` for the register *text*.
 
-    Header and separator rows carry no backticked test reference and are
-    skipped; a row is a data row when its Test cell names at least one test.
+    The header and separator rows of a table are scaffold, not data, and are
+    skipped; every other three-cell row becomes a :class:`Row`, even when its
+    Test cell names no test, so :func:`cross_check` can reject that row instead
+    of losing its guarantee.
     """
     sections = {}
     current = None
@@ -90,11 +103,10 @@ def parse_rows(text):
         cells = _cells(line)
         if cells is None:
             continue
-        guarantee, test, provenance = cells
-        tests = REFERENCE.findall(test)
-        if not tests:
+        if _is_table_scaffold(cells):
             continue
-        sections[current].append(Row(guarantee, tests, provenance))
+        guarantee, test, provenance = cells
+        sections[current].append(Row(guarantee, REFERENCE.findall(test), provenance))
     return sections
 
 
@@ -149,7 +161,8 @@ def cross_check(root, register):
 
     Returns ``{section name: [Row, ...]}``; raises :class:`AssertionError` for a
     ``theme/`` subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
-    an empty section, a blank guarantee cell, or an unresolvable test reference.
+    an empty section, a blank guarantee cell, a data row that names no test, or
+    an unresolvable test reference.
     """
     with open(register, encoding="utf-8") as handle:
         sections = parse_rows(handle.read())
@@ -171,6 +184,10 @@ def cross_check(root, register):
         for row in rows:
             if not row.guarantee:
                 raise AssertionError(f"section {name} in {register} has a blank guarantee")
+            if not row.tests:
+                raise AssertionError(
+                    f"section {name} in {register} has a row with no test reference"
+                )
             for reference in row.tests:
                 check_reference(root, reference, name)
     return sections
@@ -265,6 +282,23 @@ class TestHelpers(unittest.TestCase):
                 ]
             },
         )
+
+    def test_cross_check_rejects_a_data_row_without_a_test_reference(self):
+        # A data row whose Test cell lost its backticks is malformed, not a
+        # header; dropping it silently would leave its guarantee unpinned.
+        # The section keeps a valid first row so the bug is not masked by the
+        # empty-section check.
+        register = self._register(
+            "# Invariants\n\n## aurorae\n\n"
+            "| Guarantee | Test | Provenance exception |\n"
+            "| --- | --- | --- |\n"
+            f"| The first thing holds. | `{self.MODULE}::TestFake` | none |\n"
+            f"| The second thing holds. | {self.MODULE}::TestFake | none |\n"
+            "\n## tooling\n\n"
+            + self._table([("The gate holds.", f"{self.MODULE}::TestFake::test_ok")])
+        )
+        with self.assertRaisesRegex(AssertionError, "no test reference"):
+            cross_check(self.root, register)
 
     def test_cross_check_accepts_a_matching_register(self):
         sections = cross_check(self.root, self._valid_register())
