@@ -14,6 +14,7 @@ from tools import process_group  # noqa: E402
 
 
 def is_gone(pid):
+    """Return True once *pid* no longer exists, waiting up to five seconds."""
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
         try:

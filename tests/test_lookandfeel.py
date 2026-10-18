@@ -49,6 +49,7 @@ WALLPAPER_METADATA = os.path.join(
 
 
 def load_defaults():
+    """Return the global theme's parsed ``contents/defaults`` config."""
     return read_kde_config(DEFAULTS)
 
 

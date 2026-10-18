@@ -55,6 +55,7 @@ def title_gaps(image):
 
 
 def hint_geometry():
+    """Return the expected ``{id: (x, y, width, height)}`` map for the hint rects."""
     expected = {"hint-tile-center": ("7", "3", "6", "6")}
     for prefix in ("normal", "hover", "pressed"):
         expected.update(

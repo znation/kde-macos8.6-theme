@@ -48,6 +48,7 @@ def _read_layout():
 
 
 def panel_height(text):
+    """Return the ``panel.height`` literal in *text*, or ``None`` when absent."""
     match = re.search(r"^\s*panel\.height\s*=\s*(\d+)\s*;", text, re.MULTILINE)
     return int(match.group(1)) if match else None
 

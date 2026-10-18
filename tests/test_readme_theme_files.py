@@ -22,6 +22,7 @@ AURORAE_DIR = os.path.join(ROOT, "theme", "aurorae", "themes", "org.macos8.deskt
 
 
 def readme_text():
+    """Return the UTF-8 text of the repository's ``README.md``."""
     with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as handle:
         return handle.read()
 

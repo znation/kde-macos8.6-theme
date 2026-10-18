@@ -22,6 +22,7 @@ LOOK_AND_FEEL = os.path.join(ROOT, "theme", "look-and-feel", "org.macos8.desktop
 
 
 def read(name):
+    """Return the UTF-8 text of the repository file at *name*."""
     with open(os.path.join(ROOT, name), encoding="utf-8") as handle:
         return handle.read()
 

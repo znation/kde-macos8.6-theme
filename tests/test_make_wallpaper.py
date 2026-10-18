@@ -20,6 +20,7 @@ SMALL_RESOLUTIONS = ((130, 3), (5, 2))
 
 
 def gradient(width, height):
+    """Return a deterministic *width* x *height* RGB byte string."""
     return bytes((i * 5 + i // 251) % 256 for i in range(width * height * 3))
 
 
