@@ -135,8 +135,9 @@ def check_reference(root, reference, section):
 
     A reference is ``path``, ``path::Class`` or ``path::Class::method``; raises
     :class:`AssertionError` naming *section* and the first missing piece. A
-    reference ending in ``::`` names no class and is rejected too, so it cannot
-    silently pin a guarantee to no test.
+    reference ending in ``::`` names no class and a reference with a fourth
+    ``::`` segment is rejected too, so neither can silently pin a guarantee to
+    no test.
     """
     path, sep, qualifier = reference.partition("::")
     file_path = os.path.join(root, path)
@@ -149,6 +150,10 @@ def check_reference(root, reference, section):
             )
         return
     names = qualifier.split("::")
+    if len(names) > 2:
+        raise AssertionError(
+            f"{section}: {reference} names more than a class and method"
+        )
     classes = _defined_names(file_path)
     class_name = names[0]
     if class_name not in classes:
@@ -377,6 +382,17 @@ class TestHelpers(unittest.TestCase):
             [("The thing holds.", f"{self.MODULE}::")]
         )
         with self.assertRaisesRegex(AssertionError, "names no class or method"):
+            cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_reference_with_a_trailing_segment(self):
+        # `path::Class::method::junk` names the class and method but then a
+        # fourth segment that the reference grammar has no room for; accepting
+        # it would let a malformed reference pin a guarantee to a test it may
+        # not actually name.
+        register = self._valid_register(
+            [("The thing holds.", f"{self.MODULE}::TestFake::test_ok::junk")]
+        )
+        with self.assertRaisesRegex(AssertionError, "more than a class and method"):
             cross_check(self.root, register)
 
     def test_cross_check_rejects_a_missing_method(self):

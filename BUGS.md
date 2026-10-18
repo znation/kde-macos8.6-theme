@@ -12,6 +12,29 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` accepts a register reference with a segment after the method (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `check_reference` accepted a reference such as
+`fake_module::TestFake::test_ok::junk`: it checked that the class and the method
+exist and ignored every segment after the method, so a malformed reference
+resolved instead of failing.
+
+**Cause:** `check_reference` split the qualifier on `::` and looked only at
+`names[0]` (class) and `names[1]` (method), never rejecting a longer list. The
+documented grammar is `path`, `path::Class` or `path::Class::method`, so a
+fourth segment is malformed.
+
+**Fix:** `check_reference` now raises `AssertionError` naming the section and
+the reference when the qualifier has more than two `::` segments.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_reference_with_a_trailing_segment`
+(failed before the fix, passes after).
+
+**Validation gap:** no-observability -- the extra segment was ignored and the
+reference resolved, so no existing test or real run could surface it; it was
+found by reading the parser and confirmed with a scratch `cross_check` call.
+
 ### `test_invariants.py` drops a register row that does not split into three cells (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `parse_rows` called `_cells` on every line that starts with a pipe; when the
