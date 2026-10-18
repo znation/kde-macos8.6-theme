@@ -173,10 +173,19 @@ def check_reference(root, reference, section):
     kind unittest runs), so a helper cannot stand in for the test that pins the
     guarantee. A named class must be a ``TestCase`` (directly or through a
     base defined in the same module), so a helper class unittest never
-    collects cannot stand in for the tests that pin the guarantee.
+    collects cannot stand in for the tests that pin the guarantee. The path
+    must stay inside *root*: an absolute path replaces the root and a ``..``
+    segment climbs out of it, so either would let a row pin a guarantee to a
+    test outside the tree the register covers.
     """
     path, sep, qualifier = reference.partition("::")
     file_path = os.path.join(root, path)
+    root_path = os.path.realpath(root)
+    resolved = os.path.realpath(file_path)
+    if resolved != root_path and not resolved.startswith(root_path + os.sep):
+        raise AssertionError(
+            f"{section}: {reference} names a path outside the repository"
+        )
     if not os.path.isfile(file_path):
         raise AssertionError(f"{section}: {reference} names a missing file")
     if not qualifier:
@@ -511,6 +520,38 @@ class TestHelpers(unittest.TestCase):
         )
         with self.assertRaisesRegex(AssertionError, "not a test case"):
             cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_reference_outside_the_repository(self):
+        # `check_reference` joins the register's path onto the repository
+        # root. An absolute path replaces the root, and a `..` segment climbs
+        # out of it, so either form can name a module that is not part of the
+        # repository; accepting it would pin a guarantee to a test outside the
+        # tree the register is meant to cover.
+        base = make_tmp_dir(self)
+        outside = base / "outside"
+        outside.mkdir()
+        (outside / self.MODULE).write_text(
+            "import unittest\n\n\n"
+            "class TestFake(unittest.TestCase):\n"
+            "    def test_ok(self):\n"
+            "        pass\n",
+            encoding="utf-8",
+        )
+        repo = base / "repo"
+        (repo / "theme" / "aurorae").mkdir(parents=True)
+        register = repo / "docs" / "invariants.md"
+        register.parent.mkdir(parents=True)
+        for path in (str(outside / self.MODULE), f"../outside/{self.MODULE}"):
+            with self.subTest(path=path):
+                register.write_text(
+                    "# Invariants\n\n## aurorae\n\n"
+                    + self._table([("The thing holds.", f"{path}::TestFake")])
+                    + "\n## tooling\n\n"
+                    + self._table([("The gate holds.", f"{path}::TestFake::test_ok")]),
+                    encoding="utf-8",
+                )
+                with self.assertRaisesRegex(AssertionError, "outside the repository"):
+                    cross_check(repo, str(register))
 
 
 class TestRepositoryRegister(unittest.TestCase):

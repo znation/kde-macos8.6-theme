@@ -12,6 +12,32 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` accepts a register reference that escapes the repository (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `check_reference` accepted a reference such as
+`/outside/fake_module::TestFake` or `../outside/fake_module::TestFake`, where
+the path resolved to a module outside the repository root: the row parsed as
+AST, named a real `TestCase`, and passed, so a guarantee could be pinned to a
+test outside the tree the register covers.
+
+**Cause:** `check_reference` computed `os.path.join(root, path)` and only
+checked `os.path.isfile`; an absolute `path` replaces `root` in `os.path.join`
+and a `..` segment climbs out of it, so neither form was rejected before the
+file was read.
+
+**Fix:** the joined path is resolved with `os.path.realpath` and must stay
+inside the resolved root (equal to it or prefixed by `root + os.sep`); a
+reference that escapes is refused with "names a path outside the repository".
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_reference_outside_the_repository`
+(failed before the fix for both the absolute and `..` forms with
+"AssertionError not raised", passes after).
+
+**Validation gap:** no-observability -- the escaping reference resolved and
+the row passed, so no existing test or real run could surface it; it was found
+by reading the path join and confirmed with a scratch reproduction.
+
 ### `test_invariants.py` accepts a method reference into a class that is not a test case (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `check_reference` accepted a reference such as
