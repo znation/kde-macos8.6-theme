@@ -9,7 +9,7 @@ from support.desktoptheme_paths import BUSYWIDGET_SVG
 from support.platinum_palette import BLACK, FACE
 from support.svg_case import SvgCase
 from svg_assertions import (
-    arc_center,
+    assert_arcs_share_center,
     assert_bounds_rect,
     assert_ids_present,
     assert_no_script_elements,
@@ -55,14 +55,10 @@ class TestBusyWidget(SvgCase, unittest.TestCase):
             entries = list(path_arcs(path.get("d")))
             self.assertEqual([arc[0] for _, arc, _ in entries], list(radii))
             self.assertEqual(path.get("fill"), fill)
+            assert_arcs_share_center(self, entries, CENTER)
             angles = []
             for start, arc, end in entries:
-                rx, ry, large_arc = arc[0], arc[1], arc[2]
-                self.assertEqual(rx, ry)
-                self.assertEqual(large_arc, 1)
-                actual = arc_center(start, arc, end)
-                self.assertAlmostEqual(actual[0], CENTER[0], places=2)
-                self.assertAlmostEqual(actual[1], CENTER[1], places=2)
+                self.assertEqual(arc[2], 1)
                 angles.extend(
                     math.atan2(point[1] - CENTER[1], point[0] - CENTER[0])
                     for point in (start, end)

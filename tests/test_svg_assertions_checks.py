@@ -17,6 +17,7 @@ import xml.etree.ElementTree as ET
 from support.error_assertions import assert_rejects
 from svg_assertions import (
     SLICE_IDS,
+    assert_arcs_share_center,
     assert_bounds_rect,
     assert_diagonal_half_disc,
     assert_hint_geometry,
@@ -25,6 +26,7 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
     elements_by_id,
+    path_arcs,
 )
 from support.svg_fixtures import _svg_tree
 
@@ -277,6 +279,23 @@ class TestStructuralGuards(unittest.TestCase):
             16.0,
             (18.0, 18.0),
         )
+
+
+class TestArcsShareCenter(unittest.TestCase):
+    def test_passes_arcs_centred_on_the_expected_point(self):
+        entries = list(path_arcs(_bevel_half_disc(0).get("d")))
+        assert_arcs_share_center(self, entries, (18.0, 18.0))
+
+    def test_rejects_an_elliptical_arc(self):
+        # `arc_center` reconstructs a *circular* arc from rx alone, so an
+        # ellipse's centre would be meaningless; the guard must reject it
+        # rather than compare a value it cannot derive.
+        entries = list(path_arcs("M 2,18 A 16,10 0 0 1 34,18"))
+        assert_rejects(assert_arcs_share_center, entries, (18.0, 18.0))
+
+    def test_rejects_an_arc_centred_elsewhere(self):
+        entries = list(path_arcs("M 0,0 A 5,5 0 0 1 10,0"))
+        assert_rejects(assert_arcs_share_center, entries, (18.0, 18.0))
 
 
 def _id_tree(prefixes=("",), omit=()):

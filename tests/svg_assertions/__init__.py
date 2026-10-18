@@ -84,6 +84,7 @@ from .nine_slice import (
 )
 
 from .checks import (
+    assert_arcs_share_center,
     assert_bounds_rect,
     assert_center_tile_is,
     assert_corner_pixels,

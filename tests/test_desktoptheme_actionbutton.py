@@ -8,7 +8,7 @@ from support.desktoptheme_paths import ACTIONBUTTON_SVG
 from support.platinum_palette import BLACK, FACE, GREY, PLATINUM_FILLS, WHITE
 from support.svg_case import SvgCase
 from svg_assertions import (
-    arc_center,
+    assert_arcs_share_center,
     assert_bounds_rect,
     assert_diagonal_half_disc,
     assert_ids_present,
@@ -108,11 +108,7 @@ class TestActionButton(SvgCase, unittest.TestCase):
                     [(arc[0], arc[2], arc[3]) for _, arc, _ in entries],
                     list(RING_ARCS),
                 )
-                for start, arc, end in entries:
-                    self.assertEqual(arc[0], arc[1])
-                    centre = arc_center(start, arc, end)
-                    self.assertAlmostEqual(centre[0], CENTER[0], places=2)
-                    self.assertAlmostEqual(centre[1], CENTER[1], places=2)
+                assert_arcs_share_center(self, entries, CENTER)
 
 
 if __name__ == "__main__":

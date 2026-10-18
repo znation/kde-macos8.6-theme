@@ -8,7 +8,7 @@ from support.desktoptheme_paths import BUTTON_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import assert_fill_palette
 from svg_assertions import (
-    arc_center,
+    assert_arcs_share_center,
     assert_center_tile_is,
     assert_edge_bevels,
     assert_hint_geometry,
@@ -135,15 +135,10 @@ class TestButton(NineSliceCase, unittest.TestCase):
                 self.assertEqual(
                     [arc[0] for _, arc, _ in entries], list(radii), name
                 )
-                for start, arc, end in entries:
-                    rx, ry = arc[0], arc[1]
-                    self.assertEqual(rx, ry, name)
-                    actual = arc_center(start, arc, end)
-                    # The mixed-corner arcs meet the diagonal at coordinates
-                    # rounded to three decimals, so their reconstructed centre
-                    # is within a thousandth of the exact inner corner.
-                    self.assertAlmostEqual(actual[0], center[0], places=2, msg=name)
-                    self.assertAlmostEqual(actual[1], center[1], places=2, msg=name)
+                # The mixed-corner arcs meet the diagonal at coordinates
+                # rounded to three decimals, so their reconstructed centre
+                # is within a thousandth of the exact inner corner.
+                assert_arcs_share_center(self, entries, center, msg=name)
 
     def test_button_edge_pixels(self):
         # `test_button_bevel_direction` reads only the first column of each

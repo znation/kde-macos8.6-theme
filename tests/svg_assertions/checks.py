@@ -241,6 +241,23 @@ def assert_diagonal_half_disc(case, path, index, radius, center):
     case.assertAlmostEqual(centre[1], center[1], places=2)
 
 
+def assert_arcs_share_center(case, entries, center, msg=None):
+    """Assert every arc in *entries* is circular and centred on *center*.
+
+    *entries* is a sequence of ``(start, arc, end)`` triples as `path_arcs`
+    yields them. Each arc's two radii must be equal -- an elliptical arc would
+    make `arc_center`'s circular reconstruction meaningless -- and its
+    reconstructed centre must match *center* to two decimal places, the
+    precision a rendered arc's rounded endpoints allow. *case* is the calling
+    ``unittest.TestCase``; *msg* is an optional assertion message.
+    """
+    for start, arc, end in entries:
+        case.assertEqual(arc[0], arc[1], msg)
+        centre = arc_center(start, arc, end)
+        case.assertAlmostEqual(centre[0], center[0], places=2, msg=msg)
+        case.assertAlmostEqual(centre[1], center[1], places=2, msg=msg)
+
+
 def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):
     """Assert *tree*'s hint rects are a centred nine-slice's.
 
