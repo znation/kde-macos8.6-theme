@@ -22,25 +22,45 @@ from theme_install import run_captured
 from tmp_dir import make_tmp_dir
 
 
-def run_main(main, program, args):
-    """Call *main* with *args* and capture stdout/stderr as a CompletedProcess.
+def _call_capturing(call):
+    """Call *call*, capturing stdout and stderr; return (status, stdout, stderr).
 
-    *program* names the tool in the returned process's ``args``, so a failure
-    message reads like the ``python3 tools/<program>.py`` invocation. A
-    ``SystemExit`` becomes the process return code, as the script wrapper's
-    ``sys.exit`` would report it: ``None`` is 0 and a non-int code is 1.
+    A ``SystemExit`` becomes the status as the script wrapper's ``sys.exit``
+    would report it: ``None`` is 0 and a non-int code is 1.
     """
     stdout, stderr = io.StringIO(), io.StringIO()
     with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
         try:
-            returncode = main(list(args))
+            status = call()
         except SystemExit as exc:
-            returncode = 0 if exc.code is None else exc.code
-            if not isinstance(returncode, int):
-                returncode = 1
+            status = 0 if exc.code is None else exc.code
+            if not isinstance(status, int):
+                status = 1
+    return status, stdout.getvalue(), stderr.getvalue()
+
+
+def run_main(main, program, args):
+    """Call *main* with *args* and capture stdout/stderr as a CompletedProcess.
+
+    *program* names the tool in the returned process's ``args``, so a failure
+    message reads like the ``python3 tools/<program>.py`` invocation.
+    """
+    status, stdout, stderr = _call_capturing(lambda: main(list(args)))
     return subprocess.CompletedProcess(
-        [program, *args], returncode, stdout.getvalue(), stderr.getvalue()
+        [program, *args], status, stdout, stderr
     )
+
+
+def call_main(main, *args):
+    """Call ``main(list(args))`` and return ``(status, stderr)``.
+
+    Like ``run_main``, but for tests that read only the exit status and the
+    diagnostics, not stdout or a ``CompletedProcess``. Passing an explicit
+    list keeps a ``main(argv=None)`` from reading the test runner's own
+    ``sys.argv``.
+    """
+    status, _, stderr = _call_capturing(lambda: main(list(args)))
+    return status, stderr
 
 
 class CliTestCase(unittest.TestCase):

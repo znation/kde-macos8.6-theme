@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import contextlib
 import errno
-import io
 import os
 import shutil
 import signal
@@ -19,6 +17,7 @@ from unittest import mock
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
 import process_runner
+from cli_fixtures import call_main
 from platinum_palette import FACE, hex_colour
 from tools import render_surface  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
@@ -27,20 +26,9 @@ from tools.png_write import encode_png  # noqa: E402
 SCRIPT = str(repo_root.ROOT / "tools" / "render_surface.py")
 
 
-def call_main(*argv):
-    """Run ``main(argv)`` in-process; return ``(status, stderr)``."""
-    stderr = io.StringIO()
-    with contextlib.redirect_stderr(stderr):
-        try:
-            status = render_surface.main(list(argv))
-        except SystemExit as exit_:
-            status = exit_.code
-    return status, stderr.getvalue()
-
-
 class TestArguments(unittest.TestCase):
     def assert_usage_error(self, *argv):
-        status, stderr = call_main(*argv)
+        status, stderr = call_main(render_surface.main, *argv)
         self.assertEqual(2, status)
         return stderr
 
@@ -110,7 +98,7 @@ class TestMissingTool(unittest.TestCase):
     def test_names_the_first_missing_tool_and_exits_2(self):
         with tempfile.TemporaryDirectory() as empty:
             with mock.patch.dict(os.environ, {"PATH": empty}):
-                status, stderr = call_main("out.png")
+                status, stderr = call_main(render_surface.main, "out.png")
         self.assertEqual(2, status)
         self.assertIn(render_surface.REQUIRED_TOOLS[0], stderr)
         self.assertIn("render_surface: error:", stderr)
@@ -125,7 +113,7 @@ class TestMissingTool(unittest.TestCase):
                             tool.write_text("#!/bin/sh\n", encoding="utf-8")
                             tool.chmod(0o755)
                     with mock.patch.dict(os.environ, {"PATH": directory}):
-                        status, stderr = call_main("out.png")
+                        status, stderr = call_main(render_surface.main, "out.png")
                 self.assertEqual(2, status)
                 self.assertTrue(stderr.rstrip().endswith(missing), stderr)
 
@@ -133,7 +121,7 @@ class TestMissingTool(unittest.TestCase):
 class TestFailurePaths(StubTools):
     def run_main(self, *extra):
         output = self.root / "out.png"
-        status, stderr = call_main(str(output), *extra)
+        status, stderr = call_main(render_surface.main, str(output), *extra)
         return status, stderr, output
 
     def test_failed_install_exits_1_and_removes_scratch(self):
@@ -170,7 +158,7 @@ class TestFailurePaths(StubTools):
             ("a missing directory", self.root / "missing" / "out.png"),
         ):
             with self.subTest(label):
-                status, stderr = call_main(str(output))
+                status, stderr = call_main(render_surface.main, str(output))
                 self.assertEqual(2, status)
                 self.assertIn("render_surface: error: cannot write", stderr)
                 self.assertFalse(marker.exists())
@@ -203,7 +191,7 @@ class TestFailurePaths(StubTools):
             raise OSError(errno.ENOSPC, "No space left on device")
 
         with mock.patch.object(shutil, "copyfile", die_midway):
-            status, stderr = call_main(str(output))
+            status, stderr = call_main(render_surface.main, str(output))
         self.assertEqual(1, status)
         self.assertIn("cannot write", stderr)
         self.assertEqual(b"previous good render", output.read_bytes())

@@ -10,8 +10,6 @@ running Plasma session. The Makefile tests drive the `apply` target through
 
 from __future__ import annotations
 
-import contextlib
-import io
 import os
 import shutil
 import stat
@@ -22,19 +20,9 @@ from unittest import mock
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
 import theme_install
+from cli_fixtures import call_main
 from process_assertions import assert_failed, assert_succeeded
 from tools import apply_theme
-
-
-def call_main(*argv):
-    """Run ``main(argv)`` in-process; return ``(status, stderr)``."""
-    stderr = io.StringIO()
-    with contextlib.redirect_stderr(stderr):
-        try:
-            status = apply_theme.main(list(argv))
-        except SystemExit as exit_:
-            status = exit_.code
-    return status, stderr.getvalue()
 
 
 class StubTools(unittest.TestCase):
@@ -90,7 +78,7 @@ class StubTools(unittest.TestCase):
 
 class TestCommandOrder(StubTools):
     def test_runs_the_four_steps_in_order(self):
-        status, stderr = call_main()
+        status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertEqual(
             [
@@ -103,13 +91,13 @@ class TestCommandOrder(StubTools):
         )
 
     def test_never_passes_reset_layout(self):
-        call_main()
+        call_main(apply_theme.main)
         self.assertNotIn("--resetLayout", " ".join(self.recorded()))
 
     def test_falls_back_to_qdbus_when_qdbus6_is_missing(self):
         self.unstub("qdbus6")
         self.stub("qdbus")
-        status, stderr = call_main()
+        status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertEqual(
             ["qdbus org.kde.KWin /KWin reconfigure"], self.recorded()[-1:]
@@ -122,21 +110,21 @@ class TestFailurePaths(StubTools):
             "plasma-apply-colorscheme",
             "echo colorscheme exploded >&2\nexit 4",
         )
-        status, stderr = call_main()
+        status, stderr = call_main(apply_theme.main)
         self.assertEqual(1, status)
         self.assertIn("plasma-apply-colorscheme exited 4", stderr)
         self.assertIn("colorscheme exploded", stderr)
 
     def test_missing_qdbus_prints_a_note_and_exits_0(self):
         self.unstub("qdbus6")
-        status, stderr = call_main()
+        status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn("note", stderr)
         self.assertIn("qdbus", stderr)
 
     def test_failing_qdbus_prints_a_note_and_exits_0(self):
         self.stub("qdbus6", "echo reconfigure failed >&2\nexit 3")
-        status, stderr = call_main()
+        status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn("note", stderr)
 
@@ -152,7 +140,7 @@ class TestMissingTool(unittest.TestCase):
                             tool.write_text("#!/bin/sh\n", encoding="utf-8")
                             tool.chmod(0o755)
                     with mock.patch.dict(os.environ, {"PATH": directory}):
-                        status, stderr = call_main()
+                        status, stderr = call_main(apply_theme.main)
                 self.assertEqual(2, status)
                 self.assertTrue(stderr.rstrip().endswith(missing), stderr)
 
@@ -166,7 +154,7 @@ class TestSessionBus(StubTools):
             os.environ, {"XDG_RUNTIME_DIR": str(runtime)}, clear=False
         ):
             os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
-            status, stderr = call_main()
+            status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn(
             f"qdbus6 DBUS=unix:path={runtime}/bus", self.env_recorded()
@@ -178,7 +166,7 @@ class TestSessionBus(StubTools):
             {"DBUS_SESSION_BUS_ADDRESS": "unix:path=/existing"},
             clear=False,
         ):
-            status, stderr = call_main()
+            status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn("qdbus6 DBUS=unix:path=/existing", self.env_recorded())
 
@@ -187,7 +175,7 @@ class TestSessionBus(StubTools):
             os.environ, {"XDG_RUNTIME_DIR": "relative"}, clear=False
         ):
             os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
-            status, stderr = call_main()
+            status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn("qdbus6 DBUS=", self.env_recorded())
         self.assertNotIn("unix:path=relative", self.env_recorded())
@@ -199,7 +187,7 @@ class TestSessionBus(StubTools):
             os.environ, {"XDG_RUNTIME_DIR": str(runtime)}, clear=False
         ):
             os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
-            status, stderr = call_main()
+            status, stderr = call_main(apply_theme.main)
         self.assertEqual(0, status, stderr)
         self.assertIn("qdbus6 DBUS=", self.env_recorded())
 
