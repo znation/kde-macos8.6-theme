@@ -1,9 +1,9 @@
 """Validate the org.macos8.desktop icon theme package.
 
 The package ships our own final Platinum-style art for the icons a default Mac
-OS 8.6 desktop shows; these tests pin the theme's identity, the 32x32 SVG shape
-and Platinum palette of every icon, the placeholder register (empty now that
-the art is final), and the install/uninstall lifecycle.
+OS 8.6 desktop shows; these tests pin the theme's identity, the per-size SVG
+shape and Platinum palette of every icon, the placeholder register (empty now
+that the art is final), and the install/uninstall lifecycle.
 """
 
 from __future__ import annotations
@@ -33,15 +33,24 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 INDEX = os.path.join(PACKAGE, "index.theme")
 PLACEHOLDERS = os.path.join(ROOT, "PLACEHOLDERS.md")
 
-# The 32x32 icons the package ships: the desktop's hard disk, folder, document
-# and Trash, plus the `inode-directory` alias KDE resolves a directory to.
+# The icons the package ships: the desktop's hard disk, folder, document and
+# Trash (32x32), the `inode-directory` alias KDE resolves a directory to, and
+# the kicker logo the menu bar's top-left button shows at the two panel sizes.
 SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-harddisk.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-trash.svg"),
+    os.path.join("16x16", "places", "start-here-kde-symbolic.svg"),
+    os.path.join("22x22", "places", "start-here-kde-symbolic.svg"),
 )
+
+
+def _declared_size(icon):
+    """Return the pixel size declared by *icon*'s leading ``NNxNN`` directory."""
+    directory = os.path.dirname(icon).split(os.sep)[0]
+    return int(directory.split("x", 1)[0])
 
 SVG_NS = "{http://www.w3.org/2000/svg}"
 
@@ -67,7 +76,7 @@ class TestIndex(unittest.TestCase):
             "Mac OS 8.6 Platinum icon theme",
         )
 
-    def test_every_shipped_icon_lives_in_a_declared_32px_directory(self):
+    def test_every_shipped_icon_lives_in_a_declared_size_directory(self):
         directories = [
             entry.strip()
             for entry in self.parser.get("Icon Theme", "Directories").split(",")
@@ -76,7 +85,10 @@ class TestIndex(unittest.TestCase):
             with self.subTest(icon=icon):
                 directory = os.path.dirname(icon)
                 self.assertIn(directory, directories)
-                self.assertEqual(self.parser.get(directory, "Size"), "32")
+                self.assertEqual(
+                    self.parser.get(directory, "Size"),
+                    str(_declared_size(icon)),
+                )
 
     def test_icon_theme_ships_exactly_the_tracked_icons(self):
         shipped = set()
@@ -103,14 +115,15 @@ class TestIndex(unittest.TestCase):
 
 
 class TestIcons(unittest.TestCase):
-    def test_each_icon_is_a_32_pixel_svg(self):
+    def test_each_icon_is_a_square_svg_of_its_declared_size(self):
         for icon in SHIPPED_ICONS:
             with self.subTest(icon=icon):
+                size = str(_declared_size(icon))
                 root = ET.parse(os.path.join(PACKAGE, icon)).getroot()
                 self.assertEqual(root.tag, SVG_NS + "svg")
-                self.assertEqual(root.get("width"), "32")
-                self.assertEqual(root.get("height"), "32")
-                self.assertEqual(root.get("viewBox"), "0 0 32 32")
+                self.assertEqual(root.get("width"), size)
+                self.assertEqual(root.get("height"), size)
+                self.assertEqual(root.get("viewBox"), f"0 0 {size} {size}")
 
     def test_each_icon_uses_only_the_platinum_palette(self):
         for icon in SHIPPED_ICONS:

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" kicker logo.
+
+     Our own 16x16 mark in the Platinum palette: a #DDDDDD monitor with a
+     1px #000000 outline, the Platinum bevel (#FFFFFF top/left, #999999
+     bottom/right) and a black stand. Drawn for this theme; it reproduces
+     neither Apple's apple shape nor its rainbow palette. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Monitor outline and #DDDDDD face. -->
+  <rect x="1" y="1" width="14" height="10" fill="#000000"/>
+  <rect x="2" y="2" width="12" height="8" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <rect x="2" y="2" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="2" y="2" width="1" height="8" fill="#FFFFFF"/>
+  <rect x="2" y="9" width="12" height="1" fill="#999999"/>
+  <rect x="13" y="2" width="1" height="8" fill="#999999"/>
+  <!-- Stand: a short centred neck and a horizontal foot. -->
+  <rect x="7" y="11" width="2" height="2" fill="#000000"/>
+  <rect x="4" y="13" width="8" height="1" fill="#000000"/>
+</svg>

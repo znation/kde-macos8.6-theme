@@ -62,8 +62,8 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `[plasmarc][Theme]` in its `contents/defaults`. The global theme also selects the
 `org.macos8.desktop` icon theme through `[kdeglobals][Icons]` in the same `contents/defaults`; it
 ships our own Platinum-style art for the desktop's hard-disk, folder, document and Trash icons
-(drawn for this theme, not traced from Apple's artwork) and inherits Breeze for every other
-name. The global theme also selects Qt's built-in
+and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's),
+drawn for this theme, not traced from Apple's artwork, and inherits Breeze for every other name. The global theme also selects Qt's built-in
 `Windows` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw square
 bevelled Platinum-like controls instead of Breeze's rounded ones; choose another style in System
 Settings → Application Style. The desktop theme ships

@@ -28,6 +28,8 @@ as the whole of the prompt.
 
 ### Mac OS 8.6 Kvantum widget style, part 2/3: the remaining Platinum widget art (planned 2026-10-18 by the plan role; requires part 1/3 landed)
 
+**Needs review 2026-10-18 by feature: too large for one run**
+
 **Goal.** Part 1 shipped the palette and the core-control art. This part adds our own Platinum art
 and `.kvconfig` sections for the remaining Qt widget classes, so every control the theme draws is
 ours rather than falling back to Kvantum's compiled-in default shapes: scroll bars, sliders,
@@ -96,7 +98,9 @@ not installed.
 - README documents the selection and the no-Kvantum fallback.
 - `make check` is green.
 
-### Mac OS 8.6 kicker logo: our own non-infringing `start-here-kde-symbolic` icon (planned 2026-10-18 by the plan role)
+## Done
+
+### Mac OS 8.6 kicker logo: our own non-infringing `start-here-kde-symbolic` icon (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** The menu bar's top-left button is the `org.kde.plasma.kicker` applet, whose icon
 config defaults to `start-here-kde-symbolic`. The icon theme (`theme/icons/org.macos8.desktop/`)
@@ -150,8 +154,6 @@ kicker resolves it from the theme with no layout change. Independent of the Kvan
 - `contents/layouts/org.kde.plasma.desktop-layout.js` is byte-unchanged (the kicker's default
   icon name already matches), shown by `git diff`.
 - README names the kicker logo and `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Kvantum widget style, part 1/3: ship the `org.macos8.desktop` Kvantum theme with the Platinum palette and the core-control art (planned 2026-10-18 by the plan role; done 2026-10-18)
 
