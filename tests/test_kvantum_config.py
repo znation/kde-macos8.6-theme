@@ -138,6 +138,11 @@ SPECIAL_FRAME_MARGINS = {
 # exist elsewhere in the SVG still passes it, while Kvantum renders the wrong
 # control.
 TRACK_CONTROL_CONFIG = {
+    "Scrollbar": {
+        "frame.element": "button",
+        "interior.element": "button",
+        "indicator.element": "arrow",
+    },
     "ScrollbarSlider": {
         "frame.element": "scrollbarslider",
         "interior.element": "scrollbarslider",
@@ -231,6 +236,15 @@ SURFACE_CONTROL_CONFIG = {
         "indicator.element": "toolbar",
         "indicator.size": "5",
     },
+}
+
+# Sections that explicitly draw no frame or interior. `[TabBarFrame]` inherits
+# `GenericFrame`, whose `common` element would frame the tab bar; its
+# `frame=false`/`interior=false` suppress that, so removing either silently
+# gives the tab bar a border. A section in neither this table nor the three
+# element tables is unpinned, which `test_every_section_is_pinned` rejects.
+FRAMELESS_SECTIONS = {
+    "TabBarFrame": {"frame": "false", "interior": "false"},
 }
 
 
@@ -367,6 +381,37 @@ class TestSurfaceElements(unittest.TestCase):
     def test_every_surface_section_maps_to_its_element(self):
         parser = read_kde_config(KVCONFIG)
         for section, expected in SURFACE_CONTROL_CONFIG.items():
+            for key, value in expected.items():
+                with self.subTest(section=section, key=key):
+                    self.assertEqual(_resolved(parser, section, key), value)
+
+
+class TestSectionCoverage(unittest.TestCase):
+    """Every section in the `.kvconfig` is pinned by one of the tables.
+
+    The per-section tests only look at the sections their table names, so a
+    section absent from every table (``[Scrollbar]``'s element mapping and
+    ``[TabBarFrame]``'s framelessness were, before this test) shipped
+    unchecked. This keeps the tables exhaustive over the config, so a new
+    section without a pin fails here.
+    """
+
+    def test_every_section_is_pinned(self):
+        parser = read_kde_config(KVCONFIG)
+        covered = (
+            set(CORE_CONTROL_CONFIG)
+            | set(TRACK_CONTROL_CONFIG)
+            | set(SURFACE_CONTROL_CONFIG)
+            | set(FRAMELESS_SECTIONS)
+        )
+        # `%General` holds the scroll metrics and `[GeneralColors]` the
+        # palette; neither names an element, and their own tests pin them.
+        metadata = {"%General", "GeneralColors"}
+        self.assertEqual(set(parser.sections()) - covered - metadata, set())
+
+    def test_every_frameless_section_suppresses_its_frame(self):
+        parser = read_kde_config(KVCONFIG)
+        for section, expected in FRAMELESS_SECTIONS.items():
             for key, value in expected.items():
                 with self.subTest(section=section, key=key):
                     self.assertEqual(_resolved(parser, section, key), value)
