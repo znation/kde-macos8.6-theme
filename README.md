@@ -215,3 +215,13 @@ aggregate budgets instead: when either is given, a run passes when each given bu
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
 the default no-differing-pixel gate no longer applies. `make render` (`tools/render_surface.py`)
 produces a candidate render; no reference crop or threshold for a rendered surface is chosen yet.
+
+## Development team
+
+This theme is developed by a tumwater team of AI roles. How many roles run at once is a tumwater
+setting, not a file in this repository: `maxConcurrent` in the primary checkout's `tumwater.json`
+(alongside any `maxConcurrentPerProvider` cap) is the most model runs in flight across all roles
+at once, merges included, with the director's own runs sitting outside it; it defaults to 6. A
+role cannot change it — the director's `.tumwater-config-request.json` applies only its
+`customRoles` array — so the operator sets it from the primary checkout, for example
+`tumwater config set maxConcurrent 6` (requested 2026-10-18: run six roles at once).
