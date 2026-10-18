@@ -10,7 +10,7 @@
      open (face only) so the tab merges with its panel content.
 
      The nine-slice contract is a 3px border around a 6px centre tile on a
-     tight 12x12 canvas, the same as frame.svg and menubaritem.svg.
+     tight 12x12 canvas, the same as frame.svg.
 
      Provenance: raised bevel reuses the Platinum raised-face palette from
      test_desktoptheme_frame.py; the inner edge is face-only (#DDDDDD) as

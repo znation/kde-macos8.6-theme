@@ -59,10 +59,11 @@ from theme_install import installed_destdir, run_captured
 PLASMA_SECTION = "plasmarc][Theme"
 
 
-# Each shipped SVG's root canvas. Nine widgets (the menu bar, frame, button,
-# line edit, list item, view item, menu-bar item, tab bar and plasmoid heading) share a tight
-# 12x12 canvas; the scrollbar, slider, toolbar, arrows, menu body, tooltip (and its
-# solid/ copy) and dialog window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
+# Each shipped SVG's root canvas. Eight widgets (the menu bar, frame, button,
+# line edit, list item, view item, tab bar and plasmoid heading) share a tight
+# 12x12 canvas; the menu-bar item is 20x12 (7px side borders); the scrollbar,
+# slider, toolbar, arrows, menu body, tooltip (and its solid/ copy) and dialog
+# window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
 # is a 10x10 canvas and the etched separator a 4x2 canvas.
 SVG_CANVASES = (
