@@ -10,7 +10,7 @@ import os
 import unittest
 
 from colorscheme_fixtures import ROOT, load_scheme
-from error_assertions import assert_error_names, error_message
+from error_assertions import assert_error_names
 from reference_image import skip_unless_materialized
 
 from tools import png  # noqa: E402
