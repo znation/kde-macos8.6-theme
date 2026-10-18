@@ -184,10 +184,13 @@ class TestPanelHeightMatchesReference(ReferenceScreenshotMixin, unittest.TestCas
 
     def test_reference_bar_rows(self):
         height = menu_bar_height(self.image, SAMPLE_COLUMN)
-        pixel = lambda y: self.pixel(SAMPLE_COLUMN, y)
-        self.assertEqual(WHITE, pixel(0))
-        self.assertEqual(BEVEL_GREY, pixel(height - 2))
-        self.assertEqual(BLACK, pixel(height - 1))
+
+        def column_pixel(y):
+            return self.pixel(SAMPLE_COLUMN, y)
+
+        self.assertEqual(WHITE, column_pixel(0))
+        self.assertEqual(BEVEL_GREY, column_pixel(height - 2))
+        self.assertEqual(BLACK, column_pixel(height - 1))
 
 
 class TestClockMatchesReference(ReferenceScreenshotMixin, unittest.TestCase):

@@ -44,8 +44,12 @@ class TestSelfTestDiagnostics(CheckerTestCase):
 
     def test_failure_names_the_case_not_the_last_image(self):
         module = self.checker
+
         # Force every fixture to fail so _self_test prints its diagnostics.
-        module.check_references = lambda directory: ["boom"]
+        def always_boom(directory):
+            return ["boom"]
+
+        module.check_references = always_boom
         code, printed, _ = _capture(module._self_test)
         self.assertEqual(code, 1)
         self.assertIn("self-test 'undeclared image'", printed)
