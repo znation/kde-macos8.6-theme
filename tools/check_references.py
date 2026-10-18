@@ -26,10 +26,12 @@ try:
     from tools.check_references_selftest import run_self_test
     from tools.image_format import LFS_POINTER_MAGIC, is_image
     from tools.terminal import escape_controls
+    from tools.url_check import url_problem
 except ImportError:  # run directly: python3 tools/check_references.py
     from check_references_selftest import run_self_test
     from image_format import LFS_POINTER_MAGIC, is_image
     from terminal import escape_controls
+    from url_check import url_problem
 
 REFERENCE_DIR = "macos8.6-screenshots"
 SOURCES_NAME = "sources.txt"
@@ -73,73 +75,6 @@ def _looks_like_image(path: Path) -> bool:
     return is_image(head)
 
 
-# RFC 3986 scheme: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ). Any other
-# character (a space from a copy-paste, a stray "!") means the token is not a
-# scheme, however absolute the rest of the URL looks.
-_SCHEME_PUNCTUATION = frozenset("+-.")
-
-# Schemes whose host may legitimately be empty: ``file:///path`` names no
-# host, while a network scheme with an empty host (``https:///path``) is a
-# citation with nowhere to point.
-_SCHEMES_ALLOWING_EMPTY_HOST = frozenset({"file"})
-
-
-def _url_problem(url: str) -> str | None:
-    """Return why *url* is not a well-formed absolute URL, or None when it is.
-
-    A provenance source is an absolute URL, so a bare host or a relative path
-    (``example.test/x.png``) is a broken citation even though it is non-empty.
-    The scheme must follow RFC 3986 (``ALPHA *( ALPHA / DIGIT / "+" / "-" /
-    "." )``), the URL must contain no raw whitespace or control character
-    (which belong percent-encoded), and the authority between ``://`` and the
-    path must name a host unless the scheme is ``file``. The rules catch broken
-    citations that a first-character-only scheme test accepts: ``ht!tp://x``,
-    ``https://example.test/a b.png``, ``https:///image.png`` and
-    ``https://user@/image.png``.
-
-    The failures are returned separately because the fix differs: a URL with no
-    (or a malformed) scheme needs a source, one whose scheme is fine but which
-    carries a space or control character only needs that character
-    percent-encoded, and one with an empty authority needs a host. Blaming the
-    scheme for the latter two sends the reader after the wrong thing.
-    """
-    scheme, sep, rest = url.partition("://")
-    if (
-        not (sep and rest)
-        or not scheme.isascii()
-        or not scheme[:1].isalpha()
-        or not all(ch.isalnum() or ch in _SCHEME_PUNCTUATION for ch in scheme)
-    ):
-        return (
-            "must be an absolute URL with a valid scheme, "
-            "e.g. https://example.test/image.png"
-        )
-    if not all(ch.isprintable() and not ch.isspace() for ch in url):
-        return "must not contain whitespace or control characters; percent-encode them"
-    # The authority runs to the first ``/``, ``?`` or ``#``. Its host is what
-    # remains after any ``userinfo@`` prefix and ``:port`` suffix, so an
-    # authority that is empty, or holds only userinfo or only a port, names no
-    # host at all (``scheme:///path``, ``scheme://@/path``, ``scheme://:80/p``).
-    authority = rest.split("/", 1)[0].split("?", 1)[0].split("#", 1)[0]
-    host = authority.rsplit("@", 1)[-1].split(":", 1)[0]
-    if not host and scheme.lower() not in _SCHEMES_ALLOWING_EMPTY_HOST:
-        return (
-            "must name a host between the scheme and the path "
-            "(only file:// URLs may omit it), "
-            "e.g. https://example.test/image.png"
-        )
-    return None
-
-
-def _is_absolute_url(url: str) -> bool:
-    """Return True when *url* is a well-formed absolute URL.
-
-    See :func:`_url_problem`, which this wraps, for the rules and the reason a
-    URL can fail.
-    """
-    return _url_problem(url) is None
-
-
 def _resolves_within(directory: Path, path: Path) -> bool:
     """Return True when *path* resolves to a location inside *directory*.
 
@@ -159,19 +94,8 @@ def _resolves_within(directory: Path, path: Path) -> bool:
         return False
 
 
-def check_references(directory: Path) -> list[str]:
-    """Return a list of human-readable problems in *directory*.
-
-    An empty list means every source entry names an existing image, every image
-    has exactly one entry, and every entry has the three expected fields with an
-    absolute source URL.
-    """
-    sources = directory / SOURCES_NAME
-    if not _resolves_within(directory, sources):
-        return [f"{sources}: points outside {directory}/ (a symlink escape)"]
-    if not sources.is_file():
-        return [f"{sources}: missing sources file"]
-
+def _read_sources_text(sources: Path) -> tuple[str | None, str | None]:
+    """Return ``(text, None)`` for the provenance record, or ``(None, problem)``."""
     try:
         # Read at most one byte past the cap, so an oversize file is detected
         # without loading the rest of it, then decode the bytes. utf-8-sig
@@ -182,17 +106,25 @@ def check_references(directory: Path) -> list[str]:
         with sources.open("rb") as handle:
             data = handle.read(_MAX_SOURCES_BYTES + 1)
     except OSError as exc:
-        return [f"{sources}: could not be read: {exc}"]
+        return None, f"{sources}: could not be read: {exc}"
     if len(data) > _MAX_SOURCES_BYTES:
-        return [
+        return None, (
             f"{sources}: is larger than the {_MAX_SOURCES_BYTES}-byte limit "
             "for a provenance record"
-        ]
+        )
     try:
-        sources_text = data.decode("utf-8-sig")
+        return data.decode("utf-8-sig"), None
     except UnicodeDecodeError as exc:
-        return [f"{sources}: not valid UTF-8 text: {exc}"]
+        return None, f"{sources}: not valid UTF-8 text: {exc}"
 
+
+def _check_entries(
+    directory: Path, sources: Path, sources_text: str
+) -> tuple[list[str], dict[str, int]]:
+    """Validate each ``sources.txt`` entry; return ``(problems, entries)``.
+
+    ``entries`` maps each accepted filename to the line it was declared on.
+    """
     problems: list[str] = []
     entries: dict[str, int] = {}
 
@@ -220,10 +152,10 @@ def check_references(directory: Path) -> list[str]:
                 "cannot name a file"
             )
             continue
-        url_problem = _url_problem(url)
-        if url_problem is not None:
+        problem = url_problem(url)
+        if problem is not None:
             problems.append(
-                f"{sources}:{lineno}: source URL {url!r} {url_problem}"
+                f"{sources}:{lineno}: source URL {url!r} {problem}"
             )
             continue
         if Path(filename).name != filename or filename in (".", ".."):
@@ -265,6 +197,12 @@ def check_references(directory: Path) -> list[str]:
                 f"{sources}:{lineno}: {filename!r} could not be read: {exc}"
             )
 
+    return problems, entries
+
+
+def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
+    """Return a problem for each image in *directory* that has no entry."""
+    problems: list[str] = []
     try:
         listed = sorted(directory.iterdir())
     except OSError as exc:
@@ -318,6 +256,27 @@ def check_references(directory: Path) -> list[str]:
             )
 
     return problems
+
+
+def check_references(directory: Path) -> list[str]:
+    """Return a list of human-readable problems in *directory*.
+
+    An empty list means every source entry names an existing image, every image
+    has exactly one entry, and every entry has the three expected fields with an
+    absolute source URL.
+    """
+    sources = directory / SOURCES_NAME
+    if not _resolves_within(directory, sources):
+        return [f"{sources}: points outside {directory}/ (a symlink escape)"]
+    if not sources.is_file():
+        return [f"{sources}: missing sources file"]
+
+    sources_text, read_problem = _read_sources_text(sources)
+    if sources_text is None:
+        return [read_problem]
+
+    problems, entries = _check_entries(directory, sources, sources_text)
+    return problems + _check_undeclared(directory, entries)
 
 
 def _self_test() -> int:

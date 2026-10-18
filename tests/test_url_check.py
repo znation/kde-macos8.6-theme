@@ -1,0 +1,112 @@
+"""Unit tests for tools/url_check.py.
+
+A provenance source must be a well-formed absolute URL: a scheme per RFC 3986
+followed by an authority that names a host (only ``file://`` may omit it),
+with no raw whitespace or control characters.
+"""
+
+import unittest
+
+from tools.url_check import is_absolute_url
+
+
+class TestAbsoluteUrlSchemeShape(unittest.TestCase):
+    """A source entry must be a scheme followed by a non-empty remainder.
+
+    A scheme with nothing after it names no resource, and a bare host or
+    relative path has no scheme at all; both must be rejected so a broken
+    citation cannot pass as provenance.
+    """
+
+    def test_scheme_and_remainder_are_both_required(self):
+        self.assertTrue(is_absolute_url("https://example.test/x"))
+        # A scheme with nothing after it names no resource.
+        self.assertFalse(is_absolute_url("https://"))
+        # A bare host or relative path has no scheme at all.
+        self.assertFalse(is_absolute_url("example.test/x"))
+
+    def test_scheme_must_start_with_an_ascii_letter(self):
+        # RFC 3986: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ).
+        self.assertTrue(is_absolute_url("h2://example.test/x"))
+        self.assertTrue(is_absolute_url("svn+ssh://example.test/x"))
+        self.assertFalse(is_absolute_url("1http://example.test/x"))
+        self.assertFalse(is_absolute_url("h\u00e9llo://example.test/x"))
+        self.assertFalse(is_absolute_url("://example.test/x"))
+
+
+class TestAbsoluteUrlWellFormedness(unittest.TestCase):
+    """The source URL must be a well-formed absolute URL, not merely start
+    with something alpha-like before ``://``."""
+
+    def setUp(self):
+        self.is_absolute = is_absolute_url
+
+    def test_well_formed_urls_are_accepted(self):
+        for url in (
+            "https://example.test/x.png",
+            "http://example.test",
+            "git+ssh://example.test/repo",
+            "a.b-c+d://example.test",
+            # A host is what follows any userinfo and precedes any port.
+            "https://@example.test/x.png",
+            "https://user@example.test/x.png",
+            "https://user:pass@example.test:8080/x.png",
+            # file:// is the one scheme whose host may be empty.
+            "file:///tmp/x.png",
+            "file://host/tmp/x.png",
+        ):
+            self.assertTrue(self.is_absolute(url), url)
+
+    def test_relative_and_schemeless_urls_are_rejected(self):
+        for url in (
+            "example.test/x.png",
+            "https://",
+            "://example.test",
+            "1http://example.test",
+        ):
+            self.assertFalse(self.is_absolute(url), url)
+
+    def test_urls_with_an_empty_authority_are_rejected(self):
+        # The scheme is valid, but ``://`` with no host names nowhere for the
+        # citation to point; only file:// may omit the authority.
+        for url in (
+            "https:///x.png",
+            "http:///x.png",
+            "https://?q",
+            "https://#frag",
+            "git+ssh:///repo",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+        self.assertTrue(self.is_absolute("file:///x.png"))
+
+    def test_urls_with_an_authority_but_no_host_are_rejected(self):
+        # A non-empty authority can still name no host: ``user@`` is userinfo
+        # and ``:8080`` is a port, each leaving the host empty, so the
+        # citation points nowhere even though the scheme is valid.
+        for url in (
+            "https://@/x.png",
+            "https://user@/x.png",
+            "https://:8080/x.png",
+            "https://user@:80/x.png",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+
+    def test_malformed_scheme_is_rejected(self):
+        for url in (
+            "ht tp://example.test/x.png",
+            "ht!tp://example.test/x.png",
+            "ht\ttp://example.test/x.png",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+
+    def test_raw_whitespace_or_control_characters_are_rejected(self):
+        for url in (
+            "https://example.test/a b.png",
+            "https://example.test/a\tb.png",
+            "https://example.test/a\x01b.png",
+        ):
+            self.assertFalse(self.is_absolute(url), repr(url))
+
+
+if __name__ == "__main__":
+    unittest.main()
