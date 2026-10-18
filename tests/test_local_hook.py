@@ -87,6 +87,18 @@ def hook_path(repo):
     return Path(repo) / ".git" / "hooks" / local_hook.HOOK_NAME
 
 
+def make_repo_with_hook(case):
+    """Create a repository and return its root with its default hook path.
+
+    The hook's parent directory is created so a test can put its own file,
+    symlink or directory at the hook path without repeating the setup.
+    """
+    repo = make_repo(case)
+    hook = hook_path(repo)
+    hook.parent.mkdir(parents=True, exist_ok=True)
+    return repo, hook
+
+
 def write_fake_make(bindir, record, exit_status=0):
     """Write an executable ``make`` that records its cwd and argv, then exits."""
     bindir.mkdir(parents=True, exist_ok=True)
@@ -219,9 +231,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(first, hook_path(repo).read_bytes())
 
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         foreign = b"#!/bin/sh\ngit lfs post-commit \"$@\"\n"
         hook.write_bytes(foreign)
         result = run_tool(repo, "install")
@@ -234,9 +244,7 @@ class TestInstall(unittest.TestCase):
         # The tool must refuse it by name instead of loading the whole file
         # into memory; a multi-gigabyte hook would otherwise raise MemoryError
         # (which is not an OSError) and escape as a traceback.
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
         hook.write_bytes(oversize)
         result = run_tool(repo, "install")
@@ -248,9 +256,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(oversize, hook.read_bytes())
 
     def test_refuses_a_dangling_symlinked_hook_without_writing_through(self):
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         target = Path(repo) / "outside"
         hook.symlink_to(target)
         result = run_tool(repo, "install")
@@ -264,9 +270,7 @@ class TestInstall(unittest.TestCase):
     def test_refuses_an_unreadable_hook(self):
         if os.geteuid() == 0:
             self.skipTest("root bypasses file permissions")
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         foreign = b"#!/bin/sh\ngit lfs post-commit \"$@\"\n"
         hook.write_bytes(foreign)
         hook.chmod(0o000)
@@ -280,9 +284,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(foreign, hook.read_bytes())
 
     def test_refuses_a_directory_at_the_hook_path(self):
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         hook.mkdir()
         result = run_tool(repo, "install")
         assert_failed(self, result)
@@ -370,9 +372,7 @@ class TestUninstall(unittest.TestCase):
         self.assertFalse(hook_path(repo).exists())
 
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         foreign = b"#!/bin/sh\ngit lfs post-commit \"$@\"\n"
         hook.write_bytes(foreign)
         result = run_tool(repo, "uninstall")
@@ -381,9 +381,7 @@ class TestUninstall(unittest.TestCase):
         self.assertEqual(foreign, hook.read_bytes())
 
     def test_refuses_an_oversize_hook(self):
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
         hook.write_bytes(oversize)
         result = run_tool(repo, "uninstall")
@@ -394,9 +392,7 @@ class TestUninstall(unittest.TestCase):
         self.assertEqual(oversize, hook.read_bytes())
 
     def test_refuses_a_symlinked_hook(self):
-        repo = make_repo(self)
-        hook = hook_path(repo)
-        hook.parent.mkdir(parents=True, exist_ok=True)
+        repo, hook = make_repo_with_hook(self)
         target = Path(repo) / "outside"
         target.write_text("keep me", encoding="utf-8")
         hook.symlink_to(target)
