@@ -22,6 +22,7 @@ from svg_assertions import (
     assert_no_style_elements,
     assert_unique_ids,
     attribute_values,
+    local_name,
 )
 from support.theme_install import (
     ROOT,
@@ -147,6 +148,135 @@ class TestIcons(unittest.TestCase):
                 assert_no_style_elements(self, tree)
                 assert_no_external_references(self, tree)
                 assert_unique_ids(self, tree)
+
+
+def _shape(tag, **attributes):
+    """Return one expected drawing element: its tag and its attributes."""
+    return (tag, attributes)
+
+
+def _drawing_elements(tree):
+    """Return each of *tree*'s root children as ``(tag, attributes)``.
+
+    In document order, so an added, removed, reordered or re-drawn element
+    changes the tuple; the icon art holds only drawing elements, with no
+    groups or ids, so every root child is one.
+    """
+    return tuple(
+        (local_name(element), dict(element.attrib))
+        for element in tree.getroot()
+    )
+
+
+# Every drawing element of every shipped icon, in document order. The icon art
+# is our own, so nothing else re-derives it; the size, palette and structural
+# tests above would all pass if a path's `d`, a rect's geometry, an element's
+# order or an element's fill changed -- an icon could silently lose its
+# outline, bevel, plate or ribs -- so pin each element exactly. The 32x32
+# folder and its `inode-directory` alias share one shape (Mac OS 8.6 draws one
+# folder for both names); they are pinned separately and cross-checked below.
+ICON_SHAPES = {
+    os.path.join("32x32", "devices", "drive-harddisk.svg"): (
+        _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
+        _shape("rect", x="4", y="9", width="24", height="15", fill="#DDDDDD"),
+        _shape("rect", x="4", y="9", width="24", height="2", fill="#FFFFFF"),
+        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
+        _shape("rect", x="4", y="22", width="24", height="2", fill="#999999"),
+        _shape("rect", x="27", y="9", width="1", height="15", fill="#999999"),
+        _shape("rect", x="6", y="14", width="14", height="6", fill="#000000"),
+        _shape("rect", x="7", y="15", width="12", height="4", fill="#FFFFFF"),
+        _shape("circle", cx="24", cy="17", r="2", fill="#000000"),
+    ),
+    os.path.join("32x32", "mimetypes", "text-x-generic.svg"): (
+        _shape("path", d="M6 3 h14 l6 6 v20 H6 Z", fill="#000000"),
+        _shape("path", d="M7 4 h12 l6 6 v18 H7 Z", fill="#FFFFFF"),
+        _shape("path", d="M19 4 L25 4 L25 10 Z", fill="#DDDDDD"),
+        _shape("rect", x="10", y="15", width="12", height="1", fill="#999999"),
+        _shape("rect", x="10", y="18", width="12", height="1", fill="#999999"),
+        _shape("rect", x="10", y="21", width="8", height="1", fill="#999999"),
+    ),
+    os.path.join("32x32", "places", "folder.svg"): (
+        _shape("path", d="M3 8 h10 l3 3 h13 v14 H3 Z", fill="#000000"),
+        _shape("path", d="M4 9 h9 l3 3 h12 v12 H4 Z", fill="#DDDDDD"),
+        _shape("path", d="M4 9 h9 l3 3 h12 v1 h-12 l-3 -3 h-9 Z", fill="#FFFFFF"),
+        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
+        _shape("rect", x="4", y="23", width="21", height="1", fill="#999999"),
+        _shape("rect", x="27", y="12", width="1", height="12", fill="#999999"),
+    ),
+    os.path.join("32x32", "places", "inode-directory.svg"): (
+        _shape("path", d="M3 8 h10 l3 3 h13 v14 H3 Z", fill="#000000"),
+        _shape("path", d="M4 9 h9 l3 3 h12 v12 H4 Z", fill="#DDDDDD"),
+        _shape("path", d="M4 9 h9 l3 3 h12 v1 h-12 l-3 -3 h-9 Z", fill="#FFFFFF"),
+        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
+        _shape("rect", x="4", y="23", width="21", height="1", fill="#999999"),
+        _shape("rect", x="27", y="12", width="1", height="12", fill="#999999"),
+    ),
+    os.path.join("32x32", "places", "user-trash.svg"): (
+        _shape("rect", x="12", y="4", width="8", height="4", fill="#000000"),
+        _shape("rect", x="13", y="5", width="6", height="3", fill="#DDDDDD"),
+        _shape("rect", x="6", y="8", width="20", height="5", fill="#000000"),
+        _shape("rect", x="7", y="9", width="18", height="4", fill="#DDDDDD"),
+        _shape("rect", x="7", y="9", width="18", height="1", fill="#FFFFFF"),
+        _shape("rect", x="7", y="12", width="18", height="1", fill="#999999"),
+        _shape("path", d="M9 13 h14 l-2 16 H11 Z", fill="#000000"),
+        _shape("path", d="M10 14 h12 l-2 14 H12 Z", fill="#DDDDDD"),
+        _shape("rect", x="13", y="16", width="1", height="10", fill="#999999"),
+        _shape("rect", x="14", y="16", width="1", height="10", fill="#FFFFFF"),
+        _shape("rect", x="17", y="16", width="1", height="10", fill="#999999"),
+        _shape("rect", x="18", y="16", width="1", height="10", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "places", "start-here-kde-symbolic.svg"): (
+        _shape("rect", x="1", y="1", width="14", height="10", fill="#000000"),
+        _shape("rect", x="2", y="2", width="12", height="8", fill="#DDDDDD"),
+        _shape("rect", x="2", y="2", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="2", y="2", width="1", height="8", fill="#FFFFFF"),
+        _shape("rect", x="2", y="9", width="12", height="1", fill="#999999"),
+        _shape("rect", x="13", y="2", width="1", height="8", fill="#999999"),
+        _shape("rect", x="7", y="11", width="2", height="2", fill="#000000"),
+        _shape("rect", x="4", y="13", width="8", height="1", fill="#000000"),
+    ),
+    os.path.join("22x22", "places", "start-here-kde-symbolic.svg"): (
+        _shape("rect", x="1", y="1", width="20", height="14", fill="#000000"),
+        _shape("rect", x="2", y="2", width="18", height="12", fill="#DDDDDD"),
+        _shape("rect", x="2", y="2", width="18", height="1", fill="#FFFFFF"),
+        _shape("rect", x="2", y="2", width="1", height="12", fill="#FFFFFF"),
+        _shape("rect", x="2", y="13", width="18", height="1", fill="#999999"),
+        _shape("rect", x="19", y="2", width="1", height="12", fill="#999999"),
+        _shape("rect", x="10", y="15", width="2", height="3", fill="#000000"),
+        _shape("rect", x="6", y="18", width="10", height="1", fill="#000000"),
+    ),
+}
+
+
+class TestIconGeometry(unittest.TestCase):
+    """Pin every shipped icon's drawing elements, in document order."""
+
+    def test_the_geometry_registry_covers_every_shipped_icon(self):
+        # The per-icon pins below only visit the icons listed in ICON_SHAPES,
+        # so a newly shipped icon that is never added there would silently
+        # escape them. Derive the shipped set from the same list TestIndex
+        # checks and require the registry to equal it.
+        self.assertEqual(set(ICON_SHAPES), set(SHIPPED_ICONS))
+
+    def test_each_icon_draws_its_pinned_artwork(self):
+        for icon, expected in ICON_SHAPES.items():
+            with self.subTest(icon=icon):
+                tree = ET.parse(os.path.join(PACKAGE, icon))
+                self.assertEqual(_drawing_elements(tree), expected)
+
+    def test_the_folder_alias_shares_the_folder_art(self):
+        # Mac OS 8.6 draws one folder shape for both the `folder` and
+        # `inode-directory` names, so the alias must stay the same drawing;
+        # pinning only each one's own elements would let them drift apart.
+        folder = _drawing_elements(
+            ET.parse(os.path.join(PACKAGE, "32x32", "places", "folder.svg"))
+        )
+        alias = _drawing_elements(
+            ET.parse(
+                os.path.join(PACKAGE, "32x32", "places", "inode-directory.svg")
+            )
+        )
+        self.assertEqual(alias, folder)
 
 
 class TestInstall(InstallLifecycleCases, unittest.TestCase):

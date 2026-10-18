@@ -60,6 +60,7 @@ that does not exist, a row naming no test, or a blank guarantee cell fails `make
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
 | The icon theme names our own final Platinum art, ships exactly the tracked icons, and declares each icon's size directory. | `tests/test_icon_theme.py::TestIndex` | The art is our own drawing, not Apple's; the reference set has no pixel ground truth for it. |
+| Every shipped icon draws its pinned drawing elements in document order, and the `inode-directory` alias shares the folder art. | `tests/test_icon_theme.py::TestIconGeometry` | The art is our own drawing, not Apple's; the reference set has no pixel ground truth for it. |
 
 ## kvantum
 
