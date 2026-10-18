@@ -5,7 +5,7 @@ transforms and composited pixels, so each widget's test module states only the
 artwork it pins instead of re-deriving the KSvg layout rules.
 
 The helpers are split by concern and re-exported here, so a test module
-imports every helper from ``svg_assertions`` regardless of which submodule
+imports every public helper from ``svg_assertions`` regardless of which submodule
 defines it: ``tree`` traverses the parsed document and reads its attributes,
 ``safety`` guards the artwork a pixel test cannot see, ``render`` composites a
 nine-slice group into pixels, ``faces``, ``paths``, ``elements`` and
@@ -17,7 +17,6 @@ from __future__ import annotations
 
 from .tree import (
     SLICE_IDS,
-    _numeric_attribute,
     assert_ids_present,
     assert_slice_ids_present,
     attribute_values,
@@ -28,9 +27,6 @@ from .tree import (
 )
 
 from .safety import (
-    _URL_REFERENCE,
-    _local_attribute_name,
-    _url_targets,
     assert_no_external_references,
     assert_no_script_elements,
     assert_no_style_elements,
@@ -39,16 +35,12 @@ from .safety import (
 
 from .render import (
     _MAX_RENDERED_PIXELS,
-    _slice_extent,
-    _slice_offset,
-    _slice_where,
     pixel_map,
     render_slices,
 )
 
 from .faces import (
     RAISED_FACE_CORNERS,
-    _require_known_bevel,
     face_corners,
     face_edge_bands,
     flat_face_corners,
@@ -56,26 +48,17 @@ from .faces import (
 )
 
 from .paths import (
-    _PATH_COMMAND,
-    _PATH_COMMAND_ARITY,
-    _PATH_LETTER,
-    _SUPPORTED_PATH_COMMANDS,
-    _path_commands,
     arc_center,
     path_arcs,
 )
 
 from .elements import (
-    _circle_dimension,
-    _rect_dimension,
     circle_geometry,
     circle_geometry_and_fill,
     rect_geometry,
 )
 
 from .nine_slice import (
-    _TRANSLATE,
-    _state_margin_hints,
     nine_slice_hint_geometry,
     nine_slice_inset_hints,
     nine_slice_margins,
