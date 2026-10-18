@@ -258,6 +258,19 @@ class TestReportFailure(unittest.TestCase):
             status = cli.report_failure("apply_theme", message, log)
         return status, stderr.getvalue()
 
+    def _cr_preceded_log(self, body):
+        """Write *body* padded to one tail window, preceded by ``f\\r``.
+
+        The window's first byte then lands exactly on ``body[0]`` with a
+        ``\\r`` immediately before it, so a test can pin how that carriage
+        return at the window's left edge is treated.
+        """
+        body += b"x" * (cli._LOG_TAIL_BYTES - len(body))
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_bytes(b"f\r" + body)
+        self.assertEqual(log.stat().st_size, cli._LOG_TAIL_BYTES + 2)
+        return log
+
     def test_prefixes_the_tool_name_and_returns_one(self):
         # The tools that call this return its result directly as the process
         # exit status, so the helper must supply the 1 itself.
@@ -331,11 +344,7 @@ class TestReportFailure(unittest.TestCase):
         # break, so that byte is a line boundary too: the window's first line
         # is complete and must not be dropped as a partial one. Build a log
         # whose byte immediately before the read window is exactly `\r`.
-        body = b"FIRST\nSECOND\nTHIRD\n"
-        body += b"x" * (cli._LOG_TAIL_BYTES - len(body))
-        log = make_tmp_dir(self) / "cmd.log"
-        log.write_bytes(b"f\r" + body)
-        self.assertEqual(log.stat().st_size, cli._LOG_TAIL_BYTES + 2)
+        log = self._cr_preceded_log(b"FIRST\nSECOND\nTHIRD\n")
         status, err = self._report("command failed", log)
         self.assertEqual(status, 1)
         self.assertIn("  FIRST\n", err)
@@ -345,11 +354,7 @@ class TestReportFailure(unittest.TestCase):
         # yields an empty first element there, but that empty line is the tail
         # of the break whose `\r` lies outside the window -- not a log line --
         # so it must be dropped like any other partial first line.
-        body = b"\n" + b"FIRST\nSECOND\nTHIRD\n"
-        body += b"x" * (cli._LOG_TAIL_BYTES - len(body))
-        log = make_tmp_dir(self) / "cmd.log"
-        log.write_bytes(b"f\r" + body)
-        self.assertEqual(log.stat().st_size, cli._LOG_TAIL_BYTES + 2)
+        log = self._cr_preceded_log(b"\nFIRST\nSECOND\nTHIRD\n")
         status, err = self._report("command failed", log)
         self.assertEqual(status, 1)
         self.assertEqual(err.splitlines()[1], "  FIRST")
