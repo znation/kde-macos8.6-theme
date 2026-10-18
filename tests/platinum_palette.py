@@ -2,12 +2,14 @@
 
 The per-widget test modules name the colours their artwork is painted from --
 the black outline, the white bevel highlight, the grey bevel shadow, the
-#DDDDDD face and the flat #EEEEEE trough -- and assert their fill sets.
-Naming the values here gives those modules one place to import the palette
-from instead of redefining it. `test_colorscheme_reference` remains the test
-that grounds these values in the reference screenshots; the trough, painted
-from `[Colors:View] BackgroundAlternate`, is pinned only by the widget tests
-that draw it.
+#DDDDDD face, the flat #EEEEEE trough and the flat #FFFFCC tooltip face -- and
+assert their fill sets. Naming the values here gives those modules one place
+to import the palette from instead of redefining it. `test_colorscheme_reference`
+remains the test that grounds these values in the reference screenshots; the
+trough, painted from `[Colors:View] BackgroundAlternate`, is pinned only by the
+widget tests that draw it, and the tooltip face is a KDE-required
+`[Colors:Tooltip]` role no screenshot shows, pinned by the tooltip widget test
+and by `test_colorscheme`.
 """
 
 from __future__ import annotations
