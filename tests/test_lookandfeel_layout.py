@@ -4,7 +4,8 @@ The layout script is plain JavaScript run by plasmashell, so these tests read
 its text with regular expressions. The panel height, the clock's time format and
 the desktop icon column are each tied back to ``desktop_betawiki.png`` in
 ``macos8.6-screenshots/`` (the menu-bar rows, the "PM" glyph, the right-hand
-32px icon column), so a value that drifts from that screenshot fails here.
+32px icon column and its one-line labels), so a value that drifts from that
+screenshot fails here.
 """
 
 from __future__ import annotations

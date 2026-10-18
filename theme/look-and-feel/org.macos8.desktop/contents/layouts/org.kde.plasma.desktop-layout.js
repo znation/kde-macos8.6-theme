@@ -30,7 +30,8 @@ for (var j = 0; j < desktopsArray.length; j++) {
     desktopsArray[j].writeConfig("arrangement", 1);
     desktopsArray[j].writeConfig("alignment", 1);
     desktopsArray[j].writeConfig("iconSize", 1);
-    // Each icon block is a 32-row body plus one 13-row label line (the first
-    // block measures 44 rows, the rest 45); textLines 1 keeps the label to one line.
+    // Each labelled icon block is a 32-row body plus one 13-row label line (the
+    // first labelled block measures 44 rows, the rest 45); textLines 1 keeps the
+    // label to one line.
     desktopsArray[j].writeConfig("textLines", 1);
 }
