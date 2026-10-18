@@ -21,6 +21,7 @@ from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
 from tools import render_surface  # noqa: E402
+from tools.fidelity_metrics import compare, crop  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
 
@@ -500,6 +501,22 @@ class TestRender(unittest.TestCase):
         pixels = candidate_crop[2] * candidate_crop[3]
         self.assertIn(f"differing pixels: 0 / {pixels}", result.stdout)
 
+    def assert_strip_pixels_match(self, candidate_crop, reference_crop):
+        """Byte-compare one strip with the same ``crop``/``compare`` the CLI calls.
+
+        The border test pins three more rectangles; comparing in process
+        reuses the process-cached reference decode instead of spawning the
+        CLI and re-decoding the 1024x768 screenshot once per strip. The CLI's
+        crop options stay covered end to end by
+        ``test_title_bar_matches_the_reference`` and directly by
+        ``tests/test_fidelity_cli.py``.
+        """
+        reference, error = read_reference(REFERENCE)
+        skip_unless_materialized(self, REFERENCE, error)
+        candidate = crop(read_png(self.output), *candidate_crop)
+        expected = crop(reference, *reference_crop)
+        self.assertEqual(0, compare(candidate, expected).differing)
+
     def test_title_bar_matches_the_reference(self):
         self.assert_strip_matches(CANDIDATE_CROP, REFERENCE_CROP)
 
@@ -510,7 +527,7 @@ class TestRender(unittest.TestCase):
             (BOTTOM_BORDER_CANDIDATE, BOTTOM_BORDER_REFERENCE),
         ):
             with self.subTest(candidate_crop=candidate_crop):
-                self.assert_strip_matches(candidate_crop, reference_crop)
+                self.assert_strip_pixels_match(candidate_crop, reference_crop)
 
 
 if __name__ == "__main__":
