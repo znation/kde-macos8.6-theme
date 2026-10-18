@@ -1,9 +1,10 @@
 """Tests for the org.macos8.desktop look-and-feel desktop layout.
 
 The layout script is plain JavaScript run by plasmashell, so these tests read
-its text with regular expressions. The panel height is tied back to the rows of
-the reference desktop screenshot so a height that drifts from the menu bar in
-``macos8.6-screenshots/desktop_betawiki.png`` fails here.
+its text with regular expressions. The panel height, the clock's time format and
+the desktop icon column are each tied back to ``desktop_betawiki.png`` in
+``macos8.6-screenshots/`` (the menu-bar rows, the "PM" glyph, the right-hand
+32px icon column), so a value that drifts from that screenshot fails here.
 """
 
 from __future__ import annotations
@@ -71,6 +72,7 @@ DESKTOP_ICONS = {"arrangement": 1, "alignment": 1, "iconSize": 1}
 
 
 def clock_variable(text):
+    """Return the variable the clock widget is assigned to, or ``None``."""
     match = re.search(
         r'^var\s+(\w+)\s*=\s*panel\.addWidget\("%s"\)\s*;' % re.escape(CLOCK_ID),
         text,
