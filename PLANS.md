@@ -26,6 +26,48 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
+### Invariants register: `docs/invariants.md` pinning each subsystem's guarantee to its test (planned 2026-10-18 by the steward role; from the recurring `unclear-invariant` validation gap in three Fixed entries)
+
+**Goal.** Three Fixed entries each needed the artifact's intended guarantee reconstructed before the
+bug could be confirmed — the icon theme's description, the palette anchors' provenance, and the
+numeric meaning of "pixel-perfect" (see "From" below). The repo states each guarantee only inside
+the test that enforces it, so a reader must reverse-engineer intent. Add one register that names, per
+subsystem, the guarantee in one sentence, the test that pins it, and any provenance exception, so a
+future bug is confirmable without that reconstruction.
+
+**From (the `unclear-invariant` Fixed entries).**
+- `org.macos8.desktop` icon theme still calls its final art "placeholder icons" (fixed 2026-10-18)
+- Palette anchors are not re-derivable from the reference screenshots (fixed 2026-10-08)
+- No objective fidelity check for "pixel-perfect" (fixed 2026-10-07)
+
+**Approach.**
+- Add `docs/invariants.md` (the repository has no `docs/` directory yet): one section per subsystem
+directory under `theme/` (aurorae, color-schemes, desktop-themes, icons, kvantum, look-and-feel,
+wallpapers) plus the tooling, each with a table row — subsystem, the guarantee in one sentence, the
+test that enforces it, and the provenance exception if any.
+- Seed every row from an existing test, not from prose: the color-scheme rows cite
+`tests/test_colorscheme_reference.py::TestReferenceAnchors` and
+`tests/test_colorscheme.py::TestProvenanceNote`; the desktop-theme rows cite the
+`tests/test_desktoptheme_*.py` module that pins each widget; the icon-theme row cites
+`tests/test_icon_theme.py::TestIndex`; the fidelity row cites `tests/test_fidelity_cli.py::TestCli`'s
+tolerance gate. Record the `[Colors:Tooltip] BackgroundNormal` exception (a KDE-required value the
+reference set does not show) as the color scheme's provenance row.
+- Add `tests/test_invariants.py` following `tests/test_placeholders.py`'s register-cross-check
+shape: parse the register's rows, and fail when a listed test file or `Class::method` does not
+exist, when a `theme/` subsystem directory has no section, or when a row's guarantee cell is empty.
+- Add a short "Invariants" pointer in `README.md` so a contributor finds the register before
+changing a surface.
+
+**Files touched.** `docs/invariants.md` (new), `tests/test_invariants.py` (new), `README.md`.
+
+**Acceptance criteria.**
+- Every `theme/` subsystem directory and the fidelity gate has a register row naming an existing
+test, and the tooltip provenance exception is recorded.
+- `tests/test_invariants.py` fails when a row names a missing test, when a subsystem has no row,
+and when a guarantee cell is blank; a scratch check (delete a row, rename a test) demonstrates each
+failure.
+- `make check` is green.
+
 ### Mac OS 8.6 Kvantum widget style, part 3/4: the Platinum surface controls (planned 2026-10-18 by the plan role; requires part 2/4 landed)
 
 **Goal.** Part 2 shipped the track and value controls. This part adds our own Platinum art and
