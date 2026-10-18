@@ -126,7 +126,7 @@ class TestSplashQml(unittest.TestCase):
         self.assertIn("anchors.centerIn: parent", content)
 
     def test_wordmark_sits_on_the_panel_at_its_reference_position(self):
-        # The "Mac OS" wordmark is the only element placed relative to the
+        # The "Mac OS 8.6" wordmark is the only element placed relative to the
         # panel rather than the grid: `test_wordmark_colour_matches_reference`
         # pins its colour and `test_reference_colours_are_painted` its colour
         # binding, but nothing pins where it is drawn. A changed `y` literal or
@@ -147,7 +147,7 @@ class TestSplashQml(unittest.TestCase):
         # default font, at a different size) would leave every other test
         # green. Pin the label and the reference-grid size together.
         wordmark = object_source(read_qml(), "wordmark")
-        self.assertIn('text: "Mac OS"', wordmark)
+        self.assertIn('text: "Mac OS 8.6"', wordmark)
         self.assertIn("font.pixelSize: 12 * root.unit", wordmark)
 
     def test_reference_colours_are_painted(self):

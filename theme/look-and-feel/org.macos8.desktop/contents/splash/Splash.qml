@@ -101,7 +101,7 @@ Rectangle {
             id: wordmark
             anchors.horizontalCenter: panel.horizontalCenter
             y: 71 * root.unit
-            text: "Mac OS"
+            text: "Mac OS 8.6"
             color: root.wordmarkColor
             font.pixelSize: 12 * root.unit
         }

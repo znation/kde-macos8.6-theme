@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 splash: draw the reference's full "Mac OS 8.6" wordmark (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 splash: draw the reference's full "Mac OS 8.6" wordmark (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** The startup splash's wordmark draws the truncated label `Mac OS`;
 `macos8.6-screenshots/boot2_betawiki.png` shows the full `Mac OS 8.6`. Draw the full label so the
@@ -71,8 +75,6 @@ original splash plan (PLANS.md `## Done`, "Mac OS 8.6 Platinum startup splash") 
   Garamond-family wordmark) while the QML draws the system UI font, so glyph shapes still differ;
   shipping a typeface is out of scope and the reference set has no larger boot capture to ground
   one.
-
-## Done
 
 ### Mac OS 8.6 Platinum full-Trash icon (`32x32/places/user-trash-full.svg`) for the icon theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 

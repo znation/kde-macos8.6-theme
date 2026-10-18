@@ -86,8 +86,8 @@ class TestSplashReference(SplashReferenceCase):
         self.assertEqual(qml_color("panelColor"), "#FFFFFF")
 
     def test_wordmark_colour_matches_reference(self):
-        # The "Mac OS" wordmark is the only pure black inside the panel face;
-        # (97,73) is one of its glyph pixels.
+        # The "Mac OS 8.6" wordmark is the only pure black inside the panel
+        # face; (97,73) is one of its glyph pixels.
         self.assertEqual(self.pixel(97, 73), (0, 0, 0))
         self.assertEqual(qml_color("wordmarkColor"), "#000000")
 
@@ -188,6 +188,26 @@ class TestSplashGeometry(SplashReferenceCase):
             self.assertTrue(
                 _contains(rect, *sample), f"{sample} outside {rect}"
             )
+
+    def test_wordmark_spans_the_reference_band(self):
+        # `test_wordmark_shows_the_reference_label_at_its_grid_size` pins the
+        # QML label, but nothing re-derives the reference wordmark's own width:
+        # if the reference's label were only "Mac OS", drawing the full
+        # "Mac OS 8.6" would be ungrounded. The reference wordmark's dark
+        # glyphs span 62 of the panel face's 80 columns; re-derive their
+        # bounding box in the band below the logo (y=68..86, x=84..156) and
+        # require at least 55 columns, so a reference label no wider than
+        # "Mac OS" fails here instead of silently passing.
+        glyphs = [
+            (x, y)
+            for y in range(68, 87)
+            for x in range(84, 157)
+            if max(self.pixel(x, y)) < 96
+        ]
+        self.assertTrue(glyphs, "no dark wordmark glyphs in the reference band")
+        left = min(x for x, _ in glyphs)
+        right = max(x for x, _ in glyphs)
+        self.assertGreaterEqual(right - left + 1, 55)
 
 
 if __name__ == "__main__":
