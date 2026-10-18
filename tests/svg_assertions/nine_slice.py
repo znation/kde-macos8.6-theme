@@ -12,6 +12,7 @@ import re
 from .elements import rect_geometry
 from .tree import groups_with_id
 
+
 def nine_slice_margins(prefix, border, size):
     """Return the four margin-hint rects of a centred nine-slice tile.
 
@@ -39,6 +40,7 @@ def nine_slice_margins(prefix, border, size):
         ),
     }
 
+
 def nine_slice_hint_geometry(prefixes, border, size):
     """Return the full hint geometry of a centred nine-slice SVG.
 
@@ -55,6 +57,7 @@ def nine_slice_hint_geometry(prefixes, border, size):
     for prefix in prefixes:
         geometry.update(nine_slice_margins(prefix, border, size))
     return geometry
+
 
 def nine_slice_tile_sizes(canvas_w, canvas_h, left, right, top, bottom):
     """Return the ``(width, height)`` of each of a nine-slice's nine tiles.
@@ -82,6 +85,7 @@ def nine_slice_tile_sizes(canvas_w, canvas_h, left, right, top, bottom):
 
 _TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")
 
+
 def tile_origins(tree):
     """Return {id: (x, y)} for every id-bearing <g> in *tree*.
 
@@ -105,6 +109,7 @@ def tile_origins(tree):
             # loudly instead of silently reading as the origin.
             origins[group.get("id")] = transform
     return origins
+
 
 def _state_margin_hints(tree, prefixes, hint_aliases=None):
     """Yield each state's margin hints as ``(state, top, bottom, left, right)``.

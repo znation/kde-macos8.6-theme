@@ -12,6 +12,7 @@ import re
 
 from .tree import local_name
 
+
 def assert_no_script_elements(case, tree):
     """Assert *tree* holds no ``<script>`` element.
 
@@ -23,6 +24,7 @@ def assert_no_script_elements(case, tree):
         tag = local_name(element)
         case.assertFalse(tag.endswith("script"), tag)
 
+
 def _local_attribute_name(name):
     """Return an attribute *name* without its `{namespace}` prefix.
 
@@ -32,6 +34,7 @@ def _local_attribute_name(name):
     reference, so strip any namespace before matching.
     """
     return name.rsplit("}", 1)[-1]
+
 
 def assert_no_style_elements(case, tree):
     """Assert *tree* holds no ``<style>`` element.
@@ -56,6 +59,7 @@ _URL_REFERENCE = re.compile(
     re.IGNORECASE,
 )
 
+
 def _url_targets(value):
     """Yield the target of every ``url(...)`` reference in an attribute value.
 
@@ -66,6 +70,7 @@ def _url_targets(value):
     for match in _URL_REFERENCE.finditer(value):
         target = next(group for group in match.groups() if group is not None)
         yield target.strip()
+
 
 def assert_no_external_references(case, tree):
     """Assert every reference in *tree* is a same-document ``#id``.
@@ -96,6 +101,7 @@ def assert_no_external_references(case, tree):
                         f"<{tag}> {name} reference {target!r} is not an "
                         f"in-file #id"
                     )
+
 
 def assert_unique_ids(case, tree):
     """Assert every ``id`` in *tree* is unique.

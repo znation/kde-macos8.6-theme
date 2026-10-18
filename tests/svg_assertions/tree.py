@@ -13,6 +13,7 @@ SLICE_IDS = [
     "topleft", "topright", "bottomleft", "bottomright",
 ]
 
+
 def local_name(element):
     """Return *element*'s tag without its `{namespace}` prefix.
 
@@ -20,6 +21,7 @@ def local_name(element):
     as `{http://www.w3.org/2000/svg}rect`; these tests match on the local name.
     """
     return element.tag.rsplit("}", 1)[-1]
+
 
 def attribute_values(tree, name):
     """Return the set of *name* values across every element in *tree*.
@@ -30,6 +32,7 @@ def attribute_values(tree, name):
     whose comments name those values too.
     """
     return {element.get(name) for element in tree.iter() if element.get(name)}
+
 
 def assert_ids_present(case, tree, names):
     """Assert every id in *names* is present in *tree*.
@@ -42,6 +45,7 @@ def assert_ids_present(case, tree, names):
     ids = attribute_values(tree, "id")
     for name in names:
         case.assertIn(name, ids, name)
+
 
 def assert_slice_ids_present(case, tree, prefixes, hint_aliases=None):
     """Assert each state's nine-slice, margin-hint and centre ids are present.
@@ -68,6 +72,7 @@ def assert_slice_ids_present(case, tree, prefixes, hint_aliases=None):
             case.assertIn(f"{prefix}{sep}hint-{side}-margin", ids, side)
     case.assertIn("hint-tile-center", ids)
 
+
 def groups_with_id(tree):
     """Yield each id-bearing `<g>` element in *tree*.
 
@@ -80,6 +85,7 @@ def groups_with_id(tree):
     for element in tree.iter():
         if local_name(element) == "g" and element.get("id"):
             yield element
+
 
 def elements_by_id(tree):
     """Return {id: element} for every id-bearing element in *tree*.
@@ -95,6 +101,7 @@ def elements_by_id(tree):
         if element.get("id")
     }
 
+
 def children_named(element, tag):
     """Return *element*'s direct children whose local tag is *tag*.
 
@@ -104,6 +111,7 @@ def children_named(element, tag):
     re-filtering ``local_name`` at every call site.
     """
     return [child for child in element if local_name(child) == tag]
+
 
 def _numeric_attribute(element, name, *, where, cast, kind, missing, invalid):
     """Return *element*'s *name* attribute text, naming it when absent or malformed.

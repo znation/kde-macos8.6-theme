@@ -37,6 +37,7 @@ RAISED_FACE_CORNERS = {
     ),
 }
 
+
 def sunken_face_corners(face):
     """Return the four 3x3 sunken-face corner slices painted for *face*.
 
@@ -71,6 +72,7 @@ def sunken_face_corners(face):
         ),
     }
 
+
 def flat_face_corners(face):
     """Return the four 3x3 flat-face corner slices painted for *face*.
 
@@ -103,6 +105,7 @@ def flat_face_corners(face):
         ),
     }
 
+
 def _require_known_bevel(bevel):
     """Raise ValueError unless *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``.
 
@@ -114,6 +117,7 @@ def _require_known_bevel(bevel):
         raise ValueError(
             f"unknown bevel {bevel!r}; expected 'raised', 'sunken' or 'flat'"
         )
+
 
 def face_edge_bands(face, bevel):
     """Return the (outward, mirrored) edge bands for a *bevel* on *face*.
@@ -137,6 +141,7 @@ def face_edge_bands(face, bevel):
         return ("#000000", "#999999", face), (face, "#FFFFFF", "#000000")
     if bevel == "flat":
         return ("#000000", face, face), (face, face, "#000000")
+
 
 def face_corners(face, bevel):
     """Return the four 3x3 corner slices of a *bevel* painted on *face*.

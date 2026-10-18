@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from .tree import _numeric_attribute, local_name
 
+
 def _rect_dimension(element, rect_id, name):
     """Return *element*'s integer *name* attribute, naming the rect when invalid.
 
@@ -28,6 +29,7 @@ def _rect_dimension(element, rect_id, name):
             "as integers"
         ),
     )
+
 
 def rect_geometry(tree):
     """Return {id: (x, y, width, height)} for every id-bearing <rect>.
@@ -53,6 +55,7 @@ def rect_geometry(tree):
             )
     return geometry
 
+
 def _circle_dimension(element, name):
     """Return *element*'s *name* attribute, naming the circle when invalid.
 
@@ -75,6 +78,7 @@ def _circle_dimension(element, name):
         invalid="a circle must declare cx, cy and r as numbers",
     )
 
+
 def circle_geometry(element):
     """Return *element*'s circle geometry as ``(cx, cy, r)`` floats.
 
@@ -91,6 +95,7 @@ def circle_geometry(element):
         float(_circle_dimension(element, name))
         for name in ("cx", "cy", "r")
     )
+
 
 def circle_geometry_and_fill(element):
     """Return *element*'s circle geometry followed by its ``fill`` attribute.

@@ -20,10 +20,12 @@ from .tree import _numeric_attribute, children_named, groups_with_id
 # width*height per file) is 1408, so real artwork sits far below it.
 _MAX_RENDERED_PIXELS = 1 << 16
 
+
 def _slice_where(rect):
     """Name *rect* for an error, by id when it has one."""
     rect_id = rect.get("id")
     return f"rect {rect_id!r}" if rect_id else "rect"
+
 
 def _slice_offset(rect, name):
     """Return *rect*'s integer *name* offset, defaulting to 0 when absent.
@@ -42,6 +44,7 @@ def _slice_offset(rect, name):
             f"{_slice_where(rect)} has a non-integer {name!r} of {value!r}: "
             "a nine-slice tile rect's x and y must be integers"
         ) from None
+
 
 def _slice_extent(rect, name):
     """Return *rect*'s positive integer *name* extent, naming it when invalid.
@@ -66,6 +69,7 @@ def _slice_extent(rect, name):
             "a nine-slice tile rect must declare a positive width and height"
         )
     return extent
+
 
 def render_slices(tree):
     """Composite each id-bearing <g> of a nine-slice SVG into a {(x, y): fill} map.
@@ -114,6 +118,7 @@ def render_slices(tree):
                     pixels[(x + dx, y + dy)] = fill
         slices[group.get("id")] = pixels
     return slices
+
 
 def pixel_map(colours, width, height):
     """Return the {(x, y): colour} map for a row-major *colours* sequence.

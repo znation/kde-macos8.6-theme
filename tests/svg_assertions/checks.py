@@ -18,6 +18,7 @@ from .nine_slice import (
 from .render import pixel_map, render_slices
 from .tree import SLICE_IDS, attribute_values, local_name
 
+
 def assert_slice_pixels(case, slices, name, expected):
     """Assert slice *name* renders exactly the *expected* {(x, y): colour} map.
 
@@ -28,6 +29,7 @@ def assert_slice_pixels(case, slices, name, expected):
     """
     with case.subTest(slice=name):
         case.assertEqual(slices[name], expected, name)
+
 
 def assert_slices_uniform(case, slices, prefix, colour):
     """Assert every pixel of every ``<prefix>-<name>`` slice is *colour*.
@@ -46,6 +48,7 @@ def assert_slices_uniform(case, slices, prefix, colour):
             for point, value in slices[slice_name].items():
                 case.assertEqual(value, colour, f"{slice_name} {point}")
 
+
 def assert_slices_have_no_fill(case, tree, *prefixes):
     """Assert each *prefix*'s slices paint nothing, and pin the placeholder opacity.
 
@@ -62,6 +65,7 @@ def assert_slices_have_no_fill(case, tree, *prefixes):
     for prefix in prefixes:
         assert_slices_uniform(case, slices, prefix, None)
     case.assertEqual(attribute_values(tree, "fill-opacity"), {"0.01"})
+
 
 def assert_slices_fill_their_tiles(case, slices, prefix_colours, border, tile):
     """Assert each ``<prefix>-<name>`` slice fills its exact tile with *colour*.
@@ -89,6 +93,7 @@ def assert_slices_fill_their_tiles(case, slices, prefix_colours, border, tile):
             expected = pixel_map((colour,) * (width * height), width, height)
             assert_slice_pixels(case, slices, f"{prefix}-{name}", expected)
 
+
 def assert_edge_band_pixels(case, slices, name, side, band, size=6):
     """Assert edge slice *name* paints *band* from its outer edge in.
 
@@ -112,6 +117,7 @@ def assert_edge_band_pixels(case, slices, name, side, band, size=6):
     with case.subTest(slice=name):
         case.assertEqual(actual, expected, name)
 
+
 def assert_edge_bevels(case, slices, prefix, outward, mirrored, size=6):
     """Assert each of *prefix*'s four edge tiles paints its bevel band.
 
@@ -132,6 +138,7 @@ def assert_edge_bevels(case, slices, prefix, outward, mirrored, size=6):
             case, slices, f"{prefix}{sep}{side}", side, band, size
         )
 
+
 def assert_corner_pixels(case, slices, name, expected):
     """Assert corner slice *name* paints the 3x3 *expected* pixels.
 
@@ -147,6 +154,7 @@ def assert_corner_pixels(case, slices, name, expected):
     with case.subTest(corner=name):
         case.assertEqual(actual, expected, name)
 
+
 def assert_face_corners(case, slices, prefix, corners):
     """Assert every 3x3 corner slice in *corners* paints its expected pixels.
 
@@ -161,6 +169,7 @@ def assert_face_corners(case, slices, prefix, corners):
     for name, expected in corners.items():
         assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
 
+
 def assert_center_tile_is(case, slices, name, colour, size):
     """Assert centre slice *name* is a solid *size* x *size* rectangle of *colour*.
 
@@ -172,6 +181,7 @@ def assert_center_tile_is(case, slices, name, colour, size):
     """
     expected = pixel_map((colour,) * (size * size), size, size)
     assert_slice_pixels(case, slices, name, expected)
+
 
 def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
     """Assert *prefix*'s nine-slice paints the *bevel* on *face*.
@@ -194,6 +204,7 @@ def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
     assert_edge_bevels(case, slices, prefix, outward, mirrored, size)
     assert_face_corners(case, slices, prefix, face_corners(face, bevel))
 
+
 def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):
     """Assert *tree*'s hint rects are a centred nine-slice's.
 
@@ -208,6 +219,7 @@ def assert_hint_geometry(case, tree, prefixes, border, size, extra=None):
     if extra:
         expected.update(extra)
     case.assertEqual(rect_geometry(tree), expected)
+
 
 def assert_tiles_placed_by_margins(
     case, tree, prefixes, hint_aliases=None, extra_groups=None
@@ -248,6 +260,7 @@ def assert_tiles_placed_by_margins(
     if extra_groups:
         expected.update(extra_groups)
     case.assertEqual(origins, expected)
+
 
 def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=None):
     """Assert no nine-slice tile paints outside the region its hints define.
@@ -290,6 +303,7 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
                 case.assertEqual(
                     set(slices[slice_id]) - region, set(), slice_id
                 )
+
 
 def assert_root_canvas(case, tree, width, height, origin_states=()):
     """Assert *tree*'s root <svg> declares a *width* x *height* canvas 1:1.

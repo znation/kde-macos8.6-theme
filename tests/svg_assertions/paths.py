@@ -17,6 +17,7 @@ _SUPPORTED_PATH_COMMANDS = frozenset("MALZ")
 
 _PATH_COMMAND_ARITY = {"M": 2, "L": 2, "A": 7, "Z": 0}
 
+
 def _path_commands(d):
     """Yield (command, numbers) for each command letter in an SVG path *d*.
 
@@ -34,6 +35,7 @@ def _path_commands(d):
         )
     for letter, body in _PATH_COMMAND.findall(d):
         yield letter, [float(n) for n in re.findall(r"-?\d+(?:\.\d+)?", body)]
+
 
 def path_arcs(d):
     """Yield (start, (rx, ry, large_arc, sweep), end) for each arc in path *d*.
@@ -67,6 +69,7 @@ def path_arcs(d):
             rx, ry, _rotation, large_arc, sweep, nx, ny = numbers
             yield (x, y), (rx, ry, int(large_arc), int(sweep)), (nx, ny)
             x, y = nx, ny
+
 
 def arc_center(start, arc, end):
     """Return the centre of a circular SVG arc given its endpoint form.
