@@ -20,7 +20,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import theme_install
-from support.cli_fixtures import call_main
+from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
 from tools import apply_theme
 
@@ -198,18 +198,7 @@ class TestTimeoutPaths(StubTools):
 
 class TestMissingTool(unittest.TestCase):
     def test_names_the_first_missing_required_tool_and_exits_2(self):
-        for missing in apply_theme.REQUIRED_TOOLS:
-            with self.subTest(missing=missing):
-                with tempfile.TemporaryDirectory() as directory:
-                    for name in apply_theme.REQUIRED_TOOLS:
-                        if name != missing:
-                            tool = Path(directory) / name
-                            tool.write_text("#!/bin/sh\n", encoding="utf-8")
-                            tool.chmod(0o755)
-                    with mock.patch.dict(os.environ, {"PATH": directory}):
-                        status, stderr = call_main(apply_theme.main)
-                self.assertEqual(2, status)
-                self.assertTrue(stderr.rstrip().endswith(missing), stderr)
+        assert_missing_tool_named(self, apply_theme.main, apply_theme.REQUIRED_TOOLS)
 
 
 class TestSessionBus(StubTools):

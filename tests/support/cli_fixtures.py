@@ -11,10 +11,13 @@ per CLI by a ``test_script_entry_point``.
 
 import contextlib
 import io
+import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support.process_assertions import assert_succeeded
 from support.repo_root import ROOT
@@ -61,6 +64,27 @@ def call_main(main, *args):
     """
     status, _, stderr = _call_capturing(lambda: main(list(args)))
     return status, stderr
+
+
+def assert_missing_tool_named(case, main, required, argv=()):
+    """Assert *main* names each tool in *required* when it alone is absent.
+
+    For every name, a temp directory holds executable stubs for the others
+    and ``PATH`` is narrowed to it, so ``report_missing_tool`` sees exactly
+    that one absent; the run must exit 2 and print *name* last on stderr.
+    """
+    for missing in required:
+        with case.subTest(missing=missing):
+            with tempfile.TemporaryDirectory() as directory:
+                for name in required:
+                    if name != missing:
+                        tool = Path(directory) / name
+                        tool.write_text("#!/bin/sh\n", encoding="utf-8")
+                        tool.chmod(0o755)
+                with mock.patch.dict(os.environ, {"PATH": directory}):
+                    status, stderr = call_main(main, *argv)
+            case.assertEqual(2, status, stderr)
+            case.assertTrue(stderr.rstrip().endswith(missing), stderr)
 
 
 class CliTestCase(unittest.TestCase):

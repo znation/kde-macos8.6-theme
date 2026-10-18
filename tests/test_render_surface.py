@@ -17,7 +17,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
-from support.cli_fixtures import call_main
+from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.platinum_palette import FACE, hex_colour
 from tools import render_surface  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
@@ -126,18 +126,9 @@ class TestMissingTool(unittest.TestCase):
         self.assertIn("render_surface: error:", stderr)
 
     def test_a_single_missing_tool_is_the_one_named(self):
-        for missing in render_surface.REQUIRED_TOOLS:
-            with self.subTest(missing=missing):
-                with tempfile.TemporaryDirectory() as directory:
-                    for name in render_surface.REQUIRED_TOOLS:
-                        if name != missing:
-                            tool = Path(directory) / name
-                            tool.write_text("#!/bin/sh\n", encoding="utf-8")
-                            tool.chmod(0o755)
-                    with mock.patch.dict(os.environ, {"PATH": directory}):
-                        status, stderr = call_main(render_surface.main, "out.png")
-                self.assertEqual(2, status)
-                self.assertTrue(stderr.rstrip().endswith(missing), stderr)
+        assert_missing_tool_named(
+            self, render_surface.main, render_surface.REQUIRED_TOOLS, ("out.png",)
+        )
 
 
 class TestFailurePaths(StubTools):
