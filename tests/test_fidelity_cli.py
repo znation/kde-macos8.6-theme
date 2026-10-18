@@ -82,6 +82,20 @@ class TestCli(CliTestCase):
             self._write(directory, "full.png", full_png),
         )
 
+    def _padded_surface_png(self, width, height, ox, oy) -> bytes:
+        """Return a *width* x *height* PNG with the 2x2 test surface at ``(ox, oy)``.
+
+        The surface is the same ``rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))``
+        the other fixtures use, so a crop selecting it matches a crop of any
+        other padded copy; the rest of the image is black.
+        """
+        def pixel(x, y):
+            if ox <= x < ox + 2 and oy <= y < oy + 2:
+                return ((x - ox) * 9, (y - oy) * 9, 5)
+            return (0, 0, 0)
+
+        return rgb_image(width, height, pixel)[1]
+
     def _solid_reference(self) -> str:
         """Write a 1x1 black PNG to a fresh temp dir and return its path."""
         _, data = solid_rgb(1, 1)
@@ -253,6 +267,28 @@ class TestCli(CliTestCase):
         surface, padded = self._write_padded_surface_pair(tmp)
         result = self._run(padded, surface, "--candidate-crop", "1,1,2,2")
         self._assert_pass(result)
+
+    def test_candidate_and_reference_crops_apply_together(self):
+        # The render gate crops a strip from the candidate and the matching
+        # strip from the reference in one run, so both options must trim their
+        # own image. The candidate's surface sits at (1, 1) and the reference's
+        # at (2, 2), so a pass proves each crop selected the surface.
+        tmp = self._tmp_dir()
+        _, candidate = self._write_padded_surface_pair(tmp)
+        reference = self._write(
+            tmp, "reference.png", self._padded_surface_png(5, 5, 2, 2)
+        )
+        result = self._run(
+            candidate,
+            reference,
+            "--candidate-crop",
+            "1,1,2,2",
+            "--crop",
+            "2,2,2,2",
+        )
+        self._assert_pass(result)
+        self.assertIn("candidate crop: 1,1,2,2", result.stdout)
+        self.assertIn("reference crop: 2,2,2,2", result.stdout)
 
     def test_candidate_crop_rectangle_is_echoed_for_reproducibility(self):
         # The candidate line prints the cropped size, which does not say where

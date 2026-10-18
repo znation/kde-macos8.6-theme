@@ -26,7 +26,6 @@ from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
 
 SCRIPT = str(repo_root.ROOT / "tools" / "render_surface.py")
-FIDELITY = str(repo_root.ROOT / "tools" / "fidelity.py")
 REFERENCE = str(
     repo_root.ROOT / "macos8.6-screenshots" / "aboutsystem_betawiki.png"
 )
@@ -474,42 +473,14 @@ class TestRender(unittest.TestCase):
         pixel = pixel_at(read_png(self.output), 300, 200)
         self.assertEqual(FACE, hex_colour(pixel))
 
-    def assert_strip_matches(self, candidate_crop, reference_crop):
-        """Byte-compare one candidate strip against the same reference strip.
-
-        The reference set is Git LFS material; skip, don't fail, when it is
-        absent. The strips are byte-compared through the real CLI, so the
-        candidate-crop option and the crop geometry are covered end to end.
-        """
-        _, error = read_reference(REFERENCE)
-        skip_unless_materialized(self, REFERENCE, error)
-        result = process_runner.run(
-            [
-                sys.executable,
-                FIDELITY,
-                self.output,
-                REFERENCE,
-                "--candidate-crop",
-                ",".join(str(value) for value in candidate_crop),
-                "--crop",
-                ",".join(str(value) for value in reference_crop),
-            ],
-            capture_output=True,
-            text=True,
-        )
-        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
-        pixels = candidate_crop[2] * candidate_crop[3]
-        self.assertIn(f"differing pixels: 0 / {pixels}", result.stdout)
-
     def assert_strip_pixels_match(self, candidate_crop, reference_crop):
         """Byte-compare one strip with the same ``crop``/``compare`` the CLI calls.
 
-        The border test pins three more rectangles; comparing in process
-        reuses the process-cached reference decode instead of spawning the
-        CLI and re-decoding the 1024x768 screenshot once per strip. The CLI's
-        crop options stay covered end to end by
-        ``test_title_bar_matches_the_reference`` and directly by
-        ``tests/test_fidelity_cli.py``.
+        Each strip is compared in process, reusing the process-cached
+        reference decode instead of spawning the CLI and re-decoding the
+        1024x768 screenshot once per strip. The CLI's crop options, including
+        ``--candidate-crop`` and ``--crop`` in one run, stay covered end to
+        end by ``tests/test_fidelity_cli.py``.
         """
         reference, error = read_reference(REFERENCE)
         skip_unless_materialized(self, REFERENCE, error)
@@ -518,7 +489,7 @@ class TestRender(unittest.TestCase):
         self.assertEqual(0, compare(candidate, expected).differing)
 
     def test_title_bar_matches_the_reference(self):
-        self.assert_strip_matches(CANDIDATE_CROP, REFERENCE_CROP)
+        self.assert_strip_pixels_match(CANDIDATE_CROP, REFERENCE_CROP)
 
     def test_frame_borders_match_the_reference(self):
         for candidate_crop, reference_crop in (
