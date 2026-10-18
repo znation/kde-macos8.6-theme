@@ -5,17 +5,22 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-**Scope drift (2026-10-08, steward):** The initial prompt asks for "the UI of MacOS 8.6,
-getting as close as possible to pixel-perfect theming." Shipped so far: the `MacOS8` color
-scheme, the `org.macos8.desktop` global theme, and the desktop theme's eight widget SVGs
-(panel background, frame, button, radio button, checkmarks, lineedit, list item, scroll bar).
-README.md describes the reference set as the source of truth for "menu bar, window chrome,
-widget metrics, icons and colour palette", and the set includes Finder/dialog/desktop
-screenshots plus five boot/splash images (`boot_*.png/jpg`, `bootwhite_archiveorg.jpg`,
-`splash_macbase.gif`). The startup splash is covered by the done `contents/splash/` entry below;
-the window decoration is now shipped by the two `aurorae/themes/` entries below, but there is
-still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
-as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
+**Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward):** The initial prompt asks for
+"the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
+(directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
+(startup splash, desktop layout, defaults); the desktop theme (eighteen widget SVGs under
+`widgets/` plus `dialogs/background.svg`); the Aurorae window decoration (frame, close, zoom and
+collapse boxes); the desktop wallpaper package; and the render and fidelity tooling that checks
+them against `macos8.6-screenshots/`. README.md describes the reference set as the source of
+truth for "menu bar, window chrome, widget metrics, icons and colour palette". Still not
+themed, none of them planned or ruled out in this file: an icon theme (the Finder, desktop and
+dialog references show Platinum icons; the Apple-logo icon for kicker is deferred to one, see
+the "Out of scope (later plans)" paragraph of the menu-bar desktop layout plan), a cursor theme, a Qt widget style
+for KDE applications (the desktop theme styles only Plasma shell widgets, so a KDE app's own
+buttons, menus and scroll bars keep the Breeze look), and system sounds. A Qt widget style needs
+a style engine such as Kvantum, which would be a new dependency; the plan role should either
+plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
+the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
 ### Mac OS 8.6 Platinum tooltip (`widgets/tooltip.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
 
