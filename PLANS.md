@@ -26,7 +26,35 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Platinum desktop icon action buttons (`widgets/action-overlays.svg`) for the desktop theme (planned 2026-10-18 by the plan role)
+
+**Goal.** Ship `widgets/action-overlays.svg` so the desktop containment's folder-icon action buttons draw Platinum add/open/remove buttons instead of inheriting Breeze's. The theme ships no `widgets/action-overlays`, so `KSvg` resolves the name to the default theme's Breeze file. It is the last widget name the default session's applets reference and the theme does not ship: the layout's kicker, appmenu, systemtray, digitalclock, windowlist and desktopcontainment reference every other widget name the theme ships. Independent of every shipped widget: it adds one artwork file, one path constant, one test module and registry/README/register lines.
+
+**Consumers (verified in the installed Plasma 6.3.6 tree).**
+- `/usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/ui/FolderItemActionButton.qml` is an `SvgItem` whose `svg` is `KSvg.Svg { imagePath: "widgets/action-overlays"; multipleImages: true; size: "16x16" }`; it sets `elementId: element + "-normal"`, switching to `element + "-hover"` while the pointer is over it and `element + "-pressed"` while down. Its width and height are `Kirigami.Units.iconSizes` chosen from `Plasmoid.configuration.iconSize` (small 16, smallMedium 22, medium 32, large 48), so the 16x16 art scales.
+- `/usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/ui/FolderItemDelegate.qml` instantiates it with `element: model.selected ? "remove" : "add"` (the selection toggle) and `element: "open"` (the folder-popup button); both appear on hover over a desktop icon in the layout the global theme applies. The default theme's `widgets/action-overlays.svg` ships the plain ids `add-`/`open-`/`remove-` plus `base`, and no size-prefixed ids, so the consumer resolves the plain ids.
+- `main.qml` sets `imagePath: "widgets/toolbox"` on an `Svg` it never draws, and no installed desktop theme ships a `toolbox.svgz`; the toolbox is dead code, not a surface to style.
+
+**Provenance.** No Mac OS 8.6 screenshot in the reference set shows a hover action button, so the shape and its three states are KDE-required; the fills reuse the grounded Platinum faces the other widgets ship (`#000000` outline, `#FFFFFF` highlight, `#999999` shadow, `#DDDDDD` face). No new palette constant is introduced.
+
+**Approach.**
+- New `theme/desktop-themes/org.macos8.desktop/widgets/action-overlays.svg`, a 16x16 canvas with nine groups, ids `add-normal`, `add-hover`, `add-pressed`, `open-normal`, `open-hover`, `open-pressed`, `remove-normal`, `remove-hover`, `remove-pressed` (the plain ids the consumer resolves):
+  - each group opens with the invisible `0,0,16,16` `fill="none"` bounding rect, then the `actionbutton.svg` circle recipe at (8,8): a `#000000` r=7 outline circle, the two bevel half-discs of radius 6 split on the top-right to bottom-left diagonal, and the `#DDDDDD` r=5 face circle;
+  - `normal` and `hover` keep the raised bevel (`#FFFFFF` top-left half, `#999999` bottom-right half) and `pressed` swaps it; the `hover` face is `#FFFFFF` (a lit Platinum button), the `normal` and `pressed` face `#DDDDDD`;
+  - a `#000000` glyph over the face: `add` a plus, `remove` a minus (each a stroked path with `fill="none"`), `open` a right-pointing filled triangle, sized to fit inside the r=5 face.
+- `tests/support/desktoptheme_paths.py`: add `ACTION_OVERLAYS_SVG = os.path.join(PACKAGE, "widgets", "action-overlays.svg")`.
+- New `tests/test_desktoptheme_actionoverlays.py`, modelled on `tests/test_desktoptheme_actionbutton.py` (extends `SvgCase`): `TestActionOverlays` pins the nine ids (`assert_ids_present`), the parsed fill set (`PLATINUM_FILLS | {"none"}`), the stroke set (`{"#000000"}`), `assert_no_script_elements`, each group's bounds rect, each state's circle geometry and bevel order, and each kind's glyph path (`d`, `fill`, `stroke`, `stroke-width`).
+- `tests/test_desktoptheme.py`: add `("action-overlays.svg", ACTION_OVERLAYS_SVG, 16, 16)` to `SVG_CANVASES` (and a clause about it to the canvas comment) and `os.path.join("widgets", "action-overlays.svg")` to `TestInstall.INSTALLED_FILES`.
+- `docs/invariants.md`: add the desktop-themes row `widgets/action-overlays.svg` draws the Platinum desktop icon action buttons. | `tests/test_desktoptheme_actionoverlays.py::TestActionOverlays` | none.
+- `README.md`: add `widgets/action-overlays.svg` to the desktop theme's widget inventory sentence.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/action-overlays.svg` (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_actionoverlays.py` (new), `tests/test_desktoptheme.py`, `docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- `action-overlays.svg` parses with a 16x16 root canvas; the nine element ids are present and unique; every fill is in `PLATINUM_FILLS | {"none"}` and every stroke `#000000`.
+- Every group carries the `0,0,16,16` invisible bounds rect; `normal`/`hover` paint the white-top-left/grey-bottom-right bevel and `pressed` the swapped one; the `hover` face is `#FFFFFF`, the `normal`/`pressed` face `#DDDDDD`; each kind's glyph is pinned by its `d` and its stroke/fill attributes.
+- `make install` copies the SVG into the installed desktop theme and `make uninstall` removes it (through `TestInstall`), `test_registry_covers_every_shipped_svg` and the README backtick test pass, and `docs/invariants.md` resolves the new row's test.
+- `make check` is green.
 
 ## Done
 
