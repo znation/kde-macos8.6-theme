@@ -26,51 +26,6 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Kvantum widget style, part 2/4: the Platinum track and value controls (planned 2026-10-18 by the plan role; requires part 1/4 landed)
-
-**Goal.** Part 1 shipped the palette, the core-control art and the package. This part adds our own
-Platinum art and `.kvconfig` sections for the value and track controls — scroll bars, sliders,
-progress bars, spin boxes and splitters — so they stop falling back to Kvantum's compiled-in
-default shapes. Part 3/4 adds the surface controls and part 4/4 selects the style.
-
-**Approach.**
-- Extend `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` with sections modelled on
-  `default.kvconfig`: `[Scrollbar]` (`indicator.size=16`, the 16px `hint-scrollbar-size` of
-  `theme/desktop-themes/org.macos8.desktop/widgets/scrollbar.svg`), `[ScrollbarSlider]`
-  (`frame.element=scrollbarslider`, `interior.element=scrollbarslider`, 2px,
-  `indicator.element=grip`, `indicator.size=13`), `[ScrollbarGroove]` (the flat `#EEEEEE` trough,
-  top/bottom 0 and left/right 4 as `default.kvconfig` slices it), `[Slider]`/`[SliderCursor]`,
-  `[Progressbar]`/`[ProgressbarContents]`, `[IndicatorSpinBox]` (`frame.element=spin`,
-  `interior.element=spin`, 2px, `indicator.element=arrow`) and `[Splitter]` (`frame.element=splitter`,
-  `interior.element=splitter`, top/bottom 0 and left/right 1, `indicator.element=splitter-grip`,
-  `indicator.size=16`). Raised faces keep 2px margins, sunken fields 1px; the trough fill is
-  `platinum_palette.TROUGH` (`#EEEEEE`).
-- Extend `org.macos8.desktop.svg` with the matching elements in the same nine-slice convention and
-  fill attributes: the frame elements `scrollbarslider`, `slider`, `progress`, `spin` and `splitter`
-  ship their centre and eight slices; the interior/indicator elements `slidercursor`,
-  `progress-pattern`, `splitter-grip` and `grip` ship the state ids Kvantum renders for them.
-- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the
-  splitter's 0/1 and the groove's 0/4 margins in a named assertion; add the new elements to
-  `FRAME_STATES`/`INTERIOR_STATES`; widen `test_uses_exactly_the_platinum_palette` to
-  `assert_fill_palette(self, self.tree, extra=frozenset({TROUGH}))`.
-- Update the series references that still name the old three-part numbering: the
-  `org.macos8.desktop.kvconfig` header comment and the `tests/test_kvantum.py` module docstring now
-  say part 4/4, and README.md's Kvantum-selection sentence names part 4/4.
-
-**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
-`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`, `README.md`.
-
-**Acceptance criteria.**
-- The `.kvconfig` holds the new sections; each uniform raised frame resolves to 2px, the splitter's
-  margins are 0/1 and the groove's 0/4, and `[Scrollbar] indicator.size` is 16 while
-  `[ScrollbarSlider] indicator.size` is 13 — all pinned by name.
-- The SVG's parsed `fill` set is exactly `PLATINUM_FILLS | {TROUGH}`; every element the new config
-  sections name ships its centre and eight slices (frames) or its state ids (interiors/indicators);
-  the four safety assertions pass.
-- The part 1 palette and core-control assertions are unchanged and still pass, and no reference to
-  the old `part 3/3` numbering remains in README.md, the kvconfig or the test module.
-- `make check` is green.
-
 ### Mac OS 8.6 Kvantum widget style, part 3/4: the Platinum surface controls (planned 2026-10-18 by the plan role; requires part 2/4 landed)
 
 **Goal.** Part 2 shipped the track and value controls. This part adds our own Platinum art and
@@ -154,6 +109,51 @@ not installed.
 - `make check` is green.
 
 ## Done
+
+### Mac OS 8.6 Kvantum widget style, part 2/4: the Platinum track and value controls (planned 2026-10-18 by the plan role; done 2026-10-18)
+
+**Goal.** Part 1 shipped the palette, the core-control art and the package. This part adds our own
+Platinum art and `.kvconfig` sections for the value and track controls — scroll bars, sliders,
+progress bars, spin boxes and splitters — so they stop falling back to Kvantum's compiled-in
+default shapes. Part 3/4 adds the surface controls and part 4/4 selects the style.
+
+**Approach.**
+- Extend `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` with sections modelled on
+  `default.kvconfig`: `[Scrollbar]` (`indicator.size=16`, the 16px `hint-scrollbar-size` of
+  `theme/desktop-themes/org.macos8.desktop/widgets/scrollbar.svg`), `[ScrollbarSlider]`
+  (`frame.element=scrollbarslider`, `interior.element=scrollbarslider`, 2px,
+  `indicator.element=grip`, `indicator.size=13`), `[ScrollbarGroove]` (the flat `#EEEEEE` trough,
+  top/bottom 0 and left/right 4 as `default.kvconfig` slices it), `[Slider]`/`[SliderCursor]`,
+  `[Progressbar]`/`[ProgressbarContents]`, `[IndicatorSpinBox]` (`frame.element=spin`,
+  `interior.element=spin`, 2px, `indicator.element=arrow`) and `[Splitter]` (`frame.element=splitter`,
+  `interior.element=splitter`, top/bottom 0 and left/right 1, `indicator.element=splitter-grip`,
+  `indicator.size=16`). Raised faces keep 2px margins, sunken fields 1px; the trough fill is
+  `platinum_palette.TROUGH` (`#EEEEEE`).
+- Extend `org.macos8.desktop.svg` with the matching elements in the same nine-slice convention and
+  fill attributes: the frame elements `scrollbarslider`, `slider`, `progress`, `spin` and `splitter`
+  ship their centre and eight slices; the interior/indicator elements `slidercursor`,
+  `progress-pattern`, `splitter-grip` and `grip` ship the state ids Kvantum renders for them.
+- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the
+  splitter's 0/1 and the groove's 0/4 margins in a named assertion; add the new elements to
+  `FRAME_STATES`/`INTERIOR_STATES`; widen `test_uses_exactly_the_platinum_palette` to
+  `assert_fill_palette(self, self.tree, extra=frozenset({TROUGH}))`.
+- Update the series references that still name the old three-part numbering: the
+  `org.macos8.desktop.kvconfig` header comment and the `tests/test_kvantum.py` module docstring now
+  say part 4/4, and README.md's Kvantum-selection sentence names part 4/4.
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`, `README.md`.
+
+**Acceptance criteria.**
+- The `.kvconfig` holds the new sections; each uniform raised frame resolves to 2px, the splitter's
+  margins are 0/1 and the groove's 0/4, and `[Scrollbar] indicator.size` is 16 while
+  `[ScrollbarSlider] indicator.size` is 13 — all pinned by name.
+- The SVG's parsed `fill` set is exactly `PLATINUM_FILLS | {TROUGH}`; every element the new config
+  sections name ships its centre and eight slices (frames) or its state ids (interiors/indicators);
+  the four safety assertions pass.
+- The part 1 palette and core-control assertions are unchanged and still pass, and no reference to
+  the old `part 3/3` numbering remains in README.md, the kvconfig or the test module.
+- `make check` is green.
 
 ### Mac OS 8.6 kicker logo: our own non-infringing `start-here-kde-symbolic` icon (planned 2026-10-18 by the plan role; done 2026-10-18)
 

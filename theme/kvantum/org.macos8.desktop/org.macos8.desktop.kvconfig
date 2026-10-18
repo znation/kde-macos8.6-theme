@@ -8,7 +8,7 @@
 #
 # The theme is installed but not selected yet: the global theme keeps Qt's
 # built-in Windows style until the remaining widget art lands (PLANS.md,
-# "Mac OS 8.6 Kvantum widget style", part 3/3).
+# "Mac OS 8.6 Kvantum widget style", part 4/4).
 
 [%General]
 author=The kde-macos8.6-theme project
@@ -104,3 +104,86 @@ interior.element=common
 inherits=PanelButtonCommand
 indicator.element=arrow
 indicator.size=9
+
+# The track and value controls. The scroll bar track is 16px wide (the
+# desktop theme's scrollbar.svg `hint-scrollbar-size`) and the slider and
+# scrollbar trough is the flat #EEEEEE `slider` element the desktop theme's
+# slider.svg and scrollbar.svg both draw, with a 1px #000000 outline. The
+# slider/scrollbar thumb, the slider cursor and the spin box are raised
+# #DDDDDD faces (2px margins), and the splitter is the thin 0/1 sliced line
+# with a `splitter-grip` indicator.
+[Scrollbar]
+inherits=PanelButtonCommand
+indicator.size=16
+
+[ScrollbarSlider]
+inherits=PanelButtonCommand
+frame.element=scrollbarslider
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+interior.element=scrollbarslider
+indicator.element=grip
+indicator.size=13
+
+[ScrollbarGroove]
+inherits=PanelButtonCommand
+frame.element=slider
+frame.top=0
+frame.bottom=0
+frame.left=4
+frame.right=4
+interior.element=slider
+
+[Slider]
+inherits=PanelButtonCommand
+frame.element=slider
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+interior.element=slider
+
+[SliderCursor]
+inherits=PanelButtonCommand
+frame=false
+interior.element=slidercursor
+
+[Progressbar]
+inherits=PanelButtonCommand
+frame.element=progress
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+interior.element=progress
+text.focus.color=white
+text.bold=true
+
+[ProgressbarContents]
+inherits=PanelButtonCommand
+frame=false
+interior.element=progress-pattern
+
+[IndicatorSpinBox]
+inherits=PanelButtonCommand
+frame.element=spin
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+interior.element=spin
+indicator.element=arrow
+indicator.size=9
+
+[Splitter]
+inherits=PanelButtonCommand
+frame.element=splitter
+frame.top=0
+frame.bottom=0
+frame.left=1
+frame.right=1
+interior.element=splitter
+indicator.element=splitter-grip
+indicator.size=16

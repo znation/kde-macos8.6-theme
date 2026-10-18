@@ -30,7 +30,7 @@ into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 pattern, shipped at fixed resolutions so it renders 1:1 when the screen matches one.
 
 The `org.macos8.desktop` Kvantum widget style is installed but not selected yet: the global theme
-keeps Qt's built-in `Windows` style until the rest of the Kvantum art lands (PLANS.md, part 3/3).
+keeps Qt's built-in `Windows` style until the rest of the Kvantum art lands (PLANS.md, part 4/4).
 Once Kvantum is installed, opt in with `kvantummanager --set org.macos8.desktop` and choose
 "Kvantum" in System Settings → Application Style; its Platinum palette and core-control art live in
 `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` and

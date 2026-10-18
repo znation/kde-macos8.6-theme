@@ -3,21 +3,26 @@
 
      Our own flat Platinum bevel art for the core Qt controls Kvantum
      draws: push and tool buttons, line edits, the generic frame, check
-     boxes, radio buttons, the focus ring and the indicator arrows. A
-     raised face is a #DDDDDD interior inside a 1px #000000 outline with
-     a 1px #FFFFFF top/left and #999999 bottom/right bevel; a pressed or
-     toggled button swaps that bevel to the sunken direction (#999999
-     top/left, #FFFFFF bottom/right); the line edit is the white sunken
-     field. Every shape carries an explicit fill; the
+     boxes, radio buttons, the focus ring and the indicator arrows, plus
+     the track and value controls: the scroll bar slider and grip, the
+     #EEEEEE slider/scrollbar trough, the slider cursor, the progress
+     bar frame and pattern, the spin box and the splitter and its grip.
+     A raised face is a #DDDDDD interior inside a 1px #000000 outline
+     with a 1px #FFFFFF top/left and #999999 bottom/right bevel; a
+     pressed or toggled button swaps that bevel to the sunken direction
+     (#999999 top/left, #FFFFFF bottom/right); the line edit is the
+     white sunken field; the trough is a flat #EEEEEE bar inside the
+     same 1px #000000 outline. Every shape carries an explicit fill; the
      theme SVG uses no gradients, <use> references or styles, so the
      palette is readable from the parsed tree.
 
      A nine-sliced element is named <element>-<state> for the centre and
      <element>-<state>-<slice> for each slice, as Kvantum's renderer
-     appends the slice name. Check boxes, radio buttons and the arrows
-     are single interior/indicator elements, not frames, so they carry
-     only their state id. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="6360" viewBox="0 0 200 6360">
+     appends the slice name. Check boxes, radio buttons, the arrows, the
+     slider cursor, the progress pattern, the splitter grip and the
+     scrollbar grip are single interior/indicator elements, not frames,
+     so they carry only their state id. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="13680" viewBox="0 0 200 13680">
   <g id="button-normal-top" transform="translate(10,10)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
@@ -463,5 +468,544 @@
   </g>
   <g id="arrow-right-disabled" transform="translate(10,6250)">
     <path d="M0,0 L9,4.5 L0,9 Z" fill="#999999"/>
+  </g>
+  <g id="scrollbarslider-normal" transform="translate(10,6310)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="scrollbarslider-normal-top" transform="translate(10,6370)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-normal-bottom" transform="translate(10,6430)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-normal-left" transform="translate(10,6490)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-normal-right" transform="translate(10,6550)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-normal-topleft" transform="translate(10,6610)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-normal-topright" transform="translate(10,6670)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="scrollbarslider-normal-bottomleft" transform="translate(10,6730)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-normal-bottomright" transform="translate(10,6790)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-focused" transform="translate(10,6850)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="scrollbarslider-focused-top" transform="translate(10,6910)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-focused-bottom" transform="translate(10,6970)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-focused-left" transform="translate(10,7030)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-focused-right" transform="translate(10,7090)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-focused-topleft" transform="translate(10,7150)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-focused-topright" transform="translate(10,7210)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="scrollbarslider-focused-bottomleft" transform="translate(10,7270)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-focused-bottomright" transform="translate(10,7330)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-pressed" transform="translate(10,7390)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="scrollbarslider-pressed-top" transform="translate(10,7450)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-pressed-bottom" transform="translate(10,7510)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-pressed-left" transform="translate(10,7570)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-pressed-right" transform="translate(10,7630)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="scrollbarslider-pressed-topleft" transform="translate(10,7690)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-pressed-topright" transform="translate(10,7750)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="scrollbarslider-pressed-bottomleft" transform="translate(10,7810)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="scrollbarslider-pressed-bottomright" transform="translate(10,7870)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-normal" transform="translate(10,7930)">
+    <rect x="0" y="0" width="30" height="30" fill="#EEEEEE"/>
+  </g>
+  <g id="slider-normal-top" transform="translate(10,7990)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#EEEEEE"/>
+  </g>
+  <g id="slider-normal-bottom" transform="translate(10,8050)">
+    <rect x="0" y="0" width="30" height="1" fill="#EEEEEE"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-normal-left" transform="translate(10,8110)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#EEEEEE"/>
+  </g>
+  <g id="slider-normal-right" transform="translate(10,8170)">
+    <rect x="0" y="0" width="1" height="30" fill="#EEEEEE"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="slider-normal-topleft" transform="translate(10,8230)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="slider-normal-topright" transform="translate(10,8290)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-normal-bottomleft" transform="translate(10,8350)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-normal-bottomright" transform="translate(10,8410)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-toggled" transform="translate(10,8470)">
+    <rect x="0" y="0" width="30" height="30" fill="#EEEEEE"/>
+  </g>
+  <g id="slider-toggled-top" transform="translate(10,8530)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#EEEEEE"/>
+  </g>
+  <g id="slider-toggled-bottom" transform="translate(10,8590)">
+    <rect x="0" y="0" width="30" height="1" fill="#EEEEEE"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-toggled-left" transform="translate(10,8650)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#EEEEEE"/>
+  </g>
+  <g id="slider-toggled-right" transform="translate(10,8710)">
+    <rect x="0" y="0" width="1" height="30" fill="#EEEEEE"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="slider-toggled-topleft" transform="translate(10,8770)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="slider-toggled-topright" transform="translate(10,8830)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-toggled-bottomleft" transform="translate(10,8890)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="slider-toggled-bottomright" transform="translate(10,8950)">
+    <rect x="0" y="0" width="2" height="2" fill="#EEEEEE"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="progress-normal" transform="translate(10,9010)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="progress-normal-top" transform="translate(10,9070)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="progress-normal-bottom" transform="translate(10,9130)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="progress-normal-left" transform="translate(10,9190)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="progress-normal-right" transform="translate(10,9250)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="progress-normal-topleft" transform="translate(10,9310)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="progress-normal-topright" transform="translate(10,9370)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="progress-normal-bottomleft" transform="translate(10,9430)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="progress-normal-bottomright" transform="translate(10,9490)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="spin-normal" transform="translate(10,9550)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="spin-normal-top" transform="translate(10,9610)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-normal-bottom" transform="translate(10,9670)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="spin-normal-left" transform="translate(10,9730)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-normal-right" transform="translate(10,9790)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="spin-normal-topleft" transform="translate(10,9850)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-normal-topright" transform="translate(10,9910)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="spin-normal-bottomleft" transform="translate(10,9970)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-normal-bottomright" transform="translate(10,10030)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="spin-focused" transform="translate(10,10090)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="spin-focused-top" transform="translate(10,10150)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-focused-bottom" transform="translate(10,10210)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="spin-focused-left" transform="translate(10,10270)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-focused-right" transform="translate(10,10330)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="spin-focused-topleft" transform="translate(10,10390)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-focused-topright" transform="translate(10,10450)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="spin-focused-bottomleft" transform="translate(10,10510)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-focused-bottomright" transform="translate(10,10570)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="spin-pressed" transform="translate(10,10630)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="spin-pressed-top" transform="translate(10,10690)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-pressed-bottom" transform="translate(10,10750)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="spin-pressed-left" transform="translate(10,10810)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-pressed-right" transform="translate(10,10870)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="spin-pressed-topleft" transform="translate(10,10930)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-pressed-topright" transform="translate(10,10990)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="spin-pressed-bottomleft" transform="translate(10,11050)">
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="spin-pressed-bottomright" transform="translate(10,11110)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-normal" transform="translate(10,11170)">
+    <rect x="0" y="0" width="3" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="splitter-normal-top" transform="translate(10,11230)">
+    <rect x="0" y="0" width="3" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-normal-bottom" transform="translate(10,11290)">
+    <rect x="0" y="0" width="3" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-normal-left" transform="translate(10,11350)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="splitter-normal-right" transform="translate(10,11410)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="splitter-normal-topleft" transform="translate(10,11470)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-normal-topright" transform="translate(10,11530)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-normal-bottomleft" transform="translate(10,11590)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-normal-bottomright" transform="translate(10,11650)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-focused" transform="translate(10,11710)">
+    <rect x="0" y="0" width="3" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="splitter-focused-top" transform="translate(10,11770)">
+    <rect x="0" y="0" width="3" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-focused-bottom" transform="translate(10,11830)">
+    <rect x="0" y="0" width="3" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-focused-left" transform="translate(10,11890)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="splitter-focused-right" transform="translate(10,11950)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="splitter-focused-topleft" transform="translate(10,12010)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-focused-topright" transform="translate(10,12070)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-focused-bottomleft" transform="translate(10,12130)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-focused-bottomright" transform="translate(10,12190)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed" transform="translate(10,12250)">
+    <rect x="0" y="0" width="3" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="splitter-pressed-top" transform="translate(10,12310)">
+    <rect x="0" y="0" width="3" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed-bottom" transform="translate(10,12370)">
+    <rect x="0" y="0" width="3" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed-left" transform="translate(10,12430)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed-right" transform="translate(10,12490)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed-topleft" transform="translate(10,12550)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed-topright" transform="translate(10,12610)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed-bottomleft" transform="translate(10,12670)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="splitter-pressed-bottomright" transform="translate(10,12730)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="slidercursor-normal" transform="translate(10,12790)">
+    <rect x="0" y="0" width="16" height="16" fill="#DDDDDD"/>
+    <rect x="0" y="1" width="16" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="14" width="16" height="1" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="16" fill="#FFFFFF"/>
+    <rect x="14" y="0" width="1" height="16" fill="#999999"/>
+    <rect x="0" y="0" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="15" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="16" fill="#000000"/>
+    <rect x="15" y="0" width="1" height="16" fill="#000000"/>
+  </g>
+  <g id="slidercursor-focused" transform="translate(10,12850)">
+    <rect x="0" y="0" width="16" height="16" fill="#DDDDDD"/>
+    <rect x="0" y="1" width="16" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="14" width="16" height="1" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="16" fill="#FFFFFF"/>
+    <rect x="14" y="0" width="1" height="16" fill="#999999"/>
+    <rect x="0" y="0" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="15" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="16" fill="#000000"/>
+    <rect x="15" y="0" width="1" height="16" fill="#000000"/>
+  </g>
+  <g id="slidercursor-pressed" transform="translate(10,12910)">
+    <rect x="0" y="0" width="16" height="16" fill="#DDDDDD"/>
+    <rect x="0" y="1" width="16" height="1" fill="#999999"/>
+    <rect x="0" y="14" width="16" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="16" fill="#999999"/>
+    <rect x="14" y="0" width="1" height="16" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="15" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="16" fill="#000000"/>
+    <rect x="15" y="0" width="1" height="16" fill="#000000"/>
+  </g>
+  <g id="slidercursor-disabled" transform="translate(10,12970)">
+    <rect x="0" y="0" width="16" height="16" fill="#999999"/>
+    <rect x="0" y="0" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="15" width="16" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="16" fill="#000000"/>
+    <rect x="15" y="0" width="1" height="16" fill="#000000"/>
+  </g>
+  <g id="progress-pattern-normal" transform="translate(10,13030)">
+    <rect x="0" y="0" width="4" height="4" fill="#EEEEEE"/>
+    <rect x="0" y="1" width="4" height="2" fill="#000000"/>
+  </g>
+  <g id="progress-pattern-focused" transform="translate(10,13090)">
+    <rect x="0" y="0" width="4" height="4" fill="#EEEEEE"/>
+    <rect x="0" y="1" width="4" height="2" fill="#000000"/>
+  </g>
+  <g id="progress-pattern-toggled" transform="translate(10,13150)">
+    <rect x="0" y="0" width="4" height="4" fill="#EEEEEE"/>
+    <rect x="0" y="1" width="4" height="2" fill="#000000"/>
+  </g>
+  <g id="progress-pattern-disabled" transform="translate(10,13210)">
+    <rect x="0" y="0" width="4" height="4" fill="#EEEEEE"/>
+    <rect x="0" y="1" width="4" height="2" fill="#999999"/>
+  </g>
+  <g id="splitter-grip-normal" transform="translate(10,13270)">
+    <rect x="7" y="3" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="7" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="11" width="2" height="2" fill="#000000"/>
+  </g>
+  <g id="splitter-grip-focused" transform="translate(10,13330)">
+    <rect x="7" y="3" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="7" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="11" width="2" height="2" fill="#000000"/>
+  </g>
+  <g id="splitter-grip-pressed" transform="translate(10,13390)">
+    <rect x="7" y="3" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="7" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="11" width="2" height="2" fill="#000000"/>
+  </g>
+  <g id="grip-normal" transform="translate(10,13450)">
+    <rect x="4" y="3" width="1" height="7" fill="#000000"/>
+    <rect x="6" y="3" width="1" height="7" fill="#000000"/>
+    <rect x="8" y="3" width="1" height="7" fill="#000000"/>
+  </g>
+  <g id="grip-focused" transform="translate(10,13510)">
+    <rect x="4" y="3" width="1" height="7" fill="#000000"/>
+    <rect x="6" y="3" width="1" height="7" fill="#000000"/>
+    <rect x="8" y="3" width="1" height="7" fill="#000000"/>
+  </g>
+  <g id="grip-pressed" transform="translate(10,13570)">
+    <rect x="4" y="3" width="1" height="7" fill="#000000"/>
+    <rect x="6" y="3" width="1" height="7" fill="#000000"/>
+    <rect x="8" y="3" width="1" height="7" fill="#000000"/>
   </g>
 </svg>

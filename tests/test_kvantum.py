@@ -3,10 +3,13 @@
 Part 1 of the Kvantum series ships the Platinum palette, the grounded frame
 geometry and our own SVG art for the core Qt controls: push and tool buttons,
 line edits, the generic frame, check boxes, radio buttons, the focus ring and
-the indicator arrows. These tests pin the palette against the MacOS8 color
-scheme, the 2px/1px frame margins, the SVG's ids, palette and safety, and the
-install/uninstall lifecycle. The style is installed but not selected until
-part 3, so nothing here asserts a `widgetStyle` selection.
+the indicator arrows. Part 2 adds the track and value controls: the scroll bar
+slider and grip, the slider/scrollbar trough, the slider cursor, the progress
+bar frame and pattern, the spin box and the splitter and its grip. These tests
+pin the palette against the MacOS8 color scheme, the 2px/1px frame margins,
+the SVG's ids, palette and safety, and the install/uninstall lifecycle. The
+style is installed but not selected until part 4/4, so nothing here asserts a
+`widgetStyle` selection.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ from kde_config import read as read_kde_config
 from platinum_palette import (
     FACE,
     GREY,
+    TROUGH,
     WHITE,
     assert_fill_palette,
     hex_colour,
@@ -95,6 +99,17 @@ CORE_FRAME_MARGINS = {
     "Focus": 1,
     "GenericFrame": 2,
     "IndicatorArrow": 2,
+    "ScrollbarSlider": 2,
+    "Slider": 2,
+    "Progressbar": 2,
+    "IndicatorSpinBox": 2,
+}
+
+# The sections the plan slices differently from the 2px raised face: the
+# splitter is a thin line (0/1) and the scrollbar groove is the trough (0/4).
+SPECIAL_FRAME_MARGINS = {
+    "Splitter": {"top": 0, "bottom": 0, "left": 1, "right": 1},
+    "ScrollbarGroove": {"top": 0, "bottom": 0, "left": 4, "right": 4},
 }
 
 # The nine-sliced frame elements and the states the SVG ships. Kvantum names
@@ -103,6 +118,11 @@ FRAME_STATES = {
     "button": ("normal", "pressed", "focused", "toggled"),
     "lineedit": ("normal", "focused"),
     "common": ("normal", "focused"),
+    "scrollbarslider": ("normal", "focused", "pressed"),
+    "slider": ("normal", "toggled"),
+    "progress": ("normal",),
+    "spin": ("normal", "focused", "pressed"),
+    "splitter": ("normal", "focused", "pressed"),
 }
 SLICE_NAMES = (
     "top", "bottom", "left", "right",
@@ -114,6 +134,10 @@ SLICE_NAMES = (
 INTERIOR_STATES = {
     "checkbox": ("normal", "focused", "checked-normal", "checked-focused"),
     "radio": ("normal", "focused", "checked-normal", "checked-focused"),
+    "slidercursor": ("normal", "focused", "pressed", "disabled"),
+    "progress-pattern": ("normal", "focused", "toggled", "disabled"),
+    "splitter-grip": ("normal", "focused", "pressed"),
+    "grip": ("normal", "focused", "pressed"),
 }
 ARROW_DIRECTIONS = ("up", "down", "left", "right")
 ARROW_STATES = ("normal", "focused", "pressed", "disabled")
@@ -229,12 +253,29 @@ class TestGeneral(unittest.TestCase):
         self.assertEqual(parser.get("%General", "scroll_width"), "16")
         self.assertEqual(parser.get("%General", "scroll_arrows"), "true")
 
+    def test_scrollbar_indicator_sizes_are_pinned(self):
+        parser = read_kde_config(KVCONFIG)
+        self.assertEqual(_resolved(parser, "Scrollbar", "indicator.size"), "16")
+        self.assertEqual(
+            _resolved(parser, "ScrollbarSlider", "indicator.size"), "13"
+        )
+
 
 class TestFrameMargins(unittest.TestCase):
     def test_every_core_section_resolves_to_the_expected_frame_margin(self):
         parser = read_kde_config(KVCONFIG)
         for section, margin in CORE_FRAME_MARGINS.items():
             for side in ("top", "bottom", "left", "right"):
+                with self.subTest(section=section, side=side):
+                    self.assertEqual(
+                        _resolved(parser, section, f"frame.{side}"),
+                        str(margin),
+                    )
+
+    def test_special_frame_margins_are_pinned(self):
+        parser = read_kde_config(KVCONFIG)
+        for section, margins in SPECIAL_FRAME_MARGINS.items():
+            for side, margin in margins.items():
                 with self.subTest(section=section, side=side):
                     self.assertEqual(
                         _resolved(parser, section, f"frame.{side}"),
@@ -288,7 +329,7 @@ class TestSvg(unittest.TestCase):
                 )
 
     def test_uses_exactly_the_platinum_palette(self):
-        assert_fill_palette(self, self.tree)
+        assert_fill_palette(self, self.tree, extra=frozenset({TROUGH}))
 
     def test_has_no_scripts_styles_external_refs_or_duplicate_ids(self):
         assert_no_script_elements(self, self.tree)
