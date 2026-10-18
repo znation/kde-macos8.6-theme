@@ -15,6 +15,7 @@ from __future__ import annotations
 import contextlib
 import os
 import stat
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -80,6 +81,74 @@ def write_fake_make(bindir, record, exit_status=0):
         encoding="utf-8",
     )
     make.chmod(0o755)
+
+
+class TestGitFailures(unittest.TestCase):
+    """``_git`` turns a missing git, a timeout and a failed run into a report.
+
+    Every git invocation goes through ``_git``; a failure must surface as a
+    ``LocalHookError`` the caller prints with exit status 2 instead of a
+    traceback. The command is patched, so the failure is produced without a
+    real hung or absent git.
+    """
+
+    def _failure(self, **run):
+        """Call ``_git`` with ``subprocess.run`` patched by *run*; return its message."""
+        with mock.patch.object(local_hook.subprocess, "run", **run):
+            with self.assertRaises(local_hook.LocalHookError) as caught:
+                local_hook._git("rev-parse", "--git-path", "hooks")
+        return str(caught.exception)
+
+    def test_missing_git_is_reported(self):
+        message = self._failure(side_effect=FileNotFoundError())
+        self.assertEqual(message, "git not found on PATH")
+
+    def test_timeout_names_the_command_and_duration(self):
+        message = self._failure(
+            side_effect=subprocess.TimeoutExpired(
+                "git", local_hook.COMMAND_TIMEOUT
+            )
+        )
+        self.assertEqual(
+            message,
+            "git rev-parse --git-path hooks timed out after "
+            f"{local_hook.COMMAND_TIMEOUT:g}s",
+        )
+
+    def test_nonzero_exit_reports_gits_own_diagnostic(self):
+        message = self._failure(
+            return_value=mock.Mock(
+                returncode=1, stderr="fatal: boom\n", stdout=""
+            )
+        )
+        self.assertEqual(message, "fatal: boom")
+
+    def test_nonzero_exit_falls_back_to_stdout(self):
+        message = self._failure(
+            return_value=mock.Mock(
+                returncode=1, stderr="  \n", stdout="from stdout\n"
+            )
+        )
+        self.assertEqual(message, "from stdout")
+
+    def test_nonzero_exit_without_output_names_command_and_status(self):
+        message = self._failure(
+            return_value=mock.Mock(returncode=3, stderr="", stdout="")
+        )
+        self.assertEqual(message, "git rev-parse --git-path hooks exited 3")
+
+    def test_success_returns_the_stripped_stdout(self):
+        with mock.patch.object(
+            local_hook.subprocess,
+            "run",
+            return_value=mock.Mock(
+                returncode=0, stderr="", stdout=" /hooks \n"
+            ),
+        ):
+            self.assertEqual(
+                local_hook._git("rev-parse", "--git-path", "hooks"),
+                "/hooks",
+            )
 
 
 class TestInstall(unittest.TestCase):
