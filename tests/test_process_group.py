@@ -65,7 +65,12 @@ class TestRunLogged(unittest.TestCase):
     def test_timeout_returns_none_and_kills_the_group(self):
         pidfile = self.root / "pid"
         started = time.monotonic()
-        status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; wait', timeout=1)
+        # The shell must fork its background sleep and write the pidfile
+        # before the timeout fires, so the budget is a little more than the
+        # setup needs -- the same 0.5 s the process_runner timeout tests use
+        # for a child that has to finish setup before it is killed. The child
+        # sleeps for 60 s, so any budget here times out.
+        status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; wait', timeout=0.5)
         self.assertIsNone(status)
         self.assertLess(time.monotonic() - started, 30)
         self.assertTrue(is_gone(int(pidfile.read_text(encoding="utf-8"))))
