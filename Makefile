@@ -165,7 +165,7 @@ help:
 	@echo "Variables (make VAR=value TARGET):"
 	@echo "  CHECK_PATTERN=glob  test modules 'check' discovers (default test*.py)"
 	@echo "  CHECK_TESTS=spec    test modules/classes/methods to run instead of discovering"
-	@echo "  PYTHON=path         Python 3.10+ interpreter for check and check-references (default python3)"
+	@echo "  PYTHON=path         Python 3.10+ interpreter for every target that runs Python (default python3)"
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
