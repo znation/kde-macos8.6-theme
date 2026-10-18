@@ -10,7 +10,9 @@ then against the shipped register (``TestRepositoryRegister``).
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
+import invariants
 from invariants import REGISTER, Row, cross_check, parse_rows
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
@@ -286,6 +288,24 @@ class TestHelpers(unittest.TestCase):
                     AssertionError, "cannot be read as Python"
                 ):
                     cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_reference_to_a_file_it_cannot_read(self):
+        # `check_reference`'s isfile guard passes a file that exists but
+        # cannot be opened (a permission error, for example), so
+        # `_defined_names`'s `open` raises `OSError`. That exception names
+        # neither the register section nor the reference, so a maintainer
+        # cannot tell which row points at the unreadable file. `OSError` is
+        # one of the three exception types the read guard catches; the other
+        # two (`UnicodeDecodeError`, `SyntaxError`) are pinned above, so this
+        # case keeps the `OSError` arm of that catch observable.
+        register = self._valid_register(
+            [("The thing holds.", f"{self.MODULE}::TestFake")]
+        )
+        with mock.patch.object(
+            invariants, "_defined_names", side_effect=OSError("permission denied")
+        ):
+            with self.assertRaisesRegex(AssertionError, "cannot be read as Python"):
+                cross_check(self.root, register)
 
     def test_cross_check_rejects_a_reference_with_a_nul_byte(self):
         # A NUL byte in the reference reaches `os.path.realpath`, which raises
