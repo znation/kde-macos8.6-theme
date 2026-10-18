@@ -466,17 +466,17 @@ class TestHelp(unittest.TestCase):
             if not name.startswith("_")
         ]
 
-    def _tunable_defaults(self):
-        """Return the literal defaults of the Makefile's `?=` variables.
+    def _question_variables(self):
+        """Return every `?=` variable's ``(name, literal default)``.
 
         A `?=` assignment is the tunable-variable contract: the help target
-        documents each one and states its default. Deriving the default from
-        the Makefile keeps this test from pinning a second copy that could
+        documents each one and states its default. Deriving both from the
+        Makefile keeps these tests from pinning a second copy that could
         itself drift; only the literal right-hand side is read, so a value
         built from other variables (none today) is out of scope.
         """
         makefile = os.path.join(theme_install.ROOT, "Makefile")
-        defaults = {}
+        variables = []
         with open(makefile, encoding="utf-8") as handle:
             for line in handle:
                 match = re.match(
@@ -486,9 +486,46 @@ class TestHelp(unittest.TestCase):
                     # A `#` starts a Make comment, so an inline note after the
                     # value is not part of it; strip it before comparing.
                     value = match.group(2).split("#", 1)[0].strip()
-                    if value:
-                        defaults[match.group(1)] = value
-        return defaults
+                    variables.append((match.group(1), value))
+        return variables
+
+    def _tunable_defaults(self):
+        """Return the literal defaults of the non-empty `?=` variables."""
+        return {
+            name: value
+            for name, value in self._question_variables()
+            if value
+        }
+
+    def _help_section(self, heading):
+        """Return the non-empty lines after *heading* in the help output.
+
+        The help target prints each section as a heading, its lines, then a
+        blank line, so a section runs until the next blank (the last section
+        has none).
+        """
+        lines = self._output().splitlines()
+        if heading not in lines:
+            self.fail(f"help output has no {heading!r} heading")
+        section = []
+        for line in lines[lines.index(heading) + 1 :]:
+            if not line.strip():
+                break
+            section.append(line)
+        return section
+
+    def _help_targets(self):
+        """Return the target names the help index lists."""
+        return [line.split()[0] for line in self._help_section("Targets:")]
+
+    def _help_variables(self):
+        """Return the variable names the help index lists."""
+        names = []
+        for line in self._help_section("Variables (make VAR=value TARGET):"):
+            name, separator, _ = line.split()[0].partition("=")
+            if separator:
+                names.append(name)
+        return names
 
     def test_lists_every_public_target(self):
         lines = self._output().splitlines()
@@ -497,6 +534,39 @@ class TestHelp(unittest.TestCase):
                 self.assertTrue(
                     any(line.startswith(f"  {target} ") for line in lines),
                     f"help does not list target {target!r}",
+                )
+
+    def test_every_help_target_is_a_phony_target(self):
+        r"""The help index must not name a target the Makefile lacks.
+
+        `test_lists_every_public_target` catches a target added without a help
+        line; this catches the reverse, a help line left behind after its
+        target is removed or renamed, which would send a contributor to a
+        missing target. Every help target line names a `.PHONY` target.
+        """
+        phony = set(self._public_targets())
+        for target in self._help_targets():
+            with self.subTest(target=target):
+                self.assertIn(
+                    target,
+                    phony,
+                    f"help lists target {target!r}, which is not a .PHONY target",
+                )
+
+    def test_lists_every_tunable_variable(self):
+        r"""Every `?=` variable appears in the help index, empty default or not.
+
+        `test_names_every_tunable_variable_default` skips a `?=` variable with
+        an empty default (`CHECK_TESTS`), so without this a help line removed
+        for one would go unnoticed.
+        """
+        listed = set(self._help_variables())
+        names = [name for name, _ in self._question_variables()]
+        self.assertTrue(names, "Makefile has no `?=` variables to check")
+        for name in names:
+            with self.subTest(variable=name):
+                self.assertIn(
+                    name, listed, f"help does not list variable {name!r}"
                 )
 
     def test_readme_names_every_public_target(self):
