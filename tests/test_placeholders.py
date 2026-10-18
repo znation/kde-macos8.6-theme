@@ -24,7 +24,7 @@ REGISTER = os.path.join(ROOT, "PLACEHOLDERS.md")
 THEME_DIR = "theme"
 # The text formats a placeholder asset can use. Binary assets (the ``.png``
 # wallpapers, the gzipped ``.svgz`` decoration) cannot carry a comment marker.
-TEXT_EXTENSIONS = (".svg", ".qml", ".colors", ".theme", ".desktop", ".json")
+TEXT_EXTENSIONS = (".svg", ".qml", ".colors", ".theme", ".desktop", ".desktoprc", ".json", ".js")
 TEXT_NAMES = ("index.theme", "defaults")
 
 # One register table row: ``| `path` | what it stands in for |``.
@@ -151,6 +151,26 @@ class TestHelpers(unittest.TestCase):
         path.parent.mkdir(parents=True)
         path.write_text("[Icon Theme]\nName=x\n", encoding="utf-8")
         self.assertEqual(markers(tmp), {})
+
+    def test_markers_finds_markers_in_every_text_format_the_theme_ships(self):
+        # The shipped theme carries a JavaScript layout file (`.js`) and an
+        # Aurorae decoration config (`.desktoprc`); a placeholder in either
+        # must be tracked, so both are text assets.
+        tmp = make_tmp_dir(self)
+        for rel, comment in (
+            (os.path.join("theme", "layouts", "layout.js"), "//"),
+            (os.path.join("theme", "aurorae", "theme.desktoprc"), "#"),
+        ):
+            path = tmp / rel
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(f"{comment} {TOKEN} stands in\n", encoding="utf-8")
+        self.assertEqual(
+            markers(tmp),
+            {
+                os.path.join("theme", "layouts", "layout.js"): "stands in",
+                os.path.join("theme", "aurorae", "theme.desktoprc"): "stands in",
+            },
+        )
 
     def test_register_entries_parses_the_table(self):
         tmp = make_tmp_dir(self)

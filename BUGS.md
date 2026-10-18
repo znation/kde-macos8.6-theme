@@ -12,6 +12,25 @@ _None yet._
 
 ## Fixed
 
+### `test_placeholders.py` ignores `PLACEHOLDER:` markers in the theme's `.js` and `.desktoprc` files (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `tests/test_placeholders.py` `TEXT_EXTENSIONS` listed only `.svg`, `.qml`,
+`.colors`, `.theme`, `.desktop` and `.json`, but `theme/` also ships a JavaScript layout
+(`theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`)
+and an Aurorae decoration config (`.desktoprc`). A placeholder added in either format would not
+be found by `markers()`, so the register cross-check passed with the placeholder silently
+untracked — the exact "forget to replace one" failure the register exists to prevent.
+**Reproduce:** a scratch theme root holding `theme/layouts/layout.js` and
+`theme/aurorae/theme.desktoprc` each carrying `PLACEHOLDER: stands in`; `markers(root)` returned
+`{}` before the fix. The new
+`test_placeholders.TestHelpers.test_markers_finds_markers_in_every_text_format_the_theme_ships`
+recorded `{} != {...}` before the fix and passes after it.
+**Fix:** `.js` and `.desktoprc` joined `TEXT_EXTENSIONS`, so markers in both are read and the
+register cross-check now covers every text format the shipped theme uses.
+**Validation gap:** no-observability — no shipped placeholder uses those two formats, so the
+omission produced no failure or diagnostic; it surfaced only by reading `TEXT_EXTENSIONS` against
+the theme's file list and confirming with a scratch reproduction.
+
 ### `org.macos8.desktop` icon theme still calls its final art "placeholder icons" (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `theme/icons/org.macos8.desktop/index.theme` still read
