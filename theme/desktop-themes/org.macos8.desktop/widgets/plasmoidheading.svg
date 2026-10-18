@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" applet-popup heading.
+
+     The header and footer bands PlasmaExtras.PlasmoidHeading draws inside an
+     applet popup (kickoff, the system tray, notifications, the calendar,
+     network, volume, bluetooth, clipboard, the device notifier). Plasma shows
+     this FrameSvg (`widgets/plasmoidheading`, prefix `header` or `footer`)
+     only while the heading's image set matches `dialogs/background`, which
+     this package ships, so the Breeze fallback never draws and without this
+     file the band runs into the popup body with no divider.
+
+     Every slice paints nothing perceptible except the rule rows: the band
+     shows the dialog's #DDDDDD face and the dialog's own outline and bevel
+     show through the band's outer edges. The band's insets pull it out over
+     the 3px `dialogs/background` border, so every border here is 3px too.
+     `header-bottom` carries the rule on the band's bottom edge and
+     `footer-top` on its top edge, #888888 then #FFFFFF as in the etched
+     separator `line.svg`. Placeholder rects use style="fill:#FFFFFF"
+     fill-opacity="0.01" so each tile keeps a bounding box for KSvg to read
+     margins from.
+
+     Provenance: #888888/#FFFFFF are the etched group-box rule sampled from
+     macos8.6-screenshots/systemprofiler_betawiki.png at (260,153)/(260,154),
+     the sample line.svg pins. The reference set shows no Plasma-style popup
+     heading; the rule that divides a Platinum window's body is the nearest
+     Platinum equivalent.
+
+     The nine-slice contract is a 3px border around a 6px centre tile on a
+     tight 12x12 canvas, shared by both prefixes. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="header-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="header-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="header-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="header-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="footer-hint-top-margin" x="3" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="footer-hint-bottom-margin" x="3" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="footer-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
+  <rect id="footer-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
+
+  <!-- Header: the rule sits on the band's bottom edge (row 1 dark, row 2 light). Every other slice is a transparent placeholder. -->
+  <g id="header-top" transform="translate(3,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="header-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="1" width="6" height="1" fill="#888888"/>
+    <rect y="2" width="6" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="header-left" transform="translate(0,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="header-right" transform="translate(9,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="header-center" transform="translate(3,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="header-topleft">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="header-topright" transform="translate(9,0)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="header-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="header-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+
+  <!-- Footer: the rule sits on the band's top edge (row 0 dark, row 1 light). Every other slice is a transparent placeholder. -->
+  <g id="footer-top" transform="translate(3,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="0" width="6" height="1" fill="#888888"/>
+    <rect y="1" width="6" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="footer-bottom" transform="translate(3,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="footer-left" transform="translate(0,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="footer-right" transform="translate(9,3)">
+    <rect width="3" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="footer-center" transform="translate(3,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="footer-topleft">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="footer-topright" transform="translate(9,0)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="footer-bottomleft" transform="translate(0,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="footer-bottomright" transform="translate(9,9)">
+    <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+</svg>

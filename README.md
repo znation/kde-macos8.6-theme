@@ -67,7 +67,9 @@ black triangles `ComboBox` and menu buttons draw as their dropdown indicator),
 `PlasmaComponents.ScrollBar`), `widgets/bar_meter_horizontal.svg` (the sunken grey
 track with a lavender fill for `PlasmaComponents.ProgressBar`), and `widgets/line.svg` (the 2px
 Platinum etched separator, `#888888` then `#FFFFFF`, that list section headers, spin boxes and
-the kicker, system-tray and notification separators draw).
+the kicker, system-tray and notification separators draw), and `widgets/plasmoidheading.svg`
+(the transparent header and footer bands of applet popups, divided from the body by the same
+etched `#888888`/`#FFFFFF` rule).
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. The package

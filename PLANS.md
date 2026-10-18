@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Mac OS 8.6 Platinum applet-popup heading (`widgets/plasmoidheading.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum applet-popup heading (`widgets/plasmoidheading.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Planned 2026-10-17 by plan.** Independent of every other entry: it adds one widget file to the
 existing `org.macos8.desktop` desktop-theme package and one new test module, touches no shipped
@@ -127,8 +131,6 @@ not change: `make install` already copies the whole widgets directory.
 - Manual smoke test (needs a Plasma session): the system-tray and kickoff popups show a grey
   line over a white line under their header row, the band otherwise matches the grey popup body,
   and the popup's black outline and bevel stay continuous behind the band.
-
-## Done
 
 ### Mac OS 8.6 Platinum etched separator (`widgets/line.svg`) for the desktop theme (planned 2026-10-17 by the plan role; done 2026-10-17)
 

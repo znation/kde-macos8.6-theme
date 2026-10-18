@@ -36,6 +36,7 @@ DIALOG_BACKGROUND_SVG = os.path.join(PACKAGE, "dialogs", "background.svg")
 TOOLBAR_SVG = os.path.join(PACKAGE, "widgets", "toolbar.svg")
 ARROWS_SVG = os.path.join(PACKAGE, "widgets", "arrows.svg")
 LINE_SVG = os.path.join(PACKAGE, "widgets", "line.svg")
+PLASMOIDHEADING_SVG = os.path.join(PACKAGE, "widgets", "plasmoidheading.svg")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"

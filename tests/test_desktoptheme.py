@@ -28,6 +28,7 @@ from desktoptheme_paths import (
     METADATA,
     PACKAGE,
     PANEL_SVG,
+    PLASMOIDHEADING_SVG,
     RADIOBUTTON_SVG,
     SCROLLBAR_SVG,
     SLIDER_SVG,
@@ -56,8 +57,8 @@ from theme_install import installed_destdir, run_captured
 PLASMA_SECTION = "plasmarc][Theme"
 
 
-# Each shipped SVG's root canvas. Eight widgets (the menu bar, frame, button,
-# line edit, list item, view item, menu-bar item and tab bar) share a tight
+# Each shipped SVG's root canvas. Nine widgets (the menu bar, frame, button,
+# line edit, list item, view item, menu-bar item, tab bar and plasmoid heading) share a tight
 # 12x12 canvas; the scrollbar, slider, toolbar, arrows, menu body and dialog
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
@@ -80,6 +81,7 @@ SVG_CANVASES = (
     ("toolbar.svg", TOOLBAR_SVG, 16, 16),
     ("arrows.svg", ARROWS_SVG, 16, 16),
     ("line.svg", LINE_SVG, 4, 2),
+    ("plasmoidheading.svg", PLASMOIDHEADING_SVG, 12, 12),
     ("dialogs/background.svg", DIALOG_BACKGROUND_SVG, 16, 16),
 )
 
@@ -171,6 +173,7 @@ class TestInstall(
         os.path.join("widgets", "toolbar.svg"),
         os.path.join("widgets", "arrows.svg"),
         os.path.join("widgets", "line.svg"),
+        os.path.join("widgets", "plasmoidheading.svg"),
         os.path.join("widgets", "scrollbar.svg"),
         os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "bar_meter_horizontal.svg"),
