@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import repo_root  # noqa: F401
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 import theme_install
 import tmp_dir
 from process_assertions import assert_failed, assert_succeeded

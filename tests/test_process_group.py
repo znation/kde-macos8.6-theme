@@ -9,7 +9,7 @@ import time
 import unittest
 from pathlib import Path
 
-import repo_root  # noqa: F401
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import process_group  # noqa: E402
 
 

@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import repo_root  # noqa: F401
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 import process_runner
 from platinum_palette import FACE, hex_colour
 from tools import render_surface  # noqa: E402

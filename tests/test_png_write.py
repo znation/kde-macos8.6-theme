@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-import repo_root  # noqa: F401
+import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png  # noqa: E402
 from tools.png_write import encode_png  # noqa: E402
 
