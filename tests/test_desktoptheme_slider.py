@@ -6,7 +6,8 @@ import unittest
 
 from support.desktoptheme_paths import SLIDER_SVG
 from support.nine_slice_case import NineSliceCase
-from support.platinum_palette import FACE, TROUGH, assert_fill_palette
+from support.platinum_palette import TROUGH, assert_fill_palette
+from support.thumb_fixtures import raised_thumb_pixels
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -24,34 +25,6 @@ HANDLES = {
     "horizontal-slider-handle": (0, 0),
     "vertical-slider-handle": (0, 0),
 }
-
-
-def raised_thumb_pixels(width, height):
-    """Return the {(x, y): fill} map of a raised Platinum thumb.
-
-    The 1px #000000 outline is the outer ring; inside it a 1px bevel runs
-    #FFFFFF on the top/left edges and #999999 on the bottom/right ones, and
-    the vertical bevel is painted over the horizontal so the two edges turn
-    the corners the way the scroll bar thumb's corner slices do. Every
-    remaining pixel is the #DDDDDD face.
-    """
-    pixels = {}
-    for y in range(height):
-        for x in range(width):
-            if x in (0, width - 1) or y in (0, height - 1):
-                colour = "#000000"
-            elif x == 1:
-                colour = "#FFFFFF"
-            elif x == width - 2:
-                colour = "#999999"
-            elif y == 1:
-                colour = "#FFFFFF"
-            elif y == height - 2:
-                colour = "#999999"
-            else:
-                colour = FACE
-            pixels[(x, y)] = colour
-    return pixels
 
 
 class TestSlider(NineSliceCase, unittest.TestCase):

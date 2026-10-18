@@ -6,13 +6,11 @@ import unittest
 
 from support.desktoptheme_paths import SWITCH_SVG
 from support.nine_slice_case import NineSliceCase
-from support.platinum_palette import (
-    BLACK,
-    FACE,
-    GREY,
-    TROUGH,
-    WHITE,
-    assert_fill_palette,
+from support.platinum_palette import TROUGH, WHITE, assert_fill_palette
+from support.thumb_fixtures import (
+    raised_thumb_pixels,
+    ring_pixels,
+    sunken_thumb_pixels,
 )
 from svg_assertions import (
     assert_face_bevel,
@@ -38,59 +36,6 @@ THUMBS = {
 # `hint-bar-size` is the track SwitchIndicator sizes the inactive FrameSvg to;
 # it is not a nine-slice tile, so it is merged into the hint geometry.
 BAR_SIZE = {"hint-bar-size": ("0", "0", "30", "16")}
-
-
-def thumb_pixels(width, height, top_left, bottom_right):
-    """Return the {(x, y): fill} map of a 1px-outlined beveled Platinum thumb.
-
-    The 1px #000000 outline is the outer ring; inside it a 1px bevel runs
-    *top_left* on the top/left edges and *bottom_right* on the bottom/right
-    ones, and the vertical bevel is painted over the horizontal so the two
-    edges turn the corners the way the slider thumb's do. Every remaining
-    pixel is the #DDDDDD face. *top_left* and *bottom_right* are #FFFFFF and
-    #999999 for the raised thumb, swapped for the pressed one.
-    """
-    pixels = {}
-    for y in range(height):
-        for x in range(width):
-            if x in (0, width - 1) or y in (0, height - 1):
-                colour = BLACK
-            elif x == 1:
-                colour = top_left
-            elif x == width - 2:
-                colour = bottom_right
-            elif y == 1:
-                colour = top_left
-            elif y == height - 2:
-                colour = bottom_right
-            else:
-                colour = FACE
-            pixels[(x, y)] = colour
-    return pixels
-
-
-def raised_thumb_pixels(width, height):
-    """Return the raised thumb: white highlight top/left, grey shadow bottom/right."""
-    return thumb_pixels(width, height, WHITE, GREY)
-
-
-def sunken_thumb_pixels(width, height):
-    """Return the pressed thumb: grey shadow top/left, white highlight bottom/right."""
-    return thumb_pixels(width, height, GREY, WHITE)
-
-
-def ring_pixels(width, height):
-    """Return only the 1px #000000 outer ring of a *width* x *height* thumb.
-
-    The focus ring's inside is transparent, so the map carries no interior
-    points; `render_slices` records only the painted ring rects.
-    """
-    return {
-        (x, y): BLACK
-        for y in range(height)
-        for x in range(width)
-        if x in (0, width - 1) or y in (0, height - 1)
-    }
 
 
 class TestSwitch(NineSliceCase, unittest.TestCase):
