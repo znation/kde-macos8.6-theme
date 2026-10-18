@@ -95,7 +95,10 @@ the kicker, system-tray and notification separators draw), and `widgets/plasmoid
 etched `#888888`/`#FFFFFF` rule).
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
-both orientations. The package
+both orientations. `widgets/switch.svg` ships the Platinum track-and-thumb
+toggle `PlasmaComponents.Switch` draws: a flat `#EEEEEE` inactive trough, a
+flat white active field, and the same raised grey thumb, with hover, pressed
+and focus states. The package
 also ships `widgets/background.svg` (the flat white Platinum body for
 `PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers),
 `widgets/tooltip.svg` (the flat `#FFFFCC` Platinum tooltip with a black outline, for panel and

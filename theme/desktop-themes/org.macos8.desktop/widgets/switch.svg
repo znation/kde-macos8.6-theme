@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" switch.
+
+     The track-and-thumb toggle PlasmaComponents.Switch draws (the
+     notifications popup's "Do Not Disturb" toggle and the bluetooth/network
+     applet toggles). SwitchIndicator.qml reads three parts from
+     `widgets/switch`: the `inactive` FrameSvg prefix sized by `hint-bar-size`
+     (the whole track), the `active` prefix anchored from the track's left
+     edge to the thumb (the filled portion), and the `handle`, `handle-hover`,
+     `handle-pressed` and `handle-focus` element ids (the thumb).
+
+     No Mac OS 8.6 screenshot in the reference set shows a switch, so the
+     shape and metrics are KDE-required provenance; the colours are the
+     grounded Platinum faces the other widgets ship. The inactive track is
+     the flat #EEEEEE trough (scrollbar.svg's trough, [Colors:View]
+     BackgroundAlternate), the active track the flat #FFFFFF field face
+     (lineedit.svg, [Colors:View] BackgroundNormal), and the thumb the raised
+     #DDDDDD slider thumb (slider.svg's horizontal-slider-handle), with the
+     pressed thumb's bevel inverted as button.svg's pressed state does. The
+     focus ring is a 1px #000000 outline so it can overlay the opaque thumb.
+
+     Omitted on purpose, like slider.svg's hover/shadow: the `handle-shadow`
+     element (SwitchIndicator draws it behind the thumb when enabled and not
+     pressed; a prefix this file does not declare draws nothing, so the thumb
+     keeps its flat Platinum face) and the active/inactive `-top`,
+     `-bottom`, `-topleft`, `-topright`, `-bottomleft`, `-bottomright` tiles
+     are painted flat so the stretched track keeps its 1px outline.
+
+     Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
+     track at the canvas origin, the same recipe as slider.svg's groove. The
+     30x18 canvas is wider than the track because `hint-bar-size` asks for a
+     30x16 track and taller to hold the 12x18 thumb, which sits at the origin
+     outside the nine-slice layout; the thumb overhangs the 16px track by one
+     pixel top and bottom. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="30" height="18" viewBox="0 0 30 18">
+  <!-- Nine-slice hints: tile size, border margins and the track size. KSvg
+       reads their geometry, not their colour. -->
+  <rect id="hint-tile-center" x="3" y="3" width="10" height="10" style="fill:#ff6600"/>
+  <rect id="inactive-hint-top-margin" x="3" y="0" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="inactive-hint-bottom-margin" x="3" y="13" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="inactive-hint-left-margin" x="0" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="inactive-hint-right-margin" x="13" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="active-hint-top-margin" x="3" y="0" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="active-hint-bottom-margin" x="3" y="13" width="10" height="3" style="fill:#ff00ff"/>
+  <rect id="active-hint-left-margin" x="0" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="active-hint-right-margin" x="13" y="3" width="3" height="10" style="fill:#ff00ff"/>
+  <rect id="hint-bar-size" x="0" y="0" width="30" height="16" style="fill:#0000ff"/>
+
+  <!-- Inactive track: a flat #EEEEEE trough with a 1px #000000 outline,
+       identical to the scroll bar trough and the slider groove. -->
+  <g id="inactive-top" transform="translate(3,0)">
+    <rect width="10" height="3" fill="#EEEEEE"/>
+    <rect y="0" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="inactive-bottom" transform="translate(3,13)">
+    <rect width="10" height="3" fill="#EEEEEE"/>
+    <rect y="2" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="inactive-left" transform="translate(0,3)">
+    <rect width="3" height="10" fill="#EEEEEE"/>
+    <rect x="0" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="inactive-right" transform="translate(13,3)">
+    <rect width="3" height="10" fill="#EEEEEE"/>
+    <rect x="2" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="inactive-center" transform="translate(3,3)">
+    <rect width="10" height="10" fill="#EEEEEE"/>
+  </g>
+  <g id="inactive-topleft">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="inactive-topright" transform="translate(13,0)">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="inactive-bottomleft" transform="translate(0,13)">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="inactive-bottomright" transform="translate(13,13)">
+    <rect width="3" height="3" fill="#EEEEEE"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+
+  <!-- Active track: the same flat track painted on the #FFFFFF field face. -->
+  <g id="active-top" transform="translate(3,0)">
+    <rect width="10" height="3" fill="#FFFFFF"/>
+    <rect y="0" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="active-bottom" transform="translate(3,13)">
+    <rect width="10" height="3" fill="#FFFFFF"/>
+    <rect y="2" width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="active-left" transform="translate(0,3)">
+    <rect width="3" height="10" fill="#FFFFFF"/>
+    <rect x="0" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="active-right" transform="translate(13,3)">
+    <rect width="3" height="10" fill="#FFFFFF"/>
+    <rect x="2" width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="active-center" transform="translate(3,3)">
+    <rect width="10" height="10" fill="#FFFFFF"/>
+  </g>
+  <g id="active-topleft">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="active-topright" transform="translate(13,0)">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="active-bottomleft" transform="translate(0,13)">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect width="1" height="3" fill="#000000"/>
+  </g>
+  <g id="active-bottomright" transform="translate(13,13)">
+    <rect width="3" height="3" fill="#FFFFFF"/>
+    <rect y="2" width="3" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="3" fill="#000000"/>
+  </g>
+
+  <!-- Thumbs, 12x18 at the origin: the raised #DDDDDD slider thumb for
+       handle/handle-hover, its bevel inverted for handle-pressed (grey shadow
+       inside top/left, white highlight inside bottom/right), and a 1px
+       #000000 ring with a transparent inside for handle-focus. -->
+  <g id="handle">
+    <rect width="12" height="18" fill="#DDDDDD"/>
+    <rect y="1" width="12" height="1" fill="#FFFFFF"/>
+    <rect y="16" width="12" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="18" fill="#FFFFFF"/>
+    <rect x="10" width="1" height="18" fill="#999999"/>
+    <rect width="12" height="1" fill="#000000"/>
+    <rect y="17" width="12" height="1" fill="#000000"/>
+    <rect width="1" height="18" fill="#000000"/>
+    <rect x="11" width="1" height="18" fill="#000000"/>
+  </g>
+  <g id="handle-hover">
+    <rect width="12" height="18" fill="#DDDDDD"/>
+    <rect y="1" width="12" height="1" fill="#FFFFFF"/>
+    <rect y="16" width="12" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="18" fill="#FFFFFF"/>
+    <rect x="10" width="1" height="18" fill="#999999"/>
+    <rect width="12" height="1" fill="#000000"/>
+    <rect y="17" width="12" height="1" fill="#000000"/>
+    <rect width="1" height="18" fill="#000000"/>
+    <rect x="11" width="1" height="18" fill="#000000"/>
+  </g>
+  <g id="handle-pressed">
+    <rect width="12" height="18" fill="#DDDDDD"/>
+    <rect y="1" width="12" height="1" fill="#999999"/>
+    <rect y="16" width="12" height="1" fill="#FFFFFF"/>
+    <rect x="1" width="1" height="18" fill="#999999"/>
+    <rect x="10" width="1" height="18" fill="#FFFFFF"/>
+    <rect width="12" height="1" fill="#000000"/>
+    <rect y="17" width="12" height="1" fill="#000000"/>
+    <rect width="1" height="18" fill="#000000"/>
+    <rect x="11" width="1" height="18" fill="#000000"/>
+  </g>
+  <g id="handle-focus">
+    <rect width="12" height="1" fill="#000000"/>
+    <rect y="17" width="12" height="1" fill="#000000"/>
+    <rect width="1" height="18" fill="#000000"/>
+    <rect x="11" width="1" height="18" fill="#000000"/>
+  </g>
+</svg>

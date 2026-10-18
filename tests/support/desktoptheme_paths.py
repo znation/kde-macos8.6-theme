@@ -28,6 +28,7 @@ MENUBARITEM_SVG = os.path.join(PACKAGE, "widgets", "menubaritem.svg")
 TABBAR_SVG = os.path.join(PACKAGE, "widgets", "tabbar.svg")
 SCROLLBAR_SVG = os.path.join(PACKAGE, "widgets", "scrollbar.svg")
 SLIDER_SVG = os.path.join(PACKAGE, "widgets", "slider.svg")
+SWITCH_SVG = os.path.join(PACKAGE, "widgets", "switch.svg")
 BAR_METER_HORIZONTAL_SVG = os.path.join(
     PACKAGE, "widgets", "bar_meter_horizontal.svg"
 )

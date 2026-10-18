@@ -68,7 +68,9 @@ and when a guarantee cell is blank; a scratch check (delete a row, rename a test
 failure.
 - `make check` is green.
 
-### Mac OS 8.6 Platinum switch widget (`widgets/switch.svg`) for the desktop theme (planned 2026-10-18 by the plan role)
+## Done
+
+### Mac OS 8.6 Platinum switch widget (`widgets/switch.svg`) for the desktop theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** Ship `widgets/switch.svg` so `PlasmaComponents.Switch` draws a Platinum track-and-thumb
 toggle instead of inheriting Breeze's rounded pill. The theme ships no `widgets/switch`, so `KSvg`
@@ -121,7 +123,10 @@ Kvantum series edits.
     ring helpers (as `tests/test_desktoptheme_slider.py` keeps its thumb helper local) pin every
     pixel of `handle`, `handle-hover`, `handle-pressed` and `handle-focus`.
   - `test_switch_colours`: `assert_fill_palette(self, self.tree, {TROUGH})`.
-- `tests/test_desktoptheme.py`: add `("switch.svg", SWITCH_SVG, 30, 18)` to `SVG_CANVASES` and
+- `tests/test_desktoptheme.py`: add `("switch.svg", SWITCH_SVG, 30, 18)` to `SVG_CANVASES`,
+  `"switch.svg": ("inactive", "active")` to `ORIGIN_STATES` (the 16x16 track sits at the origin of
+  the 30x18 canvas grown for the 18px thumb, so its margin rects stop short of the canvas edge, the
+  same exemption `panel-background.svg`'s unprefixed state uses), and
   `os.path.join("widgets", "switch.svg")` to `TestInstall.INSTALLED_FILES`.
 - `README.md`: add `widgets/switch.svg` to the desktop theme's widget inventory sentence.
 
@@ -139,8 +144,6 @@ Kvantum series edits.
 - `make install` copies the switch into the installed desktop theme and `make uninstall` removes it
   (through `TestInstall`), and the README lists the widget.
 - `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Kvantum widget style, part 4/4: select the Kvantum style from the global theme (planned 2026-10-18 by the plan role; requires part 3/4 landed) — done 2026-10-18
 

@@ -33,6 +33,7 @@ from support.desktoptheme_paths import (
     SCROLLBAR_SVG,
     SLIDER_SVG,
     SOLID_TOOLTIP_SVG,
+    SWITCH_SVG,
     TABBAR_SVG,
     TOOLBAR_SVG,
     TOOLTIP_SVG,
@@ -67,7 +68,8 @@ PLASMA_SECTION = "plasmarc][Theme"
 # slider, toolbar, arrows, menu body, tooltip (and its solid/ copy) and dialog
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
-# is a 10x10 canvas and the etched separator a 4x2 canvas.
+# is a 10x10 canvas and the etched separator a 4x2 canvas. The switch is a
+# 30x18 canvas grown from a 16x16 track to hold its 12x18 thumb.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 22),
     ("frame.svg", FRAME_SVG, 12, 12),
@@ -78,6 +80,7 @@ SVG_CANVASES = (
     ("menubaritem.svg", MENUBARITEM_SVG, 20, 12),
     ("scrollbar.svg", SCROLLBAR_SVG, 16, 16),
     ("slider.svg", SLIDER_SVG, 16, 16),
+    ("switch.svg", SWITCH_SVG, 30, 18),
     ("bar_meter_horizontal.svg", BAR_METER_HORIZONTAL_SVG, 10, 10),
     ("background.svg", BACKGROUND_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
@@ -103,7 +106,13 @@ class TestMetadata(PackageMetadata, unittest.TestCase):
 
 # The menu bar's unprefixed state sits at the origin of the 12x22 canvas grown
 # for its taller `north-` state, so its margin rects stop above the bottom.
-ORIGIN_STATES = {"panel-background.svg": ("",)}
+# The switch's inactive/active tracks likewise sit at the origin of the 30x18
+# canvas grown to hold the 18px thumb, so their margin rects stop short of the
+# 30px width (and of the bottom).
+ORIGIN_STATES = {
+    "panel-background.svg": ("",),
+    "switch.svg": ("inactive", "active"),
+}
 
 
 class TestSvgRootCanvas(unittest.TestCase):
@@ -192,6 +201,7 @@ class TestInstall(
         os.path.join("widgets", "plasmoidheading.svg"),
         os.path.join("widgets", "scrollbar.svg"),
         os.path.join("widgets", "slider.svg"),
+        os.path.join("widgets", "switch.svg"),
         os.path.join("widgets", "bar_meter_horizontal.svg"),
         os.path.join("widgets", "background.svg"),
         os.path.join("widgets", "tooltip.svg"),
