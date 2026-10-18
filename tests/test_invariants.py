@@ -23,6 +23,8 @@ class TestHelpers(unittest.TestCase):
     # repository, so its name carries no module suffix or repository
     # directory prefix that a repository path check could try to resolve.
     MODULE = "fake_module"
+    # A module with no test case at all, for the bare-file reference check.
+    NO_TESTS_MODULE = "no_tests_module"
 
     def setUp(self):
         self.root = make_tmp_dir(self)
@@ -57,6 +59,12 @@ class TestHelpers(unittest.TestCase):
             "\n\n"
             "class TestNotCollected(FakeTestCase):\n"
             "    def test_ok(self):\n"
+            "        pass\n",
+        )
+        self._write(
+            self.NO_TESTS_MODULE,
+            "class Helper:\n"
+            "    def helper(self):\n"
             "        pass\n",
         )
 
@@ -168,6 +176,17 @@ class TestHelpers(unittest.TestCase):
     def test_cross_check_accepts_a_matching_register(self):
         sections = cross_check(self.root, self._valid_register())
         self.assertEqual(set(sections), {"aurorae", "tooling"})
+
+    def test_cross_check_rejects_a_bare_file_with_no_test_case(self):
+        # The bare `path` form names the whole file, so it pins the guarantee
+        # to that file's tests. A file that defines no test case pins nothing;
+        # accepting it would leave the guarantee unchecked while the register
+        # reads as if it were covered.
+        register = self._valid_register(
+            [("The thing holds.", self.NO_TESTS_MODULE)]
+        )
+        with self.assertRaisesRegex(AssertionError, "defines no test case"):
+            cross_check(self.root, register)
 
     def test_cross_check_accepts_a_test_case_inherited_from_a_module_base(self):
         # `path::TestViaMixin` reaches `unittest.TestCase` through a base

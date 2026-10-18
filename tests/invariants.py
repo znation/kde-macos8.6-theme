@@ -6,8 +6,8 @@ confirmable without reconstructing the intent from the test's body. Nothing
 otherwise ties the register to the repository: this module parses its sections
 and table rows and fails when a ``theme/`` subsystem directory has no section,
 when a row names a test file, class or method that does not exist, when a row
-names a method that is not a test, when a row names no test, or when a guarantee
-cell is blank.
+names a method that is not a test, when a row names a file that defines no test
+case, when a row names no test, or when a guarantee cell is blank.
 
 ``tests/test_invariants.py`` drives these checks.
 """
@@ -164,6 +164,23 @@ def _defined_names(path):
     return classes
 
 
+def _parse_test_module(section, reference, file_path):
+    """Return ``_defined_names(file_path)``, or raise a register ``AssertionError``.
+
+    A referenced file that cannot be decoded or parsed (a stray byte, a
+    syntax error) would otherwise escape as a `UnicodeDecodeError` or
+    `SyntaxError` naming neither the section nor the reference. Report it as
+    the register's own `AssertionError` so the failing row is identifiable.
+    """
+    try:
+        return _defined_names(file_path)
+    except (OSError, UnicodeDecodeError, SyntaxError) as exc:
+        raise AssertionError(
+            f"{section}: {reference} names a file that cannot be read as "
+            f"Python: {exc}"
+        ) from exc
+
+
 def check_reference(root, reference, section):
     """Assert *reference* names an existing test in *root*.
 
@@ -175,7 +192,9 @@ def check_reference(root, reference, section):
     kind unittest runs), so a helper cannot stand in for the test that pins the
     guarantee. A named class must be a ``TestCase`` (directly or through a
     base defined in the same module), so a helper class unittest never
-    collects cannot stand in for the tests that pin the guarantee. The path
+    collects cannot stand in for the tests that pin the guarantee. A bare
+    ``path`` must define at least one test case, so a file that holds only
+    helpers cannot stand in for the tests that pin the guarantee. The path
     must stay inside *root*: an absolute path replaces the root and a ``..``
     segment climbs out of it, so either would let a row pin a guarantee to a
     test outside the tree the register covers. A referenced file that cannot
@@ -203,24 +222,22 @@ def check_reference(root, reference, section):
             raise AssertionError(
                 f"{section}: {reference} names no class or method after '::'"
             )
+        classes = _parse_test_module(section, reference, file_path)
+        if not any(test_case for _, test_case in classes.values()):
+            # The bare ``path`` form names the whole file, so it pins the
+            # guarantee to that file's tests. A file with no test case at all
+            # pins nothing, and accepting it would leave the guarantee
+            # unchecked while the register reads as if it were covered.
+            raise AssertionError(
+                f"{section}: {reference} names a file that defines no test case"
+            )
         return
     names = qualifier.split("::")
     if len(names) > 2:
         raise AssertionError(
             f"{section}: {reference} names more than a class and method"
         )
-    try:
-        classes = _defined_names(file_path)
-    except (OSError, UnicodeDecodeError, SyntaxError) as exc:
-        # A referenced file that cannot be decoded or parsed (a stray byte, a
-        # syntax error) would otherwise escape as a `UnicodeDecodeError` or
-        # `SyntaxError` naming neither the section nor the reference. Report
-        # it as the register's own `AssertionError` so the failing row is
-        # identifiable.
-        raise AssertionError(
-            f"{section}: {reference} names a file that cannot be read as "
-            f"Python: {exc}"
-        ) from exc
+    classes = _parse_test_module(section, reference, file_path)
     class_name = names[0]
     if class_name not in classes:
         raise AssertionError(f"{section}: {reference} names a missing class {class_name}")
@@ -249,7 +266,8 @@ def cross_check(root, register):
     Returns ``{section name: [Row, ...]}``; raises :class:`AssertionError` for a
     ``theme/`` subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
     an empty section, a blank guarantee cell, a malformed table row, a data row
-    that names no test, or an unresolvable test reference.
+    that names no test, a bare file reference to a file that defines no test
+    case, or an unresolvable test reference.
     """
     with open(register, encoding="utf-8") as handle:
         sections = parse_rows(handle.read())
