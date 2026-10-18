@@ -34,8 +34,8 @@ AURORAE_DIR = os.path.join(
     ROOT, "theme", "aurorae", "themes", "org.macos8.desktop"
 )
 
-# configparser reads the KDE `[kdeglobals][General]` header greedily, so the
-# section key includes the inner bracket pair.
+# configparser reads a KDE header such as `[kdeglobals][General]` greedily, so
+# the section key includes the inner bracket pair.
 STYLE_SECTION = "kdeglobals][KDE"
 DEFAULTS_SECTION = "kdeglobals][General"
 PLASMA_SECTION = "plasmarc][Theme"

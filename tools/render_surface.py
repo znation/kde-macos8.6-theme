@@ -54,7 +54,8 @@ REQUIRED_TOOLS = (
     "spectacle",
 )
 # The config files the global theme's defaults feed that `plasma-apply-colorscheme`
-# does not write; the rest of the defaults are applied inside the session.
+# does not write. The render applies the colour scheme in the session and leaves the
+# `[kdeglobals][KDE] widgetStyle` default unapplied.
 CONFIG_FILES = ("kwinrc", "plasmarc")
 COLOR_SCHEME = "MacOS8"
 SOCKET = "render-surface"
