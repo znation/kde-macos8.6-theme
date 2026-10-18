@@ -8,6 +8,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import process_group  # noqa: E402
@@ -23,6 +24,22 @@ def is_gone(pid):
             return True
         time.sleep(0.02)
     return False
+
+
+class TestKillGroup(unittest.TestCase):
+    def test_ignores_a_process_group_that_is_already_gone(self):
+        # run_logged's finally block calls _kill_group after the child has
+        # been waited for, so a child that left no group member behind is
+        # already reaped and os.killpg raises ProcessLookupError. The cleanup
+        # must swallow that OSError; otherwise a normal exit would surface as
+        # a traceback and mask the child's exit status. The race is forced
+        # here because staging it for real is not deterministic.
+        process = mock.Mock(pid=4242)
+        with mock.patch.object(
+            process_group.os, "killpg", side_effect=ProcessLookupError
+        ) as killpg:
+            process_group._kill_group(process)
+        killpg.assert_called_once_with(4242, signal.SIGKILL)
 
 
 class TestRunLogged(unittest.TestCase):
