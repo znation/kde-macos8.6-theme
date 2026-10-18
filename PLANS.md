@@ -17,7 +17,90 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 menu-bar clock format: 12-hour time with AM/PM, no date, no seconds (planned 2026-10-17 by the plan role)
+
+**Goal.** Make the menu-bar clock read like the Mac OS 8.6 one. The reference menu bar
+(`macos8.6-screenshots/desktop_betawiki.png`) shows only `5:01 PM`: one line of text from x=882
+to x=925, with dark pixels only in rows 5..13. It is followed by the Application-menu separator.
+Two-colour pixels (`#000000` on `#DDDDDD`) make the glyphs exact. `desktop_archiveorg8.6hd.png`
+shows the same form (`h:mm PM`). Today
+`theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js` adds
+`org.kde.plasma.digitalclock` with no configuration. So Plasma's defaults apply
+(`/usr/share/plasma/plasmoids/org.kde.plasma.digitalclock/contents/config/main.xml`, group
+`Appearance`): `showDate=true` puts the date beside or below the time in the 20px bar, and
+`use24hFormat=1` follows the locale, so many users get a 24-hour clock. The layout plan listed
+"the clock format" as a later plan.
+
+**Approach.**
+- In the layout script, keep the clock's widget handle and write three `Appearance` keys with
+  the Plasma scripting API. Upstream's `updates/digitalclock_rename_timezonedisplay_key.js` uses
+  the same `currentConfigGroup`/`writeConfig` calls:
+  ```js
+  var clock = panel.addWidget("org.kde.plasma.digitalclock");
+  // Reference desktop_betawiki.png x=882..925: "5:01 PM" — 12-hour with
+  // AM/PM, no seconds, no date.
+  clock.currentConfigGroup = ["Appearance"];
+  clock.writeConfig("showDate", false);
+  clock.writeConfig("showSeconds", 0);   // Never
+  clock.writeConfig("use24hFormat", 0);  // 12-Hour (Qt.Unchecked: always appends AM/PM)
+  ```
+  `use24hFormat` index 0 is "12-Hour" in `configAppearance.qml`. `DigitalClock.qml` appends
+  `amPm` when the value is `Qt.Unchecked` (0). `showSeconds` choices are `Never`/`ToolTip`/
+  `Always`, and the default is 1, so 0 is needed here: the reference has no seconds. Every other
+  `addWidget` line stays as it is.
+- Known limit (put it in the script comment, not in a test): whether the hour has a leading zero
+  comes from the locale's time format. The clock has no setting for it.
+
+**Files touched.**
+- `theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`:
+  the change above.
+- `tests/test_lookandfeel_layout.py`:
+  - `test_widgets_in_menu_bar_order` uses the regex `^panel\.addWidget\("([^"]+)"\)\s*;`, which
+    would no longer match the clock line. Widen it to allow an optional `var <name> = ` prefix,
+    so the order and the `addWidget(` count checks still cover all six widgets.
+  - Add a helper `clock_config(text)`. It finds the variable bound to
+    `panel.addWidget("org.kde.plasma.digitalclock")` and returns a dict of its
+    `<var>.writeConfig("<key>", <literal>)` calls, read as JS literals (`false`, ints). Then
+    add `test_clock_writes_the_appearance_group` (the script contains
+    `<var>.currentConfigGroup = ["Appearance"]` before the first `writeConfig`).
+  - Add `test_clock_format_matches_reference`, which asserts exactly
+    `{"showDate": False, "showSeconds": 0, "use24hFormat": 0}`.
+  - New `TestClockMatchesReference(ReferenceScreenshotMixin, unittest.TestCase)` on
+    `REFERENCE`, with constants `CLOCK_LEFT = 882`, `CLOCK_RIGHT = 925`, `CLOCK_TOP = 5`,
+    `CLOCK_BOTTOM = 13`. A pixel is dark when its red channel is below 100.
+    - `test_reference_clock_is_one_line`: in rows 1..17 of the bar, the dark columns of
+      x=800..932 span exactly `CLOCK_LEFT..CLOCK_RIGHT`. Every dark pixel in that span lies in
+      rows `CLOCK_TOP..CLOCK_BOTTOM`. That is one text line, so no date row (`showDate`
+      false).
+    - `test_reference_clock_has_am_pm_suffix`: the letter map of x=909..925, rows 5..13 equals
+      this pinned "PM" glyph (`#` dark, `.` otherwise), which shows the 12-hour suffix:
+      ```
+      #####..##......##
+      ##..##.##......##
+      ##..##.###....###
+      ##..##.###....###
+      #####..#.##..#.##
+      ##.....#.##..#.##
+      ##.....#..###..##
+      ##.....#..###..##
+      ##.....#...#...##
+      ```
+- `README.md`: after "the clock and the window list" in the layout paragraph (the phrase wraps
+  across two lines), add a clause
+  saying the clock shows 12-hour time with AM/PM and no date or seconds, as the Mac OS 8.6 menu
+  bar does.
+
+**Out of scope.** Clock font and size (`autoFontAndSize` stays true), the Application-menu separator and icon at the right, and the
+Apple-menu icon.
+
+**Acceptance criteria.**
+- `make check` passes. The two `TestClockMatchesReference` tests run (they do not skip) when the
+  LFS image is materialized.
+- Each of these makes a named test fail: removing any of the three `writeConfig` calls, changing
+  any of their values, or dropping the `currentConfigGroup` line.
+  `test_widgets_in_menu_bar_order` still fails when an `addWidget` id is reordered or added.
+- `make install XDG_DATA_HOME=<tmp>` installs the updated layout script, and
+  `tests/test_lookandfeel.py::TestPackageValid` still passes.
 
 
 ## Done
