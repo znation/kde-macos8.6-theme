@@ -268,6 +268,30 @@ class TestReportFailure(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertEqual(err, "apply_theme: error: command failed\n")
 
+    def test_reads_only_a_bounded_tail_of_a_huge_log(self):
+        # A failing external command writes its log for up to its timeout; the
+        # helper must not load that file whole just to print twelve lines. The
+        # log is one unterminated line, so the bounded read still shows it, but
+        # only the last _LOG_TAIL_BYTES of it.
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_text("A" * (cli._LOG_TAIL_BYTES * 4), encoding="utf-8")
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertIn("A", err)
+        self.assertLess(len(err), cli._LOG_TAIL_BYTES * 2)
+
+    def test_tail_of_a_log_larger_than_the_window_keeps_the_last_lines(self):
+        # The window boundary falls mid-line here; the last twelve complete
+        # lines must still be the ones reported.
+        log = make_tmp_dir(self) / "cmd.log"
+        lines = [f"line {i} " + "x" * 100 for i in range(2000)]
+        log.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        self.assertGreater(log.stat().st_size, cli._LOG_TAIL_BYTES)
+        _, err = self._report("command failed", log)
+        self.assertIn(f"  {lines[-1]}\n", err)
+        self.assertIn(f"  {lines[-12]}\n", err)
+        self.assertNotIn(lines[-13], err)
+
 
 if __name__ == "__main__":
     unittest.main()

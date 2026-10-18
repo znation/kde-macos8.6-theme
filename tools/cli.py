@@ -17,6 +17,7 @@ implementation.
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import sys
 from collections.abc import Callable, Iterable
@@ -58,6 +59,35 @@ def report_error(tool: str, message: str) -> int:
 
 
 _LOG_TAIL_LINES = 12
+# The log belongs to the external command, not to us: a command that loops on
+# a warning for its whole timeout can leave a file far larger than the twelve
+# lines ``report_failure`` prints. Read only the end of it, so a multi-megabyte
+# (or larger) log is never loaded whole just to show its tail.
+_LOG_TAIL_BYTES = 1 << 16
+
+
+def _log_tail_lines(log: Path) -> list[str]:
+    """Return at most the last ``_LOG_TAIL_LINES`` lines of *log*, read bounded.
+
+    At most ``_LOG_TAIL_BYTES`` bytes are read from the end of the file. A
+    window that starts mid-line drops its partial first line -- unless the
+    window holds no line break at all, where the single (partial) line is kept
+    so the diagnostic is never empty.
+    """
+    with log.open("rb") as handle:
+        size = handle.seek(0, os.SEEK_END)
+        start = max(0, size - _LOG_TAIL_BYTES)
+        if start:
+            handle.seek(start - 1)
+            boundary = handle.read(1) in (b"\n", b"\r")
+        else:
+            boundary = True
+        handle.seek(start)
+        data = handle.read(_LOG_TAIL_BYTES)
+    lines = data.decode("utf-8", errors="replace").splitlines()
+    if not boundary and len(lines) > 1:
+        lines = lines[1:]
+    return lines[-_LOG_TAIL_LINES:]
 
 
 def report_failure(tool: str, message: str, log: Path | None = None) -> int:
@@ -72,8 +102,7 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
     """
     text = f"{tool}: error: {escape_controls(message)}"
     if log is not None and log.is_file():
-        tail = log.read_text(encoding="utf-8", errors="replace").splitlines()
-        for line in tail[-_LOG_TAIL_LINES:]:
+        for line in _log_tail_lines(log):
             text += f"\n  {escape_controls(line)}"
     print(text, file=sys.stderr)
     return 1
