@@ -8,8 +8,9 @@ The helpers are split by concern and re-exported here, so a test module
 imports every helper from ``svg_assertions`` regardless of which submodule
 defines it: ``tree`` traverses the parsed document and reads its attributes,
 ``safety`` guards the artwork a pixel test cannot see, ``render`` composites a
-nine-slice group into pixels, ``geometry`` holds the face, path and nine-slice
-arithmetic, and ``checks`` holds the pixel and layout assertions.
+nine-slice group into pixels, ``faces``, ``paths``, ``elements`` and
+``nine_slice`` hold the face, path, element and nine-slice arithmetic, and
+``checks`` holds the pixel and layout assertions.
 """
 
 from __future__ import annotations
@@ -45,30 +46,39 @@ from .render import (
     render_slices,
 )
 
-from .geometry import (
+from .faces import (
     RAISED_FACE_CORNERS,
+    _require_known_bevel,
+    face_corners,
+    face_edge_bands,
+    flat_face_corners,
+    sunken_face_corners,
+)
+
+from .paths import (
     _PATH_COMMAND,
     _PATH_COMMAND_ARITY,
     _PATH_LETTER,
     _SUPPORTED_PATH_COMMANDS,
-    _TRANSLATE,
-    _circle_dimension,
     _path_commands,
-    _rect_dimension,
-    _require_known_bevel,
-    _state_margin_hints,
     arc_center,
+    path_arcs,
+)
+
+from .elements import (
+    _circle_dimension,
+    _rect_dimension,
     circle_geometry,
     circle_geometry_and_fill,
-    face_corners,
-    face_edge_bands,
-    flat_face_corners,
+    rect_geometry,
+)
+
+from .nine_slice import (
+    _TRANSLATE,
+    _state_margin_hints,
     nine_slice_hint_geometry,
     nine_slice_margins,
     nine_slice_tile_sizes,
-    path_arcs,
-    rect_geometry,
-    sunken_face_corners,
     tile_origins,
 )
 

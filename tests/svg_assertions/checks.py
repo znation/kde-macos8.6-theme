@@ -7,13 +7,12 @@ the artwork must paint, naming the failing slice in its message.
 
 from __future__ import annotations
 
-from .geometry import (
+from .elements import rect_geometry
+from .faces import face_corners, face_edge_bands
+from .nine_slice import (
     _state_margin_hints,
-    face_corners,
-    face_edge_bands,
     nine_slice_hint_geometry,
     nine_slice_tile_sizes,
-    rect_geometry,
     tile_origins,
 )
 from .render import pixel_map, render_slices

@@ -1,8 +1,10 @@
 """Shared SVG tree fixtures for the svg-assertion test modules.
 
-``test_svg_assertions_tree``, ``test_svg_assertions_geometry``,
-``test_svg_assertions_render``, ``test_svg_assertions_checks``,
-``test_svg_assertions_pixels`` and ``test_svg_assertions_safety`` all build
+``test_svg_assertions_tree``, ``test_svg_assertions_faces``,
+``test_svg_assertions_paths``, ``test_svg_assertions_elements``,
+``test_svg_assertions_nine_slice``, ``test_svg_assertions_render``,
+``test_svg_assertions_checks``, ``test_svg_assertions_pixels`` and
+``test_svg_assertions_safety`` all build
 namespaced ``<svg>`` documents to exercise the ``tests/svg_assertions/`` package;
 the wrapper that declares the SVG namespace lives here once instead of in each
 module.
