@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 opaque menu bar: ship the `solid/widgets/panel-background.svg` copy (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 opaque menu bar: ship the `solid/widgets/panel-background.svg` copy (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** `Panel.qml` draws an opaque panel from `solid/widgets/panel-background`, but the
 desktop theme ships only `widgets/panel-background.svg`, so the menu bar loses its Platinum bevel
@@ -93,8 +97,6 @@ reach the two-level `solid/` path, and the README prose names the file) and
 - Removing `solid/widgets/panel-background.svg` makes `test_solid_copy_is_identical` fail (the
 open raises) and `test_registry_covers_every_shipped_svg` fail (the shipped set no longer
 equals the registry).
-
-## Done
 
 ### Mac OS 8.6 splash: draw the reference's full "Mac OS 8.6" wordmark (planned 2026-10-18 by the plan role) — done 2026-10-18
 

@@ -45,7 +45,7 @@ blank guarantee cell fails `make check`.
 | `widgets/line.svg` draws the etched separator. | `tests/test_desktoptheme_line.py::TestLine` | none |
 | `widgets/listitem.svg` draws the selection row. | `tests/test_desktoptheme_listitem.py::TestListItem` | none |
 | `widgets/menubaritem.svg` draws the menu-bar title background. | `tests/test_desktoptheme_menubaritem.py::TestMenuBarItem` | none |
-| `widgets/panel-background.svg` draws the menu bar, including its top-panel north state. | `tests/test_desktoptheme_panel.py::TestPanelBackground` | none |
+| `widgets/panel-background.svg` draws the menu bar, including its top-panel north state, and its `solid/` copy is byte-identical. | `tests/test_desktoptheme_panel.py::TestPanelBackground` | none |
 | `widgets/plasmoidheading.svg` draws the popup band. | `tests/test_desktoptheme_plasmoidheading.py::TestPlasmoidHeading` | none |
 | `widgets/bar_meter_horizontal.svg` draws the Platinum progress bar. | `tests/test_desktoptheme_progressbar.py::TestProgressBar` | none |
 | `widgets/radiobutton.svg` draws the white radio face and its selection dot. | `tests/test_desktoptheme_radiobutton.py::TestRadioButton` | none |

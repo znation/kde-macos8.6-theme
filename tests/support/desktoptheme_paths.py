@@ -43,6 +43,7 @@ LINE_SVG = os.path.join(PACKAGE, "widgets", "line.svg")
 PLASMOIDHEADING_SVG = os.path.join(PACKAGE, "widgets", "plasmoidheading.svg")
 TOOLTIP_SVG = os.path.join(PACKAGE, "widgets", "tooltip.svg")
 SOLID_TOOLTIP_SVG = os.path.join(PACKAGE, "solid", "widgets", "tooltip.svg")
+SOLID_PANEL_SVG = os.path.join(PACKAGE, "solid", "widgets", "panel-background.svg")
 
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"

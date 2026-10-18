@@ -35,6 +35,7 @@ from support.desktoptheme_paths import (
     RADIOBUTTON_SVG,
     SCROLLBAR_SVG,
     SLIDER_SVG,
+    SOLID_PANEL_SVG,
     SOLID_TOOLTIP_SVG,
     SWITCH_SVG,
     TABBAR_SVG,
@@ -78,6 +79,7 @@ PLASMA_SECTION = "plasmarc][Theme"
 # 16x16 canvas holding nine 14px action buttons.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 22),
+    ("solid/widgets/panel-background.svg", SOLID_PANEL_SVG, 12, 22),
     ("frame.svg", FRAME_SVG, 12, 12),
     ("button.svg", BUTTON_SVG, 12, 12),
     ("lineedit.svg", LINEEDIT_SVG, 12, 12),
@@ -120,6 +122,7 @@ class TestMetadata(PackageMetadata, unittest.TestCase):
 # 30px width (and of the bottom).
 ORIGIN_STATES = {
     "panel-background.svg": ("",),
+    "solid/widgets/panel-background.svg": ("",),
     "switch.svg": ("inactive", "active"),
 }
 
@@ -218,6 +221,7 @@ class TestInstall(
         os.path.join("widgets", "background.svg"),
         os.path.join("widgets", "tooltip.svg"),
         os.path.join("solid", "widgets", "tooltip.svg"),
+        os.path.join("solid", "widgets", "panel-background.svg"),
         os.path.join("dialogs", "background.svg"),
     )
     COPY_FAILURE_GLOB = "*/desktop-themes/*"

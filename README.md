@@ -71,7 +71,8 @@ drawn for this theme, not traced from Apple's artwork, and inherits Breeze for e
 bevelled controls instead of Breeze's rounded ones; when Kvantum is not installed they fall back to
 another style, which you can choose in System Settings → Application Style. The desktop theme ships
 `widgets/panel-background.svg` (the menu bar; a top menu bar draws its white top highlight from a
-top-panel `north-` state), `widgets/frame.svg` (the Platinum
+top-panel `north-` state, and a byte-identical copy ships at `solid/widgets/panel-background.svg`,
+where `Panel.qml` looks for an opaque panel's background), `widgets/frame.svg` (the Platinum
 plain/raised/sunken frame used by `PlasmaComponents.Frame`, `GroupBox`, the kicker
 application-menu sidebar and applet `FrameSvg` consumers), `widgets/button.svg` (the
 normal/pressed push button and focus ring), `widgets/radiobutton.svg` (the white,
