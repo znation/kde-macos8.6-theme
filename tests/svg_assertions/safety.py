@@ -72,6 +72,24 @@ def _url_targets(value):
         yield target.strip()
 
 
+def _assert_local_reference(case, tag, name, value):
+    """Assert *tag*'s attribute *name* with *value* names an in-file ``#id``.
+
+    An ``href``/``xlink:href`` or a ``url(...)`` target that is not a bare
+    ``#id`` fragment points at a file the installed theme does not ship.
+    *case* is the calling ``unittest.TestCase``; its failure names the element
+    and value.
+    """
+    if _local_attribute_name(name) == "href" and not value.startswith("#"):
+        case.fail(f"<{tag}> reference {value!r} is not an in-file #id")
+    for target in _url_targets(value):
+        if not target.startswith("#"):
+            case.fail(
+                f"<{tag}> {name} reference {target!r} is not an "
+                f"in-file #id"
+            )
+
+
 def assert_no_external_references(case, tree):
     """Assert every reference in *tree* is a same-document ``#id``.
 
@@ -89,18 +107,7 @@ def assert_no_external_references(case, tree):
             tag, "image", f"<{tag}> references an external file"
         )
         for name, value in element.attrib.items():
-            if _local_attribute_name(name) == "href" and not value.startswith(
-                "#"
-            ):
-                case.fail(
-                    f"<{tag}> reference {value!r} is not an in-file #id"
-                )
-            for target in _url_targets(value):
-                if not target.startswith("#"):
-                    case.fail(
-                        f"<{tag}> {name} reference {target!r} is not an "
-                        f"in-file #id"
-                    )
+            _assert_local_reference(case, tag, name, value)
 
 
 def assert_unique_ids(case, tree):

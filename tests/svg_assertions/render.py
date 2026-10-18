@@ -71,6 +71,43 @@ def _slice_extent(rect, name):
     return extent
 
 
+def _paint_rect(pixels, rect, painted):
+    """Paint *rect* into *pixels* and return the updated painted-pixel count.
+
+    Read and validate the rect's offset, extent, transform and fill once --
+    they are the same for every pixel of the rect -- then fill the rect's
+    slice-local pixels. *painted* is the running total across the whole SVG;
+    raise ValueError, naming the rect, when it carries a ``transform`` or
+    pushes that total past ``_MAX_RENDERED_PIXELS``.
+    """
+    transform = rect.get("transform")
+    if transform is not None:
+        raise ValueError(
+            f"{_slice_where(rect)} has a transform {transform!r}: "
+            "render_slices composites tile rects slice-local and "
+            "does not apply a rect-level transform, so the tile "
+            "would be read from the wrong pixels"
+        )
+    x = _slice_offset(rect, "x")
+    y = _slice_offset(rect, "y")
+    width = _slice_extent(rect, "width")
+    height = _slice_extent(rect, "height")
+    painted += width * height
+    if painted > _MAX_RENDERED_PIXELS:
+        raise ValueError(
+            f"{_slice_where(rect)} has a {width}x{height} extent, "
+            f"which paints past the {_MAX_RENDERED_PIXELS}-pixel "
+            "render limit across the SVG: a nine-slice tile is a "
+            "small source rect, so this is malformed or hostile "
+            "artwork"
+        )
+    fill = rect.get("fill")
+    for dx in range(width):
+        for dy in range(height):
+            pixels[(x + dx, y + dy)] = fill
+    return painted
+
+
 def render_slices(tree):
     """Composite each id-bearing <g> of a nine-slice SVG into a {(x, y): fill} map.
 
@@ -89,33 +126,7 @@ def render_slices(tree):
     for group in groups_with_id(tree):
         pixels = {}
         for rect in children_named(group, "rect"):
-            transform = rect.get("transform")
-            if transform is not None:
-                raise ValueError(
-                    f"{_slice_where(rect)} has a transform {transform!r}: "
-                    "render_slices composites tile rects slice-local and "
-                    "does not apply a rect-level transform, so the tile "
-                    "would be read from the wrong pixels"
-                )
-            x = _slice_offset(rect, "x")
-            y = _slice_offset(rect, "y")
-            # The width, height and fill are the same for every pixel of the
-            # rect, so read and validate each once instead of per column.
-            width = _slice_extent(rect, "width")
-            height = _slice_extent(rect, "height")
-            painted += width * height
-            if painted > _MAX_RENDERED_PIXELS:
-                raise ValueError(
-                    f"{_slice_where(rect)} has a {width}x{height} extent, "
-                    f"which paints past the {_MAX_RENDERED_PIXELS}-pixel "
-                    "render limit across the SVG: a nine-slice tile is a "
-                    "small source rect, so this is malformed or hostile "
-                    "artwork"
-                )
-            fill = rect.get("fill")
-            for dx in range(width):
-                for dy in range(height):
-                    pixels[(x + dx, y + dy)] = fill
+            painted = _paint_rect(pixels, rect, painted)
         slices[group.get("id")] = pixels
     return slices
 
