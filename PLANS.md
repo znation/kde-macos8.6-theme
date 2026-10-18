@@ -5,14 +5,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-**Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward):** The initial prompt asks for
+**Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
+updated 2026-10-18 by the clean role):** The initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
-(startup splash, desktop layout, defaults); the desktop theme (eighteen widget SVGs under
+(startup splash, desktop layout, defaults); the desktop theme (twenty-three widget SVGs under
 `widgets/` plus `dialogs/background.svg`); the Aurorae window decoration (frame, close, zoom and
 collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon theme (our own
-placeholder 32x32 art for the desktop's hard-disk, folder, document and Trash icons, tracked in
-`PLACEHOLDERS.md`; the Apple-logo kicker icon is not drawn); and the render and fidelity tooling
+final, non-infringing 32x32 Platinum-style art for the desktop's hard-disk, folder, document and
+Trash icons, plus the menu bar's kicker logo `start-here-kde-symbolic`, our own mark rather than
+Apple's; `PLACEHOLDERS.md` is empty); and the render and fidelity tooling
 that checks them against `macos8.6-screenshots/`. README.md describes the reference set as the
 source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
 prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-18 by the plan

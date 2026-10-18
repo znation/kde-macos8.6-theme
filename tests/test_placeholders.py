@@ -1,13 +1,14 @@
 """Keep PLACEHOLDERS.md and the shipped theme's placeholder markers in step.
 
-The user answered 2026-10-18 that the theme's own artwork ships as placeholders
-for now and that every one must be tracked "so we don't forget to replace them
-all eventually". A placeholder asset carries the literal token ``PLACEHOLDER:``
-in a comment in its own file format, naming what it stands in for; the register
-``PLACEHOLDERS.md`` holds one table row per asset. :func:`markers` reads the
-markers under ``theme/`` and :func:`register_entries` reads the register, and
-the tests cross-check the two sets so a new placeholder added without a row (or
-a stale row whose file is gone or unmarked) fails ``make check``.
+The user answered 2026-10-18 that the theme's own artwork was to ship as
+placeholders for now and that every one must be tracked "so we don't forget to
+replace them all eventually". A placeholder asset carries the literal token
+``PLACEHOLDER:`` in a comment in its own file format, naming what it stands in
+for; the register ``PLACEHOLDERS.md`` holds one table row per asset.
+:func:`markers` reads the markers under ``theme/`` and :func:`register_entries`
+reads the register, and the tests cross-check the two sets so a new placeholder
+added without a row (or a stale row whose file is gone or unmarked) fails
+``make check``.
 """
 
 from __future__ import annotations
