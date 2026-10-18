@@ -28,7 +28,54 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Record-checker mutation harness: manufacture the malformed inputs from the shipped registers so a silent accept or drop is observable (planned 2026-10-18 by the steward role; from the recurring `no-observability` validation gap in thirteen Fixed entries)
+
+**Goal.** Twelve Fixed entries share one mechanism: a record checker (`tests/invariants.py`'s
+register parser and reference resolver, `tests/test_placeholders.py`'s marker scanner) accepted or
+silently dropped malformed input that the shipped records never contain, so no test or real run
+could surface the bug — each was found by reading the checker and fixed with one hand-written case.
+Add a mutation harness that manufactures each malformed shape from the shipped registers
+(`docs/invariants.md`, `PLACEHOLDERS.md` and the shipped placeholder markers) and asserts the
+checker reports it, so the acceptance boundary is exercised by data and the next silent accept or
+drop fails a test instead of waiting for a reader.
+
+**From (the `no-observability` Fixed entries).**
+- `tests/invariants.py` register checker, ten entries (all fixed 2026-10-18): accepts a class whose
+locally defined base only looks like a test case; accepts a register reference that escapes the
+repository; accepts a method reference into a class that is not a test case; accepts a register
+reference to a class with no tests; accepts a register reference to a non-test method; accepts a
+register reference with a segment after the method; accepts a register reference ending in `::`,
+pinning a guarantee to no test; drops a row that does not split into three cells; drops a row whose
+Test cell has no backticked reference; drops a row whose cell contains an escaped pipe.
+- `tests/test_placeholders.py` marker scanner, two entries (both fixed 2026-10-18): ignores
+`PLACEHOLDER:` markers in the theme's `.kvconfig` file; ignores them in the theme's `.js` and
+`.desktoprc` files.
+- The thirteenth `no-observability` entry, "Palette anchors are not re-derivable from the reference
+screenshots" (fixed 2026-10-08), is a different mechanism — a hard-coded anchor assertion — and is
+retired by the register's provenance-exception row and `TestProvenanceNote`, not by this harness.
+
+**Approach.**
+- Add `tests/support/checker_mutations.py`: one named mutation per rejection shape the two checkers
+must catch, each a transform of a copy of the real register or of a scratch theme root plus the
+diagnostic substring the checker must raise. Seed the table with the twelve shapes above.
+- Add `tests/test_checker_mutations.py`: copy `docs/invariants.md` and the placeholder register into
+a scratch root, apply each mutation, run the checker, and assert the named diagnostic; a mutation
+the checker does not reject fails. Exercise the `.js`/`.desktoprc`/`.kvconfig` cases by writing one
+marked file per text format the theme ships into the scratch theme root.
+- Give each checker a `REJECTION_SHAPES` list naming the boundaries it must reject (the shapes its
+`cross_check` docstring already enumerates), and add a test asserting every listed shape has a
+mutation entry, so a new rejection branch added without a case fails.
+
+**Files touched.** `tests/support/checker_mutations.py` (new), `tests/test_checker_mutations.py`
+(new), `tests/invariants.py`, `tests/test_placeholders.py` (the `REJECTION_SHAPES` lists).
+
+**Acceptance criteria.**
+- Every shape above is a mutation entry, and applying it makes the matching checker raise the named
+diagnostic; a scratch run with one mutation's expected diagnostic removed demonstrates the harness
+fails.
+- `REJECTION_SHAPES` for both checkers is covered by the mutation table; removing a table row fails
+the guard test.
+- `make check` is green, with the existing hand-written rejection tests still passing.
 
 ## Done
 
