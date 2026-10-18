@@ -71,6 +71,35 @@ class TestSelfTestPasses(CheckerTestCase):
         self.assertEqual(code, 0, out)
 
 
+class TestSelfTestCliContract(CheckerTestCase):
+    """The self-test must fail when the CLI contract it checks is broken.
+
+    ``run_self_test`` drives ``--help`` and an unknown argument through
+    ``main`` and asserts each exits with the documented status and prints the
+    usage needle. The shipped ``_self_test`` passes the real ``main``, so this
+    is the only path that would catch a regression in the documented CLI; a
+    ``main`` that answers those arguments wrongly must be reported as a failing
+    case and make the self-test return 1 instead of a green ``cases passed``.
+    """
+
+    def test_a_broken_cli_case_is_reported_and_fails_the_self_test(self):
+        module = self.checker
+
+        def silent_main(argv):
+            # Right exit status for --help, but no usage text: the needle
+            # check must fail even though the status matches.
+            return 0
+
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = module.run_self_test(
+                module.check_references, silent_main, module.SOURCES_NAME
+            )
+        self.assertEqual(code, 1)
+        self.assertIn("self-test cli", out.getvalue())
+        self.assertNotIn("cases passed", out.getvalue())
+
+
 class TestSelfTestExactProblems(unittest.TestCase):
     """A fixture's expected problems must match exactly, not as a subset.
 
