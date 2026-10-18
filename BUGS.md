@@ -8,7 +8,23 @@ unclear-invariant).
 
 ## Open
 
-_None yet._
+### README lists three tools `make render` needs, but `REQUIRED_TOOLS` has six (found by the qa role 2026-10-17)
+
+README "Installing" says `make render` "needs `kwin_wayland`, `spectacle` and `plasmawindowed` and exits 2
+naming the first missing tool". `tools/render_surface.py` (`REQUIRED_TOOLS`, near line 48) also requires `dbus-run-session`
+and `plasma-apply-colorscheme` (and `make`); the README does not name them.
+
+Reproduce (from the repo root; the scratch PATH holds only python3, env, sh, make and timeout, so every
+required tool is missing and the diagnostic names the first one the script checks):
+
+    S=$(mktemp -d); mkdir $S/bin
+    for t in python3 env sh make timeout; do ln -s "$(command -v $t)" $S/bin/$t; done
+    PATH=$S/bin make render RENDER_OUTPUT=$S/x.png; echo rc=$?
+
+Expected per the README: the three named tools are the whole prerequisite list.
+Actual: exit 2 with `render_surface: error: required tool not found on PATH: dbus-run-session`.
+A machine with the three documented tools but no `dbus-run-session` or `plasma-apply-colorscheme` is told
+to install tools the docs never named. Fix: name them in the README sentence.
 
 ## Fixed
 
