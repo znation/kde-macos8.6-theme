@@ -6,7 +6,7 @@
      pixel-identical. It is the close box's gradient with an inner #222222
      glyph: two horizontal bars at frame-local y=5 and y=7 spanning
      x=2..10. Aurorae loads this file for the shade button. Re-derived by
-     tests/test_aurorae_decoration.py.
+     tests/test_aurorae_buttons.py.
 
      The canvas is 13x13: the 12x12 box plus the reference's 1px #FFFFFF
      highlight, a column at x=12 (y=1..12) and a row at y=12 (x=1..11),

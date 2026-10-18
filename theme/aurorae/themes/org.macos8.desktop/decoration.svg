@@ -5,8 +5,8 @@
      active window: the 22px pinstriped Platinum title bar on top and the
      6px bevel on the left, right and bottom. Square corners. Sampled from
      macos8.6-screenshots/aboutsystem_betawiki.png (the "About This
-     Computer" window); see tests/test_aurorae_decoration.py, which
-     re-derives every pinned value from that image.
+     Computer" window); see tests/test_aurorae_frame.py, which
+     re-derives the active frame (title bar, edges, corners) from that image.
 
      The `decoration-inactive` nine-slice mirrors the active geometry and
      paints the flat grey unfocused frame: the title field and the bevel

@@ -146,7 +146,7 @@ class TestKPluginHelper(unittest.TestCase):
     """The shared `KPlugin` guard used by the mixin and the metadata tests.
 
     `PackageMetadata._plugin`, `test_desktoptheme`'s defaults-wiring check and
-    `test_aurorae_decoration` all read `KPlugin`; pin the shared guard's
+    `test_aurorae_package` all read `KPlugin`; pin the shared guard's
     message directly so each caller names the file and the offending type on
     a malformed metadata.json.
     """

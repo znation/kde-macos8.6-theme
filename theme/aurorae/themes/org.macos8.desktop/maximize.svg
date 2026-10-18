@@ -4,7 +4,7 @@
      The reference's zoom box: systemprofiler_betawiki.png at x=781..792,
      y=26..37. It is the close box with an inner #222222 square drawn in
      the upper-left: frame-local (7,2)..(7,6) and (2,7)..(7,7). Re-derived
-     by tests/test_aurorae_decoration.py.
+     by tests/test_aurorae_buttons.py.
 
      The canvas is 21x13, systemprofiler_betawiki.png x=776..796, y=26..38:
      5 gap columns (x=776..780), the 13x13 box with its highlight at local

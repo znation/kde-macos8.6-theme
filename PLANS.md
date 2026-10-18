@@ -70,14 +70,14 @@ center-only SVG renders 1:1.
   - Update each file's header comment with the new canvas and the provenance above.
 - `shade.svg`, `close.svg` and `decoration.svg` are untouched.
 
-**Tests** (`tests/test_aurorae_decoration.py`):
+**Tests** (`tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc}.py`):
 - Add `ReferenceImageCase.profiler_region(x0, y0, width, height)`, returning region-local
   `{(x, y): '#RRGGBB'}`, and make `profiler_box` call it.
-- Add a module constant `ZOOM_BOX_X = 5`, the face's local x in the zoom canvas.
-- `TestRc.test_button_spacing_matches_reference`: keep the derivation of the 3-column gap
+- Add a constant `ZOOM_BOX_X = 5` to `tests/aurorae_fixtures.py`, the face's local x in the zoom canvas.
+- `TestRc.test_button_spacing_matches_reference` (`test_aurorae_rc.py`): keep the derivation of the 3-column gap
   between the zoom highlight and the collapse face. Assert `ButtonSpacing` is `0`, and that the
   derived gap equals `ButtonWidthMaximizeRestore - ZOOM_BOX_X - 13`.
-- New `TestRc.test_zoom_button_width_matches_reference`. Find the last `#777777` column on
+- New `TestRc.test_zoom_button_width_matches_reference` (`test_aurorae_rc.py`). Find the last `#777777` column on
   profiler rows 26..37 in x=760..780; it must be 776. Assert `ButtonWidthMaximizeRestore`
   equals the collapse face's first column (797, found as in the spacing test) minus that column.
   Also assert that `ZOOM_BOX_X` equals the zoom face's first column (781) minus that column.
@@ -98,7 +98,7 @@ collapse widgets are 13x13 and the zoom widget is 21x13: its box plus the stripe
 its left and the flat spacing to its right.
 
 **Files touched.** `theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc`, `maximize.svg`,
-`restore.svg`, `tests/test_aurorae_decoration.py`, `README.md`.
+`restore.svg`, `tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc}.py`, `README.md`.
 
 **Acceptance criteria.**
 - The rc has `ButtonSpacing=0`, `ButtonWidthMaximizeRestore=21` and `ButtonWidth=13`, each
@@ -121,7 +121,7 @@ brief asks for pixel fidelity, so the gap ships.
   decision.
 - The cleared band around the title text. Aurorae has no title-background element.
 
-**Implementation note (2026-10-17, feature).** Landed as planned. The zoom SVGs' x attributes were shifted by +5 mechanically and the gap and spacing rects added; `ZOOM_BOX_X` and the profiler-derived `ButtonWidthMaximizeRestore` test are in `tests/test_aurorae_decoration.py`.
+**Implementation note (2026-10-17, feature).** Landed as planned. The zoom SVGs' x attributes were shifted by +5 mechanically and the gap and spacing rects added; `ZOOM_BOX_X` and the profiler-derived `ButtonWidthMaximizeRestore` test are in `tests/aurorae_fixtures.py` and `tests/test_aurorae_rc.py`.
 
 ### Grow the Aurorae title-bar boxes to 13x13 with their white highlight (planned 2026-10-17 by the plan role; done 2026-10-17)
 
@@ -165,12 +165,13 @@ its own highlight.
    corner, y=4..16. Change no artwork.
 4. README.md: replace "12x12 close/zoom/collapse widgets" with 13x13, and mention the highlight.
 
-**Tests (`tests/test_aurorae_decoration.py`).** Measure every size from the reference, not from
+**Tests (`tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc,frame}.py`).** Measure every size from the reference, not from
 constants:
-- Change the `profiler_box` / `reference_box` default `size` to 13. `TestButtons` then compares
+- Change the `profiler_box` / `reference_box` default `size` to 13 (in `ReferenceImageCase`,
+  `tests/aurorae_fixtures.py`). `TestButtons` (`test_aurorae_buttons.py`) then compares
   every pixel of the 13x13 boxes, highlight included: close (11,29) and (213,26), zoom (781,26),
   collapse (343,29) and (797,26). Update the docstring.
-- `TestRc._close_box_size` → return the button size: the `#888888` bounding box plus the
+- `TestRc._close_box_size` (`test_aurorae_rc.py`) → return the button size: the `#888888` bounding box plus the
   `#FFFFFF` column and row next to it. Assert that the column x=max+1 and the row y=max+1 are
   white along the face's span, then return width+1 and height+1.
   `test_layout_metrics_match_reference` keeps comparing it with `ButtonWidth`/`ButtonHeight`.
@@ -180,14 +181,14 @@ constants:
 - `test_button_spacing_matches_reference`: the gap runs from the zoom box's highlight column to
   the collapse face. Assert that `zoom_right + 1` is `#FFFFFF` on the face rows, then that
   `ButtonSpacing == collapse_left - zoom_right - 2`.
-- `TestCorners.BUTTON_MASK`: make it the 13x13 footprint, `decoration-topleft` x in (4, 5) and
+- `TestCorners.BUTTON_MASK` (`test_aurorae_frame.py`): make it the 13x13 footprint, `decoration-topleft` x in (4, 5) and
   `decoration-topright` x in (0, 1), y in range(4, 17), and update its docstring.
 - Add `test_highlight_is_reference_white`, which checks that in both references the face's
   right column and bottom row are `#FFFFFF` and the two corner pixels are `#CCCCCC`. This pins
   the new pixels to the image, separately from the whole-box comparison.
 
 **Files touched.** The four button SVGs, `org.macos8.desktoprc`, the `decoration.svg` comment,
-`tests/test_aurorae_decoration.py`, and README.md.
+`tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc,frame}.py`, and README.md.
 
 **Acceptance criteria.**
 - Each button SVG's root canvas is 13x13. Its `active-center` render equals the reference
@@ -265,7 +266,7 @@ says "there is no collapse box on either side". That is wrong for windows that c
    rc as having "12x12 close/zoom/collapse widgets". In the Installing paragraph, say a new window
    has the zoom box and the collapse box on the right.
 
-**Tests** (`tests/test_aurorae_decoration.py`, `tests/test_lookandfeel.py`):
+**Tests** (`tests/test_aurorae_*.py`, `tests/test_lookandfeel.py`):
 - Add a `SHADE_SVG` constant and put it in `BUTTON_SVGS`. Add `"shade.svg"` to
   `TestInstall.INSTALLED_FILES`.
 - Add a second reference: `PROFILER_REFERENCE` = `macos8.6-screenshots/systemprofiler_betawiki.png`,
@@ -294,7 +295,7 @@ says "there is no collapse box on either side". That is wrong for windows that c
 **Files touched.**
 - `theme/aurorae/themes/org.macos8.desktop/{shade.svg (new), maximize.svg, restore.svg, org.macos8.desktoprc}`
 - `theme/look-and-feel/org.macos8.desktop/contents/defaults`
-- `tests/test_aurorae_decoration.py`, `tests/test_lookandfeel.py`
+- `tests/test_aurorae_*.py`, `tests/test_lookandfeel.py`
 - `README.md`
 
 `decoration.svg`/`.svgz`, `close.svg` and the Makefile stay unchanged: `install_package` copies
@@ -729,7 +730,7 @@ theme selects it.
   modelled on `installed_aurorae_dir` / `installed_aurorae_theme`.
 - `tests/test_wallpaper.py`: add
   `TestInstall(FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase)`,
-  shaped like `tests/test_aurorae_decoration.py::TestInstall`:
+  shaped like `tests/test_aurorae_package.py::TestInstall`:
   - `KIND = "wallpapers"`
   - `PACKAGE_ID`
   - `PACKAGE_DIR`
