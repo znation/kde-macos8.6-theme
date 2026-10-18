@@ -395,7 +395,7 @@ class TestCli(CliTestCase):
                 self._assert_usage_error(result, "plain ASCII")
 
     def test_non_numeric_threshold_is_usage_error(self):
-        # _is_plain_ascii_number accepts any ASCII text without separators or
+        # is_plain_ascii_number accepts any ASCII text without separators or
         # surrounding space, so a word such as "abc" passes it and reaches
         # float(). Without _finite_float's ValueError handler argparse would
         # still exit 2, but with its generic "invalid <type> value" fallback

@@ -1201,7 +1201,7 @@ cut off, not wrapped. Plasma's desktop Folder View wraps names onto up to 2 line
 layout should set the desktop containment to one label line.
 
 **Reference (sampled 2026-10-18, lossless `macos8.6-screenshots/desktop_betawiki.png`,
-1024x768).** Use the same tile comparison as `TestDesktopIconsMatchReference.differs_from_wallpaper`
+1024x768).** Use the same tile comparison as `TestDesktopIconsMatchReference.differing_columns`
 (a pixel differs from `tools/make_wallpaper.py` `TILE_ORIGIN`/`TILE_SIZE` tile pixel). Over
 x >= 880, the fully drawn icon blocks span these rows:
 - 157..200 ("Browse the Internet", alias).
@@ -2129,7 +2129,7 @@ size and writes it as the candidate PNG `tools/fidelity.py` consumes. Pin it wit
   - It runs `make install XDG_DATA_HOME=<data>` from the repo root.
   - It writes `cfg/kwinrc` and `cfg/plasmarc` from the `[kwinrc][org.kde.kdecoration2]` and
     `[plasmarc][Theme]` groups of `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
-    parsed by a small helper `_defaults_groups()`. That way the render follows the global theme
+    parsed by a small helper `defaults_groups()`. That way the render follows the global theme
     rather than a second copy of its keys.
   - It launches `dbus-run-session -- kwin_wayland --virtual --no-lockscreen --width W --height H
     --socket render-surface --exit-with-session <sh -c script>`. The script runs these steps in
@@ -2150,7 +2150,7 @@ size and writes it as the candidate PNG `tools/fidelity.py` consumes. Pin it wit
   help`. Add `render.png` to `.gitignore`.
 - New `tests/test_render_surface.py`:
   - `TestDefaultsGroups` always runs and parses the real `contents/defaults`. It asserts that
-    `_defaults_groups()` returns the `kwinrc` decoration theme
+    `defaults_groups()` returns the `kwinrc` decoration theme
     `__aurorae__svg__org.macos8.desktop` and the `plasmarc` theme name.
   - `TestMissingTool` always runs. It puts an empty directory on `PATH` and asserts exit 2
     with the missing binary named on stderr.
