@@ -13,9 +13,17 @@ common test class, so a class names its image once.
 
 from __future__ import annotations
 
+import os
+
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 
 from tools import png  # noqa: E402
+
+# Decoded references, keyed by absolute path and ``max_rows``. A reference is
+# a read-only Git LFS asset that cannot change during a run, and several test
+# classes decode the same screenshot (with the same bound), so the second and
+# later classes reuse the first class's decode instead of re-unfiltering it.
+_DECODED_REFERENCES = {}
 
 
 def read_reference(path, **kwargs):
@@ -23,12 +31,17 @@ def read_reference(path, **kwargs):
 
     *kwargs* go to ``png.read_png``. A ``PngError`` (the image is absent or an
     unmaterialized LFS pointer) comes back as ``(None, error)`` instead of
-    raising, ready to hand to `skip_unless_materialized`.
+    raising, ready to hand to `skip_unless_materialized`. The result is cached
+    per ``(absolute path, max_rows)`` for the process, so a screenshot read by
+    several classes is decoded once.
     """
-    try:
-        return png.read_png(path, **kwargs), None
-    except png.PngError as exc:
-        return None, exc
+    key = (os.path.abspath(str(path)), kwargs.get("max_rows"))
+    if key not in _DECODED_REFERENCES:
+        try:
+            _DECODED_REFERENCES[key] = (png.read_png(path, **kwargs), None)
+        except png.PngError as exc:
+            _DECODED_REFERENCES[key] = (None, exc)
+    return _DECODED_REFERENCES[key]
 
 
 def skip_unless_materialized(case, path, error):
