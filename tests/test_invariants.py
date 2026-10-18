@@ -33,11 +33,42 @@ Row = namedtuple("Row", "guarantee tests provenance")
 
 
 def _cells(line):
-    """Return a table row's three cells, or None for a non-row line."""
-    parts = [cell.strip() for cell in line.strip().strip("|").split("|")]
-    if len(parts) != 3:
+    """Return a table row's three cells, or None for a non-row line.
+
+    A cell may hold a literal pipe, written ``\\|`` in Markdown; the escape is
+    consumed and the pipe kept, so such a row still reads as three cells
+    instead of being dropped with its guarantee unpinned.
+    """
+    text = line.strip()
+    if text.startswith("|"):
+        text = text[1:]
+    if text.endswith("|"):
+        text = text[:-1]
+    cells = []
+    current = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char == "\\" and index + 1 < len(text):
+            following = text[index + 1]
+            if following == "|":
+                current.append("|")
+                index += 2
+                continue
+            if following == "\\":
+                current.append("\\")
+                index += 2
+                continue
+        if char == "|":
+            cells.append("".join(current).strip())
+            current = []
+        else:
+            current.append(char)
+        index += 1
+    cells.append("".join(current).strip())
+    if len(cells) != 3:
         return None
-    return parts
+    return cells
 
 
 def parse_rows(text):
@@ -208,6 +239,29 @@ class TestHelpers(unittest.TestCase):
             {
                 "aurorae": [
                     Row("The thing holds.", [f"{self.MODULE}::TestFake"], "none")
+                ]
+            },
+        )
+
+    def test_parse_rows_keeps_a_cell_with_an_escaped_pipe(self):
+        # A Markdown table writes a literal pipe as ``\|``. Splitting on
+        # every pipe would give four cells and drop the whole row, leaving
+        # its guarantee unpinned with no error.
+        sections = parse_rows(
+            "## aurorae\n\n"
+            "| Guarantee | Test | Provenance exception |\n"
+            "| --- | --- | --- |\n"
+            f"| The a \\| b guarantee holds. | `{self.MODULE}::TestFake` | none |\n"
+        )
+        self.assertEqual(
+            sections,
+            {
+                "aurorae": [
+                    Row(
+                        "The a | b guarantee holds.",
+                        [f"{self.MODULE}::TestFake"],
+                        "none",
+                    )
                 ]
             },
         )

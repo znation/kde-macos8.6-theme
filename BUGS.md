@@ -12,6 +12,27 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` drops a register row whose cell contains an escaped pipe (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `_cells` splits a table row on every `|`, so a Markdown-escaped literal pipe
+(`\|`) in the Guarantee, Test or Provenance cell yields four parts, `_cells` returns None and
+`parse_rows` drops the whole row. When the section has other rows the guarantee is silently
+unpinned; when it is the section's only row, `cross_check` fails with the misleading "section
+<name> ... has no rows".
+
+**Cause:** `_cells` used a raw `split("|")` as the cell separator and did not honour the
+table's `\|` escape.
+
+**Fix:** `_cells` scans the row, consuming `\|` as a literal pipe and `\\` as a literal
+backslash before splitting on the remaining pipes, so an escaped pipe keeps the row at three
+cells.
+
+**Test:** `tests/test_invariants.py::TestHelpers::test_parse_rows_keeps_a_cell_with_an_escaped_pipe`
+(failed before, passes after).
+
+**Validation gap:** no-observability — the malformed row was dropped without an error, and
+`docs/invariants.md` contains no escaped pipe, so no existing test or real run could surface it.
+
 ### `test_invariants.py` accepts a register reference ending in `::`, pinning a guarantee to no test (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `check_reference` treats a reference whose qualifier is empty as the bare `path`
