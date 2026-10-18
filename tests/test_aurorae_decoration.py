@@ -757,32 +757,28 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                 self.assertEqual(pixel(x0 + 12, y0), (204, 204, 204))
                 self.assertEqual(pixel(x0, y0 + 12), (204, 204, 204))
 
-    def _glyph(self, path, base_path, group):
+    def _glyph(self, path, group):
         art = render_slices(ET.parse(path))[group]
-        base = render_slices(ET.parse(base_path))[group]
+        base = render_slices(ET.parse(CLOSE_SVG))[group]
         return art, {p for p in art if art[p] != base[p]}
+
+    def _assert_reference_glyph(self, path, glyph, pixel, x0, y0):
+        art, differing = self._glyph(path, "active-center")
+        self.assertEqual(differing, glyph)
+        for x, y in sorted(glyph):
+            self.assertEqual(art[(x, y)], hex_colour(pixel(x0 + x, y0 + y)), (x, y))
 
     def test_zoom_glyph_is_the_reference_glyph(self):
         for name, path in (("maximize", MAXIMIZE_SVG), ("restore", RESTORE_SVG)):
             with self.subTest(svg=name):
-                zoom, glyph = self._glyph(path, CLOSE_SVG, "active-center")
-                self.assertEqual(glyph, self.ZOOM_GLYPH)
-                for x, y in sorted(glyph):
-                    self.assertEqual(
-                        zoom[(x, y)],
-                        hex_colour(self.profiler_pixel(781 + x, 26 + y)),
-                        (x, y),
-                    )
+                self._assert_reference_glyph(
+                    path, self.ZOOM_GLYPH, self.profiler_pixel, 781, 26
+                )
 
     def test_collapse_glyph_is_the_reference_glyph(self):
-        collapse, glyph = self._glyph(SHADE_SVG, CLOSE_SVG, "active-center")
-        self.assertEqual(glyph, self.COLLAPSE_GLYPH)
-        for x, y in sorted(glyph):
-            self.assertEqual(
-                collapse[(x, y)],
-                hex_colour(self.reference_pixel(343 + x, 29 + y)),
-                (x, y),
-            )
+        self._assert_reference_glyph(
+            SHADE_SVG, self.COLLAPSE_GLYPH, self.reference_pixel, 343, 29
+        )
 
     def test_inactive_center_is_flat(self):
         # The inactive box keeps the active box's #888888/#222222 outlines and
@@ -806,11 +802,9 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
             (self.ZOOM_GLYPH, ZOOM_SVGS),
             (self.COLLAPSE_GLYPH, (SHADE_SVG,)),
         ):
-            for name, tree in _parsed_svgs(svgs):
-                with self.subTest(svg=name):
-                    art = render_slices(tree)["inactive-center"]
-                    close = render_slices(ET.parse(CLOSE_SVG))["inactive-center"]
-                    differing = {p for p in art if art[p] != close[p]}
+            for path in svgs:
+                with self.subTest(svg=os.path.basename(path)):
+                    _, differing = self._glyph(path, "inactive-center")
                     self.assertEqual(differing, glyph)
 
     def test_button_svgs_are_self_contained(self):
