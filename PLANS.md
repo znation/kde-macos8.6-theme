@@ -22,7 +22,84 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 menu-bar top highlight: a `north-` panel-background state whose centre carries the white row 0 (planned 2026-10-18 by the plan role)
+
+**Goal.** The reference menu bar's row 0 is a 1px `#FFFFFF` highlight across the whole bar
+(`desktop_betawiki.png`: (10,0), (300,0), (301,0) are `#FFFFFF`; rows 1..17 `#DDDDDD`, row 18
+`#999999`, row 19 `#000000`, as the comment at the top of
+`contents/layouts/org.kde.plasma.desktop-layout.js` records). `widgets/panel-background.svg` paints
+that highlight only in its `top`, `topleft` and `topright` slices. Plasma never draws those slices
+on our menu bar. `PanelView` passes `enabledBorders` to the panel's FrameSvg
+(`/usr/share/plasma/shells/org.kde.plasma.desktop/contents/views/Panel.qml`, `enabledBorders:
+panel.enabledBorders`), and that drops each border lying on a screen edge. A top panel always
+loses its top border, and the layout's full-width, non-floating 20px bar also loses its left and
+right borders. So the installed bar starts with the `#DDDDDD` centre at row 0 and has no
+highlight at all. Draw the highlight from the centre instead, in a state only top panels use.
+
+**Approach.** `Panel.qml`'s `adjustPrefix()` sets the panel FrameSvg prefix to `["north", ""]`
+for a `TopEdge` containment, and KSvg uses `north` whenever `north-center` exists. Add a complete
+`north-` nine-slice state to `theme/desktop-themes/org.macos8.desktop/widgets/panel-background.svg`
+and leave the unprefixed state (bottom, left and right panels) unchanged:
+- Grow the root canvas from 12x12 to 12x22 (`width`, `height` and `viewBox`). The `north-`
+  groups overlap the unprefixed ones at the origin, the same way `button.svg`'s
+  `normal`/`pressed`/`focus` states share one canvas. KSvg renders each element by id, so the
+  overlap is harmless.
+- `north-` margin hints: a 2px border around an 8x18 centre. `north-hint-top-margin` (2,0,2,2),
+  `north-hint-bottom-margin` (2,20,2,2), `north-hint-left-margin` (0,2,2,2),
+  `north-hint-right-margin` (10,2,2,2), plus zero-thickness insets mirroring the unprefixed ones:
+  `north-hint-top-inset` (2,0,8,0), `north-hint-bottom-inset` (2,22,8,0),
+  `north-hint-left-inset` (0,2,0,18), `north-hint-right-inset` (12,2,0,18). Do not add a
+  `north-hint-tile-center`. KSvg reads `hint-tile-center` without a prefix (see the docstring of
+  `assert_slice_ids_present` in `tests/svg_assertions/tree.py`), so the existing hint makes the
+  north centre tile at its 8x18 size. With the top border disabled, the 20px bar's centre area
+  is exactly 18 rows: one tile high, 1:1.
+- `north-center` at `translate(2,2)`, 8x18: row 0 `#FFFFFF`, rows 1..17 `#DDDDDD`. This is the
+  one slice that draws on the shipped bar, together with `north-bottom`.
+- `north-bottom` at `translate(2,20)` and `north-bottomleft`/`north-bottomright` at (0,20) and
+  (10,20): the same pixels as the unprefixed `bottom`/`bottomleft`/`bottomright`.
+- `north-left` at (0,2), 2x18: row 0 `#FFFFFF #FFFFFF`, rows 1..17 `#FFFFFF #DDDDDD`.
+  `north-right` at (10,2), 2x18: row 0 `#FFFFFF #999999`, rows 1..17 `#DDDDDD #999999`. Row 0
+  continues the centre's highlight. These show only on a top panel the user shortens so that it
+  no longer touches a side edge.
+- `north-top`/`north-topleft`/`north-topright` at (2,0), (0,0) and (10,0): copies of the
+  unprefixed slices. Plasma never draws them on a top-edge panel, but every state needs all nine
+  `SLICE_IDS`.
+- Rewrite the header comment so it says which state a top panel uses and why the highlight
+  lives in `north-center`.
+
+**Out of scope (unreachable through panel-background).** The reference's rounded black screen
+corners: (0,0)..(4,0) and (1019,0)..(1023,0) are `#000000`, antialiased through `#555555`,
+`#AAAAAA` and `#888888`/`#BBBBBB`. The 1px `#FFFFFF` left column at x=0 and the `#999999` right
+column at x=1023 are also out of scope. Plasma draws no left or right border on a full-width
+panel, and a tiled centre cannot place a single column. Record both in the header comment as
+known limits.
+
+**Files touched.**
+- `theme/desktop-themes/org.macos8.desktop/widgets/panel-background.svg`: the `north-` state
+  and the 12x22 canvas.
+- `tests/test_desktoptheme_panel.py`:
+  - set `PREFIXES = ("", "north")` on `TestPanelBackground`, so the inherited `NineSliceCase`
+    checks (ids present, tiles placed by margins, tiles within their margins) cover the new state;
+  - extend the `rect_geometry` expectation in `test_panel_background_hint_geometry` with the
+    twelve `north-hint-*` rects;
+  - add a `NORTH_EDGE_PIXELS` table and a test that pins every pixel of the nine `north-`
+    slices with `render_slices`/`assert_slice_pixels`/`pixel_map`;
+  - add a `ReferenceScreenshotMixin` test (`tests/reference_image.py`; it skips when the LFS
+    image is missing) on `desktop_betawiki.png`. Using the mixin's `pixel(x, y)`, it checks that each
+    pixel of column 10 rows 0..17 equals the matching `north-center` row, and that rows 18..19
+    equal `north-bottom`'s two rows.
+- `README.md`: in the `widgets/panel-background.svg` (the menu bar) parenthetical, say that the
+  top menu bar draws its white top highlight from a top-panel (`north-`) state.
+
+**Acceptance criteria.**
+- `north-center` renders 8x18 with row 0 `#FFFFFF` and rows 1..17 `#DDDDDD`, and a test pins
+  each of those pixels.
+- The unprefixed slices' pixels and hint geometry are unchanged: `PANEL_EDGE_PIXELS` and the
+  existing hint-geometry entries pass with no edits.
+- The `NineSliceCase` structural checks pass for both `""` and `"north"`.
+- The reference test re-derives the north centre and bottom rows from `desktop_betawiki.png`
+  column 10.
+- `make check` is green.
 
 ## Done
 
