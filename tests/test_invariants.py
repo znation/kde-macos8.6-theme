@@ -178,7 +178,9 @@ def check_reference(root, reference, section):
     collects cannot stand in for the tests that pin the guarantee. The path
     must stay inside *root*: an absolute path replaces the root and a ``..``
     segment climbs out of it, so either would let a row pin a guarantee to a
-    test outside the tree the register covers.
+    test outside the tree the register covers. A referenced file that cannot
+    be decoded or parsed is rejected by name too, so a broken reference never
+    escapes as an unrelated exception.
     """
     path, sep, qualifier = reference.partition("::")
     file_path = os.path.join(root, path)
@@ -201,7 +203,18 @@ def check_reference(root, reference, section):
         raise AssertionError(
             f"{section}: {reference} names more than a class and method"
         )
-    classes = _defined_names(file_path)
+    try:
+        classes = _defined_names(file_path)
+    except (OSError, UnicodeDecodeError, SyntaxError) as exc:
+        # A referenced file that cannot be decoded or parsed (a stray byte, a
+        # syntax error) would otherwise escape as a `UnicodeDecodeError` or
+        # `SyntaxError` naming neither the section nor the reference. Report
+        # it as the register's own `AssertionError` so the failing row is
+        # identifiable.
+        raise AssertionError(
+            f"{section}: {reference} names a file that cannot be read as "
+            f"Python: {exc}"
+        ) from exc
     class_name = names[0]
     if class_name not in classes:
         raise AssertionError(f"{section}: {reference} names a missing class {class_name}")
@@ -458,6 +471,27 @@ class TestHelpers(unittest.TestCase):
         )
         with self.assertRaisesRegex(AssertionError, "missing file"):
             cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_reference_to_an_unparseable_file(self):
+        # `check_reference` reads the named module with `ast.parse` to find its
+        # classes. A file that is not UTF-8, or not valid Python, makes that
+        # read raise `UnicodeDecodeError`/`SyntaxError` -- an exception that
+        # names neither the register section nor the reference, so the failure
+        # a maintainer sees does not say which row points at the broken file.
+        # Both must surface as the register's own `AssertionError`.
+        for name, content in (
+            ("not_utf8", b"import unittest\n\n# \xff\xfe stray byte\n"),
+            ("not_python", b"def (:\n"),
+        ):
+            with self.subTest(module=name):
+                (self.root / name).write_bytes(content)
+                register = self._valid_register(
+                    [("The thing holds.", f"{name}::TestFake")]
+                )
+                with self.assertRaisesRegex(
+                    AssertionError, "cannot be read as Python"
+                ):
+                    cross_check(self.root, register)
 
     def test_cross_check_rejects_a_missing_class(self):
         register = self._valid_register(

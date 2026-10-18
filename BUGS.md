@@ -12,6 +12,32 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` lets a reference to an unreadable test file escape as an unrelated exception (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `check_reference` read the module a register row named with
+`ast.parse` to find its classes. A file that was not valid UTF-8 (a stray byte)
+or not valid Python (`def (:` as its first line) made that read raise
+`UnicodeDecodeError`/`SyntaxError`, an exception naming neither the register
+section nor the reference, so a failing run did not say which row pointed at
+the broken file. `check_reference` is documented to raise `AssertionError`
+naming the section and the first missing piece.
+
+**Cause:** `check_reference` called `_defined_names(file_path)` unguarded, so
+the decode/parse exception propagated unchanged.
+
+**Fix:** `check_reference` now catches `OSError`, `UnicodeDecodeError` and
+`SyntaxError` from `_defined_names` and re-raises `AssertionError` naming the
+section, the reference and the parse error.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_reference_to_an_unparseable_file`
+(both a non-UTF-8 and a syntax-error module; a scratch reproduction showed the
+`UnicodeDecodeError` before the fix, and the test errored on both subtests
+before the fix and passes after).
+
+**Validation gap:** no-fake -- confirming it needed a synthetic module with an
+invalid byte or a syntax error, a fixture the suite did not have.
+
 ### `test_invariants.py` accepts a class whose locally defined base only looks like a test case (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `check_reference` accepted a reference such as
