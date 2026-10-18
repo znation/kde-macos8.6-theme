@@ -115,5 +115,6 @@ class TestPackageValid(KPackageInstallCase, unittest.TestCase):
     PACKAGE_DIR = AURORAE_DIR
     PACKAGE_ID = AURORAE_ID
 
+
 if __name__ == "__main__":
     unittest.main()

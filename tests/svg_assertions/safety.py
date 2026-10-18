@@ -51,6 +51,7 @@ def assert_no_style_elements(case, tree):
         tag = local_name(element)
         case.assertNotEqual(tag, "style", f"<{tag}> element")
 
+
 # CSS/SVG ``url(...)`` target: unquoted, single-quoted or double-quoted,
 # padded with whitespace. SVG uses the form in presentation attributes such as
 # ``fill``, ``filter``, ``clip-path`` and ``mask``, and in an inline ``style``.

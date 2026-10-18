@@ -193,5 +193,6 @@ class TestSplashQml(unittest.TestCase):
             for binding in bindings:
                 self.assertIn(binding, block, f"{object_id}: {binding}")
 
+
 if __name__ == "__main__":
     unittest.main()

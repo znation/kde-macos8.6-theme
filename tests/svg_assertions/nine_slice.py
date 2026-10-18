@@ -83,6 +83,7 @@ def nine_slice_tile_sizes(canvas_w, canvas_h, left, right, top, bottom):
         "bottomright": (right, bottom),
     }
 
+
 _TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")
 
 

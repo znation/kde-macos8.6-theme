@@ -53,6 +53,7 @@ def _declared_size(icon):
     directory = os.path.dirname(icon).split(os.sep)[0]
     return int(directory.split("x", 1)[0])
 
+
 SVG_NS = "{http://www.w3.org/2000/svg}"
 
 

@@ -239,5 +239,6 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         self.assertEqual(glyph, (0, 0, 0))
         self.assertEqual(self.parser.get("General", "ActiveTextColor"), _kde(glyph))
 
+
 if __name__ == "__main__":
     unittest.main()
