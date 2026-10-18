@@ -12,6 +12,23 @@ _None yet._
 
 ## Fixed
 
+### `org.macos8.desktop` icon theme still calls its final art "placeholder icons" (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `theme/icons/org.macos8.desktop/index.theme` still read
+`Comment=Mac OS 8.6 Platinum placeholder icons`. The earlier change replaced the five placeholder
+SVGs with final Platinum-style art, and `PLACEHOLDERS.md` now says "There are no placeholders
+left"; the README status calls it "our own Platinum-style art". KDE shows the `Comment` in System
+Settings → Icons, so the shipped theme described itself as temporary stand-in art it no longer
+contains.
+**Reproduce:** `make check CHECK_TESTS='test_icon_theme.TestIndex.test_comment_names_the_final_platinum_art'`
+recorded `'Mac OS 8.6 Platinum placeholder icons' != 'Mac OS 8.6 Platinum icon theme'` before the
+fix; the test passes after it.
+**Fix:** the `Comment` now reads `Mac OS 8.6 Platinum icon theme`, and the new `test_icon_theme`
+case pins it so the description cannot drift from the art again.
+**Validation gap:** unclear-invariant — no test pinned the theme's description, so establishing that
+"placeholder" was wrong meant reconstructing the art-is-final guarantee from `PLACEHOLDERS.md` and
+the README first.
+
 ### `make render` installs the theme outside its scratch data home when `DESTDIR` is on the outer make command line (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** The earlier fix dropped `DESTDIR` from the environment `tools/render_surface.py`
