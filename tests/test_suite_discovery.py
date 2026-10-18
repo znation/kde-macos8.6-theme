@@ -62,7 +62,7 @@ def makefile_check_pattern():
     :data:`DISCOVERY_PATTERN`. Reading the default from the Makefile lets the
     guard compare against the pattern the suite really uses instead of a
     second copy that could drift. Only the literal right-hand side is read,
-    matching ``TestHelp._tunable_defaults``.
+    matching ``test_make_help.TestHelp._tunable_defaults``.
     """
     makefile = os.path.join(os.path.dirname(TESTS_DIR), "Makefile")
     with open(makefile, encoding="utf-8") as handle:
