@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import shutil
 import sys
 from collections.abc import Callable, Iterable
@@ -59,6 +60,13 @@ def report_error(tool: str, message: str) -> int:
     return 2
 
 
+# Only CR, LF and CRLF end a log line. ``str.splitlines`` also breaks on
+# U+000B, U+000C, the C0 separators, NEL and U+2028/U+2029, so a log line
+# carrying one (an escaped byte, a form feed in captured output) would be
+# split into two reported lines and, at the twelve-line tail boundary, push a
+# complete line out of the diagnostic. ``reference_checks`` splits its
+# contributor-supplied record for the same reason.
+_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 _LOG_TAIL_LINES = 12
 # The log belongs to the external command, not to us: a command that loops on
 # a warning for its whole timeout can leave a file far larger than the twelve
@@ -75,7 +83,9 @@ def _log_tail_lines(log: Path) -> list[str]:
     window holds no line break at all, where the single (partial) line is kept
     so the diagnostic is never empty. A window that opens on the ``\n`` half
     of a ``\r\n`` pair starts inside that one break, so its empty first line
-    is the tail of the break and is dropped the same way.
+    is the tail of the break and is dropped the same way. Only ``\r``,
+    ``\n`` and ``\r\n`` end a line; an exotic break byte inside a line (a
+    vertical tab, a form feed) stays part of that line.
     """
     with log.open("rb") as handle:
         size = handle.seek(0, os.SEEK_END)
@@ -94,7 +104,11 @@ def _log_tail_lines(log: Path) -> list[str]:
             boundary = True
         handle.seek(start)
         data = handle.read(_LOG_TAIL_BYTES)
-    lines = data.decode("utf-8", errors="replace").splitlines()
+    lines = _LINE_BREAK.split(data.decode("utf-8", errors="replace"))
+    if lines and lines[-1] == "":
+        # A file that ends in a break ends its last line there; splitlines
+        # omits that final empty element, so drop the one re.split adds.
+        lines.pop()
     if not boundary and len(lines) > 1:
         lines = lines[1:]
     return lines[-_LOG_TAIL_LINES:]

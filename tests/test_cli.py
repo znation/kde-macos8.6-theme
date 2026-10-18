@@ -354,6 +354,22 @@ class TestReportFailure(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertEqual(err.splitlines()[1], "  FIRST")
 
+    def test_an_exotic_break_byte_inside_a_line_does_not_split_it(self):
+        # Only CR and LF end a log line. `str.splitlines` also breaks on a
+        # vertical tab (and the other C0/C1 separators), which would split one
+        # line into two and, at the twelve-line tail boundary, push a complete
+        # line out of the diagnostic. The line must stay whole, with the tab
+        # escaped by the shared escaper, and no complete line may be lost.
+        log = make_tmp_dir(self) / "cmd.log"
+        lines = [f"line {i}" for i in range(13)]
+        lines[1] = "line 1a\x0bline 1b"
+        log.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertIn("  line 1a\\u000bline 1b\n", err)
+        self.assertNotIn("  line 0\n", err)
+        self.assertIn("  line 12\n", err)
+
 
 if __name__ == "__main__":
     unittest.main()

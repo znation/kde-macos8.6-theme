@@ -12,6 +12,32 @@ _None yet._
 
 ## Fixed
 
+### `_log_tail_lines` splits a log line on a vertical tab or other exotic break byte (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** When a failing external command's log contains a byte that `str.splitlines` treats as a
+line break but CR/LF do not -- a vertical tab `\x0b`, a form feed `\x0c`, a C0 separator,
+NEL or U+2028/U+2029 -- `report_failure` prints that one log line as two indented lines instead of
+one. Near the twelve-line tail boundary the extra split also pushes a complete line out of the
+diagnostic: with thirteen log lines and `\x0b` in the second, the first line is dropped and the
+second is shown only as its tail fragment.
+
+**Reproduce:** Write a log of `"line 0\nline 1a\x0bline 1b\n"` plus lines 2-12 and call
+`report_failure`; the old code prints `line 1a` and `line 1b` as separate lines and loses `line 0`.
+The regression test
+`tests/test_cli.py::TestReportFailure::test_an_exotic_break_byte_inside_a_line_does_not_split_it`
+fails without the fix.
+
+**Cause:** `_log_tail_lines` decoded the tail window with `str.splitlines()`, which recognizes the
+full Unicode set of line breaks rather than only the CR, LF and CRLF that end a command's log line.
+
+**Fix:** `tools/cli.py` now splits the decoded window with a `re` pattern of `\r\n|\r|\n` (the
+same rule `tools/reference_checks.py` uses for its contributor-supplied record) and drops the single
+trailing empty element `re.split` adds when the window ends in a break, so `str.splitlines`'
+trailing-element behavior is preserved.
+
+**Validation gap:** none — a deterministic unit test reproduced it; the new test failed against the
+previous `tools/cli.py` and passes after, and nothing about confirmation was missing.
+
 ### `_log_tail_lines` keeps a blank first line when the tail window opens on a `\r\n` newline (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** When a failing external command's log is larger than `_LOG_TAIL_BYTES` (64 KiB) and
