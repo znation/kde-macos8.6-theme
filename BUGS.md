@@ -12,6 +12,29 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` accepts a register reference to a non-test method (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `check_reference` accepted a reference such as
+`fake_module::TestFake::setUp`: it checked that the named method exists in the
+class but not that the method is a test, so a row could pin its guarantee to a
+helper (`setUp`, or any private helper) that unittest never runs.
+
+**Cause:** `check_reference` validated a named method only with
+`method_name not in classes[class_name]`, so every function in the class body
+resolved, not just the `test`-prefixed methods the register's Test column
+promises.
+
+**Fix:** `check_reference` now raises `AssertionError` naming the section and
+the reference when a named method does not start with `test`.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_reference_to_a_non_test_method`
+(failed before the fix, passes after).
+
+**Validation gap:** no-observability -- the helper resolved and the row passed,
+so no existing test or real run could surface it; it was found by reading the
+parser and confirmed with a scratch `check_reference` call.
+
 ### `test_invariants.py` accepts a register reference with a segment after the method (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `check_reference` accepted a reference such as

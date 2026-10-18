@@ -6,7 +6,8 @@ confirmable without reconstructing the intent from the test's body. Nothing
 otherwise ties the register to the repository: this module parses its sections
 and table rows and fails when a ``theme/`` subsystem directory has no section,
 when a row names a test file, class or method that does not exist, when a row
-names no test, or when a guarantee cell is blank.
+names a method that is not a test, when a row names no test, or when a guarantee
+cell is blank.
 """
 
 from __future__ import annotations
@@ -137,7 +138,9 @@ def check_reference(root, reference, section):
     :class:`AssertionError` naming *section* and the first missing piece. A
     reference ending in ``::`` names no class and a reference with a fourth
     ``::`` segment is rejected too, so neither can silently pin a guarantee to
-    no test.
+    no test. A named method must be a test (a ``test``-prefixed name, the only
+    kind unittest runs), so a helper cannot stand in for the test that pins the
+    guarantee.
     """
     path, sep, qualifier = reference.partition("::")
     file_path = os.path.join(root, path)
@@ -163,6 +166,11 @@ def check_reference(root, reference, section):
         if method_name not in classes[class_name]:
             raise AssertionError(
                 f"{section}: {reference} names a missing method {method_name}"
+            )
+        if not method_name.startswith("test"):
+            raise AssertionError(
+                f"{section}: {reference} names a method that is not a test "
+                f"{method_name}"
             )
 
 
@@ -218,6 +226,9 @@ class TestHelpers(unittest.TestCase):
             self.MODULE,
             "import unittest\n\n\n"
             "class TestFake(unittest.TestCase):\n"
+            "    def setUp(self):\n"
+            "        pass\n"
+            "\n"
             "    def test_ok(self):\n"
             "        pass\n",
         )
@@ -400,6 +411,16 @@ class TestHelpers(unittest.TestCase):
             [("The thing holds.", f"{self.MODULE}::TestFake::test_nope")]
         )
         with self.assertRaisesRegex(AssertionError, "missing method test_nope"):
+            cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_reference_to_a_non_test_method(self):
+        # `path::Class::setUp` names a method that exists but is not a test,
+        # so the row pins its guarantee to a helper instead of the test that
+        # enforces it. Only `test`-prefixed methods are tests unittest runs.
+        register = self._valid_register(
+            [("The thing holds.", f"{self.MODULE}::TestFake::setUp")]
+        )
+        with self.assertRaisesRegex(AssertionError, "not a test"):
             cross_check(self.root, register)
 
 
