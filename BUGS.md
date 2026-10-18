@@ -12,6 +12,33 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` accepts a method reference into a class that is not a test case (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `check_reference` accepted a reference such as
+`fake_module::Helper::test_looks_like_a_test` when `Helper` was a plain class
+with a `test`-prefixed method: it validated a class-level reference but applied
+no class check at all when a method segment was present, so a row could pin its
+guarantee to a method on a class unittest never collects.
+
+**Cause:** `check_reference` gated the class validity check on
+`len(names) == 1`, and that check itself accepted any class defining a
+`test`-prefixed method, so a class with no `TestCase` base resolved at both
+levels.
+
+**Fix:** a named class must now be a test case -- a `unittest.TestCase` or
+`*TestCase` base, directly or through a base class defined in the same module
+(`_defined_names` follows in-module bases); the class check applies to class
+and method references alike, so a class unittest never collects cannot stand in
+for a test however many `test`-prefixed methods it defines.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_method_on_a_class_with_no_test_case`
+(failed before the fix with "AssertionError not raised", passes after).
+
+**Validation gap:** no-observability -- the reference resolved and the row
+passed, so no existing test or real run could surface it; it was found by
+reading the parser and confirmed with a scratch reproduction.
+
 ### `test_invariants.py` accepts a register reference to a class with no tests (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `check_reference` accepted a reference such as `fake_module::Helper`:
