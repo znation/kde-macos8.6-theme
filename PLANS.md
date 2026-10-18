@@ -183,7 +183,37 @@ not installed.
 - README documents the selection and the no-Kvantum fallback.
 - `make check` is green.
 
-### Own icon art: `PLACEHOLDER:` markers and a test that keeps `PLACEHOLDERS.md` complete (planned 2026-10-18 by the plan role)
+### Mac OS 8.6 Platinum icon theme: replace the placeholder art with final non-infringing art (planned 2026-10-18 by the feature role)
+
+**Goal.** The `org.macos8.desktop` icon theme shipped our own placeholder art for
+the desktop's hard-disk, folder, document and Trash icons, tracked in PLACEHOLDERS.md. Replace
+each placeholder with final, non-infringing Mac OS 8.6-style art so the desktop icons read as
+Platinum without reproducing Apple's artwork, keeping the package layout, its 32x32 grid and the
+global theme's selection unchanged. The Apple-logo kicker icon stays out of scope.
+
+**Approach.**
+- Draw each of the five icons PLACEHOLDERS.md lists (`drive-harddisk`, `text-x-generic`,
+  `folder`, `inode-directory`, `user-trash`) as our own 32x32 art on the pixel grid, in the
+  Platinum grey/black palette; keep the file names, contexts and `index.theme` the icon theme
+  shipped, so only the SVG contents change.
+- Record how the art was derived in this entry when it lands (drawn here, not traced from a
+  reference icon).
+- Remove each replaced icon's row from PLACEHOLDERS.md, and delete the file when the last row
+  goes; update `tests/test_icon_theme.py` so the placeholder registry is checked to match the
+  shipped set exactly (empty once the last placeholder is replaced).
+
+**Files touched.** `theme/icons/org.macos8.desktop/32x32/` (the five SVGs), `PLACEHOLDERS.md`,
+`tests/test_icon_theme.py`.
+
+**Acceptance criteria.**
+- Each shipped icon is final art, and PLACEHOLDERS.md lists exactly the icons that are still
+  placeholders (none when the plan is done).
+- `tests/test_icon_theme.py` passes with an empty or removed placeholder registry.
+- The global theme still selects `org.macos8.desktop`, and `make check` is green.
+
+## Done
+
+### Own icon art: `PLACEHOLDER:` markers and a test that keeps `PLACEHOLDERS.md` complete (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** The user answered 2026-10-18 that the theme's own artwork ships as placeholders for
 now and that the placeholders must be tracked "so we don't forget to replace them all
@@ -222,36 +252,6 @@ icons, so this entry adds the marker convention and the test that keeps the regi
   placeholder added without a register row fails `make check`.
 - README states the marker convention and points at `PLACEHOLDERS.md`.
 - `make check` is green.
-
-### Mac OS 8.6 Platinum icon theme: replace the placeholder art with final non-infringing art (planned 2026-10-18 by the feature role)
-
-**Goal.** The `org.macos8.desktop` icon theme shipped our own placeholder art for
-the desktop's hard-disk, folder, document and Trash icons, tracked in PLACEHOLDERS.md. Replace
-each placeholder with final, non-infringing Mac OS 8.6-style art so the desktop icons read as
-Platinum without reproducing Apple's artwork, keeping the package layout, its 32x32 grid and the
-global theme's selection unchanged. The Apple-logo kicker icon stays out of scope.
-
-**Approach.**
-- Draw each of the five icons PLACEHOLDERS.md lists (`drive-harddisk`, `text-x-generic`,
-  `folder`, `inode-directory`, `user-trash`) as our own 32x32 art on the pixel grid, in the
-  Platinum grey/black palette; keep the file names, contexts and `index.theme` the icon theme
-  shipped, so only the SVG contents change.
-- Record how the art was derived in this entry when it lands (drawn here, not traced from a
-  reference icon).
-- Remove each replaced icon's row from PLACEHOLDERS.md, and delete the file when the last row
-  goes; update `tests/test_icon_theme.py` so the placeholder registry is checked to match the
-  shipped set exactly (empty once the last placeholder is replaced).
-
-**Files touched.** `theme/icons/org.macos8.desktop/32x32/` (the five SVGs), `PLACEHOLDERS.md`,
-`tests/test_icon_theme.py`.
-
-**Acceptance criteria.**
-- Each shipped icon is final art, and PLACEHOLDERS.md lists exactly the icons that are still
-  placeholders (none when the plan is done).
-- `tests/test_icon_theme.py` passes with an empty or removed placeholder registry.
-- The global theme still selects `org.macos8.desktop`, and `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Platinum desktop icon theme: a minimal `org.macos8.desktop` icon package for the icons the desktop shows (planned 2026-10-18 by the plan role; done 2026-10-18)
 

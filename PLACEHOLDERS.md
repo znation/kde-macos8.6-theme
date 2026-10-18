@@ -5,7 +5,9 @@ is our own generic art, not a reproduction of Apple's Platinum artwork (see the
 2026-10-18 answer in QUESTIONS.md). Replace each with final non-infringing Mac OS
 8.6-style art — tracked as the "Mac OS 8.6 Platinum icon theme: replace the
 placeholder art with final non-infringing art" entry under PLANS.md's `## Planned`
-— and drop its row here in the same change.
+— and drop its row here in the same change. Each listed asset carries a `PLACEHOLDER:` comment
+marker naming what it stands in for; `tests/test_placeholders.py` cross-checks this table against
+those markers, so a new placeholder added without a row fails `make check`.
 
 | Placeholder | Stands in for |
 | --- | --- |

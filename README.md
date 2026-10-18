@@ -52,7 +52,8 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `[plasmarc][Theme]` in its `contents/defaults`. The global theme also selects the
 `org.macos8.desktop` icon theme through `[kdeglobals][Icons]` in the same `contents/defaults`; it
 ships our own placeholder art for the desktop's hard-disk, folder, document and Trash icons (each
-tracked in PLACEHOLDERS.md) and inherits Breeze for every other name. The global theme also selects Qt's built-in
+tracked in PLACEHOLDERS.md and carrying a `PLACEHOLDER:` comment marker naming what it stands in
+for) and inherits Breeze for every other name. The global theme also selects Qt's built-in
 `Windows` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw square
 bevelled Platinum-like controls instead of Breeze's rounded ones; choose another style in System
 Settings → Application Style. The desktop theme ships
