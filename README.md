@@ -48,7 +48,10 @@ applied; applying the theme without it leaves them alone. The layout also switch
 in the current activity to the image wallpaper plugin and lines its icons up in one 32px column
 at the right edge with each icon's name on one line under it, as Mac OS 8.6 does. The desktop theme can be selected on its own with
 `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
-`[plasmarc][Theme]` in its `contents/defaults`. The desktop theme ships
+`[plasmarc][Theme]` in its `contents/defaults`. The global theme also selects Qt's built-in
+`Windows` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw square
+bevelled Platinum-like controls instead of Breeze's rounded ones; choose another style in System
+Settings → Application Style. The desktop theme ships
 `widgets/panel-background.svg` (the menu bar), `widgets/frame.svg` (the Platinum
 plain/raised/sunken frame used by `PlasmaComponents.Frame`, `GroupBox`, the kicker
 application-menu sidebar and applet `FrameSvg` consumers), `widgets/button.svg` (the

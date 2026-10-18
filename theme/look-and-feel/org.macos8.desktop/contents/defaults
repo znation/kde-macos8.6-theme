@@ -1,3 +1,6 @@
+[kdeglobals][KDE]
+widgetStyle=Windows
+
 [kdeglobals][General]
 ColorScheme=MacOS8
 

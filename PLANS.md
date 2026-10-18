@@ -22,7 +22,11 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-### Mac OS 8.6 Qt widget style: select Qt's built-in square-bevel `Windows` style from the global theme (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Qt widget style: select Qt's built-in square-bevel `Windows` style from the global theme (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** Applying the global theme today changes only the Plasma shell, the window decoration and
 the colours. Every KDE application keeps drawing its own buttons, scroll bars, tabs and menus with
@@ -81,8 +85,6 @@ Breeze's own `/usr/share/plasma/look-and-feel/org.kde.breeze.desktop/contents/de
 **Out of scope.** A pixel-matched Platinum Qt style (Kvantum or a custom QStyle: a new dependency,
 so the user's call). Fonts (Charcoal does not ship, and the LNF `defaults` file does not set
 fonts). The icon theme, cursor theme and sounds from the scope-drift note.
-
-## Done
 
 ### Mac OS 8.6 menu-title spacing: 7px horizontal padding in `widgets/menubaritem.svg` (planned 2026-10-18 by the plan role; done 2026-10-18)
 

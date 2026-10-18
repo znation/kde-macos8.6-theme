@@ -36,6 +36,7 @@ AURORAE_DIR = os.path.join(
 
 # configparser reads the KDE `[kdeglobals][General]` header greedily, so the
 # section key includes the inner bracket pair.
+STYLE_SECTION = "kdeglobals][KDE"
 DEFAULTS_SECTION = "kdeglobals][General"
 PLASMA_SECTION = "plasmarc][Theme"
 KWIN_SECTION = "kwinrc][org.kde.kdecoration2"
@@ -112,8 +113,15 @@ class TestDefaults(unittest.TestCase):
     def test_the_expected_sections_and_keys_are_set(self):
         self.assertEqual(
             self.parser.sections(),
-            [DEFAULTS_SECTION, PLASMA_SECTION, KWIN_SECTION, WALLPAPER_SECTION],
+            [
+                STYLE_SECTION,
+                DEFAULTS_SECTION,
+                PLASMA_SECTION,
+                KWIN_SECTION,
+                WALLPAPER_SECTION,
+            ],
         )
+        self.assertEqual(self.parser.options(STYLE_SECTION), ["widgetStyle"])
         self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme"])
         self.assertEqual(self.parser.options(PLASMA_SECTION), ["name"])
         self.assertEqual(
@@ -121,6 +129,13 @@ class TestDefaults(unittest.TestCase):
             ["library", "theme", "ButtonsOnLeft", "ButtonsOnRight"],
         )
         self.assertEqual(self.parser.options(WALLPAPER_SECTION), ["Image"])
+
+    def test_widget_style_is_the_built_in_windows_style(self):
+        """Qt's built-in QWindowsStyle draws square bevelled buttons and an arrow
+        at each end of the scroll bar, as systemprofiler_betawiki.png shows. It
+        is compiled into QtWidgets, so it adds no dependency; Kvantum for a
+        pixel-matched style is deferred."""
+        self.assertEqual(self.parser.get(STYLE_SECTION, "widgetStyle"), "Windows")
 
     def test_wallpaper_names_the_shipped_package(self):
         with open(WALLPAPER_METADATA, encoding="utf-8") as handle:
