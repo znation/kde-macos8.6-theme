@@ -73,14 +73,23 @@ def _log_tail_lines(log: Path) -> list[str]:
     At most ``_LOG_TAIL_BYTES`` bytes are read from the end of the file. A
     window that starts mid-line drops its partial first line -- unless the
     window holds no line break at all, where the single (partial) line is kept
-    so the diagnostic is never empty.
+    so the diagnostic is never empty. A window that opens on the ``\n`` half
+    of a ``\r\n`` pair starts inside that one break, so its empty first line
+    is the tail of the break and is dropped the same way.
     """
     with log.open("rb") as handle:
         size = handle.seek(0, os.SEEK_END)
         start = max(0, size - _LOG_TAIL_BYTES)
         if start:
             handle.seek(start - 1)
-            boundary = handle.read(1) in (b"\n", b"\r")
+            previous = handle.read(1)
+            first = handle.read(1)
+            # ``\r\n`` is one line break: opening on its ``\n`` half is not a
+            # line boundary, while a lone ``\r`` (a rewritten progress line)
+            # is.
+            boundary = previous == b"\n" or (
+                previous == b"\r" and first != b"\n"
+            )
         else:
             boundary = True
         handle.seek(start)

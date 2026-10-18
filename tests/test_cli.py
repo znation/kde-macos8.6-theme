@@ -340,6 +340,20 @@ class TestReportFailure(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertIn("  FIRST\n", err)
 
+    def test_tail_window_opening_on_a_crlf_newline_drops_the_break(self):
+        # A window can open on the `\n` half of a `\r\n` pair. `splitlines`
+        # yields an empty first element there, but that empty line is the tail
+        # of the break whose `\r` lies outside the window -- not a log line --
+        # so it must be dropped like any other partial first line.
+        body = b"\n" + b"FIRST\nSECOND\nTHIRD\n"
+        body += b"x" * (cli._LOG_TAIL_BYTES - len(body))
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_bytes(b"f\r" + body)
+        self.assertEqual(log.stat().st_size, cli._LOG_TAIL_BYTES + 2)
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertEqual(err.splitlines()[1], "  FIRST")
+
 
 if __name__ == "__main__":
     unittest.main()

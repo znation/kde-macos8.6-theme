@@ -12,6 +12,28 @@ _None yet._
 
 ## Fixed
 
+### `_log_tail_lines` keeps a blank first line when the tail window opens on a `\r\n` newline (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** When a failing external command's log is larger than `_LOG_TAIL_BYTES` (64 KiB) and
+its bounded tail window happens to start on the `\n` half of a `\r\n` pair, `report_failure`
+prints an extra empty indented line before the first log line.
+
+**Reproduce:** Build a log of `b"f\r" + b"\nFIRST\nSECOND\nTHIRD\n"` padded to exactly
+`_LOG_TAIL_BYTES + 2` bytes, so the window starts at the `\n`; `_log_tail_lines` returns an empty
+first line. The regression test
+`tests/test_cli.py::TestReportFailure::test_tail_window_opening_on_a_crlf_newline_drops_the_break`
+fails without the fix.
+
+**Cause:** The boundary check treated a preceding `\r` as a line start unconditionally, so a
+window opening on the `\n` of `\r\n` was treated as starting at a line boundary and its spurious
+empty `str.splitlines` element was kept.
+
+**Fix:** `tools/cli.py` now treats a preceding `\n` as a boundary, and a preceding `\r` as one only
+when the window's first byte is not `\n` (the two bytes are one break).
+
+**Validation gap:** none — a deterministic unit test reproduced it; the new test failed before the
+fix and passes after, and nothing about confirmation was missing.
+
 ### `test_placeholders.py` ignores `PLACEHOLDER:` markers in the theme's `.js` and `.desktoprc` files (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `tests/test_placeholders.py` `TEXT_EXTENSIONS` listed only `.svg`, `.qml`,
