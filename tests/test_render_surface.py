@@ -155,6 +155,21 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_install_timeout_exits_1_with_a_timeout_diagnostic(self):
+        # A hung `make install` is killed by run_logged, which reports the
+        # timeout as None. The diagnostic must name the timeout rather than
+        # the raw status ("exited None"), and the failure must still exit 1
+        # and remove the scratch root. The real install timeout is minutes
+        # long, so run_logged is stubbed instead of waited out; the render
+        # session's own timeout is covered by
+        # test_timeout_kills_the_session_group_and_exits_1.
+        with mock.patch.object(render_surface, "run_logged", return_value=None):
+            status, stderr, output = self.run_main()
+        self.assertEqual(1, status)
+        self.assertIn("make install timed out", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_failed_session_exits_1_and_removes_scratch(self):
         self.stub("dbus-run-session", "echo no display; exit 3")
         status, stderr, output = self.run_main()
