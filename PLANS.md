@@ -17,7 +17,116 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 Platinum applet-popup heading (`widgets/plasmoidheading.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+
+**Planned 2026-10-17 by plan.** Independent of every other entry: it adds one widget file to the
+existing `org.macos8.desktop` desktop-theme package and one new test module, touches no shipped
+SVG, and needs no other plan to land first.
+
+**Goal.** Ship `widgets/plasmoidheading.svg` so the header and footer bands of applet popups draw
+the Platinum etched rule (the `#888888`-over-`#FFFFFF` pair `widgets/line.svg` already ships)
+between the band and the popup body. Today those bands are invisible:
+`/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/extras/PlasmoidHeading.qml` draws its
+`KSvg.FrameSvgItem` (`imagePath: "widgets/plasmoidheading"`, `prefix: "header"` or `"footer"`)
+only while `fromCurrentImageSet === backgroundSvg.fromCurrentImageSet`, and the backgroundSvg is
+`dialogs/background`, which our package ships. So Plasma hides the Breeze fallback, and the
+heading of kickoff, the system tray, notifications, the digital-clock calendar, network, volume,
+bluetooth, clipboard and device-notifier popups runs into the body with no divider.
+`grep -rni plasmoidheading` over the repo (outside `.git`) finds nothing, and no PLANS.md entry
+covers it.
+
+**Consumer contract (verified in installed Plasma 6 QML and Breeze).** One FrameSvg with two
+prefixes, `header` and `footer`, each a full nine-slice (`<prefix>-topleft` … `<prefix>-center`)
+plus `<prefix>-hint-{top,bottom,left,right}-margin`. In a popup, `BackgroundMetrics.getMargin`
+returns the window's negative padding, so the band's insets pull it out over the
+`dialogs/background.svg` 3px border on its top/left/right (header) or bottom/left/right (footer).
+`enabledBorders` always includes top and bottom, and left/right only when the band touches the
+window edge. Breeze (`/usr/share/plasma/desktoptheme/default/widgets/plasmoidheading.svgz`)
+paints a background fill plus a 1px `ColorScheme-Text` line in the last row of `header-bottom`
+(and the first row of `footer-top`), with 6px borders.
+
+**Design decisions (settled; do not revisit).**
+- Every border is 3px, the same as `dialogs/background.svg`, so where the band overlays the
+  dialog border it lines up with it exactly.
+- Every slice paints nothing (a transparent placeholder) except the rule rows. So the band shows
+  the dialog's `#DDDDDD` face and the dialog's own outline/bevel shows through the band's
+  top/left/right (header) or bottom/left/right (footer) edges. The corners are placeholders too,
+  so the rule stops at the inside of the dialog's bevel instead of crossing it.
+- `header-bottom` (6x3): row 0 placeholder, row 1 `#888888`, row 2 `#FFFFFF`, which puts the rule
+  on the band's bottom edge, dark first. `footer-top` (6x3): row 0 `#888888`, row 1 `#FFFFFF`,
+  row 2 placeholder, which puts the rule on the band's top edge. The same dark-then-light order
+  as `line.svg`'s `horizontal-line`.
+- Colours and provenance: `#888888`/`#FFFFFF` are the etched group-box rule sampled from
+  `macos8.6-screenshots/systemprofiler_betawiki.png` at `(260,153)`/`(260,154)`, the
+  provenance `line.svg` and `tests/test_desktoptheme_line.py::TestLineReference` already pin.
+  This file does not re-sample them: its test ties the rule colours to `line.svg`'s
+  `horizontal-line` instead. Using the etched rule as a popup header divider is a KDE-required
+  surface that the reference set does not show (no 8.6 screenshot has a Plasma-style popup
+  heading). Record that in the SVG comment as the nearest Platinum equivalent: the rule that
+  divides a Platinum window's body.
+
+**Approach.**
+1. New `theme/desktop-themes/org.macos8.desktop/widgets/plasmoidheading.svg`, modelled on
+   `widgets/listitem.svg` (a 12x12 canvas where two prefixes share the same tile positions):
+   - root `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">`
+     and a comment naming the consumer (`PlasmaExtras.PlasmoidHeading`), the visibility rule
+     above, the design decisions and the provenance;
+   - `hint-tile-center` at `(3,3,6,6)` and `header-hint-*-margin` / `footer-hint-*-margin` with
+     `listitem.svg`'s geometry (the `nine_slice_margins` layout, border 3, size 6), all
+     `style="fill:#…"` like `listitem.svg`;
+   - for each prefix, nine `<g id>` slices translated to the standard 3/6/3 tile origins. Each
+     holds one full-tile placeholder rect, `style="fill:#FFFFFF" fill-opacity="0.01"` with no
+     `fill` attribute. `header-bottom` adds `<rect y="1" width="6" height="1" fill="#888888"/>`
+     and `<rect y="2" width="6" height="1" fill="#FFFFFF"/>` after it, and `footer-top` adds the
+     same rects at `y="0"` and `y="1"`. The placeholder comes first, so `render_slices` reads its
+     rows as `None` and its bounding box gives each tile its full 3px extent. No `class=`,
+     `<style>`, `<script>`, rect `transform` or other id.
+2. `tests/desktoptheme_paths.py`: add
+   `PLASMOIDHEADING_SVG = os.path.join(PACKAGE, "widgets", "plasmoidheading.svg")` beside
+   `LINE_SVG`.
+3. `tests/test_desktoptheme.py`: import it; add `("plasmoidheading.svg", PLASMOIDHEADING_SVG,
+   12, 12)` to `SVG_CANVASES` (and add "plasmoid heading" to the 12x12 group in the comment above
+   it); add `os.path.join("widgets", "plasmoidheading.svg")` to `TestInstall.INSTALLED_FILES`.
+4. New `tests/test_desktoptheme_plasmoidheading.py`: `TestPlasmoidHeading(NineSliceCase,
+   unittest.TestCase)` with `SVG_PATH = PLASMOIDHEADING_SVG` and `PREFIXES = ("header",
+   "footer")`, plus module constants `DARK = "#888888"`, `LIGHT = "#FFFFFF"` and
+   `SIZES = nine_slice_tile_sizes(12, 12, 3, 3, 3, 3)` (exported by `svg_assertions`; its keys
+   are the nine slice names). Tests are listed in the
+   acceptance criteria.
+5. `README.md`: in the Installing section's desktop-theme inventory, name
+   `widgets/plasmoidheading.svg` (the transparent header/footer band of applet popups, divided
+   from the body by the same etched `#888888`/`#FFFFFF` rule). `tests/test_readme_theme_files.py`
+   fails until README names it.
+
+**Files touched.** New: `widgets/plasmoidheading.svg`,
+`tests/test_desktoptheme_plasmoidheading.py`. Edited: `tests/desktoptheme_paths.py`,
+`tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move this entry to Done). The Makefile does
+not change: `make install` already copies the whole widgets directory.
+
+**Acceptance criteria.**
+- `make check` exits 0, including the new module, `tests/test_desktoptheme.py` (canvas pin,
+  registered-SVG check, `TestInstall`) and `tests/test_readme_theme_files.py`.
+- The inherited `NineSliceCase` checks pass for both prefixes: slice ids present, tiles placed by
+  margins, tiles within margins, no script.
+- `test_hint_geometry`: `assert_hint_geometry(self, self.tree, ("header", "footer"), 3, 6)`.
+- `test_rule_rows`: `render_slices(tree)["header-bottom"] == pixel_map((None,)*6 + (DARK,)*6 +
+  (LIGHT,)*6, 6, 3)` and `render_slices(tree)["footer-top"] == pixel_map((DARK,)*6 +
+  (LIGHT,)*6 + (None,)*6, 6, 3)`.
+- `test_other_slices_paint_nothing`: every other one of the 18 slices (the eight `header-*` and
+  eight `footer-*` names besides those two) equals `pixel_map((None,) * (w*h), w, h)` for its
+  `(w, h)` in `SIZES`.
+- `test_colours`: `attribute_values(tree, "fill") == {DARK, LIGHT}` and
+  `attribute_values(tree, "fill-opacity") == {"0.01"}`.
+- `test_rule_matches_line_svg`: parse `LINE_SVG` and require
+  `render_slices(line_tree)["horizontal-line"] == {(0, 0): DARK, (0, 1): LIGHT}`. The heading's
+  rule then cannot drift from the separator whose colours `TestLineReference` pins to the
+  reference pixels.
+- `assert_unique_ids`, `assert_no_style_elements` and `assert_no_external_references` pass.
+- `make install DESTDIR=<tmp> XDG_DATA_HOME=/share` installs `widgets/plasmoidheading.svg`
+  byte-identical to the source (checked by the extended `TestInstall.INSTALLED_FILES`).
+- Manual smoke test (needs a Plasma session): the system-tray and kickoff popups show a grey
+  line over a white line under their header row, the band otherwise matches the grey popup body,
+  and the popup's black outline and bevel stay continuous behind the band.
 
 ## Done
 
