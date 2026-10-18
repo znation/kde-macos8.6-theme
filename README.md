@@ -80,7 +80,7 @@ also ships `widgets/background.svg` (the flat white Platinum body for
 translucent rounded rectangle). The window decoration ships
 `metadata.json` and `metadata.desktop` (the KPackage and KWin-discovery
 metadata), `org.macos8.desktoprc` (the Aurorae layout: a 22px title bar, 6px
-side and bottom borders, and 13x13 close/zoom/collapse widgets, each a 12x12 box plus its 1px white highlight), `decoration.svg` (the
+side and bottom borders, and 13x13 close and collapse widgets, each a 12x12 box plus its 1px white highlight, and a 21x13 zoom widget: its box plus the stripe-free gap to its left and the flat spacing to its right), `decoration.svg` (the
 active and inactive frames) with its gzipped `decoration.svgz` (the form
 `kpackagetool6` requires), and `close.svg`, `maximize.svg`, `restore.svg`, `shade.svg` (the
 active and inactive widgets); select it in System Settings → Window

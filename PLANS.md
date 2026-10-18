@@ -17,7 +17,12 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Clear the title-bar pinstripes around the zoom box, as Mac OS 8.6 does (planned 2026-10-17 by the plan role)
+_None yet._
+
+
+## Done
+
+### Clear the title-bar pinstripes around the zoom box, as Mac OS 8.6 does (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Goal.** In the reference the pinstripes stop short of the right-hand box group, and the 3px
 space between the zoom and collapse boxes is flat `#CCCCCC`. The theme draws the
@@ -116,8 +121,7 @@ brief asks for pixel fidelity, so the gap ships.
   decision.
 - The cleared band around the title text. Aurorae has no title-background element.
 
-
-## Done
+**Implementation note (2026-10-17, feature).** Landed as planned. The zoom SVGs' x attributes were shifted by +5 mechanically and the gap and spacing rects added; `ZOOM_BOX_X` and the profiler-derived `ButtonWidthMaximizeRestore` test are in `tests/test_aurorae_decoration.py`.
 
 ### Grow the Aurorae title-bar boxes to 13x13 with their white highlight (planned 2026-10-17 by the plan role; done 2026-10-17)
 

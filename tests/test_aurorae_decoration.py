@@ -6,9 +6,10 @@ Aurorae engine draws: the active `decoration` nine-slice, the inactive
 their active and inactive states. The sampled values are re-derived through
 `tools/png.py` from `macos8.6-screenshots/aboutsystem_betawiki.png` (the
 frame, the close and collapse boxes, the collapse glyph, and the button
-offsets) or `macos8.6-screenshots/systemprofiler_betawiki.png` (the zoom box
-and glyph, `ButtonSpacing`, and a second check of the close box, the collapse
-box, and `TitleEdgeRight`), so a theme that drifts from the reference fails
+offsets) or `macos8.6-screenshots/systemprofiler_betawiki.png` (the 21x13 zoom
+widget with its glyph, the stripe-free gap and spacing around its box,
+`ButtonSpacing`, `ButtonWidthMaximizeRestore`, and a second check of the close
+box, the collapse box, and `TitleEdgeRight`), so a theme that drifts from the reference fails
 here. The inactive greys are KDE-required provenance (the reference set has no
 inactive window) and are pinned against the active artwork they grey. The
 reference is stored with Git LFS, so a clone without it skips the artwork
@@ -98,6 +99,8 @@ PROFILER_ROWS = 39
 # this value is KDE-required provenance: it is the active title field's flat
 # row, sampled at (250, 27).
 INACTIVE_GREY = "#CCCCCC"
+# The zoom face's local x in the 21x13 zoom canvas: the stripe-free gap to its left.
+ZOOM_BOX_X = 5
 
 
 def _read_capped(path, opener, limit=_MAX_DECORATION_SVG_BYTES):
@@ -232,13 +235,17 @@ class ReferenceImageCase:
         )
         return png.pixel_at(self.profiler_image, x, y)
 
-    def profiler_box(self, x0, y0, size=13):
-        """Return a *size* x *size* profiler region as {(x, y): '#RRGGBB'}."""
+    def profiler_region(self, x0, y0, width, height):
+        """Return a profiler region as region-local {(x, y): '#RRGGBB'}."""
         return {
             (x, y): hex_colour(self.profiler_pixel(x0 + x, y0 + y))
-            for y in range(size)
-            for x in range(size)
+            for y in range(height)
+            for x in range(width)
         }
+
+    def profiler_box(self, x0, y0, size=13):
+        """Return a *size* x *size* profiler region as {(x, y): '#RRGGBB'}."""
+        return self.profiler_region(x0, y0, size, size)
 
     def reference_box(self, x0, y0, size=13):
         """Return a *size* x *size* reference region as {(x, y): '#RRGGBB'}.
@@ -467,10 +474,12 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
             int(self.parser.get(layout, "ButtonMarginTop")), close_y - top
         )
 
-    def test_button_spacing_matches_reference(self):
-        # ButtonSpacing is the gap from the zoom box's highlight column to
-        # the collapse face: the profiler's #888888 columns split into two
-        # runs, one per box, with the highlight column right after the first.
+    def _zoom_and_collapse_faces(self):
+        """Return (zoom face's last column, collapse face's first column).
+
+        The profiler's #888888 columns in this band split into two runs, one
+        per box, with the zoom box's highlight column right after the first.
+        """
         columns = sorted(
             {
                 x
@@ -488,10 +497,44 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
             self.assertEqual(
                 self.profiler_pixel(zoom_right + 1, y), (255, 255, 255), y
             )
+        return zoom_right, collapse_left
+
+    def test_button_spacing_matches_reference(self):
+        # The 3-column gap from the zoom highlight to the collapse face is
+        # baked into the zoom widget, so Aurorae adds no spacing of its own.
+        zoom_right, collapse_left = self._zoom_and_collapse_faces()
+        gap = collapse_left - zoom_right - 2
+        layout = "Layout"
+        self.assertEqual(int(self.parser.get(layout, "ButtonSpacing")), 0)
         self.assertEqual(
-            int(self.parser.get("Layout", "ButtonSpacing")),
-            collapse_left - zoom_right - 2,
+            gap,
+            int(self.parser.get(layout, "ButtonWidthMaximizeRestore"))
+            - ZOOM_BOX_X
+            - int(self.parser.get(layout, "ButtonWidth")),
         )
+
+    def test_zoom_button_width_matches_reference(self):
+        # The pinstripes stop one column after the last #777777 stripe; the
+        # zoom widget starts there and ends at the collapse face.
+        stripe_end = max(
+            x
+            for y in range(26, 38)
+            for x in range(760, 781)
+            if self.profiler_pixel(x, y) == (119, 119, 119)
+        )
+        self.assertEqual(stripe_end, 776)
+        zoom_right, collapse_left = self._zoom_and_collapse_faces()
+        zoom_left = min(
+            x
+            for y in range(26, 38)
+            for x in range(775, 816)
+            if self.profiler_pixel(x, y) == (136, 136, 136)
+        )
+        self.assertEqual(
+            int(self.parser.get("Layout", "ButtonWidthMaximizeRestore")),
+            collapse_left - stripe_end,
+        )
+        self.assertEqual(ZOOM_BOX_X, zoom_left - stripe_end)
 
     def test_title_bar_colours_match_reference(self):
         # The pinstripe field is uniform along the bar, so one clear column
@@ -723,9 +766,10 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         self.assertEqual(slices["active-center"], self.profiler_box(213, 26))
 
     def test_zoom_box_matches_reference(self):
-        # The profiler's zoom box (x=781..792) is the close box plus the
-        # inner square. Pin every pixel against it.
-        expected = self.profiler_box(781, 26)
+        # The profiler's zoom widget (x=776..796, y=26..38) is the stripe-free
+        # gap, the close box plus the inner square, and the spacing before the
+        # collapse box. Pin every pixel against it.
+        expected = self.profiler_region(776, 26, 21, 13)
         for name, tree in _parsed_svgs(ZOOM_SVGS):
             with self.subTest(svg=name):
                 slices = render_slices(tree)
@@ -757,22 +801,30 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                 self.assertEqual(pixel(x0 + 12, y0), (204, 204, 204))
                 self.assertEqual(pixel(x0, y0 + 12), (204, 204, 204))
 
-    def _glyph(self, path, group):
+    def _glyph(self, path, group, offset=0):
+        """Return the art and its points differing from the close box.
+
+        *offset* is the art's local x of the box's left column; the
+        differing points are returned in box-local coordinates.
+        """
         art = render_slices(ET.parse(path))[group]
         base = render_slices(ET.parse(CLOSE_SVG))[group]
-        return art, {p for p in art if art[p] != base[p]}
+        return art, {(x, y) for x, y in base if art[(x + offset, y)] != base[(x, y)]}
 
-    def _assert_reference_glyph(self, path, glyph, pixel, x0, y0):
-        art, differing = self._glyph(path, "active-center")
+    def _assert_reference_glyph(self, path, glyph, pixel, x0, y0, offset=0):
+        art, differing = self._glyph(path, "active-center", offset)
         self.assertEqual(differing, glyph)
         for x, y in sorted(glyph):
-            self.assertEqual(art[(x, y)], hex_colour(pixel(x0 + x, y0 + y)), (x, y))
+            self.assertEqual(
+                art[(x + offset, y)], hex_colour(pixel(x0 + x, y0 + y)), (x, y)
+            )
 
     def test_zoom_glyph_is_the_reference_glyph(self):
         for name, path in (("maximize", MAXIMIZE_SVG), ("restore", RESTORE_SVG)):
             with self.subTest(svg=name):
                 self._assert_reference_glyph(
-                    path, self.ZOOM_GLYPH, self.profiler_pixel, 781, 26
+                    path, self.ZOOM_GLYPH, self.profiler_pixel, 781, 26,
+                    offset=ZOOM_BOX_X,
                 )
 
     def test_collapse_glyph_is_the_reference_glyph(self):
@@ -798,13 +850,13 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                     )
 
     def test_inactive_glyphs_survive(self):
-        for glyph, svgs in (
-            (self.ZOOM_GLYPH, ZOOM_SVGS),
-            (self.COLLAPSE_GLYPH, (SHADE_SVG,)),
+        for glyph, svgs, offset in (
+            (self.ZOOM_GLYPH, ZOOM_SVGS, ZOOM_BOX_X),
+            (self.COLLAPSE_GLYPH, (SHADE_SVG,), 0),
         ):
             for path in svgs:
                 with self.subTest(svg=os.path.basename(path)):
-                    _, differing = self._glyph(path, "inactive-center")
+                    _, differing = self._glyph(path, "inactive-center", offset)
                     self.assertEqual(differing, glyph)
 
     def test_button_svgs_are_self_contained(self):
