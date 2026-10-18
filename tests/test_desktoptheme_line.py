@@ -8,6 +8,8 @@ import unittest
 from support.desktoptheme_paths import LINE_SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
+from support.svg_case import SvgCase
+from support.theme_install import ROOT
 from svg_assertions import (
     assert_ids_present,
     assert_no_external_references,
@@ -20,8 +22,6 @@ from svg_assertions import (
     pixel_map,
     render_slices,
 )
-from support.svg_case import SvgCase
-from support.theme_install import ROOT
 
 DARK = "#888888"
 LIGHT = "#FFFFFF"

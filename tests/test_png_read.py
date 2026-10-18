@@ -21,8 +21,8 @@ from support.process_assertions import assert_failed
 from support.tmp_dir import make_tmp_dir
 
 from support import repo_root
-from tools import png  # noqa: E402
 from support.png_fixtures import rgb_image  # noqa: E402
+from tools import png  # noqa: E402
 
 
 class TestReadPng(unittest.TestCase):

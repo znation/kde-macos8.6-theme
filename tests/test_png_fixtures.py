@@ -15,7 +15,6 @@ from pathlib import Path
 from support.error_assertions import error_message
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import png
 from support.png_fixtures import (  # noqa: E402
     _chunk,
     control_named_missing,
@@ -29,6 +28,7 @@ from support.png_fixtures import (  # noqa: E402
     splice_after_ihdr,
     with_ihdr_byte,
 )
+from tools import png
 
 
 def _value_error_message(case, func, *args, **kwargs):

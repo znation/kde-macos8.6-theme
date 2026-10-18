@@ -10,7 +10,6 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import sample  # noqa: E402
 from support.cli_fixtures import CliTestCase  # noqa: E402
 from support.error_assertions import assert_escapes_escape_character  # noqa: E402
 from support.png_fixtures import (  # noqa: E402
@@ -19,6 +18,7 @@ from support.png_fixtures import (  # noqa: E402
     rgb_image,
     solid_rgb,
 )
+from tools import sample  # noqa: E402
 
 
 class TestSampleCli(CliTestCase):

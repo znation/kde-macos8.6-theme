@@ -8,15 +8,14 @@ import shutil
 import time
 import unittest
 
+from support import process_runner
+from support import theme_install
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.install_lifecycle_cases import InstallLifecycleCases
+from support.kde_config import read as read_kde_config
 from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata
 from support.process_assertions import assert_failed, assert_succeeded
-from support.tmp_dir import make_tmp_dir
-from support import process_runner
-from support import theme_install
-from support.kde_config import read as read_kde_config
 from support.theme_install import (
     ROOT,
     install,
@@ -24,6 +23,7 @@ from support.theme_install import (
     installed_package,
     shadow_command_env,
 )
+from support.tmp_dir import make_tmp_dir
 
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)

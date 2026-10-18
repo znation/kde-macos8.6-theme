@@ -15,6 +15,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from support.error_assertions import assert_rejects
+from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     SLICE_IDS,
     assert_arcs_share_center,
@@ -28,7 +29,6 @@ from svg_assertions import (
     elements_by_id,
     path_arcs,
 )
-from support.svg_fixtures import _svg_tree
 
 
 # A minimal valid nine-slice layout: a 12x12 canvas with 4px borders, so every

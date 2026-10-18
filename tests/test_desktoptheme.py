@@ -44,11 +44,12 @@ from support.desktoptheme_paths import (
 )
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.install_lifecycle_cases import InstallLifecycleCases
-from support.kpackage_install_case import KPackageInstallCase
 from support.kde_config import read as read_kde_config
+from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata, kplugin, load_metadata
 from support.process_assertions import assert_succeeded
 from support.shipped_files import shipped_files
+from support.theme_install import installed_destdir, run_captured
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -56,7 +57,6 @@ from svg_assertions import (
     assert_root_canvas,
     assert_unique_ids,
 )
-from support.theme_install import installed_destdir, run_captured
 
 
 # configparser reads the KDE `[plasmarc][Theme]` header greedily, so the

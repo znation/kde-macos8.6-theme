@@ -10,12 +10,12 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from support.error_assertions import assert_error_names, error_message
+from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     circle_geometry,
     circle_geometry_and_fill,
     rect_geometry,
 )
-from support.svg_fixtures import _svg_tree
 
 
 class TestCircleGeometry(unittest.TestCase):

@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 
 from support.desktoptheme_paths import ARROWS_SVG
+from support.svg_case import SvgCase
 from svg_assertions import (
     assert_bounds_rect,
     assert_ids_present,
@@ -14,7 +15,6 @@ from svg_assertions import (
     elements_by_id,
     local_name,
 )
-from support.svg_case import SvgCase
 
 TRIANGLES = {
     "down-arrow": "M 4,5 L 12,5 L 8,11 Z",

@@ -11,6 +11,7 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
+from support.svg_fixtures import SvgBodyCase, _svg_tree
 from svg_assertions import (
     attribute_values,
     children_named,
@@ -18,7 +19,6 @@ from svg_assertions import (
     groups_with_id,
     local_name,
 )
-from support.svg_fixtures import SvgBodyCase, _svg_tree
 
 
 class TestGroupsWithId(SvgBodyCase, unittest.TestCase):

@@ -21,8 +21,6 @@ import unittest
 import zlib
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import png
-from tools.png import chunks
 from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
@@ -35,6 +33,8 @@ from support.png_fixtures import (  # noqa: E402
     splice_after_ihdr,
     with_ihdr_byte,
 )
+from tools import png
+from tools.png import chunks
 
 
 class TestChunkFraming(unittest.TestCase):

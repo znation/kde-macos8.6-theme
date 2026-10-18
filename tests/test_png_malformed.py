@@ -22,7 +22,6 @@ from support.allocation_fixtures import peak_allocation
 from support.error_assertions import error_message
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import png
 from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
@@ -31,6 +30,7 @@ from support.png_fixtures import (  # noqa: E402
     make_png,
     png_with_idat,
 )
+from tools import png
 
 
 class TestMalformedImageData(unittest.TestCase):

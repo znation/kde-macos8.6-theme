@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import unittest
 
+from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     nine_slice_hint_geometry,
     nine_slice_inset_hints,
@@ -15,7 +16,6 @@ from svg_assertions import (
     nine_slice_tile_sizes,
     tile_origins,
 )
-from support.svg_fixtures import _svg_tree
 
 
 class TestTileOrigins(unittest.TestCase):

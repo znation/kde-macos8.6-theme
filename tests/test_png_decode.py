@@ -15,13 +15,13 @@ from __future__ import annotations
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import png
 from support.png_fixtures import (  # noqa: E402
     decode_error_message,
     make_png,
     rgb_from_rows,
     rgb_image,
 )
+from tools import png
 
 
 class TestDecode(unittest.TestCase):

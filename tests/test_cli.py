@@ -22,8 +22,8 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools import cli
 from support.tmp_dir import make_tmp_dir
+from tools import cli
 
 
 class TestIsPlainAsciiNumber(unittest.TestCase):

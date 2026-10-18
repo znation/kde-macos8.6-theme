@@ -13,13 +13,13 @@ from __future__ import annotations
 import unittest
 
 from support.error_assertions import rejection_message
+from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
     assert_no_style_elements,
     assert_unique_ids,
 )
-from support.svg_fixtures import _svg_tree
 
 
 class TestNoScriptElements(unittest.TestCase):

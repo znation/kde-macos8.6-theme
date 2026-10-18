@@ -16,6 +16,11 @@ from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kde_config import read as read_kde_config
 from support.platinum_palette import PLATINUM_FILLS
 from support.shipped_files import shipped_files
+from support.theme_install import (
+    ROOT,
+    installed_icon_theme,
+    installed_icons_dir,
+)
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -23,11 +28,6 @@ from svg_assertions import (
     assert_unique_ids,
     attribute_values,
     local_name,
-)
-from support.theme_install import (
-    ROOT,
-    installed_icon_theme,
-    installed_icons_dir,
 )
 
 ICON_ID = "org.macos8.desktop"

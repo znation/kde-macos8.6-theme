@@ -7,8 +7,8 @@ import os
 import shutil
 import signal
 import stat
-import sys
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
