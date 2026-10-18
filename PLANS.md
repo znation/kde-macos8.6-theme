@@ -22,7 +22,90 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-_None yet._
+### Local theme apply, part 1/2: `make apply` installs and re-applies the theme to the running Plasma session (planned 2026-10-18 by the director role)
+
+**Goal.** A single command, `make apply`, makes the just-built theme the running Plasma session's
+current theme without a logout: it installs the five artifacts exactly as `make install` does,
+then re-selects the color scheme, desktop theme and global theme so the shell, KWin and KDE
+applications reread the new files.
+
+**Approach.**
+- Add `tools/apply_theme.py`, a Python 3.10+ stdlib-only script with the same `if __package__:`
+  import guard as `tools/render_surface.py`. It runs these commands in order and exits 0 only when
+  every required one succeeds:
+  1. `lookandfeeltool -a org.macos8.desktop` — re-applies the global theme. Do **not** pass
+     `--resetLayout` (README's Installing section: the desktop layout is replaced only when that
+     flag is given, so the user's panels survive).
+  2. `plasma-apply-colorscheme MacOS8`
+  3. `plasma-apply-desktoptheme org.macos8.desktop`
+  4. `qdbus6 org.kde.KWin /KWin reconfigure`, falling back to `qdbus`; when neither exists, print a
+     note and continue (the decoration then reloads on the next KWin restart).
+  Steps 2-3 run after step 1 because `lookandfeeltool` applies the theme's defaults wholesale; the
+  explicit component selections then hold whatever the user had chosen. Steps 1-3 are required: a
+  missing tool exits 2 naming it (`shutil.which`), a non-zero command exits 1 with the output
+  tail, mirroring `tools/render_surface.py`'s `_failure` shape and the `REQUIRED_TOOLS` guard.
+- When `DBUS_SESSION_BUS_ADDRESS` is unset, `$XDG_RUNTIME_DIR` is an absolute path, and
+  `$XDG_RUNTIME_DIR/bus` exists, default the variable to `unix:path=$XDG_RUNTIME_DIR/bus`, so the
+  command works from a non-login shell (the hook in part 2). Otherwise leave it alone.
+- Add an `apply` target to `Makefile` whose recipe first refuses a non-empty `DESTDIR` with a
+  diagnostic naming it (applying a staged tree to the running session is wrong), then runs
+  `$(MAKE) --no-print-directory install`, then `$(PYTHON) tools/apply_theme.py` under
+  `require_python`/`require_python_version`. Add `apply` to the `.PHONY` line and a `help` line.
+- Document `make apply` in README.md's Installing section, including that the startup splash
+  changes only appear on the next login.
+
+**Files touched.** `Makefile`, `tools/apply_theme.py` (new), `tests/test_apply_theme.py` (new),
+`README.md`.
+
+**Acceptance criteria.**
+- `tools/apply_theme.py` invokes the four commands in the order above, never passes `--resetLayout`,
+  and defaults `DBUS_SESSION_BUS_ADDRESS` only under the three conditions above. Test with fake
+  executables on `PATH` built like `tests/process_runner.py`'s fakes, recording each argv.
+- A missing required tool exits 2 naming it; a failing command exits 1 and prints its output tail;
+  a missing `qdbus6`/`qdbus` only prints a note and still exits 0.
+- `make apply DESTDIR=<dir>` exits non-zero with a diagnostic naming `DESTDIR`, and does not run
+  the apply script.
+- `make -n apply` shows `install` running before the script, and `help` lists `apply`.
+- `make check` passes.
+
+### Local theme apply, part 2/2: `make install-local-hook` writes an uncommitted `post-commit` hook that runs `make apply` (planned 2026-10-18 by the director role; "requires part 1/2 landed")
+
+**Goal.** After every commit in this clone, the newest theme is automatically installed and
+applied, through a `post-commit` hook that lives only in this clone's git directory and is never
+committed or pushed, so other clones and contributors are unaffected.
+
+**Approach.**
+- Add `tools/local_hook.py`, stdlib-only, with `install` and `uninstall` subcommands (argparse via
+  `tools/cli.py`'s `EscapingArgumentParser`):
+  - Resolve the hooks directory with `git rev-parse --git-path hooks` (in this clone the common
+    `.git/hooks`, shared by the `.tumwater/worktrees/*` linked worktrees) and the repository top
+    level with `git rev-parse --show-toplevel`.
+  - Write an executable `post-commit` shell script carrying the marker line
+    `# installed by kde-macos8.6-theme: make install-local-hook`. Its body runs
+    `cd "$(git rev-parse --show-toplevel)" && make apply`, sends output to stderr, and swallows a
+    non-zero status so a failed apply never blocks the commit.
+  - `install` refuses, with a diagnostic naming the path, to overwrite an existing `post-commit`
+    that lacks the marker; a re-run over its own hook is idempotent (same bytes).
+  - `uninstall` removes the file only when the marker is present and refuses on a foreign hook.
+- Add `install-local-hook` and `uninstall-local-hook` targets to `Makefile` (`.PHONY` and `help`),
+  each running `$(PYTHON) tools/local_hook.py <subcommand>` under the Python guards.
+- Document the local-only workflow in README.md: the hook is uncommitted so other clones are
+  unaffected; every commit in this clone, including the feature worktrees under
+  `.tumwater/worktrees/`, re-applies the theme from the committing worktree; `make apply` is the
+  manual equivalent; a fast-forward merge creates no commit and so does not trigger the hook.
+
+**Files touched.** `Makefile`, `tools/local_hook.py` (new), `tests/test_local_hook.py` (new),
+`README.md`.
+
+**Acceptance criteria.**
+- In a throwaway `git init` repo (under `tests/tmp_dir.py`), `tools/local_hook.py install` creates
+  an executable `<hooks>/post-commit` whose bytes carry the marker and whose body names `make
+  apply`; a second install succeeds and leaves the bytes unchanged.
+- An existing non-marker `post-commit` makes both `install` and `uninstall` exit non-zero naming
+  the path, and leaves its bytes untouched.
+- `uninstall` removes a hook this tool installed and leaves a foreign one.
+- `make -n install-local-hook` shows the Python invocation, and `help` lists both targets.
+- `make check` passes.
 
 ## Done
 
