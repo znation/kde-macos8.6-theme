@@ -152,6 +152,38 @@ class TestHelpers(unittest.TestCase):
             },
         )
 
+    def test_parse_rows_unescapes_a_literal_backslash(self):
+        # Markdown writes a literal backslash as ``\\``. Consuming the pair
+        # keeps a path one backslash, and keeps a cell that ends in a
+        # backslash (``\\|``) from reading its closing pipe as an escaped
+        # pipe and dropping the whole row as malformed.
+        cases = (
+            (
+                f"| The path C:\\\\tmp holds. | `{self.MODULE}::TestFake` | none |\n",
+                "The path C:\\tmp holds.",
+            ),
+            (
+                f"| The path ends with a backslash \\\\| `{self.MODULE}::TestFake` | none |\n",
+                "The path ends with a backslash \\",
+            ),
+        )
+        for line, guarantee in cases:
+            with self.subTest(line=line):
+                sections = parse_rows(
+                    "## aurorae\n\n"
+                    "| Guarantee | Test | Provenance exception |\n"
+                    "| --- | --- | --- |\n"
+                    + line
+                )
+                self.assertEqual(
+                    sections,
+                    {
+                        "aurorae": [
+                            Row(guarantee, [f"{self.MODULE}::TestFake"], "none")
+                        ]
+                    },
+                )
+
     def test_parse_rows_rejects_a_row_that_is_not_three_cells(self):
         # A line that starts with a pipe is a table row. One that splits into
         # two or four cells is malformed; dropping it would leave its
