@@ -7,27 +7,6 @@ each tick.
 
 ## Open
 
-### Should the theme ship a Kvantum Platinum Qt style, adding Kvantum as a dependency?
-
-(asked 2026-10-18 by the plan role)
-
-**Context.** `contents/defaults` selects Qt's built-in `Windows` widget style, which draws square
-bevelled controls (matching systemprofiler_betawiki.png's general look) with no dependency. But
-no built-in Qt style draws Platinum exactly — the 2px grey/white bevel, the exact shadow
-colours, and the scroll-bar arrows at each end (the `Windows` style's scroll bar only
-approximates the reference). A pixel-matched Platinum Qt style needs a style engine such as
-Kvantum, whose theme this repo would ship and select with `widgetStyle=kvantum`.
-
-**Options.**
-1. Ship a Kvantum theme and select it: pixel-perfect KDE-app controls, but Kvantum must be
-   installed separately (a theme cannot install a system package), and when it is absent the
-   widgets fall back to another style.
-2. Keep the built-in `Windows` style: square bevels, no dependency, not pixel-perfect.
-
-**Recommendation.** Option 1 if the pixel-perfect goal outranks the no-dependency principle —
-it is the only path to pixel-exact KDE-app controls — with the fallback documented. Otherwise
-Option 2 keeps the current state and the scope-drift note's Qt-style line stays as it is.
-
 ### May the icon theme reproduce Apple's Platinum icon art, and the Apple logo for the kicker?
 
 (asked 2026-10-18 by the plan role)
@@ -107,3 +86,26 @@ the zoom box, where a misclick only toggles maximize.
 pinstripe.
 
 **Answered 2026-10-17 by the user:** Let's go with your recommendation of Option 2: Keep the close button 13px: the stripes run up to the close box's highlight, a 5-column difference from the reference.
+
+### Should the theme ship a Kvantum Platinum Qt style, adding Kvantum as a dependency?
+
+(asked 2026-10-18 by the plan role)
+
+**Context.** `contents/defaults` selects Qt's built-in `Windows` widget style, which draws square
+bevelled controls (matching systemprofiler_betawiki.png's general look) with no dependency. But
+no built-in Qt style draws Platinum exactly — the 2px grey/white bevel, the exact shadow
+colours, and the scroll-bar arrows at each end (the `Windows` style's scroll bar only
+approximates the reference). A pixel-matched Platinum Qt style needs a style engine such as
+Kvantum, whose theme this repo would ship and select with `widgetStyle=kvantum`.
+
+**Options.**
+1. Ship a Kvantum theme and select it: pixel-perfect KDE-app controls, but Kvantum must be
+   installed separately (a theme cannot install a system package), and when it is absent the
+   widgets fall back to another style.
+2. Keep the built-in `Windows` style: square bevels, no dependency, not pixel-perfect.
+
+**Recommendation.** Option 1 if the pixel-perfect goal outranks the no-dependency principle —
+it is the only path to pixel-exact KDE-app controls — with the fallback documented. Otherwise
+Option 2 keeps the current state and the scope-drift note's Qt-style line stays as it is.
+
+**Answered 2026-10-18 by the user:** Let's go with option 1, ship a Kvantum theme and select it.
