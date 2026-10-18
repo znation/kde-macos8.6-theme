@@ -95,6 +95,12 @@ class TestArguments(unittest.TestCase):
             "--applet", self.assert_usage_error("out.png", "--applet=--help-all")
         )
 
+    def test_rejects_empty_applet(self):
+        # ``--applet=`` passes the empty string to the type; the guard rejects
+        # it with the same diagnostic as the option-like half, so an empty
+        # plasmoid id never reaches the render session.
+        self.assertIn("--applet", self.assert_usage_error("out.png", "--applet="))
+
     def test_requires_an_output_path(self):
         self.assert_usage_error()
 
