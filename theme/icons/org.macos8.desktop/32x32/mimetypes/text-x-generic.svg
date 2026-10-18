@@ -1,7 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" generic document icon.
+
+     Our own 32x32 drawing in the Platinum palette: a #FFFFFF page with a 1px
+     #000000 outline, a #DDDDDD folded top-right corner and #999999 text
+     lines. Drawn for this theme, not traced from Apple's artwork. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <!-- PLACEHOLDER: a generic document icon -->
-  <path d="M7 3h12l6 6v20H7z" fill="#ffffff" stroke="#000000"/>
-  <path d="M19 3v6h6" fill="none" stroke="#000000"/>
-  <path d="M10 14h12M10 18h12M10 22h8" fill="none" stroke="#888888"/>
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M6 3 h14 l6 6 v20 H6 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M7 4 h12 l6 6 v18 H7 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M19 4 L25 4 L25 10 Z" fill="#DDDDDD"/>
+  <!-- Text lines. -->
+  <rect x="10" y="15" width="12" height="1" fill="#999999"/>
+  <rect x="10" y="18" width="12" height="1" fill="#999999"/>
+  <rect x="10" y="21" width="8" height="1" fill="#999999"/>
 </svg>

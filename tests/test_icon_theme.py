@@ -1,8 +1,9 @@
 """Validate the org.macos8.desktop icon theme package.
 
-The package ships our own placeholder art for the icons a default Mac OS 8.6
-desktop shows (see PLACEHOLDERS.md); these tests pin the theme's identity, the
-32x32 SVG shape of every icon, and the install/uninstall lifecycle.
+The package ships our own final Platinum-style art for the icons a default Mac
+OS 8.6 desktop shows; these tests pin the theme's identity, the 32x32 SVG shape
+and Platinum palette of every icon, the placeholder register (empty now that
+the art is final), and the install/uninstall lifecycle.
 """
 
 from __future__ import annotations
@@ -13,6 +14,14 @@ import xml.etree.ElementTree as ET
 
 from install_lifecycle_cases import InstallLifecycleCases
 from kde_config import read as read_kde_config
+from platinum_palette import PLATINUM_FILLS
+from svg_assertions import (
+    assert_no_external_references,
+    assert_no_script_elements,
+    assert_no_style_elements,
+    assert_unique_ids,
+    attribute_values,
+)
 from theme_install import (
     ROOT,
     installed_icon_theme,
@@ -26,7 +35,6 @@ PLACEHOLDERS = os.path.join(ROOT, "PLACEHOLDERS.md")
 
 # The 32x32 icons the package ships: the desktop's hard disk, folder, document
 # and Trash, plus the `inode-directory` alias KDE resolves a directory to.
-# PLACEHOLDERS.md tracks each one for replacement with final art.
 SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-harddisk.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
@@ -36,6 +44,11 @@ SHIPPED_ICONS = (
 )
 
 SVG_NS = "{http://www.w3.org/2000/svg}"
+
+
+def _icon_path(icon):
+    """Return *icon*'s path as PLACEHOLDERS.md writes it."""
+    return "theme/icons/" + ICON_ID + "/" + icon.replace(os.sep, "/")
 
 
 class TestIndex(unittest.TestCase):
@@ -66,15 +79,19 @@ class TestIndex(unittest.TestCase):
                 )
         self.assertEqual(shipped, {"index.theme", *SHIPPED_ICONS})
 
-    def test_placeholders_are_tracked_for_replacement(self):
+    def test_placeholder_register_matches_the_icon_art(self):
+        # Every shipped icon is final art, so neither side lists one: the
+        # register's rows for these icons and the icons carrying a
+        # `PLACEHOLDER:` marker are both empty and must stay equal.
         with open(PLACEHOLDERS, encoding="utf-8") as handle:
-            text = handle.read()
+            register = handle.read()
+        registered = {icon for icon in SHIPPED_ICONS if _icon_path(icon) in register}
+        marked = set()
         for icon in SHIPPED_ICONS:
-            with self.subTest(icon=icon):
-                self.assertIn(
-                    "theme/icons/" + ICON_ID + "/" + icon.replace(os.sep, "/"),
-                    text,
-                )
+            with open(os.path.join(PACKAGE, icon), encoding="utf-8") as handle:
+                if "PLACEHOLDER:" in handle.read():
+                    marked.add(icon)
+        self.assertEqual(registered, marked)
 
 
 class TestIcons(unittest.TestCase):
@@ -86,6 +103,32 @@ class TestIcons(unittest.TestCase):
                 self.assertEqual(root.get("width"), "32")
                 self.assertEqual(root.get("height"), "32")
                 self.assertEqual(root.get("viewBox"), "0 0 32 32")
+
+    def test_each_icon_uses_only_the_platinum_palette(self):
+        for icon in SHIPPED_ICONS:
+            with self.subTest(icon=icon):
+                tree = ET.parse(os.path.join(PACKAGE, icon))
+                self.assertLessEqual(
+                    attribute_values(tree, "fill"),
+                    PLATINUM_FILLS,
+                    "a fill is outside the Platinum palette",
+                )
+
+    def test_the_icons_together_use_the_full_platinum_palette(self):
+        colours = set()
+        for icon in SHIPPED_ICONS:
+            tree = ET.parse(os.path.join(PACKAGE, icon))
+            colours |= attribute_values(tree, "fill")
+        self.assertEqual(colours, PLATINUM_FILLS)
+
+    def test_each_icon_has_no_scripts_styles_external_refs_or_duplicate_ids(self):
+        for icon in SHIPPED_ICONS:
+            with self.subTest(icon=icon):
+                tree = ET.parse(os.path.join(PACKAGE, icon))
+                assert_no_script_elements(self, tree)
+                assert_no_style_elements(self, tree)
+                assert_no_external_references(self, tree)
+                assert_unique_ids(self, tree)
 
 
 class TestInstall(InstallLifecycleCases, unittest.TestCase):

@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" folder icon.
+
+     Our own 32x32 drawing in the Platinum palette: a #DDDDDD folder with a
+     tab on the top left, a 1px #000000 outline and the Platinum bevel
+     (#FFFFFF top/left, #999999 bottom/right). Drawn for this theme, not
+     traced from Apple's artwork. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <!-- PLACEHOLDER: a folder icon -->
-  <path d="M3 7h9l3 3h14v17H3z" fill="#cccccc" stroke="#000000"/>
+  <!-- Outline: a tab on the top left and a taller front panel. -->
+  <path d="M3 8 h10 l3 3 h13 v14 H3 Z" fill="#000000"/>
+  <!-- #DDDDDD face, inset one pixel. -->
+  <path d="M4 9 h9 l3 3 h12 v12 H4 Z" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <path d="M4 9 h9 l3 3 h12 v1 h-12 l-3 -3 h-9 Z" fill="#FFFFFF"/>
+  <rect x="4" y="9" width="1" height="15" fill="#FFFFFF"/>
+  <rect x="4" y="23" width="21" height="1" fill="#999999"/>
+  <rect x="27" y="12" width="1" height="12" fill="#999999"/>
 </svg>

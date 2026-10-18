@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: six artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, and the `org.macos8.desktop` icon theme (placeholder art, tracked in PLACEHOLDERS.md).
+Pre-alpha: six artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, and the `org.macos8.desktop` icon theme (our own Platinum-style art).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -51,9 +51,9 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `plasma-apply-desktoptheme org.macos8.desktop`; the global theme applies it through
 `[plasmarc][Theme]` in its `contents/defaults`. The global theme also selects the
 `org.macos8.desktop` icon theme through `[kdeglobals][Icons]` in the same `contents/defaults`; it
-ships our own placeholder art for the desktop's hard-disk, folder, document and Trash icons (each
-tracked in PLACEHOLDERS.md and carrying a `PLACEHOLDER:` comment marker naming what it stands in
-for) and inherits Breeze for every other name. The global theme also selects Qt's built-in
+ships our own Platinum-style art for the desktop's hard-disk, folder, document and Trash icons
+(drawn for this theme, not traced from Apple's artwork) and inherits Breeze for every other
+name. The global theme also selects Qt's built-in
 `Windows` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw square
 bevelled Platinum-like controls instead of Breeze's rounded ones; choose another style in System
 Settings → Application Style. The desktop theme ships
