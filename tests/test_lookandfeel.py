@@ -5,7 +5,6 @@ import json
 import os
 import shlex
 import shutil
-import tempfile
 import time
 import unittest
 
@@ -14,6 +13,7 @@ from install_lifecycle_cases import InstallLifecycleCases
 from kpackage_install_case import KPackageInstallCase
 from package_metadata import PackageMetadata
 from process_assertions import assert_failed, assert_succeeded
+from tmp_dir import make_tmp_dir
 import process_runner
 import theme_install
 from kde_config import read as read_kde_config
@@ -216,62 +216,62 @@ class TestInstall(
         data home, so while another process holds that lock a new install makes
         no changes, then completes once the lock is released.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            lock = _DataHomeLock(tmp)
-            self.addCleanup(lock.close)
-            package = lock.package
-            real_flock = shutil.which("flock")
-            # Shadow `flock` so the install records the moment it reaches the
-            # lock step. The test waits for that record instead of guessing
-            # with a sleep, so an install that skips the lock is caught when it
-            # exits without one, however slow the host is.
-            invoked = os.path.join(tmp, "flock-invoked")
-            env = shadow_command_env(
-                tmp,
-                "flock",
-                "#!/bin/sh\n"
-                f": > {shlex.quote(invoked)}\n"
-                f"exec {shlex.quote(real_flock)} \"$@\"\n",
-            )
-            # `running` kills the install's whole process group if the poll
-            # below raises, so an abandoned install cannot keep running and
-            # holding the data-home lock after the test has failed.
-            with process_runner.running(
-                [
-                    "make", "install",
-                    f"DESTDIR={tmp}",
-                    f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                env=env,
-            ) as proc:
-                try:
-                    deadline = time.monotonic() + process_runner.SUBPROCESS_TIMEOUT
-                    while (
-                        not os.path.exists(invoked)
-                        and proc.poll() is None
-                        and time.monotonic() < deadline
-                    ):
-                        time.sleep(0.05)
-                    reached_lock = os.path.exists(invoked)
-                    wrote = os.path.exists(package)
-                finally:
-                    # Release the lock before `finish` waits, or the blocked
-                    # install would only time out.
-                    lock.release()
-                _, err = process_runner.finish(proc)
-            self.assertTrue(
-                reached_lock, "install did not take the data-home lock"
-            )
-            self.assertFalse(
-                wrote, "install wrote the package while the lock was held"
-            )
-            self.assertEqual(proc.returncode, 0, err)
-            self.assertTrue(
-                os.path.isfile(os.path.join(package, "metadata.json"))
-            )
+        tmp = str(make_tmp_dir(self))
+        lock = _DataHomeLock(tmp)
+        self.addCleanup(lock.close)
+        package = lock.package
+        real_flock = shutil.which("flock")
+        # Shadow `flock` so the install records the moment it reaches the
+        # lock step. The test waits for that record instead of guessing
+        # with a sleep, so an install that skips the lock is caught when it
+        # exits without one, however slow the host is.
+        invoked = os.path.join(tmp, "flock-invoked")
+        env = shadow_command_env(
+            tmp,
+            "flock",
+            "#!/bin/sh\n"
+            f": > {shlex.quote(invoked)}\n"
+            f"exec {shlex.quote(real_flock)} \"$@\"\n",
+        )
+        # `running` kills the install's whole process group if the poll
+        # below raises, so an abandoned install cannot keep running and
+        # holding the data-home lock after the test has failed.
+        with process_runner.running(
+            [
+                "make", "install",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            env=env,
+        ) as proc:
+            try:
+                deadline = time.monotonic() + process_runner.SUBPROCESS_TIMEOUT
+                while (
+                    not os.path.exists(invoked)
+                    and proc.poll() is None
+                    and time.monotonic() < deadline
+                ):
+                    time.sleep(0.05)
+                reached_lock = os.path.exists(invoked)
+                wrote = os.path.exists(package)
+            finally:
+                # Release the lock before `finish` waits, or the blocked
+                # install would only time out.
+                lock.release()
+            _, err = process_runner.finish(proc)
+        self.assertTrue(
+            reached_lock, "install did not take the data-home lock"
+        )
+        self.assertFalse(
+            wrote, "install wrote the package while the lock was held"
+        )
+        self.assertEqual(proc.returncode, 0, err)
+        self.assertTrue(
+            os.path.isfile(os.path.join(package, "metadata.json"))
+        )
 
     @unittest.skipUnless(shutil.which("flock"), "needs flock")
     def test_make_install_gives_up_on_a_held_lock(self):
@@ -283,15 +283,15 @@ class TestInstall(
         diagnostic naming the lock instead of waiting forever, and writes
         nothing.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            lock = _DataHomeLock(tmp)
-            self.addCleanup(lock.close)
-            # FLOCK_TIMEOUT=0 makes the bounded wait expire immediately,
-            # so the test does not spend the default 60s proving the bound.
-            result = install(tmp, extra=["FLOCK_TIMEOUT=0"])
-            assert_failed(self, result)
-            self.assertIn("lock", result.stderr)
-            self.assertFalse(os.path.exists(lock.package), lock.package)
+        tmp = str(make_tmp_dir(self))
+        lock = _DataHomeLock(tmp)
+        self.addCleanup(lock.close)
+        # FLOCK_TIMEOUT=0 makes the bounded wait expire immediately,
+        # so the test does not spend the default 60s proving the bound.
+        result = install(tmp, extra=["FLOCK_TIMEOUT=0"])
+        assert_failed(self, result)
+        self.assertIn("lock", result.stderr)
+        self.assertFalse(os.path.exists(lock.package), lock.package)
 
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""

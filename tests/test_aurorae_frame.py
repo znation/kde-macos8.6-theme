@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import gzip
 import os
-import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
@@ -26,6 +25,7 @@ from aurorae_fixtures import (
 )
 from nine_slice_case import NineSliceCase
 from platinum_palette import hex_colour
+from tmp_dir import make_tmp_dir
 from svg_assertions import (
     SLICE_IDS,
     assert_ids_present,
@@ -262,13 +262,13 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         # A small `.svgz` can expand to far more than its file size; the capped
         # read must refuse it after the limit instead of allocating the whole
         # expansion. 8 MiB expands from a few KB and is 8x the limit.
-        with tempfile.TemporaryDirectory() as tmp:
-            bomb = os.path.join(tmp, "bomb.svgz")
-            with gzip.open(bomb, "wb") as handle:
-                for _ in range(8):
-                    handle.write(b"\x00" * _MAX_DECORATION_SVG_BYTES)
-            with self.assertRaises(AssertionError) as caught:
-                _read_capped(bomb, gzip.open)
+        tmp = str(make_tmp_dir(self))
+        bomb = os.path.join(tmp, "bomb.svgz")
+        with gzip.open(bomb, "wb") as handle:
+            for _ in range(8):
+                handle.write(b"\x00" * _MAX_DECORATION_SVG_BYTES)
+        with self.assertRaises(AssertionError) as caught:
+            _read_capped(bomb, gzip.open)
         self.assertIn("larger than", str(caught.exception))
 
 

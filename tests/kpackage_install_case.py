@@ -10,10 +10,10 @@ once.
 """
 
 import os
-import tempfile
 
 from process_assertions import assert_succeeded
 from theme_install import run_captured
+from tmp_dir import make_tmp_dir
 
 
 class KPackageInstallCase:
@@ -31,21 +31,21 @@ class KPackageInstallCase:
     PACKAGE_ID = None
 
     def test_kpackagetool6_installs_package(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            result = run_captured(
-                [
-                    "kpackagetool6",
-                    "-t",
-                    self.KPACKAGETOOL_TYPE,
-                    "-p",
-                    tmp,
-                    "-i",
-                    self.PACKAGE_DIR,
-                ],
+        tmp = str(make_tmp_dir(self))
+        result = run_captured(
+            [
+                "kpackagetool6",
+                "-t",
+                self.KPACKAGETOOL_TYPE,
+                "-p",
+                tmp,
+                "-i",
+                self.PACKAGE_DIR,
+            ],
+        )
+        assert_succeeded(self, result)
+        self.assertTrue(
+            os.path.isfile(
+                os.path.join(tmp, self.PACKAGE_ID, "metadata.json")
             )
-            assert_succeeded(self, result)
-            self.assertTrue(
-                os.path.isfile(
-                    os.path.join(tmp, self.PACKAGE_ID, "metadata.json")
-                )
-            )
+        )

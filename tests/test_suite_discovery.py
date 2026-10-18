@@ -26,8 +26,9 @@ import importlib
 import os
 import re
 import sys
-import tempfile
 import unittest
+
+from tmp_dir import make_tmp_dir
 
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -198,11 +199,11 @@ class TestSuiteDiscovery(unittest.TestCase):
             "    def test_ok(self):\n"
             "        self.assertTrue(True)\n"
         )
-        with tempfile.TemporaryDirectory() as tmp:
-            with probe_module(tmp, "checks_guard_probe.py", source):
-                self.assertEqual(
-                    misnamed_test_modules(tmp), ["checks_guard_probe"]
-                )
+        tmp = str(make_tmp_dir(self))
+        with probe_module(tmp, "checks_guard_probe.py", source):
+            self.assertEqual(
+                misnamed_test_modules(tmp), ["checks_guard_probe"]
+            )
 
     def test_a_test_module_without_tests_is_reported(self):
         # Prove the guard bites: a matched module with no TestCase is exactly
@@ -210,11 +211,11 @@ class TestSuiteDiscovery(unittest.TestCase):
         # is imported by bare name, so put its directory on sys.path for the
         # call and take both it and its module back out afterwards.
         source = '"""A probe module that defines no tests."""\n'
-        with tempfile.TemporaryDirectory() as tmp:
-            with probe_module(tmp, "test_empty_guard_probe.py", source):
-                self.assertEqual(
-                    modules_without_tests(tmp), ["test_empty_guard_probe"]
-                )
+        tmp = str(make_tmp_dir(self))
+        with probe_module(tmp, "test_empty_guard_probe.py", source):
+            self.assertEqual(
+                modules_without_tests(tmp), ["test_empty_guard_probe"]
+            )
 
 
 if __name__ == "__main__":
