@@ -28,6 +28,61 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
+### Mac OS 8.6 Platinum full-Trash icon (`32x32/places/user-trash-full.svg`) for the icon theme (planned 2026-10-18 by the plan role)
+
+**Goal.** KDE asks for the icon name `user-trash-full` whenever the Trash holds something
+(`/usr/share/plasma/plasmoids/org.kde.plasma.trash/contents/ui/main.qml`:
+`hasContents ? "user-trash-full" : "user-trash"`; Dolphin's Places panel and the desktop do the
+same). The icon theme ships only `theme/icons/org.macos8.desktop/32x32/places/user-trash.svg`, so
+the non-empty state falls through `Inherits=breeze` to Breeze's flat modern `user-trash-full.svg`
+— the desktop's Trash visibly stops being Platinum the moment it holds a file. Ship our own
+full-Trash art so the non-empty state stays Platinum.
+
+**Approach.**
+- Add `theme/icons/org.macos8.desktop/32x32/places/user-trash-full.svg`: our own 32x32 Platinum
+drawing, the same can as `user-trash.svg` (lid, body outline/face, the two grey/white rib pairs),
+with the handle replaced by a `#FFFFFF` paper sheet outlined in `#000000` rising above the lid, so
+the can reads as full. Recommended drawing, in document order (the implementer may adjust the
+paper shape, but the constraints below hold):
+  ```xml
+  <path d="M12 2 l3 2 l3 -2 l1 7 h-8 Z" fill="#000000"/>
+  <path d="M13 3 l2 1 l2 -1 l1 5 h-6 Z" fill="#FFFFFF"/>
+  <rect x="6" y="8" width="20" height="5" fill="#000000"/>
+  <rect x="7" y="9" width="18" height="4" fill="#DDDDDD"/>
+  <rect x="7" y="9" width="18" height="1" fill="#FFFFFF"/>
+  <rect x="7" y="12" width="18" height="1" fill="#999999"/>
+  <path d="M9 13 h14 l-2 16 H11 Z" fill="#000000"/>
+  <path d="M10 14 h12 l-2 14 H12 Z" fill="#DDDDDD"/>
+  <rect x="13" y="16" width="1" height="10" fill="#999999"/>
+  <rect x="14" y="16" width="1" height="10" fill="#FFFFFF"/>
+  <rect x="17" y="16" width="1" height="10" fill="#999999"/>
+  <rect x="18" y="16" width="1" height="10" fill="#FFFFFF"/>
+  ```
+- Register the file in `tests/test_icon_theme.py`: add its package-relative path to `SHIPPED_ICONS`
+and its exact drawing-element tuple (via the module's `_shape` helper) to `ICON_SHAPES`. The
+existing `TestIndex`/`TestIcons`/`TestIconGeometry` tests then cover the new icon: it must be a
+32x32 square SVG whose fills are a subset of `PLATINUM_FILLS`, with no scripts, `<style>`,
+external references or duplicate ids, and every drawing element must match the pinned tuple.
+`TestInstall.INSTALLED_FILES` is derived from `SHIPPED_ICONS`, so the install lifecycle covers it
+with no further edit.
+- `32x32/places` is already a declared directory in `theme/icons/org.macos8.desktop/index.theme`,
+so the metadata does not change and no new size directory is added.
+- `README.md`: in the icon-theme sentence, change "the desktop's hard-disk, folder, document and
+Trash icons" to name the full-Trash art as well (e.g. "…document, Trash and full-Trash icons").
+- `docs/invariants.md`: the `icons` section's "ships exactly the tracked icons" row already names
+`tests/test_icon_theme.py::TestIndex`, which covers the new file; no text change.
+
+**Files touched.** `theme/icons/org.macos8.desktop/32x32/places/user-trash-full.svg` (new),
+`tests/test_icon_theme.py`, `README.md`.
+
+**Acceptance criteria.**
+- `tests/test_icon_theme.py`'s `SHIPPED_ICONS` and `ICON_SHAPES` both list the new icon, and
+`test_the_geometry_registry_covers_every_shipped_icon` passes; changing one drawing element in the
+SVG fails `TestIconGeometry::test_each_icon_draws_its_pinned_artwork`.
+- Deleting the SVG, or removing it from either registry, fails `make check`.
+- `make check` is green, and `make install XDG_DATA_HOME=<tmp>` installs the new icon
+(`TestInstall` covers the installed file set).
+
 ### Record-checker mutation harness: manufacture the malformed inputs from the shipped registers so a silent accept or drop is observable (planned 2026-10-18 by the steward role; from the recurring `no-observability` validation gap in thirteen Fixed entries)
 
 **Goal.** Twelve Fixed entries share one mechanism: a record checker (`tests/invariants.py`'s
