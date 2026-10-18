@@ -20,49 +20,104 @@ role): a **Qt widget style** for KDE applications (the desktop theme styles only
 widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
 by the global theme's selection of Qt's built-in `Windows` style, and the user answered
 2026-10-18 that a pixel-matched Platinum style should ship as a Kvantum theme (a new
-dependency) — planned as the three-part "Mac OS 8.6 Kvantum widget style" series below (parts 2
-and 3 wait on part 1); a **cursor theme** is out of scope (no reference screenshot shows a
+dependency) — planned as the four-part "Mac OS 8.6 Kvantum widget style" series below (each part
+waits on the one before); a **cursor theme** is out of scope (no reference screenshot shows a
 cursor, so no pixel ground truth exists to match); and **system sounds** are out of scope (not a
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Kvantum widget style, part 2/3: the remaining Platinum widget art (planned 2026-10-18 by the plan role; requires part 1/3 landed)
+### Mac OS 8.6 Kvantum widget style, part 2/4: the Platinum track and value controls (planned 2026-10-18 by the plan role; requires part 1/4 landed)
 
-**Needs review 2026-10-18 by feature: too large for one run**
-
-**Goal.** Part 1 shipped the palette and the core-control art. This part adds our own Platinum art
-and `.kvconfig` sections for the remaining Qt widget classes, so every control the theme draws is
-ours rather than falling back to Kvantum's compiled-in default shapes: scroll bars, sliders,
-progress bars, spin boxes, tabs, menus and the menu bar, group boxes, tooltips, item views,
-splitters, headers and toolbars.
+**Goal.** Part 1 shipped the palette, the core-control art and the package. This part adds our own
+Platinum art and `.kvconfig` sections for the value and track controls — scroll bars, sliders,
+progress bars, spin boxes and splitters — so they stop falling back to Kvantum's compiled-in
+default shapes. Part 3/4 adds the surface controls and part 4/4 selects the style.
 
 **Approach.**
 - Extend `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` with sections modelled on
-  `default.kvconfig`: `[Scrollbar]` (`indicator.size=16`), `[ScrollbarSlider]`
-  (`frame.element=scrollbarslider`, 2px raised), `[ScrollbarGroove]` (the flat `#EEEEEE` trough of
-  `widgets/scrollbar.svg`), `[Slider]`/`[SliderCursor]`, `[Progressbar]`/`[ProgressbarContents]`,
-  `[IndicatorSpinBox]`, `[Tab]`/`[TabFrame]`/`[TabBarFrame]`, `[MenuItem]`/`[MenuBarItem]`/
-  `[MenuBar]`/`[Menu]`, `[GroupBox]`, `[ToolTip]`, `[ItemView]`, `[Splitter]`, `[HeaderSection]`,
-  `[Toolbar]`. Raised faces keep 2px margins, sunken fields 1px; the selection fill is `#CCCCFF`;
-  the tooltip face is `#FFFFCC`.
+  `default.kvconfig`: `[Scrollbar]` (`indicator.size=16`, the 16px `hint-scrollbar-size` of
+  `theme/desktop-themes/org.macos8.desktop/widgets/scrollbar.svg`), `[ScrollbarSlider]`
+  (`frame.element=scrollbarslider`, `interior.element=scrollbarslider`, 2px,
+  `indicator.element=grip`, `indicator.size=13`), `[ScrollbarGroove]` (the flat `#EEEEEE` trough,
+  top/bottom 0 and left/right 4 as `default.kvconfig` slices it), `[Slider]`/`[SliderCursor]`,
+  `[Progressbar]`/`[ProgressbarContents]`, `[IndicatorSpinBox]` (`frame.element=spin`,
+  `interior.element=spin`, 2px, `indicator.element=arrow`) and `[Splitter]` (`frame.element=splitter`,
+  `interior.element=splitter`, top/bottom 0 and left/right 1, `indicator.element=splitter-grip`,
+  `indicator.size=16`). Raised faces keep 2px margins, sunken fields 1px; the trough fill is
+  `platinum_palette.TROUGH` (`#EEEEEE`).
 - Extend `org.macos8.desktop.svg` with the matching elements in the same nine-slice convention and
-  fill attributes.
-- Extend `tests/test_kvantum.py`: the same fill-set, id, frame-margin and safety assertions over the
-  new elements, with `platinum_palette.TROUGH` (`#EEEEEE`) and `TOOLTIP_FACE` (`#FFFFCC`) added to
-  the expected fill set for the elements that draw them.
+  fill attributes: the frame elements `scrollbarslider`, `slider`, `progress`, `spin` and `splitter`
+  ship their centre and eight slices; the interior/indicator elements `slidercursor`,
+  `progress-pattern`, `splitter-grip` and `grip` ship the state ids Kvantum renders for them.
+- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the
+  splitter's 0/1 and the groove's 0/4 margins in a named assertion; add the new elements to
+  `FRAME_STATES`/`INTERIOR_STATES`; widen `test_uses_exactly_the_platinum_palette` to
+  `assert_fill_palette(self, self.tree, extra=frozenset({TROUGH}))`.
+- Update the series references that still name the old three-part numbering: the
+  `org.macos8.desktop.kvconfig` header comment and the `tests/test_kvantum.py` module docstring now
+  say part 4/4, and README.md's Kvantum-selection sentence names part 4/4.
 
 **Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
-`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`.
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`, `README.md`.
 
 **Acceptance criteria.**
-- The `.kvconfig` holds the new sections, each raised frame 2px and each sunken field 1px, with
-  `[Scrollbar] indicator.size` 16, pinned by name.
-- The SVG's parsed `fill` set is exactly `PLATINUM_FILLS | {TROUGH, TOOLTIP_FACE}`; every newly
-  referenced element id and its eight slices are present; the safety assertions pass.
-- The part 1 palette and core-control assertions are unchanged and still pass.
+- The `.kvconfig` holds the new sections; each uniform raised frame resolves to 2px, the splitter's
+  margins are 0/1 and the groove's 0/4, and `[Scrollbar] indicator.size` is 16 while
+  `[ScrollbarSlider] indicator.size` is 13 — all pinned by name.
+- The SVG's parsed `fill` set is exactly `PLATINUM_FILLS | {TROUGH}`; every element the new config
+  sections name ships its centre and eight slices (frames) or its state ids (interiors/indicators);
+  the four safety assertions pass.
+- The part 1 palette and core-control assertions are unchanged and still pass, and no reference to
+  the old `part 3/3` numbering remains in README.md, the kvconfig or the test module.
 - `make check` is green.
 
-### Mac OS 8.6 Kvantum widget style, part 3/3: select the Kvantum style from the global theme (planned 2026-10-18 by the plan role; requires part 2/3 landed)
+### Mac OS 8.6 Kvantum widget style, part 3/4: the Platinum surface controls (planned 2026-10-18 by the plan role; requires part 2/4 landed)
+
+**Goal.** Part 2 shipped the track and value controls. This part adds our own Platinum art and
+`.kvconfig` sections for the container and text surfaces — tabs, menus and the menu bar, group
+boxes, tooltips, item views, headers and toolbars — so every control the theme draws is ours rather
+than falling back to Kvantum's compiled-in default shapes. Part 4/4 then selects the style.
+
+**Approach.**
+- Extend `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` with sections modelled on
+  `default.kvconfig`: `[Tab]`/`[TabFrame]`/`[TabBarFrame]` (2px; `[TabBarFrame]` draws no frame),
+  `[MenuItem]` (frame=false, `interior.element=menuitem`), `[MenuBarItem]` (2px,
+  `interior.element=menubaritem`), `[MenuBar]` (top/bottom 0, left/right 2,
+  `frame.element=menuitem`), `[Menu]` (2px, `frame.element=menu`, `interior.element=menu`),
+  `[GroupBox]` (2px, `frame.element=group`), `[ToolTip]` (2px, `frame.element=tooltip`,
+  `interior.element=tooltip`), `[ItemView]` (2px), `[HeaderSection]` (inherits `PanelButtonCommand`
+  and reuses the part 1 `button` art) and `[Toolbar]` (`frame.element=toolbar`,
+  `interior.element=toolbar`, `indicator.element=toolbar`, `indicator.size=5`). Raised faces keep
+  2px margins, sunken fields 1px; the menu and item-view selection fill is `#CCCCFF`
+  (`[Colors:Selection] BackgroundNormal`), and the tooltip face is `#FFFFCC` (`[Colors:Tooltip]
+  BackgroundNormal`).
+- Extend `org.macos8.desktop.svg` with the matching elements in the same nine-slice convention and
+  fill attributes: the frame elements `tab`, `tabframe`, `menu`, `group`, `tooltip`, `itemview` and
+  `toolbar` ship their centre and eight slices; the interior elements `menuitem` and `menubaritem`
+  ship the state ids Kvantum renders for them.
+- Add `SELECTION = "#CCCCFF"` to `tests/platinum_palette.py` beside `TROUGH` and `TOOLTIP_FACE`,
+  its docstring naming `[Colors:Selection] BackgroundNormal` as the source.
+- Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the menu
+  bar's 0/2 margins in a named assertion; add the new elements to `FRAME_STATES`/`INTERIOR_STATES`;
+  widen `test_uses_exactly_the_platinum_palette` to
+  `assert_fill_palette(self, self.tree, extra=frozenset({TROUGH, TOOLTIP_FACE, SELECTION}))`.
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`,
+`tests/platinum_palette.py`.
+
+**Acceptance criteria.**
+- The `.kvconfig` holds the new sections, each uniform raised frame resolving to 2px and each
+  sunken field to 1px, with the menu bar's 0/2 margins pinned by name.
+- The SVG's parsed `fill` set is exactly
+  `PLATINUM_FILLS | {TROUGH, TOOLTIP_FACE, SELECTION}`; every element the new config sections name
+  ships its centre and eight slices (frames) or its state ids (interiors); the four safety
+  assertions pass.
+- The part 1 and part 2 palette, core-control and track-control assertions are unchanged and still
+  pass.
+- `make check` is green.
+
+### Mac OS 8.6 Kvantum widget style, part 4/4: select the Kvantum style from the global theme (planned 2026-10-18 by the plan role; requires part 3/4 landed)
 
 **Goal.** With the theme complete, switch the global theme from Qt's built-in `Windows` style to
 `kvantum`, select our theme name in the running session, and document the fallback when Kvantum is
@@ -155,12 +210,12 @@ kicker resolves it from the theme with no layout change. Independent of the Kvan
   icon name already matches), shown by `git diff`.
 - README names the kicker logo and `make check` is green.
 
-### Mac OS 8.6 Kvantum widget style, part 1/3: ship the `org.macos8.desktop` Kvantum theme with the Platinum palette and the core-control art (planned 2026-10-18 by the plan role; done 2026-10-18)
+### Mac OS 8.6 Kvantum widget style, part 1/4: ship the `org.macos8.desktop` Kvantum theme with the Platinum palette and the core-control art (planned 2026-10-18 by the plan role; done 2026-10-18)
 
 **Goal.** The user answered 2026-10-18 that a pixel-matched Platinum Qt style should ship as a
 Kvantum theme and be selected (Option 1). This part creates that theme package and installs it,
 leaving the global theme's `widgetStyle=Windows` selection untouched until the whole widget set is
-themed (part 3). It ships the Platinum palette, the grounded geometry and our own SVG art for the
+themed (part 4). It ships the Platinum palette, the grounded geometry and our own SVG art for the
 controls the reference screenshots show most directly: push and tool buttons, line edits, combo
 boxes, check boxes, radio buttons, the focus ring, the generic frame and the indicator arrows.
 
@@ -174,7 +229,7 @@ default `$(XDG_DATA_HOME)`, so this repo installs a Kvantum theme with no new co
 The SVG's nine-slice convention is `<element>-<state>` for the centre plus
 `<element>-<state>-top|-bottom|-left|-right|-topleft|-topright|-bottomleft|-bottomright`; the
 `.kvconfig`'s `frame.top/bottom/left/right` tell Kvantum how to slice. The theme is opt-in until
-part 3, so a machine without Kvantum is unaffected.
+part 4, so a machine without Kvantum is unaffected.
 
 **Approach.**
 1. New `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`:
@@ -241,7 +296,7 @@ part 3, so a machine without Kvantum is unaffected.
 - `make install XDG_DATA_HOME=<tmp>` places `<tmp>/themes/org.macos8.desktop/Kvantum/` with both
   files and `make uninstall` removes them; the existing six artifacts' install/uninstall tests
   still pass.
-- `contents/defaults` is byte-unchanged (the selection change is part 3), shown by `git diff`.
+- `contents/defaults` is byte-unchanged (the selection change is part 4), shown by `git diff`.
 - README names the artifact and the opt-in, and `make check` is green.
 
 ### Mac OS 8.6 Platinum icon theme: replace the placeholder art with final non-infringing art (planned 2026-10-18 by the feature role; done 2026-10-18)
