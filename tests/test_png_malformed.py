@@ -98,6 +98,20 @@ class TestMalformedImageData(unittest.TestCase):
             decode_error_message(self, data),
         )
 
+    def test_truncated_rgba_image_data_names_actual_and_expected(self):
+        # Color-type-6 scanlines carry four channels per pixel, and decode
+        # drops the alpha before unfiltering. That path has its own
+        # declared-size check; without it the short buffer would be indexed
+        # past its end as a bare IndexError instead of a PngError. The
+        # expected count (39 = 3 rows * (3 px * 4 channels + 1 filter byte))
+        # pins the four-channel declaration rather than RGB's 30, so this is
+        # the drop_alpha call site and not the unfilter one.
+        data = make_png(3, 3, [bytes(12)], color_type=6)
+        self.assertIn(
+            "got 13 bytes, expected 39 for a 3x3 image",
+            decode_error_message(self, data),
+        )
+
     def test_rejects_png_without_image_data(self):
         # A PNG truncated before its IDAT chunk, or one whose IDAT is empty,
         # must be named as missing image data rather than surfacing zlib's
