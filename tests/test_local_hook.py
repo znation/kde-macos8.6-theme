@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import contextlib
 import os
+import shutil
 import stat
 import subprocess
 import sys
@@ -226,6 +227,21 @@ class TestInstall(unittest.TestCase):
         self.assertIn(str(hook), result.stderr)
         self.assertIn("non-regular", result.stderr)
         self.assertTrue(hook.is_dir(), "install replaced the directory")
+
+    def test_reports_a_hook_path_it_cannot_inspect(self):
+        # A path component in front of the hook that is not a directory
+        # makes ``lstat`` raise ``NotADirectoryError``. The tool must turn
+        # that into a diagnostic and exit 2, not a traceback.
+        repo = make_repo(self)
+        hooks = Path(repo) / ".git" / "hooks"
+        shutil.rmtree(hooks)
+        hooks.write_bytes(b"not a directory\n")
+        result = run_tool(repo, "install")
+        assert_failed(self, result)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("cannot inspect", result.stderr)
+        self.assertEqual(hooks.read_bytes(), b"not a directory\n")
 
     def test_a_crash_mid_write_leaves_the_old_hook_intact(self):
         repo = make_repo(self)
