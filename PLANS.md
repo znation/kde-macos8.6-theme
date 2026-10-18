@@ -28,7 +28,71 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 opaque menu bar: ship the `solid/widgets/panel-background.svg` copy (planned 2026-10-18 by the plan role)
+
+**Goal.** `Panel.qml` draws an opaque panel from `solid/widgets/panel-background`, but the
+desktop theme ships only `widgets/panel-background.svg`, so the menu bar loses its Platinum bevel
+whenever the panel is opaque. Ship the solid copy so the opaque menu bar is Platinum too.
+
+**Grounding.** `/usr/share/plasma/shells/org.kde.plasma.desktop/contents/views/Panel.qml` gives
+its two opaque items (`opaqueItem`, `floatingOpaqueItem`) `imagePath:
+"solid/widgets/panel-background"`, while the two translucent items use
+`widgets/panel-background`. Plasma 6's default panel opacity mode is Adaptive
+(`PanelConfiguration.qml`'s opacity combo defaults to index 0), and in Adaptive mode a window
+touching the panel (`screenCovered`) drives `panelOpacity` to 1, which hides the translucent item
+and shows the opaque one; choosing the Opaque mode does the same always. KSvg does not map
+`solid/widgets/panel-background` onto `widgets/panel-background` — the same behaviour
+`tests/test_desktoptheme_tooltip.py::TestTooltip::test_solid_copy_is_identical` records for
+`PlasmaComponents.ToolTip`'s hardcoded `solid/widgets/tooltip` — so today the opaque menu bar
+resolves to the default theme's Breeze `solid/widgets/panel-background.svgz` (the default theme
+ships a solid copy; ours ships only `solid/widgets/tooltip.svg`). `widgets/panel-background.svg`
+is already fully opaque (its fills are the solid `#FFFFFF`/`#DDDDDD`/`#999999`/`#000000` with no
+alpha), so a byte-identical copy is the correct solid variant. Out of scope: a
+`solid/widgets/background.svg` (the default theme ships one, but no installed QML requests it —
+`DialogBackground.qml` hardcodes `widgets/background` and `libPlasmaQuick` carries no `solid/`
+path), so it is not shipped here.
+
+**Approach.**
+- Add `theme/desktop-themes/org.macos8.desktop/solid/widgets/panel-background.svg`, byte-identical
+to `widgets/panel-background.svg` (no header change, so the copy test compares bytes), matching
+the existing `solid/widgets/tooltip.svg`.
+- `tests/support/desktoptheme_paths.py`: add `SOLID_PANEL_SVG = os.path.join(PACKAGE, "solid",
+"widgets", "panel-background.svg")` beside `SOLID_TOOLTIP_SVG`.
+- `tests/test_desktoptheme.py`: import `SOLID_PANEL_SVG`, add `("solid/widgets/panel-background.svg",
+SOLID_PANEL_SVG, 12, 22)` to `SVG_CANVASES` (so the registry, canvas, id and self-containment
+tests cover it), add `"solid/widgets/panel-background.svg": ("",)` to `ORIGIN_STATES` (its
+unprefixed margin rects sit at the origin of the canvas grown to hold the 22px-tall `north-`
+state, like `panel-background.svg`), and add
+`os.path.join("solid", "widgets", "panel-background.svg")` to `TestInstall.INSTALLED_FILES`.
+- `tests/test_desktoptheme_panel.py`: import `SOLID_PANEL_SVG` and add
+`test_solid_copy_is_identical` to `TestPanelBackground`, opening `PANEL_SVG` and `SOLID_PANEL_SVG`
+in binary and asserting equal bytes (mirroring `TestTooltip::test_solid_copy_is_identical`).
+- `docs/invariants.md`: extend the desktop-themes `widgets/panel-background.svg` row's guarantee
+to "`widgets/panel-background.svg` draws the menu bar, including its top-panel north state, and
+its `solid/` copy is byte-identical." The row already names `TestPanelBackground`, which holds
+the new test.
+- `README.md`: in the `widgets/panel-background.svg` sentence, add that a byte-identical copy
+ships at `solid/widgets/panel-background.svg`, where `Panel.qml` looks for an opaque panel's
+background.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/solid/widgets/panel-background.svg`
+(new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`,
+`tests/test_desktoptheme_panel.py`, `docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- `solid/widgets/panel-background.svg` is byte-identical to `widgets/panel-background.svg`,
+asserted by `TestPanelBackground::test_solid_copy_is_identical`.
+- `test_registry_covers_every_shipped_svg` passes with the new file in `SVG_CANVASES`, and
+`test_root_canvas_matches_the_artwork_layout`, `test_every_svg_declares_unique_ids` and
+`test_every_svg_is_self_contained` cover it (its 12x22 canvas, unique ids, no style/script or
+external reference).
+- `TestInstall` still passes with the new file listed in `INSTALLED_FILES`.
+- `make check` exits 0, including `tests/test_readme_theme_files.py` (its `*/*.svg` glob does not
+reach the two-level `solid/` path, and the README prose names the file) and
+`tests/test_invariants.py`.
+- Removing `solid/widgets/panel-background.svg` makes `test_solid_copy_is_identical` fail (the
+open raises) and `test_registry_covers_every_shipped_svg` fail (the shipped set no longer
+equals the registry).
 
 ## Done
 
