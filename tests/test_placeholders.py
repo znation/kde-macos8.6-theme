@@ -24,7 +24,17 @@ REGISTER = os.path.join(ROOT, "PLACEHOLDERS.md")
 THEME_DIR = "theme"
 # The text formats a placeholder asset can use. Binary assets (the ``.png``
 # wallpapers, the gzipped ``.svgz`` decoration) cannot carry a comment marker.
-TEXT_EXTENSIONS = (".svg", ".qml", ".colors", ".theme", ".desktop", ".desktoprc", ".json", ".js")
+TEXT_EXTENSIONS = (
+    ".svg",
+    ".qml",
+    ".colors",
+    ".theme",
+    ".desktop",
+    ".desktoprc",
+    ".json",
+    ".js",
+    ".kvconfig",
+)
 TEXT_NAMES = ("index.theme", "defaults")
 
 # One register table row: ``| `path` | what it stands in for |``.
@@ -153,24 +163,36 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(markers(tmp), {})
 
     def test_markers_finds_markers_in_every_text_format_the_theme_ships(self):
-        # The shipped theme carries a JavaScript layout file (`.js`) and an
-        # Aurorae decoration config (`.desktoprc`); a placeholder in either
-        # must be tracked, so both are text assets.
+        # The shipped theme carries a JavaScript layout (`.js`), an Aurorae
+        # decoration config (`.desktoprc`) and a Kvantum widget style
+        # (`.kvconfig`), alongside its SVG, QML, palette, theme, desktop and
+        # JSON files and its `index.theme` and extensionless `defaults`; a
+        # placeholder in any of them must be tracked, so each is a text asset.
         tmp = make_tmp_dir(self)
-        for rel, comment in (
-            (os.path.join("theme", "layouts", "layout.js"), "//"),
-            (os.path.join("theme", "aurorae", "theme.desktoprc"), "#"),
-        ):
-            path = tmp / rel
+        cases = {
+            os.path.join("art", "thing.svg"): "<!-- {token} stands in -->",
+            os.path.join("art", "thing.qml"): "// {token} stands in",
+            os.path.join("schemes", "thing.colors"): "# {token} stands in",
+            os.path.join("art", "thing.theme"): "# {token} stands in",
+            os.path.join("aurorae", "theme.desktop"): "# {token} stands in",
+            os.path.join("aurorae", "theme.desktoprc"): "# {token} stands in",
+            os.path.join("meta", "thing.json"): '{{"note": "{token} stands in"}}',
+            os.path.join("layouts", "layout.js"): "// {token} stands in",
+            os.path.join("kvantum", "style.kvconfig"): "# {token} stands in",
+            os.path.join("icons", "index.theme"): "# {token} stands in",
+            os.path.join("look-and-feel", "defaults"): "# {token} stands in",
+        }
+        expected = {}
+        for rel, template in cases.items():
+            path = tmp / "theme" / rel
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(f"{comment} {TOKEN} stands in\n", encoding="utf-8")
-        self.assertEqual(
-            markers(tmp),
-            {
-                os.path.join("theme", "layouts", "layout.js"): "stands in",
-                os.path.join("theme", "aurorae", "theme.desktoprc"): "stands in",
-            },
-        )
+            path.write_text(template.format(token=TOKEN) + "\n", encoding="utf-8")
+            # An SVG's marker drops its comment terminator; a JSON marker keeps
+            # the closing quote of the string it lives in.
+            expected[os.path.join("theme", rel)] = (
+                'stands in"}' if rel.endswith(".json") else "stands in"
+            )
+        self.assertEqual(markers(tmp), expected)
 
     def test_register_entries_parses_the_table(self):
         tmp = make_tmp_dir(self)

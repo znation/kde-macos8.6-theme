@@ -12,6 +12,30 @@ _None yet._
 
 ## Fixed
 
+### `test_placeholders.py` ignores `PLACEHOLDER:` markers in the theme's `.kvconfig` file (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `tests/test_placeholders.py` `TEXT_EXTENSIONS` listed the theme's text formats but not
+`.kvconfig`, so the Kvantum widget style
+(`theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`) was never scanned. A placeholder
+marker added there would not be found by `markers()`, so the register cross-check passed with the
+placeholder silently untracked — the same "forget to replace one" failure the previous `.js` and
+`.desktoprc` fix addressed, left open for the last text format the theme ships.
+**Reproduce:** a scratch theme root holding
+`theme/kvantum/style.kvconfig` with `# PLACEHOLDER: stands in`; `markers(root)` returned `{}` before
+the fix. The extended
+`test_placeholders.TestHelpers.test_markers_finds_markers_in_every_text_format_the_theme_ships`
+recorded the expected `.kvconfig` entry missing before the fix and includes it after.
+**Cause:** `TEXT_EXTENSIONS` was built from the formats a placeholder had used so far rather than
+the text formats the shipped theme actually carries, and the regression test named "every text
+format" exercised only two of them, so the omission had no coverage.
+**Fix:** `.kvconfig` joined `TEXT_EXTENSIONS`, and the regression test now writes one marked file
+in every text format the theme ships (SVG, QML, `.colors`, `.theme`, `.desktop`, `.desktoprc`,
+`.json`, `.js`, `.kvconfig`, `index.theme` and the extensionless `defaults`), so a future format
+cannot be missed the same way.
+**Validation gap:** no-observability — no shipped placeholder uses `.kvconfig`, so the omission
+produced no failure or diagnostic; it surfaced only by reading `TEXT_EXTENSIONS` against the
+theme's file list and confirming with a scratch reproduction.
+
 ### `_log_tail_lines` splits a log line on a vertical tab or other exotic break byte (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** When a failing external command's log contains a byte that `str.splitlines` treats as a
