@@ -11,8 +11,8 @@ candidate image is outside this tool; ``tools/render_surface.py`` does it.
 
 Usage::
 
-    python3 tools/fidelity.py CANDIDATE REFERENCE [--crop X,Y,W,H]
-        [--max-mae F] [--max-frac F] [--tolerance N]
+    python3 tools/fidelity.py CANDIDATE REFERENCE [--candidate-crop X,Y,W,H]
+        [--crop X,Y,W,H] [--max-mae F] [--max-frac F] [--tolerance N]
 
 The verdict passes when every threshold set with ``--max-mae``/``--max-frac``
 is met; when neither is set it passes only when no pixel differs from the
@@ -159,6 +159,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("candidate", help="rendered surface image (PNG)")
     parser.add_argument("reference", help="reference image (PNG)")
     parser.add_argument(
+        "--candidate-crop",
+        type=_parse_crop,
+        metavar="X,Y,W,H",
+        help="crop the candidate to this region before comparing",
+    )
+    parser.add_argument(
         "--crop",
         type=_parse_crop,
         metavar="X,Y,W,H",
@@ -193,6 +199,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         candidate = read_png(args.candidate)
         reference = read_png(args.reference)
+        if args.candidate_crop is not None:
+            candidate = crop(candidate, *args.candidate_crop)
         if args.crop is not None:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
@@ -218,6 +226,13 @@ def main(argv: list[str] | None = None) -> int:
         f"reference: {escape_controls(args.reference)}  "
         f"{reference.width}x{reference.height}"
     )
+    if args.candidate_crop is not None:
+        # The candidate line names the cropped size but not the rectangle it
+        # came from, so a transcript could not be replayed without the
+        # original --candidate-crop argument. Echo it; the fields are plain
+        # ints from _parse_crop, so no escaping is needed.
+        x, y, width, height = args.candidate_crop
+        print(f"candidate crop: {x},{y},{width},{height}")
     if args.crop is not None:
         # The reference line names the cropped size but not the rectangle it
         # came from, so a transcript could not be replayed without the

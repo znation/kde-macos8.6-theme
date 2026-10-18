@@ -245,6 +245,48 @@ class TestCli(CliTestCase):
         # Identical output proves the spaced form selects the same rectangle.
         self.assertEqual(spaced.stdout, tight.stdout)
 
+    def test_candidate_crop_region_passes(self):
+        # The padded image is the candidate and the embedded surface is the
+        # reference, so --candidate-crop trims the candidate to the 2x2 the
+        # reference already is; the two are then byte-identical.
+        tmp = self._tmp_dir()
+        surface, padded = self._write_padded_surface_pair(tmp)
+        result = self._run(padded, surface, "--candidate-crop", "1,1,2,2")
+        self._assert_pass(result)
+
+    def test_candidate_crop_rectangle_is_echoed_for_reproducibility(self):
+        # The candidate line prints the cropped size, which does not say where
+        # the crop came from, so a transcript cannot be replayed without the
+        # rectangle. A run without --candidate-crop must not print the line.
+        tmp = self._tmp_dir()
+        surface, padded = self._write_padded_surface_pair(tmp)
+        cropped = self._run(padded, surface, "--candidate-crop", "1,1,2,2")
+        self._assert_success(cropped)
+        self.assertIn("candidate crop: 1,1,2,2", cropped.stdout)
+        uncropped = self._run(surface, surface)
+        self._assert_success(uncropped)
+        self.assertNotIn("candidate crop:", uncropped.stdout)
+
+    def test_candidate_crop_outside_candidate_is_error(self):
+        # A candidate crop with valid syntax can still fall outside the
+        # candidate; crop() raises FidelityError and main() must report it at
+        # exit 2, not crash.
+        tmp = self._tmp_dir()
+        _, candidate = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+        path = self._write(tmp, "candidate.png", candidate)
+        result = self._run(path, path, "--candidate-crop", "1,1,2,2")
+        self._assert_usage_error(result, "falls outside")
+
+    def test_malformed_candidate_crop_is_usage_error(self):
+        # A bad --candidate-crop must be rejected as a usage error before
+        # either image is read, naming the option and the offending value.
+        tmp = self._tmp_dir()
+        missing = str(tmp / "missing.png")
+        result = self._run(missing, missing, "--candidate-crop", "1,2,3")
+        self._assert_usage_error(
+            result, "1,2,3", "argument --candidate-crop:"
+        )
+
     def test_help_documents_exit_status(self):
         # --help must state what each exit status means; the module docstring
         # promises the legend, and a caller scripting the tool cannot tell a

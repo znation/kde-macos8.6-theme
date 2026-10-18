@@ -239,7 +239,8 @@ with a diagnostic naming the coordinate, region, image size or path.
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
 reference screenshot and reports mean absolute error, per-channel mean absolute error (R, G, B),
 RMSE, worst per-channel delta and where it occurs, and the fraction of differing pixels.
-Pass `--crop X,Y,W,H` to select a surface region of the reference.
+Pass `--candidate-crop X,Y,W,H` to crop the candidate and `--crop X,Y,W,H` to select a
+surface region of the reference.
 
 The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
 By default a run passes only when no pixel differs from the reference by more than `--tolerance`
@@ -247,7 +248,9 @@ By default a run passes only when no pixel differs from the reference by more th
 aggregate budgets instead: when either is given, a run passes when each given budget is met —
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
 the default no-differing-pixel gate no longer applies. `make render` (`tools/render_surface.py`)
-produces a candidate render; no reference crop or threshold for a rendered surface is chosen yet.
+produces a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
+window and byte-compares its title-bar strip at candidate `30,0,80,22` against reference
+`30,25,80,22` of `aboutsystem_betawiki.png`, trimming the candidate with `--candidate-crop`.
 
 ## Invariants
 

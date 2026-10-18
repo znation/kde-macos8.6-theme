@@ -26,7 +26,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Fidelity gate for the rendered window decoration: byte-compare the title-bar strip to `aboutsystem_betawiki.png` (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Fidelity gate for the rendered window decoration: byte-compare the title-bar strip to `aboutsystem_betawiki.png` (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** `tools/render_surface.py` renders the themed window in a headless KWin session and
 `tools/fidelity.py` compares a rendered PNG against a reference screenshot, but no reference crop
@@ -99,8 +103,6 @@ so the one-row alignment is pinned by the test.
 - The new `--candidate-crop` tests in `tests/test_fidelity_cli.py` pass, and the existing
   `--crop` tests still pass unchanged.
 - `docs/invariants.md` resolves the new tooling row, and `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Platinum desktop icon action buttons (`widgets/action-overlays.svg`) for the desktop theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 

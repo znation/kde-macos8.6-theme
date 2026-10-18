@@ -91,3 +91,4 @@ guarantee cell fails `make check`.
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
 | The fidelity gate passes only when no pixel differs beyond its tolerance, or within an aggregate budget when one is given. | `tests/test_fidelity_cli.py::TestCli` | none |
+| The rendered window's title-bar strip is byte-identical to the same strip of the reference screenshot. | `tests/test_render_surface.py::TestRender::test_title_bar_matches_the_reference` | none |

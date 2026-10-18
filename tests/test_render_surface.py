@@ -19,11 +19,21 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import process_runner
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.platinum_palette import FACE, hex_colour
+from support.reference_image import read_reference, skip_unless_materialized
 from tools import render_surface  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
 
 SCRIPT = str(repo_root.ROOT / "tools" / "render_surface.py")
+FIDELITY = str(repo_root.ROOT / "tools" / "fidelity.py")
+REFERENCE = str(
+    repo_root.ROOT / "macos8.6-screenshots" / "aboutsystem_betawiki.png"
+)
+# The render's title bar sits at the top of the 320x240 capture (row 0 is the
+# top outline, row 21 the bottom outline); the reference screenshot has the
+# same chrome at y=25..46, so the strips are compared at those offsets.
+CANDIDATE_CROP = (30, 0, 80, 22)
+REFERENCE_CROP = (30, 25, 80, 22)
 
 
 class TestArguments(unittest.TestCase):
@@ -450,6 +460,30 @@ class TestRender(unittest.TestCase):
     def test_window_body_is_the_platinum_face(self):
         pixel = pixel_at(read_png(self.output), 300, 200)
         self.assertEqual(FACE, hex_colour(pixel))
+
+    def test_title_bar_matches_the_reference(self):
+        # The reference set is Git LFS material; skip, don't fail, when it is
+        # absent. The strips are byte-compared through the real CLI, so the
+        # candidate-crop option and the crop geometry are covered end to end.
+        _, error = read_reference(REFERENCE)
+        skip_unless_materialized(self, REFERENCE, error)
+        result = process_runner.run(
+            [
+                sys.executable,
+                FIDELITY,
+                self.output,
+                REFERENCE,
+                "--candidate-crop",
+                ",".join(str(value) for value in CANDIDATE_CROP),
+                "--crop",
+                ",".join(str(value) for value in REFERENCE_CROP),
+            ],
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        pixels = CANDIDATE_CROP[2] * CANDIDATE_CROP[3]
+        self.assertIn(f"differing pixels: 0 / {pixels}", result.stdout)
 
 
 if __name__ == "__main__":
