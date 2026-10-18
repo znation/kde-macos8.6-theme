@@ -180,9 +180,15 @@ def check_reference(root, reference, section):
     segment climbs out of it, so either would let a row pin a guarantee to a
     test outside the tree the register covers. A referenced file that cannot
     be decoded or parsed is rejected by name too, so a broken reference never
-    escapes as an unrelated exception.
+    escapes as an unrelated exception. A path carrying a NUL byte is rejected
+    by name as well, before it reaches :func:`os.path.realpath`, which would
+    raise a bare ``ValueError`` naming neither the section nor the reference.
     """
     path, sep, qualifier = reference.partition("::")
+    if "\x00" in path:
+        raise AssertionError(
+            f"{section}: {reference} names a path containing a NUL byte"
+        )
     file_path = os.path.join(root, path)
     root_path = os.path.realpath(root)
     resolved = os.path.realpath(file_path)
@@ -492,6 +498,17 @@ class TestHelpers(unittest.TestCase):
                     AssertionError, "cannot be read as Python"
                 ):
                     cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_reference_with_a_nul_byte(self):
+        # A NUL byte in the reference reaches `os.path.realpath`, which raises
+        # `ValueError: embedded null character in path` before the
+        # isfile/parse guards. That exception names neither the section nor
+        # the reference, so the row that broke the register is unidentifiable.
+        register = self._valid_register(
+            [("The thing holds.", f"{self.MODULE}\x00::TestFake")]
+        )
+        with self.assertRaisesRegex(AssertionError, "NUL"):
+            cross_check(self.root, register)
 
     def test_cross_check_rejects_a_missing_class(self):
         register = self._valid_register(

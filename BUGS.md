@@ -12,6 +12,33 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` lets a register reference with a NUL byte escape as an unrelated exception (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** a register row whose test reference contained a NUL byte (the
+cell regex `` `([^`]+)` `` matches NUL) made `check_reference` raise
+`ValueError: lstat: embedded null character in path` from
+`os.path.realpath`, an exception naming neither the register section nor the
+reference, so a failing run did not say which row broke the register.
+`check_reference` is documented to raise `AssertionError` naming the section
+and the first missing piece.
+
+**Cause:** `check_reference` resolved the joined path with
+`os.path.realpath(file_path)` before any guard; `realpath` raises `ValueError`
+(not `OSError`) for a path with an embedded NUL byte, so the repository-escape
+and isfile checks never ran.
+
+**Fix:** `check_reference` now rejects a NUL byte in the reference's path with
+`AssertionError` naming the section and the reference, before it reaches
+`os.path.realpath`.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_cross_check_rejects_a_reference_with_a_nul_byte`
+(a scratch run showed the `ValueError` escaping before the fix; the test
+errored before the fix and passes after).
+
+**Validation gap:** no-fake -- confirming it needed a synthetic register row
+carrying a NUL byte, a fixture the suite did not have.
+
 ### `test_invariants.py` lets a reference to an unreadable test file escape as an unrelated exception (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `check_reference` read the module a register row named with
