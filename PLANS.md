@@ -22,7 +22,77 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 desktop icon arrangement: one right-aligned column of 32px icons (planned 2026-10-18 by the plan role)
+
+**Goal.** Mac OS 8.6 puts its desktop icons in one column at the right edge of the screen, from
+the top down, at 32x32. Plasma's desktop Folder View defaults to rows from the top-left at 64px.
+The global theme's desktop layout should set the desktop containment to match.
+
+**Reference (sampled 2026-10-18, lossless `macos8.6-screenshots/desktop_betawiki.png`,
+1024x768).** Compare each pixel below the menu bar with the wallpaper tile
+(`tools/make_wallpaper.py` `TILE_ORIGIN` = (0, 128), period 128). That gives these non-pattern
+blocks at x >= 880: rows 47..72 (x 941..1010), 157..200 (x 925..1023), 220..264 (x 929..1022),
+284..328 (x 960..991), 348..392 (x 926..1023), and the Trash at rows 668..712 (x 960..991). The
+icon bodies span exactly x = 960..991, which is 32 columns. Across x = 0..879, rows 20..699 (every
+second pixel), nothing differs from the tile, so the icons sit only in the right-hand column.
+The Control Strip below row 740 is not an icon.
+
+**Plasma facts (checked 2026-10-18).**
+`/usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/config/main.xml` group
+`General`:
+- `arrangement`: 0 = Rows, 1 = Columns.
+- `alignment`: 0 = Left, 1 = Right.
+- `iconSize`: 0 = 22px, 1 = 32px (`Kirigami.Units.iconSizes.medium`, see `ui/code/FolderTools.js`
+  `iconSizes`), default 3 = 64px.
+
+`ui/FolderViewLayer.qml` maps them to `flow: arrangement === 0 ? FlowLeftToRight :
+FlowTopToBottom` and `layoutDirection: alignment === 0 ? LeftToRight : RightToLeft`. So
+`arrangement=1`, `alignment=1` fills a column top-down, starting at the right edge. A containment
+in the layout script takes the same `currentConfigGroup` / `writeConfig` calls the clock widget
+uses.
+
+**Approach.** In `theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`,
+add these calls inside the existing `desktopsArray` loop, after the `wallpaperPlugin` line:
+`desktopsArray[j].currentConfigGroup = ["General"];` then
+`desktopsArray[j].writeConfig("arrangement", 1);`, `writeConfig("alignment", 1);` and
+`writeConfig("iconSize", 1);`. Put one comment above them citing the reference
+rows and columns above. Do not write `positions` or any other key. A containment that is not
+Folder View (`org.kde.plasma.desktop`) ignores keys it does not declare, so no plugin check is
+needed.
+
+**Files touched.**
+- `theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`.
+- `tests/test_lookandfeel_layout.py`:
+  - A module constant `DESKTOP_ICONS = {"arrangement": 1, "alignment": 1, "iconSize": 1}`.
+  - A helper `desktop_config(text)` that returns the `desktopsArray[j].writeConfig("k", v);`
+    calls as `{key: int}`, modelled on `clock_config`.
+  - In `TestLayout`: `test_desktop_writes_the_general_group`. The
+    `desktopsArray[j].currentConfigGroup = ["General"];` line comes before the first
+    `desktopsArray[j].writeConfig(`, and both lie after the `for (var j` loop header.
+  - In `TestLayout`: `test_desktop_icon_arrangement` checks `desktop_config(text) == DESKTOP_ICONS`.
+  - A new `TestDesktopIconsMatchReference(ReferenceScreenshotMixin, unittest.TestCase)`.
+    `test_icons_sit_in_one_right_column` re-derives the reference with the tile comparison
+    above. It asserts no differing pixel at x < 880 for rows 20..699, and at least one differing
+    pixel at x >= 880 in rows 40..80. `test_icon_body_is_32_columns_wide` asserts the differing
+    columns in rows 284..328 run from 960 to 991, i.e. 32 == the `iconSize` 1 pixel size. Use
+    the `REFERENCE` constant. Read the tile origin from `tools.make_wallpaper.TILE_ORIGIN` /
+    `TILE_SIZE`; do not copy the numbers.
+- `README.md`: extend the sentence "The layout also switches each desktop in the current activity
+  to the image wallpaper plugin." to say it also lines desktop icons up in one 32px column at the
+  right edge, as Mac OS 8.6 does.
+
+**Acceptance criteria.**
+- `make check` passes with the new tests.
+- Reverting any one of the three `writeConfig` values makes `test_desktop_icon_arrangement` fail.
+- `test_widgets_in_menu_bar_order` and the clock tests still pass. The new calls use
+  `desktopsArray[j]`, not a `panel.addWidget` handle, so `clock_config` does not pick them up.
+- Manual smoke test (needs a Plasma session): after `lookandfeeltool -a org.macos8.desktop
+  --resetLayout`, a file in `~/Desktop` appears at the top-right as a 32px icon. A second file
+  appears below it.
+
+**Out of scope.** Pinning the Trash to the bottom-right corner (Folder View has no such
+setting), the icon label style (Mac OS 8.6 draws a white label box), and the icons themselves
+(the icon-theme question in the scope-drift note above).
 
 
 ## Done
