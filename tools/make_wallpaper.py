@@ -12,6 +12,7 @@ deterministic, so re-running rewrites identical bytes.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -74,6 +75,23 @@ def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
     return b"".join(rows[y % TILE_SIZE] for y in range(height))
 
 
+def _write_atomic(path: Path, data: bytes) -> None:
+    """Write *data* to *path* so *path* is the old file or the whole new one.
+
+    The bytes go to a sibling temporary file that is renamed over *path*, so a
+    crash mid-write leaves the previous wallpaper rather than a truncated PNG
+    that a later ``make install`` would ship. The temporary file is removed
+    when the write fails.
+    """
+    partial = path.with_name(f".{path.name}-{os.getpid()}.tmp")
+    try:
+        partial.write_bytes(data)
+        os.replace(partial, path)
+    except BaseException:
+        partial.unlink(missing_ok=True)
+        raise
+
+
 def main() -> int:
     """Write the tiled wallpaper PNG for every resolution; return 0, or 2 on error."""
     try:
@@ -85,7 +103,15 @@ def main() -> int:
     images.mkdir(parents=True, exist_ok=True)
     for width, height in RESOLUTIONS:
         data = encode_png(width, height, tiled_rgb(tile, width, height))
-        (images / f"{width}x{height}.png").write_bytes(data)
+        target = images / f"{width}x{height}.png"
+        try:
+            _write_atomic(target, data)
+        except OSError as exc:
+            print(
+                f"make_wallpaper: error: cannot write {target}: {exc}",
+                file=sys.stderr,
+            )
+            return 2
     return 0
 
 

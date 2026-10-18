@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import contextlib
+import errno
 import io
 import unittest
+from pathlib import Path
 from unittest import mock
 
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -89,6 +91,25 @@ class TestMain(unittest.TestCase):
         first = {p.name: p.read_bytes() for p in self.images.iterdir()}
         self.run_main()
         self.assertEqual({p.name: p.read_bytes() for p in self.images.iterdir()}, first)
+
+    def test_a_write_that_dies_midway_keeps_the_previous_image_and_no_partial(self):
+        self.write_reference(X0 + TILE, Y0 + TILE)
+        width, height = SMALL_RESOLUTIONS[0]
+        first = self.images / f"{width}x{height}.png"
+        first.parent.mkdir(parents=True, exist_ok=True)
+        first.write_bytes(b"previous good wallpaper")
+
+        def half_write_then_fail(path, data):
+            with open(path, "wb") as handle:
+                handle.write(data[: len(data) // 2])
+            raise OSError(errno.ENOSPC, "No space left on device")
+
+        with mock.patch.object(Path, "write_bytes", half_write_then_fail):
+            status, err = self.run_main()
+        self.assertEqual(status, 2)
+        self.assertIn("cannot write", err)
+        self.assertEqual(first.read_bytes(), b"previous good wallpaper")
+        self.assertEqual([p.name for p in self.images.iterdir()], [first.name])
 
     def test_missing_reference_exits_2_naming_it_and_writes_nothing(self):
         status, err = self.run_main()
