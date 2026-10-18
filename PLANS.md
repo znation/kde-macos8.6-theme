@@ -17,7 +17,90 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Grow the Aurorae title-bar boxes to 13x13 with their white highlight (planned 2026-10-17 by the plan role)
+
+**Goal.** In the reference, each Platinum title-bar box is its 12x12 face (the `#888888`
+top/left shadow, the `#222222` outline, the gradient) *plus* a 1px `#FFFFFF` highlight: a column
+just right of the face and a row just below it. The top-right pixel of the column and the
+bottom-left pixel of the row are `#CCCCCC`. Sampled with `tools/png`:
+
+- `aboutsystem_betawiki.png` close box: face x=11..22, y=29..40; white column x=23 at y=30..41;
+  white row y=41 at x=12..23; `#CCCCCC` at (23,29) and (11,41). The collapse box at (343,29)
+  matches, with its column at x=355.
+- `systemprofiler_betawiki.png`: the close face at (213,26) has its column at x=225. The zoom face
+  at x=781..792 has its column at x=793 (y=27..38) and its row at y=38 (x=782..793). Then come
+  `#CCCCCC` x=794..796, the collapse face x=797..808, its column at x=809, `#CCCCCC` x=810..811,
+  `#999999` x=812, and the black outline at x=813.
+
+The shipped buttons are 12x12 (`ButtonWidth=12`, `ButtonHeight=12` in
+`theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc`), so the highlight is never drawn
+on purpose. The collapse box only gets it because the `decoration-topright` corner tile happens
+to paint `#FFFFFF` at its local x=1. The close and zoom boxes sit directly against the
+`decoration-top` stripes, which have a `#FFFFFF`/`#777777` stripe where the column should be and a
+`#CCCCCC` row where the row should be white. The fix makes each box a 13x13 widget that draws
+its own highlight.
+
+**Approach.**
+1. `close.svg`, `maximize.svg`, `restore.svg`, `shade.svg`: change the canvas to `width="13"
+   height="13" viewBox="0 0 13 13"`. In `active-center`, add `#FFFFFF` at x=12, y=1..12 and at
+   y=12, x=1..11, and `#CCCCCC` at (12,0) and (0,12). Leave every existing pixel and glyph alone.
+   In `inactive-center`, set those same added pixels to `#CCCCCC`. That is what
+   `_inactive_fill` already returns for any colour other than `#888888`/`#222222`, and it matches
+   `decoration-inactive-top`, a flat `#CCCCCC` field with no highlight. Update each file's header
+   comment: 13x13, the highlight's sample coordinates, and the inactive flattening.
+2. `org.macos8.desktoprc` `[Layout]`: `ButtonWidth=13`, `ButtonHeight=13`, `ButtonSpacing=3`
+   (zoom column x=793 to collapse face x=797), `TitleEdgeRight=4` (collapse column x=809 to
+   outline x=813). `TitleEdgeLeft=4` and `ButtonMarginTop=4` do not change, because the face
+   still starts at the same offset. Aurorae's `AuroraeButton.qml` stretches each button's
+   `active-center` to `buttonWidth x buttonHeight` (`FrameSvgItem anchors.fill`), so the canvas
+   has to equal the rc size to render 1:1.
+3. `decoration.svg`: update the header comment that describes the 12x12 button footprint. The
+   footprint becomes frame-local x=4..5 of the top-left corner and x=0..1 of the top-right
+   corner, y=4..16. Change no artwork.
+4. README.md: replace "12x12 close/zoom/collapse widgets" with 13x13, and mention the highlight.
+
+**Tests (`tests/test_aurorae_decoration.py`).** Measure every size from the reference, not from
+constants:
+- Change the `profiler_box` / `reference_box` default `size` to 13. `TestButtons` then compares
+  every pixel of the 13x13 boxes, highlight included: close (11,29) and (213,26), zoom (781,26),
+  collapse (343,29) and (797,26). Update the docstring.
+- `TestRc._close_box_size` → return the button size: the `#888888` bounding box plus the
+  `#FFFFFF` column and row next to it. Assert that the column x=max+1 and the row y=max+1 are
+  white along the face's span, then return width+1 and height+1.
+  `test_layout_metrics_match_reference` keeps comparing it with `ButtonWidth`/`ButtonHeight`.
+- `test_button_offsets_match_reference`: compute `TitleEdgeRight` from the collapse box's
+  highlight column, `right - (collapse_x + collapse_w)`, and in the profiler as
+  `outline[-1] - 809`. The comments should name x=809 as the highlight column.
+- `test_button_spacing_matches_reference`: the gap runs from the zoom box's highlight column to
+  the collapse face. Assert that `zoom_right + 1` is `#FFFFFF` on the face rows, then that
+  `ButtonSpacing == collapse_left - zoom_right - 2`.
+- `TestCorners.BUTTON_MASK`: make it the 13x13 footprint, `decoration-topleft` x in (4, 5) and
+  `decoration-topright` x in (0, 1), y in range(4, 17), and update its docstring.
+- Add `test_highlight_is_reference_white`, which checks that in both references the face's
+  right column and bottom row are `#FFFFFF` and the two corner pixels are `#CCCCCC`. This pins
+  the new pixels to the image, separately from the whole-box comparison.
+
+**Files touched.** The four button SVGs, `org.macos8.desktoprc`, the `decoration.svg` comment,
+`tests/test_aurorae_decoration.py`, and README.md.
+
+**Acceptance criteria.**
+- Each button SVG's root canvas is 13x13. Its `active-center` render equals the reference
+  13x13 box pixel for pixel: close against both references, zoom (`maximize.svg` and
+  `restore.svg`) against the profiler, collapse against both.
+- `inactive-center` equals `active-center` with every pixel except `#888888`/`#222222` flattened
+  to `#CCCCCC`. The existing `test_inactive_center_is_flat` and `test_inactive_glyphs_survive`
+  pass unchanged.
+- The rc reads `ButtonWidth=13`, `ButtonHeight=13`, `ButtonSpacing=3`, `TitleEdgeRight=4`,
+  `TitleEdgeLeft=4`, `ButtonMarginTop=4`, and the reference-derived tests above re-derive each
+  value.
+- `make check` passes, including the README theme-file tests.
+
+**Out of scope (possible follow-up).** Mac OS also clears the stripes for a few pixels beyond
+each highlight: about 4–5 `#CCCCCC` columns before the stripes resume (aboutsystem x=24..28;
+profiler x=226..229, and x=776..780 before the zoom box), plus a gap around the title text.
+Aurorae tiles `decoration-top` uniformly, so reproducing those gaps needs wider per-button
+widths (`ButtonWidthClose` etc., which Aurorae supports) or explicit spacers. That is a separate
+design decision, so it is not planned here.
 
 ## Done
 
