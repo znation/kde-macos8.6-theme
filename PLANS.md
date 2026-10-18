@@ -17,7 +17,109 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-_None yet._
+### Mac OS 8.6 zoom box glyph and collapse (windowshade) box for the Aurorae decoration (planned 2026-10-17 by the plan role)
+
+**Planned 2026-10-17 by plan.** Independent of every other entry: it touches only the
+`org.macos8.desktop` Aurorae package, one line of the global theme's `contents/defaults`, their
+tests and README. It needs no other plan to land first.
+
+**Goal.** Make the title bar's right-hand boxes match retail Mac OS 8.6: a **zoom box** and then,
+at the far right, a **collapse box** that shades the window (KWin "shade" is the Mac windowshade).
+Today's decoration gets this wrong. `maximize.svg` and `restore.svg` draw the glyph of the
+right-hand box in `aboutsystem_betawiki.png` at x=343..354, y=29..40: two horizontal `#222222`
+bars at local y=5 and y=7 spanning x=2..10. That is the **collapse** box glyph, not the zoom glyph.
+"About This Computer" is not zoomable, so it shows only close + collapse. The retail Japanese 8.6
+screenshot `systemprofiler_betawiki.png` (1024x768, lossless) shows all three boxes in one title
+bar:
+- close box at x=213..224;
+- zoom box at x=781..792;
+- collapse box at x=797..808.
+
+All three span y=26..37. Verified while planning with `tools/png.read_png` + `pixel_at`:
+- The profiler's close box and collapse box are pixel-identical to aboutsystem's close box at
+  (11,29) and its right-hand box at (343,29).
+- The zoom box equals the close box except at exactly 11 pixels, all `#222222`: local (7,2)..(7,6)
+  and (2,7)..(7,7). This is the classic inner square drawn in the upper-left.
+- The gap between the zoom and collapse faces is 4 columns (x=793..796).
+- The collapse box's right edge sits the same distance from the frame edge as aboutsystem's box,
+  so `TitleEdgeRight=5` stays valid.
+
+The current `tests/test_lookandfeel.py::test_titlebar_buttons_match_the_reference` docstring
+says "there is no collapse box on either side". That is wrong for windows that can be zoomed.
+
+**Approach.**
+1. `theme/aurorae/themes/org.macos8.desktop/shade.svg` (new): move the current `maximize.svg`
+   artwork here unchanged. Keep its 12x12 canvas, the `active-center` and `inactive-center`
+   groups, and the same rects. Rewrite its header comment to name it the collapse box, citing
+   aboutsystem (343,29) and systemprofiler (797,26). Aurorae loads `shade.svg` for the `L` button
+   (`auroraeTheme.shadeButtonPath` in `/usr/share/kwin/aurorae/AuroraeButton.qml`). The button
+   is visible whenever that file exists (`visible = buttonSvg.imagePath != ""`). Its width comes
+   from `ButtonWidthShade`, which defaults to `ButtonWidth`, so the rc needs no new width key.
+   A shaded window sets `toggled`. The SVG ships no `pressed` prefix, so Aurorae keeps drawing
+   the `active` art for it, the same as for the other boxes.
+2. `maximize.svg` and `restore.svg`: replace the two-bar glyph with the zoom glyph. Each becomes
+   the close box's rects (`close.svg` `active-center` / `inactive-center`) plus `#222222` at the
+   11 pixels listed above, in both groups. The inactive group keeps the glyph, because
+   `_inactive_fill` keeps `#222222`. Mac OS does not change the zoom box when a window is zoomed,
+   so `restore.svg` stays identical to `maximize.svg` apart from its header comment, as it is
+   today. Update both header comments to cite systemprofiler (781,26).
+3. `org.macos8.desktoprc` `[Layout]`: set `ButtonSpacing=4` (today it is 8, which nothing reads,
+   because each side has one button). Aurorae uses it as the row spacing in
+   `AuroraeButtonGroup.qml`.
+4. `theme/look-and-feel/org.macos8.desktop/contents/defaults` `[kwinrc][org.kde.kdecoration2]`:
+   set `ButtonsOnRight=AL` (A = maximize/zoom, then L = shade/collapse at the far right).
+   `ButtonsOnLeft=X` is unchanged.
+5. README.md: in the window-decoration paragraph, name `shade.svg` in backticks. This is required
+   by `tests/test_readme_theme_files.py::test_every_aurorae_svg_is_named_in_readme`. Describe the
+   rc as having "12x12 close/zoom/collapse widgets". In the Installing paragraph, say a new window
+   has the zoom box and the collapse box on the right.
+
+**Tests** (`tests/test_aurorae_decoration.py`, `tests/test_lookandfeel.py`):
+- Add a `SHADE_SVG` constant and put it in `BUTTON_SVGS`. Add `"shade.svg"` to
+  `TestInstall.INSTALLED_FILES`.
+- Add a second reference: `PROFILER_REFERENCE` = `macos8.6-screenshots/systemprofiler_betawiki.png`,
+  read with `read_reference(..., max_rows=38)` in `TestButtons.setUpClass`, after
+  `ReferenceImageCase.setUpClass`. Add a `profiler_box(x0, y0)` helper that mirrors `reference_box`
+  and calls `skip_unless_materialized` on its own path and error.
+- `TestButtons`:
+  - `test_zoom_box_matches_reference`: compare `maximize.svg` and `restore.svg` `active-center`
+    against `profiler_box(781, 26)`.
+  - New `test_collapse_box_matches_reference`: compare `shade.svg` against
+    `reference_box(343, 29)` and also against `profiler_box(797, 26)`.
+  - Rename `ZOOM_GLYPH` to `COLLAPSE_GLYPH` (same set). Pin it on `shade.svg` in the existing glyph
+    test and in `test_inactive_zoom_glyph_survives` (rename that test to cover both glyphs).
+  - Add `ZOOM_GLYPH = {(7, y) for y in 2..6} | {(x, 7) for x in 2..7}`, pinned the same way against
+    the close box, in both the active and the inactive groups.
+- `TestRc`:
+  - New `test_button_spacing_matches_reference`. It derives the gap from the profiler image:
+    first `#888888` column of the collapse face minus last `#888888` column of the zoom face
+    minus 1, searching x=775..815, y=26..37. It asserts `ButtonSpacing` equals that gap (4).
+  - Extend `test_button_offsets_match_reference` with one check: `TitleEdgeRight` re-derived from
+    the profiler window also equals the rc value. The profiler window's right outline is the last
+    black pixel of row y=22 within x<816. The collapse face's right edge is x=808.
+- `tests/test_lookandfeel.py::test_titlebar_buttons_match_the_reference`: assert
+  `ButtonsOnRight == "AL"`. Rewrite the docstring to cite systemprofiler's zoom + collapse boxes.
+
+**Files touched.**
+- `theme/aurorae/themes/org.macos8.desktop/{shade.svg (new), maximize.svg, restore.svg, org.macos8.desktoprc}`
+- `theme/look-and-feel/org.macos8.desktop/contents/defaults`
+- `tests/test_aurorae_decoration.py`, `tests/test_lookandfeel.py`
+- `README.md`
+
+`decoration.svg`/`.svgz`, `close.svg` and the Makefile stay unchanged: `install_package` copies
+the whole package directory.
+
+**Acceptance criteria.**
+- `shade.svg` exists with `active-center` and `inactive-center`. Its active box equals both
+  reference collapse boxes pixel for pixel. Its inactive box is the `_inactive_fill` derivation
+  of the active box.
+- `maximize.svg` and `restore.svg` active boxes equal the systemprofiler zoom box at (781,26)
+  pixel for pixel. Each differs from `close.svg` at exactly `ZOOM_GLYPH`, in both states.
+- `ButtonSpacing=4` and `ButtonsOnRight=AL`, each pinned by a test that re-derives it from the
+  reference or names the box order.
+- `make install` installs `shade.svg` (pinned by `TestInstall`). `kpackagetool6` still accepts
+  the package wherever `TestPackageValid` runs.
+- README names `shade.svg`, and `make check` passes.
 
 ## Done
 
