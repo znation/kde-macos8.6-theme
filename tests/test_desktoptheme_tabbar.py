@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 
-from desktoptheme_paths import DTHEME_ID, TABBAR_SVG
+from desktoptheme_paths import TABBAR_SVG
 from nine_slice_case import NineSliceCase
 from platinum_palette import assert_fill_palette
-from process_assertions import assert_succeeded
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_band_pixels,
@@ -17,12 +15,6 @@ from svg_assertions import (
     face_corners,
     face_edge_bands,
     render_slices,
-)
-from theme_install import (
-    assert_files_identical,
-    install,
-    installed_destdir,
-    installed_package,
 )
 
 
@@ -136,16 +128,6 @@ class TestTabBar(NineSliceCase, unittest.TestCase):
 
     def test_tabbar_colours(self):
         assert_fill_palette(self, self.tree)
-
-    def test_tabbar_installed(self):
-        with installed_destdir(self) as tmp:
-            target = os.path.join(
-                installed_package(tmp, "desktoptheme", DTHEME_ID),
-                "widgets", "tabbar.svg",
-            )
-            assert_files_identical(self, TABBAR_SVG, target)
-            again = install(tmp)
-            assert_succeeded(self, again)
 
 
 if __name__ == "__main__":

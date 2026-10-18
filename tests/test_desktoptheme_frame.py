@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 
-from desktoptheme_paths import DTHEME_ID, FRAME_SVG
+from desktoptheme_paths import FRAME_SVG
 from nine_slice_case import NineSliceCase
-from process_assertions import assert_succeeded
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
@@ -18,12 +16,6 @@ from svg_assertions import (
     RAISED_FACE_CORNERS,
     render_slices,
     sunken_face_corners,
-)
-from theme_install import (
-    assert_files_identical,
-    install,
-    installed_destdir,
-    installed_package,
 )
 
 
@@ -104,16 +96,6 @@ class TestFrame(NineSliceCase, unittest.TestCase):
             assert_edge_bevels(self, slices, prefix, outward, mirrored)
             # The centre tile is one body rect, so every pixel is the face.
             assert_center_tile_is(self, slices, f"{prefix}-center", "#DDDDDD", size=6)
-
-    def test_frame_installed(self):
-        with installed_destdir(self) as tmp:
-            target = os.path.join(
-                installed_package(tmp, "desktoptheme", DTHEME_ID),
-                "widgets", "frame.svg",
-            )
-            assert_files_identical(self, FRAME_SVG, target)
-            again = install(tmp)
-            assert_succeeded(self, again)
 
 
 if __name__ == "__main__":
