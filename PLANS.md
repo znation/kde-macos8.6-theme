@@ -28,7 +28,53 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Fidelity gate for the rendered window's title-bar boxes (close, zoom, collapse) (planned 2026-10-18 by the plan role)
+
+**Goal.** The rendered-window fidelity gate byte-compares the title-bar's middle strip and the
+side and bottom borders, but not the three Platinum title-bar boxes, so a regression in how
+Aurorae places or sizes them renders unnoticed. Extend `tests/test_render_surface.py::TestRender`
+to byte-compare the close, zoom and collapse box regions of the render against the reference
+screenshots.
+
+**Grounding (verified 2026-10-18 with `tools/render_surface.py --settle 3` on this tree and
+`tools/png`).** The 320x240 render puts the window at the capture's origin, and each box region is
+byte-identical to the reference (0 differing pixels):
+- close box: render `(4,4,13,13)` vs `aboutsystem_betawiki.png` `(11,29,13,13)`;
+- collapse box: render `(303,4,13,13)` vs `aboutsystem_betawiki.png` `(343,29,13,13)`;
+- zoom box: render `(282,4,21,13)` vs `systemprofiler_betawiki.png` `(776,26,21,13)`.
+The close and collapse boxes use `aboutsystem_betawiki.png` (its collapse box at x=343); the zoom
+box uses `systemprofiler_betawiki.png`, the only reference whose window shows a zoom box
+(`aboutsystem`'s window cannot be zoomed, as `tests/support/aurorae_fixtures.py` records), with
+`ZOOM_BOX_X = 5` matching the 21px gap-plus-box canvas. The title-bar strip gate deliberately
+starts at x=30 to clear the close box, so these three regions are currently ungated at render
+time.
+
+**Approach.**
+- `tests/test_render_surface.py`: beside the existing border crops, add
+  `PROFILER_REFERENCE = str(repo_root.ROOT / "macos8.6-screenshots" / "systemprofiler_betawiki.png")`
+  and the six crop tuples `CLOSE_CANDIDATE`/`CLOSE_REFERENCE`,
+  `COLLAPSE_CANDIDATE`/`COLLAPSE_REFERENCE`, `ZOOM_CANDIDATE`/`ZOOM_REFERENCE` with the values
+  above.
+- Generalize `TestRender.assert_strip_pixels_match` to take a `reference_path=REFERENCE`
+  argument and load that image with `support.reference_image.read_reference` +
+  `skip_unless_materialized` (so the zoom test skips when the profiler LFS image is absent), then
+  add `test_title_bar_boxes_match_the_reference` iterating the three
+  `(candidate_crop, reference_crop, reference_path)` triples. It reuses the render `setUpClass`
+  already makes, so no second render runs.
+- `docs/invariants.md`: add a `tooling` row `| The rendered window's title-bar boxes are
+  byte-identical to the same regions of the reference screenshots. |
+  tests/test_render_surface.py::TestRender::test_title_bar_boxes_match_the_reference | none |`.
+- `README.md`: in the Fidelity checking paragraph, name the box regions beside the title-bar and
+  border strips.
+
+**Files touched.** `tests/test_render_surface.py`, `docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- `TestRender.test_title_bar_boxes_match_the_reference` passes where the render tools and both
+  references are materialized, and skips when either reference is an unmaterialized LFS pointer.
+- Each region is pinned to zero differing pixels: shifting any crop by one pixel, or changing the
+  box art or the Aurorae box geometry in `org.macos8.desktoprc`, makes the test fail.
+- `docs/invariants.md` resolves the new `tooling` row, and `make check` is green.
 
 ## Done
 
