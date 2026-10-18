@@ -145,6 +145,19 @@ class TestInstall(unittest.TestCase):
         hook.chmod(0o644)
         self.assertEqual(foreign, hook.read_bytes())
 
+    def test_refuses_a_directory_at_the_hook_path(self):
+        repo = make_repo(self)
+        hook = hook_path(repo)
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        hook.mkdir()
+        result = run_tool(repo, "install")
+        assert_failed(self, result)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn(str(hook), result.stderr)
+        self.assertIn("non-regular", result.stderr)
+        self.assertTrue(hook.is_dir(), "install replaced the directory")
+
     def test_a_crash_mid_write_leaves_the_old_hook_intact(self):
         repo = make_repo(self)
         assert_succeeded(self, run_tool(repo, "install"))
