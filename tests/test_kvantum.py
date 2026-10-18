@@ -112,6 +112,52 @@ SPECIAL_FRAME_MARGINS = {
     "ScrollbarGroove": {"top": 0, "bottom": 0, "left": 4, "right": 4},
 }
 
+# The track and value controls added in part 2/4: the SVG element Kvantum
+# draws for each section's frame, interior and indicator, the two sections
+# that ship no frame, and the progress bar's label styling. The generic
+# art-existence check cannot see these: a wrong element name that happens to
+# exist elsewhere in the SVG still passes it, while Kvantum renders the wrong
+# control.
+TRACK_CONTROL_CONFIG = {
+    "ScrollbarSlider": {
+        "frame.element": "scrollbarslider",
+        "interior.element": "scrollbarslider",
+        "indicator.element": "grip",
+    },
+    "ScrollbarGroove": {
+        "frame.element": "slider",
+        "interior.element": "slider",
+    },
+    "Slider": {
+        "frame.element": "slider",
+        "interior.element": "slider",
+    },
+    "SliderCursor": {
+        "frame": "false",
+        "interior.element": "slidercursor",
+    },
+    "Progressbar": {
+        "frame.element": "progress",
+        "interior.element": "progress",
+        "text.focus.color": "white",
+        "text.bold": "true",
+    },
+    "ProgressbarContents": {
+        "frame": "false",
+        "interior.element": "progress-pattern",
+    },
+    "IndicatorSpinBox": {
+        "frame.element": "spin",
+        "interior.element": "spin",
+        "indicator.element": "arrow",
+    },
+    "Splitter": {
+        "frame.element": "splitter",
+        "interior.element": "splitter",
+        "indicator.element": "splitter-grip",
+    },
+}
+
 # The nine-sliced frame elements and the states the SVG ships. Kvantum names
 # the centre `<element>-<state>` and each slice `<element>-<state>-<slice>`.
 FRAME_STATES = {
@@ -281,6 +327,17 @@ class TestFrameMargins(unittest.TestCase):
                         _resolved(parser, section, f"frame.{side}"),
                         str(margin),
                     )
+
+
+class TestTrackAndValueElements(unittest.TestCase):
+    """Pin which SVG element each track/value control section draws."""
+
+    def test_every_track_and_value_section_maps_to_its_element(self):
+        parser = read_kde_config(KVCONFIG)
+        for section, expected in TRACK_CONTROL_CONFIG.items():
+            for key, value in expected.items():
+                with self.subTest(section=section, key=key):
+                    self.assertEqual(_resolved(parser, section, key), value)
 
 
 class TestSvg(unittest.TestCase):
