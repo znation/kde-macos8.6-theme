@@ -42,6 +42,17 @@ TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 # suite no longer runs with.
 DISCOVERY_PATTERN = "test*.py"
 
+# A minimal probe module that defines one passing test. The two
+# misnamed-module guards below import it under a name discovery never
+# matches, so they need a module that would contribute tests; an empty one
+# would not prove the same.
+PROBE_TEST_MODULE_SOURCE = (
+    "import unittest\n\n"
+    "class TestProbe(unittest.TestCase):\n"
+    "    def test_ok(self):\n"
+    "        self.assertTrue(True)\n"
+)
+
 
 def makefile_check_pattern():
     """Return the Makefile's literal ``CHECK_PATTERN ?=`` default.
@@ -293,14 +304,8 @@ class TestSuiteDiscovery(unittest.TestCase):
         # named test*.py is exactly what
         # test_every_test_case_module_matches_the_discovery_pattern must
         # catch. Import it by bare name, then take it back out.
-        source = (
-            "import unittest\n\n"
-            "class TestProbe(unittest.TestCase):\n"
-            "    def test_ok(self):\n"
-            "        self.assertTrue(True)\n"
-        )
         tmp = str(make_tmp_dir(self))
-        with probe_module(tmp, "checks_guard_probe.py", source):
+        with probe_module(tmp, "checks_guard_probe.py", PROBE_TEST_MODULE_SOURCE):
             self.assertEqual(
                 misnamed_test_modules(tmp), ["checks_guard_probe"]
             )
@@ -371,14 +376,10 @@ class TestSuiteDiscovery(unittest.TestCase):
         # The reverse mistake inside a package: a module that defines tests but
         # does not match test*.py is never imported by discovery, so its tests
         # silently never run.
-        source = (
-            "import unittest\n\n"
-            "class TestProbe(unittest.TestCase):\n"
-            "    def test_ok(self):\n"
-            "        self.assertTrue(True)\n"
-        )
         tmp = str(make_tmp_dir(self))
-        with probe_package(tmp, "guard_probe_pkg", {"checks_probe.py": source}):
+        with probe_package(
+            tmp, "guard_probe_pkg", {"checks_probe.py": PROBE_TEST_MODULE_SOURCE}
+        ):
             self.assertEqual(
                 misnamed_test_modules(tmp), ["guard_probe_pkg.checks_probe"]
             )
