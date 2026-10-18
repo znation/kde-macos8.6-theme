@@ -14,14 +14,14 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from allocation_fixtures import peak_allocation
-from error_assertions import error_message
-from process_assertions import assert_failed
-from tmp_dir import make_tmp_dir
+from support.allocation_fixtures import peak_allocation
+from support.error_assertions import error_message
+from support.process_assertions import assert_failed
+from support.tmp_dir import make_tmp_dir
 
-import repo_root
+from support import repo_root
 from tools import png  # noqa: E402
-from png_fixtures import rgb_image  # noqa: E402
+from support.png_fixtures import rgb_image  # noqa: E402
 
 
 class TestReadPng(unittest.TestCase):

@@ -296,7 +296,7 @@ comparison pass from the documentation alone.
 cd <repo>
 python3 - <<'PY'
 import sys; sys.path[:0] = ['.', 'tests']
-from png_fixtures import make_png, rgb_image
+from support.png_fixtures import make_png, rgb_image
 ref, ref_png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
 open('/tmp/ref.png', 'wb').write(ref_png)
 c = bytearray(ref.rgb); c[4] = 50  # pixel (1,0) green: 0 -> 50

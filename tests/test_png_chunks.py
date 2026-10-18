@@ -19,9 +19,9 @@ import struct
 import unittest
 import zlib
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
-from png_fixtures import (  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
     decode_error,

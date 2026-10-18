@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import unittest
 
-from splash_fixtures import object_source, qml_unit_expression, read_qml
+from support.splash_fixtures import object_source, qml_unit_expression, read_qml
 
 
 class TestSplashQml(unittest.TestCase):

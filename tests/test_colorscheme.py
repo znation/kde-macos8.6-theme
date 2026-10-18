@@ -11,7 +11,7 @@ import os
 import re
 import unittest
 
-from colorscheme_fixtures import SCHEME, load_scheme
+from support.colorscheme_fixtures import SCHEME, load_scheme
 
 # configparser reads the KDE `[Colors:Header][Inactive]` header greedily, so the
 # section key includes the inner bracket pair.

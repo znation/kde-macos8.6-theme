@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import unittest
 
-from desktoptheme_paths import TABBAR_SVG
-from nine_slice_case import NineSliceCase
-from platinum_palette import assert_fill_palette
+from support.desktoptheme_paths import TABBAR_SVG
+from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import assert_fill_palette
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_band_pixels,

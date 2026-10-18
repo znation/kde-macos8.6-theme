@@ -5,9 +5,9 @@ from __future__ import annotations
 import os
 import unittest
 
-from desktoptheme_paths import LINE_SVG
-from platinum_palette import hex_colour
-from reference_image import ReferenceScreenshotMixin
+from support.desktoptheme_paths import LINE_SVG
+from support.platinum_palette import hex_colour
+from support.reference_image import ReferenceScreenshotMixin
 from svg_assertions import (
     assert_ids_present,
     assert_no_external_references,
@@ -20,8 +20,8 @@ from svg_assertions import (
     pixel_map,
     render_slices,
 )
-from svg_case import SvgCase
-from theme_install import ROOT
+from support.svg_case import SvgCase
+from support.theme_install import ROOT
 
 DARK = "#888888"
 LIGHT = "#FFFFFF"

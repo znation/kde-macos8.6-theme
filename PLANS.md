@@ -50,7 +50,7 @@ than falling back to Kvantum's compiled-in default shapes. Part 4/4 then selects
   fill attributes: the frame elements `tab`, `tabframe`, `menu`, `group`, `tooltip`, `itemview` and
   `toolbar` ship their centre and eight slices; the interior elements `menuitem` and `menubaritem`
   ship the state ids Kvantum renders for them.
-- Add `SELECTION = "#CCCCFF"` to `tests/platinum_palette.py` beside `TROUGH` and `TOOLTIP_FACE`,
+- Add `SELECTION = "#CCCCFF"` to `tests/support/platinum_palette.py` beside `TROUGH` and `TOOLTIP_FACE`,
   its docstring naming `[Colors:Selection] BackgroundNormal` as the source.
 - Extend `tests/test_kvantum.py`: add the uniform sections to `CORE_FRAME_MARGINS` and pin the menu
   bar's 0/2 margins in a named assertion; add the new elements to `FRAME_STATES`/`INTERIOR_STATES`;
@@ -59,7 +59,7 @@ than falling back to Kvantum's compiled-in default shapes. Part 4/4 then selects
 
 **Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
 `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/test_kvantum.py`,
-`tests/platinum_palette.py`.
+`tests/support/platinum_palette.py`.
 
 **Acceptance criteria.**
 - The `.kvconfig` holds the new sections, each uniform raised frame resolving to 2px and each
@@ -245,7 +245,7 @@ part 4, so a machine without Kvantum is unaffected.
      `disabled.text.color` `#888888` (`[Colors:Button] ForegroundInactive`),
      `tooltip.base.color` `#FFFFCC` (`[Colors:Tooltip] BackgroundNormal`), `link.color` `#0000EE`,
      `link.visited.color` `#551A8B`; the bevel roles `light.color=#FFFFFF`
-     (`tests/platinum_palette.WHITE`) and `dark.color=#999999` (`platinum_palette.GREY`).
+     (`tests/support/platinum_palette.WHITE`) and `dark.color=#999999` (`platinum_palette.GREY`).
    - Core-control sections, `inherits=PanelButtonCommand` where `default.kvconfig` does:
      `[PanelButtonCommand]` (`frame.element=button`, `interior.element=button`,
      `frame.top/bottom/left/right=2`, `indicator.element=arrow`, `indicator.size=9`, black text in
@@ -266,7 +266,7 @@ part 4, so a machine without Kvantum is unaffected.
    directory, so the package-directory swap of `install_package` does not fit), and in `_uninstall`
    remove them and their staging names. `install -d` the `themes/$(KVANTUM_ID)/Kvantum` path; leave
    the shared `themes/` parent alone.
-4. `tests/test_kvantum.py` (new): parse the `.kvconfig` with `tests/kde_config.read`; assert every
+4. `tests/test_kvantum.py` (new): parse the `.kvconfig` with `tests/support/kde_config.read`; assert every
    `[GeneralColors]` key equals the `MacOS8.colors` value or `platinum_palette` constant named in
    the mapping above; assert `[%General] scroll_width == "16"` and `scroll_arrows == "true"`; assert
    each core section's `frame.top/bottom/left/right` is `"2"` (`[Focus]` is `"1"`); parse the SVG
@@ -410,7 +410,7 @@ inherits Breeze. The Apple-logo kicker icon is out of scope.
 
 **Files touched.** `theme/icons/org.macos8.desktop/` (new), `PLACEHOLDERS.md` (new),
 `contents/defaults`, `tests/test_lookandfeel.py`, `tests/test_icon_theme.py` (new),
-`tests/theme_install.py`, `tests/install_lifecycle_cases.py`, `tests/test_theme_install.py`,
+`tests/support/theme_install.py`, `tests/support/install_lifecycle_cases.py`, `tests/test_theme_install.py`,
 `Makefile`, `README.md`.
 
 **Out of scope.** The Apple-logo kicker icon; final icon art (the replacement entry under
@@ -458,7 +458,7 @@ committed or pushed, so other clones and contributors are unaffected.
 `README.md`.
 
 **Acceptance criteria.**
-- In a throwaway `git init` repo (under `tests/tmp_dir.py`), `tools/local_hook.py install` creates
+- In a throwaway `git init` repo (under `tests/support/tmp_dir.py`), `tools/local_hook.py install` creates
   an executable `<hooks>/post-commit` whose bytes carry the marker and whose body names `make
   apply`; a second install succeeds and leaves the bytes unchanged.
 - An existing non-marker `post-commit` makes both `install` and `uninstall` exit non-zero naming
@@ -505,7 +505,7 @@ applications reread the new files.
 **Acceptance criteria.**
 - `tools/apply_theme.py` invokes the four commands in the order above, never passes `--resetLayout`,
   and defaults `DBUS_SESSION_BUS_ADDRESS` only under the three conditions above. Test with fake
-  executables on `PATH` built like `tests/process_runner.py`'s fakes, recording each argv.
+  executables on `PATH` built like `tests/support/process_runner.py`'s fakes, recording each argv.
 - A missing required tool exits 2 naming it; a failing command exits 1 and prints its output tail;
   a missing `qdbus6`/`qdbus` only prints a note and still exits 0.
 - `make apply DESTDIR=<dir>` exits non-zero with a diagnostic naming `DESTDIR`, and does not run
@@ -575,7 +575,7 @@ known limits.
     twelve `north-hint-*` rects;
   - add a `NORTH_EDGE_PIXELS` table and a test that pins every pixel of the nine `north-`
     slices with `render_slices`/`assert_slice_pixels`/`pixel_map`;
-  - add a `ReferenceScreenshotMixin` test (`tests/reference_image.py`; it skips when the LFS
+  - add a `ReferenceScreenshotMixin` test (`tests/support/reference_image.py`; it skips when the LFS
     image is missing) on `desktop_betawiki.png`. Using the mixin's `pixel(x, y)`, it checks that each
     pixel of column 10 rows 0..17 equals the matching `north-center` row, and that rows 18..19
     equal `north-bottom`'s two rows.
@@ -711,7 +711,7 @@ by `TestPanelHeightMatchesReference`.
      slices, f"{prefix}-{name}", pixel_map((colour,) * (w * h), w, h))`, as the shared helper's
      body does. Do not change the shared helper.
    - Add `TestMenuTitleSpacingMatchesReference(ReferenceScreenshotMixin, unittest.TestCase)`
-     (from `tests/reference_image.py`) with `REFERENCE` = the `desktop_betawiki.png` path (built
+     (from `tests/support/reference_image.py`) with `REFERENCE` = the `desktop_betawiki.png` path (built
      from `theme_install.ROOT` as `tests/test_lookandfeel_layout.py` does). Add a module helper
      `title_gaps(image)` that applies the scan rule from Grounding with `png.pixel_at` and
      returns the blank-gap list. Tests:
@@ -935,7 +935,7 @@ that no pixel is screenshot-anchored.
 
 **Files touched.**
 - The two SVGs above.
-- `tests/desktoptheme_paths.py`: add `TOOLTIP_SVG` (`widgets/tooltip.svg`) and
+- `tests/support/desktoptheme_paths.py`: add `TOOLTIP_SVG` (`widgets/tooltip.svg`) and
   `SOLID_TOOLTIP_SVG` (`solid/widgets/tooltip.svg`).
 - `tests/test_desktoptheme.py`:
   - Add both paths to `SVG_CANVASES` at 16x16, and update the comment above it, which counts
@@ -953,7 +953,7 @@ that no pixel is screenshot-anchored.
     ints. This ties the artwork to the colour scheme, so changing one without the other fails.
   - `test_solid_copy_is_identical`: the bytes of `SOLID_TOOLTIP_SVG` equal those of
     `TOOLTIP_SVG`.
-  Define `TOOLTIP_FACE = "#FFFFCC"` in `tests/platinum_palette.py`, with a comment saying it is
+  Define `TOOLTIP_FACE = "#FFFFCC"` in `tests/support/platinum_palette.py`, with a comment saying it is
   the `[Colors:Tooltip]` KDE-required role and is not screenshot-sampled.
 - `README.md`: in the desktop-theme paragraph, after the `widgets/background.svg` sentence, name
   `` `widgets/tooltip.svg` `` (the flat `#FFFFCC` Platinum tooltip with a black outline, for
@@ -1107,10 +1107,10 @@ center-only SVG renders 1:1.
   - Update each file's header comment with the new canvas and the provenance above.
 - `shade.svg`, `close.svg` and `decoration.svg` are untouched.
 
-**Tests** (`tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc}.py`):
+**Tests** (`tests/support/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc}.py`):
 - Add `ReferenceImageCase.profiler_region(x0, y0, width, height)`, returning region-local
   `{(x, y): '#RRGGBB'}`, and make `profiler_box` call it.
-- Add a constant `ZOOM_BOX_X = 5` to `tests/aurorae_fixtures.py`, the face's local x in the zoom canvas.
+- Add a constant `ZOOM_BOX_X = 5` to `tests/support/aurorae_fixtures.py`, the face's local x in the zoom canvas.
 - `TestRc.test_button_spacing_matches_reference` (`test_aurorae_rc.py`): keep the derivation of the 3-column gap
   between the zoom highlight and the collapse face. Assert `ButtonSpacing` is `0`, and that the
   derived gap equals `ButtonWidthMaximizeRestore - ZOOM_BOX_X - 13`.
@@ -1135,7 +1135,7 @@ collapse widgets are 13x13 and the zoom widget is 21x13: its box plus the stripe
 its left and the flat spacing to its right.
 
 **Files touched.** `theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc`, `maximize.svg`,
-`restore.svg`, `tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc}.py`, `README.md`.
+`restore.svg`, `tests/support/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc}.py`, `README.md`.
 
 **Acceptance criteria.**
 - The rc has `ButtonSpacing=0`, `ButtonWidthMaximizeRestore=21` and `ButtonWidth=13`, each
@@ -1158,7 +1158,7 @@ brief asks for pixel fidelity, so the gap ships.
   decision.
 - The cleared band around the title text. Aurorae has no title-background element.
 
-**Implementation note (2026-10-17, feature).** Landed as planned. The zoom SVGs' x attributes were shifted by +5 mechanically and the gap and spacing rects added; `ZOOM_BOX_X` and the profiler-derived `ButtonWidthMaximizeRestore` test are in `tests/aurorae_fixtures.py` and `tests/test_aurorae_rc.py`.
+**Implementation note (2026-10-17, feature).** Landed as planned. The zoom SVGs' x attributes were shifted by +5 mechanically and the gap and spacing rects added; `ZOOM_BOX_X` and the profiler-derived `ButtonWidthMaximizeRestore` test are in `tests/support/aurorae_fixtures.py` and `tests/test_aurorae_rc.py`.
 
 ### Grow the Aurorae title-bar boxes to 13x13 with their white highlight (planned 2026-10-17 by the plan role; done 2026-10-17)
 
@@ -1202,10 +1202,10 @@ its own highlight.
    corner, y=4..16. Change no artwork.
 4. README.md: replace "12x12 close/zoom/collapse widgets" with 13x13, and mention the highlight.
 
-**Tests (`tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc,frame}.py`).** Measure every size from the reference, not from
+**Tests (`tests/support/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc,frame}.py`).** Measure every size from the reference, not from
 constants:
 - Change the `profiler_box` / `reference_box` default `size` to 13 (in `ReferenceImageCase`,
-  `tests/aurorae_fixtures.py`). `TestButtons` (`test_aurorae_buttons.py`) then compares
+  `tests/support/aurorae_fixtures.py`). `TestButtons` (`test_aurorae_buttons.py`) then compares
   every pixel of the 13x13 boxes, highlight included: close (11,29) and (213,26), zoom (781,26),
   collapse (343,29) and (797,26). Update the docstring.
 - `TestRc._close_box_size` (`test_aurorae_rc.py`) → return the button size: the `#888888` bounding box plus the
@@ -1225,7 +1225,7 @@ constants:
   the new pixels to the image, separately from the whole-box comparison.
 
 **Files touched.** The four button SVGs, `org.macos8.desktoprc`, the `decoration.svg` comment,
-`tests/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc,frame}.py`, and README.md.
+`tests/support/aurorae_fixtures.py`, `tests/test_aurorae_{buttons,rc,frame}.py`, and README.md.
 
 **Acceptance criteria.**
 - Each button SVG's root canvas is 13x13. Its `active-center` render equals the reference
@@ -1414,7 +1414,7 @@ paints a background fill plus a 1px `ColorScheme-Text` line in the last row of `
      same rects at `y="0"` and `y="1"`. The placeholder comes first, so `render_slices` reads its
      rows as `None` and its bounding box gives each tile its full 3px extent. No `class=`,
      `<style>`, `<script>`, rect `transform` or other id.
-2. `tests/desktoptheme_paths.py`: add
+2. `tests/support/desktoptheme_paths.py`: add
    `PLASMOIDHEADING_SVG = os.path.join(PACKAGE, "widgets", "plasmoidheading.svg")` beside
    `LINE_SVG`.
 3. `tests/test_desktoptheme.py`: import it; add `("plasmoidheading.svg", PLASMOIDHEADING_SVG,
@@ -1432,7 +1432,7 @@ paints a background fill plus a 1px `ColorScheme-Text` line in the last row of `
    fails until README names it.
 
 **Files touched.** New: `widgets/plasmoidheading.svg`,
-`tests/test_desktoptheme_plasmoidheading.py`. Edited: `tests/desktoptheme_paths.py`,
+`tests/test_desktoptheme_plasmoidheading.py`. Edited: `tests/support/desktoptheme_paths.py`,
 `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move this entry to Done). The Makefile does
 not change: `make install` already copies the whole widgets directory.
 
@@ -1509,7 +1509,7 @@ The rule is therefore 2px thick: dark first (top / left), white second (bottom /
    - Column 2 stays empty so the two elements' bounds do not touch. Rects carry no `id`, no
      `transform`, and literal `fill` attributes. No `class=`, `<style>`, `<script>`, `style=`
      attribute, hint rect or any other id.
-2. `tests/desktoptheme_paths.py`: add `LINE_SVG = os.path.join(PACKAGE, "widgets", "line.svg")`
+2. `tests/support/desktoptheme_paths.py`: add `LINE_SVG = os.path.join(PACKAGE, "widgets", "line.svg")`
    beside `ARROWS_SVG`.
 3. `tests/test_desktoptheme.py`: import `LINE_SVG`; add `("line.svg", LINE_SVG, 4, 2)` to
    `SVG_CANVASES` (and mention the 4x2 canvas in the comment above it); add
@@ -1521,14 +1521,14 @@ The rule is therefore 2px thick: dark first (top / left), white second (bottom /
    - `TestLineReference(unittest.TestCase)`: `setUpClass` calls
      `reference_image.read_reference(REFERENCE)`, `setUp` calls `skip_unless_materialized`, and a
      `pixel` helper wraps `png.pixel_at` (follow `SplashReferenceCase` in
-     `tests/splash_fixtures.py`).
+     `tests/support/splash_fixtures.py`).
 5. `README.md`: in the Installing section's desktop-theme inventory, name `widgets/line.svg`
    (the 2px Platinum etched separator, `#888888` then `#FFFFFF`, that list section headers,
    spin boxes and the kicker, system-tray and notification separators draw).
    `tests/test_readme_theme_files.py` fails until README names it.
 
 **Files touched.** New: `widgets/line.svg`, `tests/test_desktoptheme_line.py`. Edited:
-`tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move this
+`tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move this
 entry to Done). The Makefile does not change: `make install` already copies the whole widgets
 directory.
 
@@ -1660,7 +1660,7 @@ exist on this machine. On 2026-10-17 the director probed it with no display serv
   spectacle -b -n -f -o <out.png>'"`.
 
 The result was a 320x240 PNG showing the Platinum Aurorae title bar and Platinum push buttons. The
-window body pixels sampled `#DDDDDD` (`tests/platinum_palette.py` `FACE`). Without the seeded
+window body pixels sampled `#DDDDDD` (`tests/support/platinum_palette.py` `FACE`). Without the seeded
 config the same capture rendered Breeze. Two things did not work, and the approach avoids them:
 - `plasma-apply-colorscheme` run *outside* the KWin session dumped core.
 - `lookandfeeltool -a` run inside the session wrote `kdeglobals` but not the `kwinrc`
@@ -1696,7 +1696,7 @@ size and writes it as the candidate PNG `tools/fidelity.py` consumes. Pin it wit
     4. `spectacle -b -n -f -o <OUTPUT>`.
   - The child environment drops `WAYLAND_DISPLAY` and `DISPLAY` and sets the three `XDG_*` paths.
     The child runs in its own session (`start_new_session=True`). On `--timeout` the script
-    kills the whole process group, as `tests/process_runner.py` does, and exits 1.
+    kills the whole process group, as `tests/support/process_runner.py` does, and exits 1.
   - Before launching, the script checks every external binary above with `shutil.which` and
     exits 2 naming the first one missing.
   - After the run it checks that `OUTPUT` exists and decodes with `tools/png.py` `read_png` at
@@ -1762,7 +1762,7 @@ theme selects it.
   - In `_uninstall`, add the matching `rm -rf` of the package and its `.staging`/`.old`
     siblings, the same way as the Aurorae line.
   - Update the `_uninstall` comment's list of shared parents.
-- `tests/theme_install.py`: add `installed_wallpaper_dir(destdir)`
+- `tests/support/theme_install.py`: add `installed_wallpaper_dir(destdir)`
   (`<destdir>/<XDG_DATA_HOME>/wallpapers`) and `installed_wallpaper(destdir, package_id)`,
   modelled on `installed_aurorae_dir` / `installed_aurorae_theme`.
 - `tests/test_wallpaper.py`: add
@@ -1772,7 +1772,7 @@ theme selects it.
   - `PACKAGE_ID`
   - `PACKAGE_DIR`
   - `INSTALLED_FILES`: `metadata.json` and `contents/images/1024x768.png` (add more only if
-    the cases accept nested paths; check `tests/install_lifecycle_cases.py`)
+    the cases accept nested paths; check `tests/support/install_lifecycle_cases.py`)
   - `COPY_FAILURE_GLOB = "*/wallpapers/*"`
   - overrides of `installed_parent` / `installed_package_dir`
 - `tests/test_theme_install.py`: the spaced-root lifecycle test that asserts the scheme, the
@@ -1792,7 +1792,7 @@ theme selects it.
   `tests/test_readme_theme_files.py` and `tests/test_readme_commands.py` green.
 
 **Files touched.** `Makefile`, `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
-`tests/theme_install.py`, `tests/test_wallpaper.py`, `tests/test_theme_install.py`,
+`tests/support/theme_install.py`, `tests/test_wallpaper.py`, `tests/test_theme_install.py`,
 `tests/test_lookandfeel.py`, `README.md`.
 
 **Acceptance criteria.**
@@ -1874,11 +1874,11 @@ would blur the 1-px dither. This follows Breeze's `Next` package, which ships
   - `encode_png` output decodes with `tools.png.decode_png` back to the same width, height and
     `rgb`, for a 1x1 image and for a multi-row image of distinct pixels.
   - A wrong-length `rgb`, a zero dimension and a `bool` dimension each raise `ValueError`.
-- `tests/test_wallpaper.py`, `TestMetadata`: reuse `tests/package_metadata.PackageMetadata` the
+- `tests/test_wallpaper.py`, `TestMetadata`: reuse `tests/support/package_metadata.PackageMetadata` the
   way `tests/test_lookandfeel.py::TestMetadata` does. Pin `KPackageStructure == "Wallpaper/Images"`
   and `Id == "org.macos8.desktop"`.
 - `tests/test_wallpaper.py`, `TestImages` (each read goes through
-  `tests/reference_image.skip_unless_materialized`, since the shipped PNGs are LFS objects):
+  `tests/support/reference_image.skip_unless_materialized`, since the shipped PNGs are LFS objects):
   - `contents/images/` holds exactly `<W>x<H>.png` for each of `make_wallpaper.RESOLUTIONS`.
   - Each image decodes to its named size.
   - Each image's `rgb` equals `make_wallpaper.tiled_rgb(tile, W, H)`, where `tile` is the
@@ -1959,7 +1959,7 @@ tall (the thumbnail's 4 rows / 0.375 ≈ 10.7), with 3px nine-slice borders.
      top-right pixel (0-based (9,0)) and the bottom-left pixel ((0,9)), and the light edge takes
      the bottom-right pixel ((9,9)).
    - Leave out `class=`, `<style>`, `<script>`, any `-inset` hint and any other prefix.
-2. `tests/desktoptheme_paths.py`: add `BAR_METER_HORIZONTAL_SVG = os.path.join(PACKAGE, "widgets",
+2. `tests/support/desktoptheme_paths.py`: add `BAR_METER_HORIZONTAL_SVG = os.path.join(PACKAGE, "widgets",
    "bar_meter_horizontal.svg")` beside `SLIDER_SVG`.
 3. `tests/test_desktoptheme.py`: import it, add `("bar_meter_horizontal.svg",
    BAR_METER_HORIZONTAL_SVG, 10, 10)` to `SVG_CANVASES`, and add `os.path.join("widgets",
@@ -1968,13 +1968,13 @@ tall (the thumbnail's 4 rows / 0.375 ≈ 10.7), with 3px nine-slice borders.
    (follow `tests/test_desktoptheme_slider.py`), with `SVG_PATH = BAR_METER_HORIZONTAL_SVG` and
    `PREFIXES = ("bar-inactive", "bar-active")`, plus a `TestProgressBarReference` class that reads
    the reference through `tools.png` and calls `reference_image.skip_unless_materialized`
-   (follow the `pixel` helper in `tests/splash_fixtures.py`).
+   (follow the `pixel` helper in `tests/support/splash_fixtures.py`).
 5. `README.md`: in the Installing section's desktop-theme inventory, name
    `widgets/bar_meter_horizontal.svg` (the sunken grey Platinum track with a lavender fill for
    `PlasmaComponents.ProgressBar`).
 
 **Files touched.** New: `widgets/bar_meter_horizontal.svg`, `tests/test_desktoptheme_progressbar.py`.
-Edited: `tests/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move
+Edited: `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`, `PLANS.md` (move
 this entry to Done). Nothing in the Makefile changes, because `cp -r` already installs new widget
 files. No shared assertion helper changes: the tests below use only existing `svg_assertions` exports.
 
@@ -2007,7 +2007,7 @@ files. No shared assertion helper changes: the tests below use only existing `sv
 
 **Planned 2026-10-16 by plan.** Independent of every done widget plan and of the planned
 `tabbar`/`toolbar` plans: it adds one artwork file to the existing `org.macos8.desktop`
-desktop-theme package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new
+desktop-theme package under `widgets/`, one path constant in `tests/support/desktoptheme_paths.py`, a new
 test module under `tests/` (`test_desktoptheme_arrows.py`) with the `TestArrows` class, one
 `SVG_CANVASES` entry and one `TestInstall.INSTALLED_FILES` tuple entry in
 `tests/test_desktoptheme.py`, and the README inventory lines. It touches no other `widgets/*.svg`,
@@ -2063,7 +2063,7 @@ attributes the pixel and palette tests can read; the Platinum file paints the fi
    the file a header comment naming `widgets/arrows`, the two consumers and the provenance above.
    Use no `class`, `currentColor`, `<style>`, `<script>` or external reference.
 2. Add `ARROWS_SVG = os.path.join(PACKAGE, "widgets", "arrows.svg")` to
-   `tests/desktoptheme_paths.py`.
+   `tests/support/desktoptheme_paths.py`.
 3. Add the new module `tests/test_desktoptheme_arrows.py` with
    `TestArrows(SvgCase, unittest.TestCase)`, `SVG_PATH = ARROWS_SVG`, modelled on
    `tests/test_desktoptheme_checkmarks.py`:
@@ -2107,7 +2107,7 @@ attributes the pixel and palette tests can read; the Platinum file paints the fi
 **Planned 2026-10-15 by plan; implemented 2026-10-17 by the feature role.** The follow-up the done menubaritem plan named alongside
 `tabbar`/`tooltip`/`actionbutton`/`busy`/`switch`. Independent of every done widget plan and of the
 planned `tabbar` plan: it adds one artwork file to the existing `org.macos8.desktop` desktop-theme
-package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new test module
+package under `widgets/`, one path constant in `tests/support/desktoptheme_paths.py`, a new test module
 under `tests/` (`test_desktoptheme_toolbar.py`) with the `TestToolBar` class, one `SVG_CANVASES` entry and one
 `TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the README inventory
 lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`, `metadata.json`, or the color
@@ -2151,7 +2151,7 @@ unprefixed nine-slice on a 40x40 canvas: `hint-tile-center` plus `top`/`bottom`/
    on bottom/right). Copy `dialogs/background.svg`'s slice geometry and give the file its own
    header comment naming `widgets/toolbar` and the provenance above.
 2. Add `TOOLBAR_SVG = os.path.join(PACKAGE, "widgets", "toolbar.svg")` to
-   `tests/desktoptheme_paths.py`.
+   `tests/support/desktoptheme_paths.py`.
 3. Add the new module under `tests/` (`test_desktoptheme_toolbar.py`) with `TestToolBar(NineSliceCase, unittest.TestCase)`,
    `SVG_PATH = TOOLBAR_SVG`, `PREFIXES = ("",)`, modelled on `tests/test_desktoptheme_dialog.py`:
    - `test_toolbar_hint_geometry`: `assert_hint_geometry(self, self.tree, [""], 3, 10)`.
@@ -2187,7 +2187,7 @@ unprefixed nine-slice on a 40x40 canvas: `hint-tile-center` plus `top`/`bottom`/
 **Planned 2026-10-15 by plan.** The next follow-up the done menubaritem plan named ("then
 `tabbar`, `tooltip`, and the `actionbutton`/`busy`/`switch` surfaces"). Independent of every
 done widget plan: it adds one artwork file to the existing `org.macos8.desktop` desktop-theme
-package under `widgets/`, one path constant in `tests/desktoptheme_paths.py`, a new
+package under `widgets/`, one path constant in `tests/support/desktoptheme_paths.py`, a new
 test module under `tests/` (`test_desktoptheme_tabbar.py`) with the `TestTabBar` class, one `SVG_CANVASES`
 entry and one `TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the
 README inventory lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`,
@@ -2247,7 +2247,7 @@ interchangeable.
      (so a north `bottomleft` is three `#000000 #FFFFFF #DDDDDD` rows, a north `bottomright`
      three `#DDDDDD #999999 #000000` rows, and east/west transpose the same rule).
 2. Add `TABBAR_SVG = os.path.join(PACKAGE, "widgets", "tabbar.svg")` to
-   `tests/desktoptheme_paths.py`.
+   `tests/support/desktoptheme_paths.py`.
 3. Add the new test module `test_desktoptheme_tabbar.py` under `tests/` with `TestTabBar(NineSliceCase, unittest.TestCase)`,
    `SVG_PATH = TABBAR_SVG`, `PREFIXES = ("north-active-tab", "south-active-tab",
    "east-active-tab", "west-active-tab")`, modelled on `tests/test_desktoptheme_frame.py`:
@@ -2290,7 +2290,7 @@ interchangeable.
 **Planned 2026-10-09 by plan.** The follow-up the done viewitem plan left unplanned.
 Independent of every done widget plan: it adds one artwork file to the existing
 `org.macos8.desktop` desktop-theme package under `widgets/`, one path constant in
-`tests/desktoptheme_paths.py`, a new `tests/test_desktoptheme_menubaritem.py` module with
+`tests/support/desktoptheme_paths.py`, a new `tests/test_desktoptheme_menubaritem.py` module with
 the `TestMenuBarItem` class, one `SVG_CANVASES` entry and one
 `TestInstall.INSTALLED_FILES` tuple entry in `tests/test_desktoptheme.py`, and the README
 inventory lines. It touches no other `widgets/*.svg`, `dialogs/background.svg`,
@@ -2354,7 +2354,7 @@ uniform 6px border and a 22x22 centre tile.
      `{normal,hover,pressed}-hint-{top,bottom,left,right}-margin` at the 3px edges,
      identical for all three states.
 2. Add `MENUBARITEM_SVG = os.path.join(PACKAGE, "widgets", "menubaritem.svg")` to
-   `tests/desktoptheme_paths.py`.
+   `tests/support/desktoptheme_paths.py`.
 3. Add `tests/test_desktoptheme_menubaritem.py` with
    `TestMenuBarItem(NineSliceCase, unittest.TestCase)`, `SVG_PATH = MENUBARITEM_SVG`,
    `PREFIXES = ("normal", "hover", "pressed")`, modelled on

@@ -12,10 +12,10 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from install_lifecycle_cases import InstallLifecycleCases
-from kde_config import read as read_kde_config
-from platinum_palette import PLATINUM_FILLS
-from shipped_files import shipped_files
+from support.install_lifecycle_cases import InstallLifecycleCases
+from support.kde_config import read as read_kde_config
+from support.platinum_palette import PLATINUM_FILLS
+from support.shipped_files import shipped_files
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -23,7 +23,7 @@ from svg_assertions import (
     assert_unique_ids,
     attribute_values,
 )
-from theme_install import (
+from support.theme_install import (
     ROOT,
     installed_icon_theme,
     installed_icons_dir,

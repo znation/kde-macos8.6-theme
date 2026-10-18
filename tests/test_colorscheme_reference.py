@@ -9,9 +9,9 @@ pinned by ``test_colorscheme`` alone.
 import os
 import unittest
 
-from colorscheme_fixtures import ROOT, load_scheme
-from error_assertions import assert_error_names
-from reference_image import skip_unless_materialized
+from support.colorscheme_fixtures import ROOT, load_scheme
+from support.error_assertions import assert_error_names
+from support.reference_image import skip_unless_materialized
 
 from tools import png  # noqa: E402
 

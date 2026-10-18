@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import unittest
 
-from error_assertions import error_message
+from support.error_assertions import error_message
 from svg_assertions import (
     RAISED_FACE_CORNERS,
     face_corners,

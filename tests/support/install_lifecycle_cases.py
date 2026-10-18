@@ -11,9 +11,9 @@ the package along with any staging/old leftovers. Each suite subclasses
 
 import os
 
-from process_assertions import assert_succeeded
-from shipped_files import shipped_files
-from theme_install import (
+from support.process_assertions import assert_succeeded
+from support.shipped_files import shipped_files
+from support.theme_install import (
     InstalledPackageLocation,
     assert_files_identical,
     install,

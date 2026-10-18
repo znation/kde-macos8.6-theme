@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import unittest
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
-from png_fixtures import (  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
     decode_error,
     make_png,
     rgb_from_rows,

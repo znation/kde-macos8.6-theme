@@ -11,8 +11,8 @@ here pins the painted result.
 
 from __future__ import annotations
 
-from nine_slice_case import NineSliceCase
-from platinum_palette import FACE, assert_fill_palette
+from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import FACE, assert_fill_palette
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,

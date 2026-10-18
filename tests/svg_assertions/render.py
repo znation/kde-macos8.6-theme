@@ -7,7 +7,7 @@ test can compare a slice's pixels against an expected tile.
 
 from __future__ import annotations
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.ints import is_plain_int
 
 from .tree import _numeric_attribute, children_named, groups_with_id

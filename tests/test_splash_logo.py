@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import unittest
 
-from splash_fixtures import LOGO
-from svg_case import SvgCase
+from support.splash_fixtures import LOGO
+from support.svg_case import SvgCase
 
 from svg_assertions import (  # noqa: E402
     assert_no_external_references,

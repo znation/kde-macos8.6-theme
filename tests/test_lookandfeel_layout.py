@@ -14,8 +14,8 @@ import os
 import re
 import unittest
 
-from reference_image import ReferenceScreenshotMixin
-from theme_install import ROOT
+from support.reference_image import ReferenceScreenshotMixin
+from support.theme_install import ROOT
 
 from tools import make_wallpaper, png  # noqa: E402
 

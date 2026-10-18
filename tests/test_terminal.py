@@ -9,7 +9,7 @@ format is caught here instead of silently weakening the tools' terminal safety.
 
 import unittest
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import terminal
 
 

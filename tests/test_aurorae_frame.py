@@ -17,15 +17,15 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from aurorae_fixtures import (
+from support.aurorae_fixtures import (
     AURORAE_DIR,
     DECORATION_SVG,
     INACTIVE_GREY,
     ReferenceImageCase,
 )
-from nine_slice_case import NineSliceCase
-from platinum_palette import hex_colour
-from tmp_dir import make_tmp_dir
+from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import hex_colour
+from support.tmp_dir import make_tmp_dir
 from svg_assertions import (
     SLICE_IDS,
     assert_ids_present,

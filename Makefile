@@ -98,14 +98,14 @@ endef
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
 # so a focused run does not need `python3 -m unittest discover -s tests ...`
-# (the test modules import each other by bare name, so they only run under
-# `discover`, not as `python3 -m unittest tests.<module>`).
+# (the test modules import the `support` package, which needs `tests/` on
+# `sys.path`; `discover` and the CHECK_TESTS path below both provide that).
 CHECK_PATTERN ?= test*.py
 
 # A caller who wants one test module, class or method rather than a whole-file
 # glob sets CHECK_TESTS, e.g. `make check CHECK_TESTS=test_colorscheme.TestAnchors`
 # or `make check CHECK_TESTS='test_a test_b.TestC'`. The named specs run from
-# tests/ with the same interpreter, so the test modules' bare-name imports
+# tests/ with the same interpreter, so the test modules' `support` imports
 # resolve as they do under `discover`.
 CHECK_TESTS ?=
 

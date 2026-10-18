@@ -15,10 +15,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
-import process_runner
-from cli_fixtures import call_main
-from platinum_palette import FACE, hex_colour
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import process_runner
+from support.cli_fixtures import call_main
+from support.platinum_palette import FACE, hex_colour
 from tools import render_surface  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png_write import encode_png  # noqa: E402

@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import unittest
 
-from error_assertions import assert_error_names, error_message
+from support.error_assertions import assert_error_names, error_message
 from svg_assertions import _MAX_RENDERED_PIXELS, pixel_map, render_slices
-from svg_fixtures import _svg_tree
+from support.svg_fixtures import _svg_tree
 
 
 class TestRenderSlices(unittest.TestCase):

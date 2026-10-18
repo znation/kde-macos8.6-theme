@@ -1,7 +1,7 @@
 """Tests for tools/ints.py -- the shared genuine-integer predicate.
 
 ``tools/png.py``, ``tools/png_image.py``, ``tools/fidelity_metrics.py`` and the test helpers
-``tests/png_fixtures.py`` and the ``tests/svg_assertions/`` package all call
+``tests/support/png_fixtures.py`` and the ``tests/svg_assertions/`` package all call
 ``is_plain_int`` before using a caller-supplied number as a dimension,
 coordinate, channel or tolerance. Their own tests exercise the rejection
 through each caller's diagnostic, so none of them pins the predicate's
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import unittest
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import ints
 
 

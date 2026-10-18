@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import unittest
 
-from error_assertions import NoSubTest, assert_rejects
+from support.error_assertions import NoSubTest, assert_rejects
 from svg_assertions import (
     SLICE_IDS,
     assert_center_tile_is,
@@ -28,7 +28,7 @@ from svg_assertions import (
     face_edge_bands,
     pixel_map,
 )
-from svg_fixtures import _svg_tree
+from support.svg_fixtures import _svg_tree
 
 
 # A distinct three-colour band for the pixel-assertion tests, so a reversed

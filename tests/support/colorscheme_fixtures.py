@@ -8,8 +8,8 @@ here once instead of in each module.
 
 import os
 
-from kde_config import read as read_kde_config
-from repo_root import ROOT
+from support.kde_config import read as read_kde_config
+from support.repo_root import ROOT
 
 SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 

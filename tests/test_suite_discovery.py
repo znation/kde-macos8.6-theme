@@ -7,10 +7,9 @@ skipped: the run stays green while the file's tests, if the author meant it to
 have any, never execute. This module imports each pattern-matched file through
 the loader and fails naming the ones that collect nothing.
 
-Helper modules that hold shared cases but are not discovered themselves use the
-repository's other naming conventions (``*_fixtures.py``, ``*_case.py``,
-``*_assertions.py``, ``package_metadata.py``), so they do not match ``test*.py``
-and are not reported by the check above.
+Helper modules that hold shared cases but are not discovered themselves live in
+the ``tests/support/`` package (and the ``tests/svg_assertions/`` package), so
+they do not match ``test*.py`` and are not reported by the check above.
 
 The opposite mistake is guarded too: a file that defines test cases but does
 not match ``test*.py`` (say ``png_checks.py``) is never imported by discovery,
@@ -33,7 +32,7 @@ import re
 import sys
 import unittest
 
-from tmp_dir import make_tmp_dir
+from support.tmp_dir import make_tmp_dir
 
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -242,8 +241,8 @@ class TestSuiteDiscovery(unittest.TestCase):
             [],
             "these tests/test*.py modules define no test cases, so `make "
             "check` silently runs nothing from them; give each a "
-            "unittest.TestCase (or rename a pure helper to the repo's "
-            "*_fixtures.py/_case.py convention): "
+            "unittest.TestCase (or move a pure helper to the tests/support/ "
+            "package): "
             + ", ".join(empty),
         )
 
@@ -251,7 +250,7 @@ class TestSuiteDiscovery(unittest.TestCase):
         names = non_test_module_names(TESTS_DIR)
         # Without this, a broken directory listing would make the assertion
         # below pass vacuously (no modules checked, no misnamed ones found).
-        self.assertIn("repo_root", names)
+        self.assertIn("support.repo_root", names)
         misnamed = misnamed_test_modules(TESTS_DIR)
         self.assertEqual(
             misnamed,
@@ -259,7 +258,7 @@ class TestSuiteDiscovery(unittest.TestCase):
             "these tests/*.py modules define test cases but do not match "
             "`make check`'s test*.py discovery pattern, so their tests "
             "silently never run; rename each to test_*.py (or move shared "
-            "cases to the repo's *_fixtures.py/_case.py convention): "
+            "helpers to the tests/support/ package): "
             + ", ".join(misnamed),
         )
 

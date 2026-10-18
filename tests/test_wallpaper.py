@@ -6,12 +6,12 @@ import os
 import shutil
 import unittest
 
-from install_failure_cases import FailedInstallPreservesPackage
-from install_lifecycle_cases import InstallLifecycleCases
-from kpackage_install_case import KPackageInstallCase
-from package_metadata import PackageMetadata
-from reference_image import skip_unless_materialized
-from theme_install import ROOT, installed_wallpaper, installed_wallpaper_dir
+from support.install_failure_cases import FailedInstallPreservesPackage
+from support.install_lifecycle_cases import InstallLifecycleCases
+from support.kpackage_install_case import KPackageInstallCase
+from support.package_metadata import PackageMetadata
+from support.reference_image import skip_unless_materialized
+from support.theme_install import ROOT, installed_wallpaper, installed_wallpaper_dir
 
 from tools import make_wallpaper, png  # noqa: E402
 

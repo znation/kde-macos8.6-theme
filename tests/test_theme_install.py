@@ -13,9 +13,9 @@ import re
 import unittest
 import unittest.mock
 
-import theme_install
-from process_assertions import assert_failed, assert_succeeded
-from tmp_dir import make_tmp_dir
+from support import theme_install
+from support.process_assertions import assert_failed, assert_succeeded
+from support.tmp_dir import make_tmp_dir
 
 
 def _assert_both_targets_refused(case, env, args, expected):

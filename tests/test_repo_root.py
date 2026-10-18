@@ -1,4 +1,4 @@
-"""Tests for tests/repo_root.py -- the suite's repository-root bootstrap.
+"""Tests for tests/support/repo_root.py -- the suite's repository-root bootstrap.
 
 The test modules and their helpers reach the ``tools/`` package by its dotted
 name, which needs the repository root on ``sys.path``. ``repo_root`` computes
@@ -14,7 +14,7 @@ import os
 import sys
 import unittest
 
-import repo_root
+from support import repo_root
 
 
 class TestRepoRoot(unittest.TestCase):

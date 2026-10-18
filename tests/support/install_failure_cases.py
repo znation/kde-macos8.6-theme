@@ -10,15 +10,15 @@ assertions live here once.
 import os
 import shutil
 
-from process_assertions import assert_failed, assert_succeeded
-from theme_install import (
+from support.process_assertions import assert_failed, assert_succeeded
+from support.theme_install import (
     InstalledPackageLocation,
     install,
     old_sibling,
     shadow_command_env,
     staging_sibling,
 )
-from tmp_dir import make_tmp_dir
+from support.tmp_dir import make_tmp_dir
 
 
 def failing_cp_env(tmp, package_glob=None):

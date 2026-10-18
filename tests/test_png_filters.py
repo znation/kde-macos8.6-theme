@@ -15,11 +15,11 @@ import random
 import unittest
 from unittest import mock
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
 from tools import png_filters
-from error_assertions import assert_rejects_unequal_lengths  # noqa: E402
-from png_fixtures import _paeth, make_png, rgb_from_rows  # noqa: E402
+from support.error_assertions import assert_rejects_unequal_lengths  # noqa: E402
+from support.png_fixtures import _paeth, make_png, rgb_from_rows  # noqa: E402
 
 
 class TestUnfilterLanes(unittest.TestCase):

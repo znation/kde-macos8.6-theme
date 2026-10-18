@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import unittest
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import sample  # noqa: E402
-from cli_fixtures import CliTestCase  # noqa: E402
-from error_assertions import assert_escapes_escape_character  # noqa: E402
-from png_fixtures import (  # noqa: E402
+from support.cli_fixtures import CliTestCase  # noqa: E402
+from support.error_assertions import assert_escapes_escape_character  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
     control_named_missing,
     control_named_png,
     rgb_image,

@@ -1,4 +1,4 @@
-"""Tests for tests/package_metadata.py -- the shared `metadata.json` mixin.
+"""Tests for tests/support/package_metadata.py -- the shared `metadata.json` mixin.
 
 `test_lookandfeel`, `test_desktoptheme` and `test_wallpaper` each run these
 checks against their own real `metadata.json`, so the passing path is
@@ -13,8 +13,8 @@ import json
 import unittest
 from unittest import mock
 
-from package_metadata import PackageMetadata, kplugin, load_metadata
-from tmp_dir import make_tmp_dir
+from support.package_metadata import PackageMetadata, kplugin, load_metadata
+from support.tmp_dir import make_tmp_dir
 
 
 def _metadata():

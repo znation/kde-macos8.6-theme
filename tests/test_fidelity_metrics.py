@@ -10,14 +10,14 @@ from __future__ import annotations
 import random
 import unittest
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import fidelity_metrics
-from error_assertions import (  # noqa: E402
+from support.error_assertions import (  # noqa: E402
     assert_error_names,
     assert_rejects_unequal_lengths,
     error_message,
 )
-from png_fixtures import rgb_image, solid_rgb  # noqa: E402
+from support.png_fixtures import rgb_image, solid_rgb  # noqa: E402
 
 
 def assert_matches_oracle(case, actual, reference, *, arity, min_length=0):

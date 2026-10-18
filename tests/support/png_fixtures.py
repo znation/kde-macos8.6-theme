@@ -20,8 +20,8 @@ import zlib
 from collections.abc import Callable
 from pathlib import Path
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from error_assertions import error_message  # noqa: E402
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.error_assertions import error_message  # noqa: E402
 from tools import png  # noqa: E402
 from tools.ints import is_plain_int  # noqa: E402
 

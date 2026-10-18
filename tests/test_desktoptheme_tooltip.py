@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import unittest
 
-from colorscheme_fixtures import load_scheme
-from desktoptheme_paths import SOLID_TOOLTIP_SVG, TOOLTIP_SVG
-from nine_slice_case import NineSliceCase
-from platinum_palette import BLACK, TOOLTIP_FACE, hex_colour
+from support.colorscheme_fixtures import load_scheme
+from support.desktoptheme_paths import SOLID_TOOLTIP_SVG, TOOLTIP_SVG
+from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import BLACK, TOOLTIP_FACE, hex_colour
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,

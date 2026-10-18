@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import unittest
 
-from desktoptheme_paths import SCROLLBAR_SVG
-from nine_slice_case import NineSliceCase
-from platinum_palette import FACE, TROUGH, assert_fill_palette
+from support.desktoptheme_paths import SCROLLBAR_SVG
+from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import FACE, TROUGH, assert_fill_palette
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,

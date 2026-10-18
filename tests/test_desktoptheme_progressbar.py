@@ -5,11 +5,11 @@ from __future__ import annotations
 import os
 import unittest
 
-from desktoptheme_paths import BAR_METER_HORIZONTAL_SVG
-from nine_slice_case import NineSliceCase
-from platinum_palette import hex_colour
-from reference_image import ReferenceScreenshotMixin
-from theme_install import ROOT
+from support.desktoptheme_paths import BAR_METER_HORIZONTAL_SVG
+from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import hex_colour
+from support.reference_image import ReferenceScreenshotMixin
+from support.theme_install import ROOT
 
 from svg_assertions import (  # noqa: E402
     assert_center_tile_is,

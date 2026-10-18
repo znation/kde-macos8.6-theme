@@ -6,11 +6,11 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from desktoptheme_paths import PANEL_SVG
-from nine_slice_case import NineSliceCase
-from platinum_palette import assert_fill_palette, hex_colour
-from reference_image import ReferenceScreenshotMixin
-from repo_root import ROOT
+from support.desktoptheme_paths import PANEL_SVG
+from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import assert_fill_palette, hex_colour
+from support.reference_image import ReferenceScreenshotMixin
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_slice_pixels,

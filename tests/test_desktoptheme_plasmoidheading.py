@@ -5,8 +5,8 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from desktoptheme_paths import LINE_SVG, PLASMOIDHEADING_SVG
-from nine_slice_case import NineSliceCase
+from support.desktoptheme_paths import LINE_SVG, PLASMOIDHEADING_SVG
+from support.nine_slice_case import NineSliceCase
 from svg_assertions import (
     assert_hint_geometry,
     assert_no_external_references,

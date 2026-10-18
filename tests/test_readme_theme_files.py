@@ -13,8 +13,8 @@ import os
 import re
 import unittest
 
-from desktoptheme_paths import PACKAGE
-from theme_install import ROOT
+from support.desktoptheme_paths import PACKAGE
+from support.theme_install import ROOT
 
 _DESKTOP_TOKEN = re.compile(r"`((?:widgets|dialogs)/[^`/]+\.svg)`")
 _AURORAE_TOKEN = re.compile(r"`([^`/]+\.svg)`")

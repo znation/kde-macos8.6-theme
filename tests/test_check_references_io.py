@@ -9,8 +9,8 @@ import os
 import unittest
 from unittest import mock
 
-from allocation_fixtures import peak_allocation
-from check_references_fixtures import (
+from support.allocation_fixtures import peak_allocation
+from support.check_references_fixtures import (
     CheckerTestCase,
     assert_problem,
     assert_sources_failure,

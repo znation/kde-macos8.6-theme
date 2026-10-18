@@ -12,13 +12,13 @@ from __future__ import annotations
 import os
 import unittest
 
-from aurorae_fixtures import (
+from support.aurorae_fixtures import (
     AURORAE_DIR,
     AURORAE_ID,
     ReferenceImageCase,
     ZOOM_BOX_X,
 )
-from kde_config import read as read_kde_config
+from support.kde_config import read as read_kde_config
 
 
 RC = os.path.join(AURORAE_DIR, AURORAE_ID + "rc")

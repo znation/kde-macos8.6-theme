@@ -14,7 +14,7 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from error_assertions import assert_rejects
+from support.error_assertions import assert_rejects
 from svg_assertions import (
     SLICE_IDS,
     assert_hint_geometry,
@@ -23,7 +23,7 @@ from svg_assertions import (
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
 )
-from svg_fixtures import _svg_tree
+from support.svg_fixtures import _svg_tree
 
 
 # A minimal valid nine-slice layout: a 12x12 canvas with 4px borders, so every

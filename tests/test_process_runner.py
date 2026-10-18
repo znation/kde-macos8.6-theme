@@ -18,9 +18,9 @@ import time
 import unittest
 import unittest.mock
 
-import process_runner
-import theme_install
-from tmp_dir import make_tmp_dir
+from support import process_runner
+from support import theme_install
+from support.tmp_dir import make_tmp_dir
 
 
 def _process_alive(pid):

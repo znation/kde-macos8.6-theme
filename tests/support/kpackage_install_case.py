@@ -11,9 +11,9 @@ once.
 
 import os
 
-from process_assertions import assert_succeeded
-from theme_install import run_captured
-from tmp_dir import make_tmp_dir
+from support.process_assertions import assert_succeeded
+from support.theme_install import run_captured
+from support.tmp_dir import make_tmp_dir
 
 
 class KPackageInstallCase:

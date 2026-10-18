@@ -16,8 +16,8 @@ import os
 import re
 import unittest
 
-from repo_root import ROOT
-from tmp_dir import make_tmp_dir
+from support.repo_root import ROOT
+from support.tmp_dir import make_tmp_dir
 
 TOKEN = "PLACEHOLDER:"
 REGISTER = os.path.join(ROOT, "PLACEHOLDERS.md")

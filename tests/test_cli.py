@@ -20,9 +20,9 @@ import io
 import unittest
 from unittest import mock
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import cli
-from tmp_dir import make_tmp_dir
+from support.tmp_dir import make_tmp_dir
 
 
 class TestIsPlainAsciiNumber(unittest.TestCase):

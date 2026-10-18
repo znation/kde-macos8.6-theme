@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import unittest
 
-from error_assertions import error_message
+from support.error_assertions import error_message
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
 
 

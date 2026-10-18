@@ -13,9 +13,9 @@ import contextlib
 import os
 import tempfile
 
-import process_runner
-from process_assertions import assert_succeeded
-from repo_root import ROOT
+from support import process_runner
+from support.process_assertions import assert_succeeded
+from support.repo_root import ROOT
 
 # The data home inside each test's throwaway DESTDIR.
 XDG_DATA_HOME = "/share"

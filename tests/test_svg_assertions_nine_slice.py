@@ -14,7 +14,7 @@ from svg_assertions import (
     nine_slice_tile_sizes,
     tile_origins,
 )
-from svg_fixtures import _svg_tree
+from support.svg_fixtures import _svg_tree
 
 
 class TestTileOrigins(unittest.TestCase):

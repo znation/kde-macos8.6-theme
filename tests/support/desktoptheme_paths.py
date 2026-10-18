@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import os
 
-from theme_install import ROOT
+from support.theme_install import ROOT
 
 
 DTHEME_ID = "org.macos8.desktop"

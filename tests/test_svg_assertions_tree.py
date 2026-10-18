@@ -18,7 +18,7 @@ from svg_assertions import (
     groups_with_id,
     local_name,
 )
-from svg_fixtures import SvgBodyCase, _svg_tree
+from support.svg_fixtures import SvgBodyCase, _svg_tree
 
 
 class TestGroupsWithId(SvgBodyCase, unittest.TestCase):

@@ -22,9 +22,9 @@ import os
 import re
 import unittest
 
-import theme_install
-from check_references_fixtures import CheckerTestCase
-from process_assertions import assert_succeeded
+from support import theme_install
+from support.check_references_fixtures import CheckerTestCase
+from support.process_assertions import assert_succeeded
 
 _TOKEN = re.compile(r"`([^`]+)`")
 _GLOB_CHARS = "*?["

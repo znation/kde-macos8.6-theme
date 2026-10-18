@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import unittest
 
-from error_assertions import assert_error_names, error_message
+from support.error_assertions import assert_error_names, error_message
 from svg_assertions import arc_center, path_arcs
 
 

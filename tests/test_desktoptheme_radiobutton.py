@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from desktoptheme_paths import RADIOBUTTON_SVG
+from support.desktoptheme_paths import RADIOBUTTON_SVG
 from svg_assertions import (
     assert_ids_present,
     assert_no_script_elements,
@@ -14,7 +14,7 @@ from svg_assertions import (
     circle_geometry_and_fill,
     elements_by_id,
 )
-from svg_case import SvgCase
+from support.svg_case import SvgCase
 
 
 class TestRadioButton(SvgCase, unittest.TestCase):

@@ -8,16 +8,16 @@ import shutil
 import time
 import unittest
 
-from install_failure_cases import FailedInstallPreservesPackage
-from install_lifecycle_cases import InstallLifecycleCases
-from kpackage_install_case import KPackageInstallCase
-from package_metadata import PackageMetadata
-from process_assertions import assert_failed, assert_succeeded
-from tmp_dir import make_tmp_dir
-import process_runner
-import theme_install
-from kde_config import read as read_kde_config
-from theme_install import (
+from support.install_failure_cases import FailedInstallPreservesPackage
+from support.install_lifecycle_cases import InstallLifecycleCases
+from support.kpackage_install_case import KPackageInstallCase
+from support.package_metadata import PackageMetadata
+from support.process_assertions import assert_failed, assert_succeeded
+from support.tmp_dir import make_tmp_dir
+from support import process_runner
+from support import theme_install
+from support.kde_config import read as read_kde_config
+from support.theme_install import (
     ROOT,
     install,
     installed_destdir,

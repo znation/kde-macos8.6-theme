@@ -9,8 +9,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tmp_dir import make_tmp_dir
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.tmp_dir import make_tmp_dir
 from tools import make_wallpaper, png  # noqa: E402
 from tools.png_write import encode_png  # noqa: E402
 

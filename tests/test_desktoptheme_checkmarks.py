@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import unittest
 
-from desktoptheme_paths import CHECKMARKS_SVG
+from support.desktoptheme_paths import CHECKMARKS_SVG
 from svg_assertions import (
     assert_ids_present,
     assert_no_script_elements,
@@ -14,7 +14,7 @@ from svg_assertions import (
     elements_by_id,
     local_name,
 )
-from svg_case import SvgCase
+from support.svg_case import SvgCase
 
 
 class TestCheckmarks(SvgCase, unittest.TestCase):

@@ -1,4 +1,4 @@
-"""Tests for tests/error_assertions.py -- the shared assertion helpers.
+"""Tests for tests/support/error_assertions.py -- the shared assertion helpers.
 
 The helpers replace repeated assertion idioms at their call sites, so pin
 their own contracts. ``error_message``: the message it returns, that it
@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import unittest
 
-from error_assertions import (
+from support.error_assertions import (
     assert_error_names,
     assert_escapes_escape_character,
     error_message,

@@ -11,7 +11,7 @@ import os
 import re
 import unittest
 
-from theme_install import ROOT
+from support.theme_install import ROOT
 from tools import render_surface
 
 _MAKE_TARGET = re.compile(r"\bmake\s+([a-z][a-z-]*)\b")

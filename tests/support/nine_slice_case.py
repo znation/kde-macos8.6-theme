@@ -9,7 +9,7 @@ widget whose SVG prefixes its states (``normal-top``) also sets `PREFIXES`.
 
 from __future__ import annotations
 
-from svg_case import SvgCase
+from support.svg_case import SvgCase
 from svg_assertions import (
     assert_no_script_elements,
     assert_slice_ids_present,

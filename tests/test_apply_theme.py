@@ -18,10 +18,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
-import theme_install
-from cli_fixtures import call_main
-from process_assertions import assert_failed, assert_succeeded
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import theme_install
+from support.cli_fixtures import call_main
+from support.process_assertions import assert_failed, assert_succeeded
 from tools import apply_theme
 
 

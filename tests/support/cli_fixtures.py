@@ -16,10 +16,10 @@ import sys
 import unittest
 from pathlib import Path
 
-from process_assertions import assert_succeeded
-from repo_root import ROOT
-from theme_install import run_captured
-from tmp_dir import make_tmp_dir
+from support.process_assertions import assert_succeeded
+from support.repo_root import ROOT
+from support.theme_install import run_captured
+from support.tmp_dir import make_tmp_dir
 
 
 def _call_capturing(call):

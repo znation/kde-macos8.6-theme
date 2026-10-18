@@ -1,4 +1,4 @@
-"""Tests for tests/png_fixtures.py -- the PNG encoder the image tests share.
+"""Tests for tests/support/png_fixtures.py -- the PNG encoder the image tests share.
 
 Run with the project's check harness (stdlib unittest):
     python3 -m unittest discover -s tests -v
@@ -11,11 +11,11 @@ import unittest
 import zlib
 from pathlib import Path
 
-from error_assertions import error_message
+from support.error_assertions import error_message
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
-from png_fixtures import (  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
     _chunk,
     control_named_missing,
     control_named_png,

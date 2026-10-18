@@ -11,8 +11,8 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from platinum_palette import hex_colour
-from splash_fixtures import (
+from support.platinum_palette import hex_colour
+from support.splash_fixtures import (
     LOGO,
     SplashReferenceCase,
     qml_border_width,

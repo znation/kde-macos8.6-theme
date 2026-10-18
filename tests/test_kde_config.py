@@ -10,8 +10,8 @@ is explicitly decoded as UTF-8.
 import unittest
 from unittest import mock
 
-import kde_config
-from tmp_dir import make_tmp_dir
+from support import kde_config
+from support.tmp_dir import make_tmp_dir
 
 
 class TestReadKdeConfig(unittest.TestCase):

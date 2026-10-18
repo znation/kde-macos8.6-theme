@@ -11,7 +11,7 @@ import shutil
 import unittest
 import xml.etree.ElementTree as ET
 
-from desktoptheme_paths import (
+from support.desktoptheme_paths import (
     ARROWS_SVG,
     BACKGROUND_SVG,
     BAR_METER_HORIZONTAL_SVG,
@@ -38,13 +38,13 @@ from desktoptheme_paths import (
     TOOLTIP_SVG,
     VIEWITEM_SVG,
 )
-from install_failure_cases import FailedInstallPreservesPackage
-from install_lifecycle_cases import InstallLifecycleCases
-from kpackage_install_case import KPackageInstallCase
-from kde_config import read as read_kde_config
-from package_metadata import PackageMetadata, kplugin, load_metadata
-from process_assertions import assert_succeeded
-from shipped_files import shipped_files
+from support.install_failure_cases import FailedInstallPreservesPackage
+from support.install_lifecycle_cases import InstallLifecycleCases
+from support.kpackage_install_case import KPackageInstallCase
+from support.kde_config import read as read_kde_config
+from support.package_metadata import PackageMetadata, kplugin, load_metadata
+from support.process_assertions import assert_succeeded
+from support.shipped_files import shipped_files
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -52,7 +52,7 @@ from svg_assertions import (
     assert_root_canvas,
     assert_unique_ids,
 )
-from theme_install import installed_destdir, run_captured
+from support.theme_install import installed_destdir, run_captured
 
 
 # configparser reads the KDE `[plasmarc][Theme]` header greedily, so the

@@ -10,11 +10,11 @@ import subprocess
 import unittest
 from pathlib import Path
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import fidelity  # noqa: E402
-from cli_fixtures import CliTestCase  # noqa: E402
-from error_assertions import assert_escapes_escape_character  # noqa: E402
-from png_fixtures import (  # noqa: E402
+from support.cli_fixtures import CliTestCase  # noqa: E402
+from support.error_assertions import assert_escapes_escape_character  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
     control_named_missing,

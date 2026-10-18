@@ -10,13 +10,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from check_references_fixtures import (
+from support.check_references_fixtures import (
     CheckerTestCase,
     assert_problem,
     check_references_in,
     reference_set,
 )
-from error_assertions import assert_escapes_escape_character
+from support.error_assertions import assert_escapes_escape_character
 from tools.image_format import PNG_MAGIC
 
 

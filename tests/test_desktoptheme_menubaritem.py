@@ -6,9 +6,9 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from desktoptheme_paths import MENUBARITEM_SVG
-from nine_slice_case import NineSliceCase
-from reference_image import ReferenceScreenshotMixin
+from support.desktoptheme_paths import MENUBARITEM_SVG
+from support.nine_slice_case import NineSliceCase
+from support.reference_image import ReferenceScreenshotMixin
 from svg_assertions import (
     assert_slice_pixels,
     assert_slices_have_no_fill,
@@ -19,7 +19,7 @@ from svg_assertions import (
     rect_geometry,
     render_slices,
 )
-from theme_install import ROOT
+from support.theme_install import ROOT
 
 from tools import png  # noqa: E402
 

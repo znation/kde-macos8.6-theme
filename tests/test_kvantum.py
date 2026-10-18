@@ -18,8 +18,8 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from kde_config import read as read_kde_config
-from platinum_palette import (
+from support.kde_config import read as read_kde_config
+from support.platinum_palette import (
     FACE,
     GREY,
     TROUGH,
@@ -27,8 +27,8 @@ from platinum_palette import (
     assert_fill_palette,
     hex_colour,
 )
-from process_assertions import assert_succeeded
-from shipped_files import shipped_files
+from support.process_assertions import assert_succeeded
+from support.shipped_files import shipped_files
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -39,7 +39,7 @@ from svg_assertions import (
     pixel_map,
     render_slices,
 )
-from theme_install import (
+from support.theme_install import (
     ROOT,
     XDG_DATA_HOME,
     assert_files_identical,

@@ -12,13 +12,13 @@ import os
 import shutil
 import unittest
 
-from aurorae_fixtures import AURORAE_DIR, AURORAE_ID
-from install_failure_cases import FailedInstallPreservesPackage
-from install_lifecycle_cases import InstallLifecycleCases
-from kde_config import read as read_kde_config
-from kpackage_install_case import KPackageInstallCase
-from package_metadata import assert_named_authors, kplugin, load_metadata
-from theme_install import installed_aurorae_dir, installed_aurorae_theme
+from support.aurorae_fixtures import AURORAE_DIR, AURORAE_ID
+from support.install_failure_cases import FailedInstallPreservesPackage
+from support.install_lifecycle_cases import InstallLifecycleCases
+from support.kde_config import read as read_kde_config
+from support.kpackage_install_case import KPackageInstallCase
+from support.package_metadata import assert_named_authors, kplugin, load_metadata
+from support.theme_install import installed_aurorae_dir, installed_aurorae_theme
 
 
 METADATA = os.path.join(AURORAE_DIR, "metadata.json")

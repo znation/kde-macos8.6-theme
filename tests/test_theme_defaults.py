@@ -5,8 +5,8 @@ from __future__ import annotations
 import os
 import unittest
 
-import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tmp_dir import make_tmp_dir
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
 
 

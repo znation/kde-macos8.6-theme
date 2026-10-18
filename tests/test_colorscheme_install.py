@@ -10,9 +10,9 @@ import os
 import shutil
 import unittest
 
-from colorscheme_fixtures import SCHEME
-from process_assertions import assert_failed, assert_succeeded
-from theme_install import (
+from support.colorscheme_fixtures import SCHEME
+from support.process_assertions import assert_failed, assert_succeeded
+from support.theme_install import (
     assert_files_identical,
     install,
     installed_color_scheme,
@@ -23,7 +23,7 @@ from theme_install import (
     staging_sibling,
     uninstall,
 )
-from tmp_dir import make_tmp_dir
+from support.tmp_dir import make_tmp_dir
 
 
 def write_selected_scheme(tmp, scheme_id):

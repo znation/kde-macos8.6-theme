@@ -10,9 +10,9 @@ from __future__ import annotations
 
 import os
 
-from platinum_palette import hex_colour
-from reference_image import read_reference, skip_unless_materialized
-from theme_install import ROOT
+from support.platinum_palette import hex_colour
+from support.reference_image import read_reference, skip_unless_materialized
+from support.theme_install import ROOT
 
 from tools import png  # noqa: E402
 

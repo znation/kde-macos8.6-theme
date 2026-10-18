@@ -15,13 +15,13 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from aurorae_fixtures import (
+from support.aurorae_fixtures import (
     AURORAE_DIR,
     INACTIVE_GREY,
     ReferenceImageCase,
     ZOOM_BOX_X,
 )
-from platinum_palette import hex_colour
+from support.platinum_palette import hex_colour
 from svg_assertions import (
     assert_no_script_elements,
     assert_unique_ids,

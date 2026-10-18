@@ -16,7 +16,7 @@ import unittest
 import unittest.mock
 from pathlib import Path
 
-from repo_root import ROOT
+from support.repo_root import ROOT
 from tools.image_format import PNG_MAGIC
 
 CHECKER = os.path.join(ROOT, "tools", "check_references.py")
