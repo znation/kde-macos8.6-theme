@@ -247,6 +247,86 @@ FRAMELESS_SECTIONS = {
     "TabBarFrame": {"frame": "false", "interior": "false"},
 }
 
+# The remaining settings that name no element and draw no frame margin, but
+# still drive the rendered control: the indicator sizes Kvantum scales each
+# arrow/grip to, the button and menu label colours, the text margins that
+# place a label inside its control, the menu item's minimum height, the
+# `text.shadow` flags, and `composite`. The element, frame-margin and
+# frameless tables above pin what a section draws and where; these values were
+# pinned by nothing, so changing one (say `indicator.size=9` to `12`, or a
+# label colour) shipped unchecked. `test_every_key_is_pinned` keeps the tables
+# exhaustive over the config, so a new setting without a pin fails here.
+VALUE_KEYS = {
+    "%General": {
+        "composite": "true",
+    },
+    "PanelButtonCommand": {
+        "frame": "true",
+        "interior": "true",
+        "indicator.size": "9",
+        "text.normal.color": "#000000",
+        "text.focus.color": "#000000",
+        "text.press.color": "#000000",
+        "text.toggle.color": "#000000",
+    },
+    "CheckBox": {
+        "text.margin.top": "2",
+        "text.margin.bottom": "2",
+        "text.margin.left": "3",
+        "text.margin.right": "3",
+    },
+    "RadioButton": {
+        "text.margin.top": "2",
+        "text.margin.bottom": "2",
+        "text.margin.left": "3",
+        "text.margin.right": "3",
+    },
+    "Focus": {
+        "interior": "false",
+        "frame": "true",
+    },
+    "GenericFrame": {
+        "frame": "true",
+        "interior": "false",
+    },
+    "IndicatorArrow": {
+        "indicator.size": "9",
+    },
+    "IndicatorSpinBox": {
+        "indicator.size": "9",
+    },
+    "Splitter": {
+        "indicator.size": "16",
+    },
+    "Tab": {
+        "text.margin.left": "8",
+        "text.margin.right": "8",
+    },
+    "MenuItem": {
+        "min_height": "22",
+        "text.focus.color": "#000000",
+        "text.margin.top": "2",
+        "text.margin.bottom": "2",
+        "text.margin.left": "3",
+        "text.margin.right": "3",
+    },
+    "MenuBarItem": {
+        "text.margin.top": "2",
+        "text.margin.bottom": "2",
+    },
+    "GroupBox": {
+        "frame": "true",
+        "interior": "true",
+        "text.shadow": "false",
+        "text.margin": "0",
+    },
+    "ToolTip": {
+        "interior": "true",
+        "text.shadow": "false",
+        "text.margin": "0",
+    },
+}
+
 
 def _scheme_hex(parser, section, name):
     """Return the `#RRGGBB` form of a MacOS8 color-scheme role."""
@@ -415,6 +495,67 @@ class TestSectionCoverage(unittest.TestCase):
             for key, value in expected.items():
                 with self.subTest(section=section, key=key):
                     self.assertEqual(_resolved(parser, section, key), value)
+
+
+class TestValueKeys(unittest.TestCase):
+    """Pin the `.kvconfig` settings that name no element and no frame margin.
+
+    The element, frame-margin and frameless tables pin which art a section
+    draws and where; the indicator sizes, label colours, text margins,
+    `min_height`, `text.shadow` flags and `composite` still drive the rendered
+    control and were pinned by nothing. `test_every_key_is_pinned` keeps the
+    tables exhaustive over the config, so a new setting without a pin fails
+    here.
+    """
+
+    def test_every_value_key_is_pinned(self):
+        parser = read_kde_config(KVCONFIG)
+        for section, expected in VALUE_KEYS.items():
+            for key, value in expected.items():
+                with self.subTest(section=section, key=key):
+                    self.assertEqual(parser.get(section, key), value)
+
+    def test_every_key_is_pinned(self):
+        parser = read_kde_config(KVCONFIG)
+        sides = ("top", "bottom", "left", "right")
+        pinned = set()
+        for table in (
+            CORE_CONTROL_CONFIG,
+            TRACK_CONTROL_CONFIG,
+            SURFACE_CONTROL_CONFIG,
+            FRAMELESS_SECTIONS,
+            VALUE_KEYS,
+        ):
+            for section, values in table.items():
+                pinned.update((section, key) for key in values)
+        for section in CORE_FRAME_MARGINS:
+            pinned.update((section, f"frame.{side}") for side in sides)
+        for section, margins in SPECIAL_FRAME_MARGINS.items():
+            pinned.update((section, f"frame.{side}") for side in margins)
+        pinned.update(("MenuBar", f"frame.{side}") for side in sides)
+        # TestGeneral pins these two sizes and the scroll metrics.
+        pinned.update(
+            {
+                ("Scrollbar", "indicator.size"),
+                ("ScrollbarSlider", "indicator.size"),
+                ("%General", "scroll_width"),
+                ("%General", "scroll_arrows"),
+            }
+        )
+        # `author` and `comment` are metadata, not styling. `inherits` is
+        # structural: a wrong target resolves every element and margin key
+        # above to a different value, so the tables catch it.
+        pinned.update(("%General", key) for key in ("author", "comment"))
+        # `[GeneralColors]` is pinned exactly by
+        # `TestGeneralColors.test_declares_exactly_the_mapped_colours`.
+        actual = {
+            (section, key)
+            for section in parser.sections()
+            if section != "GeneralColors"
+            for key in parser.options(section)
+            if key != "inherits"
+        }
+        self.assertEqual(actual - pinned, set())
 
 
 if __name__ == "__main__":
