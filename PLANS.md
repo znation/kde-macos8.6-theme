@@ -102,6 +102,84 @@ Apple-menu icon.
 - `make install XDG_DATA_HOME=<tmp>` installs the updated layout script, and
   `tests/test_lookandfeel.py::TestPackageValid` still passes.
 
+### Mac OS 8.6 Platinum tooltip (`widgets/tooltip.svg`) for the desktop theme (planned 2026-10-17 by the plan role)
+
+**Goal.** Plasma tooltips should stop falling back to Breeze's rounded, translucent tooltip and
+draw a flat Platinum one: a square `#FFFFCC` face with a 1px `#000000` outline. Two consumers read
+the tooltip artwork, and the theme ships neither file today, so KSvg resolves both from the
+fallback theme:
+- `PlasmaComponents.ToolTip` (`/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/components/ToolTip.qml`)
+  draws its background from `imagePath: "solid/widgets/tooltip"`. It also draws a second
+  `FrameSvgItem` with `prefix: "shadow"`; with no `shadow-*` elements nothing is drawn there,
+  which is the same choice `widgets/button.svg` makes for its `ButtonShadow`.
+- `libPlasmaQuick.so.6` (panel `ToolTipArea` tooltips, e.g. hovering the clock or a tray icon)
+  holds the UTF-16 strings `widgets/tooltip` and `solid/` (`strings -el`).
+
+Provenance (per PRINCIPLES.md: record it for a KDE-required value the reference set does not
+show): no reference screenshot shows a Balloon Help balloon. QUESTIONS.md "How should the tooltip
+palette anchor be grounded?" (decided 2026-10-08, option 2) records `[Colors:Tooltip]
+BackgroundNormal=255,255,204` as a KDE-required role from the classic Platinum palette. This
+widget paints its face from that value, and its outline is the same 1px black square outline
+`widgets/background.svg` (the menu body) uses. The SVG header comment must say both things, and
+that no pixel is screenshot-anchored.
+
+**Approach.**
+- New `theme/desktop-themes/org.macos8.desktop/widgets/tooltip.svg`. Copy the structure of
+  `widgets/background.svg` exactly: 16x16 canvas, a 3px border around a 10px centre tile, the
+  same `hint-*-margin` and zero-size `hint-*-inset` rects (styled with `style=`, so the parsed
+  `fill` set stays the artwork palette), and the nine slices `top`/`bottom`/`left`/`right`/
+  `center`/`topleft`/`topright`/`bottomleft`/`bottomright`. Swap the `#FFFFFF` face for
+  `#FFFFCC`. Keep the black outline on the outer edge of each slice, with no bevel, no
+  `shadow-*` and no `blurred*` elements. The 3px margins become the tooltip's text padding
+  (`ToolTip.qml` sets `topPadding: backgroundItem.margins.top`, and so on), the same padding as
+  the menu body.
+- New `theme/desktop-themes/org.macos8.desktop/solid/widgets/tooltip.svg`, byte-identical to the
+  file above. KSvg does not map `solid/widgets/tooltip` onto `widgets/tooltip`: Breeze ships
+  `/usr/share/plasma/desktoptheme/default/solid/widgets/tooltip.svgz` for that reason, so without
+  this copy `PlasmaComponents.ToolTip` would keep Breeze's artwork.
+- Install needs no Makefile change: `install_package` copies the package with `cp -r`.
+
+**Files touched.**
+- The two SVGs above.
+- `tests/desktoptheme_paths.py`: add `TOOLTIP_SVG` (`widgets/tooltip.svg`) and
+  `SOLID_TOOLTIP_SVG` (`solid/widgets/tooltip.svg`).
+- `tests/test_desktoptheme.py`:
+  - Add both paths to `SVG_CANVASES` at 16x16, and update the comment above it, which counts
+    the canvases by size. `test_registry_covers_every_shipped_svg` walks the package with
+    `os.walk`, so it fails until both files are registered.
+  - Add both paths to `TestInstall.INSTALLED_FILES`.
+- New `tests/test_desktoptheme_tooltip.py`, modelled on `tests/test_desktoptheme_background.py`.
+  `TestTooltip(NineSliceCase, unittest.TestCase)` with `SVG_PATH = TOOLTIP_SVG` holds:
+  - `test_tooltip_hint_geometry`: the same `assert_hint_geometry(self, self.tree, [""], 3, 10, {…insets…})`
+    call as `test_background_hint_geometry`.
+  - `test_tooltip_pixels`: `assert_face_bevel(self, slices, "", TOOLTIP_FACE, "flat", size=10)`.
+  - `test_tooltip_colours`: `attribute_values(self.tree, "fill") == {BLACK, TOOLTIP_FACE}`.
+  - `test_face_is_the_scheme_tooltip_background`: `TOOLTIP_FACE` equals
+    `hex_colour(...)` of `load_scheme().get("Colors:Tooltip", "BackgroundNormal")` split into
+    ints. This ties the artwork to the colour scheme, so changing one without the other fails.
+  - `test_solid_copy_is_identical`: the bytes of `SOLID_TOOLTIP_SVG` equal those of
+    `TOOLTIP_SVG`.
+  Define `TOOLTIP_FACE = "#FFFFCC"` in `tests/platinum_palette.py`, with a comment saying it is
+  the `[Colors:Tooltip]` KDE-required role and is not screenshot-sampled.
+- `README.md`: in the desktop-theme paragraph, after the `widgets/background.svg` sentence, name
+  `` `widgets/tooltip.svg` `` (the flat `#FFFFCC` Platinum tooltip with a black outline, for
+  panel and `PlasmaComponents.ToolTip` tooltips) and say that a byte-identical copy ships at
+  `solid/widgets/tooltip.svg`, where `PlasmaComponents.ToolTip` looks for it.
+  `tests/test_readme_theme_files.py` requires the backticked `widgets/tooltip.svg` token. Its
+  `*/*.svg` glob does not see the nested `solid/` copy, so do not invent a token rule for it.
+
+**Out of scope.** A balloon-shaped tail (Plasma tooltips are rectangular frames), a drop shadow,
+and the tooltip text font.
+
+**Acceptance criteria.**
+- `make check` passes, and `make check CHECK_PATTERN='test_desktoptheme_tooltip.py'` runs the
+  new tests.
+- Each of these makes a named test fail: changing the face in either SVG; changing the scheme's
+  `[Colors:Tooltip] BackgroundNormal` without the SVG; deleting the `solid/` copy or letting it
+  diverge; moving or resizing a margin hint; leaving either file out of `SVG_CANVASES`.
+- `make install XDG_DATA_HOME=<tmp>` installs both `widgets/tooltip.svg` and
+  `solid/widgets/tooltip.svg` under `plasma/desktoptheme/org.macos8.desktop/`.
+
 
 ## Done
 
