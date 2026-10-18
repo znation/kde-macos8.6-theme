@@ -22,7 +22,74 @@ a style engine such as Kvantum, which would be a new dependency; the plan role s
 plan each surface or record that it is out of scope, and ask in QUESTIONS.md where the call is
 the user's. Until then the shipped work should not be treated as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 desktop icon labels: one line of text under each icon (planned 2026-10-18 by the plan role)
+
+**Goal.** Mac OS 8.6 shows each desktop icon's name on one line under the icon. A long name is
+cut off, not wrapped. Plasma's desktop Folder View wraps names onto up to 2 lines
+(`textLines` default 2), and every grid cell is sized for 2 lines. The global theme's desktop
+layout should set the desktop containment to one label line.
+
+**Reference (sampled 2026-10-18, lossless `macos8.6-screenshots/desktop_betawiki.png`,
+1024x768).** Use the same tile comparison as `TestDesktopIconsMatchReference.differs_from_wallpaper`
+(a pixel differs from `tools/make_wallpaper.py` `TILE_ORIGIN`/`TILE_SIZE` tile pixel). Over
+x >= 880, the fully drawn icon blocks span these rows:
+- 157..200 ("Browse the Internet", alias).
+- 220..264 ("Get QuickTime Pro").
+- 284..328 ("Mail", alias).
+- 348..392 ("Register with Apple", alias).
+- 668..712 ("Trash").
+
+Each block is 45 rows: the 32-row icon body plus one 13-row label line. Where the label is wider
+than the body (x outside 960..991), it fills rows 188..200, 252..264 and 380..392, 13 rows each. So
+no label has a second line. "Register with Apple", the longest, runs to x=1023, the screen's
+last column, still on one line. The first block (rows 47..72, "Macintosh HD") is not fully
+drawn in this capture, so it is not a sample.
+
+**Plasma facts (checked 2026-10-18).**
+`/usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/config/main.xml` group
+`General`, entry `textLines` (Int, default 2) is "the (maximum) number of lines of text to use
+below Folder View icons". `ui/FolderItemDelegate.qml` uses it as the icon-view label's
+`maximumLineCount`, with `wrapMode: Text.NoWrap` when it is 1, so a long name elides on one line.
+`ui/FolderView.qml` sizes each cell `iconSize + gridUnit * textLines + smallSpacing * 3` high.
+With the 32px icons the layout already sets, one line also brings the row pitch nearer the
+reference's 63..64 rows (157 → 220 → 284 → 348) than two lines would.
+
+**Approach.** In `theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`,
+add `desktopsArray[j].writeConfig("textLines", 1);` after the existing `iconSize` call, inside
+the same `["General"]` group. Add a comment line above it citing the 45-row blocks (32-row body plus
+one 13-row label line). Do not touch `labelWidth`, `textColor` or any other key.
+
+**Files touched.**
+- `theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js`.
+- `tests/test_lookandfeel_layout.py`:
+  - Add `"textLines": 1` to the `DESKTOP_ICONS` constant. The existing
+    `test_desktop_icon_arrangement` then pins it through `desktop_config` with no new test
+    method.
+  - In `TestDesktopIconsMatchReference`, add a class constant
+    `LABELLED_ICON_ROWS = [(157, 200), (220, 264), (284, 328), (348, 392), (668, 712)]` and
+    `ICON_BODY = 32`.
+  - Add `test_each_label_is_one_line`. For each `(top, bottom)`, collect the rows in
+    `range(top - 5, bottom + 6)` holding a differing pixel at x >= `RIGHT_COLUMN_LEFT`. Assert
+    they run exactly from `top` to `bottom`, so the block is bounded. Then assert
+    `bottom - top + 1 - ICON_BODY == 13`: one label line, with no room for a second.
+    The ±5-row margins stay clear of the neighbouring blocks: every gap between blocks is at least 19 rows.
+- `README.md`: in the sentence ending "lines its icons up in one 32px column at the right edge,
+  as Mac OS 8.6 does", add that each icon's name sits on one line under it.
+
+**Acceptance criteria.**
+- `make check` passes with the new test.
+- Removing the `textLines` call, or changing it to 2, makes `test_desktop_icon_arrangement`
+  fail.
+- `test_desktop_writes_the_general_group`, `test_widgets_in_menu_bar_order` and the clock
+  tests still pass unchanged.
+- Manual smoke test (needs a Plasma session): after `lookandfeeltool -a org.macos8.desktop
+  --resetLayout`, a file in `~/Desktop` with a long name shows it on one elided line.
+
+**Out of scope.** The Mac label box (black text on a white rectangle). `FolderItemDelegate.qml`
+hard-codes white text with a shadow when Folder View is the containment, and its `textColor`
+setting is not used there, so the stock plasmoid cannot draw that box. Also out of scope: Mac OS
+cutting a name off at the screen edge where Plasma elides it with "…", which no Folder View
+setting changes.
 
 
 ## Done
