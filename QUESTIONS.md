@@ -7,27 +7,7 @@ each tick.
 
 ## Open
 
-### May the icon theme reproduce Apple's Platinum icon art, and the Apple logo for the kicker?
-
-(asked 2026-10-18 by the plan role)
-
-**Context.** The scope-drift note in PLANS.md lists the icon theme as unthemed; the reference
-desktop/dialog/Finder screenshots show Platinum 32x32 icons. The planned "Mac OS 8.6 Platinum
-desktop icon theme" entry ships the hard-disk, folder, document and Trash icons in the Platinum
-style — the same kind of reproduction of Apple's Platinum design the theme already ships for
-chrome — and selects the theme from the global theme. Two parts are the user's call: whether to
-reproduce Apple's Platinum icon art at all, and whether the kicker may use the Apple logo (a
-registered trademark).
-
-**Options.**
-1. Ship the Platinum icon theme including the Apple logo for the kicker menu icon.
-2. Ship the Platinum icon theme but omit the Apple logo (the kicker keeps a generic icon).
-3. Do not ship an icon theme.
-
-**Recommendation.** Option 2. The generic Platinum icons follow the project's established
-reproduction of Platinum (the planned entry ships them regardless); the Apple logo mark is
-deferred unless you explicitly allow it. Answer Option 1 if you want the menu bar's top-left to
-match the reference exactly.
+_None yet._
 
 ## Answered
 
@@ -109,3 +89,27 @@ it is the only path to pixel-exact KDE-app controls — with the fallback docume
 Option 2 keeps the current state and the scope-drift note's Qt-style line stays as it is.
 
 **Answered 2026-10-18 by the user:** Let's go with option 1, ship a Kvantum theme and select it.
+
+### May the icon theme reproduce Apple's Platinum icon art, and the Apple logo for the kicker?
+
+(asked 2026-10-18 by the plan role)
+
+**Context.** The scope-drift note in PLANS.md lists the icon theme as unthemed; the reference
+desktop/dialog/Finder screenshots show Platinum 32x32 icons. The planned "Mac OS 8.6 Platinum
+desktop icon theme" entry ships the hard-disk, folder, document and Trash icons in the Platinum
+style — the same kind of reproduction of Apple's Platinum design the theme already ships for
+chrome — and selects the theme from the global theme. Two parts are the user's call: whether to
+reproduce Apple's Platinum icon art at all, and whether the kicker may use the Apple logo (a
+registered trademark).
+
+**Options.**
+1. Ship the Platinum icon theme including the Apple logo for the kicker menu icon.
+2. Ship the Platinum icon theme but omit the Apple logo (the kicker keeps a generic icon).
+3. Do not ship an icon theme.
+
+**Recommendation.** Option 2. The generic Platinum icons follow the project's established
+reproduction of Platinum (the planned entry ships them regardless); the Apple logo mark is
+deferred unless you explicitly allow it. Answer Option 1 if you want the menu bar's top-left to
+match the reference exactly.
+
+**Answered 2026-10-18 by the user:** No, we should come up with our own non-copyright-infringing icon art and logo. Let's use placeholders for now, and keep track of the placeholders so we don't forget to replace them all eventually.
