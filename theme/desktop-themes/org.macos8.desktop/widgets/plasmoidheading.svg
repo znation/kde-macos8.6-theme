@@ -40,7 +40,8 @@
   <rect id="footer-hint-left-margin" x="0" y="3" width="3" height="6" style="fill:#ff00ff"/>
   <rect id="footer-hint-right-margin" x="9" y="3" width="3" height="6" style="fill:#ff00ff"/>
 
-  <!-- Header: the rule sits on the band's bottom edge (row 1 dark, row 2 light). Every other slice is a transparent placeholder. -->
+  <!-- Header: the rule sits on the band's bottom edge (row 1 dark, row 2
+       light). Every other slice is a transparent placeholder. -->
   <g id="header-top" transform="translate(3,0)">
     <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
   </g>
@@ -71,7 +72,8 @@
     <rect width="3" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
   </g>
 
-  <!-- Footer: the rule sits on the band's top edge (row 0 dark, row 1 light). Every other slice is a transparent placeholder. -->
+  <!-- Footer: the rule sits on the band's top edge (row 0 dark, row 1
+       light). Every other slice is a transparent placeholder. -->
   <g id="footer-top" transform="translate(3,0)">
     <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
     <rect y="0" width="6" height="1" fill="#888888"/>
