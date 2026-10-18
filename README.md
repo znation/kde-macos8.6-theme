@@ -96,6 +96,8 @@ etched `#888888`/`#FFFFFF` rule), and `widgets/busywidget.svg` (the Platinum rin
 `PlasmaComponents.BusyIndicator` spins while a task runs). `widgets/actionbutton.svg`
 ships the round Platinum button `PlasmaComponents.RoundButton` and `PlasmaComponents.Dial` draw: a
 `#DDDDDD` face with a 1px `#000000` outline and bevel, plus hover and focus rings.
+`widgets/action-overlays.svg` ships the desktop containment's folder-icon
+add/open/remove action buttons in normal, hover and pressed states.
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. `widgets/switch.svg` ships the Platinum track-and-thumb

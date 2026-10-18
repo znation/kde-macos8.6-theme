@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" desktop icon action buttons.
+
+     The desktop containment's FolderItemActionButton draws one of these over
+     a folder icon on hover: its Svg has imagePath "widgets/action-overlays",
+     multipleImages, size 16x16, and sets elementId to `add`/`open`/`remove`
+     plus "-normal" while the pointer is away, "-hover" while over it and
+     "-pressed" while down. FolderItemDelegate instantiates it with element
+     "remove" when the icon is selected else "add" (the selection toggle) and
+     with "open" (the folder-popup button). The default theme ships only the
+     plain ids, so these plain ids are what the consumer resolves.
+
+     Each group is the actionbutton.svg circle recipe at (8, 8): a #000000
+     r=7 outline circle, the two bevel half-discs of radius 6 split along the
+     top-right to bottom-left diagonal, and the face circle. `normal` and
+     `hover` keep the raised bevel (#FFFFFF top-left half, #999999
+     bottom-right half) and `pressed` swaps it; the `hover` face is #FFFFFF
+     (a lit Platinum button) while `normal` and `pressed` are #DDDDDD. A
+     #000000 glyph sits over the face: `add` a plus and `remove` a minus (each
+     a stroked path with fill="none"), `open` a right-pointing filled
+     triangle. Every group opens with an invisible 16x16 bounding rect: KSvg
+     scales an element by its bounds, so all nine groups must span the same
+     canvas or their artwork would scale differently.
+
+     Provenance: no Mac OS 8.6 screenshot in the reference set shows a hover
+     action button, so the shape and its three states are KDE-required; the
+     fills reuse the grounded Platinum face (#DDDDDD), outline (#000000),
+     highlight (#FFFFFF) and shadow (#999999) the other widgets ship, and no
+     new palette constant is introduced. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- add: a plus over the raised face. -->
+  <g id="add-normal">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#FFFFFF"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#999999"/>
+    <circle cx="8" cy="8" r="5" fill="#DDDDDD"/>
+    <path d="M 5.5,8 L 10.5,8 M 8,5.5 L 8,10.5" fill="none" stroke="#000000" stroke-width="1.5"/>
+  </g>
+  <g id="add-hover">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#FFFFFF"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#999999"/>
+    <circle cx="8" cy="8" r="5" fill="#FFFFFF"/>
+    <path d="M 5.5,8 L 10.5,8 M 8,5.5 L 8,10.5" fill="none" stroke="#000000" stroke-width="1.5"/>
+  </g>
+  <g id="add-pressed">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#999999"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#FFFFFF"/>
+    <circle cx="8" cy="8" r="5" fill="#DDDDDD"/>
+    <path d="M 5.5,8 L 10.5,8 M 8,5.5 L 8,10.5" fill="none" stroke="#000000" stroke-width="1.5"/>
+  </g>
+
+  <!-- open: a right-pointing filled triangle over the face. -->
+  <g id="open-normal">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#FFFFFF"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#999999"/>
+    <circle cx="8" cy="8" r="5" fill="#DDDDDD"/>
+    <path d="M 6,5.5 L 6,10.5 L 10.5,8 Z" fill="#000000"/>
+  </g>
+  <g id="open-hover">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#FFFFFF"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#999999"/>
+    <circle cx="8" cy="8" r="5" fill="#FFFFFF"/>
+    <path d="M 6,5.5 L 6,10.5 L 10.5,8 Z" fill="#000000"/>
+  </g>
+  <g id="open-pressed">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#999999"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#FFFFFF"/>
+    <circle cx="8" cy="8" r="5" fill="#DDDDDD"/>
+    <path d="M 6,5.5 L 6,10.5 L 10.5,8 Z" fill="#000000"/>
+  </g>
+
+  <!-- remove: a minus over the raised face. -->
+  <g id="remove-normal">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#FFFFFF"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#999999"/>
+    <circle cx="8" cy="8" r="5" fill="#DDDDDD"/>
+    <path d="M 5.5,8 L 10.5,8" fill="none" stroke="#000000" stroke-width="1.5"/>
+  </g>
+  <g id="remove-hover">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#FFFFFF"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#999999"/>
+    <circle cx="8" cy="8" r="5" fill="#FFFFFF"/>
+    <path d="M 5.5,8 L 10.5,8" fill="none" stroke="#000000" stroke-width="1.5"/>
+  </g>
+  <g id="remove-pressed">
+    <rect x="0" y="0" width="16" height="16" fill="none"/>
+    <circle cx="8" cy="8" r="7" fill="#000000"/>
+    <path d="M 3.757360,12.242640 A 6,6 0 0 1 12.242640,3.757360 Z" fill="#999999"/>
+    <path d="M 12.242640,3.757360 A 6,6 0 0 1 3.757360,12.242640 Z" fill="#FFFFFF"/>
+    <circle cx="8" cy="8" r="5" fill="#DDDDDD"/>
+    <path d="M 5.5,8 L 10.5,8" fill="none" stroke="#000000" stroke-width="1.5"/>
+  </g>
+</svg>

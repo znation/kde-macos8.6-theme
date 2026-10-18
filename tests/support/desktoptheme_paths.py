@@ -31,6 +31,7 @@ SLIDER_SVG = os.path.join(PACKAGE, "widgets", "slider.svg")
 SWITCH_SVG = os.path.join(PACKAGE, "widgets", "switch.svg")
 BUSYWIDGET_SVG = os.path.join(PACKAGE, "widgets", "busywidget.svg")
 ACTIONBUTTON_SVG = os.path.join(PACKAGE, "widgets", "actionbutton.svg")
+ACTION_OVERLAYS_SVG = os.path.join(PACKAGE, "widgets", "action-overlays.svg")
 BAR_METER_HORIZONTAL_SVG = os.path.join(
     PACKAGE, "widgets", "bar_meter_horizontal.svg"
 )
