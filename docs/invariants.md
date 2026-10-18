@@ -30,6 +30,7 @@ that does not exist, or a blank guarantee cell fails `make check`.
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
 | Every shipped desktop-theme SVG shares one root canvas. | `tests/test_desktoptheme.py::TestSvgRootCanvas` | none |
+| `widgets/actionbutton.svg` draws the Platinum round action button. | `tests/test_desktoptheme_actionbutton.py::TestActionButton` | none |
 | `arrows.svg` draws the popup and dropdown arrows. | `tests/test_desktoptheme_arrows.py::TestArrows` | none |
 | `widgets/background.svg` draws the Platinum menu body. | `tests/test_desktoptheme_background.py::TestBackground` | none |
 | `busywidget.svg` draws the Platinum busy indicator ring. | `tests/test_desktoptheme_busywidget.py::TestBusyWidget` | none |

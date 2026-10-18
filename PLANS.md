@@ -26,7 +26,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum round action button (`widgets/actionbutton.svg`) for the desktop theme (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum round action button (`widgets/actionbutton.svg`) for the desktop theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** Ship `widgets/actionbutton.svg` so `PlasmaComponents.RoundButton` and `PlasmaComponents.Dial` draw a Platinum circle instead of inheriting Breeze's blue one. The theme ships no `widgets/actionbutton`, so `KSvg` resolves the name to the default theme's Breeze file. It is the last of the `actionbutton`/`busy`/`switch` surfaces the done plans name (`busy` and `switch` are done). Independent of every shipped widget: it adds one artwork file, one path constant, one test module and registry/README lines.
 
@@ -40,16 +44,16 @@ as the whole of the prompt.
 **Provenance.** Mac OS 8.6 draws no round button, so the shape and its hover/focus rings are KDE-required; the fills reuse the grounded Platinum face and bevel the other widgets ship (`#000000` outline, `#FFFFFF` highlight, `#999999` shadow, `#DDDDDD` face), and the focus ring reuses `button.svg`'s 1px `#000000` ring treatment. State this in the file's header comment.
 
 **Approach.**
-- New `theme/desktop-themes/org.macos8.desktop/widgets/actionbutton.svg`, a 36x36 canvas with four `<g>` elements, each a circle centred (18,18) so `KSvg` scales each to the item:
+- New `theme/desktop-themes/org.macos8.desktop/widgets/actionbutton.svg`, a 36x36 canvas with four `<g>` elements, each opening with an invisible 36x36 bounding rect, so `KSvg` scales all four by the same bounds:
   - `normal` (raised): a filled `#000000` circle r=17 (outline), then a `#FFFFFF` half-disc path (top-left half, r=16) and a `#999999` half-disc path (bottom-right half, r=16) painting the 1px bevel, then a filled `#DDDDDD` circle r=15 (face). Each half-disc is one `M`/`A`/`Z` path, so `path_arcs` reads one 180-degree arc.
   - `pressed` (sunken): the same circles with the bevel halves swapped — `#999999` top-left, `#FFFFFF` bottom-right.
-  - `hover` and `focus`: a 1px `#000000` ring — the filled r=17 circle with a `fill="none"` r=16 circle over it, so the underlying `normal` art shows through.
+  - `hover` and `focus`: a 1px `#000000` ring in the outermost pixel, just outside the r=17 outline, drawn as one donut path — a full r=18 circle and a full r=17 circle wound the other way, so the nonzero fill rule leaves the interior transparent and the underlying `normal` art shows through.
   - no `shadow` element (Breeze ships none).
 - `tests/support/desktoptheme_paths.py`: add `ACTIONBUTTON_SVG = os.path.join(PACKAGE, "widgets", "actionbutton.svg")`.
 - New `tests/test_desktoptheme_actionbutton.py`, modelled on `tests/test_desktoptheme_radiobutton.py` (circles) and `tests/test_desktoptheme_busywidget.py` (arcs):
   - `TestActionButton(SvgCase, unittest.TestCase)` with `SVG_PATH = ACTIONBUTTON_SVG`.
   - `test_actionbutton_contract`: `assert_ids_present(self, self.tree, ("normal", "pressed", "hover", "focus"))`, the parsed fill set is exactly `PLATINUM_FILLS | {"none"}`, and `assert_no_script_elements`.
-  - `test_actionbutton_geometry`: for `normal`, the circles are `(18, 18, 17, "#000000")` then `(18, 18, 15, "#DDDDDD")`, and the two half-disc paths' arcs reconstruct (18,18) at r=16; their fills in document order are `#FFFFFF` then `#999999`, so the paint order pins the top-left highlight. For `pressed`, the same geometry with the two fills swapped. For `hover` and `focus`, the two circles are `(18, 18, 17, "#000000")` and `(18, 18, 16, "none")`.
+  - `test_actionbutton_geometry`: for `normal`, the circles are `(18, 18, 17, "#000000")` then `(18, 18, 15, "#DDDDDD")`, and the two half-disc paths' arcs reconstruct (18,18) at r=16; their fills in document order are `#FFFFFF` then `#999999`, so the paint order pins the top-left highlight. For `pressed`, the same geometry with the two fills swapped. For `hover` and `focus`, the group holds no circle but one `#000000` donut path whose four 180-degree arcs reconstruct (18,18) at radii 18, 18, 17, 17 with the inner pair wound the other way, so a filled disc, a same-winding path or a swapped inner/outer radius fails. Every group must also hold one invisible 36x36 bounding rect, so all four scale identically.
 - `tests/test_desktoptheme.py`: add `("actionbutton.svg", ACTIONBUTTON_SVG, 36, 36)` to `SVG_CANVASES` and `os.path.join("widgets", "actionbutton.svg")` to `TestInstall.INSTALLED_FILES`.
 - `docs/invariants.md`: add the desktop-theme row `| widgets/actionbutton.svg draws the Platinum round action button. | tests/test_desktoptheme_actionbutton.py::TestActionButton | none |`.
 - `README.md`: add `widgets/actionbutton.svg` to the desktop theme's widget inventory sentence.
@@ -57,12 +61,10 @@ as the whole of the prompt.
 **Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/actionbutton.svg` (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_actionbutton.py` (new), `tests/test_desktoptheme.py`, `docs/invariants.md`, `README.md`.
 
 **Acceptance criteria.**
-- `actionbutton.svg` parses with a 36x36 root canvas and the four named groups; its parsed fills are exactly the Platinum four plus `none`.
-- `normal`/`pressed` are concentric circles at (18,18) with r=17/16/15 and opposite bevel orders; `hover`/`focus` are a r=17 `#000000` ring with a transparent r=16 interior, all pinned by name.
+- `actionbutton.svg` parses with a 36x36 root canvas and the four named groups; its parsed fills are exactly the Platinum four plus `none` (the bounding rects).
+- `normal`/`pressed` are concentric circles at (18,18) with r=17/16/15 and opposite bevel orders; `hover`/`focus` are a r=17..18 `#000000` donut path with a transparent r=17 interior, all pinned by name.
 - `make install` copies the file into the installed desktop theme and `make uninstall` removes it (through `TestInstall`), the SVG registry covers it (through `TestSvgRootCanvas.test_registry_covers_every_shipped_svg`), and the README and `docs/invariants.md` list it.
 - `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Platinum busy indicator (`widgets/busywidget.svg`) for the desktop theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 

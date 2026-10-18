@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" round action button.
+
+     The round button PlasmaComponents.RoundButton and PlasmaComponents.Dial
+     draw: a #DDDDDD face inside a 1px #000000 outline with a 1px bevel,
+     #FFFFFF on the top-left half and #999999 on the bottom-right half when
+     normal, swapped when pressed. RoundButton draws `pressed` while down or
+     checked else `normal`, and overlays Private.RoundShadow, which draws
+     `hover` or `focus`; the hover and focus states are a 1px #000000 ring in
+     the outermost pixel, just outside the r=17 outline, drawn as one donut
+     path: a full r=18 circle and a full r=17 circle wound the other way, so
+     the nonzero fill rule leaves the interior transparent and the underlying
+     art shows through. The default theme ships no `shadow` element, so the
+     theme keeps Breeze's behaviour there and draws nothing for the shadow
+     state.
+
+     Every group opens with an invisible 36x36 bounding rect. KSvg scales an
+     element by its bounds, and RoundShadow anchors the `hover`/`focus` item
+     to the same parent as the `normal` item, so without the rect the 34x34
+     face art and the 36x36 ring would scale differently and the ring would
+     land back on the outline.
+
+     The face is three concentric circles at (18, 18): the #000000 outline at
+     r=17, the #DDDDDD face at r=15, and the bevel between them. Each bevel
+     half is one half-disc path of radius 16, split along the top-right to
+     bottom-left diagonal, so `path_arcs` reads one 180-degree arc; the
+     diameter endpoints sit on the 45-degree rays at 18 -/+ 16/sqrt(2)
+     (written to six decimals as 6.686292 and 29.313708), so the endpoint-form
+     arc reconstructs its centre within the tests' two-decimal tolerance. The
+     outline and face are filled circles under and over the half-discs, so
+     the bevel shows as a crisp 1px edge with no stroke antialiasing.
+
+     Provenance: Mac OS 8.6 draws no round button, so the shape and its
+     hover/focus rings are KDE-required; the fills reuse the grounded Platinum
+     face (#DDDDDD), outline (#000000), highlight (#FFFFFF) and shadow
+     (#999999) the other widgets ship, and the focus ring reuses button.svg's
+     1px #000000 ring treatment. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
+  <!-- Raised: white highlight on the top-left bevel half, grey shadow on the
+       bottom-right. -->
+  <g id="normal">
+    <rect x="0" y="0" width="36" height="36" fill="none"/>
+    <circle cx="18" cy="18" r="17" fill="#000000"/>
+    <path d="M 6.686292,29.313708 A 16,16 0 0 1 29.313708,6.686292 Z" fill="#FFFFFF"/>
+    <path d="M 29.313708,6.686292 A 16,16 0 0 1 6.686292,29.313708 Z" fill="#999999"/>
+    <circle cx="18" cy="18" r="15" fill="#DDDDDD"/>
+  </g>
+
+  <!-- Sunken: the bevel halves swapped, grey shadow on the top-left. -->
+  <g id="pressed">
+    <rect x="0" y="0" width="36" height="36" fill="none"/>
+    <circle cx="18" cy="18" r="17" fill="#000000"/>
+    <path d="M 6.686292,29.313708 A 16,16 0 0 1 29.313708,6.686292 Z" fill="#999999"/>
+    <path d="M 29.313708,6.686292 A 16,16 0 0 1 6.686292,29.313708 Z" fill="#FFFFFF"/>
+    <circle cx="18" cy="18" r="15" fill="#DDDDDD"/>
+  </g>
+
+  <!-- Hover and focus: a 1px black ring in the outer pixel of the canvas,
+       outside the r=17 outline. The donut is one path: an outer r=18 circle
+       then an inner r=17 circle wound the other way, so the nonzero fill
+       rule leaves the centre unpainted. -->
+  <g id="hover">
+    <rect x="0" y="0" width="36" height="36" fill="none"/>
+    <path d="M 0,18 A 18,18 0 1 1 36,18 A 18,18 0 1 1 0,18 Z M 1,18 A 17,17 0 1 0 35,18 A 17,17 0 1 0 1,18 Z" fill="#000000"/>
+  </g>
+  <g id="focus">
+    <rect x="0" y="0" width="36" height="36" fill="none"/>
+    <path d="M 0,18 A 18,18 0 1 1 36,18 A 18,18 0 1 1 0,18 Z M 1,18 A 17,17 0 1 0 35,18 A 17,17 0 1 0 1,18 Z" fill="#000000"/>
+  </g>
+</svg>

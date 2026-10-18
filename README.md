@@ -93,7 +93,9 @@ Platinum etched separator, `#888888` then `#FFFFFF`, that list section headers, 
 the kicker, system-tray and notification separators draw), and `widgets/plasmoidheading.svg`
 (the transparent header and footer bands of applet popups, divided from the body by the same
 etched `#888888`/`#FFFFFF` rule), and `widgets/busywidget.svg` (the Platinum ring
-`PlasmaComponents.BusyIndicator` spins while a task runs).
+`PlasmaComponents.BusyIndicator` spins while a task runs). `widgets/actionbutton.svg`
+ships the round Platinum button `PlasmaComponents.RoundButton` and `PlasmaComponents.Dial` draw: a
+`#DDDDDD` face with a 1px `#000000` outline and bevel, plus hover and focus rings.
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. `widgets/switch.svg` ships the Platinum track-and-thumb

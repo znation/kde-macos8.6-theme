@@ -12,6 +12,7 @@ import unittest
 import xml.etree.ElementTree as ET
 
 from support.desktoptheme_paths import (
+    ACTIONBUTTON_SVG,
     ARROWS_SVG,
     BACKGROUND_SVG,
     BAR_METER_HORIZONTAL_SVG,
@@ -70,8 +71,9 @@ PLASMA_SECTION = "plasmarc][Theme"
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
 # is a 10x10 canvas and the etched separator a 4x2 canvas. The switch is a
-# 30x18 canvas grown from a 16x16 track to hold its 12x18 thumb, and the busy
-# indicator a 36x36 square for its 32px ring.
+# 30x18 canvas grown from a 16x16 track to hold its 12x18 thumb, the busy
+# indicator a 36x36 square for its 32px ring, and the round action button a
+# 36x36 square for its 34px outline.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 22),
     ("frame.svg", FRAME_SVG, 12, 12),
@@ -84,6 +86,7 @@ SVG_CANVASES = (
     ("slider.svg", SLIDER_SVG, 16, 16),
     ("switch.svg", SWITCH_SVG, 30, 18),
     ("busywidget.svg", BUSYWIDGET_SVG, 36, 36),
+    ("actionbutton.svg", ACTIONBUTTON_SVG, 36, 36),
     ("bar_meter_horizontal.svg", BAR_METER_HORIZONTAL_SVG, 10, 10),
     ("background.svg", BACKGROUND_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
@@ -206,6 +209,7 @@ class TestInstall(
         os.path.join("widgets", "slider.svg"),
         os.path.join("widgets", "switch.svg"),
         os.path.join("widgets", "busywidget.svg"),
+        os.path.join("widgets", "actionbutton.svg"),
         os.path.join("widgets", "bar_meter_horizontal.svg"),
         os.path.join("widgets", "background.svg"),
         os.path.join("widgets", "tooltip.svg"),
