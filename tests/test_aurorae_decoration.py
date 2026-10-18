@@ -87,8 +87,8 @@ REFERENCE_ROWS = 425
 PROFILER_REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "systemprofiler_betawiki.png"
 )
-# The deepest profiler row this module reads is the box bottom at y=37.
-PROFILER_ROWS = 38
+# The deepest profiler row this module reads is the highlight row at y=38.
+PROFILER_ROWS = 39
 
 # The flat grey every inactive-state tile uses in place of the active tile's
 # highlight and pinstripe fills. The reference set has no inactive window, so
@@ -229,7 +229,7 @@ class ReferenceImageCase:
         )
         return png.pixel_at(self.profiler_image, x, y)
 
-    def profiler_box(self, x0, y0, size=12):
+    def profiler_box(self, x0, y0, size=13):
         """Return a *size* x *size* profiler region as {(x, y): '#RRGGBB'}."""
         return {
             (x, y): hex_colour(self.profiler_pixel(x0 + x, y0 + y))
@@ -237,12 +237,13 @@ class ReferenceImageCase:
             for x in range(size)
         }
 
-    def reference_box(self, x0, y0, size=12):
+    def reference_box(self, x0, y0, size=13):
         """Return a *size* x *size* reference region as {(x, y): '#RRGGBB'}.
 
         The keys are the region-local coordinates (0, 0)..(*size*-1,
         *size*-1), so the map can be compared directly against a rendered
-        slice. Used for the two 12x12 button boxes.
+        slice. Used for the 13x13 button boxes: the 12x12 face plus its
+        1px white highlight.
         """
         return {
             (x, y): hex_colour(self.reference_pixel(x0 + x, y0 + y))
@@ -394,9 +395,24 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         return min(xs), min(ys), max(xs) - min(xs) + 1, max(ys) - min(ys) + 1
 
     def _close_box_size(self):
-        """Return the (width, height) of the close box's #888888 bounding box."""
-        _, _, width, height = self._box_bounds(8, 26)
-        return width, height
+        """Return the (width, height) of the close button, highlight included.
+
+        The #888888 bounding box is the 12x12 face; the white highlight is
+        the column just right of it and the row just below it, so the
+        button is one pixel wider and taller than the face.
+        """
+        x, y, width, height = self._box_bounds(8, 26)
+        column = x + width
+        row = y + height
+        for dy in range(1, height + 1):
+            self.assertEqual(
+                self.reference_pixel(column, y + dy), (255, 255, 255), dy
+            )
+        for dx in range(1, width + 1):
+            self.assertEqual(
+                self.reference_pixel(x + dx, row), (255, 255, 255), dx
+            )
+        return width + 1, height + 1
 
     def test_layout_metrics_match_reference(self):
         layout = "Layout"
@@ -430,11 +446,11 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         )
         self.assertEqual(
             int(self.parser.get(layout, "TitleEdgeRight")),
-            right - (collapse_x + collapse_w - 1),
+            right - (collapse_x + collapse_w),
         )
         # The profiler window has the same right-hand offset: its outline's
-        # last black pixel on row y=22 (x<816) against the collapse face's
-        # right edge at x=808.
+        # last black pixel on row y=22 (x<816) against the collapse box's
+        # highlight column at x=809.
         outline = [
             x
             for x in range(0, 816)
@@ -442,15 +458,16 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         ]
         self.assertEqual(
             int(self.parser.get(layout, "TitleEdgeRight")),
-            outline[-1] - 808,
+            outline[-1] - 809,
         )
         self.assertEqual(
             int(self.parser.get(layout, "ButtonMarginTop")), close_y - top
         )
 
     def test_button_spacing_matches_reference(self):
-        # ButtonSpacing is the gap between the zoom and collapse faces:
-        # the profiler's #888888 columns split into two runs, one per box.
+        # ButtonSpacing is the gap from the zoom box's highlight column to
+        # the collapse face: the profiler's #888888 columns split into two
+        # runs, one per box, with the highlight column right after the first.
         columns = sorted(
             {
                 x
@@ -464,9 +481,13 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         ]
         self.assertEqual(len(jumps), 1, columns)
         zoom_right, collapse_left = jumps[0]
+        for y in range(27, 39):
+            self.assertEqual(
+                self.profiler_pixel(zoom_right + 1, y), (255, 255, 255), y
+            )
         self.assertEqual(
             int(self.parser.get("Layout", "ButtonSpacing")),
-            collapse_left - zoom_right - 1,
+            collapse_left - zoom_right - 2,
         )
 
     def test_title_bar_colours_match_reference(self):
@@ -644,17 +665,18 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
 class TestCorners(ReferenceImageCase, unittest.TestCase):
     """Each corner slice reproduces the reference frame.
 
-    The only pixels skipped are the exact 12x12 close/zoom button footprints
-    the Aurorae engine draws over the frame: the close box at
-    TitleEdgeLeft=4 / ButtonMarginTop=4 covers frame-local x=4..15, y=4..15
-    (the top-left corner's x=4,5), and the zoom box at TitleEdgeRight=5 has
-    its right edge at frame-local x = width - 6, covering the top-right
-    corner's x=0 only. Every other corner pixel is compared.
+    The only pixels skipped are the exact 13x13 close and collapse button
+    footprints the Aurorae engine draws over the frame: the close button at
+    TitleEdgeLeft=4 / ButtonMarginTop=4 covers frame-local x=4..16, y=4..16
+    (the top-left corner's x=4,5), and the collapse button at
+    TitleEdgeRight=4 has its right edge at frame-local x = width - 5,
+    covering the top-right corner's x=0,1. Every other corner pixel is
+    compared.
     """
 
     BUTTON_MASK = {
-        "decoration-topleft": {(x, y) for x in (4, 5) for y in range(4, 16)},
-        "decoration-topright": {(0, y) for y in range(4, 16)},
+        "decoration-topleft": {(x, y) for x in (4, 5) for y in range(4, 17)},
+        "decoration-topright": {(x, y) for x in (0, 1) for y in range(4, 17)},
     }
     REGIONS = {
         "decoration-topleft": (7, 25, 6, 22),
@@ -712,6 +734,25 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         slices = render_slices(ET.parse(SHADE_SVG))
         self.assertEqual(slices["active-center"], self.reference_box(343, 29))
         self.assertEqual(slices["active-center"], self.profiler_box(797, 26))
+
+    def test_highlight_is_reference_white(self):
+        # Each reference box's 13th column and row are the white highlight,
+        # with #CCCCCC at the column's top and the row's left end.
+        boxes = (
+            ("aboutsystem close", self.reference_pixel, 11, 29),
+            ("aboutsystem collapse", self.reference_pixel, 343, 29),
+            ("profiler close", self.profiler_pixel, 213, 26),
+            ("profiler zoom", self.profiler_pixel, 781, 26),
+            ("profiler collapse", self.profiler_pixel, 797, 26),
+        )
+        for name, pixel, x0, y0 in boxes:
+            with self.subTest(box=name):
+                for dy in range(1, 13):
+                    self.assertEqual(pixel(x0 + 12, y0 + dy), (255, 255, 255))
+                for dx in range(1, 13):
+                    self.assertEqual(pixel(x0 + dx, y0 + 12), (255, 255, 255))
+                self.assertEqual(pixel(x0 + 12, y0), (204, 204, 204))
+                self.assertEqual(pixel(x0, y0 + 12), (204, 204, 204))
 
     def _glyph(self, path, base_path, group):
         art = render_slices(ET.parse(path))[group]

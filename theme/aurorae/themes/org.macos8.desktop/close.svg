@@ -7,11 +7,19 @@
      from macos8.6-screenshots/aboutsystem_betawiki.png at x=11..22,
      y=29..40 and re-derived by tests/test_aurorae_decoration.py.
 
+     The canvas is 13x13: the 12x12 box plus the reference's 1px #FFFFFF
+     highlight, a column at x=12 (y=1..12) and a row at y=12 (x=1..11),
+     with #CCCCCC at (12,0) and (0,12). In the reference it sits just
+     right of and below the box (aboutsystem_betawiki.png x=23 and y=41,
+     systemprofiler_betawiki.png x=225).
+     The `inactive-center` group draws those pixels #CCCCCC, the flat
+     inactive title-bar field.
+
      The `inactive-center` group is the same box with its gradient face
      flattened to #CCCCCC and the #888888/#222222 outlines kept; the
      reference set has no inactive window, so the grey is KDE-required
      provenance. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 12 12">
+<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13">
   <g id="active-center" transform="translate(0,0)">
     <rect x="0" y="0" width="12" height="1" fill="#888888"/>
     <rect x="0" y="1" width="1" height="1" fill="#888888"/>
@@ -90,6 +98,10 @@
     <rect x="11" y="10" width="1" height="1" fill="#222222"/>
     <rect x="0" y="11" width="1" height="1" fill="#888888"/>
     <rect x="1" y="11" width="11" height="1" fill="#222222"/>
+    <rect x="12" y="0" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="12" y="1" width="1" height="12" fill="#FFFFFF"/>
+    <rect x="0" y="12" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="1" y="12" width="11" height="1" fill="#FFFFFF"/>
   </g>
   <g id="inactive-center" transform="translate(0,0)">
     <rect x="0" y="0" width="12" height="1" fill="#888888"/>
@@ -141,5 +153,9 @@
     <rect x="11" y="10" width="1" height="1" fill="#222222"/>
     <rect x="0" y="11" width="1" height="1" fill="#888888"/>
     <rect x="1" y="11" width="11" height="1" fill="#222222"/>
+    <rect x="12" y="0" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="12" y="1" width="1" height="12" fill="#CCCCCC"/>
+    <rect x="0" y="12" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="1" y="12" width="11" height="1" fill="#CCCCCC"/>
   </g>
 </svg>

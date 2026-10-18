@@ -17,7 +17,11 @@ the window decoration is now shipped by the two `aurorae/themes/` entries below,
 still no icon, cursor, or Qt widget-style theme. The widget and splash work should not be treated
 as the whole of the prompt until the remaining surfaces are planned or explicitly ruled out.
 
-### Grow the Aurorae title-bar boxes to 13x13 with their white highlight (planned 2026-10-17 by the plan role)
+_None yet._
+
+## Done
+
+### Grow the Aurorae title-bar boxes to 13x13 with their white highlight (planned 2026-10-17 by the plan role; done 2026-10-17)
 
 **Goal.** In the reference, each Platinum title-bar box is its 12x12 face (the `#888888`
 top/left shadow, the `#222222` outline, the gradient) *plus* a 1px `#FFFFFF` highlight: a column
@@ -101,8 +105,6 @@ profiler x=226..229, and x=776..780 before the zoom box), plus a gap around the 
 Aurorae tiles `decoration-top` uniformly, so reproducing those gaps needs wider per-button
 widths (`ButtonWidthClose` etc., which Aurorae supports) or explicit spacers. That is a separate
 design decision, so it is not planned here.
-
-## Done
 
 ### Mac OS 8.6 zoom box glyph and collapse (windowshade) box for the Aurorae decoration (planned 2026-10-17 by the plan role; done 2026-10-17)
 
