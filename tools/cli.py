@@ -1,28 +1,23 @@
 """Shared argument-parsing helpers for the command-line tools.
 
 Each tool in this directory takes contributor-supplied paths and numbers on
-its command line. Five concerns recur across them: argparse's own
-diagnostics are formatted from raw argv and must not print control
-characters, a numeric option must reject Python-only spellings (underscore
-separators, non-ASCII digits, surrounding whitespace) that would silently
-name a different value, a caught read/comparison failure is reported as one
-escaped, tool-named line with exit status 2, a failed external command as
-that same line plus a tail of its log with exit status 1, and a tool that
-needs external commands refuses to run when one is absent from PATH. All of
-these live here so ``tools/fidelity.py``, ``tools/sample.py``,
+its command line. Two concerns recur across them: argparse's own diagnostics
+are formatted from raw argv and must not print control characters, and a
+numeric option must reject Python-only spellings (underscore separators,
+non-ASCII digits, surrounding whitespace) that would silently name a
+different value. Both live here so ``tools/fidelity.py``, ``tools/sample.py``,
 ``tools/render_surface.py`` and ``tools/apply_theme.py`` share one
 implementation.
+
+The operator-facing diagnostic contract -- the ``<tool>: error:`` line, its
+exit status and the bounded log tail -- lives in the sibling
+``tools/diagnostics.py``.
 """
 
 from __future__ import annotations
 
 import argparse
-import os
-import re
-import shutil
-import sys
-from collections.abc import Callable, Iterable
-from pathlib import Path
+from collections.abc import Callable
 from typing import TypeVar
 
 if __package__:
@@ -44,106 +39,6 @@ class EscapingArgumentParser(argparse.ArgumentParser):
     def error(self, message: str) -> None:
         """Report *message* with control characters escaped; argparse exits 2."""
         super().error(escape_controls(message))
-
-
-def report_error(tool: str, message: str) -> int:
-    """Print ``tool: error: <escaped message>`` to stderr and return 2.
-
-    The tools that call this report an operator-facing failure the same way:
-    one control-character-escaped diagnostic line prefixed with the tool's
-    name, and exit status 2. Keeping the format here means the prefix and the
-    escaping cannot drift between ``tools/fidelity.py``, ``tools/sample.py``
-    and ``tools/render_surface.py``. *message* is the unescaped text; a caller
-    passes an exception's ``str()`` or a diagnostic it built itself.
-    """
-    print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
-    return 2
-
-
-# Only CR, LF and CRLF end a log line. ``str.splitlines`` also breaks on
-# U+000B, U+000C, the C0 separators, NEL and U+2028/U+2029, so a log line
-# carrying one (an escaped byte, a form feed in captured output) would be
-# split into two reported lines and, at the twelve-line tail boundary, push a
-# complete line out of the diagnostic. ``reference_validation`` splits its
-# contributor-supplied record for the same reason.
-_LINE_BREAK = re.compile(r"\r\n|\r|\n")
-_LOG_TAIL_LINES = 12
-# The log belongs to the external command, not to us: a command that loops on
-# a warning for its whole timeout can leave a file far larger than the twelve
-# lines ``report_failure`` prints. Read only the end of it, so a multi-megabyte
-# (or larger) log is never loaded whole just to show its tail.
-_LOG_TAIL_BYTES = 1 << 16
-
-
-def _log_tail_lines(log: Path) -> list[str]:
-    """Return at most the last ``_LOG_TAIL_LINES`` lines of *log*, read bounded.
-
-    At most ``_LOG_TAIL_BYTES`` bytes are read from the end of the file. A
-    window that starts mid-line drops its partial first line -- unless the
-    window holds no line break at all, where the single (partial) line is kept
-    so the diagnostic is never empty. A window that opens on the ``\n`` half
-    of a ``\r\n`` pair starts inside that one break, so its empty first line
-    is the tail of the break and is dropped the same way. Only ``\r``,
-    ``\n`` and ``\r\n`` end a line; an exotic break byte inside a line (a
-    vertical tab, a form feed) stays part of that line.
-    """
-    with log.open("rb") as handle:
-        size = handle.seek(0, os.SEEK_END)
-        start = max(0, size - _LOG_TAIL_BYTES)
-        if start:
-            handle.seek(start - 1)
-            previous = handle.read(1)
-            first = handle.read(1)
-            # ``\r\n`` is one line break: opening on its ``\n`` half is not a
-            # line boundary, while a lone ``\r`` (a rewritten progress line)
-            # is.
-            boundary = previous == b"\n" or (
-                previous == b"\r" and first != b"\n"
-            )
-        else:
-            boundary = True
-        handle.seek(start)
-        data = handle.read(_LOG_TAIL_BYTES)
-    lines = _LINE_BREAK.split(data.decode("utf-8", errors="replace"))
-    if lines and lines[-1] == "":
-        # A file that ends in a break ends its last line there; splitlines
-        # omits that final empty element, so drop the one re.split adds.
-        lines.pop()
-    if not boundary and len(lines) > 1:
-        lines = lines[1:]
-    return lines[-_LOG_TAIL_LINES:]
-
-
-def report_failure(tool: str, message: str, log: Path | None = None) -> int:
-    """Print ``tool: error: <escaped message>`` and a log tail; return 1.
-
-    A tool whose external command failed reports it the same way: one
-    control-character-escaped diagnostic line prefixed with the tool's name,
-    the last ``_LOG_TAIL_LINES`` lines of the command's log (each escaped and
-    indented) when *log* names a file, and exit status 1. *message* is the
-    unescaped text. ``tools/apply_theme.py`` and ``tools/render_surface.py``
-    both return this result directly as the process exit status.
-    """
-    text = f"{tool}: error: {escape_controls(message)}"
-    if log is not None and log.is_file():
-        for line in _log_tail_lines(log):
-            text += f"\n  {escape_controls(line)}"
-    print(text, file=sys.stderr)
-    return 1
-
-
-def report_missing_tool(tool: str, required: Iterable[str]) -> int | None:
-    """Return the missing-tool exit status, or None when every tool is on PATH.
-
-    ``tools/apply_theme.py`` and ``tools/render_surface.py`` both refuse to run
-    when an external command they need is absent, naming the first missing one
-    in the shared ``report_error`` diagnostic. *required* is checked in order,
-    so the tool the message names is deterministic.
-    """
-    for name in required:
-        if shutil.which(name) is None:
-            return report_error(tool, f"required tool not found on PATH: {name}")
-    return None
 
 
 def is_plain_ascii_number(value: str) -> bool:

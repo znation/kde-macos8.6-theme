@@ -1046,7 +1046,7 @@ applications reread the new files.
   Steps 2-3 run after step 1 because `lookandfeeltool` applies the theme's defaults wholesale; the
   explicit component selections then hold whatever the user had chosen. Steps 1-3 are required: a
   missing tool exits 2 naming it (`shutil.which`), a non-zero command exits 1 with the output
-  tail, mirroring `tools.cli.report_failure` and `tools.cli.report_missing_tool`.
+  tail, mirroring `tools.diagnostics.report_failure` and `tools.diagnostics.report_missing_tool`.
 - When `DBUS_SESSION_BUS_ADDRESS` is unset, `$XDG_RUNTIME_DIR` is an absolute path, and
   `$XDG_RUNTIME_DIR/bus` exists, default the variable to `unix:path=$XDG_RUNTIME_DIR/bus`, so the
   command works from a non-login shell (the hook in part 2). Otherwise leave it alone.
@@ -2231,7 +2231,7 @@ size and writes it as the candidate PNG `tools/fidelity.py` consumes. Pin it wit
 
 **Approach.**
 - New `tools/render_surface.py`. Use the standard library only, following the argparse /
-  `report_error` style of `tools/fidelity.py` and `tools/cli.py`.
+  `report_error` style of `tools/fidelity.py` and `tools/diagnostics.py`.
   - CLI: `python3 tools/render_surface.py OUTPUT [--applet ID] [--width W] [--height H]
     [--settle SECONDS] [--timeout SECONDS]`.
   - Defaults: `--applet org.kde.plasma.calculator`, 320x240, `--settle 8`, `--timeout 90`.

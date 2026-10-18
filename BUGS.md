@@ -409,19 +409,19 @@ second is shown only as its tail fragment.
 **Reproduce:** Write a log of `"line 0\nline 1a\x0bline 1b\n"` plus lines 2-12 and call
 `report_failure`; the old code prints `line 1a` and `line 1b` as separate lines and loses `line 0`.
 The regression test
-`tests/test_cli.py::TestReportFailure::test_an_exotic_break_byte_inside_a_line_does_not_split_it`
+`tests/test_diagnostics.py::TestReportFailure::test_an_exotic_break_byte_inside_a_line_does_not_split_it`
 fails without the fix.
 
 **Cause:** `_log_tail_lines` decoded the tail window with `str.splitlines()`, which recognizes the
 full Unicode set of line breaks rather than only the CR, LF and CRLF that end a command's log line.
 
-**Fix:** `tools/cli.py` now splits the decoded window with a `re` pattern of `\r\n|\r|\n` (the
+**Fix:** `tools/diagnostics.py` now splits the decoded window with a `re` pattern of `\r\n|\r|\n` (the
 same rule `tools/reference_validation.py` uses for its contributor-supplied record) and drops the single
 trailing empty element `re.split` adds when the window ends in a break, so `str.splitlines`'
 trailing-element behavior is preserved.
 
 **Validation gap:** none — a deterministic unit test reproduced it; the new test failed against the
-previous `tools/cli.py` and passes after, and nothing about confirmation was missing.
+previous `tools/diagnostics.py` and passes after, and nothing about confirmation was missing.
 
 ### `_log_tail_lines` keeps a blank first line when the tail window opens on a `\r\n` newline (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
@@ -432,14 +432,14 @@ prints an extra empty indented line before the first log line.
 **Reproduce:** Build a log of `b"f\r" + b"\nFIRST\nSECOND\nTHIRD\n"` padded to exactly
 `_LOG_TAIL_BYTES + 2` bytes, so the window starts at the `\n`; `_log_tail_lines` returns an empty
 first line. The regression test
-`tests/test_cli.py::TestReportFailure::test_tail_window_opening_on_a_crlf_newline_drops_the_break`
+`tests/test_diagnostics.py::TestReportFailure::test_tail_window_opening_on_a_crlf_newline_drops_the_break`
 fails without the fix.
 
 **Cause:** The boundary check treated a preceding `\r` as a line start unconditionally, so a
 window opening on the `\n` of `\r\n` was treated as starting at a line boundary and its spurious
 empty `str.splitlines` element was kept.
 
-**Fix:** `tools/cli.py` now treats a preceding `\n` as a boundary, and a preceding `\r` as one only
+**Fix:** `tools/diagnostics.py` now treats a preceding `\n` as a boundary, and a preceding `\r` as one only
 when the window's first byte is not `\n` (the two bytes are one break).
 
 **Validation gap:** none — a deterministic unit test reproduced it; the new test failed before the

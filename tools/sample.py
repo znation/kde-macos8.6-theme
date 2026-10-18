@@ -21,8 +21,8 @@ if __package__:
         EscapingArgumentParser,
         plain_number,
         positive_int,
-        report_error,
     )
+    from tools.diagnostics import report_error
     from tools.png import PngError, pixel_at, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
@@ -30,8 +30,8 @@ else:  # run directly: python3 tools/sample.py
         EscapingArgumentParser,
         plain_number,
         positive_int,
-        report_error,
     )
+    from diagnostics import report_error
     from png import PngError, pixel_at, read_png
     from terminal import escape_controls
 

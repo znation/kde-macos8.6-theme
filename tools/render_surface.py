@@ -36,6 +36,8 @@ if __package__:
         EscapingArgumentParser,
         plain_number,
         positive_int,
+    )
+    from tools.diagnostics import (
         report_error,
         report_failure,
         report_missing_tool,
@@ -48,6 +50,8 @@ else:  # run directly: python3 tools/render_surface.py
         EscapingArgumentParser,
         plain_number,
         positive_int,
+    )
+    from diagnostics import (
         report_error,
         report_failure,
         report_missing_tool,

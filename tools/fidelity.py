@@ -34,8 +34,8 @@ if __package__:
         EscapingArgumentParser,
         is_plain_ascii_number,
         plain_number,
-        report_error,
     )
+    from tools.diagnostics import report_error
     from tools.fidelity_metrics import (
         FidelityError,
         compare,
@@ -49,8 +49,8 @@ else:  # run directly: python3 tools/fidelity.py
         EscapingArgumentParser,
         is_plain_ascii_number,
         plain_number,
-        report_error,
     )
+    from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop, crop_rect_problem
     from png import PngError, read_png
     from terminal import escape_controls

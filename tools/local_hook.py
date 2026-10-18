@@ -30,10 +30,12 @@ import sys
 from pathlib import Path
 
 if __package__:
-    from tools.cli import EscapingArgumentParser, report_error
+    from tools.cli import EscapingArgumentParser
+    from tools.diagnostics import report_error
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/local_hook.py
-    from cli import EscapingArgumentParser, report_error
+    from cli import EscapingArgumentParser
+    from diagnostics import report_error
     from terminal import escape_controls
 
 TOOL = "local_hook"
