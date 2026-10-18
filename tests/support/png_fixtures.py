@@ -371,4 +371,3 @@ def control_named_missing():
     """
     with tempfile.TemporaryDirectory() as tmp:
         yield str(Path(tmp) / "evil\x1b[31m.png")
-

@@ -242,4 +242,3 @@ def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
             )
 
     return problems
-

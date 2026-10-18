@@ -98,4 +98,3 @@ from .checks import (
     assert_slices_uniform,
     assert_tiles_placed_by_margins,
 )
-
