@@ -1,15 +1,18 @@
 """Tests for tools/local_hook.py and the local-hook Makefile targets.
 
-Each test makes a throwaway ``git init`` repository and runs the tool as a
-child process with that repository as its working directory, so the hook path
-and the repository root come from real git plumbing. The hook body is run
-directly against a fake ``make`` on ``PATH`` to pin that it re-applies from
-the worktree root and swallows a failed apply. The Makefile tests drive the
-new targets through `theme_install`.
+Each test makes a throwaway ``git init`` repository and runs the tool with that
+repository as its working directory, so the hook path and the repository root
+come from real git plumbing. The CLI runs in-process (``run_tool``) so the
+suite does not pay interpreter startup per call; ``test_script_entry_point``
+spawns the script once so its direct-run wrapper stays covered. The hook body
+is run directly against a fake ``make`` on ``PATH`` to pin that it re-applies
+from the worktree root and swallows a failed apply. The Makefile tests drive
+the new targets through `theme_install`.
 """
 
 from __future__ import annotations
 
+import contextlib
 import os
 import stat
 import sys
@@ -20,6 +23,7 @@ from unittest import mock
 import repo_root  # noqa: F401  (puts the repository root on sys.path)
 import theme_install
 import tmp_dir
+from cli_fixtures import run_main
 from process_assertions import assert_failed, assert_succeeded
 from tools import local_hook
 
@@ -34,14 +38,29 @@ def make_repo(case):
     return repo
 
 
+@contextlib.contextmanager
+def _in_directory(path):
+    """Run the block with *path* as the process working directory, then restore."""
+    previous = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(previous)
+
+
 def run_tool(repo, *args):
-    """Run ``tools/local_hook.py *args*`` with *repo* as the working directory."""
-    script = Path(theme_install.ROOT) / "tools" / "local_hook.py"
-    return theme_install.run_captured(
-        [sys.executable, str(script), *args],
-        cwd=repo,
-        env=dict(os.environ),
-    )
+    """Run the ``local_hook`` CLI with *repo* as its working directory.
+
+    ``local_hook`` resolves its git hooks directory and work-tree root from
+    the process working directory, so the call runs inside *repo*. Calling
+    ``main`` in-process exercises the same argument parsing, output and exit
+    status as ``python3 tools/local_hook.py`` without paying interpreter
+    startup and module import per call; ``test_script_entry_point`` covers the
+    script wrapper once.
+    """
+    with _in_directory(repo):
+        return run_main(local_hook.main, "local_hook", args)
 
 
 def hook_path(repo):
@@ -152,6 +171,20 @@ class TestInstall(unittest.TestCase):
             and entry.name.endswith(".tmp")
         ]
         self.assertEqual([], leftovers, leftovers)
+
+    def test_script_entry_point(self):
+        # ``run_tool`` calls ``main`` in-process for speed; this spawns the
+        # script once so its `if __name__ == "__main__": sys.exit(main())`
+        # wrapper and direct-run imports stay covered.
+        repo = make_repo(self)
+        script = Path(theme_install.ROOT) / "tools" / "local_hook.py"
+        result = theme_install.run_captured(
+            [sys.executable, str(script), "install"],
+            cwd=repo,
+            env=dict(os.environ),
+        )
+        assert_succeeded(self, result)
+        self.assertTrue(hook_path(repo).is_file(), result.stdout + result.stderr)
 
 
 class TestUninstall(unittest.TestCase):
