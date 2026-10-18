@@ -40,6 +40,23 @@ def make_repo(case):
     return repo
 
 
+def make_non_utf8_repo(case):
+    """Create a ``git init`` repository whose path holds a non-UTF-8 byte.
+
+    Linux permits such a path and git prints it raw, so git's output is not
+    decodable as strict UTF-8; this is the input that must not crash the tool.
+    The returned path is a string with a surrogate escape for the byte.
+    """
+    base = os.fsencode(tmp_dir.make_tmp_dir(case))
+    repo = os.fsdecode(base + b"/repo-\xff")
+    os.mkdir(repo)
+    result = theme_install.run_captured(
+        ["git", "init", "-q"], cwd=repo, env=dict(os.environ)
+    )
+    assert_succeeded(case, result)
+    return repo
+
+
 @contextlib.contextmanager
 def _in_directory(path):
     """Run the block with *path* as the process working directory, then restore."""
@@ -138,6 +155,21 @@ class TestGitFailures(unittest.TestCase):
         )
         self.assertEqual(message, "git rev-parse --git-path hooks exited 3")
 
+    def test_non_utf8_output_is_decoded_instead_of_crashing(self):
+        # A repository path may hold a byte that is not UTF-8, which git
+        # prints raw; a strict decode raises an uncaught UnicodeDecodeError.
+        # _git must decode it so the caller can use and report the path.
+        bindir = tmp_dir.make_tmp_dir(self) / "bin"
+        bindir.mkdir()
+        fake = bindir / "git"
+        fake.write_bytes(b"#!/bin/sh\nprintf '\\377\\376\\n'\n")
+        fake.chmod(0o755)
+        with mock.patch.dict(os.environ, {"PATH": str(bindir)}):
+            self.assertEqual(
+                local_hook._git("rev-parse", "--show-toplevel"),
+                "\udcff\udcfe",
+            )
+
     def test_success_returns_the_stripped_stdout(self):
         with mock.patch.object(
             local_hook.subprocess,
@@ -163,6 +195,20 @@ class TestInstall(unittest.TestCase):
         text = hook.read_text(encoding="utf-8")
         self.assertIn(local_hook.MARKER, text)
         self.assertIn("make apply", text)
+
+    def test_non_utf8_repo_path_is_handled_and_escaped(self):
+        # A non-UTF-8 repository path must not crash the tool: install
+        # succeeds, writes the hook at the right byte path, and prints the
+        # path escaped so no surrogate reaches the terminal.
+        repo = make_non_utf8_repo(self)
+        result = run_tool(repo, "install")
+        assert_succeeded(self, result)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("\\udcff", result.stdout)
+        self.assertIn(
+            local_hook.MARKER,
+            hook_path(repo).read_text(encoding="utf-8"),
+        )
 
     def test_reinstall_leaves_the_same_bytes(self):
         repo = make_repo(self)
@@ -309,6 +355,18 @@ class TestUninstall(unittest.TestCase):
         assert_succeeded(self, run_tool(repo, "install"))
         result = run_tool(repo, "uninstall")
         assert_succeeded(self, result)
+        self.assertFalse(hook_path(repo).exists())
+
+    def test_non_utf8_repo_path_is_handled_and_escaped(self):
+        # uninstall resolves its path without git's --show-toplevel, so it
+        # reaches the success line even in a non-UTF-8 repository; the path
+        # there must be escaped too, not printed raw.
+        repo = make_non_utf8_repo(self)
+        assert_succeeded(self, run_tool(repo, "install"))
+        result = run_tool(repo, "uninstall")
+        assert_succeeded(self, result)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertIn("\\udcff", result.stdout)
         self.assertFalse(hook_path(repo).exists())
 
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):

@@ -31,8 +31,10 @@ from pathlib import Path
 
 if __package__:
     from tools.cli import EscapingArgumentParser, report_error
+    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/local_hook.py
     from cli import EscapingArgumentParser, report_error
+    from terminal import escape_controls
 
 TOOL = "local_hook"
 HOOK_NAME = "post-commit"
@@ -70,13 +72,19 @@ def _git(*args: str) -> str:
     """Run ``git *args*`` in the current directory; return its stripped stdout.
 
     A missing git, a timeout, or a non-zero exit becomes a `LocalHookError`
-    whose message is git's own diagnostic where there is one.
+    whose message is git's own diagnostic where there is one. Git prints a
+    path raw, and a repository path may hold bytes that are not UTF-8 (Linux
+    allows that), so the output is decoded with ``surrogateescape`` instead of
+    strictly: the bytes round-trip through ``os.fsencode`` for the filesystem
+    calls, and a strict decode would otherwise raise an uncaught
+    ``UnicodeDecodeError`` naming neither the tool nor the command.
     """
     try:
         result = subprocess.run(
             ["git", *args],
             capture_output=True,
             text=True,
+            errors="surrogateescape",
             timeout=COMMAND_TIMEOUT,
         )
     except FileNotFoundError as exc:
@@ -182,7 +190,10 @@ def install() -> int:
         _write_hook(path, HOOK_SCRIPT)
     except OSError as exc:
         return report_error(TOOL, f"cannot write {path}: {exc}")
-    print(f"{TOOL}: installed {path} (runs make apply from {top})")
+    print(
+        f"{TOOL}: installed {escape_controls(str(path))} "
+        f"(runs make apply from {escape_controls(str(top))})"
+    )
     return 0
 
 
@@ -195,7 +206,10 @@ def uninstall() -> int:
     except LocalHookError as exc:
         return report_error(TOOL, str(exc))
     if existing is None:
-        print(f"{TOOL}: no {HOOK_NAME} hook to remove at {path}")
+        print(
+            f"{TOOL}: no {HOOK_NAME} hook to remove at "
+            f"{escape_controls(str(path))}"
+        )
         return 0
     if MARKER.encode() not in existing:
         return report_error(TOOL, f"refusing to remove a foreign hook: {path}")
@@ -203,7 +217,7 @@ def uninstall() -> int:
         path.unlink()
     except OSError as exc:
         return report_error(TOOL, f"cannot remove {path}: {exc}")
-    print(f"{TOOL}: removed {path}")
+    print(f"{TOOL}: removed {escape_controls(str(path))}")
     return 0
 
 
