@@ -64,14 +64,17 @@ class StubTools(unittest.TestCase):
         path.chmod(path.stat().st_mode | stat.S_IXUSR)
 
     def unstub(self, name):
+        """Remove the stub script named *name* from the stub bin."""
         (self.bin / name).unlink()
 
     def recorded(self):
+        """Return the ``"<name> <argv>"`` lines the stubs appended, in order."""
         if not self.calls.exists():
             return []
         return self.calls.read_text(encoding="utf-8").splitlines()
 
     def env_recorded(self):
+        """Return the ``"<name> DBUS=<address>"`` lines the stubs appended."""
         if not self.env_log.exists():
             return []
         return self.env_log.read_text(encoding="utf-8").splitlines()

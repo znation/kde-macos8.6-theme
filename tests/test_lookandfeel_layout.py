@@ -211,6 +211,7 @@ class TestClockMatchesReference(ReferenceScreenshotMixin, unittest.TestCase):
     ]
 
     def dark(self, x, y):
+        """Return whether the reference pixel at ``(x, y)`` is dark (red < 100)."""
         return self.pixel(x, y)[0] < 100
 
     def test_reference_clock_is_one_line(self):

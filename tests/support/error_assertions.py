@@ -115,9 +115,11 @@ class NoSubTest(unittest.TestCase):
     """
 
     def subTest(self, **kwargs):
+        """Drop the subTest frame so a failed assertion raises; see the class docstring."""
         return contextlib.nullcontext()
 
     def assertDictEqual(self, d1, d2, msg=None):
+        """Compare maps without difflib; see the class docstring."""
         self.assertIsInstance(d1, dict, "First argument is not a dictionary")
         self.assertIsInstance(d2, dict, "Second argument is not a dictionary")
         if d1 != d2:

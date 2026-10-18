@@ -252,6 +252,7 @@ class TestAnchors(unittest.TestCase):
         cls.parser = load_scheme()
 
     def assert_value(self, section, key, expected):
+        """Assert the scheme's ``section``/``key`` equals *expected*."""
         self.assertEqual(self.parser.get(section, key), expected, f"{section}/{key}")
 
     def test_face_backgrounds(self):

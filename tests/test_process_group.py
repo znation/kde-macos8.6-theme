@@ -33,6 +33,7 @@ class TestRunLogged(unittest.TestCase):
         self.log = self.root / "log"
 
     def run_sh(self, script, timeout=30):
+        """Run *script* through the logged runner and return its exit status."""
         return process_group.run_logged(
             ["sh", "-c", script], dict(os.environ), self.log, timeout, self.root
         )

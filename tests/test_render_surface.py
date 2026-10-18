@@ -28,6 +28,7 @@ SCRIPT = str(repo_root.ROOT / "tools" / "render_surface.py")
 
 class TestArguments(unittest.TestCase):
     def assert_usage_error(self, *argv):
+        """Assert a usage error (exit 2) and return its stderr."""
         status, stderr = call_main(render_surface.main, *argv)
         self.assertEqual(2, status)
         return stderr
@@ -169,11 +170,13 @@ class StubTools(unittest.TestCase):
             self.addCleanup(patch.stop)
 
     def stub(self, name, body):
+        """Write an executable stub named *name* that runs *body*."""
         path = self.bin / name
         path.write_text(f"#!/bin/sh\n{body}\n", encoding="utf-8")
         path.chmod(path.stat().st_mode | stat.S_IXUSR)
 
     def assert_scratch_removed(self):
+        """Assert the scratch parent holds no leftover entries."""
         self.assertEqual([], os.listdir(self.scratch_parent))
 
 
@@ -194,6 +197,7 @@ class TestMissingTool(unittest.TestCase):
 
 class TestFailurePaths(StubTools):
     def run_main(self, *extra):
+        """Run ``main`` on ``out.png`` with *extra* and return status, stderr, output."""
         output = self.root / "out.png"
         status, stderr = call_main(render_surface.main, str(output), *extra)
         return status, stderr, output
@@ -286,6 +290,7 @@ class TestFailurePaths(StubTools):
         self.assert_scratch_removed()
 
     def hidden_files(self):
+        """Return the dot-prefixed entries left in the scratch root."""
         return [name for name in os.listdir(self.root) if name.startswith(".")]
 
     def stub_capture(self):

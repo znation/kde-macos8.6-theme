@@ -155,9 +155,11 @@ class TestInstall(InstallLifecycleCases, unittest.TestCase):
     INSTALLED_FILES = ("index.theme",) + SHIPPED_ICONS
 
     def installed_parent(self, tmp):
+        """Return the directory holding the installed icon themes."""
         return installed_icons_dir(tmp)
 
     def installed_package_dir(self, tmp):
+        """Return the installed icon theme's own directory."""
         return installed_icon_theme(tmp, self.PACKAGE_ID)
 
 

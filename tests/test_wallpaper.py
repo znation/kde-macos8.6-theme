@@ -155,9 +155,11 @@ class TestInstall(
     COPY_FAILURE_GLOB = "*/wallpapers/*"
 
     def installed_parent(self, tmp):
+        """Return the directory holding the installed wallpapers."""
         return installed_wallpaper_dir(tmp)
 
     def installed_package_dir(self, tmp):
+        """Return the installed wallpaper package's own directory."""
         return installed_wallpaper(tmp, self.PACKAGE_ID)
 
 

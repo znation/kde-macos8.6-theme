@@ -69,16 +69,19 @@ class ReferenceImageCase:
             cls.load_profiler_reference()
 
     def reference_pixel(self, x, y):
+        """Return the desktop reference's pixel at ``(x, y)``, skipping if absent."""
         skip_unless_materialized(self, REFERENCE, self.image_error)
         return png.pixel_at(self.image, x, y)
 
     @classmethod
     def load_profiler_reference(cls):
+        """Load the System Profiler reference into ``profiler_image``/``error``."""
         cls.profiler_image, cls.profiler_error = read_reference(
             PROFILER_REFERENCE, max_rows=PROFILER_ROWS
         )
 
     def profiler_pixel(self, x, y):
+        """Return the profiler reference's pixel at ``(x, y)``, skipping if absent."""
         skip_unless_materialized(
             self, PROFILER_REFERENCE, self.profiler_error
         )

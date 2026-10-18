@@ -58,6 +58,7 @@ class TestLineReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = REFERENCE
 
     def assert_rule(self, dark_at, light_at, before, after):
+        """Assert the reference's rule: a dark/light pair with body either side."""
         self.assertEqual(self.pixel(*dark_at), (0x88, 0x88, 0x88))
         self.assertEqual(self.pixel(*light_at), (0xFF, 0xFF, 0xFF))
         self.assertEqual(hex_colour(self.pixel(*dark_at)), DARK)

@@ -26,6 +26,7 @@ def gradient(width, height):
 
 class TestTileFromReferenceBounds(unittest.TestCase):
     def image(self, width, height):
+        """Return a zero-filled *width* x *height* image."""
         return png.Image(width, height, bytes(width * height * 3))
 
     def test_image_one_pixel_short_in_either_axis_is_rejected(self):
@@ -58,6 +59,7 @@ class TestMain(unittest.TestCase):
         self.images = self.root / make_wallpaper.PACKAGE_DIR / "contents" / "images"
 
     def write_reference(self, width, height):
+        """Write a gradient reference PNG and return its RGB bytes."""
         rgb = gradient(width, height)
         path = self.root / make_wallpaper.REFERENCE
         path.parent.mkdir(parents=True)
@@ -65,6 +67,7 @@ class TestMain(unittest.TestCase):
         return rgb
 
     def run_main(self):
+        """Run ``main`` and return ``(status, stderr)``."""
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
             status = make_wallpaper.main()

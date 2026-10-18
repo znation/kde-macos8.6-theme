@@ -103,9 +103,11 @@ class TestInstall(
     COPY_FAILURE_GLOB = "*/aurorae/themes/*"
 
     def installed_parent(self, tmp):
+        """Return the directory holding the installed aurorae themes."""
         return installed_aurorae_dir(tmp)
 
     def installed_package_dir(self, tmp):
+        """Return the installed aurorae theme's own directory."""
         return installed_aurorae_theme(tmp, self.PACKAGE_ID)
 
 

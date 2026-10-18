@@ -84,6 +84,7 @@ class TestReferenceAnchors(unittest.TestCase):
         return png.pixel_at(self.images[path], x, y)
 
     def assert_anchor_at(self, section, key, x, y, path=REFERENCE_DESKTOP):
+        """Assert the scheme's ``section``/``key`` RGB equals *path*'s ``(x, y)``."""
         value = tuple(
             int(part) for part in self.parser.get(section, key).split(",")
         )

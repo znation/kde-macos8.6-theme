@@ -74,4 +74,5 @@ class ReferenceScreenshotMixin:
         skip_unless_materialized(self, self.REFERENCE, self.image_error)
 
     def pixel(self, x, y):
+        """Return the class reference's pixel at ``(x, y)``; ``setUp`` guards absence."""
         return png.pixel_at(self.image, x, y)

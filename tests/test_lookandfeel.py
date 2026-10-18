@@ -79,11 +79,13 @@ class _DataHomeLock:
         self._locked = True
 
     def release(self):
+        """Unlock the data home if this lock still holds it."""
         if self._locked:
             fcntl.flock(self._fd, fcntl.LOCK_UN)
             self._locked = False
 
     def close(self):
+        """Release the lock and close the data home directory fd."""
         self.release()
         os.close(self._fd)
 
