@@ -527,6 +527,50 @@ class TestHelp(unittest.TestCase):
                 names.append(name)
         return names
 
+    def _used_variables(self):
+        r"""Return the names the Makefile assigns or references in expansions.
+
+        The inverse of `test_lists_every_tunable_variable`: a help line left
+        behind after its variable is removed or renamed would send a
+        contributor to a variable the Makefile no longer has. A name counts
+        as used when a non-recipe line assigns it (``NAME =``, ``:=``,
+        ``?=``, ``+=``) or any line references it in a make expansion
+        (``$(NAME)``); ``DESTDIR`` is an external variable the Makefile only
+        expands, so both forms are needed. The set is a superset of the
+        Makefile's variables (a make function like ``$(call ...)`` also
+        contributes its name), which is enough for the subset check below.
+        Comments are stripped and make's ``$$`` escape is removed first, so a
+        mention in a comment or a shell variable in a macro body does not
+        count.
+        """
+        makefile = os.path.join(theme_install.ROOT, "Makefile")
+        used = set()
+        in_help = False
+        with open(makefile, encoding="utf-8") as handle:
+            for line in handle:
+                if line.startswith("help:"):
+                    in_help = True
+                    continue
+                if in_help:
+                    # The recipe lines are tab-indented; the first line that
+                    # is not (the blank after it, or the next rule) ends it.
+                    if not line.startswith("\t"):
+                        in_help = False
+                    else:
+                        continue
+                line = line.replace("$$", "")
+                line = re.sub(r"(?<!\\)#.*$", "", line)
+                if not line.startswith("\t"):
+                    match = re.match(
+                        r"\s*([A-Za-z_][A-Za-z0-9_]*)\s*[:?+]?=", line
+                    )
+                    if match:
+                        used.add(match.group(1))
+                used.update(
+                    re.findall(r"\$[({]([A-Za-z_][A-Za-z0-9_]*)[)}]", line)
+                )
+        return used
+
     def test_lists_every_public_target(self):
         lines = self._output().splitlines()
         for target in self._public_targets():
@@ -551,6 +595,24 @@ class TestHelp(unittest.TestCase):
                     target,
                     phony,
                     f"help lists target {target!r}, which is not a .PHONY target",
+                )
+
+    def test_every_help_variable_is_used(self):
+        r"""The help index must not name a variable the Makefile lacks.
+
+        `test_lists_every_tunable_variable` catches a `?=` variable added
+        without a help line; this catches the reverse, a help line left
+        behind after its variable is removed or renamed, which would send a
+        contributor to a variable that no longer tunes anything.
+        """
+        used = self._used_variables()
+        self.assertTrue(used, "Makefile has no variables to check")
+        for name in self._help_variables():
+            with self.subTest(variable=name):
+                self.assertIn(
+                    name,
+                    used,
+                    f"help lists variable {name!r}, which the Makefile never uses",
                 )
 
     def test_lists_every_tunable_variable(self):
