@@ -244,6 +244,13 @@ aggregate budgets instead: when either is given, a run passes when each given bu
 the default no-differing-pixel gate no longer applies. `make render` (`tools/render_surface.py`)
 produces a candidate render; no reference crop or threshold for a rendered surface is chosen yet.
 
+## Invariants
+
+`docs/invariants.md` states, per `theme/` subsystem and for the fidelity gate, the guarantee a
+surface must keep and the test that pins it. Read the matching row before changing a surface, and
+update it in the same change when a guarantee moves. `tests/test_invariants.py` keeps the register
+and the repository in step.
+
 ## Development team
 
 This theme is developed by a tumwater team of AI roles. How many roles run at once is a tumwater

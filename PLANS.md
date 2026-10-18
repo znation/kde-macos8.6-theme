@@ -26,7 +26,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Invariants register: `docs/invariants.md` pinning each subsystem's guarantee to its test (planned 2026-10-18 by the steward role; from the recurring `unclear-invariant` validation gap in three Fixed entries)
+_None yet._
+
+## Done
+
+### Invariants register: `docs/invariants.md` pinning each subsystem's guarantee to its test (planned 2026-10-18 by the steward role; from the recurring `unclear-invariant` validation gap in three Fixed entries) — done 2026-10-18
 
 **Goal.** Three Fixed entries each needed the artifact's intended guarantee reconstructed before the
 bug could be confirmed — the icon theme's description, the palette anchors' provenance, and the
@@ -67,8 +71,6 @@ test, and the tooltip provenance exception is recorded.
 and when a guarantee cell is blank; a scratch check (delete a row, rename a test) demonstrates each
 failure.
 - `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Platinum switch widget (`widgets/switch.svg`) for the desktop theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 
