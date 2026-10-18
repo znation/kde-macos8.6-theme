@@ -26,7 +26,79 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Fidelity gate for the rendered window decoration: byte-compare the title-bar strip to `aboutsystem_betawiki.png` (planned 2026-10-18 by the plan role)
+
+**Goal.** `tools/render_surface.py` renders the themed window in a headless KWin session and
+`tools/fidelity.py` compares a rendered PNG against a reference screenshot, but no reference crop
+or threshold for a rendered surface is chosen, so nothing checks that the assembled theme renders
+like the reference. This is the later plan the render entry's "Out of scope" names. Choose the
+first such crop — the window title bar — add a `--candidate-crop` option so the candidate can be
+cropped to the reference crop's size, and pin the whole pipeline (install, KWin, Aurorae, render)
+with a `make check` test that byte-compares the strip.
+
+**Grounding (sampled 2026-10-18 with `tools/png.read_png` + `pixel_at`).** A 320x240 render
+(`tools/render_surface.py --settle 3`, `org.kde.plasma.calculator`) puts the window's title bar at
+the top of the capture: row 0 is the `#000000` top outline, rows 1..20 are the Platinum pinstripes,
+row 21 is the `#000000` title-bar bottom outline. `aboutsystem_betawiki.png` (retail) has the same
+window chrome one row per row at `y=25..46`: row 25 the top outline, rows 26..45 the pinstripes,
+row 46 the bottom outline. So the render's rows `0..21` map to the reference's rows `25..46`.
+The pinstripes are horizontal, so the x offset does not matter as long as both crops stay clear of
+the close box and the centered title text: the reference's close box face is x=11..22 with its
+`#FFFFFF` highlight at x=23, and the title text is centered near x=180. The strip `x=30..109,
+y=0..21` of the render is byte-identical to `x=30..109, y=25..46` of the reference (0 differing
+pixels of 1760, max channel delta 0); the same render compared to `y=24..45` or `y=26..47` fails,
+so the one-row alignment is pinned by the test.
+
+**Approach.**
+- `tools/fidelity.py`: add `--candidate-crop X,Y,W,H` (`type=_parse_crop`,
+  `metavar="X,Y,W,H"`, help "crop the candidate to this region before comparing"), apply it as
+  `candidate = crop(candidate, *args.candidate_crop)` before `compare` (beside the existing
+  `reference = crop(reference, *args.crop)`), and print `candidate crop: X,Y,W,H` when set,
+  beside the existing `reference crop:` line. Update the module docstring's usage line to
+  `[--candidate-crop X,Y,W,H]`. A run without the option is byte-for-byte unchanged in
+  behaviour and output.
+- `tests/test_fidelity_cli.py`: cover the option in `TestCli`, mirroring the existing `--crop`
+  tests: `_write_padded_surface_pair` returns a 2x2 surface and a 4x4 padded image that embeds it
+  at (1,1), so pass the padded image as candidate and the surface as reference with
+  `--candidate-crop 1,1,2,2` and assert it passes; the `candidate crop:` rectangle is echoed
+  only when the option is given; a malformed rectangle (`1,2,3`) is a usage error naming
+  `--candidate-crop`; and a rectangle outside the candidate is a read error from `crop()`.
+- `tests/test_render_surface.py`: add module constants beside `SCRIPT` — `FIDELITY =
+  str(repo_root.ROOT / "tools" / "fidelity.py")`, `REFERENCE =
+  str(repo_root.ROOT / "macos8.6-screenshots" / "aboutsystem_betawiki.png")`,
+  `CANDIDATE_CROP = (30, 0, 80, 22)` and `REFERENCE_CROP = (30, 25, 80, 22)` — and a
+  `test_title_bar_matches_the_reference` method to `TestRender`. It loads `REFERENCE` with
+  `support.reference_image.read_reference` + `skip_unless_materialized` (imported beside the
+  other `support` imports, so it skips where the LFS image is absent, like the other reference
+  tests), then runs the real CLI `[sys.executable, FIDELITY, cls.output, REFERENCE,
+  "--candidate-crop", "30,0,80,22", "--crop", "30,25,80,22"]` through `process_runner` and
+  asserts exit 0 and `differing pixels: 0 / 1760` in stdout. It reuses the render `setUpClass`
+  already makes, so no second render runs.
+- `docs/invariants.md`: add a `tooling` row
+  `| The rendered window's title-bar strip is byte-identical to the same strip of the reference
+  screenshot. | tests/test_render_surface.py::TestRender::test_title_bar_matches_the_reference |
+  none |`.
+- `README.md`: in the Fidelity checking paragraph, replace the closing sentence "no reference
+  crop or threshold for a rendered surface is chosen yet" with the chosen crop: `make check`
+  renders the window (`make render`) and byte-compares its title-bar strip at candidate
+  `30,0,80,22` against reference `30,25,80,22` of `aboutsystem_betawiki.png`, naming
+  `--candidate-crop`.
+
+**Files touched.** `tools/fidelity.py`, `tests/test_fidelity_cli.py`, `tests/test_render_surface.py`,
+`docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- `python3 tools/fidelity.py <render.png> macos8.6-screenshots/aboutsystem_betawiki.png
+  --candidate-crop 30,0,80,22 --crop 30,25,80,22` exits 0 and prints `differing pixels: 0 /
+  1760`; without `--candidate-crop` the run still fails on the size mismatch, and a run with
+  neither option is unchanged.
+- `TestRender.test_title_bar_matches_the_reference` passes where the render tools and the
+  materialized reference are present, and skips when the reference is an unmaterialized LFS
+  pointer. Changing the Aurorae pinstripe colours, the title-bar height, or the close-box width
+  (so the close box reaches x=30) makes it fail.
+- The new `--candidate-crop` tests in `tests/test_fidelity_cli.py` pass, and the existing
+  `--crop` tests still pass unchanged.
+- `docs/invariants.md` resolves the new tooling row, and `make check` is green.
 
 ## Done
 
