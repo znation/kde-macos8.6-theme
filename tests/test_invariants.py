@@ -216,6 +216,47 @@ class TestHelpers(unittest.TestCase):
         )
         cross_check(self.root, register)
 
+    def test_cross_check_accepts_a_test_case_with_a_local_non_test_base(self):
+        # `TestWithMixin(LocalMixin, unittest.TestCase)` reaches TestCase only
+        # through its second base: the first is a class defined in the same
+        # module that is not a test case. `is_test_case` must keep scanning the
+        # remaining bases instead of stopping at the first local one, so
+        # unittest's collection of this class and the register's acceptance
+        # agree.
+        self._write(
+            "mixed_base_module",
+            "import unittest\n\n\n"
+            "class LocalMixin:\n"
+            "    def helper(self):\n"
+            "        pass\n"
+            "\n\n"
+            "class TestWithMixin(LocalMixin, unittest.TestCase):\n"
+            "    def test_ok(self):\n"
+            "        pass\n",
+        )
+        register = self._valid_register(
+            [("The thing holds.", "mixed_base_module::TestWithMixin")]
+        )
+        cross_check(self.root, register)
+
+    def test_cross_check_rejects_a_module_with_a_base_cycle(self):
+        # A class whose base chain loops back on itself (`First(Second)`,
+        # `Second(First)`) never reaches TestCase and unittest never collects
+        # it, but a base-following check must terminate on the cycle instead of
+        # recursing forever. The bare-file reference must reject the module by
+        # name, not escape as a `RecursionError`.
+        self._write(
+            "cycle_module",
+            "class First(Second):\n"
+            "    pass\n"
+            "\n\n"
+            "class Second(First):\n"
+            "    pass\n",
+        )
+        register = self._valid_register([("The thing holds.", "cycle_module")])
+        with self.assertRaisesRegex(AssertionError, "defines no test case"):
+            cross_check(self.root, register)
+
     def test_cross_check_rejects_a_missing_subsystem_section(self):
         register = self._register(
             "# Invariants\n\n## tooling\n\n"
