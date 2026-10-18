@@ -38,6 +38,16 @@ TEXT_EXTENSIONS = (
 )
 TEXT_NAMES = ("index.theme", "defaults")
 
+# The register/marker disagreements :func:`cross_check` must reject. Each name
+# is also a rejection mutation in ``tests/support/checker_mutations.py``; the
+# guard in ``tests/test_checker_mutations.py`` fails when a name here has no
+# mutation (or a mutation names a boundary that is not here).
+REJECTION_SHAPES = (
+    "marker-without-row",
+    "row-without-file",
+    "row-without-marker",
+)
+
 # One register table row: ``| `path` | what it stands in for |``.
 ROW = re.compile(r"^\|\s*`([^`]+)`\s*\|\s*(.*?)\s*\|\s*$")
 

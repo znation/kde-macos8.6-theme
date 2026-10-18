@@ -29,6 +29,23 @@ THEME_DIR = "theme"
 # the register: the render/fidelity tooling lives under ``tooling``.
 EXTRA_SECTIONS = ("tooling",)
 
+# The reference and row boundaries :func:`cross_check` must reject. Each name
+# is also a rejection mutation in ``tests/support/checker_mutations.py``, so a
+# boundary the shipped register never crosses is still driven by data; the
+# guard in ``tests/test_checker_mutations.py`` fails when a name here has no
+# mutation (or a mutation names a boundary that is not here).
+REJECTION_SHAPES = (
+    "malformed-row",
+    "test-cell-without-reference",
+    "reference-outside-repository",
+    "reference-to-non-test-case-class",
+    "method-on-non-test-case-class",
+    "non-test-method",
+    "trailing-segment",
+    "empty-qualifier",
+    "local-base-that-only-looks-like-a-test-case",
+)
+
 SECTION = re.compile(r"^##\s+(?P<name>.+?)\s*$")
 REFERENCE = re.compile(r"`([^`]+)`")
 # A separator cell is a run of dashes, optionally bounded by a colon on

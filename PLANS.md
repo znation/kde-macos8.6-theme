@@ -83,7 +83,9 @@ SVG fails `TestIconGeometry::test_each_icon_draws_its_pinned_artwork`.
 - `make check` is green, and `make install XDG_DATA_HOME=<tmp>` installs the new icon
 (`TestInstall` covers the installed file set).
 
-### Record-checker mutation harness: manufacture the malformed inputs from the shipped registers so a silent accept or drop is observable (planned 2026-10-18 by the steward role; from the recurring `no-observability` validation gap in thirteen Fixed entries)
+## Done
+
+### Record-checker mutation harness: manufacture the malformed inputs from the shipped registers so a silent accept or drop is observable (planned 2026-10-18 by the steward role; from the recurring `no-observability` validation gap in thirteen Fixed entries) — done 2026-10-18
 
 **Goal.** Twelve Fixed entries share one mechanism: a record checker (`tests/invariants.py`'s
 register parser and reference resolver, `tests/test_placeholders.py`'s marker scanner) accepted or
@@ -112,17 +114,22 @@ retired by the register's provenance-exception row and `TestProvenanceNote`, not
 **Approach.**
 - Add `tests/support/checker_mutations.py`: one named mutation per rejection shape the two checkers
 must catch, each a transform of a copy of the real register or of a scratch theme root plus the
-diagnostic substring the checker must raise. Seed the table with the twelve shapes above.
+diagnostic substring the checker must raise. Seed the table with the twelve shapes above. The
+reference mutations point the register's first row at `tests/support/mutant_module.py`, a shipped
+fixture holding the class shapes the shipped tests never define, and at a real test case in
+`tests/test_checker_mutations.py`; the placeholder mutations name real shipped theme files, so
+every path they cite exists in the tree.
 - Add `tests/test_checker_mutations.py`: copy `docs/invariants.md` and the placeholder register into
 a scratch root, apply each mutation, run the checker, and assert the named diagnostic; a mutation
 the checker does not reject fails. Exercise the `.js`/`.desktoprc`/`.kvconfig` cases by writing one
 marked file per text format the theme ships into the scratch theme root.
 - Give each checker a `REJECTION_SHAPES` list naming the boundaries it must reject (the shapes its
-`cross_check` docstring already enumerates), and add a test asserting every listed shape has a
-mutation entry, so a new rejection branch added without a case fails.
+`cross_check` docstring already enumerates), and add a test asserting the list and the mutation
+table name the same rejection boundaries, so a boundary named in one without the other fails.
 
 **Files touched.** `tests/support/checker_mutations.py` (new), `tests/test_checker_mutations.py`
-(new), `tests/invariants.py`, `tests/test_placeholders.py` (the `REJECTION_SHAPES` lists).
+(new), `tests/support/mutant_module.py` (new), `tests/invariants.py`, `tests/test_placeholders.py`
+(the `REJECTION_SHAPES` lists).
 
 **Acceptance criteria.**
 - Every shape above is a mutation entry, and applying it makes the matching checker raise the named
@@ -132,7 +139,13 @@ fails.
 the guard test.
 - `make check` is green, with the existing hand-written rejection tests still passing.
 
-## Done
+**Implementation note (2026-10-18).** The escaped-pipe and the three placeholder-format
+shapes are acceptance boundaries, not rejections: the checker must keep the row or find the
+marker, so the harness pins them with an `observe` assertion instead of a diagnostic. The
+`REJECTION_SHAPES` lists hold the nine invariant rejections and the three placeholder
+rejections; the guard test asserts each list equals the rejection mutation names, so a name
+or a mutation added without the other fails. It is a sync check between two hand-maintained
+lists, not a detector of a new rejection branch added to a checker on its own.
 
 ### Fidelity gate for the rendered window frame's side and bottom borders (planned 2026-10-18 by the plan role) — done 2026-10-18
 
