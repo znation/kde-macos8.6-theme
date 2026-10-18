@@ -82,6 +82,30 @@ class TestPublish(unittest.TestCase):
             self.assertEqual(b"the new render", output.read_bytes())
 
 
+class TestPublishMode(unittest.TestCase):
+    """`_publish` gives the output the mode a plain copy would.
+
+    ``mkstemp`` opens the temporary file 0600, while a plain
+    ``open(..., "wb")`` creates the output with the process umask applied; the
+    copy must restore that mode before the rename or the published render is
+    left owner-only.
+    """
+
+    def test_output_mode_matches_the_process_umask(self):
+        with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
+            root = Path(directory)
+            source = root / "source.png"
+            source.write_bytes(b"the new render")
+            output = root / "render.png"
+            previous = os.umask(0o027)
+            self.addCleanup(os.umask, previous)
+
+            render_surface._publish(source, output)
+
+            self.assertEqual(b"the new render", output.read_bytes())
+            self.assertEqual(0o640, stat.S_IMODE(output.stat().st_mode))
+
+
 class StubTools(unittest.TestCase):
     """Base for tests that run `main` against shell stubs of the external tools."""
 
