@@ -3,19 +3,20 @@
 
      The reference's zoom box: systemprofiler_betawiki.png at x=781..792,
      y=26..37. It is the close box with an inner #222222 square drawn in
-     the upper-left: frame-local (7,2)..(7,6) and (2,7)..(7,7). Re-derived
-     by tests/test_aurorae_buttons.py.
+     the upper-left: (7,2)..(7,6) and (2,7)..(7,7) in coordinates relative to
+     the box's top-left pixel, which sits at canvas x=5 (see below).
+     Re-derived by tests/test_aurorae_buttons.py.
 
      The canvas is 21x13, systemprofiler_betawiki.png x=776..796, y=26..38:
-     5 gap columns (x=776..780), the 13x13 box with its highlight at local
+     5 gap columns (x=776..780), the 13x13 box with its highlight at canvas
      x=5..17 (x=781..793), and 3 spacing columns (x=794..796). The pinstripes
-     stop short of the zoom box: local column 0 keeps the grey stripe
+     stop short of the zoom box: canvas column 0 keeps the grey stripe
      (#777777 on odd rows 1..11, #CCCCCC on the even rows 0..12) and columns
      1..4 and 18..20 are flat #CCCCCC. org.macos8.desktoprc sets
      ButtonWidthMaximizeRestore=21 and ButtonSpacing=0 so Aurorae draws this
      whole canvas as the button.
      Inside the box, the reference's 1px #FFFFFF highlight is a column at
-     local x=17 (y=1..12) and a row at y=12 (x=6..16), with #CCCCCC at (17,0)
+     canvas x=17 (y=1..12) and a row at y=12 (x=6..16), with #CCCCCC at (17,0)
      and (5,12). The `inactive-center` group draws the gap, spacing and
      highlight pixels #CCCCCC, the flat inactive title-bar field.
 
