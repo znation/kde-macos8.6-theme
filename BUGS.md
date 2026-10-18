@@ -8,7 +8,11 @@ unclear-invariant).
 
 ## Open
 
-### README lists three tools `make render` needs, but `REQUIRED_TOOLS` has six (found by the qa role 2026-10-17)
+_None yet._
+
+## Fixed
+
+### README lists three tools `make render` needs, but `REQUIRED_TOOLS` has six (found by the qa role 2026-10-17) — fixed 2026-10-17 by the bugfix role
 
 README "Installing" says `make render` "needs `kwin_wayland`, `spectacle` and `plasmawindowed` and exits 2
 naming the first missing tool". `tools/render_surface.py` (`REQUIRED_TOOLS`, near line 48) also requires `dbus-run-session`
@@ -26,7 +30,10 @@ Actual: exit 2 with `render_surface: error: required tool not found on PATH: dbu
 A machine with the three documented tools but no `dbus-run-session` or `plasma-apply-colorscheme` is told
 to install tools the docs never named. Fix: name them in the README sentence.
 
-## Fixed
+Fixed: README now names all five tools beyond `make`; `tests/test_readme_commands.py`
+`test_readme_names_every_tool_make_render_requires` derives the list from `REQUIRED_TOOLS`.
+
+**Validation gap:** none — the bug was confirmed by reading the README against `REQUIRED_TOOLS`, and the new test failed before the edit.
 
 ### `make install` fails with a shell syntax error when `XDG_DATA_HOME` or `DESTDIR` contains an apostrophe (found by the bugfix role 2026-10-17; fixed 2026-10-17 by the bugfix role)
 

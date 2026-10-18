@@ -12,6 +12,7 @@ import re
 import unittest
 
 from theme_install import ROOT
+from tools import render_surface
 
 _MAKE_TARGET = re.compile(r"\bmake\s+([a-z][a-z-]*)\b")
 _TOOL_SCRIPT = re.compile(r"\btools/[A-Za-z0-9_]+\.py\b")
@@ -49,6 +50,15 @@ class TestReadmeCommands(unittest.TestCase):
             if not os.path.isfile(os.path.join(base, path)):
                 missing.add(path)
         self.assertEqual(set(), missing, "README names package files not on disk")
+
+    def test_readme_names_every_tool_make_render_requires(self):
+        readme = read("README.md")
+        start = readme.index("`make render` renders")
+        paragraph = readme[start : readme.index("\n\n", start)]
+        # `make` is the command the paragraph documents, so it is always named.
+        wanted = [t for t in render_surface.REQUIRED_TOOLS if t != "make"]
+        unnamed = [t for t in wanted if f"`{t}`" not in paragraph]
+        self.assertEqual([], unnamed, "make render needs tools README does not name")
 
 
 class TestReadmeCommandParsing(unittest.TestCase):

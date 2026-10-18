@@ -101,7 +101,8 @@ one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAn
 `int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
 `make render` renders the installed theme in a headless KWin session and writes a screenshot PNG
 (a 320x240 Plasma calculator window by default) to `RENDER_OUTPUT` (`render.png`); it needs
-`kwin_wayland`, `spectacle` and `plasmawindowed` and exits 2 naming the first missing tool. It
+`dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and
+`spectacle` and exits 2 naming the first missing tool. It
 installs into a scratch data home and leaves your own Plasma configuration alone.
 
 ## Generating the wallpaper
