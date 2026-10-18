@@ -8,7 +8,6 @@ restart.
 
 import os
 import shutil
-import tempfile
 import unittest
 
 from colorscheme_fixtures import SCHEME
@@ -24,6 +23,7 @@ from theme_install import (
     staging_sibling,
     uninstall,
 )
+from tmp_dir import make_tmp_dir
 
 
 def write_selected_scheme(tmp, scheme_id):
@@ -118,37 +118,37 @@ class TestInstall(unittest.TestCase):
         # KDE derives the scheme id from the installed filename, so install must
         # follow the source basename: a hardcoded destination name would install
         # a renamed scheme under the old id and break its restart resolution.
-        with tempfile.TemporaryDirectory() as tmp:
-            source, _ = install_renamed_scheme(self, tmp, "Platinum.colors")
-            installed = installed_color_scheme(tmp, "Platinum.colors")
-            assert_files_identical(self, source, installed)
-            self.assertFalse(
-                os.path.exists(installed_color_scheme(tmp)),
-                "the old hardcoded name should not be installed",
-            )
+        tmp = str(make_tmp_dir(self))
+        source, _ = install_renamed_scheme(self, tmp, "Platinum.colors")
+        installed = installed_color_scheme(tmp, "Platinum.colors")
+        assert_files_identical(self, source, installed)
+        self.assertFalse(
+            os.path.exists(installed_color_scheme(tmp)),
+            "the old hardcoded name should not be installed",
+        )
 
     def test_make_uninstall_removes_the_scheme_under_its_source_basename(self):
         # `uninstall` must remove the same basename `install` wrote: a hardcoded
         # name would leave a renamed scheme behind and delete the wrong file.
-        with tempfile.TemporaryDirectory() as tmp:
-            _, extra = install_renamed_scheme(self, tmp, "Platinum.colors")
-            schemes = installed_color_scheme_dir(tmp)
-            renamed = os.path.join(schemes, "Platinum.colors")
-            self.assertTrue(os.path.isfile(renamed), renamed)
-            decoy = os.path.join(schemes, "MacOS8.colors")
-            with open(decoy, "w", encoding="utf-8") as handle:
-                handle.write("[General]\nName=Decoy\n")
+        tmp = str(make_tmp_dir(self))
+        _, extra = install_renamed_scheme(self, tmp, "Platinum.colors")
+        schemes = installed_color_scheme_dir(tmp)
+        renamed = os.path.join(schemes, "Platinum.colors")
+        self.assertTrue(os.path.isfile(renamed), renamed)
+        decoy = os.path.join(schemes, "MacOS8.colors")
+        with open(decoy, "w", encoding="utf-8") as handle:
+            handle.write("[General]\nName=Decoy\n")
 
-            removed = uninstall(tmp, extra=extra)
-            assert_succeeded(self, removed)
-            self.assertFalse(
-                os.path.exists(renamed),
-                "the renamed scheme should have been uninstalled",
-            )
-            self.assertTrue(
-                os.path.isfile(decoy),
-                "uninstall must not remove a file it did not install",
-            )
+        removed = uninstall(tmp, extra=extra)
+        assert_succeeded(self, removed)
+        self.assertFalse(
+            os.path.exists(renamed),
+            "the renamed scheme should have been uninstalled",
+        )
+        self.assertTrue(
+            os.path.isfile(decoy),
+            "uninstall must not remove a file it did not install",
+        )
 
     def test_make_uninstall_removes_only_the_scheme_it_installed(self):
         with installed_destdir(self) as tmp:
@@ -212,15 +212,15 @@ class TestInstall(unittest.TestCase):
         # The scheme id is the basename before its first dot, spaces included:
         # whitespace word-splitting would compare `My Scheme` to `My` and miss
         # the warning for a renamed scheme.
-        with tempfile.TemporaryDirectory() as tmp:
-            _, extra = install_renamed_scheme(self, tmp, "My Scheme.colors")
-            config = write_selected_scheme(tmp, "My Scheme")
+        tmp = str(make_tmp_dir(self))
+        _, extra = install_renamed_scheme(self, tmp, "My Scheme.colors")
+        config = write_selected_scheme(tmp, "My Scheme")
 
-            removed = uninstall_with_config(tmp, config, extra=extra)
-            assert_succeeded(self, removed)
-            self.assertIn(
-                "color scheme My Scheme is still selected", removed.stderr
-            )
+        removed = uninstall_with_config(tmp, config, extra=extra)
+        assert_succeeded(self, removed)
+        self.assertIn(
+            "color scheme My Scheme is still selected", removed.stderr
+        )
 
 
 @unittest.skipUnless(
@@ -236,37 +236,37 @@ class TestRestartRoundTrip(unittest.TestCase):
     """
 
     def test_applied_id_survives_restart(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            data = os.path.join(tmp, "data")
-            schemes = os.path.join(data, "color-schemes")
-            os.makedirs(schemes)
-            config = write_selected_scheme(tmp, "BreezeLight")
-            shutil.copy(SCHEME, os.path.join(schemes, os.path.basename(SCHEME)))
-            kdeglobals = os.path.join(config, "kdeglobals")
-            env = dict(
-                os.environ,
-                XDG_DATA_HOME=data,
-                XDG_CONFIG_HOME=config,
-                XDG_DATA_DIRS=data + os.pathsep + "/usr/share",
-            )
-            cli_id = os.path.basename(SCHEME).split(".", 1)[0]
-            applied = run_captured(
-                ["plasma-apply-colorscheme", cli_id],
-                env=env,
-            )
-            assert_succeeded(self, applied)
-            with open(kdeglobals, encoding="utf-8") as handle:
-                written = handle.read()
-            self.assertIn(f"ColorScheme={cli_id}", written)
-            restarted = run_captured(
-                ["plasma-apply-colorscheme"],
-                env=env,
-            )
-            self.assertNotIn(
-                "Could not find",
-                restarted.stdout + restarted.stderr,
-                "applied scheme id did not resolve on restart",
-            )
+        tmp = str(make_tmp_dir(self))
+        data = os.path.join(tmp, "data")
+        schemes = os.path.join(data, "color-schemes")
+        os.makedirs(schemes)
+        config = write_selected_scheme(tmp, "BreezeLight")
+        shutil.copy(SCHEME, os.path.join(schemes, os.path.basename(SCHEME)))
+        kdeglobals = os.path.join(config, "kdeglobals")
+        env = dict(
+            os.environ,
+            XDG_DATA_HOME=data,
+            XDG_CONFIG_HOME=config,
+            XDG_DATA_DIRS=data + os.pathsep + "/usr/share",
+        )
+        cli_id = os.path.basename(SCHEME).split(".", 1)[0]
+        applied = run_captured(
+            ["plasma-apply-colorscheme", cli_id],
+            env=env,
+        )
+        assert_succeeded(self, applied)
+        with open(kdeglobals, encoding="utf-8") as handle:
+            written = handle.read()
+        self.assertIn(f"ColorScheme={cli_id}", written)
+        restarted = run_captured(
+            ["plasma-apply-colorscheme"],
+            env=env,
+        )
+        self.assertNotIn(
+            "Could not find",
+            restarted.stdout + restarted.stderr,
+            "applied scheme id did not resolve on restart",
+        )
 
 
 if __name__ == "__main__":
