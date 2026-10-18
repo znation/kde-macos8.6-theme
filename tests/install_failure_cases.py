@@ -9,7 +9,6 @@ assertions live here once.
 
 import os
 import shutil
-import tempfile
 
 from process_assertions import assert_failed, assert_succeeded
 from theme_install import (
@@ -19,6 +18,7 @@ from theme_install import (
     shadow_command_env,
     staging_sibling,
 )
+from tmp_dir import make_tmp_dir
 
 
 def failing_cp_env(tmp, package_glob=None):
@@ -76,14 +76,15 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         with open(metadata, "rb") as handle:
             return installed, metadata, handle.read()
 
-    def _install_ok(self, tmp):
-        """Install once into `tmp`, assert it succeeded, and snapshot it.
+    def _install_ok(self):
+        """Install once into a fresh temp dir, assert it succeeded, snapshot it.
 
-        Returns `_snapshot`'s (installed, metadata, good) triple.
+        The dir is removed when the test ends. Returns the dir followed by
+        `_snapshot`'s (installed, metadata, good) triple.
         """
-        first = install(tmp)
-        assert_succeeded(self, first)
-        return self._snapshot(tmp)
+        tmp = str(make_tmp_dir(self))
+        assert_succeeded(self, install(tmp))
+        return (tmp, *self._snapshot(tmp))
 
     def _assert_package_intact(self, installed, metadata, good):
         self.assertTrue(os.path.isdir(installed), installed)
@@ -127,19 +128,18 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         before it removes anything, so a copy that then fails leaves the last
         working package installed rather than deleting it.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            installed, metadata, good = self._install_ok(tmp)
+        tmp, installed, metadata, good = self._install_ok()
 
-            # Reproduce the kill window: the working package was moved aside,
-            # but the staged copy was never renamed into place.
-            old = old_sibling(
-                self.installed_parent(tmp), self.PACKAGE_ID
-            )
-            os.rename(installed, old)
+        # Reproduce the kill window: the working package was moved aside,
+        # but the staged copy was never renamed into place.
+        old = old_sibling(
+            self.installed_parent(tmp), self.PACKAGE_ID
+        )
+        os.rename(installed, old)
 
-            result = install(tmp, env=self.reinstall_failure_env(tmp))
-            assert_failed(self, result)
-            self._assert_package_intact(installed, metadata, good)
+        result = install(tmp, env=self.reinstall_failure_env(tmp))
+        assert_failed(self, result)
+        self._assert_package_intact(installed, metadata, good)
 
     def test_failed_reinstall_keeps_the_previous_package(self):
         """A copy that dies partway must not delete or damage the working install.
@@ -148,16 +148,15 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         with a rename, so a copy that fails or is interrupted leaves the working
         package installed.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            installed, metadata, good = self._install_ok(tmp)
+        tmp, installed, metadata, good = self._install_ok()
 
-            result = install(tmp, env=self.reinstall_failure_env(tmp))
-            assert_failed(self, result)
-            self.assertFalse(
-                os.path.exists(self._staging_path(tmp)),
-                "staging directory leaked after a failed install",
-            )
-            self._assert_package_intact(installed, metadata, good)
+        result = install(tmp, env=self.reinstall_failure_env(tmp))
+        assert_failed(self, result)
+        self.assertFalse(
+            os.path.exists(self._staging_path(tmp)),
+            "staging directory leaked after a failed install",
+        )
+        self._assert_package_intact(installed, metadata, good)
 
     def test_failed_swap_keeps_the_previous_package(self):
         """A rename that fails after the old package is moved aside restores it.
@@ -167,18 +166,17 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         EXIT trap must move the old package back, so a failed swap leaves the
         working install rather than deleting it.
         """
-        with tempfile.TemporaryDirectory() as tmp:
-            installed, metadata, good = self._install_ok(tmp)
+        tmp, installed, metadata, good = self._install_ok()
 
-            result = install(tmp, env=self.swap_failure_env(tmp))
-            assert_failed(self, result)
-            parent = self.installed_parent(tmp)
-            for leaked in (
-                staging_sibling(parent, self.PACKAGE_ID),
-                old_sibling(parent, self.PACKAGE_ID),
-            ):
-                self.assertFalse(
-                    os.path.exists(leaked),
-                    f"{os.path.basename(leaked)} leaked after a failed swap",
-                )
-            self._assert_package_intact(installed, metadata, good)
+        result = install(tmp, env=self.swap_failure_env(tmp))
+        assert_failed(self, result)
+        parent = self.installed_parent(tmp)
+        for leaked in (
+            staging_sibling(parent, self.PACKAGE_ID),
+            old_sibling(parent, self.PACKAGE_ID),
+        ):
+            self.assertFalse(
+                os.path.exists(leaked),
+                f"{os.path.basename(leaked)} leaked after a failed swap",
+            )
+        self._assert_package_intact(installed, metadata, good)
