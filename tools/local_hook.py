@@ -23,6 +23,7 @@ invocation fails, or the arguments are a usage error.
 
 from __future__ import annotations
 
+import os
 import stat
 import subprocess
 import sys
@@ -127,6 +128,24 @@ def _existing_hook(path: Path) -> bytes | None:
         raise LocalHookError(f"cannot read {path}: {exc}") from exc
 
 
+def _write_hook(path: Path, content: str) -> None:
+    """Write *content* to *path* atomically, with the executable bit set.
+
+    The hook is written to a sibling temporary file, made executable, and then
+    renamed over *path*, so a crash mid-write leaves either the previous hook
+    or the complete new one -- never a truncated file that git would run. The
+    temporary file is removed when the write fails.
+    """
+    partial = path.with_name(f".{HOOK_NAME}-{os.getpid()}.tmp")
+    try:
+        partial.write_text(content, encoding="utf-8")
+        partial.chmod(0o755)
+        os.replace(partial, path)
+    except BaseException:
+        partial.unlink(missing_ok=True)
+        raise
+
+
 def install() -> int:
     """Write the local post-commit hook; return the process exit status."""
     try:
@@ -142,8 +161,7 @@ def install() -> int:
         )
     try:
         hooks.mkdir(parents=True, exist_ok=True)
-        path.write_text(HOOK_SCRIPT, encoding="utf-8")
-        path.chmod(0o755)
+        _write_hook(path, HOOK_SCRIPT)
     except OSError as exc:
         return report_error(TOOL, f"cannot write {path}: {exc}")
     print(f"{TOOL}: installed {path} (runs make apply from {top})")

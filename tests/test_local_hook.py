@@ -15,6 +15,7 @@ import stat
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import repo_root  # noqa: F401
 import theme_install
@@ -124,6 +125,33 @@ class TestInstall(unittest.TestCase):
         self.assertIn(str(hook), result.stderr)
         hook.chmod(0o644)
         self.assertEqual(foreign, hook.read_bytes())
+
+    def test_a_crash_mid_write_leaves_the_old_hook_intact(self):
+        repo = make_repo(self)
+        assert_succeeded(self, run_tool(repo, "install"))
+        hook = hook_path(repo)
+        complete = hook.read_bytes()
+
+        def crashing_write_text(self, data, **kwargs):
+            # Simulate a process death after a partial write: the file is left
+            # truncated, then the write raises.
+            self.write_bytes(data.encode()[: len(data) // 2])
+            raise OSError("simulated crash mid-write")
+
+        with mock.patch.object(local_hook, "hooks_dir", lambda: hook.parent), \
+                mock.patch.object(local_hook, "top_level", lambda: Path(repo)), \
+                mock.patch.object(Path, "write_text", crashing_write_text):
+            status = local_hook.install()
+
+        self.assertEqual(status, 2)
+        self.assertEqual(hook.read_bytes(), complete, "old hook was truncated")
+        leftovers = [
+            entry.name
+            for entry in hook.parent.iterdir()
+            if entry.name.startswith(f".{local_hook.HOOK_NAME}-")
+            and entry.name.endswith(".tmp")
+        ]
+        self.assertEqual([], leftovers, leftovers)
 
 
 class TestUninstall(unittest.TestCase):
