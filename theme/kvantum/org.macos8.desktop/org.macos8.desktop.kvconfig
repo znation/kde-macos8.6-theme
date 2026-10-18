@@ -1,0 +1,106 @@
+# Mac OS 8.6 "Platinum" Kvantum widget style for KDE Plasma 6.
+#
+# Kvantum merges this file over its compiled-in default.kvconfig and draws an
+# element the theme SVG lacks from its compiled-in default.svg, so this file
+# only states what the Platinum style changes. The palette values come from
+# the MacOS8 color scheme (see theme/color-schemes/MacOS8.colors) and from the
+# Platinum bevel palette; tests/test_kvantum.py re-derives every one of them.
+#
+# The theme is installed but not selected yet: the global theme keeps Qt's
+# built-in Windows style until the remaining widget art lands (PLANS.md,
+# "Mac OS 8.6 Kvantum widget style", part 3/3).
+
+[%General]
+author=The kde-macos8.6-theme project
+comment=Mac OS 8.6 Platinum widget style
+scroll_width=16
+scroll_arrows=true
+composite=true
+
+[GeneralColors]
+window.color=#DDDDDD
+button.color=#DDDDDD
+mid.color=#DDDDDD
+mid.light.color=#DDDDDD
+base.color=#FFFFFF
+alt.base.color=#EEEEEE
+highlight.color=#CCCCFF
+inactive.highlight.color=#CCCCFF
+text.color=#000000
+window.text.color=#000000
+button.text.color=#000000
+tooltip.text.color=#000000
+highlight.text.color=#000000
+disabled.text.color=#888888
+tooltip.base.color=#FFFFCC
+link.color=#0000EE
+link.visited.color=#551A8B
+light.color=#FFFFFF
+dark.color=#999999
+
+# The push and tool buttons: a 2px raised face (black outline, white
+# top/left highlight, grey bottom/right shadow), black label in every state.
+[PanelButtonCommand]
+frame=true
+frame.element=button
+frame.top=2
+frame.bottom=2
+frame.left=2
+frame.right=2
+interior=true
+interior.element=button
+indicator.element=arrow
+indicator.size=9
+text.normal.color=#000000
+text.focus.color=#000000
+text.press.color=#000000
+text.toggle.color=#000000
+
+[PanelButtonTool]
+inherits=PanelButtonCommand
+
+[LineEdit]
+inherits=PanelButtonCommand
+frame.element=lineedit
+interior.element=lineedit
+
+[ComboBox]
+inherits=PanelButtonCommand
+
+[CheckBox]
+inherits=PanelButtonCommand
+interior.element=checkbox
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=3
+text.margin.right=3
+
+[RadioButton]
+inherits=PanelButtonCommand
+interior.element=radio
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=3
+text.margin.right=3
+
+[Focus]
+inherits=PanelButtonCommand
+interior=false
+frame=true
+frame.element=focus
+frame.top=1
+frame.bottom=1
+frame.left=1
+frame.right=1
+
+[GenericFrame]
+inherits=PanelButtonCommand
+frame=true
+interior=false
+frame.element=common
+interior.element=common
+
+[IndicatorArrow]
+inherits=PanelButtonCommand
+indicator.element=arrow
+indicator.size=9

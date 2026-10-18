@@ -60,6 +60,15 @@ ICON_THEME_ID := org.macos8.desktop
 ICON_THEME_PACKAGE := theme/icons/$(ICON_THEME_ID)
 ICON_THEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/icons
 
+# Kvantum's user-local theme search path is
+# `$XDG_DATA_HOME/themes/<name>/Kvantum/`, so a Kvantum theme installs as two
+# files directly inside a `Kvantum/` directory rather than as a package
+# directory; the package-directory swap `install_package` performs does not
+# fit, so `_install` stages the two files individually instead.
+KVANTUM_ID := org.macos8.desktop
+KVANTUM_PACKAGE := theme/kvantum/$(KVANTUM_ID)
+KVANTUM_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(KVANTUM_ID)/Kvantum
+
 # Stage a directory package as a sibling, then swap it in with a rename, so a
 # copy that fails or is interrupted cannot leave a partial package installed or
 # delete the working one. The old package is moved aside rather than deleted
@@ -266,6 +275,16 @@ _install:
 	$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR))
 	install -d "$(ICON_THEME_INSTALL_DIR)"
 	$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR))
+	install -d "$(KVANTUM_INSTALL_DIR)"
+# Stage each Kvantum theme file as a hidden sibling and rename it in, as the
+# color scheme does; the two files sit directly in the Kvantum/ directory, so
+# the package-directory swap does not fit.
+	@for name in $(KVANTUM_ID).kvconfig $(KVANTUM_ID).svg; do \
+	  staging="$(KVANTUM_INSTALL_DIR)/.$$name.staging"; \
+	  trap 'rm -f "$$staging"' EXIT; \
+	  install -Dm644 "$(KVANTUM_PACKAGE)/$$name" "$$staging" && \
+	  mv "$$staging" "$(KVANTUM_INSTALL_DIR)/$$name" || exit 1; \
+	done
 
 # Remove only the artifacts `install` copied: the parent directories are shared
 # (other color schemes, other look-and-feel/desktop-theme/Aurorae/wallpaper/icon
@@ -287,6 +306,7 @@ _uninstall:
 	rm -rf "$(AURORAE_INSTALL_DIR)/$(AURORAE_ID)" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).staging" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).old"
 	rm -rf "$(WALLPAPER_INSTALL_DIR)/$(WALLPAPER_ID)" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).staging" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).old"
 	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"
+	rm -f "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).kvconfig" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).svg" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"
 # Removing the scheme does not touch the user's `[General] ColorScheme`
 # selection. If it still names the scheme just removed, KDE cannot resolve the
 # id and falls back to BreezeLight on every start without rewriting the stale

@@ -9,14 +9,14 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: six artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, and the `org.macos8.desktop` icon theme (our own Platinum-style art).
+Pre-alpha: seven artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), and the `org.macos8.desktop` Kvantum widget style (installed but not selected yet).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
 
 ## Installing
 
-`make install` copies six artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
+`make install` copies seven artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
 `$HOME/.local/share` when it is unset, empty, or relative; `make install` and `make uninstall`
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
 absolute path): the
@@ -24,9 +24,19 @@ color scheme
 `theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
 into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 `plasma/desktoptheme/`, the `org.macos8.desktop` window decoration into `aurorae/themes/`, the
-`org.macos8.desktop` wallpaper into `wallpapers/`, and the `org.macos8.desktop` icon theme into
-`icons/`. Applying the global theme selects that wallpaper: the retail 128x128 desktop
+`org.macos8.desktop` wallpaper into `wallpapers/`, the `org.macos8.desktop` icon theme into
+`icons/`, and the `org.macos8.desktop` Kvantum widget style into
+`themes/org.macos8.desktop/Kvantum/`. Applying the global theme selects that wallpaper: the retail 128x128 desktop
 pattern, shipped at fixed resolutions so it renders 1:1 when the screen matches one.
+
+The `org.macos8.desktop` Kvantum widget style is installed but not selected yet: the global theme
+keeps Qt's built-in `Windows` style until the rest of the Kvantum art lands (PLANS.md, part 3/3).
+Once Kvantum is installed, opt in with `kvantummanager --set org.macos8.desktop` and choose
+"Kvantum" in System Settings → Application Style; its Platinum palette and core-control art live in
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` and
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`. Kvantum searches
+`$HOME/.local/share/themes/<name>/Kvantum/` with that literal path, so it finds the theme only
+when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
 
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
@@ -100,8 +110,8 @@ active and inactive frames) with its gzipped `decoration.svgz` (the form
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make
-uninstall` removes the six installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
-`aurorae/themes/`, `wallpapers/` and `icons/`
+uninstall` removes the seven installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
+`aurorae/themes/`, `wallpapers/`, `icons/` and `themes/`
 directories and anything else in them in place. It removes only the artifacts
 `install` copied, never the user's configuration: if the removed scheme is still
 the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve
@@ -113,7 +123,7 @@ modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.
 one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Both
 `check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
-`make apply` installs the six artifacts exactly as `make install` does and then re-applies them to
+`make apply` installs the seven artifacts exactly as `make install` does and then re-applies them to
 the running Plasma session, so the just-built theme becomes current without a logout: it re-selects
 the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
 `MacOS8` color scheme and the `org.macos8.desktop` desktop theme, then asks KWin to reconfigure so

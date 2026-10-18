@@ -26,93 +26,6 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Kvantum widget style, part 1/3: ship the `org.macos8.desktop` Kvantum theme with the Platinum palette and the core-control art (planned 2026-10-18 by the plan role)
-
-**Goal.** The user answered 2026-10-18 that a pixel-matched Platinum Qt style should ship as a
-Kvantum theme and be selected (Option 1). This part creates that theme package and installs it,
-leaving the global theme's `widgetStyle=Windows` selection untouched until the whole widget set is
-themed (part 3). It ships the Platinum palette, the grounded geometry and our own SVG art for the
-controls the reference screenshots show most directly: push and tool buttons, line edits, combo
-boxes, check boxes, radio buttons, the focus ring, the generic frame and the indicator arrows.
-
-**Background (Kvantum's theme layout, read from its master source).** A Kvantum theme is a
-directory `<name>/` holding `<name>.kvconfig` and `<name>.svg`. Kvantum merges the theme config over
-its compiled-in `default.kvconfig` and draws an element the theme SVG lacks from its compiled-in
-`default.svg` (`Style::setTheme`, `Style::setupThemeDeps`, `rendering.cpp`). Its per-user theme
-search paths are `$XDG_CONFIG_HOME/Kvantum/<name>/`, `~/.themes/<name>/Kvantum/`,
-`~/.local/share/themes/<name>/Kvantum/` and `/usr/share/Kvantum/<name>/`; the third is under the
-default `$(XDG_DATA_HOME)`, so this repo installs a Kvantum theme with no new config-home plumbing.
-The SVG's nine-slice convention is `<element>-<state>` for the centre plus
-`<element>-<state>-top|-bottom|-left|-right|-topleft|-topright|-bottomleft|-bottomright`; the
-`.kvconfig`'s `frame.top/bottom/left/right` tell Kvantum how to slice. The theme is opt-in until
-part 3, so a machine without Kvantum is unaffected.
-
-**Approach.**
-1. New `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`:
-   - `[%General]`: `author`, `comment`, `scroll_width=16` (the desktop theme's `widgets/scrollbar.svg`
-     `hint-scrollbar-size` is 16), `scroll_arrows=true` (the reference scroll bars carry an arrow
-     button at each end), `composite=true`.
-   - `[GeneralColors]`, each value grounded as named: `window.color`/`button.color`/`mid.color`/
-     `mid.light.color` `#DDDDDD` (`[Colors:Window]`/`[Colors:Button] BackgroundNormal`),
-     `base.color` `#FFFFFF` (`[Colors:View] BackgroundNormal`), `alt.base.color` `#EEEEEE`
-     (`[Colors:View] BackgroundAlternate`), `highlight.color`/`inactive.highlight.color` `#CCCCFF`
-     (`[Colors:Selection] BackgroundNormal`), `text.color`/`window.text.color`/
-     `button.text.color`/`tooltip.text.color`/`highlight.text.color` `#000000`,
-     `disabled.text.color` `#888888` (`[Colors:Button] ForegroundInactive`),
-     `tooltip.base.color` `#FFFFCC` (`[Colors:Tooltip] BackgroundNormal`), `link.color` `#0000EE`,
-     `link.visited.color` `#551A8B`; the bevel roles `light.color=#FFFFFF`
-     (`tests/platinum_palette.WHITE`) and `dark.color=#999999` (`platinum_palette.GREY`).
-   - Core-control sections, `inherits=PanelButtonCommand` where `default.kvconfig` does:
-     `[PanelButtonCommand]` (`frame.element=button`, `interior.element=button`,
-     `frame.top/bottom/left/right=2`, `indicator.element=arrow`, `indicator.size=9`, black text in
-     every state), `[PanelButtonTool]`, `[LineEdit]` (`frame.element=lineedit`,
-     `interior.element=lineedit`), `[ComboBox]`, `[CheckBox]` (`interior.element=checkbox`),
-     `[RadioButton]` (`interior.element=radio`), `[Focus]` (`frame.element=focus`, 1px),
-     `[GenericFrame]` (`frame.element=common`), `[IndicatorArrow]`.
-2. New `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`: our own art for `button`,
-   `lineedit`, `checkbox`, `radio`, `focus`, `common` and the `arrow-up`/`arrow-down`/`arrow-left`/
-   `arrow-right` indicators, in the states above and the nine-slice convention. A raised face is a
-   `#DDDDDD` interior with a 1px `#000000` outline and a 1px `#FFFFFF` top/left, `#999999`
-   bottom/right bevel (the 2px raised face `widgets/button.svg` draws); the line edit is the white
-   sunken field of `widgets/lineedit.svg`; the check and radio marks follow `widgets/checkmarks.svg`.
-   The artwork is our own drawing, not a copy of a reference icon or of Kvantum's default SVG.
-3. `Makefile`: `KVANTUM_ID := org.macos8.desktop`, `KVANTUM_PACKAGE := theme/kvantum/$(KVANTUM_ID)`,
-   `KVANTUM_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(KVANTUM_ID)/Kvantum`; in `_install`
-   stage the two files into it and rename them in (the files sit directly in a `Kvantum/`
-   directory, so the package-directory swap of `install_package` does not fit), and in `_uninstall`
-   remove them and their staging names. `install -d` the `themes/$(KVANTUM_ID)/Kvantum` path; leave
-   the shared `themes/` parent alone.
-4. `tests/test_kvantum.py` (new): parse the `.kvconfig` with `tests/kde_config.read`; assert every
-   `[GeneralColors]` key equals the `MacOS8.colors` value or `platinum_palette` constant named in
-   the mapping above; assert `[%General] scroll_width == "16"` and `scroll_arrows == "true"`; assert
-   each core section's `frame.top/bottom/left/right` is `"2"` (`[Focus]` is `"1"`); parse the SVG
-   with `xml.etree.ElementTree` and assert `attribute_values(tree, "fill")` is exactly
-   `platinum_palette.PLATINUM_FILLS`, that every element id the `.kvconfig` names has its centre and
-   eight slice ids present, and that `assert_unique_ids`, `assert_no_external_references`,
-   `assert_no_script_elements` and `assert_no_style_elements` pass; install/uninstall round trip
-   through `theme_install.install`/`uninstall`, asserting
-   `<tmp>/themes/org.macos8.desktop/Kvantum/org.macos8.desktop.{kvconfig,svg}`.
-5. `README.md`: name the Kvantum theme as an installed artifact, state it is not selected yet, give
-   the opt-in (`kvantummanager --set org.macos8.desktop` once Kvantum is installed), the caveat that
-   Kvantum finds it only when `$(XDG_DATA_HOME)` is the default `$HOME/.local/share`, and update the
-   status line's artifact count.
-
-**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` (new),
-`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg` (new), `Makefile`,
-`tests/test_kvantum.py` (new), `README.md`.
-
-**Acceptance criteria.**
-- The `.kvconfig` parses; each `[GeneralColors]` value equals the mapped `.colors` role or
-  `platinum_palette` constant; `[%General] scroll_width` is `16` and `scroll_arrows` is `true`.
-- Every core section's `frame` margins are 2px and `[Focus]`'s are 1px, pinned by name.
-- The SVG's parsed `fill` set is exactly `PLATINUM_FILLS`; every referenced element id and its eight
-  slices are present; the four safety assertions pass.
-- `make install XDG_DATA_HOME=<tmp>` places `<tmp>/themes/org.macos8.desktop/Kvantum/` with both
-  files and `make uninstall` removes them; the existing five artifacts' install/uninstall tests
-  still pass.
-- `contents/defaults` is byte-unchanged (the selection change is part 3), shown by `git diff`.
-- README names the artifact and the opt-in, and `make check` is green.
-
 ### Mac OS 8.6 Kvantum widget style, part 2/3: the remaining Platinum widget art (planned 2026-10-18 by the plan role; requires part 1/3 landed)
 
 **Goal.** Part 1 shipped the palette and the core-control art. This part adds our own Platinum art
@@ -239,6 +152,95 @@ kicker resolves it from the theme with no layout change. Independent of the Kvan
 - README names the kicker logo and `make check` is green.
 
 ## Done
+
+### Mac OS 8.6 Kvantum widget style, part 1/3: ship the `org.macos8.desktop` Kvantum theme with the Platinum palette and the core-control art (planned 2026-10-18 by the plan role; done 2026-10-18)
+
+**Goal.** The user answered 2026-10-18 that a pixel-matched Platinum Qt style should ship as a
+Kvantum theme and be selected (Option 1). This part creates that theme package and installs it,
+leaving the global theme's `widgetStyle=Windows` selection untouched until the whole widget set is
+themed (part 3). It ships the Platinum palette, the grounded geometry and our own SVG art for the
+controls the reference screenshots show most directly: push and tool buttons, line edits, combo
+boxes, check boxes, radio buttons, the focus ring, the generic frame and the indicator arrows.
+
+**Background (Kvantum's theme layout, read from its master source).** A Kvantum theme is a
+directory `<name>/` holding `<name>.kvconfig` and `<name>.svg`. Kvantum merges the theme config over
+its compiled-in `default.kvconfig` and draws an element the theme SVG lacks from its compiled-in
+`default.svg` (`Style::setTheme`, `Style::setupThemeDeps`, `rendering.cpp`). Its per-user theme
+search paths are `$XDG_CONFIG_HOME/Kvantum/<name>/`, `~/.themes/<name>/Kvantum/`,
+`~/.local/share/themes/<name>/Kvantum/` and `/usr/share/Kvantum/<name>/`; the third is under the
+default `$(XDG_DATA_HOME)`, so this repo installs a Kvantum theme with no new config-home plumbing.
+The SVG's nine-slice convention is `<element>-<state>` for the centre plus
+`<element>-<state>-top|-bottom|-left|-right|-topleft|-topright|-bottomleft|-bottomright`; the
+`.kvconfig`'s `frame.top/bottom/left/right` tell Kvantum how to slice. The theme is opt-in until
+part 3, so a machine without Kvantum is unaffected.
+
+**Approach.**
+1. New `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`:
+   - `[%General]`: `author`, `comment`, `scroll_width=16` (the desktop theme's `widgets/scrollbar.svg`
+     `hint-scrollbar-size` is 16), `scroll_arrows=true` (the reference scroll bars carry an arrow
+     button at each end), `composite=true`.
+   - `[GeneralColors]`, each value grounded as named: `window.color`/`button.color`/`mid.color`/
+     `mid.light.color` `#DDDDDD` (`[Colors:Window]`/`[Colors:Button] BackgroundNormal`),
+     `base.color` `#FFFFFF` (`[Colors:View] BackgroundNormal`), `alt.base.color` `#EEEEEE`
+     (`[Colors:View] BackgroundAlternate`), `highlight.color`/`inactive.highlight.color` `#CCCCFF`
+     (`[Colors:Selection] BackgroundNormal`), `text.color`/`window.text.color`/
+     `button.text.color`/`tooltip.text.color`/`highlight.text.color` `#000000`,
+     `disabled.text.color` `#888888` (`[Colors:Button] ForegroundInactive`),
+     `tooltip.base.color` `#FFFFCC` (`[Colors:Tooltip] BackgroundNormal`), `link.color` `#0000EE`,
+     `link.visited.color` `#551A8B`; the bevel roles `light.color=#FFFFFF`
+     (`tests/platinum_palette.WHITE`) and `dark.color=#999999` (`platinum_palette.GREY`).
+   - Core-control sections, `inherits=PanelButtonCommand` where `default.kvconfig` does:
+     `[PanelButtonCommand]` (`frame.element=button`, `interior.element=button`,
+     `frame.top/bottom/left/right=2`, `indicator.element=arrow`, `indicator.size=9`, black text in
+     every state), `[PanelButtonTool]`, `[LineEdit]` (`frame.element=lineedit`,
+     `interior.element=lineedit`), `[ComboBox]`, `[CheckBox]` (`interior.element=checkbox`),
+     `[RadioButton]` (`interior.element=radio`), `[Focus]` (`frame.element=focus`, 1px),
+     `[GenericFrame]` (`frame.element=common`), `[IndicatorArrow]`.
+2. New `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`: our own art for `button`,
+   `lineedit`, `checkbox`, `radio`, `focus`, `common` and the `arrow-up`/`arrow-down`/`arrow-left`/
+   `arrow-right` indicators, in the states above and the nine-slice convention. A raised face is a
+   `#DDDDDD` interior with a 1px `#000000` outline and a 1px `#FFFFFF` top/left, `#999999`
+   bottom/right bevel (the 2px raised face `widgets/button.svg` draws); the line edit is the white
+   sunken field of `widgets/lineedit.svg`; the check and radio marks follow `widgets/checkmarks.svg`.
+   The artwork is our own drawing, not a copy of a reference icon or of Kvantum's default SVG.
+3. `Makefile`: `KVANTUM_ID := org.macos8.desktop`, `KVANTUM_PACKAGE := theme/kvantum/$(KVANTUM_ID)`,
+   `KVANTUM_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(KVANTUM_ID)/Kvantum`; in `_install`
+   stage the two files into it and rename them in (the files sit directly in a `Kvantum/`
+   directory, so the package-directory swap of `install_package` does not fit), and in `_uninstall`
+   remove them and their staging names. `install -d` the `themes/$(KVANTUM_ID)/Kvantum` path; leave
+   the shared `themes/` parent alone.
+4. `tests/test_kvantum.py` (new): parse the `.kvconfig` with `tests/kde_config.read`; assert every
+   `[GeneralColors]` key equals the `MacOS8.colors` value or `platinum_palette` constant named in
+   the mapping above; assert `[%General] scroll_width == "16"` and `scroll_arrows == "true"`; assert
+   each core section's `frame.top/bottom/left/right` is `"2"` (`[Focus]` is `"1"`); parse the SVG
+   with `xml.etree.ElementTree` and assert `attribute_values(tree, "fill")` is exactly
+   `platinum_palette.PLATINUM_FILLS`, that every element id the `.kvconfig` names has its centre and
+   eight slice ids present, and that `assert_unique_ids`, `assert_no_external_references`,
+   `assert_no_script_elements` and `assert_no_style_elements` pass; install/uninstall round trip
+   through `theme_install.install`/`uninstall`, asserting
+   `<tmp>/themes/org.macos8.desktop/Kvantum/org.macos8.desktop.{kvconfig,svg}`.
+5. `README.md`: name the Kvantum theme as an installed artifact, state it is not selected yet, give
+   the opt-in (`kvantummanager --set org.macos8.desktop` once Kvantum is installed), the caveat that
+   Kvantum finds it only when `$(XDG_DATA_HOME)` is the default `$HOME/.local/share`, and update the
+   status line's artifact count.
+
+**Implementation note.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` and `...svg` ship the palette, the frame metrics and our own art; `make install` stages the two files into `themes/org.macos8.desktop/Kvantum/` (they sit directly in a `Kvantum/` directory, so the package-directory swap does not fit) and `make uninstall` removes them and their staging names. Kvantum renders check boxes, radio buttons and the arrows as single interior/indicator elements rather than nine-sliced frames (`renderElement` draws `checkbox-normal`, `checkbox-checked-normal`, `radio-*` and `arrow-<dir>-<state>` whole, while `renderFrame` slices `button`, `lineedit`, `common` and `focus`), so `tests/test_kvantum.py` pins the centre plus eight slices for the frame elements and the state ids for the interior/indicator ones; the focus ring's centre id is `focus` (no state), as Kvantum's own themes name it. The SVG uses only the four `PLATINUM_FILLS` and passes the four safety guards. The pressed and toggled buttons paint the sunken bevel -- a `#999999` shadow inside the top/left outline and a `#FFFFFF` highlight inside the bottom/right one -- which `tests/test_kvantum.py` pins pixel by pixel for every button state, so a pressed state repeating the raised art fails. The style is not selected: `contents/defaults` is byte-unchanged. `tests/test_theme_install.py`'s spaced/apostrophe install round trip now covers the two Kvantum files, and its artifact count reads seven.
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` (new),
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg` (new), `Makefile`,
+`tests/test_kvantum.py` (new), `README.md`.
+
+**Acceptance criteria.**
+- The `.kvconfig` parses; each `[GeneralColors]` value equals the mapped `.colors` role or
+  `platinum_palette` constant; `[%General] scroll_width` is `16` and `scroll_arrows` is `true`.
+- Every core section's `frame` margins are 2px and `[Focus]`'s are 1px, pinned by name.
+- The SVG's parsed `fill` set is exactly `PLATINUM_FILLS`; every frame element ships its centre and
+  eight slices and every interior/indicator element its state ids; the four safety assertions pass.
+- `make install XDG_DATA_HOME=<tmp>` places `<tmp>/themes/org.macos8.desktop/Kvantum/` with both
+  files and `make uninstall` removes them; the existing six artifacts' install/uninstall tests
+  still pass.
+- `contents/defaults` is byte-unchanged (the selection change is part 3), shown by `git diff`.
+- README names the artifact and the opt-in, and `make check` is green.
 
 ### Mac OS 8.6 Platinum icon theme: replace the placeholder art with final non-infringing art (planned 2026-10-18 by the feature role; done 2026-10-18)
 

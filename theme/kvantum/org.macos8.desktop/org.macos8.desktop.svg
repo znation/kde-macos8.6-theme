@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" Kvantum widget style artwork.
+
+     Our own flat Platinum bevel art for the core Qt controls Kvantum
+     draws: push and tool buttons, line edits, the generic frame, check
+     boxes, radio buttons, the focus ring and the indicator arrows. A
+     raised face is a #DDDDDD interior inside a 1px #000000 outline with
+     a 1px #FFFFFF top/left and #999999 bottom/right bevel; a pressed or
+     toggled button swaps that bevel to the sunken direction (#999999
+     top/left, #FFFFFF bottom/right); the line edit is the white sunken
+     field. Every shape carries an explicit fill; the
+     theme SVG uses no gradients, <use> references or styles, so the
+     palette is readable from the parsed tree.
+
+     A nine-sliced element is named <element>-<state> for the centre and
+     <element>-<state>-<slice> for each slice, as Kvantum's renderer
+     appends the slice name. Check boxes, radio buttons and the arrows
+     are single interior/indicator elements, not frames, so they carry
+     only their state id. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="6360" viewBox="0 0 200 6360">
+  <g id="button-normal-top" transform="translate(10,10)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="button-normal-bottom" transform="translate(10,70)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="button-normal-left" transform="translate(10,130)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="button-normal-right" transform="translate(10,190)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="button-normal" transform="translate(10,250)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="button-normal-topleft" transform="translate(10,310)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="button-normal-topright" transform="translate(10,370)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="button-normal-bottomleft" transform="translate(10,430)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="button-normal-bottomright" transform="translate(10,490)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="button-pressed-top" transform="translate(10,550)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
+  </g>
+  <g id="button-pressed-bottom" transform="translate(10,610)">
+    <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="button-pressed-left" transform="translate(10,670)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+  </g>
+  <g id="button-pressed-right" transform="translate(10,730)">
+    <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="button-pressed" transform="translate(10,790)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="button-pressed-topleft" transform="translate(10,850)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="button-pressed-topright" transform="translate(10,910)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="button-pressed-bottomleft" transform="translate(10,970)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="button-pressed-bottomright" transform="translate(10,1030)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="button-focused-top" transform="translate(10,1090)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="button-focused-bottom" transform="translate(10,1150)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="button-focused-left" transform="translate(10,1210)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="button-focused-right" transform="translate(10,1270)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="button-focused" transform="translate(10,1330)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="button-focused-topleft" transform="translate(10,1390)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="button-focused-topright" transform="translate(10,1450)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="button-focused-bottomleft" transform="translate(10,1510)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="button-focused-bottomright" transform="translate(10,1570)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="button-toggled-top" transform="translate(10,1630)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
+  </g>
+  <g id="button-toggled-bottom" transform="translate(10,1690)">
+    <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="button-toggled-left" transform="translate(10,1750)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+  </g>
+  <g id="button-toggled-right" transform="translate(10,1810)">
+    <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="button-toggled" transform="translate(10,1870)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="button-toggled-topleft" transform="translate(10,1930)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="button-toggled-topright" transform="translate(10,1990)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="button-toggled-bottomleft" transform="translate(10,2050)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="button-toggled-bottomright" transform="translate(10,2110)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="lineedit-normal-top" transform="translate(10,2170)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
+  </g>
+  <g id="lineedit-normal-bottom" transform="translate(10,2230)">
+    <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="lineedit-normal-left" transform="translate(10,2290)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+  </g>
+  <g id="lineedit-normal-right" transform="translate(10,2350)">
+    <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="lineedit-normal" transform="translate(10,2410)">
+    <rect x="0" y="0" width="30" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="lineedit-normal-topleft" transform="translate(10,2470)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="lineedit-normal-topright" transform="translate(10,2530)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="lineedit-normal-bottomleft" transform="translate(10,2590)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="lineedit-normal-bottomright" transform="translate(10,2650)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="lineedit-focused-top" transform="translate(10,2710)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
+  </g>
+  <g id="lineedit-focused-bottom" transform="translate(10,2770)">
+    <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="lineedit-focused-left" transform="translate(10,2830)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+  </g>
+  <g id="lineedit-focused-right" transform="translate(10,2890)">
+    <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="lineedit-focused" transform="translate(10,2950)">
+    <rect x="0" y="0" width="30" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="lineedit-focused-topleft" transform="translate(10,3010)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="lineedit-focused-topright" transform="translate(10,3070)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="lineedit-focused-bottomleft" transform="translate(10,3130)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="lineedit-focused-bottomright" transform="translate(10,3190)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="common-normal-top" transform="translate(10,3250)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="common-normal-bottom" transform="translate(10,3310)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="common-normal-left" transform="translate(10,3370)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="common-normal-right" transform="translate(10,3430)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="common-normal" transform="translate(10,3490)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="common-normal-topleft" transform="translate(10,3550)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="common-normal-topright" transform="translate(10,3610)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="common-normal-bottomleft" transform="translate(10,3670)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="common-normal-bottomright" transform="translate(10,3730)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="common-focused-top" transform="translate(10,3790)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="common-focused-bottom" transform="translate(10,3850)">
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="common-focused-left" transform="translate(10,3910)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+  </g>
+  <g id="common-focused-right" transform="translate(10,3970)">
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="common-focused" transform="translate(10,4030)">
+    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+  </g>
+  <g id="common-focused-topleft" transform="translate(10,4090)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+  </g>
+  <g id="common-focused-topright" transform="translate(10,4150)">
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="common-focused-bottomleft" transform="translate(10,4210)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+  </g>
+  <g id="common-focused-bottomright" transform="translate(10,4270)">
+    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+  </g>
+  <g id="focus" transform="translate(10,4330)">
+  </g>
+  <g id="focus-top" transform="translate(10,4390)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="focus-bottom" transform="translate(10,4450)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+  </g>
+  <g id="focus-left" transform="translate(10,4510)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="focus-right" transform="translate(10,4570)">
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+  </g>
+  <g id="focus-topleft" transform="translate(10,4630)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="focus-topright" transform="translate(10,4690)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="focus-bottomleft" transform="translate(10,4750)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="focus-bottomright" transform="translate(10,4810)">
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="checkbox-normal" transform="translate(10,4870)">
+    <rect x="0" y="0" width="14" height="14" fill="#000000"/>
+    <rect x="1" y="1" width="12" height="12" fill="#FFFFFF"/>
+  </g>
+  <g id="checkbox-focused" transform="translate(10,4930)">
+    <rect x="0" y="0" width="14" height="14" fill="#000000"/>
+    <rect x="1" y="1" width="12" height="12" fill="#FFFFFF"/>
+  </g>
+  <g id="checkbox-checked-normal" transform="translate(10,4990)">
+    <rect x="0" y="0" width="14" height="14" fill="#000000"/>
+    <rect x="1" y="1" width="12" height="12" fill="#FFFFFF"/>
+    <rect x="3" y="7" width="2" height="2" fill="#000000"/>
+    <rect x="5" y="9" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="7" width="2" height="2" fill="#000000"/>
+    <rect x="9" y="5" width="2" height="2" fill="#000000"/>
+    <rect x="11" y="3" width="2" height="2" fill="#000000"/>
+  </g>
+  <g id="checkbox-checked-focused" transform="translate(10,5050)">
+    <rect x="0" y="0" width="14" height="14" fill="#000000"/>
+    <rect x="1" y="1" width="12" height="12" fill="#FFFFFF"/>
+    <rect x="3" y="7" width="2" height="2" fill="#000000"/>
+    <rect x="5" y="9" width="2" height="2" fill="#000000"/>
+    <rect x="7" y="7" width="2" height="2" fill="#000000"/>
+    <rect x="9" y="5" width="2" height="2" fill="#000000"/>
+    <rect x="11" y="3" width="2" height="2" fill="#000000"/>
+  </g>
+  <g id="radio-normal" transform="translate(10,5110)">
+    <circle cx="7" cy="7" r="6.5" fill="#000000"/>
+    <circle cx="7" cy="7" r="5.5" fill="#FFFFFF"/>
+  </g>
+  <g id="radio-focused" transform="translate(10,5170)">
+    <circle cx="7" cy="7" r="6.5" fill="#000000"/>
+    <circle cx="7" cy="7" r="5.5" fill="#FFFFFF"/>
+  </g>
+  <g id="radio-checked-normal" transform="translate(10,5230)">
+    <circle cx="7" cy="7" r="6.5" fill="#000000"/>
+    <circle cx="7" cy="7" r="5.5" fill="#FFFFFF"/>
+    <circle cx="7" cy="7" r="2.5" fill="#000000"/>
+  </g>
+  <g id="radio-checked-focused" transform="translate(10,5290)">
+    <circle cx="7" cy="7" r="6.5" fill="#000000"/>
+    <circle cx="7" cy="7" r="5.5" fill="#FFFFFF"/>
+    <circle cx="7" cy="7" r="2.5" fill="#000000"/>
+  </g>
+  <g id="arrow-up-normal" transform="translate(10,5350)">
+    <path d="M4.5,0 L9,9 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-up-focused" transform="translate(10,5410)">
+    <path d="M4.5,0 L9,9 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-up-pressed" transform="translate(10,5470)">
+    <path d="M4.5,0 L9,9 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-up-disabled" transform="translate(10,5530)">
+    <path d="M4.5,0 L9,9 L0,9 Z" fill="#999999"/>
+  </g>
+  <g id="arrow-down-normal" transform="translate(10,5590)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-down-focused" transform="translate(10,5650)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-down-pressed" transform="translate(10,5710)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-down-disabled" transform="translate(10,5770)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#999999"/>
+  </g>
+  <g id="arrow-left-normal" transform="translate(10,5830)">
+    <path d="M9,0 L9,9 L0,4.5 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-left-focused" transform="translate(10,5890)">
+    <path d="M9,0 L9,9 L0,4.5 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-left-pressed" transform="translate(10,5950)">
+    <path d="M9,0 L9,9 L0,4.5 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-left-disabled" transform="translate(10,6010)">
+    <path d="M9,0 L9,9 L0,4.5 Z" fill="#999999"/>
+  </g>
+  <g id="arrow-right-normal" transform="translate(10,6070)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-right-focused" transform="translate(10,6130)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-right-pressed" transform="translate(10,6190)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-right-disabled" transform="translate(10,6250)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#999999"/>
+  </g>
+</svg>
