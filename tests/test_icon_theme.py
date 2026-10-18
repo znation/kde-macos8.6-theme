@@ -35,15 +35,17 @@ PACKAGE = os.path.join(ROOT, "theme", "icons", ICON_ID)
 INDEX = os.path.join(PACKAGE, "index.theme")
 PLACEHOLDERS = os.path.join(ROOT, "PLACEHOLDERS.md")
 
-# The icons the package ships: the desktop's hard disk, folder, document and
-# Trash (32x32), the `inode-directory` alias KDE resolves a directory to, and
-# the kicker logo the menu bar's top-left button shows at the two panel sizes.
+# The icons the package ships: the desktop's hard disk, folder, document,
+# Trash and full Trash (32x32), the `inode-directory` alias KDE resolves a
+# directory to, and the kicker logo the menu bar's top-left button shows at the
+# two panel sizes.
 SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-harddisk.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-trash.svg"),
+    os.path.join("32x32", "places", "user-trash-full.svg"),
     os.path.join("16x16", "places", "start-here-kde-symbolic.svg"),
     os.path.join("22x22", "places", "start-here-kde-symbolic.svg"),
 )
@@ -214,6 +216,20 @@ ICON_SHAPES = {
     os.path.join("32x32", "places", "user-trash.svg"): (
         _shape("rect", x="12", y="4", width="8", height="4", fill="#000000"),
         _shape("rect", x="13", y="5", width="6", height="3", fill="#DDDDDD"),
+        _shape("rect", x="6", y="8", width="20", height="5", fill="#000000"),
+        _shape("rect", x="7", y="9", width="18", height="4", fill="#DDDDDD"),
+        _shape("rect", x="7", y="9", width="18", height="1", fill="#FFFFFF"),
+        _shape("rect", x="7", y="12", width="18", height="1", fill="#999999"),
+        _shape("path", d="M9 13 h14 l-2 16 H11 Z", fill="#000000"),
+        _shape("path", d="M10 14 h12 l-2 14 H12 Z", fill="#DDDDDD"),
+        _shape("rect", x="13", y="16", width="1", height="10", fill="#999999"),
+        _shape("rect", x="14", y="16", width="1", height="10", fill="#FFFFFF"),
+        _shape("rect", x="17", y="16", width="1", height="10", fill="#999999"),
+        _shape("rect", x="18", y="16", width="1", height="10", fill="#FFFFFF"),
+    ),
+    os.path.join("32x32", "places", "user-trash-full.svg"): (
+        _shape("path", d="M12 2 l3 2 l3 -2 l1 7 h-8 Z", fill="#000000"),
+        _shape("path", d="M13 3 l2 1 l2 -1 l1 5 h-6 Z", fill="#FFFFFF"),
         _shape("rect", x="6", y="8", width="20", height="5", fill="#000000"),
         _shape("rect", x="7", y="9", width="18", height="4", fill="#DDDDDD"),
         _shape("rect", x="7", y="9", width="18", height="1", fill="#FFFFFF"),

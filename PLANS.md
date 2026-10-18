@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum full-Trash icon (`32x32/places/user-trash-full.svg`) for the icon theme (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum full-Trash icon (`32x32/places/user-trash-full.svg`) for the icon theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** KDE asks for the icon name `user-trash-full` whenever the Trash holds something
 (`/usr/share/plasma/plasmoids/org.kde.plasma.trash/contents/ui/main.qml`:
@@ -82,8 +86,6 @@ SVG fails `TestIconGeometry::test_each_icon_draws_its_pinned_artwork`.
 - Deleting the SVG, or removing it from either registry, fails `make check`.
 - `make check` is green, and `make install XDG_DATA_HOME=<tmp>` installs the new icon
 (`TestInstall` covers the installed file set).
-
-## Done
 
 ### Record-checker mutation harness: manufacture the malformed inputs from the shipped registers so a silent accept or drop is observable (planned 2026-10-18 by the steward role; from the recurring `no-observability` validation gap in thirteen Fixed entries) — done 2026-10-18
 
