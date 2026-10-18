@@ -19,15 +19,20 @@ def _write_reference(directory):
     return path
 
 
+def _spy_on_read_png():
+    """Patch ``read_png`` to count decodes while still calling through."""
+    return mock.patch.object(
+        reference_image.png,
+        "read_png",
+        wraps=reference_image.png.read_png,
+    )
+
+
 class TestReadReferenceCache(unittest.TestCase):
     def test_a_second_read_reuses_the_first_decode(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _write_reference(tmp)
-            with mock.patch.object(
-                reference_image.png,
-                "read_png",
-                wraps=reference_image.png.read_png,
-            ) as spy:
+            with _spy_on_read_png() as spy:
                 first, first_error = reference_image.read_reference(path)
                 second, second_error = reference_image.read_reference(path)
         self.assertEqual(1, spy.call_count)
@@ -38,11 +43,7 @@ class TestReadReferenceCache(unittest.TestCase):
     def test_a_different_max_rows_is_decoded_separately(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = _write_reference(tmp)
-            with mock.patch.object(
-                reference_image.png,
-                "read_png",
-                wraps=reference_image.png.read_png,
-            ) as spy:
+            with _spy_on_read_png() as spy:
                 one, one_error = reference_image.read_reference(
                     path, max_rows=1
                 )
@@ -58,11 +59,7 @@ class TestReadReferenceCache(unittest.TestCase):
     def test_a_failed_read_is_cached_like_a_decode(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "absent.png")
-            with mock.patch.object(
-                reference_image.png,
-                "read_png",
-                wraps=reference_image.png.read_png,
-            ) as spy:
+            with _spy_on_read_png() as spy:
                 first, first_error = reference_image.read_reference(path)
                 second, second_error = reference_image.read_reference(path)
         self.assertEqual(1, spy.call_count)
