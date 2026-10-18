@@ -22,6 +22,7 @@ import zlib
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
+from tools.png import chunks
 from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
@@ -273,3 +274,56 @@ class TestChunkFraming(unittest.TestCase):
         self.assertIn(
             "re-export it without interlacing", decode_error(self, broken)
         )
+
+
+class TestIterChunks(unittest.TestCase):
+    """tools/png/chunks.py's framing iterator, tested directly.
+
+    decode_png stops pulling the iterator at IEND, and its no-IEND case cuts
+    the file exactly at a chunk boundary, so the iterator's own loop exit --
+    the ``pos + 8 <= len(data)`` guard -- is never exercised with a trailing
+    fragment shorter than a chunk header. These tests pin the iterator's
+    contract that the decoder layer relies on.
+    """
+
+    def test_yields_each_chunk_type_and_payload_in_order(self):
+        # A complete stream of two chunks: the iterator must pair each type
+        # with its own payload, not reuse one or reorder them.
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"tEXt", b"a")
+            + _chunk(b"gAMA", b"bc")
+        )
+        self.assertEqual(
+            [(b"tEXt", b"a"), (b"gAMA", b"bc")],
+            list(chunks.iter_chunks(data)),
+        )
+
+    def test_does_not_stop_at_iend(self):
+        # decode_png breaks on IEND, so nothing above the framing layer proves
+        # the iterator itself treats IEND as ordinary. It must keep yielding
+        # the chunks after it; where the image ends is the decoder's call.
+        data = (
+            _PNG_SIGNATURE
+            + _chunk(b"IEND", b"")
+            + _chunk(b"tEXt", b"after")
+        )
+        self.assertEqual(
+            [(b"IEND", b""), (b"tEXt", b"after")],
+            list(chunks.iter_chunks(data)),
+        )
+
+    def test_a_trailing_fragment_shorter_than_a_header_is_ignored(self):
+        # A file cut inside a chunk header leaves 1-7 bytes after the last
+        # complete chunk. There is no type or length to validate, so the
+        # iterator stops at the last whole chunk instead of unpacking the
+        # fragment (which would raise struct.error). decode_png then reports
+        # the missing IEND, so the truncation is not lost.
+        _, data = solid_rgb(1, 1)
+        without_iend = data[: data.rindex(b"IEND") - 4]
+        truncated = without_iend + b"\x00\x00\x00\x01"  # part of a length field
+        self.assertEqual(
+            list(chunks.iter_chunks(without_iend)),
+            list(chunks.iter_chunks(truncated)),
+        )
+        self.assertIn("no IEND", decode_error(self, truncated))
