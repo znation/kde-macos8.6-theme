@@ -12,6 +12,27 @@ _None yet._
 
 ## Fixed
 
+### `test_invariants.py` drops a register row that does not split into three cells (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `parse_rows` called `_cells` on every line that starts with a pipe; when the
+line split into two or four cells `_cells` returned None and `parse_rows` skipped the line, so
+a row missing a column (or carrying an extra one) was silently dropped. When the section had
+another valid row the guarantee went unpinned with no error; when it was the section's only
+data row, `cross_check` failed with the misleading "section <name> ... has no rows".
+
+**Cause:** `parse_rows` treated `_cells`' None return -- which only a pipe-starting line can
+produce -- as "not a table row" instead of "a malformed table row".
+
+**Fix:** `parse_rows` now raises `AssertionError` naming the section and the offending line
+when a pipe-starting line does not split into three cells, instead of dropping it.
+
+**Test:**
+`tests/test_invariants.py::TestHelpers::test_parse_rows_rejects_a_row_that_is_not_three_cells`
+(a two-cell row and a four-cell row; both failed before, pass after).
+
+**Validation gap:** no-observability -- the malformed row was dropped without an error, and
+`docs/invariants.md` contains no such row, so no existing test or real run could surface it.
+
 ### `test_invariants.py` drops a register row whose Test cell has no backticked reference (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `parse_rows` skipped every row whose Test cell held no backticked reference, so a

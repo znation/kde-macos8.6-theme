@@ -88,7 +88,9 @@ def parse_rows(text):
     The header and separator rows of a table are scaffold, not data, and are
     skipped; every other three-cell row becomes a :class:`Row`, even when its
     Test cell names no test, so :func:`cross_check` can reject that row instead
-    of losing its guarantee.
+    of losing its guarantee. A line that starts with a pipe but does not split
+    into three cells raises :class:`AssertionError`, naming the line, so a
+    malformed row cannot be dropped silently.
     """
     sections = {}
     current = None
@@ -102,7 +104,10 @@ def parse_rows(text):
             continue
         cells = _cells(line)
         if cells is None:
-            continue
+            raise AssertionError(
+                f"malformed table row in section {current} "
+                f"(expected 3 cells): {line.strip()}"
+            )
         if _is_table_scaffold(cells):
             continue
         guarantee, test, provenance = cells
@@ -161,8 +166,8 @@ def cross_check(root, register):
 
     Returns ``{section name: [Row, ...]}``; raises :class:`AssertionError` for a
     ``theme/`` subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
-    an empty section, a blank guarantee cell, a data row that names no test, or
-    an unresolvable test reference.
+    an empty section, a blank guarantee cell, a malformed table row, a data row
+    that names no test, or an unresolvable test reference.
     """
     with open(register, encoding="utf-8") as handle:
         sections = parse_rows(handle.read())
@@ -282,6 +287,23 @@ class TestHelpers(unittest.TestCase):
                 ]
             },
         )
+
+    def test_parse_rows_rejects_a_row_that_is_not_three_cells(self):
+        # A line that starts with a pipe is a table row. One that splits into
+        # two or four cells is malformed; dropping it would leave its
+        # guarantee unpinned with no error, exactly as an escaped pipe did.
+        for malformed in (
+            f"| The thing holds. | `{self.MODULE}::TestFake`\n",
+            f"| The thing holds. | `{self.MODULE}::TestFake` | none | extra |\n",
+        ):
+            with self.subTest(row=malformed):
+                with self.assertRaisesRegex(AssertionError, "malformed table row"):
+                    parse_rows(
+                        "## aurorae\n\n"
+                        "| Guarantee | Test | Provenance exception |\n"
+                        "| --- | --- | --- |\n"
+                        + malformed
+                    )
 
     def test_cross_check_rejects_a_data_row_without_a_test_reference(self):
         # A data row whose Test cell lost its backticks is malformed, not a
