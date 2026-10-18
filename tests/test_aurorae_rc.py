@@ -24,7 +24,8 @@ from support.kde_config import read as read_kde_config
 RC = os.path.join(AURORAE_DIR, AURORAE_ID + "rc")
 
 
-def _kde(rgb):
+def _kde_colour(rgb):
+    """Return *rgb* as the comma-separated ``r,g,b`` string a KDE key holds."""
     return ",".join(str(channel) for channel in rgb)
 
 
@@ -237,7 +238,7 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         # glyph stroke of the "About This Computer" caption.
         glyph = self.reference_pixel(198, 30)
         self.assertEqual(glyph, (0, 0, 0))
-        self.assertEqual(self.parser.get("General", "ActiveTextColor"), _kde(glyph))
+        self.assertEqual(self.parser.get("General", "ActiveTextColor"), _kde_colour(glyph))
 
 
 if __name__ == "__main__":
