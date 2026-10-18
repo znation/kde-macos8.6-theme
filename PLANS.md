@@ -26,7 +26,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum busy indicator (`widgets/busywidget.svg`) for the desktop theme (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum busy indicator (`widgets/busywidget.svg`) for the desktop theme (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** Ship `widgets/busywidget.svg` so `PlasmaComponents.BusyIndicator` spins a Platinum ring
 instead of inheriting Breeze's blue arc. The theme ships no `widgets/busywidget`, so `KSvg` resolves
@@ -85,7 +89,7 @@ ship, the `#DDDDDD` raised face and the `#000000` outline.
 
 **Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/busywidget.svg` (new),
 `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_busywidget.py` (new),
-`tests/test_desktoptheme.py`, `README.md`.
+`tests/test_desktoptheme.py`, `docs/invariants.md`, `README.md`.
 
 **Acceptance criteria.**
 - `busywidget.svg` parses with a 36x36 root canvas and one `busywidget` group; its painted fills are
@@ -98,8 +102,6 @@ ship, the `#DDDDDD` raised face and the `#000000` outline.
   removes it (through `TestInstall`), the SVG registry covers it (through
   `TestSvgRootCanvas.test_registry_covers_every_shipped_svg`), and the README lists it.
 - `make check` is green.
-
-## Done
 
 ### Invariants register: `docs/invariants.md` pinning each subsystem's guarantee to its test (planned 2026-10-18 by the steward role; from the recurring `unclear-invariant` validation gap in three Fixed entries) — done 2026-10-18
 

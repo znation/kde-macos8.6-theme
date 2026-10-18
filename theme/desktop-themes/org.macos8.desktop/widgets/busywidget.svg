@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" busy indicator (widgets/busywidget).
+
+     The spinner PlasmaComponents.BusyIndicator draws while an applet loads:
+     BusyIndicator.qml reads one SvgItem from `widgets/busywidget` with
+     `elementId: "busywidget"`, sizes it to the smaller side of its parent and
+     rotates it continuously (0 to 360 degrees over 2s). The artwork is one
+     static square element, and the gap is what makes the rotation read.
+
+     The `busywidget` group holds an invisible 36x36 bounding rect at the
+     origin plus two concentric ring paths. The ring paths' own bounds are
+     asymmetric because of the gap, and KSvg scales an element by its bounds,
+     so the rect pins those bounds to a square and keeps the ring centred,
+     exactly as arrows.svg's per-element rect does.
+
+     The ring is a 270-degree "C" whose 90-degree gap is centred on the +x
+     axis: the gap's endpoints lie on the 45-degree rays above and below the
+     axis. The #000000 outline ring (outer radius 16, inner radius 11) is
+     painted first, then the #DDDDDD face ring (outer radius 15, inner radius
+     12) on top, so the outline shows as a 1px edge on both sides of the 3px
+     face. Each ring is one closed M/A/L/A/Z path: two 270-degree arcs joined
+     by the gap chords.
+
+     Provenance: no Mac OS 8.6 screenshot in the reference set shows a
+     spinner, so the shape and metrics are KDE-required; the fills reuse the
+     grounded Platinum face (#DDDDDD) and outline (#000000) the other widgets
+     ship. There is no `hint-rotation-angle` element: BusyIndicator rotates
+     the whole item itself and the installed libKF6Svg reads no such hint. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36">
+  <g id="busywidget">
+    <rect x="0" y="0" width="36" height="36" fill="none"/>
+    <path d="M 29.314,6.686 A 16,16 0 1 0 29.314,29.314 L 25.778,25.778 A 11,11 0 1 1 25.778,10.222 Z" fill="#000000"/>
+    <path d="M 28.607,7.393 A 15,15 0 1 0 28.607,28.607 L 26.485,26.485 A 12,12 0 1 1 26.485,9.515 Z" fill="#DDDDDD"/>
+  </g>
+</svg>

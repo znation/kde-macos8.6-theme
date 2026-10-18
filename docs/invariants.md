@@ -32,6 +32,7 @@ that does not exist, or a blank guarantee cell fails `make check`.
 | Every shipped desktop-theme SVG shares one root canvas. | `tests/test_desktoptheme.py::TestSvgRootCanvas` | none |
 | `arrows.svg` draws the popup and dropdown arrows. | `tests/test_desktoptheme_arrows.py::TestArrows` | none |
 | `widgets/background.svg` draws the Platinum menu body. | `tests/test_desktoptheme_background.py::TestBackground` | none |
+| `busywidget.svg` draws the Platinum busy indicator ring. | `tests/test_desktoptheme_busywidget.py::TestBusyWidget` | none |
 | `button.svg` draws the normal and pressed push button. | `tests/test_desktoptheme_button.py::TestButton` | none |
 | `checkmarks.svg` draws the black check and the radio indicator dot. | `tests/test_desktoptheme_checkmarks.py::TestCheckmarks` | none |
 | `dialogs/background.svg` draws the Platinum window body. | `tests/test_desktoptheme_dialog.py::TestDialogBackground` | none |
