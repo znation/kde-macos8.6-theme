@@ -17,7 +17,7 @@ import unittest
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png
 from support.png_fixtures import (  # noqa: E402
-    decode_error,
+    decode_error_message,
     make_png,
     rgb_from_rows,
     rgb_image,
@@ -44,14 +44,14 @@ class TestDecode(unittest.TestCase):
         # filter type in a row the caller did not ask for is still rejected.
         rows = [bytes(3), bytes(3), bytes(3)]
         data = make_png(1, 3, rows, filter_types=[0, 0, 7])
-        message = decode_error(self, data, max_rows=1)
+        message = decode_error_message(self, data, max_rows=1)
         self.assertIn("row 2", message)
 
     def test_max_rows_rejects_a_non_positive_or_non_integer_bound(self):
         _, data = rgb_image(1, 2, lambda x, y: (0, 0, 0))
         for bad in (0, -1, True, 1.5, "2"):
             with self.subTest(max_rows=bad):
-                message = decode_error(self, data, max_rows=bad)
+                message = decode_error_message(self, data, max_rows=bad)
                 self.assertIn("max_rows", message)
 
     def test_all_filter_types(self):

@@ -112,7 +112,7 @@ def rgb_from_rows(rows: list[bytes], color_type: int) -> bytes:
     )
 
 
-def decode_error(case, data, **kwargs):
+def decode_error_message(case, data, **kwargs):
     """Assert ``decode_png`` rejects *data* and return the PngError message.
 
     The decode test modules read the raised message to pin what it names;

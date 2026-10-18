@@ -16,7 +16,7 @@ from tools import png
 
 
 class TestImage(unittest.TestCase):
-    def _image_error(self, width, height, rgb):
+    def _image_error_message(self, width, height, rgb):
         """Assert Image construction rejects the arguments and return the message."""
         return error_message(self, png.PngError, png.Image, width, height, rgb)
 
@@ -28,7 +28,7 @@ class TestImage(unittest.TestCase):
         # construction and the error names the actual and expected byte counts.
         for width, height, size in ((2, 2, 11), (2, 2, 13), (1, 1, 0)):
             with self.subTest(width=width, height=height, size=size):
-                message = self._image_error(width, height, bytes(size))
+                message = self._image_error_message(width, height, bytes(size))
                 self.assertIn(str(size), message)
                 self.assertIn(str(width * height * 3), message)
                 self.assertIn(f"{width}x{height}", message)
@@ -48,7 +48,7 @@ class TestImage(unittest.TestCase):
             with self.subTest(width=width, height=height):
                 self.assertIn(
                     f"{width}x{height}",
-                    self._image_error(width, height, b""),
+                    self._image_error_message(width, height, b""),
                 )
 
     def test_rejects_bool_dimensions_despite_being_an_int_subclass(self):
@@ -59,7 +59,7 @@ class TestImage(unittest.TestCase):
             with self.subTest(width=width, height=height):
                 self.assertIn(
                     "must be an integer",
-                    self._image_error(width, height, bytes(3)),
+                    self._image_error_message(width, height, bytes(3)),
                 )
 
     def test_rejects_non_bytes_rgb_naming_its_type(self):
@@ -71,7 +71,7 @@ class TestImage(unittest.TestCase):
         # later (_abs_diff cannot concatenate a memoryview with bytes).
         for rgb in ("abc", [1, 2, 3], memoryview(b"abc"), 1):
             with self.subTest(rgb=type(rgb).__name__):
-                message = self._image_error(1, 1, rgb)
+                message = self._image_error_message(1, 1, rgb)
                 self.assertIn("rgb", message)
                 self.assertIn(type(rgb).__name__, message)
 
@@ -87,14 +87,14 @@ class TestImage(unittest.TestCase):
         # float); the invariant names the offending dimension and its value.
         for width, height in (("2", 2), (2, "2"), (2.5, 2), (2, 2.5)):
             with self.subTest(width=width, height=height):
-                message = self._image_error(width, height, b"")
+                message = self._image_error_message(width, height, b"")
                 self.assertIn("must be an integer", message)
                 self.assertIn(repr(width), message)
                 self.assertIn(repr(height), message)
 
 
 class TestPixelAt(unittest.TestCase):
-    def _pixel_error(self, image, x, y):
+    def _pixel_error_message(self, image, x, y):
         """Assert pixel_at rejects the coordinate and return the message."""
         return error_message(self, ValueError, png.pixel_at, image, x, y)
 
@@ -131,7 +131,7 @@ class TestPixelAt(unittest.TestCase):
             (0, "0", "y"),
         ):
             with self.subTest(x=x, y=y):
-                message = self._pixel_error(image, x, y)
+                message = self._pixel_error_message(image, x, y)
                 self.assertIn("must be an integer", message)
                 value = x if named == "x" else y
                 self.assertIn(f"{named}={value!r}", message)
@@ -144,6 +144,6 @@ class TestPixelAt(unittest.TestCase):
         image = png.Image(2, 3, bytes(2 * 3 * 3))
         for x, y in ((2, 0), (0, 3), (-1, 0), (0, -1), (5, 5)):
             with self.subTest(x=x, y=y):
-                message = self._pixel_error(image, x, y)
+                message = self._pixel_error_message(image, x, y)
                 self.assertIn(f"({x}, {y})", message)
                 self.assertIn("2x3", message)

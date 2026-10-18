@@ -26,7 +26,7 @@ from tools import png
 from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
-    decode_error,
+    decode_error_message,
     ihdr_chunk,
     make_png,
     png_with_idat,
@@ -41,7 +41,7 @@ class TestMalformedImageData(unittest.TestCase):
         # entries and as bytes, matching the PLTE-length error.
         palette = bytes([255, 0, 0])  # one entry: index 0 only
         data = make_png(1, 1, [bytes([1])], color_type=3, palette=palette)
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("index 1", message)
         self.assertIn("1 entry", message)
         self.assertIn("3 bytes", message)
@@ -52,7 +52,7 @@ class TestMalformedImageData(unittest.TestCase):
         # counts the palette so the user can see how short it is.
         palette = bytes([255, 0, 0, 0, 255, 0])  # two entries: indices 0 and 1
         data = make_png(1, 1, [bytes([2])], color_type=3, palette=palette)
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("index 2", message)
         self.assertIn("2 entries", message)
         self.assertIn("6 bytes", message)
@@ -64,7 +64,7 @@ class TestMalformedImageData(unittest.TestCase):
         palette = bytes([255, 0, 0, 0, 255, 0])  # two entries: indices 0 and 1
         rows = [bytes([0, 1, 0, 2, 1])]  # index 2 is the first bad one
         data = make_png(5, 1, rows, color_type=3, palette=palette)
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("index 2", message)
         self.assertIn("2 entries", message)
 
@@ -74,7 +74,7 @@ class TestMalformedImageData(unittest.TestCase):
         # palette passes silently as long as no pixel uses the bad entry.
         palette = bytes([255, 0, 0, 0])  # 4 bytes: index 1 is a partial entry
         data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("4 bytes", message)
         self.assertIn("multiple of 3", message)
 
@@ -84,7 +84,7 @@ class TestMalformedImageData(unittest.TestCase):
         # on the modulo alone) and must be reported with its actual size.
         palette = bytes(771)
         data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("771 bytes", message)
         self.assertIn("768", message)
 
@@ -95,7 +95,7 @@ class TestMalformedImageData(unittest.TestCase):
         data = make_png(3, 3, [bytes(9)])
         self.assertIn(
             "got 10 bytes, expected 30 for a 3x3 image",
-            decode_error(self, data),
+            decode_error_message(self, data),
         )
 
     def test_rejects_png_without_image_data(self):
@@ -114,7 +114,7 @@ class TestMalformedImageData(unittest.TestCase):
         }
         for label, data in cases.items():
             with self.subTest(label=label):
-                self.assertIn("no IDAT image data", decode_error(self, data))
+                self.assertIn("no IDAT image data", decode_error_message(self, data))
 
     def test_rejects_decompression_bomb_without_expanding_it(self):
         # A few KB of IDAT can expand to far more scanlines than the header
@@ -123,7 +123,7 @@ class TestMalformedImageData(unittest.TestCase):
         declared = 4  # 1x1 RGB: one filter byte + three channels
         bomb = bytes(declared) + bytes(16 * 1024 * 1024)
         data = png_with_idat(zlib.compress(bomb))
-        message, peak = peak_allocation(lambda: decode_error(self, data))
+        message, peak = peak_allocation(lambda: decode_error_message(self, data))
         self.assertIn("more than the 4 bytes", message)
         self.assertLess(peak, 4 * 1024 * 1024)
 
@@ -134,7 +134,7 @@ class TestMalformedImageData(unittest.TestCase):
         raw = bytes([0, 1, 2, 3])  # 1x1 RGB: filter byte + three channels
         truncated = zlib.compress(raw)[:-4]  # drop the trailing adler32
         data = png_with_idat(truncated)
-        self.assertIn("truncated", decode_error(self, data))
+        self.assertIn("truncated", decode_error_message(self, data))
 
     def test_rejects_corrupt_deflate_stream(self):
         # The IDAT CRC covers the chunk bytes but says nothing about whether
@@ -144,7 +144,7 @@ class TestMalformedImageData(unittest.TestCase):
         # past decode_png and read_png (which would print a traceback from the
         # CLI instead of a clean "fidelity: error:" line).
         data = png_with_idat(b"\xff\xff\xff\xff")
-        self.assertIn("corrupt PNG image data", decode_error(self, data))
+        self.assertIn("corrupt PNG image data", decode_error_message(self, data))
 
     def test_rejects_declared_image_over_pixel_limit(self):
         # A header may declare dimensions far larger than any screenshot; the
@@ -152,7 +152,7 @@ class TestMalformedImageData(unittest.TestCase):
         data = png_with_idat(
             zlib.compress(bytes(4)), width=100_000, height=100_000
         )
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("100000x100000", message)
         self.assertIn(str(png._MAX_PIXELS), message)
 
@@ -175,7 +175,7 @@ class TestMalformedImageData(unittest.TestCase):
         )
         for data, expected in cases:
             with self.subTest(expected=expected):
-                message = decode_error(self, data)
+                message = decode_error_message(self, data)
                 self.assertIn("not a PNG file", message)
                 self.assertIn(expected, message)
                 self.assertIn("convert it to PNG", message)
@@ -184,7 +184,7 @@ class TestMalformedImageData(unittest.TestCase):
         # Only a known raster signature earns the format and fix hints;
         # arbitrary bytes must not be described as an image, nor told to
         # convert a format the decoder never identified.
-        message = decode_error(self, b"not a png")
+        message = decode_error_message(self, b"not a png")
         self.assertIn("not a PNG file", message)
         self.assertNotIn("image", message)
         self.assertNotIn("convert", message)
@@ -200,7 +200,7 @@ class TestMalformedImageData(unittest.TestCase):
             [bytes([1, 2, 3]), bytes([4, 5, 6]), bytes([7, 8, 9])],
             filter_types=[0, 0, 5],
         )
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("unsupported PNG filter type 5", message)
         self.assertIn("row 2", message)
 

@@ -53,7 +53,7 @@ def panel_height(text):
     return int(match.group(1)) if match else None
 
 
-def menu_bar_rows(image, x):
+def menu_bar_height(image, x):
     """Return the bar height at column *x*: the row after its black bottom rule.
 
     The rule is the first #000000 pixel whose next row is neither bar grey nor
@@ -179,11 +179,11 @@ class TestPanelHeightMatchesReference(ReferenceScreenshotMixin, unittest.TestCas
     REFERENCE = REFERENCE
 
     def test_panel_height_matches_the_reference(self):
-        height = menu_bar_rows(self.image, SAMPLE_COLUMN)
+        height = menu_bar_height(self.image, SAMPLE_COLUMN)
         self.assertEqual(height, panel_height(_read_layout()))
 
     def test_reference_bar_rows(self):
-        height = menu_bar_rows(self.image, SAMPLE_COLUMN)
+        height = menu_bar_height(self.image, SAMPLE_COLUMN)
         pixel = lambda y: self.pixel(SAMPLE_COLUMN, y)
         self.assertEqual(WHITE, pixel(0))
         self.assertEqual(BEVEL_GREY, pixel(height - 2))

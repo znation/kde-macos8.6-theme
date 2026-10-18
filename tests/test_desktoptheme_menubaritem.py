@@ -54,7 +54,7 @@ def title_gaps(image):
     return gaps
 
 
-def hint_geometry():
+def expected_hint_geometry():
     """Return the expected ``{id: (x, y, width, height)}`` map for the hint rects."""
     expected = {"hint-tile-center": ("7", "3", "6", "6")}
     for prefix in ("normal", "hover", "pressed"):
@@ -80,7 +80,7 @@ class TestMenuBarItem(NineSliceCase, unittest.TestCase):
         # 7px left/right and 3px top/bottom border around a 6x6 centre tile on
         # the 20x12 canvas. The shared helper assumes one square border, so
         # the expected map is spelled out.
-        self.assertEqual(rect_geometry(self.tree), hint_geometry())
+        self.assertEqual(rect_geometry(self.tree), expected_hint_geometry())
 
     def test_menubaritem_normal_and_hover_have_no_fill(self):
         # An idle or merely hovered title paints nothing perceptible: the

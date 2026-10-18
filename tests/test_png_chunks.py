@@ -26,7 +26,7 @@ from tools.png import chunks
 from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
-    decode_error,
+    decode_error_message,
     ihdr_chunk,
     ihdr_end,
     make_png,
@@ -83,7 +83,7 @@ class TestChunkFraming(unittest.TestCase):
         # chunk; the error names the offending type.
         _, data = solid_rgb(1, 1)
         unknown = _chunk(b"XYZW", b"\x00\x01")
-        message = decode_error(self, splice_after_ihdr(data, unknown))
+        message = decode_error_message(self, splice_after_ihdr(data, unknown))
         self.assertIn("unknown critical PNG chunk", message)
         self.assertIn("'XYZW'", message)
 
@@ -97,7 +97,7 @@ class TestChunkFraming(unittest.TestCase):
         _, data = solid_rgb(1, 1)
         for ctype in (b"ab1d", b"a bd", b"ab\xffd"):
             with self.subTest(ctype=ctype):
-                message = decode_error(
+                message = decode_error_message(
                     self, splice_after_ihdr(data, _chunk(ctype, b"\x00"))
                 )
                 self.assertIn("invalid PNG chunk type", message)
@@ -114,7 +114,7 @@ class TestChunkFraming(unittest.TestCase):
         _, data = rgb_image(1, 1, lambda x, y: (0, 0, 0))
         boundary = ihdr_end(data)
         oversized = struct.pack(">I", 0x80000000) + b"IDAT"
-        message = decode_error(self, data[:boundary] + oversized)
+        message = decode_error_message(self, data[:boundary] + oversized)
         self.assertIn("'IDAT'", message)
         self.assertIn("offset", message)
         self.assertIn("2147483648", message)
@@ -128,7 +128,7 @@ class TestChunkFraming(unittest.TestCase):
         _, data = solid_rgb(1, 1)
         text = _chunk(b"tEXt", b"note")
         corrupt = text[:-1] + bytes([text[-1] ^ 0xFF])
-        message = decode_error(self, splice_after_ihdr(data, corrupt))
+        message = decode_error_message(self, splice_after_ihdr(data, corrupt))
         self.assertIn("tEXt", message)
         self.assertIn("CRC", message)
 
@@ -141,7 +141,7 @@ class TestChunkFraming(unittest.TestCase):
             + _chunk(b"IDAT", zlib.compress(b"\x00"))
             + _chunk(b"IEND", b"")
         )
-        self.assertIn("no IHDR", decode_error(self, data))
+        self.assertIn("no IHDR", decode_error_message(self, data))
 
     def test_rejects_ihdr_with_wrong_length(self):
         # IHDR is fixed at 13 bytes; any other length cannot be unpacked as
@@ -154,7 +154,7 @@ class TestChunkFraming(unittest.TestCase):
             + _chunk(b"IHDR", b"\x00" * 12)
             + _chunk(b"IEND", b"")
         )
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("12 bytes", message)
         self.assertIn("expected 13", message)
 
@@ -163,7 +163,7 @@ class TestChunkFraming(unittest.TestCase):
         # map an index to, so the failure must name the missing chunk instead
         # of indexing a None palette.
         data = make_png(1, 1, [bytes([0])], color_type=3, palette=None)
-        self.assertIn("no PLTE", decode_error(self, data))
+        self.assertIn("no PLTE", decode_error_message(self, data))
 
     def test_rejects_bad_chunk_crc(self):
         # Every PNG chunk carries a CRC over its type and payload; a mismatch
@@ -176,7 +176,7 @@ class TestChunkFraming(unittest.TestCase):
         (ihdr_length,) = struct.unpack(">I", data[8:12])
         crc_offset = data.rindex(b"IHDR") + 4 + ihdr_length
         corrupted[crc_offset] ^= 0xFF
-        message = decode_error(self, bytes(corrupted))
+        message = decode_error_message(self, bytes(corrupted))
         self.assertIn("IHDR", message)
         self.assertIn("CRC", message)
         self.assertIn(f"offset {data.rindex(b'IHDR') - 4}", message)
@@ -193,7 +193,7 @@ class TestChunkFraming(unittest.TestCase):
         # Cutting the final CRC byte must name the chunk and the offset of the
         # missing CRC, so the user can find the truncation point.
         _, data = solid_rgb(1, 1)
-        message = decode_error(self, data[:-1])
+        message = decode_error_message(self, data[:-1])
         self.assertIn("truncated PNG chunk 'IEND' CRC", message)
         self.assertIn(f"offset {data.rindex(b'IEND') + 4}", message)
         self.assertIn("expected 4 bytes, got 3", message)
@@ -205,14 +205,14 @@ class TestChunkFraming(unittest.TestCase):
         _, data = solid_rgb(1, 1)
         stripped = data[: data.rindex(b"IEND") - 4]
         self.assertNotIn(b"IEND", stripped)
-        self.assertIn("no IEND chunk", decode_error(self, stripped))
+        self.assertIn("no IEND chunk", decode_error_message(self, stripped))
 
     def test_rejects_truncated_chunk_payload(self):
         # A chunk header declaring more payload than the file holds must name
         # the chunk, its offset, and the byte counts, not just say "truncated".
         ihdr = ihdr_chunk(1, 1, 2)
         data = _PNG_SIGNATURE + ihdr + struct.pack(">I", 100) + b"IDAT" + b"\x00\x01"
-        message = decode_error(self, data)
+        message = decode_error_message(self, data)
         self.assertIn("truncated PNG chunk 'IDAT'", message)
         self.assertIn("offset 33", message)
         self.assertIn("declared 100 payload bytes, only 2 present", message)
@@ -222,12 +222,12 @@ class TestChunkFraming(unittest.TestCase):
         # the offending value tells the user which one to fix.
         _, data = solid_rgb(1, 1)
         broken = with_ihdr_byte(data, 10, 1)
-        self.assertIn("compression method 1", decode_error(self, broken))
+        self.assertIn("compression method 1", decode_error_message(self, broken))
 
     def test_rejects_unknown_filter_method(self):
         _, data = solid_rgb(1, 1)
         broken = with_ihdr_byte(data, 11, 1)
-        self.assertIn("filter method 1", decode_error(self, broken))
+        self.assertIn("filter method 1", decode_error_message(self, broken))
 
     def test_rejects_unsupported_ihdr_fields(self):
         # IHDR's bit depth, color type, interlace flag and dimensions each
@@ -251,7 +251,7 @@ class TestChunkFraming(unittest.TestCase):
         }
         for label, (broken, expected) in cases.items():
             with self.subTest(label=label):
-                self.assertIn(expected, decode_error(self, broken))
+                self.assertIn(expected, decode_error_message(self, broken))
 
     def test_unsupported_color_type_names_the_supported_set(self):
         # The color type decides how scanlines are interpreted, so a rejected
@@ -261,7 +261,7 @@ class TestChunkFraming(unittest.TestCase):
         # the diagnostic fails here rather than reading as plausible.
         _, data = solid_rgb(1, 1)
         broken = with_ihdr_byte(data, 9, 5)
-        message = decode_error(self, broken)
+        message = decode_error_message(self, broken)
         self.assertIn("unsupported PNG color type 5", message)
         self.assertIn("need one of 0, 2, 3, 4, 6", message)
 
@@ -272,7 +272,7 @@ class TestChunkFraming(unittest.TestCase):
         _, data = solid_rgb(1, 1)
         broken = with_ihdr_byte(data, 12, 1)
         self.assertIn(
-            "re-export it without interlacing", decode_error(self, broken)
+            "re-export it without interlacing", decode_error_message(self, broken)
         )
 
 
@@ -326,4 +326,4 @@ class TestIterChunks(unittest.TestCase):
             list(chunks.iter_chunks(without_iend)),
             list(chunks.iter_chunks(truncated)),
         )
-        self.assertIn("no IEND", decode_error(self, truncated))
+        self.assertIn("no IEND", decode_error_message(self, truncated))
