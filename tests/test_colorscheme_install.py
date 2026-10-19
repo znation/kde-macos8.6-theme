@@ -310,6 +310,25 @@ class TestInstall(unittest.TestCase):
         assert_succeeded(self, removed)
         self.assertIn("is still selected", removed.stderr)
 
+    def test_make_uninstall_ignores_a_key_or_section_with_the_wrong_case(self):
+        # KDE keys and section names are case-sensitive (the same invariant
+        # tests/support/kde_config.py pins through configparser), so a
+        # `colorscheme` key or a `[general]` heading is not the live
+        # `[General] ColorScheme` selection. The warning must read only the
+        # exact key in the exact section, or it reports a scheme KDE still
+        # resolves as if it had been lost.
+        for label, text in (
+            ("a lowercase key", "[General]\ncolorscheme=MacOS8\n"),
+            ("a lowercase section", "[general]\nColorScheme=MacOS8\n"),
+            ("an uppercase key", "[General]\nCOLORSCHEME=MacOS8\n"),
+        ):
+            with self.subTest(label):
+                with installed_destdir(self, packages="color-scheme") as tmp:
+                    removed = self._uninstall_with_kdeglobals(tmp, text)
+
+                assert_succeeded(self, removed)
+                self.assertNotIn("is still selected", removed.stderr)
+
     def test_make_uninstall_reads_the_home_config_when_xdg_is_unset(self):
         # XDG_CONFIG_HOME is unset, so the warning must resolve the config home
         # the way the XDG spec does, as `$HOME/.config`, and find the selection
