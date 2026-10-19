@@ -69,5 +69,37 @@ class TestReadReferenceCache(unittest.TestCase):
         self.assertIsInstance(first_error, reference_image.png.PngError)
 
 
+class TestReferenceScreenshotMixin(unittest.TestCase):
+    """The mixin forwards its ``MAX_ROWS`` to the decode.
+
+    ``MAX_ROWS`` bounds the decode of a large Git LFS screenshot to the rows a
+    test samples. A class that sets it must get an image no taller than that;
+    if ``setUpClass`` dropped it, every pixel assertion would still pass and
+    only the decode would silently grow back to the whole screenshot.
+    """
+
+    def _case_with(self, path, max_rows):
+        """Run the mixin's ``setUpClass`` for a class with this path and bound."""
+
+        class Case(reference_image.ReferenceScreenshotMixin, unittest.TestCase):
+            REFERENCE = path
+            MAX_ROWS = max_rows
+
+        Case.setUpClass()
+        return Case
+
+    def test_max_rows_bounds_the_decoded_reference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case = self._case_with(_write_reference(tmp), 1)
+        self.assertIsNone(case.image_error)
+        self.assertEqual((case.image.width, case.image.height), (2, 1))
+
+    def test_no_max_rows_decodes_the_whole_reference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case = self._case_with(_write_reference(tmp), None)
+        self.assertIsNone(case.image_error)
+        self.assertEqual((case.image.width, case.image.height), (2, 2))
+
+
 if __name__ == "__main__":
     unittest.main()
