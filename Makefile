@@ -135,6 +135,16 @@ require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.ver
 # names CHECK_TESTS. $(1) names the target.
 require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac
 
+# CHECK_PATTERN is the filename glob `check` hands to `unittest discover -p`,
+# so an empty value (`?=` keeps one from the environment) or a whitespace-only
+# one matches no file and the run executes nothing. Interpreters before 3.12
+# then exit 0 -- a green run that ran no tests; 3.12 and newer exit 5 with only
+# "NO TESTS RAN", naming neither the variable nor its value. Refuse an empty
+# or whitespace-only pattern with a diagnostic naming CHECK_PATTERN. A leading
+# dash is left alone: it reaches `-p` as that option's argument, not a flag.
+# $(1) names the target.
+require_check_pattern = set -- "$(CHECK_PATTERN)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in '') echo "$(1): CHECK_PATTERN must name a test-module glob, not an empty or whitespace-only value: '$$1'" >&2; exit 2;; esac
+
 # The CHECK_TESTS recipe runs `cd tests` before it invokes the interpreter, so
 # a relative PYTHON path (`PYTHON=./.venv/bin/python`) would resolve against
 # tests/ and fail to start -- even though the discovery recipe, which runs
@@ -151,6 +161,7 @@ check:
 	@$(call require_python_version,check)
 	@$(call require_check_tests,check)
 ifeq ($(strip $(CHECK_TESTS)),)
+	@$(call require_check_pattern,check)
 	$(PYTHON) -m unittest discover -s tests -v -p '$(CHECK_PATTERN)'
 else
 	cd tests && $(PYTHON_RUN) -m unittest -v $(CHECK_TESTS)

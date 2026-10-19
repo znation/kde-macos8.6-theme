@@ -47,6 +47,28 @@ class TestCheckPattern(unittest.TestCase):
             self._dry_run("CHECK_PATTERN=test_byteops.py"),
         )
 
+    def test_empty_pattern_is_refused(self):
+        # CHECK_PATTERN is a make variable a caller can set from the
+        # environment, but `?=` keeps an empty environment value, so `-p ''`
+        # reaches `unittest discover` and matches no file. Interpreters before
+        # 3.12 then exit 0 having run nothing -- a green run that executed no
+        # tests. The guard must refuse it with a diagnostic naming
+        # CHECK_PATTERN instead.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        env["CHECK_PATTERN"] = ""
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_PATTERN must name", result.stderr)
+
+    def test_whitespace_pattern_is_refused(self):
+        # A whitespace-only value is no better: `-p ' '` matches no file
+        # either, so it must be refused the same way.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        env["CHECK_PATTERN"] = " "
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_PATTERN must name", result.stderr)
+
     def test_tests_variable_runs_the_named_specs(self):
         # CHECK_TESTS names a module, class or method directly, which the
         # filename glob CHECK_PATTERN cannot do. The specs run from tests/ so
