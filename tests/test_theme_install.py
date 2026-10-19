@@ -253,6 +253,18 @@ class TestFlockTimeout(unittest.TestCase):
             "at most 9223372036854775807",
         )
 
+    def test_a_value_longer_than_the_timer_limit_is_refused_by_length(self):
+        # After leading zeros are stripped, a value of more than 19 digits
+        # cannot fit flock's signed 64-bit timer whatever its digits, so the
+        # guard refuses it by length before comparing the digits. Without that
+        # length clause a 20-digit value slips past the 19-digit comparison,
+        # reaches flock, and fails with flock's own message after the data
+        # home exists.
+        self._assert_refused(
+            "99999999999999999999",
+            "at most 9223372036854775807",
+        )
+
     def test_leading_zeros_do_not_make_a_small_value_look_too_large(self):
         # A valid value written with leading zeros ("000...0001") has more
         # than 19 characters but a value of 1. The length check must strip the
