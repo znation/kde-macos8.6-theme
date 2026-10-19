@@ -28,7 +28,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | The scheme's sections, keys and palette anchors are complete and well-formed. | `tests/test_colorscheme.py::TestStructure` | none |
 | The tooltip token is documented as a KDE-required role with no reference screenshot. | `tests/test_colorscheme.py::TestProvenanceNote` | `[Colors:Tooltip] BackgroundNormal` has no Mac OS 8.6 reference in the set; its value comes from the classic Platinum palette (QUESTIONS.md, answered 2026-10-08). |
 
-## desktop-themes
+## desktoptheme
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |

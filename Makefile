@@ -45,7 +45,7 @@ LNF_PACKAGE := theme/look-and-feel/$(LNF_ID)
 LNF_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/look-and-feel
 
 DTHEME_ID := org.macos8.desktop
-DTHEME_PACKAGE := theme/desktop-themes/$(DTHEME_ID)
+DTHEME_PACKAGE := theme/desktoptheme/$(DTHEME_ID)
 DTHEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/plasma/desktoptheme
 
 AURORAE_ID := org.macos8.desktop

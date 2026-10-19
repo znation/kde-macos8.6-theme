@@ -228,7 +228,7 @@ class TestInstall(
         os.path.join("solid", "widgets", "panel-background.svg"),
         os.path.join("dialogs", "background.svg"),
     )
-    COPY_FAILURE_GLOB = "*/desktop-themes/*"
+    COPY_FAILURE_GLOB = "*/desktoptheme/*"
 
 
 @unittest.skipUnless(

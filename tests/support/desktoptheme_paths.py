@@ -16,7 +16,7 @@ from support.theme_install import ROOT
 
 
 DTHEME_ID = "org.macos8.desktop"
-PACKAGE = os.path.join(ROOT, "theme", "desktop-themes", DTHEME_ID)
+PACKAGE = os.path.join(ROOT, "theme", "desktoptheme", DTHEME_ID)
 METADATA = os.path.join(PACKAGE, "metadata.json")
 PANEL_SVG = os.path.join(PACKAGE, "widgets", "panel-background.svg")
 FRAME_SVG = os.path.join(PACKAGE, "widgets", "frame.svg")
