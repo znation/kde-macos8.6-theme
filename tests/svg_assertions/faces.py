@@ -165,31 +165,33 @@ def _require_known_bevel(bevel):
         )
 
 
-def face_edge_bands(face, bevel):
+def face_edge_bands(face, bevel, shadow="#999999"):
     """Return the (outward, mirrored) edge bands for a *bevel* on *face*.
 
     `assert_edge_bevels` checks a widget's four edge tiles with two
     three-colour bands: *outward* reads a top/left slice from its outer edge
     inward, and *mirrored* is the bottom/right band, whose #000000 outline
     stays on the outer edge while the bevel colour swaps sides. A raised face
-    paints a #FFFFFF highlight inside the top/left outline and a #999999
-    shadow inside the bottom/right ones; a sunken face swaps those two bevel
+    paints a #FFFFFF highlight inside the top/left outline and a *shadow*
+    inside the bottom/right ones; a sunken face swaps those two bevel
     colours; a sunken-outside face puts the bevel outside the outline instead,
-    a #999999 shadow and a #FFFFFF highlight on the outer edges and the
-    #000000 outline inside them; a flat face has no bevel, so both inner
-    bands are *face*.
+    a *shadow* and a #FFFFFF highlight on the outer edges and the #000000
+    outline inside them; a flat face has no bevel, so both inner bands are
+    *face*.
     *face* is the widget's face colour (#DDDDDD for the button, frame and
     scroll-bar thumb, #FFFFFF for the line edit, #EEEEEE for the scroll-bar
-    trough) and *bevel* is ``"raised"``, ``"sunken"``, ``"sunken-outside"``
-    or ``"flat"``; any other value is rejected by `_require_known_bevel`.
+    trough), *bevel* is ``"raised"``, ``"sunken"``, ``"sunken-outside"``
+    or ``"flat"``, and *shadow* is the bevel's shadow colour: the default
+    #999999, or the reference's lighter #AAAAAA for the push button. Any
+    other *bevel* is rejected by `_require_known_bevel`.
     """
     _require_known_bevel(bevel)
     if bevel == "raised":
-        return ("#000000", "#FFFFFF", face), (face, "#999999", "#000000")
+        return ("#000000", "#FFFFFF", face), (face, shadow, "#000000")
     if bevel == "sunken":
-        return ("#000000", "#999999", face), (face, "#FFFFFF", "#000000")
+        return ("#000000", shadow, face), (face, "#FFFFFF", "#000000")
     if bevel == "sunken-outside":
-        return ("#999999", "#000000", face), (face, "#000000", "#FFFFFF")
+        return (shadow, "#000000", face), (face, "#000000", "#FFFFFF")
     if bevel == "flat":
         return ("#000000", face, face), (face, face, "#000000")
 

@@ -39,6 +39,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `widgets/background.svg` draws the Platinum menu body, and its `widgets/translucentbackground.svg` copy is byte-identical. | `tests/test_desktoptheme_background.py::TestBackground` | none |
 | `widgets/busywidget.svg` draws the Platinum busy indicator ring. | `tests/test_desktoptheme_busywidget.py::TestBusyWidget` | none |
 | `widgets/button.svg` draws the normal and pressed push button. | `tests/test_desktoptheme_button.py::TestButton` | none |
+| `widgets/button.svg`'s raised bevel shadow is the reference's #AAAAAA. | `tests/test_desktoptheme_button_reference.py::TestButtonReference` | The reference's raised button bevel is the Get Info popup button (`aboutsystem_betawiki.png`), a beta build; the reference's rounded push buttons are only in the lossy `opendialog_macrumors86.jpg`. |
 | `widgets/checkmarks.svg` draws the black check and the radio indicator dot. | `tests/test_desktoptheme_checkmarks.py::TestCheckmarks` | none |
 | `dialogs/background.svg` draws the Platinum window body. | `tests/test_desktoptheme_dialog.py::TestDialogBackground` | none |
 | `widgets/frame.svg` draws the Platinum plain, raised and sunken frames. | `tests/test_desktoptheme_frame.py::TestFrame` | none |

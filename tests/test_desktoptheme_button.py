@@ -6,7 +6,7 @@ import unittest
 
 from support.desktoptheme_paths import BUTTON_SVG
 from support.nine_slice_case import NineSliceCase
-from support.platinum_palette import assert_fill_palette
+from support.platinum_palette import BUTTON_SHADOW, assert_fill_palette
 from svg_assertions import (
     assert_arcs_share_center,
     assert_center_tile_is,
@@ -48,24 +48,26 @@ class TestButton(NineSliceCase, unittest.TestCase):
         # Read the parsed artwork's fill attributes, not the raw file: the
         # header comment and the hint rects (which set colour through `style`)
         # would otherwise make a text search pass without any Platinum grey.
-        assert_fill_palette(self, self.tree)
+        # The raised button's shadow is the reference's #AAAAAA, lighter than
+        # the other raised faces' #999999, so swap it into the expected set.
+        assert_fill_palette(self, self.tree, shadow=BUTTON_SHADOW)
 
     def test_button_bevel_direction(self):
         # `test_button_colours` sees the same four fills whichever way the
         # normal/pressed bevels run, so only the per-slice paint order pins
-        # the direction: normal is #FFFFFF inside top/left and #999999 inside
+        # the direction: normal is #FFFFFF inside top/left and #AAAAAA inside
         # bottom/right, and pressed is the exact inverse. Composite the edge
         # slices (their rects) and read the corner paths' document order.
         slices = render_slices(self.tree)
         # (outer outline, bevel, inner face), from the slice's outer edge in.
         outward = {
             "normal-top": ("#000000", "#FFFFFF", "#DDDDDD"),
-            "normal-bottom": ("#000000", "#999999", "#DDDDDD"),
+            "normal-bottom": ("#000000", BUTTON_SHADOW, "#DDDDDD"),
             "normal-left": ("#000000", "#FFFFFF", "#DDDDDD"),
-            "normal-right": ("#000000", "#999999", "#DDDDDD"),
-            "pressed-top": ("#000000", "#999999", "#DDDDDD"),
+            "normal-right": ("#000000", BUTTON_SHADOW, "#DDDDDD"),
+            "pressed-top": ("#000000", BUTTON_SHADOW, "#DDDDDD"),
             "pressed-bottom": ("#000000", "#FFFFFF", "#DDDDDD"),
-            "pressed-left": ("#000000", "#999999", "#DDDDDD"),
+            "pressed-left": ("#000000", BUTTON_SHADOW, "#DDDDDD"),
             "pressed-right": ("#000000", "#FFFFFF", "#DDDDDD"),
         }
         for name, colours in outward.items():
@@ -84,12 +86,12 @@ class TestButton(NineSliceCase, unittest.TestCase):
         by_id = elements_by_id(self.tree)
         corners = {
             "normal-topleft": ("#000000", "#FFFFFF", "#DDDDDD"),
-            "normal-topright": ("#000000", "#FFFFFF", "#999999", "#DDDDDD"),
-            "normal-bottomleft": ("#000000", "#FFFFFF", "#999999", "#DDDDDD"),
-            "normal-bottomright": ("#000000", "#999999", "#DDDDDD"),
-            "pressed-topleft": ("#000000", "#999999", "#DDDDDD"),
-            "pressed-topright": ("#000000", "#999999", "#FFFFFF", "#DDDDDD"),
-            "pressed-bottomleft": ("#000000", "#999999", "#FFFFFF", "#DDDDDD"),
+            "normal-topright": ("#000000", "#FFFFFF", BUTTON_SHADOW, "#DDDDDD"),
+            "normal-bottomleft": ("#000000", "#FFFFFF", BUTTON_SHADOW, "#DDDDDD"),
+            "normal-bottomright": ("#000000", BUTTON_SHADOW, "#DDDDDD"),
+            "pressed-topleft": ("#000000", BUTTON_SHADOW, "#DDDDDD"),
+            "pressed-topright": ("#000000", BUTTON_SHADOW, "#FFFFFF", "#DDDDDD"),
+            "pressed-bottomleft": ("#000000", BUTTON_SHADOW, "#FFFFFF", "#DDDDDD"),
             "pressed-bottomright": ("#000000", "#FFFFFF", "#DDDDDD"),
         }
         for name, colours in corners.items():
@@ -153,7 +155,9 @@ class TestButton(NineSliceCase, unittest.TestCase):
         # still on the outer edge and the bevel colour swapped.
         directions = {"normal": "raised", "pressed": "sunken"}
         for prefix, direction in directions.items():
-            outward, mirrored = face_edge_bands("#DDDDDD", direction)
+            outward, mirrored = face_edge_bands(
+                "#DDDDDD", direction, shadow=BUTTON_SHADOW
+            )
             assert_edge_bevels(self, slices, prefix, outward, mirrored)
 
     def test_button_center_tiles_are_face(self):

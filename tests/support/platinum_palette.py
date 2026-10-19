@@ -33,6 +33,12 @@ FACE = "#DDDDDD"
 # white bevel highlight, the grey bevel shadow and the #DDDDDD face.
 PLATINUM_FILLS = frozenset({BLACK, WHITE, GREY, FACE})
 
+# The raised push button's bevel shadow, sampled from the Get Info window's two
+# popup buttons in `aboutsystem_betawiki.png`: (150,121) and (150,291). It is
+# lighter than the #999999 shadow the frame and other raised faces paint, so
+# the button test swaps it in for `GREY`.
+BUTTON_SHADOW = "#AAAAAA"
+
 # The flat trough the scroll bar and slider tracks share, painted from
 # `[Colors:View] BackgroundAlternate`. It is not part of the raised-face fill
 # set above, so a widget test that draws it passes it as `extra`.
@@ -55,13 +61,18 @@ def hex_colour(rgb):
     return "#%02X%02X%02X" % tuple(rgb)
 
 
-def assert_fill_palette(case, tree, extra=frozenset()):
+def assert_fill_palette(case, tree, extra=frozenset(), shadow=GREY):
     """Assert *tree*'s parsed fill set is exactly the Platinum artwork palette.
 
     The widget modules read the parsed artwork's `fill` attributes through
     `attribute_values` -- not a text search of the raw file, whose comments
     name the same colours -- and pin the whole set; this states that one
     comparison once. *extra* adds a widget-specific fill such as `TROUGH`;
-    *case* is the calling ``unittest.TestCase``.
+    *shadow* replaces `GREY` in the expected set for artwork whose bevel
+    shadow is the reference's lighter `BUTTON_SHADOW`; *case* is the calling
+    ``unittest.TestCase``.
     """
-    case.assertEqual(attribute_values(tree, "fill"), PLATINUM_FILLS | extra)
+    palette = PLATINUM_FILLS
+    if shadow != GREY:
+        palette = (palette - {GREY}) | {shadow}
+    case.assertEqual(attribute_values(tree, "fill"), palette | extra)
