@@ -52,13 +52,11 @@ def assert_no_style_elements(case, tree):
         case.assertNotEqual(tag, "style", f"<{tag}> element")
 
 
-# CSS/SVG ``url(...)`` target: unquoted, single-quoted or double-quoted,
-# padded with whitespace. SVG uses the form in presentation attributes such as
-# ``fill``, ``filter``, ``clip-path`` and ``mask``, and in an inline ``style``.
-_URL_REFERENCE = re.compile(
-    r"""url\(\s*(?:'([^']*)'|"([^"]*)"|([^)]*?))\s*\)""",
-    re.IGNORECASE,
-)
+# The literal opening of an SVG ``url(...)`` reference. Matched with
+# ``re.IGNORECASE`` so ``URL(`` is found too, but kept separate from the
+# reference body: the body is scanned by hand because a backtracking
+# expression for it is quadratic on a hostile value (see `_url_targets`).
+_URL_OPEN = re.compile(r"url\(", re.IGNORECASE)
 
 
 def _url_targets(value):
@@ -67,10 +65,42 @@ def _url_targets(value):
     The target may be unquoted or wrapped in single or double quotes and
     padded with whitespace; it is returned without that quoting or padding so
     the caller can tell an in-file ``#id`` from a file or ``data:`` reference.
+
+    The reference body is scanned in one left-to-right pass rather than
+    matched with a ``url\\(...\\)`` regular expression. A backtracking regex
+    with a lazy ``[^)]*?`` body is quadratic on a value like ``"url(" * n``:
+    every start position scans to the end of the value before failing, so a
+    contributor-supplied attribute of a few tens of kilobytes could stall
+    ``make check`` for minutes. A closing ``)`` is searched once, and when it
+    is absent from the rest of the value no later ``url(`` can close either,
+    so the scan ends instead of rescanning.
     """
-    for match in _URL_REFERENCE.finditer(value):
-        target = next(group for group in match.groups() if group is not None)
-        yield target.strip()
+    index = 0
+    length = len(value)
+    while True:
+        match = _URL_OPEN.search(value, index)
+        if match is None:
+            return
+        position = match.end()
+        while position < length and value[position].isspace():
+            position += 1
+        if position < length and value[position] in "'\"":
+            quote = value[position]
+            closing = value.find(quote, position + 1)
+            if closing >= 0:
+                after = closing + 1
+                while after < length and value[after].isspace():
+                    after += 1
+                if after < length and value[after] == ")":
+                    yield value[position + 1 : closing].strip()
+                    index = after + 1
+                    continue
+        end = value.find(")", position)
+        if end < 0:
+            # No closing ``)`` remains, so no later ``url(`` can match either.
+            return
+        yield value[position:end].strip()
+        index = end + 1
 
 
 def _assert_local_reference(case, tag, name, value):

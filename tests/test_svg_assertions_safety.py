@@ -10,6 +10,7 @@ a clean tree and rejects the forbidden form at the root and nested below it.
 
 from __future__ import annotations
 
+import time
 import unittest
 
 from support.error_assertions import assert_rejection_names
@@ -20,6 +21,7 @@ from svg_assertions import (
     assert_no_style_elements,
     assert_unique_ids,
 )
+from svg_assertions.safety import _url_targets
 
 
 class TestNoScriptElements(unittest.TestCase):
@@ -157,6 +159,22 @@ class TestNoExternalReferences(unittest.TestCase):
         )
         assert_rejection_names(
             self, assert_no_external_references, tree, needles=("data:",)
+        )
+
+    def test_url_targets_finishes_promptly_on_a_hostile_value(self):
+        # A contributor-supplied attribute value with many ``url(`` starts
+        # and no closing ``)`` made the old backtracking regex rescan to the
+        # end of the value at every start: quadratic time, so this ~24 KB
+        # value took seconds and a real artwork could stall `make check` for
+        # minutes. The scanner must find no target and finish well inside a
+        # generous bound.
+        value = "url(" * 6000
+        started = time.monotonic()
+        targets = list(_url_targets(value))
+        elapsed = time.monotonic() - started
+        self.assertEqual(targets, [])
+        self.assertLess(
+            elapsed, 1.0, f"scanning {len(value)} bytes took {elapsed:.3f}s"
         )
 
 
