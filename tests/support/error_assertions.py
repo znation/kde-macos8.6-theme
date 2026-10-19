@@ -20,11 +20,12 @@ tools' output is expected to have: no raw ESC byte, its visible escape shown.
 helpers in ``tools/png/filters.py`` and ``tools/fidelity_metrics.py`` both reject a
 length mismatch, and each must name itself in the diagnostic.
 
-``NoSubTest``, ``assert_rejects`` and ``rejection_message`` observe the other
-kind of failure: a ``tests/svg_assertions/`` guard that reports a bad slice
-through ``case.subTest`` records a failure on the result and keeps going
-instead of raising, so ``assertRaises`` would never see it. They drop the
-subTest frame so the underlying assertion raises and its message is readable.
+``NoSubTest``, ``assert_rejects``, ``rejection_message`` and
+``assert_rejection_names`` observe the other kind of failure: a
+``tests/svg_assertions/`` guard that reports a bad slice through
+``case.subTest`` records a failure on the result and keeps going instead of
+raising, so ``assertRaises`` would never see it. They drop the subTest frame
+so the underlying assertion raises and its message is readable.
 """
 
 from __future__ import annotations
@@ -154,3 +155,21 @@ def rejection_message(guard, *args, **kwargs):
     return error_message(
         case, AssertionError, guard, case, *args, **kwargs
     )
+
+
+def assert_rejection_names(case, guard, *args, needles=(), **kwargs):
+    """Assert *guard* rejects an input and its message names each *needle*.
+
+    ``assert_rejects`` proves the rejection and ``rejection_message`` returns
+    the diagnostic; a test that pins what that diagnostic names would call
+    one and then assert each substring against the other. This names that
+    expectation once, mirroring ``assert_error_names`` for the
+    subTest-reporting guards. *args* and *kwargs* are the guard's own
+    parameters after ``case``; ``needles`` is consumed here and never
+    forwarded. Returns the message, so a test that must read it further still
+    can.
+    """
+    message = rejection_message(guard, *args, **kwargs)
+    for needle in needles:
+        case.assertIn(needle, message)
+    return message

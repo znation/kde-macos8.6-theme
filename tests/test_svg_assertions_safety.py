@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import unittest
 
-from support.error_assertions import rejection_message
+from support.error_assertions import assert_rejection_names
 from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     assert_no_external_references,
@@ -55,9 +55,8 @@ class TestNoStyleElements(unittest.TestCase):
         tree = _svg_tree(
             '<rect id="center"/><style>rect{fill:#ff6600}</style>'
         )
-        self.assertIn(
-            "style",
-            rejection_message(assert_no_style_elements, tree),
+        assert_rejection_names(
+            self, assert_no_style_elements, tree, needles=("style",)
         )
 
     def test_catches_a_style_element_nested_below_the_root(self):
@@ -81,16 +80,17 @@ class TestNoExternalReferences(unittest.TestCase):
 
     def test_catches_an_image_element(self):
         tree = _svg_tree('<image href="panel.png"/>')
-        self.assertIn(
-            "image",
-            rejection_message(assert_no_external_references, tree),
+        assert_rejection_names(
+            self, assert_no_external_references, tree, needles=("image",)
         )
 
     def test_catches_a_file_href_naming_the_value(self):
         tree = _svg_tree('<use href="other.svg#center"/>')
-        self.assertIn(
-            "other.svg#center",
-            rejection_message(assert_no_external_references, tree),
+        assert_rejection_names(
+            self,
+            assert_no_external_references,
+            tree,
+            needles=("other.svg#center",),
         )
 
     def test_catches_an_xlink_href(self):
@@ -101,18 +101,19 @@ class TestNoExternalReferences(unittest.TestCase):
             '<use xlink:href="other.svg#center"/>',
             **{"xmlns:xlink": "http://www.w3.org/1999/xlink"},
         )
-        self.assertIn(
-            "other.svg#center",
-            rejection_message(assert_no_external_references, tree),
+        assert_rejection_names(
+            self,
+            assert_no_external_references,
+            tree,
+            needles=("other.svg#center",),
         )
 
     def test_catches_a_data_uri_href(self):
         # A `data:` URI is self-contained but still not an in-file #id, so the
         # guard rejects it like any other non-fragment reference.
         tree = _svg_tree('<use href="data:image/png;base64,AAAA"/>')
-        self.assertIn(
-            "data:",
-            rejection_message(assert_no_external_references, tree),
+        assert_rejection_names(
+            self, assert_no_external_references, tree, needles=("data:",)
         )
 
     def test_passes_an_in_file_url_reference(self):
@@ -132,27 +133,30 @@ class TestNoExternalReferences(unittest.TestCase):
         tree = _svg_tree(
             '<rect id="center" fill="url(other.svg#gradient)"/>'
         )
-        self.assertIn(
-            "other.svg#gradient",
-            rejection_message(assert_no_external_references, tree),
+        assert_rejection_names(
+            self,
+            assert_no_external_references,
+            tree,
+            needles=("other.svg#gradient",),
         )
 
     def test_catches_an_external_url_in_an_inline_style(self):
         tree = _svg_tree(
             '<rect id="center" style="filter:url(other.svg#blur)"/>'
         )
-        self.assertIn(
-            "other.svg#blur",
-            rejection_message(assert_no_external_references, tree),
+        assert_rejection_names(
+            self,
+            assert_no_external_references,
+            tree,
+            needles=("other.svg#blur",),
         )
 
     def test_catches_a_data_uri_url(self):
         tree = _svg_tree(
             '<rect id="center" fill="url(data:image/svg+xml,x)"/>'
         )
-        self.assertIn(
-            "data:",
-            rejection_message(assert_no_external_references, tree),
+        assert_rejection_names(
+            self, assert_no_external_references, tree, needles=("data:",)
         )
 
 
@@ -169,9 +173,8 @@ class TestUniqueIds(unittest.TestCase):
 
     def test_catches_a_duplicate_id_naming_it(self):
         tree = _svg_tree('<rect id="center"/><rect id="center"/>')
-        self.assertIn(
-            "center",
-            rejection_message(assert_unique_ids, tree),
+        assert_rejection_names(
+            self, assert_unique_ids, tree, needles=("center",)
         )
 
     def test_catches_a_duplicate_id_nested_below_the_root(self):
@@ -179,9 +182,8 @@ class TestUniqueIds(unittest.TestCase):
         tree = _svg_tree(
             '<rect id="center"/><g><rect id="center"/></g>'
         )
-        self.assertIn(
-            "center",
-            rejection_message(assert_unique_ids, tree),
+        assert_rejection_names(
+            self, assert_unique_ids, tree, needles=("center",)
         )
 
 
