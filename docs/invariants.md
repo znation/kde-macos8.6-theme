@@ -57,6 +57,7 @@ blank guarantee cell fails `make check`.
 | `widgets/toolbar.svg` draws the Platinum toolbar background. | `tests/test_desktoptheme_toolbar.py::TestToolBar` | none |
 | `widgets/tooltip.svg` draws the Platinum tooltip. | `tests/test_desktoptheme_tooltip.py::TestTooltip` | none |
 | `widgets/viewitem.svg` draws the generic item highlight. | `tests/test_desktoptheme_viewitem.py::TestViewItem` | none |
+| The `viewitem.svg`, `menubaritem.svg` and `arrows.svg` provenance comments name the reference screenshot their claim rests on and do not claim the set shows no such surface. | `tests/test_desktoptheme_provenance.py::TestProvenance` | none |
 
 ## icons
 

@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Correct the desktop theme's false "no menu-open / no combo-box" reference claims (planned 2026-10-19 by the plan role)
+_None yet._
+
+## Done
+
+### Correct the desktop theme's false "no menu-open / no combo-box" reference claims (planned 2026-10-19 by the plan role) — done 2026-10-19
 
 **Goal.** Three desktop-theme SVG header comments justify a palette-only value by claiming the
 reference set shows no such surface, but the set does show it, so the stated reason is false and
@@ -103,8 +107,6 @@ provenance so the false claim cannot return.
   exists), and no existing widget assertion changes: the three SVGs' parsed elements and fills are
   untouched.
 - `make check` is green.
-
-## Done
 
 ### Correct the `[Colors:Selection]` anchor's provenance: the reference region is the Setup Assistant's Introduction banner, not a list selection (planned 2026-10-19 by the plan role) — done 2026-10-19
 

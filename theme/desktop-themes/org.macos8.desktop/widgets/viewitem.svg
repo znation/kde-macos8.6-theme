@@ -14,9 +14,10 @@
      `selected` and `selected+hover` are each a flat #CCCCFF rectangle with
      square corners, no bevel and no outline. That value is the project's
      sampled [Colors:Selection] BackgroundNormal=204,204,255 token reused by
-     semantic role: the reference set has no open-menu screenshot, so the
-     menu-item highlight has no per-pixel menu sample. The unhighlighted
-     `normal` slices paint nothing perceptible: a nine-slice element with no
+     semantic role: the reference set's open Apple menu
+     (macos8.6-screenshots/desktop_archiveorg8.6hd.png) shows no highlighted
+     item, so the menu-item highlight has no per-pixel sample. The
+     unhighlighted `normal` slices paint nothing perceptible: a nine-slice element with no
      rendered content has no bounding box for KSvg to read margins from, so
      they carry style="fill:#FFFFFF" fill-opacity="0.01" geometry that
      contributes the 3px margins while painting effectively nothing.

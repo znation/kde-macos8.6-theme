@@ -8,7 +8,27 @@ unclear-invariant).
 
 ## Open
 
-_None yet._
+### `tests/test_desktoptheme.py::TestApplyDesktopTheme` fails when `XDG_CONFIG_DIRS` already names a session theme (found by the feature role 2026-10-19)
+
+**Symptom:** `make check` errors in `test_apply_lists_and_selects_the_theme` with
+`FileNotFoundError: [Errno 2] No such file or directory: '<tmp>/config/plasmarc'`.
+`plasma-apply-desktoptheme org.macos8.desktop` exits 0 but prints `The requested theme
+"org.macos8.desktop" is already set as the theme for the current Plasma session.` and writes no
+`plasmarc`, so the test's `read_kde_config` call raises.
+
+**Reproduction:** With `XDG_CONFIG_DIRS` naming a directory whose `plasmarc` already sets
+`[Theme] name=org.macos8.desktop` (this session exports
+`XDG_CONFIG_DIRS=/home/zach/.config/kdedefaults:/etc/xdg:...`, and
+`~/.config/kdedefaults/plasmarc` holds that value), run `make check
+CHECK_TESTS='test_desktoptheme.TestApplyDesktopTheme'`. Seeding the test's isolated
+`$XDG_CONFIG_HOME/plasmarc` with a different theme (`[Theme] name=breeze-dark`) makes the apply
+write the file and the test pass; so does clearing `XDG_CONFIG_DIRS`.
+
+**Cause:** `plasma-apply-desktoptheme` reads the current session theme from the config search
+path, which includes `XDG_CONFIG_DIRS`. The test overrides `XDG_DATA_HOME` and `XDG_CONFIG_HOME`
+but not `XDG_CONFIG_DIRS`, so the real user's `kdedefaults/plasmarc` still reports the theme as
+already selected and the apply is a no-op. Overriding `HOME` and `XDG_CONFIG_HOME` alone does not
+isolate it.
 
 ## Fixed
 

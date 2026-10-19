@@ -10,11 +10,16 @@
      Kirigami.Units.iconSizes.small item, and the rect pins those bounds to a
      square so the triangle is not stretched.
 
-     Provenance: no reference screenshot shows a combo box or menu button, so
-     the fill reuses the grounded Platinum black (#000000) that
-     widgets/checkmarks.svg pins; the triangle geometry is a KDE-required
-     shape the reference set does not show. The fill is a literal attribute
-     (no class, currentColor or style) and is the same in every state.
+     Provenance: the reference set's popup buttons — the beta About This
+     Computer window's "General Information" and "None" popups
+     (macos8.6-screenshots/systeminfo_betawiki.png) and the Open dialog's
+     "ROM-new" popup (macos8.6-screenshots/opendialog_macrumors86.jpg) — show
+     a double (up+down) indicator, not the single `down-arrow` triangle
+     PlasmaComponents.ComboBox draws, so the triangle geometry is a
+     KDE-required shape the reference set does not show. The fill reuses the
+     grounded Platinum black (#000000) that widgets/checkmarks.svg pins. The
+     fill is a literal attribute (no class, currentColor or style) and is the
+     same in every state.
      -->
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
   <g id="down-arrow">
