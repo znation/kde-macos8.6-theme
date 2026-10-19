@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import os
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
@@ -107,6 +110,48 @@ class TestDefaultsGroups(unittest.TestCase):
         self.assertIn(
             "[kwinrc][org.kde.kdecoration2] # decoration",
             str(caught.exception),
+        )
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        # ``contents/defaults`` is contributor-supplied, and a checked-in
+        # symlink can point at a private file. The reader echoes an offending
+        # line in its ValueError, so following such a symlink would leak that
+        # file's content into the diagnostic. A path that resolves outside the
+        # repository must be refused before it is opened.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret"
+            secret.write_text(
+                "[kwinrc][org.kde.kdecoration2]\ntheme=leaked\n",
+                encoding="utf-8",
+            )
+            link = root / "defaults"
+            link.symlink_to(secret)
+            with mock.patch.object(theme_defaults, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    theme_defaults.defaults_groups(link)
+        self.assertIn("symlink escape", str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        # The guard must refuse only escapes, not a legitimate repository path
+        # reached through a symlink inside the repository.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            (root / "theme").mkdir(parents=True)
+            target = root / "theme" / "defaults"
+            target.write_text(
+                "[kwinrc][org.kde.kdecoration2]\ntheme=x\n",
+                encoding="utf-8",
+            )
+            link = root / "link"
+            link.symlink_to(target)
+            with mock.patch.object(theme_defaults, "ROOT", root):
+                groups = theme_defaults.defaults_groups(link)
+        self.assertEqual(
+            {"theme": "x"}, groups[("kwinrc", "org.kde.kdecoration2")]
         )
 
     def test_rejects_a_heading_with_no_closing_bracket(self):

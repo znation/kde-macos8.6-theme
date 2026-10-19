@@ -10,12 +10,15 @@ it would make that heading unrecognizable and silently drop its keys.
 
 from __future__ import annotations
 
+import os
 import re
 from collections.abc import Iterable
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+
 DEFAULTS = (
-    Path(__file__).resolve().parents[1]
+    ROOT
     / "theme"
     / "look-and-feel"
     / "org.macos8.desktop"
@@ -25,6 +28,35 @@ DEFAULTS = (
 
 _FILE_GROUP = re.compile(r"\[([^\[\]]+)\]\[([^\[\]]+)\]$")
 _ANY_HEADING = re.compile(r"\[[^\]]*\]")
+
+
+def _require_within_repo(path: Path) -> None:
+    """Refuse a repository path that resolves outside the repository.
+
+    ``contents/defaults`` is contributor-supplied, and a checked-in symlink
+    can point at a private file; :func:`defaults_groups` echoes an offending
+    line in its ``ValueError``, so following such a symlink would leak that
+    file's content into the diagnostic. A path lexically inside the
+    repository that resolves outside it is refused before it is read; a path
+    that is not inside the repository at all (a test's temporary file) is left
+    alone.
+    """
+    base = os.path.abspath(ROOT)
+    absolute = os.path.abspath(path)
+    if absolute != base and not absolute.startswith(base + os.sep):
+        return
+    try:
+        resolved = os.path.realpath(path)
+        root = os.path.realpath(ROOT)
+    except (OSError, RuntimeError):
+        resolved = root = None
+    if resolved is None or (
+        resolved != root and not resolved.startswith(root + os.sep)
+    ):
+        raise ValueError(
+            f"{path} resolves outside {ROOT} (a symlink escape); "
+            "refusing to read it"
+        )
 
 
 def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, str]]:
@@ -37,10 +69,13 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     silently vanish from the written config. The file is decoded as
     ``utf-8-sig``, so a leading UTF-8 BOM is stripped instead of being folded
     into the first heading, where it would make that heading match neither
-    pattern and silently drop its section.
+    pattern and silently drop its section. A repository path that resolves
+    outside the repository (a checked-in symlink escape) raises ``ValueError``
+    before it is read; a path outside the repository is left alone.
     """
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
+    _require_within_repo(path)
     for raw in path.read_text(encoding="utf-8-sig").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
