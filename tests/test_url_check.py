@@ -144,6 +144,44 @@ class TestBracketedHosts(unittest.TestCase):
             self.assertFalse(is_absolute_url(url), url)
 
 
+class TestUnbracketedHostCharacters(unittest.TestCase):
+    r"""An unbracketed host is an RFC 3986 reg-name.
+
+    The authority parser checked only that the host was non-empty, so a
+    character no reg-name allows (``<``, ``>``, ``{``, ``}``, ``\``, ``"``,
+    ``|``, ``^``, a backtick, a raw non-ASCII byte or a bare percent) passed
+    as a well-formed citation.
+    """
+
+    def test_reg_name_characters_are_accepted(self):
+        for url in (
+            "https://example.test/x",
+            "https://sub-domain.example.test/x",
+            "https://under_score.example/x",
+            "https://tilde~name.example/x",
+            "https://a!$&'()*+,;=.example/x",
+            "https://pct%41.example/x",
+            "https://192.168.1.1/x",
+        ):
+            self.assertTrue(is_absolute_url(url), url)
+
+    def test_non_reg_name_characters_are_rejected(self):
+        for url in (
+            "https://a<b>c.example/x",
+            "https://a{b}c.example/x",
+            "https://host\\name.example/x",
+            'https://host"name.example/x',
+            "https://host|name.example/x",
+            "https://host^name.example/x",
+            "https://host`name.example/x",
+            "https://exa%2.example/x",
+            "https://exa%zz.example/x",
+            "https://exa%mple.example/x",
+            "https://\u00e9xample.test/x",
+        ):
+            self.assertFalse(is_absolute_url(url), repr(url))
+
+
 class TestAuthorityPorts(unittest.TestCase):
     """A port is ``*DIGIT``; anything else is a malformed citation.
 

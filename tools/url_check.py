@@ -23,6 +23,42 @@ _SCHEMES_ALLOWING_EMPTY_HOST = frozenset({"file"})
 # RFC 3986 IPvFuture: "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" ).
 _IPV_FUTURE = re.compile(r"v[0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+")
 
+# RFC 3986 reg-name: *( unreserved / pct-encoded / sub-delims ). The host of
+# an unbracketed authority is a reg-name, so a character outside those sets
+# (``<``, ``>``, ``{``, ``}``, ``\``, ``"``, ``|``, ``^``, a backtick or a
+# raw non-ASCII byte) is malformed.
+_REG_NAME_UNRESERVED = frozenset(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~"
+)
+_REG_NAME_SUB_DELIMS = frozenset("!$&'()*+,;=")
+_HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
+
+
+def _is_reg_name(host: str) -> bool:
+    """Return True when *host* is an RFC 3986 reg-name.
+
+    A reg-name is a run of unreserved characters, sub-delims and pct-encoded
+    octets. A percent sign must introduce exactly two hex digits; any other
+    character -- ``<``, ``>``, ``{``, ``}``, ``\\``, ``"``, ``|``, ``^``, a
+    backtick or a raw non-ASCII byte -- is not part of one.
+    """
+    index = 0
+    while index < len(host):
+        char = host[index]
+        if char == "%":
+            if (
+                index + 2 >= len(host)
+                or host[index + 1] not in _HEX_DIGITS
+                or host[index + 2] not in _HEX_DIGITS
+            ):
+                return False
+            index += 3
+            continue
+        if char not in _REG_NAME_UNRESERVED and char not in _REG_NAME_SUB_DELIMS:
+            return False
+        index += 1
+    return True
+
 
 def _is_ip_literal(text: str) -> bool:
     """Return True when *text* is an RFC 3986 IPv6address or IPvFuture."""
@@ -50,7 +86,9 @@ def _authority_host(authority: str) -> tuple[str, str | None]:
     The host is what follows any ``userinfo@`` prefix and precedes any
     ``:port`` suffix. A bracketed IP-literal (``[::1]``) must be closed and
     hold an IPv6 or IPvFuture address; a bracket in an unbracketed host is
-    malformed, as is a port holding anything but ASCII digits. *problem* is a
+    malformed, as is a port holding anything but ASCII digits. An unbracketed
+    host is an RFC 3986 reg-name, so a character outside that set (``<``,
+    ``{``, a backslash, a bare percent) is malformed too. *problem* is a
     diagnostic for a malformed authority, and *host* is empty when the
     authority names no host at all.
     """
@@ -73,6 +111,8 @@ def _authority_host(authority: str) -> tuple[str, str | None]:
     host, sep, port = hostport.partition(":")
     if sep and not _is_port(port):
         return "", "must put only digits in the port"
+    if not _is_reg_name(host):
+        return "", "must use only reg-name characters in the host"
     return host, None
 
 
@@ -97,7 +137,9 @@ def url_problem(url: str) -> str | None:
     bracketed host is held to its RFC 3986 form: ``[::1]`` is a host, while
     ``[]``, an unclosed ``[::1`` and a bracket in an unbracketed host are not.
     A port must be ASCII digits (or empty), so ``host:80:90`` and
-    ``host:abc`` are malformed citations.
+    ``host:abc`` are malformed citations. An unbracketed host is an RFC 3986
+    reg-name, so ``host name``, ``host<a>`` and a bare ``host%`` are malformed
+    too.
     """
     scheme, sep, rest = url.partition("://")
     if (

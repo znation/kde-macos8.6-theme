@@ -12,6 +12,36 @@ _None yet._
 
 ## Fixed
 
+### `tools/url_check.py` accepts an unbracketed host with non-reg-name characters (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `None` for `https://a<b>c.example/x`,
+`https://a{b}c.example/x`, `https://host\name.example/x`,
+`https://host"name.example/x`, `https://host|name.example/x`,
+`https://exa%2.example/x` and a host holding a raw non-ASCII byte, so
+`tools/check_references.py` would accept a `sources.txt` row citing any of them
+as a well-formed absolute URL. RFC 3986 defines the unbracketed host as a
+reg-name -- `*( unreserved / pct-encoded / sub-delims )` -- so each is
+malformed while the provenance check reported it clean.
+
+**Cause:** `_authority_host` only required an unbracketed host to be non-empty;
+it never examined the host's characters, unlike the port and the bracketed
+IP-literal checks beside it.
+
+**Fix:** a new `_is_reg_name` helper accepts RFC 3986 unreserved characters,
+sub-delims and `%HH` pct-encoded octets (rejecting a bare or short percent), and
+`_authority_host` applies it to the unbracketed host. The empty host
+(`file:///path`, `https://:80/p`) stays valid and is still caught by the
+existing empty-host check.
+
+**Test:** `tests/test_url_check.py::TestUnbracketedHostCharacters` (a scratch run
+of `url_problem` returned `None` for the malformed hosts before the fix; the new
+class fails on `https://a<b>c.example/x` before the fix and passes after).
+
+**Validation gap:** unclear-invariant -- the module's docstring stated the
+bracketed-host and port rules but never the unbracketed host's character set, so
+I had to reconstruct RFC 3986's reg-name form before calling the acceptance a
+bug.
+
 ### `tools/url_check.py` accepts a non-numeric or doubled port as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `url_problem` returned `None` for `https://host:80:90/x`,
