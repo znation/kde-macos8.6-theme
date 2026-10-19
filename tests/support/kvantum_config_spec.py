@@ -12,7 +12,7 @@ split the checks by concern.
 from __future__ import annotations
 
 from support.kde_config import read as read_kde_config
-from support.kvantum_fixtures import COLOR_SCHEME, KVCONFIG
+from support.kvantum_fixtures import KVCONFIG
 from support.platinum_palette import GREY, WHITE, hex_colour
 
 # Every `[GeneralColors]` key mapped to the MacOS8 color scheme role it copies.
