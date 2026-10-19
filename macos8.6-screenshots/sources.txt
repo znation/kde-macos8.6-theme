@@ -51,3 +51,10 @@ welcome_tomo197707.png | https://livedoor.blogimg.jp/tomo197707/imgs/1/b/1bc3c42
 # 6. Rejected and not included: it.wikipedia "Mac OS 8 screenshot.png" (no version string
 #    legible -> version-ambiguous) and winmac.emuunlim.com OS8.jpg (mock showing "Mac OS 8.8"
 #    on an "Intel Pentium" - not real Mac OS).
+# 7. aboutsystem_betawiki.png is a beta build (see its label above), but its window chrome is
+#    pixel-identical to the retail systemprofiler_betawiki.png: the title bar, left and right
+#    frame borders, and the close and collapse boxes match. tests/test_aurorae_reference_
+#    equivalence.py pins that equality, so the beta is an evidence-backed window-chrome proxy
+#    where the set has no other lossless window-chrome screenshot. The render gate's
+#    bottom-border crop stays on the beta because the System Profiler window's bottom differs
+#    (its sunken content field and bottom scrollbar).

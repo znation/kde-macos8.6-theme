@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Prove the beta `aboutsystem_betawiki.png` window chrome matches the retail `systemprofiler_betawiki.png` (planned 2026-10-19 by the plan role)
+_None yet._
+
+## Done
+
+### Prove the beta `aboutsystem_betawiki.png` window chrome matches the retail `systemprofiler_betawiki.png` (planned 2026-10-19 by the plan role) — done 2026-10-19
 
 **Goal.** `macos8.6-screenshots/sources.txt` labels `aboutsystem_betawiki.png` "Mac OS 8.6b2c4LB
 beta", and the README's reference policy says beta builds "must not be used as retail
@@ -71,8 +75,6 @@ exception, and record the exception in the docs.
 - `docs/invariants.md`'s aurorae section names the test, and `tests/test_invariants.py` stays
   green.
 - `make check` passes.
-
-## Done
 
 ### Mac OS 8.6 Platinum text field: draw the sunken bevel outside the black outline in `widgets/lineedit.svg` (planned 2026-10-18 by the plan role) — done 2026-10-19
 

@@ -18,6 +18,7 @@ blank guarantee cell fails `make check`.
 | The active and inactive frame nine-slices and the gzipped `decoration.svgz` are re-derived from the reference screenshots. | `tests/test_aurorae_frame.py::TestDecorationSvg` | none |
 | The title-bar height and border widths the Aurorae engine reads are re-derived from the reference screenshots. | `tests/test_aurorae_rc.py::TestRc` | none |
 | The package metadata and install lifecycle are what KPackage and Aurorae discovery read. | `tests/test_aurorae_package.py::TestMetadata` | none |
+| The beta `aboutsystem_betawiki.png` window chrome is pixel-identical to the retail `systemprofiler_betawiki.png`. | `tests/test_aurorae_reference_equivalence.py::TestReferenceEquivalence` | `aboutsystem_betawiki.png` is a beta build used as a window-chrome proxy; the render gate's bottom-border crop stays on it because the set has no other lossless window-bottom crop (README, `macos8.6-screenshots/sources.txt`). |
 
 ## color-schemes
 

@@ -191,7 +191,15 @@ material only — the theme does not ship them.
 - **Labels are evidence-based.** A file is labelled 8.6 only when the version string is legible in
   the image itself (or the source states it). Beta/alpha builds (`8.6a3c2`, `8.6b3`, `8.6b9`,
   `8.6b2c4L8`) and the 8.5 Sherlock supplement are marked as such — they show chrome that differs
-  from retail and must not be used as retail reference.
+  from retail and must not be used as retail reference. One exception is
+  recorded: `aboutsystem_betawiki.png` is a beta build, but its title bar, side
+  borders and close/collapse boxes are pixel-identical to the retail
+  `systemprofiler_betawiki.png`, so it is used as an evidence-backed
+  window-chrome proxy where the set has no other lossless window-chrome
+  screenshot. That equality is pinned by
+  `tests/test_aurorae_reference_equivalence.py`, and the render gate's
+  bottom-border crop stays on the beta because the System Profiler window's
+  bottom differs (its sunken content field and bottom scrollbar).
 - **Two entries are photographs**, not screenshots: real Macs running 8.6, useful for CRT
   colour/gamma and physical bezel context only.
 - **Binary assets are stored with Git LFS** (see `.gitattributes`); run `git lfs install` after
