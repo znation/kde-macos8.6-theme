@@ -54,7 +54,7 @@ class StubTools(unittest.TestCase):
         path = self.bin / name
         path.write_text(
             "#!/bin/sh\n"
-            'name=${0##*/}\n'
+            "name=${0##*/}\n"
             f'printf \'%s %s\\n\' "$name" "$*" >> "{self.calls}"\n'
             f'printf \'%s DBUS=%s\\n\' "$name" "${{DBUS_SESSION_BUS_ADDRESS-}}"'
             f' >> "{self.env_log}"\n'

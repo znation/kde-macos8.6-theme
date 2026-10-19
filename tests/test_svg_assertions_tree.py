@@ -178,7 +178,7 @@ class TestElementsById(SvgBodyCase, unittest.TestCase):
         self.assertEqual(sorted(elements_by_id(tree)), ["glyph"])
 
     def test_returns_an_empty_map_when_no_element_has_an_id(self):
-        tree = self._tree('<rect/><g><path/></g>')
+        tree = self._tree("<rect/><g><path/></g>")
         self.assertEqual(elements_by_id(tree), {})
 
 
