@@ -37,8 +37,9 @@ PLACEHOLDERS = os.path.join(ROOT, "PLACEHOLDERS.md")
 
 # The icons the package ships: the desktop's hard disk, folder, document,
 # Trash and full Trash (32x32), the `inode-directory` alias KDE resolves a
-# directory to, and the kicker logo the menu bar's top-left button shows at the
-# two panel sizes.
+# directory to, the kicker logo the menu bar's top-left button shows at the
+# two panel sizes, and the `go-next-symbolic` submenu arrow the reference's
+# open Apple menu draws.
 SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-harddisk.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
@@ -48,6 +49,8 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "places", "user-trash-full.svg"),
     os.path.join("16x16", "places", "start-here-kde-symbolic.svg"),
     os.path.join("22x22", "places", "start-here-kde-symbolic.svg"),
+    os.path.join("16x16", "actions", "go-next-symbolic.svg"),
+    os.path.join("22x22", "actions", "go-next-symbolic.svg"),
 )
 
 
@@ -260,6 +263,12 @@ ICON_SHAPES = {
         _shape("rect", x="19", y="2", width="1", height="12", fill="#999999"),
         _shape("rect", x="10", y="15", width="2", height="3", fill="#000000"),
         _shape("rect", x="6", y="18", width="10", height="1", fill="#000000"),
+    ),
+    os.path.join("16x16", "actions", "go-next-symbolic.svg"): (
+        _shape("path", d="M 6,3 L 6,11 L 10,7 Z", fill="#000000"),
+    ),
+    os.path.join("22x22", "actions", "go-next-symbolic.svg"): (
+        _shape("path", d="M 8,4 L 8,15 L 14,10 Z", fill="#000000"),
     ),
 }
 

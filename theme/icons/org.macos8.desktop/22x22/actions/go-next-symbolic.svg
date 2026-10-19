@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" submenu arrow.
+
+     The right-pointing triangle an open menu row shows for a submenu,
+     sampled from the open Apple menu in desktop_archiveorg8.6hd.png: the
+     "Automated Tasks" row's dark pixels (every channel below #AA) are a
+     solid #000000 right triangle 5 px wide and 9 px tall with a full-height
+     left edge, bounding box x=151..155, y=91..99; pure #000000 at (152, 93).
+     The 22x22 canvas is KDE-required; the triangle is the same shape at the
+     22/16 scale (a 7x12 right triangle with a full-height left edge). A
+     -symbolic icon is recoloured to the menu text colour, so it cannot keep
+     the reference's 1px lighter left bevel; only the triangle ships. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <path d="M 8,4 L 8,15 L 14,10 Z" fill="#000000"/>
+</svg>

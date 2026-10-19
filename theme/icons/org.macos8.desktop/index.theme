@@ -3,7 +3,7 @@ Name=org.macos8.desktop
 Comment=Mac OS 8.6 Platinum icon theme
 Inherits=breeze
 
-Directories=32x32/devices,32x32/mimetypes,32x32/places,16x16/places,22x22/places
+Directories=32x32/devices,32x32/mimetypes,32x32/places,16x16/places,22x22/places,16x16/actions,22x22/actions
 
 [32x32/devices]
 Size=32
@@ -28,4 +28,14 @@ Type=Fixed
 [22x22/places]
 Size=22
 Context=Places
+Type=Fixed
+
+[16x16/actions]
+Size=16
+Context=Actions
+Type=Fixed
+
+[22x22/actions]
+Size=22
+Context=Actions
 Type=Fixed

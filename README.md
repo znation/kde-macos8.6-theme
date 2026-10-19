@@ -65,7 +65,8 @@ at the right edge with each icon's name on one line under it, as Mac OS 8.6 does
 `org.macos8.desktop` icon theme through `[kdeglobals][Icons]` in the same `contents/defaults`; it
 ships our own Platinum-style art for the desktop's hard-disk, folder, document, Trash and
 full-Trash icons
-and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's),
+and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's)
+and the `go-next-symbolic` submenu arrow the reference's open Apple menu draws,
 drawn for this theme, not traced from Apple's artwork, and inherits Breeze for every other name. The global theme also selects the
 `kvantum` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw the Platinum
 bevelled controls instead of Breeze's rounded ones; when Kvantum is not installed they fall back to
