@@ -331,7 +331,7 @@ class TestArcsShareCenter(unittest.TestCase):
 def _id_tree(prefixes=("",), omit=()):
     """Build a minimal SVG carrying every id `assert_slice_ids_present` reads.
 
-    Each prefix contributes the nine slice ids and four margin hints, joined by
+    Each prefix contributes the nine-slice ids and four margin hints, joined by
     the same separator the helper uses; the shared ``hint-tile-center`` is
     added once. *omit* names ids to leave out, so a caller can assert the guard
     reports a missing one. The elements are bare rects because the helper reads
@@ -382,7 +382,7 @@ class TestSliceIdsPresent(unittest.TestCase):
             )
 
     def test_accepts_a_hintless_alias(self):
-        # The alias state carries the nine slice ids but no hint ids; its
+        # The alias state carries the nine-slice ids but no hint ids; its
         # tiles are placed by the base hints, so the guard must not demand
         # `alias-hint-*-margin` once the alias is declared.
         assert_slice_ids_present(

@@ -83,7 +83,7 @@ def _is_userinfo(userinfo: str) -> bool:
     """Return True when *userinfo* is an RFC 3986 userinfo.
 
     userinfo is a run of unreserved characters, sub-delims, pct-encoded octets
-    and colons, so ``user:pass`` is well formed while an unencoded ``@``,
+    and colons, so ``user:pass`` is well-formed while an unencoded ``@``,
     ``user name`` or ``user\\name`` is not.
     """
     return _is_uri_component(userinfo, frozenset(":"))
@@ -131,7 +131,7 @@ def _is_port(port: str) -> bool:
     """Return True when *port* is an RFC 3986 port.
 
     A port is ``*DIGIT`` -- zero or more ASCII digits -- so an empty string
-    (the ``host:`` form) is well formed and ``80:90`` and ``abc`` are not.
+    (the ``host:`` form) is well-formed and ``80:90`` and ``abc`` are not.
     """
     return all(ch in "0123456789" for ch in port)
 
@@ -235,7 +235,7 @@ def url_problem(url: str) -> str | None:
     # even when a ``?`` appears after it. Each part has its own RFC 3986
     # character set, so a bare percent or a character no ``pchar`` allows
     # (``<``, ``{``, a backslash, a raw non-ASCII byte) is malformed even when
-    # the authority is well formed.
+    # the authority is well-formed.
     path_and_query, _, fragment = rest[len(authority):].partition("#")
     path, _, query = path_and_query.partition("?")
     if not _is_path(path):

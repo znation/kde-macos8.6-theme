@@ -1,6 +1,6 @@
 """Tests for tools/png/read.py's decode_png -- malformed image data and limits.
 
-After the chunk stream is well formed, the image data can still be
+After the chunk stream is well-formed, the image data can still be
 untrustworthy: a palette index can fall outside its table, the IDAT stream can
 be truncated or corrupt, a few KB can expand to a decompression bomb, or the
 header can declare more pixels than the decoder will allocate. These tests pin

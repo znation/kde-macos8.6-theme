@@ -253,7 +253,7 @@ class TestPackageMetadata(unittest.TestCase):
         Every guard message names the ``metadata.json`` it came from so the
         different packages' failures are distinguishable, plus the field or field
         path it rejected. This wraps `_guard_message` for the cases that pin
-        both, so the file name is asserted in one place.
+        both, so the filename is asserted in one place.
         """
         message = self._guard_message(method, metadata)
         self.assertIn("metadata.json", message)

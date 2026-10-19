@@ -70,11 +70,11 @@ def reference_table(text):
 
 
 def listed_files(tokens, directory):
-    """Resolve each backticked *token* to the file names it names.
+    """Resolve each backticked *token* to the filenames it names.
 
     A token containing a glob character is expanded against *directory* (the
     ``about_betawiki*.png`` form the table uses for a group of images); any
-    other token is a literal file name.
+    other token is a literal filename.
     """
     names = []
     for token in tokens:
@@ -90,7 +90,7 @@ def listed_files(tokens, directory):
 
 
 def declared_files(sources_text, separator):
-    """Return the file names declared in a ``sources.txt`` body.
+    """Return the filenames declared in a ``sources.txt`` body.
 
     Mirrors the checker's line shape: one ``filename | url | label`` entry per
     line, blank and ``#`` comment lines ignored. A malformed line is left for
@@ -111,10 +111,10 @@ def declared_files(sources_text, separator):
 
 
 def declared_reference_names(checker):
-    """Return the file names the reference set's ``sources.txt`` declares.
+    """Return the filenames the reference set's ``sources.txt`` declares.
 
     The checker reads sources.txt as UTF-8 with an optional BOM; match it so a
-    BOM does not glue itself to the first declared file name.
+    BOM does not glue itself to the first declared filename.
     """
     path = os.path.join(
         theme_install.ROOT, checker.REFERENCE_DIR, checker.SOURCES_NAME
@@ -124,10 +124,10 @@ def declared_reference_names(checker):
 
 
 def lfs_filter_states(output):
-    """Return ``{file name: filter state}`` from ``git check-attr`` output.
+    """Return ``{filename: filter state}`` from ``git check-attr`` output.
 
     ``git check-attr filter -- <paths>`` prints one
-    ``<path>: filter: <state>`` line per path. The file name is keyed so the
+    ``<path>: filter: <state>`` line per path. The filename is keyed so the
     caller can match it against the names ``sources.txt`` declares; a line
     without the ``: filter: `` separator (a git warning, say) contributes
     nothing.
