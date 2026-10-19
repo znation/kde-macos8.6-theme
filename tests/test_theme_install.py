@@ -391,6 +391,32 @@ class TestInstallPackagesGuard(unittest.TestCase):
         data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
+    def test_a_glob_shaped_family_is_reported_literally_not_expanded(self):
+        # `require_install_packages` opens with `set -f`, so a glob-shaped
+        # INSTALL_PACKAGES value is not expanded by the shell before the guard
+        # reads it; the diagnostic must name the literal value the caller
+        # passed. Without `set -f`, `*.md` would expand to the repository's
+        # markdown files (README.md and the backlog) and the guard would report
+        # those names instead, sending the reader after files they never named.
+        tmp = make_tmp_dir(self)
+        env = theme_install.make_env("INSTALL_PACKAGES")
+        env["INSTALL_PACKAGES"] = "*.md"
+        result = theme_install.run_make(
+            [
+                "install",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+            ],
+            env=env,
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "INSTALL_PACKAGES names unknown artifact families: *.md;",
+            result.stderr,
+        )
+        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        self.assertFalse(os.path.exists(data_home), data_home)
+
 
 if __name__ == "__main__":
     unittest.main()
