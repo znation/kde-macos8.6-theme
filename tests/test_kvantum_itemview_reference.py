@@ -30,13 +30,11 @@ from svg_assertions.faces import sunken_outside_face_corners
 
 # The installer CD Finder window's item view in setup_emaculation.png (retail
 # Mac OS 8.6). Its 2px border is a #999999/#FFFFFF bevel outside a 1px #000000
-# outline, over the #FFFFFF face.
+# outline, over the #FFFFFF face. Only the field's bottom row is a constant,
+# to bound the decode; the runs and corners below pin its other edges.
 REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "setup_emaculation.png"
 )
-FIELD_LEFT = 22
-FIELD_TOP = 118
-FIELD_RIGHT = 453
 FIELD_BOTTOM = 478
 MAX_ROWS = FIELD_BOTTOM + 1
 
