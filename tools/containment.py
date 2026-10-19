@@ -18,6 +18,7 @@ repository at all (a test's temporary file) is left alone.
 
 from __future__ import annotations
 
+import io
 import os
 from pathlib import Path
 
@@ -62,6 +63,31 @@ def require_within_repo(path, root):
         )
 
 
+# The files a checker reads through here are source files, SVGs and registers,
+# tens of kilobytes at most. The path is contributor-supplied and can name
+# something arbitrarily large -- a stray multi-gigabyte file, or a Git LFS
+# object whose pointer was never replaced -- and a plain ``handle.read()``
+# would try to allocate the whole file. A ``MemoryError`` is not an ``OSError``
+# and would abort the checker with a traceback naming neither the file nor the
+# guard, so bound the read and refuse an oversize file by name instead.
+_MAX_READ_BYTES = 1 << 20
+
+
+def _read_bounded(handle, path):
+    """Return at most ``_MAX_READ_BYTES`` from *handle*, refusing a longer file.
+
+    One byte past the cap is read, so a file exactly at the limit is accepted
+    while a longer one is refused without loading the rest of it.
+    """
+    data = handle.read(_MAX_READ_BYTES + 1)
+    if len(data) > _MAX_READ_BYTES:
+        raise ValueError(
+            f"{path} is larger than the {_MAX_READ_BYTES}-byte limit this "
+            "guard reads; refusing to load it whole"
+        )
+    return data
+
+
 def read_bytes(path, root):
     """Return the bytes of repository *path*, refusing a symlink escape.
 
@@ -69,12 +95,14 @@ def read_bytes(path, root):
     read through here: the comparison echoes both byte strings when they
     differ, so a checked-in symlink at *path* that resolves outside *root*
     must be refused before it is opened rather than leaking a private file's
-    bytes into the diagnostic. A *path* outside *root* (a test's temporary
-    file) is read as before.
+    bytes into the diagnostic. A file larger than ``_MAX_READ_BYTES`` is
+    refused with a ``ValueError`` naming *path* instead of being loaded whole,
+    which could raise an uncaught ``MemoryError``. A *path* outside *root* (a
+    test's temporary file) is read as before.
     """
     require_within_repo(path, root)
     with open(path, "rb") as handle:
-        return handle.read()
+        return _read_bounded(handle, path)
 
 
 def read_text(path, root, encoding="utf-8"):
@@ -84,9 +112,16 @@ def read_text(path, root, encoding="utf-8"):
     echoes them (``assertIn``, ``assertRegex``) is read through here: a
     checked-in symlink at *path* that resolves outside *root* must be refused
     before it is opened rather than leaking a private file's text into the
-    diagnostic. A *path* outside *root* (a test's temporary file) is read as
-    before.
+    diagnostic. A file larger than ``_MAX_READ_BYTES`` is refused with a
+    ``ValueError`` naming *path* instead of being loaded whole, which could
+    raise an uncaught ``MemoryError``. A *path* outside *root* (a test's
+    temporary file) is read as before.
     """
     require_within_repo(path, root)
-    with open(path, encoding=encoding) as handle:
-        return handle.read()
+    with open(path, "rb") as handle:
+        data = _read_bounded(handle, path)
+    # Decode through the text layer so the result matches ``open(path,
+    # encoding=encoding)``: universal-newline translation and the UTF-8 BOM
+    # ``utf-8-sig`` strips, neither of which a bare ``bytes.decode`` does.
+    with io.TextIOWrapper(io.BytesIO(data), encoding=encoding) as stream:
+        return stream.read()

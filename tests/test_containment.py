@@ -18,6 +18,7 @@ from pathlib import Path
 
 from support import containment
 from support.repo_root import ROOT
+from tools import containment as containment_impl
 
 
 class TestReadBytes(unittest.TestCase):
@@ -58,6 +59,20 @@ class TestReadBytes(unittest.TestCase):
                 containment.read_bytes(path, tmp / "repo"), b"temp"
             )
 
+    def test_refuses_a_file_larger_than_the_read_limit(self):
+        # The path is contributor-supplied and can name something arbitrarily
+        # large; a plain read would allocate the whole file and could raise a
+        # MemoryError that no caller catches, so the guard must refuse it by
+        # name. A file exactly at the limit is still read (pinned separately by
+        # the ordinary reads above).
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            path = tmp / "huge.svg"
+            path.write_bytes(b"x" * (containment_impl._MAX_READ_BYTES + 1))
+            with self.assertRaises(ValueError) as caught:
+                containment.read_bytes(path, tmp / "repo")
+        self.assertIn(str(path), str(caught.exception))
+
 
 class TestReadText(unittest.TestCase):
     def test_rejects_a_symlink_that_escapes_the_root(self):
@@ -95,6 +110,36 @@ class TestReadText(unittest.TestCase):
             path.write_text("temp", encoding="utf-8")
             self.assertEqual(
                 containment.read_text(path, tmp / "repo"), "temp"
+            )
+
+    def test_refuses_a_file_larger_than_the_read_limit(self):
+        # The text reader shares the byte reader's bound: a register or source
+        # file far larger than any shipped one must be refused by name rather
+        # than loaded whole.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            path = tmp / "huge.colors"
+            path.write_bytes(b"x" * (containment_impl._MAX_READ_BYTES + 1))
+            with self.assertRaises(ValueError) as caught:
+                containment.read_text(path, tmp / "repo")
+        self.assertIn(str(path), str(caught.exception))
+
+    def test_matches_text_mode_newline_and_bom_handling(self):
+        # read_text reads bytes to bound the allocation, then decodes through
+        # the text layer, so it must still strip a utf-8-sig BOM and translate
+        # CRLF and lone CR the way ``open(path, encoding=...)`` does. A bare
+        # ``bytes.decode`` would leave the CR bytes in place.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            path = tmp / "crlf.colors"
+            path.write_bytes("\ufeffa\r\nb\rc\n".encode("utf-8"))
+            with open(path, encoding="utf-8-sig") as handle:
+                expected = handle.read()
+            self.assertEqual(
+                containment.read_text(
+                    path, tmp / "repo", encoding="utf-8-sig"
+                ),
+                expected,
             )
 
 
