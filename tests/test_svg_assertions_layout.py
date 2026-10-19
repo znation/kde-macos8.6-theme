@@ -14,7 +14,7 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from support.error_assertions import assert_rejects
+from support.error_assertions import assert_error_names, assert_rejects
 from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     SLICE_IDS,
@@ -56,12 +56,26 @@ _ORIGINS = {
 _ORIGINS_TOP_MISPLACED = {**_ORIGINS, "top": (0, 0)}
 
 
-def _nine_slice_tree(origins=None, sizes=None):
+# A hostile variant of _HINTS: the right and bottom margin rects sit at
+# x=y=1000, so the canvas the hints imply is ~1004x1004 and the centre tile's
+# region is ~996x996 -- far past the render cap, but small enough that the
+# pre-cap code built the set without dying outright.
+_HUGE_CANVAS_HINTS = (
+    '<rect id="hint-tile-center" x="4" y="4" width="4" height="4"/>'
+    '<rect id="hint-top-margin" x="4" y="0" width="4" height="4"/>'
+    '<rect id="hint-bottom-margin" x="4" y="1000" width="4" height="4"/>'
+    '<rect id="hint-left-margin" x="0" y="4" width="4" height="4"/>'
+    '<rect id="hint-right-margin" x="1000" y="4" width="4" height="4"/>'
+)
+
+
+def _nine_slice_tree(origins=None, sizes=None, hints=_HINTS):
     """Build a nine-slice tree whose groups sit at *origins* with *sizes* rects.
 
     *origins* defaults to the layout the hints imply; *sizes* overrides a
     group's ``(width, height)``, so a caller can paint a slice outside its
-    tile.
+    tile. *hints* is the margin-hint markup, so a caller can declare a
+    hostile canvas.
     """
     origins = _ORIGINS if origins is None else origins
     sizes = sizes or {}
@@ -73,7 +87,7 @@ def _nine_slice_tree(origins=None, sizes=None):
         for name, (x, y) in origins.items()
     )
     return _svg_tree(
-        f"{_HINTS}{groups}", width="12", height="12", viewBox="0 0 12 12"
+        f"{hints}{groups}", width="12", height="12", viewBox="0 0 12 12"
     )
 
 
@@ -192,6 +206,22 @@ class TestStructuralGuards(unittest.TestCase):
             assert_slices_stay_within_their_tiles,
             _nine_slice_tree(sizes={"top": (5, 4)}),
             [""],
+        )
+
+    def test_slices_within_their_tiles_refuses_a_hostile_canvas(self):
+        # A contributor-supplied SVG's margin hints set the canvas the guard
+        # derives each tile region from; a hostile hint would make the region
+        # set hold ~10^6 entries here (billions in a real attack) and exhaust
+        # `make check`. The guard must refuse the geometry with a diagnostic
+        # rather than allocate it.
+        assert_error_names(
+            self,
+            ValueError,
+            assert_slices_stay_within_their_tiles,
+            self,
+            _nine_slice_tree(hints=_HUGE_CANVAS_HINTS),
+            [""],
+            needles=("pixel limit",),
         )
 
     def test_tiles_placed_by_margins_uses_the_alias_hints(self):

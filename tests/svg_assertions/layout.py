@@ -18,7 +18,7 @@ from .nine_slice import (
     tile_origins,
 )
 from .paths import arc_center, path_arcs
-from .render import render_slices
+from .render import _MAX_RENDERED_PIXELS, render_slices
 from .tree import children_named, local_name
 
 
@@ -146,6 +146,11 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
     *tree* (pass ``[""]`` for an unprefixed SVG). *hint_aliases* maps a
     prefix that declares no hints of its own to the prefix whose hints size
     its tiles; pass ``None`` (the default) when every state declares its own.
+
+    Raise ValueError, naming the tile, when a margin hint's canvas implies a
+    region larger than ``_MAX_RENDERED_PIXELS``: the hints come from the SVG,
+    and materializing such a region as a set would exhaust memory before any
+    assertion ran.
     """
     slices = render_slices(tree)
     for state, top, bottom, left, right in _state_margin_hints(
@@ -161,6 +166,20 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
             canvas_w, canvas_h, left_w, right_w, top_h, bottom_h
         )
         for name, (width, height) in regions.items():
+            if width * height > _MAX_RENDERED_PIXELS:
+                # The hints are contributor-supplied, so a hostile SVG's
+                # `hint-right-margin`/`hint-bottom-margin` could declare a
+                # canvas whose tile region holds 10^10 pixels; the set below
+                # would then exhaust memory. Cap it the way render_slices caps
+                # the same artwork's rects. The largest region any shipped
+                # nine-slice SVG has is 144 pixels (panel-background.svg's
+                # 8x18 north-center tile).
+                raise ValueError(
+                    f"tile {state}{name} region is {width}x{height}, larger "
+                    f"than the {_MAX_RENDERED_PIXELS}-pixel limit the margin "
+                    "hints imply: a nine-slice tile is a small region, so "
+                    "this is malformed or hostile artwork"
+                )
             region = {
                 (px, py) for py in range(height) for px in range(width)
             }
