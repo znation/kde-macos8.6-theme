@@ -6,7 +6,7 @@ through this module, but their own tests reach the helpers only through a
 tool's diagnostic. These tests pin the helpers' contracts directly: the
 ``<tool>: error:`` line, the 2-for-input / 1-for-command exit statuses, the
 control-character escaping, and the bounded log tail. The log-tail cases pin
-the CR/LF line-boundary rules that several BUGS.md entries fixed.
+the CR/LF line-boundary rules that several BUGS-FIXED.md entries fixed.
 
 Argument parsing lives in the sibling ``tools/argument_parsing.py`` and is pinned by
 ``tests/test_argument_parsing.py``.

@@ -12,7 +12,8 @@ them. It skips when the image is not materialized.
 
 The reference tab's top edge is three bands -- the #000000 outline, a #CCCCCC
 mid-tone and then the highlight -- because its highlight is inset one pixel;
-the shipped two-band bevel skips the mid-tone (recorded deviation in PLANS.md).
+the shipped two-band bevel skips the mid-tone (recorded deviation in
+PLANS-DONE.md).
 """
 
 from __future__ import annotations
