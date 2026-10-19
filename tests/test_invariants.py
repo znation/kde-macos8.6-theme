@@ -257,6 +257,25 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "not valid UTF-8"):
             cross_check(self.root, str(path))
 
+    def test_cross_check_refuses_a_symlinked_register_that_escapes(self):
+        # `parse_rows` echoes a malformed row's line in its AssertionError, so
+        # a checked-in symlink at docs/invariants.md that resolves outside the
+        # repository must be refused before it is opened rather than read and
+        # echoed. The private file sits under a second temp root, outside
+        # `self.root`, so the symlink escapes it.
+        private_root = make_tmp_dir(self)
+        private = private_root / "private.txt"
+        private.write_text(
+            "## aurorae\n| secret-token | short\n", encoding="utf-8"
+        )
+        register = self.root / "docs" / "invariants.md"
+        register.parent.mkdir(parents=True, exist_ok=True)
+        register.symlink_to(private)
+        with self.assertRaises(ValueError) as caught:
+            cross_check(str(self.root), str(register))
+        self.assertIn("resolves outside", str(caught.exception))
+        self.assertNotIn("secret-token", str(caught.exception))
+
     def test_cross_check_rejects_a_bare_file_with_no_test_case(self):
         # The bare `path` form names the whole file, so it pins the guarantee
         # to that file's tests. A file that defines no test case pins nothing;

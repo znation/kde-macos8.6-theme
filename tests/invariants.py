@@ -21,6 +21,7 @@ import os
 import re
 from collections import namedtuple
 
+from support import containment
 from support.repo_root import ROOT
 
 REGISTER = os.path.join(ROOT, "docs", "invariants.md")
@@ -322,8 +323,7 @@ def cross_check(root, register):
     a file that defines no test case, or an unresolvable test reference.
     """
     try:
-        with open(register, encoding="utf-8") as handle:
-            text = handle.read()
+        text = containment.read_text(register, root)
     except UnicodeDecodeError as exc:
         raise AssertionError(
             f"{register} is not valid UTF-8 text: {exc}"

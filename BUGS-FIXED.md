@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/invariants.py`'s `cross_check` reads a symlinked register bare (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** when the register path handed to `cross_check` is a checked-in symlink that
+resolves outside the repository (the shipped call passes `docs/invariants.md`), the register is
+read and parsed anyway. `parse_rows` echoes a malformed table row's line in its
+`AssertionError`, so a private file's line reaches the failing test's diagnostic. This is the
+same contributor-content leak class the seed reads in `tests/support/checker_mutations.py` were
+guarded against, left open on the checker's own production read.
+
+**Reproduction:**
+`tests/test_invariants.py::TestHelpers.test_cross_check_refuses_a_symlinked_register_that_escapes`
+symlinks `docs/invariants.md` under a fake root to a private file holding a malformed row and
+calls `cross_check`; before the fix it raised `AssertionError: malformed table row ... |
+secret-token | short`, echoing the private line, instead of refusing the escape.
+
+**Cause:** `cross_check` opened the register with a bare `open(register, encoding="utf-8")`
+and caught only `UnicodeDecodeError`/`OSError`; a symlink resolving outside `root` was followed
+like any other file.
+
+**Fix:** the read now routes through `support.containment.read_text(register, root)`, which
+resolves the path and raises `ValueError` naming the escape before opening it. A register that
+is a test's temporary file outside `root` is unaffected, as are the missing-file and non-UTF-8
+paths, which still surface as the checker's own `AssertionError`.
+
+**Validation gap:** no-fake — the suite had no `cross_check` fixture with a symlinked register,
+so confirming the leak needed a scratch fake root plus a symlink, which was then added as the
+regression test.
+
 ### `tests/support/checker_mutations.py`'s register reads follow a symlinked register outside the repository (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `Scratch.build` read `docs/invariants.md` and `PLACEHOLDERS.md` with a bare
