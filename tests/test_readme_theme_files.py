@@ -11,8 +11,13 @@ from __future__ import annotations
 import glob
 import os
 import re
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.desktoptheme_paths import PACKAGE
 from support.theme_install import ROOT
 
@@ -22,8 +27,16 @@ AURORAE_DIR = os.path.join(ROOT, "theme", "aurorae", "themes", "org.macos8.deskt
 
 
 def readme_text():
-    """Return the UTF-8 text of the repository's ``README.md``."""
-    with open(os.path.join(ROOT, "README.md"), encoding="utf-8") as handle:
+    """Return the UTF-8 text of the repository's ``README.md``.
+
+    ``README.md`` is contributor-supplied, and a checked-in symlink at its
+    path can point at a private file. The backticked SVG names this reader
+    extracts are echoed by the ``assertEqual`` diagnostics below, so a path
+    that resolves outside the repository is refused before it is opened.
+    """
+    path = os.path.join(ROOT, "README.md")
+    containment.require_within_repo(path, ROOT)
+    with open(path, encoding="utf-8") as handle:
         return handle.read()
 
 
@@ -64,6 +77,44 @@ class TestReadmeThemeFiles(unittest.TestCase):
         self._assert_every_svg_is_named(
             _AURORAE_TOKEN, AURORAE_DIR, "*.svg", "Aurorae"
         )
+
+
+class TestReadmeTextContainment(unittest.TestCase):
+    """The README read refuses a symlink that escapes the repository.
+
+    A checked-in symlink at ``README.md`` can point at a private file, and the
+    SVG names parsed from it reach ``assertEqual`` diagnostics that echo the
+    sets; the read must refuse such a path before it is opened rather than
+    leak the private file's backticked tokens.
+    """
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.md"
+            secret.write_text(
+                "`widgets/private.svg`\n", encoding="utf-8"
+            )
+            link = root / "README.md"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    readme_text()
+        self.assertIn(str(link), str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            target = root / "actual-readme.md"
+            target.write_text("`widgets/a.svg`\n", encoding="utf-8")
+            link = root / "README.md"
+            link.symlink_to(target)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                self.assertEqual(readme_text(), "`widgets/a.svg`\n")
 
 
 class TestReadmeTokenParsing(unittest.TestCase):
