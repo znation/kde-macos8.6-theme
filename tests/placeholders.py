@@ -101,9 +101,9 @@ def _resolves_within(directory, path):
     diagnostic. Resolving both paths
     keeps every read inside the theme directory even when a symlink tries to
     leave it. A resolution that fails is not assumed to be contained: an
-    ``OSError`` (a filesystem failure) and a ``RuntimeError`` (a symlink loop)
-    both make this return False, so the caller reports the path instead of the
-    exception aborting the check.
+    ``OSError`` (a filesystem failure) and a ``RuntimeError`` both make this
+    return False, so the caller reports the path instead of the exception
+    aborting the check.
     """
     try:
         resolved = os.path.realpath(path)

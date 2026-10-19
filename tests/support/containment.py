@@ -19,8 +19,7 @@ def _resolves_within(directory, path):
     """Return True when *path* resolves to a location inside *directory*.
 
     A resolution that fails is not assumed to be contained: an ``OSError`` (a
-    filesystem failure, a symlink loop) and a ``RuntimeError`` (the loop
-    ``Path.resolve`` raised before Python 3.13) both make this return False, so
+    filesystem failure) and a ``RuntimeError`` both make this return False, so
     the caller refuses the path instead of the exception aborting the read.
     """
     try:
