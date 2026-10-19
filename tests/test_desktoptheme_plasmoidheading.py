@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.desktoptheme_paths import LINE_SVG, PLASMOIDHEADING_SVG
 from support.nine_slice_case import NineSliceCase
+from support.svg_case import parse_svg
 from svg_assertions import (
     assert_hint_geometry,
     assert_no_external_references,
@@ -57,7 +57,7 @@ class TestPlasmoidHeading(NineSliceCase, unittest.TestCase):
         self.assertEqual(attribute_values(self.tree, "fill-opacity"), {"0.01"})
 
     def test_rule_matches_line_svg(self):
-        line = render_slices(ET.parse(LINE_SVG))["horizontal-line"]
+        line = render_slices(parse_svg(LINE_SVG))["horizontal-line"]
         self.assertEqual(line, {(0, 0): DARK, (0, 1): LIGHT})
         rule = render_slices(self.tree)["header-bottom"]
         self.assertEqual((rule[(0, 1)], rule[(0, 2)]), (line[(0, 0)], line[(0, 1)]))

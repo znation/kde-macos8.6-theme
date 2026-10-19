@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import os
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.aurorae_fixtures import (
     AURORAE_DIR,
@@ -23,6 +22,7 @@ from support.aurorae_fixtures import (
     ZOOM_BOX_X,
 )
 from support.platinum_palette import hex_colour
+from support.svg_case import parse_svg
 from svg_assertions import (
     assert_no_script_elements,
     assert_unique_ids,
@@ -49,7 +49,7 @@ def _parsed_svgs(paths):
     subTest with the file's basename; pairing the name and the tree here keeps
     that parse-and-label step in one place.
     """
-    return [(os.path.basename(path), ET.parse(path)) for path in paths]
+    return [(os.path.basename(path), parse_svg(path)) for path in paths]
 
 
 def _inactive_fill(active_fill):
@@ -73,7 +73,7 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
 
     def test_close_box_matches_reference(self):
         expected = self.reference_box(11, 29)
-        slices = render_slices(ET.parse(CLOSE_SVG))
+        slices = render_slices(parse_svg(CLOSE_SVG))
         self.assertEqual(slices["active-center"], expected)
         self.assertEqual(slices["active-center"], self.profiler_box(213, 26))
 
@@ -90,7 +90,7 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
     def test_collapse_box_matches_reference(self):
         # The collapse box is identical in aboutsystem (343,29) and the
         # profiler (797,26).
-        slices = render_slices(ET.parse(SHADE_SVG))
+        slices = render_slices(parse_svg(SHADE_SVG))
         self.assertEqual(slices["active-center"], self.reference_box(343, 29))
         self.assertEqual(slices["active-center"], self.profiler_box(797, 26))
 
@@ -119,8 +119,8 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
         *offset* is the art's local x of the box's left column; the
         differing points are returned in box-local coordinates.
         """
-        art = render_slices(ET.parse(path))[group]
-        base = render_slices(ET.parse(CLOSE_SVG))[group]
+        art = render_slices(parse_svg(path))[group]
+        base = render_slices(parse_svg(CLOSE_SVG))[group]
         return art, {(x, y) for x, y in base if art[(x + offset, y)] != base[(x, y)]}
 
     def _assert_reference_glyph(self, path, glyph, pixel, x0, y0, offset=0):

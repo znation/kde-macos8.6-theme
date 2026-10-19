@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import unittest
-import xml.etree.ElementTree as ET
 
 from support import containment
 from support.desktoptheme_paths import PANEL_SVG, SOLID_PANEL_SVG
@@ -12,6 +11,7 @@ from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import assert_fill_palette, hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.repo_root import ROOT
+from support.svg_case import parse_svg
 from svg_assertions import (
     assert_center_tile_is,
     assert_slice_pixels,
@@ -133,7 +133,7 @@ class TestNorthStateMatchesReference(ReferenceScreenshotMixin, unittest.TestCase
     def test_bar_column_equals_north_center_and_bottom(self):
         # Column 10 is clear of the screen corners and the Apple menu: rows
         # 0..17 are the centre tile's rows and rows 18..19 the bottom slice's.
-        tree = ET.parse(PANEL_SVG)
+        tree = parse_svg(PANEL_SVG)
         slices = render_slices(tree)
 
         def hex_at(y):

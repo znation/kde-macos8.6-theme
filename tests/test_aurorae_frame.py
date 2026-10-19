@@ -15,7 +15,6 @@ from __future__ import annotations
 import gzip
 import os
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.aurorae_fixtures import (
     AURORAE_DIR,
@@ -27,6 +26,7 @@ from support.aurorae_fixtures import (
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.tmp_dir import make_tmp_dir
+from support.svg_case import parse_svg
 from svg_assertions import (
     SLICE_IDS,
     assert_ids_present,
@@ -260,7 +260,7 @@ class TestCorners(ReferenceImageCase, unittest.TestCase):
     }
 
     def test_corners_match_reference(self):
-        slices = render_slices(ET.parse(DECORATION_SVG))
+        slices = render_slices(parse_svg(DECORATION_SVG))
         for name, (x0, y0, width, height) in self.REGIONS.items():
             mask = self.BUTTON_MASK.get(name, set())
             with self.subTest(slice=name):

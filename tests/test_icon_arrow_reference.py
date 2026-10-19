@@ -11,13 +11,13 @@ from __future__ import annotations
 import os
 import re
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.desktoptheme_paths import (
     ARCHIVEORG_MAX_ROWS,
     ARCHIVEORG_REFERENCE,
 )
 from support.reference_image import ReferenceScreenshotMixin
+from support.svg_case import parse_svg
 from support.theme_install import ROOT
 
 REFERENCE = ARCHIVEORG_REFERENCE
@@ -84,7 +84,7 @@ class TestSubmenuArrowReference(ReferenceScreenshotMixin, unittest.TestCase):
         self.assertEqual(len(rows[widest]), REFERENCE_BOX[2])
 
     def test_shipped_16px_path_is_the_reference_triangle(self):
-        root = ET.parse(ICON_16).getroot()
+        root = parse_svg(ICON_16).getroot()
         paths = [child for child in root if child.tag.endswith("path")]
         self.assertEqual(len(paths), 1)
         self.assertEqual(paths[0].get("fill"), "#000000")

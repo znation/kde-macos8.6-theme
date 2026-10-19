@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import os
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.nine_slice_case import NineSliceCase
 from support.reference_image import ReferenceScreenshotMixin
+from support.svg_case import parse_svg
 from support.theme_install import ROOT
 from svg_assertions import (
     assert_slice_pixels,
@@ -136,7 +136,7 @@ class TestMenuTitleSpacingMatchesReference(
         # title takes half the mean gap: 57 // 8 = 7.
         gaps = title_gaps(self.image)
         expected = str(sum(gaps) // (2 * len(gaps)))
-        geometry = rect_geometry(ET.parse(MENUBARITEM_SVG))
+        geometry = rect_geometry(parse_svg(MENUBARITEM_SVG))
         self.assertEqual(geometry["normal-hint-left-margin"][2], expected)
         self.assertEqual(geometry["normal-hint-right-margin"][2], expected)
 

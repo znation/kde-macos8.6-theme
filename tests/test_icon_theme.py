@@ -10,12 +10,12 @@ from __future__ import annotations
 
 import os
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kde_config import read as read_kde_config
 from support.platinum_palette import PLATINUM_FILLS
 from support.shipped_files import shipped_files
+from support.svg_case import parse_svg
 from support.theme_install import (
     ROOT,
     installed_icon_theme,
@@ -122,7 +122,7 @@ class TestIcons(unittest.TestCase):
         for icon in SHIPPED_ICONS:
             with self.subTest(icon=icon):
                 size = str(_declared_size(icon))
-                root = ET.parse(os.path.join(PACKAGE, icon)).getroot()
+                root = parse_svg(os.path.join(PACKAGE, icon)).getroot()
                 self.assertEqual(root.tag, SVG_NS + "svg")
                 self.assertEqual(root.get("width"), size)
                 self.assertEqual(root.get("height"), size)
@@ -131,7 +131,7 @@ class TestIcons(unittest.TestCase):
     def test_each_icon_uses_only_the_platinum_palette(self):
         for icon in SHIPPED_ICONS:
             with self.subTest(icon=icon):
-                tree = ET.parse(os.path.join(PACKAGE, icon))
+                tree = parse_svg(os.path.join(PACKAGE, icon))
                 self.assertLessEqual(
                     attribute_values(tree, "fill"),
                     PLATINUM_FILLS,
@@ -141,14 +141,14 @@ class TestIcons(unittest.TestCase):
     def test_the_icons_together_use_the_full_platinum_palette(self):
         colours = set()
         for icon in SHIPPED_ICONS:
-            tree = ET.parse(os.path.join(PACKAGE, icon))
+            tree = parse_svg(os.path.join(PACKAGE, icon))
             colours |= attribute_values(tree, "fill")
         self.assertEqual(colours, PLATINUM_FILLS)
 
     def test_each_icon_has_no_scripts_styles_external_refs_or_duplicate_ids(self):
         for icon in SHIPPED_ICONS:
             with self.subTest(icon=icon):
-                tree = ET.parse(os.path.join(PACKAGE, icon))
+                tree = parse_svg(os.path.join(PACKAGE, icon))
                 assert_no_script_elements(self, tree)
                 assert_no_style_elements(self, tree)
                 assert_no_external_references(self, tree)
@@ -286,7 +286,7 @@ class TestIconGeometry(unittest.TestCase):
     def test_each_icon_draws_its_pinned_artwork(self):
         for icon, expected in ICON_SHAPES.items():
             with self.subTest(icon=icon):
-                tree = ET.parse(os.path.join(PACKAGE, icon))
+                tree = parse_svg(os.path.join(PACKAGE, icon))
                 self.assertEqual(_drawing_elements(tree), expected)
 
     def test_the_folder_alias_shares_the_folder_art(self):
@@ -294,10 +294,10 @@ class TestIconGeometry(unittest.TestCase):
         # `inode-directory` names, so the alias must stay the same drawing;
         # pinning only each one's own elements would let them drift apart.
         folder = _drawing_elements(
-            ET.parse(os.path.join(PACKAGE, "32x32", "places", "folder.svg"))
+            parse_svg(os.path.join(PACKAGE, "32x32", "places", "folder.svg"))
         )
         alias = _drawing_elements(
-            ET.parse(
+            parse_svg(
                 os.path.join(PACKAGE, "32x32", "places", "inode-directory.svg")
             )
         )

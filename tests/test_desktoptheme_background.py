@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from support import containment
 from support.desktoptheme_paths import (
@@ -16,6 +15,7 @@ from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import BLACK, FACE, hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.repo_root import ROOT
+from support.svg_case import parse_svg
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -80,7 +80,7 @@ class TestBackgroundMatchesReference(
         # icons: (150, 60) and (150, 200) are the Platinum face. Compare them
         # to the artwork's own rendered face, so a recoloured SVG fails here
         # and not only in the shared FACE constant.
-        face = render_slices(ET.parse(BACKGROUND_SVG))["center"][(5, 5)]
+        face = render_slices(parse_svg(BACKGROUND_SVG))["center"][(5, 5)]
         for x, y in ((150, 60), (150, 200)):
             with self.subTest(pixel=(x, y)):
                 self.assertEqual(hex_colour(self.pixel(x, y)), face)

@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
+import tempfile
 import unittest
-import xml.etree.ElementTree as ET
+from pathlib import Path
 from unittest import mock
 
+from support import svg_case
 from support.desktoptheme_paths import (
     ACTIONBUTTON_SVG,
     ACTION_OVERLAYS_SVG,
@@ -52,6 +55,7 @@ from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata, kplugin, load_metadata
 from support.process_assertions import assert_succeeded
 from support.shipped_files import shipped_files
+from support.svg_case import parse_svg
 from support.theme_install import installed_destdir, run_captured
 from svg_assertions import (
     assert_no_external_references,
@@ -139,7 +143,7 @@ class TestSvgRootCanvas(unittest.TestCase):
             with self.subTest(svg=name):
                 assert_root_canvas(
                     self,
-                    ET.parse(path),
+                    parse_svg(path),
                     width,
                     height,
                     ORIGIN_STATES.get(name, ()),
@@ -153,7 +157,7 @@ class TestSvgRootCanvas(unittest.TestCase):
         # SVG, not only the widgets whose tests happen to read by id.
         for name, path, _, _ in SVG_CANVASES:
             with self.subTest(svg=name):
-                assert_unique_ids(self, ET.parse(path))
+                assert_unique_ids(self, parse_svg(path))
 
     def test_every_svg_is_self_contained(self):
         # The per-widget pixel tests composite only the rects and groups
@@ -165,7 +169,7 @@ class TestSvgRootCanvas(unittest.TestCase):
         # tests happen to reach them.
         for name, path, _, _ in SVG_CANVASES:
             with self.subTest(svg=name):
-                tree = ET.parse(path)
+                tree = parse_svg(path)
                 assert_no_style_elements(self, tree)
                 assert_no_external_references(self, tree)
                 assert_no_script_elements(self, tree)
@@ -181,6 +185,37 @@ class TestSvgRootCanvas(unittest.TestCase):
         }
         shipped = shipped_files(PACKAGE, suffix=".svg")
         self.assertEqual(shipped, registered)
+
+
+class TestSvgContainment(unittest.TestCase):
+    """A symlinked shipped SVG is refused before the registry parse reads it."""
+
+    def test_registry_parse_rejects_a_symlink_that_escapes_the_repository(self):
+        # The registry parses every shipped SVG through `parse_svg`, which
+        # resolves the path and refuses one that lands outside the repository.
+        # This drives the real `TestSvgRootCanvas` method, so it fails if the
+        # registry stops routing through the guard. The target is a valid SVG
+        # so a bare `ET.parse` would succeed and the escape go unnoticed.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.svg"
+            secret.write_text(
+                "<svg><rect id='private' width='1' height='1'/></svg>\n",
+                encoding="utf-8",
+            )
+            link = root / "frame.svg"
+            link.symlink_to(secret)
+            module = sys.modules[__name__]
+            with mock.patch.object(svg_case, "ROOT", root), mock.patch.object(
+                module, "SVG_CANVASES", (("frame", str(link), 1, 1),)
+            ):
+                with self.assertRaises(ValueError) as caught:
+                    TestSvgRootCanvas(
+                        "test_every_svg_declares_unique_ids"
+                    ).test_every_svg_declares_unique_ids()
+        self.assertIn(str(link), str(caught.exception))
 
 
 class TestDefaultsWiring(unittest.TestCase):

@@ -9,7 +9,6 @@ wrong on screen.
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.platinum_palette import hex_colour
 from support.splash_fixtures import (
@@ -19,6 +18,7 @@ from support.splash_fixtures import (
     qml_color,
     qml_rect,
 )
+from support.svg_case import parse_svg
 
 from svg_assertions import attribute_values  # noqa: E402
 
@@ -110,7 +110,7 @@ class TestSplashReference(SplashReferenceCase):
         self.assertEqual(highlight, (114, 134, 214))
         self.assertEqual(face, (76, 101, 203))
         self.assertEqual(
-            attribute_values(ET.parse(LOGO), "fill"),
+            attribute_values(parse_svg(LOGO), "fill"),
             {hex_colour(highlight), hex_colour(face)},
         )
 
