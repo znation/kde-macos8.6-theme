@@ -13,6 +13,8 @@ without a row (or a stale row whose file is gone or unmarked) fails
 from __future__ import annotations
 
 import os
+import subprocess
+import sys
 import unittest
 
 from placeholders import (
@@ -24,6 +26,24 @@ from placeholders import (
 )
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
+
+
+def _run_reader_in_child(call, path):
+    """Run one ``placeholders`` reader on *path* in a child; return its result.
+
+    A reader handed a FIFO blocks in ``open()`` until a writer appears, so a
+    direct call would stall the suite with no diagnostic. The child makes
+    that hang a hard timeout instead; ``subprocess.run`` kills it when the
+    timeout expires.
+    """
+    return subprocess.run(
+        [sys.executable, "-c", f"import sys; from placeholders import {call}; "
+         f"{call}(sys.argv[1])", str(path)],
+        cwd=ROOT / "tests",
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
 
 
 class TestHelpers(unittest.TestCase):
@@ -139,6 +159,36 @@ class TestHelpers(unittest.TestCase):
         path.symlink_to(tmp / "theme" / "missing.svg")
         with self.assertRaisesRegex(AssertionError, "cannot be read"):
             markers(tmp)
+
+    def test_markers_rejects_a_fifo_instead_of_blocking(self):
+        # os.walk lists a FIFO named like a text asset, and open() on it blocks
+        # until a writer appears; the marker read has no timeout, so one stray
+        # pipe in theme/ would stall make check with no diagnostic. The
+        # checker must refuse a non-regular file by name instead.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        tmp = make_tmp_dir(self)
+        fifo = tmp / "theme" / "a.svg"
+        fifo.parent.mkdir(parents=True)
+        os.mkfifo(fifo)
+        child = _run_reader_in_child("markers", tmp)
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(fifo), child.stderr)
+
+    def test_register_entries_rejects_a_fifo_instead_of_blocking(self):
+        # The register is opened the same way, so a FIFO at PLACEHOLDERS.md
+        # would hang the run at the reader instead of failing it; refuse it by
+        # name like a theme asset.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        tmp = make_tmp_dir(self)
+        register = tmp / "PLACEHOLDERS.md"
+        os.mkfifo(register)
+        child = _run_reader_in_child("register_entries", register)
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(register), child.stderr)
 
     def test_register_entries_parses_the_table(self):
         tmp = make_tmp_dir(self)

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import re
+import stat
 
 from support import containment
 from support.repo_root import ROOT
@@ -61,6 +62,27 @@ def _is_text_asset(filename):
     return filename in TEXT_NAMES or filename.endswith(TEXT_EXTENSIONS)
 
 
+def _refuse_non_regular(path):
+    """Raise :class:`AssertionError` unless *path* is a regular file.
+
+    ``os.walk`` lists a FIFO or device named like a text asset in the theme
+    tree, and ``open()`` on a FIFO blocks until a writer appears while a
+    device can stream forever: neither wait has a timeout, so one such entry
+    would stall ``make check`` with no diagnostic. Refuse it by name before
+    opening it. ``os.stat`` follows a symlink, so a link to a regular file
+    inside ``theme/`` is still read, and a dangling link or permission error
+    is reported as the same "cannot be read" diagnostic the open would give.
+    """
+    try:
+        mode = os.stat(path).st_mode
+    except OSError as exc:
+        raise AssertionError(f"{path} cannot be read: {exc}") from exc
+    if not stat.S_ISREG(mode):
+        raise AssertionError(
+            f"{path} cannot be read: not a regular file; refusing to open it"
+        )
+
+
 def _marker_text(path):
     """Return the text after the ``PLACEHOLDER:`` token in *path*, or None.
 
@@ -73,8 +95,10 @@ def _marker_text(path):
     the checker nor the file. A file that cannot be read at all -- a dangling
     symlink whose target resolves inside ``theme/``, a permission error --
     raises the same :class:`AssertionError` naming *path*, instead of a bare
-    ``OSError`` aborting the check.
+    ``OSError`` aborting the check. A non-regular file (a FIFO or device) is
+    refused by name without being opened, since opening one can block forever.
     """
+    _refuse_non_regular(path)
     try:
         with open(path, encoding="utf-8") as handle:
             for line in handle:
@@ -128,8 +152,11 @@ def register_entries(path):
     register's own problem rather than as a codec ``UnicodeDecodeError``. A
     register that cannot be read at all -- a missing file, a directory, a
     permission error -- raises the same :class:`AssertionError` naming *path*,
-    instead of a bare ``OSError`` aborting the check.
+    instead of a bare ``OSError`` aborting the check. A non-regular register
+    (a FIFO or device) is refused by name without being opened, since opening
+    one can block forever.
     """
+    _refuse_non_regular(path)
     entries = {}
     try:
         with open(path, encoding="utf-8") as handle:
