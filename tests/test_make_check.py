@@ -4,7 +4,7 @@
 (`CHECK_PATTERN`), named specs (`CHECK_TESTS`) or a different interpreter
 (`PYTHON`); the Makefile validates each before it runs the suite. These tests
 pin that wiring with `make -n` and the guards' refusals. The install and
-uninstall behavior lives in ``test_theme_install.py`` and `make help` in
+uninstall behaviour lives in ``test_theme_install.py`` and `make help` in
 ``test_make_help.py``.
 """
 

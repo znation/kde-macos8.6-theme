@@ -22,7 +22,7 @@ from svg_assertions import (
 def _face_substituted(table, face):
     """Return *table* with each #DDDDDD face pixel replaced by *face*.
 
-    The sunken and flat corner tables are parameterised by the face colour,
+    The sunken and flat corner tables are parameterized by the face colour,
     so a test that pins the #DDDDDD table can derive the expected table for
     another face by swapping only the face pixels.
     """

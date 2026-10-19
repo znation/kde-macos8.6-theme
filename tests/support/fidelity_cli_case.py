@@ -4,7 +4,7 @@
 and budget gate, the crop options, the numeric and usage errors, and the
 terminal escaping. They build the same small PNG pairs and assert the same
 PASS/FAIL and usage-error shapes, so the fixtures and assertions live here once
-and each module states only the behavior it pins.
+and each module states only the behaviour it pins.
 
 This module defines no test cases, so ``unittest discover`` never collects it.
 """

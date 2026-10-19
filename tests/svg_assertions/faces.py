@@ -1,7 +1,7 @@
 """Face and bevel corner geometry for the SVG test helpers.
 
 The 3x3 corner tables and edge bands a beveled Platinum face paints: the
-fixed raised-face corners, the face-parameterised sunken and flat tables, and
+fixed raised-face corners, the face-parameterized sunken and flat tables, and
 the dispatchers that select a table and its edge bands by bevel name.
 """
 

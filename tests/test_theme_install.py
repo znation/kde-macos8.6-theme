@@ -1,4 +1,4 @@
-"""`make install`/`uninstall` behavior: paths, XDG resolution and the lock.
+"""`make install`/`uninstall` behaviour: paths, XDG resolution and the lock.
 
 `theme_install.run_make` drives `make` through the suite's timeout runner in
 `process_runner`, so a `make` that never exits raises
