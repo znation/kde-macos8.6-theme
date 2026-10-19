@@ -380,7 +380,7 @@ class TestRender(unittest.TestCase):
         reference decode instead of spawning the CLI and re-decoding the
         1024x768 screenshot once per strip. The CLI's crop options, including
         ``--candidate-crop`` and ``--crop`` in one run, stay covered end to
-        end by ``tests/test_fidelity_cli.py``.
+        end by ``tests/test_fidelity_cli_crops.py``.
         """
         reference, error = read_reference(reference_path)
         skip_unless_materialized(self, reference_path, error)

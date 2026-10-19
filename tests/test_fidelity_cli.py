@@ -3,17 +3,19 @@
 Run with the project's check harness (stdlib unittest)::
 
     python3 -m unittest discover -s tests -v
+
+The crop options are covered in ``test_fidelity_cli_crops``; this module keeps
+the verdict and budget gate, the usage and numeric errors, the read errors and
+the terminal escaping.
 """
 
 from __future__ import annotations
 
-import subprocess
 import unittest
-from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.cli_fixtures import CliTestCase  # noqa: E402
 from support.error_assertions import assert_escapes_escape_character  # noqa: E402
+from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
@@ -23,105 +25,10 @@ from support.png_fixtures import (  # noqa: E402
     rgb_image,
     solid_rgb,
 )
-from tools import fidelity  # noqa: E402
 
 
-class TestCli(CliTestCase):
-    MAIN = staticmethod(fidelity.main)
-    PROGRAM = "fidelity"
-
-    def _write_altered_pair(self, directory: Path) -> tuple[str, str]:
-        """Write a 3x3 candidate and a one-pixel-altered copy of it.
-
-        Pixel (1, 0) of the candidate is (20, 0, 60); the altered copy raises
-        its green channel to 50, so exactly one of the 27 bytes differs by 50
-        (MAE 50/27, differing fraction 1/9). Returns the two paths.
-        """
-        surface, png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
-        changed = bytearray(surface.rgb)
-        changed[4] = 50
-        altered_png = make_png(
-            3, 3, [bytes(changed[i : i + 9]) for i in range(0, 27, 9)]
-        )
-        return (
-            self._write(directory, "candidate.png", png),
-            self._write(directory, "altered.png", altered_png),
-        )
-
-    def _run_png_pair(
-        self, candidate_png: bytes, reference_png: bytes
-    ) -> subprocess.CompletedProcess:
-        """Write two PNGs to a temp dir and run the CLI on them.
-
-        *candidate_png* is written as ``candidate.png`` and *reference_png* as
-        ``reference.png``.
-        """
-        tmp = self._tmp_dir()
-        candidate = self._write(tmp, "candidate.png", candidate_png)
-        reference = self._write(tmp, "reference.png", reference_png)
-        return self._run(candidate, reference)
-
-    def _write_padded_surface_pair(self, directory: Path) -> tuple[str, str]:
-        """Write a 2x2 surface PNG and a 4x4 reference with a 1px black border.
-
-        The reference embeds the surface at (1, 1), so ``--crop 1,1,2,2``
-        selects exactly the surface. Returns the surface path and the
-        reference path.
-        """
-        surface, surface_png = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-        border = bytes([0, 0, 0] * 4)
-        rows = [
-            border,
-            bytes([0, 0, 0] + list(surface.rgb[0:6]) + [0, 0, 0]),
-            bytes([0, 0, 0] + list(surface.rgb[6:12]) + [0, 0, 0]),
-            border,
-        ]
-        full_png = make_png(4, 4, rows)
-        return (
-            self._write(directory, "surface.png", surface_png),
-            self._write(directory, "full.png", full_png),
-        )
-
-    def _padded_surface_png(self, width, height, ox, oy) -> bytes:
-        """Return a *width* x *height* PNG with the 2x2 test surface at ``(ox, oy)``.
-
-        The surface is the same ``rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))``
-        the other fixtures use, so a crop selecting it matches a crop of any
-        other padded copy; the rest of the image is black.
-        """
-        def pixel(x, y):
-            if ox <= x < ox + 2 and oy <= y < oy + 2:
-                return ((x - ox) * 9, (y - oy) * 9, 5)
-            return (0, 0, 0)
-
-        return rgb_image(width, height, pixel)[1]
-
-    def _solid_reference(self) -> str:
-        """Write a 1x1 black PNG to a fresh temp dir and return its path."""
-        _, data = solid_rgb(1, 1)
-        return self._write(self._tmp_dir(), "reference.png", data)
-
-    def _assert_pass(self, result: subprocess.CompletedProcess) -> None:
-        """Assert *result* is a clean exit-0 pass whose stdout says PASS."""
-        self._assert_success(result)
-        self.assertIn("PASS", result.stdout)
-
-    def _assert_fail(self, result: subprocess.CompletedProcess) -> None:
-        """Assert *result* is an exit-1 fidelity failure whose stdout says FAIL."""
-        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
-        self.assertIn("FAIL", result.stdout)
-
-    def _assert_outside_crop_is_error(self, option: str, filename: str) -> None:
-        """Assert a syntactically valid crop past the 2x2 edge is a usage error.
-
-        *option* is ``--candidate-crop`` or ``--crop`` and *filename* names the
-        image the option selects, so the two options are exercised the same way.
-        """
-        tmp = self._tmp_dir()
-        _, image = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-        path = self._write(tmp, filename, image)
-        result = self._run(path, path, option, "1,1,2,2")
-        self._assert_usage_error(result, "falls outside")
+class TestCli(FidelityCliTestCase):
+    """The fidelity gate, its usage errors, read errors and escaping."""
 
     def test_script_entry_point(self):
         """The CLI still runs end to end as ``python3 tools/fidelity.py``.
@@ -237,100 +144,6 @@ class TestCli(CliTestCase):
             "per-channel MAE (R, G, B): 10.0000 0.0000 0.0000", result.stdout
         )
 
-    def test_crop_region_passes(self):
-        tmp = self._tmp_dir()
-        candidate, reference = self._write_padded_surface_pair(tmp)
-        result = self._run(candidate, reference, "--crop", "1,1,2,2")
-        self._assert_pass(result)
-
-    def test_crop_rectangle_is_echoed_for_reproducibility(self):
-        # The reference line prints the cropped size, which does not say where
-        # the crop came from, so a transcript cannot be replayed without the
-        # rectangle. A run without --crop must not print the line at all.
-        reference = self._solid_reference()
-        uncropped = self._run(reference, reference)
-        tmp = self._tmp_dir()
-        candidate, padded = self._write_padded_surface_pair(tmp)
-        cropped = self._run(candidate, padded, "--crop", "1,1,2,2")
-        self._assert_success(cropped)
-        self.assertIn("reference crop: 1,1,2,2", cropped.stdout)
-        self._assert_success(uncropped)
-        self.assertNotIn("reference crop:", uncropped.stdout)
-
-    def test_crop_accepts_whitespace_between_fields(self):
-        # A comma-separated rectangle is conventionally written with a space
-        # after each comma ("0, 0, 10, 10"); that whitespace is formatting,
-        # not a value, so --crop must accept it. The scalar options still
-        # reject surrounding whitespace (test_python_literal_numeric_args_rejected).
-        tmp = self._tmp_dir()
-        candidate, reference = self._write_padded_surface_pair(tmp)
-        tight = self._run(candidate, reference, "--crop", "1,1,2,2")
-        spaced = self._run(candidate, reference, "--crop", "1, 1, 2, 2")
-        self._assert_success(tight)
-        self._assert_success(spaced)
-        # Identical output proves the spaced form selects the same rectangle.
-        self.assertEqual(spaced.stdout, tight.stdout)
-
-    def test_candidate_crop_region_passes(self):
-        # The padded image is the candidate and the embedded surface is the
-        # reference, so --candidate-crop trims the candidate to the 2x2 the
-        # reference already is; the two are then byte-identical.
-        tmp = self._tmp_dir()
-        surface, padded = self._write_padded_surface_pair(tmp)
-        result = self._run(padded, surface, "--candidate-crop", "1,1,2,2")
-        self._assert_pass(result)
-
-    def test_candidate_and_reference_crops_apply_together(self):
-        # The render gate crops a strip from the candidate and the matching
-        # strip from the reference in one run, so both options must trim their
-        # own image. The candidate's surface sits at (1, 1) and the reference's
-        # at (2, 2), so a pass proves each crop selected the surface.
-        tmp = self._tmp_dir()
-        _, candidate = self._write_padded_surface_pair(tmp)
-        reference = self._write(
-            tmp, "reference.png", self._padded_surface_png(5, 5, 2, 2)
-        )
-        result = self._run(
-            candidate,
-            reference,
-            "--candidate-crop",
-            "1,1,2,2",
-            "--crop",
-            "2,2,2,2",
-        )
-        self._assert_pass(result)
-        self.assertIn("candidate crop: 1,1,2,2", result.stdout)
-        self.assertIn("reference crop: 2,2,2,2", result.stdout)
-
-    def test_candidate_crop_rectangle_is_echoed_for_reproducibility(self):
-        # The candidate line prints the cropped size, which does not say where
-        # the crop came from, so a transcript cannot be replayed without the
-        # rectangle. A run without --candidate-crop must not print the line.
-        tmp = self._tmp_dir()
-        surface, padded = self._write_padded_surface_pair(tmp)
-        cropped = self._run(padded, surface, "--candidate-crop", "1,1,2,2")
-        self._assert_success(cropped)
-        self.assertIn("candidate crop: 1,1,2,2", cropped.stdout)
-        uncropped = self._run(surface, surface)
-        self._assert_success(uncropped)
-        self.assertNotIn("candidate crop:", uncropped.stdout)
-
-    def test_candidate_crop_outside_candidate_is_error(self):
-        # A candidate crop with valid syntax can still fall outside the
-        # candidate; crop() raises FidelityError and main() must report it at
-        # exit 2, not crash.
-        self._assert_outside_crop_is_error("--candidate-crop", "candidate.png")
-
-    def test_malformed_candidate_crop_is_usage_error(self):
-        # A bad --candidate-crop must be rejected as a usage error before
-        # either image is read, naming the option and the offending value.
-        tmp = self._tmp_dir()
-        missing = str(tmp / "missing.png")
-        result = self._run(missing, missing, "--candidate-crop", "1,2,3")
-        self._assert_usage_error(
-            result, "1,2,3", "argument --candidate-crop:"
-        )
-
     def test_help_documents_exit_status(self):
         # --help must state what each exit status means; the module docstring
         # promises the legend, and a caller scripting the tool cannot tell a
@@ -389,11 +202,6 @@ class TestCli(CliTestCase):
         result = self._run_png_pair(small, large)
         self._assert_usage_error(result, "size mismatch")
 
-    def test_crop_outside_reference_is_error(self):
-        # A crop with valid syntax can still fall outside the reference; crop()
-        # raises FidelityError and main() must report it at exit 2, not crash.
-        self._assert_outside_crop_is_error("--crop", "reference.png")
-
     def test_invalid_numeric_args_are_usage_errors(self):
         # Negative/NaN thresholds silently invert the verdict (a negative
         # tolerance makes every pixel differ, a NaN max-mae always fails), so
@@ -448,29 +256,6 @@ class TestCli(CliTestCase):
                 result = self._run(*base, option, value)
                 self._assert_usage_error(
                     result, f"{option} must be a number: {value!r}"
-                )
-
-    def test_malformed_crop_is_usage_error(self):
-        # A bad --crop must be rejected as a usage error before either image is
-        # read, and the message must name the offending value so the user does
-        # not have to re-derive which field was wrong. Both paths are
-        # nonexistent: a crop that reached the comparison would instead fail as
-        # a read error, without argparse's "argument --crop:" prefix.
-        tmp = self._tmp_dir()
-        missing = str(tmp / "missing.png")
-        base = [missing, missing]
-        for extra, expected in (
-            (["--crop", "1,2,3"], "1,2,3"),
-            (["--crop", "a,2,3,4"], "'a'"),
-            (["--crop", "1,,3,4"], "field 2 is empty"),
-            (["--crop", "1, ,3,4"], "field 2 is empty"),
-            (["--crop", "0,0,0,2"], "x=0 y=0 w=0 h=2"),
-            (["--crop=-1,0,2,2"], "x=-1 y=0 w=2 h=2"),
-        ):
-            with self.subTest(extra=extra):
-                result = self._run(*base, *extra)
-                self._assert_usage_error(
-                    result, expected, "argument --crop:"
                 )
 
     def test_tolerance_above_channel_range_rejected(self):
@@ -564,7 +349,6 @@ class TestCli(CliTestCase):
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         self.assertIn("unrecognized arguments", result.stderr)
         assert_escapes_escape_character(self, result.stderr)
-
 
 if __name__ == "__main__":
     unittest.main()
