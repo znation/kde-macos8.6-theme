@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A NUL byte in a guarded path escapes the containment guard's fail-closed contract (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `tools/containment.resolves_within` documents that a path whose resolution
+fails is refused, not assumed contained, but an embedded NUL byte makes POSIX
+`Path.resolve()` raise `ValueError`, which the guard did not catch. The error escaped as a bare
+`lstat: embedded null character in path` instead of the guard's own refusal, so a caller that
+expected a boolean or the named `ValueError` saw an unrelated exception.
+
+**Reproduction:** `containment.resolves_within(root, root / "a\x00b")` raised `ValueError`, and
+`containment.require_within_repo(root / "a\x00b", root)` raised the bare `lstat` error. Pinned by
+`tests/test_containment.py::TestResolutionFailureFailsClosed`.
+
+**Cause:** `resolves_within` caught only `OSError` and `RuntimeError` from `Path.resolve()`;
+POSIX `Path.resolve()` raises `ValueError` for an embedded NUL.
+
+**Fix:** `resolves_within` now also catches `ValueError`, so every resolution failure fails
+closed; `require_within_repo` then raises its own named refusal.
+
+**Validation gap:** no-observability — no reader passes a NUL-bearing path, so the guard's
+contract violation left no trace in the suite and surfaced only from a direct scratch call.
+
 ### The symlink-containment guard is reimplemented at five sites (found by the steward role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** the guarantee "refuse a contributor-supplied repository file whose path resolves

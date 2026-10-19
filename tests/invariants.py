@@ -229,9 +229,9 @@ def check_reference(root, reference, section):
     test outside the tree the register covers. A referenced file that cannot
     be decoded or parsed is rejected by name too, so a broken reference never
     escapes as an unrelated exception. A path carrying a NUL byte is rejected
-    by name as well, before it reaches the shared containment guard, whose
-    path resolution would raise a bare ``ValueError`` naming neither the
-    section nor the reference.
+    by name as well, before it reaches the shared containment guard, so the
+    diagnostic names the section and the reference instead of the guard's
+    generic refusal.
     """
     path, sep, qualifier = reference.partition("::")
     if "\x00" in path:

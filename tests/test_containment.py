@@ -98,6 +98,20 @@ class TestReadText(unittest.TestCase):
             )
 
 
+class TestResolutionFailureFailsClosed(unittest.TestCase):
+    def test_an_embedded_nul_is_refused_not_raised(self):
+        # POSIX ``Path.resolve()`` raises ``ValueError`` for an embedded NUL;
+        # the guard must treat that resolution failure like any other and
+        # refuse the path, not let the bare error abort the caller's read.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            path = str(root / "a\x00b")
+            self.assertFalse(containment.resolves_within(root, path))
+            with self.assertRaises(ValueError) as caught:
+                containment.require_within_repo(path, root)
+            self.assertIn("symlink escape", str(caught.exception))
+
+
 class TestGuardIsShared(unittest.TestCase):
     """The containment guard is implemented once; every reader routes to it.
 
