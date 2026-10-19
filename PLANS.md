@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 grey menu body: ground `widgets/background.svg` in the open Apple menu (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 grey menu body: ground `widgets/background.svg` in the open Apple menu (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/background.svg` paints the body of every
 `PlasmaComponents.Menu` (context menus and combo-box dropdowns), `Drawer`, `Popup` and planar
@@ -57,8 +61,9 @@ sampled from the open Apple menu in `desktop_archiveorg8.6hd.png`, not `[Colors:
 from `support.platinum_palette` (it is already `#DDDDDD`). Add a reference case, mirroring the
 `ReferenceScreenshotMixin` use in `tests/test_desktoptheme_panel.py` and
 `tests/test_desktoptheme_menubaritem.py`, whose `REFERENCE` is
-`macos8.6-screenshots/desktop_archiveorg8.6hd.png` and which asserts `pixel(150, 60)` and
-`pixel(150, 200)` are `(221, 221, 221)`, skipping when the LFS image is not materialized.
+`macos8.6-screenshots/desktop_archiveorg8.6hd.png` and which compares `pixel(150, 60)` and
+`pixel(150, 200)` to the artwork's own rendered face, skipping when the LFS image is not
+materialized.
 - `README.md`: the `widgets/background.svg` sentence at the desktop-theme paragraph says the
 Platinum grey menu body instead of "the flat white Platinum body".
 - `docs/invariants.md`: the desktop-themes `background.svg` row's guarantee ("draws the Platinum
@@ -67,14 +72,13 @@ menu body") still holds; no provenance exception is needed now that the face is 
 **Acceptance criteria.**
 - `background.svg`'s parsed fill set is exactly `{#000000, #DDDDDD}`, its 10x10 centre and four
 edge tiles are `#DDDDDD`, and its outline is 1px `#000000` with no bevel.
-- The new reference test asserts the two `#DDDDDD` pixels from `desktop_archiveorg8.6hd.png` and
-skips when the image is missing, exactly as the other reference-screenshot cases do.
+- The new reference test compares the artwork's own rendered face to the two `#DDDDDD` pixels
+from `desktop_archiveorg8.6hd.png` and skips when the image is missing, exactly as the other
+reference-screenshot cases do.
 - `background.svg`'s comment names the reference and the sampled pixels and no longer derives the
 face from `[Colors:View]`.
 - README.md no longer calls the menu body white.
 - `make check` is green.
-
-## Done
 
 ### Fidelity gate for the rendered window's title-bar boxes (close, zoom, collapse) (planned 2026-10-18 by the plan role) — done 2026-10-18
 

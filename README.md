@@ -106,7 +106,7 @@ both orientations. `widgets/switch.svg` ships the Platinum track-and-thumb
 toggle `PlasmaComponents.Switch` draws: a flat `#EEEEEE` inactive trough, a
 flat white active field, and the same raised grey thumb, with hover, pressed
 and focus states. The package
-also ships `widgets/background.svg` (the flat white Platinum body for
+also ships `widgets/background.svg` (the Platinum grey `#DDDDDD` menu body for
 `PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers),
 `widgets/tooltip.svg` (the flat `#FFFFCC` Platinum tooltip with a black outline, for panel and
 `PlasmaComponents.ToolTip` tooltips; a byte-identical copy ships at `solid/widgets/tooltip.svg`,
