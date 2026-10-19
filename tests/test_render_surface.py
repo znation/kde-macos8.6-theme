@@ -278,6 +278,27 @@ class TestFailurePaths(StubTools):
         self.assertTrue(Path(last[0]).parent.name.startswith("render-surface-"))
         self.assertEqual(1, len(last), "WAYLAND_DISPLAY and DISPLAY leaked")
 
+    def test_session_ignores_a_config_search_path_from_the_environment(self):
+        # `plasma-apply-colorscheme` and the session resolve config through
+        # XDG_CONFIG_DIRS as well as XDG_CONFIG_HOME, so a caller-set search
+        # path would let the host session's kdeglobals/kwinrc leak into a
+        # render that is supposed to run against the throwaway config home
+        # only. The render must drop it like it drops WAYLAND_DISPLAY/DISPLAY.
+        record = self.root / "config-dirs"
+        self.stub(
+            "dbus-run-session",
+            f'printf "%s" "$XDG_CONFIG_DIRS" > "{record}"',
+        )
+        with mock.patch.dict(
+            os.environ, {"XDG_CONFIG_DIRS": str(self.root / "ambient")}
+        ):
+            self.run_main()
+        self.assertEqual(
+            "",
+            record.read_text(encoding="utf-8"),
+            "the caller's XDG_CONFIG_DIRS leaked into the render session",
+        )
+
     def test_install_ignores_a_destdir_from_the_environment(self):
         record = self.root / "make-env"
         self.stub("make", f'echo "[$DESTDIR] $*" > "{record}"')

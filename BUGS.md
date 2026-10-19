@@ -12,6 +12,30 @@ _None yet._
 
 ## Fixed
 
+### `tools/render_surface.py` leaks the caller's `XDG_CONFIG_DIRS` into the throwaway render session (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** the render session built by `tools/render_surface.py` still resolves config
+through the caller's `XDG_CONFIG_DIRS`, so a host session's `kdeglobals`/`kwinrc` (or a scheme
+already applied there) can change the rendered surface even though the run installs into a
+scratch `XDG_DATA_HOME` and writes `kwinrc`/`plasmarc` into a scratch `XDG_CONFIG_HOME`. This
+is the same non-hermeticity that made `plasma-apply-desktoptheme` a no-op in the sibling
+`TestApplyDesktopTheme` bug.
+
+**Reproduction:** `tests/test_render_surface.py::TestFailurePaths.test_session_ignores_a_config_search_path_from_the_environment`
+sets `XDG_CONFIG_DIRS` to an ambient directory and has the `dbus-run-session` stub echo the
+variable it was given; before the fix it recorded the ambient path.
+
+**Cause:** `_render` copied `os.environ` into the child env and dropped only
+`WAYLAND_DISPLAY`, `DISPLAY`, `DESTDIR` and `MAKEFLAGS`, so `XDG_CONFIG_DIRS` passed through
+to `plasma-apply-colorscheme` and the session.
+
+**Fix:** drop `XDG_CONFIG_DIRS` from the child env too, so the session uses the system default
+search path and never the caller's config directories.
+
+**Validation gap:** unclear-invariant — the module promised the user's configuration is never
+touched but never said the XDG config search path was part of that, so the isolation guarantee
+had to be established before it could be pinned.
+
 ### `tests/test_desktoptheme.py::TestApplyDesktopTheme` fails when `XDG_CONFIG_DIRS` already names a session theme (found by the feature role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `make check` errors in `test_apply_lists_and_selects_the_theme` with
