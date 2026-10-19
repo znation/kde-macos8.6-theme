@@ -28,48 +28,6 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Checker unreadable-input mutations: manufacture a register, asset or reference that cannot be read so the checker's own diagnostic is observable (planned 2026-10-19 by the steward role; from the recurring `no-fake` validation gap in four Fixed entries)
-
-**Goal.** Four Fixed entries share one shape: a record checker reads an input that cannot be read
--- a register path that is a directory, a text asset under `theme/` that is a dangling symlink
-resolving inside the root, a register reference containing a NUL byte, or a reference to a test
-file that cannot be decoded -- and the read raises a bare `OSError`/`ValueError` that names
-neither the checker nor the offending row, aborting the check with an unrelated traceback. Each
-was confirmed only by hand-building a shim the suite did not have (its `no-fake` gap).
-`tests/support/checker_mutations.py` already manufactures the malformed register and theme inputs
-the shipped data never holds; extend it with the four unreadable-input shapes so confirming the
-next bug of this kind reuses the scratch fixture instead of a one-off.
-
-**From (the `no-fake` Fixed entries).**
-- `tests/placeholders.py` lets an unreadable register escape as a bare `OSError`.
-- `tests/placeholders.py` lets a dangling symlink inside `theme/` escape as a bare
-  `FileNotFoundError`.
-- `tests/invariants.py` lets a register reference with a NUL byte escape as an unrelated
-  exception.
-- `tests/invariants.py` lets a reference to an unreadable test file escape as an unrelated
-  exception.
-
-**Approach.**
-- `tests/support/checker_mutations.py`: teach `Scratch` to clean up a directory it wrote (its
-  `reset` only unlinks files today), then add four `Mutation` entries: `unreadable-register`
-  (replace the register path with a directory so `register_entries`' `OSError` arm fires;
-  diagnostic `cannot be read`), `dangling-symlink-inside-theme` (a text asset under `theme/`
-  symlinked to a missing path inside the root; diagnostic `cannot be read`),
-  `reference-with-nul-byte` (`_replace_first_reference` with a `\x00` in the path; diagnostic
-  `NUL byte`), and `unreadable-test-file` (point the first row's reference at a scratch file
-  written as undecodable bytes; diagnostic `cannot be read as Python`).
-- `tests/placeholders.py` and `tests/invariants.py`: add each new name to `REJECTION_SHAPES` in
-  the same commit, so `test_checker_mutations.py`'s two set-equality guards keep each checker's
-  boundary list and the mutation table in step.
-
-**Files touched.** `tests/support/checker_mutations.py`, `tests/placeholders.py`,
-`tests/invariants.py`.
-
-**Acceptance criteria.**
-- `tests/test_checker_mutations.py` drives each of the four new mutations, and each makes its
-  checker raise the named `AssertionError`; the two unreadable-read mutations fail if the
-  checker's `OSError` arm is removed.
-- The two `REJECTION_SHAPES` set-equality guards pass with the four new names.
-- `make check` is green.
+_None yet._
 
 ## Done

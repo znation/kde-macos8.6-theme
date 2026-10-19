@@ -47,6 +47,8 @@ REJECTION_SHAPES = (
     "marker-without-row",
     "row-without-file",
     "row-without-marker",
+    "unreadable-register",
+    "dangling-symlink-inside-theme",
 )
 
 # One register table row: ``| `path` | what it stands in for |``.

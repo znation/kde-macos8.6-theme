@@ -97,8 +97,9 @@ class Scratch:
 
     ``build`` copies the shipped ``tests/`` tree (so the real register's
     references resolve), creates one empty directory per ``theme/`` subsystem,
-    and copies the two shipped registers. ``reset`` restores the registers and
-    removes every file a mutation wrote, so one scratch serves the whole table.
+    and copies the two shipped registers. ``reset`` restores the registers,
+    removes every file or directory a mutation wrote, and restores a file a
+    mutation overwrote, so one scratch serves the whole table.
     """
 
     def __init__(self, root, invariants_text, placeholders_text):
@@ -106,6 +107,8 @@ class Scratch:
         self.invariants_text = invariants_text
         self.placeholders_text = placeholders_text
         self._written = []
+        self._directories = []
+        self._originals = {}
 
     @classmethod
     def build(cls, tmp):
@@ -136,9 +139,15 @@ class Scratch:
         return (self.root / INVARIANTS_REGISTER).read_text(encoding="utf-8")
 
     def reset(self):
+        for path in self._directories:
+            shutil.rmtree(path, ignore_errors=True)
+        self._directories = []
         for path in self._written:
             path.unlink(missing_ok=True)
         self._written = []
+        for path, data in self._originals.items():
+            path.write_bytes(data)
+        self._originals = {}
         self._write(INVARIANTS_REGISTER, self.invariants_text)
         self._write(PLACEHOLDERS_REGISTER, self.placeholders_text)
 
@@ -151,6 +160,35 @@ class Scratch:
     def write_repo_file(self, rel, text):
         """Write *text* at the repository-relative *rel* in the scratch root."""
         self._write(rel, text)
+
+    def write_directory(self, rel):
+        """Replace *rel* with an empty directory in the scratch root.
+
+        A checker that opens *rel* as a file then hits its ``OSError`` arm;
+        ``reset`` removes the directory again.
+        """
+        path = self.root / rel
+        if path.exists() or path.is_symlink():
+            path.unlink()
+        path.mkdir(parents=True, exist_ok=True)
+        self._directories.append(path)
+
+    def write_symlink(self, rel, target):
+        """Create a symlink at *rel* pointing at *target* in the scratch root."""
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.symlink_to(target)
+        self._written.append(path)
+
+    def write_bytes(self, rel, data):
+        """Write *data* at *rel*, restoring an overwritten file on ``reset``."""
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists():
+            self._originals.setdefault(path, path.read_bytes())
+        else:
+            self._written.append(path)
+        path.write_bytes(data)
 
     def _write(self, rel, text):
         path = self.root / rel
@@ -176,6 +214,20 @@ def _apply_malformed_row(scratch):
 
 def _apply_test_cell_without_reference(scratch):
     scratch.write_invariants(_strip_first_row_backticks(scratch.invariants_text))
+
+
+def _apply_unreadable_test_file(scratch):
+    """Point the first row at a scratch copy of a module made undecodable.
+
+    ``MUTANT_MODULE`` is a repository path that exists, so the stage
+    self-check's added-nonexistent-path guard stays satisfied; ``write_bytes``
+    overwrites the scratch copy (``reset`` restores it) with bytes no UTF-8
+    decode accepts, so the checker's decode arm fires by name.
+    """
+    scratch.write_bytes(MUTANT_MODULE, b"\xff\xfe\x00")
+    scratch.write_invariants(
+        _replace_first_reference(scratch.invariants_text, MUTANT_MODULE)
+    )
 
 
 def _apply_escaped_pipe(scratch):
@@ -249,6 +301,18 @@ INVARIANTS_MUTATIONS = (
         "no test reference",
         None,
     ),
+    Mutation(
+        "reference-with-nul-byte",
+        _reference_apply("tests/\x00mutant.py"),
+        "NUL byte",
+        None,
+    ),
+    Mutation(
+        "unreadable-test-file",
+        _apply_unreadable_test_file,
+        "cannot be read as Python",
+        None,
+    ),
     Mutation("escaped-pipe", _apply_escaped_pipe, None, _observe_escaped_pipe),
 )
 
@@ -265,6 +329,9 @@ ABSENT_ICON = "theme/icons/org.macos8.desktop/32x32/places/inode-directory.svg"
 KVCONFIG = "theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig"
 LAYOUT = "theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
 AURORAE_DESKTOPRC = "theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc"
+# An existing theme text asset; the mutation replaces the scratch copy with a
+# symlink to a missing sibling so the marker scanner's read arm fires.
+DANGLING_LINK = "theme/aurorae/themes/org.macos8.desktop/metadata.desktop"
 
 
 def _placeholder_acceptance(asset, description):
@@ -310,10 +377,30 @@ def _apply_row_without_marker(scratch):
     )
 
 
+def _apply_unreadable_register(scratch):
+    scratch.write_directory(PLACEHOLDERS_REGISTER)
+
+
+def _apply_dangling_symlink(scratch):
+    scratch.write_symlink(DANGLING_LINK, "missing.desktop")
+
+
 PLACEHOLDER_MUTATIONS = (
     Mutation("marker-without-row", _apply_marker_without_row, "has no row", None),
     Mutation("row-without-file", _apply_row_without_file, "does not exist", None),
     Mutation("row-without-marker", _apply_row_without_marker, "carries no", None),
+    Mutation(
+        "unreadable-register",
+        _apply_unreadable_register,
+        "cannot be read",
+        None,
+    ),
+    Mutation(
+        "dangling-symlink-inside-theme",
+        _apply_dangling_symlink,
+        "cannot be read",
+        None,
+    ),
     Mutation(
         "kvconfig-marker",
         _placeholder_acceptance(KVCONFIG, "a Kvantum widget style"),

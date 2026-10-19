@@ -44,6 +44,8 @@ REJECTION_SHAPES = (
     "trailing-segment",
     "empty-qualifier",
     "local-base-that-only-looks-like-a-test-case",
+    "reference-with-nul-byte",
+    "unreadable-test-file",
 )
 
 SECTION = re.compile(r"^##\s+(?P<name>.+?)\s*$")
