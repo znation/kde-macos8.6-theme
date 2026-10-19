@@ -11,6 +11,9 @@ from __future__ import annotations
 
 import xml.etree.ElementTree as ET
 
+from support import containment
+from support.repo_root import ROOT
+
 
 class SvgCase:
     """Mixin: parse `SVG_PATH` once per test into `self.tree`.
@@ -22,4 +25,11 @@ class SvgCase:
     SVG_PATH = None
 
     def setUp(self):
+        # A shipped SVG is contributor-supplied, and a checked-in symlink at
+        # its path can point at a private file; `ET.parse` reads the target,
+        # and the widget assertions echo attribute values (a fill, a path's
+        # `d`) into a failing test's diagnostic, so following such a symlink
+        # would leak that file's content. A path that resolves outside the
+        # repository is refused before it is opened.
+        containment.require_within_repo(self.SVG_PATH, ROOT)
         self.tree = ET.parse(self.SVG_PATH)
