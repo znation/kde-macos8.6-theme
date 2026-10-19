@@ -1331,8 +1331,8 @@ row 21 is the `#000000` title-bar bottom outline. `aboutsystem_betawiki.png` (re
 window chrome one row per row at `y=25..46`: row 25 the top outline, rows 26..45 the pinstripes,
 row 46 the bottom outline. So the render's rows `0..21` map to the reference's rows `25..46`.
 The pinstripes are horizontal, so the x offset does not matter as long as both crops stay clear of
-the close box and the centered title text: the reference's close box face is x=11..22 with its
-`#FFFFFF` highlight at x=23, and the title text is centered near x=180. The strip `x=30..109,
+the close box and the centred title text: the reference's close box face is x=11..22 with its
+`#FFFFFF` highlight at x=23, and the title text is centred near x=180. The strip `x=30..109,
 y=0..21` of the render is byte-identical to `x=30..109, y=25..46` of the reference (0 differing
 pixels of 1760, max channel delta 0); the same render compared to `y=24..45` or `y=26..47` fails,
 so the one-row alignment is pinned by the test.
