@@ -22,8 +22,10 @@ REFERENCE_DESKTOP = os.path.join(
     ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
 )
 
-# The Setup Assistant list selection (Colors:Selection) was sampled from this
-# retail 8.6 PNG. It is stored with Git LFS too.
+# The Setup Assistant's "Introduction" title banner (Colors:Selection) was
+# sampled from this retail 8.6 PNG: the flat #CCCCFF band at y=61..85, under
+# the #000000 rule at y=59 and the #FFFFFF highlight at y=60. It is stored
+# with Git LFS too.
 REFERENCE_FIRSTBOOT = os.path.join(
     ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
@@ -41,7 +43,7 @@ REFERENCE_SCROLLBAR = os.path.join(
 # anchor below the bound here must raise the matching constant, or its pixel
 # read fails the out-of-bounds check in ``pixel``.
 DESKTOP_ANCHOR_ROWS = 301  # deepest desktop anchor is (470, 300)
-FIRSTBOOT_ANCHOR_ROWS = 64  # the selection anchor is (200, 63)
+FIRSTBOOT_ANCHOR_ROWS = 81  # deepest firstboot anchor is (200, 80)
 SCROLLBAR_ANCHOR_ROWS = 471  # the trough anchor is (200, 470)
 
 
@@ -52,7 +54,8 @@ class TestReferenceAnchors(unittest.TestCase):
     only that the file is self-consistent: a wrong anchor, or a reference image
     swapped for a different one, passed unnoticed. Each point below was sampled
     from a retail PNG (``desktop_archiveorg8.6hd.png`` for the face/view/chrome
-    anchors, ``firstboot_betawiki.png`` for the selection anchor,
+    anchors, ``firstboot_betawiki.png`` for the Introduction-banner selection
+    anchor,
     ``setup_emaculation.png`` for the scroll-bar trough anchor) and is
     asserted against the scheme's own value, so the file and the reference image
     must agree. ``[Colors:Tooltip]`` has no reference screenshot in the set: it
@@ -134,11 +137,23 @@ class TestReferenceAnchors(unittest.TestCase):
         )
 
     def test_selection_background(self):
-        # The Setup Assistant's list selection is a full-width highlighted row;
-        # (200, 63) is inside the first row, clear of its label text.
+        # The Setup Assistant's "Introduction" title banner is a flat #CCCCFF
+        # band spanning roughly x=31..428, y=61..85, under the #000000 rule at
+        # y=59 and the #FFFFFF highlight at y=60. Pin the fill flat across the
+        # band, at points clear of its text.
+        for x, y in ((100, 63), (200, 63), (300, 63), (200, 80)):
+            with self.subTest(x=x, y=y):
+                self.assert_anchor_at(
+                    "Colors:Selection",
+                    "BackgroundNormal",
+                    x,
+                    y,
+                    path=REFERENCE_FIRSTBOOT,
+                )
+        # The scheme sets BackgroundAlternate to the same fill.
         self.assert_anchor_at(
             "Colors:Selection",
-            "BackgroundNormal",
+            "BackgroundAlternate",
             200,
             63,
             path=REFERENCE_FIRSTBOOT,

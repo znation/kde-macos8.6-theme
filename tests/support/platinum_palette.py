@@ -10,10 +10,13 @@ these values in the reference screenshots; the trough, painted from
 `[Colors:View] BackgroundAlternate`, is grounded by
 `test_colorscheme_reference.TestReferenceAnchors.test_view_background_alternate`
 in `setup_emaculation.png` and tied to the artwork by
-`test_desktoptheme_scrollbar.TestScrollbarReference`, and the tooltip face and
-the selection fill are KDE-required
-`[Colors:Tooltip]` and `[Colors:Selection]` roles no screenshot shows,
-pinned by the widget tests that draw them and by `test_colorscheme`.
+`test_desktoptheme_scrollbar.TestScrollbarReference`; the selection fill is
+grounded by
+`test_colorscheme_reference.TestReferenceAnchors.test_selection_background`
+in the Setup Assistant's Introduction banner (`firstboot_betawiki.png`) and
+tied to the artwork by the widget tests that draw it; only the tooltip face
+is a KDE-required `[Colors:Tooltip]` role no screenshot shows, pinned by the
+widget tests that draw it and by `test_colorscheme`.
 """
 
 from __future__ import annotations
@@ -42,7 +45,8 @@ TOOLTIP_FACE = "#FFFFCC"
 
 # The flat selection fill the menu and item-view artwork paints from
 # `[Colors:Selection] BackgroundNormal`, the same #CCCCFF the desktop theme's
-# listitem.svg and viewitem.svg draw.
+# listitem.svg and viewitem.svg draw and the Setup Assistant's Introduction
+# banner shows (firstboot_betawiki.png).
 SELECTION = "#CCCCFF"
 
 

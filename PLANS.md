@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Correct the `[Colors:Selection]` anchor's provenance: the reference region is the Setup Assistant's Introduction banner, not a list selection (planned 2026-10-19 by the plan role)
+_None yet._
+
+## Done
+
+### Correct the `[Colors:Selection]` anchor's provenance: the reference region is the Setup Assistant's Introduction banner, not a list selection (planned 2026-10-19 by the plan role) — done 2026-10-19
 
 **Goal.** `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background`
 grounds `[Colors:Selection] BackgroundNormal=204,204,255` in `firstboot_betawiki.png`, but its
@@ -80,8 +84,6 @@ banner's flat extent rather than a single pixel.
 - `macos8.6-screenshots/sources.txt`'s `firstboot_betawiki.png` entry names the selection anchor
   and `python3 tools/check_references.py` still accepts the record.
 - `make check` is green.
-
-## Done
 
 ### Ground the `[Colors:View] BackgroundAlternate` scroll-bar trough anchor in `setup_emaculation.png` (planned 2026-10-19 by the plan role) — done 2026-10-19
 
