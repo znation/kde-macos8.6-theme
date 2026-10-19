@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum progress bar: paint the reference's vertical gradient in `bar_meter_horizontal.svg` (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum progress bar: paint the reference's vertical gradient in `bar_meter_horizontal.svg` (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/bar_meter_horizontal.svg` paints its
 `bar-active` fill as a flat `#9B9BEA` face with a `#9A9A9A`/`#7878D1` bevel, sampled from the
@@ -85,8 +89,6 @@ column `#50527F` ((1816, 1238)). The boot2 fill rows at x=102, y=99..102 (`#7D7D
 - The header comment names `desktop_fandom.png` and the sampled pixels and no longer calls the
   fill a flat `#9B9BEA` face.
 - `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Platinum tab face: ground `widgets/tabbar.svg` in the System Profiler tabs (planned 2026-10-18 by the plan role) — done 2026-10-18
 

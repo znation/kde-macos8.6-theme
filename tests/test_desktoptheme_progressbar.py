@@ -16,6 +16,7 @@ from svg_assertions import (  # noqa: E402
     assert_corner_pixels,
     assert_edge_band_pixels,
     assert_hint_geometry,
+    assert_slice_pixels,
     assert_unique_ids,
     attribute_values,
     render_slices,
@@ -25,23 +26,61 @@ INACTIVE = "bar-inactive"
 ACTIVE = "bar-active"
 
 REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "boot2_betawiki.png")
+GRADIENT_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "desktop_fandom.png"
+)
 
 SHADOW = "#9A9A9A"
 TRACK_FACE = "#ADADAD"
 TRACK_LIGHT = "#B8B8B8"
-FILL_FACE = "#9B9BEA"
-FILL_LIGHT = "#7878D1"
 
-# Each colour with the boot2_betawiki.png pixel it is sampled from.
-REFERENCE_PIXELS = (
+# The fill's ten 1px rows, top to bottom, sampled from the interior column
+# x=1600 of the "Mac OS 30.4 MB" memory meter in desktop_fandom.png at image
+# rows 1230, 1232, ..., 1248 (2 image px per logical px).
+FILL_ROWS = (
+    "#515372",
+    "#666799",
+    "#8484BB",
+    "#B0B0EB",
+    "#CBCCFF",
+    "#B2B2E8",
+    "#8586BC",
+    "#66679B",
+    "#50527F",
+    "#24244D",
+)
+# The fill's flat 1px left/right edge columns, sampled at (1458, 1238) and
+# (1816, 1238); the right edge repeats FILL_ROWS[8].
+FILL_LEFT_EDGE = "#68688D"
+FILL_RIGHT_EDGE = "#50527F"
+
+# Each track colour with the boot2_betawiki.png pixel it is sampled from.
+TRACK_REFERENCE_PIXELS = (
     (SHADOW, (120, 99)),
     (TRACK_FACE, (120, 100)),
     (TRACK_LIGHT, (120, 102)),
-    (FILL_FACE, (102, 100)),
-    (FILL_LIGHT, (102, 101)),
 )
 
 TILE = 4
+
+
+def _band(rows, width, left_edge=None, right_edge=None):
+    """Return the {(x, y): colour} map for *rows* painted *width* px wide.
+
+    Each entry of *rows* is one 1px row, top to bottom. *left_edge* and
+    *right_edge* override the outer column of every row, matching the flat
+    edge columns the artwork paints over the gradient.
+    """
+    pixels = {
+        (x, y): rows[y] for y in range(len(rows)) for x in range(width)
+    }
+    if left_edge is not None:
+        for y in range(len(rows)):
+            pixels[(0, y)] = left_edge
+    if right_edge is not None:
+        for y in range(len(rows)):
+            pixels[(width - 1, y)] = right_edge
+    return pixels
 
 
 class TestProgressBar(NineSliceCase, unittest.TestCase):
@@ -63,54 +102,113 @@ class TestProgressBar(NineSliceCase, unittest.TestCase):
             extra={"hint-bar-size": ("0", "0", "10", "10")},
         )
 
-    def _assert_bar_pixels(self, prefix, face, light):
+    def _assert_track_pixels(self):
         slices = render_slices(self.tree)
-        assert_center_tile_is(self, slices, f"{prefix}-center", face, TILE)
-        assert_edge_band_pixels(
-            self, slices, f"{prefix}-top", "top", (SHADOW, face, face), TILE
+        assert_center_tile_is(
+            self, slices, f"{INACTIVE}-center", TRACK_FACE, TILE
         )
         assert_edge_band_pixels(
-            self, slices, f"{prefix}-bottom", "bottom", (face, face, light), TILE
+            self, slices, f"{INACTIVE}-top", "top", (SHADOW, TRACK_FACE, TRACK_FACE), TILE
         )
         assert_edge_band_pixels(
-            self, slices, f"{prefix}-left", "left", (SHADOW, face, face), TILE
+            self,
+            slices,
+            f"{INACTIVE}-bottom",
+            "bottom",
+            (TRACK_FACE, TRACK_FACE, TRACK_LIGHT),
+            TILE,
         )
         assert_edge_band_pixels(
-            self, slices, f"{prefix}-right", "right", (face, face, light), TILE
+            self, slices, f"{INACTIVE}-left", "left", (SHADOW, TRACK_FACE, TRACK_FACE), TILE
+        )
+        assert_edge_band_pixels(
+            self,
+            slices,
+            f"{INACTIVE}-right",
+            "right",
+            (TRACK_FACE, TRACK_FACE, TRACK_LIGHT),
+            TILE,
         )
         corners = {
-            "topleft": (SHADOW,) * 3 + (SHADOW, face, face) * 2,
-            "topright": (SHADOW,) * 3 + (face, face, light) * 2,
-            "bottomleft": (SHADOW, face, face) * 2 + (SHADOW, light, light),
-            "bottomright": (face, face, light) * 2 + (light,) * 3,
+            "topleft": (SHADOW,) * 3 + (SHADOW, TRACK_FACE, TRACK_FACE) * 2,
+            "topright": (SHADOW,) * 3
+            + (TRACK_FACE, TRACK_FACE, TRACK_LIGHT) * 2,
+            "bottomleft": (SHADOW, TRACK_FACE, TRACK_FACE) * 2
+            + (SHADOW, TRACK_LIGHT, TRACK_LIGHT),
+            "bottomright": (TRACK_FACE, TRACK_FACE, TRACK_LIGHT) * 2
+            + (TRACK_LIGHT,) * 3,
         }
         for name, expected in corners.items():
-            assert_corner_pixels(self, slices, f"{prefix}-{name}", expected)
+            assert_corner_pixels(self, slices, f"{INACTIVE}-{name}", expected)
+
+    def _assert_bar_pixels(self):
+        # Every fill tile is a run of the ten gradient rows, with the flat edge
+        # column painted over the outer column of the left, right and corner
+        # tiles.
+        tiles = {
+            "top": (FILL_ROWS[0:3], TILE, None, None),
+            "center": (FILL_ROWS[3:7], TILE, None, None),
+            "bottom": (FILL_ROWS[7:10], TILE, None, None),
+            "left": (FILL_ROWS[3:7], 3, FILL_LEFT_EDGE, None),
+            "right": (FILL_ROWS[3:7], 3, None, FILL_RIGHT_EDGE),
+            "topleft": (FILL_ROWS[0:3], 3, FILL_LEFT_EDGE, None),
+            "topright": (FILL_ROWS[0:3], 3, None, FILL_RIGHT_EDGE),
+            "bottomleft": (FILL_ROWS[7:10], 3, FILL_LEFT_EDGE, None),
+            "bottomright": (FILL_ROWS[7:10], 3, None, FILL_RIGHT_EDGE),
+        }
+        slices = render_slices(self.tree)
+        for name, (rows, width, left_edge, right_edge) in tiles.items():
+            assert_slice_pixels(
+                self,
+                slices,
+                f"{ACTIVE}-{name}",
+                _band(rows, width, left_edge, right_edge),
+            )
 
     def test_track_pixels(self):
-        self._assert_bar_pixels(INACTIVE, TRACK_FACE, TRACK_LIGHT)
+        self._assert_track_pixels()
 
     def test_fill_pixels(self):
-        self._assert_bar_pixels(ACTIVE, FILL_FACE, FILL_LIGHT)
+        self._assert_bar_pixels()
 
     def test_progressbar_colours(self):
-        # The hints use `style`, so the parsed `fill` set is exactly the five
-        # artwork colours.
+        # The hints use `style`, so the parsed `fill` set is exactly the three
+        # track colours plus the eleven distinct fill colours (the ten gradient
+        # rows and the left edge column; the right edge repeats FILL_ROWS[8]).
         self.assertEqual(
             attribute_values(self.tree, "fill"),
-            {SHADOW, TRACK_FACE, TRACK_LIGHT, FILL_FACE, FILL_LIGHT},
+            {SHADOW, TRACK_FACE, TRACK_LIGHT, *FILL_ROWS, FILL_LEFT_EDGE},
         )
 
 
 class TestProgressBarReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = REFERENCE
 
-    def test_colours_match_reference(self):
-        # Every colour the slice tests pin is the value of a boot-screen
+    def test_track_colours_match_reference(self):
+        # Every track colour the slice tests pin is the value of a boot-screen
         # progress bar pixel, not a guess.
-        for colour, (x, y) in REFERENCE_PIXELS:
+        for colour, (x, y) in TRACK_REFERENCE_PIXELS:
             with self.subTest(colour=colour, pixel=(x, y)):
                 self.assertEqual(hex_colour(self.pixel(x, y)), colour)
+
+
+class TestFillGradientReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = GRADIENT_REFERENCE
+    MAX_ROWS = 1250
+
+    def test_fill_rows_match_reference(self):
+        # The ten gradient rows are the interior column of the About This
+        # Computer memory meter, two image rows apart.
+        for index, colour in enumerate(FILL_ROWS):
+            y = 1230 + 2 * index
+            with self.subTest(row=index, pixel=(1600, y)):
+                self.assertEqual(hex_colour(self.pixel(1600, y)), colour)
+
+    def test_fill_edge_columns_match_reference(self):
+        edges = ((FILL_LEFT_EDGE, 1458), (FILL_RIGHT_EDGE, 1816))
+        for colour, x in edges:
+            with self.subTest(colour=colour, pixel=(x, 1238)):
+                self.assertEqual(hex_colour(self.pixel(x, 1238)), colour)
 
 
 if __name__ == "__main__":

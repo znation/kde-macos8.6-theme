@@ -4,22 +4,33 @@
      The bar PlasmaComponents.ProgressBar draws (and so the notification job
      progress, the task-manager progress overlay and the media controller): a
      sunken grey track, prefix "bar-inactive", across the full width, and a
-     lavender fill, prefix "bar-active", over the finished part. Both are the
-     same 1px sunken bevel on a 10x10 canvas: #9A9A9A shadow on the top row and
-     left column, a lower edge on the bottom row and right column (#B8B8B8
-     on the track, #7878D1 on the fill, darker than its face), and a flat
-     face inside (#ADADAD track, #9B9BEA fill). The shadow takes the top-right and bottom-left
-     pixels, the lower edge the bottom-right one. The nine-slice contract is a
-     3px border around a 4px centre tile; hint-bar-size makes the item 10px
-     tall.
+     lavender vertical gradient fill, prefix "bar-active", over the finished
+     part. Both are the same 10x10 canvas with a 3px border around a 4px
+     centre tile. The track is a 1px sunken bevel: #9A9A9A shadow on the top
+     row and left column, a lower edge on the bottom row and right column
+     (#B8B8B8, darker than its #ADADAD face), and a flat face inside.
+
+     The fill is the reference's ten-row vertical gradient. Its interior
+     column x=1600 has, at image rows 1230, 1232, 1234, 1236, 1238, 1240,
+     1242, 1244, 1246, 1248: #515372, #666799, #8484BB, #B0B0EB, #CBCCFF,
+     #B2B2E8, #8586BC, #66679B, #50527F, #24244D, sampled from
+     macos8.6-screenshots/desktop_fandom.png (2 image px per logical px), the
+     "Mac OS 30.4 MB" memory meter of the About This Computer window. The
+     fill's 1px left edge column is #68688D (1458, 1238) and its 1px right edge
+     column #50527F (1816, 1238); both are painted flat down the bar's full
+     height. The boot2_betawiki.png fill pixels at (102,99..102) (#7D7D9A,
+     #9B9BEA, #7878D1, #83839D) are the same gradient downscaled, so the two
+     references agree. The reference's 1px #000000 outline and its ~12px total
+     height are not drawn: the bar keeps the 10px canvas. The nine-slice
+     contract is a 3px border around a 4px centre tile; hint-bar-size makes
+     the item 10px tall.
 
      Provenance: macos8.6-screenshots/boot2_betawiki.png, the "Starting Up"
      bar, a 0.375x thumbnail of the 640x480 screen. At (120,99) the track
      shadow is #9A9A9A, at (120,100) its face #ADADAD, at (120,102) its light
-     edge #B8B8B8; at (102,100) the fill face is #9B9BEA and at (102,101) its
-     dark edge #7878D1. The thumbnail cannot resolve the bar's pixel
-     geometry: the 1px sunken bevel, the 10px height and the 3px borders are
-     recorded design choices, not sampled values. -->
+     edge #B8B8B8. The thumbnail cannot resolve the bar's pixel geometry: the
+     1px sunken bevel, the 10px height and the 3px borders are recorded design
+     choices, not sampled values. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10">
   <!-- Nine-slice hints: tile size, border margins and the bar height. KSvg
        reads their geometry, not their colour. -->
@@ -75,44 +86,60 @@
     <rect x="2" width="1" height="3" fill="#B8B8B8"/>
   </g>
 
-  <!-- bar-active: the fill. -->
+  <!-- bar-active: the fill, one 1px rect per gradient row, with the flat 1px
+       left/right edge columns painted over the outer column. -->
   <g id="bar-active-top" transform="translate(3,0)">
-    <rect width="4" height="3" fill="#9B9BEA"/>
-    <rect width="4" height="1" fill="#9A9A9A"/>
+    <rect y="0" width="4" height="1" fill="#515372"/>
+    <rect y="1" width="4" height="1" fill="#666799"/>
+    <rect y="2" width="4" height="1" fill="#8484BB"/>
   </g>
   <g id="bar-active-bottom" transform="translate(3,7)">
-    <rect width="4" height="3" fill="#9B9BEA"/>
-    <rect y="2" width="4" height="1" fill="#7878D1"/>
+    <rect y="0" width="4" height="1" fill="#66679B"/>
+    <rect y="1" width="4" height="1" fill="#50527F"/>
+    <rect y="2" width="4" height="1" fill="#24244D"/>
   </g>
   <g id="bar-active-left" transform="translate(0,3)">
-    <rect width="3" height="4" fill="#9B9BEA"/>
-    <rect width="1" height="4" fill="#9A9A9A"/>
+    <rect y="0" width="3" height="1" fill="#B0B0EB"/>
+    <rect y="1" width="3" height="1" fill="#CBCCFF"/>
+    <rect y="2" width="3" height="1" fill="#B2B2E8"/>
+    <rect y="3" width="3" height="1" fill="#8586BC"/>
+    <rect x="0" width="1" height="4" fill="#68688D"/>
   </g>
   <g id="bar-active-right" transform="translate(7,3)">
-    <rect width="3" height="4" fill="#9B9BEA"/>
-    <rect x="2" width="1" height="4" fill="#7878D1"/>
+    <rect y="0" width="3" height="1" fill="#B0B0EB"/>
+    <rect y="1" width="3" height="1" fill="#CBCCFF"/>
+    <rect y="2" width="3" height="1" fill="#B2B2E8"/>
+    <rect y="3" width="3" height="1" fill="#8586BC"/>
+    <rect x="2" width="1" height="4" fill="#50527F"/>
   </g>
   <g id="bar-active-center" transform="translate(3,3)">
-    <rect width="4" height="4" fill="#9B9BEA"/>
+    <rect y="0" width="4" height="1" fill="#B0B0EB"/>
+    <rect y="1" width="4" height="1" fill="#CBCCFF"/>
+    <rect y="2" width="4" height="1" fill="#B2B2E8"/>
+    <rect y="3" width="4" height="1" fill="#8586BC"/>
   </g>
   <g id="bar-active-topleft">
-    <rect width="3" height="3" fill="#9B9BEA"/>
-    <rect width="3" height="1" fill="#9A9A9A"/>
-    <rect width="1" height="3" fill="#9A9A9A"/>
+    <rect y="0" width="3" height="1" fill="#515372"/>
+    <rect y="1" width="3" height="1" fill="#666799"/>
+    <rect y="2" width="3" height="1" fill="#8484BB"/>
+    <rect x="0" width="1" height="3" fill="#68688D"/>
   </g>
   <g id="bar-active-topright" transform="translate(7,0)">
-    <rect width="3" height="3" fill="#9B9BEA"/>
-    <rect x="2" width="1" height="3" fill="#7878D1"/>
-    <rect width="3" height="1" fill="#9A9A9A"/>
+    <rect y="0" width="3" height="1" fill="#515372"/>
+    <rect y="1" width="3" height="1" fill="#666799"/>
+    <rect y="2" width="3" height="1" fill="#8484BB"/>
+    <rect x="2" width="1" height="3" fill="#50527F"/>
   </g>
   <g id="bar-active-bottomleft" transform="translate(0,7)">
-    <rect width="3" height="3" fill="#9B9BEA"/>
-    <rect y="2" width="3" height="1" fill="#7878D1"/>
-    <rect width="1" height="3" fill="#9A9A9A"/>
+    <rect y="0" width="3" height="1" fill="#66679B"/>
+    <rect y="1" width="3" height="1" fill="#50527F"/>
+    <rect y="2" width="3" height="1" fill="#24244D"/>
+    <rect x="0" width="1" height="3" fill="#68688D"/>
   </g>
   <g id="bar-active-bottomright" transform="translate(7,7)">
-    <rect width="3" height="3" fill="#9B9BEA"/>
-    <rect y="2" width="3" height="1" fill="#7878D1"/>
-    <rect x="2" width="1" height="3" fill="#7878D1"/>
+    <rect y="0" width="3" height="1" fill="#66679B"/>
+    <rect y="1" width="3" height="1" fill="#50527F"/>
+    <rect y="2" width="3" height="1" fill="#24244D"/>
+    <rect x="2" width="1" height="3" fill="#50527F"/>
   </g>
 </svg>
