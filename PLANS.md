@@ -28,7 +28,51 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 grey menu body: ground `widgets/background.svg` in the open Apple menu (planned 2026-10-18 by the plan role)
+
+**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/background.svg` paints the body of every
+`PlasmaComponents.Menu` (context menus and combo-box dropdowns), `Drawer`, `Popup` and planar
+applet container as a flat `#FFFFFF` face, and its comment justifies that with
+`[Colors:View] BackgroundNormal`. But the open Apple menu in the retail screenshot
+`macos8.6-screenshots/desktop_archiveorg8.6hd.png` — the same image
+`tests/test_colorscheme_reference.py::TestReferenceAnchors` samples the menu-bar face from — has a
+flat `#DDDDDD` body, the Platinum face, not white. Ship the reference's grey menu body and pin it
+to the reference pixels.
+
+**Reference.** The Apple menu is open in `desktop_archiveorg8.6hd.png`, dropping from the top-left
+(its body spans roughly x=6..160, y=16..355). The menu's empty right margin, clear of item text and
+icons, is flat `#DDDDDD`: (150, 60) = (221, 221, 221) and (150, 200) = (221, 221, 221). The Finder
+window's content in the same image is white at (470, 300) — already the `[Colors:View]` anchor —
+so the menu body is a distinct grey, not the View background. (The image is stored with Git LFS,
+so a clone without it must skip this test, as `test_colorscheme_reference` does.)
+
+**Approach.**
+- `widgets/background.svg`: change the face — the centre tile and the interiors of the four edge
+tiles — from `#FFFFFF` to `#DDDDDD`, keeping the 1px `#000000` outline and the 3px/10px nine-slice
+contract. Rewrite the header comment's face paragraph: the body is the Platinum grey `#DDDDDD`
+sampled from the open Apple menu in `desktop_archiveorg8.6hd.png`, not `[Colors:View]`; drop the
+"flat white" wording.
+- `tests/test_desktoptheme_background.py`: `test_background_pixels` passes `FACE` instead of
+`WHITE` to `assert_face_bevel`; `test_background_colours` expects `{BLACK, FACE}`; import `FACE`
+from `support.platinum_palette` (it is already `#DDDDDD`). Add a reference case, mirroring the
+`ReferenceScreenshotMixin` use in `tests/test_desktoptheme_panel.py` and
+`tests/test_desktoptheme_menubaritem.py`, whose `REFERENCE` is
+`macos8.6-screenshots/desktop_archiveorg8.6hd.png` and which asserts `pixel(150, 60)` and
+`pixel(150, 200)` are `(221, 221, 221)`, skipping when the LFS image is not materialized.
+- `README.md`: the `widgets/background.svg` sentence at the desktop-theme paragraph says the
+Platinum grey menu body instead of "the flat white Platinum body".
+- `docs/invariants.md`: the desktop-themes `background.svg` row's guarantee ("draws the Platinum
+menu body") still holds; no provenance exception is needed now that the face is reference-sampled.
+
+**Acceptance criteria.**
+- `background.svg`'s parsed fill set is exactly `{#000000, #DDDDDD}`, its 10x10 centre and four
+edge tiles are `#DDDDDD`, and its outline is 1px `#000000` with no bevel.
+- The new reference test asserts the two `#DDDDDD` pixels from `desktop_archiveorg8.6hd.png` and
+skips when the image is missing, exactly as the other reference-screenshot cases do.
+- `background.svg`'s comment names the reference and the sampled pixels and no longer derives the
+face from `[Colors:View]`.
+- README.md no longer calls the menu body white.
+- `make check` is green.
 
 ## Done
 
