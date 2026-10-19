@@ -12,6 +12,30 @@ _None yet._
 
 ## Fixed
 
+### `tools/url_check.py` accepts an empty bracketed host (`file://[]`) as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `None` for `file://[]/x`, `file://[]` and
+`file://[]:80/x`, so `tools/check_references.py` would accept a `sources.txt`
+row citing any of them as a well-formed absolute URL. RFC 3986 makes a
+bracketed host an IP-literal, and an empty one (`[]`) is not an IP-literal, so
+each is malformed while the provenance check reported it clean.
+
+**Cause:** `_authority_host` treated an empty bracketed host (`host` empty
+inside `[...]`) as "no host" and returned no problem; `url_problem` then let it
+through because `file` is the one scheme allowed an empty host. The empty-host
+allowance, meant for `file:///path`, swallowed the malformed bracketed form.
+
+**Fix:** `_authority_host` now runs the IP-literal check on the bracketed host
+unconditionally, so an empty bracketed host is rejected with "must bracket an
+IPv6 or IPvFuture address" before the scheme's empty-host rule is consulted.
+
+**Test:** `tests/test_url_check.py::TestBracketedHosts` gained the `file://[]`
+forms (the class failed on `file://[]/x` before the fix and passes after).
+
+**Validation gap:** unclear-invariant -- the module docstring said `[]` is not a
+host, but I had to reconstruct how the `file`-only empty-host allowance bypasses
+the bracketed-host check to confirm the acceptance was a bug and not intended.
+
 ### `tools/url_check.py` accepts an unbracketed host with non-reg-name characters (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `url_problem` returned `None` for `https://a<b>c.example/x`,

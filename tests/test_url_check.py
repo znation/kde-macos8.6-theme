@@ -130,6 +130,11 @@ class TestBracketedHosts(unittest.TestCase):
     def test_malformed_bracketed_hosts_are_rejected(self):
         for url in (
             "https://[]/x",
+            # ``file`` is the one scheme allowed an empty host, for
+            # ``file:///path``; an empty *bracketed* host is still malformed.
+            "file://[]/x",
+            "file://[]",
+            "file://[]:80/x",
             "https://[::1/x",
             "https://[not-an-ip]/x",
             "https://[::1]extra/x",

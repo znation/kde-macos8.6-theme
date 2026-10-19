@@ -103,7 +103,7 @@ def _authority_host(authority: str) -> tuple[str, str | None]:
             if not _is_port(hostport[end + 2 :]):
                 return "", "must put only digits in the port after the bracketed host"
         host = hostport[1:end]
-        if host and not _is_ip_literal(host):
+        if not _is_ip_literal(host):
             return "", "must bracket an IPv6 or IPvFuture address"
         return host, None
     if "[" in hostport or "]" in hostport:
