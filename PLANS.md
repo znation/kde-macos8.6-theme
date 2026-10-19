@@ -28,7 +28,68 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Platinum translucent applet background: ship `widgets/translucentbackground.svg` (planned 2026-10-18 by the plan role)
+
+**Goal.** `BasicAppletContainer.qml` — the Plasma applet container the desktop containment uses for
+applets placed on the desktop — picks its background from the applet's
+`effectiveBackgroundHints`: the `TranslucentBackground` bit resolves to
+`imagePath: "widgets/translucentbackground"`. The desktop theme ships no such file, so KSvg falls
+back to the default theme's Breeze `translucentbackground.svgz`, a rounded translucent rectangle
+that clashes with Platinum. Ship the Platinum body so those applet containers are Platinum too.
+
+**Grounding.** `/usr/lib/x86_64-linux-gnu/qt6/qml/org/kde/plasma/private/containmentlayoutmanager/BasicAppletContainer.qml`
+chooses the path in `background.imagePath`: `effectiveBackgroundHints & TranslucentBackground` →
+`widgets/translucentbackground`, else `& StandardBackground` → `widgets/background` (already
+shipped), else `""`. The same item sets `prefix: blurEnabled ? "blurred" : ""`; `blurEnabled`
+requires the `StandardBackground` bit, so a translucent-hint container reads the **unprefixed**
+elements. The installed applets that set the bit are those with `PlasmaCore.Types.DefaultBackground`
+(`= StandardBackground | TranslucentBackground`) — `org.kde.plasma.weather`, `org.kde.plasma.comic`
+and `org.kde.plasma.systemmonitor` each set `Plasmoid.backgroundHints: PlasmaCore.Types.DefaultBackground
+| PlasmaCore.Types.ConfigurableBackground`, and `BasicAppletContainer` tests `TranslucentBackground`
+first, so they take the translucent path. Mac OS 8.6 has no translucent applet surface: no reference
+screenshot shows one and every Platinum body is opaque, so the KDE-required translucent-hint surface
+takes the same opaque Platinum body as the standard hint. No new palette value: the file is a
+byte-identical copy of `widgets/background.svg` (the Platinum body the standard hint already draws),
+exactly as `solid/widgets/tooltip.svg` copies `widgets/tooltip.svg`.
+
+**Approach.**
+- Add `theme/desktop-themes/org.macos8.desktop/widgets/translucentbackground.svg`, byte-identical to
+`theme/desktop-themes/org.macos8.desktop/widgets/background.svg` (no header change, so the copy test
+compares bytes).
+- `tests/support/desktoptheme_paths.py`: add `TRANSLUCENT_BACKGROUND_SVG = os.path.join(PACKAGE,
+"widgets", "translucentbackground.svg")` beside `BACKGROUND_SVG`.
+- `tests/test_desktoptheme.py`: import `TRANSLUCENT_BACKGROUND_SVG`, add
+`("translucentbackground.svg", TRANSLUCENT_BACKGROUND_SVG, 16, 16)` to `SVG_CANVASES` (so the
+registry, canvas, id and self-containment tests cover it) and
+`os.path.join("widgets", "translucentbackground.svg")` to `TestInstall.INSTALLED_FILES`.
+- `tests/test_desktoptheme_background.py`: import `TRANSLUCENT_BACKGROUND_SVG` and add
+`test_translucent_copy_is_identical` to `TestBackground`, opening `BACKGROUND_SVG` and
+`TRANSLUCENT_BACKGROUND_SVG` in binary and asserting equal bytes (mirroring
+`TestTooltip::test_solid_copy_is_identical`).
+- `docs/invariants.md`: extend the desktop-themes `widgets/background.svg` row's guarantee to "…and
+its `widgets/translucentbackground.svg` copy is byte-identical." The row already names
+`TestBackground`, which holds the new test.
+- `README.md`: in the `widgets/background.svg` sentence, add that a byte-identical copy ships at
+`widgets/translucentbackground.svg`, where `BasicAppletContainer.qml` looks for a translucent-hint
+applet container's background.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/translucentbackground.svg`
+(new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`,
+`tests/test_desktoptheme_background.py`, `docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- `widgets/translucentbackground.svg` is byte-identical to `widgets/background.svg`, asserted by
+`TestBackground::test_translucent_copy_is_identical`.
+- `test_registry_covers_every_shipped_svg` passes with the new file in `SVG_CANVASES`, and
+`test_root_canvas_matches_the_artwork_layout`, `test_every_svg_declares_unique_ids` and
+`test_every_svg_is_self_contained` cover it (its 16x16 canvas, unique ids, no style/script or
+external reference).
+- `TestInstall` still passes with the new file listed in `INSTALLED_FILES`.
+- `make check` exits 0, including `tests/test_readme_theme_files.py` (the README prose names the
+file) and `tests/test_invariants.py`.
+- Removing `widgets/translucentbackground.svg` makes `test_translucent_copy_is_identical` fail (the
+open raises) and `test_registry_covers_every_shipped_svg` fail (the shipped set no longer equals
+the registry).
 
 ## Done
 
