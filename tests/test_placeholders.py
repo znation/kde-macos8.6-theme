@@ -193,6 +193,23 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "does not exist"):
             cross_check(tmp, register)
 
+    def test_cross_check_refuses_a_symlinked_register_that_escapes(self):
+        # `cross_check` echoes a register row's asset path in its AssertionError
+        # ("lists <asset>"), so a checked-in symlink at PLACEHOLDERS.md that
+        # resolves outside the repository must be refused before it is read
+        # rather than parsed and echoed. The private file sits under a second
+        # temp root, outside `tmp`, so the symlink escapes it.
+        private_root = make_tmp_dir(self)
+        private = private_root / "private.md"
+        private.write_text("| `secret-token` | classified |\n", encoding="utf-8")
+        tmp = make_tmp_dir(self)
+        register = tmp / "PLACEHOLDERS.md"
+        register.symlink_to(private)
+        with self.assertRaises(ValueError) as caught:
+            cross_check(str(tmp), str(register))
+        self.assertIn("resolves outside", str(caught.exception))
+        self.assertNotIn("secret-token", str(caught.exception))
+
 
 class TestRepositoryRegister(unittest.TestCase):
     """Cross-check the shipped theme against its register."""

@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import re
 
+from support import containment
 from support.repo_root import ROOT
 
 TOKEN = "PLACEHOLDER:"
@@ -171,8 +172,12 @@ def cross_check(root, register):
     Returns ``(markers, entries)`` so a caller can assert more; raises
     :class:`AssertionError` naming the first disagreement: a marked file with
     no row, a row whose path is missing, or a row whose file carries no marker.
+    A checked-in symlink at *register* that resolves outside *root* raises
+    ``ValueError`` before it is read, so its rows are never echoed in the
+    diagnostic.
     """
     found = markers(root)
+    containment.require_within_repo(register, root)
     entries = register_entries(register)
     for asset in sorted(found):
         if asset not in entries:

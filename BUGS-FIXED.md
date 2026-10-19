@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/placeholders.py`'s `cross_check` reads a symlinked `PLACEHOLDERS.md` bare (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** when `PLACEHOLDERS.md` is a checked-in symlink resolving outside the repository,
+`cross_check(ROOT, REGISTER)` opened it bare and parsed its table rows. A row matching the
+register's `| \`path\` | stands in for |` shape then reached an `AssertionError` that echoes the
+asset path (`"... lists <asset>, which does not exist"`), leaking a line of a private file into
+the failing test's diagnostic.
+
+**Reproduction:**
+`tests/test_placeholders.py::TestHelpers.test_cross_check_refuses_a_symlinked_register_that_escapes`
+symlinks a temp root's `PLACEHOLDERS.md` to a private file containing
+``| `secret-token` | classified |``; before the fix the `AssertionError` contained
+`secret-token`.
+
+**Cause:** `cross_check` passed its `register` straight to `register_entries`, which opened it
+with a bare `open(path, encoding="utf-8")`; nothing checked that a repository register still
+resolved inside the repository.
+
+**Fix:** `cross_check` now calls `support.containment.require_within_repo(register, root)` before
+reading the register, so a path lexically inside `root` that resolves outside it raises
+`ValueError` before any row is parsed. A register outside `root` (a test's temporary file) is
+unaffected.
+
+**Validation gap:** no-fake — the leak needed a manufactured private file plus a symlinked
+register that the suite did not previously build.
+
 ### `tests/invariants.py`'s `cross_check` reads a symlinked register bare (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** when the register path handed to `cross_check` is a checked-in symlink that
