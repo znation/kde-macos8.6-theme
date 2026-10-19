@@ -9,21 +9,36 @@ false phrase.
 from __future__ import annotations
 
 import os
-import re
+import tempfile
+import time
 import unittest
 
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
 
 
-HEADER_COMMENT = re.compile(r"<!--(.*?)-->", re.DOTALL)
+# The literal delimiters of an SVG/XML comment. The body is scanned with
+# ``str.find`` rather than a ``<!--(.*?)-->`` regular expression: that lazy
+# expression is quadratic when the closing ``-->`` is absent from a file with
+# many ``<!--`` starts, because ``search`` retries at every start and rescans
+# to the end of the file. A contributor-supplied artwork of a few hundred
+# kilobytes would stall `make check` for minutes; finding the first opening
+# and then the next closing is one left-to-right pass.
+_COMMENT_OPEN = "<!--"
+_COMMENT_CLOSE = "-->"
 
 
 def header_comment(path):
     """Return the leading XML comment of an SVG file, or "" when absent."""
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
-    match = HEADER_COMMENT.search(text)
-    return match.group(1) if match else ""
+    start = text.find(_COMMENT_OPEN)
+    if start == -1:
+        return ""
+    start += len(_COMMENT_OPEN)
+    end = text.find(_COMMENT_CLOSE, start)
+    if end == -1:
+        return ""
+    return text[start:end]
 
 
 class TestProvenance(unittest.TestCase):
@@ -45,6 +60,27 @@ class TestProvenance(unittest.TestCase):
                 comment = header_comment(path)
                 self.assertIn(required, comment)
                 self.assertNotIn(forbidden, comment)
+
+
+class TestHeaderCommentScanning(unittest.TestCase):
+    def test_header_comment_finishes_promptly_on_a_hostile_file(self):
+        # A contributor-supplied SVG with many ``<!--`` starts and no closing
+        # ``-->`` makes a ``<!--(.*?)-->`` regex rescan to the end of the file
+        # at every start: quadratic time, so this ~24 KB file takes seconds
+        # and a real artwork could stall `make check` for minutes. The scanner
+        # must find no comment and finish well inside a generous bound.
+        text = "<!--" * 6000
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "hostile.svg")
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write(text)
+            started = time.monotonic()
+            comment = header_comment(path)
+            elapsed = time.monotonic() - started
+        self.assertEqual(comment, "")
+        self.assertLess(
+            elapsed, 1.0, f"scanning {len(text)} bytes took {elapsed:.3f}s"
+        )
 
 
 if __name__ == "__main__":
