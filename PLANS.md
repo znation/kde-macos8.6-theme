@@ -28,7 +28,49 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Prove the beta `aboutsystem_betawiki.png` window chrome matches the retail `systemprofiler_betawiki.png` (planned 2026-10-19 by the plan role)
+
+**Goal.** `macos8.6-screenshots/sources.txt` labels `aboutsystem_betawiki.png` "Mac OS 8.6b2c4LB
+beta", and the README's reference policy says beta builds "must not be used as retail
+reference" — yet `tests/test_render_surface.py` (the render fidelity gate) and
+`tests/support/aurorae_fixtures.py` (the Aurorae decoration tests) read that file. The retail
+`systemprofiler_betawiki.png` shows the same window chrome, and this run verified the title-bar
+strip, the left and right frame borders, and the close and collapse boxes are byte-identical
+between the two (0 differing pixels over 1760, 1272, 1272, 169 and 169 pixels). Add a test that
+pins that equality, so the beta is an evidence-backed proxy instead of an unrecorded policy
+exception, and record the exception in the docs.
+
+**Approach.**
+- New `tests/test_aurorae_reference_equivalence.py`: a `unittest.TestCase` that loads both PNGs
+  with `tools.png.read_png`/`pixel_at` and asserts these five regions are pixel-for-pixel equal,
+  skipping when either Git-LFS image is not materialized (use
+  `support.reference_image.skip_unless_materialized`, the way `ReferenceImageCase` does):
+  - title bar: aboutsystem `(30, 25, 80, 22)` vs profiler `(232, 22, 80, 22)`;
+  - left border: `(7, 47, 6, 212)` vs `(209, 44, 6, 212)`;
+  - right border: `(354, 47, 6, 212)` vs `(808, 44, 6, 212)`;
+  - close box: `(11, 29, 13, 13)` vs `(213, 26, 13, 13)`;
+  - collapse box: `(343, 29, 13, 13)` vs `(797, 26, 13, 13)`.
+  Each region is a window-relative crop (`aboutsystem`'s window origin is `(7, 25)`, the
+  profiler's `(209, 22)`, a `(+202, -3)` shift), so the test also records why those two origins
+  differ.
+- `docs/invariants.md`: add a row to the aurorae section naming the new test as the one that
+  pins the beta reference's chrome against the retail screenshot.
+- `macos8.6-screenshots/sources.txt` and the README "Reference screenshots" section: record that
+  `aboutsystem_betawiki.png` is a beta used as a window-chrome proxy, backed by this test, and
+  that the render gate's bottom-border crop (aboutsystem `(13, 419, 308, 6)`) stays on the beta
+  because the System Profiler window's bottom differs (its sunken content field and bottom
+  scrollbar) and the set has no other lossless retail window-bottom crop.
+
+**Files touched.** `tests/test_aurorae_reference_equivalence.py` (new), `docs/invariants.md`,
+`macos8.6-screenshots/sources.txt`, `README.md`.
+
+**Acceptance criteria.**
+- The new test passes with both LFS images materialized and skips cleanly when they are not.
+- A one-pixel change in any of the five regions of either image makes the test fail (prove it by
+  mutating a copy in the test itself, never the reference file).
+- `docs/invariants.md`'s aurorae section names the test, and `tests/test_invariants.py` stays
+  green.
+- `make check` passes.
 
 ## Done
 
