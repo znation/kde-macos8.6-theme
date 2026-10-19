@@ -1,7 +1,7 @@
 """Well-formedness check for the absolute source URLs in the provenance record.
 
 ``url_problem`` explains why a URL is not a well-formed absolute URL, and
-``is_absolute_url`` is its yes/no form. ``tools/check_references.py`` calls
+``is_absolute_url`` is its yes/no form. ``tools/reference_validation.py`` calls
 ``url_problem`` to validate each ``sources.txt`` entry.
 """
 

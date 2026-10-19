@@ -2,8 +2,8 @@
 
 :func:`run_logged` supervises one command with a timeout and a log file;
 :func:`exit_on_termination` makes SIGTERM and SIGHUP unwind the caller's
-``finally`` blocks. ``tools/render_surface.py`` uses both around the KWin
-session.
+``finally`` blocks. ``tools/render_surface.py`` and ``tools/apply_theme.py``
+use both around the external commands they run.
 """
 
 from __future__ import annotations

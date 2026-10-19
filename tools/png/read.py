@@ -10,10 +10,10 @@ modules: ``tools/png/image.py`` (``PngError``, ``Image``, ``pixel_at``),
 Paeth delta table). ``tools/png/write.py`` is its minimal inverse, and
 ``tools/png/__init__.py`` re-exports this module's public names.
 
-The fidelity comparison in ``tools/fidelity_metrics.py`` and the CLI in
-``tools/fidelity.py`` are the consumers today; keeping the reader separate
-lets a future capture or render step read PNGs without pulling in the
-comparison and CLI layers.
+The CLI in ``tools/fidelity.py``, the sampler in ``tools/sample.py``, the
+renderer in ``tools/render_surface.py`` and the wallpaper generator in
+``tools/make_wallpaper.py`` read PNGs through it today; keeping the reader
+separate lets each do so without pulling in the comparison and CLI layers.
 
 Raises :class:`PngError` for a malformed or unsupported PNG.
 """

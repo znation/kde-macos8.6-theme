@@ -1,7 +1,7 @@
 """The raster-format signatures the tools recognize by their leading bytes.
 
 ``tools/png/read.py`` names a wrong-format file when :func:`decode_png` is handed
-one, and ``tools/check_references.py`` decides whether a file on disk is an
+one, and ``tools/reference_validation.py`` decides whether a file on disk is an
 image at all. Both recognize the same formats from the same signatures, so the
 signatures and the detection live here once instead of in each tool, where
 they could drift apart.
