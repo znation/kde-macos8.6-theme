@@ -79,6 +79,7 @@ blank guarantee cell fails `make check`.
 | The SVG ships each frame element's centre and eight slices. | `tests/test_kvantum_svg.py::TestSvg` | none |
 | Each indicator arrow draws its pinned triangle and its per-state fill. | `tests/test_kvantum_svg.py::TestSvg` | none |
 | Each check box and radio button interior draws its pinned child shapes in document order. | `tests/test_kvantum_svg.py::TestSvg` | none |
+| The check box face is the reference's raised Platinum square. | `tests/test_kvantum_checkbox_reference.py::TestCheckBoxReference` | The reference's check box is a beta build (`aboutsystem_betawiki.png`, `systeminfo_betawiki.png`); no retail screenshot shows a check box. |
 | Each slider cursor, progress-bar pattern, splitter grip and grip interior draws its pinned child shapes in document order. | `tests/test_kvantum_svg.py::TestSvg` | none |
 
 ## look-and-feel

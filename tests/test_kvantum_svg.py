@@ -126,9 +126,20 @@ def _drawing_elements(element):
 # black/white fill swap (both are in the palette, so `assert_fill_palette`
 # cannot see it) would pass. Pin each state's child drawing elements (tag and
 # attributes) in document order, the way `TestIconGeometry` pins the icon art.
+# The check box face is the reference's raised Platinum square: a 1px
+# #000000 outline, a #FFFFFF top/left highlight, a #DDDDDD face and a 1px
+# #888888 bottom/right shadow, with the top-right and bottom-left corners
+# left the face colour (the reference's bevel shadow is #888888, darker than
+# the #999999 the other raised faces use, so it is a named extra below rather
+# than part of PLATINUM_FILLS).
+CHECKBOX_SHADOW = "#888888"
 _CHECKBOX_FACE = (
     _rect("0", "0", "14", "14", "#000000"),
-    _rect("1", "1", "12", "12", "#FFFFFF"),
+    _rect("1", "1", "12", "12", "#DDDDDD"),
+    _rect("1", "1", "11", "1", "#FFFFFF"),
+    _rect("1", "1", "1", "11", "#FFFFFF"),
+    _rect("12", "2", "1", "11", CHECKBOX_SHADOW),
+    _rect("2", "12", "11", "1", CHECKBOX_SHADOW),
 )
 _CHECKBOX_CHECK = (
     _rect("3", "7", "2", "2", "#000000"),
@@ -322,7 +333,7 @@ class TestSvg(unittest.TestCase):
         assert_fill_palette(
             self,
             self.tree,
-            extra=frozenset({TROUGH, TOOLTIP_FACE, SELECTION}),
+            extra=frozenset({TROUGH, TOOLTIP_FACE, SELECTION, CHECKBOX_SHADOW}),
         )
 
     def test_has_no_scripts_styles_external_refs_or_duplicate_ids(self):
