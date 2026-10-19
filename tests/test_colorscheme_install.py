@@ -18,6 +18,7 @@ from support.theme_install import (
     installed_color_scheme,
     installed_color_scheme_dir,
     installed_destdir,
+    make_env,
     run_captured,
     shadow_command_env,
     staging_sibling,
@@ -48,6 +49,21 @@ def uninstall_with_config(tmp, config, extra=()):
     return uninstall(
         tmp, extra=extra, env=dict(os.environ, XDG_CONFIG_HOME=config)
     )
+
+
+def write_home_config(home, text):
+    """Create `<home>/.config/kdeglobals` holding *text*.
+
+    The XDG default for `XDG_CONFIG_HOME` is `$HOME/.config`; a test that
+    leaves `XDG_CONFIG_HOME` unset puts the user's `kdeglobals` here.
+    """
+    config = os.path.join(home, ".config")
+    os.makedirs(config, exist_ok=True)
+    with open(
+        os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
+    ) as handle:
+        handle.write(text)
+    return config
 
 
 def install_renamed_scheme(case, tmp, filename):
@@ -293,6 +309,48 @@ class TestInstall(unittest.TestCase):
 
         assert_succeeded(self, removed)
         self.assertIn("is still selected", removed.stderr)
+
+    def test_make_uninstall_reads_the_home_config_when_xdg_is_unset(self):
+        # XDG_CONFIG_HOME is unset, so the warning must resolve the config home
+        # the way the XDG spec does, as `$HOME/.config`, and find the selection
+        # there; without the fallback it silently misses a still-selected
+        # scheme and KDE falls back to BreezeLight.
+        with installed_destdir(self, packages="color-scheme") as tmp:
+            home = os.path.join(tmp, "home")
+            write_home_config(home, "[General]\nColorScheme=MacOS8\n")
+            env = make_env("XDG_CONFIG_HOME", "HOME")
+            env["HOME"] = home
+            removed = uninstall(tmp, env=env)
+
+        assert_succeeded(self, removed)
+        self.assertIn("is still selected", removed.stderr)
+
+    def test_make_uninstall_ignores_a_relative_xdg_config_home(self):
+        # A relative XDG_CONFIG_HOME names no absolute config home, so the
+        # recipe must ignore it and fall back to `$HOME/.config`; reading
+        # `relative/config/kdeglobals` under the repository would miss the
+        # selection in the user's real config home.
+        with installed_destdir(self, packages="color-scheme") as tmp:
+            home = os.path.join(tmp, "home")
+            write_home_config(home, "[General]\nColorScheme=MacOS8\n")
+            env = make_env("XDG_CONFIG_HOME", "HOME")
+            env["HOME"] = home
+            env["XDG_CONFIG_HOME"] = "relative/config"
+            removed = uninstall(tmp, env=env)
+
+        assert_succeeded(self, removed)
+        self.assertIn("is still selected", removed.stderr)
+
+    def test_make_uninstall_without_a_config_home_does_not_warn(self):
+        # With neither an absolute XDG_CONFIG_HOME nor an absolute HOME there
+        # is no config home to read, so the warning must be skipped rather
+        # than read a path built from an empty variable.
+        with installed_destdir(self, packages="color-scheme") as tmp:
+            env = make_env("XDG_CONFIG_HOME", "HOME")
+            removed = uninstall(tmp, env=env)
+
+        assert_succeeded(self, removed)
+        self.assertNotIn("is still selected", removed.stderr)
 
 
 @unittest.skipUnless(
