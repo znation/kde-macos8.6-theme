@@ -346,6 +346,22 @@ def _resolved(parser, section, key):
     return None
 
 
+def _assert_pins_resolve(case, table):
+    """Assert every *table* pin resolves to its expected value.
+
+    The core-control, track/value, surface and frameless tables all map a
+    `.kvconfig` section to the keys it pins and the string each must resolve
+    to; each test walks its table the same way, so this names that walk once.
+    *case* is the calling ``TestCase``, so a mismatch fails against the right
+    test.
+    """
+    parser = read_kde_config(KVCONFIG)
+    for section, expected in table.items():
+        for key, value in expected.items():
+            with case.subTest(section=section, key=key):
+                case.assertEqual(_resolved(parser, section, key), value)
+
+
 class TestGeneralColors(unittest.TestCase):
     def setUp(self):
         self.kvconfig = read_kde_config(KVCONFIG)
@@ -437,33 +453,21 @@ class TestCoreControlElements(unittest.TestCase):
         self.assertEqual(set(CORE_FRAME_MARGINS) - covered, set())
 
     def test_every_core_control_section_maps_to_its_element(self):
-        parser = read_kde_config(KVCONFIG)
-        for section, expected in CORE_CONTROL_CONFIG.items():
-            for key, value in expected.items():
-                with self.subTest(section=section, key=key):
-                    self.assertEqual(_resolved(parser, section, key), value)
+        _assert_pins_resolve(self, CORE_CONTROL_CONFIG)
 
 
 class TestTrackAndValueElements(unittest.TestCase):
     """Pin which SVG element each track/value control section draws."""
 
     def test_every_track_and_value_section_maps_to_its_element(self):
-        parser = read_kde_config(KVCONFIG)
-        for section, expected in TRACK_CONTROL_CONFIG.items():
-            for key, value in expected.items():
-                with self.subTest(section=section, key=key):
-                    self.assertEqual(_resolved(parser, section, key), value)
+        _assert_pins_resolve(self, TRACK_CONTROL_CONFIG)
 
 
 class TestSurfaceElements(unittest.TestCase):
     """Pin which SVG element each container/text surface section draws."""
 
     def test_every_surface_section_maps_to_its_element(self):
-        parser = read_kde_config(KVCONFIG)
-        for section, expected in SURFACE_CONTROL_CONFIG.items():
-            for key, value in expected.items():
-                with self.subTest(section=section, key=key):
-                    self.assertEqual(_resolved(parser, section, key), value)
+        _assert_pins_resolve(self, SURFACE_CONTROL_CONFIG)
 
 
 class TestSectionCoverage(unittest.TestCase):
@@ -490,11 +494,7 @@ class TestSectionCoverage(unittest.TestCase):
         self.assertEqual(set(parser.sections()) - covered - metadata, set())
 
     def test_every_frameless_section_suppresses_its_frame(self):
-        parser = read_kde_config(KVCONFIG)
-        for section, expected in FRAMELESS_SECTIONS.items():
-            for key, value in expected.items():
-                with self.subTest(section=section, key=key):
-                    self.assertEqual(_resolved(parser, section, key), value)
+        _assert_pins_resolve(self, FRAMELESS_SECTIONS)
 
 
 class TestValueKeys(unittest.TestCase):
