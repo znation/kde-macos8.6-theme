@@ -361,6 +361,25 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "blank guarantee"):
             cross_check(self.root, register)
 
+    def test_cross_check_rejects_a_blank_provenance(self):
+        # The third column records the provenance exception or the literal
+        # "none"; a blank cell reads as an exception that was never written
+        # down. Reject it by name so the row cannot claim a guarantee while
+        # saying nothing about where its value came from.
+        register = self._register(
+            "# Invariants\n\n"
+            "## aurorae\n\n"
+            "| Guarantee | Test | Provenance exception |\n"
+            "| --- | --- | --- |\n"
+            f"| The thing holds. | `{self.MODULE}::TestFake` | |\n"
+            "\n## tooling\n\n"
+            + self._table(
+                [("The gate holds.", f"{self.MODULE}::TestFake::test_ok")]
+            )
+        )
+        with self.assertRaisesRegex(AssertionError, "blank provenance"):
+            cross_check(self.root, register)
+
     def test_cross_check_rejects_a_missing_test_file(self):
         self.assert_cross_check_rejects(
             "absent_module::TestFake", "missing file"

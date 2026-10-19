@@ -8,7 +8,7 @@ is not a `theme/` subsystem. `tests/invariants.py` cross-checks this file
 against the repository: a `theme/` subsystem with no section, a section naming
 no `theme/` subsystem or extra section, a repeated section heading, a row naming
 a test that does not exist, a row naming no test, a malformed table row, or a
-blank guarantee cell fails `make check`.
+blank guarantee or provenance-exception cell fails `make check`.
 
 ## aurorae
 

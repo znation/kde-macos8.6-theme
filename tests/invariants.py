@@ -9,7 +9,7 @@ when a section names no ``theme/`` subsystem or registered extra section, when
 a section heading repeats an earlier one, when a row names a test file, class or
 method that does not exist, when a row names a method that is not a test, when a
 row names a file that defines no test case, when a row names no test, or when a
-guarantee cell is blank.
+guarantee or provenance-exception cell is blank.
 
 ``tests/test_invariants.py`` drives these checks.
 """
@@ -294,8 +294,8 @@ def cross_check(root, register):
     subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
     a section that names neither a ``theme/`` subsystem nor an
     ``EXTRA_SECTIONS`` entry, a repeated section heading, an empty section, a
-    blank guarantee cell, a malformed table row, a data row that names no test,
-    a bare file reference
+    blank guarantee or provenance-exception cell, a malformed table row, a data
+    row that names no test, a bare file reference
     to a file that defines no test case, or an unresolvable test reference.
     """
     try:
@@ -340,6 +340,15 @@ def cross_check(root, register):
             if not row.tests:
                 raise AssertionError(
                     f"section {name} in {register} has a row with no test reference"
+                )
+            if not row.provenance:
+                # The third column records the provenance exception or the
+                # literal "none"; a blank cell reads as an exception that was
+                # never written down, so reject it by name instead of letting
+                # the row claim a guarantee while saying nothing about where
+                # its value came from.
+                raise AssertionError(
+                    f"section {name} in {register} has a blank provenance exception"
                 )
             for reference in row.tests:
                 check_reference(root, reference, name)
