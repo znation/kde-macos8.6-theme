@@ -67,8 +67,8 @@ class TestDecode(unittest.TestCase):
         image = png.decode_png(data)
         self.assertEqual(image.rgb, b"".join(rows))
 
-    def test_grayscale_all_filter_types(self):
-        # Color-type-0 grayscale is a single channel, so it exercises the
+    def test_greyscale_all_filter_types(self):
+        # Color-type-0 greyscale is a single channel, so it exercises the
         # one-channel Paeth path: a wrong first-pixel or carried-left value
         # would scramble the row rather than fail loudly.
         rows = [
@@ -96,9 +96,9 @@ class TestDecode(unittest.TestCase):
         expected = b"".join(palette[i * 3 : i * 3 + 3] for i in (0, 1, 254, 255))
         self.assertEqual(png.decode_png(data).rgb, expected)
 
-    def test_grayscale_and_rgba(self):
-        gray = make_png(2, 1, [bytes([7, 200])], color_type=0)
-        self.assertEqual(png.decode_png(gray).rgb, bytes([7, 7, 7, 200, 200, 200]))
+    def test_greyscale_and_rgba(self):
+        grey = make_png(2, 1, [bytes([7, 200])], color_type=0)
+        self.assertEqual(png.decode_png(grey).rgb, bytes([7, 7, 7, 200, 200, 200]))
         # Two pixels so dropping the alpha byte is checked across a stride
         # rather than only at the first pixel.
         rgba = make_png(2, 1, [bytes([1, 2, 3, 4, 5, 6, 7, 8])], color_type=6)
@@ -119,10 +119,10 @@ class TestDecode(unittest.TestCase):
         data = make_png(3, 5, rows, color_type=6, filter_types=[0, 1, 2, 3, 4])
         self.assertEqual(png.decode_png(data).rgb, rgb_from_rows(rows, 6))
 
-    def test_grayscale_alpha_ignores_alpha(self):
-        # color_type 4 is grayscale + alpha (2 bytes per pixel). It is the only
+    def test_greyscale_alpha_ignores_alpha(self):
+        # color_type 4 is greyscale + alpha (2 bytes per pixel). It is the only
         # supported color type with no decode test: the alpha byte must be
-        # dropped and each gray sample repeated across R, G and B. A wrong
+        # dropped and each grey sample repeated across R, G and B. A wrong
         # stride would silently emit scrambled pixels that poison a fidelity
         # score, so two pixels are used to exercise the stride.
         data = make_png(2, 1, [bytes([7, 200, 100, 50])], color_type=4)

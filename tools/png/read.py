@@ -67,9 +67,9 @@ _MAX_FILE_BYTES = 512 * 1024 * 1024
 def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
     if color_type == 2:  # truecolor RGB
         return samples
-    if color_type == 0:  # grayscale
+    if color_type == 0:  # greyscale
         return bytes(b for g in samples for b in (g, g, g))
-    if color_type == 4:  # grayscale + alpha, alpha ignored
+    if color_type == 4:  # greyscale + alpha, alpha ignored
         return bytes(b for i in range(0, len(samples), 2) for b in (samples[i],) * 3)
     if color_type == 3:  # palette
         if palette is None:

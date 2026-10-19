@@ -84,9 +84,9 @@ def rgb_from_rows(rows: list[bytes], color_type: int) -> bytes:
     """Return the RGB bytes `decode_png` should produce from raw *rows*.
 
     A test that builds scanlines for a non-RGB color type has to expand them
-    the way the decoder does before comparing. Color type 0 repeats each gray
+    the way the decoder does before comparing. Color type 0 repeats each grey
     sample across R, G and B; type 4 drops each pixel's alpha byte and repeats
-    the gray sample; type 6 drops each pixel's alpha byte; type 2 is already
+    the grey sample; type 6 drops each pixel's alpha byte; type 2 is already
     RGB and passes through. Type 3 (palette) is not expanded here because its
     output depends on the PLTE table, and an unsupported type is a fixture bug
     that is named rather than returning bytes no decode could match.
