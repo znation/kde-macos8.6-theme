@@ -131,6 +131,45 @@ class TestSubprocessTimeout(unittest.TestCase):
             process.pid, "child survived finish()'s timeout"
         )
 
+    def test_kill_process_group_falls_back_to_direct_kill(self):
+        """A failed group lookup must still kill the direct child.
+
+        ``_kill_process_group`` SIGKILLs the child's whole process group, but
+        ``os.getpgid`` can fail -- a ``ProcessLookupError`` when the child
+        exited in the race before the kill, or another ``OSError`` -- and the
+        fallback then signals the child directly. Pin that the fallback really
+        kills: with the group lookup forced to fail, the child must still be
+        SIGKILLed rather than left running.
+        """
+        process = process_runner.start(
+            [sys.executable, "-c", "import time; time.sleep(30)"],
+        )
+        try:
+            with unittest.mock.patch.object(
+                process_runner.os, "getpgid", side_effect=ProcessLookupError
+            ):
+                process_runner._kill_process_group(process)
+            self.assertEqual(process.wait(), -signal.SIGKILL)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+
+    def test_kill_process_group_tolerates_an_already_reaped_child(self):
+        """A child that already exited is not an error to kill.
+
+        The group lookup fails once the child is reaped, and the direct
+        signal is then a no-op because ``Popen.kill`` returns early for a
+        reaped process. ``_kill_process_group`` must return quietly instead of
+        letting the ``OSError`` escape into the caller's cleanup.
+        """
+        process = process_runner.start([sys.executable, "-c", "pass"])
+        process.wait()
+        with unittest.mock.patch.object(
+            process_runner.os, "getpgid", side_effect=ProcessLookupError
+        ):
+            process_runner._kill_process_group(process)
+
     def test_start_capture_output_pipes_the_streams(self):
         """`start` must expand `capture_output` into the two `Popen` pipes.
 
