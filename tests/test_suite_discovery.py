@@ -84,7 +84,7 @@ def _module_names(directory, predicate, prefix=""):
     ``discover -s tests`` recurses into every subdirectory that is a package
     (one holding ``__init__.py``), importing each module the pattern matches,
     so these guards walk the same tree. A module inside a package is named by
-    its dotted path (``svg_assertions.checks``); *prefix* is the dotted name of
+    its dotted path (``svg_assertions.pixels``); *prefix* is the dotted name of
     the package *directory* sits in and is empty at the top level. *predicate*
     takes a filename and decides whether its module is listed.
     """

@@ -1,10 +1,10 @@
-"""Direct tests for ``svg_assertions.checks``'s pixel-comparison assertions.
+"""Direct tests for ``svg_assertions.pixels``'s pixel-comparison assertions.
 
 Each widget test reaches these helpers only over its own current artwork, so a
 helper that mis-orders a band, mirrors the wrong sides or drops the size check
 could still pass every widget test. These tests pin the helpers on maps built
 independently of the artwork and prove each can fail. The layout assertions
-are tested in ``test_svg_assertions_checks.py``.
+are tested in ``test_svg_assertions_layout.py``.
 """
 
 from __future__ import annotations

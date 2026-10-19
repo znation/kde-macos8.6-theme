@@ -1,4 +1,4 @@
-"""Direct tests for ``svg_assertions.checks``'s layout assertions.
+"""Direct tests for ``svg_assertions.layout``'s layout and arc assertions.
 
 Every desktop-theme widget test reaches these helpers only over its own
 current artwork, so a helper that mis-orders a tile, drops a slice id or
