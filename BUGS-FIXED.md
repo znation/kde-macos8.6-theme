@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `make check`'s `CHECK_PATTERN` guard accepts a pattern with surrounding whitespace that then matches no test module (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `make check CHECK_PATTERN=' test_byteops.py '` passed the `require_check_pattern`
+guard, which trims leading whitespace only to test for an empty value, but the recipe handed the
+untrimmed glob to `unittest discover -p ' test_byteops.py '`. The glob matches no file, so the run
+executes nothing: interpreters before 3.12 exit 0 — the silent green suite the guard was added to
+prevent — and 3.12 and newer exit 5 with only "NO TESTS RAN".
+
+**Reproduction:** `make -n check` with `CHECK_PATTERN=' test_byteops.py '` printed
+`-p ' test_byteops.py '` before the fix.
+`tests/test_make_check.py::TestCheckPattern.test_surrounding_whitespace_pattern_is_stripped`
+fails on the old recipe and passes on the new one.
+
+**Cause:** the guard trimmed a copy of the value for its emptiness check, but the recipe expanded
+`$(CHECK_PATTERN)` itself, so the value validated and the value run could differ by surrounding
+whitespace.
+
+**Fix:** the discovery recipe now hands `$(strip $(CHECK_PATTERN))` to `unittest discover`, so the
+guard's trimmed value is the value the run uses.
+
+**Validation gap:** no-repro — the untrimmed glob was visible in a `make -n` dry run, but the
+silent-green symptom needs an interpreter before 3.12; on the installed 3.13 the same glob fails
+loudly with NO TESTS RAN, so the guard's gap was confirmed from the dry run and the version guard
+rather than from the failure itself.
+
 ### `make uninstall`'s color-scheme warning reads the first duplicate `ColorScheme` key, not the last (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** when `[General]` in `$XDG_CONFIG_HOME/kdeglobals` repeats the `ColorScheme` key,

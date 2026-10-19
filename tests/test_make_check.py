@@ -25,15 +25,18 @@ class TestCheckPattern(unittest.TestCase):
     nested suite run.
     """
 
-    def _dry_run(self, *extra):
+    def _dry_run(self, *extra, env=None):
         # A caller's `make check CHECK_PATTERN=...` reaches the recipe both as
         # a CHECK_PATTERN environment variable and as a command-line variable
         # definition inside MAKEFLAGS; the child `make` re-reads the latter and
         # would otherwise use the ambient pattern for the default case.
         # `make_env` drops both so each case pins the pattern it means to; a
         # command-line assignment passed below still overrides the Makefile
-        # default.
-        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        # default. A case that needs an environment value `make` would not
+        # preserve in a command-line assignment (surrounding whitespace)
+        # passes its own `env`.
+        if env is None:
+            env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
         result = theme_install.run_make(["-n", "check", *extra], env=env)
         assert_succeeded(self, result)
         return result.stdout
@@ -68,6 +71,18 @@ class TestCheckPattern(unittest.TestCase):
         result = theme_install.run_make(["check"], env=env)
         assert_failed(self, result)
         self.assertIn("CHECK_PATTERN must name", result.stderr)
+
+    def test_surrounding_whitespace_pattern_is_stripped(self):
+        # The guard trims leading whitespace to spot a whitespace-only value,
+        # but the recipe used to hand the untrimmed glob to `unittest
+        # discover`, so `-p ' test_byteops.py '` matched no file: a silent
+        # green run on interpreters before 3.12 (which the version guard
+        # accepts), and a "NO TESTS RAN" failure on newer ones. The recipe
+        # must strip the pattern so the value the guard validates and the
+        # value the run uses are the same.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        env["CHECK_PATTERN"] = " test_byteops.py "
+        self.assertIn("-p 'test_byteops.py'", self._dry_run(env=env))
 
     def test_tests_variable_runs_the_named_specs(self):
         # CHECK_TESTS names a module, class or method directly, which the
