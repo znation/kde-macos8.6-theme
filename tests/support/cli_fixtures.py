@@ -9,6 +9,8 @@ module import per assertion. The script entry point itself stays covered once
 per CLI by a ``test_script_entry_point``.
 """
 
+from __future__ import annotations
+
 import contextlib
 import io
 import os
