@@ -97,17 +97,19 @@ class TestReportFailure(unittest.TestCase):
             status = diagnostics.report_failure("apply_theme", message, log)
         return status, stderr.getvalue()
 
-    def _cr_preceded_log(self, body):
-        """Write *body* padded to one tail window, preceded by ``f\\r``.
+    def _window_preceded_log(self, preceding, body):
+        """Write *body* padded to one tail window, preceded by *preceding*.
 
-        The window's first byte then lands exactly on ``body[0]`` with a
-        ``\\r`` immediately before it, so a test can pin how that carriage
-        return at the window's left edge is treated.
+        The window's first byte then lands exactly on ``body[0]`` with
+        *preceding*'s last byte immediately before it, so a test can pin how
+        the byte at the window's left edge is treated.
         """
         body += b"x" * (diagnostics._LOG_TAIL_BYTES - len(body))
         log = make_tmp_dir(self) / "cmd.log"
-        log.write_bytes(b"f\r" + body)
-        self.assertEqual(log.stat().st_size, diagnostics._LOG_TAIL_BYTES + 2)
+        log.write_bytes(preceding + body)
+        self.assertEqual(
+            log.stat().st_size, len(preceding) + diagnostics._LOG_TAIL_BYTES
+        )
         return log
 
     def test_prefixes_the_tool_name_and_returns_one(self):
@@ -194,7 +196,7 @@ class TestReportFailure(unittest.TestCase):
         # break, so that byte is a line boundary too: the window's first line
         # is complete and must not be dropped as a partial one. Build a log
         # whose byte immediately before the read window is exactly `\r`.
-        log = self._cr_preceded_log(b"FIRST\nSECOND\nTHIRD\n")
+        log = self._window_preceded_log(b"f\r", b"FIRST\nSECOND\nTHIRD\n")
         status, err = self._report("command failed", log)
         self.assertEqual(status, 1)
         self.assertIn("  FIRST\n", err)
@@ -204,10 +206,21 @@ class TestReportFailure(unittest.TestCase):
         # yields an empty first element there, but that empty line is the tail
         # of the break whose `\r` lies outside the window -- not a log line --
         # so it must be dropped like any other partial first line.
-        log = self._cr_preceded_log(b"\nFIRST\nSECOND\nTHIRD\n")
+        log = self._window_preceded_log(b"f\r", b"\nFIRST\nSECOND\nTHIRD\n")
         status, err = self._report("command failed", log)
         self.assertEqual(status, 1)
         self.assertEqual(err.splitlines()[1], "  FIRST")
+
+    def test_tail_window_starting_at_a_line_boundary_keeps_its_first_line(self):
+        # A window can begin exactly at a line boundary: the byte just before
+        # it is the `\n` that ended the previous line. That byte is a break,
+        # so the window's first line is complete and must be kept; without the
+        # `previous == b"\n"` arm it is read as a partial first line and a
+        # complete line is dropped from the diagnostic.
+        log = self._window_preceded_log(b"f\n", b"FIRST\nSECOND\nTHIRD\n")
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertIn("  FIRST\n", err)
 
     def test_an_exotic_break_byte_inside_a_line_does_not_split_it(self):
         # Only CR and LF end a log line. `str.splitlines` also breaks on a
