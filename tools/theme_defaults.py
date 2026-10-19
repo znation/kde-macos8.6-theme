@@ -3,7 +3,9 @@
 The ``defaults`` file names each target config file in the first bracket pair
 of a section heading (``[kwinrc][org.kde.kdecoration2]``). :func:`defaults_groups`
 parses those sections; :func:`write_configs` writes them out as plain INI files
-in a config home.
+in a config home. The file is read as ``utf-8-sig``: a leading UTF-8 BOM (an
+editor artifact) is stripped rather than folded into the first heading, where
+it would make that heading unrecognizable and silently drop its keys.
 """
 
 from __future__ import annotations
@@ -32,11 +34,14 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     that is neither a plain ``[group]`` nor a complete ``[file][group]`` -- a
     mistyped bracket or trailing text after the closing ``]`` -- raises
     ``ValueError`` naming it, so its keys cannot silently vanish from the
-    written config.
+    written config. The file is decoded as ``utf-8-sig``, so a leading UTF-8
+    BOM is stripped instead of being folded into the first heading, where it
+    would make that heading match neither pattern and silently drop its
+    section.
     """
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
-    for raw in path.read_text(encoding="utf-8").splitlines():
+    for raw in path.read_text(encoding="utf-8-sig").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue

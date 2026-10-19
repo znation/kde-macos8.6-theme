@@ -32,6 +32,26 @@ class TestDefaultsGroups(unittest.TestCase):
             theme_defaults.defaults_groups(path),
         )
 
+    def test_strips_a_leading_utf8_bom_before_the_first_heading(self):
+        # An editor may save the contributor-supplied defaults file with a
+        # UTF-8 BOM. Decoding as plain utf-8 folds the BOM into the first
+        # heading, which then matches neither heading pattern and is silently
+        # skipped -- dropping the whole section from the written config (the
+        # render's kwinrc would lose its decoration theme). utf-8-sig strips
+        # the leading BOM so the first section parses like the rest.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_bytes(
+            b"\xef\xbb\xbf[kwinrc][org.kde.kdecoration2]\ntheme=x\n"
+            b"[plasmarc][Theme]\nname=y\n"
+        )
+        self.assertEqual(
+            {
+                ("kwinrc", "org.kde.kdecoration2"): {"theme": "x"},
+                ("plasmarc", "Theme"): {"name": "y"},
+            },
+            theme_defaults.defaults_groups(path),
+        )
+
     def test_skips_a_bare_line_inside_a_section(self):
         # A hand-edited defaults file can carry a stray line with no "="
         # inside a [file][group] section. The guard skips it; without it
