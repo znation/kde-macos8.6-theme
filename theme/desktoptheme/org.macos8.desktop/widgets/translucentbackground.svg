@@ -6,10 +6,10 @@
      combo-box dropdowns), a Drawer, a Popup, and a planar applet container.
      Before `widgets/background.svg` existed the theme shipped no menu body
      and those surfaces inherited Breeze's translucent rounded
-     `background.svgz`; this is the Platinum grey menu body instead. A
-     byte-identical copy ships at `widgets/translucentbackground.svg`, where
-     `BasicAppletContainer.qml` looks for a translucent-hint applet
-     container's background.
+     `background.svgz`; this is the Platinum grey menu body instead. Two
+     byte-identical files carry it, `widgets/background.svg` and
+     `widgets/translucentbackground.svg` (where `BasicAppletContainer.qml`
+     looks for a translucent-hint applet container's background).
 
      Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
      canvas, square corners. The body is the Platinum grey #DDDDDD face
