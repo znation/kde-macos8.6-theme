@@ -279,5 +279,66 @@ class TestFlockTimeout(unittest.TestCase):
         self.assertTrue(os.path.isfile(scheme), result.stderr)
 
 
+class TestInstallPackages(unittest.TestCase):
+    """`INSTALL_PACKAGES` must narrow `_install` to the named families.
+
+    Each artifact suite passes `packages=` so its install copies only its own
+    family. That filter is invisible to those suites: each asserts only its
+    own artifact, which an unfiltered install would also produce. Pin it here
+    by installing one family and asserting every other family's directory is
+    absent.
+    """
+
+    def test_one_family_installs_only_that_family(self):
+        tmp = str(make_tmp_dir(self))
+        assert_succeeded(
+            self,
+            theme_install.install(tmp, packages="color-scheme"),
+        )
+        scheme = theme_install.installed_color_scheme(tmp)
+        self.assertTrue(os.path.isfile(scheme), scheme)
+        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        other_dirs = [
+            theme_install.installed_plasma_dir(tmp, "look-and-feel"),
+            theme_install.installed_plasma_dir(tmp, "desktoptheme"),
+            theme_install.installed_aurorae_dir(tmp),
+            theme_install.installed_wallpaper_dir(tmp),
+            theme_install.installed_icons_dir(tmp),
+            os.path.join(data_home, "themes", "org.macos8.desktop", "Kvantum"),
+        ]
+        for path in other_dirs:
+            self.assertFalse(os.path.exists(path), path)
+
+
+class TestInstallPackagesGuard(unittest.TestCase):
+    """An empty `INSTALL_PACKAGES` must be refused, not install nothing.
+
+    `?=` keeps an empty value from the environment, and `_install`'s guards
+    then filter every family out: `make install` creates the data home, copies
+    nothing, and exits 0. Refuse it with a diagnostic naming INSTALL_PACKAGES,
+    before the data home exists.
+    """
+
+    def test_empty_is_refused_before_creating_the_data_home(self):
+        tmp = make_tmp_dir(self)
+        env = theme_install.make_env("INSTALL_PACKAGES")
+        env["INSTALL_PACKAGES"] = ""
+        result = theme_install.run_make(
+            [
+                "install",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+            ],
+            env=env,
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "INSTALL_PACKAGES must name at least one artifact family",
+            result.stderr,
+        )
+        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        self.assertFalse(os.path.exists(data_home), data_home)
+
+
 if __name__ == "__main__":
     unittest.main()

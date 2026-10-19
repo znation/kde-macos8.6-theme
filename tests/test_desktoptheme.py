@@ -231,6 +231,7 @@ class TestInstall(
     FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
 ):
     KIND = "desktoptheme"
+    MAKE_PACKAGES = "desktop-theme"
     PACKAGE_ID = DTHEME_ID
     PACKAGE_DIR = PACKAGE
     INSTALLED_FILES = (

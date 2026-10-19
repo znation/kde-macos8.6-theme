@@ -87,6 +87,7 @@ class TestInstall(
     FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
 ):
     KIND = "aurorae"
+    MAKE_PACKAGES = "aurorae"
     PACKAGE_ID = AURORAE_ID
     PACKAGE_DIR = AURORAE_DIR
     INSTALLED_FILES = (

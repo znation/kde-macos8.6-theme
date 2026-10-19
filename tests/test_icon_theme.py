@@ -306,6 +306,7 @@ class TestIconGeometry(unittest.TestCase):
 
 class TestInstall(InstallLifecycleCases, unittest.TestCase):
     PACKAGE_ID = ICON_ID
+    MAKE_PACKAGES = "icon-theme"
     PACKAGE_DIR = PACKAGE
     INSTALLED_FILES = ("index.theme",) + SHIPPED_ICONS
 

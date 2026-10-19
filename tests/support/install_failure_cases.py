@@ -83,7 +83,7 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         `_snapshot`'s (installed, metadata, good) triple.
         """
         tmp = str(make_tmp_dir(self))
-        assert_succeeded(self, install(tmp))
+        assert_succeeded(self, install(tmp, packages=self.MAKE_PACKAGES))
         return (tmp, *self._snapshot(tmp))
 
     def _assert_package_intact(self, installed, metadata, good):
@@ -96,6 +96,9 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
     # copy runs after an earlier family's sets its own pattern. `None` fails
     # the first copy.
     COPY_FAILURE_GLOB = None
+    # The `INSTALL_PACKAGES` family this suite installs, so the install copies
+    # only its own package instead of all seven.
+    MAKE_PACKAGES = None
 
     def reinstall_failure_env(self, tmp):
         """Environment whose `cp` fails while copying this package."""
@@ -137,7 +140,11 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         )
         os.rename(installed, old)
 
-        result = install(tmp, env=self.reinstall_failure_env(tmp))
+        result = install(
+            tmp,
+            env=self.reinstall_failure_env(tmp),
+            packages=self.MAKE_PACKAGES,
+        )
         assert_failed(self, result)
         self._assert_package_intact(installed, metadata, good)
 
@@ -150,7 +157,11 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         """
         tmp, installed, metadata, good = self._install_ok()
 
-        result = install(tmp, env=self.reinstall_failure_env(tmp))
+        result = install(
+            tmp,
+            env=self.reinstall_failure_env(tmp),
+            packages=self.MAKE_PACKAGES,
+        )
         assert_failed(self, result)
         self.assertFalse(
             os.path.exists(self._staging_path(tmp)),
@@ -168,7 +179,9 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         """
         tmp, installed, metadata, good = self._install_ok()
 
-        result = install(tmp, env=self.swap_failure_env(tmp))
+        result = install(
+            tmp, env=self.swap_failure_env(tmp), packages=self.MAKE_PACKAGES
+        )
         assert_failed(self, result)
         parent = self.installed_parent(tmp)
         for leaked in (

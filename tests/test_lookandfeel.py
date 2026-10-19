@@ -218,6 +218,7 @@ class TestInstall(
     FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
 ):
     KIND = "look-and-feel"
+    MAKE_PACKAGES = "look-and-feel"
     PACKAGE_ID = LNF_ID
     PACKAGE_DIR = PACKAGE
     INSTALLED_FILES = (
@@ -316,14 +317,14 @@ class TestInstall(
 
     def test_make_install_prunes_files_removed_from_the_package(self):
         """A reinstall must replace the package, not merge into the old one."""
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="look-and-feel") as tmp:
             stale = os.path.join(
                 installed_package(tmp, "look-and-feel", LNF_ID),
                 "contents", "removed.qml",
             )
             with open(stale, "w", encoding="utf-8") as handle:
                 handle.write("// deleted from the package\n")
-            second = install(tmp)
+            second = install(tmp, packages="look-and-feel")
             assert_succeeded(self, second)
             self.assertFalse(os.path.exists(stale), stale)
 

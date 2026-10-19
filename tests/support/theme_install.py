@@ -70,12 +70,17 @@ def _run(target, destdir, extra=(), env=None):
     )
 
 
-def install(destdir, extra=(), env=None):
+def install(destdir, extra=(), env=None, packages=None):
     """Run `make install` rooted at `destdir`; returns the CompletedProcess.
 
     `extra` appends make variable assignments (e.g. `COLOR_SCHEME=...`); `env`
-    replaces the environment, for tests that shadow a tool on PATH.
+    replaces the environment, for tests that shadow a tool on PATH. `packages`
+    narrows the install to one `INSTALL_PACKAGES` family (`look-and-feel`), so
+    a test of one artifact does not copy the other six; the default installs
+    every family.
     """
+    if packages is not None:
+        extra = (*extra, f"INSTALL_PACKAGES={packages}")
     return _run("install", destdir, extra, env)
 
 

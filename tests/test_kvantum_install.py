@@ -40,7 +40,7 @@ class TestPackage(unittest.TestCase):
 
 class TestInstall(unittest.TestCase):
     def test_make_install_copies_both_files_byte_for_byte(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="kvantum") as tmp:
             installed = _installed_dir(tmp)
             for name in SHIPPED_FILES:
                 assert_files_identical(
@@ -51,8 +51,8 @@ class TestInstall(unittest.TestCase):
                 )
 
     def test_make_install_is_repeatable(self):
-        with installed_destdir(self) as tmp:
-            assert_succeeded(self, install(tmp))
+        with installed_destdir(self, packages="kvantum") as tmp:
+            assert_succeeded(self, install(tmp, packages="kvantum"))
 
     def test_failed_install_keeps_the_previous_files(self):
         """A copy that dies partway must not damage the installed Kvantum files.
@@ -63,7 +63,7 @@ class TestInstall(unittest.TestCase):
         shell loop distinct from `install_package`, so its `|| exit 1` and EXIT
         trap need their own failure case.
         """
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="kvantum") as tmp:
             installed = _installed_dir(tmp)
             good = {}
             for name in SHIPPED_FILES:
@@ -87,7 +87,7 @@ class TestInstall(unittest.TestCase):
                 "esac\n"
                 'exec "%s" "$@"\n' % real_install,
             )
-            result = install(tmp, env=env)
+            result = install(tmp, env=env, packages="kvantum")
             assert_failed(self, result)
             for name in SHIPPED_FILES:
                 staging = os.path.join(installed, f".{name}.staging")
@@ -103,7 +103,7 @@ class TestInstall(unittest.TestCase):
                     )
 
     def test_make_uninstall_removes_the_installed_files(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="kvantum") as tmp:
             installed = _installed_dir(tmp)
             self.assertTrue(os.path.isdir(installed), installed)
             assert_succeeded(self, uninstall(tmp))
@@ -114,7 +114,7 @@ class TestInstall(unittest.TestCase):
             assert_succeeded(self, again)
 
     def test_make_uninstall_removes_staging_leftovers(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="kvantum") as tmp:
             installed = _installed_dir(tmp)
             staging = [
                 os.path.join(installed, f".{name}.staging")

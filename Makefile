@@ -69,6 +69,20 @@ KVANTUM_ID := org.macos8.desktop
 KVANTUM_PACKAGE := theme/kvantum/$(KVANTUM_ID)
 KVANTUM_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(KVANTUM_ID)/Kvantum
 
+# The artifacts `_install` copies, as families. A caller can narrow the install
+# to the families it needs (`make install INSTALL_PACKAGES=look-and-feel`), so a
+# test of one artifact does not copy all seven; the default installs every
+# family and keeps the full install. The color scheme is a family of its own
+# even though it is one file.
+INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum
+
+# INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
+# value (`?=` keeps one from the environment) filters every family out, so the
+# run creates the data home and exits 0 having copied nothing -- a green
+# install that installed nothing. Refuse an empty or whitespace-only value with
+# a diagnostic that names INSTALL_PACKAGES. $(1) names the target.
+require_install_packages = set -- "$(INSTALL_PACKAGES)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in '') echo "$(1): INSTALL_PACKAGES must name at least one artifact family, not an empty or whitespace-only value: '$$1'" >&2; exit 2;; esac
+
 # Stage a directory package as a sibling, then swap it in with a rename, so a
 # copy that fails or is interrupted cannot leave a partial package installed or
 # delete the working one. The old package is moved aside rather than deleted
@@ -193,6 +207,7 @@ help:
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
+	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
@@ -279,37 +294,47 @@ run_locked = flock -w $(FLOCK_TIMEOUT) -E $(FLOCK_CONFLICT_EXIT) "$(DATA_HOME)" 
 install:
 	@$(call require_data_home,install)
 	@$(call require_flock_timeout,install)
+	@$(call require_install_packages,install)
 	@install -d "$(DATA_HOME)"
 	@$(call run_locked,_install,install)
 
-_install:
-# Stage the scheme as a hidden sibling and rename it in, so a copy that fails
-# or is interrupted cannot truncate the working installed scheme. The rename
-# replaces atomically, and the EXIT trap removes the staging file on failure.
+# Stage the color scheme as a hidden sibling and rename it in, so a copy that
+# fails or is interrupted cannot truncate the working installed scheme. The
+# rename replaces atomically, and the EXIT trap removes the staging file on
+# failure.
+define install_color_scheme
 	@staging="$(INSTALL_DIR)/.$(COLOR_SCHEME_NAME).staging"; \
 	trap 'rm -f "$$staging"' EXIT; \
 	install -Dm644 "$(COLOR_SCHEME)" "$$staging" && \
 	mv "$$staging" "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"
-	install -d "$(LNF_INSTALL_DIR)"
-	$(call install_package,$(LNF_ID),$(LNF_PACKAGE),$(LNF_INSTALL_DIR))
-	install -d "$(DTHEME_INSTALL_DIR)"
-	$(call install_package,$(DTHEME_ID),$(DTHEME_PACKAGE),$(DTHEME_INSTALL_DIR))
-	install -d "$(AURORAE_INSTALL_DIR)"
-	$(call install_package,$(AURORAE_ID),$(AURORAE_PACKAGE),$(AURORAE_INSTALL_DIR))
-	install -d "$(WALLPAPER_INSTALL_DIR)"
-	$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR))
-	install -d "$(ICON_THEME_INSTALL_DIR)"
-	$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR))
-	install -d "$(KVANTUM_INSTALL_DIR)"
+endef
+
 # Stage each Kvantum theme file as a hidden sibling and rename it in, as the
 # color scheme does; the two files sit directly in the Kvantum/ directory, so
 # the package-directory swap does not fit.
+define install_kvantum
 	@for name in $(KVANTUM_ID).kvconfig $(KVANTUM_ID).svg; do \
 	  staging="$(KVANTUM_INSTALL_DIR)/.$$name.staging"; \
 	  trap 'rm -f "$$staging"' EXIT; \
 	  install -Dm644 "$(KVANTUM_PACKAGE)/$$name" "$$staging" && \
 	  mv "$$staging" "$(KVANTUM_INSTALL_DIR)/$$name" || exit 1; \
 	done
+endef
+
+_install:
+	$(if $(filter color-scheme,$(INSTALL_PACKAGES)),$(call install_color_scheme))
+	$(if $(filter look-and-feel,$(INSTALL_PACKAGES)),install -d "$(LNF_INSTALL_DIR)")
+	$(if $(filter look-and-feel,$(INSTALL_PACKAGES)),$(call install_package,$(LNF_ID),$(LNF_PACKAGE),$(LNF_INSTALL_DIR)))
+	$(if $(filter desktop-theme,$(INSTALL_PACKAGES)),install -d "$(DTHEME_INSTALL_DIR)")
+	$(if $(filter desktop-theme,$(INSTALL_PACKAGES)),$(call install_package,$(DTHEME_ID),$(DTHEME_PACKAGE),$(DTHEME_INSTALL_DIR)))
+	$(if $(filter aurorae,$(INSTALL_PACKAGES)),install -d "$(AURORAE_INSTALL_DIR)")
+	$(if $(filter aurorae,$(INSTALL_PACKAGES)),$(call install_package,$(AURORAE_ID),$(AURORAE_PACKAGE),$(AURORAE_INSTALL_DIR)))
+	$(if $(filter wallpaper,$(INSTALL_PACKAGES)),install -d "$(WALLPAPER_INSTALL_DIR)")
+	$(if $(filter wallpaper,$(INSTALL_PACKAGES)),$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR)))
+	$(if $(filter icon-theme,$(INSTALL_PACKAGES)),install -d "$(ICON_THEME_INSTALL_DIR)")
+	$(if $(filter icon-theme,$(INSTALL_PACKAGES)),$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR)))
+	$(if $(filter kvantum,$(INSTALL_PACKAGES)),install -d "$(KVANTUM_INSTALL_DIR)")
+	$(if $(filter kvantum,$(INSTALL_PACKAGES)),$(call install_kvantum))
 
 # Remove only the artifacts `install` copied: the parent directories are shared
 # (other color schemes, other look-and-feel/desktop-theme/Aurorae/wallpaper/icon

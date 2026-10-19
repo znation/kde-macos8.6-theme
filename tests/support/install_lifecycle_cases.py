@@ -37,9 +37,12 @@ class InstallLifecycleCases(InstalledPackageLocation):
 
     PACKAGE_DIR = None
     INSTALLED_FILES = ()
+    # The `INSTALL_PACKAGES` family this suite installs; a subclass sets it so
+    # the install copies only its own package instead of all seven.
+    MAKE_PACKAGES = None
 
     def test_make_install_copies_package_byte_for_byte(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages=self.MAKE_PACKAGES) as tmp:
             installed = self.installed_package_dir(tmp)
             for name in self.INSTALLED_FILES:
                 source = os.path.join(self.PACKAGE_DIR, name)
@@ -59,12 +62,12 @@ class InstallLifecycleCases(InstalledPackageLocation):
         self.assertEqual(shipped, set(self.INSTALLED_FILES))
 
     def test_make_install_is_repeatable(self):
-        with installed_destdir(self) as tmp:
-            second = install(tmp)
+        with installed_destdir(self, packages=self.MAKE_PACKAGES) as tmp:
+            second = install(tmp, packages=self.MAKE_PACKAGES)
             assert_succeeded(self, second)
 
     def test_make_uninstall_removes_the_installed_package(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages=self.MAKE_PACKAGES) as tmp:
             parent = self.installed_parent(tmp)
             package = self.installed_package_dir(tmp)
             self.assertTrue(os.path.isdir(package), package)

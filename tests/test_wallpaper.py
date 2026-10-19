@@ -146,6 +146,7 @@ class TestInstall(
     FailedInstallPreservesPackage, InstallLifecycleCases, unittest.TestCase
 ):
     KIND = "wallpapers"
+    MAKE_PACKAGES = "wallpaper"
     PACKAGE_ID = WALLPAPER_ID
     PACKAGE_DIR = PACKAGE
     INSTALLED_FILES = ("metadata.json",) + tuple(

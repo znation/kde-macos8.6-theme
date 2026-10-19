@@ -60,13 +60,13 @@ def install_renamed_scheme(case, tmp, filename):
     source = os.path.join(tmp, filename)
     shutil.copy(SCHEME, source)
     extra = [f"COLOR_SCHEME={source}"]
-    assert_succeeded(case, install(tmp, extra=extra))
+    assert_succeeded(case, install(tmp, extra=extra, packages="color-scheme"))
     return source, extra
 
 
 class TestInstall(unittest.TestCase):
     def test_make_install_copies_scheme_byte_for_byte(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             installed = installed_color_scheme(tmp)
             assert_files_identical(self, SCHEME, installed)
 
@@ -77,7 +77,7 @@ class TestInstall(unittest.TestCase):
         in, so a copy that fails or is interrupted leaves the working installed
         scheme intact.
         """
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             installed = installed_color_scheme(tmp)
             with open(installed, "rb") as handle:
                 good = handle.read()
@@ -100,7 +100,7 @@ class TestInstall(unittest.TestCase):
                 "esac\n"
                 'exec "%s" "$@"\n' % (real_install, real_install),
             )
-            result = install(tmp, env=env)
+            result = install(tmp, env=env, packages="color-scheme")
             assert_failed(self, result)
             self.assertFalse(
                 os.path.exists(
@@ -151,7 +151,7 @@ class TestInstall(unittest.TestCase):
         )
 
     def test_make_uninstall_removes_only_the_scheme_it_installed(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             schemes = installed_color_scheme_dir(tmp)
             other = os.path.join(schemes, "Other.colors")
             with open(other, "w", encoding="utf-8") as handle:
@@ -183,7 +183,7 @@ class TestInstall(unittest.TestCase):
         # user's kdeglobals; KDE then cannot resolve the id and falls back to
         # BreezeLight on every start. uninstall must warn and name the reset
         # command, without editing the user's config.
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             config = write_selected_scheme(tmp, "MacOS8")
             kdeglobals = os.path.join(config, "kdeglobals")
             original = "[General]\nColorScheme=MacOS8\n"
@@ -201,7 +201,7 @@ class TestInstall(unittest.TestCase):
                 )
 
     def test_make_uninstall_does_not_warn_for_a_different_selection(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             config = write_selected_scheme(tmp, "BreezeLight")
 
             removed = uninstall_with_config(tmp, config)
@@ -236,7 +236,7 @@ class TestInstall(unittest.TestCase):
         # KDE's config reader lets a later key override an earlier one, so a
         # kdeglobals with two ColorScheme lines selects the last. The warning
         # must read that value, not the first line.
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             removed = self._uninstall_with_kdeglobals(
                 tmp, "[General]\nColorScheme=BreezeLight\nColorScheme=MacOS8\n"
             )
@@ -247,7 +247,7 @@ class TestInstall(unittest.TestCase):
     def test_make_uninstall_does_not_warn_for_an_overridden_selection(self):
         # The inverse: an earlier MacOS8 overridden by a later BreezeLight
         # leaves KDE on BreezeLight, so uninstall must not warn.
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             removed = self._uninstall_with_kdeglobals(
                 tmp, "[General]\nColorScheme=MacOS8\nColorScheme=BreezeLight\n"
             )
@@ -260,7 +260,7 @@ class TestInstall(unittest.TestCase):
         # leading whitespace still opens the section; the warning must find
         # the ColorScheme key under it. tests/support/kde_config.py reads the
         # file the same way through configparser, which also strips the line.
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             removed = self._uninstall_with_kdeglobals(
                 tmp, "  [General]\nColorScheme=MacOS8\n"
             )
@@ -272,7 +272,7 @@ class TestInstall(unittest.TestCase):
         # KDE trims each line before parsing it, so an indented `[General]`
         # header opens the section even when it follows another section's key;
         # the earlier section's ColorScheme must not be read as the live one.
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             removed = self._uninstall_with_kdeglobals(
                 tmp,
                 "[Other]\nColorScheme=BreezeLight\n  [General]\nColorScheme=MacOS8\n",
@@ -286,7 +286,7 @@ class TestInstall(unittest.TestCase):
         # leading whitespace is still the live selection, and whitespace
         # around the `=` and after the value is stripped too. The warning
         # must read that value, not miss the indented key.
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="color-scheme") as tmp:
             removed = self._uninstall_with_kdeglobals(
                 tmp, "[General]\n  ColorScheme = MacOS8  \n"
             )
