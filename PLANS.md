@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum dialog body: ground `dialogs/background.svg`'s face in the lossless window body (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum dialog body: ground `dialogs/background.svg`'s face in the lossless window body (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** `theme/desktop-themes/org.macos8.desktop/dialogs/background.svg` paints the raised
 Platinum body that a `PlasmaCore.Dialog` and a `PlasmaCore.AppletPopup` resolve to (the applet and
@@ -81,8 +85,6 @@ the pixel the header comment says does not exist.
 - The header comment names `desktop_archiveorg8.6hd.png` (and the `desktop_fandom.png`
   cross-check) with the sampled pixels and no longer calls the face palette-derived or unanchored.
 - `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Platinum progress bar: paint the reference's vertical gradient in `bar_meter_horizontal.svg` (planned 2026-10-18 by the plan role) — done 2026-10-18
 

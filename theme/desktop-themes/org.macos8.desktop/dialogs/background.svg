@@ -10,13 +10,13 @@
 
      Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
      canvas, square corners. The frame is a #DDDDDD face
-     ([Colors:Window] BackgroundNormal=221,221,221) with a 1px #000000 outline
-     and a 1px bevel inside it (#FFFFFF on top/left, #999999 on bottom/right,
-     the same bevel rule as button.svg's normal state and scrollbar.svg's
-     thumb). The reference set shows the same grey window bodies
-     (about_betawiki.png, setup_emaculation.png) but they are dithered 8-bit
-     captures, so no single pixel is screenshot-anchored: the values are
-     palette-derived and recorded as such.
+     ([Colors:Window] BackgroundNormal=221,221,221) sampled from the About
+     This Computer window body in desktop_archiveorg8.6hd.png at (584, 97) and
+     cross-checked at (1792, 1126) of desktop_fandom.png. Inside it run a 1px
+     #000000 outline and a 1px bevel (#FFFFFF on top/left, #999999 on
+     bottom/right, the same bevel rule as button.svg's normal state and
+     scrollbar.svg's thumb); the reference window body itself is flat, so no
+     window-body pixel grounds those two.
 
      Known deviation: the default theme's `dialogs/background.svgz` also
      carries a `shadow-*` element set. This file defines only the main frame
