@@ -7,8 +7,11 @@ flat #CCCCFF selection -- and assert their fill sets. Naming the values here
 gives those modules one place to import the palette from instead of
 redefining it. `test_colorscheme_reference` remains the test that grounds
 these values in the reference screenshots; the trough, painted from
-`[Colors:View] BackgroundAlternate`, is pinned only by the widget tests that
-draw it, and the tooltip face and the selection fill are KDE-required
+`[Colors:View] BackgroundAlternate`, is grounded by
+`test_colorscheme_reference.TestReferenceAnchors.test_view_background_alternate`
+in `setup_emaculation.png` and tied to the artwork by
+`test_desktoptheme_scrollbar.TestScrollbarReference`, and the tooltip face and
+the selection fill are KDE-required
 `[Colors:Tooltip]` and `[Colors:Selection]` roles no screenshot shows,
 pinned by the widget tests that draw them and by `test_colorscheme`.
 """

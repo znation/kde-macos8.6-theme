@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Ground the `[Colors:View] BackgroundAlternate` scroll-bar trough anchor in `setup_emaculation.png` (planned 2026-10-19 by the plan role)
+_None yet._
+
+## Done
+
+### Ground the `[Colors:View] BackgroundAlternate` scroll-bar trough anchor in `setup_emaculation.png` (planned 2026-10-19 by the plan role) — done 2026-10-19
 
 **Goal.** The color scheme's `[Colors:View] BackgroundAlternate=238,238,238` is the flat
 `#EEEEEE` trough that `theme/desktop-themes/org.macos8.desktop/widgets/scrollbar.svg`,
@@ -76,8 +80,6 @@ add an anchor there and tie the scroll bar's own slices to the same pixels.
   trough fill and both outlines.
 - `tests/support/platinum_palette.py` no longer claims the trough is ungrounded.
 - `make check` is green.
-
-## Done
 
 ### Prove the beta `aboutsystem_betawiki.png` window chrome matches the retail `systemprofiler_betawiki.png` (planned 2026-10-19 by the plan role) — done 2026-10-19
 

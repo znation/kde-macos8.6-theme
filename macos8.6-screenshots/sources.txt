@@ -22,7 +22,7 @@ finder_archiveorg.jpg | https://archive.org/download/1998-apple-i-mac-booting-in
 firstboot_betawiki.png | https://web.archive.org/web/20260503030908im_/http://betawiki.net/images/5/5a/MacOS-8.6-FirstBoot.png | Mac OS 8.6 (first boot / Setup Assistant)
 opendialog_macrumors86.jpg | https://forums.macrumors.com/attachments/5-1-jpg.1745504/ | Mac OS 8.6, Japanese (Open dialog)
 setup_betawiki.png | https://web.archive.org/web/20251205044512im_/https://betawiki.net/images/thumb/0/01/MacOS-8.6-Setup.PNG/240px-MacOS-8.6-Setup.PNG | Mac OS 8.6 (installer setup screen)
-setup_emaculation.png | https://i.ibb.co/Jv2kdH2/Screenshot-2019-06-03-at-13-24-11.png | Mac OS 8.6 (installer CD; posted on emaculation.com forums)
+setup_emaculation.png | https://i.ibb.co/Jv2kdH2/Screenshot-2019-06-03-at-13-24-11.png | Mac OS 8.6 (installer CD; posted on emaculation.com forums); grounds the [Colors:View] BackgroundAlternate scroll-bar trough anchor (flat #EEEEEE band between the #000000 rules at y=462 and y=477)
 sherlock_fandom.jpg | https://static.wikia.nocookie.net/ipod/images/5/52/Sherlock8.5.jpg/revision/latest?cb=20100819233512 | SUPPLEMENT: Mac OS 8.5 (Sherlock) - file page: https://apple.fandom.com/wiki/File:Sherlock8.5.jpg
 splash_macbase.gif | http://www3.macbase.or.jp/~kylyn/images/photo/040204/os86-3d.gif | Mac OS 8.6 (splash/startup graphic)
 systeminfo_betawiki.png | https://web.archive.org/web/2024im_/https://betawiki.net/images/7/7e/MacOS-8.6a3c2-AboutSystem.png | Mac OS 8.6a3c2 beta (About This Computer)

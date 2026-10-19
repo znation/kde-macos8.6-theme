@@ -28,6 +28,13 @@ REFERENCE_FIRSTBOOT = os.path.join(
     ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
 
+# The installer CD window's horizontal scroll bar grounds
+# `[Colors:View] BackgroundAlternate` (the flat #EEEEEE trough). Stored with
+# Git LFS too.
+REFERENCE_SCROLLBAR = os.path.join(
+    ROOT, "macos8.6-screenshots", "setup_emaculation.png"
+)
+
 # The deepest anchor row sampled from each reference, plus one. setUpClass
 # decodes only these top rows: unfiltering the rest of a large screenshot is
 # the dominant cost of the decode, and no anchor reads below this. A new
@@ -35,6 +42,7 @@ REFERENCE_FIRSTBOOT = os.path.join(
 # read fails the out-of-bounds check in ``pixel``.
 DESKTOP_ANCHOR_ROWS = 301  # deepest desktop anchor is (470, 300)
 FIRSTBOOT_ANCHOR_ROWS = 64  # the selection anchor is (200, 63)
+SCROLLBAR_ANCHOR_ROWS = 471  # the trough anchor is (200, 470)
 
 
 class TestReferenceAnchors(unittest.TestCase):
@@ -44,7 +52,8 @@ class TestReferenceAnchors(unittest.TestCase):
     only that the file is self-consistent: a wrong anchor, or a reference image
     swapped for a different one, passed unnoticed. Each point below was sampled
     from a retail PNG (``desktop_archiveorg8.6hd.png`` for the face/view/chrome
-    anchors, ``firstboot_betawiki.png`` for the selection anchor) and is
+    anchors, ``firstboot_betawiki.png`` for the selection anchor,
+    ``setup_emaculation.png`` for the scroll-bar trough anchor) and is
     asserted against the scheme's own value, so the file and the reference image
     must agree. ``[Colors:Tooltip]`` has no reference screenshot in the set: it
     is a KDE-required semantic role whose value comes from the classic Platinum
@@ -61,6 +70,7 @@ class TestReferenceAnchors(unittest.TestCase):
         for path, max_rows in (
             (REFERENCE_DESKTOP, DESKTOP_ANCHOR_ROWS),
             (REFERENCE_FIRSTBOOT, FIRSTBOOT_ANCHOR_ROWS),
+            (REFERENCE_SCROLLBAR, SCROLLBAR_ANCHOR_ROWS),
         ):
             try:
                 cls.images[path] = png.read_png(path, max_rows=max_rows)
@@ -110,6 +120,18 @@ class TestReferenceAnchors(unittest.TestCase):
         # The 1px black rule along the bottom of a window is the chrome
         # foreground (Window/ForegroundNormal).
         self.assert_anchor_at("Colors:Window", "ForegroundNormal", 408, 226)
+
+    def test_view_background_alternate(self):
+        # The installer CD window's horizontal scroll bar is a flat #EEEEEE
+        # trough between the 1px black rules at y=462 and y=477; (200, 470)
+        # is inside it, clear of both rules and of the arrow boxes.
+        self.assert_anchor_at(
+            "Colors:View",
+            "BackgroundAlternate",
+            200,
+            470,
+            path=REFERENCE_SCROLLBAR,
+        )
 
     def test_selection_background(self):
         # The Setup Assistant's list selection is a full-width highlighted row;

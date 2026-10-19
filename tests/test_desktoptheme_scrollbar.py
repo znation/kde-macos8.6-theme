@@ -2,11 +2,20 @@
 
 from __future__ import annotations
 
+import os
 import unittest
 
 from support.desktoptheme_paths import SCROLLBAR_SVG
 from support.nine_slice_case import NineSliceCase
-from support.platinum_palette import FACE, TROUGH, assert_fill_palette
+from support.platinum_palette import (
+    BLACK,
+    FACE,
+    TROUGH,
+    assert_fill_palette,
+    hex_colour,
+)
+from support.reference_image import ReferenceScreenshotMixin
+from support.theme_install import ROOT
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -17,6 +26,11 @@ from svg_assertions import (
 TROUGH_PREFIXES = ("background-vertical", "background-horizontal")
 THUMB_PREFIXES = ("slider", "mouseover-slider")
 PREFIXES = TROUGH_PREFIXES + THUMB_PREFIXES
+
+# The installer CD window's horizontal scroll bar, sampled for
+# `[Colors:View] BackgroundAlternate`; see
+# `test_colorscheme_reference.REFERENCE_SCROLLBAR`.
+REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "setup_emaculation.png")
 
 
 class TestScrollbar(NineSliceCase, unittest.TestCase):
@@ -64,6 +78,27 @@ class TestScrollbar(NineSliceCase, unittest.TestCase):
         # artwork palette: trough, thumb face, outline, bevel highlight and
         # bevel shadow.
         assert_fill_palette(self, self.tree, {TROUGH})
+
+
+class TestScrollbarReference(ReferenceScreenshotMixin, unittest.TestCase):
+    """The trough fill and its outline must match the reference screenshot.
+
+    `TestScrollbar` pins the artwork to `platinum_palette`, so a wrong
+    `TROUGH`/`BLACK` pair passes it. The retail installer CD window shows the
+    same 16px horizontal scroll bar -- a flat #EEEEEE band between the #000000
+    rules at y=462 and y=477 -- so this ties the pinned fills to a screenshot.
+    """
+
+    REFERENCE = REFERENCE
+
+    def test_trough_matches_reference(self):
+        self.assertEqual(hex_colour(self.pixel(200, 470)), TROUGH)
+        self.assertEqual(hex_colour(self.pixel(200, 462)), BLACK)
+        self.assertEqual(hex_colour(self.pixel(200, 477)), BLACK)
+        # The band is flat across the window, not only at the anchor column.
+        for x in (50, 300, 400):
+            with self.subTest(x=x):
+                self.assertEqual(hex_colour(self.pixel(x, 470)), TROUGH)
 
 
 if __name__ == "__main__":
