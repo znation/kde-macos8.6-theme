@@ -100,10 +100,30 @@ class TestHelpers(unittest.TestCase):
             )
         self.assertEqual(markers(tmp), expected)
 
+    def test_markers_rejects_a_non_utf8_asset(self):
+        # A text asset committed with a stray byte (a binary file under an SVG
+        # name, an editor writing Latin-1) is not valid UTF-8. Decoding it must
+        # fail as the checker's own AssertionError naming the asset, not escape
+        # as a codec UnicodeDecodeError that names neither the checker nor it.
+        tmp = make_tmp_dir(self)
+        path = tmp / "theme" / "a.svg"
+        path.parent.mkdir(parents=True)
+        path.write_bytes(b"\xff\xfe<svg/>\n")
+        with self.assertRaisesRegex(AssertionError, "not valid UTF-8"):
+            markers(tmp)
+
     def test_register_entries_parses_the_table(self):
         tmp = make_tmp_dir(self)
         register = self._write_register(tmp, {os.path.join("theme", "a.svg"): "an a"})
         self.assertEqual(register_entries(register), {os.path.join("theme", "a.svg"): "an a"})
+
+    def test_register_entries_rejects_a_non_utf8_register(self):
+        tmp = make_tmp_dir(self)
+        asset = os.path.join("theme", "a.svg")
+        register = tmp / "PLACEHOLDERS.md"
+        register.write_bytes(f"| `{asset}` | an a |\n".encode("utf-8") + b"\xff")
+        with self.assertRaisesRegex(AssertionError, "not valid UTF-8"):
+            register_entries(str(register))
 
     def test_cross_check_accepts_a_matching_register(self):
         tmp = make_tmp_dir(self)

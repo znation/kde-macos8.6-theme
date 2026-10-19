@@ -7,8 +7,8 @@ replace them all eventually". A placeholder asset carries the literal token
 for; the register ``PLACEHOLDERS.md`` holds one table row per asset.
 :func:`markers` reads the markers under ``theme/`` and :func:`register_entries`
 reads the register, and :func:`cross_check` fails when the two disagree: a
-marked file with no row, a row whose path is missing, or a row whose file
-carries no marker.
+marked file with no row, a row whose path is missing, a row whose file
+carries no marker, or a file or the register that is not valid UTF-8 text.
 
 ``tests/test_placeholders.py`` drives these checks.
 """
@@ -62,17 +62,24 @@ def _marker_text(path):
 
     The marker is the token plus what it stands in for, in a comment in the
     file's own format; a trailing SVG comment terminator (``-->``) is dropped
-    so the returned text is the description alone.
+    so the returned text is the description alone. A file that is not valid
+    UTF-8 text (a binary committed under a text extension, an editor writing
+    Latin-1) raises the checker's own :class:`AssertionError` naming *path*,
+    instead of escaping as a codec ``UnicodeDecodeError`` that names neither
+    the checker nor the file.
     """
-    with open(path, encoding="utf-8") as handle:
-        for line in handle:
-            index = line.find(TOKEN)
-            if index == -1:
-                continue
-            text = line[index + len(TOKEN):].strip()
-            if text.endswith("-->"):
-                text = text[:-3].strip()
-            return text
+    try:
+        with open(path, encoding="utf-8") as handle:
+            for line in handle:
+                index = line.find(TOKEN)
+                if index == -1:
+                    continue
+                text = line[index + len(TOKEN):].strip()
+                if text.endswith("-->"):
+                    text = text[:-3].strip()
+                return text
+    except UnicodeDecodeError as exc:
+        raise AssertionError(f"{path} is not valid UTF-8 text: {exc}") from exc
     return None
 
 
@@ -97,13 +104,21 @@ def markers(root):
 
 
 def register_entries(path):
-    """Return ``{asset path: what it stands in for}`` from the register table."""
+    """Return ``{asset path: what it stands in for}`` from the register table.
+
+    A register that is not valid UTF-8 text raises the checker's own
+    :class:`AssertionError` naming *path*, so a stray byte is reported as the
+    register's own problem rather than as a codec ``UnicodeDecodeError``.
+    """
     entries = {}
-    with open(path, encoding="utf-8") as handle:
-        for line in handle:
-            match = ROW.match(line)
-            if match:
-                entries[match.group(1)] = match.group(2)
+    try:
+        with open(path, encoding="utf-8") as handle:
+            for line in handle:
+                match = ROW.match(line)
+                if match:
+                    entries[match.group(1)] = match.group(2)
+    except UnicodeDecodeError as exc:
+        raise AssertionError(f"{path} is not valid UTF-8 text: {exc}") from exc
     return entries
 
 
