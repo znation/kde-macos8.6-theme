@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 
+from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
 from support.desktoptheme_paths import LINE_SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import SvgCase
-from support.theme_install import ROOT
 from svg_assertions import (
     assert_ids_present,
     assert_no_external_references,
@@ -26,7 +25,7 @@ from svg_assertions import (
 DARK = "#888888"
 LIGHT = "#FFFFFF"
 
-REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "systemprofiler_betawiki.png")
+REFERENCE = PROFILER_REFERENCE
 BODY = (0xEE, 0xEE, 0xEE)
 
 
@@ -56,6 +55,7 @@ class TestLine(SvgCase, unittest.TestCase):
 
 class TestLineReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = REFERENCE
+    MAX_ROWS = PROFILER_ROWS
 
     def assert_rule(self, dark_at, light_at, before, after):
         """Assert the reference's rule: a dark/light pair with body either side."""

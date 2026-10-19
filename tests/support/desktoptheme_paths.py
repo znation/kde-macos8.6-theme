@@ -64,3 +64,28 @@ FANDOM_REFERENCE = os.path.join(
 # of them samples, and sharing the bound makes the single decode independent
 # of discovery order.
 FANDOM_MAX_ROWS = 1250
+
+# The open Apple menu's Platinum body and the "Automated Tasks" submenu
+# arrow. Every reader of this screenshot samples at or above row 300 (the
+# color scheme's window-view anchor), so 301 rows covers them all and the
+# reference cache decodes the screenshot once regardless of discovery order.
+ARCHIVEORG_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
+)
+ARCHIVEORG_MAX_ROWS = 301
+
+# The installer CD window's horizontal scroll bar. The deepest pixel any
+# reader samples is the bar's bottom black rule at y=477, so 478 rows covers
+# them all with a single cached decode.
+SETUP_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "setup_emaculation.png"
+)
+SETUP_MAX_ROWS = 478
+
+# The Setup Assistant's "Introduction" banner and its line-edit field. The
+# deepest pixel any reader samples is the field's bottom border at y=351, so
+# 352 rows covers them all with a single cached decode.
+FIRSTBOOT_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
+)
+FIRSTBOOT_MAX_ROWS = 352

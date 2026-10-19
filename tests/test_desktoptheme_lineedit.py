@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 
-from support.desktoptheme_paths import LINEEDIT_SVG
+from support.desktoptheme_paths import (
+    FIRSTBOOT_MAX_ROWS,
+    FIRSTBOOT_REFERENCE,
+    LINEEDIT_SVG,
+)
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
@@ -105,10 +107,8 @@ FIELD_CORNER_PIXELS = (
 
 
 class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
-    REFERENCE = os.path.join(
-        ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
-    )
-    MAX_ROWS = 352
+    REFERENCE = FIRSTBOOT_REFERENCE
+    MAX_ROWS = FIRSTBOOT_MAX_ROWS
 
     def test_borders_are_the_sunken_bevel_outside_the_outline(self):
         # Re-derive the field's three border runs from the reference rather

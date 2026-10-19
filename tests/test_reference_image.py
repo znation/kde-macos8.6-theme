@@ -190,5 +190,97 @@ class TestSharedFandomBound(unittest.TestCase):
         )
 
 
+class TestSharedReferenceBounds(unittest.TestCase):
+    """The readers and anchor bounds pin each screenshot's shared decode bound.
+
+    ``read_reference`` re-decodes when a later request needs more rows than
+    the cached decode holds, so two readers of one screenshot with different
+    bounds unfilter it twice, in discovery order. These assertions pin the
+    reader classes and module-level anchor bounds to the screenshot's shared
+    constant, so a hardcoded literal cannot silently reintroduce a second
+    decode -- the Kvantum check-box reader's own 394-row bound did exactly
+    that for ``aboutsystem_betawiki.png``.
+    """
+
+    def _assert_reader_shares(self, path, bound, *readers):
+        for reader in readers:
+            self.assertEqual(path, reader.REFERENCE, reader)
+            self.assertEqual(bound, reader.MAX_ROWS, reader)
+
+    def test_readers_share_the_archiveorg_bound(self):
+        from support.desktoptheme_paths import (
+            ARCHIVEORG_MAX_ROWS,
+            ARCHIVEORG_REFERENCE,
+        )
+        from test_colorscheme_reference import (
+            DESKTOP_ANCHOR_ROWS,
+            REFERENCE_DESKTOP,
+        )
+        from test_desktoptheme_background import TestBackgroundMatchesReference
+        from test_desktoptheme_dialog import TestDialogBackgroundReference
+        from test_icon_arrow_reference import TestSubmenuArrowReference
+
+        self._assert_reader_shares(
+            ARCHIVEORG_REFERENCE,
+            ARCHIVEORG_MAX_ROWS,
+            TestBackgroundMatchesReference,
+            TestDialogBackgroundReference,
+            TestSubmenuArrowReference,
+        )
+        self.assertEqual(ARCHIVEORG_REFERENCE, REFERENCE_DESKTOP)
+        self.assertEqual(ARCHIVEORG_MAX_ROWS, DESKTOP_ANCHOR_ROWS)
+
+    def test_readers_share_the_setup_bound(self):
+        from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
+        from test_colorscheme_reference import (
+            REFERENCE_SCROLLBAR,
+            SCROLLBAR_ANCHOR_ROWS,
+        )
+        from test_desktoptheme_scrollbar import TestScrollbarReference
+
+        self._assert_reader_shares(
+            SETUP_REFERENCE, SETUP_MAX_ROWS, TestScrollbarReference
+        )
+        self.assertEqual(SETUP_REFERENCE, REFERENCE_SCROLLBAR)
+        self.assertEqual(SETUP_MAX_ROWS, SCROLLBAR_ANCHOR_ROWS)
+
+    def test_readers_share_the_firstboot_bound(self):
+        from support.desktoptheme_paths import (
+            FIRSTBOOT_MAX_ROWS,
+            FIRSTBOOT_REFERENCE,
+        )
+        from test_colorscheme_reference import (
+            FIRSTBOOT_ANCHOR_ROWS,
+            REFERENCE_FIRSTBOOT,
+        )
+        from test_desktoptheme_lineedit import TestLineEditReference
+
+        self._assert_reader_shares(
+            FIRSTBOOT_REFERENCE, FIRSTBOOT_MAX_ROWS, TestLineEditReference
+        )
+        self.assertEqual(FIRSTBOOT_REFERENCE, REFERENCE_FIRSTBOOT)
+        self.assertEqual(FIRSTBOOT_MAX_ROWS, FIRSTBOOT_ANCHOR_ROWS)
+
+    def test_readers_share_the_profiler_bound(self):
+        from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
+        from test_desktoptheme_line import TestLineReference
+        from test_render_surface import REFERENCE_BOUNDS
+
+        self._assert_reader_shares(
+            PROFILER_REFERENCE, PROFILER_ROWS, TestLineReference
+        )
+        self.assertEqual(PROFILER_ROWS, REFERENCE_BOUNDS[PROFILER_REFERENCE])
+
+    def test_readers_share_the_aboutsystem_bound(self):
+        from support.aurorae_fixtures import REFERENCE, REFERENCE_ROWS
+        from test_kvantum_checkbox_reference import TestCheckBoxReference
+        from test_render_surface import REFERENCE_BOUNDS
+
+        self._assert_reader_shares(
+            REFERENCE, REFERENCE_ROWS, TestCheckBoxReference
+        )
+        self.assertEqual(REFERENCE_ROWS, REFERENCE_BOUNDS[REFERENCE])
+
+
 if __name__ == "__main__":
     unittest.main()

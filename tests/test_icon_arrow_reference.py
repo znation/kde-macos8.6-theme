@@ -13,12 +13,14 @@ import re
 import unittest
 import xml.etree.ElementTree as ET
 
+from support.desktoptheme_paths import (
+    ARCHIVEORG_MAX_ROWS,
+    ARCHIVEORG_REFERENCE,
+)
 from support.reference_image import ReferenceScreenshotMixin
 from support.theme_install import ROOT
 
-REFERENCE = os.path.join(
-    ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
-)
+REFERENCE = ARCHIVEORG_REFERENCE
 ICON_16 = os.path.join(
     ROOT,
     "theme",
@@ -53,6 +55,7 @@ def _path_vertices(d):
 
 class TestSubmenuArrowReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = REFERENCE
+    MAX_ROWS = ARCHIVEORG_MAX_ROWS
 
     def _dark_pixels(self):
         return [

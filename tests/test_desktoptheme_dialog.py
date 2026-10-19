@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 
 from support.desktoptheme_paths import (
+    ARCHIVEORG_MAX_ROWS,
+    ARCHIVEORG_REFERENCE,
     DIALOG_BACKGROUND_SVG,
     FANDOM_MAX_ROWS,
     FANDOM_REFERENCE,
@@ -13,7 +14,6 @@ from support.desktoptheme_paths import (
 from support.platinum_palette import FACE, hex_colour
 from support.raised_face_case import RaisedFaceCase
 from support.reference_image import ReferenceScreenshotMixin
-from support.repo_root import ROOT
 
 
 class TestDialogBackground(RaisedFaceCase, unittest.TestCase):
@@ -29,10 +29,8 @@ WINDOW_BODY_HEIGHT = 6
 
 
 class TestDialogBackgroundReference(ReferenceScreenshotMixin, unittest.TestCase):
-    REFERENCE = os.path.join(
-        ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
-    )
-    MAX_ROWS = 101
+    REFERENCE = ARCHIVEORG_REFERENCE
+    MAX_ROWS = ARCHIVEORG_MAX_ROWS
 
     def test_window_body_is_the_reference_grey(self):
         # The reference is a 1x 800x600 capture, so one image pixel per

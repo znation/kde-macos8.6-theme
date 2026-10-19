@@ -25,6 +25,7 @@ import unittest
 from collections import namedtuple
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.aurorae_fixtures import PROFILER_ROWS, REFERENCE_ROWS
 from support.reference_image import read_reference, skip_unless_materialized
 
 from tools.png import Image, pixel_at  # noqa: E402
@@ -97,8 +98,14 @@ class TestReferenceEquivalence(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.aboutsystem, cls.aboutsystem_error = read_reference(ABOUTSYSTEM)
-        cls.profiler, cls.profiler_error = read_reference(PROFILER)
+        # The shared bounds cover every region below, and match the Aurorae
+        # readers' bounds so the reference cache decodes each screenshot once.
+        cls.aboutsystem, cls.aboutsystem_error = read_reference(
+            ABOUTSYSTEM, max_rows=REFERENCE_ROWS
+        )
+        cls.profiler, cls.profiler_error = read_reference(
+            PROFILER, max_rows=PROFILER_ROWS
+        )
 
     def setUp(self):
         skip_unless_materialized(self, ABOUTSYSTEM, self.aboutsystem_error)

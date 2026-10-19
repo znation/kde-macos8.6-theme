@@ -41,8 +41,11 @@ INACTIVE_REFERENCE_ROWS = FANDOM_MAX_ROWS
 PROFILER_REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "systemprofiler_betawiki.png"
 )
-# The deepest profiler row this module reads is the highlight row at y=38.
-PROFILER_ROWS = 39
+# The deepest profiler row any reader samples is the left/right border at
+# y=255 (the reference-equivalence test's chrome regions); the Aurorae boxes
+# read only the title bar. Sharing this bound keeps the single decode
+# independent of discovery order.
+PROFILER_ROWS = 256
 
 # The flat grey every inactive-state box uses in place of the active box's
 # gradient face. The inactive frame's field is `INACTIVE_FRAME_GREY`; this

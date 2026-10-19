@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 
-from support.desktoptheme_paths import SCROLLBAR_SVG
+from support.desktoptheme_paths import (
+    SCROLLBAR_SVG,
+    SETUP_MAX_ROWS,
+    SETUP_REFERENCE,
+)
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import (
     BLACK,
@@ -15,7 +18,6 @@ from support.platinum_palette import (
     hex_colour,
 )
 from support.reference_image import ReferenceScreenshotMixin
-from support.theme_install import ROOT
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -29,8 +31,10 @@ PREFIXES = TROUGH_PREFIXES + THUMB_PREFIXES
 
 # The installer CD window's horizontal scroll bar, sampled for
 # `[Colors:View] BackgroundAlternate`; see
-# `test_colorscheme_reference.REFERENCE_SCROLLBAR`.
-REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "setup_emaculation.png")
+# `test_colorscheme_reference.REFERENCE_SCROLLBAR`. The shared bound covers
+# that anchor and this module's bottom rule at y=477, so the screenshot
+# decodes once per run.
+REFERENCE = SETUP_REFERENCE
 
 
 class TestScrollbar(NineSliceCase, unittest.TestCase):
@@ -90,6 +94,7 @@ class TestScrollbarReference(ReferenceScreenshotMixin, unittest.TestCase):
     """
 
     REFERENCE = REFERENCE
+    MAX_ROWS = SETUP_MAX_ROWS
 
     def test_trough_matches_reference(self):
         self.assertEqual(hex_colour(self.pixel(200, 470)), TROUGH)

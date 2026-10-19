@@ -6,45 +6,47 @@ string. ``[Colors:Tooltip]`` has no reference screenshot in the set and is
 pinned by ``test_colorscheme`` alone.
 """
 
-import os
 import unittest
 
-from support.colorscheme_fixtures import ROOT, load_scheme
+from support.colorscheme_fixtures import load_scheme
+from support.desktoptheme_paths import (
+    ARCHIVEORG_MAX_ROWS,
+    ARCHIVEORG_REFERENCE,
+    FIRSTBOOT_MAX_ROWS,
+    FIRSTBOOT_REFERENCE,
+    SETUP_MAX_ROWS,
+    SETUP_REFERENCE,
+)
 from support.error_assertions import assert_error_names
-from support.reference_image import skip_unless_materialized
+from support.reference_image import read_reference, skip_unless_materialized
 
 from tools import png  # noqa: E402
 
-# The retail screenshot the PNG-sourced anchors were sampled from. It is stored
-# with Git LFS, so a clone without it skips the anchors sampled from it rather
-# than failing `make check`.
-REFERENCE_DESKTOP = os.path.join(
-    ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
-)
+# The retail screenshots the PNG-sourced anchors were sampled from, each
+# shared with the other readers of the same screenshot so the reference cache
+# decodes it once. All are stored with Git LFS, so a clone without them skips
+# the anchors sampled from them rather than failing `make check`.
+#
+# desktop_archiveorg8.6hd.png grounds the menu-bar face, window view, chrome
+# and selection-fill anchors.
+REFERENCE_DESKTOP = ARCHIVEORG_REFERENCE
+# firstboot_betawiki.png is the Setup Assistant's "Introduction" title
+# banner (Colors:Selection): the flat #CCCCFF band at y=61..85, under the
+# #000000 rule at y=59 and the #FFFFFF highlight at y=60.
+REFERENCE_FIRSTBOOT = FIRSTBOOT_REFERENCE
+# setup_emaculation.png is the installer CD window's horizontal scroll bar
+# (Colors:View BackgroundAlternate), a flat #EEEEEE trough.
+REFERENCE_SCROLLBAR = SETUP_REFERENCE
 
-# The Setup Assistant's "Introduction" title banner (Colors:Selection) was
-# sampled from this retail 8.6 PNG: the flat #CCCCFF band at y=61..85, under
-# the #000000 rule at y=59 and the #FFFFFF highlight at y=60. It is stored
-# with Git LFS too.
-REFERENCE_FIRSTBOOT = os.path.join(
-    ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
-)
-
-# The installer CD window's horizontal scroll bar grounds
-# `[Colors:View] BackgroundAlternate` (the flat #EEEEEE trough). Stored with
-# Git LFS too.
-REFERENCE_SCROLLBAR = os.path.join(
-    ROOT, "macos8.6-screenshots", "setup_emaculation.png"
-)
-
-# The deepest anchor row sampled from each reference, plus one. setUpClass
-# decodes only these top rows: unfiltering the rest of a large screenshot is
-# the dominant cost of the decode, and no anchor reads below this. A new
-# anchor below the bound here must raise the matching constant, or its pixel
-# read fails the out-of-bounds check in ``pixel``.
-DESKTOP_ANCHOR_ROWS = 301  # deepest desktop anchor is (470, 300)
-FIRSTBOOT_ANCHOR_ROWS = 81  # deepest firstboot anchor is (200, 80)
-SCROLLBAR_ANCHOR_ROWS = 471  # the trough anchor is (200, 470)
+# The deepest anchor row sampled from each reference, plus one, shared with
+# the other readers so each screenshot decodes once. setUpClass decodes only
+# these top rows: unfiltering the rest of a large screenshot is the dominant
+# cost of the decode, and no anchor reads below this. A new anchor below the
+# bound here must raise the matching shared constant, or its pixel read fails
+# the out-of-bounds check in ``pixel``.
+DESKTOP_ANCHOR_ROWS = ARCHIVEORG_MAX_ROWS  # deepest desktop anchor is (470, 300)
+FIRSTBOOT_ANCHOR_ROWS = FIRSTBOOT_MAX_ROWS  # deepest firstboot anchor is (431, 351)
+SCROLLBAR_ANCHOR_ROWS = SETUP_MAX_ROWS  # deepest scrollbar anchor is (200, 477)
 
 
 class TestReferenceAnchors(unittest.TestCase):
@@ -75,15 +77,16 @@ class TestReferenceAnchors(unittest.TestCase):
             (REFERENCE_FIRSTBOOT, FIRSTBOOT_ANCHOR_ROWS),
             (REFERENCE_SCROLLBAR, SCROLLBAR_ANCHOR_ROWS),
         ):
-            try:
-                cls.images[path] = png.read_png(path, max_rows=max_rows)
-            except png.PngError as exc:
+            image, error = read_reference(path, max_rows=max_rows)
+            if error is not None:
                 # `make check` must not require the Git LFS reference set (that
                 # is what `make check-references` is for), so a test whose
                 # reference image is not materialized skips instead of failing.
                 # Each image loads on its own, so a missing one skips only the
                 # anchors sampled from it, not the whole class.
-                cls.image_errors[path] = exc
+                cls.image_errors[path] = error
+            else:
+                cls.images[path] = image
 
     def pixel(self, path, x, y):
         """Return the RGB pixel at ``(x, y)`` of the reference image at *path*.

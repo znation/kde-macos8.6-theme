@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 import xml.etree.ElementTree as ET
 
 from support.desktoptheme_paths import (
+    ARCHIVEORG_MAX_ROWS,
+    ARCHIVEORG_REFERENCE,
     BACKGROUND_SVG,
     TRANSLUCENT_BACKGROUND_SVG,
 )
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import BLACK, FACE, hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.repo_root import ROOT
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -70,9 +70,8 @@ class TestBackground(NineSliceCase, unittest.TestCase):
 class TestBackgroundMatchesReference(
     ReferenceScreenshotMixin, unittest.TestCase
 ):
-    REFERENCE = os.path.join(
-        ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png"
-    )
+    REFERENCE = ARCHIVEORG_REFERENCE
+    MAX_ROWS = ARCHIVEORG_MAX_ROWS
 
     def test_menu_body_is_the_reference_grey(self):
         # The open Apple menu's empty right margin is clear of item text and

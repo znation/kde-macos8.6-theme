@@ -16,21 +16,19 @@ The reference is a beta build (`aboutsystem_betawiki.png`,
 
 from __future__ import annotations
 
-import os
 import unittest
 import xml.etree.ElementTree as ET
 
+from support.aurorae_fixtures import REFERENCE, REFERENCE_ROWS
 from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.theme_install import ROOT
 from svg_assertions import render_slices
 
-# The Get Info window's "Locked" check box: a 12x12 raised Platinum square
-# including its 1px outline.
-REFERENCE = os.path.join(
-    ROOT, "macos8.6-screenshots", "aboutsystem_betawiki.png"
-)
+# The Get Info window's "Locked" check box in the shared aboutsystem
+# screenshot: a 12x12 raised Platinum square including its 1px outline. The
+# path and decode bound come from `aurorae_fixtures`, whose readers decode the
+# same screenshot, so the reference cache unfilters it once per run.
 CHECKBOX_X = 38
 CHECKBOX_Y = 382
 REFERENCE_SIZE = 12
@@ -87,7 +85,7 @@ class TestCheckBoxReference(ReferenceScreenshotMixin, unittest.TestCase):
     """
 
     REFERENCE = REFERENCE
-    MAX_ROWS = CHECKBOX_Y + REFERENCE_SIZE
+    MAX_ROWS = REFERENCE_ROWS
 
     def _reference_colours(self):
         """Return the reference box's four colours, sampled at their anchors."""
