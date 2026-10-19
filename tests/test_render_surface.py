@@ -406,6 +406,7 @@ class TestRender(unittest.TestCase):
         cls.directory = tempfile.mkdtemp(prefix="render-surface-test-")
         cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
         cls.output = os.path.join(cls.directory, "render.png")
+        cls._candidate = None
         process = process_runner.start(
             [sys.executable, SCRIPT, "--settle", "3", cls.output],
             capture_output=True,
@@ -414,15 +415,29 @@ class TestRender(unittest.TestCase):
         cls.stdout, cls.stderr = process_runner.finish(process, timeout=150)
         cls.returncode = process.returncode
 
+    @classmethod
+    def candidate_image(cls):
+        """Return the render output decoded once, reused by every read below.
+
+        The render writes one PNG that the size, body-colour and strip checks
+        all read; decoding it per read re-decodes the same 320x240 file, so
+        the first read caches it for the rest of the class. A failed render
+        leaves the output absent and the first read raises ``PngError`` just
+        as it did before.
+        """
+        if cls._candidate is None:
+            cls._candidate = read_png(cls.output)
+        return cls._candidate
+
     def test_exits_zero(self):
         self.assertEqual(0, self.returncode, self.stderr)
 
     def test_writes_a_320x240_png(self):
-        image = read_png(self.output)
+        image = self.candidate_image()
         self.assertEqual((320, 240), (image.width, image.height))
 
     def test_window_body_is_the_platinum_face(self):
-        pixel = pixel_at(read_png(self.output), 300, 200)
+        pixel = pixel_at(self.candidate_image(), 300, 200)
         self.assertEqual(FACE, hex_colour(pixel))
 
     def assert_strip_pixels_match(
@@ -440,7 +455,7 @@ class TestRender(unittest.TestCase):
             reference_path, max_rows=REFERENCE_BOUNDS[reference_path]
         )
         skip_unless_materialized(self, reference_path, error)
-        candidate = crop(read_png(self.output), *candidate_crop)
+        candidate = crop(self.candidate_image(), *candidate_crop)
         expected = crop(reference, *reference_crop)
         self.assertEqual(0, compare(candidate, expected).differing)
 
