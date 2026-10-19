@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import os
 import unittest
 
 from support.desktoptheme_paths import LINEEDIT_SVG
 from support.nine_slice_case import NineSliceCase
+from support.platinum_palette import hex_colour
+from support.reference_image import ReferenceScreenshotMixin
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
@@ -14,7 +18,7 @@ from svg_assertions import (
     attribute_values,
     face_edge_bands,
     render_slices,
-    sunken_face_corners,
+    sunken_outside_face_corners,
 )
 
 
@@ -42,16 +46,17 @@ class TestLineEdit(NineSliceCase, unittest.TestCase):
         slices = render_slices(self.tree)
         assert_center_tile_is(self, slices, "base-center", "#FFFFFF", size=6)
 
-    def test_lineedit_edge_bevels_are_sunken(self):
+    def test_lineedit_edge_bevels_are_sunken_outside(self):
         # `test_lineedit_colours` sees the same three fills whichever way the
-        # bevel runs, so only the per-slice paint order pins the sunken
-        # direction: the #999999 shadow sits inside the top/left outline and
-        # the #FFFFFF highlight inside the bottom/right, with the white face
-        # innermost. A swap (a raised field) passes every existing test.
+        # bevel runs, so only the per-slice paint order pins the direction:
+        # the #999999 shadow sits outside the top/left outline and the
+        # #FFFFFF highlight outside the bottom/right, with the white face
+        # innermost. A swap (the outline outside the bevel) passes every
+        # existing test.
         slices = render_slices(self.tree)
-        # (outer outline, bevel, inner face) read from the slice's outer edge
+        # (outer bevel, outline, inner face) read from the slice's outer edge
         # in; the bottom/right edges mirror the top/left.
-        outward, mirrored = face_edge_bands("#FFFFFF", "sunken")
+        outward, mirrored = face_edge_bands("#FFFFFF", "sunken-outside")
         assert_edge_bevels(self, slices, "base", outward, mirrored)
 
     def test_lineedit_corner_bevels_turn_the_corner(self):
@@ -61,8 +66,42 @@ class TestLineEdit(NineSliceCase, unittest.TestCase):
         # pixel of each corner slice.
         slices = render_slices(self.tree)
         assert_face_corners(
-            self, slices, "base", sunken_face_corners("#FFFFFF")
+            self, slices, "base", sunken_outside_face_corners("#FFFFFF")
         )
+
+
+# The three border runs of the Setup Assistant body text field in
+# macos8.6-screenshots/firstboot_betawiki.png (retail Mac OS 8.6). Each run
+# reads the field's edge inward: the bevel is the outer pixel, the #000000
+# outline sits inside it, and the #FFFFFF face is innermost.
+FIELD_BORDER_RUNS = (
+    # left border, left to right at y=95
+    ((28, 95), "#999999"),
+    ((29, 95), "#000000"),
+    ((30, 95), "#FFFFFF"),
+    # right border at y=150: face, outline, outer highlight
+    ((429, 150), "#FFFFFF"),
+    ((430, 150), "#000000"),
+    ((431, 150), "#FFFFFF"),
+    # bottom border at x=100: face, outline, outer highlight
+    ((100, 349), "#FFFFFF"),
+    ((100, 350), "#000000"),
+    ((100, 351), "#FFFFFF"),
+)
+
+
+class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = os.path.join(
+        ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
+    )
+    MAX_ROWS = 352
+
+    def test_borders_are_the_sunken_bevel_outside_the_outline(self):
+        # Re-derive the field's three border runs from the reference rather
+        # than trust the SVG comment: the outer ring is the bevel, the inner
+        # ring the #000000 outline, and the face #FFFFFF.
+        for (x, y), colour in FIELD_BORDER_RUNS:
+            self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
 
 
 if __name__ == "__main__":

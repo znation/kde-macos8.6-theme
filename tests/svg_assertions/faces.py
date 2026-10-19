@@ -43,11 +43,11 @@ def sunken_face_corners(face):
 
     A sunken face is a 1px #000000 outline with a 1px bevel inside it -- a
     #999999 shadow on the top/left edges and a #FFFFFF highlight on the
-    bottom/right ones -- meeting over *face*. The frame's sunken state and the
-    line edit's field share this geometry but paint a #DDDDDD and #FFFFFF face
-    respectively, so the face is the parameter. The raised face keeps its own
-    `RAISED_FACE_CORNERS` because the frame's raised bottom-left corner turns
-    differently.
+    bottom/right ones -- meeting over *face*. The frame's sunken state paints
+    a #DDDDDD face, so the face is the parameter. The raised face keeps its
+    own `RAISED_FACE_CORNERS` because the frame's raised bottom-left corner
+    turns differently; the line edit's field draws its bevel outside the
+    outline instead, from `sunken_outside_face_corners`.
     """
     return {
         "topleft": (
@@ -106,16 +106,53 @@ def flat_face_corners(face):
     }
 
 
-def _require_known_bevel(bevel):
-    """Raise ValueError unless *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``.
+def sunken_outside_face_corners(face):
+    """Return the four 3x3 sunken-outside corner slices painted for *face*.
 
-    `face_edge_bands` and `face_corners` both dispatch on the same three
-    bevel names, so the vocabulary -- and the diagnostic naming the accepted
-    values -- lives here once instead of in each dispatcher.
+    A sunken-outside face is a 1px #999999/#FFFFFF bevel on the outer edge, a
+    1px #000000 outline inside it and *face* innermost -- the Mac OS 8.6 text
+    field's order, the reverse of `sunken_face_corners`, which puts the
+    outline outside the bevel. The face pixels are (2,2) of the top-left,
+    (0,2) of the top-right, (2,0) of the bottom-left and (0,0) of the
+    bottom-right slice; the remaining #FFFFFF pixels are the bottom/right
+    outer highlight, so only the face pixels follow *face*.
     """
-    if bevel not in ("raised", "sunken", "flat"):
+    return {
+        "topleft": (
+            "#999999", "#999999", "#999999",
+            "#999999", "#000000", "#000000",
+            "#999999", "#000000", face,
+        ),
+        "topright": (
+            "#999999", "#999999", "#999999",
+            "#000000", "#000000", "#FFFFFF",
+            face, "#000000", "#FFFFFF",
+        ),
+        "bottomleft": (
+            "#999999", "#000000", face,
+            "#999999", "#000000", "#000000",
+            "#999999", "#FFFFFF", "#FFFFFF",
+        ),
+        "bottomright": (
+            face, "#000000", "#FFFFFF",
+            "#000000", "#000000", "#FFFFFF",
+            "#FFFFFF", "#FFFFFF", "#FFFFFF",
+        ),
+    }
+
+
+def _require_known_bevel(bevel):
+    """Raise ValueError unless *bevel* is a known bevel name.
+
+    `face_edge_bands` and `face_corners` both dispatch on the same bevel
+    names -- ``"raised"``, ``"sunken"``, ``"sunken-outside"`` and
+    ``"flat"`` -- so the vocabulary, and the diagnostic naming the accepted
+    values, lives here once instead of in each dispatcher.
+    """
+    if bevel not in ("raised", "sunken", "sunken-outside", "flat"):
         raise ValueError(
-            f"unknown bevel {bevel!r}; expected 'raised', 'sunken' or 'flat'"
+            f"unknown bevel {bevel!r}; expected 'raised', 'sunken', "
+            "'sunken-outside' or 'flat'"
         )
 
 
@@ -128,17 +165,22 @@ def face_edge_bands(face, bevel):
     stays on the outer edge while the bevel colour swaps sides. A raised face
     paints a #FFFFFF highlight inside the top/left outline and a #999999
     shadow inside the bottom/right ones; a sunken face swaps those two bevel
-    colours; a flat face has no bevel, so both inner bands are *face*.
+    colours; a sunken-outside face puts the bevel outside the outline instead,
+    a #999999 shadow and a #FFFFFF highlight on the outer edges and the
+    #000000 outline inside them; a flat face has no bevel, so both inner
+    bands are *face*.
     *face* is the widget's face colour (#DDDDDD for the button, frame and
     scroll-bar thumb, #FFFFFF for the line edit, #EEEEEE for the scroll-bar
-    trough) and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``; any
-    other value is rejected by `_require_known_bevel`.
+    trough) and *bevel* is ``"raised"``, ``"sunken"``, ``"sunken-outside"``
+    or ``"flat"``; any other value is rejected by `_require_known_bevel`.
     """
     _require_known_bevel(bevel)
     if bevel == "raised":
         return ("#000000", "#FFFFFF", face), (face, "#999999", "#000000")
     if bevel == "sunken":
         return ("#000000", "#999999", face), (face, "#FFFFFF", "#000000")
+    if bevel == "sunken-outside":
+        return ("#999999", "#000000", face), (face, "#000000", "#FFFFFF")
     if bevel == "flat":
         return ("#000000", face, face), (face, face, "#000000")
 
@@ -149,15 +191,18 @@ def face_corners(face, bevel):
     `assert_face_bevel` checks the corners its edges lead into, and its
     self-test rebuilds a slice from the same table, so both read a bevel's
     corner geometry here: the fixed `RAISED_FACE_CORNERS` (#DDDDDD) for a
-    raised face, and the *face*-derived `sunken_face_corners` and
-    `flat_face_corners` tables otherwise. *face* is the widget's face colour
-    and *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``; any other value
-    is rejected by `_require_known_bevel`.
+    raised face, and the *face*-derived `sunken_face_corners`,
+    `sunken_outside_face_corners` and `flat_face_corners` tables otherwise.
+    *face* is the widget's face colour and *bevel* is ``"raised"``,
+    ``"sunken"``, ``"sunken-outside"`` or ``"flat"``; any other value is
+    rejected by `_require_known_bevel`.
     """
     _require_known_bevel(bevel)
     if bevel == "raised":
         return RAISED_FACE_CORNERS
     if bevel == "sunken":
         return sunken_face_corners(face)
+    if bevel == "sunken-outside":
+        return sunken_outside_face_corners(face)
     if bevel == "flat":
         return flat_face_corners(face)

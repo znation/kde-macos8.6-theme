@@ -181,17 +181,18 @@ def assert_center_tile_is(case, slices, name, colour, size):
 def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
     """Assert *prefix*'s nine-slice paints the *bevel* on *face*.
 
-    A face bevel is a *face*-coloured centre tile, a 1px #000000 outline on
-    each edge tile's outer edge with the bevel's highlight/shadow bands
-    inside it, and the four 3x3 corner slices where those bands turn the
-    corner. *face* is the widget's face colour (the #DDDDDD button/frame/
-    scroll-bar-thumb face, the #FFFFFF line-edit/menu face, the #EEEEEE
-    scroll-bar trough), *bevel* is ``"raised"``, ``"sunken"`` or ``"flat"``,
+    A face bevel is a *face*-coloured centre tile, the bevel's bands and the
+    1px #000000 outline on each edge tile (the outline outside the bands for
+    the raised and sunken bevels, inside them for ``"sunken-outside"``), and
+    the four 3x3 corner slices where those bands turn the corner. *face* is
+    the widget's face colour (the #DDDDDD button/frame/scroll-bar-thumb face,
+    the #FFFFFF line-edit/menu face, the #EEEEEE scroll-bar trough), *bevel*
+    is ``"raised"``, ``"sunken"``, ``"sunken-outside"`` or ``"flat"``,
     *prefix* names the state (``""`` for an unprefixed SVG), and *size* is the
     centre and edge tile length. The corner table comes from `face_corners`,
     so a raised face reads the fixed `RAISED_FACE_CORNERS` (#DDDDDD) and the
-    sunken and flat faces their *face*-derived tables. *case* is the calling
-    ``unittest.TestCase``.
+    sunken, sunken-outside and flat faces their *face*-derived tables. *case*
+    is the calling ``unittest.TestCase``.
     """
     sep = "-" if prefix else ""
     assert_center_tile_is(case, slices, f"{prefix}{sep}center", face, size)

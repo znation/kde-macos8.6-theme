@@ -46,6 +46,7 @@ from .faces import (
     face_edge_bands,
     flat_face_corners,
     sunken_face_corners,
+    sunken_outside_face_corners,
 )
 
 from .paths import (

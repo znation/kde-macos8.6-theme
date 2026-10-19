@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum text field: draw the sunken bevel outside the black outline in `widgets/lineedit.svg` (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum text field: draw the sunken bevel outside the black outline in `widgets/lineedit.svg` (planned 2026-10-18 by the plan role) — done 2026-10-19
 
 **Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/lineedit.svg` paints the sunken
 white field `PlasmaComponents.TextField`/`TextArea`/`SpinBox` and the editable `ComboBox` draw.
@@ -77,6 +81,8 @@ face is `#FFFFFF`. `systeminfo_betawiki.png` (8.6a3c2 alpha) and `aboutsystem_be
 
 **Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/lineedit.svg`,
 `tests/test_desktoptheme_lineedit.py`, `tests/svg_assertions/faces.py`,
+`tests/svg_assertions/__init__.py` (re-export the new corner table),
+`tests/svg_assertions/pixels.py` (docstring only: `assert_face_bevel`'s bevel vocabulary), and
 `tests/test_svg_assertions_faces.py`.
 
 **Acceptance criteria.**
@@ -89,8 +95,6 @@ face is `#FFFFFF`. `systeminfo_betawiki.png` (8.6a3c2 alpha) and `aboutsystem_be
   inside the outline.
 - `frame.svg`'s sunken test and artwork are unchanged.
 - `make check` is green.
-
-## Done
 
 ### Mac OS 8.6 Platinum dialog body: ground `dialogs/background.svg`'s face in the lossless window body (planned 2026-10-18 by the plan role) — done 2026-10-18
 

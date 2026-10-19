@@ -15,6 +15,7 @@ from svg_assertions import (
     face_edge_bands,
     flat_face_corners,
     sunken_face_corners,
+    sunken_outside_face_corners,
 )
 
 
@@ -35,10 +36,10 @@ def _face_substituted(table, face):
 
 class TestSunkenFaceCorners(unittest.TestCase):
     def test_paints_the_outline_shadow_and_highlight_around_the_face(self):
-        # The frame's sunken state and the line edit's field both read their
-        # corner pixels from this generator, so a swapped band would weaken
-        # both tests at once. Pin the full #DDDDDD table, then check the
-        # #FFFFFF face substitutes only the face pixels.
+        # The frame's sunken state reads its corner pixels from this
+        # generator, so a swapped band would weaken that test. Pin the full
+        # #DDDDDD table, then check the #FFFFFF face substitutes only the
+        # face pixels.
         sunken = sunken_face_corners("#DDDDDD")
         self.assertEqual(
             sunken,
@@ -67,6 +68,44 @@ class TestSunkenFaceCorners(unittest.TestCase):
         )
         self.assertEqual(
             sunken_face_corners("#FFFFFF"),
+            _face_substituted(sunken, "#FFFFFF"),
+        )
+
+
+class TestSunkenOutsideFaceCorners(unittest.TestCase):
+    def test_paints_the_bevel_outside_the_outline(self):
+        # The line edit's field reads its corner pixels from this generator,
+        # so a swapped ring would weaken its test. Pin the full #DDDDDD
+        # table, then check the #FFFFFF face substitutes only the face
+        # pixels -- the fixed #FFFFFF bottom/right highlight must not move.
+        sunken = sunken_outside_face_corners("#DDDDDD")
+        self.assertEqual(
+            sunken,
+            {
+                "topleft": (
+                    "#999999", "#999999", "#999999",
+                    "#999999", "#000000", "#000000",
+                    "#999999", "#000000", "#DDDDDD",
+                ),
+                "topright": (
+                    "#999999", "#999999", "#999999",
+                    "#000000", "#000000", "#FFFFFF",
+                    "#DDDDDD", "#000000", "#FFFFFF",
+                ),
+                "bottomleft": (
+                    "#999999", "#000000", "#DDDDDD",
+                    "#999999", "#000000", "#000000",
+                    "#999999", "#FFFFFF", "#FFFFFF",
+                ),
+                "bottomright": (
+                    "#DDDDDD", "#000000", "#FFFFFF",
+                    "#000000", "#000000", "#FFFFFF",
+                    "#FFFFFF", "#FFFFFF", "#FFFFFF",
+                ),
+            },
+        )
+        self.assertEqual(
+            sunken_outside_face_corners("#FFFFFF"),
             _face_substituted(sunken, "#FFFFFF"),
         )
 
@@ -136,6 +175,11 @@ class TestFaceEdgeBands(unittest.TestCase):
             (("#000000", "#999999", "#FFFFFF"),
              ("#FFFFFF", "#FFFFFF", "#000000")),
         )
+        self.assertEqual(
+            face_edge_bands("#FFFFFF", "sunken-outside"),
+            (("#999999", "#000000", "#FFFFFF"),
+             ("#FFFFFF", "#000000", "#FFFFFF")),
+        )
 
     def test_rejects_an_unknown_direction_naming_it(self):
         self.assertIn(
@@ -158,6 +202,10 @@ class TestFaceCorners(unittest.TestCase):
         )
         self.assertEqual(
             face_corners("#FFFFFF", "sunken"), sunken_face_corners("#FFFFFF")
+        )
+        self.assertEqual(
+            face_corners("#FFFFFF", "sunken-outside"),
+            sunken_outside_face_corners("#FFFFFF"),
         )
         self.assertEqual(
             face_corners("#EEEEEE", "flat"), flat_face_corners("#EEEEEE")
