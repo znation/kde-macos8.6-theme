@@ -11,10 +11,13 @@
      bar, group boxes, tooltips, item views, toolbars and the menu item
      interiors.
      A raised face is a #DDDDDD interior inside a 1px #000000 outline
-     with a 1px #FFFFFF top/left and #999999 bottom/right bevel; a
-     pressed or toggled button swaps that bevel to the sunken direction
-     (#999999 top/left, #FFFFFF bottom/right), while the selected tab
-     keeps the raised bevel the desktop theme's active tab paints; the
+     with a 1px #FFFFFF top/left and #999999 bottom/right bevel, except
+     the push and tool buttons, whose bottom/right bevel is the reference
+     popup buttons' #AAAAAA shadow (aboutsystem_betawiki.png); a pressed
+     or toggled button swaps that bevel to the sunken direction (#AAAAAA
+     top/left, #FFFFFF bottom/right), while the other raised faces (tab,
+     menu, group, toolbar, ...) keep the #999999 shadow and the selected
+     tab keeps the raised bevel the desktop theme's active tab paints; the
      line edit and the item view are the white sunken field; the trough is a
      flat #EEEEEE bar inside the same 1px #000000 outline; the tooltip is a
      #FFFFCC face and the menu and item-view selection is a flat #CCCCFF
@@ -39,7 +42,7 @@
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
   </g>
   <g id="button-normal-bottom" transform="translate(10,70)">
-    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="0" width="30" height="1" fill="#AAAAAA"/>
     <rect x="0" y="1" width="30" height="1" fill="#000000"/>
   </g>
   <g id="button-normal-left" transform="translate(10,130)">
@@ -47,7 +50,7 @@
     <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
   </g>
   <g id="button-normal-right" transform="translate(10,190)">
-    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="30" fill="#AAAAAA"/>
     <rect x="1" y="0" width="1" height="30" fill="#000000"/>
   </g>
   <g id="button-normal" transform="translate(10,250)">
@@ -62,22 +65,22 @@
     <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="1" height="1" fill="#AAAAAA"/>
   </g>
   <g id="button-normal-bottomleft" transform="translate(10,430)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
     <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="button-normal-bottomright" transform="translate(10,490)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
   <g id="button-pressed-top" transform="translate(10,550)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#AAAAAA"/>
   </g>
   <g id="button-pressed-bottom" transform="translate(10,610)">
     <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
@@ -85,7 +88,7 @@
   </g>
   <g id="button-pressed-left" transform="translate(10,670)">
     <rect x="0" y="0" width="1" height="30" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#AAAAAA"/>
   </g>
   <g id="button-pressed-right" transform="translate(10,730)">
     <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
@@ -95,12 +98,12 @@
     <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
   </g>
   <g id="button-pressed-topleft" transform="translate(10,850)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
   </g>
   <g id="button-pressed-topright" transform="translate(10,910)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
@@ -109,7 +112,7 @@
     <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="1" fill="#AAAAAA"/>
   </g>
   <g id="button-pressed-bottomright" transform="translate(10,1030)">
     <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
@@ -121,7 +124,7 @@
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
   </g>
   <g id="button-focused-bottom" transform="translate(10,1150)">
-    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="0" width="30" height="1" fill="#AAAAAA"/>
     <rect x="0" y="1" width="30" height="1" fill="#000000"/>
   </g>
   <g id="button-focused-left" transform="translate(10,1210)">
@@ -129,7 +132,7 @@
     <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
   </g>
   <g id="button-focused-right" transform="translate(10,1270)">
-    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="30" fill="#AAAAAA"/>
     <rect x="1" y="0" width="1" height="30" fill="#000000"/>
   </g>
   <g id="button-focused" transform="translate(10,1330)">
@@ -144,22 +147,22 @@
     <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="1" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="1" height="1" fill="#AAAAAA"/>
   </g>
   <g id="button-focused-bottomleft" transform="translate(10,1510)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
     <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="button-focused-bottomright" transform="translate(10,1570)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
   <g id="button-toggled-top" transform="translate(10,1630)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="30" height="1" fill="#AAAAAA"/>
   </g>
   <g id="button-toggled-bottom" transform="translate(10,1690)">
     <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
@@ -167,7 +170,7 @@
   </g>
   <g id="button-toggled-left" transform="translate(10,1750)">
     <rect x="0" y="0" width="1" height="30" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#AAAAAA"/>
   </g>
   <g id="button-toggled-right" transform="translate(10,1810)">
     <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
@@ -177,12 +180,12 @@
     <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
   </g>
   <g id="button-toggled-topleft" transform="translate(10,1930)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
   </g>
   <g id="button-toggled-topright" transform="translate(10,1990)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
+    <rect x="0" y="0" width="2" height="2" fill="#AAAAAA"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
@@ -191,7 +194,7 @@
     <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="1" fill="#AAAAAA"/>
   </g>
   <g id="button-toggled-bottomright" transform="translate(10,2110)">
     <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>

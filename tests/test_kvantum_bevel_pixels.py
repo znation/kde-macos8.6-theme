@@ -41,25 +41,38 @@ BUTTON_FACE = FACE
 BUTTON_SIZE = 30
 
 # The four 2px corner slices of a button, per bevel, row-major in
-# slice-local coordinates.
-BUTTON_CORNERS = {
-    "raised": {
-        "topleft": ("#000000", "#000000", "#000000", "#FFFFFF"),
-        "topright": ("#000000", "#000000", "#999999", "#000000"),
-        "bottomleft": ("#000000", "#FFFFFF", "#000000", "#000000"),
-        "bottomright": ("#999999", "#000000", "#000000", "#000000"),
-    },
-    "sunken": {
-        "topleft": ("#000000", "#000000", "#000000", "#999999"),
+# slice-local coordinates. The raised button's bevel shadow is the reference
+# popup buttons' #AAAAAA (test_kvantum_button_reference); every other raised
+# frame element (tab, menu, group, toolbar, ...) keeps the #999999 the
+# desktop theme paints.
+BUTTON_SHADOW = "#AAAAAA"
+SURFACE_SHADOW = "#999999"
+
+
+def _button_corners(bevel, shadow):
+    """Return each 2x2 corner slice a *bevel* paints, keyed by corner name.
+
+    Row-major in slice-local coordinates. The raised corners carry the
+    *shadow* where the bottom/right band turns, and the sunken ones where the
+    top/left band turns; the opposite corners carry the #FFFFFF highlight.
+    """
+    if bevel == "raised":
+        return {
+            "topleft": ("#000000", "#000000", "#000000", "#FFFFFF"),
+            "topright": ("#000000", "#000000", shadow, "#000000"),
+            "bottomleft": ("#000000", "#FFFFFF", "#000000", "#000000"),
+            "bottomright": (shadow, "#000000", "#000000", "#000000"),
+        }
+    return {
+        "topleft": ("#000000", "#000000", "#000000", shadow),
         "topright": ("#000000", "#000000", "#FFFFFF", "#000000"),
-        "bottomleft": ("#000000", "#999999", "#000000", "#000000"),
+        "bottomleft": ("#000000", shadow, "#000000", "#000000"),
         "bottomright": ("#FFFFFF", "#000000", "#000000", "#000000"),
-    },
-}
+    }
 
 # Part 3's frame elements, the bevel each state paints and the colour of its
 # centre. `raised` and `sunken` paint the eight bevel slices and four corners
-# `_button_edge_maps`/`BUTTON_CORNERS` describe; `flat` paints every slice as
+# `_button_edge_maps`/`_button_corners` describe; `flat` paints every slice as
 # a solid fill with no outline or bevel, the project's flat-selection art for
 # a highlighted item. The pixel test renders each state's nine slices, so a
 # `menubaritem-pressed` that gains a bevel, or a `menu` drawn with a sunken
@@ -107,19 +120,21 @@ SURFACE_SLICE_SIZES = {
 }
 
 
-def _button_edge_maps(bevel):
+def _button_edge_maps(bevel, shadow):
     """Return the four 2px edge slices a *bevel* paints, keyed by slice name.
 
     Each edge is the outer 1px #000000 outline with the bevel's 1px band
     inside it: a raised bevel highlights the top/left and shadows the
-    bottom/right, and a sunken one swaps those two colours.
+    bottom/right, and a sunken one swaps those two colours. *shadow* is the
+    bevel shadow the element paints (the button's #AAAAAA, the other raised
+    faces' #999999).
     """
     if bevel == "raised":
-        top, bottom = ("#000000", "#FFFFFF"), ("#999999", "#000000")
-        left, right = ("#000000", "#FFFFFF"), ("#999999", "#000000")
+        top, bottom = ("#000000", "#FFFFFF"), (shadow, "#000000")
+        left, right = ("#000000", "#FFFFFF"), (shadow, "#000000")
     else:
-        top, bottom = ("#000000", "#999999"), ("#FFFFFF", "#000000")
-        left, right = ("#000000", "#999999"), ("#FFFFFF", "#000000")
+        top, bottom = ("#000000", shadow), ("#FFFFFF", "#000000")
+        left, right = ("#000000", shadow), ("#FFFFFF", "#000000")
     return {
         "top": pixel_map(
             (top[0],) * BUTTON_SIZE + (top[1],) * BUTTON_SIZE, BUTTON_SIZE, 2
@@ -154,11 +169,11 @@ class TestButtonBevelPixels(unittest.TestCase):
             prefix = f"button-{state}"
             with self.subTest(state=state):
                 assert_slice_pixels(self, self.slices, prefix, centre)
-                for name, expected in _button_edge_maps(bevel).items():
+                for name, expected in _button_edge_maps(bevel, BUTTON_SHADOW).items():
                     assert_slice_pixels(
                         self, self.slices, f"{prefix}-{name}", expected
                     )
-                for name, colours in BUTTON_CORNERS[bevel].items():
+                for name, colours in _button_corners(bevel, BUTTON_SHADOW).items():
                     assert_slice_pixels(
                         self, self.slices, f"{prefix}-{name}", pixel_map(colours, 2, 2)
                     )
@@ -348,9 +363,9 @@ class TestSurfaceBevelPixels(unittest.TestCase):
                 (face,) * (BUTTON_SIZE * BUTTON_SIZE), BUTTON_SIZE, BUTTON_SIZE
             ),
         )
-        for name, expected in _button_edge_maps(bevel).items():
+        for name, expected in _button_edge_maps(bevel, SURFACE_SHADOW).items():
             assert_slice_pixels(self, self.slices, f"{prefix}-{name}", expected)
-        for name, colours in BUTTON_CORNERS[bevel].items():
+        for name, colours in _button_corners(bevel, SURFACE_SHADOW).items():
             assert_slice_pixels(
                 self, self.slices, f"{prefix}-{name}", pixel_map(colours, 2, 2)
             )

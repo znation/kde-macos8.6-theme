@@ -138,6 +138,10 @@ def _drawing_elements(element):
 # the #999999 the other raised faces use, so it is a named extra below rather
 # than part of PLATINUM_FILLS).
 CHECKBOX_SHADOW = "#888888"
+# The button bevel's shadow is the reference popup buttons' #AAAAAA
+# (test_kvantum_button_reference), lighter than the #999999 the other raised
+# faces use, so it too is a named extra rather than part of PLATINUM_FILLS.
+BUTTON_SHADOW = "#AAAAAA"
 _CHECKBOX_FACE = (
     _rect("0", "0", "14", "14", "#000000"),
     _rect("1", "1", "12", "12", "#DDDDDD"),
@@ -338,7 +342,9 @@ class TestSvg(unittest.TestCase):
         assert_fill_palette(
             self,
             self.tree,
-            extra=frozenset({TROUGH, TOOLTIP_FACE, SELECTION, CHECKBOX_SHADOW}),
+            extra=frozenset(
+                {TROUGH, TOOLTIP_FACE, SELECTION, CHECKBOX_SHADOW, BUTTON_SHADOW}
+            ),
         )
 
     def test_has_no_scripts_styles_external_refs_or_duplicate_ids(self):
