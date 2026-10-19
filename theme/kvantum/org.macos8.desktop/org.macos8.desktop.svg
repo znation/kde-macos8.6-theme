@@ -198,87 +198,90 @@
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
+  <!-- The line edit is the reference's sunken field: a 2px border whose
+       outer pixel is the #999999/#FFFFFF bevel and whose inner pixel is the
+       #000000 outline, over the #FFFFFF face. Grounded in
+       macos8.6-screenshots/firstboot_betawiki.png (retail Mac OS 8.6 Setup
+       Assistant body text field): left (28,95)=#999999, (29,95)=#000000,
+       (30,95)=#FFFFFF; top (100,58)=#999999, (100,59)=#000000,
+       (100,60)=#FFFFFF; right (429,150)=#FFFFFF, (430,150)=#000000,
+       (431,150)=#FFFFFF; bottom (100,349)=#FFFFFF, (100,350)=#000000,
+       (100,351)=#FFFFFF. The top-right outer pixel is the window face
+       #CCCCCC at (431,58): the top shadow stops one pixel short of the
+       outer highlight, so that corner leaves it unpainted. -->
   <g id="lineedit-normal-top" transform="translate(10,2170)">
-    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
-  </g>
-  <g id="lineedit-normal-bottom" transform="translate(10,2230)">
-    <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
     <rect x="0" y="1" width="30" height="1" fill="#000000"/>
   </g>
+  <g id="lineedit-normal-bottom" transform="translate(10,2230)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
   <g id="lineedit-normal-left" transform="translate(10,2290)">
-    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
   </g>
   <g id="lineedit-normal-right" transform="translate(10,2350)">
-    <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
-    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-normal" transform="translate(10,2410)">
     <rect x="0" y="0" width="30" height="30" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-normal-topleft" transform="translate(10,2470)">
     <rect x="0" y="0" width="2" height="2" fill="#999999"/>
-    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#000000"/>
   </g>
   <g id="lineedit-normal-topright" transform="translate(10,2530)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
-    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-normal-bottomleft" transform="translate(10,2590)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
   </g>
   <g id="lineedit-normal-bottomright" transform="translate(10,2650)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
-    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="2" fill="#FFFFFF"/>
   </g>
+  <!-- The focused line edit paints the same field: Mac OS 8.6 text fields
+       have no focus ring (the blinking caret is the focus cue). -->
   <g id="lineedit-focused-top" transform="translate(10,2710)">
-    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="30" height="1" fill="#999999"/>
-  </g>
-  <g id="lineedit-focused-bottom" transform="translate(10,2770)">
-    <rect x="0" y="0" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="30" height="1" fill="#999999"/>
     <rect x="0" y="1" width="30" height="1" fill="#000000"/>
   </g>
+  <g id="lineedit-focused-bottom" transform="translate(10,2770)">
+    <rect x="0" y="0" width="30" height="1" fill="#000000"/>
+    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+  </g>
   <g id="lineedit-focused-left" transform="translate(10,2830)">
-    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="30" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
   </g>
   <g id="lineedit-focused-right" transform="translate(10,2890)">
-    <rect x="0" y="0" width="1" height="30" fill="#FFFFFF"/>
-    <rect x="1" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="30" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-focused" transform="translate(10,2950)">
     <rect x="0" y="0" width="30" height="30" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-focused-topleft" transform="translate(10,3010)">
     <rect x="0" y="0" width="2" height="2" fill="#999999"/>
-    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#000000"/>
   </g>
   <g id="lineedit-focused-topright" transform="translate(10,3070)">
-    <rect x="0" y="0" width="2" height="2" fill="#999999"/>
-    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="0" y="0" width="2" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="0" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-focused-bottomleft" transform="translate(10,3130)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="0" y="0" width="1" height="2" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
   </g>
   <g id="lineedit-focused-bottomright" transform="translate(10,3190)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
-    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="0" y="1" width="2" height="1" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="1" y="0" width="1" height="2" fill="#FFFFFF"/>
   </g>
   <g id="common-normal-top" transform="translate(10,3250)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>

@@ -80,6 +80,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | Each indicator arrow draws its pinned triangle and its per-state fill. | `tests/test_kvantum_svg.py::TestSvg` | none |
 | Each check box and radio button interior draws its pinned child shapes in document order. | `tests/test_kvantum_svg.py::TestSvg` | none |
 | The check box face is the reference's raised Platinum square. | `tests/test_kvantum_checkbox_reference.py::TestCheckBoxReference` | The reference's check box is a beta build (`aboutsystem_betawiki.png`, `systeminfo_betawiki.png`); no retail screenshot shows a check box. |
+| The line edit is the reference's sunken field: the bevel outside the #000000 outline. | `tests/test_kvantum_lineedit_reference.py::TestLineEditReference` | none |
 | Each slider cursor, progress-bar pattern, splitter grip and grip interior draws its pinned child shapes in document order. | `tests/test_kvantum_svg.py::TestSvg` | none |
 
 ## look-and-feel

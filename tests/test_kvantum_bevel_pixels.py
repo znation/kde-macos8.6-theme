@@ -19,7 +19,12 @@ from support.platinum_palette import (
     TOOLTIP_FACE,
     WHITE,
 )
-from svg_assertions import assert_slice_pixels, pixel_map, render_slices
+from svg_assertions import (
+    assert_slice_pixels,
+    pixel_map,
+    render_slices,
+    sunken_outside_face_corners,
+)
 
 # Each button state's bevel direction. Kvantum draws the `button-pressed` and
 # `button-toggled` ids for a sunken and an on (toggled) button, so those
@@ -158,6 +163,108 @@ class TestButtonBevelPixels(unittest.TestCase):
                 for name, colours in BUTTON_CORNERS[bevel].items():
                     assert_slice_pixels(
                         self, self.slices, f"{prefix}-{name}", pixel_map(colours, 2, 2)
+                    )
+
+
+# The Kvantum line edit is the reference's sunken text field: a 2px border
+# whose outer pixel is the #999999/#FFFFFF bevel and whose inner pixel is the
+# #000000 outline, over the #FFFFFF face. Mac OS 8.6 text fields have no focus
+# ring, so `normal` and `focused` paint the same field.
+LINEEDIT_SIZE = 30
+LINEEDIT_FACE = WHITE
+
+# Each edge slice as (outer, inner), read from the field's outer edge inward.
+# A top/left edge runs outer-to-inner down/right; a bottom/right edge runs
+# inner-to-outer down/right, so `_lineedit_edge_map` places the pair.
+LINEEDIT_EDGES = {
+    "top": ("#999999", "#000000"),
+    "bottom": ("#FFFFFF", "#000000"),
+    "left": ("#999999", "#000000"),
+    "right": ("#FFFFFF", "#000000"),
+}
+
+# The 2x2 corner slices are the outer 2x2 block of each `sunken_outside`
+# 3x3 corner table -- the block holding the outer corner pixel, which never
+# contains the table's face pixel. Row-major slice-local indices into the
+# 3x3 table.
+_LINEEDIT_CORNER_BLOCKS = {
+    "topleft": (0, 1, 3, 4),
+    "topright": (1, 2, 4, 5),
+    "bottomleft": (3, 4, 6, 7),
+    "bottomright": (4, 5, 7, 8),
+}
+
+
+def _lineedit_edge_map(side, outer, inner):
+    """Return the 2px *side* edge slice, reading *outer* then *inner*."""
+    if side == "top":
+        rows = (outer,) * LINEEDIT_SIZE + (inner,) * LINEEDIT_SIZE
+    elif side == "bottom":
+        rows = (inner,) * LINEEDIT_SIZE + (outer,) * LINEEDIT_SIZE
+    elif side == "left":
+        return {(0, y): outer for y in range(LINEEDIT_SIZE)} | {
+            (1, y): inner for y in range(LINEEDIT_SIZE)
+        }
+    else:
+        return {(0, y): inner for y in range(LINEEDIT_SIZE)} | {
+            (1, y): outer for y in range(LINEEDIT_SIZE)
+        }
+    return pixel_map(rows, LINEEDIT_SIZE, 2)
+
+
+def _lineedit_corner_map(colours):
+    """Return the 2x2 corner map for *colours*, dropping the unpainted None."""
+    return {
+        (index % 2, index // 2): colour
+        for index, colour in enumerate(colours)
+        if colour is not None
+    }
+
+
+def _lineedit_corners():
+    """Return each 2x2 corner's expected pixel map, keyed by corner name."""
+    table = sunken_outside_face_corners(LINEEDIT_FACE)
+    return {
+        name: _lineedit_corner_map(
+            tuple(table[name][index] for index in indices)
+        )
+        for name, indices in _LINEEDIT_CORNER_BLOCKS.items()
+    }
+
+
+class TestLineEditBevelPixels(unittest.TestCase):
+    """Pin the line edit's sunken-outside field, not just its ids.
+
+    `TestSvg` checks the state ids and the palette, which the old
+    outline-outside art also passes; this renders each state's nine slices
+    and compares them pixel for pixel, so a field that keeps the outline
+    outside the bevel fails here.
+    """
+
+    def setUp(self):
+        self.slices = render_slices(ET.parse(SVG))
+
+    def test_every_lineedit_state_paints_the_sunken_outside_field(self):
+        centre = pixel_map(
+            (LINEEDIT_FACE,) * (LINEEDIT_SIZE * LINEEDIT_SIZE),
+            LINEEDIT_SIZE,
+            LINEEDIT_SIZE,
+        )
+        corners = _lineedit_corners()
+        for state in ("normal", "focused"):
+            prefix = f"lineedit-{state}"
+            with self.subTest(state=state):
+                assert_slice_pixels(self, self.slices, prefix, centre)
+                for side, (outer, inner) in LINEEDIT_EDGES.items():
+                    assert_slice_pixels(
+                        self,
+                        self.slices,
+                        f"{prefix}-{side}",
+                        _lineedit_edge_map(side, outer, inner),
+                    )
+                for name, expected in corners.items():
+                    assert_slice_pixels(
+                        self, self.slices, f"{prefix}-{name}", expected
                     )
 
 
