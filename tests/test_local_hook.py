@@ -99,6 +99,23 @@ def make_repo_with_hook(case):
     return repo, hook
 
 
+def assert_refuses_a_foreign_hook(case, command):
+    """Assert *command* refuses a hook this tool did not write and leaves it alone.
+
+    ``install`` and ``uninstall`` share the refusal: each must exit with a
+    failure, name the hook path on stderr, and leave the foreign bytes in
+    place. Each of ``TestInstall`` and ``TestUninstall`` calls this once, so
+    the sequence is stated here.
+    """
+    repo, hook = make_repo_with_hook(case)
+    foreign = b"#!/bin/sh\ngit lfs post-commit \"$@\"\n"
+    hook.write_bytes(foreign)
+    result = run_tool(repo, command)
+    assert_failed(case, result)
+    case.assertIn(str(hook), result.stderr)
+    case.assertEqual(foreign, hook.read_bytes())
+
+
 def write_fake_make(bindir, record, exit_status=0):
     """Write an executable ``make`` that records its cwd and argv, then exits."""
     bindir.mkdir(parents=True, exist_ok=True)
@@ -231,13 +248,7 @@ class TestInstall(unittest.TestCase):
         self.assertEqual(first, hook_path(repo).read_bytes())
 
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):
-        repo, hook = make_repo_with_hook(self)
-        foreign = b"#!/bin/sh\ngit lfs post-commit \"$@\"\n"
-        hook.write_bytes(foreign)
-        result = run_tool(repo, "install")
-        assert_failed(self, result)
-        self.assertIn(str(hook), result.stderr)
-        self.assertEqual(foreign, hook.read_bytes())
+        assert_refuses_a_foreign_hook(self, "install")
 
     def test_refuses_an_oversize_hook_without_reading_it_whole(self):
         # A hook far larger than the read cap cannot be one this tool wrote.
@@ -372,13 +383,7 @@ class TestUninstall(unittest.TestCase):
         self.assertFalse(hook_path(repo).exists())
 
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):
-        repo, hook = make_repo_with_hook(self)
-        foreign = b"#!/bin/sh\ngit lfs post-commit \"$@\"\n"
-        hook.write_bytes(foreign)
-        result = run_tool(repo, "uninstall")
-        assert_failed(self, result)
-        self.assertIn(str(hook), result.stderr)
-        self.assertEqual(foreign, hook.read_bytes())
+        assert_refuses_a_foreign_hook(self, "uninstall")
 
     def test_refuses_an_oversize_hook(self):
         repo, hook = make_repo_with_hook(self)
