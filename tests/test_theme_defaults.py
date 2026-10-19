@@ -171,6 +171,25 @@ class TestDefaultsGroups(unittest.TestCase):
         self.assertIn("malformed section heading", str(caught.exception))
         self.assertIn("[kwinrc", str(caught.exception))
 
+    def test_rejects_a_heading_with_whitespace_inside_a_bracket_pair(self):
+        # A padded name (``[kwinrc ][Theme]``) matches the ``[file][group]``
+        # pattern, but its file is the distinct string ``'kwinrc '``. The
+        # written config filters sections by exact file name, so the padded
+        # section would be dropped from ``kwinrc`` with no diagnostic -- the
+        # silent loss this reader's malformed-heading guard exists to prevent.
+        # It must be rejected by name instead.
+        for heading in ("[kwinrc ][Theme]", "[kwinrc][Theme ]"):
+            with self.subTest(heading=heading):
+                path = make_tmp_dir(self) / "defaults"
+                path.write_text(
+                    f"{heading}\ntheme=x\n",
+                    encoding="utf-8",
+                )
+                with self.assertRaises(ValueError) as caught:
+                    theme_defaults.defaults_groups(path)
+                self.assertIn("malformed section heading", str(caught.exception))
+                self.assertIn(heading, str(caught.exception))
+
 
 class TestWriteConfigs(unittest.TestCase):
     def test_written_configs_follow_the_defaults(self):

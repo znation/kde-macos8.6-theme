@@ -39,9 +39,12 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
 
     A plain ``[Wallpaper]`` section names no file and is skipped. A heading
     that is neither a plain ``[group]`` nor a complete ``[file][group]`` -- a
-    mistyped bracket, a missing closing bracket, or trailing text after the
-    closing ``]`` -- raises ``ValueError`` naming it, so its keys cannot
-    silently vanish from the written config. The file is decoded as
+    mistyped bracket, a missing closing bracket, trailing text after the
+    closing ``]``, or surrounding whitespace inside a bracket pair -- raises
+    ``ValueError`` naming it, so its keys cannot silently vanish from the
+    written config. A padded name (``[kwinrc ][Theme]``) would otherwise parse
+    as the distinct file ``'kwinrc '``, which :func:`write_configs` compares
+    against the real name and drops. The file is decoded as
     ``utf-8-sig``, so a leading UTF-8 BOM is stripped instead of being folded
     into the first heading, where it would make that heading match neither
     pattern and silently drop its section. A repository path that resolves
@@ -66,7 +69,19 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
         if line.startswith("["):
             match = _FILE_GROUP.match(line)
             if match:
-                current = groups.setdefault(match.groups(), {})
+                file, group = match.groups()
+                # A name padded with whitespace (``[kwinrc ][Theme]``) matches
+                # the pattern but names a file/group distinct from the
+                # unpadded one, so the section is silently dropped when
+                # ``write_configs`` filters on the exact name. Refuse it by
+                # name rather than guess which spelling was meant.
+                if file != file.strip() or group != group.strip():
+                    raise ValueError(
+                        f"{path}: malformed section heading {line!r}: the "
+                        "file and group names must not have surrounding "
+                        "whitespace"
+                    )
+                current = groups.setdefault((file, group), {})
             elif _ANY_HEADING.fullmatch(line):
                 # A plain ``[Wallpaper]`` names no config file and is skipped.
                 current = None
