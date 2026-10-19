@@ -131,6 +131,31 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_a_failed_session_config_write_exits_1_with_a_diagnostic(self):
+        # The session config is derived from the shipped defaults and written
+        # into the scratch config home. A write that fails there (a full disk)
+        # or a defaults file that cannot be decoded must become the tool's own
+        # diagnostic and exit 1, not a traceback that bypasses the documented
+        # exit status.
+        def die(config_home, names):
+            raise failure
+
+        for label, failure in (
+            ("a full disk", OSError(errno.ENOSPC, "No space left on device")),
+            (
+                "a non-UTF-8 defaults file",
+                UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            ),
+        ):
+            with self.subTest(label):
+                with mock.patch.object(render_surface, "write_configs", die):
+                    status, stderr, output = self.run_main()
+                self.assertEqual(1, status)
+                self.assertIn("render_surface: error:", stderr)
+                self.assertIn("session config", stderr)
+                self.assertFalse(output.exists())
+                self.assert_scratch_removed()
+
     def test_install_timeout_exits_1_with_a_timeout_diagnostic(self):
         # A hung `make install` is killed by run_logged, which reports the
         # timeout as None. The diagnostic must name the timeout rather than

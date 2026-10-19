@@ -181,7 +181,12 @@ def _render(args: argparse.Namespace) -> int:
             reason = "timed out" if status is None else f"exited {status}"
             return report_failure(TOOL, f"make install {reason}", install_log)
 
-        write_configs(config, CONFIG_FILES)
+        try:
+            write_configs(config, CONFIG_FILES)
+        except (OSError, UnicodeDecodeError) as exc:
+            return report_failure(
+                TOOL, f"cannot write the session config: {exc}"
+            )
 
         session = shlex.join(
             [
