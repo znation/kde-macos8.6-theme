@@ -28,7 +28,81 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Correct the desktop theme's false "no menu-open / no combo-box" reference claims (planned 2026-10-19 by the plan role)
+
+**Goal.** Three desktop-theme SVG header comments justify a palette-only value by claiming the
+reference set shows no such surface, but the set does show it, so the stated reason is false and
+the real reason the value has no per-pixel sample is hidden.
+
+- `theme/desktop-themes/org.macos8.desktop/widgets/viewitem.svg` says "the reference set has no
+  open-menu screenshot, so the menu-item highlight has no per-pixel menu sample". The set's open
+  Apple menu is `macos8.6-screenshots/desktop_archiveorg8.6hd.png` — the image the
+  `widgets/background.svg` plan already sampled its grey menu body from. That menu shows no
+  highlighted item (a scan of the image finds no `#CCCCFF` pixel, the highlight fill), so the
+  conclusion holds but the stated reason is wrong.
+- `theme/desktop-themes/org.macos8.desktop/widgets/menubaritem.svg` repeats the claim as "the
+  reference set has no menu-open screenshot". The same open Apple menu is a menu-open screenshot;
+  its open title is the Apple-logo kicker (a text title is never shown open), so the pressed
+  text-title fill has no per-pixel sample for that different reason.
+- `theme/desktop-themes/org.macos8.desktop/widgets/arrows.svg` says "no reference screenshot
+  shows a combo box or menu button". The set does: the beta `macos8.6-screenshots/
+  systeminfo_betawiki.png` Get Info window's "General Information" and "None" popups, and the
+  JPEG `macos8.6-screenshots/opendialog_macrumors86.jpg` Open dialog's "ROM-new" popup. Their Mac
+  OS indicator is a double (up+down) arrow, not the single `down-arrow` triangle
+  `PlasmaComponents.ComboBox` draws, so the triangle is still a KDE-required shape — but the
+  comment must give that reason instead of the false one.
+
+Correct all three comments to state what the reference actually shows, and pin the corrected
+provenance so the false claim cannot return.
+
+**Approach.**
+- `viewitem.svg`: replace the "the reference set has no open-menu screenshot, so the menu-item
+  highlight has no per-pixel menu sample" clause with one naming the reference: the reference
+  set's open Apple menu (`desktop_archiveorg8.6hd.png`) shows no highlighted item, so the
+  menu-item highlight has no per-pixel sample. Keep the `[Colors:Selection]
+  BackgroundNormal=204,204,255` token sentence and the `normal`-slices paragraph unchanged.
+- `menubaritem.svg`: replace "the reference set has no menu-open screenshot, so the pressed fill
+  has no per-pixel menu sample" with: the reference set's open Apple menu
+  (`desktop_archiveorg8.6hd.png`) opens the Apple-logo kicker's title, not a text title, so the
+  pressed text-title fill has no per-pixel sample. Keep the `[Colors:Selection]` token sentence
+  and the side-padding grounding paragraph unchanged.
+- `arrows.svg`: replace the "Provenance: no reference screenshot shows a combo box or menu
+  button" sentence with one naming the beta Get Info's and the Open dialog's popup buttons and
+  stating that their double-arrow indicator is not the single `down-arrow` triangle
+  `PlasmaComponents.ComboBox` draws, so the triangle stays a KDE-required shape and the fill
+  reuses the grounded Platinum black (`#000000`) `widgets/checkmarks.svg` pins. Keep the
+  literal-attribute sentence.
+- `tests/test_desktoptheme_provenance.py` (new): a `TestProvenance` case reading each SVG's
+  leading XML comment with a small `header_comment(path)` helper (the SVGs open with a single
+  `<!-- ... -->` after the XML declaration) and, per `(path, required, forbidden)` case, asserting
+  the comment contains the reference filename it must cite and does not contain the false phrase.
+  Import the three paths from `support.desktoptheme_paths` (`VIEWITEM_SVG`, `MENUBARITEM_SVG`,
+  `ARROWS_SVG`). Cases:
+  - `viewitem.svg`: requires `desktop_archiveorg8.6hd.png`; forbids `no open-menu screenshot`.
+  - `menubaritem.svg`: requires `desktop_archiveorg8.6hd.png`; forbids `no menu-open screenshot`.
+  - `arrows.svg`: requires `systeminfo_betawiki.png`; forbids `no reference screenshot shows a
+    combo box`.
+- `docs/invariants.md`: add a `desktop-themes` row `| The `viewitem.svg`, `menubaritem.svg` and
+  `arrows.svg` provenance comments name the reference screenshot their claim rests on and do not
+  claim the set shows no such surface. | tests/test_desktoptheme_provenance.py::TestProvenance |
+  none |`.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/viewitem.svg`,
+`theme/desktop-themes/org.macos8.desktop/widgets/menubaritem.svg`,
+`theme/desktop-themes/org.macos8.desktop/widgets/arrows.svg`,
+`tests/test_desktoptheme_provenance.py` (new), `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `viewitem.svg`'s and `menubaritem.svg`'s headers name `desktop_archiveorg8.6hd.png` and no
+  longer contain "no open-menu screenshot" / "no menu-open screenshot" respectively;
+  `arrows.svg`'s header names `systeminfo_betawiki.png` and no longer contains "no reference
+  screenshot shows a combo box".
+- `tests/test_desktoptheme_provenance.py::TestProvenance` passes, and fails when any of the three
+  comments is reverted to its false phrase or loses its reference filename.
+- The new `docs/invariants.md` row resolves through `tests/invariants.py` (its named test case
+  exists), and no existing widget assertion changes: the three SVGs' parsed elements and fills are
+  untouched.
+- `make check` is green.
 
 ## Done
 
