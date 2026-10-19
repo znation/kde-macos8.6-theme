@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import os
 import sys
+import tempfile
 from pathlib import Path
 
 if __package__:
@@ -82,10 +83,28 @@ def _write_atomic(path: Path, data: bytes) -> None:
     crash mid-write leaves the previous wallpaper rather than a truncated PNG
     that a later ``make install`` would ship. The temporary file is removed
     when the write fails.
+
+    The temporary file's name is picked by :func:`tempfile.mkstemp`, which
+    creates it exclusively: a fixed, guessable name would let another local
+    user who can write the images directory park a symlink there first and
+    make the write clobber whatever file it names. The bytes go through the
+    file descriptor ``mkstemp`` returned rather than the path being reopened
+    by name, so a path swapped after the exclusive create cannot redirect
+    them.
     """
-    partial = path.with_name(f".{path.name}-{os.getpid()}.tmp")
+    descriptor, partial_name = tempfile.mkstemp(
+        dir=path.parent, prefix=f".{path.name}-", suffix=".tmp"
+    )
+    partial = Path(partial_name)
     try:
-        partial.write_bytes(data)
+        with os.fdopen(descriptor, "wb") as destination:
+            # mkstemp opens the file 0600; the plain write this replaces
+            # created it with the process umask applied, so restore that mode
+            # before the rename leaves the image owner-only.
+            umask = os.umask(0)
+            os.umask(umask)
+            os.chmod(destination.fileno(), 0o666 & ~umask)
+            destination.write(data)
         os.replace(partial, path)
     except BaseException:
         partial.unlink(missing_ok=True)

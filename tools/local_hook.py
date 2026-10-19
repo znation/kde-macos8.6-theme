@@ -27,6 +27,7 @@ import os
 import stat
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 if __package__:
@@ -163,11 +164,23 @@ def _write_hook(path: Path, content: str) -> None:
     renamed over *path*, so a crash mid-write leaves either the previous hook
     or the complete new one -- never a truncated file that git would run. The
     temporary file is removed when the write fails.
+
+    The temporary file's name is picked by :func:`tempfile.mkstemp`, which
+    creates it exclusively: a fixed, guessable name would let another local
+    user who can write the hooks directory park a symlink there first and make
+    the write clobber whatever file it names. The bytes go through the file
+    descriptor ``mkstemp`` returned rather than the path being reopened by
+    name, so a path swapped after the exclusive create cannot redirect them.
     """
-    partial = path.with_name(f".{HOOK_NAME}-{os.getpid()}.tmp")
+    descriptor, partial_name = tempfile.mkstemp(
+        dir=path.parent, prefix=f".{HOOK_NAME}-", suffix=".tmp"
+    )
+    partial = Path(partial_name)
     try:
-        partial.write_text(content, encoding="utf-8")
-        partial.chmod(0o755)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as destination:
+            # mkstemp opens the file 0600; the hook must be executable.
+            os.chmod(destination.fileno(), 0o755)
+            destination.write(content)
         os.replace(partial, path)
     except BaseException:
         partial.unlink(missing_ok=True)

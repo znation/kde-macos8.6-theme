@@ -5,6 +5,9 @@ from __future__ import annotations
 import contextlib
 import errno
 import io
+import os
+import stat
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -103,12 +106,28 @@ class TestMain(unittest.TestCase):
         first.parent.mkdir(parents=True, exist_ok=True)
         first.write_bytes(b"previous good wallpaper")
 
-        def half_write_then_fail(path, data):
-            with open(path, "wb") as handle:
-                handle.write(data[: len(data) // 2])
-            raise OSError(errno.ENOSPC, "No space left on device")
+        def crashing_fdopen(descriptor, *args, **kwargs):
+            handle = real_fdopen(descriptor, *args, **kwargs)
 
-        with mock.patch.object(Path, "write_bytes", half_write_then_fail):
+            class CrashingWriter:
+                def __getattr__(self, name):
+                    return getattr(handle, name)
+
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *exc_info):
+                    handle.close()
+                    return False
+
+                def write(self, data):
+                    handle.write(data[: len(data) // 2])
+                    raise OSError(errno.ENOSPC, "No space left on device")
+
+            return CrashingWriter()
+
+        real_fdopen = os.fdopen
+        with mock.patch.object(os, "fdopen", crashing_fdopen):
             status, err = self.run_main()
         self.assertEqual(status, 2)
         self.assertIn("cannot write", err)
@@ -141,6 +160,63 @@ class TestMain(unittest.TestCase):
         self.assertEqual(status, 2)
         self.assertIn("does not fit", err)
         self.assertFalse(self.images.exists())
+
+
+class TestWriteAtomic(unittest.TestCase):
+    def test_a_planted_symlink_does_not_redirect_the_write(self):
+        # A local user who can write the images directory can create a
+        # symlink at the fixed temporary name the tool used to build. The
+        # write must not follow it: the tool has to pick its own fresh
+        # temporary name.
+        root = make_tmp_dir(self)
+        target = root / "1280x800.png"
+        victim = root / "victim.txt"
+        victim.write_bytes(b"do not overwrite")
+        planted = target.with_name(f".{target.name}-{os.getpid()}.tmp")
+        planted.symlink_to(victim)
+
+        make_wallpaper._write_atomic(target, b"new wallpaper")
+
+        self.assertEqual(b"do not overwrite", victim.read_bytes())
+        self.assertEqual(b"new wallpaper", target.read_bytes())
+
+    def test_a_swap_after_the_exclusive_create_does_not_redirect_the_write(self):
+        # ``mkstemp`` creates the temporary file exclusively, but another local
+        # user who can write the images directory can still unlink it and park
+        # a symlink at the name between the create and the write. The bytes
+        # must go through the descriptor ``mkstemp`` returned, not the path, so
+        # the symlink's target is left alone.
+        root = make_tmp_dir(self)
+        target = root / "1280x800.png"
+        victim = root / "victim.txt"
+        victim.write_bytes(b"do not overwrite")
+
+        real_mkstemp = tempfile.mkstemp
+
+        def swapping_mkstemp(*args, **kwargs):
+            descriptor, name = real_mkstemp(*args, **kwargs)
+            os.unlink(name)
+            os.symlink(victim, name)
+            return descriptor, name
+
+        with mock.patch.object(make_wallpaper.tempfile, "mkstemp", swapping_mkstemp):
+            make_wallpaper._write_atomic(target, b"new wallpaper")
+
+        self.assertEqual(b"do not overwrite", victim.read_bytes())
+
+    def test_output_mode_matches_the_process_umask(self):
+        # mkstemp opens the temporary file 0600; the plain write this replaces
+        # created the image with the process umask applied, so the rename must
+        # leave that mode rather than an owner-only file.
+        root = make_tmp_dir(self)
+        target = root / "1280x800.png"
+        previous = os.umask(0o027)
+        self.addCleanup(os.umask, previous)
+
+        make_wallpaper._write_atomic(target, b"new wallpaper")
+
+        self.assertEqual(b"new wallpaper", target.read_bytes())
+        self.assertEqual(0o640, stat.S_IMODE(target.stat().st_mode))
 
 
 if __name__ == "__main__":

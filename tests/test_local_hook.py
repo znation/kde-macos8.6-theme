@@ -18,6 +18,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -326,15 +327,32 @@ class TestInstall(unittest.TestCase):
         hook = hook_path(repo)
         complete = hook.read_bytes()
 
-        def crashing_write_text(self, data, **kwargs):
-            # Simulate a process death after a partial write: the file is left
-            # truncated, then the write raises.
-            self.write_bytes(data.encode()[: len(data) // 2])
-            raise OSError("simulated crash mid-write")
+        def crashing_fdopen(descriptor, *args, **kwargs):
+            # Simulate a process death after a partial write: the temporary
+            # file is left truncated, then the write raises.
+            handle = real_fdopen(descriptor, *args, **kwargs)
 
+            class CrashingWriter:
+                def __getattr__(self, name):
+                    return getattr(handle, name)
+
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *exc_info):
+                    handle.close()
+                    return False
+
+                def write(self, data):
+                    handle.write(data[: len(data) // 2])
+                    raise OSError("simulated crash mid-write")
+
+            return CrashingWriter()
+
+        real_fdopen = os.fdopen
         with mock.patch.object(local_hook, "hooks_dir", lambda: hook.parent), \
                 mock.patch.object(local_hook, "top_level", lambda: Path(repo)), \
-                mock.patch.object(Path, "write_text", crashing_write_text):
+                mock.patch.object(os, "fdopen", crashing_fdopen):
             status = local_hook.install()
 
         self.assertEqual(status, 2)
@@ -360,6 +378,45 @@ class TestInstall(unittest.TestCase):
         )
         assert_succeeded(self, result)
         self.assertTrue(hook_path(repo).is_file(), result.stdout + result.stderr)
+
+    def test_a_planted_symlink_does_not_redirect_the_write(self):
+        # A local user who can write the hooks directory can create a symlink
+        # at the fixed temporary name the tool used to build. The write must
+        # not follow it: the tool has to pick its own fresh temporary name.
+        repo, hook = make_repo_with_hook(self)
+        victim = Path(repo) / "victim.txt"
+        victim.write_bytes(b"do not overwrite")
+        planted = hook.with_name(f".{local_hook.HOOK_NAME}-{os.getpid()}.tmp")
+        planted.symlink_to(victim)
+
+        result = run_tool(repo, "install")
+
+        assert_succeeded(self, result)
+        self.assertEqual(b"do not overwrite", victim.read_bytes())
+        self.assertIn(local_hook.MARKER, hook.read_text(encoding="utf-8"))
+
+    def test_a_swap_after_the_exclusive_create_does_not_redirect_the_write(self):
+        # ``mkstemp`` creates the temporary file exclusively, but another local
+        # user who can write the hooks directory can still unlink it and park a
+        # symlink at the name between the create and the write. The bytes must
+        # go through the descriptor ``mkstemp`` returned, not the path, so the
+        # symlink's target is left alone.
+        repo, hook = make_repo_with_hook(self)
+        victim = Path(repo) / "victim.txt"
+        victim.write_bytes(b"do not overwrite")
+
+        real_mkstemp = tempfile.mkstemp
+
+        def swapping_mkstemp(*args, **kwargs):
+            descriptor, name = real_mkstemp(*args, **kwargs)
+            os.unlink(name)
+            os.symlink(victim, name)
+            return descriptor, name
+
+        with mock.patch.object(local_hook.tempfile, "mkstemp", swapping_mkstemp):
+            local_hook._write_hook(hook, local_hook.HOOK_SCRIPT)
+
+        self.assertEqual(b"do not overwrite", victim.read_bytes())
 
 
 class TestUninstall(unittest.TestCase):
