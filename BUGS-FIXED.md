@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/support/checker_mutations.py`'s register reads follow a symlinked register outside the repository (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `Scratch.build` read `docs/invariants.md` and `PLACEHOLDERS.md` with a bare
+`Path.read_text`, so a checked-in symlink at either path that resolves outside the repository
+was followed. That text seeds the scratch copy the checker runs against, and
+`tests/invariants.py` echoes a malformed row's line in its `AssertionError`, so a private
+file's line could reach a failing test's diagnostic.
+
+**Reproduction:** with `checker_mutations.ROOT` pointed at a scratch root whose
+`docs/invariants.md` symlinks a private file outside that root, `Scratch.build` returned a
+scratch holding the private line and `invariants.cross_check` raised
+`malformed table row in section secret (expected 3 cells): | a | b`, echoing it;
+`tests/test_checker_mutations.py::TestCheckerMutations.test_register_reads_refuse_a_symlink_escape`
+now pins the refusal.
+
+**Cause:** the two seed reads bypassed `support/containment.py`, the guard every other reader
+of a contributor-supplied repository file goes through.
+
+**Fix:** both reads go through a new `_read_register` helper that calls
+`containment.read_text(ROOT / relative_path, ROOT)`, which refuses a path that resolves
+outside the repository.
+
+**Validation gap:** no-fake — no fixture created a symlinked register, so confirming the leak
+needed a fake repository root with the register symlinked outside it.
+
 ### The color-scheme provenance test reads `MacOS8.colors` unguarded (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `tests/test_colorscheme.py::TestProvenanceNote.test_tooltip_is_named_as_not_reference_sampled`

@@ -25,6 +25,7 @@ import shutil
 from collections import namedtuple
 from pathlib import Path
 
+from support import containment
 from support.repo_root import ROOT
 
 INVARIANTS_REGISTER = os.path.join("docs", "invariants.md")
@@ -92,6 +93,18 @@ def _append_row(text, asset, description):
     return text + f"| `{asset}` | {description} |\n"
 
 
+def _read_register(relative_path):
+    """Return the repository register's text, refusing a symlink escape.
+
+    The two registers are read to seed the scratch copy, and the checker
+    echoes a malformed row's line when it rejects it. A checked-in symlink at
+    a register path that resolves outside the repository must therefore be
+    refused before it is opened, or a private file's line reaches the
+    checker's diagnostic through the scratch copy.
+    """
+    return containment.read_text(ROOT / relative_path, ROOT)
+
+
 class Scratch:
     """A scratch copy of the shipped repository a mutation transforms.
 
@@ -121,8 +134,8 @@ class Scratch:
         for name in os.listdir(ROOT / "theme"):
             if os.path.isdir(ROOT / "theme" / name):
                 (root / "theme" / name).mkdir(parents=True, exist_ok=True)
-        invariants_text = (ROOT / INVARIANTS_REGISTER).read_text(encoding="utf-8")
-        placeholders_text = (ROOT / PLACEHOLDERS_REGISTER).read_text(encoding="utf-8")
+        invariants_text = _read_register(INVARIANTS_REGISTER)
+        placeholders_text = _read_register(PLACEHOLDERS_REGISTER)
         scratch = cls(root, invariants_text, placeholders_text)
         scratch.reset()
         return scratch

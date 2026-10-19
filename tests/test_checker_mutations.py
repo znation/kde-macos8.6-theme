@@ -11,13 +11,16 @@ list but missing from the other fails here.
 
 from __future__ import annotations
 
+import pathlib
 import tempfile
 import unittest
+from unittest import mock
 
 from invariants import REJECTION_SHAPES as INVARIANTS_REJECTION_SHAPES
 from invariants import cross_check as invariants_cross_check
 from placeholders import REJECTION_SHAPES as PLACEHOLDER_REJECTION_SHAPES
 from placeholders import cross_check as placeholders_cross_check
+from support import checker_mutations
 from support.checker_mutations import (
     INVARIANTS_MUTATIONS,
     PLACEHOLDER_MUTATIONS,
@@ -79,6 +82,28 @@ class TestCheckerMutations(unittest.TestCase):
     def test_placeholder_rejection_shapes_match_the_mutation_table(self):
         names = {m.name for m in PLACEHOLDER_MUTATIONS if m.diagnostic is not None}
         self.assertEqual(set(PLACEHOLDER_REJECTION_SHAPES), names)
+
+    def test_register_reads_refuse_a_symlink_escape(self):
+        # A checked-in symlink at a register path would otherwise be read bare
+        # and its private text copied into the scratch, where the checker
+        # echoes a malformed row's line. `Scratch.build` must refuse it.
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            root = base / "repo"
+            root.mkdir()
+            (root / "tests").mkdir()
+            (root / "theme").mkdir()
+            (root / "docs").mkdir()
+            private = base / "private.txt"
+            private.write_text("private secret line\n", encoding="utf-8")
+            (root / "docs" / "invariants.md").symlink_to(private)
+            (root / "PLACEHOLDERS.md").write_text("", encoding="utf-8")
+            with mock.patch.object(checker_mutations, "ROOT", root):
+                with tempfile.TemporaryDirectory() as scratch_tmp:
+                    with self.assertRaises(ValueError) as caught:
+                        Scratch.build(scratch_tmp)
+        self.assertIn("resolves outside", str(caught.exception))
+        self.assertNotIn("private secret line", str(caught.exception))
 
     def test_harness_fails_when_the_diagnostic_is_wrong(self):
         # A scratch run with one mutation's expected diagnostic removed must
