@@ -221,7 +221,8 @@ class TestFailurePaths(StubTools):
                 self.assert_scratch_removed()
 
     def test_a_read_only_output_directory_is_refused_before_installing(self):
-        # The last branch of `_output_problem`: the directory exists but this
+        # The last branch of `tools/render_output.py`'s `output_problem`: the
+        # directory exists but this
         # user may not write it. `os.access` is the only check that sees that,
         # and a refusal here keeps the failure a named diagnostic instead of
         # letting the copy fail later with an errno the operator has to read

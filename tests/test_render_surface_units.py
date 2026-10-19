@@ -1,18 +1,15 @@
-"""Tests for tools/render_surface.py's argument parsing and file/session helpers.
+"""Tests for tools/render_surface.py's argument parsing and session script.
 
 The render's end-to-end capture and its failure orchestration live in
-``tests/test_render_surface.py``; this module covers the units they are built
-from: ``main``'s argument validation, ``_publish``'s atomic write and output
-mode, and ``_session_script``'s in-session commands.
+``tests/test_render_surface.py``, and the output publication in
+``tests/test_render_output.py``; this module covers the units they are built
+from: ``main``'s argument validation and ``_session_script``'s in-session
+commands.
 """
 
 from __future__ import annotations
 
-import os
-import stat
-import tempfile
 import unittest
-from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import call_main  # noqa: E402
@@ -58,52 +55,6 @@ class TestArguments(unittest.TestCase):
 
     def test_requires_an_output_path(self):
         self.assert_usage_error()
-
-
-class TestPublish(unittest.TestCase):
-    """`_publish` must not write through a symlink planted at a guessable name."""
-
-    def test_a_planted_symlink_does_not_redirect_the_copy(self):
-        with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
-            root = Path(directory)
-            source = root / "source.png"
-            source.write_bytes(b"the new render")
-            victim = root / "victim.txt"
-            victim.write_bytes(b"do not overwrite")
-            output = root / "render.png"
-            # The fixed temporary name the tool used to build; a local user who
-            # can write the output directory can create it before the copy.
-            planted = output.with_name(f".render-{os.getpid()}.tmp")
-            planted.symlink_to(victim)
-
-            render_surface._publish(source, output)
-
-            self.assertEqual(b"do not overwrite", victim.read_bytes())
-            self.assertEqual(b"the new render", output.read_bytes())
-
-
-class TestPublishMode(unittest.TestCase):
-    """`_publish` gives the output the mode a plain copy would.
-
-    ``mkstemp`` opens the temporary file 0600, while a plain
-    ``open(..., "wb")`` creates the output with the process umask applied; the
-    copy must restore that mode before the rename or the published render is
-    left owner-only.
-    """
-
-    def test_output_mode_matches_the_process_umask(self):
-        with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
-            root = Path(directory)
-            source = root / "source.png"
-            source.write_bytes(b"the new render")
-            output = root / "render.png"
-            previous = os.umask(0o027)
-            self.addCleanup(os.umask, previous)
-
-            render_surface._publish(source, output)
-
-            self.assertEqual(b"the new render", output.read_bytes())
-            self.assertEqual(0o640, stat.S_IMODE(output.stat().st_mode))
 
 
 class TestSessionScript(unittest.TestCase):
