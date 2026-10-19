@@ -6,8 +6,8 @@ are formatted from raw argv and must not print control characters, and a
 numeric option must reject Python-only spellings (underscore separators,
 non-ASCII digits, surrounding whitespace) that would silently name a
 different value. Both live here so ``tools/fidelity.py``, ``tools/sample.py``,
-``tools/render_surface.py`` and ``tools/apply_theme.py`` share one
-implementation.
+``tools/render_surface.py``, ``tools/apply_theme.py`` and
+``tools/local_hook.py`` share one implementation.
 
 The operator-facing diagnostic contract -- the ``<tool>: error:`` line, its
 exit status and the bounded log tail -- lives in the sibling

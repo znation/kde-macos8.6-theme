@@ -35,9 +35,9 @@ def report_error(tool: str, message: str) -> int:
     The tools that call this report an operator-facing failure the same way:
     one control-character-escaped diagnostic line prefixed with the tool's
     name, and exit status 2. Keeping the format here means the prefix and the
-    escaping cannot drift between ``tools/fidelity.py``, ``tools/sample.py``
-    and ``tools/render_surface.py``. *message* is the unescaped text; a caller
-    passes an exception's ``str()`` or a diagnostic it built itself.
+    escaping cannot drift between the tools that report through it. *message*
+    is the unescaped text; a caller passes an exception's ``str()`` or a
+    diagnostic it built itself.
     """
     print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
     return 2
