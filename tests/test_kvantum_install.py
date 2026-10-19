@@ -9,16 +9,18 @@ other `test_kvantum_*` modules.
 from __future__ import annotations
 
 import os
+import shutil
 import unittest
 
 from support.kvantum_fixtures import KVANTUM_ID, PACKAGE, SHIPPED_FILES
-from support.process_assertions import assert_succeeded
+from support.process_assertions import assert_failed, assert_succeeded
 from support.shipped_files import shipped_files
 from support.theme_install import (
     XDG_DATA_HOME,
     assert_files_identical,
     install,
     installed_destdir,
+    shadow_command_env,
     uninstall,
 )
 
@@ -51,6 +53,54 @@ class TestInstall(unittest.TestCase):
     def test_make_install_is_repeatable(self):
         with installed_destdir(self) as tmp:
             assert_succeeded(self, install(tmp))
+
+    def test_failed_install_keeps_the_previous_files(self):
+        """A copy that dies partway must not damage the installed Kvantum files.
+
+        `_install` stages each Kvantum file as a hidden sibling and renames it
+        in, so a copy that fails or is interrupted leaves the working files
+        intact and removes the staging file. The two files are installed by a
+        shell loop distinct from `install_package`, so its `|| exit 1` and EXIT
+        trap need their own failure case.
+        """
+        with installed_destdir(self) as tmp:
+            installed = _installed_dir(tmp)
+            good = {}
+            for name in SHIPPED_FILES:
+                with open(os.path.join(installed, name), "rb") as handle:
+                    good[name] = handle.read()
+
+            # Shadow `install` so a copy of a Kvantum file writes part of the
+            # file then dies, like a killed or out-of-space install would.
+            # Directory creation and the color scheme still pass through.
+            real_install = shutil.which("install")
+            env = shadow_command_env(
+                tmp,
+                "install",
+                "#!/bin/sh\n"
+                'case "$2" in\n'
+                "  theme/kvantum/*)\n"
+                '    dest="$3"\n'
+                '    mkdir -p "$(dirname "$dest")"\n'
+                '    printf partial > "$dest"\n'
+                "    exit 1;;\n"
+                "esac\n"
+                'exec "%s" "$@"\n' % real_install,
+            )
+            result = install(tmp, env=env)
+            assert_failed(self, result)
+            for name in SHIPPED_FILES:
+                staging = os.path.join(installed, f".{name}.staging")
+                self.assertFalse(
+                    os.path.exists(staging),
+                    f"staging file leaked after a failed install: {staging}",
+                )
+                with open(os.path.join(installed, name), "rb") as handle:
+                    self.assertEqual(
+                        handle.read(),
+                        good[name],
+                        f"{name} was damaged by a failed install",
+                    )
 
     def test_make_uninstall_removes_the_installed_files(self):
         with installed_destdir(self) as tmp:
