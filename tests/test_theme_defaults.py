@@ -47,6 +47,25 @@ class TestDefaultsGroups(unittest.TestCase):
             theme_defaults.defaults_groups(path),
         )
 
+    def test_rejects_a_heading_that_is_neither_plain_nor_file_group(self):
+        # KDE's parser and configparser read a trailing comment after a
+        # section header as the same section, so a contributor can add one
+        # and `make check` stays green; the reader must not silently drop the
+        # section's keys and write a config missing them. An incomplete or
+        # extended bracket pair is rejected by name instead.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_text(
+            "[kwinrc][org.kde.kdecoration2] # decoration\ntheme=x\n",
+            encoding="utf-8",
+        )
+        with self.assertRaises(ValueError) as caught:
+            theme_defaults.defaults_groups(path)
+        self.assertIn("malformed section heading", str(caught.exception))
+        self.assertIn(
+            "[kwinrc][org.kde.kdecoration2] # decoration",
+            str(caught.exception),
+        )
+
 
 class TestWriteConfigs(unittest.TestCase):
     def test_written_configs_follow_the_defaults(self):

@@ -28,7 +28,11 @@ _ANY_HEADING = re.compile(r"\[[^\]]*\]")
 def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, str]]:
     """Return ``{(file, group): {key: value}}`` for the ``[file][group]`` sections.
 
-    A plain ``[Wallpaper]`` section names no file and is skipped.
+    A plain ``[Wallpaper]`` section names no file and is skipped. A heading
+    that is neither a plain ``[group]`` nor a complete ``[file][group]`` -- a
+    mistyped bracket or trailing text after the closing ``]`` -- raises
+    ``ValueError`` naming it, so its keys cannot silently vanish from the
+    written config.
     """
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
@@ -38,7 +42,16 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
             continue
         if _ANY_HEADING.match(line):
             match = _FILE_GROUP.match(line)
-            current = groups.setdefault(match.groups(), {}) if match else None
+            if match:
+                current = groups.setdefault(match.groups(), {})
+            elif _ANY_HEADING.fullmatch(line):
+                # A plain ``[Wallpaper]`` names no config file and is skipped.
+                current = None
+            else:
+                raise ValueError(
+                    f"{path}: malformed section heading {line!r}: expected "
+                    "'[file][group]' or a plain '[group]'"
+                )
         elif current is not None and "=" in line:
             key, value = line.split("=", 1)
             current[key.strip()] = value.strip()

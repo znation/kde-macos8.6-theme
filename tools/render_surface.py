@@ -145,7 +145,7 @@ def _render(args: argparse.Namespace) -> int:
 
         try:
             write_configs(config, CONFIG_FILES)
-        except (OSError, UnicodeDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, ValueError) as exc:
             return report_failure(
                 TOOL, f"cannot write the session config: {exc}"
             )

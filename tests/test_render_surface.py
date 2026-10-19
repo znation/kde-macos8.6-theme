@@ -140,10 +140,10 @@ class TestFailurePaths(StubTools):
 
     def test_a_failed_session_config_write_exits_1_with_a_diagnostic(self):
         # The session config is derived from the shipped defaults and written
-        # into the scratch config home. A write that fails there (a full disk)
-        # or a defaults file that cannot be decoded must become the tool's own
-        # diagnostic and exit 1, not a traceback that bypasses the documented
-        # exit status.
+        # into the scratch config home. A write that fails there (a full disk),
+        # a defaults file that cannot be decoded, or a malformed section
+        # heading the reader rejects must become the tool's own diagnostic and
+        # exit 1, not a traceback that bypasses the documented exit status.
         def die(config_home, names):
             raise failure
 
@@ -152,6 +152,10 @@ class TestFailurePaths(StubTools):
             (
                 "a non-UTF-8 defaults file",
                 UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            ),
+            (
+                "a malformed defaults heading",
+                ValueError("malformed section heading '[a][b] # note'"),
             ),
         ):
             with self.subTest(label):
