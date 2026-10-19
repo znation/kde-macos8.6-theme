@@ -147,6 +147,21 @@ class TestCheckPattern(unittest.TestCase):
         assert_failed(self, result)
         self.assertIn("CHECK_TESTS must name", result.stderr)
 
+    def test_option_like_tests_variable_after_leading_whitespace_is_refused(self):
+        # The guard strips leading whitespace before it looks for the leading
+        # `-`, so `'  -x test_byteops'` is refused even though its first
+        # character is a space. The value comes from the environment because
+        # make trims a command-line assignment's leading whitespace, which
+        # would hide the case. The strip's only observable effect for
+        # CHECK_TESTS is this case -- an empty value selects discovery and a
+        # bare `-x` is already refused -- so without this test the loop could
+        # be deleted and `-x` would still reach unittest as a fail-fast flag.
+        env = theme_install.make_env("CHECK_TESTS")
+        env["CHECK_TESTS"] = "  -x test_byteops"
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_TESTS must name", result.stderr)
+
 
 class TestPythonInterpreter(unittest.TestCase):
     """`make check` must refuse a PYTHON that make would read as a flag.
@@ -181,6 +196,16 @@ class TestPythonInterpreter(unittest.TestCase):
 
     def test_leading_dash_is_refused(self):
         self._assert_refused(command_line="-m")
+
+    def test_leading_dash_after_leading_whitespace_is_refused(self):
+        # The guard strips leading whitespace before it looks for the leading
+        # `-`, so `'  -m'` is refused too. The value comes from the
+        # environment because make trims a command-line assignment's leading
+        # whitespace, which would hide the case; the whitespace-only case
+        # pins the strip's existence, and this pins that it runs before the
+        # dash check, so a value that is option-like only after the
+        # whitespace cannot reach the recipe as a make flag.
+        self._assert_refused(environment="  -m")
 
     def test_whitespace_only_is_refused(self):
         self._assert_refused(environment=" ")
