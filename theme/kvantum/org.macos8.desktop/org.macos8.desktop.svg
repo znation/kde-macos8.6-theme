@@ -1047,11 +1047,11 @@
     <rect x="8" y="3" width="1" height="7" fill="#000000"/>
   </g>
   <g id="tab-normal" transform="translate(10,13630)">
-    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="30" height="30" fill="#CCCCCC"/>
   </g>
   <g id="tab-normal-top" transform="translate(10,13690)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="30" height="1" fill="#DDDDDD"/>
   </g>
   <g id="tab-normal-bottom" transform="translate(10,13750)">
     <rect x="0" y="0" width="30" height="1" fill="#999999"/>
@@ -1059,19 +1059,19 @@
   </g>
   <g id="tab-normal-left" transform="translate(10,13810)">
     <rect x="0" y="0" width="1" height="30" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="30" fill="#DDDDDD"/>
   </g>
   <g id="tab-normal-right" transform="translate(10,13870)">
     <rect x="0" y="0" width="1" height="30" fill="#999999"/>
     <rect x="1" y="0" width="1" height="30" fill="#000000"/>
   </g>
   <g id="tab-normal-topleft" transform="translate(10,13930)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
   </g>
   <g id="tab-normal-topright" transform="translate(10,13990)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="1" width="1" height="1" fill="#999999"/>
@@ -1080,7 +1080,7 @@
     <rect x="0" y="0" width="2" height="2" fill="#999999"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="1" fill="#DDDDDD"/>
   </g>
   <g id="tab-normal-bottomright" transform="translate(10,14110)">
     <rect x="0" y="0" width="2" height="2" fill="#999999"/>
@@ -1088,11 +1088,11 @@
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
   <g id="tab-focused" transform="translate(10,14170)">
-    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="30" height="30" fill="#CCCCCC"/>
   </g>
   <g id="tab-focused-top" transform="translate(10,14230)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
-    <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="30" height="1" fill="#DDDDDD"/>
   </g>
   <g id="tab-focused-bottom" transform="translate(10,14290)">
     <rect x="0" y="0" width="30" height="1" fill="#999999"/>
@@ -1100,19 +1100,19 @@
   </g>
   <g id="tab-focused-left" transform="translate(10,14350)">
     <rect x="0" y="0" width="1" height="30" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="30" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="30" fill="#DDDDDD"/>
   </g>
   <g id="tab-focused-right" transform="translate(10,14410)">
     <rect x="0" y="0" width="1" height="30" fill="#999999"/>
     <rect x="1" y="0" width="1" height="30" fill="#000000"/>
   </g>
   <g id="tab-focused-topleft" transform="translate(10,14470)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
   </g>
   <g id="tab-focused-topright" transform="translate(10,14530)">
-    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#DDDDDD"/>
     <rect x="1" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="0" width="2" height="1" fill="#000000"/>
     <rect x="0" y="1" width="1" height="1" fill="#999999"/>
@@ -1121,7 +1121,7 @@
     <rect x="0" y="0" width="2" height="2" fill="#999999"/>
     <rect x="0" y="0" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="0" width="1" height="1" fill="#DDDDDD"/>
   </g>
   <g id="tab-focused-bottomright" transform="translate(10,14650)">
     <rect x="0" y="0" width="2" height="2" fill="#999999"/>
@@ -1129,7 +1129,7 @@
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
   <g id="tab-toggled" transform="translate(10,14710)">
-    <rect x="0" y="0" width="30" height="30" fill="#DDDDDD"/>
+    <rect x="0" y="0" width="30" height="30" fill="#EEEEEE"/>
   </g>
   <g id="tab-toggled-top" transform="translate(10,14770)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>

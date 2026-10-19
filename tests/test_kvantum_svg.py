@@ -142,6 +142,10 @@ CHECKBOX_SHADOW = "#888888"
 # (test_kvantum_button_reference), lighter than the #999999 the other raised
 # faces use, so it too is a named extra rather than part of PLATINUM_FILLS.
 BUTTON_SHADOW = "#AAAAAA"
+# The unselected tab face is the reference System Profiler tabs' #CCCCCC
+# (test_kvantum_tab_reference), darker than the #DDDDDD the other raised faces
+# use, so it too is a named extra rather than part of PLATINUM_FILLS.
+TAB_FACE = "#CCCCCC"
 _CHECKBOX_FACE = (
     _rect("0", "0", "14", "14", "#000000"),
     _rect("1", "1", "12", "12", "#DDDDDD"),
@@ -343,7 +347,14 @@ class TestSvg(unittest.TestCase):
             self,
             self.tree,
             extra=frozenset(
-                {TROUGH, TOOLTIP_FACE, SELECTION, CHECKBOX_SHADOW, BUTTON_SHADOW}
+                {
+                    TROUGH,
+                    TOOLTIP_FACE,
+                    SELECTION,
+                    CHECKBOX_SHADOW,
+                    BUTTON_SHADOW,
+                    TAB_FACE,
+                }
             ),
         )
 
