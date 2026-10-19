@@ -180,8 +180,8 @@ class TestStructure(unittest.TestCase):
 
     def test_colorscheme_value_names_the_scheme_file(self):
         # KDE's scheme resolver turns a `ColorScheme=<value>` config value into
-        # `<value>.colors` looked up beside this file (see the BUGS.md entry on
-        # the dotted filename), and every installed KDE scheme sets the value to
+        # `<value>.colors` looked up beside this file (see the BUGS-FIXED.md entry
+        # on the dotted filename), and every installed KDE scheme sets the value to
         # its own filename stem. A rename or edit that breaks the pairing makes
         # the scheme silently fall back to BreezeLight on the next load.
         value = self.parser.get("General", "ColorScheme")
