@@ -21,7 +21,8 @@ _SCHEME_PUNCTUATION = frozenset("+-.")
 _SCHEMES_ALLOWING_EMPTY_HOST = frozenset({"file"})
 
 # RFC 3986 IPvFuture: "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" ).
-_IPV_FUTURE = re.compile(r"v[0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+")
+# ABNF literals are case insensitive, so the leading ``v`` may be either case.
+_IPV_FUTURE = re.compile(r"[vV][0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+")
 
 # RFC 3986 reg-name: *( unreserved / pct-encoded / sub-delims ). The host of
 # an unbracketed authority is a reg-name, so a character outside those sets
@@ -83,7 +84,14 @@ def _is_userinfo(userinfo: str) -> bool:
 
 
 def _is_ip_literal(text: str) -> bool:
-    """Return True when *text* is an RFC 3986 IPv6address or IPvFuture."""
+    """Return True when *text* is an RFC 3986 IPv6address or IPvFuture.
+
+    RFC 3986 gives an IP-literal no zone identifier, so a ``%`` (raw or
+    percent-encoded, as in ``fe80::1%eth0``) is not part of one even though
+    Python's :mod:`ipaddress` accepts a scope id.
+    """
+    if "%" in text:
+        return False
     if _IPV_FUTURE.fullmatch(text):
         return True
     try:

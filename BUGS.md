@@ -12,6 +12,62 @@ _None yet._
 
 ## Fixed
 
+### `tools/url_check.py` rejects an uppercase IPvFuture host as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `"must bracket an IPv6 or IPvFuture
+address"` for `https://[V1.a]/x`, so the checker reported a well-formed RFC 3986
+IPvFuture as a malformed citation. RFC 3986's ABNF imports RFC 5234's
+case-insensitive literals, so the leading `v` of `IPvFuture = "v" 1*HEXDIG "."
+1*( unreserved / sub-delims / ":" )` may be either case.
+
+**How to reproduce:**
+`python3 -c "from tools.url_check import is_absolute_url; print(is_absolute_url('https://[V1.a]/x'))"`
+printed `False` before the fix; `https://[v1.a]/x` printed `True`.
+
+**Cause:** `_IPV_FUTURE` was compiled as
+`re.compile(r"v[0-9A-Fa-f]+\....")`, whose literal `v` matched only lowercase
+while `ipaddress.IPv6Address` then rejected `V1.a`, so the whole bracketed host
+failed.
+
+**Fix:** `_IPV_FUTURE` is now `re.compile(r"[vV][0-9A-Fa-f]+\....")`, so the
+leading `v` matches either case as the ABNF requires.
+
+**Test:** `tests/test_url_check.py::TestBracketedHosts` gained
+`https://[V1.a]/x` in `test_valid_ip_literals_are_accepted`; the class failed on
+it before the fix and passes after.
+
+**Validation gap:** unclear-invariant -- the docstring and the suite stated the
+IPvFuture rule but not that ABNF literals are case-insensitive, so I had to
+reconstruct that the uppercase form is well formed before I could confirm the
+rejection was a bug and not intended.
+
+### `tools/url_check.py` accepts an IPv6 zone identifier as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `None` for
+`https://[fe80::1%eth0]/x`, `https://[fe80::1%25eth0]/x` and
+`https://[::1%eth0]/x`, so `tools/check_references.py` would accept a
+`sources.txt` row citing any of them as a well-formed absolute URL. RFC 3986's
+`IPv6address` has no zone identifier, so a `%` in a bracketed host is
+malformed while the provenance check reported it clean.
+
+**Cause:** `_is_ip_literal` fell through to `ipaddress.IPv6Address`, which
+accepts a `%scope` suffix (a zone identifier) that RFC 3986 does not include;
+the `_IPV_FUTURE` branch never sees one because its character class has no
+`%`.
+
+**Fix:** `_is_ip_literal` rejects a bracketed host holding `%` before it
+reaches `ipaddress.IPv6Address`, so neither a raw scope (`fe80::1%eth0`) nor
+its percent-encoded form (`fe80::1%25eth0`) passes.
+
+**Test:** `tests/test_url_check.py::TestBracketedHosts` gained the three
+zone-identifier forms in `test_malformed_bracketed_hosts_are_rejected`; the
+class failed on `https://[fe80::1%eth0]/x` before the fix and passes after.
+
+**Validation gap:** unclear-invariant -- the docstring named RFC 3986 but
+neither it nor the suite said that the standard library's IPv6 parser accepts
+zone identifiers the RFC omits, so I had to reconstruct that boundary before I
+could confirm the acceptance was a bug and not intended.
+
 ### `tools/url_check.py` accepts a malformed userinfo as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `url_problem` returned `None` for

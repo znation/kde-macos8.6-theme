@@ -123,6 +123,9 @@ class TestBracketedHosts(unittest.TestCase):
             "https://[::1]:8080/x",
             "https://user@[2001:db8::1]/x",
             "https://[v1.fe80::a]/x",
+            # ABNF literals are case insensitive, so the IPvFuture ``v``
+            # may be uppercase too.
+            "https://[V1.a]/x",
             "file://[::1]/x",
         ):
             self.assertTrue(is_absolute_url(url), url)
@@ -138,6 +141,12 @@ class TestBracketedHosts(unittest.TestCase):
             "https://[::1/x",
             "https://[not-an-ip]/x",
             "https://[::1]extra/x",
+            # RFC 3986 IPv6address has no zone identifier; Python's
+            # ``ipaddress`` accepts one, so a raw or percent-encoded scope
+            # used to pass as a well-formed host.
+            "https://[fe80::1%eth0]/x",
+            "https://[fe80::1%25eth0]/x",
+            "https://[::1%eth0]/x",
         ):
             self.assertFalse(is_absolute_url(url), url)
 
