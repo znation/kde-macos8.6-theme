@@ -1,0 +1,64 @@
+"""Pin the SVG element each Kvantum `.kvconfig` section draws.
+
+Part 1 of the Kvantum series ships the core controls, part 2 the track and
+value controls, and part 3 the container and text surfaces; these tests pin
+each section's element mapping so a wrong element name that happens to exist
+elsewhere in the SVG fails here rather than rendering the wrong control. The
+palette, metrics and config-wide pin checks live in `test_kvantum_config.py`.
+"""
+
+from __future__ import annotations
+
+import unittest
+
+from support.kvantum_config_spec import (
+    CORE_CONTROL_CONFIG,
+    CORE_FRAME_MARGINS,
+    SURFACE_CONTROL_CONFIG,
+    TRACK_CONTROL_CONFIG,
+    _assert_pins_resolve,
+)
+
+
+class TestCoreControlElements(unittest.TestCase):
+    """Pin which SVG element each core control section draws.
+
+    The core sections (``CORE_FRAME_MARGINS``) previously had only their frame
+    margins pinned, so a `frame.element`/`interior.element`/`indicator.element`
+    pointing at another element that exists in the SVG (CheckBox drawn from
+    `radio`) passed every test while Kvantum rendered the wrong control. The
+    track/value and surface sections have their own tables; together the three
+    cover every core section.
+    """
+
+    def test_every_core_section_mapping_is_pinned(self):
+        # The three element-mapping tables must cover every core section, so a
+        # section added to CORE_FRAME_MARGINS without an element pin fails
+        # here instead of shipping unchecked.
+        covered = (
+            set(CORE_CONTROL_CONFIG)
+            | set(TRACK_CONTROL_CONFIG)
+            | set(SURFACE_CONTROL_CONFIG)
+        )
+        self.assertEqual(set(CORE_FRAME_MARGINS) - covered, set())
+
+    def test_every_core_control_section_maps_to_its_element(self):
+        _assert_pins_resolve(self, CORE_CONTROL_CONFIG)
+
+
+class TestTrackAndValueElements(unittest.TestCase):
+    """Pin which SVG element each track/value control section draws."""
+
+    def test_every_track_and_value_section_maps_to_its_element(self):
+        _assert_pins_resolve(self, TRACK_CONTROL_CONFIG)
+
+
+class TestSurfaceElements(unittest.TestCase):
+    """Pin which SVG element each container/text surface section draws."""
+
+    def test_every_surface_section_maps_to_its_element(self):
+        _assert_pins_resolve(self, SURFACE_CONTROL_CONFIG)
+
+
+if __name__ == "__main__":
+    unittest.main()

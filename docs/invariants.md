@@ -70,7 +70,7 @@ blank guarantee cell fails `make check`.
 | --- | --- | --- |
 | Every `GeneralColors` entry is grounded in the color scheme or the Platinum palette. | `tests/test_kvantum_config.py::TestGeneralColors` | none |
 | Every core and special control section resolves to the grounded frame margin. | `tests/test_kvantum_config.py::TestFrameMargins` | none |
-| Every core control section maps to the pinned SVG element it draws. | `tests/test_kvantum_config.py::TestCoreControlElements` | none |
+| Every core control section maps to the pinned SVG element it draws. | `tests/test_kvantum_config_elements.py::TestCoreControlElements` | none |
 | Every `.kvconfig` section is pinned by a frame-margin, element-mapping or frameless table. | `tests/test_kvantum_config.py::TestSectionCoverage` | none |
 | Every non-element `.kvconfig` setting (indicator sizes, label colours, text margins, `min_height`, shadow flags, `composite`) is pinned to its value. | `tests/test_kvantum_config.py::TestValueKeys` | none |
 | The SVG ships each frame element's centre and eight slices. | `tests/test_kvantum_svg.py::TestSvg` | none |
