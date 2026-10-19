@@ -220,7 +220,7 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
             if self.profiler_pixel(x, y) == (119, 119, 119)
         )
         self.assertEqual(stripe_end, 776)
-        zoom_right, collapse_left = self._zoom_and_collapse_faces()
+        _, collapse_left = self._zoom_and_collapse_faces()
         zoom_left = min(
             x
             for y in range(26, 38)

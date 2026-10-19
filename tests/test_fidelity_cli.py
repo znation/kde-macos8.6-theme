@@ -136,7 +136,7 @@ class TestCli(FidelityCliTestCase):
     def test_reports_per_channel_mae(self):
         # The CLI must expose each channel's MAE so a colour cast is visible
         # from a run without importing the module.
-        a, a_png = solid_rgb(1, 1)
+        _, a_png = solid_rgb(1, 1)
         b_png = make_png(1, 1, [bytes([10, 0, 0])])
         result = self._run_png_pair(a_png, b_png)
         self._assert_fail(result)

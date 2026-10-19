@@ -27,13 +27,11 @@ from svg_assertions.faces import sunken_outside_face_corners
 
 # The Setup Assistant body text field in firstboot_betawiki.png (retail Mac OS
 # 8.6). Its 2px border is a #999999/#FFFFFF bevel outside a 1px #000000
-# outline, over the #FFFFFF face.
+# outline, over the #FFFFFF face. Only the field's bottom row is a constant,
+# to bound the decode; the runs and corners below pin its other edges.
 REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
-FIELD_LEFT = 28
-FIELD_TOP = 58
-FIELD_RIGHT = 431
 FIELD_BOTTOM = 351
 MAX_ROWS = FIELD_BOTTOM + 1
 
