@@ -16,11 +16,11 @@ from __future__ import annotations
 
 import os
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
+from support.svg_case import parse_svg
 from support.theme_install import ROOT
 from svg_assertions import pixel_map, render_slices
 from svg_assertions.faces import sunken_outside_face_corners
@@ -168,7 +168,7 @@ class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
         self.assertEqual(colours["outline"], "#000000")
         self.assertEqual(colours["face"], "#FFFFFF")
         self.assertEqual(colours["highlight"], "#FFFFFF")
-        slices = render_slices(ET.parse(SVG))
+        slices = render_slices(parse_svg(SVG))
         prefix = "lineedit-normal"
         self.assertEqual(
             slices[prefix],

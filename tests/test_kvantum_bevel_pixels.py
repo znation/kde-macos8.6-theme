@@ -10,7 +10,6 @@ fails here.
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.kvantum_fixtures import SVG
 from support.platinum_palette import (
@@ -19,6 +18,7 @@ from support.platinum_palette import (
     TOOLTIP_FACE,
     WHITE,
 )
+from support.svg_case import parse_svg
 from svg_assertions import (
     assert_slice_pixels,
     pixel_map,
@@ -142,7 +142,7 @@ class TestButtonBevelPixels(unittest.TestCase):
     """
 
     def setUp(self):
-        self.slices = render_slices(ET.parse(SVG))
+        self.slices = render_slices(parse_svg(SVG))
 
     def test_every_button_state_paints_its_bevel(self):
         centre = pixel_map(
@@ -255,7 +255,7 @@ class TestLineEditBevelPixels(unittest.TestCase):
     """
 
     def setUp(self):
-        self.slices = render_slices(ET.parse(SVG))
+        self.slices = render_slices(parse_svg(SVG))
 
     def test_every_lineedit_state_paints_the_sunken_outside_field(self):
         centre = pixel_map(
@@ -293,7 +293,7 @@ class TestItemViewBevelPixels(unittest.TestCase):
     """
 
     def setUp(self):
-        self.slices = render_slices(ET.parse(SVG))
+        self.slices = render_slices(parse_svg(SVG))
 
     def test_every_itemview_state_paints_the_sunken_outside_field(self):
         centre = pixel_map(
@@ -329,7 +329,7 @@ class TestSurfaceBevelPixels(unittest.TestCase):
     """
 
     def setUp(self):
-        self.slices = render_slices(ET.parse(SVG))
+        self.slices = render_slices(parse_svg(SVG))
 
     def _assert_surface_state(self, prefix, bevel, face):
         """Assert one surface state paints its flat or beveled art."""

@@ -10,9 +10,13 @@ bevels are pinned separately in `test_kvantum_bevel_pixels`.
 
 from __future__ import annotations
 
+import sys
+import tempfile
 import unittest
-import xml.etree.ElementTree as ET
+from pathlib import Path
+from unittest import mock
 
+from support import svg_case
 from support.kde_config import read as read_kde_config
 from support.kvantum_fixtures import KVCONFIG, SVG
 from support.platinum_palette import (
@@ -21,6 +25,7 @@ from support.platinum_palette import (
     TROUGH,
     assert_fill_palette,
 )
+from support.svg_case import parse_svg
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -247,7 +252,7 @@ def _interior_state_ids(*elements):
 
 class TestSvg(unittest.TestCase):
     def setUp(self):
-        self.tree = ET.parse(SVG)
+        self.tree = parse_svg(SVG)
         self.ids = attribute_values(self.tree, "id")
 
     def _assert_frame_element_slices(self, element, state):
@@ -341,6 +346,38 @@ class TestSvg(unittest.TestCase):
         assert_no_style_elements(self, self.tree)
         assert_no_external_references(self, self.tree)
         assert_unique_ids(self, self.tree)
+
+
+class TestSvgContainment(unittest.TestCase):
+    """The Kvantum SVG parse must refuse a symlink that escapes the repository."""
+
+    def test_setup_rejects_a_symlinked_svg_that_escapes_the_repository(self):
+        # The shipped SVG is contributor-supplied, and a checked-in symlink at
+        # its path can point at a private file; `ET.parse` reads the target
+        # and the widget assertions echo attribute values into a failing
+        # test's diagnostic, so `setUp` must refuse the escape before it
+        # parses. This drives the real `TestSvg.setUp` (not `parse_svg`
+        # directly), so it fails if the Kvantum test stops routing through the
+        # guard. The target is a valid SVG so a bare `ET.parse` would succeed
+        # and the escape would go unnoticed.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.svg"
+            secret.write_text(
+                "<svg><g id='secret'><rect width='1' height='1'/></g></svg>\n",
+                encoding="utf-8",
+            )
+            link = root / "org.macos8.desktop.svg"
+            link.symlink_to(secret)
+            module = sys.modules[__name__]
+            with mock.patch.object(svg_case, "ROOT", root), mock.patch.object(
+                module, "SVG", str(link)
+            ):
+                with self.assertRaises(ValueError) as caught:
+                    TestSvg().setUp()
+        self.assertIn(str(link), str(caught.exception))
 
 
 if __name__ == "__main__":

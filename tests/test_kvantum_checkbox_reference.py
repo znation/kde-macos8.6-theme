@@ -17,12 +17,12 @@ The reference is a beta build (`aboutsystem_betawiki.png`,
 from __future__ import annotations
 
 import unittest
-import xml.etree.ElementTree as ET
 
 from support.aurorae_fixtures import REFERENCE, REFERENCE_ROWS
 from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
+from support.svg_case import parse_svg
 from svg_assertions import render_slices
 
 # The Get Info window's "Locked" check box in the shared aboutsystem
@@ -117,7 +117,7 @@ class TestCheckBoxReference(ReferenceScreenshotMixin, unittest.TestCase):
         # same raised arrangement with the reference's four colours must fill
         # it: a flat white interior or a black/white fill swap fails here.
         expected = _raised_box(SHIPPED_SIZE, **self._reference_colours())
-        slices = render_slices(ET.parse(SVG))
+        slices = render_slices(parse_svg(SVG))
         self.assertEqual(slices["checkbox-normal"], expected)
 
 
