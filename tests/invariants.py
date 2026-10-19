@@ -229,8 +229,9 @@ def check_reference(root, reference, section):
     test outside the tree the register covers. A referenced file that cannot
     be decoded or parsed is rejected by name too, so a broken reference never
     escapes as an unrelated exception. A path carrying a NUL byte is rejected
-    by name as well, before it reaches :func:`os.path.realpath`, which would
-    raise a bare ``ValueError`` naming neither the section nor the reference.
+    by name as well, before it reaches the shared containment guard, whose
+    path resolution would raise a bare ``ValueError`` naming neither the
+    section nor the reference.
     """
     path, sep, qualifier = reference.partition("::")
     if "\x00" in path:
@@ -238,9 +239,7 @@ def check_reference(root, reference, section):
             f"{section}: {reference} names a path containing a NUL byte"
         )
     file_path = os.path.join(root, path)
-    root_path = os.path.realpath(root)
-    resolved = os.path.realpath(file_path)
-    if resolved != root_path and not resolved.startswith(root_path + os.sep):
+    if not containment.resolves_within(root, file_path):
         raise AssertionError(
             f"{section}: {reference} names a path outside the repository"
         )

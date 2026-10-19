@@ -21,10 +21,12 @@ import re
 from pathlib import Path
 
 if __package__:
+    from tools.containment import resolves_within
     from tools.image_format import LFS_POINTER_MAGIC, is_image
     from tools.terminal import escape_controls
     from tools.url_check import url_problem
 else:  # imported from a directly run tool
+    from containment import resolves_within
     from image_format import LFS_POINTER_MAGIC, is_image
     from terminal import escape_controls
     from url_check import url_problem
@@ -59,25 +61,6 @@ def _looks_like_image(path: Path) -> bool:
     with path.open("rb") as handle:
         head = handle.read(12)
     return is_image(head)
-
-
-def _resolves_within(directory: Path, path: Path) -> bool:
-    """Return True when *path* resolves to a location inside *directory*.
-
-    The reference directory is contributor-supplied, and a checked-in symlink
-    can point anywhere on the machine: a ``sources.txt`` symlink to a private
-    file would make the checker read that file and print its lines as
-    diagnostics. Resolving both paths keeps every read inside the reference
-    directory even when a symlink tries to leave it. A resolution that fails
-    is not assumed to be contained: an ``OSError`` (a filesystem failure) and
-    a ``RuntimeError`` (the symlink loop ``Path.resolve()`` raised before
-    Python 3.13) both make this return False, so the caller reports the path
-    instead of the exception aborting the whole check.
-    """
-    try:
-        return path.resolve().is_relative_to(directory.resolve())
-    except (OSError, RuntimeError):
-        return False
 
 
 def _read_sources_text(sources: Path) -> tuple[str | None, str | None]:
@@ -158,7 +141,7 @@ def _check_entries(
             continue
         entries[filename] = lineno
         image = directory / filename
-        if not _resolves_within(directory, image):
+        if not resolves_within(directory, image):
             problems.append(
                 f"{sources}:{lineno}: {filename!r} points outside "
                 f"{directory}/ (a symlink escape)"
@@ -217,7 +200,7 @@ def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
         # that resolves outside the reference directory; the declared-entry
         # loop makes the same check before opening an image. Without this, the
         # content sniff below would read a private file outside the set.
-        if not _resolves_within(directory, path):
+        if not resolves_within(directory, path):
             problems.append(
                 f"{escape_controls(str(path))}: points outside {directory}/ "
                 "(a symlink escape)"
@@ -252,7 +235,7 @@ def check_references(directory: Path) -> list[str]:
     absolute source URL.
     """
     sources = directory / SOURCES_NAME
-    if not _resolves_within(directory, sources):
+    if not resolves_within(directory, sources):
         return [f"{sources}: points outside {directory}/ (a symlink escape)"]
     if not sources.is_file():
         return [f"{sources}: missing sources file"]

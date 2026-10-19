@@ -92,28 +92,6 @@ def _marker_text(path):
     return None
 
 
-def _resolves_within(directory, path):
-    """Return True when *path* resolves to a location inside *directory*.
-
-    ``theme/`` is contributor-supplied, and a checked-in symlink can point
-    anywhere on the machine: a symlink in ``theme/`` named like a text asset,
-    aimed at a private file, would make the checker read that file's lines as
-    a placeholder marker and hand its text to a failing assertion's
-    diagnostic. Resolving both paths
-    keeps every read inside the theme directory even when a symlink tries to
-    leave it. A resolution that fails is not assumed to be contained: an
-    ``OSError`` (a filesystem failure) and a ``RuntimeError`` both make this
-    return False, so the caller reports the path instead of the exception
-    aborting the check.
-    """
-    try:
-        resolved = os.path.realpath(path)
-        base = os.path.realpath(directory)
-    except (OSError, RuntimeError):
-        return False
-    return resolved == base or resolved.startswith(base + os.sep)
-
-
 def markers(root):
     """Return ``{relative path: marker text}`` for the placeholders under *root*.
 
@@ -132,7 +110,7 @@ def markers(root):
             if filename == "PLACEHOLDERS.md" or not _is_text_asset(filename):
                 continue
             path = os.path.join(dirpath, filename)
-            if not _resolves_within(theme_dir, path):
+            if not containment.resolves_within(theme_dir, path):
                 raise AssertionError(
                     f"{path} points outside {theme_dir} (a symlink escape)"
                 )

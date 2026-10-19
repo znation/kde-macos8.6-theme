@@ -10,10 +10,14 @@ it would make that heading unrecognizable and silently drop its keys.
 
 from __future__ import annotations
 
-import os
 import re
 from collections.abc import Iterable
 from pathlib import Path
+
+if __package__:
+    from tools.containment import require_within_repo
+else:  # imported from a directly run tool
+    from containment import require_within_repo
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,35 +32,6 @@ DEFAULTS = (
 
 _FILE_GROUP = re.compile(r"\[([^\[\]]+)\]\[([^\[\]]+)\]$")
 _ANY_HEADING = re.compile(r"\[[^\]]*\]")
-
-
-def _require_within_repo(path: Path) -> None:
-    """Refuse a repository path that resolves outside the repository.
-
-    ``contents/defaults`` is contributor-supplied, and a checked-in symlink
-    can point at a private file; :func:`defaults_groups` echoes an offending
-    line in its ``ValueError``, so following such a symlink would leak that
-    file's content into the diagnostic. A path lexically inside the
-    repository that resolves outside it is refused before it is read; a path
-    that is not inside the repository at all (a test's temporary file) is left
-    alone.
-    """
-    base = os.path.abspath(ROOT)
-    absolute = os.path.abspath(path)
-    if absolute != base and not absolute.startswith(base + os.sep):
-        return
-    try:
-        resolved = os.path.realpath(path)
-        root = os.path.realpath(ROOT)
-    except (OSError, RuntimeError):
-        resolved = root = None
-    if resolved is None or (
-        resolved != root and not resolved.startswith(root + os.sep)
-    ):
-        raise ValueError(
-            f"{path} resolves outside {ROOT} (a symlink escape); "
-            "refusing to read it"
-        )
 
 
 def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, str]]:
@@ -75,7 +50,7 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     """
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
-    _require_within_repo(path)
+    require_within_repo(path, ROOT)
     for raw in path.read_text(encoding="utf-8-sig").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):

@@ -108,3 +108,4 @@ blank guarantee or provenance-exception cell fails `make check`.
 | The rendered window's side and bottom border strips are byte-identical to the same strips of the reference screenshot. | `tests/test_render_surface.py::TestRender::test_frame_borders_match_the_reference` | none |
 | The rendered window's title-bar boxes (close, zoom, collapse) are byte-identical to the same regions of the reference screenshots. | `tests/test_render_surface.py::TestRender::test_title_bar_boxes_match_the_reference` | none |
 | `INSTALL_PACKAGES` names only known artifact families, so `make install` copies at least one artifact or refuses before creating the data home. | `tests/test_theme_install.py::TestInstallPackagesGuard` | none |
+| No contributor-file reader reimplements the containment guard; each routes through the shared `tools.containment` module. | `tests/test_containment.py::TestGuardIsShared` | none |

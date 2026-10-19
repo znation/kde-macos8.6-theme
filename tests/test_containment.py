@@ -11,11 +11,13 @@ which echo them, so it reads through the matching ``containment.read_text``.
 
 from __future__ import annotations
 
+import ast
 import tempfile
 import unittest
 from pathlib import Path
 
 from support import containment
+from support.repo_root import ROOT
 
 
 class TestReadBytes(unittest.TestCase):
@@ -94,6 +96,44 @@ class TestReadText(unittest.TestCase):
             self.assertEqual(
                 containment.read_text(path, tmp / "repo"), "temp"
             )
+
+
+class TestGuardIsShared(unittest.TestCase):
+    """The containment guard is implemented once; every reader routes to it.
+
+    A refinement to a private copy does not reach the other readers, so the
+    contributor-file readers must not carry their own resolution guard. This
+    reads each reader's source and rejects a local ``_resolves_within`` or
+    ``_require_within_repo`` definition and an inline ``os.path.realpath`` or
+    ``is_relative_to`` resolution -- the two mechanisms the five copies used
+    before they were routed through ``tools.containment``.
+    """
+
+    READERS = (
+        "tests/placeholders.py",
+        "tests/invariants.py",
+        "tools/theme_defaults.py",
+        "tools/reference_validation.py",
+    )
+
+    def test_no_reader_reimplements_the_guard(self):
+        for relative in self.READERS:
+            with self.subTest(module=relative):
+                tree = ast.parse((ROOT / relative).read_text(encoding="utf-8"))
+                definitions = {
+                    node.name
+                    for node in ast.walk(tree)
+                    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                }
+                self.assertNotIn("_resolves_within", definitions)
+                self.assertNotIn("_require_within_repo", definitions)
+                mechanisms = {
+                    node.attr
+                    for node in ast.walk(tree)
+                    if isinstance(node, ast.Attribute)
+                    and node.attr in {"realpath", "is_relative_to"}
+                }
+                self.assertEqual(mechanisms, set(), mechanisms)
 
 
 if __name__ == "__main__":

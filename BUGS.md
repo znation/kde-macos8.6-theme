@@ -8,35 +8,7 @@ unclear-invariant).
 
 ## Open
 
-### The symlink-containment guard is reimplemented at five sites (found by the steward role 2026-10-19)
-
-**Symptom:** the guarantee "refuse a contributor-supplied repository file whose path resolves
-outside the repository" is implemented five times. Four copies use one mechanism and one uses
-another: `tests/support/containment.py` (the shared guard), `tests/placeholders.py`'s
-`_resolves_within`, `tests/invariants.py`'s inline check, and `tools/theme_defaults.py`'s
-`_require_within_repo` compare `os.path.realpath` results with `startswith(base + os.sep)`;
-`tools/reference_validation.py`'s `_resolves_within` uses
-`Path.resolve().is_relative_to(directory.resolve())`. A refinement applied to one copy does not
-reach the other four, so a later reader can adopt a stale copy and reopen the leak class the
-guard exists to close.
-
-**Why this is a structural risk:** the same contributor-content leak has been fixed one module at
-a time. Seven `no-fake` Fixed entries in `BUGS-FIXED.md` are that class, each a module that read
-its repository file bare and needed its own symlink fixture to confirm the leak:
-`tests/placeholders.py`'s `cross_check`; `tests/invariants.py`'s `cross_check`;
-`tests/support/checker_mutations.py`'s register reads; the color-scheme provenance test; the
-desktop-theme copy-identity tests; `tests/support/splash_fixtures.py`; and
-`tests/support/package_metadata.py`. The shared `tests/support/containment.py` was extracted along
-the way, but four modules still keep a local copy of the check.
-
-**Suspected cause:** `tools/` cannot import `tests/support/`, so `tools/theme_defaults.py` and
-`tools/reference_validation.py` grew their own copies; `tests/placeholders.py` and
-`tests/invariants.py` kept a local check from before the shared helper existed, even though both
-already import `support.containment` for another read.
-
-**Suggested direction:** move the guard to one module both trees can import, route all five sites
-through it, and pin the shared behaviour with one test. No fix here: this entry records the risk
-so the next reader of a contributor-supplied file does not add a sixth copy.
+_None yet._
 
 ## Fixed
 

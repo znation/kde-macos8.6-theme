@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The symlink-containment guard is reimplemented at five sites (found by the steward role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** the guarantee "refuse a contributor-supplied repository file whose path resolves
+outside the repository" was implemented five times. Four copies used one mechanism and one used
+another: `tests/support/containment.py` (the shared guard), `tests/placeholders.py`'s
+`_resolves_within`, `tests/invariants.py`'s inline check, and `tools/theme_defaults.py`'s
+`_require_within_repo` compared `os.path.realpath` results with `startswith(base + os.sep)`;
+`tools/reference_validation.py`'s `_resolves_within` used
+`Path.resolve().is_relative_to(directory.resolve())`. A refinement applied to one copy did not
+reach the other four, so a later reader could adopt a stale copy and reopen the leak class the
+guard exists to close.
+
+**Why this is a structural risk:** the same contributor-content leak has been fixed one module at
+a time. Seven `no-fake` Fixed entries in `BUGS-FIXED.md` are that class, each a module that read
+its repository file bare and needed its own symlink fixture to confirm the leak:
+`tests/placeholders.py`'s `cross_check`; `tests/invariants.py`'s `cross_check`;
+`tests/support/checker_mutations.py`'s register reads; the color-scheme provenance test; the
+desktop-theme copy-identity tests; `tests/support/splash_fixtures.py`; and
+`tests/support/package_metadata.py`. The shared `tests/support/containment.py` was extracted along
+the way, but four modules still kept a local copy of the check.
+
+**Suspected cause:** `tools/` cannot import `tests/support/`, so `tools/theme_defaults.py` and
+`tools/reference_validation.py` grew their own copies; `tests/placeholders.py` and
+`tests/invariants.py` kept a local check from before the shared helper existed, even though both
+already import `support.containment` for another read.
+
+**Fix:** the guard now lives once in `tools/containment.py`, the one module both trees can import
+(tests reach it as `tools.containment` with the repository root on `sys.path`).
+`tests/support/containment.py` re-exports the shared functions under the name the test helpers
+already use, and `tests/placeholders.py`, `tests/invariants.py`, `tools/theme_defaults.py` and
+`tools/reference_validation.py` call the shared `resolves_within`/`require_within_repo` instead of
+their local copies. `tests/test_containment.py::TestGuardIsShared` pins the single
+implementation, and the `tooling` section of `docs/invariants.md` records the guarantee.
+
+**Validation gap:** no-observability — the five copies had no failing behavior to reproduce, so
+only a source-level check can observe the drift risk; the regression test parses the four readers'
+ASTs and rejects a local resolver definition or an inline `realpath`/`is_relative_to` call.
+
 ### `make install INSTALL_PACKAGES=<unknown>` silently installs nothing (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `make install INSTALL_PACKAGES=colour-scheme` (a typo, or any name

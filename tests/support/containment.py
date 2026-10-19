@@ -1,83 +1,28 @@
-"""Containment guard for reads of contributor-supplied repository files.
+"""Test-side name for the shared containment guard.
 
-The theme, reference and package files under the repository are
-contributor-supplied, and a checked-in symlink can point anywhere on the
-machine. A reader that opens such a path can read a private file and, when its
-error message echoes the file's lines (``configparser`` does), hand that
-content to a failing test's diagnostic. :func:`require_within_repo` resolves
-the path and refuses one that is lexically inside the repository but lands
-outside it; a path that is not inside the repository at all (a test's
-temporary file) is left alone.
+The guard itself lives in :mod:`tools.containment`, the one module both the
+``tools/`` scripts and the test suite can import. This module keeps the
+``support.containment`` name the test helpers already use and re-exports the
+guard's functions, so there is a single implementation. Importing
+:mod:`support.repo_root` first puts the repository root on ``sys.path`` so
+``tools.containment`` resolves even when the suite runs from ``tests/``.
 """
 
 from __future__ import annotations
 
-import os
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from tools.containment import (  # noqa: F401
+    is_within,
+    read_bytes,
+    read_text,
+    require_within_repo,
+    resolves_within,
+)
 
-
-def _resolves_within(directory, path):
-    """Return True when *path* resolves to a location inside *directory*.
-
-    A resolution that fails is not assumed to be contained: an ``OSError`` (a
-    filesystem failure) and a ``RuntimeError`` both make this return False, so
-    the caller refuses the path instead of the exception aborting the read.
-    """
-    try:
-        resolved = os.path.realpath(path)
-        base = os.path.realpath(directory)
-    except (OSError, RuntimeError):
-        return False
-    return resolved == base or resolved.startswith(base + os.sep)
-
-
-def _is_within(directory, path):
-    """Return True when *path* is lexically inside *directory* (symlinks unresolved)."""
-    base = os.path.abspath(directory)
-    absolute = os.path.abspath(path)
-    return absolute == base or absolute.startswith(base + os.sep)
-
-
-def require_within_repo(path, root):
-    """Raise ``ValueError`` when a repository *path* resolves outside *root*.
-
-    Only a *path* lexically inside *root* is checked, so a reader that is also
-    handed a test's temporary file is unaffected. A checked-in symlink at a
-    repository path resolves elsewhere and is refused with the path named.
-    """
-    if not _is_within(root, path):
-        return
-    if not _resolves_within(root, path):
-        raise ValueError(
-            f"{path} resolves outside {root} (a symlink escape); "
-            "refusing to read it"
-        )
-
-
-def read_bytes(path, root):
-    """Return the bytes of repository *path*, refusing a symlink escape.
-
-    A contributor-supplied file that a test compares with a second copy is
-    read through here: the comparison echoes both byte strings when they
-    differ, so a checked-in symlink at *path* that resolves outside *root*
-    must be refused before it is opened rather than leaking a private file's
-    bytes into the diagnostic. A *path* outside *root* (a test's temporary
-    file) is read as before.
-    """
-    require_within_repo(path, root)
-    with open(path, "rb") as handle:
-        return handle.read()
-
-
-def read_text(path, root, encoding="utf-8"):
-    """Return the text of repository *path*, refusing a symlink escape.
-
-    A contributor-supplied file whose lines a test feeds to an assertion that
-    echoes them (``assertIn``, ``assertRegex``) is read through here: a
-    checked-in symlink at *path* that resolves outside *root* must be refused
-    before it is opened rather than leaking a private file's text into the
-    diagnostic. A *path* outside *root* (a test's temporary file) is read as
-    before.
-    """
-    require_within_repo(path, root)
-    with open(path, encoding=encoding) as handle:
-        return handle.read()
+__all__ = [
+    "is_within",
+    "read_bytes",
+    "read_text",
+    "require_within_repo",
+    "resolves_within",
+]
