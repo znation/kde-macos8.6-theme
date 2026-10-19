@@ -363,6 +363,34 @@ class TestInstallPackagesGuard(unittest.TestCase):
         data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
+    def test_an_unknown_family_after_a_known_one_is_still_refused(self):
+        # The guard must check every word, not just the first: a known family
+        # first (`color-scheme`) must not mask a typo after it (`bogus`). A
+        # guard that inspected only `$1` would pass
+        # test_unknown_family_is_refused_before_creating_the_data_home -- there
+        # the single word is the typo -- and install the known family while
+        # quietly dropping the unknown one.
+        tmp = make_tmp_dir(self)
+        env = theme_install.make_env("INSTALL_PACKAGES")
+        env["INSTALL_PACKAGES"] = "color-scheme bogus"
+        result = theme_install.run_make(
+            [
+                "install",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+            ],
+            env=env,
+        )
+        assert_failed(self, result)
+        # Only the unknown word is named as unknown; the known family may
+        # appear only in the trailing "known families" list.
+        self.assertIn(
+            "INSTALL_PACKAGES names unknown artifact families: bogus;",
+            result.stderr,
+        )
+        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        self.assertFalse(os.path.exists(data_home), data_home)
+
 
 if __name__ == "__main__":
     unittest.main()
