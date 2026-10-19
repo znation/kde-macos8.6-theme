@@ -4,7 +4,7 @@ What each shipped surface guarantees, in one sentence, and the test that pins it
 Read the matching row before changing a surface; when a change adds or alters a
 guarantee, update this register in the same change. Every `theme/` subsystem has a
 section, and the render/fidelity tooling lives under [tooling](#tooling) because it
-is not a `theme/` subsystem. `tests/test_invariants.py` cross-checks this file
+is not a `theme/` subsystem. `tests/invariants.py` cross-checks this file
 against the repository: a `theme/` subsystem with no section, a section naming
 no `theme/` subsystem or extra section, a repeated section heading, a row naming
 a test that does not exist, a row naming no test, a malformed table row, or a

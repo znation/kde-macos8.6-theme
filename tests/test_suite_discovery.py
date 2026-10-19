@@ -8,8 +8,10 @@ have any, never execute. This module imports each pattern-matched file through
 the loader and fails naming the ones that collect nothing.
 
 Helper modules that hold shared cases but are not discovered themselves live in
-the ``tests/support/`` package (and the ``tests/svg_assertions/`` package), so
-they do not match ``test*.py`` and are not reported by the check above.
+the ``tests/support/`` package (and the ``tests/svg_assertions/`` package), or
+directly under ``tests/`` (the ``invariants`` and ``placeholders`` register
+checkers), so they do not match ``test*.py`` and are not reported by the check
+above.
 
 The opposite mistake is guarded too: a file that defines test cases but does
 not match ``test*.py`` (say ``png_checks.py``) is never imported by discovery,
