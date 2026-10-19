@@ -32,12 +32,12 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
 
     A plain ``[Wallpaper]`` section names no file and is skipped. A heading
     that is neither a plain ``[group]`` nor a complete ``[file][group]`` -- a
-    mistyped bracket or trailing text after the closing ``]`` -- raises
-    ``ValueError`` naming it, so its keys cannot silently vanish from the
-    written config. The file is decoded as ``utf-8-sig``, so a leading UTF-8
-    BOM is stripped instead of being folded into the first heading, where it
-    would make that heading match neither pattern and silently drop its
-    section.
+    mistyped bracket, a missing closing bracket, or trailing text after the
+    closing ``]`` -- raises ``ValueError`` naming it, so its keys cannot
+    silently vanish from the written config. The file is decoded as
+    ``utf-8-sig``, so a leading UTF-8 BOM is stripped instead of being folded
+    into the first heading, where it would make that heading match neither
+    pattern and silently drop its section.
     """
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
@@ -45,7 +45,15 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
-        if _ANY_HEADING.match(line):
+        # Any line that opens a bracket must be a well-formed heading: a
+        # heading with no closing bracket (``[kwinrc``) matches neither
+        # ``_FILE_GROUP`` nor ``_ANY_HEADING.fullmatch``, so testing
+        # ``_ANY_HEADING.match`` here would let it fall through as a bare line
+        # and attach its keys to the previous section (or, when it carries an
+        # ``=``, become a bogus key). A non-heading line never starts with
+        # ``[`` -- a key line starts with the key -- so this is the same test
+        # the match made, widened to catch the bracket with no close.
+        if line.startswith("["):
             match = _FILE_GROUP.match(line)
             if match:
                 current = groups.setdefault(match.groups(), {})

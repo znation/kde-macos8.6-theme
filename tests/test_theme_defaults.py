@@ -86,6 +86,23 @@ class TestDefaultsGroups(unittest.TestCase):
             str(caught.exception),
         )
 
+    def test_rejects_a_heading_with_no_closing_bracket(self):
+        # A heading whose closing bracket is missing (``[kwinrc``) matches
+        # neither heading pattern. Before the guard widened to every line
+        # that opens a bracket, such a line fell through as a bare line: its
+        # keys were attached to the previous section and the intended section
+        # silently vanished from the written config. It must be rejected by
+        # name instead.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_text(
+            "[plasmarc][Theme]\nname=y\n[kwinrc\ntheme=x\n",
+            encoding="utf-8",
+        )
+        with self.assertRaises(ValueError) as caught:
+            theme_defaults.defaults_groups(path)
+        self.assertIn("malformed section heading", str(caught.exception))
+        self.assertIn("[kwinrc", str(caught.exception))
+
 
 class TestWriteConfigs(unittest.TestCase):
     def test_written_configs_follow_the_defaults(self):
