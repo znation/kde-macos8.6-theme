@@ -32,6 +32,21 @@ class TestDefaultsGroups(unittest.TestCase):
             theme_defaults.defaults_groups(path),
         )
 
+    def test_skips_a_bare_line_inside_a_section(self):
+        # A hand-edited defaults file can carry a stray line with no "="
+        # inside a [file][group] section. The guard skips it; without it
+        # line.split("=", 1) returns one field and unpacking raises, aborting
+        # the whole parse. The keys around the bare line must survive.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_text(
+            "[a][B]\nbefore=1\nstray line\nafter=2\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            {("a", "B"): {"before": "1", "after": "2"}},
+            theme_defaults.defaults_groups(path),
+        )
+
 
 class TestWriteConfigs(unittest.TestCase):
     def test_written_configs_follow_the_defaults(self):
