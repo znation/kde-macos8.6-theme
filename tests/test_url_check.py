@@ -191,6 +191,45 @@ class TestUnbracketedHostCharacters(unittest.TestCase):
             self.assertFalse(is_absolute_url(url), repr(url))
 
 
+class TestUserinfoCharacters(unittest.TestCase):
+    r"""Userinfo is an RFC 3986 userinfo.
+
+    The authority parser split the authority at ``@`` and validated only the
+    host, so a userinfo holding a character no userinfo allows (``<``, ``>``,
+    ``{``, ``}``, ``\``, ``"``, ``|``, ``^``, a backtick, a raw non-ASCII
+    byte, a bare percent or an unencoded ``@``) passed as a well-formed
+    citation.
+    """
+
+    def test_userinfo_characters_are_accepted(self):
+        for url in (
+            "https://@example.test/x",
+            "https://user@example.test/x",
+            "https://user:pass@example.test/x",
+            "https://a:b:c@example.test/x",
+            "https://a!$&'()*+,;=:b@example.test/x",
+            "https://pct%41@example.test/x",
+            "https://user@[2001:db8::1]/x",
+        ):
+            self.assertTrue(is_absolute_url(url), url)
+
+    def test_non_userinfo_characters_are_rejected(self):
+        for url in (
+            "https://a<b>@example.test/x",
+            "https://a{b}c@example.test/x",
+            "https://host\\name@example.test/x",
+            'https://host"name@example.test/x',
+            "https://host|name@example.test/x",
+            "https://host^name@example.test/x",
+            "https://host`name@example.test/x",
+            "https://user@@example.test/x",
+            "https://exa%2@example.test/x",
+            "https://exa%zz@example.test/x",
+            "https://\u00e9xample@example.test/x",
+        ):
+            self.assertFalse(is_absolute_url(url), repr(url))
+
+
 class TestAuthorityPorts(unittest.TestCase):
     """A port is ``*DIGIT``; anything else is a malformed citation.
 

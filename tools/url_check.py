@@ -34,30 +34,52 @@ _REG_NAME_SUB_DELIMS = frozenset("!$&'()*+,;=")
 _HEX_DIGITS = frozenset("0123456789abcdefABCDEF")
 
 
-def _is_reg_name(host: str) -> bool:
-    """Return True when *host* is an RFC 3986 reg-name.
+def _is_uri_component(text: str, extra: frozenset[str] = frozenset()) -> bool:
+    """Return True when *text* is unreserved / sub-delims / pct-encoded / *extra*.
 
-    A reg-name is a run of unreserved characters, sub-delims and pct-encoded
-    octets. A percent sign must introduce exactly two hex digits; any other
-    character -- ``<``, ``>``, ``{``, ``}``, ``\\``, ``"``, ``|``, ``^``, a
-    backtick or a raw non-ASCII byte -- is not part of one.
+    A percent sign must introduce exactly two hex digits; any character
+    outside the allowed sets -- ``<``, ``>``, ``{``, ``}``, ``\\``, ``"``,
+    ``|``, ``^``, a backtick or a raw non-ASCII byte -- is not part of one.
     """
     index = 0
-    while index < len(host):
-        char = host[index]
+    while index < len(text):
+        char = text[index]
         if char == "%":
             if (
-                index + 2 >= len(host)
-                or host[index + 1] not in _HEX_DIGITS
-                or host[index + 2] not in _HEX_DIGITS
+                index + 2 >= len(text)
+                or text[index + 1] not in _HEX_DIGITS
+                or text[index + 2] not in _HEX_DIGITS
             ):
                 return False
             index += 3
             continue
-        if char not in _REG_NAME_UNRESERVED and char not in _REG_NAME_SUB_DELIMS:
+        if (
+            char not in _REG_NAME_UNRESERVED
+            and char not in _REG_NAME_SUB_DELIMS
+            and char not in extra
+        ):
             return False
         index += 1
     return True
+
+
+def _is_reg_name(host: str) -> bool:
+    """Return True when *host* is an RFC 3986 reg-name.
+
+    A reg-name is a run of unreserved characters, sub-delims and pct-encoded
+    octets.
+    """
+    return _is_uri_component(host)
+
+
+def _is_userinfo(userinfo: str) -> bool:
+    """Return True when *userinfo* is an RFC 3986 userinfo.
+
+    userinfo is a run of unreserved characters, sub-delims, pct-encoded octets
+    and colons, so ``user:pass`` is well formed while an unencoded ``@``,
+    ``user name`` or ``user\\name`` is not.
+    """
+    return _is_uri_component(userinfo, frozenset(":"))
 
 
 def _is_ip_literal(text: str) -> bool:
@@ -84,15 +106,18 @@ def _authority_host(authority: str) -> tuple[str, str | None]:
     """Return ``(host, problem)`` for an RFC 3986 *authority*.
 
     The host is what follows any ``userinfo@`` prefix and precedes any
-    ``:port`` suffix. A bracketed IP-literal (``[::1]``) must be closed and
-    hold an IPv6 or IPvFuture address; a bracket in an unbracketed host is
-    malformed, as is a port holding anything but ASCII digits. An unbracketed
-    host is an RFC 3986 reg-name, so a character outside that set (``<``,
-    ``{``, a backslash, a bare percent) is malformed too. *problem* is a
-    diagnostic for a malformed authority, and *host* is empty when the
-    authority names no host at all.
+    ``:port`` suffix. Userinfo is an RFC 3986 userinfo, so an unencoded
+    ``@``, a space or a backslash before the host is malformed. A bracketed
+    IP-literal (``[::1]``) must be closed and hold an IPv6 or IPvFuture
+    address; a bracket in an unbracketed host is malformed, as is a port
+    holding anything but ASCII digits. An unbracketed host is an RFC 3986
+    reg-name, so a character outside that set (``<``, ``{``, a backslash, a
+    bare percent) is malformed too. *problem* is a diagnostic for a malformed
+    authority, and *host* is empty when the authority names no host at all.
     """
-    hostport = authority.rsplit("@", 1)[-1]
+    userinfo, sep, hostport = authority.rpartition("@")
+    if sep and not _is_userinfo(userinfo):
+        return "", "must use only userinfo characters before '@'"
     if hostport.startswith("["):
         end = hostport.find("]")
         if end == -1:
@@ -139,7 +164,8 @@ def url_problem(url: str) -> str | None:
     A port must be ASCII digits (or empty), so ``host:80:90`` and
     ``host:abc`` are malformed citations. An unbracketed host is an RFC 3986
     reg-name, so ``host name``, ``host<a>`` and a bare ``host%`` are malformed
-    too.
+    too. Userinfo follows the same shape, so ``user name@host`` and
+    ``user@host`` (an unencoded ``@``) are malformed as well.
     """
     scheme, sep, rest = url.partition("://")
     if (

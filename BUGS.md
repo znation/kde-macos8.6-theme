@@ -12,6 +12,37 @@ _None yet._
 
 ## Fixed
 
+### `tools/url_check.py` accepts a malformed userinfo as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `None` for
+`https://a<b>@example.test/x`, `https://a{b}c@example.test/x`,
+`https://host\name@example.test/x`, `https://user@@example.test/x`,
+`https://exa%2@example.test/x` and a raw non-ASCII byte before the `@`, so
+`tools/check_references.py` would accept a `sources.txt` row citing any of
+them as a well-formed absolute URL. RFC 3986 makes userinfo a run of
+unreserved characters, pct-encoded octets, sub-delims and colons, so each is
+malformed while the provenance check reported it clean.
+
+**Cause:** `_authority_host` took the host as `authority.rsplit("@", 1)[-1]`,
+discarding everything before the last `@` without validating it; only the host
+after it was checked against the reg-name rule.
+
+**Fix:** `_authority_host` now splits the authority with `rpartition("@")` and
+validates the userinfo with `_is_userinfo`, which shares the new
+`_is_uri_component` scanner with `_is_reg_name` and adds the colon to its
+allowed set. A malformed userinfo is rejected with "must use only userinfo
+characters before '@'" before the host is parsed.
+
+**Test:** `tests/test_url_check.py::TestUserinfoCharacters` covers both the
+accepted userinfo forms (empty, `user`, `user:pass`, sub-delims, pct-encoded)
+and the rejected ones; the class failed on `https://a<b>@example.test/x`
+before the fix and passes after.
+
+**Validation gap:** unclear-invariant -- the parser's guarantee for userinfo
+was neither documented nor tested, so I had to reconstruct the RFC 3986
+userinfo shape from the host rule before I could confirm the acceptance was a
+bug and not intended.
+
 ### `tools/url_check.py` accepts an empty bracketed host (`file://[]`) as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `url_problem` returned `None` for `file://[]/x`, `file://[]` and
