@@ -5,9 +5,9 @@ reference set, and the reference directory holds the images it names. This
 module reads both and returns the problems it finds: an entry that names a
 missing, unreadable, non-image or unmaterialized-LFS file, a source URL that
 is not a well-formed absolute URL, a file on disk with no entry, or a path
-that escapes the reference directory through a symlink. The checker's entry
-point, ``tools/check_references.py``, orchestrates these checks and reports
-their problems.
+that escapes the reference directory through a symlink. ``check_references``
+runs those checks and returns the problem list; the checker script
+``tools/check_references.py`` handles its arguments and reports its problems.
 
 Keeping the checks here leaves the entry point with only argument handling and
 the summary, and mirrors the test suite's split between the checker's I/O and
@@ -242,3 +242,24 @@ def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
             )
 
     return problems
+
+
+def check_references(directory: Path) -> list[str]:
+    """Return a list of human-readable problems in *directory*.
+
+    An empty list means every source entry names an existing image, every image
+    has exactly one entry, and every entry has the three expected fields with an
+    absolute source URL.
+    """
+    sources = directory / SOURCES_NAME
+    if not _resolves_within(directory, sources):
+        return [f"{sources}: points outside {directory}/ (a symlink escape)"]
+    if not sources.is_file():
+        return [f"{sources}: missing sources file"]
+
+    sources_text, read_problem = _read_sources_text(sources)
+    if sources_text is None:
+        return [read_problem]
+
+    problems, entries = _check_entries(directory, sources, sources_text)
+    return problems + _check_undeclared(directory, entries)

@@ -24,23 +24,11 @@ from pathlib import Path
 
 try:
     from tools.check_references_selftest import run_self_test
-    from tools.reference_validation import (
-        SOURCES_NAME,
-        _check_entries,
-        _check_undeclared,
-        _read_sources_text,
-        _resolves_within,
-    )
+    from tools.reference_validation import SOURCES_NAME, check_references
     from tools.terminal import escape_controls
 except ImportError:  # run directly: python3 tools/check_references.py
     from check_references_selftest import run_self_test
-    from reference_validation import (
-        SOURCES_NAME,
-        _check_entries,
-        _check_undeclared,
-        _read_sources_text,
-        _resolves_within,
-    )
+    from reference_validation import SOURCES_NAME, check_references
     from terminal import escape_controls
 
 REFERENCE_DIR = "macos8.6-screenshots"
@@ -54,27 +42,6 @@ options:
   --self-test  run the checker's own fixtures instead of the repository
   -h, --help   show this message and exit
 """
-
-
-def check_references(directory: Path) -> list[str]:
-    """Return a list of human-readable problems in *directory*.
-
-    An empty list means every source entry names an existing image, every image
-    has exactly one entry, and every entry has the three expected fields with an
-    absolute source URL.
-    """
-    sources = directory / SOURCES_NAME
-    if not _resolves_within(directory, sources):
-        return [f"{sources}: points outside {directory}/ (a symlink escape)"]
-    if not sources.is_file():
-        return [f"{sources}: missing sources file"]
-
-    sources_text, read_problem = _read_sources_text(sources)
-    if sources_text is None:
-        return [read_problem]
-
-    problems, entries = _check_entries(directory, sources, sources_text)
-    return problems + _check_undeclared(directory, entries)
 
 
 def _self_test() -> int:
