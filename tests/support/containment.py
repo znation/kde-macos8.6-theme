@@ -67,3 +67,18 @@ def read_bytes(path, root):
     require_within_repo(path, root)
     with open(path, "rb") as handle:
         return handle.read()
+
+
+def read_text(path, root, encoding="utf-8"):
+    """Return the text of repository *path*, refusing a symlink escape.
+
+    A contributor-supplied file whose lines a test feeds to an assertion that
+    echoes them (``assertIn``, ``assertRegex``) is read through here: a
+    checked-in symlink at *path* that resolves outside *root* must be refused
+    before it is opened rather than leaking a private file's text into the
+    diagnostic. A *path* outside *root* (a test's temporary file) is read as
+    before.
+    """
+    require_within_repo(path, root)
+    with open(path, encoding=encoding) as handle:
+        return handle.read()

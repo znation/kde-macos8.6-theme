@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The color-scheme provenance test reads `MacOS8.colors` unguarded (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `tests/test_colorscheme.py::TestProvenanceNote.test_tooltip_is_named_as_not_reference_sampled`
+opened `SCHEME` with a bare `open()`, joined its `#` comment lines into `text`, and passed `text`
+to `assertIn`/`assertRegex`. A checked-in symlink at
+`theme/color-schemes/MacOS8.colors` to a private file is read, and a failing assertion echoes
+that file's comment lines into the diagnostic. Unlike `load_scheme`/`kde_config.read`, this read
+never called `containment.require_within_repo`.
+
+**Reproduction:** point `SCHEME` at a symlink to a private file whose comment lines lack
+`[Colors:Tooltip]`; the `assertIn` diagnostic contained the private comment lines. A scratch
+script with the symlink at a repository path showed the bare read echoing
+`private secret line [Colors:Other]`; after the fix the guarded read raises
+`ValueError: ... resolves outside ... (a symlink escape)` and echoes nothing. The new
+`tests/test_containment.py::TestReadText.test_rejects_a_symlink_that_escapes_the_root` fails
+without `containment.read_text`.
+
+**Cause:** the direct `open(SCHEME)` predated the containment guards; the test read the scheme
+directly instead of through a guarded reader.
+
+**Fix:** `tests/support/containment.py` gained `read_text(path, root)`, the text sibling of
+`read_bytes`, which calls `require_within_repo` before opening; the provenance test now reads
+through it.
+
+**Validation gap:** no-fake — confirming the leak needed a symlink fixture the existing suite did
+not have, so one had to be manufactured before the diagnostic echo could be observed.
+
 ### The desktop-theme copy-identity tests read the secondary SVG copy unguarded (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `tests/test_desktoptheme_background.py::TestBackground.test_translucent_copy_is_identical`,

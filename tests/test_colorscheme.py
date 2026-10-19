@@ -11,7 +11,9 @@ import os
 import re
 import unittest
 
+from support import containment
 from support.colorscheme_fixtures import SCHEME, load_scheme
+from support.repo_root import ROOT
 
 # configparser reads the KDE `[Colors:Header][Inactive]` header greedily, so the
 # section key includes the inner bracket pair.
@@ -283,12 +285,11 @@ class TestProvenanceNote(unittest.TestCase):
     """
 
     def test_tooltip_is_named_as_not_reference_sampled(self):
-        with open(SCHEME, encoding="utf-8") as handle:
-            text = "".join(
-                line[1:].strip() + " "
-                for line in handle
-                if line.startswith("#")
-            )
+        text = "".join(
+            line[1:].strip() + " "
+            for line in containment.read_text(SCHEME, ROOT).splitlines()
+            if line.startswith("#")
+        )
         self.assertIn("[Colors:Tooltip]", text)
         self.assertRegex(
             text,

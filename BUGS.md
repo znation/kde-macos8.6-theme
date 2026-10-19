@@ -8,21 +8,7 @@ unclear-invariant).
 
 ## Open
 
-### The color-scheme provenance test reads `MacOS8.colors` unguarded (found by the bugfix role 2026-10-19)
-
-**Symptom:** `tests/test_colorscheme.py::TestProvenanceNote.test_tooltip_is_named_as_not_reference_sampled`
-opens `SCHEME` with a bare `open()`, joins its `#` comment lines into `text`, and passes `text`
-to `assertIn`/`assertRegex`. A checked-in symlink at
-`theme/color-schemes/MacOS8.colors` to a private file is read, and a failing assertion echoes
-that file's comment lines into the diagnostic. Unlike `load_scheme`/`kde_config.read`, this read
-never calls `containment.require_within_repo`.
-
-**Reproduction:** point `SCHEME` at a symlink to a private file whose comment lines lack
-`[Colors:Tooltip]`; the `assertIn` diagnostic contains the private comment lines.
-
-**Suspected cause:** the direct `open(SCHEME)` predates the containment guards; the test should
-read through a guarded reader (the new `containment.read_bytes` plus a text variant, or an inline
-`require_within_repo(SCHEME, ROOT)`).
+_None yet._
 
 ## Fixed
 
