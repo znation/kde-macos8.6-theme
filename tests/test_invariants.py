@@ -239,6 +239,24 @@ class TestHelpers(unittest.TestCase):
         sections = cross_check(self.root, self._valid_register())
         self.assertEqual(set(sections), {"aurorae", "tooling"})
 
+    def test_cross_check_rejects_an_unreadable_register(self):
+        # The register is read with open(); a missing or unreadable
+        # docs/invariants.md must be reported as the checker's own
+        # AssertionError naming the path, not a bare OSError naming neither
+        # the checker nor the register's role.
+        with self.assertRaisesRegex(AssertionError, "cannot be read"):
+            cross_check(self.root, str(self.root / "docs" / "invariants.md"))
+
+    def test_cross_check_rejects_a_non_utf8_register(self):
+        # A register whose bytes are not UTF-8 would otherwise abort the check
+        # with a bare UnicodeDecodeError; report it as the checker's own
+        # AssertionError naming the path instead.
+        path = self.root / "docs" / "invariants.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"\xff\xfe not utf-8")
+        with self.assertRaisesRegex(AssertionError, "not valid UTF-8"):
+            cross_check(self.root, str(path))
+
     def test_cross_check_rejects_a_bare_file_with_no_test_case(self):
         # The bare `path` form names the whole file, so it pins the guarantee
         # to that file's tests. A file that defines no test case pins nothing;

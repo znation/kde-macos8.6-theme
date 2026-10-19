@@ -290,15 +290,24 @@ def cross_check(root, register):
     """Assert *register* covers every subsystem and resolves to real tests.
 
     Returns ``{section name: [Row, ...]}``; raises :class:`AssertionError` for a
-    ``theme/`` subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
+    register that cannot be read or is not valid UTF-8 text, a ``theme/``
+    subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
     a section that names neither a ``theme/`` subsystem nor an
     ``EXTRA_SECTIONS`` entry, a repeated section heading, an empty section, a
     blank guarantee cell, a malformed table row, a data row that names no test,
     a bare file reference
     to a file that defines no test case, or an unresolvable test reference.
     """
-    with open(register, encoding="utf-8") as handle:
-        sections = parse_rows(handle.read())
+    try:
+        with open(register, encoding="utf-8") as handle:
+            text = handle.read()
+    except UnicodeDecodeError as exc:
+        raise AssertionError(
+            f"{register} is not valid UTF-8 text: {exc}"
+        ) from exc
+    except OSError as exc:
+        raise AssertionError(f"{register} cannot be read: {exc}") from exc
+    sections = parse_rows(text)
     theme_dir = os.path.join(root, THEME_DIR)
     subsystems = sorted(
         name

@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/invariants.py`'s `cross_check` lets an unreadable register escape as a bare `OSError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** when `docs/invariants.md` is missing, is a directory or is otherwise unreadable,
+`cross_check` aborts with a bare `FileNotFoundError`/`OSError` naming neither the checker nor
+the register's role; a register whose bytes are not UTF-8 aborts with a bare
+`UnicodeDecodeError`. The helper's docstring promises `AssertionError` diagnostics for a bad
+register, so a caller cannot catch and report the failure as the register's own problem.
+
+**Reproduction:**
+`tests/test_invariants.py::TestHelpers.test_cross_check_rejects_an_unreadable_register` calls
+`cross_check` with a missing register path; before the fix it raised `FileNotFoundError`.
+`...test_cross_check_rejects_a_non_utf8_register` writes a non-UTF-8 `docs/invariants.md`;
+before the fix it raised `UnicodeDecodeError`.
+
+**Cause:** `cross_check` read the register with a bare `open()` outside any handler, unlike
+`tests/placeholders.py::register_entries`, which reports the same failure as its own
+`AssertionError`.
+
+**Fix:** `cross_check` now reads the register inside a `try` and raises
+`AssertionError(f"{register} cannot be read: {exc}")` on `OSError` and
+`AssertionError(f"{register} is not valid UTF-8 text: {exc}")` on `UnicodeDecodeError`,
+matching the placeholder checker; `parse_rows` still runs on the decoded text.
+
+**Validation gap:** no-fake — the shipped suite had no fixture for an unreadable or non-UTF-8
+register, so one had to be written before the failure could be confirmed.
+
 ### `tests/support/package_metadata.py` lets an unreadable `metadata.json` escape as a bare `OSError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `load_metadata` opens the file with `open()` outside its `try`, so a
