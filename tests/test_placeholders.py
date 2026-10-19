@@ -112,6 +112,21 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "not valid UTF-8"):
             markers(tmp)
 
+    def test_markers_rejects_a_symlink_out_of_the_theme_root(self):
+        # theme/ is contributor-supplied, so a checked-in symlink can point
+        # anywhere on the machine. Reading through it would pull a private
+        # file's lines into the marker map (and, when the token appears there,
+        # into a failing assertion's diagnostic), so the read must stay inside
+        # theme/.
+        tmp = make_tmp_dir(self)
+        outside = tmp / "outside.txt"
+        outside.write_text(f"{TOKEN} a private file\n", encoding="utf-8")
+        path = tmp / "theme" / "link.svg"
+        path.parent.mkdir(parents=True)
+        path.symlink_to(outside)
+        with self.assertRaisesRegex(AssertionError, "symlink escape"):
+            markers(tmp)
+
     def test_register_entries_parses_the_table(self):
         tmp = make_tmp_dir(self)
         register = self._write_register(tmp, {os.path.join("theme", "a.svg"): "an a"})

@@ -8,7 +8,8 @@ for; the register ``PLACEHOLDERS.md`` holds one table row per asset.
 :func:`markers` reads the markers under ``theme/`` and :func:`register_entries`
 reads the register, and :func:`cross_check` fails when the two disagree: a
 marked file with no row, a row whose path is missing, a row whose file
-carries no marker, or a file or the register that is not valid UTF-8 text.
+carries no marker, a file or the register that is not valid UTF-8 text, or a
+text asset whose symlink resolves outside ``theme/``.
 
 ``tests/test_placeholders.py`` drives these checks.
 """
@@ -83,20 +84,50 @@ def _marker_text(path):
     return None
 
 
+def _resolves_within(directory, path):
+    """Return True when *path* resolves to a location inside *directory*.
+
+    ``theme/`` is contributor-supplied, and a checked-in symlink can point
+    anywhere on the machine: a symlink in ``theme/`` named like a text asset,
+    aimed at a private file, would make the checker read that file's lines as
+    a placeholder marker and hand its text to a failing assertion's
+    diagnostic. Resolving both paths
+    keeps every read inside the theme directory even when a symlink tries to
+    leave it. A resolution that fails is not assumed to be contained: an
+    ``OSError`` (a filesystem failure) and a ``RuntimeError`` (a symlink loop)
+    both make this return False, so the caller reports the path instead of the
+    exception aborting the check.
+    """
+    try:
+        resolved = os.path.realpath(path)
+        base = os.path.realpath(directory)
+    except (OSError, RuntimeError):
+        return False
+    return resolved == base or resolved.startswith(base + os.sep)
+
+
 def markers(root):
     """Return ``{relative path: marker text}`` for the placeholders under *root*.
 
     Walks ``<root>/theme`` for text assets and returns one entry per file that
     carries the ``PLACEHOLDER:`` token; a file without the token is not a
     placeholder and is omitted. ``PLACEHOLDERS.md`` is skipped so the register
-    itself is never mistaken for a placeholder asset.
+    itself is never mistaken for a placeholder asset. A text asset whose
+    symlink resolves outside ``<root>/theme`` raises the checker's own
+    :class:`AssertionError` naming the path, so a checked-in symlink cannot
+    make the read leave the theme tree.
     """
     found = {}
-    for dirpath, _, filenames in os.walk(os.path.join(root, THEME_DIR)):
+    theme_dir = os.path.join(root, THEME_DIR)
+    for dirpath, _, filenames in os.walk(theme_dir):
         for filename in filenames:
             if filename == "PLACEHOLDERS.md" or not _is_text_asset(filename):
                 continue
             path = os.path.join(dirpath, filename)
+            if not _resolves_within(theme_dir, path):
+                raise AssertionError(
+                    f"{path} points outside {theme_dir} (a symlink escape)"
+                )
             text = _marker_text(path)
             if text is not None:
                 found[os.path.relpath(path, root)] = text
