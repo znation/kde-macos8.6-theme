@@ -166,6 +166,7 @@ class TestUnbracketedHostCharacters(unittest.TestCase):
             "https://tilde~name.example/x",
             "https://a!$&'()*+,;=.example/x",
             "https://pct%41.example/x",
+            "https://pct%41",
             "https://192.168.1.1/x",
         ):
             self.assertTrue(is_absolute_url(url), url)
@@ -182,6 +183,9 @@ class TestUnbracketedHostCharacters(unittest.TestCase):
             "https://exa%2.example/x",
             "https://exa%zz.example/x",
             "https://exa%mple.example/x",
+            "https://host%",
+            "https://host%4",
+            "https://a%b",
             "https://\u00e9xample.test/x",
         ):
             self.assertFalse(is_absolute_url(url), repr(url))
