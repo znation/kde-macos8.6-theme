@@ -14,8 +14,13 @@ from __future__ import annotations
 
 import gzip
 import os
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.aurorae_fixtures import (
     AURORAE_DIR,
     DECORATION_SVG,
@@ -25,6 +30,7 @@ from support.aurorae_fixtures import (
 )
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
+from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 from support.svg_case import parse_svg
 from svg_assertions import (
@@ -55,8 +61,12 @@ def _read_capped(path, opener, limit=_MAX_DECORATION_SVG_BYTES):
     gigabytes; reading it with a bare ``.read()`` would allocate the whole
     expansion. Reading at most one byte past *limit* detects an oversize
     payload -- for the gzip opener without expanding past it -- and the caller
-    gets a diagnostic naming the path and limit instead.
+    gets a diagnostic naming the path and limit instead. The artwork is
+    contributor-supplied, so a checked-in symlink at *path* that resolves
+    outside the repository is refused before it is opened, before its bytes
+    can reach the ``assertEqual`` that echoes them.
     """
+    containment.require_within_repo(path, ROOT)
     with opener(path) as handle:
         data = handle.read(limit + 1)
     if len(data) > limit:
@@ -234,6 +244,58 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         with self.assertRaises(AssertionError) as caught:
             _read_capped(bomb, gzip.open)
         self.assertIn("larger than", str(caught.exception))
+
+
+class TestReadCappedContainment(unittest.TestCase):
+    """`_read_capped` must refuse a repository path that escapes by symlink.
+
+    The Aurorae decoration artwork is contributor-supplied, and `_read_capped`
+    returns bytes that `test_svgz_is_the_compressed_svg` compares with
+    `assertEqual`, which echoes both byte strings on a mismatch. A checked-in
+    symlink at `decoration.svg` or `decoration.svgz` that resolves outside the
+    repository must therefore be refused before it is opened, the same guard
+    `parse_svg` applies to the parsed copy. A path outside the repository (the
+    decompression-bomb fixture's temporary file) is read as before.
+    """
+
+    @staticmethod
+    def _open_raw(path):
+        return open(path, "rb")
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.svg"
+            secret.write_bytes(b"PRIVATE-SECRET-BYTES")
+            link = root / "decoration.svg"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    _read_capped(link, self._open_raw)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("PRIVATE-SECRET-BYTES", str(caught.exception))
+
+    def test_reads_a_path_outside_the_repository(self):
+        # The guard checks only a path lexically inside the repository, so the
+        # decompression-bomb fixture's temporary file (outside it) still reads.
+        with tempfile.TemporaryDirectory() as tmp:
+            outside = Path(tmp) / "decoration.svg"
+            outside.write_bytes(b"payload")
+            self.assertEqual(_read_capped(outside, self._open_raw), b"payload")
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            real = root / "theme" / "decoration.svg"
+            real.parent.mkdir(parents=True)
+            real.write_bytes(b"artwork")
+            link = root / "decoration.svg"
+            link.symlink_to(real)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                self.assertEqual(_read_capped(link, self._open_raw), b"artwork")
 
 
 class TestCorners(ReferenceImageCase, unittest.TestCase):
