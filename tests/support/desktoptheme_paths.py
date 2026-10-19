@@ -57,8 +57,8 @@ LNF_DEFAULTS = os.path.join(
 FANDOM_REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "desktop_fandom.png"
 )
-# The four test classes that read desktop_fandom.png -- the Aurorae frame and
-# the dialog, fill-gradient and tab-bar anchors -- share this bound so the
+# The three test classes that read desktop_fandom.png -- the Aurorae frame
+# and the dialog and fill-gradient anchors -- share this bound so the
 # reference cache decodes the screenshot once, not once per bound: the
 # memory-meter gradient ends at row 1248, so 1250 rows covers every pixel any
 # of them samples, and sharing the bound makes the single decode independent

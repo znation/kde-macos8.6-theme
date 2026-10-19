@@ -54,6 +54,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `widgets/slider.svg` draws the Platinum slider groove and handle. | `tests/test_desktoptheme_slider.py::TestSlider` | none |
 | `widgets/switch.svg` draws the Platinum toggle track and thumb. | `tests/test_desktoptheme_switch.py::TestSwitch` | none |
 | `widgets/tabbar.svg` draws the Platinum tab bar. | `tests/test_desktoptheme_tabbar.py::TestTabBar` | none |
+| `widgets/tabbar.svg`'s `*-active-tab` face and top/left bevel are the reference active-window selected tab's (`#EEEEEE` face, `#CCCCCC` mid-tone, `#FFFFFF` highlight). | `tests/test_desktoptheme_tabbar.py::TestTabBarReference` | The reference tab is a trapezoid; the nine-slice is rectangular (PLANS-DONE.md). |
 | `widgets/toolbar.svg` draws the Platinum toolbar background. | `tests/test_desktoptheme_toolbar.py::TestToolBar` | none |
 | `widgets/tooltip.svg` draws the Platinum tooltip. | `tests/test_desktoptheme_tooltip.py::TestTooltip` | none |
 | `widgets/viewitem.svg` draws the generic item highlight. | `tests/test_desktoptheme_viewitem.py::TestViewItem` | none |

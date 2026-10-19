@@ -4,11 +4,8 @@ from __future__ import annotations
 
 import unittest
 
-from support.desktoptheme_paths import (
-    FANDOM_MAX_ROWS,
-    FANDOM_REFERENCE,
-    TABBAR_SVG,
-)
+from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
+from support.desktoptheme_paths import TABBAR_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
@@ -33,10 +30,11 @@ OPEN_EDGE = {
     "west-active-tab": "right",
 }
 
-FACE = "#CCCCCC"
-HIGHLIGHT = "#DDDDDD"
+FACE = "#EEEEEE"
+MIDTONE = "#CCCCCC"
+HIGHLIGHT = "#FFFFFF"
 FLAT_BAND = (FACE,) * 3
-TOP_LEFT_BAND = ("#000000", HIGHLIGHT, FACE)
+TOP_LEFT_BAND = ("#000000", MIDTONE, HIGHLIGHT)
 BOTTOM_RIGHT_BAND = (FACE, "#999999", "#000000")
 EDGE_BANDS = {
     "top": TOP_LEFT_BAND,
@@ -56,27 +54,29 @@ def band_columns(band):
     return band * 3
 
 
-def raised_tab_corners(face, highlight):
-    """The four 3x3 fully-raised tab corners for *face* and *highlight*.
+def raised_tab_corners(face, midtone, highlight):
+    """The four 3x3 fully-raised tab corners for *face*, *midtone*, *highlight*.
 
     `svg_assertions.face_corners` hard-codes the #DDDDDD/#FFFFFF button
-    raised face, but the tab's face is #CCCCCC with a #DDDDDD highlight, so
-    the tab's raised corners are built here instead.
+    raised face, but the selected tab's face is #EEEEEE with a #CCCCCC
+    mid-tone and a #FFFFFF highlight, so the tab's raised corners are built
+    here instead. The top/left band is three deep (outline, mid-tone,
+    highlight), so the corner carries all three.
     """
     return {
         "topleft": (
             "#000000", "#000000", "#000000",
-            "#000000", highlight, highlight,
-            "#000000", highlight, face,
+            "#000000", midtone, midtone,
+            "#000000", midtone, highlight,
         ),
         "topright": (
             "#000000", "#000000", "#000000",
+            midtone, "#999999", "#000000",
             highlight, "#999999", "#000000",
-            face, "#999999", "#000000",
         ),
         "bottomleft": (
-            "#000000", highlight, face,
-            "#000000", highlight, "#999999",
+            "#000000", midtone, highlight,
+            "#000000", midtone, "#999999",
             "#000000", "#000000", "#000000",
         ),
         "bottomright": (
@@ -94,7 +94,7 @@ def tab_corners(open_edge):
     where the open edge meets a raised edge extends that raised edge's band
     across its whole tile, because the open side contributes only face.
     """
-    corners = raised_tab_corners(FACE, HIGHLIGHT)
+    corners = raised_tab_corners(FACE, MIDTONE, HIGHLIGHT)
     mixed = {
         "bottom": {
             "bottomleft": band_columns(EDGE_BANDS["left"]),
@@ -126,7 +126,7 @@ class TestTabBar(NineSliceCase, unittest.TestCase):
         # avoid the Platinum colours, so every hit here comes from the artwork.
         with open(TABBAR_SVG, encoding="utf-8") as handle:
             text = handle.read()
-        for colour in ("#CCCCCC", "#DDDDDD", "#999999", "#000000"):
+        for colour in ("#CCCCCC", "#EEEEEE", "#FFFFFF", "#999999", "#000000"):
             self.assertIn(colour, text)
 
     def test_tabbar_hint_geometry(self):
@@ -165,38 +165,58 @@ class TestTabBar(NineSliceCase, unittest.TestCase):
 
     def test_tabbar_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the
-        # artwork palette: the #CCCCCC tab face, the #DDDDDD highlight, the
-        # #999999 shadow and the #000000 outline.
+        # artwork palette: the #EEEEEE selected-tab face, the #CCCCCC
+        # mid-tone, the #FFFFFF highlight, the #999999 shadow and the
+        # #000000 outline.
         self.assertEqual(
             attribute_values(self.tree, "fill"),
-            {"#000000", "#CCCCCC", "#DDDDDD", "#999999"},
+            {"#000000", "#CCCCCC", "#EEEEEE", "#FFFFFF", "#999999"},
         )
 
 
-# The three uniform 12x5 tab-face rectangles in the System Profiler window
-# of macos8.6-screenshots/desktop_fandom.png, sampled at its 2x scale: the
-# origins of the "Extensions", "Applications" and "System Folders" tabs.
-TAB_FACE_RECTANGLES = ((2056, 149), (2200, 149), (1920, 149))
-TAB_FACE_WIDTH = 12
-TAB_FACE_HEIGHT = 5
+# The retail 8.6 System Profiler window's selected first tab
+# ("システム情報"): at its column x=260 the top edge is the three-band bevel
+# over the face, and at its row y=60 the left edge is the same three bands.
+# Its bottom (y=72) is open, i.e. face only. The reference is a lossless
+# 1x screenshot, so the sampled pixels are the shipped nine-slice's bands.
+SELECTED_COLUMN = 260
+SELECTED_ROW = 60
+TOP_BAND_Y = (54, 55, 56, 57)
+TOP_BAND = ("#000000", MIDTONE, HIGHLIGHT, FACE)
+OPEN_BOTTOM_Y = 72
+LEFT_BAND_X = (225, 226, 227, 228)
+LEFT_BAND = ("#000000", MIDTONE, HIGHLIGHT, FACE)
 
 
 class TestTabBarReference(ReferenceScreenshotMixin, unittest.TestCase):
-    REFERENCE = FANDOM_REFERENCE
-    MAX_ROWS = FANDOM_MAX_ROWS
+    REFERENCE = PROFILER_REFERENCE
+    MAX_ROWS = PROFILER_ROWS
 
-    def test_tab_face_is_the_reference_grey(self):
-        # The reference is a 2x upscale of a 1280x721 screen, so 2 image
-        # pixels per logical pixel; the tab face is one grey darker than the
-        # #DDDDDD menu bar, re-derived here rather than trusted from the
-        # artwork's FACE constant.
-        for x0, y0 in TAB_FACE_RECTANGLES:
-            with self.subTest(rectangle=(x0, y0)):
-                for y in range(y0, y0 + TAB_FACE_HEIGHT):
-                    for x in range(x0, x0 + TAB_FACE_WIDTH):
-                        self.assertEqual(
-                            hex_colour(self.pixel(x, y)), FACE, (x, y)
-                        )
+    def test_selected_tab_top_band(self):
+        # The selected tab's top edge is #000000 outline, #CCCCCC mid-tone,
+        # #FFFFFF highlight over the #EEEEEE face, re-derived here rather
+        # than trusted from the artwork's constants.
+        for y, colour in zip(TOP_BAND_Y, TOP_BAND):
+            with self.subTest(y=y):
+                self.assertEqual(
+                    hex_colour(self.pixel(SELECTED_COLUMN, y)),
+                    colour,
+                    (SELECTED_COLUMN, y),
+                )
+
+    def test_selected_tab_left_edge(self):
+        for x, colour in zip(LEFT_BAND_X, LEFT_BAND):
+            with self.subTest(x=x):
+                self.assertEqual(
+                    hex_colour(self.pixel(x, SELECTED_ROW)),
+                    colour,
+                    (x, SELECTED_ROW),
+                )
+
+    def test_selected_tab_bottom_is_open(self):
+        self.assertEqual(
+            hex_colour(self.pixel(SELECTED_COLUMN, OPEN_BOTTOM_Y)), FACE
+        )
 
 
 if __name__ == "__main__":
