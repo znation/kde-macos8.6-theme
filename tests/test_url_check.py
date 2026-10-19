@@ -239,6 +239,54 @@ class TestUserinfoCharacters(unittest.TestCase):
             self.assertFalse(is_absolute_url(url), repr(url))
 
 
+class TestPathQueryFragmentCharacters(unittest.TestCase):
+    r"""The path, query and fragment are held to their RFC 3986 sets.
+
+    The parser checked the scheme, whitespace and authority but never the
+    path, query or fragment, so a bare percent or a raw character no
+    ``pchar`` allows (``<``, ``{``, a backslash, a non-ASCII byte) passed as
+    a well-formed citation.
+    """
+
+    def test_path_query_fragment_characters_are_accepted(self):
+        for url in (
+            "https://example.test/a/b.png",
+            "https://example.test/a%20b.png",
+            "https://example.test/a:b@c/d",
+            "https://example.test/a!$&'()*+,;=b",
+            "https://example.test",
+            "https://example.test/",
+            "https://example.test/?",
+            "https://example.test/#",
+            "https://example.test/a?q=1&b=2",
+            "https://example.test/a?q=1#frag",
+            # A query and a fragment may each hold a ``?`` of their own.
+            "https://example.test/a?q=1?2",
+            "https://example.test#frag?q",
+        ):
+            self.assertTrue(is_absolute_url(url), url)
+
+    def test_malformed_path_query_fragment_characters_are_rejected(self):
+        for url in (
+            "https://example.test/%",
+            "https://example.test/a%2",
+            "https://example.test/a%zz",
+            "https://example.test/a%?q",
+            "https://example.test/a<b>",
+            "https://example.test/a{b}",
+            "https://example.test/a\\b",
+            'https://example.test/a"b',
+            "https://example.test/a|b",
+            "https://example.test/a^b",
+            "https://example.test/a`b",
+            "https://example.test/a\u00e9b",
+            "https://example.test/a?q=<b>",
+            "https://example.test/a?q=%",
+            "https://example.test/a#f<b>",
+        ):
+            self.assertFalse(is_absolute_url(url), repr(url))
+
+
 class TestAuthorityPorts(unittest.TestCase):
     """A port is ``*DIGIT``; anything else is a malformed citation.
 

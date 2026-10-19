@@ -12,6 +12,40 @@ _None yet._
 
 ## Fixed
 
+### `tools/url_check.py` accepts a malformed path, query or fragment as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
+
+**Symptom:** `url_problem` returned `None` for
+`https://example.test/%`, `https://example.test/a%2`,
+`https://example.test/a<b>` and `https://example.test/a?q=%`, so
+`tools/check_references.py` would accept a `sources.txt` row citing any of
+them as a well-formed absolute URL. RFC 3986 requires a `%` to introduce
+exactly two hex digits and limits a path to `pchar` (plus `/`), a query and a
+fragment to `pchar` (plus `/` and `?`), so each is malformed while the
+provenance check reported it clean.
+
+**How to reproduce:**
+`python3 -c "from tools.url_check import is_absolute_url; print(is_absolute_url('https://example.test/%'))"`
+printed `True` before the fix and prints `False` after.
+
+**Cause:** `url_problem` validated the scheme, whitespace and authority but
+never the path, query or fragment after them, even though its docstring
+claims to return why a URL is not a well-formed absolute URL.
+
+**Fix:** After the authority checks, `url_problem` splits the remainder into
+path, query and fragment and holds each to its RFC 3986 character set
+(`_is_path`, `_is_query_or_fragment`), so a bare percent or a raw character
+no `pchar` allows is rejected.
+
+**Test:** `tests/test_url_check.py::TestPathQueryFragmentCharacters` gained
+`test_path_query_fragment_characters_are_accepted` and
+`test_malformed_path_query_fragment_characters_are_rejected`; the class
+failed on the malformed cases before the fix and passes after.
+
+**Validation gap:** unclear-invariant -- the docstring claimed well-formedness
+but named only the scheme and authority rules, so I had to reconstruct that
+the path, query and fragment were meant to be covered before I could confirm
+the acceptance was a bug and not intended scope.
+
 ### `tools/url_check.py` rejects an uppercase IPvFuture host as a provenance citation (found by the bugfix role 2026-10-18; fixed 2026-10-18 by the bugfix role)
 
 **Symptom:** `url_problem` returned `"must bracket an IPv6 or IPvFuture
