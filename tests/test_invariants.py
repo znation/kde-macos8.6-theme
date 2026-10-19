@@ -340,6 +340,18 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "tooling has no section"):
             cross_check(self.root, register)
 
+    def test_cross_check_rejects_a_missing_theme_directory(self):
+        # The register is cross-checked against `theme/`; a root whose
+        # `theme/` directory is missing (a fresh checkout mid-setup, a
+        # rename) makes `os.listdir` raise `FileNotFoundError`, naming neither
+        # the checker nor the directory.
+        root = make_tmp_dir(self)
+        register = root / "docs" / "invariants.md"
+        register.parent.mkdir(parents=True)
+        register.write_text("## aurorae\n", encoding="utf-8")
+        with self.assertRaisesRegex(AssertionError, "cannot be listed"):
+            cross_check(str(root), str(register))
+
     def test_cross_check_rejects_a_section_for_a_missing_subsystem(self):
         # A section for a subsystem that is not there -- a stale heading left
         # after a rename, or a typo -- reads as a pinned guarantee while no

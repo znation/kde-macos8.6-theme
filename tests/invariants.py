@@ -286,17 +286,38 @@ def check_reference(root, reference, section):
             )
 
 
+def _theme_subsystems(theme_dir):
+    """Return the sorted subsystem names under *theme_dir*.
+
+    The register is cross-checked against the repository's ``theme/``
+    directory, so a missing or unreadable one -- a fresh checkout mid-setup, a
+    rename, a permission error -- would otherwise escape as a bare ``OSError``
+    naming neither the checker nor the directory. ``os.path.isdir`` swallows
+    its own ``OSError`` (an entry that cannot be stat'd is not a directory),
+    so only the listing needs the guard.
+    """
+    try:
+        names = os.listdir(theme_dir)
+    except OSError as exc:
+        raise AssertionError(f"{theme_dir} cannot be listed: {exc}") from exc
+    return sorted(
+        name
+        for name in names
+        if os.path.isdir(os.path.join(theme_dir, name))
+    )
+
+
 def cross_check(root, register):
     """Assert *register* covers every subsystem and resolves to real tests.
 
     Returns ``{section name: [Row, ...]}``; raises :class:`AssertionError` for a
     register that cannot be read or is not valid UTF-8 text, a ``theme/``
-    subsystem with no section, a missing ``EXTRA_SECTIONS`` section,
-    a section that names neither a ``theme/`` subsystem nor an
-    ``EXTRA_SECTIONS`` entry, a repeated section heading, an empty section, a
-    blank guarantee or provenance-exception cell, a malformed table row, a data
-    row that names no test, a bare file reference
-    to a file that defines no test case, or an unresolvable test reference.
+    directory that cannot be listed, a ``theme/`` subsystem with no section, a
+    missing ``EXTRA_SECTIONS`` section, a section that names neither a
+    ``theme/`` subsystem nor an ``EXTRA_SECTIONS`` entry, a repeated section
+    heading, an empty section, a blank guarantee or provenance-exception cell, a
+    malformed table row, a data row that names no test, a bare file reference to
+    a file that defines no test case, or an unresolvable test reference.
     """
     try:
         with open(register, encoding="utf-8") as handle:
@@ -309,11 +330,7 @@ def cross_check(root, register):
         raise AssertionError(f"{register} cannot be read: {exc}") from exc
     sections = parse_rows(text)
     theme_dir = os.path.join(root, THEME_DIR)
-    subsystems = sorted(
-        name
-        for name in os.listdir(theme_dir)
-        if os.path.isdir(os.path.join(theme_dir, name))
-    )
+    subsystems = _theme_subsystems(theme_dir)
     for name in subsystems:
         if name not in sections:
             raise AssertionError(f"{THEME_DIR}/{name} has no section in {register}")
