@@ -222,6 +222,39 @@ class TestInstall(unittest.TestCase):
             "color scheme My Scheme is still selected", removed.stderr
         )
 
+    def _uninstall_with_kdeglobals(self, tmp, text):
+        """Run `make uninstall` with *text* as the user's `kdeglobals`."""
+        config = os.path.join(tmp, "config")
+        os.makedirs(config, exist_ok=True)
+        with open(
+            os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
+        ) as handle:
+            handle.write(text)
+        return uninstall_with_config(tmp, config)
+
+    def test_make_uninstall_warns_for_the_last_duplicate_selection(self):
+        # KDE's config reader lets a later key override an earlier one, so a
+        # kdeglobals with two ColorScheme lines selects the last. The warning
+        # must read that value, not the first line.
+        with installed_destdir(self) as tmp:
+            removed = self._uninstall_with_kdeglobals(
+                tmp, "[General]\nColorScheme=BreezeLight\nColorScheme=MacOS8\n"
+            )
+
+        assert_succeeded(self, removed)
+        self.assertIn("is still selected", removed.stderr)
+
+    def test_make_uninstall_does_not_warn_for_an_overridden_selection(self):
+        # The inverse: an earlier MacOS8 overridden by a later BreezeLight
+        # leaves KDE on BreezeLight, so uninstall must not warn.
+        with installed_destdir(self) as tmp:
+            removed = self._uninstall_with_kdeglobals(
+                tmp, "[General]\nColorScheme=MacOS8\nColorScheme=BreezeLight\n"
+            )
+
+        assert_succeeded(self, removed)
+        self.assertNotIn("is still selected", removed.stderr)
+
 
 @unittest.skipUnless(
     shutil.which("plasma-apply-colorscheme"), "needs plasma-apply-colorscheme"

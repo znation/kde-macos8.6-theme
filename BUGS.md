@@ -12,6 +12,32 @@ _None yet._
 
 ## Fixed
 
+### `make uninstall`'s color-scheme warning reads the first duplicate `ColorScheme` key, not the last (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** when `[General]` in `$XDG_CONFIG_HOME/kdeglobals` repeats the `ColorScheme` key,
+`make uninstall`'s warning about a still-selected scheme is decided by the **first** line. KDE
+(like `configparser`) lets the **last** key win, so a file holding `ColorScheme=BreezeLight`
+then `ColorScheme=MacOS8` leaves KDE on `MacOS8` while uninstall stays silent; the reverse
+order leaves KDE on `BreezeLight` while uninstall warns wrongly. The diagnostic claims to read
+kdeglobals "the way KDE reads it", so a wrong or missing warning is a real, if low-severity,
+gap.
+
+**Reproduction:**
+`tests/test_colorscheme_install.py::TestInstall.test_make_uninstall_warns_for_the_last_duplicate_selection`
+and `::test_make_uninstall_does_not_warn_for_an_overridden_selection` write a two-line
+`ColorScheme` kdeglobals and run `make uninstall`; before the fix the first missed its warning
+and the second emitted a false one.
+
+**Cause:** the uninstall recipe's `awk` matched the first `ColorScheme=` in `[General]` and
+called `exit` immediately, so it never saw a later override.
+
+**Fix:** the `awk` now records every match and prints the last non-empty one from its `END`
+block, matching KDE's last-key-wins semantics.
+
+**Validation gap:** unclear-invariant — no test or doc stated which duplicate key KDE's config
+reader honours, so that last-key-wins invariant had to be established before the parser could
+be pinned to it.
+
 ### `tools/render_surface.py` leaks the caller's `XDG_CONFIG_DIRS` into the throwaway render session (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** the render session built by `tools/render_surface.py` still resolves config
