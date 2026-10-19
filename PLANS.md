@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum tab face: ground `widgets/tabbar.svg` in the System Profiler tabs (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum tab face: ground `widgets/tabbar.svg` in the System Profiler tabs (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/tabbar.svg` paints every tab face
 `#DDDDDD`, the same grey as the menu bar and the dialog body, so a Plasma tab (`TabBar`,
@@ -92,8 +96,6 @@ full tab height; a KSvg nine-slice draws a fixed-corner rectangle, so the shape 
 rectangular. The Kvantum `tab` element (`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`)
 keeps its own `#DDDDDD`/`#FFFFFF` raised face: it is a separate Qt-widget surface, not part of
 this desktop-theme change.
-
-## Done
 
 ### Mac OS 8.6 Platinum translucent applet background: ship `widgets/translucentbackground.svg` (planned 2026-10-18 by the plan role) — done 2026-10-18
 

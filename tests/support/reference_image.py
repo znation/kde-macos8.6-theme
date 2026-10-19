@@ -58,17 +58,22 @@ def skip_unless_materialized(case, path, error):
 class ReferenceScreenshotMixin:
     """Mix in before ``unittest.TestCase``: load ``REFERENCE`` once, skip without it.
 
-    A class sets ``REFERENCE`` to the PNG path. ``setUpClass`` reads it into
-    ``cls.image`` / ``cls.image_error``, ``setUp`` skips each test when the
-    image is not materialized, and `pixel` reads one pixel of it. A mixin, not
-    a ``TestCase``, so importing it never makes a test module collect it.
+    A class sets ``REFERENCE`` to the PNG path and may set ``MAX_ROWS`` to
+    decode only that many rows (the default ``None`` decodes the whole image).
+    ``setUpClass`` reads it into ``cls.image`` / ``cls.image_error``, ``setUp``
+    skips each test when the image is not materialized, and `pixel` reads one
+    pixel of it. A mixin, not a ``TestCase``, so importing it never makes a
+    test module collect it.
     """
 
     REFERENCE = None
+    MAX_ROWS = None
 
     @classmethod
     def setUpClass(cls):
-        cls.image, cls.image_error = read_reference(cls.REFERENCE)
+        cls.image, cls.image_error = read_reference(
+            cls.REFERENCE, max_rows=cls.MAX_ROWS
+        )
 
     def setUp(self):
         skip_unless_materialized(self, self.REFERENCE, self.image_error)
