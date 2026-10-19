@@ -134,6 +134,16 @@ class TestLoadMetadata(unittest.TestCase):
         self.assertIn("0xff", message)
         self.assertIsInstance(error.__cause__, UnicodeDecodeError)
 
+    def test_unreadable_file_names_the_path(self):
+        # A metadata.json that cannot be read at all -- missing, a dangling
+        # symlink, a directory, a permission error -- would otherwise escape
+        # as a bare OSError naming neither the guard nor the file's role; the
+        # guard must name the path in its own ValueError.
+        path = make_tmp_dir(self) / "missing" / "metadata.json"
+        error = self._load_error(path)
+        self.assertIn(str(path), str(error))
+        self.assertIsInstance(error.__cause__, OSError)
+
     def test_non_object_json_names_the_type_and_path(self):
         # Valid JSON of the wrong top-level shape reaches the mixin's
         # ``self.metadata.get(...)`` as a bare AttributeError; the guard must

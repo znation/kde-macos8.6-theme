@@ -23,22 +23,31 @@ def load_metadata(path):
     with the path, and for the shape error the decoded type as well. A file
     that is not valid UTF-8 surfaces as a bare ``UnicodeDecodeError`` from
     the read, which names the byte but not the file, so that is rejected with
-    the path too.
+    the path too. A file that cannot be read at all -- a missing file, a
+    dangling symlink, a directory, a permission error -- surfaces as a bare
+    ``OSError`` naming neither the guard nor the file's role, so that is
+    rejected with the path as well.
     """
-    with open(path, encoding="utf-8") as handle:
-        try:
+    try:
+        with open(path, encoding="utf-8") as handle:
             metadata = json.load(handle)
-        except json.JSONDecodeError as exc:
-            # Several packages ship a metadata.json, so the decoder's own message
-            # (which names line and column but not the file) is ambiguous;
-            # prepend the path and keep the original detail.
-            raise ValueError(f"{path}: invalid JSON: {exc}") from exc
-        except UnicodeDecodeError as exc:
-            # The read decodes as UTF-8, so bytes in another encoding (or a
-            # file corrupted mid-write) raise the decoder's own message,
-            # which names the byte but not the metadata.json file; prepend
-            # the path and keep the byte detail.
-            raise ValueError(f"{path}: not valid UTF-8 text: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        # Several packages ship a metadata.json, so the decoder's own message
+        # (which names line and column but not the file) is ambiguous;
+        # prepend the path and keep the original detail.
+        raise ValueError(f"{path}: invalid JSON: {exc}") from exc
+    except UnicodeDecodeError as exc:
+        # The read decodes as UTF-8, so bytes in another encoding (or a
+        # file corrupted mid-write) raise the decoder's own message,
+        # which names the byte but not the metadata.json file; prepend
+        # the path and keep the byte detail.
+        raise ValueError(f"{path}: not valid UTF-8 text: {exc}") from exc
+    except OSError as exc:
+        # A metadata.json that cannot be read at all -- missing, a dangling
+        # symlink, a directory, a permission error -- would otherwise escape
+        # as a bare OSError naming neither the guard nor the file's role;
+        # report it as the helper's own ValueError, with the path.
+        raise ValueError(f"{path}: cannot be read: {exc}") from exc
     if not isinstance(metadata, dict):
         raise ValueError(
             f"{path} decoded to {type(metadata).__name__}, not a JSON object: "

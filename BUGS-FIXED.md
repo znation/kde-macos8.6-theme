@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/support/package_metadata.py` lets an unreadable `metadata.json` escape as a bare `OSError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `load_metadata` opens the file with `open()` outside its `try`, so a
+`metadata.json` that cannot be read at all -- a missing file, a dangling symlink, a directory, a
+permission error -- escapes as a bare `OSError` (e.g. `FileNotFoundError`) instead of the
+helper's own `ValueError`. The three suites that share the mixin (`test_lookandfeel`,
+`test_desktoptheme`, `test_wallpaper`) then abort with a read error that names neither the guard
+nor the file's role, and a caller guarding on `ValueError` does not catch it.
+
+**Reproduction:**
+`tests/test_package_metadata.py::TestLoadMetadata::test_unreadable_file_names_the_path` calls
+`load_metadata` on a path whose parent directory does not exist; before the fix it raised
+`FileNotFoundError`.
+
+**Cause:** `load_metadata`'s `try` wrapped only `json.load`, with arms for `JSONDecodeError` and
+`UnicodeDecodeError`; the `open()` call sat outside it, so an `OSError` from opening (or reading)
+the file had no arm.
+
+**Fix:** `load_metadata` now wraps the `open()`/`json.load()` pair in one `try` with an
+`OSError` arm that raises `ValueError(f"{path}: cannot be read: {exc}")`, matching the helper's
+contract of naming the file for every bad input.
+
+**Validation gap:** no-fake — no fixture supplied an unreadable `metadata.json`, so the `OSError`
+path was unobserved; the regression test creates a missing path the suite did not have.
+
 ### `tests/placeholders.py` lets an unreadable register escape as a bare `OSError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `register_entries` (and so `cross_check`) reads `PLACEHOLDERS.md` with `open()`
