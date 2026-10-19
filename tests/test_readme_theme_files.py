@@ -36,14 +36,20 @@ def shipped(package, pattern):
 
 
 class TestReadmeThemeFiles(unittest.TestCase):
-    def test_every_desktop_theme_svg_is_named_in_readme(self):
-        named = set(_DESKTOP_TOKEN.findall(readme_text()))
-        on_disk = shipped(PACKAGE, "*/*.svg")
-        self.assertTrue(on_disk, "no desktop theme SVGs found under " + PACKAGE)
+    def _assert_every_svg_is_named(self, token, package, pattern, label):
+        """Fail when a shipped *label* SVG is absent from README's backticks."""
+        named = set(token.findall(readme_text()))
+        on_disk = shipped(package, pattern)
+        self.assertTrue(on_disk, "no %s SVGs found under %s" % (label, package))
         self.assertEqual(
             set(),
             on_disk - named,
-            "desktop theme SVGs README does not name in backticks",
+            "%s SVGs README does not name in backticks" % label,
+        )
+
+    def test_every_desktop_theme_svg_is_named_in_readme(self):
+        self._assert_every_svg_is_named(
+            _DESKTOP_TOKEN, PACKAGE, "*/*.svg", "desktop theme"
         )
 
     def test_readme_names_no_missing_desktop_theme_svg(self):
@@ -55,13 +61,8 @@ class TestReadmeThemeFiles(unittest.TestCase):
         )
 
     def test_every_aurorae_svg_is_named_in_readme(self):
-        named = set(_AURORAE_TOKEN.findall(readme_text()))
-        on_disk = shipped(AURORAE_DIR, "*.svg")
-        self.assertTrue(on_disk, "no Aurorae SVGs found under " + AURORAE_DIR)
-        self.assertEqual(
-            set(),
-            on_disk - named,
-            "Aurorae SVGs README does not name in backticks",
+        self._assert_every_svg_is_named(
+            _AURORAE_TOKEN, AURORAE_DIR, "*.svg", "Aurorae"
         )
 
 
