@@ -76,8 +76,6 @@ SURFACE_STATES = {
     "group": {"normal": ("raised", FACE)},
     "tooltip": {"normal": ("raised", TOOLTIP_FACE)},
     "itemview": {
-        "normal": ("sunken", WHITE),
-        "focused": ("sunken", WHITE),
         "pressed": ("flat", SELECTION),
         "toggled": ("flat", SELECTION),
     },
@@ -232,6 +230,21 @@ def _lineedit_corners():
     }
 
 
+# The item view's bottom-left corner differs from the line edit's: the
+# reference shows the bottom highlight one pixel in from the left and the
+# outer bottom pixel as the window face (setup_emaculation.png
+# (22,478)=#CCCCCC, (23,478)=#FFFFFF), so the shipped tile leaves it
+# unpainted. Row-major in slice-local coordinates.
+_ITEMVIEW_BOTTOMLEFT = ("#999999", "#000000", None, "#FFFFFF")
+
+
+def _itemview_corners():
+    """Return the item view's 2x2 corner maps, its bottom-left overridden."""
+    corners = _lineedit_corners()
+    corners["bottomleft"] = _lineedit_corner_map(_ITEMVIEW_BOTTOMLEFT)
+    return corners
+
+
 class TestLineEditBevelPixels(unittest.TestCase):
     """Pin the line edit's sunken-outside field, not just its ids.
 
@@ -253,6 +266,44 @@ class TestLineEditBevelPixels(unittest.TestCase):
         corners = _lineedit_corners()
         for state in ("normal", "focused"):
             prefix = f"lineedit-{state}"
+            with self.subTest(state=state):
+                assert_slice_pixels(self, self.slices, prefix, centre)
+                for side, (outer, inner) in LINEEDIT_EDGES.items():
+                    assert_slice_pixels(
+                        self,
+                        self.slices,
+                        f"{prefix}-{side}",
+                        _lineedit_edge_map(side, outer, inner),
+                    )
+                for name, expected in corners.items():
+                    assert_slice_pixels(
+                        self, self.slices, f"{prefix}-{name}", expected
+                    )
+
+
+class TestItemViewBevelPixels(unittest.TestCase):
+    """Pin the item view's sunken-outside field, not just its ids.
+
+    `TestSvg` checks the state ids and the palette, which the old
+    outline-outside art also passes; this renders each state's nine slices
+    and compares them pixel for pixel, so an item view that keeps the outline
+    outside the bevel fails here. The field shares the line edit's geometry
+    except its bottom-left corner, which leaves the outer bottom pixel
+    unpainted.
+    """
+
+    def setUp(self):
+        self.slices = render_slices(ET.parse(SVG))
+
+    def test_every_itemview_state_paints_the_sunken_outside_field(self):
+        centre = pixel_map(
+            (LINEEDIT_FACE,) * (LINEEDIT_SIZE * LINEEDIT_SIZE),
+            LINEEDIT_SIZE,
+            LINEEDIT_SIZE,
+        )
+        corners = _itemview_corners()
+        for state in ("normal", "focused"):
+            prefix = f"itemview-{state}"
             with self.subTest(state=state):
                 assert_slice_pixels(self, self.slices, prefix, centre)
                 for side, (outer, inner) in LINEEDIT_EDGES.items():

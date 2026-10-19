@@ -5,6 +5,70 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Ground the Kvantum item view's sunken field in the reference Finder content area (planned 2026-10-19 by the plan role) — done 2026-10-19
+
+**Goal.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg` draws the
+`itemview-normal` and `itemview-focused` frames with the #000000 outline on the outer edge and
+the bevel inside it (`itemview-normal-top` is #000000 then #999999, `itemview-normal-left` the
+same) -- the same inversion the line edit had before its fix. The reference item view puts the
+sunken bevel *outside* the outline -- `macos8.6-screenshots/setup_emaculation.png` (retail Mac
+OS 8.6 installer CD Finder window, item view): left (22,250)=#999999, (23,250)=#000000,
+(24,250)=#FFFFFF; top (200,118)=#999999, (200,119)=#000000, (200,120)=#FFFFFF; right
+(452,200)=#000000, (453,200)=#FFFFFF; bottom (100,477)=#000000, (100,478)=#FFFFFF. Redraw the
+Kvantum item view's tiles as that bevel-outside ring so a KDE application's list/tree view
+matches the reference, exactly as the landed line-edit fix did for text fields.
+
+**Approach.**
+- `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`: for each of the `itemview-normal-*`
+  and `itemview-focused-*` frames, rewrite the four edge slices so the outer pixel is the bevel
+  (#999999 top/left, #FFFFFF bottom/right) and the inner pixel is the #000000 outline, leaving
+  the #FFFFFF centre face unchanged (the same pixels as the landed `lineedit-normal-*`/
+  `lineedit-focused-*` art, except the bottom-left corner below). Rewrite each 2x2 corner as the
+  outer 2x2 of `sunken_outside_face_corners("#FFFFFF")` in `tests/svg_assertions/faces.py`,
+  except the bottom-left: the reference's bottom highlight starts one pixel in from the left
+  ((22,478)=#CCCCCC, the window face), so its outer bottom pixel is left unpainted and the
+  #FFFFFF highlight sits at the inner bottom pixel. The top-right outer pixel stays unpainted
+  (reference (453,118)=#CCCCCC, the window face). Leave `itemview-pressed-*` and
+  `itemview-toggled-*` flat #CCCCFF, and add a comment above the two groups naming the
+  reference and its sampled pixels.
+- Update the file-header comment (the sentence "the line edit is the white sunken field") to
+  name the item view as sharing that field.
+- `tests/test_kvantum_bevel_pixels.py`: keep `"itemview"`'s flat `pressed`/`toggled` states in
+  `SURFACE_STATES` (so the flat #CCCCFF art stays pinned) and add a `TestItemViewBevelPixels`
+  case mirroring `TestLineEditBevelPixels` (reusing `LINEEDIT_EDGES`, `_lineedit_edge_map` and
+  `_lineedit_corners`, with an item-view bottom-left override) for prefixes `itemview-normal`
+  and `itemview-focused`, so a state repeating the old outline-outside art fails there.
+- New `tests/test_kvantum_itemview_reference.py`: a `ReferenceScreenshotMixin` case over
+  `setup_emaculation.png` (`MAX_ROWS = 479`) that re-derives the field's four border runs, its
+  top-left 2x2 corner and its bottom-left 2x2 corner and asserts the rendered Kvantum
+  `itemview-normal` tiles paint the same sunken-outside arrangement; skips when the image is
+  not materialized. The reference field's top-right and bottom-right corners sit under the
+  status header and the scrollbars, so the test derives only the clean left/top/right/bottom
+  runs and the two clean corners (the bottom-left's outer bottom pixel is the window face, so
+  the shipped tile leaves it unpainted).
+- `docs/invariants.md`: add a `kvantum` row `| The item view is the reference's sunken field:
+  the bevel outside the #000000 outline. |
+  tests/test_kvantum_itemview_reference.py::TestItemViewReference | none |`.
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`,
+`tests/test_kvantum_bevel_pixels.py`, `tests/test_kvantum_itemview_reference.py` (new),
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+- Every `itemview-normal-*` and `itemview-focused-*` edge slice paints the bevel on its outer
+  pixel (#999999 top/left, #FFFFFF bottom/right) and the #000000 outline inside it, over the
+  unchanged #FFFFFF centre face; the corners wrap that bevel around the outline, except the
+  bottom-left, whose outer bottom pixel the reference leaves to the window face (the shipped
+  tile leaves it unpainted and paints the #FFFFFF highlight one pixel in).
+- `python3 tools/sample.py macos8.6-screenshots/setup_emaculation.png 22 250` prints
+  `153,153,153 #999999`, `... 23 250` prints `0,0,0 #000000`, `... 24 250` prints
+  `255,255,255 #FFFFFF`; the new test re-derives those pixels and the other three runs and
+  passes, skipping when the image is not materialized.
+- `TestItemViewBevelPixels` fails against the old outline-outside artwork and passes against the
+  new.
+- The new `docs/invariants.md` row resolves through `tests/invariants.py`.
+- `make check` is green.
+
 ### Checker unreadable-input mutations: manufacture a register, asset or reference that cannot be read so the checker's own diagnostic is observable (planned 2026-10-19 by the steward role; from the recurring `no-fake` validation gap in four Fixed entries) — done 2026-10-19
 
 **Goal.** Four Fixed entries share one shape: a record checker reads an input that cannot be read
