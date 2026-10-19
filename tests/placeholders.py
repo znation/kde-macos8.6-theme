@@ -144,7 +144,10 @@ def register_entries(path):
 
     A register that is not valid UTF-8 text raises the checker's own
     :class:`AssertionError` naming *path*, so a stray byte is reported as the
-    register's own problem rather than as a codec ``UnicodeDecodeError``.
+    register's own problem rather than as a codec ``UnicodeDecodeError``. A
+    register that cannot be read at all -- a missing file, a directory, a
+    permission error -- raises the same :class:`AssertionError` naming *path*,
+    instead of a bare ``OSError`` aborting the check.
     """
     entries = {}
     try:
@@ -155,6 +158,8 @@ def register_entries(path):
                     entries[match.group(1)] = match.group(2)
     except UnicodeDecodeError as exc:
         raise AssertionError(f"{path} is not valid UTF-8 text: {exc}") from exc
+    except OSError as exc:
+        raise AssertionError(f"{path} cannot be read: {exc}") from exc
     return entries
 
 

@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/placeholders.py` lets an unreadable register escape as a bare `OSError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `register_entries` (and so `cross_check`) reads `PLACEHOLDERS.md` with `open()`
+but caught only `UnicodeDecodeError`, so a register that cannot be read -- a missing file, a
+directory, a permission error -- escaped as a bare `OSError` naming neither the checker nor the
+register's role, aborting the placeholder check instead of the checker's own `AssertionError`.
+
+**Reproduction:**
+`tests/test_placeholders.py::TestHelpers::test_register_entries_rejects_an_unreadable_register`
+passes a path that does not exist; before the fix it raised `FileNotFoundError`.
+
+**Cause:** `register_entries`' `try` had only a `UnicodeDecodeError` arm; the same `OSError`
+arm added to `_marker_text` the previous run was not applied here.
+
+**Fix:** `register_entries` now catches `OSError` alongside `UnicodeDecodeError` and raises
+`AssertionError(f"{path} cannot be read: {exc}")`, matching `_marker_text`.
+
+**Validation gap:** no-fake — no fixture supplied an unreadable register, so the `OSError` path
+was unobserved; the regression test creates a missing register path the suite did not have.
+
 ### `tests/placeholders.py` lets a dangling symlink inside `theme/` escape as a bare `FileNotFoundError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** a text asset under `theme/` that is a symlink to a nonexistent

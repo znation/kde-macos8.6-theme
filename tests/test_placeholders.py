@@ -153,6 +153,15 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "not valid UTF-8"):
             register_entries(str(register))
 
+    def test_register_entries_rejects_an_unreadable_register(self):
+        # PLACEHOLDERS.md is read with open(); a missing or unreadable register
+        # makes that raise OSError, which names neither the checker nor the
+        # register's role. The checker must report it as its own AssertionError
+        # instead, matching `_marker_text`'s handling of an unreadable asset.
+        tmp = make_tmp_dir(self)
+        with self.assertRaisesRegex(AssertionError, "cannot be read"):
+            register_entries(str(tmp / "PLACEHOLDERS.md"))
+
     def test_cross_check_accepts_a_matching_register(self):
         tmp = make_tmp_dir(self)
         self._write_marker(tmp, os.path.join("theme", "a.svg"), "an a")
