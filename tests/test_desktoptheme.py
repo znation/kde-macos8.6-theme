@@ -10,6 +10,7 @@ import os
 import shutil
 import unittest
 import xml.etree.ElementTree as ET
+from unittest import mock
 
 from support.desktoptheme_paths import (
     ACTIONBUTTON_SVG,
@@ -235,25 +236,53 @@ class TestInstall(
     "needs plasma-apply-desktoptheme",
 )
 class TestApplyDesktopTheme(unittest.TestCase):
+    """The CLI lists and selects the theme under an isolated XDG environment.
+
+    `plasma-apply-desktoptheme` resolves the current session theme through the
+    config search path, so a real session's `XDG_CONFIG_DIRS` can already name
+    our theme and turn the apply into a no-op. Every run here overrides
+    `XDG_CONFIG_DIRS` with an empty directory so the ambient session cannot
+    leak in.
+    """
+
+    def _apply_isolated(self, tmp):
+        """Apply the installed theme; return its written `plasmarc` parser."""
+        config_dirs = os.path.join(tmp, "config-dirs")
+        os.makedirs(config_dirs, exist_ok=True)
+        env = dict(
+            os.environ,
+            XDG_DATA_HOME=os.path.join(tmp, "share"),
+            XDG_CONFIG_HOME=os.path.join(tmp, "config"),
+            XDG_CONFIG_DIRS=config_dirs,
+        )
+        listed = run_captured(
+            ["plasma-apply-desktoptheme", "--list-themes"],
+            env=env,
+        )
+        assert_succeeded(self, listed)
+        self.assertIn(DTHEME_ID, listed.stdout)
+        applied = run_captured(
+            ["plasma-apply-desktoptheme", DTHEME_ID],
+            env=env,
+        )
+        assert_succeeded(self, applied)
+        return read_kde_config(os.path.join(tmp, "config", "plasmarc"))
+
     def test_apply_lists_and_selects_the_theme(self):
         with installed_destdir(self) as tmp:
-            env = dict(
-                os.environ,
-                XDG_DATA_HOME=os.path.join(tmp, "share"),
-                XDG_CONFIG_HOME=os.path.join(tmp, "config"),
-            )
-            listed = run_captured(
-                ["plasma-apply-desktoptheme", "--list-themes"],
-                env=env,
-            )
-            assert_succeeded(self, listed)
-            self.assertIn(DTHEME_ID, listed.stdout)
-            applied = run_captured(
-                ["plasma-apply-desktoptheme", DTHEME_ID],
-                env=env,
-            )
-            assert_succeeded(self, applied)
-            parser = read_kde_config(os.path.join(tmp, "config", "plasmarc"))
+            parser = self._apply_isolated(tmp)
+            self.assertEqual(parser.get("Theme", "name"), DTHEME_ID)
+
+    def test_apply_ignores_a_session_theme_in_the_config_search_path(self):
+        with installed_destdir(self) as tmp:
+            ambient = os.path.join(tmp, "ambient-config-dirs")
+            os.makedirs(ambient)
+            with open(
+                os.path.join(ambient, "plasmarc"), "w", encoding="utf-8"
+            ) as handle:
+                handle.write(f"[Theme]\nname={DTHEME_ID}\n")
+            with mock.patch.dict(os.environ, {"XDG_CONFIG_DIRS": ambient}):
+                parser = self._apply_isolated(tmp)
             self.assertEqual(parser.get("Theme", "name"), DTHEME_ID)
 
 

@@ -8,7 +8,11 @@ unclear-invariant).
 
 ## Open
 
-### `tests/test_desktoptheme.py::TestApplyDesktopTheme` fails when `XDG_CONFIG_DIRS` already names a session theme (found by the feature role 2026-10-19)
+_None yet._
+
+## Fixed
+
+### `tests/test_desktoptheme.py::TestApplyDesktopTheme` fails when `XDG_CONFIG_DIRS` already names a session theme (found by the feature role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `make check` errors in `test_apply_lists_and_selects_the_theme` with
 `FileNotFoundError: [Errno 2] No such file or directory: '<tmp>/config/plasmarc'`.
@@ -30,7 +34,14 @@ but not `XDG_CONFIG_DIRS`, so the real user's `kdedefaults/plasmarc` still repor
 already selected and the apply is a no-op. Overriding `HOME` and `XDG_CONFIG_HOME` alone does not
 isolate it.
 
-## Fixed
+**Fix:** `TestApplyDesktopTheme` now runs the apply through `_apply_isolated`, which points
+`XDG_CONFIG_DIRS` at an empty directory inside the test's `tmp`, and
+`test_apply_ignores_a_session_theme_in_the_config_search_path` plants a session-theme `plasmarc`
+in the ambient `XDG_CONFIG_DIRS` to pin that isolation.
+
+**Validation gap:** no-repro — the failure depended on the developer's ambient `XDG_CONFIG_DIRS`
+naming the theme, so confirming it needed a planted session-theme config dir to make the leak
+deterministic.
 
 ### `widgets/lineedit.svg` corner tiles miss the reference field's outline and top-right notch (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
