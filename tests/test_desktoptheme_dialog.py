@@ -5,7 +5,11 @@ from __future__ import annotations
 import os
 import unittest
 
-from support.desktoptheme_paths import DIALOG_BACKGROUND_SVG
+from support.desktoptheme_paths import (
+    DIALOG_BACKGROUND_SVG,
+    FANDOM_MAX_ROWS,
+    FANDOM_REFERENCE,
+)
 from support.platinum_palette import FACE, hex_colour
 from support.raised_face_case import RaisedFaceCase
 from support.reference_image import ReferenceScreenshotMixin
@@ -52,8 +56,8 @@ FANDOM_BODY_HEIGHT = 4
 class TestDialogBackgroundFandomReference(
     ReferenceScreenshotMixin, unittest.TestCase
 ):
-    REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "desktop_fandom.png")
-    MAX_ROWS = FANDOM_BODY_Y + FANDOM_BODY_HEIGHT
+    REFERENCE = FANDOM_REFERENCE
+    MAX_ROWS = FANDOM_MAX_ROWS
 
     def test_cross_check_body_is_the_reference_grey(self):
         # Re-derive the #DDDDDD value at the coordinate the SVG comment

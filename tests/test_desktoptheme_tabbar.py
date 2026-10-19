@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-import os
 import unittest
 
-from support.desktoptheme_paths import TABBAR_SVG
+from support.desktoptheme_paths import (
+    FANDOM_MAX_ROWS,
+    FANDOM_REFERENCE,
+    TABBAR_SVG,
+)
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_band_pixels,
@@ -180,8 +182,8 @@ TAB_FACE_HEIGHT = 5
 
 
 class TestTabBarReference(ReferenceScreenshotMixin, unittest.TestCase):
-    REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "desktop_fandom.png")
-    MAX_ROWS = 160
+    REFERENCE = FANDOM_REFERENCE
+    MAX_ROWS = FANDOM_MAX_ROWS
 
     def test_tab_face_is_the_reference_grey(self):
         # The reference is a 2x upscale of a 1280x721 screen, so 2 image

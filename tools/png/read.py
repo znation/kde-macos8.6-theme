@@ -102,6 +102,24 @@ def _palette_index_error(index: int, entries: int, palette_bytes: int) -> PngErr
     )
 
 
+def _validate_max_rows(max_rows: int | None) -> None:
+    """Raise :class:`PngError` unless *max_rows* is None or a positive int.
+
+    ``bool`` is rejected even though it is an ``int`` subclass: ``True`` would
+    pass as 1 and silently select a different row bound. This lives apart from
+    :func:`decode_png` so a caller that serves an already-decoded image (the
+    test reference cache) can apply the same bound check without decoding.
+    """
+    if max_rows is None:
+        return
+    if not is_plain_int(max_rows):
+        raise PngError(
+            f"max_rows must be an integer or None: max_rows={max_rows!r}"
+        )
+    if max_rows < 1:
+        raise PngError(f"max_rows must be positive: max_rows={max_rows}")
+
+
 def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     """Decode an 8-bit, non-interlaced PNG into an :class:`Image`.
 
@@ -195,15 +213,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
             f"PNG header declares zero width or height: {width}x{height}; "
             "both dimensions must be positive"
         )
-    if max_rows is not None:
-        if not is_plain_int(max_rows):
-            raise PngError(
-                f"max_rows must be an integer or None: max_rows={max_rows!r}"
-            )
-        if max_rows < 1:
-            raise PngError(
-                f"max_rows must be positive: max_rows={max_rows}"
-            )
+    _validate_max_rows(max_rows)
     rows = height if max_rows is None else min(max_rows, height)
     channels = _CHANNELS[color_type]
     # Bound the work by the header before zlib sees any data: reject an image

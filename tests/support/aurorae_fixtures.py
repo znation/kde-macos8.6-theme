@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 
+from support.desktoptheme_paths import FANDOM_MAX_ROWS, FANDOM_REFERENCE
 from support.platinum_palette import hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
 from support.theme_install import ROOT
@@ -30,12 +31,11 @@ REFERENCE_ROWS = 425
 # "Utilities", "Applications" and "Apple System Profiler" windows); their
 # flat #DDDDDD title field and 1px #555555 outline are the inactive frame's
 # ground truth. The image is 2 image px per logical px.
-INACTIVE_REFERENCE = os.path.join(
-    ROOT, "macos8.6-screenshots", "desktop_fandom.png"
-)
+INACTIVE_REFERENCE = FANDOM_REFERENCE
 # The deepest inactive reference row this module reads is the Applications
-# window's title field at y=880.
-INACTIVE_REFERENCE_ROWS = 900
+# window's title field at y=880; it shares the fandom bound so that whichever
+# desktop_fandom.png reader runs first decodes the screenshot once.
+INACTIVE_REFERENCE_ROWS = FANDOM_MAX_ROWS
 # The retail Japanese 8.6 System Profiler window shows the close, zoom and
 # collapse boxes in one title bar (aboutsystem's window cannot be zoomed).
 PROFILER_REFERENCE = os.path.join(

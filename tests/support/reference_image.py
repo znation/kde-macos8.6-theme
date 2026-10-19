@@ -18,12 +18,29 @@ import os
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 
 from tools import png  # noqa: E402
+from tools.png.read import _validate_max_rows  # noqa: E402
 
-# Decoded references, keyed by absolute path and ``max_rows``. A reference is
-# a read-only Git LFS asset that cannot change during a run, and several test
-# classes decode the same screenshot (with the same bound), so the second and
-# later classes reuse the first class's decode instead of re-unfiltering it.
+# Decoded references, keyed by absolute path. A reference is a read-only Git
+# LFS asset that cannot change during a run, so a path is unfiltered at most
+# once: each entry remembers the ``max_rows`` bound its decode used, and a
+# later request reuses the decode whenever the decode already holds the rows
+# it needs (a bound that exceeded the image height means the whole image is
+# held). A request needing more rows re-decodes and replaces the entry.
 _DECODED_REFERENCES = {}
+
+
+def _bounded(image, max_rows):
+    """Return *image*, truncated to *max_rows* rows when it is taller.
+
+    The rows are copied (a ``bytes`` slice), not re-decoded: PNG filtering is
+    sequential, so the top *max_rows* rows of a taller decode are exactly what
+    a fresh bounded decode would produce.
+    """
+    if max_rows is None or image.height <= max_rows:
+        return image
+    return png.Image(
+        image.width, max_rows, image.rgb[: max_rows * image.width * 3]
+    )
 
 
 def read_reference(path, **kwargs):
@@ -31,17 +48,43 @@ def read_reference(path, **kwargs):
 
     *kwargs* go to ``png.read_png``. A ``PngError`` (the image is absent or an
     unmaterialized LFS pointer) comes back as ``(None, error)`` instead of
-    raising, ready to hand to `skip_unless_materialized`. The result is cached
-    per ``(absolute path, max_rows)`` for the process, so a screenshot read by
-    several classes is decoded once.
+    raising, ready to hand to `skip_unless_materialized`. The decode is cached
+    per absolute path for the process: a later request reuses it whenever the
+    cached decode already holds the rows it needs (a bound that exceeded the
+    image height holds the whole image), so a screenshot several classes read
+    at different ``max_rows`` bounds is unfiltered once, not once per bound. A
+    request that needs more rows re-decodes and replaces the entry. An invalid
+    ``max_rows`` (not a positive plain int) is reported as an error whether or
+    not a decode is cached.
     """
-    key = (os.path.abspath(str(path)), kwargs.get("max_rows"))
-    if key not in _DECODED_REFERENCES:
-        try:
-            _DECODED_REFERENCES[key] = (png.read_png(path, **kwargs), None)
-        except png.PngError as exc:
-            _DECODED_REFERENCES[key] = (None, exc)
-    return _DECODED_REFERENCES[key]
+    key = os.path.abspath(str(path))
+    max_rows = kwargs.get("max_rows")
+    try:
+        _validate_max_rows(max_rows)
+    except png.PngError as exc:
+        # The cold path gets this check from ``read_png``; run it here so a
+        # cached decode cannot let an invalid bound reach ``_bounded`` (whose
+        # ``png.Image`` raises a less specific error, or a non-int comparison
+        # a ``TypeError``).
+        return None, exc
+    cached = _DECODED_REFERENCES.get(key)
+    if cached is not None:
+        cached_rows, image, error = cached
+        if error is not None:
+            return None, error
+        if (
+            cached_rows is None
+            or cached_rows > image.height
+            or (max_rows is not None and max_rows <= image.height)
+        ):
+            return _bounded(image, max_rows), None
+    try:
+        image = png.read_png(path, **kwargs)
+    except png.PngError as exc:
+        _DECODED_REFERENCES[key] = (max_rows, None, exc)
+        return None, exc
+    _DECODED_REFERENCES[key] = (max_rows, image, None)
+    return image, None
 
 
 def skip_unless_materialized(case, path, error):

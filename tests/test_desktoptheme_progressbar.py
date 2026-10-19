@@ -5,7 +5,11 @@ from __future__ import annotations
 import os
 import unittest
 
-from support.desktoptheme_paths import BAR_METER_HORIZONTAL_SVG
+from support.desktoptheme_paths import (
+    BAR_METER_HORIZONTAL_SVG,
+    FANDOM_MAX_ROWS,
+    FANDOM_REFERENCE,
+)
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
@@ -26,9 +30,7 @@ INACTIVE = "bar-inactive"
 ACTIVE = "bar-active"
 
 REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "boot2_betawiki.png")
-GRADIENT_REFERENCE = os.path.join(
-    ROOT, "macos8.6-screenshots", "desktop_fandom.png"
-)
+GRADIENT_REFERENCE = FANDOM_REFERENCE
 
 SHADOW = "#9A9A9A"
 TRACK_FACE = "#ADADAD"
@@ -215,7 +217,7 @@ class TestProgressBarReference(ReferenceScreenshotMixin, unittest.TestCase):
 
 class TestFillGradientReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = GRADIENT_REFERENCE
-    MAX_ROWS = 1250
+    MAX_ROWS = FANDOM_MAX_ROWS
 
     def test_fill_rows_match_reference(self):
         # The ten gradient rows are the interior column of the About This

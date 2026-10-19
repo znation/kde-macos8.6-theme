@@ -1,9 +1,11 @@
-"""Paths into the org.macos8.desktop theme packages.
+"""Paths into the org.macos8.desktop theme packages, and its reference anchors.
 
 Shared by the per-widget test modules and the package test module so each
 names the artifact it checks without re-deriving the package layout. The
 widget paths point into the desktop theme package; LNF_DEFAULTS is the global
-theme's contents/defaults file, which selects that desktop theme.
+theme's contents/defaults file, which selects that desktop theme. The
+reference anchors name the screenshots and decode bounds several of those
+modules share.
 """
 
 from __future__ import annotations
@@ -51,3 +53,14 @@ SOLID_PANEL_SVG = os.path.join(PACKAGE, "solid", "widgets", "panel-background.sv
 LNF_DEFAULTS = os.path.join(
     ROOT, "theme", "look-and-feel", DTHEME_ID, "contents", "defaults"
 )
+
+FANDOM_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "desktop_fandom.png"
+)
+# The four test classes that read desktop_fandom.png -- the Aurorae frame and
+# the dialog, fill-gradient and tab-bar anchors -- share this bound so the
+# reference cache decodes the screenshot once, not once per bound: the
+# memory-meter gradient ends at row 1248, so 1250 rows covers every pixel any
+# of them samples, and sharing the bound makes the single decode independent
+# of discovery order.
+FANDOM_MAX_ROWS = 1250

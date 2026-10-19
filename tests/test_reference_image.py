@@ -56,6 +56,71 @@ class TestReadReferenceCache(unittest.TestCase):
         self.assertIsNone(one_error)
         self.assertIsNone(two_error)
 
+    def test_a_larger_cached_decode_serves_a_smaller_request(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                tall, tall_error = reference_image.read_reference(
+                    path, max_rows=2
+                )
+                short, short_error = reference_image.read_reference(
+                    path, max_rows=1
+                )
+        self.assertEqual(1, spy.call_count)
+        self.assertEqual((tall.height, short.height), (2, 1))
+        self.assertIsNot(tall, short)
+        self.assertIsNone(tall_error)
+        self.assertIsNone(short_error)
+
+    def test_a_full_decode_serves_a_bounded_request(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                full, full_error = reference_image.read_reference(path)
+                short, short_error = reference_image.read_reference(
+                    path, max_rows=1
+                )
+        self.assertEqual(1, spy.call_count)
+        self.assertEqual((full.height, short.height), (2, 1))
+        self.assertIsNone(full_error)
+        self.assertIsNone(short_error)
+
+    def test_a_bound_past_the_height_is_reused_for_an_equal_request(self):
+        # A bound above the image height means the whole image was decoded,
+        # so an identical later request must not decode it again.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                first, first_error = reference_image.read_reference(
+                    path, max_rows=5
+                )
+                second, second_error = reference_image.read_reference(
+                    path, max_rows=5
+                )
+        self.assertEqual(1, spy.call_count)
+        self.assertEqual((first.height, second.height), (2, 2))
+        self.assertIsNone(first_error)
+        self.assertIsNone(second_error)
+
+    def test_an_invalid_bound_is_an_error_with_a_cached_decode(self):
+        # A cached decode must not let an invalid bound reach ``_bounded``:
+        # ``read_png`` would reject it, so the warm path has to as well, and
+        # it must not read or decode the file to do so.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                reference_image.read_reference(path)
+                for bad in (0, -1, True, 1.5, "2"):
+                    with self.subTest(max_rows=bad):
+                        image, error = reference_image.read_reference(
+                            path, max_rows=bad
+                        )
+                        self.assertIsNone(image)
+                        self.assertIsInstance(
+                            error, reference_image.png.PngError
+                        )
+        self.assertEqual(1, spy.call_count)
+
     def test_a_failed_read_is_cached_like_a_decode(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = os.path.join(tmp, "absent.png")
@@ -99,6 +164,30 @@ class TestReferenceScreenshotMixin(unittest.TestCase):
             case = self._case_with(_write_reference(tmp), None)
         self.assertIsNone(case.image_error)
         self.assertEqual((case.image.width, case.image.height), (2, 2))
+
+
+class TestSharedFandomBound(unittest.TestCase):
+    """The readers of ``desktop_fandom.png`` share one decode bound.
+
+    If the Aurorae inactive reader kept its own smaller bound and ran first,
+    the 1250-row desktoptheme readers would find a decode too short and
+    re-decode the whole screenshot; sharing the bound keeps the single decode
+    independent of discovery order. The desktoptheme readers import
+    ``FANDOM_MAX_ROWS`` by construction, so only the Aurorae constant can
+    drift.
+    """
+
+    def test_the_aurorae_reader_shares_the_fandom_bound(self):
+        from support import aurorae_fixtures, desktoptheme_paths
+
+        self.assertEqual(
+            aurorae_fixtures.INACTIVE_REFERENCE,
+            desktoptheme_paths.FANDOM_REFERENCE,
+        )
+        self.assertEqual(
+            aurorae_fixtures.INACTIVE_REFERENCE_ROWS,
+            desktoptheme_paths.FANDOM_MAX_ROWS,
+        )
 
 
 if __name__ == "__main__":
