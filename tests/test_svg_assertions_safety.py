@@ -178,6 +178,56 @@ class TestNoExternalReferences(unittest.TestCase):
         )
 
 
+class TestUrlReferenceScanning(unittest.TestCase):
+    """``url(...)`` is a CSS token, so its keyword and body have fixed shapes.
+
+    The scanner reads every ``url(...)`` in an attribute value and hands the
+    target to the guard. CSS matches the keyword case-insensitively, so
+    ``URL(other.svg)`` names the same external reference as ``url(other.svg)``;
+    losing that flag would let it pass unnoticed. The body may be unquoted and
+    padded, or quoted with the ``)`` right after the closing quote; a quoted
+    body that is not shaped that way falls back to the unquoted read.
+    """
+
+    def test_uppercase_url_keyword_is_found(self):
+        self.assertEqual(
+            list(_url_targets("URL(other.svg#x)")), ["other.svg#x"]
+        )
+
+    def test_uppercase_url_reference_is_rejected_end_to_end(self):
+        # The guard must reject `URL(...)` exactly as it rejects `url(...)`;
+        # the old scanner matched with re.IGNORECASE for this reason.
+        tree = _svg_tree(
+            '<rect id="center" fill="URL(other.svg#gradient)"/>'
+        )
+        assert_rejection_names(
+            self,
+            assert_no_external_references,
+            tree,
+            needles=("other.svg#gradient",),
+        )
+
+    def test_padded_unquoted_target_is_stripped(self):
+        self.assertEqual(
+            list(_url_targets("url(  #gradient  )")), ["#gradient"]
+        )
+
+    def test_a_quoted_target_not_followed_by_a_paren_falls_back(self):
+        # ``url("a" b)`` is malformed: the quoted form needs its ``)`` right
+        # after the closing quote, so the scanner falls back to the unquoted
+        # read and yields the raw remainder. This pins that fall-through.
+        self.assertEqual(list(_url_targets('url("a" b)')), ['"a" b'])
+
+    def test_an_unclosed_quote_with_no_closing_paren_yields_nothing(self):
+        self.assertEqual(list(_url_targets('url("a')), [])
+
+    def test_several_references_in_one_value_are_all_yielded(self):
+        self.assertEqual(
+            list(_url_targets("url(#a) url( '#b' ) URL(#c)")),
+            ["#a", "#b", "#c"],
+        )
+
+
 class TestUniqueIds(unittest.TestCase):
     def test_passes_a_tree_with_unique_ids(self):
         tree = _svg_tree(
