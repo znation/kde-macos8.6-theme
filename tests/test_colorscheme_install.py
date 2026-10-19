@@ -12,16 +12,18 @@ import unittest
 
 from support.colorscheme_fixtures import SCHEME
 from support.process_assertions import assert_failed, assert_succeeded
+from support.installed_paths import (
+    installed_color_scheme,
+    installed_color_scheme_dir,
+    staging_sibling,
+)
 from support.theme_install import (
     assert_files_identical,
     install,
-    installed_color_scheme,
-    installed_color_scheme_dir,
     installed_destdir,
     make_env,
     run_captured,
     shadow_command_env,
-    staging_sibling,
     uninstall,
 )
 from support.tmp_dir import make_tmp_dir

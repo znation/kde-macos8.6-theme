@@ -9,18 +9,17 @@ import time
 import unittest
 
 from support import process_runner
-from support import theme_install
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kde_config import read as read_kde_config
 from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata
 from support.process_assertions import assert_failed, assert_succeeded
+from support.installed_paths import XDG_DATA_HOME, installed_package
 from support.theme_install import (
     ROOT,
     install,
     installed_destdir,
-    installed_package,
     shadow_command_env,
 )
 from support.tmp_dir import make_tmp_dir
@@ -262,7 +261,7 @@ class TestInstall(
             [
                 "make", "install",
                 f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                f"XDG_DATA_HOME={XDG_DATA_HOME}",
             ],
             cwd=ROOT,
             capture_output=True,

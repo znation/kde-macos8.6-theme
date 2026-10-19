@@ -15,8 +15,8 @@ import unittest
 from support.kvantum_fixtures import KVANTUM_ID, PACKAGE, SHIPPED_FILES
 from support.process_assertions import assert_failed, assert_succeeded
 from support.shipped_files import shipped_files
+from support.installed_paths import XDG_DATA_HOME
 from support.theme_install import (
-    XDG_DATA_HOME,
     assert_files_identical,
     install,
     installed_destdir,

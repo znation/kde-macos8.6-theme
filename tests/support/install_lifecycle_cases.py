@@ -13,13 +13,15 @@ import os
 
 from support.process_assertions import assert_succeeded
 from support.shipped_files import shipped_files
-from support.theme_install import (
+from support.installed_paths import (
     InstalledPackageLocation,
+    old_sibling,
+    staging_sibling,
+)
+from support.theme_install import (
     assert_files_identical,
     install,
     installed_destdir,
-    old_sibling,
-    staging_sibling,
     uninstall,
 )
 

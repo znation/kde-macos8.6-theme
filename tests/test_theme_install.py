@@ -16,7 +16,7 @@ import unittest
 import unittest.mock
 from pathlib import Path
 
-from support import theme_install
+from support import installed_paths, theme_install
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -77,10 +77,10 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
         """Install all seven artifacts under *destdir*, then uninstall them."""
         assert_succeeded(self, theme_install.install(destdir))
         package = "org.macos8.desktop"
-        scheme = theme_install.installed_color_scheme(destdir)
+        scheme = installed_paths.installed_color_scheme(destdir)
         kvantum = os.path.join(
             destdir,
-            theme_install.XDG_DATA_HOME.lstrip("/"),
+            installed_paths.XDG_DATA_HOME.lstrip("/"),
             "themes",
             package,
             "Kvantum",
@@ -91,13 +91,13 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
         ]
         directories = [
             os.path.join(
-                theme_install.installed_plasma_dir(destdir, kind), package
+                installed_paths.installed_plasma_dir(destdir, kind), package
             )
             for kind in ("look-and-feel", "desktoptheme")
         ]
-        directories.append(theme_install.installed_aurorae_theme(destdir, package))
-        directories.append(theme_install.installed_wallpaper(destdir, package))
-        directories.append(theme_install.installed_icon_theme(destdir, package))
+        directories.append(installed_paths.installed_aurorae_theme(destdir, package))
+        directories.append(installed_paths.installed_wallpaper(destdir, package))
+        directories.append(installed_paths.installed_icon_theme(destdir, package))
         self.assertTrue(os.path.isfile(scheme), scheme)
         for path in kvantum_files:
             self.assertTrue(os.path.isfile(path), path)
@@ -231,12 +231,12 @@ class TestFlockTimeout(unittest.TestCase):
             None,
             (
                 f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
                 f"FLOCK_TIMEOUT={value}",
             ),
             expected,
         )
-        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_empty_is_refused_before_creating_the_data_home(self):
@@ -277,7 +277,7 @@ class TestFlockTimeout(unittest.TestCase):
             tmp, extra=["FLOCK_TIMEOUT=00000000000000000001"]
         )
         assert_succeeded(self, result)
-        scheme = theme_install.installed_color_scheme(tmp)
+        scheme = installed_paths.installed_color_scheme(tmp)
         self.assertTrue(os.path.isfile(scheme), result.stderr)
 
 
@@ -297,15 +297,15 @@ class TestInstallPackages(unittest.TestCase):
             self,
             theme_install.install(tmp, packages="color-scheme"),
         )
-        scheme = theme_install.installed_color_scheme(tmp)
+        scheme = installed_paths.installed_color_scheme(tmp)
         self.assertTrue(os.path.isfile(scheme), scheme)
-        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
         other_dirs = [
-            theme_install.installed_plasma_dir(tmp, "look-and-feel"),
-            theme_install.installed_plasma_dir(tmp, "desktoptheme"),
-            theme_install.installed_aurorae_dir(tmp),
-            theme_install.installed_wallpaper_dir(tmp),
-            theme_install.installed_icons_dir(tmp),
+            installed_paths.installed_plasma_dir(tmp, "look-and-feel"),
+            installed_paths.installed_plasma_dir(tmp, "desktoptheme"),
+            installed_paths.installed_aurorae_dir(tmp),
+            installed_paths.installed_wallpaper_dir(tmp),
+            installed_paths.installed_icons_dir(tmp),
             os.path.join(data_home, "themes", "org.macos8.desktop", "Kvantum"),
         ]
         for path in other_dirs:
@@ -329,7 +329,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             [
                 "install",
                 f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
             ],
             env=env,
         )
@@ -338,7 +338,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             "INSTALL_PACKAGES must name at least one artifact family",
             result.stderr,
         )
-        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_unknown_family_is_refused_before_creating_the_data_home(self):
@@ -352,7 +352,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             [
                 "install",
                 f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
             ],
             env=env,
         )
@@ -362,7 +362,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             result.stderr,
         )
         self.assertIn("color-scheme", result.stderr)
-        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_an_unknown_family_after_a_known_one_is_still_refused(self):
@@ -379,7 +379,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             [
                 "install",
                 f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
             ],
             env=env,
         )
@@ -390,7 +390,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             "INSTALL_PACKAGES names unknown artifact families: bogus;",
             result.stderr,
         )
-        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_a_glob_shaped_family_is_reported_literally_not_expanded(self):
@@ -407,7 +407,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             [
                 "install",
                 f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
             ],
             env=env,
         )
@@ -416,7 +416,7 @@ class TestInstallPackagesGuard(unittest.TestCase):
             "INSTALL_PACKAGES names unknown artifact families: *.md;",
             result.stderr,
         )
-        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
 

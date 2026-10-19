@@ -11,12 +11,14 @@ import os
 import shutil
 
 from support.process_assertions import assert_failed, assert_succeeded
-from support.theme_install import (
+from support.installed_paths import (
     InstalledPackageLocation,
-    install,
     old_sibling,
-    shadow_command_env,
     staging_sibling,
+)
+from support.theme_install import (
+    install,
+    shadow_command_env,
 )
 from support.tmp_dir import make_tmp_dir
 

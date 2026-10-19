@@ -11,7 +11,8 @@ from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata
 from support.reference_image import skip_unless_materialized
-from support.theme_install import ROOT, installed_wallpaper, installed_wallpaper_dir
+from support.installed_paths import installed_wallpaper, installed_wallpaper_dir
+from support.theme_install import ROOT
 
 from tools import make_wallpaper, png  # noqa: E402
 
