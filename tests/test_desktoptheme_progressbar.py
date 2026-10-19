@@ -61,6 +61,18 @@ TRACK_REFERENCE_PIXELS = (
     (TRACK_LIGHT, (120, 102)),
 )
 
+# The boot2_betawiki.png fill column the artwork's provenance comment cites
+# as the same gradient downscaled, at (102,99..102). The lossless
+# desktop_fandom samples replaced these as the fill's primary ground truth,
+# so only (102,100) is re-derived elsewhere (the splash fill); pin all four
+# here so the "the two references agree" claim stays verified.
+BOOT_FILL_PIXELS = (
+    ("#7D7D9A", (102, 99)),
+    ("#9B9BEA", (102, 100)),
+    ("#7878D1", (102, 101)),
+    ("#83839D", (102, 102)),
+)
+
 TILE = 4
 
 
@@ -189,6 +201,15 @@ class TestProgressBarReference(ReferenceScreenshotMixin, unittest.TestCase):
         # progress bar pixel, not a guess.
         for colour, (x, y) in TRACK_REFERENCE_PIXELS:
             with self.subTest(colour=colour, pixel=(x, y)):
+                self.assertEqual(hex_colour(self.pixel(x, y)), colour)
+
+    def test_boot_fill_pixels_match_reference(self):
+        # The artwork's provenance comment cites the boot2 fill column as the
+        # same gradient downscaled, so the two references agree. The gradient
+        # rows are grounded in desktop_fandom.png, and this is the only test
+        # that re-derives three of these four boot2 pixels.
+        for colour, (x, y) in BOOT_FILL_PIXELS:
+            with self.subTest(pixel=(x, y)):
                 self.assertEqual(hex_colour(self.pixel(x, y)), colour)
 
 
