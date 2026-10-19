@@ -30,7 +30,7 @@ line (`/^\[/`), so an indented `[General]` was never seen as the current section
 `ColorScheme` key was skipped.
 
 **Fix:** the `awk` now matches and strips leading whitespace before the `[` (`/^[[:space:]]*\[/`),
-matching KDE's trim-before-parse behaviour and the project's `support/kde_config.py` reader.
+matching KDE's trim-before-parse behaviour.
 
 **Validation gap:** unclear-invariant — no test or doc stated that KDE's config reader trims a
 line before matching a section header, so that invariant had to be established before the

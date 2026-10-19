@@ -268,6 +268,19 @@ class TestInstall(unittest.TestCase):
         assert_succeeded(self, removed)
         self.assertIn("is still selected", removed.stderr)
 
+    def test_make_uninstall_warns_for_an_indented_general_section_after_a_key(self):
+        # KDE trims each line before parsing it, so an indented `[General]`
+        # header opens the section even when it follows another section's key;
+        # the earlier section's ColorScheme must not be read as the live one.
+        with installed_destdir(self) as tmp:
+            removed = self._uninstall_with_kdeglobals(
+                tmp,
+                "[Other]\nColorScheme=BreezeLight\n  [General]\nColorScheme=MacOS8\n",
+            )
+
+        assert_succeeded(self, removed)
+        self.assertIn("is still selected", removed.stderr)
+
     def test_make_uninstall_warns_for_an_indented_color_scheme_key(self):
         # KDE trims each line before parsing it, so a `ColorScheme` key with
         # leading whitespace is still the live selection, and whitespace
