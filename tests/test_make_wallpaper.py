@@ -115,6 +115,19 @@ class TestMain(unittest.TestCase):
         self.assertEqual(first.read_bytes(), b"previous good wallpaper")
         self.assertEqual([p.name for p in self.images.iterdir()], [first.name])
 
+    def test_unwritable_images_directory_exits_2_naming_it(self):
+        # `main` promises "0, or 2 on error", and every other failure path is
+        # caught; the images directory itself must not raise a traceback when
+        # it cannot be created (a read-only checkout, a `contents` file).
+        self.write_reference(X0 + TILE, Y0 + TILE)
+        with mock.patch.object(
+            Path, "mkdir", side_effect=OSError(errno.EROFS, "Read-only file system")
+        ):
+            status, err = self.run_main()
+        self.assertEqual(status, 2)
+        self.assertIn("cannot create", err)
+        self.assertIn(str(self.images), err)
+
     def test_missing_reference_exits_2_naming_it_and_writes_nothing(self):
         status, err = self.run_main()
         self.assertEqual(status, 2)

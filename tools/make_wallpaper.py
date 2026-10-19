@@ -100,7 +100,14 @@ def main() -> int:
         print(f"make_wallpaper: error: {exc}", file=sys.stderr)
         return 2
     images = ROOT / PACKAGE_DIR / "contents" / "images"
-    images.mkdir(parents=True, exist_ok=True)
+    try:
+        images.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        print(
+            f"make_wallpaper: error: cannot create {images}: {exc}",
+            file=sys.stderr,
+        )
+        return 2
     for width, height in RESOLUTIONS:
         data = encode_png(width, height, tiled_rgb(tile, width, height))
         target = images / f"{width}x{height}.png"
