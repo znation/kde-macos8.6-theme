@@ -4,7 +4,7 @@
 files through `kde_config.read`, but they exercise only a few of its settings.
 The tests below pin the reader's two `configparser` deviations from the
 defaults — `%` is literal, and key names keep their case — and that the file
-is explicitly decoded as UTF-8.
+is explicitly decoded as UTF-8 with a leading BOM stripped.
 """
 
 import tempfile
@@ -43,13 +43,24 @@ class TestReadKdeConfig(unittest.TestCase):
         # decoded as UTF-8 rather than the platform locale's encoding. The
         # locale here is UTF-8, so the decoded text cannot distinguish the
         # explicit encoding from the default; pin the argument read() passes
-        # to open() instead.
+        # to open() instead. utf-8-sig is utf-8 plus BOM stripping.
         path = make_tmp_dir(self) / "theme.ini"
         path.write_text("[Desktop Entry]\nName=Caf\u00e9\n", encoding="utf-8")
         with mock.patch.object(kde_config, "open", create=True, wraps=open) as spy:
             parser = kde_config.read(path)
-        self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8")
+        self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8-sig")
         self.assertEqual(parser.get("Desktop Entry", "Name"), "Caf\u00e9")
+
+    def test_strips_a_leading_utf8_bom(self):
+        # Qt's reader strips a UTF-8 BOM before parsing, so a theme file an
+        # editor saved with a BOM still loads in Plasma. Decoded as plain
+        # utf-8 the BOM stays in the first line, so configparser finds no
+        # section header and raises MissingSectionHeaderError; the reader must
+        # strip it.
+        path = make_tmp_dir(self) / "theme.ini"
+        path.write_bytes(b"\xef\xbb\xbf[General]\nColorScheme=MacOS8\n")
+        parser = kde_config.read(path)
+        self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # A theme INI is contributor-supplied, and a checked-in symlink can

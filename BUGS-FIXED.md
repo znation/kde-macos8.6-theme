@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/support/kde_config.py` cannot read a KDE INI that opens with a UTF-8 BOM (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `kde_config.read` opened the file with `encoding="utf-8"`, so a leading
+BOM stayed in the first line. `configparser` then found no section header and raised
+`MissingSectionHeaderError` ("File contains no section headers") instead of reading
+the file the way Plasma's `QSettings`/`QTextStream` does (Qt strips a UTF-8 BOM). A
+contributor-supplied `MacOS8.colors`, `org.macos8.desktoprc`,
+`org.macos8.desktop.kvconfig` or `contents/defaults` saved with a BOM therefore
+aborted the test that read it.
+
+**Reproduction:** a scratch run wrote `b"\xef\xbb\xbf[General]\nColorScheme=MacOS8\n"`
+to a temp file and called `kde_config.read(path)`; it raised
+`MissingSectionHeaderError` at line 1.
+`tests/test_kde_config.py::TestReadKdeConfig.test_strips_a_leading_utf8_bom` now pins
+the fixed behavior.
+
+**Cause:** `read` opened with `encoding="utf-8"`, so the BOM was not stripped before
+`configparser.read_file`.
+
+**Fix:** read with `encoding="utf-8-sig"`, which strips a leading BOM and behaves
+identically to `utf-8` for BOM-less files, matching Qt's reader and the project's
+other contributor-file readers (`tools/theme_defaults.py`,
+`tools/reference_validation.py`).
+
+**Validation gap:** no-observability — no test read a BOM-prefixed INI, so the
+reader's mishandling was never triggered in the suite and only a new BOM case could
+confirm it.
+
 ### `tests/placeholders.py`'s `cross_check` reads a symlinked `PLACEHOLDERS.md` bare (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** when `PLACEHOLDERS.md` is a checked-in symlink resolving outside the repository,
