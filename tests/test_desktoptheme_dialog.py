@@ -39,5 +39,30 @@ class TestDialogBackgroundReference(ReferenceScreenshotMixin, unittest.TestCase)
                 self.assertEqual(hex_colour(self.pixel(x, y)), FACE, (x, y))
 
 
+# The cross-check dialogs/background.svg's comment cites: the same window-body
+# grey at (1792, 1126) of macos8.6-screenshots/desktop_fandom.png, a 2x
+# upscale, in the About This Computer window. A 4x4 block around the cited
+# pixel proves it sits in a solid region rather than on an edge.
+FANDOM_BODY_X = 1792
+FANDOM_BODY_Y = 1126
+FANDOM_BODY_WIDTH = 4
+FANDOM_BODY_HEIGHT = 4
+
+
+class TestDialogBackgroundFandomReference(
+    ReferenceScreenshotMixin, unittest.TestCase
+):
+    REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "desktop_fandom.png")
+    MAX_ROWS = FANDOM_BODY_Y + FANDOM_BODY_HEIGHT
+
+    def test_cross_check_body_is_the_reference_grey(self):
+        # Re-derive the #DDDDDD value at the coordinate the SVG comment
+        # cites. This pins the pixel, not the comment text: editing the
+        # coordinate in background.svg would not fail this test.
+        for y in range(FANDOM_BODY_Y, FANDOM_BODY_Y + FANDOM_BODY_HEIGHT):
+            for x in range(FANDOM_BODY_X, FANDOM_BODY_X + FANDOM_BODY_WIDTH):
+                self.assertEqual(hex_colour(self.pixel(x, y)), FACE, (x, y))
+
+
 if __name__ == "__main__":
     unittest.main()
