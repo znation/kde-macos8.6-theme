@@ -9,11 +9,16 @@ false phrase.
 from __future__ import annotations
 
 import os
+import sys
 import tempfile
 import time
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
+from support.repo_root import ROOT
 
 
 # The literal delimiters of an SVG/XML comment. The body is scanned with
@@ -28,7 +33,15 @@ _COMMENT_CLOSE = "-->"
 
 
 def header_comment(path):
-    """Return the leading XML comment of an SVG file, or "" when absent."""
+    """Return the leading XML comment of an SVG file, or "" when absent.
+
+    The SVG is contributor-supplied, and a checked-in symlink at its path can
+    point at a private file; the returned comment is fed to ``assertIn``,
+    whose failure message echoes it, so following such a symlink would leak
+    that file's content into a failing test's diagnostic. A path that resolves
+    outside the repository is refused before it is opened.
+    """
+    containment.require_within_repo(path, ROOT)
     with open(path, encoding="utf-8") as handle:
         text = handle.read()
     start = text.find(_COMMENT_OPEN)
@@ -60,6 +73,42 @@ class TestProvenance(unittest.TestCase):
                 comment = header_comment(path)
                 self.assertIn(required, comment)
                 self.assertNotIn(forbidden, comment)
+
+
+class TestHeaderCommentContainment(unittest.TestCase):
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        # A theme SVG is contributor-supplied, and a checked-in symlink can
+        # point at a private file; the returned comment reaches assertIn,
+        # whose failure message echoes it, so following the symlink would leak
+        # that file's content into the test diagnostic. A path that resolves
+        # outside the repository must be refused before it is opened.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.svg"
+            secret.write_text("<!-- private -->\n", encoding="utf-8")
+            link = root / "viewitem.svg"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    header_comment(link)
+        self.assertIn(str(link), str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        # The guard must refuse only escapes, not a legitimate repository path
+        # that happens to be reached through a symlink inside the repository.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            (root / "theme").mkdir(parents=True)
+            target = root / "theme" / "viewitem.svg"
+            target.write_text("<!-- ok -->\n", encoding="utf-8")
+            link = root / "link.svg"
+            link.symlink_to(target)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                comment = header_comment(link)
+        self.assertEqual(comment, " ok ")
 
 
 class TestHeaderCommentScanning(unittest.TestCase):
