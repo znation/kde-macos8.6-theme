@@ -32,6 +32,29 @@ class TestDefaultsGroups(unittest.TestCase):
             theme_defaults.defaults_groups(path),
         )
 
+    def test_recognizes_an_indented_section_heading(self):
+        # KDE trims each line before parsing it, so a `[file][group]` heading
+        # with leading whitespace still opens its section -- the same
+        # trim-before-parse invariant the `make uninstall` warning was fixed
+        # to honour. Without the reader's `line = raw.strip()`, an indented
+        # heading starts with whitespace, so it matches neither heading
+        # pattern and its keys are silently dropped from the written config.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_text(
+            "  [kwinrc][org.kde.kdecoration2]\ntheme=x\n"
+            "[plasmarc][Theme]\nname=y\n"
+            "  [plasmarc][KDE]\nwidgetStyle=kvantum\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            {
+                ("kwinrc", "org.kde.kdecoration2"): {"theme": "x"},
+                ("plasmarc", "Theme"): {"name": "y"},
+                ("plasmarc", "KDE"): {"widgetStyle": "kvantum"},
+            },
+            theme_defaults.defaults_groups(path),
+        )
+
     def test_strips_a_leading_utf8_bom_before_the_first_heading(self):
         # An editor may save the contributor-supplied defaults file with a
         # UTF-8 BOM. Decoding as plain utf-8 folds the BOM into the first
