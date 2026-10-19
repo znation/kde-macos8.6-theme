@@ -28,7 +28,54 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Ground the `[Colors:View] BackgroundAlternate` scroll-bar trough anchor in `setup_emaculation.png` (planned 2026-10-19 by the plan role)
+
+**Goal.** The color scheme's `[Colors:View] BackgroundAlternate=238,238,238` is the flat
+`#EEEEEE` trough that `theme/desktop-themes/org.macos8.desktop/widgets/scrollbar.svg`,
+`slider.svg` and `switch.svg` paint. It is the trough that `tests/support/platinum_palette.py`
+records as "pinned only by the widget tests that draw it", unlike the face, view, chrome and
+selection anchors that `tests/test_colorscheme_reference.py::TestReferenceAnchors` re-derives from
+a retail screenshot. The retail installer window in `setup_emaculation.png` shows the trough, so
+add an anchor there and tie the scroll bar's own slices to the same pixels.
+
+**Approach.**
+- `tests/test_colorscheme_reference.py`: add
+  `REFERENCE_SCROLLBAR = os.path.join(ROOT, "macos8.6-screenshots", "setup_emaculation.png")`
+  and `SCROLLBAR_ANCHOR_ROWS = 471` (the anchor is at y=470, so the bound must cover row 470),
+  load it in `TestReferenceAnchors.setUpClass` next to `REFERENCE_DESKTOP` and
+  `REFERENCE_FIRSTBOOT`, and add `test_view_background_alternate` calling
+  `assert_anchor_at("Colors:View", "BackgroundAlternate", 200, 470, path=REFERENCE_SCROLLBAR)`.
+  The pixel is inside the installer CD window's horizontal scroll bar: the 16px band has a
+  `#000000` outline at y=462 and y=477 with a flat `#EEEEEE` trough between them, so (200, 470)
+  is clear of both outlines and of the arrow boxes.
+- `tests/test_desktoptheme_scrollbar.py`: add a `TestScrollbarReference(ReferenceScreenshotMixin)`
+  class, following `tests/test_desktoptheme_line.py::TestLineReference`, with
+  `REFERENCE = REFERENCE_SCROLLBAR` (import the path from `support.theme_install`/`ROOT` and
+  `TROUGH`/`BLACK` from `support.platinum_palette`). Its `test_trough_matches_reference` asserts
+  `self.pixel(200, 470)` is `TROUGH`, `self.pixel(200, 462)` and `self.pixel(200, 477)` are
+  `BLACK`, and the trough is flat at `(50, 470)`, `(300, 470)` and `(400, 470)`, so the
+  `background-vertical`/`background-horizontal` slices' pinned fills are tied to the screenshot
+  and not only to `platinum_palette`.
+- `tests/support/platinum_palette.py`: reword the module docstring, which says the trough "is
+  pinned only by the widget tests that draw it", to name the new anchor and reference test.
+- `macos8.6-screenshots/sources.txt`: extend the `setup_emaculation.png` note to record that it
+  grounds the `[Colors:View] BackgroundAlternate` trough anchor (the flat scroll-bar band at
+  y=462..477).
+
+**Files touched.** `tests/test_colorscheme_reference.py`, `tests/test_desktoptheme_scrollbar.py`,
+`tests/support/platinum_palette.py`, `macos8.6-screenshots/sources.txt`.
+
+**Acceptance criteria.**
+- `python3 tools/sample.py macos8.6-screenshots/setup_emaculation.png 200 470` prints
+  `238,238,238 #EEEEEE`, and the outlines at `(200, 462)` and `(200, 477)` are `#000000`.
+- `TestReferenceAnchors.test_view_background_alternate` passes when the Git-LFS reference is
+  materialized and skips (not fails) when it is not, through the existing
+  `pixel`/`skip_unless_materialized` path; `SCROLLBAR_ANCHOR_ROWS` covers row 470 so the read
+  stays in bounds.
+- `TestScrollbarReference.test_trough_matches_reference` passes/skips the same way and pins the
+  trough fill and both outlines.
+- `tests/support/platinum_palette.py` no longer claims the trough is ungrounded.
+- `make check` is green.
 
 ## Done
 
