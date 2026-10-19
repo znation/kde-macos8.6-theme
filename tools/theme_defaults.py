@@ -32,6 +32,33 @@ DEFAULTS = (
 
 _FILE_GROUP = re.compile(r"\[([^\[\]]+)\]\[([^\[\]]+)\]$")
 _ANY_HEADING = re.compile(r"\[[^\]]*\]")
+# ``contents/defaults`` is contributor-supplied, so a checked-in (or
+# LFS-smudged) multi-gigabyte file must not be loaded whole: ``read_text``
+# would allocate it and raise ``MemoryError`` (which is neither an ``OSError``
+# nor a ``ValueError``, so the render's handler would not report it) instead of
+# a diagnostic. The real file is a few hundred bytes; 1 MiB leaves ample room
+# for growth while bounding the read the way ``reference_validation`` bounds
+# ``sources.txt`` and ``local_hook`` bounds an existing hook.
+_MAX_DEFAULTS_BYTES = 1 << 20
+
+
+def _read_defaults_text(path: Path) -> str:
+    """Return *path*'s text (``utf-8-sig``), refusing one over the size limit.
+
+    At most one byte past the cap is read, so an oversize file is detected
+    without loading the rest of it; a longer file raises ``ValueError`` naming
+    the limit, like a malformed heading, so the caller reports it instead of a
+    ``MemoryError`` aborting the run. Decoding as ``utf-8-sig`` strips a
+    leading UTF-8 BOM, which an editor may have added.
+    """
+    with path.open("rb") as handle:
+        data = handle.read(_MAX_DEFAULTS_BYTES + 1)
+    if len(data) > _MAX_DEFAULTS_BYTES:
+        raise ValueError(
+            f"{path}: is larger than the {_MAX_DEFAULTS_BYTES}-byte limit "
+            "for a defaults file"
+        )
+    return data.decode("utf-8-sig")
 
 
 def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, str]]:
@@ -47,14 +74,16 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     against the real name and drops. The file is decoded as
     ``utf-8-sig``, so a leading UTF-8 BOM is stripped instead of being folded
     into the first heading, where it would make that heading match neither
-    pattern and silently drop its section. A repository path that resolves
-    outside the repository (a checked-in symlink escape) raises ``ValueError``
-    before it is read; a path outside the repository is left alone.
+    pattern and silently drop its section. A file larger than
+    ``_MAX_DEFAULTS_BYTES`` raises ``ValueError`` naming the limit instead of
+    being read whole. A repository path that resolves outside the repository
+    (a checked-in symlink escape) raises ``ValueError`` before it is read; a
+    path outside the repository is left alone.
     """
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
     require_within_repo(path, ROOT)
-    for raw in path.read_text(encoding="utf-8-sig").splitlines():
+    for raw in _read_defaults_text(path).splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue

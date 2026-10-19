@@ -190,6 +190,22 @@ class TestDefaultsGroups(unittest.TestCase):
                 self.assertIn("malformed section heading", str(caught.exception))
                 self.assertIn(heading, str(caught.exception))
 
+    def test_rejects_a_defaults_file_larger_than_the_limit(self):
+        # ``contents/defaults`` is contributor-supplied. A multi-gigabyte file
+        # (a checked-in blob, or an LFS smudge gone wrong) read whole would
+        # allocate it and raise MemoryError, which the render's handler
+        # (OSError/UnicodeDecodeError/ValueError) does not catch, so the run
+        # would abort with a traceback instead of a diagnostic. The reader
+        # bounds the read and names the limit.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_bytes(b"x" * (theme_defaults._MAX_DEFAULTS_BYTES + 1))
+        with self.assertRaises(ValueError) as caught:
+            theme_defaults.defaults_groups(path)
+        self.assertIn("byte limit", str(caught.exception))
+        self.assertIn(
+            str(theme_defaults._MAX_DEFAULTS_BYTES), str(caught.exception)
+        )
+
 
 class TestWriteConfigs(unittest.TestCase):
     def test_written_configs_follow_the_defaults(self):
