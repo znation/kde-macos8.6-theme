@@ -145,5 +145,60 @@ class TestReferenceEquivalence(unittest.TestCase):
                     )
 
 
+class TestRegionHelpers(unittest.TestCase):
+    """The two comparison helpers, independent of the reference images.
+
+    ``first_difference`` and ``changed_pixel`` carry the module's evidence:
+    the mutation test is only sound if ``changed_pixel`` flips exactly one
+    pixel, and a size mismatch between two crops must be rejected rather than
+    silently compared over the overlap. Both behaviours are pinned here so
+    they hold even when the Git LFS screenshots are absent.
+    """
+
+    def test_changed_pixel_flips_exactly_the_named_pixel(self):
+        original = Image(3, 2, bytes(range(18)))
+        mutated = changed_pixel(original, 1, 1)
+        self.assertEqual((mutated.width, mutated.height), (3, 2))
+        for y in range(original.height):
+            for x in range(original.width):
+                if (x, y) == (1, 1):
+                    self.assertNotEqual(
+                        pixel_at(mutated, x, y), pixel_at(original, x, y)
+                    )
+                else:
+                    self.assertEqual(
+                        pixel_at(mutated, x, y), pixel_at(original, x, y)
+                    )
+        # The source image is untouched, so a caller can mutate it repeatedly.
+        self.assertEqual(pixel_at(original, 1, 1), (12, 13, 14))
+
+    def test_first_difference_returns_none_for_equal_crops(self):
+        image = Image(2, 2, bytes(range(12)))
+        self.assertIsNone(
+            first_difference(image, (0, 0, 2, 2), image, (0, 0, 2, 2))
+        )
+
+    def test_first_difference_reports_the_first_differing_pixel(self):
+        # Differences at (2, 1) and (1, 0); the row-major scan must report the
+        # earlier row's difference, not the first one stored or the last.
+        first = Image(3, 2, bytes(range(18)))
+        second = changed_pixel(changed_pixel(first, 2, 1), 1, 0)
+        self.assertEqual(
+            first_difference(first, (0, 0, 3, 2), second, (0, 0, 3, 2)),
+            (1, 0),
+        )
+
+    def test_first_difference_rejects_crops_of_different_sizes(self):
+        # Comparing a 2x2 crop against a 3x2 one would either read out of
+        # bounds or silently compare only the overlap, letting the equality
+        # test pass without checking the whole region.
+        image = Image(4, 3, bytes(4 * 3 * 3))
+        with self.assertRaises(ValueError) as caught:
+            first_difference(image, (0, 0, 2, 2), image, (0, 0, 3, 2))
+        message = str(caught.exception)
+        self.assertIn("2x2", message)
+        self.assertIn("3x2", message)
+
+
 if __name__ == "__main__":
     unittest.main()
