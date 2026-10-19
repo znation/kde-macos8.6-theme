@@ -35,7 +35,7 @@ blank guarantee cell fails `make check`.
 | `widgets/actionbutton.svg` draws the Platinum round action button. | `tests/test_desktoptheme_actionbutton.py::TestActionButton` | none |
 | `widgets/action-overlays.svg` draws the Platinum desktop icon action buttons. | `tests/test_desktoptheme_actionoverlays.py::TestActionOverlays` | none |
 | `widgets/arrows.svg` draws the popup and dropdown arrows. | `tests/test_desktoptheme_arrows.py::TestArrows` | none |
-| `widgets/background.svg` draws the Platinum menu body. | `tests/test_desktoptheme_background.py::TestBackground` | none |
+| `widgets/background.svg` draws the Platinum menu body, and its `widgets/translucentbackground.svg` copy is byte-identical. | `tests/test_desktoptheme_background.py::TestBackground` | none |
 | `widgets/busywidget.svg` draws the Platinum busy indicator ring. | `tests/test_desktoptheme_busywidget.py::TestBusyWidget` | none |
 | `widgets/button.svg` draws the normal and pressed push button. | `tests/test_desktoptheme_button.py::TestButton` | none |
 | `widgets/checkmarks.svg` draws the black check and the radio indicator dot. | `tests/test_desktoptheme_checkmarks.py::TestCheckmarks` | none |

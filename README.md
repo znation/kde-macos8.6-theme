@@ -107,7 +107,10 @@ toggle `PlasmaComponents.Switch` draws: a flat `#EEEEEE` inactive trough, a
 flat white active field, and the same raised grey thumb, with hover, pressed
 and focus states. The package
 also ships `widgets/background.svg` (the Platinum grey `#DDDDDD` menu body for
-`PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers),
+`PlasmaComponents.Menu`, `Drawer`, `Popup` and planar applet containers; a
+byte-identical copy ships at `widgets/translucentbackground.svg`, where
+`BasicAppletContainer.qml` looks for a translucent-hint applet container's
+background),
 `widgets/tooltip.svg` (the flat `#FFFFCC` Platinum tooltip with a black outline, for panel and
 `PlasmaComponents.ToolTip` tooltips; a byte-identical copy ships at `solid/widgets/tooltip.svg`,
 where `PlasmaComponents.ToolTip` looks for it) and

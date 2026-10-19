@@ -6,7 +6,10 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
-from support.desktoptheme_paths import BACKGROUND_SVG
+from support.desktoptheme_paths import (
+    BACKGROUND_SVG,
+    TRANSLUCENT_BACKGROUND_SVG,
+)
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import BLACK, FACE, hex_colour
 from support.reference_image import ReferenceScreenshotMixin
@@ -44,6 +47,17 @@ class TestBackground(NineSliceCase, unittest.TestCase):
         # turns.
         slices = render_slices(self.tree)
         assert_face_bevel(self, slices, "", FACE, "flat", size=10)
+
+    def test_translucent_copy_is_identical(self):
+        # BasicAppletContainer.qml resolves an applet's TranslucentBackground
+        # hint to `widgets/translucentbackground`; the theme has no
+        # translucent Platinum body, so that surface is the same opaque grey
+        # artwork as the standard hint. A byte-identical copy keeps the two in
+        # step.
+        with open(BACKGROUND_SVG, "rb") as plain, open(
+            TRANSLUCENT_BACKGROUND_SVG, "rb"
+        ) as translucent:
+            self.assertEqual(translucent.read(), plain.read())
 
     def test_background_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the

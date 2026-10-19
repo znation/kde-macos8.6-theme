@@ -36,6 +36,9 @@ BAR_METER_HORIZONTAL_SVG = os.path.join(
     PACKAGE, "widgets", "bar_meter_horizontal.svg"
 )
 BACKGROUND_SVG = os.path.join(PACKAGE, "widgets", "background.svg")
+TRANSLUCENT_BACKGROUND_SVG = os.path.join(
+    PACKAGE, "widgets", "translucentbackground.svg"
+)
 DIALOG_BACKGROUND_SVG = os.path.join(PACKAGE, "dialogs", "background.svg")
 TOOLBAR_SVG = os.path.join(PACKAGE, "widgets", "toolbar.svg")
 ARROWS_SVG = os.path.join(PACKAGE, "widgets", "arrows.svg")

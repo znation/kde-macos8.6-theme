@@ -41,6 +41,7 @@ from support.desktoptheme_paths import (
     TABBAR_SVG,
     TOOLBAR_SVG,
     TOOLTIP_SVG,
+    TRANSLUCENT_BACKGROUND_SVG,
     VIEWITEM_SVG,
 )
 from support.install_failure_cases import FailedInstallPreservesPackage
@@ -94,6 +95,7 @@ SVG_CANVASES = (
     ("action-overlays.svg", ACTION_OVERLAYS_SVG, 16, 16),
     ("bar_meter_horizontal.svg", BAR_METER_HORIZONTAL_SVG, 10, 10),
     ("background.svg", BACKGROUND_SVG, 16, 16),
+    ("translucentbackground.svg", TRANSLUCENT_BACKGROUND_SVG, 16, 16),
     ("checkmarks.svg", CHECKMARKS_SVG, 16, 32),
     ("radiobutton.svg", RADIOBUTTON_SVG, 48, 16),
     ("tabbar.svg", TABBAR_SVG, 12, 12),
@@ -219,6 +221,7 @@ class TestInstall(
         os.path.join("widgets", "action-overlays.svg"),
         os.path.join("widgets", "bar_meter_horizontal.svg"),
         os.path.join("widgets", "background.svg"),
+        os.path.join("widgets", "translucentbackground.svg"),
         os.path.join("widgets", "tooltip.svg"),
         os.path.join("solid", "widgets", "tooltip.svg"),
         os.path.join("solid", "widgets", "panel-background.svg"),

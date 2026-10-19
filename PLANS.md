@@ -28,7 +28,11 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-### Mac OS 8.6 Platinum translucent applet background: ship `widgets/translucentbackground.svg` (planned 2026-10-18 by the plan role)
+_None yet._
+
+## Done
+
+### Mac OS 8.6 Platinum translucent applet background: ship `widgets/translucentbackground.svg` (planned 2026-10-18 by the plan role) — done 2026-10-18
 
 **Goal.** `BasicAppletContainer.qml` — the Plasma applet container the desktop containment uses for
 applets placed on the desktop — picks its background from the applet's
@@ -90,8 +94,6 @@ file) and `tests/test_invariants.py`.
 - Removing `widgets/translucentbackground.svg` makes `test_translucent_copy_is_identical` fail (the
 open raises) and `test_registry_covers_every_shipped_svg` fail (the shipped set no longer equals
 the registry).
-
-## Done
 
 ### Mac OS 8.6 grey menu body: ground `widgets/background.svg` in the open Apple menu (planned 2026-10-18 by the plan role) — done 2026-10-18
 
