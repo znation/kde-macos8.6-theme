@@ -41,7 +41,7 @@ TEXT_EXTENSIONS = (
 TEXT_NAMES = ("index.theme", "defaults")
 
 # The register/marker disagreements :func:`cross_check` must reject. Each name
-# is also a rejection mutation in ``tests/support/checker_mutations.py``; the
+# is also a rejection mutation in ``tests/support/placeholders_mutations.py``; the
 # guard in ``tests/test_checker_mutations.py`` fails when a name here has no
 # mutation (or a mutation names a boundary that is not here).
 REJECTION_SHAPES = (

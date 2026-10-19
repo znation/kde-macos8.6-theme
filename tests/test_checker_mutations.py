@@ -1,8 +1,9 @@
 """Apply each checker mutation and observe the checker's answer.
 
-``tests/support/checker_mutations.py`` manufactures the malformed register and
-theme inputs the shipped data never holds; this module drives them against the
-real checkers on a scratch copy of the repository. A rejection mutation must
+``tests/support/invariants_mutations.py`` and
+``tests/support/placeholders_mutations.py`` manufacture the malformed register
+and theme inputs the shipped data never holds; this module drives them against
+the real checkers on a scratch copy of the repository. A rejection mutation must
 make the checker raise its named diagnostic; an acceptance mutation must be
 kept or found, which ``observe`` pins. Two guards keep each checker's
 ``REJECTION_SHAPES`` and the mutation table in step: a boundary named in one
@@ -20,12 +21,10 @@ from invariants import REJECTION_SHAPES as INVARIANTS_REJECTION_SHAPES
 from invariants import cross_check as invariants_cross_check
 from placeholders import REJECTION_SHAPES as PLACEHOLDER_REJECTION_SHAPES
 from placeholders import cross_check as placeholders_cross_check
-from support import checker_mutations
-from support.checker_mutations import (
-    INVARIANTS_MUTATIONS,
-    PLACEHOLDER_MUTATIONS,
-    Scratch,
-)
+from support import checker_scratch
+from support.checker_scratch import Scratch
+from support.invariants_mutations import INVARIANTS_MUTATIONS
+from support.placeholders_mutations import PLACEHOLDER_MUTATIONS
 
 
 class TestCheckerMutations(unittest.TestCase):
@@ -98,7 +97,7 @@ class TestCheckerMutations(unittest.TestCase):
             private.write_text("private secret line\n", encoding="utf-8")
             (root / "docs" / "invariants.md").symlink_to(private)
             (root / "PLACEHOLDERS.md").write_text("", encoding="utf-8")
-            with mock.patch.object(checker_mutations, "ROOT", root):
+            with mock.patch.object(checker_scratch, "ROOT", root):
                 with tempfile.TemporaryDirectory() as scratch_tmp:
                     with self.assertRaises(ValueError) as caught:
                         Scratch.build(scratch_tmp)

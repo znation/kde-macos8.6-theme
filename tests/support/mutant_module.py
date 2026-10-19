@@ -1,6 +1,6 @@
 """Class shapes the invariant register's reference resolver must reject.
 
-``tests/support/checker_mutations.py`` points the register's first row at these
+``tests/support/invariants_mutations.py`` points the register's first row at these
 classes to drive ``tests/invariants.py``'s resolver over class shapes the
 shipped tests never define. None subclasses ``unittest.TestCase``, so unittest
 collects no tests from this file and ``test_suite_discovery``'s misnamed-module

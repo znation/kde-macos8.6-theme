@@ -31,7 +31,7 @@ THEME_DIR = "theme"
 EXTRA_SECTIONS = ("tooling",)
 
 # The reference and row boundaries :func:`cross_check` must reject. Each name
-# is also a rejection mutation in ``tests/support/checker_mutations.py``, so a
+# is also a rejection mutation in ``tests/support/invariants_mutations.py``, so a
 # boundary the shipped register never crosses is still driven by data; the
 # guard in ``tests/test_checker_mutations.py`` fails when a name here has no
 # mutation (or a mutation names a boundary that is not here).
