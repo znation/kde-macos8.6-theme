@@ -7,7 +7,9 @@ defaults — `%` is literal, and key names keep their case — and that the file
 is explicitly decoded as UTF-8.
 """
 
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support import kde_config
@@ -48,6 +50,42 @@ class TestReadKdeConfig(unittest.TestCase):
             parser = kde_config.read(path)
         self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8")
         self.assertEqual(parser.get("Desktop Entry", "Name"), "Caf\u00e9")
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        # A theme INI is contributor-supplied, and a checked-in symlink can
+        # point at a private file; configparser's errors echo the offending
+        # line, so following it would leak that file's content into a failing
+        # test's diagnostic. A path that resolves outside the repository must
+        # be refused before it is opened.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret"
+            secret.write_text("[General]\nsecret = leaked\n", encoding="utf-8")
+            link = root / "MacOS8.colors"
+            link.symlink_to(secret)
+            with mock.patch.object(kde_config, "ROOT", root, create=True):
+                with self.assertRaises(ValueError) as caught:
+                    kde_config.read(link)
+        self.assertIn(str(link), str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        # The guard must refuse only escapes, not a legitimate repository path
+        # that happens to be reached through a symlink inside the repository.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            (root / "theme").mkdir(parents=True)
+            target = root / "theme" / "MacOS8.colors"
+            target.write_text(
+                "[General]\nColorScheme=MacOS8\n", encoding="utf-8"
+            )
+            link = root / "link.ini"
+            link.symlink_to(target)
+            with mock.patch.object(kde_config, "ROOT", root, create=True):
+                parser = kde_config.read(link)
+        self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
 
 
 if __name__ == "__main__":
