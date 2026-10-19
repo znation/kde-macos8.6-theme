@@ -111,6 +111,18 @@ class TestCli(CliTestCase):
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("FAIL", result.stdout)
 
+    def _assert_outside_crop_is_error(self, option: str, filename: str) -> None:
+        """Assert a syntactically valid crop past the 2x2 edge is a usage error.
+
+        *option* is ``--candidate-crop`` or ``--crop`` and *filename* names the
+        image the option selects, so the two options are exercised the same way.
+        """
+        tmp = self._tmp_dir()
+        _, image = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
+        path = self._write(tmp, filename, image)
+        result = self._run(path, path, option, "1,1,2,2")
+        self._assert_usage_error(result, "falls outside")
+
     def test_script_entry_point(self):
         """The CLI still runs end to end as ``python3 tools/fidelity.py``.
 
@@ -307,11 +319,7 @@ class TestCli(CliTestCase):
         # A candidate crop with valid syntax can still fall outside the
         # candidate; crop() raises FidelityError and main() must report it at
         # exit 2, not crash.
-        tmp = self._tmp_dir()
-        _, candidate = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-        path = self._write(tmp, "candidate.png", candidate)
-        result = self._run(path, path, "--candidate-crop", "1,1,2,2")
-        self._assert_usage_error(result, "falls outside")
+        self._assert_outside_crop_is_error("--candidate-crop", "candidate.png")
 
     def test_malformed_candidate_crop_is_usage_error(self):
         # A bad --candidate-crop must be rejected as a usage error before
@@ -384,11 +392,7 @@ class TestCli(CliTestCase):
     def test_crop_outside_reference_is_error(self):
         # A crop with valid syntax can still fall outside the reference; crop()
         # raises FidelityError and main() must report it at exit 2, not crash.
-        tmp = self._tmp_dir()
-        _, reference = rgb_image(2, 2, lambda x, y: (x * 9, y * 9, 5))
-        path = self._write(tmp, "reference.png", reference)
-        result = self._run(path, path, "--crop", "1,1,2,2")
-        self._assert_usage_error(result, "falls outside")
+        self._assert_outside_crop_is_error("--crop", "reference.png")
 
     def test_invalid_numeric_args_are_usage_errors(self):
         # Negative/NaN thresholds silently invert the verdict (a negative
