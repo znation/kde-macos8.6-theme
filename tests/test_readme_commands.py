@@ -9,8 +9,13 @@ from __future__ import annotations
 
 import os
 import re
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.theme_install import ROOT
 from tools import render_surface
 
@@ -22,9 +27,15 @@ LOOK_AND_FEEL = os.path.join(ROOT, "theme", "look-and-feel", "org.macos8.desktop
 
 
 def read(name):
-    """Return the UTF-8 text of the repository file at *name*."""
-    with open(os.path.join(ROOT, name), encoding="utf-8") as handle:
-        return handle.read()
+    """Return the UTF-8 text of the repository file at *name*.
+
+    ``README.md`` and ``Makefile`` are contributor-supplied, and a checked-in
+    symlink at either path can point at a private file. The make targets,
+    ``tools/*.py`` scripts and backticked package paths this reader extracts
+    are echoed by the ``assertEqual`` diagnostics below, so a path that
+    resolves outside the repository is refused before it is opened.
+    """
+    return containment.read_text(os.path.join(ROOT, name), ROOT, encoding="utf-8")
 
 
 class TestReadmeCommands(unittest.TestCase):
@@ -60,6 +71,42 @@ class TestReadmeCommands(unittest.TestCase):
         wanted = [t for t in render_surface.REQUIRED_TOOLS if t != "make"]
         unnamed = [t for t in wanted if f"`{t}`" not in paragraph]
         self.assertEqual([], unnamed, "make render needs tools README does not name")
+
+
+class TestReadCommandContainment(unittest.TestCase):
+    """The README/Makefile read refuses a symlink that escapes the repository.
+
+    A checked-in symlink at ``README.md`` or ``Makefile`` can point at a
+    private file, and the token sets parsed from it reach ``assertEqual``
+    diagnostics that echo them; the read must refuse such a path before it is
+    opened rather than leak the private file's matching tokens.
+    """
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret"
+            secret.write_text("make private-target\n", encoding="utf-8")
+            link = root / "README.md"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    read("README.md")
+        self.assertIn(str(link), str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            target = root / "actual-readme.md"
+            target.write_text("make check\n", encoding="utf-8")
+            link = root / "README.md"
+            link.symlink_to(target)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                self.assertEqual(read("README.md"), "make check\n")
 
 
 class TestReadmeCommandParsing(unittest.TestCase):
