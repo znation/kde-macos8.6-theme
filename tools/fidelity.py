@@ -30,7 +30,7 @@ import sys
 from typing import TypeVar
 
 if __package__:
-    from tools.cli import (
+    from tools.argument_parsing import (
         EscapingArgumentParser,
         is_plain_ascii_number,
         plain_number,
@@ -45,7 +45,7 @@ if __package__:
     from tools.png import PngError, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
-    from cli import (
+    from argument_parsing import (
         EscapingArgumentParser,
         is_plain_ascii_number,
         plain_number,

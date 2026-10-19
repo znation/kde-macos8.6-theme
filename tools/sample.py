@@ -17,7 +17,7 @@ from __future__ import annotations
 import sys
 
 if __package__:
-    from tools.cli import (
+    from tools.argument_parsing import (
         EscapingArgumentParser,
         plain_number,
         positive_int,
@@ -26,7 +26,7 @@ if __package__:
     from tools.png import PngError, pixel_at, read_png
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
-    from cli import (
+    from argument_parsing import (
         EscapingArgumentParser,
         plain_number,
         positive_int,

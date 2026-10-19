@@ -30,12 +30,12 @@ import tempfile
 from pathlib import Path
 
 if __package__:
-    from tools.cli import EscapingArgumentParser
+    from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_failure, report_missing_tool
     from tools.process_group import exit_on_termination, run_logged
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_theme.py
-    from cli import EscapingArgumentParser
+    from argument_parsing import EscapingArgumentParser
     from diagnostics import report_failure, report_missing_tool
     from process_group import exit_on_termination, run_logged
     from terminal import escape_controls

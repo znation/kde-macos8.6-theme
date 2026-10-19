@@ -8,8 +8,8 @@ tool's diagnostic. These tests pin the helpers' contracts directly: the
 control-character escaping, and the bounded log tail. The log-tail cases pin
 the CR/LF line-boundary rules that several BUGS.md entries fixed.
 
-Argument parsing lives in the sibling ``tools/cli.py`` and is pinned by
-``tests/test_cli.py``.
+Argument parsing lives in the sibling ``tools/argument_parsing.py`` and is pinned by
+``tests/test_argument_parsing.py``.
 
 Run with the project's check harness (stdlib unittest)::
 

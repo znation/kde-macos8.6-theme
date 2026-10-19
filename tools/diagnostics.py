@@ -10,7 +10,7 @@ here means they cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
 ``tools/apply_theme.py``, ``tools/local_hook.py`` and
 ``tools/render_surface.py``.
 
-Argument parsing lives in the sibling ``tools/cli.py``; the escaping itself in
+Argument parsing lives in the sibling ``tools/argument_parsing.py``; the escaping itself in
 ``tools/terminal.py``.
 """
 

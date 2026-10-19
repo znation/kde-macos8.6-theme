@@ -32,7 +32,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 if __package__:
-    from tools.cli import (
+    from tools.argument_parsing import (
         EscapingArgumentParser,
         plain_number,
         positive_int,
@@ -46,7 +46,7 @@ if __package__:
     from tools.process_group import exit_on_termination, run_logged
     from tools.theme_defaults import write_configs
 else:  # run directly: python3 tools/render_surface.py
-    from cli import (
+    from argument_parsing import (
         EscapingArgumentParser,
         plain_number,
         positive_int,
