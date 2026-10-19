@@ -1,4 +1,4 @@
-"""Tests for tools/png/__init__.py's decode_png -- malformed image data and limits.
+"""Tests for tools/png/read.py's decode_png -- malformed image data and limits.
 
 After the chunk stream is well formed, the image data can still be
 untrustworthy: a palette index can fall outside its table, the IDAT stream can
@@ -31,6 +31,7 @@ from support.png_fixtures import (  # noqa: E402
     png_with_idat,
 )
 from tools import png
+from tools.png import read
 
 
 class TestMalformedImageData(unittest.TestCase):
@@ -168,7 +169,7 @@ class TestMalformedImageData(unittest.TestCase):
         )
         message = decode_error_message(self, data)
         self.assertIn("100000x100000", message)
-        self.assertIn(str(png._MAX_PIXELS), message)
+        self.assertIn(str(read._MAX_PIXELS), message)
 
     def test_rejects_non_png(self):
         with self.assertRaises(png.PngError):
@@ -237,7 +238,7 @@ class TestToRgbUnsupportedColorType(unittest.TestCase):
             with self.subTest(color_type=color_type):
                 self.assertEqual(
                     error_message(
-                        self, png.PngError, png._to_rgb, color_type, b"", None
+                        self, png.PngError, read._to_rgb, color_type, b"", None
                     ),
                     f"unsupported PNG color type {color_type}",
                 )

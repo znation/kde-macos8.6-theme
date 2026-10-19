@@ -1,6 +1,6 @@
 """Tests for tools/image_format.py -- the shared raster-format signatures.
 
-``tools/png/__init__.py`` and ``tools/check_references.py`` both recognize PNG, JPEG,
+``tools/png/read.py`` and ``tools/check_references.py`` both recognize PNG, JPEG,
 GIF and WebP from the same leading bytes, but each tool's own tests exercise
 only the formats its current fixtures happen to use. These tests pin the
 shared signatures and detection directly, so a change to a magic or to the

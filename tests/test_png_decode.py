@@ -1,4 +1,4 @@
-"""Tests for tools/png/__init__.py's decode_png -- scanline decoding.
+"""Tests for tools/png/read.py's decode_png -- scanline decoding.
 
 Pins the successful decode path: the five PNG filter types, the supported
 colour types, palette expansion and the ``max_rows`` bound. The chunk-framing

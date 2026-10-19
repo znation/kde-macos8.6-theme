@@ -3,7 +3,7 @@
 :func:`iter_chunks` walks the chunk stream after the signature and yields
 ``(type, payload)`` for each chunk, rejecting an oversized length, an invalid
 type code, a truncated payload or CRC, and a bad checksum by name. What the
-chunks mean (IHDR, PLTE, IDAT, IEND) is ``tools/png/__init__.py``'s concern.
+chunks mean (IHDR, PLTE, IDAT, IEND) is ``tools/png/read.py``'s concern.
 """
 
 from __future__ import annotations

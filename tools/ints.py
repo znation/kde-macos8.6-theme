@@ -2,7 +2,7 @@
 
 ``bool`` is a subclass of ``int``, so ``isinstance(True, int)`` is true and a
 boolean silently passes as 1/0 through any check that only asks for an
-integer. The validators in ``tools/png/__init__.py``, ``tools/png/image.py`` and
+integer. The validators in ``tools/png/read.py``, ``tools/png/image.py`` and
 ``tools/fidelity_metrics.py`` -- and the test helpers that mirror them -- all
 need the genuine-integer test, so it lives here once and names what it
 excludes.

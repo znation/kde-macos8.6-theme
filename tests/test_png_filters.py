@@ -1,7 +1,7 @@
 """Tests for tools/png/filters.py's scanline-filter internals -- the Sub/Up
 lane arithmetic and the Paeth delta table.
 
-The Sub/Up round-trip below decodes through ``tools/png/__init__.py``, whose
+The Sub/Up round-trip below decodes through ``tools/png/read.py``, whose
 ``tools/png/scanlines.py`` imports these primitives; the lane and table helpers themselves live in
 ``tools/png/filters.py``.
 

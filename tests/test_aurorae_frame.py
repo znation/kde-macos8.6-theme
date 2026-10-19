@@ -4,7 +4,7 @@ The active `decoration` nine-slice, the flattened inactive
 `decoration-inactive` nine-slice, the corner slices, and the gzipped
 `decoration.svgz` form `kpackagetool6` requires. Every sampled value is
 re-derived from `macos8.6-screenshots/aboutsystem_betawiki.png` through
-`tools/png/__init__.py`; the inactive greys are KDE-required provenance (the
+`tools/png/read.py`; the inactive greys are KDE-required provenance (the
 reference set has no inactive window) and are pinned against the active
 artwork they grey. The reference is stored with Git LFS, so a clone without
 it skips these tests rather than failing `make check`.
