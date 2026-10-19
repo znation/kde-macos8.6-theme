@@ -141,8 +141,23 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     palette = None
     idat = bytearray()
     saw_iend = False
+    # The PNG spec puts IHDR first and gives the image one header. A stream
+    # that reaches IDAT before its header, or carries a second IHDR, decodes
+    # here against a header a conformant reader would not use, silently
+    # producing different pixels; reject the framing by name instead.
+    first_chunk = None
     for ctype, payload in iter_chunks(data):
         if ctype == b"IHDR":
+            if header is not None:
+                raise PngError(
+                    "PNG has more than one IHDR chunk; the image header "
+                    "must appear exactly once"
+                )
+            if first_chunk is not None:
+                raise PngError(
+                    f"PNG's IHDR chunk must be the first chunk, but "
+                    f"{chunk_name(first_chunk)} comes before it"
+                )
             header = payload
         elif ctype == b"PLTE":
             if len(payload) % 3 or not 3 <= len(payload) <= 768:
@@ -167,6 +182,8 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
             raise PngError(
                 f"unknown critical PNG chunk {chunk_name(ctype)}"
             )
+        if first_chunk is None:
+            first_chunk = ctype
     if header is None:
         raise PngError("PNG has no IHDR chunk")
     if len(header) != 13:

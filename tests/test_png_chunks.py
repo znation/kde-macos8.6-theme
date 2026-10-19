@@ -4,8 +4,8 @@ The PNG stream is a sequence of length/type/payload/CRC chunks. These tests
 pin the container layer: that a valid image may split its zlib stream across
 several IDAT chunks or carry unknown ancillary chunks, and that the decoder
 rejects malformed framing -- unknown critical chunks, bad chunk types,
-oversized lengths, bad or truncated CRCs, a missing IHDR/PLTE/IEND and
-unsupported IHDR fields. Scanline decoding lives in ``test_png_decode``; the
+oversized lengths, bad or truncated CRCs, a missing, duplicated or
+out-of-position IHDR, a missing PLTE/IEND and unsupported IHDR fields. Scanline decoding lives in ``test_png_decode``; the
 malformed-image-data and resource-limit rejections live in
 ``test_png_malformed``.
 
@@ -142,6 +142,34 @@ class TestChunkFraming(unittest.TestCase):
             + _chunk(b"IEND", b"")
         )
         self.assertIn("no IHDR", decode_error_message(self, data))
+
+    def test_rejects_a_second_ihdr_chunk(self):
+        # The image has one header. A second IHDR silently redefines the
+        # dimensions and colour type the decoder uses -- here to a 2x2 image
+        # whose 1x1 IDAT cannot satisfy it -- so a file that decodes
+        # differently in a conformant viewer than here must be refused by
+        # name instead of decoding against the later header.
+        _, data = solid_rgb(1, 1)
+        duplicated = splice_after_ihdr(data, ihdr_chunk(2, 2, 2))
+        message = decode_error_message(self, duplicated)
+        self.assertIn("more than one IHDR", message)
+
+    def test_rejects_ihdr_that_is_not_the_first_chunk(self):
+        # The PNG spec puts IHDR first. A stream that reaches IDAT before its
+        # header is malformed framing; without this check the header that
+        # arrives later would be used and the file accepted, while a
+        # conformant reader rejects it. The diagnostic names both the
+        # requirement and the chunk that came first.
+        misordered = (
+            _PNG_SIGNATURE
+            + _chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03"))
+            + ihdr_chunk(1, 1, 2)
+            + _chunk(b"IEND", b"")
+        )
+        message = decode_error_message(self, misordered)
+        self.assertIn("IHDR", message)
+        self.assertIn("first chunk", message)
+        self.assertIn("IDAT", message)
 
     def test_rejects_ihdr_with_wrong_length(self):
         # IHDR is fixed at 13 bytes; any other length cannot be unpacked as
