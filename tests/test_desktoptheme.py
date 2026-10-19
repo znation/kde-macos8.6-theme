@@ -313,12 +313,12 @@ class TestApplyDesktopTheme(unittest.TestCase):
         return read_kde_config(os.path.join(tmp, "config", "plasmarc"))
 
     def test_apply_lists_and_selects_the_theme(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="desktop-theme") as tmp:
             parser = self._apply_isolated(tmp)
             self.assertEqual(parser.get("Theme", "name"), DTHEME_ID)
 
     def test_apply_ignores_a_session_theme_in_the_config_search_path(self):
-        with installed_destdir(self) as tmp:
+        with installed_destdir(self, packages="desktop-theme") as tmp:
             ambient = os.path.join(tmp, "ambient-config-dirs")
             os.makedirs(ambient)
             with open(
