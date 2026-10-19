@@ -153,6 +153,17 @@ class TestReportFailure(unittest.TestCase):
         self.assertEqual(status, 1)
         self.assertEqual(err, "apply_theme: error: command failed\n")
 
+    def test_an_empty_log_adds_no_tail(self):
+        # A command can fail without writing anything -- it never started, or
+        # produced no output -- leaving the log file it was pointed at empty.
+        # The tail reader must return no lines rather than one blank one, so
+        # the diagnostic stays just the message with no stray indent.
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_bytes(b"")
+        status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertEqual(err, "apply_theme: error: command failed\n")
+
     def test_reads_only_a_bounded_tail_of_a_huge_log(self):
         # A failing external command writes its log for up to its timeout; the
         # helper must not load that file whole just to print twelve lines. The
