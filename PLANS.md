@@ -28,7 +28,67 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Platinum text field: draw the sunken bevel outside the black outline in `widgets/lineedit.svg` (planned 2026-10-18 by the plan role)
+
+**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/lineedit.svg` paints the sunken
+white field `PlasmaComponents.TextField`/`TextArea`/`SpinBox` and the editable `ComboBox` draw.
+It puts the 1px `#000000` outline on the *outer* edge and the `#999999`/`#FFFFFF` bevel *inside*
+it. The retail 8.6 reference draws the opposite: the bevel is *outside* the `#000000` outline,
+which sits next to the white face. Correct the artwork so a text field matches the reference,
+and ground it in reference pixels (the file cites none today). Independent of every other entry:
+one artwork file plus its test and a shared assertion convention.
+
+**Reference.** `macos8.6-screenshots/firstboot_betawiki.png` (retail Mac OS 8.6 Setup
+Assistant, 1024x768 lossless PNG; `sources.txt` labels it "Mac OS 8.6"). Its body text field:
+left border at (28, 95)=`#999999`, (29, 95)=`#000000`, (30, 95)=`#FFFFFF` (face); right border at
+(429, 150)=`#FFFFFF` (face), (430, 150)=`#000000`, (431, 150)=`#FFFFFF`; bottom border at
+(100, 349)=`#FFFFFF` (face), (100, 350)=`#000000`, (100, 351)=`#FFFFFF`. So the outer 1px ring is
+the bevel (`#999999` top/left, `#FFFFFF` bottom/right), the inner 1px ring is `#000000`, and the
+face is `#FFFFFF`. `systeminfo_betawiki.png` (8.6a3c2 alpha) and `aboutsystem_betawiki.png`
+(8.6b2c4L8 beta) show the same order but are not retail and must not be cited.
+
+**Approach.**
+- `widgets/lineedit.svg`: rewrite the eight `base-*` tiles as the ring-swap of the current
+  geometry -- the outer 1px ring becomes the bevel (`#999999` top/left, `#FFFFFF` bottom/right),
+  the inner 1px ring becomes `#000000`, the face stays `#FFFFFF`. Edges: `base-top` rows
+  `#999999`/`#000000`/`#FFFFFF`; `base-bottom` rows `#FFFFFF` (face)/`#000000`/`#FFFFFF` (outer);
+  `base-left` columns `#999999`/`#000000`/`#FFFFFF`; `base-right` columns `#FFFFFF`
+  (face)/`#000000`/`#FFFFFF` (outer). Corners (row-major 3x3): `base-topleft`
+  `#999999 #999999 #999999 / #999999 #000000 #000000 / #999999 #000000 #FFFFFF`; `base-topright`
+  `#999999 #999999 #999999 / #000000 #000000 #FFFFFF / #FFFFFF #000000 #FFFFFF`;
+  `base-bottomleft` `#999999 #000000 #FFFFFF / #999999 #000000 #000000 / #999999 #FFFFFF #FFFFFF`;
+  `base-bottomright` `#FFFFFF #000000 #FFFFFF / #000000 #000000 #FFFFFF / #FFFFFF #FFFFFF #FFFFFF`.
+  Keep the 12x12 canvas, the 3px border around the 6px centre, and every hint id.
+- Rewrite the header: the sunken bevel sits outside the `#000000` outline, sampled from
+  `firstboot_betawiki.png` at the pixels above; drop "the frame's sunken bevel inside it".
+- `tests/svg_assertions/faces.py`: add a `"sunken-outside"` bevel to `_require_known_bevel`, to
+  `face_edge_bands` (`("#999999", "#000000", face)` outward, `(face, "#000000", "#FFFFFF")`
+  mirrored) and to `face_corners` via a new `sunken_outside_face_corners(face)` table holding the
+  four corners above. Leave the existing `"sunken"` convention for `frame.svg`.
+- `tests/test_desktoptheme_lineedit.py`: switch `test_lineedit_edge_bevels_are_sunken` and
+  `test_lineedit_corner_bevels_turn_the_corner` to `"sunken-outside"`; add
+  `TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase)` with `REFERENCE` =
+  `firstboot_betawiki.png`, `MAX_ROWS = 352`, asserting `hex_colour(self.pixel(x, y))` equals
+  `#999999`/`#000000`/`#FFFFFF` for the three border runs above.
+- `tests/test_svg_assertions_faces.py`: add the new convention's edge and corner expectations
+  beside the existing sunken ones.
+- `docs/invariants.md`: the `widgets/lineedit.svg` row's guarantee and its `none` provenance
+  exception are unchanged.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/lineedit.svg`,
+`tests/test_desktoptheme_lineedit.py`, `tests/svg_assertions/faces.py`,
+`tests/test_svg_assertions_faces.py`.
+
+**Acceptance criteria.**
+- The `base-*` tiles' outer ring is `#999999` (top/left) / `#FFFFFF` (bottom/right) and the inner
+  ring `#000000`, with the `#FFFFFF` face; the parsed `fill` set is still
+  {`#FFFFFF`, `#999999`, `#000000`}.
+- A reference test re-derives the field's left, right and bottom border runs from
+  `firstboot_betawiki.png` and skips when the Git LFS image is not materialized.
+- The header names `firstboot_betawiki.png` and the sampled pixels and no longer says the bevel is
+  inside the outline.
+- `frame.svg`'s sunken test and artwork are unchanged.
+- `make check` is green.
 
 ## Done
 
