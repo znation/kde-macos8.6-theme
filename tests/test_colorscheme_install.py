@@ -268,6 +268,19 @@ class TestInstall(unittest.TestCase):
         assert_succeeded(self, removed)
         self.assertIn("is still selected", removed.stderr)
 
+    def test_make_uninstall_warns_for_an_indented_color_scheme_key(self):
+        # KDE trims each line before parsing it, so a `ColorScheme` key with
+        # leading whitespace is still the live selection, and whitespace
+        # around the `=` and after the value is stripped too. The warning
+        # must read that value, not miss the indented key.
+        with installed_destdir(self) as tmp:
+            removed = self._uninstall_with_kdeglobals(
+                tmp, "[General]\n  ColorScheme = MacOS8  \n"
+            )
+
+        assert_succeeded(self, removed)
+        self.assertIn("is still selected", removed.stderr)
+
 
 @unittest.skipUnless(
     shutil.which("plasma-apply-colorscheme"), "needs plasma-apply-colorscheme"
