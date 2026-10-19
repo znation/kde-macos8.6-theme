@@ -28,7 +28,70 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Platinum tab face: ground `widgets/tabbar.svg` in the System Profiler tabs (planned 2026-10-18 by the plan role)
+
+**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/tabbar.svg` paints every tab face
+`#DDDDDD`, the same grey as the menu bar and the dialog body, so a Plasma tab (`TabBar`,
+`TabButton`, the kickoff footer, the system-tray current-item and panel expanded applets) reads
+as a bare outline on an identical background. The high-resolution lossless reference
+`macos8.6-screenshots/desktop_fandom.png` (English retail 8.6, the "Apple System Profiler"
+window) shows the Platinum tab face is one grey darker, `#CCCCCC`, with a `#DDDDDD` highlight
+inside the `#000000` outline rather than the `#FFFFFF` the artwork paints. The SVG's provenance
+comment claims "No screenshot reference exists for tabs", which this reference contradicts.
+
+**Grounding.** In `desktop_fandom.png` the four System Profiler tabs run y=124..157 (a 2x
+upscale of a 1280x721 screen, so 2 image pixels per logical pixel). Each tab's interior is
+uniformly `#CCCCCC`: the 12x5 rectangles x=2056..2068 y=149..154 (inside "Applications"),
+x=2200..2212 y=149..154 ("System Folders") and x=1920..1932 y=149..154 ("Extensions") are each
+60/60 `#CCCCCC` (`tools/sample.py`). The 1px band just inside the top black outline is
+`#DDDDDD` (rows 128..129 at x=2064), the outline `#000000` (rows 124..125), the tab-bar
+background between tabs `#DDDDDD` (221,221,221). Only the solid face, highlight and outline
+colours are taken from the reference; the 2x scale leaves the exact 1px bevel placement
+unresolved, so the bevel keeps its current black/highlight/face geometry.
+
+**Approach.**
+- `theme/desktop-themes/org.macos8.desktop/widgets/tabbar.svg`: in all four `*-active-tab`
+  prefixes change the face fill `#DDDDDD` to `#CCCCCC` and the raised-bevel highlight
+  `#FFFFFF` to `#DDDDDD`; keep the `#000000` outline, the `#999999` shadow and the face-only
+  open edge. Update the header comment to name `desktop_fandom.png` and the sampled rectangles
+  and to drop the "No screenshot reference exists for tabs" claim.
+- `tests/test_desktoptheme_tabbar.py`: set `FACE = "#CCCCCC"`, add `HIGHLIGHT = "#DDDDDD"`,
+  and build `TOP_LEFT_BAND`/`BOTTOM_RIGHT_BAND` and the two fully-raised corners in
+  `tab_corners` from `HIGHLIGHT`/`FACE` (the shared `svg_assertions.face_corners` table is
+  hard-coded for the `#DDDDDD`/`#FFFFFF` button face, so the tab gets its own raised corner
+  table, as the file's `band_rows`/`band_columns` helpers already do for the mixed corners).
+  Replace `test_tabbar_colours`'s `assert_fill_palette(self, self.tree)` with an explicit
+  `attribute_values(self.tree, "fill") == {"#000000", "#CCCCCC", "#DDDDDD", "#999999"}`,
+  and update `test_tabbar_palette`'s expected raw strings to `#CCCCCC`, `#DDDDDD`, `#999999`,
+  `#000000`. Add `TestTabBarReference(ReferenceScreenshotMixin, unittest.TestCase)` with
+  `REFERENCE` = `desktop_fandom.png` and `MAX_ROWS = 160`, asserting `hex_colour(self.pixel(x, y))`
+  is `FACE` for each of the three rectangles above.
+- `tests/support/reference_image.py`: give `ReferenceScreenshotMixin` a `MAX_ROWS = None` class
+  attribute and pass `max_rows=cls.MAX_ROWS` to `read_reference` in `setUpClass`, so the
+  2560x1442 reference decodes only its first 160 rows (0.4s) instead of all of it (3.4s).
+- `docs/invariants.md`: the desktop-themes row already names
+  `tests/test_desktoptheme_tabbar.py::TestTabBar`; its guarantee ("draws the Platinum tab bar")
+  is unchanged.
+
+**Acceptance criteria.**
+- Every `*-active-tab` centre and the face part of every slice is `#CCCCCC`, and every
+  raised-bevel highlight is `#DDDDDD`; `test_tabbar_centres_are_the_face`,
+  `test_tabbar_closed_edges_are_raised` and `test_tabbar_corners` pass.
+- The new reference test re-derives `#CCCCCC` from the three `desktop_fandom.png` rectangles and
+  passes; a face painted `#DDDDDD` fails it. The test skips, not fails, when the reference is
+  not materialized (`skip_unless_materialized`).
+- `tabbar.svg`'s comment no longer claims no screenshot reference exists and names the
+  reference and the rectangles.
+- `make check` exits 0.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/tabbar.svg`,
+`tests/test_desktoptheme_tabbar.py`, `tests/support/reference_image.py`.
+
+**Recorded deviation.** The reference tab is a trapezoid whose sides slant outward over the
+full tab height; a KSvg nine-slice draws a fixed-corner rectangle, so the shape stays
+rectangular. The Kvantum `tab` element (`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`)
+keeps its own `#DDDDDD`/`#FFFFFF` raised face: it is a separate Qt-widget surface, not part of
+this desktop-theme change.
 
 ## Done
 
