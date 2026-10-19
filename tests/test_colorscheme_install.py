@@ -310,6 +310,21 @@ class TestInstall(unittest.TestCase):
         assert_succeeded(self, removed)
         self.assertIn("is still selected", removed.stderr)
 
+    def test_make_uninstall_warns_for_a_kdeglobals_with_a_utf8_bom(self):
+        # Qt strips a leading UTF-8 BOM before parsing a config file (the
+        # invariant tests/support/kde_config.py pins), so a `kdeglobals` an
+        # editor saved with a BOM still opens `[General]` and selects the
+        # scheme. The warning must strip the BOM too, or it reads the first
+        # line as neither a section nor the key and silently misses the live
+        # selection, leaving KDE to fall back to BreezeLight unnoticed.
+        with installed_destdir(self, packages="color-scheme") as tmp:
+            removed = self._uninstall_with_kdeglobals(
+                tmp, "\ufeff[General]\nColorScheme=MacOS8\n"
+            )
+
+        assert_succeeded(self, removed)
+        self.assertIn("is still selected", removed.stderr)
+
     def test_make_uninstall_ignores_a_key_or_section_with_the_wrong_case(self):
         # KDE keys and section names are case-sensitive (the same invariant
         # tests/support/kde_config.py pins through configparser), so a

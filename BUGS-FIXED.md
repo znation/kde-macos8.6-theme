@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `make uninstall`'s color-scheme warning misses a `kdeglobals` that opens with a UTF-8 BOM (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** when `$XDG_CONFIG_HOME/kdeglobals` opens with a UTF-8 BOM before its
+`[General]` header, `make uninstall` does not warn about a still-selected scheme.
+Qt (and the project's `tests/support/kde_config.py`) strips a leading BOM before
+parsing, so the BOM-prefixed file still opens `[General]` and its `ColorScheme`
+key is the live selection; the diagnostic claims to read kdeglobals "the way KDE
+reads it", so the missing warning is a real, if low-severity, gap.
+
+**Reproduction:**
+`tests/test_colorscheme_install.py::TestInstall.test_make_uninstall_warns_for_a_kdeglobals_with_a_utf8_bom`
+writes `"\ufeff[General]\nColorScheme=MacOS8\n"` (encoding `utf-8`, so the BOM
+bytes `EF BB BF`) as kdeglobals and runs `make uninstall`; before the fix it
+emitted no warning.
+
+**Cause:** the uninstall recipe's `awk` recognised a section header only with
+`/^[[:space:]]*\[/`, so the BOM bytes before the `[` kept the first line from
+being seen as a section and its `ColorScheme` key was skipped.
+
+**Fix:** the `awk` now strips a leading UTF-8 BOM on its first record
+(`NR==1 { sub(/^\357\273\277/, "") }`) before matching, matching Qt's
+strip-before-parse behaviour.
+
+**Validation gap:** no-observability — the suite never wrote a BOM-prefixed
+kdeglobals, so the omitted warning left no trace and only a new BOM case could
+confirm it.
+
 ### A NUL byte in a guarded path escapes the containment guard's fail-closed contract (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `tools/containment.resolves_within` documents that a path whose resolution
