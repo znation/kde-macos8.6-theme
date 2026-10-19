@@ -28,7 +28,59 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Platinum dialog body: ground `dialogs/background.svg`'s face in the lossless window body (planned 2026-10-18 by the plan role)
+
+**Goal.** `theme/desktop-themes/org.macos8.desktop/dialogs/background.svg` paints the raised
+Platinum body that a `PlasmaCore.Dialog` and a `PlasmaCore.AppletPopup` resolve to (the applet and
+clock popups). Its header comment says the reference set shows the same grey window bodies but
+they are dithered 8-bit captures, so "no single pixel is screenshot-anchored: the values are
+palette-derived and recorded as such". Two retail 8.6 references do show an undithered `#DDDDDD`
+window body, so the face can be pinned to a pixel and the palette-derived claim dropped.
+Independent of every other entry: one reference test class plus one comment rewrite, touching no
+artwork.
+
+**Reference.** `macos8.6-screenshots/desktop_archiveorg8.6hd.png` (800x600, lossless PNG): the
+About This Computer window body below its title bar, (583..586, 95..100) a solid 4x6 `#DDDDDD`
+block ((584, 97) is `#DDDDDD`). Cross-check `macos8.6-screenshots/desktop_fandom.png` (2x,
+WebP re-encoded but flat faces exact): the same window body at (1750..1757, 1100..1105) is a solid
+8x6 `#DDDDDD` block and (1792, 1126) is `#DDDDDD`. `about_betawiki.png` and
+`setup_emaculation.png` are dithered and must not be sampled. `test_colorscheme_reference`
+already anchors `[Colors:Window] BackgroundNormal` at (400, 5) of `desktop_archiveorg8.6hd.png`
+-- that pixel is the menu bar; this plan anchors the *window body* at a second location, which is
+the pixel the header comment says does not exist.
+
+**Approach.**
+- `tests/test_desktoptheme_dialog.py`: add `import os`, `from support.platinum_palette import FACE,
+  hex_colour`, `from support.reference_image import ReferenceScreenshotMixin` and
+  `from support.repo_root import ROOT` (the import pattern `tests/test_desktoptheme_tabbar.py`
+  uses); add `TestDialogBackgroundReference(ReferenceScreenshotMixin, unittest.TestCase)` with
+  `REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "desktop_archiveorg8.6hd.png")` and
+  `MAX_ROWS = 101` (the deepest sampled row is 100), asserting
+  `hex_colour(self.pixel(x, y)) == FACE` for the 4x6 block. The mixin skips the class when the Git
+  LFS image is not materialized. Leave `TestDialogBackground(RaisedFaceCase, unittest.TestCase)`
+  unchanged.
+- `theme/desktop-themes/org.macos8.desktop/dialogs/background.svg`: rewrite the provenance
+  paragraph -- the `#DDDDDD` face is the window body sampled from `desktop_archiveorg8.6hd.png` at
+  (584, 97) and cross-checked at (1792, 1126) of `desktop_fandom.png`; the 1px `#000000` outline
+  and the `#FFFFFF`/`#999999` bevel are the shared raised-face rule (the reference window body
+  itself is flat, so no window-body pixel grounds them); delete "no single pixel is
+  screenshot-anchored: the values are palette-derived and recorded as such".
+- `docs/invariants.md`: the `dialogs/background.svg` row's guarantee and its `none` provenance
+  exception are unchanged, now that the face is reference-sampled.
+
+**Files touched.** `tests/test_desktoptheme_dialog.py`,
+`theme/desktop-themes/org.macos8.desktop/dialogs/background.svg`.
+
+**Acceptance criteria.**
+- `TestDialogBackgroundReference` re-derives `#DDDDDD` from `desktop_archiveorg8.6hd.png`'s window
+  body and skips when the Git LFS image is not materialized.
+- `dialogs/background.svg`'s parsed `fill` set is unchanged (the Platinum four `#DDDDDD`,
+  `#000000`, `#FFFFFF`, `#999999`; the hints are painted with `style` and so are not in the parsed
+  `fill` set), so `RaisedFaceCase`'s `test_hint_geometry`, `test_frame_bevel` and `test_colours`
+  still pass.
+- The header comment names `desktop_archiveorg8.6hd.png` (and the `desktop_fandom.png`
+  cross-check) with the sampled pixels and no longer calls the face palette-derived or unanchored.
+- `make check` is green.
 
 ## Done
 
