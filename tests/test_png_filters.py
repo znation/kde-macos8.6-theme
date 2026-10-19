@@ -111,3 +111,16 @@ class TestPaethDeltaTable(unittest.TestCase):
         with mock.patch.object(filters, "_PAETH_DELTA", None):
             first = filters._paeth_delta_table()
             self.assertIs(filters._paeth_delta_table(), first)
+
+    def test_rows_are_the_flat_table_split_by_a_minus_c(self):
+        with mock.patch.object(filters, "_PAETH_DELTA_ROWS", None):
+            rows = filters._paeth_delta_rows()
+        table = filters._paeth_delta_table()
+        self.assertEqual(len(rows), 511)
+        for da in range(511):
+            self.assertEqual(rows[da], table[da << 9 : (da << 9) + 511])
+
+    def test_rows_are_built_once_and_reused(self):
+        with mock.patch.object(filters, "_PAETH_DELTA_ROWS", None):
+            first = filters._paeth_delta_rows()
+            self.assertIs(filters._paeth_delta_rows(), first)

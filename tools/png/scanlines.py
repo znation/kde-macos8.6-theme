@@ -8,7 +8,7 @@ and the color-type expansion in ``tools/png/read.py``.
 
 from __future__ import annotations
 
-from .filters import _byte_add, _paeth_delta_table, _prefix_sum
+from .filters import _byte_add, _paeth_delta_rows, _prefix_sum
 from .image import PngError
 
 
@@ -96,8 +96,11 @@ def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
     Iterating each channel's stream with ``zip`` lets the left neighbour be a
     carried local instead of a ``line[i - channels]`` read, and appending the
     reconstructed bytes to a list avoids a per-byte ``line[i] = ...`` store.
+    The delta table's rows are indexed by ``a - c`` first and ``b - c`` second,
+    so each byte is one row lookup plus one row index rather than a shift and
+    an add into a flat table.
     """
-    table = _paeth_delta_table()
+    rows = _paeth_delta_rows()
     for c in range(channels):
         filtered = line[c::channels]
         above = prev[c::channels]
@@ -105,11 +108,12 @@ def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
         # predictor is just the above byte.
         left = (filtered[0] + above[0]) & 0xFF
         unfiltered = [left]
+        append = unfiltered.append
         for value, up, upleft in zip(filtered[1:], above[1:], above):
-            da = left - upleft + 255
-            db = up - upleft + 255
-            left = (value + upleft + table[(da << 9) + db]) & 0xFF
-            unfiltered.append(left)
+            left = (
+                value + upleft + rows[left - upleft + 255][up - upleft + 255]
+            ) & 0xFF
+            append(left)
         line[c::channels] = bytes(unfiltered)
 
 

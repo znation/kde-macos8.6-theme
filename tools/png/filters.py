@@ -16,6 +16,7 @@ except ImportError:  # imported as the top-level package `png` by a directly run
 
 
 _PAETH_DELTA: bytes | None = None
+_PAETH_DELTA_ROWS: tuple[bytes, ...] | None = None
 
 
 def _paeth_delta_table() -> bytes:
@@ -63,6 +64,26 @@ def _paeth_delta_table() -> bytes:
     table = bytes(table)
     _PAETH_DELTA = table
     return table
+
+
+def _paeth_delta_rows() -> tuple[bytes, ...]:
+    """The Paeth delta table as 511 rows, indexed by ``a - c`` then ``b - c``.
+
+    The values are exactly :func:`_paeth_delta_table`'s, split into one
+    ``bytes`` row per ``a - c`` so the per-byte inner loop reads a row object
+    once and indexes it by ``b - c``.  Two small indexes are cheaper than
+    shifting ``a - c`` into the flat table's 512-byte stride and adding
+    ``b - c`` on every byte, which is what dominated unfiltering a large
+    Paeth screenshot.  Built once from the flat table and reused.
+    """
+    global _PAETH_DELTA_ROWS
+    rows = _PAETH_DELTA_ROWS
+    if rows is not None:
+        return rows
+    table = _paeth_delta_table()
+    rows = tuple(table[da << 9 : (da << 9) + 511] for da in range(511))
+    _PAETH_DELTA_ROWS = rows
+    return rows
 
 
 def _lane_masks(length: int) -> tuple[int, int]:
