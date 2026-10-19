@@ -2,9 +2,10 @@
 
 `test_colorscheme`, `test_lookandfeel` and `test_desktoptheme` parse theme
 files through `kde_config.read`, but they exercise only a few of its settings.
-The tests below pin the reader's two `configparser` deviations from the
-defaults — `%` is literal, and key names keep their case — and that the file
-is explicitly decoded as UTF-8 with a leading BOM stripped.
+The tests below pin the reader's `configparser` deviations from the defaults —
+`%` is literal, key names keep their case, and each line is trimmed so leading
+whitespace never starts a value continuation — and that the file is explicitly
+decoded as UTF-8 with a leading BOM stripped.
 """
 
 import tempfile
@@ -61,6 +62,27 @@ class TestReadKdeConfig(unittest.TestCase):
         path.write_bytes(b"\xef\xbb\xbf[General]\nColorScheme=MacOS8\n")
         parser = kde_config.read(path)
         self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
+
+    def test_reads_a_mid_file_indented_section_header(self):
+        # KDE trims each line before parsing it, so an indented `[General]`
+        # after another section's key still opens `[General]`. configparser
+        # reads the indented line as a continuation of the previous value, so
+        # without the reader's per-line lstrip the `[General]` heading and its
+        # key are folded into `[Other]` and the live selection is missed.
+        parser = self._read(
+            "[Other]\nName=x\n  [General]\nColorScheme=MacOS8\n"
+        )
+        self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
+        self.assertEqual(parser.get("Other", "Name"), "x")
+        self.assertNotIn("[General]", parser.get("Other", "Name"))
+
+    def test_reads_an_indented_key_after_another_key(self):
+        # The same trim makes an indented key a key, not a continuation of the
+        # value above it. Without the reader's lstrip, `ColorScheme` is folded
+        # into `Name` and the reader reports no ColorScheme at all.
+        parser = self._read("[General]\nName=x\n  ColorScheme=MacOS8\n")
+        self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
+        self.assertEqual(parser.get("General", "Name"), "x")
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # A theme INI is contributor-supplied, and a checked-in symlink can

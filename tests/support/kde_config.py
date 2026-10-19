@@ -1,9 +1,11 @@
 """Read KDE INI files the way Plasma itself reads them.
 
 Plasma's config format is INI-like but differs from configparser's defaults in
-three ways that matter: `%` is not an interpolation character (colour and path
-values may contain it literally), key names are case-sensitive, and a leading
-UTF-8 BOM is stripped rather than left in the first line. Reading a scheme or
+four ways that matter: `%` is not an interpolation character (colour and path
+values may contain it literally), key names are case-sensitive, a leading
+UTF-8 BOM is stripped rather than left in the first line, and each line is
+trimmed before parsing, so leading whitespace never makes a section header a
+value continuation or a key part of the previous value. Reading a scheme or
 `defaults` file without these settings mangles values or makes configparser
 reject the first section.
 """
@@ -31,5 +33,11 @@ def read(path):
     parser = configparser.ConfigParser(interpolation=None)
     parser.optionxform = str  # KDE keys are case-sensitive.
     with open(path, encoding="utf-8-sig") as handle:
-        parser.read_file(handle)
+        # KDE trims each line before parsing it, so an indented `[General]`
+        # still opens `[General]` and an indented key is a key. configparser
+        # instead reads a leading-indented line as a continuation of the
+        # previous value, so feed it the lines with that whitespace removed.
+        parser.read_file(
+            (line.lstrip() for line in handle), source=str(path)
+        )
     return parser
