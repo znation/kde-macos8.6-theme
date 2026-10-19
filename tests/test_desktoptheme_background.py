@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
+from support import containment
 from support.desktoptheme_paths import (
     ARCHIVEORG_MAX_ROWS,
     ARCHIVEORG_REFERENCE,
@@ -14,6 +15,7 @@ from support.desktoptheme_paths import (
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import BLACK, FACE, hex_colour
 from support.reference_image import ReferenceScreenshotMixin
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -54,10 +56,10 @@ class TestBackground(NineSliceCase, unittest.TestCase):
         # translucent Platinum body, so that surface is the same opaque grey
         # artwork as the standard hint. A byte-identical copy keeps the two in
         # step.
-        with open(BACKGROUND_SVG, "rb") as plain, open(
-            TRANSLUCENT_BACKGROUND_SVG, "rb"
-        ) as translucent:
-            self.assertEqual(translucent.read(), plain.read())
+        self.assertEqual(
+            containment.read_bytes(TRANSLUCENT_BACKGROUND_SVG, ROOT),
+            containment.read_bytes(BACKGROUND_SVG, ROOT),
+        )
 
     def test_background_colours(self):
         # The hints use `style`, so the parsed `fill` set is exactly the

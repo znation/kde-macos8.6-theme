@@ -6,6 +6,7 @@ import os
 import unittest
 import xml.etree.ElementTree as ET
 
+from support import containment
 from support.desktoptheme_paths import PANEL_SVG, SOLID_PANEL_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import assert_fill_palette, hex_colour
@@ -108,8 +109,10 @@ class TestPanelBackground(NineSliceCase, unittest.TestCase):
         # Panel.qml draws an opaque panel from `solid/widgets/panel-background`
         # and KSvg does not map it onto `widgets/panel-background`, so the
         # opaque menu bar needs its own copy of the artwork.
-        with open(PANEL_SVG, "rb") as plain, open(SOLID_PANEL_SVG, "rb") as solid:
-            self.assertEqual(solid.read(), plain.read())
+        self.assertEqual(
+            containment.read_bytes(SOLID_PANEL_SVG, ROOT),
+            containment.read_bytes(PANEL_SVG, ROOT),
+        )
 
     def test_north_state_pixels(self):
         # A top-edge panel draws the `north-` state, and Plasma draws only its

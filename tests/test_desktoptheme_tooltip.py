@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import unittest
 
+from support import containment
 from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import SOLID_TOOLTIP_SVG, TOOLTIP_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import BLACK, TOOLTIP_FACE, hex_colour
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_face_bevel,
     assert_hint_geometry,
@@ -50,8 +52,10 @@ class TestTooltip(NineSliceCase, unittest.TestCase):
     def test_solid_copy_is_identical(self):
         # KSvg does not map `solid/widgets/tooltip` onto `widgets/tooltip`,
         # so PlasmaComponents.ToolTip needs its own copy of the artwork.
-        with open(TOOLTIP_SVG, "rb") as plain, open(SOLID_TOOLTIP_SVG, "rb") as solid:
-            self.assertEqual(solid.read(), plain.read())
+        self.assertEqual(
+            containment.read_bytes(SOLID_TOOLTIP_SVG, ROOT),
+            containment.read_bytes(TOOLTIP_SVG, ROOT),
+        )
 
 
 if __name__ == "__main__":

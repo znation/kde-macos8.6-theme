@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The desktop-theme copy-identity tests read the secondary SVG copy unguarded (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `tests/test_desktoptheme_background.py::TestBackground.test_translucent_copy_is_identical`,
+`tests/test_desktoptheme_panel.py::TestPanelBackground.test_solid_copy_is_identical` and
+`tests/test_desktoptheme_tooltip.py::TestTooltip.test_solid_copy_is_identical` each open their
+secondary SVG copy (`TRANSLUCENT_BACKGROUND_SVG`, `SOLID_PANEL_SVG`, `SOLID_TOOLTIP_SVG`) with a
+bare `open()`. A checked-in symlink at that path to a private file is read, and `assertEqual` on
+the mismatched byte strings echoes that file's bytes into the failing test's diagnostic.
+
+**Reproduction:** a scratch script (a symlink at the secondary path plus the bare
+`open`/`assertEqual` pair) printed the secret's bytes in the `AssertionError`; the new
+`tests/test_containment.py::TestReadBytes.test_rejects_a_symlink_that_escapes_the_root` fails
+without the guard.
+
+**Cause:** only the primary `SVG_PATH` went through `SvgCase.setUp`'s containment guard; the
+copy-identity checks read the duplicate file directly, so the guard the primary path gets was
+never applied to the second path.
+
+**Fix:** `tests/support/containment.py` gained `read_bytes(path, root)`, which calls
+`require_within_repo` before opening; the three copy-identity tests read both copies through it.
+
+**Validation gap:** no-fake — confirming the leak needed a symlink fixture the existing suite did
+not have, so one had to be manufactured before the diagnostic echo could be observed.
+
 ### `tests/support/splash_fixtures.py`'s `read_qml` follows a symlinked `Splash.qml` outside the repository (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** a checked-in `Splash.qml` that is a symlink to a private file outside the

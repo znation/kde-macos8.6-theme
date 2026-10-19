@@ -52,3 +52,18 @@ def require_within_repo(path, root):
             f"{path} resolves outside {root} (a symlink escape); "
             "refusing to read it"
         )
+
+
+def read_bytes(path, root):
+    """Return the bytes of repository *path*, refusing a symlink escape.
+
+    A contributor-supplied file that a test compares with a second copy is
+    read through here: the comparison echoes both byte strings when they
+    differ, so a checked-in symlink at *path* that resolves outside *root*
+    must be refused before it is opened rather than leaking a private file's
+    bytes into the diagnostic. A *path* outside *root* (a test's temporary
+    file) is read as before.
+    """
+    require_within_repo(path, root)
+    with open(path, "rb") as handle:
+        return handle.read()
