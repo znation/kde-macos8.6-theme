@@ -161,8 +161,8 @@ class TestRepositoryRegister(unittest.TestCase):
     """Cross-check the shipped theme against its register."""
 
     def test_register_and_markers_name_the_same_assets(self):
-        # The register may be empty: the icon theme's five icons are now final
-        # art, so `found` and `entries` are both empty. The cross-check still
+        # The register may be empty: the icon theme's art is now final, so
+        # `found` and `entries` are both empty. The cross-check still
         # fails if a new placeholder appears without a row (or vice versa).
         found, entries = cross_check(ROOT, REGISTER)
         self.assertEqual(set(found), set(entries))
