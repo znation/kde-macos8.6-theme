@@ -5,9 +5,9 @@ pin the container layer: that a valid image may split its zlib stream across
 several IDAT chunks or carry unknown ancillary chunks, and that the decoder
 rejects malformed framing -- unknown critical chunks, bad chunk types,
 oversized lengths, bad or truncated CRCs, a missing, duplicated or
-out-of-position IHDR, a missing PLTE/IEND and unsupported IHDR fields. Scanline decoding lives in ``test_png_decode``; the
-malformed-image-data and resource-limit rejections live in
-``test_png_malformed``.
+out-of-position IHDR, a missing PLTE/IEND and unsupported IHDR fields.
+Scanline decoding lives in ``test_png_decode``; the malformed-image-data
+and resource-limit rejections live in ``test_png_malformed``.
 
 Run with the project's check harness (stdlib unittest)::
 
