@@ -339,6 +339,30 @@ class TestInstallPackagesGuard(unittest.TestCase):
         data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
 
+    def test_unknown_family_is_refused_before_creating_the_data_home(self):
+        # A typo'd family name filters every real family out, so without a
+        # guard `make install` would create the data home, copy nothing and
+        # exit 0 -- the same green install the empty-value guard refuses.
+        tmp = make_tmp_dir(self)
+        env = theme_install.make_env("INSTALL_PACKAGES")
+        env["INSTALL_PACKAGES"] = "colour-scheme"
+        result = theme_install.run_make(
+            [
+                "install",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={theme_install.XDG_DATA_HOME}",
+            ],
+            env=env,
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "INSTALL_PACKAGES names unknown artifact families: colour-scheme",
+            result.stderr,
+        )
+        self.assertIn("color-scheme", result.stderr)
+        data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
+        self.assertFalse(os.path.exists(data_home), data_home)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `make install INSTALL_PACKAGES=<unknown>` silently installs nothing (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** `make install INSTALL_PACKAGES=colour-scheme` (a typo, or any name
+that is not one of the seven families) filtered every family out, created the
+data home, copied nothing and exited 0 — a green install that installed nothing,
+the same failure the empty-value guard refuses.
+
+**Reproduction:**
+`tests/test_theme_install.py::TestInstallPackagesGuard.test_unknown_family_is_refused_before_creating_the_data_home`
+runs `make install INSTALL_PACKAGES=colour-scheme`; before the fix it exited 0
+with an empty data home.
+
+**Cause:** `require_install_packages` only rejected an empty or whitespace-only
+value; it never checked that each named word was a known artifact family, and
+`_install`'s `$(filter ...)` guards turn an unknown word into a no-op.
+
+**Fix:** the guard now word-splits `INSTALL_PACKAGES` (with `set -f` so a glob
+cannot expand), refuses an empty list as before, and refuses any word not in the
+new `INSTALL_FAMILIES` list with a diagnostic naming the unknown families and
+the known ones.
+
+**Validation gap:** unclear-invariant — no test or doc stated that the guard's
+promise was "no green install that installs nothing" rather than "reject the
+empty value", so that invariant had to be reconstructed and is now recorded in
+`docs/invariants.md` (tooling).
+
 ### `tests/support/kde_config.py` cannot read a KDE INI that opens with a UTF-8 BOM (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `kde_config.read` opened the file with `encoding="utf-8"`, so a leading

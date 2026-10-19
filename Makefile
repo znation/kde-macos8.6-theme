@@ -73,15 +73,19 @@ KVANTUM_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(KVANTUM_ID)/Kvantum
 # to the families it needs (`make install INSTALL_PACKAGES=look-and-feel`), so a
 # test of one artifact does not copy all seven; the default installs every
 # family and keeps the full install. The color scheme is a family of its own
-# even though it is one file.
+# even though it is one file. INSTALL_FAMILIES is the guard's vocabulary; the
+# default below must name the same families, and the guard rejects a default
+# that names one it does not know.
+INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum
 INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum
 
 # INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
 # value (`?=` keeps one from the environment) filters every family out, so the
 # run creates the data home and exits 0 having copied nothing -- a green
-# install that installed nothing. Refuse an empty or whitespace-only value with
-# a diagnostic that names INSTALL_PACKAGES. $(1) names the target.
-require_install_packages = set -- "$(INSTALL_PACKAGES)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in '') echo "$(1): INSTALL_PACKAGES must name at least one artifact family, not an empty or whitespace-only value: '$$1'" >&2; exit 2;; esac
+# install that installed nothing. A value naming no known family (a typo,
+# `colour-scheme`) does the same. Refuse either before the data home exists,
+# with a diagnostic that names INSTALL_PACKAGES. $(1) names the target.
+require_install_packages = set -f; set -- $(INSTALL_PACKAGES); if [ $$\# -eq 0 ]; then echo "$(1): INSTALL_PACKAGES must name at least one artifact family, not an empty or whitespace-only value: '$(INSTALL_PACKAGES)'" >&2; exit 2; fi; unknown=; for family in "$$@"; do case " $(INSTALL_FAMILIES) " in *" $$family "*) ;; *) unknown="$$unknown $$family";; esac; done; if [ -n "$$unknown" ]; then echo "$(1): INSTALL_PACKAGES names unknown artifact families:$$unknown; known families: $(INSTALL_FAMILIES)" >&2; exit 2; fi
 
 # Stage a directory package as a sibling, then swap it in with a rename, so a
 # copy that fails or is interrupted cannot leave a partial package installed or
