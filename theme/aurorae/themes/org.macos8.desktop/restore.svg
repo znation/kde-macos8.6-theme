@@ -4,8 +4,7 @@
      Mac OS does not change the zoom box when a window is zoomed, so this
      reuses the zoom box artwork (macos8.6-screenshots/systemprofiler_betawiki.png
      at x=781..792, y=26..37). The reference set has no zoomed window; the
-     KDE-required provenance is recorded in PLANS.md. Re-derived by
-     tests/test_aurorae_buttons.py.
+     restore state is KDE-required. Re-derived by tests/test_aurorae_buttons.py.
 
      The canvas is 21x13, systemprofiler_betawiki.png x=776..796, y=26..38:
      5 gap columns (x=776..780), the 13x13 box with its highlight at canvas
