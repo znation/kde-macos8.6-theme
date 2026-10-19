@@ -245,8 +245,15 @@ class TestApplyDesktopTheme(unittest.TestCase):
     leak in.
     """
 
-    def _apply_isolated(self, tmp):
-        """Apply the installed theme; return its written `plasmarc` parser."""
+    def _apply_isolated(self, tmp, list_themes=True):
+        """Apply the installed theme; return its written `plasmarc` parser.
+
+        `--list-themes` is a read-only probe that the apply never reads, so a
+        caller whose claim is only about the written config (the ambient
+        config-search-path case) passes ``list_themes=False`` to skip that
+        external-tool run; `test_apply_lists_and_selects_the_theme` keeps it,
+        so the listing stays covered.
+        """
         config_dirs = os.path.join(tmp, "config-dirs")
         os.makedirs(config_dirs, exist_ok=True)
         env = dict(
@@ -255,12 +262,13 @@ class TestApplyDesktopTheme(unittest.TestCase):
             XDG_CONFIG_HOME=os.path.join(tmp, "config"),
             XDG_CONFIG_DIRS=config_dirs,
         )
-        listed = run_captured(
-            ["plasma-apply-desktoptheme", "--list-themes"],
-            env=env,
-        )
-        assert_succeeded(self, listed)
-        self.assertIn(DTHEME_ID, listed.stdout)
+        if list_themes:
+            listed = run_captured(
+                ["plasma-apply-desktoptheme", "--list-themes"],
+                env=env,
+            )
+            assert_succeeded(self, listed)
+            self.assertIn(DTHEME_ID, listed.stdout)
         applied = run_captured(
             ["plasma-apply-desktoptheme", DTHEME_ID],
             env=env,
@@ -282,7 +290,7 @@ class TestApplyDesktopTheme(unittest.TestCase):
             ) as handle:
                 handle.write(f"[Theme]\nname={DTHEME_ID}\n")
             with mock.patch.dict(os.environ, {"XDG_CONFIG_DIRS": ambient}):
-                parser = self._apply_isolated(tmp)
+                parser = self._apply_isolated(tmp, list_themes=False)
             self.assertEqual(parser.get("Theme", "name"), DTHEME_ID)
 
 
