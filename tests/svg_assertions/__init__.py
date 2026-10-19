@@ -10,7 +10,7 @@ defines it: ``tree`` traverses the parsed document and reads its attributes,
 ``safety`` guards the artwork a pixel test cannot see, ``render`` composites a
 nine-slice group into pixels, ``faces``, ``paths``, ``elements`` and
 ``nine_slice`` hold the face, path, element and nine-slice arithmetic, and
-``pixels`` and ``layout`` hold the pixel-comparison and the layout and arc
+``pixels`` and ``layout`` hold the pixel-comparison and the id, layout and arc
 assertions.
 """
 
@@ -18,8 +18,6 @@ from __future__ import annotations
 
 from .tree import (
     SLICE_IDS,
-    assert_ids_present,
-    assert_slice_ids_present,
     attribute_values,
     children_named,
     elements_by_id,
@@ -73,7 +71,9 @@ from .layout import (
     assert_bounds_rect,
     assert_diagonal_half_disc,
     assert_hint_geometry,
+    assert_ids_present,
     assert_root_canvas,
+    assert_slice_ids_present,
     assert_slices_stay_within_their_tiles,
     assert_tiles_placed_by_margins,
 )

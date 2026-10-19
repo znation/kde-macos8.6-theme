@@ -1,9 +1,9 @@
-"""Layout and arc assertions for the SVG test helpers.
+"""Id, layout and arc assertions for the SVG test helpers.
 
-Each compares a hint geometry, a nine-slice tile layout, a root canvas, a
-bounds rect or a bevel half-disc's arc against the layout the artwork must
-keep, naming the failing slice in its message. The pixel-comparison
-assertions live in ``svg_assertions/pixels.py``.
+Each asserts a set of declared ids, a hint geometry, a nine-slice tile layout,
+a root canvas, a bounds rect or a bevel half-disc's arc against the layout the
+artwork must keep, naming the failing slice in its message. The
+pixel-comparison assertions live in ``svg_assertions/pixels.py``.
 """
 
 from __future__ import annotations
@@ -19,7 +19,46 @@ from .nine_slice import (
 )
 from .paths import arc_center, path_arcs
 from .render import _MAX_RENDERED_PIXELS, render_slices
-from .tree import children_named, local_name
+from .tree import SLICE_IDS, attribute_values, children_named, local_name
+
+
+def assert_ids_present(case, tree, names):
+    """Assert every id in *names* is present in *tree*.
+
+    The contract tests read an SVG's ids through `attribute_values` and pin
+    that each id the artwork must declare is there; *case* is the calling
+    ``unittest.TestCase``, so a missing id fails against the right test and
+    names itself.
+    """
+    ids = attribute_values(tree, "id")
+    for name in names:
+        case.assertIn(name, ids, name)
+
+
+def assert_slice_ids_present(case, tree, prefixes, hint_aliases=None):
+    """Assert each state's nine-slice, margin-hint and centre ids are present.
+
+    *prefixes* lists each state prefix in *tree* -- ``("plain", "raised",
+    "sunken")`` for frame, ``["base"]`` for lineedit, ``[""]`` for an
+    unprefixed SVG. Every state must carry all nine ``SLICE_IDS``; the shared
+    ``hint-tile-center`` is checked once. Unless *hint_aliases* exempts it, a
+    state must also carry the four margin hints KSvg reads to size the
+    nine-slice. *hint_aliases* maps a prefix that declares no margin hints of
+    its own to the prefix whose hints it reuses (KSvg then falls back to the
+    aliased element sizes); pass ``None`` (the default) when every state
+    declares its own hints. *case* is the calling ``unittest.TestCase``.
+    """
+    ids = attribute_values(tree, "id")
+    aliases = hint_aliases or {}
+    for prefix in prefixes:
+        sep = "-" if prefix else ""
+        for name in SLICE_IDS:
+            case.assertIn(f"{prefix}{sep}{name}", ids, name)
+        if prefix in aliases:
+            continue
+        for side in ("top", "bottom", "left", "right"):
+            case.assertIn(f"{prefix}{sep}hint-{side}-margin", ids, side)
+    case.assertIn("hint-tile-center", ids)
 
 
 def assert_diagonal_half_disc(case, path, index, radius, center):
