@@ -20,8 +20,12 @@ extension fails here instead of committing a raw binary.
 import glob
 import os
 import re
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support import theme_install
 from support.check_references_fixtures import CheckerTestCase
 from support.process_assertions import assert_succeeded
@@ -114,13 +118,19 @@ def declared_reference_names(checker):
     """Return the filenames the reference set's ``sources.txt`` declares.
 
     The checker reads sources.txt as UTF-8 with an optional BOM; match it so a
-    BOM does not glue itself to the first declared filename.
+    BOM does not glue itself to the first declared filename. ``sources.txt`` is
+    contributor-supplied, and a checked-in symlink at its path can point at a
+    private file; the declared filenames are compared in assertions that echo
+    the sets, so a path that resolves outside the repository is refused before
+    it is opened.
     """
     path = os.path.join(
         theme_install.ROOT, checker.REFERENCE_DIR, checker.SOURCES_NAME
     )
-    with open(path, encoding="utf-8-sig") as handle:
-        return declared_files(handle.read(), reference_validation.SEPARATOR)
+    return declared_files(
+        containment.read_text(path, theme_install.ROOT, encoding="utf-8-sig"),
+        reference_validation.SEPARATOR,
+    )
 
 
 def lfs_filter_states(output):
@@ -264,6 +274,39 @@ class TestReferenceLfsTracking(CheckerTestCase):
                     "lfs",
                     f"{name} is not routed through Git LFS by .gitattributes",
                 )
+
+
+class TestDeclaredReferenceNamesContainment(unittest.TestCase):
+    """The provenance-record read refuses a symlink that escapes the repository.
+
+    ``sources.txt`` is contributor-supplied, and a checked-in symlink at its
+    path can point at a private file; the declared filenames are compared in
+    assertions that echo the sets, so following the symlink would leak that
+    file's parsed lines into a failing test's diagnostic. The checker itself
+    refuses such a symlink, so this reader must too.
+    """
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            ref = root / "macos8.6-screenshots"
+            ref.mkdir(parents=True)
+            secret = tmp / "secret"
+            secret.write_text(
+                "private.png | https://example.test/p.png | leaked\n",
+                encoding="utf-8",
+            )
+            link = ref / "sources.txt"
+            link.symlink_to(secret)
+            checker = mock.Mock(
+                REFERENCE_DIR="macos8.6-screenshots",
+                SOURCES_NAME="sources.txt",
+            )
+            with mock.patch.object(theme_install, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    declared_reference_names(checker)
+        self.assertIn(str(link), str(caught.exception))
 
 
 if __name__ == "__main__":
