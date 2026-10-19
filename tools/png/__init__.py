@@ -15,5 +15,13 @@ from __future__ import annotations
 
 from .image import Image, PngError, pixel_at
 from .read import decode_png, read_png
+from .write import encode_png
 
-__all__ = ["Image", "PngError", "decode_png", "pixel_at", "read_png"]
+__all__ = [
+    "Image",
+    "PngError",
+    "decode_png",
+    "encode_png",
+    "pixel_at",
+    "read_png",
+]
