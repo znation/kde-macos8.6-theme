@@ -14,8 +14,8 @@ blank guarantee cell fails `make check`.
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
-| The active and inactive title-bar boxes are re-derived from the reference screenshots. | `tests/test_aurorae_buttons.py::TestButtons` | none |
-| The active and inactive frame nine-slices and the gzipped `decoration.svgz` are re-derived from the reference screenshots. | `tests/test_aurorae_frame.py::TestDecorationSvg` | none |
+| The active title-bar boxes are re-derived from the reference screenshots; the inactive greyed boxes are KDE-required because the reference's inactive windows draw no close, zoom or collapse box. | `tests/test_aurorae_buttons.py::TestButtons` | The reference's inactive windows draw no close, zoom or collapse box in their title bars, so the inactive boxes' flat #CCCCCC face has no reference pixel (`macos8.6-screenshots/sources.txt`). |
+| The active frame nine-slice is re-derived from the reference screenshots, the inactive nine-slice from `desktop_fandom.png`'s four unfocused windows, and the gzipped `decoration.svgz` matches the uncompressed artwork. | `tests/test_aurorae_frame.py::TestDecorationSvg` | none |
 | The title-bar height and border widths the Aurorae engine reads are re-derived from the reference screenshots. | `tests/test_aurorae_rc.py::TestRc` | none |
 | The package metadata and install lifecycle are what KPackage and Aurorae discovery read. | `tests/test_aurorae_package.py::TestMetadata` | none |
 | The beta `aboutsystem_betawiki.png` window chrome is pixel-identical to the retail `systemprofiler_betawiki.png`. | `tests/test_aurorae_reference_equivalence.py::TestReferenceEquivalence` | `aboutsystem_betawiki.png` is a beta build used as a window-chrome proxy; the render gate's bottom-border crop stays on it because the set has no other lossless window-bottom crop (README, `macos8.6-screenshots/sources.txt`). |

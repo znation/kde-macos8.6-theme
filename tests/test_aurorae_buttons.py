@@ -4,7 +4,8 @@ The close, maximize, restore and collapse (windowshade) widget SVGs with
 their active and inactive states, re-derived from
 `macos8.6-screenshots/aboutsystem_betawiki.png` and
 `systemprofiler_betawiki.png` through `tools/png/read.py`. The inactive greys are
-KDE-required provenance (the reference set has no inactive window). The
+KDE-required provenance (the reference's inactive windows draw no close,
+zoom or collapse boxes in their title bars). The
 references are stored with Git LFS, so a clone without them skips these
 tests rather than failing `make check`.
 """
@@ -146,7 +147,8 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
     def test_inactive_center_is_flat(self):
         # The inactive box keeps the active box's #888888/#222222 outlines and
         # flattens its gradient face to #CCCCCC (KDE-required provenance: the
-        # reference set has no inactive window). The glyphs are #222222, so
+        # reference's inactive windows draw no close, zoom or collapse boxes
+        # in their title bars). The glyphs are #222222, so
         # they survive over the flat face.
         for name, tree in _parsed_svgs(BUTTON_SVGS):
             with self.subTest(svg=name):

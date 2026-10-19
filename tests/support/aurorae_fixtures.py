@@ -26,6 +26,16 @@ REFERENCE = os.path.join(
 )
 # The deepest reference row this module reads is the bottom border at y=424.
 REFERENCE_ROWS = 425
+# The retail 8.6 desktop shows four unfocused windows (the "Mac OS 8.6",
+# "Utilities", "Applications" and "Apple System Profiler" windows); their
+# flat #DDDDDD title field and 1px #555555 outline are the inactive frame's
+# ground truth. The image is 2 image px per logical px.
+INACTIVE_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "desktop_fandom.png"
+)
+# The deepest inactive reference row this module reads is the Applications
+# window's title field at y=880.
+INACTIVE_REFERENCE_ROWS = 900
 # The retail Japanese 8.6 System Profiler window shows the close, zoom and
 # collapse boxes in one title bar (aboutsystem's window cannot be zoomed).
 PROFILER_REFERENCE = os.path.join(
@@ -34,11 +44,17 @@ PROFILER_REFERENCE = os.path.join(
 # The deepest profiler row this module reads is the highlight row at y=38.
 PROFILER_ROWS = 39
 
-# The flat grey every inactive-state tile uses in place of the active tile's
-# highlight and pinstripe fills. The reference set has no inactive window, so
-# this value is KDE-required provenance: it is the active title field's flat
-# row, sampled at (250, 27).
+# The flat grey every inactive-state box uses in place of the active box's
+# gradient face. The inactive frame's field is `INACTIVE_FRAME_GREY`; this
+# value is the button boxes' KDE-required grey (the reference's inactive
+# windows draw no close/collapse boxes in their title bars).
 INACTIVE_GREY = "#CCCCCC"
+# The inactive frame's field, sampled from the four unfocused windows' title
+# fields in `INACTIVE_REFERENCE`.
+INACTIVE_FRAME_GREY = "#DDDDDD"
+# The inactive frame's 1px outline, sampled from the same windows' outer
+# frame edge.
+INACTIVE_OUTLINE = "#555555"
 # The zoom face's local x in the 21x13 zoom canvas: the stripe-free gap to its left.
 ZOOM_BOX_X = 5
 
@@ -54,8 +70,13 @@ class ReferenceImageCase:
 
     image = None
     image_error = None
+    inactive_image = None
+    inactive_error = None
     profiler_image = None
     profiler_error = None
+    # A class that reads the inactive reference sets this True, so
+    # ``setUpClass`` loads INACTIVE_REFERENCE as well as REFERENCE.
+    needs_inactive = False
     # A class that reads the System Profiler screenshot sets this True, so
     # ``setUpClass`` loads PROFILER_REFERENCE as well as REFERENCE.
     needs_profiler = False
@@ -65,6 +86,8 @@ class ReferenceImageCase:
         cls.image, cls.image_error = read_reference(
             REFERENCE, max_rows=REFERENCE_ROWS
         )
+        if cls.needs_inactive:
+            cls.load_inactive_reference()
         if cls.needs_profiler:
             cls.load_profiler_reference()
 
@@ -72,6 +95,20 @@ class ReferenceImageCase:
         """Return the desktop reference's pixel at ``(x, y)``, skipping if absent."""
         skip_unless_materialized(self, REFERENCE, self.image_error)
         return png.pixel_at(self.image, x, y)
+
+    @classmethod
+    def load_inactive_reference(cls):
+        """Load the inactive reference into ``inactive_image``/``error``."""
+        cls.inactive_image, cls.inactive_error = read_reference(
+            INACTIVE_REFERENCE, max_rows=INACTIVE_REFERENCE_ROWS
+        )
+
+    def inactive_pixel(self, x, y):
+        """Return the inactive reference's pixel at ``(x, y)``, skipping if absent."""
+        skip_unless_materialized(
+            self, INACTIVE_REFERENCE, self.inactive_error
+        )
+        return png.pixel_at(self.inactive_image, x, y)
 
     @classmethod
     def load_profiler_reference(cls):

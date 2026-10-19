@@ -1,13 +1,13 @@
 """Tests for the org.macos8.desktop Aurorae frame artwork (`decoration.svg`).
 
-The active `decoration` nine-slice, the flattened inactive
+The active `decoration` nine-slice, the flat inactive
 `decoration-inactive` nine-slice, the corner slices, and the gzipped
-`decoration.svgz` form `kpackagetool6` requires. Every sampled value is
-re-derived from `macos8.6-screenshots/aboutsystem_betawiki.png` through
-`tools/png/read.py`; the inactive greys are KDE-required provenance (the
-reference set has no inactive window) and are pinned against the active
-artwork they grey. The reference is stored with Git LFS, so a clone without
-it skips these tests rather than failing `make check`.
+`decoration.svgz` form `kpackagetool6` requires. The active frame is
+re-derived from `macos8.6-screenshots/aboutsystem_betawiki.png` and the
+inactive frame from the unfocused windows in
+`macos8.6-screenshots/desktop_fandom.png`, through `tools/png/read.py`. The
+references are stored with Git LFS, so a clone without them skips these
+tests rather than failing `make check`.
 """
 
 from __future__ import annotations
@@ -20,7 +20,8 @@ import xml.etree.ElementTree as ET
 from support.aurorae_fixtures import (
     AURORAE_DIR,
     DECORATION_SVG,
-    INACTIVE_GREY,
+    INACTIVE_FRAME_GREY,
+    INACTIVE_OUTLINE,
     ReferenceImageCase,
 )
 from support.nine_slice_case import NineSliceCase
@@ -74,40 +75,18 @@ def _unmasked_points(width, height, mask):
                 yield x, y
 
 
-def _rect_fills(tree, group_id):
-    """Return every rect fill inside the ``<g id=group_id>`` of *tree*.
-
-    ``render_slices`` reads the composited pixels, so a rect that a later rect
-    overpaints is invisible there; the inactive-state checks read the rects'
-    own fills to pin that no ``#FFFFFF``/``#777777`` rect survives at all.
-    """
-    for element in tree.iter():
-        if element.get("id") == group_id:
-            return [child.get("fill") for child in element]
-    raise AssertionError(f"no element with id {group_id!r}")
-
-
-def _assert_flattened_inactive_tile(case, tree, slices, name, flattened):
-    """Assert inactive tile *name* is its active tile with *flattened* gone.
-
-    The inactive window's tiles mirror the active ones with the highlight and
-    pinstripe fills flattened to `INACTIVE_GREY`. Check the composited pixels
-    against that derivation, then the rects' own fills, so a flattened colour
-    that a later rect overpaints still fails. *slices* is the shared
-    ``render_slices(tree)`` map.
-    """
-    expected = {
-        point: INACTIVE_GREY if fill in flattened else fill
-        for point, fill in slices[name.replace("inactive-", "")].items()
-    }
-    assert_slice_pixels(case, slices, name, expected)
-    for fill in _rect_fills(tree, name):
-        case.assertNotIn(fill, flattened)
+# desktop_fandom.png, the inactive anchor: the flat #DDDDDD title field of
+# four unfocused windows (the "Mac OS 8.6", "Utilities", "Applications" and
+# "Apple System Profiler" windows), and the "Mac OS 8.6" window's 1px
+# #555555 outer outline (its top row y=57 and its left column x=25).
+INACTIVE_FIELD_PIXELS = ((300, 75), (1000, 130), (1500, 80), (300, 880))
+INACTIVE_OUTLINE_PIXELS = ((300, 57), (25, 75))
 
 
 class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
     SVG_PATH = DECORATION_SVG
     PREFIXES = ("decoration", "decoration-inactive")
+    needs_inactive = True
     # The inactive frame paints its own tiles but declares no margin hints of
     # its own: KSvg looks up `decoration-inactive-hint-*-margin`, finds none
     # and falls back to the `decoration-inactive-*` element sizes, which
@@ -138,55 +117,43 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         assert_unique_ids(self, self.tree)
         assert_no_script_elements(self, self.tree)
 
-    def test_inactive_top_tile_is_flat_grey(self):
-        # The reference set has no inactive window, so the grey is
-        # KDE-required provenance; #CCCCCC is the active title field's flat
-        # row (250,27). The inactive top tile is the active tile with every
-        # #FFFFFF/#777777 pinstripe (and the 1px highlight) flattened.
-        grey = self.reference_pixel(250, 27)
-        self.assertEqual(hex_colour(grey), INACTIVE_GREY)
+    def test_inactive_frame_matches_reference(self):
+        # The reference's inactive frame (desktop_fandom.png) is the active
+        # frame's #000000 outlines recoloured #555555 with every bevel fill
+        # (#FFFFFF highlight, #777777 pinstripe, #CCCCCC field, #999999
+        # shadow) flattened to the #DDDDDD field. The active tiles are
+        # pinned against the reference by
+        # test_side_and_bottom_tiles_match_reference,
+        # test_title_bar_colours_match_reference and TestCorners, so deriving
+        # the inactive tiles from them pins every inactive pixel; the
+        # reference pixels below pin the two derived colours.
         slices = render_slices(self.tree)
-        _assert_flattened_inactive_tile(
-            self,
-            self.tree,
-            slices,
-            "decoration-inactive-top",
-            ("#FFFFFF", "#777777"),
-        )
-        self.assertEqual(slices["decoration-inactive-top"][(0, 2)], hex_colour(grey))
-
-    def test_inactive_bevel_has_no_highlight(self):
-        slices = render_slices(self.tree)
-        for name in (
-            "decoration-inactive-left",
-            "decoration-inactive-right",
-            "decoration-inactive-bottom",
-        ):
-            with self.subTest(slice=name):
-                _assert_flattened_inactive_tile(
-                    self, self.tree, slices, name, ("#FFFFFF",)
+        for name in SLICE_IDS:
+            active = slices[f"decoration-{name}"]
+            expected = {
+                point: (
+                    INACTIVE_OUTLINE if fill == "#000000"
+                    else INACTIVE_FRAME_GREY
                 )
-
-    def test_inactive_corners_flatten_active_corners(self):
-        # The inactive corners are hand-derived, and test_inactive_slices_present
-        # only checks their ids: a wrong inactive corner passed every test.
-        # They mirror the active corners with the 1px #FFFFFF highlight and
-        # the #777777 pinstripes flattened to #CCCCCC (KDE-required
-        # provenance: the reference set has no inactive window). The active
-        # corners are pinned against the reference by TestCorners, so tying
-        # each inactive corner to its active one makes a wrong hand-derived
-        # corner fail here.
-        slices = render_slices(self.tree)
-        for name in (
-            "decoration-inactive-topleft",
-            "decoration-inactive-topright",
-            "decoration-inactive-bottomleft",
-            "decoration-inactive-bottomright",
-        ):
-            with self.subTest(slice=name):
-                _assert_flattened_inactive_tile(
-                    self, self.tree, slices, name, ("#FFFFFF", "#777777")
-                )
+                for point, fill in active.items()
+            }
+            assert_slice_pixels(
+                self, slices, f"decoration-inactive-{name}", expected
+            )
+        # The reference's four unfocused windows have a flat #DDDDDD title
+        # field and the "Mac OS 8.6" window a 1px #555555 outer outline.
+        for x, y in INACTIVE_FIELD_PIXELS:
+            self.assertEqual(
+                hex_colour(self.inactive_pixel(x, y)),
+                INACTIVE_FRAME_GREY,
+                (x, y),
+            )
+        for x, y in INACTIVE_OUTLINE_PIXELS:
+            self.assertEqual(
+                hex_colour(self.inactive_pixel(x, y)),
+                INACTIVE_OUTLINE,
+                (x, y),
+            )
 
     # The reference frame's borders, at the coordinate each tile's local
     # origin maps to: the left border starts at its outer black column x=7,
@@ -237,7 +204,7 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         # The pinstripe field is uniform along the bar, so one clear column
         # pins it: local y = reference y - 25. Pin every row, not only the
         # bevel and the first stripe: the inactive tile is derived from this
-        # active one (its #FFFFFF/#777777 rows flatten to #CCCCCC), so a wrong
+        # active one (its #FFFFFF/#777777 rows flatten to #DDDDDD), so a wrong
         # active pinstripe row would otherwise pass every other test.
         top = render_slices(self.tree)["decoration-top"]
         for local_y in range(22):

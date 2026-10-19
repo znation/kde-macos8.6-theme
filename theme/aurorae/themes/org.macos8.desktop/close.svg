@@ -17,8 +17,8 @@
 
      The `inactive-center` group is the same box with its gradient face
      flattened to #CCCCCC and the #888888/#222222 outlines kept; the
-     reference set has no inactive window, so the grey is KDE-required
-     provenance. -->
+     reference's inactive windows draw no close box in their title bars, so
+     the greyed inactive box is KDE-required provenance. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13">
   <g id="active-center" transform="translate(0,0)">
     <rect x="0" y="0" width="12" height="1" fill="#888888"/>
