@@ -117,14 +117,16 @@ def assert_edge_bevels(case, slices, prefix, outward, mirrored, size=6):
     """Assert each of *prefix*'s four edge tiles paints its bevel band.
 
     A widget's bevel runs the same way along all four edges, so the bottom
-    and right bands mirror the top and left ones: *outward* is the (outer
-    outline, bevel, inner face) band read from a top/left slice's outer edge
-    inward, and *mirrored* is the bottom/right band, whose outline stays on
-    the outer edge while the bevel colour swaps sides. Each band is checked
-    by `assert_edge_band_pixels`, so *size* is the tile's length along the
-    edge (6 for the button/frame/lineedit tiles, 10 for the scroll bar).
-    *prefix* names the state (``"normal"``, ``"slider"``); pass ``""`` for
-    an unprefixed SVG. *case* is the calling ``unittest.TestCase``.
+    and right bands mirror the top and left ones. *outward* is the band read
+    from a top/left slice's outer edge inward: (outer outline, bevel, inner
+    face) for the raised and sunken bevels, whose outline is outermost, and
+    (outer bevel, outline, inner face) for ``"sunken-outside"``, whose
+    bevel is. *mirrored* is the bottom/right band, the same three colours
+    with the outer and inner ends swapped. Each band is checked by
+    `assert_edge_band_pixels`, so *size* is the tile's length along the edge
+    (6 for the button/frame/lineedit tiles, 10 for the scroll bar). *prefix*
+    names the state (``"normal"``, ``"slider"``); pass ``""`` for an
+    unprefixed SVG. *case* is the calling ``unittest.TestCase``.
     """
     sep = "-" if prefix else ""
     for side in ("top", "bottom", "left", "right"):

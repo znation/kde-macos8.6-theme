@@ -89,6 +89,20 @@ FIELD_BORDER_RUNS = (
     ((100, 351), "#FFFFFF"),
 )
 
+# The field's corner pixels in the same screenshot. The top-right outer pixel
+# is the window face #CCCCCC: the top shadow stops one pixel short of the
+# outer highlight, so the field's top-right corner tile leaves it unpainted.
+# The #000000 outline runs the full height of both bottom corner tiles, so its
+# bottom-left pixel is black rather than the bottom/right highlight.
+FIELD_CORNER_PIXELS = (
+    ((28, 58), "#999999"),
+    ((431, 58), "#CCCCCC"),
+    ((28, 351), "#999999"),
+    ((29, 351), "#000000"),
+    ((430, 351), "#000000"),
+    ((431, 351), "#FFFFFF"),
+)
+
 
 class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = os.path.join(
@@ -101,6 +115,13 @@ class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
         # than trust the SVG comment: the outer ring is the bevel, the inner
         # ring the #000000 outline, and the face #FFFFFF.
         for (x, y), colour in FIELD_BORDER_RUNS:
+            self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
+
+    def test_corners_match_the_reference(self):
+        # The corner tiles are easy to get subtly wrong: the bottom outline
+        # must reach the bottom row, and the top-right outer pixel is the
+        # window face, not the shadow. Re-derive each from the reference.
+        for (x, y), colour in FIELD_CORNER_PIXELS:
             self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
 
 
