@@ -28,7 +28,58 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Correct the `[Colors:Selection]` anchor's provenance: the reference region is the Setup Assistant's Introduction banner, not a list selection (planned 2026-10-19 by the plan role)
+
+**Goal.** `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background`
+grounds `[Colors:Selection] BackgroundNormal=204,204,255` in `firstboot_betawiki.png`, but its
+comment calls the sampled region "the Setup Assistant's list selection ... a full-width
+highlighted row". The region is the Setup Assistant window's "Introduction" title banner: a flat
+`#CCCCFF` band spanning roughly x=31..428, y=61..85, under the `#000000` rule at y=59 and the
+`#FFFFFF` highlight at y=60 (verified with `tools/sample.py`). `tests/support/platinum_palette.py`
+compounds the error, calling the selection fill one of the "KDE-required `[Colors:Tooltip]` and
+`[Colors:Selection]` roles no screenshot shows" — a claim `test_selection_background` itself
+contradicts. Correct both to state what the reference shows, and widen the anchor so it pins the
+banner's flat extent rather than a single pixel.
+
+**Approach.**
+- `tests/test_colorscheme_reference.py`:
+  - Reword the `REFERENCE_FIRSTBOOT` comment: the sampled region is the Setup Assistant's flat
+    `#CCCCFF` "Introduction" banner, not a list selection, and note that it is the reference
+    set's flat `#CCCCFF` region.
+  - In `test_selection_background`, reword the comment and assert the fill is flat across the
+    banner by calling
+    `assert_anchor_at("Colors:Selection", "BackgroundNormal", ..., path=REFERENCE_FIRSTBOOT)` at
+    `(100, 63)`, `(200, 63)`, `(300, 63)` and `(200, 80)` (all inside the band, clear of its
+    text), and one call for the same point with key `BackgroundAlternate`, which the scheme sets
+    to the same `204,204,255`.
+  - Reword the class docstring's "``firstboot_betawiki.png`` for the selection anchor" clause to
+    name the Introduction banner.
+- `tests/support/platinum_palette.py`: rewrite the module docstring so the selection fill is
+  grounded by `test_colorscheme_reference.TestReferenceAnchors.test_selection_background` in the
+  Setup Assistant's Introduction banner (`firstboot_betawiki.png`) and only the tooltip face is
+  the KDE-required role no screenshot shows; update the `SELECTION` comment to name that
+  reference.
+- `macos8.6-screenshots/sources.txt`: extend the `firstboot_betawiki.png` entry with a grounding
+  note (the Setup Assistant's Introduction banner is the flat `#CCCCFF` band at y=61..85 that
+  grounds `[Colors:Selection] BackgroundNormal`), mirroring the `setup_emaculation.png` entry.
+
+**Files touched.** `tests/test_colorscheme_reference.py`, `tests/support/platinum_palette.py`,
+`macos8.6-screenshots/sources.txt`.
+
+**Acceptance criteria.**
+- `python3 tools/sample.py macos8.6-screenshots/firstboot_betawiki.png 100 63` (and `300 63`,
+  `200 80`) prints `204,204,255 #CCCCFF`, and
+  `python3 tools/sample.py macos8.6-screenshots/firstboot_betawiki.png 200 59` prints
+  `0,0,0 #000000`.
+- `TestReferenceAnchors.test_selection_background` asserts the scheme's `BackgroundNormal` and
+  `BackgroundAlternate` at all four banner points and still skips (not fails) when the Git-LFS
+  reference is not materialized, through the existing `pixel`/`skip_unless_materialized` path.
+- `tests/test_colorscheme_reference.py` and `tests/support/platinum_palette.py` no longer call
+  the sampled region a "list selection" or claim `[Colors:Selection]` is a role "no screenshot
+  shows".
+- `macos8.6-screenshots/sources.txt`'s `firstboot_betawiki.png` entry names the selection anchor
+  and `python3 tools/check_references.py` still accepts the record.
+- `make check` is green.
 
 ## Done
 
