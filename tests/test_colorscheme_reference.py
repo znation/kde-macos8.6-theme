@@ -45,7 +45,7 @@ REFERENCE_SCROLLBAR = SETUP_REFERENCE
 # bound here must raise the matching shared constant, or its pixel read fails
 # the out-of-bounds check in ``pixel``.
 DESKTOP_ANCHOR_ROWS = ARCHIVEORG_MAX_ROWS  # deepest desktop anchor is (470, 300)
-FIRSTBOOT_ANCHOR_ROWS = FIRSTBOOT_MAX_ROWS  # deepest firstboot anchor is (431, 351)
+FIRSTBOOT_ANCHOR_ROWS = FIRSTBOOT_MAX_ROWS  # deepest firstboot anchor is (431, 377)
 SCROLLBAR_ANCHOR_ROWS = SETUP_MAX_ROWS  # deepest scrollbar anchor is (200, 477)
 
 

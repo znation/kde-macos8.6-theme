@@ -32,7 +32,7 @@ from svg_assertions.faces import sunken_outside_face_corners
 REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
-FIELD_BOTTOM = 351
+FIELD_BOTTOM = 377
 MAX_ROWS = FIELD_BOTTOM + 1
 
 # The field's border runs, read from the outside in: the bevel's outer pixel,
@@ -51,16 +51,19 @@ FIELD_BORDER_RUNS = (
     ((429, 150), "#FFFFFF"),
     ((430, 150), "#000000"),
     ((431, 150), "#FFFFFF"),
-    # bottom border at x=100: face, outline, outer highlight
-    ((100, 349), "#FFFFFF"),
-    ((100, 350), "#000000"),
-    ((100, 351), "#FFFFFF"),
+    # bottom border at x=100: outline, outer highlight
+    ((100, 376), "#000000"),
+    ((100, 377), "#FFFFFF"),
 )
 
 # The field's four 2x2 corners, row-major from the field's top-left pixel.
 # The top-right outer pixel (431,58) is the window face #CCCCCC: the top
 # shadow stops one pixel short of the outer highlight, so that corner leaves
-# it unpainted, and the shipped corner tile does too.
+# it unpainted, and the shipped corner tile does too. The field's true bottom
+# is y=377: the bottom-left outer pixel (28,377) is the window face #CCCCCC
+# (the highlight starts one pixel in at (29,377)), and the bottom-right
+# outline stops one row short at (430,376), leaving (430,377) to the
+# highlight.
 FIELD_CORNER_PIXELS = (
     ((28, 58), "#999999"),
     ((29, 58), "#999999"),
@@ -70,14 +73,14 @@ FIELD_CORNER_PIXELS = (
     ((431, 58), "#CCCCCC"),
     ((430, 59), "#000000"),
     ((431, 59), "#FFFFFF"),
-    ((28, 350), "#999999"),
-    ((29, 350), "#000000"),
-    ((28, 351), "#999999"),
-    ((29, 351), "#000000"),
-    ((430, 350), "#000000"),
-    ((431, 350), "#FFFFFF"),
-    ((430, 351), "#000000"),
-    ((431, 351), "#FFFFFF"),
+    ((28, 376), "#999999"),
+    ((29, 376), "#000000"),
+    ((28, 377), "#CCCCCC"),
+    ((29, 377), "#FFFFFF"),
+    ((430, 376), "#000000"),
+    ((431, 376), "#FFFFFF"),
+    ((430, 377), "#FFFFFF"),
+    ((431, 377), "#FFFFFF"),
 )
 
 # One reference pixel per colour: the top-left shadow, the #000000 outline
@@ -150,8 +153,9 @@ class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
 
     def test_corners_match_the_reference(self):
         # The corners are easy to get subtly wrong: the top-right outer pixel
-        # is the window face, not the shadow, and both bottom corners carry
-        # the #000000 outline to their bottom row. Re-derive each pixel.
+        # is the window face, not the shadow, and the #000000 outline stops
+        # one row short of the bottom, whose outer row is the #FFFFFF
+        # highlight. Re-derive each pixel.
         for (x, y), colour in FIELD_CORNER_PIXELS:
             self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
 

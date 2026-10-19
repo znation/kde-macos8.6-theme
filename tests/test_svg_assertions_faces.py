@@ -78,7 +78,8 @@ class TestSunkenOutsideFaceCorners(unittest.TestCase):
         # so a swapped ring would weaken its test. Pin the full #DDDDDD
         # table, then check the #FFFFFF face substitutes only the face
         # pixels -- the fixed #FFFFFF bottom/right highlight must not move,
-        # and the unpainted top-right outer pixel stays unpainted.
+        # and the unpainted top-right and bottom-left outer pixels stay
+        # unpainted.
         sunken = sunken_outside_face_corners("#DDDDDD")
         self.assertEqual(
             sunken,
@@ -96,12 +97,12 @@ class TestSunkenOutsideFaceCorners(unittest.TestCase):
                 "bottomleft": (
                     "#999999", "#000000", "#DDDDDD",
                     "#999999", "#000000", "#000000",
-                    "#999999", "#000000", "#FFFFFF",
+                    None, "#FFFFFF", "#FFFFFF",
                 ),
                 "bottomright": (
                     "#DDDDDD", "#000000", "#FFFFFF",
                     "#000000", "#000000", "#FFFFFF",
-                    "#FFFFFF", "#000000", "#FFFFFF",
+                    "#FFFFFF", "#FFFFFF", "#FFFFFF",
                 ),
             },
         )

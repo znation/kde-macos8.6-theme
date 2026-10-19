@@ -205,10 +205,13 @@
        Assistant body text field): left (28,95)=#999999, (29,95)=#000000,
        (30,95)=#FFFFFF; top (100,58)=#999999, (100,59)=#000000,
        (100,60)=#FFFFFF; right (429,150)=#FFFFFF, (430,150)=#000000,
-       (431,150)=#FFFFFF; bottom (100,349)=#FFFFFF, (100,350)=#000000,
-       (100,351)=#FFFFFF. The top-right outer pixel is the window face
-       #CCCCCC at (431,58): the top shadow stops one pixel short of the
-       outer highlight, so that corner leaves it unpainted. -->
+       (431,150)=#FFFFFF; bottom (100,376)=#000000, (100,377)=#FFFFFF. The
+       top-right outer pixel is the window face #CCCCCC at (431,58): the top
+       shadow stops one pixel short of the outer highlight, so that corner
+       leaves it unpainted. The bottom-left outer pixel (28,377) is the
+       window face #CCCCCC too, so its highlight starts one pixel in at
+       (29,377)=#FFFFFF, and the bottom-right outline (430,376)=#000000
+       stops one row short. -->
   <g id="lineedit-normal-top" transform="translate(10,2170)">
     <rect x="0" y="0" width="30" height="1" fill="#999999"/>
     <rect x="0" y="1" width="30" height="1" fill="#000000"/>
@@ -238,12 +241,13 @@
     <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-normal-bottomleft" transform="translate(10,2590)">
-    <rect x="0" y="0" width="1" height="2" fill="#999999"/>
-    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-normal-bottomright" transform="translate(10,2650)">
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
   </g>
   <!-- The focused line edit paints the same field: Mac OS 8.6 text fields
        have no focus ring (the blinking caret is the focus cue). -->
@@ -276,12 +280,13 @@
     <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-focused-bottomleft" transform="translate(10,3130)">
-    <rect x="0" y="0" width="1" height="2" fill="#999999"/>
-    <rect x="1" y="0" width="1" height="2" fill="#000000"/>
+    <rect x="0" y="0" width="1" height="1" fill="#999999"/>
+    <rect x="1" y="0" width="1" height="1" fill="#000000"/>
+    <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="lineedit-focused-bottomright" transform="translate(10,3190)">
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
   </g>
   <g id="common-normal-top" transform="translate(10,3250)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
@@ -1374,8 +1379,8 @@
     <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="itemview-normal-bottomright" transform="translate(10,17890)">
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
   </g>
   <!-- The focused item view paints the same field: the reference item view
        has no separate focus ring. -->
@@ -1413,8 +1418,8 @@
     <rect x="1" y="1" width="1" height="1" fill="#FFFFFF"/>
   </g>
   <g id="itemview-focused-bottomright" transform="translate(10,18430)">
-    <rect x="0" y="0" width="1" height="2" fill="#000000"/>
-    <rect x="1" y="0" width="1" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="2" height="2" fill="#FFFFFF"/>
+    <rect x="0" y="0" width="1" height="1" fill="#000000"/>
   </g>
   <g id="itemview-pressed" transform="translate(10,18490)">
     <rect x="0" y="0" width="30" height="30" fill="#CCCCFF"/>

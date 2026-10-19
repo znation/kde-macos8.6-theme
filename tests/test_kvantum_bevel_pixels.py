@@ -230,21 +230,6 @@ def _lineedit_corners():
     }
 
 
-# The item view's bottom-left corner differs from the line edit's: the
-# reference shows the bottom highlight one pixel in from the left and the
-# outer bottom pixel as the window face (setup_emaculation.png
-# (22,478)=#CCCCCC, (23,478)=#FFFFFF), so the shipped tile leaves it
-# unpainted. Row-major in slice-local coordinates.
-_ITEMVIEW_BOTTOMLEFT = ("#999999", "#000000", None, "#FFFFFF")
-
-
-def _itemview_corners():
-    """Return the item view's 2x2 corner maps, its bottom-left overridden."""
-    corners = _lineedit_corners()
-    corners["bottomleft"] = _lineedit_corner_map(_ITEMVIEW_BOTTOMLEFT)
-    return corners
-
-
 class TestLineEditBevelPixels(unittest.TestCase):
     """Pin the line edit's sunken-outside field, not just its ids.
 
@@ -287,9 +272,8 @@ class TestItemViewBevelPixels(unittest.TestCase):
     `TestSvg` checks the state ids and the palette, which the old
     outline-outside art also passes; this renders each state's nine slices
     and compares them pixel for pixel, so an item view that keeps the outline
-    outside the bevel fails here. The field shares the line edit's geometry
-    except its bottom-left corner, which leaves the outer bottom pixel
-    unpainted.
+    outside the bevel fails here. The field shares the line edit's geometry,
+    including the unpainted outer bottom-left pixel.
     """
 
     def setUp(self):
@@ -301,7 +285,7 @@ class TestItemViewBevelPixels(unittest.TestCase):
             LINEEDIT_SIZE,
             LINEEDIT_SIZE,
         )
-        corners = _itemview_corners()
+        corners = _lineedit_corners()
         for state in ("normal", "focused"):
             prefix = f"itemview-{state}"
             with self.subTest(state=state):

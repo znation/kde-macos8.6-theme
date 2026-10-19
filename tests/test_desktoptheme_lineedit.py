@@ -85,24 +85,28 @@ FIELD_BORDER_RUNS = (
     ((429, 150), "#FFFFFF"),
     ((430, 150), "#000000"),
     ((431, 150), "#FFFFFF"),
-    # bottom border at x=100: face, outline, outer highlight
-    ((100, 349), "#FFFFFF"),
-    ((100, 350), "#000000"),
-    ((100, 351), "#FFFFFF"),
+    # bottom border at x=100: outline, outer highlight
+    ((100, 376), "#000000"),
+    ((100, 377), "#FFFFFF"),
 )
 
 # The field's corner pixels in the same screenshot. The top-right outer pixel
 # is the window face #CCCCCC: the top shadow stops one pixel short of the
 # outer highlight, so the field's top-right corner tile leaves it unpainted.
-# The #000000 outline runs the full height of both bottom corner tiles, so its
-# bottom-left pixel is black rather than the bottom/right highlight.
+# The field's true bottom is y=377: the bottom-left outer pixel (28,377) is
+# the window face #CCCCCC (the highlight starts one pixel in), and the
+# #000000 outline stops one row short of the bottom-right outer edge.
 FIELD_CORNER_PIXELS = (
     ((28, 58), "#999999"),
     ((431, 58), "#CCCCCC"),
-    ((28, 351), "#999999"),
-    ((29, 351), "#000000"),
-    ((430, 351), "#000000"),
-    ((431, 351), "#FFFFFF"),
+    ((28, 376), "#999999"),
+    ((29, 376), "#000000"),
+    ((28, 377), "#CCCCCC"),
+    ((29, 377), "#FFFFFF"),
+    ((430, 376), "#000000"),
+    ((431, 376), "#FFFFFF"),
+    ((430, 377), "#FFFFFF"),
+    ((431, 377), "#FFFFFF"),
 )
 
 
@@ -118,9 +122,10 @@ class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
             self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
 
     def test_corners_match_the_reference(self):
-        # The corner tiles are easy to get subtly wrong: the bottom outline
-        # must reach the bottom row, and the top-right outer pixel is the
-        # window face, not the shadow. Re-derive each from the reference.
+        # The corner tiles are easy to get subtly wrong: the #000000 outline
+        # stops one row short of the bottom row, and the top-right outer pixel
+        # is the window face, not the shadow. Re-derive each from the
+        # reference.
         for (x, y), colour in FIELD_CORNER_PIXELS:
             self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
 

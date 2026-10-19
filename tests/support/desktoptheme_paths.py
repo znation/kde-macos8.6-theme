@@ -83,9 +83,9 @@ SETUP_REFERENCE = os.path.join(
 SETUP_MAX_ROWS = 478
 
 # The Setup Assistant's "Introduction" banner and its line-edit field. The
-# deepest pixel any reader samples is the field's bottom border at y=351, so
-# 352 rows covers them all with a single cached decode.
+# deepest pixel any reader samples is the field's true bottom border at
+# y=377, so 378 rows covers them all with a single cached decode.
 FIRSTBOOT_REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
-FIRSTBOOT_MAX_ROWS = 352
+FIRSTBOOT_MAX_ROWS = 378

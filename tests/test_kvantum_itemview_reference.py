@@ -158,7 +158,7 @@ class TestItemViewReference(ReferenceScreenshotMixin, unittest.TestCase):
         # Derive the four field colours from one reference pixel each, then
         # require the shipped `itemview-normal` nine-slice to paint the
         # arrangement they describe: a white face, the bevel outside the
-        # outline, and the corner blocks the reference's top-left corner shows.
+        # outline, and the corner blocks the reference's clean corners show.
         colours = {
             name: hex_colour(self.pixel(x, y))
             for name, (x, y) in FIELD_ANCHORS.items()
@@ -193,14 +193,6 @@ class TestItemViewReference(ReferenceScreenshotMixin, unittest.TestCase):
         corners = {
             name: _corner_map(tuple(table[name][index] for index in indices))
             for name, indices in _OUTER_BLOCK_INDICES.items()
-        }
-        # The reference's bottom-left outer bottom pixel is the window face,
-        # so the shipped tile leaves it unpainted and paints the highlight
-        # one pixel in.
-        corners["bottomleft"] = {
-            (0, 0): colours["shadow"],
-            (1, 0): colours["outline"],
-            (1, 1): colours["highlight"],
         }
         for name, expected in corners.items():
             self.assertEqual(slices[f"{prefix}-{name}"], expected, name)

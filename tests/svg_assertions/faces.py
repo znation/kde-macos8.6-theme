@@ -120,10 +120,11 @@ def sunken_outside_face_corners(face):
     The reference field leaves the top-right outer pixel (2,0 of the
     top-right slice) unpainted -- the bevel's top shadow stops one pixel
     short of the outer highlight -- so that entry is ``None``, which
-    `assert_corner_pixels` matches against an unpainted pixel. The #000000
-    outline runs the full height of both bottom corner slices, so its
-    bottom-left pixel (1,2) is black rather than the bottom/right
-    highlight.
+    `assert_corner_pixels` matches against an unpainted pixel. Its true
+    bottom turns the same way: the bottom-left outer pixel (0,2 of the
+    bottom-left slice) is unpainted and the highlight starts one pixel in at
+    (1,2); the #000000 outline stops one row short of the bottom-right outer
+    edge, so its (1,2) pixel is the bottom/right highlight.
     """
     return {
         "topleft": (
@@ -139,12 +140,12 @@ def sunken_outside_face_corners(face):
         "bottomleft": (
             "#999999", "#000000", face,
             "#999999", "#000000", "#000000",
-            "#999999", "#000000", "#FFFFFF",
+            None, "#FFFFFF", "#FFFFFF",
         ),
         "bottomright": (
             face, "#000000", "#FFFFFF",
             "#000000", "#000000", "#FFFFFF",
-            "#FFFFFF", "#000000", "#FFFFFF",
+            "#FFFFFF", "#FFFFFF", "#FFFFFF",
         ),
     }
 

@@ -9,11 +9,13 @@
      Grounded in macos8.6-screenshots/firstboot_betawiki.png (retail Mac OS
      8.6 Setup Assistant body text field): left border (28,95)=#999999,
      (29,95)=#000000, (30,95)=#FFFFFF; right border (429,150)=#FFFFFF,
-     (430,150)=#000000, (431,150)=#FFFFFF; bottom border (100,349)=#FFFFFF,
-     (100,350)=#000000, (100,351)=#FFFFFF. The corners are grounded too: the
-     top-right outer pixel (431,58) is the window face #CCCCCC, so the top
-     shadow stops one pixel short of the highlight; the bottom-left and
-     bottom-right outline pixels (29,351) and (430,351) are #000000.
+     (430,150)=#000000, (431,150)=#FFFFFF; bottom border (100,376)=#000000,
+     (100,377)=#FFFFFF. The corners are grounded too: the top-right outer
+     pixel (431,58) is the window face #CCCCCC, so the top shadow stops one
+     pixel short of the highlight; the field's bottom-left outer pixel
+     (28,377) is the window face #CCCCCC, so its highlight starts one pixel
+     in at (29,377)=#FFFFFF; the bottom-right outline (430,376)=#000000
+     stops one row short, leaving (430,377)=#FFFFFF.
 
      Only the `base` prefix is defined. Mac OS 8.6 text fields have no hover
      highlight and no focus ring (the blinking caret is the focus cue), so a
@@ -73,15 +75,15 @@
     <rect x="1" y="2" width="1" height="1" fill="#000000"/>
   </g>
   <g id="base-bottomleft" transform="translate(0,9)">
-    <rect width="3" height="3" fill="#999999"/>
-    <rect x="1" y="0" width="1" height="3" fill="#000000"/>
-    <rect x="1" y="1" width="2" height="1" fill="#000000"/>
-    <rect x="2" y="0" width="1" height="1" fill="#FFFFFF"/>
-    <rect x="2" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect width="1" height="2" fill="#999999"/>
+    <rect x="1" width="1" height="2" fill="#000000"/>
+    <rect x="2" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="2" width="2" height="1" fill="#FFFFFF"/>
   </g>
   <g id="base-bottomright" transform="translate(9,9)">
     <rect width="3" height="3" fill="#FFFFFF"/>
-    <rect x="1" y="0" width="1" height="3" fill="#000000"/>
+    <rect x="1" width="1" height="2" fill="#000000"/>
     <rect x="0" y="1" width="2" height="1" fill="#000000"/>
   </g>
 </svg>
