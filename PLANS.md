@@ -28,7 +28,63 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Mac OS 8.6 Platinum progress bar: paint the reference's vertical gradient in `bar_meter_horizontal.svg` (planned 2026-10-18 by the plan role)
+
+**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/bar_meter_horizontal.svg` paints its
+`bar-active` fill as a flat `#9B9BEA` face with a `#9A9A9A`/`#7878D1` bevel, sampled from the
+low-resolution boot thumbnail `boot2_betawiki.png`. Mac OS 8.6's progress-bar fill is a vertical
+gradient — dark at the top and bottom, `#CBCCFF` at the centre — and the lossless 2x reference
+`macos8.6-screenshots/desktop_fandom.png` resolves all ten rows of it. Paint that gradient so the
+Plasma progress bar matches the reference instead of a flat fill.
+
+**Reference.** `desktop_fandom.png` (2 image px per logical px), the "Mac OS 30.4 MB" memory meter
+of the About This Computer window. The fill spans x=1458..1817, y=1230..1249. Its interior column
+x=1600 has, at image rows 1230, 1232, 1234, 1236, 1238, 1240, 1242, 1244, 1246, 1248:
+`#515372`, `#666799`, `#8484BB`, `#B0B0EB`, `#CBCCFF`, `#B2B2E8`, `#8586BC`, `#66679B`, `#50527F`,
+`#24244D`. The fill's 1px left edge column is `#68688D` ((1458, 1238)) and its 1px right edge
+column `#50527F` ((1816, 1238)). The boot2 fill rows at x=102, y=99..102 (`#7D7D9A`, `#9B9BEA`,
+`#7878D1`, `#83839D`) are the same gradient downscaled, so the two references agree.
+
+**Approach.**
+- `widgets/bar_meter_horizontal.svg`: leave `bar-inactive` (the track) unchanged. Replace the
+  `bar-active` flat face and its `#9A9A9A`/`#7878D1` bevel with the ten sampled rows: in the
+  `bar-active-top` (rows 0-2), `bar-active-center` (rows 3-6) and `bar-active-bottom` (rows 7-9)
+  tiles one 4x1 rect per row carrying that row's colour, and in each of the four corner tiles and
+  the `bar-active-left`/`bar-active-right` tiles the same per-row rects (3px wide) plus one 1x3 or
+  1x4 rect on the outer column carrying `#68688D` (left) or `#50527F` (right). Keep the 3px border
+  around a 4px centre tile, the 10x10 canvas and the `hint-bar-size` 10x10 hint.
+- Rewrite the header comment's fill paragraph: the fill is the reference's vertical gradient
+  sampled from `desktop_fandom.png` at the ten pixels above, with the two edge columns sampled at
+  (1458, 1238) and (1816, 1238); the boot2 pixels are the downscaled evidence. Record the
+  deviations: the reference's 1px `#000000` outline and its ~12px total height are not drawn (the
+  bar keeps the 10px canvas), and the edge columns are painted flat rather than row by row.
+- `tests/test_desktoptheme_progressbar.py`: replace `FILL_FACE`/`FILL_LIGHT` with a ten-colour
+  `FILL_ROWS` table and the two edge constants; `_assert_bar_pixels` builds the top/centre/bottom
+  bands and the corner expectations from the table; `test_progressbar_colours` expects the parsed
+  fill set of the track's three colours plus the eleven distinct fill colours. Keep the existing
+  `TestProgressBarReference` (the boot2 track) for the three track colours and drop its two fill
+  pixels; add a second reference class whose `REFERENCE` is `desktop_fandom.png`,
+  `MAX_ROWS = 1250`, sampling the ten interior rows and the two edge columns and comparing each to
+  the artwork's own parsed fill.
+- `README.md`: the `widgets/bar_meter_horizontal.svg` sentence says a lavender-to-white vertical
+  gradient fill instead of "a lavender fill".
+- `docs/invariants.md`: the `widgets/bar_meter_horizontal.svg` guarantee ("draws the Platinum
+  progress bar") is unchanged; no provenance exception is needed because every fill colour is
+  reference-sampled.
+
+**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/bar_meter_horizontal.svg`,
+`tests/test_desktoptheme_progressbar.py`, `README.md`.
+
+**Acceptance criteria.**
+- The `bar-active` fill's ten rows are exactly the ten sampled `desktop_fandom.png` colours and the
+  left/right edge columns are `#68688D`/`#50527F`, asserted slice by slice.
+- A reference test re-derives all ten row colours and the two edge colours from
+  `desktop_fandom.png` and skips when the Git LFS image is not materialized.
+- `bar-inactive`'s track pixels and the 10x10 nine-slice contract (`hint-tile-center`,
+  `hint-bar-size`) are unchanged.
+- The header comment names `desktop_fandom.png` and the sampled pixels and no longer calls the
+  fill a flat `#9B9BEA` face.
+- `make check` is green.
 
 ## Done
 
