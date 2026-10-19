@@ -28,7 +28,74 @@ cursor, so no pixel ground truth exists to match); and **system sounds** are out
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
 
-_None yet._
+### Ground the Aurorae inactive frame in the reference's inactive windows (planned 2026-10-19 by the plan role)
+
+**Goal.** The `decoration-inactive` nine-slice and its header comment claim "the reference set has
+no inactive window" and therefore paint KDE-required greys: the active tile's
+`#FFFFFF`/`#777777` pinstripes and `#CCCCCC` field flattened to `#CCCCCC`, keeping the `#000000`
+outlines and the `#999999` shadow. The reference set does show inactive windows:
+`macos8.6-screenshots/desktop_fandom.png` (retail 8.6, the image the tabbar and progressbar
+already sample) shows four unfocused windows (the "Mac OS 8.6", "Utilities", "Applications" and
+"Apple System Profiler" windows), and the lossless beta `macos8.6-screenshots/
+systeminfo_betawiki.png` shows a fifth behind the active "System Info" window. Their frame is a
+1px `#555555` outline around a flat `#DDDDDD` field, with no pinstripes, no white highlight and
+no `#999999` shadow (verified with `tools/sample.py`; the scheme's own
+`[WM] inactiveBackground=221,221,221` agrees). Correct the art and the provenance, and pin the
+inactive frame to the reference pixels.
+
+**Approach.**
+- `theme/aurorae/themes/org.macos8.desktop/decoration.svg`: rewrite every `decoration-inactive-*`
+  tile to the reference's flat inactive frame — a 1px `#555555` outline on the outer edge (the
+  top row of `decoration-inactive-top`, the outer column/row of the side and bottom tiles, and
+  the outer corner pixels) and `#DDDDDD` everywhere inside; drop the `#000000` outlines, the
+  `#999999` shadow and the `#CCCCCC` highlight/field. Keep the active geometry (18x34 canvas, 6px
+  side/bottom border, 22px top border, 6x6 centre). Recompress `decoration.svgz` (`gzip -9 -n`)
+  so `test_svgz_is_the_compressed_svg` still passes.
+- Reword the `decoration.svg` header comment: name `desktop_fandom.png` (2 image px per logical
+  px) as the inactive anchor and `systeminfo_betawiki.png` as lossless corroboration, state the
+  flat `#DDDDDD` field with the 1px `#555555` outline, and delete the "the reference set has no
+  inactive window" clause.
+- `tests/support/aurorae_fixtures.py`: add `INACTIVE_REFERENCE` (`desktop_fandom.png`, with a row
+  bound covering y=900), `INACTIVE_FRAME_GREY = "#DDDDDD"` and `INACTIVE_OUTLINE = "#555555"`;
+  keep `INACTIVE_GREY = "#CCCCCC"` for the button boxes. Load `INACTIVE_REFERENCE` in
+  `ReferenceImageCase.setUpClass` (skip when unmaterialized, like `REFERENCE`) and add an
+  `inactive_pixel(x, y)` accessor.
+- `tests/test_aurorae_frame.py`: replace `_assert_flattened_inactive_tile` and its callers with
+  reference-derived checks; add `TestDecorationSvg.test_inactive_frame_matches_reference`, which
+  asserts the rendered `decoration-inactive-*` slices contain no `#FFFFFF`, `#777777`, `#999999`
+  or `#CCCCCC` pixel and that the field is `#DDDDDD` and the outer edge `#555555`, cross-checked
+  against `inactive_pixel(300, 75)`, `(1000, 130)`, `(1500, 80)`, `(300, 880)` (`#DDDDDD`) and
+  `(300, 56)`, `(24, 75)` (`#555555`). Reword the module docstring and
+  `test_inactive_top_tile_is_flat_grey` so they name the reference instead of claiming none
+  exists.
+- `theme/aurorae/themes/org.macos8.desktop/close.svg`, `maximize.svg`, `restore.svg`, `shade.svg`
+  and `tests/test_aurorae_buttons.py`: replace each "the reference set has no inactive window"
+  clause with the accurate one — the reference's inactive windows draw no close/collapse boxes in
+  their title bars, so the greyed inactive box stays KDE-required. No art change; `INACTIVE_GREY`
+  and the button tests are unchanged.
+- `macos8.6-screenshots/sources.txt`: extend the `desktop_fandom.png` note to record that it
+  grounds the inactive window frame (the flat `#DDDDDD` title bar and 1px `#555555` outline of its
+  four unfocused windows).
+- `docs/invariants.md`: update the aurorae frame row to name the inactive reference, and the
+  title-bar-box row so its inactive grey is recorded as KDE-required rather than re-derived.
+
+**Files touched.** `theme/aurorae/themes/org.macos8.desktop/decoration.svg` (+ `.svgz`),
+`theme/aurorae/themes/org.macos8.desktop/close.svg`, `maximize.svg`, `restore.svg`, `shade.svg`,
+`tests/support/aurorae_fixtures.py`, `tests/test_aurorae_frame.py`,
+`tests/test_aurorae_buttons.py`, `macos8.6-screenshots/sources.txt`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The `decoration-inactive-*` tiles paint only `#DDDDDD` and `#555555`, with `#555555` on the
+  outer edge; no `#FFFFFF`, `#777777`, `#999999` or `#CCCCCC` pixel remains in them.
+- `python3 tools/sample.py macos8.6-screenshots/desktop_fandom.png 300 75` (and `1000 130`,
+  `1500 80`, `300 880`) prints `221,221,221 #DDDDDD`; `... 300 56` and `... 24 75` print
+  `85,85,85 #555555`.
+- `TestDecorationSvg.test_inactive_frame_matches_reference` passes when `desktop_fandom.png` is
+  materialized and skips (not fails) when it is not, through the `skip_unless_materialized` path.
+- No Aurorae SVG header or Aurorae test docstring still claims the reference set has no inactive
+  window.
+- `decoration.svgz` decompresses to the edited `decoration.svg`.
+- `make check` is green.
 
 ## Done
 
