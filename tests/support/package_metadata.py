@@ -11,6 +11,9 @@ Aurorae suite does not subclass it but calls the module-level helpers
 
 import json
 
+from support import containment
+from support.repo_root import ROOT
+
 
 def load_metadata(path):
     """Read the JSON object at *path*, naming the file when it is not one.
@@ -26,8 +29,14 @@ def load_metadata(path):
     the path too. A file that cannot be read at all -- a missing file, a
     dangling symlink, a directory, a permission error -- surfaces as a bare
     ``OSError`` naming neither the guard nor the file's role, so that is
-    rejected with the path as well.
+    rejected with the path as well. A metadata.json is contributor-supplied,
+    and a checked-in symlink can point at a private file; the mixin's field
+    assertions echo a value from the parsed object, so following such a
+    symlink would leak that file's content into a failing test's diagnostic.
+    A path that resolves outside the repository is refused before it is
+    opened.
     """
+    containment.require_within_repo(path, ROOT)
     try:
         with open(path, encoding="utf-8") as handle:
             metadata = json.load(handle)

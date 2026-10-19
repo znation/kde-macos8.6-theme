@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/support/package_metadata.py`'s `load_metadata` follows a symlinked `metadata.json` outside the repository (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** a checked-in `metadata.json` that is a symlink to a private JSON file outside the
+repository is opened and parsed. The `PackageMetadata` mixin then asserts the parsed object's
+fields, and a failing `assertEqual` echoes the actual value, so the private file's content can
+appear in a test diagnostic. The security sweep guarded `support/kde_config.read`,
+`header_comment` and `SvgCase.setUp` against exactly this symlink escape but left this reader
+unguarded.
+
+**Reproduction:**
+`tests/test_package_metadata.py::TestLoadMetadataContainment::test_rejects_a_symlink_that_escapes_the_repository`
+makes a `metadata.json` symlink inside a repository root that points at a private sibling and
+calls `load_metadata`; before the fix the private object came back and no `ValueError` was raised.
+
+**Cause:** `load_metadata` called `open(path)` with no containment check, so `json.load` read the
+symlink's target.
+
+**Fix:** `load_metadata` now calls `containment.require_within_repo(path, ROOT)` before opening,
+so a `metadata.json` that resolves outside the repository is refused with the path named, matching
+the other contributor-supplied readers.
+
+**Validation gap:** no-fake — the suite never created a symlinked `metadata.json`, so confirming
+the escape needed a symlink fixture and a patched repository root that did not exist.
+
 ### `tests/invariants.py`'s `cross_check` lets an unreadable register escape as a bare `OSError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** when `docs/invariants.md` is missing, is a directory or is otherwise unreadable,
