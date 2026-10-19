@@ -331,8 +331,22 @@ def _scheme_hex(parser, section, name):
 
 
 def _resolved(parser, section, key):
-    """Return *section*'s *key* following `inherits` until it is found."""
+    """Return *section*'s *key* following `inherits` until it is found.
+
+    A malformed `.kvconfig` can make the `inherits` chain loop (``[A]``
+    inherits ``B`` and ``[B]`` inherits ``A``) with *key* defined by neither
+    section; the walk would then never reach a leaf, hanging the suite with no
+    diagnostic. The walk stops at the first repeated section and raises
+    instead, naming the cycle.
+    """
+    seen: set[str] = set()
     while section is not None:
+        if section in seen:
+            raise ValueError(
+                f"cyclic inherits chain in {section!r}: section reached twice "
+                f"while resolving {key!r}"
+            )
+        seen.add(section)
         if parser.has_option(section, key):
             return parser.get(section, key)
         if parser.has_option(section, "inherits"):

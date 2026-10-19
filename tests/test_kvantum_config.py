@@ -11,7 +11,10 @@ selection.
 
 from __future__ import annotations
 
+import subprocess
+import sys
 import unittest
+from pathlib import Path
 
 from support.kde_config import read as read_kde_config
 from support.kvantum_config_spec import (
@@ -66,6 +69,42 @@ class TestGeneral(unittest.TestCase):
         self.assertEqual(
             _resolved(parser, "ScrollbarSlider", "indicator.size"), "13"
         )
+
+
+class TestResolvedCycle(unittest.TestCase):
+    """A cyclic `inherits` chain must fail, not hang the suite.
+
+    `_resolved` follows `inherits` from section to section until it finds the
+    key. A malformed `.kvconfig` whose chain loops (``A -> B -> A``) with the
+    key defined by neither section made that walk never terminate, stalling
+    `make check` with no diagnostic. The walk now stops at the repeated
+    section; run it in a child so a regression fails the test at its timeout
+    instead of hanging the suite, and require the cycle to be named.
+    """
+
+    def test_a_cyclic_inherits_chain_fails_instead_of_hanging(self):
+        script = (
+            "import configparser, sys\n"
+            "sys.path.insert(0, sys.argv[1])\n"
+            "from support.kvantum_config_spec import _resolved\n"
+            "parser = configparser.ConfigParser(interpolation=None)\n"
+            "parser.optionxform = str\n"
+            "parser.read_string('[A]\\ninherits=B\\n[B]\\ninherits=A\\n')\n"
+            "_resolved(parser, 'A', 'frame.top')\n"
+        )
+        child = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                script,
+                str(Path(__file__).resolve().parent),
+            ],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        self.assertNotEqual(child.returncode, 0)
+        self.assertIn("cyclic inherits chain", child.stderr)
 
 
 class TestFrameMargins(unittest.TestCase):
