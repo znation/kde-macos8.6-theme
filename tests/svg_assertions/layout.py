@@ -134,8 +134,8 @@ def assert_slices_stay_within_their_tiles(case, tree, prefixes, hint_aliases=Non
     A margin hint names a border: for a horizontal edge its height is the
     border's thickness, and for a vertical edge its width is. The edge tile
     spans the canvas between the two opposite borders, so the top tile is
-    ``canvas_width - left_border - right_border`` wide and ``top_border``
-    tall (and so on); the centre is the canvas inside all four borders.
+    ``canvas_w - left_w - right_w`` wide and ``top_h`` tall (and so on);
+    the centre is the canvas inside all four borders.
     `render_slices` reports each slice in its group's local coordinates, so
     the tile region starts at the local origin and this only needs the sizes.
     `render_slices` composites every rect a slice's group holds, so a rect
