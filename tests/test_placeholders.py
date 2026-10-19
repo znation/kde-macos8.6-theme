@@ -127,6 +127,19 @@ class TestHelpers(unittest.TestCase):
         with self.assertRaisesRegex(AssertionError, "symlink escape"):
             markers(tmp)
 
+    def test_markers_rejects_a_dangling_symlink_within_the_theme_root(self):
+        # A symlink whose target lies inside theme/ passes the escape guard,
+        # but a target that does not exist makes open() raise
+        # FileNotFoundError. The checker must report the unreadable asset as
+        # its own AssertionError naming the path, not abort the run with a bare
+        # OSError traceback.
+        tmp = make_tmp_dir(self)
+        path = tmp / "theme" / "link.svg"
+        path.parent.mkdir(parents=True)
+        path.symlink_to(tmp / "theme" / "missing.svg")
+        with self.assertRaisesRegex(AssertionError, "cannot be read"):
+            markers(tmp)
+
     def test_register_entries_parses_the_table(self):
         tmp = make_tmp_dir(self)
         register = self._write_register(tmp, {os.path.join("theme", "a.svg"): "an a"})

@@ -67,7 +67,10 @@ def _marker_text(path):
     UTF-8 text (a binary committed under a text extension, an editor writing
     Latin-1) raises the checker's own :class:`AssertionError` naming *path*,
     instead of escaping as a codec ``UnicodeDecodeError`` that names neither
-    the checker nor the file.
+    the checker nor the file. A file that cannot be read at all -- a dangling
+    symlink whose target resolves inside ``theme/``, a permission error --
+    raises the same :class:`AssertionError` naming *path*, instead of a bare
+    ``OSError`` aborting the check.
     """
     try:
         with open(path, encoding="utf-8") as handle:
@@ -81,6 +84,8 @@ def _marker_text(path):
                 return text
     except UnicodeDecodeError as exc:
         raise AssertionError(f"{path} is not valid UTF-8 text: {exc}") from exc
+    except OSError as exc:
+        raise AssertionError(f"{path} cannot be read: {exc}") from exc
     return None
 
 

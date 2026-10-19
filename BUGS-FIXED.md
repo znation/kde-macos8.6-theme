@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/placeholders.py` lets a dangling symlink inside `theme/` escape as a bare `FileNotFoundError` (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** a text asset under `theme/` that is a symlink to a nonexistent
+target *inside* `theme/` passes the symlink-escape guard (the resolved path is
+contained), but `_marker_text` then opens it and raises a bare
+`FileNotFoundError`. The module documents that an unreadable asset fails as
+the checker's own `AssertionError` naming the path; instead the run aborts
+with an unrelated traceback that does not name the checker.
+
+**Reproduction:**
+`tests/test_placeholders.py::TestHelpers::test_markers_rejects_a_dangling_symlink_within_the_theme_root`
+builds a synthetic theme root whose `theme/link.svg` points at
+`theme/missing.svg` and calls `markers`; before the fix it errored with
+`FileNotFoundError` instead of the expected `AssertionError`.
+
+**Cause:** `_marker_text` caught only `UnicodeDecodeError`, so an `OSError`
+from `open` (the dangling symlink, or any unreadable asset) escaped the
+checker.
+
+**Fix:** `_marker_text` now catches `OSError` alongside `UnicodeDecodeError`
+and raises `AssertionError` naming the path (`cannot be read`), matching its
+documented contract and the symlink-escape guard's handling.
+
+**Validation gap:** no-fake — confirming it needed a synthetic theme root
+carrying a dangling symlink that resolves inside `theme/`, a fixture the suite
+did not have.
+
 ### `make check`'s `CHECK_PATTERN` guard accepts a pattern with surrounding whitespace that then matches no test module (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** `make check CHECK_PATTERN=' test_byteops.py '` passed the `require_check_pattern`
