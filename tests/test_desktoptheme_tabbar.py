@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
 from support.desktoptheme_paths import TABBAR_SVG
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_band_pixels,
@@ -42,6 +48,11 @@ EDGE_BANDS = {
     "bottom": BOTTOM_RIGHT_BAND,
     "right": BOTTOM_RIGHT_BAND,
 }
+
+
+def _svg_text(path):
+    """Read contributor-supplied SVG text, refusing a symlink escape."""
+    return containment.read_text(path, ROOT)
 
 
 def band_rows(band):
@@ -124,8 +135,7 @@ class TestTabBar(NineSliceCase, unittest.TestCase):
     def test_tabbar_palette(self):
         # Read the raw file for the palette: the tab's hints deliberately
         # avoid the Platinum colours, so every hit here comes from the artwork.
-        with open(TABBAR_SVG, encoding="utf-8") as handle:
-            text = handle.read()
+        text = _svg_text(TABBAR_SVG)
         for colour in ("#CCCCCC", "#EEEEEE", "#FFFFFF", "#999999", "#000000"):
             self.assertIn(colour, text)
 
@@ -172,6 +182,30 @@ class TestTabBar(NineSliceCase, unittest.TestCase):
             attribute_values(self.tree, "fill"),
             {"#000000", "#CCCCCC", "#EEEEEE", "#FFFFFF", "#999999"},
         )
+
+
+class TestPaletteReadContainment(unittest.TestCase):
+    """The raw palette read refuses a symlink that escapes the repository.
+
+    `test_tabbar_palette` feeds the file's text to `assertIn`, which echoes the
+    whole text when a colour is missing, so a checked-in `tabbar.svg` symlink
+    resolving outside the repository must be refused before it is opened.
+    """
+
+    def test_palette_read_refuses_an_escaping_symlink(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.svg"
+            secret.write_text("PRIVATE-SECRET-TEXT", encoding="utf-8")
+            link = root / "tabbar.svg"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    _svg_text(link)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("PRIVATE-SECRET-TEXT", str(caught.exception))
 
 
 # The retail 8.6 System Profiler window's selected first tab

@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.desktoptheme_paths import FRAME_SVG
 from support.nine_slice_case import NineSliceCase
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
@@ -20,6 +26,11 @@ from svg_assertions import (
 
 
 FRAME_PREFIXES = ("plain", "raised", "sunken")
+
+
+def _svg_text(path):
+    """Read contributor-supplied SVG text, refusing a symlink escape."""
+    return containment.read_text(path, ROOT)
 
 
 # Every pixel of each raised/sunken 3x3 corner slice, row-major in slice-local
@@ -52,8 +63,7 @@ class TestFrame(NineSliceCase, unittest.TestCase):
     def test_frame_palette(self):
         # Read the raw file for the palette: the frame's hints deliberately
         # avoid the Platinum colours, so every hit here comes from the artwork.
-        with open(FRAME_SVG, encoding="utf-8") as handle:
-            text = handle.read()
+        text = _svg_text(FRAME_SVG)
         for colour in ("#DDDDDD", "#FFFFFF", "#999999", "#000000"):
             self.assertIn(colour, text)
 
@@ -96,6 +106,30 @@ class TestFrame(NineSliceCase, unittest.TestCase):
             assert_edge_bevels(self, slices, prefix, outward, mirrored)
             # The centre tile is one body rect, so every pixel is the face.
             assert_center_tile_is(self, slices, f"{prefix}-center", "#DDDDDD", size=6)
+
+
+class TestPaletteReadContainment(unittest.TestCase):
+    """The raw palette read refuses a symlink that escapes the repository.
+
+    `test_frame_palette` feeds the file's text to `assertIn`, which echoes the
+    whole text when a colour is missing, so a checked-in `frame.svg` symlink
+    resolving outside the repository must be refused before it is opened.
+    """
+
+    def test_palette_read_refuses_an_escaping_symlink(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.svg"
+            secret.write_text("PRIVATE-SECRET-TEXT", encoding="utf-8")
+            link = root / "frame.svg"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    _svg_text(link)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("PRIVATE-SECRET-TEXT", str(caught.exception))
 
 
 if __name__ == "__main__":
