@@ -3,7 +3,7 @@
 Temporary stand-in assets shipped so the theme's plumbing works end to end. Each
 is our own generic art, not a reproduction of Apple's Platinum artwork (see the
 2026-10-18 answer in QUESTIONS.md). A placeholder asset carries a `PLACEHOLDER:`
-comment marker naming what it stands in for; `tests/test_placeholders.py`
+comment marker naming what it stands in for; `tests/placeholders.py`
 cross-checks this table against those markers, so a new placeholder added
 without a row fails `make check`.
 

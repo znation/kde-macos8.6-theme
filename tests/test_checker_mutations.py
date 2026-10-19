@@ -16,13 +16,13 @@ import unittest
 
 from invariants import REJECTION_SHAPES as INVARIANTS_REJECTION_SHAPES
 from invariants import cross_check as invariants_cross_check
+from placeholders import REJECTION_SHAPES as PLACEHOLDER_REJECTION_SHAPES
+from placeholders import cross_check as placeholders_cross_check
 from support.checker_mutations import (
     INVARIANTS_MUTATIONS,
     PLACEHOLDER_MUTATIONS,
     Scratch,
 )
-from test_placeholders import REJECTION_SHAPES as PLACEHOLDER_REJECTION_SHAPES
-from test_placeholders import cross_check as placeholders_cross_check
 
 
 class TestCheckerMutations(unittest.TestCase):

@@ -2,7 +2,7 @@
 
 Each checker enforces a boundary the shipped data happens not to cross:
 ``tests/invariants.py``'s register parser and reference resolver, and
-``tests/test_placeholders.py``'s marker scanner. Twelve Fixed entries share one
+``tests/placeholders.py``'s marker scanner. Twelve Fixed entries share one
 mechanism -- a checker silently accepted or dropped a malformed input the
 shipped records never contained, so no test or real run could surface the bug.
 This module derives one named mutation per boundary from a copy of the real
@@ -283,7 +283,7 @@ def _observe_placeholder(asset):
     """Return an ``observe`` that the marker scanner found the marked file *asset*."""
 
     def observe(scratch):
-        from test_placeholders import markers
+        from placeholders import markers
 
         if asset not in markers(scratch.root):
             raise AssertionError(

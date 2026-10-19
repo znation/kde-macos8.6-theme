@@ -644,7 +644,7 @@ SVG fails `TestIconGeometry::test_each_icon_draws_its_pinned_artwork`.
 ### Record-checker mutation harness: manufacture the malformed inputs from the shipped registers so a silent accept or drop is observable (planned 2026-10-18 by the steward role; from the recurring `no-observability` validation gap in thirteen Fixed entries) — done 2026-10-18
 
 **Goal.** Twelve Fixed entries share one mechanism: a record checker (`tests/invariants.py`'s
-register parser and reference resolver, `tests/test_placeholders.py`'s marker scanner) accepted or
+register parser and reference resolver, `tests/placeholders.py`'s marker scanner) accepted or
 silently dropped malformed input that the shipped records never contain, so no test or real run
 could surface the bug — each was found by reading the checker and fixed with one hand-written case.
 Add a mutation harness that manufactures each malformed shape from the shipped registers
@@ -660,7 +660,7 @@ reference to a class with no tests; accepts a register reference to a non-test m
 register reference with a segment after the method; accepts a register reference ending in `::`,
 pinning a guarantee to no test; drops a row that does not split into three cells; drops a row whose
 Test cell has no backticked reference; drops a row whose cell contains an escaped pipe.
-- `tests/test_placeholders.py` marker scanner, two entries (both fixed 2026-10-18): ignores
+- `tests/placeholders.py` marker scanner, two entries (both fixed 2026-10-18): ignores
 `PLACEHOLDER:` markers in the theme's `.kvconfig` file; ignores them in the theme's `.js` and
 `.desktoprc` files.
 - The thirteenth `no-observability` entry, "Palette anchors are not re-derivable from the reference
@@ -684,7 +684,7 @@ marked file per text format the theme ships into the scratch theme root.
 table name the same rejection boundaries, so a boundary named in one without the other fails.
 
 **Files touched.** `tests/support/checker_mutations.py` (new), `tests/test_checker_mutations.py`
-(new), `tests/support/mutant_module.py` (new), `tests/invariants.py`, `tests/test_placeholders.py`
+(new), `tests/support/mutant_module.py` (new), `tests/invariants.py`, `tests/placeholders.py`
 (the `REJECTION_SHAPES` lists).
 
 **Acceptance criteria.**
