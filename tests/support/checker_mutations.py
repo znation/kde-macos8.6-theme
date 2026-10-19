@@ -263,7 +263,7 @@ USER_TRASH_ICON = "theme/icons/org.macos8.desktop/32x32/places/user-trash.svg"
 FOLDER_ICON = "theme/icons/org.macos8.desktop/32x32/places/folder.svg"
 ABSENT_ICON = "theme/icons/org.macos8.desktop/32x32/places/inode-directory.svg"
 KVCONFIG = "theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig"
-LAYOUT_JS = "theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
+LAYOUT = "theme/look-and-feel/org.macos8.desktop/contents/layouts/org.kde.plasma.desktop-layout.js"
 AURORAE_DESKTOPRC = "theme/aurorae/themes/org.macos8.desktop/org.macos8.desktoprc"
 
 
@@ -322,9 +322,9 @@ PLACEHOLDER_MUTATIONS = (
     ),
     Mutation(
         "js-marker",
-        _placeholder_acceptance(LAYOUT_JS, "a desktop layout"),
+        _placeholder_acceptance(LAYOUT, "a desktop layout"),
         None,
-        _observe_placeholder(LAYOUT_JS),
+        _observe_placeholder(LAYOUT),
     ),
     Mutation(
         "desktoprc-marker",
