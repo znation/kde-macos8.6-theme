@@ -12,18 +12,25 @@ ESC text and fails on a raw ESC or a missing escape.
 ``assert_rejection_names``: that it accepts a diagnostic naming every
 needle, fails on a missing one, forwards the guard's arguments without
 leaking ``needles``, and returns the message.
+``assert_rejects_unequal_lengths``: that it accepts a helper rejecting both
+length-mismatch directions and fails the calling test when the helper does
+not reject, rejects only one direction, or names another function.
 """
 
 from __future__ import annotations
 
 import unittest
 
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.error_assertions import (
+    NoSubTest,
     assert_error_names,
     assert_escapes_escape_character,
     assert_rejection_names,
+    assert_rejects_unequal_lengths,
     error_message,
 )
+from tools.png.filters import _byte_add  # noqa: E402
 
 
 def _raise(exception):
@@ -32,6 +39,34 @@ def _raise(exception):
 
 def _reject(case, value, *, label="bad"):
     case.fail(f"{label} value: {value}")
+
+
+def _accepts_any_lengths(a, b):
+    """A packed-lane stand-in that fails to reject a length mismatch."""
+    return b""
+
+
+def _names_another_function(a, b):
+    """A packed-lane stand-in whose diagnostic names a different function."""
+    raise ValueError("other() requires equal-length byte strings")
+
+
+def _rejects_only_short_second(a, b):
+    """A packed-lane stand-in that rejects a too-short second argument only."""
+    if len(a) > len(b):
+        raise ValueError(
+            f"{_rejects_only_short_second.__name__}() requires equal-length"
+        )
+    return b""
+
+
+def _rejects_only_long_second(a, b):
+    """A packed-lane stand-in that rejects a too-long second argument only."""
+    if len(a) < len(b):
+        raise ValueError(
+            f"{_rejects_only_long_second.__name__}() requires equal-length"
+        )
+    return b""
 
 
 class TestErrorMessage(unittest.TestCase):
@@ -152,6 +187,44 @@ class TestAssertRejectionNames(unittest.TestCase):
     def test_a_missing_raise_fails_the_calling_case(self):
         with self.assertRaises(AssertionError):
             assert_rejection_names(self, lambda case: None, needles=())
+
+
+class TestAssertRejectsUnequalLengths(unittest.TestCase):
+    def test_accepts_a_helper_that_rejects_both_directions(self):
+        # `_byte_add` is one of the two real callers, and its precondition
+        # rejects both length-mismatch directions. That the helper checks
+        # both directions is pinned by the two one-direction tests below,
+        # not by this one (a one-direction helper still accepts `_byte_add`).
+        assert_rejects_unequal_lengths(self, _byte_add)
+
+    def test_fails_when_only_the_too_short_direction_is_rejected(self):
+        # A helper that only tried the first (too-short) case would accept
+        # this stand-in, leaving the too-long case unpinned.
+        case = NoSubTest()
+        with self.assertRaises(AssertionError):
+            assert_rejects_unequal_lengths(case, _rejects_only_short_second)
+
+    def test_fails_when_only_the_too_long_direction_is_rejected(self):
+        # A helper that only tried the second (too-long) case would accept
+        # this stand-in, leaving the too-short case unpinned.
+        case = NoSubTest()
+        with self.assertRaises(AssertionError):
+            assert_rejects_unequal_lengths(case, _rejects_only_long_second)
+
+    def test_fails_when_the_function_does_not_reject(self):
+        # A helper that merely called the function without asserting would
+        # leave every caller passing while pinning nothing, so a function
+        # that accepts unequal lengths must fail the calling test.
+        case = NoSubTest()
+        with self.assertRaises(AssertionError):
+            assert_rejects_unequal_lengths(case, _accepts_any_lengths)
+
+    def test_fails_when_the_diagnostic_names_another_function(self):
+        # The diagnostic must name the function under test; a message naming
+        # another function would not pin this caller's own precondition.
+        case = NoSubTest()
+        with self.assertRaises(AssertionError):
+            assert_rejects_unequal_lengths(case, _names_another_function)
 
 
 class TestAssertEscapesEscapeCharacter(unittest.TestCase):
