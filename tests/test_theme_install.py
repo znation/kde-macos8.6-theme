@@ -11,8 +11,10 @@ before the lock is taken. `make check`'s variables live in
 """
 
 import os
+import tempfile
 import unittest
 import unittest.mock
+from pathlib import Path
 
 from support import theme_install
 from support.process_assertions import assert_failed, assert_succeeded
@@ -416,6 +418,52 @@ class TestInstallPackagesGuard(unittest.TestCase):
         )
         data_home = os.path.join(tmp, theme_install.XDG_DATA_HOME.lstrip("/"))
         self.assertFalse(os.path.exists(data_home), data_home)
+
+
+class TestAssertFilesIdentical(unittest.TestCase):
+    """The install byte-comparison must refuse a source symlink that escapes.
+
+    ``assert_files_identical`` reads a contributor-supplied package file and
+    compares it with the installed copy; ``assertEqual`` echoes both byte
+    strings on a mismatch, so a checked-in symlink at the source that resolves
+    outside the repository must be refused before it is opened. The copy in the
+    throwaway DESTDIR is not contributor-supplied and is read as before.
+    """
+
+    def test_rejects_a_source_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            package = root / "theme" / "icons"
+            package.mkdir(parents=True)
+            secret = tmp / "secret.svg"
+            secret.write_bytes(b"PRIVATE-SECRET-BYTES")
+            source = package / "icon.svg"
+            source.symlink_to(secret)
+            target = tmp / "installed.svg"
+            target.write_bytes(b"a different installed copy")
+            with unittest.mock.patch.object(theme_install, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    theme_install.assert_files_identical(self, source, target)
+        self.assertIn(str(source), str(caught.exception))
+        self.assertNotIn("PRIVATE-SECRET-BYTES", str(caught.exception))
+
+    def test_reads_a_source_symlink_that_stays_within_the_repository(self):
+        # The guard must refuse only escapes, not a legitimate package file
+        # reached through a symlink inside the repository.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            package = root / "theme" / "icons"
+            package.mkdir(parents=True)
+            real = package / "icon.svg"
+            real.write_bytes(b"same bytes")
+            source = package / "alias.svg"
+            source.symlink_to(real)
+            target = tmp / "installed.svg"
+            target.write_bytes(b"same bytes")
+            with unittest.mock.patch.object(theme_install, "ROOT", root):
+                theme_install.assert_files_identical(self, source, target)
 
 
 if __name__ == "__main__":

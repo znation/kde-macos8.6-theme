@@ -13,6 +13,7 @@ import contextlib
 import os
 import tempfile
 
+from support import containment
 from support import process_runner
 from support.process_assertions import assert_succeeded
 from support.repo_root import ROOT
@@ -257,10 +258,15 @@ def assert_files_identical(case, source, target, msg=None):
     *case* is the calling ``unittest.TestCase``; its assertions report the
     mismatch. *msg* labels the comparison, defaulting to *target*. The install
     tests use this to pin that a copy is byte-for-byte, not merely present.
+    *source* is a contributor-supplied package file, and ``assertEqual`` echoes
+    both byte strings when they differ, so a checked-in symlink at *source*
+    that resolves outside the repository is refused before it is opened; the
+    installed *target* lies in a throwaway DESTDIR and is read as before.
     """
     case.assertTrue(os.path.isfile(target), target)
-    with open(source, "rb") as original, open(target, "rb") as copy:
-        case.assertEqual(original.read(), copy.read(), msg or target)
+    original = containment.read_bytes(source, ROOT)
+    with open(target, "rb") as copy:
+        case.assertEqual(original, copy.read(), msg or target)
 
 
 def shadow_command_env(destdir, name, script):
