@@ -5,7 +5,9 @@
      outer top/left edge, a 1px #999999 shadow on the outer right edge and the
      inner bottom edge, and a 1px #000000 rule on the outer bottom edge. The
      unprefixed nine-slice (bottom, left and right panels) is a 2px border
-     around an 8px centre tile at the canvas origin.
+     around an 8px centre tile at the canvas origin. A byte-identical copy
+     ships at `solid/widgets/panel-background.svg`, where `Panel.qml` looks
+     for an opaque panel's background.
 
      A top-edge panel uses the `north-` state instead (Panel.qml's
      adjustPrefix() picks the prefix `north`). Plasma drops every border that

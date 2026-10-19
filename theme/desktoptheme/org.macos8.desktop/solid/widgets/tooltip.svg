@@ -2,10 +2,11 @@
 <!-- Mac OS 8.6 "Platinum" tooltip.
 
      Plasma tooltips: PlasmaComponents.ToolTip paints `solid/widgets/tooltip`
-     (a byte-identical copy of this file ships at solid/widgets/tooltip.svg,
-     because KSvg does not map that path onto `widgets/tooltip`) and panel
-     ToolTipArea tooltips paint `widgets/tooltip`. Before this file the theme
-     shipped neither and both inherited Breeze's rounded translucent tooltip.
+     (a byte-identical copy of `widgets/tooltip.svg` ships there, because KSvg
+     does not map that path onto `widgets/tooltip`) and panel ToolTipArea
+     tooltips paint `widgets/tooltip`. Before `widgets/tooltip.svg` existed the
+     theme shipped neither and both inherited Breeze's rounded translucent
+     tooltip.
 
      Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
      canvas, square corners; the 3px margins are the tooltip's text padding.
