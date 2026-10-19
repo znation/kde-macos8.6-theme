@@ -153,7 +153,7 @@ class TestLayout(unittest.TestCase):
         self.assertEqual(CLOCK_FORMAT, clock_config(self.text))
 
     def test_desktops_use_the_image_wallpaper(self):
-        self.assertRegex(self.text, r"wallpaperPlugin\s*=\s*'org\.kde\.image'")
+        self.assertRegex(self.text, r'wallpaperPlugin\s*=\s*"org\.kde\.image"')
 
     def test_desktop_writes_the_general_group(self):
         loop = re.search(r"for \(var j", self.text)

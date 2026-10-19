@@ -22,7 +22,7 @@ panel.addWidget("org.kde.plasma.windowlist");
 
 var desktopsArray = desktopsForActivity(currentActivity());
 for (var j = 0; j < desktopsArray.length; j++) {
-    desktopsArray[j].wallpaperPlugin = 'org.kde.image';
+    desktopsArray[j].wallpaperPlugin = "org.kde.image";
     // Reference desktop_betawiki.png: icons fill one 32px column (x=960..991)
     // at the right edge, top down (arrangement 1 = columns, alignment 1 =
     // right, iconSize 1 = 32px); nothing differs from the wallpaper at x<880.
