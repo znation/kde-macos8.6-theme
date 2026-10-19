@@ -12,6 +12,7 @@ import os
 import re
 import unittest
 
+from support import containment
 from support.reference_image import ReferenceScreenshotMixin
 from support.theme_install import ROOT
 
@@ -25,7 +26,15 @@ REFERENCE = os.path.join(
 
 
 def read_qml():
-    """Return the splash QML source as one string."""
+    """Return the splash QML source as one string.
+
+    ``Splash.qml`` is contributor-supplied, and a checked-in symlink at its
+    path can point at a private file. The QML probes and the ``assertIn``
+    checks that consume this source echo its lines into a failing test's
+    diagnostic, so a path that resolves outside the repository is refused
+    before it is opened.
+    """
+    containment.require_within_repo(SPLASH, ROOT)
     with open(SPLASH, encoding="utf-8") as handle:
         return handle.read()
 

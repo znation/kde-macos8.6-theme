@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 import re
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import splash_fixtures
 from support.splash_fixtures import object_source, qml_unit_expression, read_qml
 
 
@@ -192,6 +196,47 @@ class TestSplashQml(unittest.TestCase):
             block = object_source(qml, object_id)
             for binding in bindings:
                 self.assertIn(binding, block, f"{object_id}: {binding}")
+
+
+class TestSplashQmlContainment(unittest.TestCase):
+    """`read_qml` must refuse a symlink that escapes the repository."""
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        # Splash.qml is contributor-supplied, and a checked-in symlink can
+        # point at a private file; the QML probes and `assertIn` checks echo
+        # its lines into a failing test's diagnostic, so following the symlink
+        # would leak that file's content. A path that resolves outside the
+        # repository must be refused before it is opened.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.qml"
+            secret.write_text("PRIVATE-SECRET\n", encoding="utf-8")
+            link = root / "Splash.qml"
+            link.symlink_to(secret)
+            with mock.patch.object(splash_fixtures, "ROOT", root), \
+                    mock.patch.object(splash_fixtures, "SPLASH", link):
+                with self.assertRaises(ValueError) as caught:
+                    splash_fixtures.read_qml()
+        self.assertIn(str(link), str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        # The guard must refuse only escapes, not a legitimate repository path
+        # that happens to be reached through a symlink inside the repository.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            (root / "theme").mkdir(parents=True)
+            target = root / "theme" / "Splash.qml"
+            target.write_text("// inside\n", encoding="utf-8")
+            link = root / "link.qml"
+            link.symlink_to(target)
+            with mock.patch.object(splash_fixtures, "ROOT", root), \
+                    mock.patch.object(splash_fixtures, "SPLASH", link):
+                self.assertEqual(
+                    splash_fixtures.read_qml(), "// inside\n"
+                )
 
 
 if __name__ == "__main__":

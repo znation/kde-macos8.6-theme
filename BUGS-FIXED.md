@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `tests/support/splash_fixtures.py`'s `read_qml` follows a symlinked `Splash.qml` outside the repository (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
+
+**Symptom:** a checked-in `Splash.qml` that is a symlink to a private file outside the
+repository is opened and its text returned. The splash tests feed that text to `assertIn` and to
+`object_source`'s brace-balanced slice, and a failing `assertIn` echoes the container, so the
+private file's content can appear in a test diagnostic. The security sweep guarded
+`support/kde_config.read`, `header_comment` and `SvgCase.setUp` against exactly this symlink
+escape, and the bugfix role guarded `load_metadata`, but left this reader unguarded.
+
+**Reproduction:**
+`tests/test_splash_qml.py::TestSplashQmlContainment::test_rejects_a_symlink_that_escapes_the_repository`
+makes a `Splash.qml` symlink inside a repository root that points at a private sibling and calls
+`read_qml`; before the fix the private text came back and no `ValueError` was raised.
+
+**Cause:** `read_qml` called `open(SPLASH)` with no containment check, so it read the symlink's
+target.
+
+**Fix:** `read_qml` now calls `containment.require_within_repo(SPLASH, ROOT)` before opening,
+so a `Splash.qml` that resolves outside the repository is refused with the path named, matching
+the other contributor-supplied readers.
+
+**Validation gap:** no-fake — the suite never created a symlinked `Splash.qml`, so confirming
+the escape needed a symlink fixture and a patched repository root that did not exist.
+
 ### `tests/support/package_metadata.py`'s `load_metadata` follows a symlinked `metadata.json` outside the repository (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** a checked-in `metadata.json` that is a symlink to a private JSON file outside the
