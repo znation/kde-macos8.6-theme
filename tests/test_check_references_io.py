@@ -210,14 +210,15 @@ class TestUndeclaredDanglingImageSymlink(CheckerTestCase):
 class TestResolveFailureIsFailClosed(CheckerTestCase):
     """A path that cannot be resolved must be treated as escaping the directory.
 
-    ``_resolves_within`` calls ``Path.resolve()`` to keep every read inside the
-    reference directory, and resolving can raise ``OSError`` on a filesystem
-    failure or ``RuntimeError`` on the symlink loop Python before 3.13 reports.
-    The containment check must fail closed: an unresolvable path is not assumed
-    to be inside the directory, so the checker reports it instead of letting
-    the exception escape and abort the run with a traceback. ``Path.resolve()``
-    does not raise for a real symlink loop on this runtime, so each branch is
-    driven by making the resolution itself raise.
+    The shared containment guard, ``tools.containment.resolves_within``, calls
+    ``Path.resolve()`` to keep every read inside the reference directory, and
+    resolving can raise ``OSError`` on a filesystem failure or ``RuntimeError``
+    on the symlink loop Python before 3.13 reports. The containment check must
+    fail closed: an unresolvable path is not assumed to be inside the
+    directory, so the checker reports it instead of letting the exception
+    escape and abort the run with a traceback. ``Path.resolve()`` does not
+    raise for a real symlink loop on this runtime, so each branch is driven by
+    making the resolution itself raise.
     """
 
     def test_unresolvable_sources_path_is_reported_not_raised(self):
