@@ -126,6 +126,25 @@ class TestSelfTestExactProblems(unittest.TestCase):
     def test_one_expected_substring_consumes_only_one_problem(self):
         self.assertFalse(problems_match(["bad url"], ["bad", "url"]))
 
+    def test_a_needle_matches_a_later_problem(self):
+        # The matcher scans every remaining problem, not only the first: a
+        # fixture whose expected substrings are listed in a different order
+        # than the problems it reports must still pass. Every other test here
+        # matches the first remaining problem (the earlier matches consume the
+        # front of the list), so a matcher that only compared against
+        # remaining[0] would pass them all.
+        self.assertTrue(
+            problems_match(
+                ["first problem", "second has needle"],
+                ["needle", "first"],
+            )
+        )
+
+    def test_duplicate_expected_substrings_consume_distinct_problems(self):
+        # The same substring may appear in two expectations; each must consume
+        # a different problem, or the second would be reported as unmatched.
+        self.assertTrue(problems_match(["x one", "x two"], ["x", "x"]))
+
 
 class TestRepositoryCheckEntryPoint(CheckerTestCase):
     """``main`` with no arguments runs the repository reference check.
