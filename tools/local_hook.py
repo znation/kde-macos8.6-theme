@@ -74,13 +74,14 @@ class LocalHookError(Exception):
 def _git(*args: str) -> str:
     """Run ``git *args*`` in the current directory; return its stripped stdout.
 
-    A missing git, a timeout, or a non-zero exit becomes a `LocalHookError`
-    whose message is git's own diagnostic where there is one. Git prints a
-    path raw, and a repository path may hold bytes that are not UTF-8 (Linux
-    allows that), so the output is decoded with ``surrogateescape`` instead of
-    strictly: the bytes round-trip through ``os.fsencode`` for the filesystem
-    calls, and a strict decode would otherwise raise an uncaught
-    ``UnicodeDecodeError`` naming neither the tool nor the command.
+    A missing git, a timeout, an unrunnable git, or a non-zero exit becomes a
+    `LocalHookError` whose message is git's own diagnostic where there is one.
+    Git prints a path raw, and a repository path may hold bytes that are not
+    UTF-8 (Linux allows that), so the output is decoded with
+    ``surrogateescape`` instead of strictly: the bytes round-trip through
+    ``os.fsencode`` for the filesystem calls, and a strict decode would
+    otherwise raise an uncaught ``UnicodeDecodeError`` naming neither the tool
+    nor the command.
     """
     try:
         result = subprocess.run(
@@ -96,6 +97,12 @@ def _git(*args: str) -> str:
         raise LocalHookError(
             f"git {' '.join(args)} timed out after {COMMAND_TIMEOUT:g}s"
         ) from exc
+    except OSError as exc:
+        # Git exists but cannot be launched (a permission error, a directory
+        # on PATH, a deleted working directory). Report it as this tool's own
+        # error so the caller prints a diagnostic and exits 2, instead of a
+        # traceback naming neither the tool nor the command.
+        raise LocalHookError(f"cannot run git: {exc}") from exc
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip()
         raise LocalHookError(

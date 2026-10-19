@@ -151,6 +151,17 @@ class TestGitFailures(unittest.TestCase):
         message = self._failure(side_effect=FileNotFoundError())
         self.assertEqual(message, "git not found on PATH")
 
+    def test_unrunnable_git_is_reported(self):
+        # A git that exists but cannot be executed (a permission error, a
+        # directory on PATH) raises an OSError other than FileNotFoundError.
+        # It must become a LocalHookError the caller prints with exit status
+        # 2, not a traceback that names neither the tool nor the command.
+        message = self._failure(
+            side_effect=PermissionError(13, "Permission denied")
+        )
+        self.assertIn("cannot run git", message)
+        self.assertIn("Permission denied", message)
+
     def test_timeout_names_the_command_and_duration(self):
         message = self._failure(
             side_effect=subprocess.TimeoutExpired(
