@@ -112,6 +112,47 @@ class TestResolutionFailureFailsClosed(unittest.TestCase):
             self.assertIn("symlink escape", str(caught.exception))
 
 
+class TestIsWithin(unittest.TestCase):
+    """The lexical half of the guard must respect the path-component boundary.
+
+    ``is_within`` decides whether a path is even eligible for the symlink
+    check: only a path lexically inside the root is resolved and refused. Its
+    comparison appends ``os.sep`` to the root, so a sibling directory whose
+    name merely shares the root's prefix (``repo-other`` beside ``repo``) is
+    outside, not inside. A bare ``startswith(root)`` would judge the sibling
+    inside, hand it to the resolver, and refuse a legitimate file outside the
+    repository.
+    """
+
+    def test_accepts_a_path_under_the_root(self):
+        self.assertTrue(
+            containment.is_within("/tmp/repo", "/tmp/repo/a.svg")
+        )
+
+    def test_accepts_the_root_itself(self):
+        self.assertTrue(containment.is_within("/tmp/repo", "/tmp/repo"))
+
+    def test_rejects_a_sibling_directory_that_shares_the_root_prefix(self):
+        self.assertFalse(
+            containment.is_within("/tmp/repo", "/tmp/repo-other/a.svg")
+        )
+
+    def test_reads_a_sibling_directory_that_shares_the_root_prefix(self):
+        # The boundary is load-bearing: with a bare ``startswith(root)`` the
+        # sibling is judged inside, ``resolves_within`` resolves it outside
+        # the root, and this read raises ValueError instead of returning the
+        # file's bytes.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            sibling = tmp / "repo-other"
+            sibling.mkdir()
+            path = sibling / "asset.svg"
+            path.write_bytes(b"sibling")
+            self.assertEqual(containment.read_bytes(path, root), b"sibling")
+
+
 class TestGuardIsShared(unittest.TestCase):
     """The containment guard is implemented once; every reader routes to it.
 
