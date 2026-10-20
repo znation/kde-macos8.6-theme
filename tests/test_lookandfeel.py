@@ -1,19 +1,22 @@
 """Validate the org.macos8.desktop look-and-feel global theme package."""
 
 import fcntl
-import json
 import os
 import shlex
 import shutil
+import sys
 import time
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import package_metadata
 from support import process_runner
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kde_config import read as read_kde_config
 from support.kpackage_install_case import KPackageInstallCase
-from support.package_metadata import PackageMetadata
+from support.package_metadata import PackageMetadata, load_metadata
 from support.process_assertions import assert_failed, assert_succeeded
 from support.installed_paths import XDG_DATA_HOME, installed_package
 from support.theme_install import (
@@ -50,6 +53,17 @@ WALLPAPER_METADATA = os.path.join(
 def load_defaults():
     """Return the global theme's parsed ``contents/defaults`` config."""
     return read_kde_config(DEFAULTS)
+
+
+def wallpaper_package_id():
+    """Return the wallpaper package's ``KPlugin.Id`` from its metadata.json.
+
+    ``metadata.json`` is contributor-supplied, and a checked-in symlink at its
+    path can point at a private file. The Id is echoed by the ``assertEqual``
+    diagnostic below, so a path that resolves outside the repository is
+    refused before it is opened; ``load_metadata`` owns that guard.
+    """
+    return load_metadata(WALLPAPER_METADATA)["KPlugin"]["Id"]
 
 
 class _DataHomeLock:
@@ -144,10 +158,9 @@ class TestDefaults(unittest.TestCase):
         self.assertEqual(self.parser.get(STYLE_SECTION, "widgetStyle"), "kvantum")
 
     def test_wallpaper_names_the_shipped_package(self):
-        with open(WALLPAPER_METADATA, encoding="utf-8") as handle:
-            package_id = json.load(handle)["KPlugin"]["Id"]
         self.assertEqual(
-            self.parser.get(WALLPAPER_SECTION, "Image"), package_id
+            self.parser.get(WALLPAPER_SECTION, "Image"),
+            wallpaper_package_id(),
         )
 
     def test_icon_theme_names_the_shipped_package(self):
@@ -211,6 +224,34 @@ class TestDefaults(unittest.TestCase):
             ),
             value,
         )
+
+
+class TestWallpaperMetadataContainment(unittest.TestCase):
+    """The wallpaper metadata read refuses a symlink that escapes the repo.
+
+    A checked-in symlink at the wallpaper package's ``metadata.json`` can point
+    at a private file, and the parsed ``KPlugin.Id`` reaches an ``assertEqual``
+    diagnostic that echoes it; the read must refuse such a path before it is
+    opened rather than leak the private file's matching value.
+    """
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        tmp = Path(make_tmp_dir(self))
+        root = tmp / "repo"
+        root.mkdir()
+        secret = tmp / "secret.json"
+        secret.write_text(
+            '{"KPlugin": {"Id": "PRIVATE-ID"}}', encoding="utf-8"
+        )
+        link = root / "metadata.json"
+        link.symlink_to(secret)
+        with mock.patch.object(
+            sys.modules[__name__], "WALLPAPER_METADATA", str(link)
+        ):
+            with mock.patch.object(package_metadata, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    wallpaper_package_id()
+        self.assertIn(str(link), str(caught.exception))
 
 
 class TestInstall(
