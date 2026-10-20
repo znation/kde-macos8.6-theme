@@ -7,7 +7,34 @@ each tick.
 
 ## Open
 
-_None yet._
+### Should the theme also style GTK applications and Firefox?
+
+(asked 2026-10-19 by the director role)
+
+**Context.** The screenshot's Firefox window draws its own tab-in-titlebar
+chrome: no Aurorae frame, rounded tabs and Firefox's own control glyphs. The
+Ghostty window already wears our Aurorae frame, but its inner tab strip is
+GTK4/libadwaita (`ghostty` links `libgtk-4.so.1` and `libadwaita-1.so.0`), so
+it keeps the desktop's GTK theme. A KDE global theme/decoration controls
+neither: Firefox switches to a KWin-drawn frame when
+`browser.tabs.inTitlebar=0` is set in its profile, and GTK chrome needs a GTK
+theme or user CSS. Both are new surfaces outside the current KDE/Qt theme.
+
+**Options.**
+1. Document the limits and the Firefox preference; keep the theme KDE/Qt-only.
+   Cheap, does not edit a browser profile or change every GTK app.
+2. Add opt-in helpers: a GTK 4 CSS theme and a Firefox `userChrome.css` plus
+   the profile preference, installed by separate `make` targets. This can
+   restyle Ghostty's tab strip and give Firefox Platinum tabs and frame, but
+   it affects all GTK/libadwaita apps and edits browser profile files, and it
+   is a multi-part series of its own.
+3. Add the GTK theme only (no Firefox profile changes).
+4. Add the Firefox userChrome only.
+
+**Recommendation.** Option 1 now, as a small README/Installing note, so the
+user knows the KDE theme cannot reach those surfaces and how to get the
+Firefox frame with one preference. Revisit option 2 as a separate planned
+series if full-desktop fidelity outranks keeping the theme KDE/Qt-only.
 
 ## Answered
 
@@ -113,3 +140,38 @@ deferred unless you explicitly allow it. Answer Option 1 if you want the menu ba
 match the reference exactly.
 
 **Answered 2026-10-18 by the user:** No, we should come up with our own non-copyright-infringing icon art and logo. Let's use placeholders for now, and keep track of the placeholders so we don't forget to replace them all eventually.
+
+### Which UI font should the theme select?
+
+(asked 2026-10-19 by the director role)
+
+**Context.** The screenshot shows KDE/Plasma text in the current desktop font
+(Noto Sans), while Mac OS 8.6 draws its menus, dialogs and window titles in
+Charcoal (Chicago in the menu bar); the widths, shapes and pixel rhythm differ
+throughout. The theme's `theme/look-and-feel/org.macos8.desktop/contents/defaults`
+sets no font keys and `tools/apply_theme.py` writes none, so the user's KDE
+font choice is untouched. Fixing this means choosing a font and then writing
+`[General] font`, `menuFont`, `toolBarFont` and `smallestReadableFont` plus
+`[WM] activeFont` in `kdeglobals` (either through the global theme's defaults
+or a `make apply` step; the implementing plan must verify which lookandfeeltool
+honours). The font is a new shipped asset, so its licence and provenance
+matter, just as they did for the icon art. This covers KDE, Plasma and Qt
+applications only; Firefox and GTK applications use their own font stacks and
+are the subject of the application-chrome question below.
+
+**Options.**
+1. Vendor a Chicago/Charcoal-style outline font whose licence clearly permits
+   redistribution, install it with the theme, record its licence and
+   provenance, and select it everywhere. Best fidelity; adds a font asset and
+   an install/uninstall step; `ChicagoFLF` is the usual free clone candidate,
+   but its licence must be checked before it is shipped.
+2. Select a humanist sans already present on most desktops (for example Lato,
+   which is installed on this machine) without shipping a file. No new asset,
+   but only an approximate match to Charcoal.
+3. Keep the current font and accept the difference.
+
+**Recommendation.** Option 1 if a clone with a clear redistribution licence
+can be sourced and recorded; otherwise option 2 rather than 3. A faithful
+Platinum look depends on the text face as much as on the bevels.
+
+**Answered 2026-10-19 by the user:** Let's go with Option 1, vendor a Chicago/Charcoal style font(s). Check for me whether ChicagoFLF license fits our usage, and if not, let's keep looking for a more permissively licensed font (or two? do we need one each for Chicago and Charcoal styles?)
