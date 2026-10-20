@@ -471,7 +471,7 @@ keeps seeing a repository path that exists.
 the bevel inside it (`lineedit-normal-top` is #000000 then #999999, `lineedit-normal-left` the
 same). The reference text field puts the sunken bevel *outside* the outline --
 `macos8.6-screenshots/firstboot_betawiki.png` (28,95)=#999999, (29,95)=#000000,
-(30,95)=#FFFFFF -- the structure `theme/desktop-themes/org.macos8.desktop/widgets/lineedit.svg`
+(30,95)=#FFFFFF -- the structure `theme/desktoptheme/org.macos8.desktop/widgets/lineedit.svg`
 already paints and `tests/test_desktoptheme_lineedit.py` already pins. Redraw the Kvantum line
 edit's tiles as that bevel-outside ring so a KDE application's text field matches the reference.
 
@@ -705,17 +705,17 @@ inactive frame to the reference pixels.
 reference set shows no such surface, but the set does show it, so the stated reason is false and
 the real reason the value has no per-pixel sample is hidden.
 
-- `theme/desktop-themes/org.macos8.desktop/widgets/viewitem.svg` says "the reference set has no
+- `theme/desktoptheme/org.macos8.desktop/widgets/viewitem.svg` says "the reference set has no
   open-menu screenshot, so the menu-item highlight has no per-pixel menu sample". The set's open
   Apple menu is `macos8.6-screenshots/desktop_archiveorg8.6hd.png` — the image the
   `widgets/background.svg` plan already sampled its grey menu body from. That menu shows no
   highlighted item (a scan of the image finds no `#CCCCFF` pixel, the highlight fill), so the
   conclusion holds but the stated reason is wrong.
-- `theme/desktop-themes/org.macos8.desktop/widgets/menubaritem.svg` repeats the claim as "the
+- `theme/desktoptheme/org.macos8.desktop/widgets/menubaritem.svg` repeats the claim as "the
   reference set has no menu-open screenshot". The same open Apple menu is a menu-open screenshot;
   its open title is the Apple-logo kicker (a text title is never shown open), so the pressed
   text-title fill has no per-pixel sample for that different reason.
-- `theme/desktop-themes/org.macos8.desktop/widgets/arrows.svg` says "no reference screenshot
+- `theme/desktoptheme/org.macos8.desktop/widgets/arrows.svg` says "no reference screenshot
   shows a combo box or menu button". The set does: the beta `macos8.6-screenshots/
   systeminfo_betawiki.png` Get Info window's "General Information" and "None" popups, and the
   JPEG `macos8.6-screenshots/opendialog_macrumors86.jpg` Open dialog's "ROM-new" popup. Their Mac
@@ -753,14 +753,14 @@ provenance so the false claim cannot return.
   - `menubaritem.svg`: requires `desktop_archiveorg8.6hd.png`; forbids `no menu-open screenshot`.
   - `arrows.svg`: requires `systeminfo_betawiki.png`; forbids `no reference screenshot shows a
     combo box`.
-- `docs/invariants.md`: add a `desktop-themes` row `| The `viewitem.svg`, `menubaritem.svg` and
+- `docs/invariants.md`: add a `desktoptheme` row `| The `viewitem.svg`, `menubaritem.svg` and
   `arrows.svg` provenance comments name the reference screenshot their claim rests on and do not
   claim the set shows no such surface. | tests/test_desktoptheme_provenance.py::TestProvenance |
   none |`.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/viewitem.svg`,
-`theme/desktop-themes/org.macos8.desktop/widgets/menubaritem.svg`,
-`theme/desktop-themes/org.macos8.desktop/widgets/arrows.svg`,
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/viewitem.svg`,
+`theme/desktoptheme/org.macos8.desktop/widgets/menubaritem.svg`,
+`theme/desktoptheme/org.macos8.desktop/widgets/arrows.svg`,
 `tests/test_desktoptheme_provenance.py` (new), `docs/invariants.md`.
 
 **Acceptance criteria.**
@@ -831,7 +831,7 @@ banner's flat extent rather than a single pixel.
 ### Ground the `[Colors:View] BackgroundAlternate` scroll-bar trough anchor in `setup_emaculation.png` (planned 2026-10-19 by the plan role) — done 2026-10-19
 
 **Goal.** The color scheme's `[Colors:View] BackgroundAlternate=238,238,238` is the flat
-`#EEEEEE` trough that `theme/desktop-themes/org.macos8.desktop/widgets/scrollbar.svg`,
+`#EEEEEE` trough that `theme/desktoptheme/org.macos8.desktop/widgets/scrollbar.svg`,
 `slider.svg` and `switch.svg` paint. It is the trough that `tests/support/platinum_palette.py`
 records as "pinned only by the widget tests that draw it", unlike the face, view, chrome and
 selection anchors that `tests/test_colorscheme_reference.py::TestReferenceAnchors` re-derives from
@@ -923,7 +923,7 @@ exception, and record the exception in the docs.
 
 ### Mac OS 8.6 Platinum text field: draw the sunken bevel outside the black outline in `widgets/lineedit.svg` (planned 2026-10-18 by the plan role) — done 2026-10-19
 
-**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/lineedit.svg` paints the sunken
+**Goal.** `theme/desktoptheme/org.macos8.desktop/widgets/lineedit.svg` paints the sunken
 white field `PlasmaComponents.TextField`/`TextArea`/`SpinBox` and the editable `ComboBox` draw.
 It puts the 1px `#000000` outline on the *outer* edge and the `#999999`/`#FFFFFF` bevel *inside*
 it. The retail 8.6 reference draws the opposite: the bevel is *outside* the `#000000` outline,
@@ -968,7 +968,7 @@ face is `#FFFFFF`. `systeminfo_betawiki.png` (8.6a3c2 alpha) and `aboutsystem_be
 - `docs/invariants.md`: the `widgets/lineedit.svg` row's guarantee and its `none` provenance
   exception are unchanged.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/lineedit.svg`,
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/lineedit.svg`,
 `tests/test_desktoptheme_lineedit.py`, `tests/svg_assertions/faces.py`,
 `tests/svg_assertions/__init__.py` (re-export the new corner table),
 `tests/svg_assertions/pixels.py` (docstring only: `assert_face_bevel`'s bevel vocabulary), and
@@ -987,7 +987,7 @@ face is `#FFFFFF`. `systeminfo_betawiki.png` (8.6a3c2 alpha) and `aboutsystem_be
 
 ### Mac OS 8.6 Platinum dialog body: ground `dialogs/background.svg`'s face in the lossless window body (planned 2026-10-18 by the plan role) — done 2026-10-18
 
-**Goal.** `theme/desktop-themes/org.macos8.desktop/dialogs/background.svg` paints the raised
+**Goal.** `theme/desktoptheme/org.macos8.desktop/dialogs/background.svg` paints the raised
 Platinum body that a `PlasmaCore.Dialog` and a `PlasmaCore.AppletPopup` resolve to (the applet and
 clock popups). Its header comment says the reference set shows the same grey window bodies but
 they are dithered 8-bit captures, so "no single pixel is screenshot-anchored: the values are
@@ -1016,7 +1016,7 @@ the pixel the header comment says does not exist.
   `hex_colour(self.pixel(x, y)) == FACE` for the 4x6 block. The mixin skips the class when the Git
   LFS image is not materialized. Leave `TestDialogBackground(RaisedFaceCase, unittest.TestCase)`
   unchanged.
-- `theme/desktop-themes/org.macos8.desktop/dialogs/background.svg`: rewrite the provenance
+- `theme/desktoptheme/org.macos8.desktop/dialogs/background.svg`: rewrite the provenance
   paragraph -- the `#DDDDDD` face is the window body sampled from `desktop_archiveorg8.6hd.png` at
   (584, 97) and cross-checked at (1792, 1126) of `desktop_fandom.png`; the 1px `#000000` outline
   and the `#FFFFFF`/`#999999` bevel are the shared raised-face rule (the reference window body
@@ -1026,7 +1026,7 @@ the pixel the header comment says does not exist.
   exception are unchanged, now that the face is reference-sampled.
 
 **Files touched.** `tests/test_desktoptheme_dialog.py`,
-`theme/desktop-themes/org.macos8.desktop/dialogs/background.svg`.
+`theme/desktoptheme/org.macos8.desktop/dialogs/background.svg`.
 
 **Acceptance criteria.**
 - `TestDialogBackgroundReference` re-derives `#DDDDDD` from `desktop_archiveorg8.6hd.png`'s window
@@ -1041,7 +1041,7 @@ the pixel the header comment says does not exist.
 
 ### Mac OS 8.6 Platinum progress bar: paint the reference's vertical gradient in `bar_meter_horizontal.svg` (planned 2026-10-18 by the plan role) — done 2026-10-18
 
-**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/bar_meter_horizontal.svg` paints its
+**Goal.** `theme/desktoptheme/org.macos8.desktop/widgets/bar_meter_horizontal.svg` paints its
 `bar-active` fill as a flat `#9B9BEA` face with a `#9A9A9A`/`#7878D1` bevel, sampled from the
 low-resolution boot thumbnail `boot2_betawiki.png`. Mac OS 8.6's progress-bar fill is a vertical
 gradient — dark at the top and bottom, `#CBCCFF` at the centre — and the lossless 2x reference
@@ -1083,7 +1083,7 @@ column `#50527F` ((1816, 1238)). The boot2 fill rows at x=102, y=99..102 (`#7D7D
   progress bar") is unchanged; no provenance exception is needed because every fill colour is
   reference-sampled.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/bar_meter_horizontal.svg`,
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/bar_meter_horizontal.svg`,
 `tests/test_desktoptheme_progressbar.py`, `README.md`.
 
 **Acceptance criteria.**
@@ -1099,7 +1099,7 @@ column `#50527F` ((1816, 1238)). The boot2 fill rows at x=102, y=99..102 (`#7D7D
 
 ### Mac OS 8.6 Platinum tab face: ground `widgets/tabbar.svg` in the System Profiler tabs (planned 2026-10-18 by the plan role) — done 2026-10-18
 
-**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/tabbar.svg` paints every tab face
+**Goal.** `theme/desktoptheme/org.macos8.desktop/widgets/tabbar.svg` paints every tab face
 `#DDDDDD`, the same grey as the menu bar and the dialog body, so a Plasma tab (`TabBar`,
 `TabButton`, the kickoff footer, the system-tray current-item and panel expanded applets) reads
 as a bare outline on an identical background. The high-resolution lossless reference
@@ -1119,7 +1119,7 @@ colours are taken from the reference; the 2x scale leaves the exact 1px bevel pl
 unresolved, so the bevel keeps its current black/highlight/face geometry.
 
 **Approach.**
-- `theme/desktop-themes/org.macos8.desktop/widgets/tabbar.svg`: in all four `*-active-tab`
+- `theme/desktoptheme/org.macos8.desktop/widgets/tabbar.svg`: in all four `*-active-tab`
   prefixes change the face fill `#DDDDDD` to `#CCCCCC` and the raised-bevel highlight
   `#FFFFFF` to `#DDDDDD`; keep the `#000000` outline, the `#999999` shadow and the face-only
   open edge. Update the header comment to name `desktop_fandom.png` and the sampled rectangles
@@ -1138,7 +1138,7 @@ unresolved, so the bevel keeps its current black/highlight/face geometry.
 - `tests/support/reference_image.py`: give `ReferenceScreenshotMixin` a `MAX_ROWS = None` class
   attribute and pass `max_rows=cls.MAX_ROWS` to `read_reference` in `setUpClass`, so the
   2560x1442 reference decodes only its first 160 rows (0.4s) instead of all of it (3.4s).
-- `docs/invariants.md`: the desktop-themes row already names
+- `docs/invariants.md`: the desktoptheme row already names
   `tests/test_desktoptheme_tabbar.py::TestTabBar`; its guarantee ("draws the Platinum tab bar")
   is unchanged.
 
@@ -1153,7 +1153,7 @@ unresolved, so the bevel keeps its current black/highlight/face geometry.
   reference and the rectangles.
 - `make check` exits 0.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/tabbar.svg`,
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/tabbar.svg`,
 `tests/test_desktoptheme_tabbar.py`, `tests/support/reference_image.py`.
 
 **Recorded deviation.** The reference tab is a trapezoid whose sides slant outward over the
@@ -1187,8 +1187,8 @@ byte-identical copy of `widgets/background.svg` (the Platinum body the standard 
 exactly as `solid/widgets/tooltip.svg` copies `widgets/tooltip.svg`.
 
 **Approach.**
-- Add `theme/desktop-themes/org.macos8.desktop/widgets/translucentbackground.svg`, byte-identical to
-`theme/desktop-themes/org.macos8.desktop/widgets/background.svg` (no header change, so the copy test
+- Add `theme/desktoptheme/org.macos8.desktop/widgets/translucentbackground.svg`, byte-identical to
+`theme/desktoptheme/org.macos8.desktop/widgets/background.svg` (no header change, so the copy test
 compares bytes).
 - `tests/support/desktoptheme_paths.py`: add `TRANSLUCENT_BACKGROUND_SVG = os.path.join(PACKAGE,
 "widgets", "translucentbackground.svg")` beside `BACKGROUND_SVG`.
@@ -1200,14 +1200,14 @@ registry, canvas, id and self-containment tests cover it) and
 `test_translucent_copy_is_identical` to `TestBackground`, opening `BACKGROUND_SVG` and
 `TRANSLUCENT_BACKGROUND_SVG` in binary and asserting equal bytes (mirroring
 `TestTooltip::test_solid_copy_is_identical`).
-- `docs/invariants.md`: extend the desktop-themes `widgets/background.svg` row's guarantee to "…and
+- `docs/invariants.md`: extend the desktoptheme `widgets/background.svg` row's guarantee to "…and
 its `widgets/translucentbackground.svg` copy is byte-identical." The row already names
 `TestBackground`, which holds the new test.
 - `README.md`: in the `widgets/background.svg` sentence, add that a byte-identical copy ships at
 `widgets/translucentbackground.svg`, where `BasicAppletContainer.qml` looks for a translucent-hint
 applet container's background.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/translucentbackground.svg`
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/translucentbackground.svg`
 (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`,
 `tests/test_desktoptheme_background.py`, `docs/invariants.md`, `README.md`.
 
@@ -1227,7 +1227,7 @@ the registry).
 
 ### Mac OS 8.6 grey menu body: ground `widgets/background.svg` in the open Apple menu (planned 2026-10-18 by the plan role) — done 2026-10-18
 
-**Goal.** `theme/desktop-themes/org.macos8.desktop/widgets/background.svg` paints the body of every
+**Goal.** `theme/desktoptheme/org.macos8.desktop/widgets/background.svg` paints the body of every
 `PlasmaComponents.Menu` (context menus and combo-box dropdowns), `Drawer`, `Popup` and planar
 applet container as a flat `#FFFFFF` face, and its comment justifies that with
 `[Colors:View] BackgroundNormal`. But the open Apple menu in the retail screenshot
@@ -1259,7 +1259,7 @@ from `support.platinum_palette` (it is already `#DDDDDD`). Add a reference case,
 materialized.
 - `README.md`: the `widgets/background.svg` sentence at the desktop-theme paragraph says the
 Platinum grey menu body instead of "the flat white Platinum body".
-- `docs/invariants.md`: the desktop-themes `background.svg` row's guarantee ("draws the Platinum
+- `docs/invariants.md`: the desktoptheme `background.svg` row's guarantee ("draws the Platinum
 menu body") still holds; no provenance exception is needed now that the face is reference-sampled.
 
 **Acceptance criteria.**
@@ -1346,7 +1346,7 @@ alpha), so a byte-identical copy is the correct solid variant. Out of scope: a
 path), so it is not shipped here.
 
 **Approach.**
-- Add `theme/desktop-themes/org.macos8.desktop/solid/widgets/panel-background.svg`, byte-identical
+- Add `theme/desktoptheme/org.macos8.desktop/solid/widgets/panel-background.svg`, byte-identical
 to `widgets/panel-background.svg` (no header change, so the copy test compares bytes), matching
 the existing `solid/widgets/tooltip.svg`.
 - `tests/support/desktoptheme_paths.py`: add `SOLID_PANEL_SVG = os.path.join(PACKAGE, "solid",
@@ -1360,7 +1360,7 @@ state, like `panel-background.svg`), and add
 - `tests/test_desktoptheme_panel.py`: import `SOLID_PANEL_SVG` and add
 `test_solid_copy_is_identical` to `TestPanelBackground`, opening `PANEL_SVG` and `SOLID_PANEL_SVG`
 in binary and asserting equal bytes (mirroring `TestTooltip::test_solid_copy_is_identical`).
-- `docs/invariants.md`: extend the desktop-themes `widgets/panel-background.svg` row's guarantee
+- `docs/invariants.md`: extend the desktoptheme `widgets/panel-background.svg` row's guarantee
 to "`widgets/panel-background.svg` draws the menu bar, including its top-panel north state, and
 its `solid/` copy is byte-identical." The row already names `TestPanelBackground`, which holds
 the new test.
@@ -1368,7 +1368,7 @@ the new test.
 ships at `solid/widgets/panel-background.svg`, where `Panel.qml` looks for an opaque panel's
 background.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/solid/widgets/panel-background.svg`
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/solid/widgets/panel-background.svg`
 (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`,
 `tests/test_desktoptheme_panel.py`, `docs/invariants.md`, `README.md`.
 
@@ -1686,17 +1686,17 @@ so the one-row alignment is pinned by the test.
 **Provenance.** No Mac OS 8.6 screenshot in the reference set shows a hover action button, so the shape and its three states are KDE-required; the fills reuse the grounded Platinum faces the other widgets ship (`#000000` outline, `#FFFFFF` highlight, `#999999` shadow, `#DDDDDD` face). No new palette constant is introduced.
 
 **Approach.**
-- New `theme/desktop-themes/org.macos8.desktop/widgets/action-overlays.svg`, a 16x16 canvas with nine groups, ids `add-normal`, `add-hover`, `add-pressed`, `open-normal`, `open-hover`, `open-pressed`, `remove-normal`, `remove-hover`, `remove-pressed` (the plain ids the consumer resolves):
+- New `theme/desktoptheme/org.macos8.desktop/widgets/action-overlays.svg`, a 16x16 canvas with nine groups, ids `add-normal`, `add-hover`, `add-pressed`, `open-normal`, `open-hover`, `open-pressed`, `remove-normal`, `remove-hover`, `remove-pressed` (the plain ids the consumer resolves):
   - each group opens with the invisible `0,0,16,16` `fill="none"` bounding rect, then the `actionbutton.svg` circle recipe at (8,8): a `#000000` r=7 outline circle, the two bevel half-discs of radius 6 split on the top-right to bottom-left diagonal, and the `#DDDDDD` r=5 face circle;
   - `normal` and `hover` keep the raised bevel (`#FFFFFF` top-left half, `#999999` bottom-right half) and `pressed` swaps it; the `hover` face is `#FFFFFF` (a lit Platinum button), the `normal` and `pressed` face `#DDDDDD`;
   - a `#000000` glyph over the face: `add` a plus, `remove` a minus (each a stroked path with `fill="none"`), `open` a right-pointing filled triangle, sized to fit inside the r=5 face.
 - `tests/support/desktoptheme_paths.py`: add `ACTION_OVERLAYS_SVG = os.path.join(PACKAGE, "widgets", "action-overlays.svg")`.
 - New `tests/test_desktoptheme_actionoverlays.py`, modelled on `tests/test_desktoptheme_actionbutton.py` (extends `SvgCase`): `TestActionOverlays` pins the nine ids (`assert_ids_present`), the parsed fill set (`PLATINUM_FILLS | {"none"}`), the stroke set (`{"#000000"}`), `assert_no_script_elements`, each group's bounds rect, each state's circle geometry and bevel order, and each kind's glyph path (`d`, `fill`, `stroke`, `stroke-width`).
 - `tests/test_desktoptheme.py`: add `("action-overlays.svg", ACTION_OVERLAYS_SVG, 16, 16)` to `SVG_CANVASES` (and a clause about it to the canvas comment) and `os.path.join("widgets", "action-overlays.svg")` to `TestInstall.INSTALLED_FILES`.
-- `docs/invariants.md`: add the desktop-themes row `widgets/action-overlays.svg` draws the Platinum desktop icon action buttons. | `tests/test_desktoptheme_actionoverlays.py::TestActionOverlays` | none.
+- `docs/invariants.md`: add the desktoptheme row `widgets/action-overlays.svg` draws the Platinum desktop icon action buttons. | `tests/test_desktoptheme_actionoverlays.py::TestActionOverlays` | none.
 - `README.md`: add `widgets/action-overlays.svg` to the desktop theme's widget inventory sentence.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/action-overlays.svg` (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_actionoverlays.py` (new), `tests/test_desktoptheme.py`, `docs/invariants.md`, `README.md`.
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/action-overlays.svg` (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_actionoverlays.py` (new), `tests/test_desktoptheme.py`, `docs/invariants.md`, `README.md`.
 
 **Acceptance criteria.**
 - `action-overlays.svg` parses with a 16x16 root canvas; the nine element ids are present and unique; every fill is in `PLATINUM_FILLS | {"none"}` and every stroke `#000000`.
@@ -1718,7 +1718,7 @@ so the one-row alignment is pinned by the test.
 **Provenance.** Mac OS 8.6 draws no round button, so the shape and its hover/focus rings are KDE-required; the fills reuse the grounded Platinum face and bevel the other widgets ship (`#000000` outline, `#FFFFFF` highlight, `#999999` shadow, `#DDDDDD` face), and the focus ring reuses `button.svg`'s 1px `#000000` ring treatment. State this in the file's header comment.
 
 **Approach.**
-- New `theme/desktop-themes/org.macos8.desktop/widgets/actionbutton.svg`, a 36x36 canvas with four `<g>` elements, each opening with an invisible 36x36 bounding rect, so `KSvg` scales all four by the same bounds:
+- New `theme/desktoptheme/org.macos8.desktop/widgets/actionbutton.svg`, a 36x36 canvas with four `<g>` elements, each opening with an invisible 36x36 bounding rect, so `KSvg` scales all four by the same bounds:
   - `normal` (raised): a filled `#000000` circle r=17 (outline), then a `#FFFFFF` half-disc path (top-left half, r=16) and a `#999999` half-disc path (bottom-right half, r=16) painting the 1px bevel, then a filled `#DDDDDD` circle r=15 (face). Each half-disc is one `M`/`A`/`Z` path, so `path_arcs` reads one 180-degree arc.
   - `pressed` (sunken): the same circles with the bevel halves swapped — `#999999` top-left, `#FFFFFF` bottom-right.
   - `hover` and `focus`: a 1px `#000000` ring in the outermost pixel, just outside the r=17 outline, drawn as one donut path — a full r=18 circle and a full r=17 circle wound the other way, so the nonzero fill rule leaves the interior transparent and the underlying `normal` art shows through.
@@ -1732,7 +1732,7 @@ so the one-row alignment is pinned by the test.
 - `docs/invariants.md`: add the desktop-theme row `| widgets/actionbutton.svg draws the Platinum round action button. | tests/test_desktoptheme_actionbutton.py::TestActionButton | none |`.
 - `README.md`: add `widgets/actionbutton.svg` to the desktop theme's widget inventory sentence.
 
-**Files touched.** `theme/desktop-themes/org.macos8.desktop/widgets/actionbutton.svg` (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_actionbutton.py` (new), `tests/test_desktoptheme.py`, `docs/invariants.md`, `README.md`.
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/actionbutton.svg` (new), `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme_actionbutton.py` (new), `tests/test_desktoptheme.py`, `docs/invariants.md`, `README.md`.
 
 **Acceptance criteria.**
 - `actionbutton.svg` parses with a 36x36 root canvas and the four named groups; its parsed fills are exactly the Platinum four plus `none` (the bounding rects).
