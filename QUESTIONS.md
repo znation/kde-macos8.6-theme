@@ -7,34 +7,7 @@ each tick.
 
 ## Open
 
-### Should the theme also style GTK applications and Firefox?
-
-(asked 2026-10-19 by the director role)
-
-**Context.** The screenshot's Firefox window draws its own tab-in-titlebar
-chrome: no Aurorae frame, rounded tabs and Firefox's own control glyphs. The
-Ghostty window already wears our Aurorae frame, but its inner tab strip is
-GTK4/libadwaita (`ghostty` links `libgtk-4.so.1` and `libadwaita-1.so.0`), so
-it keeps the desktop's GTK theme. A KDE global theme/decoration controls
-neither: Firefox switches to a KWin-drawn frame when
-`browser.tabs.inTitlebar=0` is set in its profile, and GTK chrome needs a GTK
-theme or user CSS. Both are new surfaces outside the current KDE/Qt theme.
-
-**Options.**
-1. Document the limits and the Firefox preference; keep the theme KDE/Qt-only.
-   Cheap, does not edit a browser profile or change every GTK app.
-2. Add opt-in helpers: a GTK 4 CSS theme and a Firefox `userChrome.css` plus
-   the profile preference, installed by separate `make` targets. This can
-   restyle Ghostty's tab strip and give Firefox Platinum tabs and frame, but
-   it affects all GTK/libadwaita apps and edits browser profile files, and it
-   is a multi-part series of its own.
-3. Add the GTK theme only (no Firefox profile changes).
-4. Add the Firefox userChrome only.
-
-**Recommendation.** Option 1 now, as a small README/Installing note, so the
-user knows the KDE theme cannot reach those surfaces and how to get the
-Firefox frame with one preference. Revisit option 2 as a separate planned
-series if full-desktop fidelity outranks keeping the theme KDE/Qt-only.
+_None yet._
 
 ## Answered
 
@@ -175,3 +148,34 @@ can be sourced and recorded; otherwise option 2 rather than 3. A faithful
 Platinum look depends on the text face as much as on the bevels.
 
 **Answered 2026-10-19 by the user:** Let's go with Option 1, vendor a Chicago/Charcoal style font(s). Check for me whether ChicagoFLF license fits our usage, and if not, let's keep looking for a more permissively licensed font (or two? do we need one each for Chicago and Charcoal styles?)
+
+### Should the theme also style GTK applications and Firefox?
+
+(asked 2026-10-19 by the director role)
+
+**Context.** The screenshot's Firefox window draws its own tab-in-titlebar
+chrome: no Aurorae frame, rounded tabs and Firefox's own control glyphs. The
+Ghostty window already wears our Aurorae frame, but its inner tab strip is
+GTK4/libadwaita (`ghostty` links `libgtk-4.so.1` and `libadwaita-1.so.0`), so
+it keeps the desktop's GTK theme. A KDE global theme/decoration controls
+neither: Firefox switches to a KWin-drawn frame when
+`browser.tabs.inTitlebar=0` is set in its profile, and GTK chrome needs a GTK
+theme or user CSS. Both are new surfaces outside the current KDE/Qt theme.
+
+**Options.**
+1. Document the limits and the Firefox preference; keep the theme KDE/Qt-only.
+   Cheap, does not edit a browser profile or change every GTK app.
+2. Add opt-in helpers: a GTK 4 CSS theme and a Firefox `userChrome.css` plus
+   the profile preference, installed by separate `make` targets. This can
+   restyle Ghostty's tab strip and give Firefox Platinum tabs and frame, but
+   it affects all GTK/libadwaita apps and edits browser profile files, and it
+   is a multi-part series of its own.
+3. Add the GTK theme only (no Firefox profile changes).
+4. Add the Firefox userChrome only.
+
+**Recommendation.** Option 1 now, as a small README/Installing note, so the
+user knows the KDE theme cannot reach those surfaces and how to get the
+Firefox frame with one preference. Revisit option 2 as a separate planned
+series if full-desktop fidelity outranks keeping the theme KDE/Qt-only.
+
+**Answered 2026-10-19 by the user:** Yes, I guess let's proceed to expand the scope of this project. We should also style GTK applications and Firefox.
