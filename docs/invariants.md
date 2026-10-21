@@ -69,6 +69,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | The standalone GTK 3 Platinum theme redefines the Platinum palette and paints the scoped Platinum control rules, including every plain and reorderable tab state, without importing Adwaita. | `tests/test_gtk_theme.py::TestGtkTheme` | No reference screenshot shows a GTK widget, so the palette comes from the pinned Platinum values and the geometry is this theme's adaptation. |
 | The standalone GTK 4 stylesheet redefines the Platinum palette and opaque GTK 4 surface colours and paints the scoped Platinum control rules, including every tab state, without importing another stylesheet. | `tests/test_gtk4_theme.py::TestGtk4Theme` | No reference screenshot shows a GTK widget, so the palette comes from the pinned Platinum values and the geometry is this theme's adaptation. |
 | The GTK 3 and GTK 4 suites read their `index.theme` and `gtk.css` through the shared containment reader, so a checked-in symlink that escapes the repository is refused instead of leaking a private file's text into a failing test's diagnostic. | `tests/test_gtk_theme.py::TestGtkTheme::test_theme_read_refuses_a_symlink_escape` | none |
+| The shared GTK stylesheet parser removes comments and pairs rule blocks without the quadratic backtracking of the regular expressions it replaced, so a contributor-supplied `gtk.css` with many unterminated comment starts or a long unbraced run cannot stall the suite. | `tests/test_gtk_css.py::TestHostileStylesheet` | none |
 
 ## icons
 

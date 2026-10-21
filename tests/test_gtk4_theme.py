@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 from support import gtk_css
-from support.gtk_css import COMMENT, HEX, parse_css
+from support.gtk_css import HEX, parse_css, strip_comments
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -177,14 +177,14 @@ class TestGtk4Theme(unittest.TestCase):
             SELECTION,
             ETCH_DARK,
         }
-        self.assertEqual(set(HEX.findall(COMMENT.sub("", self.css))), palette)
+        self.assertEqual(set(HEX.findall(strip_comments(self.css))), palette)
 
     def test_no_status_or_translucent_shade_roles(self):
         # Scan the raw declarations, not the parsed hex map, so a status or
         # shade role declared with a non-hex value (for example rgba(...))
         # cannot escape this check.
         names = re.findall(
-            r"@define-color\s+([-A-Za-z0-9_]+)", COMMENT.sub("", self.css)
+            r"@define-color\s+([-A-Za-z0-9_]+)", strip_comments(self.css)
         )
         for name in names:
             with self.subTest(colour=name):
