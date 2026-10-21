@@ -59,6 +59,36 @@ def assert_no_style_elements(case, tree):
 _URL_OPEN = re.compile(r"url\(", re.IGNORECASE)
 
 
+def _skip_space(value, position):
+    """Return the index of the first non-space character at or after *position*.
+
+    *position* may equal ``len(value)``, in which case it is returned unchanged.
+    """
+    while position < len(value) and value[position].isspace():
+        position += 1
+    return position
+
+
+def _quoted_target(value, position):
+    """Return ``(target, index)`` for a quoted ``url`` target, or None.
+
+    *position* indexes the opening quote. The CSS quoted form is a target in
+    single or double quotes, padded with whitespace, with the ``)`` right
+    after the closing quote; *index* is the position just past that ``)``.
+    A quote that never closes, or one whose ``)`` does not follow it (after
+    optional whitespace), is not the quoted form, so the caller falls back to
+    the unquoted read instead.
+    """
+    quote = value[position]
+    closing = value.find(quote, position + 1)
+    if closing < 0:
+        return None
+    after = _skip_space(value, closing + 1)
+    if after < len(value) and value[after] == ")":
+        return value[position + 1 : closing].strip(), after + 1
+    return None
+
+
 def _url_targets(value):
     """Yield the target of every ``url(...)`` reference in an attribute value.
 
@@ -81,20 +111,13 @@ def _url_targets(value):
         match = _URL_OPEN.search(value, index)
         if match is None:
             return
-        position = match.end()
-        while position < length and value[position].isspace():
-            position += 1
+        position = _skip_space(value, match.end())
         if position < length and value[position] in "'\"":
-            quote = value[position]
-            closing = value.find(quote, position + 1)
-            if closing >= 0:
-                after = closing + 1
-                while after < length and value[after].isspace():
-                    after += 1
-                if after < length and value[after] == ")":
-                    yield value[position + 1 : closing].strip()
-                    index = after + 1
-                    continue
+            quoted = _quoted_target(value, position)
+            if quoted is not None:
+                target, index = quoted
+                yield target
+                continue
         end = value.find(")", position)
         if end < 0:
             # No closing ``)`` remains, so no later ``url(`` can match either.
