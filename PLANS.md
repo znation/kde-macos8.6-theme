@@ -6,7 +6,8 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 ## Planned
 
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
-updated 2026-10-19 by the clean role):** The initial prompt asks for
+updated 2026-10-19 by the clean role; plan status updated 2026-10-21 by the steward role):** The
+initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
 (startup splash, desktop layout, defaults); the desktop theme (twenty-four widget SVGs under
@@ -15,30 +16,32 @@ collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon th
 final, non-infringing 32x32 Platinum-style art for the desktop's hard-disk, folder, document,
 Trash and full-Trash icons, plus the menu bar's kicker logo `start-here-kde-symbolic` and the
 `go-next-symbolic` submenu arrow, our own marks rather than Apple's; `PLACEHOLDERS.md` is empty);
-and the render and fidelity tooling
+the GTK 3 and GTK 4 Platinum stylesheets under `theme/gtk/` (not yet installable; part 3/4 is
+planned below); and the render and fidelity tooling
 that checks them against `macos8.6-screenshots/`. README.md describes the reference set as the
 source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
-prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-20 by the
+prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-21 by the
 steward role): a **Qt widget style** for KDE applications (the desktop theme styles only
 Plasma shell widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
 by the global theme's selection of our Kvantum theme: the user answered
 2026-10-18 that a pixel-matched Platinum style should ship as a Kvantum theme (a new
 dependency) — shipped as the four-part "Mac OS 8.6 Kvantum widget style" series (each part
 waited on the one before); a **cursor theme** is out of scope (no reference screenshot shows a
-cursor, so no pixel ground truth exists to match); and **system sounds** are out of scope (not a
-visual surface, so the reference set cannot ground them). The shipped work should not be treated
-as the whole of the prompt.
+cursor, so no pixel ground truth exists to match); **system sounds** are out of scope (not a
+visual surface, so the reference set cannot ground them); and a **lock screen** is out of scope
+unless a broader login/lock-screen plan is taken up (QUESTIONS.md, answered 2026-10-21). The
+shipped work should not be treated as the whole of the prompt.
 
-Two answers on 2026-10-19 expand the scope again, and neither has a plan yet.
-**GTK applications and Firefox** are now in scope (QUESTIONS.md, answered 2026-10-19): a
-KDE/Qt global theme cannot reach them, so this needs a GTK 4 CSS theme and a Firefox
-`userChrome.css` plus profile preference, installed by separate opt-in `make` targets — a
-multi-part series of its own. **The UI font** is now to be vendored (QUESTIONS.md, answered
-2026-10-19): the theme should ship a Chicago/Charcoal-style font with a checked redistribution
-licence and recorded provenance, select it for KDE, Plasma and Qt applications, and the answer
-leaves open whether one face serves both Chicago and Charcoal. The plan queue carries neither
-surface yet; until it does, the menu bar and dialog text keep the user's desktop font, and GTK
-and Firefox applications keep their own chrome.
+Two answers on 2026-10-19 widen the scope again, and both now have plan entries in the queue.
+**GTK applications and Firefox** are in scope (QUESTIONS.md, answered 2026-10-19) as a
+four-part series: parts 1/4 (GTK 3 Platinum theme) and 2/4 (GTK 4/libadwaita stylesheet) have
+landed, part 3/4 (the opt-in install and selection) is planned below, and part 4/4 (Firefox
+`userChrome.css` plus profile preference) is not planned yet. **The UI font** is to be vendored
+(QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
+Charcoal-style body face and is planned below; part 2/3 (a Chicago-style menu face, whose
+redistribution licence is still unresolved) and part 3/3 (selecting the installed families in
+KDE/Plasma/Qt) are not planned yet. Until those parts land, the menu bar and dialog text keep the
+user's desktop font, and GTK and Firefox applications keep their own chrome.
 
 ### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
 
