@@ -8,9 +8,62 @@ a target or variable is added, renamed or removed without updating the index.
 import os
 import re
 import unittest
+from unittest import mock
 
-from support import theme_install
+from support import containment, theme_install
 from support.process_assertions import assert_succeeded
+from support.tmp_dir import make_tmp_dir
+
+
+def _read_repo_file(name):
+    """Return the UTF-8 text of the repository file *name*.
+
+    ``Makefile`` and ``README.md`` are contributor-supplied, and a checked-in
+    symlink at either path can point at a private file. The target and
+    variable names parsed from the Makefile, and the README text itself, reach
+    assertion diagnostics that echo them (``assertRegex`` prints the whole
+    text it searched), so a path that resolves outside the repository is
+    refused before it is opened.
+    """
+    return containment.read_text(
+        os.path.join(theme_install.ROOT, name), theme_install.ROOT,
+        encoding="utf-8",
+    )
+
+
+class TestReadFileContainment(unittest.TestCase):
+    """The README/Makefile read refuses a symlink that escapes the repository.
+
+    A checked-in symlink at ``Makefile`` or ``README.md`` can point at a
+    private file, and the names parsed from it (and the README's whole text,
+    which ``assertRegex`` echoes) reach failure diagnostics; the read must
+    refuse such a path before it is opened rather than leak the private file.
+    """
+
+    def _symlinked_root(self, target_text):
+        tmp = make_tmp_dir(self)
+        root = tmp / "repo"
+        root.mkdir()
+        secret = tmp / "secret"
+        secret.write_text(target_text, encoding="utf-8")
+        (root / "README.md").symlink_to(secret)
+        return root, root / "README.md"
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        root, link = self._symlinked_root("make private-target\n")
+        with mock.patch.object(theme_install, "ROOT", root):
+            with self.assertRaises(ValueError) as caught:
+                _read_repo_file("README.md")
+        self.assertIn(str(link), str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        root = make_tmp_dir(self) / "repo"
+        root.mkdir()
+        target = root / "actual-readme.md"
+        target.write_text("make check\n", encoding="utf-8")
+        (root / "README.md").symlink_to(target)
+        with mock.patch.object(theme_install, "ROOT", root):
+            self.assertEqual(_read_repo_file("README.md"), "make check\n")
 
 
 class TestHelp(unittest.TestCase):
@@ -38,13 +91,11 @@ class TestHelp(unittest.TestCase):
 
     def _public_targets(self):
         """Return the `.PHONY` targets other than the `_`-prefixed internals."""
-        makefile = os.path.join(theme_install.ROOT, "Makefile")
-        with open(makefile, encoding="utf-8") as handle:
-            phony = next(
-                line
-                for line in handle
-                if line.startswith(".PHONY:")
-            )
+        phony = next(
+            line
+            for line in _read_repo_file("Makefile").splitlines()
+            if line.startswith(".PHONY:")
+        )
         return [
             name
             for name in phony.split(":", 1)[1].split()
@@ -60,18 +111,16 @@ class TestHelp(unittest.TestCase):
         itself drift; only the literal right-hand side is read, so a value
         built from other variables (none today) is out of scope.
         """
-        makefile = os.path.join(theme_install.ROOT, "Makefile")
         variables = []
-        with open(makefile, encoding="utf-8") as handle:
-            for line in handle:
-                match = re.match(
-                    r"([A-Za-z_][A-Za-z0-9_]*)\s*\?=(.*)$", line
-                )
-                if match:
-                    # A `#` starts a Make comment, so an inline note after the
-                    # value is not part of it; strip it before comparing.
-                    value = match.group(2).split("#", 1)[0].strip()
-                    variables.append((match.group(1), value))
+        for line in _read_repo_file("Makefile").splitlines():
+            match = re.match(
+                r"([A-Za-z_][A-Za-z0-9_]*)\s*\?=(.*)$", line
+            )
+            if match:
+                # A `#` starts a Make comment, so an inline note after the
+                # value is not part of it; strip it before comparing.
+                value = match.group(2).split("#", 1)[0].strip()
+                variables.append((match.group(1), value))
         return variables
 
     def _tunable_defaults(self):
@@ -128,32 +177,30 @@ class TestHelp(unittest.TestCase):
         mention in a comment or a shell variable in a macro body does not
         count.
         """
-        makefile = os.path.join(theme_install.ROOT, "Makefile")
         used = set()
         in_help = False
-        with open(makefile, encoding="utf-8") as handle:
-            for line in handle:
-                if line.startswith("help:"):
-                    in_help = True
-                    continue
-                if in_help:
-                    # The recipe lines are tab-indented; the first line that
-                    # is not (the blank after it, or the next rule) ends it.
-                    if not line.startswith("\t"):
-                        in_help = False
-                    else:
-                        continue
-                line = line.replace("$$", "")
-                line = re.sub(r"(?<!\\)#.*$", "", line)
+        for line in _read_repo_file("Makefile").splitlines():
+            if line.startswith("help:"):
+                in_help = True
+                continue
+            if in_help:
+                # The recipe lines are tab-indented; the first line that
+                # is not (the blank after it, or the next rule) ends it.
                 if not line.startswith("\t"):
-                    match = re.match(
-                        r"\s*([A-Za-z_][A-Za-z0-9_]*)\s*[:?+]?=", line
-                    )
-                    if match:
-                        used.add(match.group(1))
-                used.update(
-                    re.findall(r"\$[({]([A-Za-z_][A-Za-z0-9_]*)[)}]", line)
+                    in_help = False
+                else:
+                    continue
+            line = line.replace("$$", "")
+            line = re.sub(r"(?<!\\)#.*$", "", line)
+            if not line.startswith("\t"):
+                match = re.match(
+                    r"\s*([A-Za-z_][A-Za-z0-9_]*)\s*[:?+]?=", line
                 )
+                if match:
+                    used.add(match.group(1))
+            used.update(
+                re.findall(r"\$[({]([A-Za-z_][A-Za-z0-9_]*)[)}]", line)
+            )
         return used
 
     def test_lists_every_public_target(self):
@@ -225,9 +272,7 @@ class TestHelp(unittest.TestCase):
         `(?![-\w])` guard keeps a shorter target from matching as a prefix of
         a longer one (`check` inside `check-references`).
         """
-        readme = os.path.join(theme_install.ROOT, "README.md")
-        with open(readme, encoding="utf-8") as handle:
-            text = handle.read()
+        text = _read_repo_file("README.md")
         for target in self._public_targets():
             with self.subTest(target=target):
                 self.assertRegex(
