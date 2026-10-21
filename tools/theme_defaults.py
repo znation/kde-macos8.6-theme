@@ -15,9 +15,9 @@ from collections.abc import Iterable
 from pathlib import Path
 
 if __package__:
-    from tools.containment import require_within_repo
+    from tools.containment import open_regular_binary, require_within_repo
 else:  # imported from a directly run tool
-    from containment import require_within_repo
+    from containment import open_regular_binary, require_within_repo
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -49,9 +49,11 @@ def _read_defaults_text(path: Path) -> str:
     without loading the rest of it; a longer file raises ``ValueError`` naming
     the limit, like a malformed heading, so the caller reports it instead of a
     ``MemoryError`` aborting the run. Decoding as ``utf-8-sig`` strips a
-    leading UTF-8 BOM, which an editor may have added.
+    leading UTF-8 BOM, which an editor may have added. A FIFO or device
+    would block or stream forever, so it is refused by name when the opened
+    descriptor turns out not to be a regular file.
     """
-    with path.open("rb") as handle:
+    with open_regular_binary(path) as handle:
         data = handle.read(_MAX_DEFAULTS_BYTES + 1)
     if len(data) > _MAX_DEFAULTS_BYTES:
         raise ValueError(

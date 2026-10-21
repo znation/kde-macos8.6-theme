@@ -12,13 +12,40 @@ which echo them, so it reads through the matching ``containment.read_text``.
 from __future__ import annotations
 
 import ast
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support import containment
 from support.repo_root import ROOT
 from tools import containment as containment_impl
+
+
+def _run_reader_in_child(reader, path, root):
+    """Run one guarded reader on *path* in a child; return its result.
+
+    A reader handed a FIFO blocks in ``open()`` until a writer appears, so a
+    direct call would stall the suite with no diagnostic. The child makes that
+    hang a hard timeout instead.
+    """
+    return subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            f"import sys; from tools.containment import {reader}; "
+            f"{reader}(sys.argv[1], sys.argv[2])",
+            str(path),
+            str(root),
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
 
 
 class TestReadBytes(unittest.TestCase):
@@ -73,6 +100,48 @@ class TestReadBytes(unittest.TestCase):
                 containment.read_bytes(path, tmp / "repo")
         self.assertIn(str(path), str(caught.exception))
 
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # open() on a FIFO blocks until a writer appears, and this reader has
+        # no timeout, so a stray pipe at a contributor-file path would stall
+        # make check with no diagnostic. Refuse it by name in a child process
+        # so the pre-fix hang is a bounded timeout, not a stalled suite.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            fifo = tmp / "asset.svg"
+            os.mkfifo(fifo)
+            child = _run_reader_in_child("read_bytes", fifo, tmp)
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(fifo), child.stderr)
+
+    def test_rejects_a_fifo_opened_in_place_of_a_regular_path(self):
+        # A regular file can be swapped for a FIFO between a check of the path
+        # and the open. Patching os.open to open the FIFO while the path still
+        # names a regular file proves the check runs on the opened descriptor,
+        # so the swap is refused instead of reading the pipe.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            path = tmp / "asset.svg"
+            path.write_bytes(b"inside")
+            fifo = tmp / "pipe"
+            os.mkfifo(fifo)
+            real_open = os.open
+
+            def open_the_fifo(target, flags, *args, **kwargs):
+                return real_open(fifo, flags, *args, **kwargs)
+
+            with mock.patch.object(
+                containment_impl.os, "open", side_effect=open_the_fifo
+            ):
+                with self.assertRaises(ValueError) as caught:
+                    containment.read_bytes(path, tmp / "repo")
+        self.assertIn(str(path), str(caught.exception))
+        self.assertIn("not a regular file", str(caught.exception))
+
 
 class TestReadText(unittest.TestCase):
     def test_rejects_a_symlink_that_escapes_the_root(self):
@@ -123,6 +192,20 @@ class TestReadText(unittest.TestCase):
             with self.assertRaises(ValueError) as caught:
                 containment.read_text(path, tmp / "repo")
         self.assertIn(str(path), str(caught.exception))
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # A FIFO at a register or colour-scheme path would block the text
+        # reader's open() forever; refuse it by name in a child process.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            fifo = tmp / "MacOS8.colors"
+            os.mkfifo(fifo)
+            child = _run_reader_in_child("read_text", fifo, tmp)
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(fifo), child.stderr)
 
     def test_matches_text_mode_newline_and_bom_handling(self):
         # read_text reads bytes to bound the allocation, then decodes through

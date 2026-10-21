@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import io
 import os
+import stat
 from pathlib import Path
 
 
@@ -63,6 +64,29 @@ def require_within_repo(path, root):
         )
 
 
+def open_regular_binary(path):
+    """Open *path* for binary reading, refusing a non-regular file.
+
+    ``open()`` on a FIFO blocks until a writer appears and a device can stream
+    without end, so a reader with no timeout would hang the run. Opening with
+    ``O_NONBLOCK`` lets a FIFO be examined without waiting, and ``fstat`` on
+    that same descriptor rejects it by name; ``fstat`` on the descriptor rather
+    than a separate ``stat`` of the path also means a regular file swapped for
+    a FIFO between the check and the open cannot slip through. ``O_NONBLOCK``
+    has no effect on a regular file. The caller closes the returned handle.
+    """
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+    try:
+        if not stat.S_ISREG(os.fstat(fd).st_mode):
+            raise ValueError(
+                f"{path} cannot be read: not a regular file; refusing to open it"
+            )
+        return os.fdopen(fd, "rb")
+    except BaseException:
+        os.close(fd)
+        raise
+
+
 # The files a checker reads through here are source files, SVGs and registers,
 # tens of kilobytes at most. The path is contributor-supplied and can name
 # something arbitrarily large -- a stray multi-gigabyte file, or a Git LFS
@@ -97,11 +121,12 @@ def read_bytes(path, root):
     must be refused before it is opened rather than leaking a private file's
     bytes into the diagnostic. A file larger than ``_MAX_READ_BYTES`` is
     refused with a ``ValueError`` naming *path* instead of being loaded whole,
-    which could raise an uncaught ``MemoryError``. A *path* outside *root* (a
-    test's temporary file) is read as before.
+    which could raise an uncaught ``MemoryError``. A FIFO or device is refused
+    by name rather than opened, since it would block or stream forever. A
+    *path* outside *root* (a test's temporary file) is read as before.
     """
     require_within_repo(path, root)
-    with open(path, "rb") as handle:
+    with open_regular_binary(path) as handle:
         return _read_bounded(handle, path)
 
 
@@ -114,11 +139,12 @@ def read_text(path, root, encoding="utf-8"):
     before it is opened rather than leaking a private file's text into the
     diagnostic. A file larger than ``_MAX_READ_BYTES`` is refused with a
     ``ValueError`` naming *path* instead of being loaded whole, which could
-    raise an uncaught ``MemoryError``. A *path* outside *root* (a test's
-    temporary file) is read as before.
+    raise an uncaught ``MemoryError``. A FIFO or device is refused by name
+    rather than opened, since it would block or stream forever. A *path*
+    outside *root* (a test's temporary file) is read as before.
     """
     require_within_repo(path, root)
-    with open(path, "rb") as handle:
+    with open_regular_binary(path) as handle:
         data = _read_bounded(handle, path)
     # Decode through the text layer so the result matches ``open(path,
     # encoding=encoding)``: universal-newline translation and the UTF-8 BOM

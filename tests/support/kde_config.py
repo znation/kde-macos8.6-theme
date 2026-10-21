@@ -11,6 +11,7 @@ mangles values or makes configparser reject a file KDE accepts.
 """
 
 import configparser
+import io
 
 from support import containment
 from support.repo_root import ROOT
@@ -73,11 +74,12 @@ def read(path):
     test's diagnostic. A path that resolves outside the repository is refused
     before it is opened.
 
-    The file is decoded as ``utf-8-sig``, so a leading UTF-8 BOM -- which Qt's
-    reader strips -- does not leave configparser looking for a section header
-    that it never finds.
+    The file is read through the shared containment reader, so a FIFO or
+    device is refused instead of blocking, and decoded as ``utf-8-sig``, so a
+    leading UTF-8 BOM -- which Qt's reader strips -- does not leave
+    configparser looking for a section header that it never finds.
     """
-    containment.require_within_repo(path, ROOT)
+    text = containment.read_text(path, ROOT, encoding="utf-8-sig")
     parser = configparser.ConfigParser(
         interpolation=None,
         delimiters=("=",),
@@ -85,11 +87,10 @@ def read(path):
         strict=False,
     )
     parser.optionxform = str  # KDE keys are case-sensitive.
-    with open(path, encoding="utf-8-sig") as handle:
-        # KDE trims each line before parsing it, so an indented `[General]`
-        # still opens `[General]` and an indented key is a key. configparser
-        # instead reads a leading-indented line as a continuation of the
-        # previous value, so `_parseable_lines` feeds it the lines with that
-        # whitespace removed, minus the invalid entries KDE skips.
-        parser.read_file(_parseable_lines(handle), source=str(path))
+    # KDE trims each line before parsing it, so an indented `[General]`
+    # still opens `[General]` and an indented key is a key. configparser
+    # instead reads a leading-indented line as a continuation of the
+    # previous value, so `_parseable_lines` feeds it the lines with that
+    # whitespace removed, minus the invalid entries KDE skips.
+    parser.read_file(_parseable_lines(io.StringIO(text)), source=str(path))
     return parser

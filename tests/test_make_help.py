@@ -7,6 +7,8 @@ a target or variable is added, renamed or removed without updating the index.
 
 import os
 import re
+import subprocess
+import sys
 import unittest
 from unittest import mock
 
@@ -64,6 +66,33 @@ class TestReadFileContainment(unittest.TestCase):
         (root / "README.md").symlink_to(target)
         with mock.patch.object(theme_install, "ROOT", root):
             self.assertEqual(_read_repo_file("README.md"), "make check\n")
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # `test_readme_names_every_public_target` reads README through this
+        # helper; a FIFO at that path would block open() forever. Run in a
+        # child so the pre-fix hang is a bounded timeout, not a stalled suite.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        root = make_tmp_dir(self) / "repo"
+        root.mkdir()
+        os.mkfifo(root / "README.md")
+        child = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import sys, test_make_help; "
+                "test_make_help.theme_install.ROOT = sys.argv[1]; "
+                "test_make_help._read_repo_file('README.md')",
+                str(root),
+            ],
+            cwd=os.path.dirname(os.path.abspath(__file__)),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(root / "README.md"), child.stderr)
 
 
 class TestHelp(unittest.TestCase):

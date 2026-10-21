@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -11,6 +13,28 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
+
+
+def _run_defaults_groups_in_child(path):
+    """Run ``defaults_groups`` on *path* in a child; return its result.
+
+    A FIFO makes the reader's ``open()`` block until a writer appears; the
+    child turns that pre-fix hang into a bounded timeout for the test.
+    """
+    return subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "from pathlib import Path; import sys; "
+            "from tools.theme_defaults import defaults_groups; "
+            "defaults_groups(Path(sys.argv[1]))",
+            str(path),
+        ],
+        cwd=repo_root.ROOT,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
 
 
 class TestDefaultsGroups(unittest.TestCase):
@@ -205,6 +229,20 @@ class TestDefaultsGroups(unittest.TestCase):
         self.assertIn(
             str(theme_defaults._MAX_DEFAULTS_BYTES), str(caught.exception)
         )
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # contents/defaults is opened before the size cap is applied, and a
+        # FIFO with no writer blocks open() forever; the render has no timeout
+        # around this read, so one stray pipe would stall it silently. Refuse
+        # the path by name in a child process instead.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        path = make_tmp_dir(self) / "defaults"
+        os.mkfifo(path)
+        child = _run_defaults_groups_in_child(path)
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(path), child.stderr)
 
 
 class TestWriteConfigs(unittest.TestCase):

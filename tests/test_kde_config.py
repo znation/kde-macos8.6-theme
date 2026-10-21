@@ -8,6 +8,9 @@ whitespace never starts a value continuation — and that the file is explicitly
 decoded as UTF-8 with a leading BOM stripped.
 """
 
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -44,10 +47,14 @@ class TestReadKdeConfig(unittest.TestCase):
         # decoded as UTF-8 rather than the platform locale's encoding. The
         # locale here is UTF-8, so the decoded text cannot distinguish the
         # explicit encoding from the default; pin the argument read() passes
-        # to open() instead. utf-8-sig is utf-8 plus BOM stripping.
+        # to the containment reader instead. utf-8-sig is utf-8 plus BOM
+        # stripping.
         path = make_tmp_dir(self) / "theme.ini"
         path.write_text("[Desktop Entry]\nName=Caf\u00e9\n", encoding="utf-8")
-        with mock.patch.object(kde_config, "open", create=True, wraps=open) as spy:
+        reader = kde_config.containment.read_text
+        with mock.patch.object(
+            kde_config.containment, "read_text", wraps=reader
+        ) as spy:
             parser = kde_config.read(path)
         self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8-sig")
         self.assertEqual(parser.get("Desktop Entry", "Name"), "Caf\u00e9")
@@ -114,6 +121,33 @@ class TestReadKdeConfig(unittest.TestCase):
             "[General]\nColorScheme=BreezeLight\n[]\nColorScheme=MacOS8\n"
         )
         self.assertEqual(parser.get("General", "ColorScheme"), "BreezeLight")
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # `contents/defaults` and every theme INI are read through this helper;
+        # a FIFO at one of those paths would block open() forever. The read
+        # must refuse it by name. Run in a child so the pre-fix hang is a
+        # bounded timeout, not a stalled suite.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        path = make_tmp_dir(self) / "defaults"
+        os.mkfifo(path)
+        child = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "from pathlib import Path; import sys; "
+                "from support.kde_config import read; read(Path(sys.argv[1]))",
+                str(path),
+            ],
+            cwd=Path(__file__).resolve().parent,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(path), child.stderr)
+
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # A theme INI is contributor-supplied, and a checked-in symlink can
