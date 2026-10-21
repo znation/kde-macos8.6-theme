@@ -366,18 +366,22 @@ _uninstall:
 # id and falls back to BreezeLight on every start without rewriting the stale
 # key, so warn and name the reset command. Read `$XDG_CONFIG_HOME/kdeglobals`
 # (default `$HOME/.config/kdeglobals`, ignoring an empty or relative
-# XDG_CONFIG_HOME) the way KDE reads it: KDE strips a leading UTF-8 BOM and
-# trims each line, so a BOM-prefixed or indented section header still opens
-# its section; keys are case-sensitive in the `[General]` section, where a
-# key repeated in the section takes its last value. This is a diagnostic
-# only -- it must not edit the file.
+# XDG_CONFIG_HOME) the way KDE reads it: KDE strips a leading UTF-8 BOM,
+# trims each line, and ignores a group header that never closes, so a
+# BOM-prefixed or indented section header still opens its section while a
+# following key stays in the section that was already open; keys are
+# case-sensitive in the `[General]` section, where a key repeated in the
+# section takes its last value. This is a diagnostic only -- it must not edit
+# the file. The awk brackets the value it found, so a present but empty
+# `ColorScheme=` (`[]`) is distinguishable from a missing key (no output);
+# otherwise an empty id would match either.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
 	kdeglobals="$$config_home/kdeglobals"; \
 	if [ -n "$$config_home" ] && [ -f "$$kdeglobals" ]; then \
-	  selected=$$(awk 'NR==1 { sub(/^\357\273\277/, "") } /^[[:space:]]*\[/ { section=$$0; sub(/^[[:space:]]*\[/,"",section); sub(/\].*$$/,"",section); next } section=="General" && $$0 ~ /^[[:space:]]*ColorScheme[[:space:]]*=/ { value=$$0; sub(/^[[:space:]]*ColorScheme[[:space:]]*=/,"",value); sub(/^[[:space:]]*/,"",value); sub(/[[:space:]]*$$/,"",value) } END { if (value != "") print value }' "$$kdeglobals"); \
-	  if [ "$$selected" = "$(COLOR_SCHEME_ID)" ]; then \
+	  selected=$$(awk 'NR==1 { sub(/^\357\273\277/, "") } /^[[:space:]]*\[/ { if (index($$0, "]") == 0) next; section=$$0; sub(/^[[:space:]]*\[/,"",section); sub(/\].*$$/,"",section); next } section=="General" && $$0 ~ /^[[:space:]]*ColorScheme[[:space:]]*=/ { value=$$0; sub(/^[[:space:]]*ColorScheme[[:space:]]*=/,"",value); sub(/^[[:space:]]*/,"",value); sub(/[[:space:]]*$$/,"",value); found=1 } END { if (found) printf "[%s]", value }' "$$kdeglobals"); \
+	  if [ "$$selected" = "[$(COLOR_SCHEME_ID)]" ]; then \
 	    echo "uninstall: color scheme $(COLOR_SCHEME_ID) is still selected in $$kdeglobals after removal; if KDE cannot resolve it, it falls back to BreezeLight on the next start. Reset it with: plasma-apply-colorscheme BreezeLight" >&2; \
 	  fi; \
 	fi

@@ -84,6 +84,37 @@ class TestReadKdeConfig(unittest.TestCase):
         self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
         self.assertEqual(parser.get("General", "Name"), "x")
 
+    def test_a_semicolon_prefix_is_not_a_comment(self):
+        # KConfig treats only a leading '#' as a comment. A line beginning
+        # with ';' is a key whose name includes the ';', so the reader must
+        # keep it (configparser's default comment_prefixes would drop it) and
+        # it must not become the `ColorScheme` selection.
+        parser = self._read(
+            "[General]\n;ColorScheme=BreezeLight\nColorScheme=MacOS8\n"
+        )
+        self.assertEqual(parser.get("General", ";ColorScheme"), "BreezeLight")
+        self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
+
+    def test_a_key_before_the_first_heading_is_the_root_group(self):
+        # KConfig files a key before any group header in its <default> root
+        # group (`kreadconfig6 --group '<default>'`), not as an invalid entry;
+        # the reader must keep it rather than drop it.
+        parser = self._read(
+            "ColorScheme=BreezeLight\n[General]\nColorScheme=MacOS8\n"
+        )
+        self.assertEqual(parser.get("<default>", "ColorScheme"), "BreezeLight")
+        self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")
+
+    def test_an_empty_group_header_does_not_join_the_previous_group(self):
+        # KConfig accepts `[]` as a header for an empty-named group; a key
+        # after it belongs there, not to [General]. configparser has no empty
+        # section name, so the reader must not hand it the `[]` line (which
+        # would raise) nor leave the following key in the open group.
+        parser = self._read(
+            "[General]\nColorScheme=BreezeLight\n[]\nColorScheme=MacOS8\n"
+        )
+        self.assertEqual(parser.get("General", "ColorScheme"), "BreezeLight")
+
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # A theme INI is contributor-supplied, and a checked-in symlink can
         # point at a private file; configparser's errors echo the offending

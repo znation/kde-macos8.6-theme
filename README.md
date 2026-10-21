@@ -11,7 +11,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 <!-- tumwater:status:start -->
 Pre-alpha: seven artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), and the `org.macos8.desktop` Kvantum widget style (selected by the global theme).
 
-Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
+Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed); fixed bugs are archived in BUGS-FIXED.md.
 <!-- tumwater:status:end -->
 
 ## Installing
