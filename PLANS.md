@@ -18,9 +18,9 @@ Trash and full-Trash icons, plus the menu bar's kicker logo `start-here-kde-symb
 and the render and fidelity tooling
 that checks them against `macos8.6-screenshots/`. README.md describes the reference set as the
 source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
-prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-18 by the plan
-role): a **Qt widget style** for KDE applications (the desktop theme styles only Plasma shell
-widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
+prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-20 by the
+steward role): a **Qt widget style** for KDE applications (the desktop theme styles only
+Plasma shell widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
 by the global theme's selection of our Kvantum theme: the user answered
 2026-10-18 that a pixel-matched Platinum style should ship as a Kvantum theme (a new
 dependency) — shipped as the four-part "Mac OS 8.6 Kvantum widget style" series (each part
@@ -28,6 +28,17 @@ waited on the one before); a **cursor theme** is out of scope (no reference scre
 cursor, so no pixel ground truth exists to match); and **system sounds** are out of scope (not a
 visual surface, so the reference set cannot ground them). The shipped work should not be treated
 as the whole of the prompt.
+
+Two answers on 2026-10-19 expand the scope again, and neither has a plan yet.
+**GTK applications and Firefox** are now in scope (QUESTIONS.md, answered 2026-10-19): a
+KDE/Qt global theme cannot reach them, so this needs a GTK 4 CSS theme and a Firefox
+`userChrome.css` plus profile preference, installed by separate opt-in `make` targets — a
+multi-part series of its own. **The UI font** is now to be vendored (QUESTIONS.md, answered
+2026-10-19): the theme should ship a Chicago/Charcoal-style font with a checked redistribution
+licence and recorded provenance, select it for KDE, Plasma and Qt applications, and the answer
+leaves open whether one face serves both Chicago and Charcoal. The plan queue carries neither
+surface yet; until it does, the menu bar and dialog text keep the user's desktop font, and GTK
+and Firefox applications keep their own chrome.
 
 ### Ground the desktop theme dialog body's raised bevel shadow in the reference Get Info window body (planned 2026-10-19 by the plan role)
 
