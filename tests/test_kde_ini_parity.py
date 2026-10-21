@@ -76,8 +76,8 @@ class TestReadersAgree(unittest.TestCase):
                     # `%`, `=`, spaces and `#` inside a value. A case with no
                     # selection uses the real id and must stay silent; an
                     # empty expected value uses an empty id and must warn.
-                    # The empty-id check below then separates that warning
-                    # from one for a missing key.
+                    # The no-selection check below proves that a missing key
+                    # stays silent even when compared with an empty id.
                     scheme_id = (
                         SCHEME_ID if case.expected is None else case.expected
                     )
@@ -96,12 +96,14 @@ class TestReadersAgree(unittest.TestCase):
                         "the uninstall recipe disagreed with the corpus",
                     )
 
-                    if case.expected in (None, ""):
-                        # The non-empty id above makes both an empty selection
-                        # and no selection silent. An empty id tells them
-                        # apart only if the recipe reports a present, empty
-                        # value differently from a missing key; an awk that
-                        # skips `ColorScheme=` stays silent and fails here.
+                    if case.expected is None:
+                        # The non-empty id above makes no selection silent.
+                        # An empty id tells it apart only if the recipe
+                        # reports a present, empty value differently from a
+                        # missing key; an awk that skips `ColorScheme=` stays
+                        # silent and fails here. An empty expected value
+                        # already ran with an empty id above, so it needs no
+                        # second run.
                         removed = uninstall(
                             destdir,
                             extra=("COLOR_SCHEME_ID=",),
