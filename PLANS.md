@@ -174,10 +174,16 @@ Chicago/selection parts, not copied.
 
 ### Install the GTK 3 and GTK 4 Platinum themes opt-in and select them (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
-**Needs replan 2026-10-21 by feature: rejected after 2 review rounds**
-
-> 1. (prior 1) The backlog move is unchanged and still inverted. This diff adds the entire GTK entry under `PLANS-DONE.md`'s `## Done` at line 8 and removes it from `PLANS.md`, whose `## Done` heading (now line 175) is empty. That contradicts the entry's own acceptance criterion and the claimed purpose.
-> 2. The newly added VERIFIED claim is false: `grep -l "Install the GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md` prints only `PLANS-DONE.md`, not `PLANS.md`, and the entry is not after line 172 of `PLANS.md`. The tree disproves the claim.
+**Plan record.** This entry is finished only when it sits under `PLANS.md`'s existing `## Done`
+heading, the file's last heading, with a closing date added to its `### ` heading. Follow the
+feature role's step 6 literally: cut it from `## Planned`, paste it as the first entry under
+`## Done`, and leave both `## ` headings unchanged (`grep -n '^## ' PLANS.md` prints exactly
+`## Planned` and `## Done` before and after). Do **not** edit `PLANS-DONE.md`: that file is
+tumwater's archive and must have no diff. The run's final `VERIFIED` line must quote the actual
+output of `grep -l "Install the GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md`, which is
+exactly `PLANS.md`; a claim that the entry is in `PLANS-DONE.md` is false. If the entry cannot be
+moved to `## Done`, leave it under `## Planned` and report that instead of editing
+`PLANS-DONE.md`.
 
 **Goal.** Parts 1/4 and 2/4 ship `theme/gtk/org.macos8.desktop/index.theme`,
 `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and
@@ -274,8 +280,10 @@ show; record that in `docs/invariants.md` rather than claiming a GTK reference c
   listing all three targets.
 - `tests/support/installed_paths.py`: add `installed_gtk_theme(destdir)` returning
   `themes/org.macos8.desktop` below the module's `XDG_DATA_HOME`, and name the GTK theme in the
-  module docstring; `tests/support/theme_install.py` and
-  `tests/support/install_lifecycle_cases.py` add the GTK family to their artifact-suite lists.
+  module docstring; `tests/support/theme_install.py` names the GTK suite in the module docstring's
+  artifact list and rewords `install`'s docstring so it no longer says the default installs every
+  family (the default installs the seven default families; `gtk` is opt-in);
+  `tests/support/install_lifecycle_cases.py` names the GTK suite in its module docstring.
 - `README.md`: add a GTK paragraph after the Kvantum section that names `make install-gtk`,
   `make apply-gtk` and `make remove-gtk` (the `test_make_help` README check requires the exact
   target names), the installed path `$XDG_DATA_HOME/themes/org.macos8.desktop`, the shared
@@ -296,8 +304,8 @@ show; record that in `docs/invariants.md` rather than claiming a GTK reference c
 (new), `tests/support/gtk_fixtures.py` (new), `tests/test_gtk_install.py` (new),
 `tests/test_gtk_apply.py` (new), `tests/test_gtk_theme.py`, `tests/support/installed_paths.py`,
 `tests/support/theme_install.py`, `tests/support/install_lifecycle_cases.py`, `README.md`,
-`docs/invariants.md`, and `PLANS.md` (this entry moves to `PLANS.md`'s own `## Done` heading when
-the work lands; `PLANS-DONE.md` is not touched).
+`docs/invariants.md`, and `PLANS.md` (the entry moves to `## Done`; see Plan record). Do not edit
+`PLANS-DONE.md`.
 
 **Acceptance criteria.**
 - `make install INSTALL_PACKAGES=gtk DESTDIR=<tmp>` writes exactly `index.theme`,
@@ -324,9 +332,11 @@ the work lands; `PLANS-DONE.md` is not touched).
 - `git diff --name-status` names only the files listed under "Files touched" (besides the
   backlog move), does not name `PLANS-DONE.md`, and the README's default artifact list does not
   gain a GTK entry.
-- When the work lands, `grep -l "Install the GTK 3 and GTK 4 Platinum themes" PLANS.md
-  PLANS-DONE.md` prints only `PLANS.md`, and the entry sits under `PLANS.md`'s `## Done` heading;
-  `PLANS-DONE.md` is not touched. Tumwater archives the entry to `PLANS-DONE.md` after the merge;
-  the feature run must not do that itself.
+- When the work lands, `grep -n '^### Install the GTK 3 and GTK 4 Platinum themes' PLANS.md`
+  prints exactly one line whose number is greater than the `## Done` line's; `grep -F 'Install the
+  GTK 3 and GTK 4 Platinum themes' PLANS-DONE.md` exits 1 with no output; `grep -n '^## ' PLANS.md`
+  prints exactly `## Planned` and `## Done`; and `git diff --name-status` does not name
+  `PLANS-DONE.md`. The final report quotes the actual output of `grep -l "Install the GTK 3 and
+  GTK 4 Platinum themes" PLANS.md PLANS-DONE.md` (exactly `PLANS.md`).
 
 ## Done
