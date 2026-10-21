@@ -98,7 +98,7 @@ CORE_CONTROL_CONFIG = {
     "ComboBox": {
         "frame.element": "button",
         "interior.element": "button",
-        "indicator.element": "arrow",
+        "indicator.element": "comboarrow",
     },
     "CheckBox": {
         "frame.element": "button",
@@ -264,6 +264,9 @@ VALUE_KEYS = {
         "text.focus.color": "#000000",
         "text.press.color": "#000000",
         "text.toggle.color": "#000000",
+    },
+    "ComboBox": {
+        "indicator.size": "12",
     },
     "CheckBox": {
         "text.margin.top": "2",

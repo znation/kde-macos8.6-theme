@@ -35,8 +35,13 @@
      elements are both frames and interiors: [MenuBar] and [MenuBarItem]
      name them as frame elements and [MenuItem] and [MenuBarItem] name
      them as interior elements, so each ships a centre id and eight
-     slices as well as the interior state id. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="22920" viewBox="0 0 200 22920">
+     slices as well as the interior state id.
+     The combo box indicator is the reference popup's double up/down arrow
+     in a 12x12 #DDDDDD cell, sampled from the System Info window's "Show:"
+     popup in systeminfo_betawiki.png (x233..244, y106..117); the cell's
+     divider and right bevel are frame art, not indicator art, and are not
+     shipped here. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="23140" viewBox="0 0 200 23140">
   <g id="button-normal-top" transform="translate(10,10)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
@@ -1670,5 +1675,60 @@
   </g>
   <g id="menubaritem-toggled-bottomright" transform="translate(10,22810)">
     <rect x="0" y="0" width="2" height="2" fill="#CCCCFF"/>
+  </g>
+  <g id="comboarrow-normal" transform="translate(10,22870)">
+    <rect x="0" y="0" width="12" height="12" fill="#DDDDDD"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="4" y="2" width="3" height="1" fill="#000000"/>
+    <rect x="3" y="3" width="5" height="1" fill="#000000"/>
+    <rect x="2" y="4" width="7" height="1" fill="#000000"/>
+    <rect x="2" y="7" width="7" height="1" fill="#000000"/>
+    <rect x="3" y="8" width="5" height="1" fill="#000000"/>
+    <rect x="4" y="9" width="3" height="1" fill="#000000"/>
+    <rect x="5" y="10" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="comboarrow-focused" transform="translate(10,22930)">
+    <rect x="0" y="0" width="12" height="12" fill="#DDDDDD"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="4" y="2" width="3" height="1" fill="#000000"/>
+    <rect x="3" y="3" width="5" height="1" fill="#000000"/>
+    <rect x="2" y="4" width="7" height="1" fill="#000000"/>
+    <rect x="2" y="7" width="7" height="1" fill="#000000"/>
+    <rect x="3" y="8" width="5" height="1" fill="#000000"/>
+    <rect x="4" y="9" width="3" height="1" fill="#000000"/>
+    <rect x="5" y="10" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="comboarrow-pressed" transform="translate(10,22990)">
+    <rect x="0" y="0" width="12" height="12" fill="#DDDDDD"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="4" y="2" width="3" height="1" fill="#000000"/>
+    <rect x="3" y="3" width="5" height="1" fill="#000000"/>
+    <rect x="2" y="4" width="7" height="1" fill="#000000"/>
+    <rect x="2" y="7" width="7" height="1" fill="#000000"/>
+    <rect x="3" y="8" width="5" height="1" fill="#000000"/>
+    <rect x="4" y="9" width="3" height="1" fill="#000000"/>
+    <rect x="5" y="10" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="comboarrow-toggled" transform="translate(10,23050)">
+    <rect x="0" y="0" width="12" height="12" fill="#DDDDDD"/>
+    <rect x="5" y="1" width="1" height="1" fill="#000000"/>
+    <rect x="4" y="2" width="3" height="1" fill="#000000"/>
+    <rect x="3" y="3" width="5" height="1" fill="#000000"/>
+    <rect x="2" y="4" width="7" height="1" fill="#000000"/>
+    <rect x="2" y="7" width="7" height="1" fill="#000000"/>
+    <rect x="3" y="8" width="5" height="1" fill="#000000"/>
+    <rect x="4" y="9" width="3" height="1" fill="#000000"/>
+    <rect x="5" y="10" width="1" height="1" fill="#000000"/>
+  </g>
+  <g id="comboarrow-disabled" transform="translate(10,23110)">
+    <rect x="0" y="0" width="12" height="12" fill="#DDDDDD"/>
+    <rect x="5" y="1" width="1" height="1" fill="#999999"/>
+    <rect x="4" y="2" width="3" height="1" fill="#999999"/>
+    <rect x="3" y="3" width="5" height="1" fill="#999999"/>
+    <rect x="2" y="4" width="7" height="1" fill="#999999"/>
+    <rect x="2" y="7" width="7" height="1" fill="#999999"/>
+    <rect x="3" y="8" width="5" height="1" fill="#999999"/>
+    <rect x="4" y="9" width="3" height="1" fill="#999999"/>
+    <rect x="5" y="10" width="1" height="1" fill="#999999"/>
   </g>
 </svg>

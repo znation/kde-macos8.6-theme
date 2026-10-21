@@ -69,9 +69,11 @@ SLICE_NAMES = (
 )
 
 # Check boxes and radio buttons are single interior elements Kvantum renders
-# whole, so they carry a state id, not a nine-slice. `menuitem` and
-# `menubaritem` are the menu-item interiors; their centre ids also serve as the
-# frame art above, so both are frames and interiors at once.
+# whole, so they carry a state id, not a nine-slice. `comboarrow` is the
+# [ComboBox] indicator: the reference popup's double up/down arrow in a 12x12
+# cell. `menuitem` and `menubaritem` are the menu-item interiors; their centre
+# ids also serve as the frame art above, so both are frames and interiors at
+# once.
 INTERIOR_STATES = {
     "checkbox": ("normal", "focused", "checked-normal", "checked-focused"),
     "radio": ("normal", "focused", "checked-normal", "checked-focused"),
@@ -79,6 +81,7 @@ INTERIOR_STATES = {
     "progress-pattern": ("normal", "focused", "toggled", "disabled"),
     "splitter-grip": ("normal", "focused", "pressed"),
     "grip": ("normal", "focused", "pressed"),
+    "comboarrow": ("normal", "focused", "pressed", "toggled", "disabled"),
     "menuitem": ("normal", "pressed", "toggled"),
     "menubaritem": ("normal", "pressed", "toggled"),
 }
@@ -178,12 +181,13 @@ INTERIOR_SHAPES = {
 }
 
 # The remaining multi-element interiors are also read only by id: the slider
-# cursor, the progress-bar pattern, and the two grip indicators. A wrong rect
-# size or offset, or a swapped fill (every colour here is in the palette, so
-# `assert_fill_palette` cannot see it) would pass. The slider cursor is the one
-# interior whose pressed state swaps the raised bevel's highlight and shadow
-# (#FFFFFF top/left, #999999 bottom/right) for the sunken one, so pinning only
-# `slidercursor-normal` would miss a pressed state repeating the resting art.
+# cursor, the progress-bar pattern, the two grip indicators and the combo box
+# arrow. A wrong rect size or offset, or a swapped fill (every colour here is
+# in the palette, so `assert_fill_palette` cannot see it) would pass. The
+# slider cursor is the one interior whose pressed state swaps the raised
+# bevel's highlight and shadow (#FFFFFF top/left, #999999 bottom/right) for
+# the sunken one, so pinning only `slidercursor-normal` would miss a pressed
+# state repeating the resting art.
 _SLIDER_RAISED = (
     _rect("0", "0", "16", "16", "#DDDDDD"),
     _rect("0", "1", "16", "1", "#FFFFFF"),
@@ -231,6 +235,28 @@ _GRIP = (
     _rect("6", "3", "1", "7", "#000000"),
     _rect("8", "3", "1", "7", "#000000"),
 )
+# The combo box indicator's eight one-row arrow bands, cell-relative: the two
+# triangles widen from one row of width 1 to width 7 and narrow back, with the
+# 12x12 #DDDDDD face showing through the two gap rows between them.
+_COMBOARROW_ROWS = (
+    ("5", "1", "1"),
+    ("4", "2", "3"),
+    ("3", "3", "5"),
+    ("2", "4", "7"),
+    ("2", "7", "7"),
+    ("3", "8", "5"),
+    ("4", "9", "3"),
+    ("5", "10", "1"),
+)
+_COMBOARROW_FACE = (_rect("0", "0", "12", "12", "#DDDDDD"),)
+_COMBOARROW = _COMBOARROW_FACE + tuple(
+    _rect(x, y, width, "1", "#000000")
+    for x, y, width in _COMBOARROW_ROWS
+)
+_COMBOARROW_DISABLED = _COMBOARROW_FACE + tuple(
+    _rect(x, y, width, "1", "#999999")
+    for x, y, width in _COMBOARROW_ROWS
+)
 INTERIOR_GROUP_SHAPES = {
     "slidercursor-normal": _SLIDER_RAISED,
     "slidercursor-focused": _SLIDER_RAISED,
@@ -246,6 +272,11 @@ INTERIOR_GROUP_SHAPES = {
     "grip-normal": _GRIP,
     "grip-focused": _GRIP,
     "grip-pressed": _GRIP,
+    "comboarrow-normal": _COMBOARROW,
+    "comboarrow-focused": _COMBOARROW,
+    "comboarrow-pressed": _COMBOARROW,
+    "comboarrow-toggled": _COMBOARROW,
+    "comboarrow-disabled": _COMBOARROW_DISABLED,
 }
 
 
@@ -318,7 +349,13 @@ class TestSvg(unittest.TestCase):
 
     def test_remaining_interiors_draw_the_pinned_shapes(self):
         by_id = elements_by_id(self.tree)
-        elements = ("slidercursor", "progress-pattern", "splitter-grip", "grip")
+        elements = (
+            "slidercursor",
+            "progress-pattern",
+            "splitter-grip",
+            "grip",
+            "comboarrow",
+        )
         # Every remaining multi-element interior state must have a pinned
         # shape, so a newly shipped state cannot escape the pins below.
         self.assertEqual(

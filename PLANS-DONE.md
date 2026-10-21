@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Ground the Kvantum combo box indicator in the reference's double up/down arrow (planned 2026-10-20 by the plan role — done 2026-10-21)
+
+**Goal.** `[ComboBox]` in `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`
+inherits `PanelButtonCommand`, so its popup currently draws the shared `arrow` indicator: a single
+9x9 down triangle (`arrow-down-*`). The reference's popup button draws a double up/down arrow --
+two 7px-wide triangles separated by two face rows -- in a #DDDDDD cell. Ship a dedicated
+`comboarrow` indicator for `[ComboBox]` and leave `arrow` (still used by `IndicatorArrow`, the
+spin box and the splitter) unchanged.
+
+**Reference grounding.** `macos8.6-screenshots/systeminfo_betawiki.png` (labelled in
+`sources.txt` as the 8.6a3c2 beta build, About This Computer), the System Info window's "Show:"
+popup. Its 12x12 arrow region `(233,106)..(244,117)` is exactly `#000000` and `#DDDDDD`: 32 black
+pixels in eight one-row bands of widths 1/3/5/7 at y107..110 and 7/5/3/1 at y113..116, centred on
+x238, with face rows y106, y111..112 and y117. The popup's arrow-cell face is 16x14
+(x231..246, y105..118), so a 12x12 element centred in it lands on exactly that region (2px side
+and 1px top/bottom face margins). The cell's divider (`x228` `#AAAAAA`), white highlight (`x230`
+`#FFFFFF`) and right bevel (`x247` `#AAAAAA`, `x248` `#777777`) are frame art, not indicator art;
+this plan does not ship them.
+
+**Approach.**
+- `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`: add five single-element indicator
+  groups `comboarrow-normal`, `comboarrow-focused`, `comboarrow-pressed`, `comboarrow-toggled`
+  and `comboarrow-disabled` after the last existing `menubaritem` group. Each group holds a full
+  12x12 `#DDDDDD` rect (which fixes the element's 12x12 bounds, so Kvantum scales it 1:1 at
+  `indicator.size=12`), then eight arrow rects at cell-relative y=1 x=5 w=1, y=2 x=4 w=3, y=3
+  x=3 w=5, y=4 x=2 w=7, y=7 x=2 w=7, y=8 x=3 w=5, y=9 x=4 w=3 and y=10 x=5 w=1; the disabled
+  group paints the arrow rects `#999999`. Rects, not paths, so `render_slices` can paint and
+  compare the element. Place the five groups at translate y positions 22870, 22930, 22990, 23050 and
+  23110 and raise the root `height`/`viewBox` from 22920 to 23140. Extend the leading SVG comment
+  to name the reference, the 12x12 cell and the frame-art exclusion.
+- `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`: under `[ComboBox]`, add
+  `indicator.element=comboarrow` and `indicator.size=12`, with a short comment naming the
+  reference popup's double arrow.
+- `tests/support/kvantum_config_spec.py`: set
+  `CORE_CONTROL_CONFIG["ComboBox"]["indicator.element"]` to `"comboarrow"`; add
+  `VALUE_KEYS["ComboBox"] = {"indicator.size": "12"}`.
+- `tests/test_kvantum_svg.py`: add
+  `"comboarrow": ("normal", "focused", "pressed", "toggled", "disabled")` to
+  `INTERIOR_STATES`; add `_COMBOARROW` and `_COMBOARROW_DISABLED` draw lists to
+  `INTERIOR_GROUP_SHAPES` for the five state ids; add `"comboarrow"` to the `elements` tuple in
+  `test_remaining_interiors_draw_the_pinned_shapes`; update the table comments that enumerate
+  single interior/indicator elements.
+- `tests/support/kvantum_fixtures.py`: add
+  `SYSTEMINFO_REFERENCE = os.path.join(ROOT, "macos8.6-screenshots", "systeminfo_betawiki.png")`
+  and `SYSTEMINFO_MAX_ROWS = 118`, commented as the About This Computer screenshot and the
+  deepest row the combo arrow samples (y117).
+- `tests/test_kvantum_combobox_reference.py` (new): define
+  `TestComboBoxReference(ReferenceScreenshotMixin, unittest.TestCase)` with
+  `REFERENCE = SYSTEMINFO_REFERENCE`, `MAX_ROWS = SYSTEMINFO_MAX_ROWS`, `COMBO_X = 233`,
+  `COMBO_Y = 106`, `COMBO_SIZE = 12` and the black-row table. One test samples all 144 pixels,
+  asserts the colour set is exactly `{BLACK, FACE}` and asserts the black pixels are the row
+  table, so the reference itself is pinned; another renders the SVG once with
+  `render_slices(parse_svg(SVG))`, compares `comboarrow-normal` exactly to the sampled map,
+  asserts `comboarrow-focused`, `comboarrow-pressed` and `comboarrow-toggled` equal it, and
+  asserts `comboarrow-disabled` equals it with every `#000000` replaced by `GREY`.
+- `docs/invariants.md`: add a kvantum row -- "The combo box indicator is the reference's double
+  up/down arrow in a 12x12 `#DDDDDD` cell." -- naming
+  `tests/test_kvantum_combobox_reference.py::TestComboBoxReference`, with the provenance
+  exception that the popup is an 8.6a3c2 beta build and that the cell's divider and right bevel
+  are frame art, not indicator art.
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`,
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
+`tests/support/kvantum_config_spec.py`, `tests/support/kvantum_fixtures.py`,
+`tests/test_kvantum_svg.py`, `tests/test_kvantum_combobox_reference.py` (new),
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+- `python3 tools/sample.py macos8.6-screenshots/systeminfo_betawiki.png 238 107` prints
+  `0,0,0 #000000`; `... 238 111` prints `221,221,221 #DDDDDD`; `... 238 113` prints
+  `0,0,0 #000000`; `... 233 106` and `... 244 117` print `221,221,221 #DDDDDD`.
+- `make check CHECK_TESTS=test_kvantum_combobox_reference` passes when the Git LFS image is
+  materialized and skips (does not fail) when it is not; changing any arrow or gap pixel in the
+  12x12 cell makes it fail.
+- `make check CHECK_TESTS=test_kvantum_svg` passes: the five `comboarrow-*` ids exist, each
+  state's rects match the pinned shape, and the fill set stays the Platinum palette.
+- `make check CHECK_TESTS=test_kvantum_config_elements` and `test_kvantum_config` pass:
+  `[ComboBox]` resolves to `comboarrow` at size 12, and every config key remains pinned.
+- The existing `arrow-*` ids, path `d` values and fills are unchanged; the four direction tests
+  and the `IndicatorArrow`, spin box and splitter mappings still pass.
+- The new `docs/invariants.md` row resolves through `tests/invariants.py`, and `make check` is
+  green.
+
 ### Ground the desktop theme push button's raised bevel shadow in the reference's raised buttons (planned 2026-10-19 by the plan role) — done 2026-10-19
 
 **Goal.** `theme/desktoptheme/org.macos8.desktop/widgets/button.svg` paints the raised

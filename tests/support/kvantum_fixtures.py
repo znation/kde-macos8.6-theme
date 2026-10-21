@@ -18,4 +18,12 @@ KVCONFIG = os.path.join(PACKAGE, KVANTUM_ID + ".kvconfig")
 SVG = os.path.join(PACKAGE, KVANTUM_ID + ".svg")
 COLOR_SCHEME = os.path.join(ROOT, "theme", "color-schemes", "MacOS8.colors")
 
+# The About This Computer screenshot (an 8.6a3c2 beta build) whose System Info
+# "Show:" popup draws the combo box's double up/down arrow. Its deepest
+# sampled row is y117, the cell's bottom face row.
+SYSTEMINFO_REFERENCE = os.path.join(
+    ROOT, "macos8.6-screenshots", "systeminfo_betawiki.png"
+)
+SYSTEMINFO_MAX_ROWS = 118
+
 SHIPPED_FILES = (KVANTUM_ID + ".kvconfig", KVANTUM_ID + ".svg")

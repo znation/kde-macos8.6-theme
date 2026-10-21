@@ -65,8 +65,13 @@ inherits=PanelButtonCommand
 frame.element=lineedit
 interior.element=lineedit
 
+# The reference popup's double up/down arrow in a 12x12 #DDDDDD cell
+# (systeminfo_betawiki.png, the System Info "Show:" popup), not the shared
+# single arrow the other indicator controls inherit.
 [ComboBox]
 inherits=PanelButtonCommand
+indicator.element=comboarrow
+indicator.size=12
 
 [CheckBox]
 inherits=PanelButtonCommand
