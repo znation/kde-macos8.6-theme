@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import os
 import re
-import stat
 
 from support import containment
 from support.repo_root import ROOT
@@ -63,33 +62,30 @@ def _is_text_asset(filename):
     return filename in TEXT_NAMES or filename.endswith(TEXT_EXTENSIONS)
 
 
-def _refuse_non_regular(path):
-    """Raise :class:`AssertionError` unless *path* is a regular file.
+def _read_text(path, root):
+    """Return *path*'s text through the shared bounded containment reader.
 
-    ``os.walk`` lists a FIFO or device named like a text asset in the theme
-    tree, and ``open()`` on a FIFO blocks until a writer appears while a
-    device can stream forever: neither wait has a timeout, so one such entry
-    would stall ``make check`` with no diagnostic. Refuse it by name before
-    opening it. ``os.stat`` follows a symlink, so a link to a regular file
-    inside ``theme/`` is still read, and a dangling link or permission error
-    is reported as the same "cannot be read" diagnostic the open would give.
+    The guard opens the path non-blocking and ``fstat``s that same descriptor,
+    so a FIFO or device is refused by name without a stat-then-open race, and
+    a contributor-supplied file past its 1 MiB cap is refused instead of being
+    loaded whole. Its failures are reported as the checker's own
+    :class:`AssertionError` naming *path*: a non-UTF-8 file keeps the "not
+    valid UTF-8" diagnostic, and an unreadable, non-regular or oversize file
+    is a "cannot be read" one.
     """
     try:
-        mode = os.stat(path).st_mode
-    except OSError as exc:
+        return containment.read_text(path, root, encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise AssertionError(
+            escape_controls(f"{path} is not valid UTF-8 text: {exc}")
+        ) from exc
+    except (OSError, ValueError) as exc:
         raise AssertionError(
             escape_controls(f"{path} cannot be read: {exc}")
         ) from exc
-    if not stat.S_ISREG(mode):
-        raise AssertionError(
-            escape_controls(
-                f"{path} cannot be read: not a regular file; refusing to "
-                "open it"
-            )
-        )
 
 
-def _marker_text(path):
+def _marker_text(path, root):
     """Return the text after the ``PLACEHOLDER:`` token in *path*, or None.
 
     The marker is the token plus what it stands in for, in a comment in the
@@ -99,30 +95,20 @@ def _marker_text(path):
     Latin-1) raises the checker's own :class:`AssertionError` naming *path*,
     instead of escaping as a codec ``UnicodeDecodeError`` that names neither
     the checker nor the file. A file that cannot be read at all -- a dangling
-    symlink whose target resolves inside ``theme/``, a permission error --
+    symlink whose target resolves inside ``theme/``, a permission error, a
+    non-regular file (a FIFO or device) or one past the guard's 1 MiB cap --
     raises the same :class:`AssertionError` naming *path*, instead of a bare
-    ``OSError`` aborting the check. A non-regular file (a FIFO or device) is
-    refused by name without being opened, since opening one can block forever.
+    ``OSError``, a block, or an unbounded read aborting the check.
     """
-    _refuse_non_regular(path)
-    try:
-        with open(path, encoding="utf-8") as handle:
-            for line in handle:
-                index = line.find(TOKEN)
-                if index == -1:
-                    continue
-                text = line[index + len(TOKEN):].strip()
-                if text.endswith("-->"):
-                    text = text[:-3].strip()
-                return text
-    except UnicodeDecodeError as exc:
-        raise AssertionError(
-            escape_controls(f"{path} is not valid UTF-8 text: {exc}")
-        ) from exc
-    except OSError as exc:
-        raise AssertionError(
-            escape_controls(f"{path} cannot be read: {exc}")
-        ) from exc
+    text = _read_text(path, root)
+    for line in text.split("\n"):
+        index = line.find(TOKEN)
+        if index == -1:
+            continue
+        marker = line[index + len(TOKEN):].strip()
+        if marker.endswith("-->"):
+            marker = marker[:-3].strip()
+        return marker
     return None
 
 
@@ -150,7 +136,7 @@ def markers(root):
                         f"{path} points outside {theme_dir} (a symlink escape)"
                     )
                 )
-            text = _marker_text(path)
+            text = _marker_text(path, theme_dir)
             if text is not None:
                 found[os.path.relpath(path, root)] = text
     return found
@@ -163,27 +149,19 @@ def register_entries(path):
     :class:`AssertionError` naming *path*, so a stray byte is reported as the
     register's own problem rather than as a codec ``UnicodeDecodeError``. A
     register that cannot be read at all -- a missing file, a directory, a
-    permission error -- raises the same :class:`AssertionError` naming *path*,
-    instead of a bare ``OSError`` aborting the check. A non-regular register
-    (a FIFO or device) is refused by name without being opened, since opening
-    one can block forever.
+    permission error, a non-regular file (a FIFO or device) or one past the
+    guard's 1 MiB cap -- raises the same :class:`AssertionError` naming
+    *path*, instead of a bare ``OSError``, a block, or an unbounded read
+    aborting the check.
     """
-    _refuse_non_regular(path)
+    # The register's own directory is the containment root, so a symlink at
+    # *path* that resolves elsewhere is refused before it is read.
+    root = os.path.dirname(os.path.abspath(path))
     entries = {}
-    try:
-        with open(path, encoding="utf-8") as handle:
-            for line in handle:
-                match = ROW.match(line)
-                if match:
-                    entries[match.group(1)] = match.group(2)
-    except UnicodeDecodeError as exc:
-        raise AssertionError(
-            escape_controls(f"{path} is not valid UTF-8 text: {exc}")
-        ) from exc
-    except OSError as exc:
-        raise AssertionError(
-            escape_controls(f"{path} cannot be read: {exc}")
-        ) from exc
+    for line in _read_text(path, root).split("\n"):
+        match = ROW.match(line)
+        if match:
+            entries[match.group(1)] = match.group(2)
     return entries
 
 

@@ -27,6 +27,7 @@ from placeholders import (
 from support.error_assertions import assert_escapes_escape_character
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
+from tools import containment as tools_containment
 
 
 def _run_reader_in_child(call, path):
@@ -190,6 +191,32 @@ class TestHelpers(unittest.TestCase):
         self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
         self.assertIn("not a regular file", child.stderr)
         self.assertIn(str(register), child.stderr)
+
+    def test_markers_rejects_an_oversize_asset_instead_of_reading_it_whole(self):
+        # A text asset is contributor-supplied and can be arbitrarily large (a
+        # stray binary under an SVG name, a never-replaced Git LFS object).
+        # The marker reader has no cap of its own, so one such file would be
+        # read whole -- line by line, and all at once when it has no newline --
+        # until it exhausts memory. The shared guard refuses it by name.
+        tmp = make_tmp_dir(self)
+        path = tmp / "theme" / "a.svg"
+        path.parent.mkdir(parents=True)
+        path.write_bytes(b"x" * (tools_containment._MAX_READ_BYTES + 1))
+        with self.assertRaisesRegex(
+            AssertionError, "larger than .*refusing to load it whole"
+        ):
+            markers(tmp)
+
+    def test_register_entries_rejects_an_oversize_register(self):
+        # The register has the same unbounded read as a theme asset; refuse a
+        # file past the shared cap by name rather than loading it whole.
+        tmp = make_tmp_dir(self)
+        register = tmp / "PLACEHOLDERS.md"
+        register.write_bytes(b"x" * (tools_containment._MAX_READ_BYTES + 1))
+        with self.assertRaisesRegex(
+            AssertionError, "larger than .*refusing to load it whole"
+        ):
+            register_entries(str(register))
 
     def test_register_entries_parses_the_table(self):
         tmp = make_tmp_dir(self)
