@@ -32,8 +32,13 @@ import importlib
 import os
 import re
 import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
+from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 
 
@@ -66,13 +71,51 @@ def makefile_check_pattern():
     second copy that could drift. Only the literal right-hand side is read,
     matching ``test_make_help.TestHelp._tunable_defaults``.
     """
-    makefile = os.path.join(os.path.dirname(TESTS_DIR), "Makefile")
-    with open(makefile, encoding="utf-8") as handle:
-        for line in handle:
-            match = re.match(r"CHECK_PATTERN\s*\?=(.*)$", line)
-            if match:
-                return match.group(1).split("#", 1)[0].strip()
+    makefile = os.path.join(ROOT, "Makefile")
+    # The Makefile is contributor-supplied, and a checked-in symlink at its
+    # path can point at a private file. The default this returns reaches the
+    # ``assertEqual`` in test_discovery_pattern_matches_the_makefile_default,
+    # whose failure echoes both values, so a path that resolves outside the
+    # repository is refused before it is opened.
+    text = containment.read_text(makefile, ROOT, encoding="utf-8")
+    for line in text.splitlines():
+        match = re.match(r"CHECK_PATTERN\s*\?=(.*)$", line)
+        if match:
+            return match.group(1).split("#", 1)[0].strip()
     raise AssertionError("Makefile has no `CHECK_PATTERN ?=` default")
+
+
+class TestMakefileReadContainment(unittest.TestCase):
+    """The Makefile read refuses a symlink that escapes the repository."""
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "private-config.mk"
+            secret.write_text(
+                "CHECK_PATTERN ?= private-*.py\n", encoding="utf-8"
+            )
+            link = root / "Makefile"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    makefile_check_pattern()
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("private-*.py", str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            target = root / "actual.mk"
+            target.write_text("CHECK_PATTERN ?= test*.py\n", encoding="utf-8")
+            link = root / "Makefile"
+            link.symlink_to(target)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                self.assertEqual(makefile_check_pattern(), "test*.py")
 
 
 def _is_package(directory):
