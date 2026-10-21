@@ -127,7 +127,9 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     tall and holds only the top rows of the PNG. The whole compressed stream
     is still inflated and validated (its length, end marker and adler32), and
     every scanline's filter type is still checked; the bound skips only the
-    per-byte unfilter work for the rows past it.
+    per-byte unfilter work for the rows past it. A palette image is the
+    exception: every row is expanded, because that lookup also validates each
+    index and an out-of-range index below the bound is still a malformed PNG.
     """
     if not data.startswith(PNG_MAGIC):
         detected = other_image_format(data)
@@ -273,6 +275,13 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
             drop_alpha(raw, width, height), width, height, 3, rows
         )
         return Image(width, rows, samples)
+    if color_type == 3:
+        # The palette lookup validates each index, so expanding only the rows
+        # the caller asked for would let an out-of-range index below the bound
+        # pass as a valid image. Expand every row, then return the top ones.
+        samples = unfilter(raw, width, height, channels)
+        rgb = _to_rgb(color_type, samples, palette)
+        return Image(width, rows, rgb[: rows * width * 3])
     samples = unfilter(raw, width, height, channels, rows)
     return Image(width, rows, _to_rgb(color_type, samples, palette))
 

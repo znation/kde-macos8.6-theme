@@ -56,6 +56,29 @@ else:  # run directly: python3 tools/fidelity.py
     from terminal import escape_controls
 
 
+def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
+    """Read *path*, decoding only the scanlines *crop_rect* needs when given.
+
+    ``crop`` slices the decoded RGB rows afterwards, so rows below the crop's
+    bottom edge would be decoded and thrown away. Passing ``max_rows`` lets the
+    PNG decoder skip their predictor work while still inflating and validating
+    the whole stream, which saves seconds on a large Paeth-filtered reference.
+    The bound shortens the returned height, so a rectangle that overflows the
+    image sideways is re-read whole; ``crop`` then reports it against the real
+    width and height as before. A rectangle that overflows vertically is
+    already read whole because the decoder clamps the bound to the height.
+    """
+    if crop_rect is None:
+        return read_png(path)
+    x, y, width, height = crop_rect
+    image = read_png(path, max_rows=y + height)
+    if x + width > image.width:
+        # The crop is rejected either way; re-read unbounded only so its
+        # diagnostic names the file's real height rather than the bound's.
+        return read_png(path)
+    return image
+
+
 def _parse_crop(value: str) -> tuple[int, int, int, int]:
     # Strip each field before the plain-number check: whitespace around a
     # comma-separated field ("0, 0, 10, 10") is the conventional way to write
@@ -197,8 +220,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        candidate = read_png(args.candidate)
-        reference = read_png(args.reference)
+        candidate = _read_source(args.candidate, args.candidate_crop)
+        reference = _read_source(args.reference, args.crop)
         if args.candidate_crop is not None:
             candidate = crop(candidate, *args.candidate_crop)
         if args.crop is not None:

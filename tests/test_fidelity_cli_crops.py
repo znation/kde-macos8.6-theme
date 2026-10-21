@@ -13,9 +13,12 @@ reproducibility echo and their usage errors. The shared fixtures live in
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
+from support.png_fixtures import make_png, rgb_image  # noqa: E402
+from tools import fidelity, png  # noqa: E402
 
 
 class TestCliCrops(FidelityCliTestCase):
@@ -40,6 +43,69 @@ class TestCliCrops(FidelityCliTestCase):
         self.assertIn("reference crop: 1,1,2,2", cropped.stdout)
         self._assert_success(uncropped)
         self.assertNotIn("reference crop:", uncropped.stdout)
+
+    def test_a_crop_decodes_only_the_rows_it_covers(self):
+        # The crop slices the decoded rows anyway, so reading the whole image
+        # first wastes the decoder's predictor work on every row below the
+        # crop. A --crop reads the reference to its bottom edge and leaves the
+        # candidate unbounded; --candidate-crop does the reverse.
+        tmp = self._tmp_dir()
+        surface, padded = self._write_padded_surface_pair(tmp)
+        for option, candidate, reference, bounded, other in (
+            ("--crop", surface, padded, padded, surface),
+            ("--candidate-crop", padded, surface, padded, surface),
+        ):
+            with self.subTest(option=option):
+                with mock.patch.object(
+                    fidelity, "read_png", wraps=png.read_png
+                ) as spy:
+                    result = self._run(candidate, reference, option, "1,1,2,2")
+                self._assert_pass(result)
+                rows = {
+                    call.args[0]: call.kwargs.get("max_rows")
+                    for call in spy.call_args_list
+                }
+                # The crop's bottom edge is y=1 + height=2, so three rows.
+                self.assertEqual(rows[bounded], 3)
+                self.assertIsNone(rows[other])
+
+    def test_a_crop_still_rejects_a_palette_index_below_it(self):
+        # max_rows bounds the returned rows, not validation: a palette
+        # reference whose bad index is below the crop is malformed, not a
+        # clean comparison of the top rows.
+        palette = bytes([255, 0, 0, 0, 255, 0])
+        reference = make_png(
+            2,
+            3,
+            [bytes([0, 1]), bytes([0, 1]), bytes([2, 2])],
+            color_type=3,
+            palette=palette,
+        )
+        _, candidate = rgb_image(
+            2, 2, lambda x, y: (255, 0, 0) if x == 0 else (0, 255, 0)
+        )
+        tmp = self._tmp_dir()
+        result = self._run(
+            self._write(tmp, "candidate.png", candidate),
+            self._write(tmp, "reference.png", reference),
+            "--crop",
+            "0,0,2,2",
+        )
+        self._assert_usage_error(result, "palette PNG index 2")
+
+    def test_a_sideways_overflow_is_reported_against_the_real_height(self):
+        # The bounded decode shortens the returned height, but a rectangle
+        # that overflows the width while fitting vertically must still name
+        # the file's real dimensions in its diagnostic.
+        tmp = self._tmp_dir()
+        _, data = rgb_image(2, 3, lambda x, y: (x * 9, y * 9, 5))
+        path = self._write(tmp, "image.png", data)
+        for option in ("--crop", "--candidate-crop"):
+            with self.subTest(option=option):
+                result = self._run(path, path, option, "1,0,2,2")
+                self._assert_usage_error(
+                    result, "falls outside the 2x3 image"
+                )
 
     def test_crop_accepts_whitespace_between_fields(self):
         # A comma-separated rectangle is conventionally written with a space
