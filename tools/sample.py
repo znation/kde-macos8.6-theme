@@ -83,15 +83,16 @@ def main(argv: list[str] | None = None) -> int:
         image = read_png(args.image)
     except PngError as exc:
         return report_error("sample", str(exc))
-    # pixel_at rejects a coordinate outside the image; it is operator input
-    # here, not a caller bug, so report it as an error rather than a traceback.
-    try:
-        rgb = pixel_at(image, args.x, args.y)
-    except ValueError as exc:
-        return report_error("sample", str(exc))
 
     header = f"image: {escape_controls(args.image)}  {image.width}x{image.height}"
     if args.width == 1 and args.height == 1:
+        # pixel_at rejects a coordinate outside the image; it is operator
+        # input here, not a caller bug, so report it as an error rather than
+        # a traceback.
+        try:
+            rgb = pixel_at(image, args.x, args.y)
+        except ValueError as exc:
+            return report_error("sample", str(exc))
         print(header)
         print(
             f"pixel ({args.x}, {args.y}): "
@@ -99,11 +100,14 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 0
 
-    # Validate the whole rectangle before printing any pixel: a region that
-    # runs past the right or bottom edge must produce one diagnostic, not a
-    # partial dump followed by pixel_at's error on the first bad coordinate.
+    # Validate the whole rectangle before sampling any pixel: a region whose
+    # origin is negative or that runs past the right or bottom edge must
+    # produce one region diagnostic, not a pixel diagnostic for its origin and
+    # not a partial dump followed by pixel_at's error on a later coordinate.
     if (
-        args.x + args.width > image.width
+        args.x < 0
+        or args.y < 0
+        or args.x + args.width > image.width
         or args.y + args.height > image.height
     ):
         return report_error(

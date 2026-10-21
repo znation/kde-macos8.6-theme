@@ -153,6 +153,23 @@ class TestSampleCli(CliTestCase):
         result = self._run(path, "-1", "0")
         self._assert_usage_error(result, "outside the 4x3 image")
 
+    def test_negative_region_origin_names_the_region(self):
+        # A region is validated as a whole before its origin is sampled, so a
+        # negative origin is reported as the requested region, not as a single
+        # out-of-bounds pixel, and no partial dump is printed.
+        path = self._image()
+        for arguments, region in (
+            (("-1", "0", "--width", "2"), "region (-1, 0) 2x1"),
+            (("0", "-1", "--height", "2"), "region (0, -1) 1x2"),
+        ):
+            with self.subTest(region=region):
+                result = self._run(path, *arguments)
+                self._assert_usage_error(
+                    result, f"{region} is outside the 4x3 image"
+                )
+                self.assertNotIn("pixel (", result.stderr)
+                self.assertNotIn("region", result.stdout)
+
     def test_missing_file_is_error(self):
         tmp = self._tmp_dir()
         missing = str(tmp / "absent.png")
