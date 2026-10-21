@@ -2,10 +2,11 @@
 
 Every artifact family lands at a fixed path below `$(DESTDIR)$(XDG_DATA_HOME)`:
 the color scheme under `color-schemes/`, the Plasma packages under `plasma/`,
-and the Aurorae, wallpaper and icon themes in their own user-local
-directories. The install tests name those paths here instead of re-deriving
-the layout, and `staging_sibling`/`old_sibling` build the hidden siblings the
-Makefile's atomic swap uses.
+the Aurorae, wallpaper and icon themes in their own user-local directories,
+and the Kvantum widget style under `themes/<name>/Kvantum/`. The helpers
+below name the paths the install tests share instead of re-deriving them, and
+`staging_sibling`/`old_sibling` build the hidden siblings the Makefile's
+atomic swap uses.
 
 `support.theme_install` runs `make`; this module only computes where its
 output goes.

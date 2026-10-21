@@ -1,9 +1,10 @@
 """Run the repository's `make install` / `make uninstall` against a temp tree.
 
 The installed artifacts land under `$(DESTDIR)$(XDG_DATA_HOME)`; the install
-tests of each artifact (color scheme, global theme, desktop theme, Aurorae
-decoration, wallpaper, icon theme) pass a throwaway `DESTDIR` and inspect the
-result there via `support.installed_paths`, which names the layout.
+tests of each artifact family (color scheme, global theme, desktop theme,
+Aurorae decoration, wallpaper, icon theme and Kvantum widget style) pass a
+throwaway `DESTDIR` and inspect the result there, using
+`support.installed_paths` where it names the layout.
 Child processes go through `process_runner`, which applies the suite's timeout
 and process-group cleanup. The repository root the commands run in, and the
 boundary a contributor-supplied source file must stay within, come from
