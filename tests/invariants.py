@@ -23,6 +23,7 @@ from collections import namedtuple
 
 from support import containment
 from support.repo_root import ROOT
+from tools.terminal import escape_controls
 
 REGISTER = os.path.join(ROOT, "docs", "invariants.md")
 THEME_DIR = "theme"
@@ -134,7 +135,7 @@ def parse_rows(text):
             current = match.group("name")
             if current in sections:
                 raise AssertionError(
-                    f"duplicate section {current} in the register"
+                    escape_controls(f"duplicate section {current} in the register")
                 )
             sections[current] = []
             continue
@@ -143,8 +144,10 @@ def parse_rows(text):
         cells = _cells(line)
         if cells is None:
             raise AssertionError(
-                f"malformed table row in section {current} "
-                f"(expected 3 cells): {line.strip()}"
+                escape_controls(
+                    f"malformed table row in section {current} "
+                    f"(expected 3 cells): {line.strip()}"
+                )
             )
         if _is_table_scaffold(cells):
             continue
@@ -224,14 +227,18 @@ def _parse_test_module(section, reference, file_path):
     syntax error) would otherwise escape as a `UnicodeDecodeError` or
     `SyntaxError` naming neither the section nor the reference. Report it as
     the register's own `AssertionError` so the failing row is identifiable.
+    The cause is suppressed: a `SyntaxError`'s traceback reprints the offending
+    source line, which can carry terminal control bytes.
     """
     try:
         return _defined_names(file_path)
     except (OSError, UnicodeDecodeError, SyntaxError) as exc:
         raise AssertionError(
-            f"{section}: {reference} names a file that cannot be read as "
-            f"Python: {exc}"
-        ) from exc
+            escape_controls(
+                f"{section}: {reference} names a file that cannot be read as "
+                f"Python: {exc}"
+            )
+        ) from None
 
 
 def check_reference(root, reference, section):
@@ -260,19 +267,27 @@ def check_reference(root, reference, section):
     path, sep, qualifier = reference.partition("::")
     if "\x00" in path:
         raise AssertionError(
-            f"{section}: {reference} names a path containing a NUL byte"
+            escape_controls(
+                f"{section}: {reference} names a path containing a NUL byte"
+            )
         )
     file_path = os.path.join(root, path)
     if not containment.resolves_within(root, file_path):
         raise AssertionError(
-            f"{section}: {reference} names a path outside the repository"
+            escape_controls(
+                f"{section}: {reference} names a path outside the repository"
+            )
         )
     if not os.path.isfile(file_path):
-        raise AssertionError(f"{section}: {reference} names a missing file")
+        raise AssertionError(
+            escape_controls(f"{section}: {reference} names a missing file")
+        )
     if not qualifier:
         if sep:
             raise AssertionError(
-                f"{section}: {reference} names no class or method after '::'"
+                escape_controls(
+                    f"{section}: {reference} names no class or method after '::'"
+                )
             )
         classes = _parse_test_module(section, reference, file_path)
         if not any(test_case for _, test_case in classes.values()):
@@ -281,34 +296,48 @@ def check_reference(root, reference, section):
             # pins nothing, and accepting it would leave the guarantee
             # unchecked while the register reads as if it were covered.
             raise AssertionError(
-                f"{section}: {reference} names a file that defines no test case"
+                escape_controls(
+                    f"{section}: {reference} names a file that defines no test case"
+                )
             )
         return
     names = qualifier.split("::")
     if len(names) > 2:
         raise AssertionError(
-            f"{section}: {reference} names more than a class and method"
+            escape_controls(
+                f"{section}: {reference} names more than a class and method"
+            )
         )
     classes = _parse_test_module(section, reference, file_path)
     class_name = names[0]
     if class_name not in classes:
-        raise AssertionError(f"{section}: {reference} names a missing class {class_name}")
+        raise AssertionError(
+            escape_controls(
+                f"{section}: {reference} names a missing class {class_name}"
+            )
+        )
     methods, test_case = classes[class_name]
     if not test_case:
         raise AssertionError(
-            f"{section}: {reference} names a class that is not a test case "
-            f"{class_name}"
+            escape_controls(
+                f"{section}: {reference} names a class that is not a test case "
+                f"{class_name}"
+            )
         )
     if len(names) > 1:
         method_name = names[1]
         if method_name not in methods:
             raise AssertionError(
-                f"{section}: {reference} names a missing method {method_name}"
+                escape_controls(
+                    f"{section}: {reference} names a missing method {method_name}"
+                )
             )
         if not method_name.startswith("test"):
             raise AssertionError(
-                f"{section}: {reference} names a method that is not a test "
-                f"{method_name}"
+                escape_controls(
+                    f"{section}: {reference} names a method that is not a test "
+                    f"{method_name}"
+                )
             )
 
 
@@ -325,7 +354,9 @@ def _theme_subsystems(theme_dir):
     try:
         names = os.listdir(theme_dir)
     except OSError as exc:
-        raise AssertionError(f"{theme_dir} cannot be listed: {exc}") from exc
+        raise AssertionError(
+            escape_controls(f"{theme_dir} cannot be listed: {exc}")
+        ) from None
     return sorted(
         name
         for name in names
@@ -349,19 +380,25 @@ def cross_check(root, register):
         text = containment.read_text(register, root)
     except UnicodeDecodeError as exc:
         raise AssertionError(
-            f"{register} is not valid UTF-8 text: {exc}"
-        ) from exc
+            escape_controls(f"{register} is not valid UTF-8 text: {exc}")
+        ) from None
     except OSError as exc:
-        raise AssertionError(f"{register} cannot be read: {exc}") from exc
+        raise AssertionError(
+            escape_controls(f"{register} cannot be read: {exc}")
+        ) from None
     sections = parse_rows(text)
     theme_dir = os.path.join(root, THEME_DIR)
     subsystems = _theme_subsystems(theme_dir)
     for name in subsystems:
         if name not in sections:
-            raise AssertionError(f"{THEME_DIR}/{name} has no section in {register}")
+            raise AssertionError(
+                escape_controls(f"{THEME_DIR}/{name} has no section in {register}")
+            )
     for name in EXTRA_SECTIONS:
         if name not in sections:
-            raise AssertionError(f"{name} has no section in {register}")
+            raise AssertionError(
+                escape_controls(f"{name} has no section in {register}")
+            )
     known = set(subsystems) | set(EXTRA_SECTIONS)
     for name in sections:
         if name not in known:
@@ -370,18 +407,28 @@ def cross_check(root, register):
             # while nothing enforces it. Reject it by name instead of letting the
             # register overstate what it covers.
             raise AssertionError(
-                f"section {name} in {register} names no {THEME_DIR}/ subsystem "
-                "or registered extra section"
+                escape_controls(
+                    f"section {name} in {register} names no {THEME_DIR}/ subsystem "
+                    "or registered extra section"
+                )
             )
     for name, rows in sections.items():
         if not rows:
-            raise AssertionError(f"section {name} in {register} has no rows")
+            raise AssertionError(
+                escape_controls(f"section {name} in {register} has no rows")
+            )
         for row in rows:
             if not row.guarantee:
-                raise AssertionError(f"section {name} in {register} has a blank guarantee")
+                raise AssertionError(
+                    escape_controls(
+                        f"section {name} in {register} has a blank guarantee"
+                    )
+                )
             if not row.tests:
                 raise AssertionError(
-                    f"section {name} in {register} has a row with no test reference"
+                    escape_controls(
+                        f"section {name} in {register} has a row with no test reference"
+                    )
                 )
             if not row.provenance:
                 # The third column records the provenance exception or the
@@ -390,7 +437,9 @@ def cross_check(root, register):
                 # the row claim a guarantee while saying nothing about where
                 # its value came from.
                 raise AssertionError(
-                    f"section {name} in {register} has a blank provenance exception"
+                    escape_controls(
+                        f"section {name} in {register} has a blank provenance exception"
+                    )
                 )
             for reference in row.tests:
                 check_reference(root, reference, name)

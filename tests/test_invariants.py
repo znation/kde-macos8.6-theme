@@ -9,11 +9,13 @@ then against the shipped register (``TestRepositoryRegister``).
 
 from __future__ import annotations
 
+import traceback
 import unittest
 from unittest import mock
 
 import invariants
 from invariants import REGISTER, Row, cross_check, parse_rows
+from support.error_assertions import assert_escapes_escape_character
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 
@@ -586,6 +588,79 @@ class TestHelpers(unittest.TestCase):
                 )
                 with self.assertRaisesRegex(AssertionError, "outside the repository"):
                     cross_check(repo, str(register))
+
+    def test_parse_rows_escapes_control_characters_in_a_malformed_row(self):
+        # docs/invariants.md is contributor-supplied, and parse_rows echoes a
+        # malformed row's line in its AssertionError. An ESC there must be shown
+        # as its visible escape, not written to the operator's terminal.
+        with self.assertRaises(AssertionError) as caught:
+            parse_rows(
+                "## aurorae\n\n"
+                "| Guarantee | Test | Provenance exception |\n"
+                "| --- | --- | --- |\n"
+                "| The thing holds. | \x1b]0;pwned\x07 | none | extra |\n"
+            )
+        assert_escapes_escape_character(self, str(caught.exception))
+
+    def test_cross_check_escapes_control_characters_in_a_section_heading(self):
+        # A register heading names the section echoed by cross_check. An ESC in
+        # that heading must not drive the terminal of the maintainer reading a
+        # failed check.
+        register = self._register(
+            "# Invariants\n\n"
+            "## aurorae\n\n"
+            + self._table([("The thing holds.", f"{self.MODULE}::TestFake")])
+            + "\n## evil\x1b]0;pwned\x07\n\n"
+            + self._table([("The evil thing holds.", f"{self.MODULE}::TestFake")])
+            + "\n## tooling\n\n"
+            + self._table([("The gate holds.", f"{self.MODULE}::TestFake::test_ok")])
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        assert_escapes_escape_character(self, str(caught.exception))
+
+    def test_cross_check_escapes_control_characters_in_a_reference(self):
+        # A register row's Test cell is contributor-supplied, and the missing
+        # file diagnostic echoes the reference. An ESC in the reference must be
+        # escaped rather than reaching the terminal live.
+        register = self._valid_register(
+            [("The thing holds.", "evil\x1b]0;pwned\x07.py::TestFake")]
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        assert_escapes_escape_character(self, str(caught.exception))
+
+    def test_cross_check_escapes_control_characters_in_a_syntax_error(self):
+        # _parse_test_module chains the SyntaxError from a broken module to the
+        # register's diagnostic, and a formatted traceback reprints that
+        # exception's offending source line. An ESC on that line must not reach
+        # the terminal live; the escaped reference keeps the visible marker too.
+        bad = "bad\x1b]0;pwned\x07.py"
+        (self.root / bad).write_text(
+            "def (\x1b]0;pwned\x07:\n", encoding="utf-8"
+        )
+        register = self._valid_register(
+            [("The thing holds.", f"{bad}::TestFake")]
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        rendered = "".join(
+            traceback.format_exception(
+                type(caught.exception),
+                caught.exception,
+                caught.exception.__traceback__,
+            )
+        )
+        assert_escapes_escape_character(self, rendered)
+
+    def test_cross_check_escapes_control_characters_in_a_theme_subsystem(self):
+        # A theme directory's name is contributor-supplied too; cross_check
+        # echoes it when the register has no section for it. An ESC in the name
+        # must not reach the terminal as a live byte.
+        (self.root / "theme" / "evil\x1b]0;pwned\x07").mkdir()
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, self._valid_register())
+        assert_escapes_escape_character(self, str(caught.exception))
 
 
 class TestRepositoryRegister(unittest.TestCase):
