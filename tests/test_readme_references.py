@@ -349,6 +349,7 @@ class TestReadmeTextContainment(unittest.TestCase):
                 with self.assertRaises(ValueError) as caught:
                     readme_text()
         self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("private.png", str(caught.exception))
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
