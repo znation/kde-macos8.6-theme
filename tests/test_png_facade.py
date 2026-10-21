@@ -26,6 +26,7 @@ PUBLIC_NAMES = {
     "encode_png": write.encode_png,
     "pixel_at": image.pixel_at,
     "read_png": read.read_png,
+    "read_png_size": read.read_png_size,
 }
 
 

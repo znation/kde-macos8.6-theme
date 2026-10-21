@@ -4,12 +4,14 @@ The reference screenshots are the source of truth for the theme's palette and
 metrics, so each palette or metric value is pinned by reading a pixel from
 one. This tool makes that sampling a command: it reads the image through
 ``tools/png/read.py`` so the same LFS-aware ``read_png`` and bounds-checked
-``pixel_at`` apply, then prints the pixel in the two forms the theme files
-use -- the ``R,G,B`` triple copied into a ``.colors`` file and the ``#RRGGBB``
-literal copied into an SVG or QML file. ``--width``/``--height`` extend that
+``pixel_at`` apply, decoding only the rows through the sampled rectangle, then
+prints the pixel in the two forms the theme files use -- the ``R,G,B`` triple
+copied into a ``.colors`` file and the ``#RRGGBB`` literal copied into an SVG
+or QML file. ``--width``/``--height`` extend that
 from one pixel to a rectangle (default 1x1), printed row-major, so grounding a
 title bar's column or a widget's box takes one command instead of one per
-pixel.
+pixel. Only the rows through the sampled rectangle are decoded; the full
+height printed in the header comes from ``read_png_size``.
 """
 
 from __future__ import annotations
@@ -23,7 +25,7 @@ if __package__:
         positive_int,
     )
     from tools.diagnostics import report_error
-    from tools.png import PngError, pixel_at, read_png
+    from tools.png import PngError, pixel_at, read_png, read_png_size
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
     from argument_parsing import (
@@ -32,7 +34,7 @@ else:  # run directly: python3 tools/sample.py
         positive_int,
     )
     from diagnostics import report_error
-    from png import PngError, pixel_at, read_png
+    from png import PngError, pixel_at, read_png, read_png_size
     from terminal import escape_controls
 
 
@@ -80,19 +82,28 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        image = read_png(args.image)
+        # Decode only through the rectangle's bottom row; the sampled pixels
+        # are all in the top y+height rows, so the rest of a large reference
+        # need not be unfiltered. A negative y makes the bound non-positive,
+        # so clamp it: the rectangle's out-of-bounds diagnostic below still
+        # names the full image size, and one row is enough to reach it.
+        image = read_png(args.image, max_rows=max(1, args.y + args.height))
+        width, height = read_png_size(args.image)
     except PngError as exc:
         return report_error("sample", str(exc))
 
-    header = f"image: {escape_controls(args.image)}  {image.width}x{image.height}"
+    header = f"image: {escape_controls(args.image)}  {width}x{height}"
     if args.width == 1 and args.height == 1:
-        # pixel_at rejects a coordinate outside the image; it is operator
-        # input here, not a caller bug, so report it as an error rather than
-        # a traceback.
-        try:
-            rgb = pixel_at(image, args.x, args.y)
-        except ValueError as exc:
-            return report_error("sample", str(exc))
+        # The decoded image is truncated at y+1, so validate the coordinate
+        # against the size the header declares; the message matches pixel_at's
+        # out-of-image diagnostic.
+        if not (0 <= args.x < width and 0 <= args.y < height):
+            return report_error(
+                "sample",
+                f"pixel ({args.x}, {args.y}) is outside the "
+                f"{width}x{height} image",
+            )
+        rgb = pixel_at(image, args.x, args.y)
         print(header)
         print(
             f"pixel ({args.x}, {args.y}): "
@@ -107,14 +118,14 @@ def main(argv: list[str] | None = None) -> int:
     if (
         args.x < 0
         or args.y < 0
-        or args.x + args.width > image.width
-        or args.y + args.height > image.height
+        or args.x + args.width > width
+        or args.y + args.height > height
     ):
         return report_error(
             "sample",
             f"region ({args.x}, {args.y}) "
             f"{args.width}x{args.height} is outside the "
-            f"{image.width}x{image.height} image",
+            f"{width}x{height} image",
         )
 
     print(header)

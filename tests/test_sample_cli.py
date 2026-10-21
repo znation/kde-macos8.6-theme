@@ -8,6 +8,7 @@ Run with the project's check harness (stdlib unittest)::
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import CliTestCase  # noqa: E402
@@ -90,6 +91,24 @@ class TestSampleCli(CliTestCase):
             "(0, 2): 0,2,2  #000202",
         ):
             self.assertIn(line, result.stdout)
+
+    def test_decodes_only_through_the_samples(self):
+        # A reference PNG can take seconds to unfilter; the sampler only needs
+        # the rows its rectangle occupies, so the decode bound is the
+        # rectangle's bottom edge for both a pixel and a taller region.
+        path = self._image()
+        for arguments, rows in (
+            (("2", "1"), 2),
+            (("1", "1", "--width", "2", "--height", "2"), 3),
+        ):
+            with self.subTest(arguments=arguments):
+                with mock.patch.object(
+                    sample, "read_png", wraps=sample.read_png
+                ) as read:
+                    result = self._run(path, *arguments)
+                self._assert_success(result)
+                read.assert_called_once()
+                self.assertEqual(read.call_args.kwargs["max_rows"], rows)
 
     def test_region_is_row_major(self):
         path = self._image()

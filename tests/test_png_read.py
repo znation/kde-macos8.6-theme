@@ -21,7 +21,7 @@ from support.process_assertions import assert_failed
 from support.tmp_dir import make_tmp_dir
 
 from support import repo_root
-from support.png_fixtures import rgb_image  # noqa: E402
+from support.png_fixtures import rgb_image, with_ihdr_byte  # noqa: E402
 from tools import png  # noqa: E402
 from tools.png import read  # noqa: E402
 
@@ -91,6 +91,46 @@ class TestReadPng(unittest.TestCase):
         image, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
         top = png.read_png(self._file("image.png", data), max_rows=2)
         self.assertEqual(top, png.Image(3, 2, image.rgb[: 3 * 2 * 3]))
+
+    def test_read_png_size_reports_declared_dimensions_without_decoding(self):
+        # The sampler needs the full image size to report and validate a
+        # coordinate, but must not pay to unfilter rows it will not read.
+        _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        path = self._file("image.png", data)
+        with mock.patch.object(read, "decode_png") as decode:
+            self.assertEqual(png.read_png_size(path), (3, 4))
+        decode.assert_not_called()
+
+    def test_read_png_size_names_undecodable_file(self):
+        path = self._file("broken.png", b"not a png")
+        message = error_message(self, png.PngError, png.read_png_size, path)
+        self.assertIn(str(path), message)
+
+    def _assert_size_matches_decode(self, data: bytes, needle: str) -> None:
+        """Assert read_png_size rejects *data* exactly as read_png does."""
+        path = self._file("malformed.png", data)
+        decode_message = error_message(self, png.PngError, png.read_png, path)
+        self.assertEqual(
+            error_message(self, png.PngError, png.read_png_size, path),
+            decode_message,
+        )
+        self.assertIn(needle, decode_message)
+
+    def test_read_png_size_rejects_a_corrupt_ihdr_crc(self):
+        # A header byte changed without fixing the CRC makes the declared
+        # dimensions untrustworthy; the size read must use the framing check.
+        _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        broken = bytearray(data)
+        broken[23] ^= 0xFF  # last height byte, inside the IHDR payload
+        self._assert_size_matches_decode(bytes(broken), "bad CRC")
+
+    def test_read_png_size_rejects_unsupported_ihdr_fields(self):
+        # A valid-CRC header can still declare a format the decoder refuses;
+        # the size read must not report dimensions for it.
+        _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        self._assert_size_matches_decode(
+            with_ihdr_byte(data, 8, 16), "bit depth 16"
+        )
 
     def test_read_png_names_a_read_failure(self):
         # A read() that fails after a successful open (a disk error) must be
