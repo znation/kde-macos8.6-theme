@@ -13,7 +13,7 @@ from support.desktoptheme_paths import (
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 
 from svg_assertions import (  # noqa: E402
     assert_center_tile_is,

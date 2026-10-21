@@ -18,7 +18,7 @@ from support.desktoptheme_paths import (
 )
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 
 REFERENCE = ARCHIVEORG_REFERENCE
 ICON_16 = os.path.join(

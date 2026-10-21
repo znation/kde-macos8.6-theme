@@ -21,7 +21,7 @@ from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 from svg_assertions import corner_map, edge_map, pixel_map, render_slices
 from svg_assertions.faces import sunken_outside_face_corners
 

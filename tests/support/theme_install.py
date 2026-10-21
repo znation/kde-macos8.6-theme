@@ -5,8 +5,10 @@ tests of each artifact (color scheme, global theme, desktop theme, Aurorae
 decoration, wallpaper, icon theme) pass a throwaway `DESTDIR` and inspect the
 result there via `support.installed_paths`, which names the layout.
 Child processes go through `process_runner`, which applies the suite's timeout
-and process-group cleanup. The module also re-exports `ROOT` (from
-`repo_root`) and defines `run_captured` for tests that need a captured child.
+and process-group cleanup. The repository root the commands run in, and the
+boundary a contributor-supplied source file must stay within, come from
+`support.repo_root`; the module also defines `run_captured` for tests that
+need a captured child.
 """
 
 import contextlib
@@ -16,9 +18,9 @@ import tempfile
 
 from support import containment
 from support import process_runner
+from support import repo_root
 from support.installed_paths import XDG_DATA_HOME
 from support.process_assertions import assert_succeeded
-from support.repo_root import ROOT
 
 
 def run_captured(argv, **kwargs):
@@ -58,7 +60,7 @@ def run_make(args, env=None):
     """
     return run_captured(
         ["make", *args],
-        cwd=ROOT,
+        cwd=repo_root.ROOT,
         env=env,
     )
 
@@ -153,7 +155,7 @@ def assert_files_identical(case, source, target, msg=None):
     installed *target* lies in a throwaway DESTDIR and is read as before.
     """
     case.assertTrue(os.path.isfile(target), target)
-    original = containment.read_bytes(source, ROOT)
+    original = containment.read_bytes(source, repo_root.ROOT)
     with open(target, "rb") as copy:
         case.assertEqual(original, copy.read(), msg or target)
 

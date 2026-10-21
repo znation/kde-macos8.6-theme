@@ -12,7 +12,7 @@ import sys
 import unittest
 from unittest import mock
 
-from support import containment, theme_install
+from support import containment, repo_root, theme_install
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -28,7 +28,7 @@ def _read_repo_file(name):
     refused before it is opened.
     """
     return containment.read_text(
-        os.path.join(theme_install.ROOT, name), theme_install.ROOT,
+        os.path.join(repo_root.ROOT, name), repo_root.ROOT,
         encoding="utf-8",
     )
 
@@ -53,7 +53,7 @@ class TestReadFileContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         root, link = self._symlinked_root("make private-target\n")
-        with mock.patch.object(theme_install, "ROOT", root):
+        with mock.patch.object(repo_root, "ROOT", root):
             with self.assertRaises(ValueError) as caught:
                 _read_repo_file("README.md")
         self.assertIn(str(link), str(caught.exception))
@@ -64,7 +64,7 @@ class TestReadFileContainment(unittest.TestCase):
         target = root / "actual-readme.md"
         target.write_text("make check\n", encoding="utf-8")
         (root / "README.md").symlink_to(target)
-        with mock.patch.object(theme_install, "ROOT", root):
+        with mock.patch.object(repo_root, "ROOT", root):
             self.assertEqual(_read_repo_file("README.md"), "make check\n")
 
     def test_refuses_a_fifo_instead_of_blocking(self):
@@ -81,7 +81,7 @@ class TestReadFileContainment(unittest.TestCase):
                 sys.executable,
                 "-c",
                 "import sys, test_make_help; "
-                "test_make_help.theme_install.ROOT = sys.argv[1]; "
+                "test_make_help.repo_root.ROOT = sys.argv[1]; "
                 "test_make_help._read_repo_file('README.md')",
                 str(root),
             ],
@@ -118,7 +118,7 @@ class TestHelp(unittest.TestCase):
             env = theme_install.make_env("CHECK_PATTERN")
             result = theme_install.run_captured(
                 ["make", "help"],
-                cwd=theme_install.ROOT,
+                cwd=repo_root.ROOT,
                 env=env,
             )
             assert_succeeded(self, result)

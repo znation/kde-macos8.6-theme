@@ -14,7 +14,7 @@ import unittest
 
 from support import containment
 from support.reference_image import ReferenceScreenshotMixin
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 
 LNF_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "look-and-feel", LNF_ID)

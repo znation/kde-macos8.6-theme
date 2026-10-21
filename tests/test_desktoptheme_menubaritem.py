@@ -9,7 +9,7 @@ from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.nine_slice_case import NineSliceCase
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_slice_pixels,
     assert_slices_have_no_fill,

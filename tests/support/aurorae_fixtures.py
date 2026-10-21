@@ -13,7 +13,7 @@ import os
 from support.desktoptheme_paths import FANDOM_MAX_ROWS, FANDOM_REFERENCE
 from support.platinum_palette import hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 
 from tools import png  # noqa: E402
 

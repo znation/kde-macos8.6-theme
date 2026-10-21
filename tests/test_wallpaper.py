@@ -12,7 +12,7 @@ from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata
 from support.reference_image import skip_unless_materialized
 from support.installed_paths import installed_wallpaper, installed_wallpaper_dir
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 
 from tools import make_wallpaper, png  # noqa: E402
 

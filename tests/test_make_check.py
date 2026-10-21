@@ -11,6 +11,7 @@ uninstall behaviour lives in ``test_theme_install.py`` and `make help` in
 import os
 import unittest
 
+from support import repo_root
 from support import theme_install
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -108,7 +109,7 @@ class TestCheckPattern(unittest.TestCase):
             "PYTHON=./.venv/bin/python",
         )
         resolved = os.path.join(
-            str(theme_install.ROOT), ".venv", "bin", "python"
+            str(repo_root.ROOT), ".venv", "bin", "python"
         )
         self.assertIn(f"cd tests && {resolved} -m unittest", output)
         self.assertNotIn("cd tests && ./.venv/bin/python", output)

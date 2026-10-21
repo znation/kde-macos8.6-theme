@@ -19,8 +19,8 @@ from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata, load_metadata
 from support.process_assertions import assert_failed, assert_succeeded
 from support.installed_paths import XDG_DATA_HOME, installed_package
+from support.repo_root import ROOT
 from support.theme_install import (
-    ROOT,
     install,
     installed_destdir,
     shadow_command_env,

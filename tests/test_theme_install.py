@@ -16,7 +16,7 @@ import unittest
 import unittest.mock
 from pathlib import Path
 
-from support import installed_paths, theme_install
+from support import installed_paths, repo_root, theme_install
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -572,7 +572,7 @@ class TestAssertFilesIdentical(unittest.TestCase):
             source.symlink_to(secret)
             target = tmp / "installed.svg"
             target.write_bytes(b"a different installed copy")
-            with unittest.mock.patch.object(theme_install, "ROOT", root):
+            with unittest.mock.patch.object(repo_root, "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     theme_install.assert_files_identical(self, source, target)
         self.assertIn(str(source), str(caught.exception))
@@ -592,7 +592,7 @@ class TestAssertFilesIdentical(unittest.TestCase):
             source.symlink_to(real)
             target = tmp / "installed.svg"
             target.write_bytes(b"same bytes")
-            with unittest.mock.patch.object(theme_install, "ROOT", root):
+            with unittest.mock.patch.object(repo_root, "ROOT", root):
                 theme_install.assert_files_identical(self, source, target)
 
 

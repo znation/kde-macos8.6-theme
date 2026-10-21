@@ -22,7 +22,7 @@ from support.platinum_palette import PLATINUM_FILLS
 from support.shipped_files import shipped_files
 from support.svg_case import parse_svg
 from support.installed_paths import installed_icon_theme, installed_icons_dir
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,

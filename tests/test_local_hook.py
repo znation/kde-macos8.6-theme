@@ -381,7 +381,7 @@ class TestInstall(unittest.TestCase):
         # script once so its `if __name__ == "__main__": sys.exit(main())`
         # wrapper and direct-run imports stay covered.
         repo = make_repo(self)
-        script = Path(theme_install.ROOT) / "tools" / "local_hook.py"
+        script = Path(repo_root.ROOT) / "tools" / "local_hook.py"
         result = theme_install.run_captured(
             [sys.executable, str(script), "install"],
             cwd=repo,

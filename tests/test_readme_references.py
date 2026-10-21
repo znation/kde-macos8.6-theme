@@ -26,6 +26,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import containment
+from support import repo_root
 from support import theme_install
 from support.check_references_fixtures import CheckerTestCase
 from support.process_assertions import assert_succeeded
@@ -49,8 +50,8 @@ def readme_text():
     are echoed by the ``assertEqual`` diagnostics below, so a path that
     resolves outside the repository is refused before it is opened.
     """
-    path = os.path.join(theme_install.ROOT, "README.md")
-    return containment.read_text(path, theme_install.ROOT, encoding="utf-8")
+    path = os.path.join(repo_root.ROOT, "README.md")
+    return containment.read_text(path, repo_root.ROOT, encoding="utf-8")
 
 
 def reference_table(text):
@@ -147,10 +148,10 @@ def declared_reference_names(checker):
     it is opened.
     """
     path = os.path.join(
-        theme_install.ROOT, checker.REFERENCE_DIR, checker.SOURCES_NAME
+        repo_root.ROOT, checker.REFERENCE_DIR, checker.SOURCES_NAME
     )
     return declared_files(
-        containment.read_text(path, theme_install.ROOT, encoding="utf-8-sig"),
+        containment.read_text(path, repo_root.ROOT, encoding="utf-8-sig"),
         reference_validation.SEPARATOR,
     )
 
@@ -232,7 +233,7 @@ class TestReadmeReferenceTable(CheckerTestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.directory = os.path.join(
-            theme_install.ROOT, cls.checker.REFERENCE_DIR
+            repo_root.ROOT, cls.checker.REFERENCE_DIR
         )
         cls.text = readme_text()
         cls.rows = reference_table(cls.text)
@@ -312,7 +313,7 @@ class TestReferenceLfsTracking(CheckerTestCase):
         ]
         result = theme_install.run_captured(
             ["git", "check-attr", "filter", "--", *paths],
-            cwd=theme_install.ROOT,
+            cwd=repo_root.ROOT,
         )
         assert_succeeded(self, result)
         states = lfs_filter_states(result.stdout)
@@ -345,7 +346,7 @@ class TestReadmeTextContainment(unittest.TestCase):
             )
             link = root / "README.md"
             link.symlink_to(secret)
-            with mock.patch.object(theme_install, "ROOT", root):
+            with mock.patch.object(repo_root, "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     readme_text()
         self.assertIn(str(link), str(caught.exception))
@@ -360,7 +361,7 @@ class TestReadmeTextContainment(unittest.TestCase):
             target.write_text("`a.png`\n", encoding="utf-8")
             link = root / "README.md"
             link.symlink_to(target)
-            with mock.patch.object(theme_install, "ROOT", root):
+            with mock.patch.object(repo_root, "ROOT", root):
                 self.assertEqual(readme_text(), "`a.png`\n")
 
 
@@ -391,7 +392,7 @@ class TestDeclaredReferenceNamesContainment(unittest.TestCase):
                 REFERENCE_DIR="macos8.6-screenshots",
                 SOURCES_NAME="sources.txt",
             )
-            with mock.patch.object(theme_install, "ROOT", root):
+            with mock.patch.object(repo_root, "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     declared_reference_names(checker)
         self.assertIn(str(link), str(caught.exception))

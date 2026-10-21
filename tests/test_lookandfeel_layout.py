@@ -20,7 +20,7 @@ from unittest import mock
 
 from support import containment
 from support.reference_image import ReferenceScreenshotMixin
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 
 from tools import make_wallpaper, png  # noqa: E402
 

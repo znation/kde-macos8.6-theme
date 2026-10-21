@@ -19,7 +19,7 @@ from unittest import mock
 
 from support import containment
 from support.desktoptheme_paths import PACKAGE
-from support.theme_install import ROOT
+from support.repo_root import ROOT
 
 _DESKTOP_TOKEN = re.compile(r"`((?:widgets|dialogs)/[^`/]+\.svg)`")
 _AURORAE_TOKEN = re.compile(r"`([^`/]+\.svg)`")
