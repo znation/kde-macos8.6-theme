@@ -22,6 +22,7 @@ import stat
 
 from support import containment
 from support.repo_root import ROOT
+from tools.terminal import escape_controls
 
 TOKEN = "PLACEHOLDER:"
 REGISTER = os.path.join(ROOT, "PLACEHOLDERS.md")
@@ -76,10 +77,15 @@ def _refuse_non_regular(path):
     try:
         mode = os.stat(path).st_mode
     except OSError as exc:
-        raise AssertionError(f"{path} cannot be read: {exc}") from exc
+        raise AssertionError(
+            escape_controls(f"{path} cannot be read: {exc}")
+        ) from exc
     if not stat.S_ISREG(mode):
         raise AssertionError(
-            f"{path} cannot be read: not a regular file; refusing to open it"
+            escape_controls(
+                f"{path} cannot be read: not a regular file; refusing to "
+                "open it"
+            )
         )
 
 
@@ -110,9 +116,13 @@ def _marker_text(path):
                     text = text[:-3].strip()
                 return text
     except UnicodeDecodeError as exc:
-        raise AssertionError(f"{path} is not valid UTF-8 text: {exc}") from exc
+        raise AssertionError(
+            escape_controls(f"{path} is not valid UTF-8 text: {exc}")
+        ) from exc
     except OSError as exc:
-        raise AssertionError(f"{path} cannot be read: {exc}") from exc
+        raise AssertionError(
+            escape_controls(f"{path} cannot be read: {exc}")
+        ) from exc
     return None
 
 
@@ -136,7 +146,9 @@ def markers(root):
             path = os.path.join(dirpath, filename)
             if not containment.resolves_within(theme_dir, path):
                 raise AssertionError(
-                    f"{path} points outside {theme_dir} (a symlink escape)"
+                    escape_controls(
+                        f"{path} points outside {theme_dir} (a symlink escape)"
+                    )
                 )
             text = _marker_text(path)
             if text is not None:
@@ -165,9 +177,13 @@ def register_entries(path):
                 if match:
                     entries[match.group(1)] = match.group(2)
     except UnicodeDecodeError as exc:
-        raise AssertionError(f"{path} is not valid UTF-8 text: {exc}") from exc
+        raise AssertionError(
+            escape_controls(f"{path} is not valid UTF-8 text: {exc}")
+        ) from exc
     except OSError as exc:
-        raise AssertionError(f"{path} cannot be read: {exc}") from exc
+        raise AssertionError(
+            escape_controls(f"{path} cannot be read: {exc}")
+        ) from exc
     return entries
 
 
@@ -187,13 +203,22 @@ def cross_check(root, register):
     for asset in sorted(found):
         if asset not in entries:
             raise AssertionError(
-                f"{asset} carries a {TOKEN} marker but has no row in {register}"
+                escape_controls(
+                    f"{asset} carries a {TOKEN} marker but has no row in "
+                    f"{register}"
+                )
             )
     for asset in sorted(entries):
         if not os.path.isfile(os.path.join(root, asset)):
-            raise AssertionError(f"{register} lists {asset}, which does not exist")
+            raise AssertionError(
+                escape_controls(
+                    f"{register} lists {asset}, which does not exist"
+                )
+            )
         if asset not in found:
             raise AssertionError(
-                f"{register} lists {asset}, which carries no {TOKEN} marker"
+                escape_controls(
+                    f"{register} lists {asset}, which carries no {TOKEN} marker"
+                )
             )
     return found, entries

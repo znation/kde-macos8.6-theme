@@ -24,6 +24,7 @@ from placeholders import (
     markers,
     register_entries,
 )
+from support.error_assertions import assert_escapes_escape_character
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 
@@ -242,6 +243,36 @@ class TestHelpers(unittest.TestCase):
         register = self._write_register(tmp, {os.path.join("theme", "a.svg"): "an a"})
         with self.assertRaisesRegex(AssertionError, "does not exist"):
             cross_check(tmp, register)
+
+    def test_cross_check_escapes_control_characters_in_a_register_asset(self):
+        # PLACEHOLDERS.md is contributor-supplied, and cross_check echoes a
+        # row's asset path in its AssertionError. An ESC there must be shown as
+        # its visible escape, not written to the operator's terminal.
+        tmp = make_tmp_dir(self)
+        self._write_marker(tmp, os.path.join("theme", "a.svg"), "an a")
+        register = self._write_register(
+            tmp,
+            {
+                os.path.join("theme", "a.svg"): "an a",
+                "theme/evil\x1b]0;pwned\x07.svg": "x",
+            },
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(tmp, register)
+        assert_escapes_escape_character(self, str(caught.exception))
+
+    def test_cross_check_escapes_control_characters_in_a_marker_path(self):
+        # A theme file's name is contributor-supplied too: os.walk returns it
+        # raw, and the "carries a marker but has no row" diagnostic includes
+        # it. An ESC in the name must not reach the terminal as a live byte.
+        tmp = make_tmp_dir(self)
+        self._write_marker(
+            tmp, os.path.join("theme", "evil\x1b]0;pwned\x07.svg"), "an a"
+        )
+        register = self._write_register(tmp, {})
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(tmp, register)
+        assert_escapes_escape_character(self, str(caught.exception))
 
     def test_cross_check_refuses_a_symlinked_register_that_escapes(self):
         # `cross_check` echoes a register row's asset path in its AssertionError
