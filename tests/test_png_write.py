@@ -68,6 +68,26 @@ class TestEncodePng(unittest.TestCase):
                 )
                 self.assertIn(f"{name}={value!r}", str(caught.exception))
 
+    def test_dimension_above_the_png_header_limit_is_rejected_naming_the_field(self):
+        # The positive-int guard let 2**31 through, so with a matching buffer
+        # it wrote a header dimension no decoder accepts; above 2**32 - 1 the
+        # IHDR pack escaped as a bare struct.error naming neither the
+        # dimension nor this function. The PNG spec caps each dimension at
+        # 2**31 - 1 (2147483647), so reject it here by field and value.
+        limit = 2_147_483_647
+        for name, width, height in (
+            ("width", limit + 1, 1),
+            ("height", 1, limit + 1),
+        ):
+            value = width if name == "width" else height
+            with self.subTest(name=name):
+                with self.assertRaises(ValueError) as caught:
+                    encode_png(width, height, b"")
+                self.assertIn(
+                    f"PNG {name} must be at most {limit}", str(caught.exception)
+                )
+                self.assertIn(f"{name}={value}", str(caught.exception))
+
     def test_non_integer_dimension_is_rejected_naming_the_field(self):
         # A float or str extent would otherwise reach the RGB length check (a
         # float byte count) or struct.pack (a bare struct.error), naming
