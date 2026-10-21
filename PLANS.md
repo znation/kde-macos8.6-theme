@@ -46,21 +46,22 @@ user's desktop font, and GTK and Firefox applications keep their own chrome.
 
 ### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
 
-**Needs replan 2026-10-21 by feature: rejected after 3 review rounds**
-
-> 1. (prior 1) Lato entry removed from `PLANS.md` instead of moved under `## Done`; `## Done` remains empty and `PLANS-DONE.md` gains the entry.
-> 2. (prior 2) WHY and VERIFIED claims contradict the actual grep results and the diff against 3cce0229.
-> 3. New: The plan entry calls `LICENSE-Lato.txt` a byte-for-byte copy although a newline was added, contradicting `PROVENANCE.md`.
-
-**Plan record.** This entry is finished only when it sits under `PLANS.md`'s existing `## Done`
-heading, the file's last heading, with a closing date added to its `### ` heading. Follow the
-feature role's step 6 literally: cut it from `## Planned`, paste it as the first entry under
-`## Done`, and leave both `## ` headings unchanged (`grep -n '^## ' PLANS.md` prints exactly
-`## Planned` and `## Done` before and after). Do **not** edit `PLANS-DONE.md`: that file is
-tumwater's archive and must have no diff. The run's final `VERIFIED` line must quote the actual
-output of `grep -l "Vendor the Lato body font" PLANS.md PLANS-DONE.md`, which is exactly
-`PLANS.md`; a claim that the entry is in `PLANS-DONE.md` is false. If the entry cannot be moved to
-`## Done`, leave it under `## Planned` and report that instead of editing `PLANS-DONE.md`.
+**Plan record.** The backlog move is part of this entry and must not touch any other file. Before
+starting, record `grep -n '^## Done$' PLANS.md` (one line) and `grep -n '^### Vendor the Lato body
+font and install it' PLANS.md` (one line). When the work is done, cut the whole entry from
+`## Planned` and paste it directly under that `## Done` heading, which stays the file's last
+heading, adding `— done YYYY-MM-DD` to its `### ` heading. Do **not** add a third `## ` heading, do
+**not** rename or move `## Planned`/`## Done`, and do **not** edit `PLANS-DONE.md`: tumwater moves
+the entry from `## Done` into that archive after the merge, so a feature-run diff to
+`PLANS-DONE.md` is wrong even when it looks like the finished archive. After the move,
+`grep -n '^## ' PLANS.md` must print exactly two lines (`## Planned` and `## Done`);
+`grep -n '^### Vendor the Lato body font and install it' PLANS.md` must print exactly one line
+whose number is greater than `## Done`'s line number; `grep -F 'Vendor the Lato body font'
+PLANS-DONE.md` must exit 1 with no output; and `git diff --name-status` must not name
+`PLANS-DONE.md`. The final `VERIFIED` line must quote the actual output of `grep -l "Vendor the Lato
+body font" PLANS.md PLANS-DONE.md` (exactly `PLANS.md`) and of `git diff --name-status`; do not make
+either claim unless that command printed it. If the entry cannot be moved, leave it under
+`## Planned` and say so; never edit `PLANS-DONE.md`.
 
 **Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
 font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
@@ -83,13 +84,20 @@ Chicago/selection parts, not copied.
 **Approach.**
 - Add `theme/fonts/org.macos8.desktop/Lato-Regular.ttf` and `Lato-Bold.ttf`, copied byte for byte
   from `/usr/share/fonts/truetype/lato/` (657,212 and 657,188 bytes; `.gitattributes` leaves
-  `.ttf` out of Git LFS, so they are committed directly). Add `LICENSE-Lato.txt`, a byte-for-byte
-  copy of `/usr/share/doc/fonts-lato/copyright`: its `Files: *` stanza carries the upstream
-  copyright line and the complete OFL-1.1 body, while its trailing `Files: debian/*` stanza is
-  Debian packaging GPL-2+ text that does not cover the fonts. `PROVENANCE.md` records the local
-  source paths, the upstream source (`http://www.latofonts.com`, Debian package `fonts-lato`), the
-  SHA-256 digests of all three files, the internal family name `Lato`, the `debian/*` stanza's
-  scope, and why the face is an approximation of Charcoal.
+  `.ttf` out of Git LFS, so they are committed directly). Add `LICENSE-Lato.txt` as an exact
+  byte-for-byte copy (`cp`, not an editor, heredoc or `sed`) of
+  `/usr/share/doc/fonts-lato/copyright`: 5,157 bytes, SHA-256
+  `1e6ccc54aa0b0aa4188cda121174f17cf1c28bac9734749bbe1128bb6dd89a97`, ending in the
+  `Files: debian/*` stanza's `... for the text of the GNU General Public License version 2".` with
+  **no trailing newline**. Do not append a newline (the prior attempt did, producing 5,158 bytes
+  and SHA-256 `6664793a025c96e6bb4f319a8c8d5b929296bf0df229db8b1c19e80a5988eb25`); an editor or
+  shell substitution that adds one makes the pinned test fail. The `Files: *` stanza carries the
+  upstream copyright line and the complete OFL-1.1 body, while the trailing `Files: debian/*`
+  stanza is Debian packaging GPL-2+ text that does not cover the fonts. `PROVENANCE.md` records the
+  local source paths, the upstream source (`http://www.latofonts.com`, Debian package `fonts-lato`),
+  the SHA-256 digests of all three files, that `LICENSE-Lato.txt` is the source byte for byte
+  including its missing final newline (not a newline-appended variant), the internal family name
+  `Lato`, the `debian/*` stanza's scope, and why the face is an approximation of Charcoal.
 - `Makefile`: add `FONT_ID := org.macos8.desktop`, `FONT_PACKAGE := theme/fonts/$(FONT_ID)` and
   `FONT_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/fonts`; add `fonts` to `INSTALL_FAMILIES` and to
   the default `INSTALL_PACKAGES`; in `_install` create `$(FONT_INSTALL_DIR)` and copy the package
@@ -112,8 +120,11 @@ Chicago/selection parts, not copied.
   docstring's list of installable artifact suites.
 - `tests/test_fonts.py` (new): `TestFontFiles` parses each TTF's sfnt `name` table (name ID 1 and
   2) with `struct` and asserts the family is `Lato` and the subfamily is `Regular`/`Bold`; pins the
-  SHA-256 of both TTFs and of `LICENSE-Lato.txt` and asserts `PROVENANCE.md` names all three
-  digests; asserts `LICENSE-Lato.txt` contains `License: OFL-1.1`, the copyright line
+  SHA-256 of both TTFs (`6f6940be0835c3ddec9199e5fc42be4cbc61ebcfd58c623fdf719366253f1780` and
+  `bf1b8130069b44b9148eeece35e5423bedac49777ba746615b826b8276574a7b`) and of `LICENSE-Lato.txt`
+  (`1e6ccc54aa0b0aa4188cda121174f17cf1c28bac9734749bbe1128bb6dd89a97`), asserts that licence's
+  last byte is not a newline, and asserts `PROVENANCE.md` names all three digests; asserts
+  `LICENSE-Lato.txt` contains `License: OFL-1.1`, the copyright line
   `(c) 2010-2011, Łukasz Dziedzic` and the OFL clause heading `PERMISSION & CONDITIONS` (the file
   has no `SIL OPEN FONT LICENSE` heading, so do not assert that phrase). `TestFontsInstall`
   subclasses `InstallLifecycleCases` with `MAKE_PACKAGES = "fonts"`,
@@ -158,9 +169,12 @@ Chicago/selection parts, not copied.
   too; `make uninstall` removes that directory and its `.staging`/`.old` leftovers while leaving a
   sibling font family's directory in place (pinned by
   `tests/test_fonts.py::TestFontsInstall.test_uninstall_leaves_a_sibling_font_family`).
+- `cmp -s theme/fonts/org.macos8.desktop/LICENSE-Lato.txt
+  /usr/share/doc/fonts-lato/copyright` exits 0: the shipped licence is the source's 5,157 bytes
+  including its missing final newline, not the 5,158-byte newline-appended variant.
 - `make check CHECK_TESTS=test_fonts` passes; removing either TTF, changing a byte, renaming the
-  family or subfamily in the font, editing `LICENSE-Lato.txt`, or dropping a digest from
-  `PROVENANCE.md` makes it fail.
+  family or subfamily in the font, editing `LICENSE-Lato.txt` (including appending a newline), or
+  dropping a digest from `PROVENANCE.md` makes it fail.
 - `tests/invariants.py` accepts `theme/fonts` with its `## fonts` section, and
   `make check CHECK_TESTS=test_theme_install test_make_help` passes with the new family.
 - `grep -n seven README.md Makefile tests/support/install_lifecycle_cases.py
@@ -175,7 +189,8 @@ Chicago/selection parts, not copied.
   body font' PLANS-DONE.md` exits 1 with no output; `grep -n '^## ' PLANS.md` prints exactly
   `## Planned` and `## Done`; and `git diff --name-status` does not name `PLANS-DONE.md`. The final
   report quotes the actual output of `grep -l "Vendor the Lato body font" PLANS.md PLANS-DONE.md`
-  (exactly `PLANS.md`).
+  (exactly `PLANS.md`) and of `git diff --name-status`; a `VERIFIED` line that says otherwise
+  contradicts those commands and fails this plan.
 - No `kdeglobals` write, global-theme `contents/defaults` change, `tools/apply_*` change, GTK,
   Firefox or README archive-sentence change is made in this part; `make check` is green.
 
