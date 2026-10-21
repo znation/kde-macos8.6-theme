@@ -257,9 +257,13 @@ class TestSharedReferenceBounds(unittest.TestCase):
             SCROLLBAR_ANCHOR_ROWS,
         )
         from test_desktoptheme_scrollbar import TestScrollbarReference
+        from test_kvantum_itemview_reference import TestItemViewReference
 
         self._assert_reader_shares(
-            SETUP_REFERENCE, SETUP_MAX_ROWS, TestScrollbarReference
+            SETUP_REFERENCE,
+            SETUP_MAX_ROWS,
+            TestScrollbarReference,
+            TestItemViewReference,
         )
         self.assertEqual(SETUP_REFERENCE, REFERENCE_SCROLLBAR)
         self.assertEqual(SETUP_MAX_ROWS, SCROLLBAR_ANCHOR_ROWS)

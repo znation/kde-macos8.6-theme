@@ -74,13 +74,14 @@ ARCHIVEORG_REFERENCE = os.path.join(
 )
 ARCHIVEORG_MAX_ROWS = 301
 
-# The installer CD window's horizontal scroll bar. The deepest pixel any
-# reader samples is the bar's bottom black rule at y=477, so 478 rows covers
-# them all with a single cached decode.
+# The installer CD window's horizontal scroll bar and the Finder window's
+# item-view field. The deepest pixel any reader samples is the item view's
+# bottom highlight at y=478, so 479 rows covers them all with a single cached
+# decode.
 SETUP_REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "setup_emaculation.png"
 )
-SETUP_MAX_ROWS = 478
+SETUP_MAX_ROWS = 479
 
 # The Setup Assistant's "Introduction" banner and its line-edit field. The
 # deepest pixel any reader samples is the field's true bottom border at

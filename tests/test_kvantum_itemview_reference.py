@@ -17,26 +17,23 @@ runs, the top-left corner and the bottom-left corner are derived.
 
 from __future__ import annotations
 
-import os
 import unittest
 
+from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from support.theme_install import ROOT
 from svg_assertions import corner_map, edge_map, pixel_map, render_slices
 from svg_assertions.faces import sunken_outside_face_corners
 
 # The installer CD Finder window's item view in setup_emaculation.png (retail
 # Mac OS 8.6). Its 2px border is a #999999/#FFFFFF bevel outside a 1px #000000
 # outline, over the #FFFFFF face. Only the field's bottom row is a constant,
-# to bound the decode; the runs and corners below pin its other edges.
-REFERENCE = os.path.join(
-    ROOT, "macos8.6-screenshots", "setup_emaculation.png"
-)
-FIELD_BOTTOM = 478
-MAX_ROWS = FIELD_BOTTOM + 1
+# to bound the decode; the runs and corners below pin its other edges. The
+# scroll-bar reader shares the bound, so the screenshot is decoded once.
+REFERENCE = SETUP_REFERENCE
+MAX_ROWS = SETUP_MAX_ROWS
 
 # The field's border runs, read from the outside in: the bevel's outer pixel,
 # the #000000 outline and the #FFFFFF face. One run per side, away from the
