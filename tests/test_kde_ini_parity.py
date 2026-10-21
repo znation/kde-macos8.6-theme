@@ -18,8 +18,9 @@ import unittest
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import kde_config
 from support.kde_ini_corpus import CASES, SCHEME_ID, as_defaults
+from support.installed_paths import XDG_DATA_HOME
 from support.process_assertions import assert_succeeded
-from support.theme_install import installed_destdir, uninstall
+from support.theme_install import installed_destdir, run_make
 from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
 
@@ -30,6 +31,26 @@ def _kde_config_value(path):
     if not parser.has_section("General"):
         return None
     return parser.get("General", "ColorScheme", fallback=None)
+
+
+def _uninstall_recipe(destdir, extra, config):
+    """Run the uninstall recipe's KDE INI reader against the corpus file.
+
+    This module feeds one corpus text per case through the recipe, so it calls
+    the internal `_uninstall` target directly: the public target only adds the
+    data-home and flock guards (covered by ``test_theme_install``) and a nested
+    ``make`` around the same recipe. Skipping that wrapper keeps the corpus
+    from spawning a second make and a lock for every case.
+    """
+    return run_make(
+        [
+            "_uninstall",
+            f"DESTDIR={destdir}",
+            f"XDG_DATA_HOME={XDG_DATA_HOME}",
+            *extra,
+        ],
+        env=dict(os.environ, XDG_CONFIG_HOME=str(config)),
+    )
 
 
 class TestReadersAgree(unittest.TestCase):
@@ -84,10 +105,8 @@ class TestReadersAgree(unittest.TestCase):
                     (config / "kdeglobals").write_text(
                         case.text, encoding="utf-8"
                     )
-                    removed = uninstall(
-                        destdir,
-                        extra=(f"COLOR_SCHEME_ID={scheme_id}",),
-                        env=dict(os.environ, XDG_CONFIG_HOME=str(config)),
+                    removed = _uninstall_recipe(
+                        destdir, (f"COLOR_SCHEME_ID={scheme_id}",), config
                     )
                     assert_succeeded(self, removed)
                     self.assertEqual(
@@ -104,12 +123,8 @@ class TestReadersAgree(unittest.TestCase):
                         # silent and fails here. An empty expected value
                         # already ran with an empty id above, so it needs no
                         # second run.
-                        removed = uninstall(
-                            destdir,
-                            extra=("COLOR_SCHEME_ID=",),
-                            env=dict(
-                                os.environ, XDG_CONFIG_HOME=str(config)
-                            ),
+                        removed = _uninstall_recipe(
+                            destdir, ("COLOR_SCHEME_ID=",), config
                         )
                         assert_succeeded(self, removed)
                         self.assertEqual(
