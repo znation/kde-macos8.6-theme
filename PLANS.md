@@ -42,6 +42,17 @@ and Firefox applications keep their own chrome.
 
 ### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
 
+**Needs replan 2026-10-21 by feature: rejected after 3 review rounds**
+
+> 1. (prior 1) The plan record is still archived contrary to its own instructions. In this tree the
+>    Lato entry exists only in `PLANS-DONE.md`; `PLANS.md`'s `## Done` does not contain it, and the
+>    full diff adds it to `PLANS-DONE.md` — the file the entry itself says “Do not edit”. The
+>    interdiff between th…
+> 2. The VERIFIED claim is false. Running the stated command on this tree (`grep -l "Vendor the Lato
+>    body font" PLANS.md PLANS-DONE.md`) prints only `PLANS-DONE.md`, not `PLANS.md`; the claimed
+>    output is inverted and the command actually exposes the unresolved plan-record defect.
+>    Likewise, the commit su…
+
 **Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
 font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
 Bold (SIL OFL 1.1, already installed on this machine, so no network fetch) as the Charcoal-style
