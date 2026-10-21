@@ -58,6 +58,14 @@ HEADER_CELLS = ("guarantee", "test", "provenance exception")
 
 Row = namedtuple("Row", "guarantee tests provenance")
 
+# Parsed class maps, keyed by absolute path. A register often names the same
+# test module in several rows, and the checker mutation cases run the checker
+# over the same scratch tree repeatedly, so a successful parse is reused until
+# the file changes. The fingerprint (inode, size, mtime and ctime) makes a
+# rewritten or atomically replaced file reparse instead of serving stale
+# classes; a failed read or parse is never cached.
+_DEFINED_NAMES_CACHE = {}
+
 
 def _cells(line):
     """Return a table row's three cells, or None for a non-row line.
@@ -154,7 +162,22 @@ def _defined_names(path):
     whose own bases cannot be inspected here). A class unittest never collects
     is not a test case however many ``test``-prefixed methods it defines, so
     the check follows bases rather than trusting a test-shaped method name.
+
+    A successful result is cached against the file's stat fingerprint, so a
+    register with several rows naming the same module parses it once, and a
+    repeated check over an unchanged tree reuses those parses.
     """
+    key = os.path.abspath(path)
+    stat = os.stat(path)
+    fingerprint = (
+        stat.st_ino,
+        stat.st_size,
+        stat.st_mtime_ns,
+        stat.st_ctime_ns,
+    )
+    cached = _DEFINED_NAMES_CACHE.get(key)
+    if cached is not None and cached[0] == fingerprint:
+        return cached[1]
     with open(path, encoding="utf-8") as handle:
         tree = ast.parse(handle.read(), filename=path)
     nodes = {
@@ -190,6 +213,7 @@ def _defined_names(path):
             if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))
         }
         classes[name] = (methods, is_test_case(name, set()))
+    _DEFINED_NAMES_CACHE[key] = (fingerprint, classes)
     return classes
 
 

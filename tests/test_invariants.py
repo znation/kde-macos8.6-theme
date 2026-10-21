@@ -239,6 +239,33 @@ class TestHelpers(unittest.TestCase):
         sections = cross_check(self.root, self._valid_register())
         self.assertEqual(set(sections), {"aurorae", "tooling"})
 
+    def test_cross_check_reuses_an_unchanged_modules_parse(self):
+        # The same module is named by two rows, and the check runs over the
+        # same tree repeatedly (the mutation cases do), so an unchanged file
+        # must be parsed once rather than once per row and again per run.
+        register = self._valid_register()
+        with mock.patch.object(
+            invariants.ast, "parse", wraps=invariants.ast.parse
+        ) as parse:
+            cross_check(self.root, register)
+            cross_check(self.root, register)
+        self.assertEqual(parse.call_count, 1)
+
+    def test_cross_check_reparses_a_module_that_changed(self):
+        # A cached parse must not mask a rewritten module: the second check
+        # names the old class, which the new contents no longer define.
+        cross_check(self.root, self._valid_register())
+        self._write(
+            self.MODULE,
+            "import unittest\n\n\n"
+            "class TestChanged(unittest.TestCase):\n"
+            "    def test_ok(self):\n"
+            "        pass\n",
+        )
+        self.assert_cross_check_rejects(
+            f"{self.MODULE}::TestFake", "missing class TestFake"
+        )
+
     def test_cross_check_rejects_an_unreadable_register(self):
         # The register is read with open(); a missing or unreadable
         # docs/invariants.md must be reported as the checker's own
