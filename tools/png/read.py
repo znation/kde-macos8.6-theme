@@ -176,6 +176,97 @@ def _check_pixel_limit(width: int, height: int) -> None:
         )
 
 
+def _take_ihdr(
+    payload: bytes, header: bytes | None, previous_chunk: bytes | None
+) -> bytes:
+    """Return *payload* as the image header, refusing a misordered IHDR.
+
+    *previous_chunk* is the first chunk already seen, or None when this is
+    the first chunk. The PNG spec gives the image exactly one header and puts
+    it first; a stream that reaches IDAT before its header, or carries a
+    second IHDR, would otherwise decode against a header a conformant reader
+    would not use and silently produce different pixels.
+    """
+    if header is not None:
+        raise PngError(
+            "PNG has more than one IHDR chunk; the image header "
+            "must appear exactly once"
+        )
+    if previous_chunk is not None:
+        raise PngError(
+            f"PNG's IHDR chunk must be the first chunk, but "
+            f"{chunk_name(previous_chunk)} comes before it"
+        )
+    return payload
+
+
+def _take_plte(payload: bytes) -> bytes:
+    """Return *payload* as the palette, refusing a malformed PLTE length."""
+    if len(payload) % 3 or not 3 <= len(payload) <= 768:
+        raise PngError(
+            f"PLTE chunk is {len(payload)} bytes; expected a multiple "
+            "of 3 between 3 and 768 (1-256 palette entries)"
+        )
+    return payload
+
+
+def _collect_chunks(data: bytes) -> tuple[bytes, bytes | None, bytearray]:
+    """Return ``(header, palette, idat)`` from *data*'s chunk stream.
+
+    Walks the chunks after the signature, collecting the image header, palette
+    and IDAT payloads. It refuses a misordered or duplicate IHDR, a malformed
+    PLTE length, an unknown critical chunk, a missing IEND and a missing IHDR.
+    Filtering and colour expansion are :func:`decode_png`'s concern; this
+    helper owns only the framing the rest of the decode reads.
+    """
+    header = None
+    palette = None
+    idat = bytearray()
+    saw_iend = False
+    first_chunk = None
+    for ctype, payload in iter_chunks(data):
+        # Record the first chunk before handling it, but pass the previous
+        # value to the IHDR guard: the first chunk is allowed to be IHDR, while
+        # a later one is not.
+        previous_first = first_chunk
+        if first_chunk is None:
+            first_chunk = ctype
+        if ctype == b"IHDR":
+            header = _take_ihdr(payload, header, previous_first)
+            continue
+        if ctype == b"PLTE":
+            palette = _take_plte(payload)
+            continue
+        if ctype == b"IDAT":
+            idat += payload
+            continue
+        if ctype == b"IEND":
+            saw_iend = True
+            break
+        if ctype[:1].isupper():
+            # A chunk whose first byte is uppercase is critical: the decoder
+            # must understand it to know how the image is interpreted. The
+            # four critical chunks (IHDR, PLTE, IDAT, IEND) are all modelled
+            # above, so an unknown one carries data that may change the
+            # pixels. Ignoring it the way an unknown *ancillary* chunk
+            # (lowercase first byte) is ignored could decode the image wrong
+            # with no sign that anything was skipped, so refuse it by name.
+            raise PngError(
+                f"unknown critical PNG chunk {chunk_name(ctype)}"
+            )
+    if header is None:
+        raise PngError("PNG has no IHDR chunk")
+    if not saw_iend:
+        # The IEND chunk terminates the chunk stream, so a file cut at a
+        # chunk boundary can hold a complete IHDR and IDAT and still be
+        # truncated. Without this the decoder returns the image from the
+        # partial stream as if the file were whole.
+        raise PngError(
+            "PNG has no IEND chunk (the chunk stream may be truncated)"
+        )
+    return header, palette, idat
+
+
 def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     """Decode an 8-bit, non-interlaced PNG into an :class:`Image`.
 
@@ -195,63 +286,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
                 "convert it to PNG first"
             )
         raise PngError("not a PNG file")
-    header = None
-    palette = None
-    idat = bytearray()
-    saw_iend = False
-    # The PNG spec puts IHDR first and gives the image one header. A stream
-    # that reaches IDAT before its header, or carries a second IHDR, decodes
-    # here against a header a conformant reader would not use, silently
-    # producing different pixels; reject the framing by name instead.
-    first_chunk = None
-    for ctype, payload in iter_chunks(data):
-        if ctype == b"IHDR":
-            if header is not None:
-                raise PngError(
-                    "PNG has more than one IHDR chunk; the image header "
-                    "must appear exactly once"
-                )
-            if first_chunk is not None:
-                raise PngError(
-                    f"PNG's IHDR chunk must be the first chunk, but "
-                    f"{chunk_name(first_chunk)} comes before it"
-                )
-            header = payload
-        elif ctype == b"PLTE":
-            if len(payload) % 3 or not 3 <= len(payload) <= 768:
-                raise PngError(
-                    f"PLTE chunk is {len(payload)} bytes; expected a multiple "
-                    "of 3 between 3 and 768 (1-256 palette entries)"
-                )
-            palette = payload
-        elif ctype == b"IDAT":
-            idat += payload
-        elif ctype == b"IEND":
-            saw_iend = True
-            break
-        elif ctype[:1].isupper():
-            # A chunk whose first byte is uppercase is critical: the decoder
-            # must understand it to know how the image is interpreted. The
-            # four critical chunks (IHDR, PLTE, IDAT, IEND) are all modelled
-            # above, so an unknown one carries data that may change the
-            # pixels. Ignoring it the way an unknown *ancillary* chunk
-            # (lowercase first byte) is ignored could decode the image wrong
-            # with no sign that anything was skipped, so refuse it by name.
-            raise PngError(
-                f"unknown critical PNG chunk {chunk_name(ctype)}"
-            )
-        if first_chunk is None:
-            first_chunk = ctype
-    if header is None:
-        raise PngError("PNG has no IHDR chunk")
-    if not saw_iend:
-        # The IEND chunk terminates the chunk stream, so a file cut at a
-        # chunk boundary can hold a complete IHDR and IDAT and still be
-        # truncated. Without this the decoder returns the image from the
-        # partial stream as if the file were whole.
-        raise PngError(
-            "PNG has no IEND chunk (the chunk stream may be truncated)"
-        )
+    header, palette, idat = _collect_chunks(data)
     width, height, color_type = _parse_ihdr(header)
     _validate_max_rows(max_rows)
     rows = height if max_rows is None else min(max_rows, height)

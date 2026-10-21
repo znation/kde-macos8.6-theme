@@ -63,6 +63,36 @@ def _read_defaults_text(path: Path) -> str:
     return data.decode("utf-8-sig")
 
 
+def _section_heading(path: Path, line: str) -> tuple[str, str] | None:
+    """Return the ``(file, group)`` a heading names, or None for a plain group.
+
+    A plain ``[Wallpaper]`` heading names no config file and returns None. A
+    heading that is neither that nor a complete ``[file][group]`` -- a
+    mistyped bracket, a missing closing bracket, trailing text after the
+    closing ``]``, or surrounding whitespace inside a bracket pair -- raises
+    ``ValueError`` naming it, so its keys cannot silently vanish from the
+    written config. A padded name (``[kwinrc ][Theme]``) would otherwise parse
+    as the distinct file ``'kwinrc '``, which :func:`write_configs` compares
+    against the real name and drops.
+    """
+    match = _FILE_GROUP.match(line)
+    if match:
+        file, group = match.groups()
+        if file != file.strip() or group != group.strip():
+            raise ValueError(
+                f"{path}: malformed section heading {line!r}: the "
+                "file and group names must not have surrounding "
+                "whitespace"
+            )
+        return file, group
+    if _ANY_HEADING.fullmatch(line):
+        return None
+    raise ValueError(
+        f"{path}: malformed section heading {line!r}: expected "
+        "'[file][group]' or a plain '[group]'"
+    )
+
+
 def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, str]]:
     """Return ``{(file, group): {key: value}}`` for the ``[file][group]`` sections.
 
@@ -98,29 +128,10 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
         # ``[`` -- a key line starts with the key -- so this is the same test
         # the match made, widened to catch the bracket with no close.
         if line.startswith("["):
-            match = _FILE_GROUP.match(line)
-            if match:
-                file, group = match.groups()
-                # A name padded with whitespace (``[kwinrc ][Theme]``) matches
-                # the pattern but names a file/group distinct from the
-                # unpadded one, so the section is silently dropped when
-                # ``write_configs`` filters on the exact name. Refuse it by
-                # name rather than guess which spelling was meant.
-                if file != file.strip() or group != group.strip():
-                    raise ValueError(
-                        f"{path}: malformed section heading {line!r}: the "
-                        "file and group names must not have surrounding "
-                        "whitespace"
-                    )
-                current = groups.setdefault((file, group), {})
-            elif _ANY_HEADING.fullmatch(line):
-                # A plain ``[Wallpaper]`` names no config file and is skipped.
-                current = None
-            else:
-                raise ValueError(
-                    f"{path}: malformed section heading {line!r}: expected "
-                    "'[file][group]' or a plain '[group]'"
-                )
+            heading = _section_heading(path, line)
+            current = (
+                None if heading is None else groups.setdefault(heading, {})
+            )
         elif current is not None and "=" in line:
             key, value = line.split("=", 1)
             current[key.strip()] = value.strip()

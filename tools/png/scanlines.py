@@ -34,6 +34,33 @@ def _require_raw_length(raw: bytes, width: int, height: int, channels: int) -> N
         )
 
 
+def _unfilter_line(
+    ftype: int, line: bytearray, prev: bytearray, channels: int
+) -> bytes | bytearray:
+    """Undo filter *ftype* on one scanline *line*, given the previous row.
+
+    The caller has already rejected a filter type above 4, so no branch here
+    validates it. Sub and Up dispatch to the lane arithmetic, Average is a
+    per-byte predictor, and Paeth mutates *line* in place. Filter type 0
+    leaves the line unchanged.
+    """
+    if ftype == 0:
+        return line
+    if ftype == 1:
+        for c in range(channels):
+            line[c::channels] = _prefix_sum(line[c::channels])
+        return line
+    if ftype == 2:
+        return _byte_add(line, prev)
+    if ftype == 3:
+        for i in range(len(line)):
+            a = line[i - channels] if i >= channels else 0
+            line[i] = (line[i] + ((a + prev[i]) >> 1)) & 0xFF
+        return line
+    _unfilter_paeth(line, prev, channels)
+    return line
+
+
 def unfilter(
     raw: bytes,
     width: int,
@@ -71,17 +98,7 @@ def unfilter(
             continue
         line = bytearray(raw[src : src + stride])
         src += stride
-        if ftype == 1:
-            for c in range(channels):
-                line[c::channels] = _prefix_sum(line[c::channels])
-        elif ftype == 2:
-            line = _byte_add(line, prev)
-        elif ftype == 3:
-            for i in range(stride):
-                a = line[i - channels] if i >= channels else 0
-                line[i] = (line[i] + ((a + prev[i]) >> 1)) & 0xFF
-        elif ftype == 4:
-            _unfilter_paeth(line, prev, channels)
+        line = _unfilter_line(ftype, line, prev, channels)
         out[dst : dst + stride] = line
         dst += stride
         prev = line
