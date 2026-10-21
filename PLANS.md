@@ -42,11 +42,6 @@ and Firefox applications keep their own chrome.
 
 ### Ship a GTK 3 Platinum theme for GTK applications (planned 2026-10-21 by the plan role; part 1/4)
 
-**Needs replan 2026-10-21 by feature: rejected after 5 review rounds**
-
-> 1. (prior 3) Checked hovered reorderable tabs still keep Adwaita's face. Imported `notebook > header tab:checked.reorderable-page:hover` is (0,3,3), outranking the new local `notebook > header > tabs > tab:hover.reorderable-page` at (0,2,4) on class count. A GTK style-context probe of that state resol…
-> 2. Reorderable tabs remain non-Platinum outside plain hover. A checked non-hovered reorderable tab resolves to Adwaita's `rgba(246,245,244,0.5)` background, `rgba(205,199,194,0.5)` border, and `border-style: none`; a backdrop reorderable tab resolves to transparent background/border and grey text. Imp…
-
 **Goal.** No GTK theme exists in the repository (no `theme/gtk` directory), so GTK 3
 applications -- including Firefox's GTK chrome -- keep the desktop's Breeze GTK theme. Ship a
 user-installable `org.macos8.desktop` GTK 3 theme whose windows, header bars, buttons, entries,
@@ -69,12 +64,15 @@ this theme's adaptation; do not claim a GTK reference crop.
 - `theme/gtk/org.macos8.desktop/index.theme`: `[Desktop Entry]` with `Type=X-GNOME-Metatheme`,
   `Name=Mac OS 8.6 Platinum`, `Encoding=UTF-8` and a short `Comment=`, plus an
   `[X-GNOME-Metatheme]` group naming the same theme.
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: import Adwaita first with
-  `@import url("resource:///org/gtk/libgtk/theme/Adwaita/gtk-contained.css");`, then redefine the
-  theme colours with `@define-color theme_bg_color #DDDDDD;`, `theme_fg_color #000000`,
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: write a standalone sheet -- **do not**
+  `@import` Adwaita. The rejected implementation imported Adwaita and then tried to out-specify
+  its reorderable-tab rules; a standalone theme has no imported sheet whose
+  `.reorderable-page` selectors can win, so the tab face cannot fall back to Adwaita's
+  translucent or transparent fills. Define the theme colours with
+  `@define-color theme_bg_color #DDDDDD;`, `theme_fg_color #000000`,
   `theme_base_color #FFFFFF`, `theme_text_color #000000`, `theme_selected_bg_color #CCCCFF`,
   `theme_selected_fg_color #000000`, `borders #000000` and `unfocused_borders #999999`.
-  Override exactly these scoped rules (no `*` selector):
+  Write exactly these scoped rules (no `*` selector):
   - `window, .background`: `#DDDDDD` background, `#000000` text.
   - `headerbar, .titlebar`: `#DDDDDD` face, no background image, `1px solid #000000` border,
     `border-radius: 0`, no box shadow; `headerbar` keeps only its 1px black bottom rule.
@@ -84,10 +82,17 @@ this theme's adaptation; do not claim a GTK reference crop.
     `inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF`.
   - `entry`: white face, `1px solid #000000` border, `border-radius: 0`, sunken
     `box-shadow: inset 1px 1px #999999`, black text.
-  - `notebook > header`: `#DDDDDD` background, black border; each
-    `notebook > header > tabs > tab` is a raised `#DDDDDD` face with `1px solid #000000`,
-    `border-radius: 0` and `box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999`; the
-    `:checked` tab drops the bottom border to `#DDDDDD` and the bevel shadow.
+  - `notebook > header`: `#DDDDDD` background, black border. Every tab state carries the
+    raised `#DDDDDD` face with `1px solid #000000`, `border-radius: 0` and
+    `box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999`; the checked states drop the
+    bottom border to `#DDDDDD` and the bevel shadow. Cover both the plain and `.reorderable-page`
+    forms in each state: base (`tab, tab.reorderable-page`), hover (`tab:hover,
+    tab.reorderable-page:hover`), checked (`tab:checked, tab.reorderable-page:checked`),
+    checked+hover (`tab:checked:hover, tab.reorderable-page:checked:hover`), backdrop
+    (`tab:backdrop, tab.reorderable-page:backdrop`) and backdrop+checked
+    (`tab:backdrop:checked, tab.reorderable-page:backdrop:checked`). The checked and backdrop
+    states explicitly paint the face rather than leaving it to a default: the rejected diff left
+    a non-hovered checked reorderable tab translucent and a backdrop one transparent.
   - `menu, .menu, popover, .popover`: `#DDDDDD` face, `1px solid #000000` border,
     `border-radius: 0`; `menuitem:hover, .menuitem:hover` paints `#CCCCFF`.
   - `scrollbar`: `#EEEEEE` trough with a `1px solid #000000` border; `scrollbar slider` is the
@@ -96,9 +101,13 @@ this theme's adaptation; do not claim a GTK reference crop.
   - `toolbar, menubar`: `#DDDDDD` face with the reference's etched rule,
     `border-bottom: 1px solid #888888` and `box-shadow: inset 0 -1px #FFFFFF`.
 - `tests/test_gtk_theme.py` (new): `TestGtkTheme` reads the two files as text. Pin the
-  `index.theme` keys above; pin the Adwaita import string, every `@define-color` name/value, and
-  every selector/property above (a parser over brace blocks or explicit substring checks is
-  fine). Assert the only six-digit hex literals in the CSS are exactly
+  `index.theme` keys above; pin every `@define-color` name/value, and every selector/property
+  above (a parser over brace blocks or explicit substring checks is fine). Assert the CSS
+  contains no `@import` and no `Adwaita` text, so a future edit cannot reintroduce the imported
+  rules that outranked the tabs. Assert the six tab-state selector groups above each exist with
+  the raised face and bevel, and that each checked group also drops the bottom border and bevel,
+  so neither a missing state nor a translucent/transparent fallback passes. Assert
+  the only six-digit hex literals in the CSS are exactly
   `{BLACK, WHITE, GREY, FACE, BUTTON_SHADOW, TROUGH, SELECTION, ETCH_DARK}`, importing the
   palette constants from `support.platinum_palette` and defining `ETCH_DARK = "#888888"` beside
   the existing line-test value, so a stray Breeze colour fails. Assert the rules for
@@ -106,21 +115,24 @@ this theme's adaptation; do not claim a GTK reference crop.
   `menu, .menu, popover, .popover` and `scrollbar slider` each carry `border-radius: 0`, and
   that no rule uses the universal `*` selector.
 - `docs/invariants.md`: add a `## gtk` section (a `theme/gtk` subsystem needs its own section;
-  do not fold this into `tooling`) with one row: "The GTK 3 Platinum theme imports
-  libgtk/Adwaita, redefines the Platinum palette and paints the scoped Platinum control rules."
-  pinned to `tests/test_gtk_theme.py::TestGtkTheme`, provenance exception: no reference
-  screenshot shows a GTK widget, so the palette comes from the pinned Platinum values and the
-  geometry is this theme's adaptation.
+  do not fold this into `tooling`) with one row: "The standalone GTK 3 Platinum theme redefines
+  the Platinum palette and paints the scoped Platinum control rules, including every plain and
+  reorderable tab state, without importing Adwaita." pinned to
+  `tests/test_gtk_theme.py::TestGtkTheme`, provenance exception: no reference screenshot shows a
+  GTK widget, so the palette comes from the pinned Platinum values and the geometry is this
+  theme's adaptation.
 
 **Files touched.** `theme/gtk/org.macos8.desktop/index.theme` (new),
 `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (new), `tests/test_gtk_theme.py` (new),
 `docs/invariants.md`.
 
 **Acceptance criteria.**
-- The two new files exist under `theme/gtk/org.macos8.desktop/`; the CSS imports Adwaita,
-  defines the eight theme colours with the values above, and carries every scoped control rule.
-- `make check CHECK_TESTS=test_gtk_theme` passes, and removing the import, any `@define-color`,
-  any listed selector, a bevel shadow or the scoped `border-radius: 0` makes it fail.
+- The two new files exist under `theme/gtk/org.macos8.desktop/`; the CSS imports nothing,
+  defines the eight theme colours with the values above, and carries every scoped control rule
+  and all six plain/reorderable tab-state groups.
+- `make check CHECK_TESTS=test_gtk_theme` passes, and adding an `@import`, removing any
+  `@define-color`, any listed selector or tab-state group, a bevel shadow or the scoped
+  `border-radius: 0` makes it fail.
 - The parsed CSS hex set is exactly the eight pinned colours; no Breeze or other colour is
   introduced.
 - `tests/invariants.py`'s cross-check accepts the new `## gtk` section and
