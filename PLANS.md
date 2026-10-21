@@ -174,6 +174,11 @@ Chicago/selection parts, not copied.
 
 ### Install the GTK 3 and GTK 4 Platinum themes opt-in and select them (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
+**Needs replan 2026-10-21 by feature: rejected after 2 review rounds**
+
+> 1. (prior 1) The backlog move is unchanged and still inverted. This diff adds the entire GTK entry under `PLANS-DONE.md`'s `## Done` at line 8 and removes it from `PLANS.md`, whose `## Done` heading (now line 175) is empty. That contradicts the entry's own acceptance criterion and the claimed purpose.
+> 2. The newly added VERIFIED claim is false: `grep -l "Install the GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md` prints only `PLANS-DONE.md`, not `PLANS.md`, and the entry is not after line 172 of `PLANS.md`. The tree disproves the claim.
+
 **Goal.** Parts 1/4 and 2/4 ship `theme/gtk/org.macos8.desktop/index.theme`,
 `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and
 `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, but no make target copies them, so a GTK
