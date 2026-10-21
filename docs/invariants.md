@@ -67,6 +67,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
 | The standalone GTK 3 Platinum theme redefines the Platinum palette and paints the scoped Platinum control rules, including every plain and reorderable tab state, without importing Adwaita. | `tests/test_gtk_theme.py::TestGtkTheme` | No reference screenshot shows a GTK widget, so the palette comes from the pinned Platinum values and the geometry is this theme's adaptation. |
+| The standalone GTK 4 stylesheet redefines the Platinum palette and opaque GTK 4 surface colours and paints the scoped Platinum control rules, including every tab state, without importing another stylesheet. | `tests/test_gtk4_theme.py::TestGtk4Theme` | No reference screenshot shows a GTK widget, so the palette comes from the pinned Platinum values and the geometry is this theme's adaptation. |
 
 ## icons
 

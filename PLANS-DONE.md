@@ -5,6 +5,104 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Ship a GTK 4/libadwaita Platinum stylesheet (planned 2026-10-21 by the plan role; GTK series part 2/4) — done 2026-10-21
+
+**Goal.** Part 1/4 landed the standalone GTK 3 sheet and its test; GTK 4 applications, including
+libadwaita ones such as Ghostty (QUESTIONS.md), still draw the system GTK 4 theme. Add a second
+standalone sheet at `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` that redefines the GTK and
+libadwaita surface colours from the Platinum palette and paints the same Platinum controls and
+bevels in the GTK 4 widget tree. This part ships the stylesheet and its test only: no install
+target, no selection mechanism and no README claim. Part 3/4 installs and selects the GTK 3 and
+GTK 4 sheets; part 4/4 adds the Firefox chrome. Neither sibling is planned yet, and this part
+does not require them. Part 1/4 is finished in `PLANS-DONE.md`; its `index.theme` and
+`gtk-3.0/gtk.css` are not changed here.
+
+**Reference grounding.** No screenshot in `macos8.6-screenshots/` shows a GTK widget. Take every
+colour from `tests/support/platinum_palette.py` (`FACE` `#DDDDDD`, `WHITE`, `GREY` `#999999`,
+`BLACK`, `BUTTON_SHADOW` `#AAAAAA`, `TROUGH` `#EEEEEE`, `SELECTION` `#CCCCFF`) and the etched
+separator's dark half `#888888` that `tests/test_desktoptheme_line.py` pins. Record in the CSS
+header and in `docs/invariants.md` that the palette is reference-grounded while the GTK 4
+geometry is this theme's adaptation. Do not redefine `success_*`, `warning_*`, `error_*`,
+`destructive_*` or the translucent `*_shade_color` roles: the reference set gives no Platinum
+value for a status colour or a dimming overlay, so those keep the GTK 4 stylesheet's built-in
+defaults rather than an invented value.
+
+**Approach.**
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` (new): a standalone sheet with no `@import`, no
+  `url(...)` and no Adwaita mention in its text. Define the GTK named colours with the values
+  part 1 uses: `theme_bg_color`/`theme_fg_color`, `theme_base_color`/`theme_text_color`,
+  `theme_selected_bg_color`/`theme_selected_fg_color`, `borders` and `unfocused_borders`.
+  Define the opaque libadwaita surface names with those same values: `accent_bg_color` =
+  `SELECTION`, `accent_fg_color` = `BLACK`, `window_bg_color`/`window_fg_color`,
+  `view_bg_color` = `WHITE`/`view_fg_color` = `BLACK`, `headerbar_bg_color` `FACE`,
+  `headerbar_fg_color` `BLACK`, `headerbar_border_color` `BLACK`,
+  `headerbar_backdrop_color` `FACE`, `popover_bg_color` `FACE`, `popover_fg_color` `BLACK`,
+  `card_bg_color` `FACE`, `card_fg_color` `BLACK`, `dialog_bg_color` `FACE`,
+  `dialog_fg_color` `BLACK`, `sidebar_bg_color` `FACE`, `sidebar_fg_color` `BLACK`,
+  `sidebar_backdrop_color` `FACE`, `sidebar_border_color` `BLACK`,
+  `secondary_sidebar_bg_color` `FACE`, `secondary_sidebar_fg_color` `BLACK`,
+  `secondary_sidebar_backdrop_color` `FACE`, `secondary_sidebar_border_color` `BLACK`,
+  `thumbnail_bg_color` `WHITE`, `thumbnail_fg_color` `BLACK`, and
+  `scrollbar_outline_color` `BLACK`.
+- Write these scoped rules (no universal `*` selector):
+  - `window, .background`: `FACE` background, `BLACK` text.
+  - `headerbar, .titlebar`: `FACE` face, `background-image: none`, `1px solid BLACK` border,
+    `border-radius: 0`, `box-shadow: none`; `headerbar` with `border-width: 0 0 1px 0`.
+  - `button`: `FACE` face, no background image, `1px solid BLACK`, `border-radius: 0`,
+    `box-shadow: inset 1px 1px WHITE, inset -1px -1px BUTTON_SHADOW`; `button:hover` keeps the
+    `FACE`; `button:active, button:checked` inverts the bevel to
+    `inset 1px 1px BUTTON_SHADOW, inset -1px -1px WHITE`.
+  - `entry`: `WHITE` face, `1px solid BLACK`, `border-radius: 0`,
+    `box-shadow: inset 1px 1px GREY`, `BLACK` text.
+  - `notebook > header`: `FACE` background, `1px solid BLACK` border. Cover the same six tab
+    states as part 1, each in plain and `notebook > header > tabs > tab` form: base, hover,
+    checked, checked+hover, backdrop and backdrop+checked. Base/hover/backdrop carry the raised
+    `FACE` face, `1px solid BLACK`, `border-radius: 0` and
+    `box-shadow: inset 1px 1px WHITE, inset -1px -1px GREY`; the checked states use
+    `border-bottom-color: FACE` and `box-shadow: none`.
+  - `popover > contents, popover > arrow`: `FACE` face, `1px solid BLACK`, `border-radius: 0`,
+    `box-shadow: none`.
+  - `popover.menu modelbutton:hover, popover.menu modelbutton:selected`: `SELECTION` background.
+  - `scrollbar > range > trough`: `TROUGH` background, `1px solid BLACK`, `border-radius: 0`.
+  - `scrollbar > range > trough > slider`: `FACE` face, no background image,
+    `1px solid BLACK`, `border-radius: 0`, `margin: 0`, and the raised `WHITE`/`GREY` bevel.
+  - `.toolbar`: `FACE` face with the etched rule `border-bottom: 1px solid #888888` and
+    `box-shadow: inset 0 -1px WHITE`.
+- `tests/support/gtk_css.py` (new): move `parse_css` and the `DEFINE_COLOR`, `COMMENT`, `RULE`
+  and `HEX` regular expressions out of `tests/test_gtk_theme.py` unchanged, with a short module
+  docstring saying the two GTK sheet tests share them. Update `tests/test_gtk_theme.py` to import
+  `HEX` and `parse_css` from `support.gtk_css` and delete its local copies, so both tests use one
+  parser rather than a second copy of the same rules.
+- `tests/test_gtk4_theme.py` (new): mirror `TestGtkTheme`. Pin the exact `@define-color` map,
+  every selector/property above, and all six tab-state groups in both selector forms. Assert the
+  CSS contains no `@import`, no `url(` and no Adwaita text; assert the only six-digit hex
+  literals are exactly `{BLACK, WHITE, GREY, FACE, BUTTON_SHADOW, TROUGH, SELECTION, ETCH_DARK}`;
+  assert no universal `*` selector; assert `border-radius: 0` on the window, headerbar, button,
+  entry, notebook-header, popover, scrollbar and tab rules.
+- `docs/invariants.md`: in the existing `## gtk` section add a second row: "The standalone GTK 4
+  stylesheet redefines the Platinum palette and opaque libadwaita surface colours and paints the
+  scoped Platinum control rules, including every tab state, without importing another
+  stylesheet." pinned to `tests/test_gtk4_theme.py::TestGtk4Theme`, with the same provenance
+  exception as part 1.
+
+**Files touched.** `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` (new),
+`tests/support/gtk_css.py` (new), `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py` (new),
+`docs/invariants.md`.
+
+**Acceptance criteria.**
+- The new sheet exists at `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` and carries the exact
+  `@define-color` map and the scoped rules above; the original `index.theme` and
+  `gtk-3.0/gtk.css` are unchanged.
+- `make check CHECK_TESTS='test_gtk_theme test_gtk4_theme'` passes. Adding an `@import` or `url(`,
+  removing a `@define-color` or a listed rule/state, replacing a bevel or the scoped
+  `border-radius: 0`, or introducing a Breeze/default colour literal makes the GTK 4 test fail;
+  the extracted parser leaves every part 1 assertion passing.
+- The parsed GTK 4 hex set is exactly the eight pinned colours, and the CSS redefines no
+  status or translucent shade role.
+- `tests/invariants.py` accepts the second `## gtk` row, and `make check` is green.
+- No install target, selection mechanism, `kdeglobals` write, README change or Firefox change is
+  made in this part.
+
 ### Ship a GTK 3 Platinum theme for GTK applications (planned 2026-10-21 by the plan role; part 1/4) — done 2026-10-21
 
 **Goal.** No GTK theme exists in the repository (no `theme/gtk` directory), so GTK 3
