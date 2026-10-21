@@ -286,7 +286,7 @@ inner black row/column at top `(200,46)`, left `(12,200)`, bottom `(200,419)` an
   `assert_face_bevel`, and the reference corner-table override.
 - `make check` is green.
 
-### Ground the Kvantum combo box indicator in the reference's double up/down arrow (planned 2026-10-20 by the plan role — done 2026-10-21)
+### Ground the Kvantum combo box indicator in the reference's double up/down arrow (planned 2026-10-20 by the plan role) — done 2026-10-21
 
 **Goal.** `[ComboBox]` in `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`
 inherits `PanelButtonCommand`, so its popup currently draws the shared `arrow` indicator: a single
