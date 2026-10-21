@@ -8,10 +8,12 @@ the pixel assertions, so each is pinned directly.
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 from support.error_assertions import assert_error_names, error_message
 from support.svg_fixtures import _svg_tree
 from svg_assertions import _MAX_RENDERED_PIXELS, pixel_map, render_slices
+from svg_assertions import render as render_module
 
 
 class TestRenderSlices(unittest.TestCase):
@@ -132,6 +134,37 @@ class TestRenderSlices(unittest.TestCase):
         message = error_message(self, ValueError, render_slices, _svg_tree(over))
         self.assertIn("'extra'", message)
         self.assertIn("1x1", message)
+
+
+class TestRenderSlicesCache(unittest.TestCase):
+    """One parsed tree renders once, and callers cannot corrupt the cache."""
+
+    def test_reuses_the_rendered_slices_of_an_unchanged_tree(self):
+        # A widget suite renders the same tree from its structure, pixel and
+        # reference tests, so a second render must not repaint its rects.
+        tree = _svg_tree(
+            '<g id="g"><rect width="1" height="1" fill="#111111"/></g>'
+        )
+        with mock.patch.object(
+            render_module, "_paint_rect", wraps=render_module._paint_rect
+        ) as paint:
+            first = render_slices(tree)
+            second = render_slices(tree)
+        self.assertEqual(first, second)
+        self.assertIsNot(first, second)
+        self.assertEqual(paint.call_count, 1)
+
+    def test_a_mutated_result_does_not_change_the_cached_slices(self):
+        # The cache hands out fresh maps, so a caller that edits a result (as
+        # the helper tests do) cannot make a later read see its edit.
+        tree = _svg_tree(
+            '<g id="g"><rect width="1" height="1" fill="#111111"/></g>'
+        )
+        first = render_slices(tree)
+        first["g"][(0, 0)] = "#222222"
+        first["g"].clear()
+        second = render_slices(tree)
+        self.assertEqual(second["g"], {(0, 0): "#111111"})
 
 
 class TestPixelMap(unittest.TestCase):

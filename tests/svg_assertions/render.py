@@ -7,6 +7,8 @@ test can compare a slice's pixels against an expected tile.
 
 from __future__ import annotations
 
+import weakref
+
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.ints import is_plain_int
 
@@ -19,6 +21,19 @@ from .tree import _numeric_attribute, children_named, groups_with_id
 # rect area in any shipped theme SVG (measured by summing every rect's
 # width*height per file) is 1408, so real artwork sits far below it.
 _MAX_RENDERED_PIXELS = 1 << 16
+
+# Composited pixels, keyed by the parsed tree's identity. A widget suite
+# renders the same tree from its structure, pixel and reference tests, and the
+# parse cache hands every caller the same tree, so an unchanged tree renders
+# once. The weak key drops the entry with the tree; an invalid tree raises
+# before anything is stored. Each caller gets fresh maps, so mutating a result
+# cannot change the cached slices.
+_RENDER_CACHE = weakref.WeakKeyDictionary()
+
+
+def _copy_slices(slices):
+    """Return *slices* with a fresh outer map and a fresh map per slice."""
+    return {name: dict(pixels) for name, pixels in slices.items()}
 
 
 def _slice_where(rect):
@@ -120,7 +135,14 @@ def render_slices(tree):
     a `transform`, or the rects together paint past ``_MAX_RENDERED_PIXELS``; a
     silently empty or mis-sampled tile would otherwise pass the pixel checks,
     and an unbounded extent would exhaust memory before any check ran.
+
+    A successful result is cached against *tree*'s identity, so repeated
+    reads of one parsed tree composite it once. The returned maps are fresh
+    copies: a caller may mutate them without changing the cached result.
     """
+    cached = _RENDER_CACHE.get(tree)
+    if cached is not None:
+        return _copy_slices(cached)
     slices = {}
     painted = 0
     for group in groups_with_id(tree):
@@ -128,6 +150,7 @@ def render_slices(tree):
         for rect in children_named(group, "rect"):
             painted = _paint_rect(pixels, rect, painted)
         slices[group.get("id")] = pixels
+    _RENDER_CACHE[tree] = _copy_slices(slices)
     return slices
 
 

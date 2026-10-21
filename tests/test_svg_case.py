@@ -65,5 +65,58 @@ class TestSvgCaseContainment(unittest.TestCase):
         self.assertEqual(case.tree.getroot().get("id"), "ok")
 
 
+class TestSvgCaseCache(unittest.TestCase):
+    """An unchanged SVG parses once, but a changed or escaping one does not reuse."""
+
+    def test_reuses_the_tree_of_an_unchanged_file(self):
+        # Every widget test method parses its SVG in setUp, and the Kvantum
+        # pixel classes parse the same file again; one parse per unchanged
+        # path is the point of the cache.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "viewitem.svg"
+            path.write_text("<svg id='cached'/>\n", encoding="utf-8")
+            with mock.patch.object(
+                svg_case.ET, "parse", wraps=svg_case.ET.parse
+            ) as parse:
+                first = svg_case.parse_svg(path)
+                second = svg_case.parse_svg(path)
+        self.assertIs(first, second)
+        self.assertEqual(parse.call_count, 1)
+
+    def test_rewritten_file_is_parsed_again(self):
+        # The fingerprint must notice a file rewritten in place, or a test
+        # that changes artwork would keep asserting against the old tree.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "viewitem.svg"
+            path.write_text("<svg id='first'/>\n", encoding="utf-8")
+            first = svg_case.parse_svg(path)
+            path.write_text("<svg id='second'/>\n", encoding="utf-8")
+            second = svg_case.parse_svg(path)
+        self.assertIsNot(first, second)
+        self.assertEqual(second.getroot().get("id"), "second")
+
+    def test_a_cached_path_is_rechecked_before_its_tree_is_reused(self):
+        # The containment guard runs before the cache lookup, so swapping a
+        # parsed in-repo link for one that escapes the repository cannot serve
+        # the cached tree of the private target.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            (root / "theme").mkdir(parents=True)
+            real = root / "theme" / "viewitem.svg"
+            real.write_text("<svg id='ok'/>\n", encoding="utf-8")
+            link = root / "viewitem.svg"
+            link.symlink_to(real)
+            secret = tmp / "secret.svg"
+            secret.write_text("<svg id='private'/>\n", encoding="utf-8")
+            with mock.patch.object(svg_case, "ROOT", root):
+                first = svg_case.parse_svg(link)
+                link.unlink()
+                link.symlink_to(secret)
+                with self.assertRaises(ValueError):
+                    svg_case.parse_svg(link)
+        self.assertEqual(first.getroot().get("id"), "ok")
+
+
 if __name__ == "__main__":
     unittest.main()
