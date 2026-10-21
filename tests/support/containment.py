@@ -13,6 +13,7 @@ from __future__ import annotations
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools.containment import (  # noqa: F401
     is_within,
+    open_regular_binary,
     read_bytes,
     read_text,
     require_within_repo,
@@ -21,6 +22,7 @@ from tools.containment import (  # noqa: F401
 
 __all__ = [
     "is_within",
+    "open_regular_binary",
     "read_bytes",
     "read_text",
     "require_within_repo",

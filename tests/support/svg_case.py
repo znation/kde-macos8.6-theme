@@ -46,7 +46,10 @@ def parse_svg(path):
     widget assertions echo attribute values (a fill, a path's `d`) into a
     failing test's diagnostic, so following such a symlink would leak that
     file's content. A path that resolves outside the repository is refused
-    before it is opened. The Kvantum SVG tests parse through here, and
+    before it is opened. `ET.parse` also blocks forever on a FIFO and can
+    stream a device without end, so the file is opened through
+    `containment.open_regular_binary`, which refuses a non-regular file by
+    name instead. The Kvantum SVG tests parse through here, and
     `SvgCase.setUp` calls it, so this is the one guard those paths share.
 
     The containment check runs on every call, before the cache is consulted,
@@ -59,7 +62,8 @@ def parse_svg(path):
     cached = _TREE_CACHE.get(key)
     if cached is not None and cached[0] == fingerprint:
         return cached[1]
-    tree = ET.parse(path)
+    with containment.open_regular_binary(path) as handle:
+        tree = ET.parse(handle)
     if fingerprint is not None:
         _TREE_CACHE[key] = (fingerprint, tree)
     return tree

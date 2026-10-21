@@ -5,6 +5,35 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The Aurorae decoration reader blocks forever on a FIFO at `decoration.svg` or `decoration.svgz` (found by the bugfix role 2026-10-21; fixed 2026-10-21 by the bugfix role)
+
+**Symptom:** the Aurorae decoration suite reads contributor-supplied artwork
+without a regular-file guard. `SvgCase.setUp` parses `decoration.svg` with
+`ET.parse(path)`, and `tests/test_aurorae_frame.py`'s `_read_capped` opens
+`decoration.svgz` with `gzip.open()`. A FIFO at either path has no writer, so
+the open or parse blocks and `make check` stalls with no diagnostic.
+
+**Reproduction:** a scratch child called `_read_capped(fifo)` on a temporary
+FIFO and was still blocked when the 3-second subprocess timeout fired. The new
+`tests/test_aurorae_frame.py::TestReadCappedContainment::test_refuses_a_fifo_instead_of_blocking`
+hit the test's 10-second timeout before the fix and passes after it; it runs the
+real `parse_svg` path for `decoration.svg` as well as the capped gzip read.
+
+**Cause:** the reader's earlier hardening refused symlink escapes and oversize
+decompression, but `parse_svg` and `_read_capped` still opened the path itself
+rather than the shared regular-file guard. `ET.parse` and `open()` on a FIFO
+wait for a writer before any read-side check can run.
+
+**Fix:** both readers now open through `containment.open_regular_binary`, which
+opens non-blocking and refuses a descriptor that is not a regular file by name.
+`parse_svg` hands the guarded handle to `ET.parse`; `_read_capped`'s optional
+opener wraps its guarded handle, so the gzip path still decompresses through
+the size cap, and `tests/support/containment.py` re-exports the shared helper.
+
+**Validation gap:** no-observability — the aurorae reader tests covered symlink
+escapes, outside paths and oversize decompression but never a non-regular path,
+so the FIFO hang left no failing trace until a scratch child call surfaced it.
+
 ### The containment guard fails open for a root spelled with a POSIX double leading slash (found by the bugfix role 2026-10-21; fixed 2026-10-21 by the bugfix role)
 
 **Symptom:** `tools.containment.is_within("//tmp/repo", "/tmp/repo/link")` returns

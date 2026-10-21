@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import gzip
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -54,7 +55,12 @@ DECORATION_SVGZ = os.path.join(AURORAE_DIR, "decoration.svgz")
 _MAX_DECORATION_SVG_BYTES = 1 << 20
 
 
-def _read_capped(path, opener, limit=_MAX_DECORATION_SVG_BYTES):
+def _gunzip(handle):
+    """Return a gzip decompressor reading the already-open *handle*."""
+    return gzip.GzipFile(fileobj=handle, mode="rb")
+
+
+def _read_capped(path, opener=None, limit=_MAX_DECORATION_SVG_BYTES):
     """Return the bytes *opener* yields for *path*, refusing an oversize payload.
 
     A contributor controls `decoration.svgz`, and a few-KB gzip can expand to
@@ -64,11 +70,15 @@ def _read_capped(path, opener, limit=_MAX_DECORATION_SVG_BYTES):
     gets a diagnostic naming the path and limit instead. The artwork is
     contributor-supplied, so a checked-in symlink at *path* that resolves
     outside the repository is refused before it is opened, before its bytes
-    can reach the ``assertEqual`` that echoes them.
+    can reach the ``assertEqual`` that echoes them. The path is opened through
+    the shared containment guard, which also refuses a FIFO or device by name
+    instead of blocking on it; *opener* wraps that guarded handle (the gzip
+    decompressor, or None to read the bytes directly).
     """
     containment.require_within_repo(path, ROOT)
-    with opener(path) as handle:
-        data = handle.read(limit + 1)
+    with containment.open_regular_binary(path) as raw:
+        with (raw if opener is None else opener(raw)) as handle:
+            data = handle.read(limit + 1)
     if len(data) > limit:
         raise AssertionError(
             f"{path}: payload is larger than the {limit}-byte limit for "
@@ -228,8 +238,8 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
         # `kpackagetool6 -t KWin/Aurorae` requires `decoration.svgz`, while the
         # Aurorae runtime prefers the uncompressed `decoration.svg`; pin that
         # the compressed copy cannot drift from the artwork under test.
-        uncompressed = _read_capped(DECORATION_SVG, lambda path: open(path, "rb"))
-        decompressed = _read_capped(DECORATION_SVGZ, gzip.open)
+        uncompressed = _read_capped(DECORATION_SVG)
+        decompressed = _read_capped(DECORATION_SVGZ, _gunzip)
         self.assertEqual(decompressed, uncompressed)
 
     def test_svgz_decompression_bomb_is_refused(self):
@@ -242,7 +252,7 @@ class TestDecorationSvg(ReferenceImageCase, NineSliceCase, unittest.TestCase):
             for _ in range(8):
                 handle.write(b"\x00" * _MAX_DECORATION_SVG_BYTES)
         with self.assertRaises(AssertionError) as caught:
-            _read_capped(bomb, gzip.open)
+            _read_capped(bomb, _gunzip)
         self.assertIn("larger than", str(caught.exception))
 
 
@@ -255,12 +265,9 @@ class TestReadCappedContainment(unittest.TestCase):
     symlink at `decoration.svg` or `decoration.svgz` that resolves outside the
     repository must therefore be refused before it is opened, the same guard
     `parse_svg` applies to the parsed copy. A path outside the repository (the
-    decompression-bomb fixture's temporary file) is read as before.
+    decompression-bomb fixture's temporary file) is read as before. A FIFO or
+    device at either path must be refused by name rather than block the read.
     """
-
-    @staticmethod
-    def _open_raw(path):
-        return open(path, "rb")
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -273,7 +280,7 @@ class TestReadCappedContainment(unittest.TestCase):
             link.symlink_to(secret)
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
-                    _read_capped(link, self._open_raw)
+                    _read_capped(link)
         self.assertIn(str(link), str(caught.exception))
         self.assertNotIn("PRIVATE-SECRET-BYTES", str(caught.exception))
 
@@ -283,7 +290,49 @@ class TestReadCappedContainment(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             outside = Path(tmp) / "decoration.svg"
             outside.write_bytes(b"payload")
-            self.assertEqual(_read_capped(outside, self._open_raw), b"payload")
+            self.assertEqual(_read_capped(outside), b"payload")
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # A FIFO at decoration.svg or decoration.svgz blocks the reader's
+        # open() until a writer appears. The suite has no timeout around that
+        # read, so one stray pipe would stall make check with no diagnostic;
+        # refuse it by name in a child process so the pre-fix hang is a bounded
+        # timeout rather than a stalled run. decoration.svg is read through the
+        # same parse_svg that SvgCase.setUp calls, so this pins the suite path
+        # rather than only the capped-read helper.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            readers = (
+                ("decoration.svg", "m.parse_svg(sys.argv[1])"),
+                (
+                    "decoration.svgz",
+                    "m._read_capped(sys.argv[1], m._gunzip)",
+                ),
+            )
+            for name, statement in readers:
+                with self.subTest(path=name):
+                    fifo = tmp / name
+                    os.mkfifo(fifo)
+                    child = subprocess.run(
+                        [
+                            sys.executable,
+                            "-c",
+                            "import sys; sys.path.insert(0, 'tests'); "
+                            "import test_aurorae_frame as m; " + statement,
+                            str(fifo),
+                        ],
+                        cwd=ROOT,
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                    )
+                    self.assertNotEqual(
+                        0, child.returncode, child.stdout + child.stderr
+                    )
+                    self.assertIn("not a regular file", child.stderr)
+                    self.assertIn(str(fifo), child.stderr)
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -295,7 +344,7 @@ class TestReadCappedContainment(unittest.TestCase):
             link = root / "decoration.svg"
             link.symlink_to(real)
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
-                self.assertEqual(_read_capped(link, self._open_raw), b"artwork")
+                self.assertEqual(_read_capped(link), b"artwork")
 
 
 class TestCorners(ReferenceImageCase, unittest.TestCase):
