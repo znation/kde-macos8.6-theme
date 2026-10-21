@@ -42,11 +42,6 @@ and Firefox applications keep their own chrome.
 
 ### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
 
-**Needs replan 2026-10-21 by feature: rejected after 2 review rounds**
-
-> 1. (prior 1) The commit body still contradicts the diff and the completed plan’s reporting requirement. This diff edits `README.md` line 14 to add `PLANS-DONE.md`, but the `RISK` paragraph still calls the line-14 finding a false positive and says “no edit was forced,” and `VERIFIED` never states that…
-> 2. The `VERIFIED` claim that “this turn’s grep of PLANS.md showed … the moved entry under `## Done`” is false. `PLANS.md`’s `## Done` section is empty and the moved Lato entry exists only in `PLANS-DONE.md`, not in `PLANS.md`.
-
 **Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
 font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
 Bold (SIL OFL 1.1, already installed on this machine, so no network fetch) as the Charcoal-style
@@ -91,8 +86,10 @@ Chicago/selection parts, not copied.
   installed artifacts.
 - `tests/support/install_lifecycle_cases.py`: add the font suite to the module docstring's family
   list and change the `MAKE_PACKAGES` comment's `instead of all seven` to `instead of all eight`.
-  `tests/support/theme_install.py`: add the font package to its module docstring's list of
-  installable artifact suites.
+  `tests/support/install_failure_cases.py`: change the same `instead of all seven` comment to
+  `instead of all eight` (the font package uses the shared staging swap, so the family count it
+  describes gains one). `tests/support/theme_install.py`: add the font package to its module
+  docstring's list of installable artifact suites.
 - `tests/test_fonts.py` (new): `TestFontFiles` parses each TTF's sfnt `name` table (name ID 1 and
   2) with `struct` and asserts the family is `Lato` and the subfamily is `Regular`/`Bold`; pins the
   SHA-256 of both TTFs and of `LICENSE-Lato.txt` and asserts `PROVENANCE.md` names all three
@@ -116,10 +113,11 @@ Chicago/selection parts, not copied.
   the `org.macos8.desktop` Lato font package to each list with its
   `$XDG_DATA_HOME/fonts/org.macos8.desktop` path, its OFL-1.1 licence and the note that this part
   installs the family but does not select it. In the uninstall paragraph, add `fonts/` to the
-  shared-directory list. In the Status paragraph, of the two archives the sentence names only
-  `BUGS-FIXED.md`; name `PLANS-DONE.md` too so it matches the repository. The run's report must
-  state that the Status paragraph was edited and must not claim that line needed no change.
-- `docs/invariants.md`: add a `## fonts` section between `## desktoptheme` and `## icons` (every
+  shared-directory list. In the Status paragraph, replace the archive sentence's tail: it currently
+  ends `fixed bugs are archived in BUGS-FIXED.md.` and must end `fixed bugs are archived in
+  BUGS-FIXED.md and finished plans in PLANS-DONE.md.` This edit is required; the archive it names
+  exists and holds the finished plans, while `PLANS.md`'s own `## Done` section is empty.
+- `docs/invariants.md`: add a `## fonts` section between `## desktoptheme` and `## gtk` (every
   `theme/` subsystem needs one) with a row for the shipped Lato family/digests pinned to
   `tests/test_fonts.py::TestFontFiles` and a row for the install/uninstall lifecycle pinned to
   `tests/test_fonts.py::TestFontsInstall`, with the provenance exception stating that Lato is a
@@ -130,8 +128,10 @@ Chicago/selection parts, not copied.
 `theme/fonts/org.macos8.desktop/LICENSE-Lato.txt` (new),
 `theme/fonts/org.macos8.desktop/PROVENANCE.md` (new), `Makefile`,
 `tests/support/installed_paths.py`, `tests/support/install_lifecycle_cases.py`,
-`tests/support/theme_install.py`, `tests/test_fonts.py` (new),
-`tests/test_theme_install.py`, `README.md`, `docs/invariants.md`.
+`tests/support/install_failure_cases.py`, `tests/support/theme_install.py`,
+`tests/test_fonts.py` (new), `tests/test_theme_install.py`, `README.md`,
+`docs/invariants.md`, and `PLANS.md`/`PLANS-DONE.md` (this entry moves between them when the
+work lands).
 
 **Acceptance criteria.**
 - `make install INSTALL_PACKAGES=fonts DESTDIR=<tmp>` writes exactly the four files above under
@@ -145,8 +145,16 @@ Chicago/selection parts, not copied.
 - `tests/invariants.py` accepts `theme/fonts` with its `## fonts` section, and
   `make check CHECK_TESTS=test_theme_install test_make_help` passes with the new family.
 - `grep -n seven README.md Makefile tests/support/install_lifecycle_cases.py
-  tests/test_theme_install.py` finds no artifact-count text, and the README Status paragraph names
-  both `PLANS-DONE.md` and `BUGS-FIXED.md`.
+  tests/support/install_failure_cases.py tests/test_theme_install.py` finds no artifact-count
+  text, and the README Status paragraph's archive sentence reads exactly `Open work is tracked in
+  PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed); fixed
+  bugs are archived in BUGS-FIXED.md and finished plans in PLANS-DONE.md.` (a diff that leaves the
+  sentence unchanged fails this plan).
+- `git diff --name-status` names only the files listed under "Files touched"; an edit outside that
+  list is out of scope for this part.
+- When the work lands, `grep -l "Vendor the Lato body font" PLANS.md PLANS-DONE.md` prints only
+  `PLANS-DONE.md`: the entry is moved into `PLANS-DONE.md`'s `## Done`, and `PLANS.md`'s own
+  `## Done` section stays empty.
 - No `kdeglobals` write, global-theme `contents/defaults` change, `tools/apply_*` change, GTK or
   Firefox change is made in this part; `make check` is green.
 
