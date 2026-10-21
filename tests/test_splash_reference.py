@@ -123,12 +123,24 @@ class TestSplashGeometry(SplashReferenceCase):
         # progress well the bounding box of the pixels darker than #C8C8C8
         # in the rows below the "Starting Up" text. Re-derive each and require the QML
         # literals to match, so a moved rectangle fails here.
-        face = _rect(
-            (x, y)
-            for y in range(self.image.height)
-            for x in range(self.image.width)
-            if self.pixel(x, y) == (255, 255, 255)
-        )
+        # Both boxes scan the whole reference, so collect them in one pass.
+        # The loop indexes the image directly: every coordinate is already
+        # in range, and halving the per-pixel accessor calls keeps this scan
+        # cheap. The predicates are the same as the separate passes used.
+        face_points = []
+        bevel_points = []
+        rgb = self.image.rgb
+        width = self.image.width
+        for y in range(self.image.height):
+            row = y * width * 3
+            for x in range(width):
+                offset = row + x * 3
+                pixel = (rgb[offset], rgb[offset + 1], rgb[offset + 2])
+                if pixel == (255, 255, 255):
+                    face_points.append((x, y))
+                if not _field_like(pixel):
+                    bevel_points.append((x, y))
+        face = _rect(face_points)
         self.assertEqual(face, (80, 39, 80, 50))
 
         # The rule is the exact #BFBFBF pixel left of the face; the gap from
@@ -151,12 +163,7 @@ class TestSplashGeometry(SplashReferenceCase):
         self.assertEqual(qml_rect("panel"), panel)
         self.assertEqual(qml_border_width(), border)
 
-        bevel = _rect(
-            (x, y)
-            for y in range(self.image.height)
-            for x in range(self.image.width)
-            if not _field_like(self.pixel(x, y))
-        )
+        bevel = _rect(bevel_points)
         self.assertEqual(qml_rect("bevel"), bevel)
 
         logo = _rect(
