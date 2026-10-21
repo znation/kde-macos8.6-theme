@@ -3,7 +3,7 @@
 Each metric the Aurorae engine reads -- title-bar height, border widths, the
 button boxes and their margins -- is re-derived from the reference screenshots
 `aboutsystem_betawiki.png` and `systemprofiler_betawiki.png` through
-`tools/png/read.py`. The reference is stored with Git LFS, so a clone without it
+`tools/png/loader.py`. The reference is stored with Git LFS, so a clone without it
 skips these tests rather than failing `make check`.
 """
 

@@ -5,9 +5,10 @@ writes 8-bit RGB images back to PNG, using only the Python standard library.
 The pieces are split by concern and re-exported here, so a consumer imports a
 public name from ``tools.png`` regardless of which submodule defines it:
 ``tools/png/image.py`` holds :class:`Image`, :class:`PngError` and
-:func:`pixel_at`, ``tools/png/read.py`` the decode pipeline,
-:func:`read_png` and :func:`read_png_size`, and ``tools/png/write.py`` the
-inverse :func:`encode_png`.
+:func:`pixel_at`, ``tools/png/loader.py`` the file reader :func:`read_png`
+and :func:`read_png_size`, ``tools/png/read.py`` the decode pipeline
+:func:`decode_png`, and ``tools/png/write.py`` the inverse
+:func:`encode_png`.
 ``tools/png/chunks.py``, ``tools/png/scanlines.py`` and ``tools/png/filters.py``
 hold the chunk framing, unfiltering and filter arithmetic those are built from.
 """
@@ -15,7 +16,8 @@ hold the chunk framing, unfiltering and filter arithmetic those are built from.
 from __future__ import annotations
 
 from .image import Image, PngError, pixel_at
-from .read import decode_png, read_png, read_png_size
+from .loader import read_png, read_png_size
+from .read import decode_png
 from .write import encode_png
 
 __all__ = [

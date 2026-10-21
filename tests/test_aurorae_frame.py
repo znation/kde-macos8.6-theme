@@ -5,7 +5,7 @@ The active `decoration` nine-slice, the flat inactive
 `decoration.svgz` form `kpackagetool6` requires. The active frame is
 re-derived from `macos8.6-screenshots/aboutsystem_betawiki.png` and the
 inactive frame from the unfocused windows in
-`macos8.6-screenshots/desktop_fandom.png`, through `tools/png/read.py`. The
+`macos8.6-screenshots/desktop_fandom.png`, through `tools/png/loader.py`. The
 references are stored with Git LFS, so a clone without them skips these
 tests rather than failing `make check`.
 """

@@ -1,5 +1,5 @@
-"""Tests for tools/png/read.py's read_png -- its input guards (the file-size cap
-and the regular-file check) and its error paths.
+"""Tests for tools/png/loader.py's read_png and read_png_size -- their input
+guards (the file-size cap and the regular-file check) and their error paths.
 
 Run with the project's check harness (stdlib unittest)::
 
@@ -30,7 +30,7 @@ from support.png_fixtures import (  # noqa: E402
     with_ihdr_byte,
 )
 from tools import png  # noqa: E402
-from tools.png import read  # noqa: E402
+from tools.png import loader, read  # noqa: E402
 
 
 class TestReadPng(unittest.TestCase):
@@ -59,7 +59,7 @@ class TestReadPng(unittest.TestCase):
         # stop at the cap. Patch the cap down so the fixture stays small.
         limit = 4096
         path = self._file("oversize.png", b"\x00" * (limit + 1))
-        with mock.patch.object(read, "_MAX_FILE_BYTES", limit):
+        with mock.patch.object(loader, "_MAX_FILE_BYTES", limit):
             message, peak = peak_allocation(
                 lambda: error_message(self, png.PngError, png.read_png, path)
             )
@@ -104,7 +104,7 @@ class TestReadPng(unittest.TestCase):
         # coordinate, but must not pay to unfilter rows it will not read.
         _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
         path = self._file("image.png", data)
-        with mock.patch.object(read, "decode_png") as decode:
+        with mock.patch.object(loader, "decode_png") as decode:
             self.assertEqual(png.read_png_size(path), (3, 4))
         decode.assert_not_called()
 
@@ -147,7 +147,7 @@ class TestReadPng(unittest.TestCase):
         path = self._file(
             "huge.png", _PNG_SIGNATURE + ihdr_chunk(width, height, 2)
         )
-        with mock.patch.object(read, "decode_png") as decode:
+        with mock.patch.object(loader, "decode_png") as decode:
             message = error_message(
                 self, png.PngError, png.read_png_size, path
             )
@@ -174,7 +174,7 @@ class TestReadPng(unittest.TestCase):
         # would crash it with a traceback instead of its exit-2 read-error
         # path. Patch fdopen to hand back the real handle with a failing read.
         path = self._file("unreadable.png", b"x")
-        real_fdopen = read.os.fdopen
+        real_fdopen = loader.os.fdopen
 
         def failing_fdopen(fd, *args, **kwargs):
             handle = real_fdopen(fd, *args, **kwargs)
@@ -183,7 +183,7 @@ class TestReadPng(unittest.TestCase):
             )
             return handle
 
-        with mock.patch.object(read.os, "fdopen", failing_fdopen):
+        with mock.patch.object(loader.os, "fdopen", failing_fdopen):
             self._assert_png_error_names_path(
                 path, "cannot read", "Input/output error"
             )
@@ -195,7 +195,7 @@ class TestReadPng(unittest.TestCase):
         # OSError into a PngError naming the file, so the fidelity CLI stays
         # on its exit-2 path instead of tracing back.
         path = self._file("unstattable.png", b"x")
-        real_close = read.os.close
+        real_close = loader.os.close
         closed_fds = []
 
         def recording_close(fd):
@@ -203,9 +203,9 @@ class TestReadPng(unittest.TestCase):
             return real_close(fd)
 
         with mock.patch.object(
-            read.os, "fstat", side_effect=OSError(5, "Input/output error")
+            loader.os, "fstat", side_effect=OSError(5, "Input/output error")
         ):
-            with mock.patch.object(read.os, "close", recording_close):
+            with mock.patch.object(loader.os, "close", recording_close):
                 self._assert_png_error_names_path(
                     path, "cannot read", "Input/output error"
                 )

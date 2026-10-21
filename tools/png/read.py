@@ -1,47 +1,38 @@
-"""The PNG decode pipeline and file reader.
+"""The PNG decode pipeline.
 
 Decodes 8-bit, non-interlaced PNG images (color types 0, 2, 3, 4 and 6) into
 tightly packed RGB bytes, using only the Python standard library. This module
-holds the decode pipeline (header validation, bounds, inflate, color
-expansion) and :func:`read_png`; the pieces it is built from live in sibling
+holds the decode pipeline (header validation, bounds, inflate and color
+expansion); the file reader that loads a path and applies the file-level
+guards is :func:`tools.png.loader.read_png`, and
+:func:`tools.png.loader.read_png_size` shares those guards but returns only
+the declared dimensions. The pieces the decoder is built from live in sibling
 modules: ``tools/png/image.py`` (``PngError``, ``Image``, ``pixel_at``),
 ``tools/png/chunks.py`` (chunk framing), ``tools/png/scanlines.py``
 (unfiltering) and ``tools/png/filters.py`` (the Sub/Up lane arithmetic and
-Paeth delta table). :func:`read_png_size` shares the file and IHDR guards
-with :func:`read_png` but returns only the declared dimensions, so a sampler
-can learn the full image size before bounding its decode. ``tools/png/write.py``
-is its minimal inverse, and ``tools/png/__init__.py`` re-exports this module's
-public names.
+Paeth delta table). ``tools/png/write.py`` is its minimal inverse, and
+``tools/png/__init__.py`` re-exports the public names.
 
 The CLI in ``tools/fidelity.py``, the sampler in ``tools/sample.py``, the
 renderer in ``tools/render_surface.py`` and the wallpaper generator in
-``tools/make_wallpaper.py`` read PNGs through it today; keeping the reader
-separate lets each do so without pulling in the comparison and CLI layers.
+``tools/make_wallpaper.py`` load PNGs through
+:func:`tools.png.loader.read_png`; the decode pipeline here stays independent
+of the filesystem, so a caller that already holds the bytes can pass them
+straight to :func:`decode_png`.
 
 Raises :class:`PngError` for a malformed or unsupported PNG.
 """
 
 from __future__ import annotations
 
-import os
-import stat
 import struct
 import zlib
-from pathlib import Path
 
 try:
-    from tools.image_format import (
-        LFS_POINTER_MAGIC,
-        PNG_MAGIC,
-        other_image_format,
-    )
+    from tools.image_format import PNG_MAGIC, other_image_format
     from tools.ints import is_plain_int
 except ImportError:  # imported as the top-level package `png` by a directly run tool
-    from image_format import (
-        LFS_POINTER_MAGIC,
-        PNG_MAGIC,
-        other_image_format,
-    )
+    from image_format import PNG_MAGIC, other_image_format
     from ints import is_plain_int
 
 from .chunks import chunk_name, iter_chunks
@@ -56,15 +47,6 @@ _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 # bomb). 64 MP is far above any screenshot this tool compares and still bounds
 # one decode to a few hundred MB.
 _MAX_PIXELS = 64_000_000
-
-# Cap on the bytes read_png will load from disk. decode_png bounds the decoded
-# image by _MAX_PIXELS, but read_png reads the whole file before decode_png
-# sees the header, and a path can name a file far larger than any screenshot,
-# so without a read cap a few bytes of argv can demand unbounded memory. 512
-# MiB is generous for screenshot-sized inputs while keeping one read on the
-# same order as the decoder's own worst-case allocation for the largest image
-# it accepts.
-_MAX_FILE_BYTES = 512 * 1024 * 1024
 
 
 def _to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
@@ -126,8 +108,9 @@ def _validate_max_rows(max_rows: int | None) -> None:
 def _parse_ihdr(header: bytes) -> tuple[int, int, int]:
     """Validate a 13-byte IHDR payload, returning ``(width, height, color_type)``.
 
-    Both :func:`decode_png` and :func:`read_png_size` use this so a size-only
-    read rejects the same malformed or unsupported headers the decoder does.
+    Both :func:`decode_png` and :func:`tools.png.loader.read_png_size` use this
+    so a size-only read rejects the same malformed or unsupported headers the
+    decoder does.
     """
     if len(header) != 13:
         raise PngError(
@@ -336,94 +319,3 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
         return Image(width, rows, rgb[: rows * width * 3])
     samples = unfilter(raw, width, height, channels, rows)
     return Image(width, rows, _to_rgb(color_type, samples, palette))
-
-
-def _read_png_data(path: str | Path) -> bytes:
-    """Read the whole PNG at *path* under the file guards of :func:`read_png`."""
-    # Open with O_NONBLOCK so a path naming a pipe (FIFO) cannot block in
-    # open() waiting for a writer; a regular file is unaffected. The byte cap
-    # below bounds memory but not time: read() on a pipe whose writer stays
-    # open without sending data blocks forever. Reject any non-regular file
-    # (pipe, device) outright. fstat on the open fd also avoids a stat/open
-    # race where a regular file is swapped for a FIFO between the two.
-    try:
-        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
-    except OSError as exc:
-        raise PngError(f"cannot read {path}: {exc}") from exc
-    try:
-        file_stat = os.fstat(fd)
-        if not stat.S_ISREG(file_stat.st_mode):
-            raise PngError(f"cannot read {path}: not a regular file")
-        # Read at most one byte past the cap: enough to detect an oversize
-        # file without loading the rest of it.
-        with os.fdopen(fd, "rb") as handle:
-            fd = -1
-            data = handle.read(_MAX_FILE_BYTES + 1)
-    except OSError as exc:
-        raise PngError(f"cannot read {path}: {exc}") from exc
-    finally:
-        if fd >= 0:
-            os.close(fd)
-    if len(data) > _MAX_FILE_BYTES:
-        # fstat on the already-open fd names the file's size without a second
-        # path lookup, so an operator can see how far over the cap it is
-        # instead of only the cap itself.
-        raise PngError(
-            f"cannot read {path}: file is {file_stat.st_size} bytes, larger "
-            f"than the {_MAX_FILE_BYTES}-byte limit"
-        )
-    if data.startswith(LFS_POINTER_MAGIC):
-        raise PngError(
-            f"cannot decode {path}: the file is an unmaterialized Git LFS "
-            "pointer, not image data; run `git lfs pull` to fetch it"
-        )
-    return data
-
-
-def read_png(path: str | Path, max_rows: int | None = None) -> Image:
-    """Read and decode the PNG at *path*, naming it in any :class:`PngError`.
-
-    *max_rows* is forwarded to :func:`decode_png`: the returned image holds at
-    most that many top scanlines.
-    """
-    data = _read_png_data(path)
-    try:
-        return decode_png(data, max_rows)
-    except PngError as exc:
-        raise PngError(f"cannot decode {path}: {exc}") from exc
-
-
-def read_png_size(path: str | Path) -> tuple[int, int]:
-    """Return the ``(width, height)`` a PNG declares without decoding its rows.
-
-    Only the first chunk (IHDR) is inspected, so a caller that samples a few
-    top rows can learn the full image size and then bound its decode with
-    ``read_png(path, max_rows=...)``. A file that cannot be read, or whose
-    IHDR chunk is malformed or unsupported, raises :class:`PngError` naming
-    *path*.
-    """
-    data = _read_png_data(path)
-    if data.startswith(PNG_MAGIC):
-        # Walking the first chunk validates its framing and CRC; _parse_ihdr
-        # then applies the same field checks decode_png does.
-        try:
-            first = next(iter_chunks(data), None)
-        except PngError as exc:
-            raise PngError(f"cannot decode {path}: {exc}") from exc
-        if first is not None and first[0] == b"IHDR":
-            try:
-                width, height, _ = _parse_ihdr(first[1])
-                _check_pixel_limit(width, height)
-            except PngError as exc:
-                raise PngError(f"cannot decode {path}: {exc}") from exc
-            return width, height
-    # Fall back to the decoder so a file whose first chunk is not IHDR gets
-    # the same diagnostic read_png would produce; it rejects before
-    # unfiltering.
-    try:
-        decode_png(data)
-    except PngError as exc:
-        raise PngError(f"cannot decode {path}: {exc}") from exc
-    raise PngError(
-        f"cannot decode {path}: PNG has no readable IHDR chunk"
-    )
