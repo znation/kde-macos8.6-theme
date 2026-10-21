@@ -41,6 +41,18 @@ _PROSE_COUNT = re.compile(
 )
 
 
+def readme_text():
+    """Return the text of the repository's ``README.md``.
+
+    ``README.md`` is contributor-supplied, and a checked-in symlink at its
+    path can point at a private file. The table cells this reader extracts
+    are echoed by the ``assertEqual`` diagnostics below, so a path that
+    resolves outside the repository is refused before it is opened.
+    """
+    path = os.path.join(theme_install.ROOT, "README.md")
+    return containment.read_text(path, theme_install.ROOT, encoding="utf-8")
+
+
 def reference_table(text):
     """Return ``(surface, count, tokens)`` for each row of README's table.
 
@@ -222,10 +234,7 @@ class TestReadmeReferenceTable(CheckerTestCase):
         cls.directory = os.path.join(
             theme_install.ROOT, cls.checker.REFERENCE_DIR
         )
-        with open(
-            os.path.join(theme_install.ROOT, "README.md"), encoding="utf-8"
-        ) as handle:
-            cls.text = handle.read()
+        cls.text = readme_text()
         cls.rows = reference_table(cls.text)
         cls.declared = declared_reference_names(cls.checker)
 
@@ -314,6 +323,44 @@ class TestReferenceLfsTracking(CheckerTestCase):
                     "lfs",
                     f"{name} is not routed through Git LFS by .gitattributes",
                 )
+
+
+class TestReadmeTextContainment(unittest.TestCase):
+    """The README read refuses a symlink that escapes the repository.
+
+    A checked-in symlink at ``README.md`` can point at a private file, and
+    the table cells parsed from it reach ``assertEqual`` diagnostics that
+    echo the row's tokens; the read must refuse such a path before it is
+    opened rather than leak the private file's table.
+    """
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.md"
+            secret.write_text(
+                "| Leak | 1 | `private.png` |\n", encoding="utf-8"
+            )
+            link = root / "README.md"
+            link.symlink_to(secret)
+            with mock.patch.object(theme_install, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    readme_text()
+        self.assertIn(str(link), str(caught.exception))
+
+    def test_allows_a_symlink_that_stays_within_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            target = root / "actual-readme.md"
+            target.write_text("`a.png`\n", encoding="utf-8")
+            link = root / "README.md"
+            link.symlink_to(target)
+            with mock.patch.object(theme_install, "ROOT", root):
+                self.assertEqual(readme_text(), "`a.png`\n")
 
 
 class TestDeclaredReferenceNamesContainment(unittest.TestCase):
