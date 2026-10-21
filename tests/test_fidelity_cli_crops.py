@@ -107,6 +107,22 @@ class TestCliCrops(FidelityCliTestCase):
                     result, "falls outside the 2x3 image"
                 )
 
+    def test_a_vertical_overflow_is_reported_against_the_real_height(self):
+        # A crop that fits horizontally but runs past the bottom edge asks
+        # _read_source for more rows than the image has. The decoder clamps
+        # that bound, so the returned image keeps its real height and crop()
+        # rejects the rectangle. If the bound were not clamped, the rectangle
+        # would fit the over-long image and the run would silently pass.
+        tmp = self._tmp_dir()
+        _, data = rgb_image(2, 3, lambda x, y: (x * 9, y * 9, 5))
+        path = self._write(tmp, "image.png", data)
+        for option in ("--crop", "--candidate-crop"):
+            with self.subTest(option=option):
+                result = self._run(path, path, option, "0,1,2,3")
+                self._assert_usage_error(
+                    result, "falls outside the 2x3 image"
+                )
+
     def test_crop_accepts_whitespace_between_fields(self):
         # A comma-separated rectangle is conventionally written with a space
         # after each comma ("0, 0, 10, 10"); that whitespace is formatting,
