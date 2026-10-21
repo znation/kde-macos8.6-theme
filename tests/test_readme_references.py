@@ -78,10 +78,20 @@ def listed_files(tokens, directory):
 
     A token containing a glob character is expanded against *directory* (the
     ``about_betawiki*.png`` form the table uses for a group of images); any
-    other token is a literal filename.
+    other token is a literal filename. Every token must name one file directly
+    in *directory*: the table is contributor-supplied, so a token such as
+    ``../../*.py`` or an absolute path would make ``glob`` list files outside
+    the reference directory and the coverage assertion would echo their names.
+    A token that is not a bare filename is refused by name before any glob
+    runs.
     """
     names = []
     for token in tokens:
+        if token in ("", ".", "..") or os.path.basename(token) != token:
+            raise ValueError(
+                f"README reference table token {token!r} is not a bare "
+                f"filename in {directory}; refusing to expand it"
+            )
         if any(char in token for char in _GLOB_CHARS):
             matches = sorted(
                 os.path.basename(path)
@@ -171,6 +181,36 @@ class TestReferenceTableParser(unittest.TestCase):
 
     def test_missing_section_yields_no_rows(self):
         self.assertEqual(reference_table("# Title\n"), [])
+
+
+class TestListedFiles(unittest.TestCase):
+    """Pin glob expansion to bare filenames inside the reference directory."""
+
+    def test_expands_a_glob_inside_the_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp)
+            (directory / "a.png").write_bytes(b"")
+            (directory / "b.png").write_bytes(b"")
+            self.assertEqual(
+                listed_files(["*.png"], str(directory)), ["a.png", "b.png"]
+            )
+
+    def test_rejects_a_relative_token_that_leaves_the_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            directory = tmp / "refs"
+            directory.mkdir()
+            (tmp / "outside.png").write_bytes(b"")
+            with self.assertRaises(ValueError) as caught:
+                listed_files(["../outside*.png"], str(directory))
+        self.assertIn("../outside*.png", str(caught.exception))
+
+    def test_rejects_an_absolute_token(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            (tmp / "outside.png").write_bytes(b"")
+            with self.assertRaises(ValueError):
+                listed_files([str(tmp / "*.png")], str(tmp))
 
 
 class TestReadmeReferenceTable(CheckerTestCase):
