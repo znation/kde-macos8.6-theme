@@ -787,9 +787,11 @@ resolving inside the root, a register reference containing a NUL byte, or a refe
 file that cannot be decoded -- and the read raises a bare `OSError`/`ValueError` that names
 neither the checker nor the offending row, aborting the check with an unrelated traceback. Each
 was confirmed only by hand-building a shim the suite did not have (its `no-fake` gap).
-`tests/support/checker_mutations.py` already manufactures the malformed register and theme inputs
-the shipped data never holds; extend it with the four unreadable-input shapes so confirming the
-next bug of this kind reuses the scratch fixture instead of a one-off.
+The per-checker mutation tables in `tests/support/invariants_mutations.py` and
+`tests/support/placeholders_mutations.py`, over the shared `tests/support/checker_scratch.py`,
+already manufacture the malformed register and theme inputs the shipped data never holds; extend
+them with the four unreadable-input shapes so confirming the next bug of this kind reuses the
+scratch fixture instead of a one-off.
 
 **From (the `no-fake` Fixed entries).**
 - `tests/placeholders.py` lets an unreadable register escape as a bare `OSError`.
@@ -801,11 +803,12 @@ next bug of this kind reuses the scratch fixture instead of a one-off.
   exception.
 
 **Approach.**
-- `tests/support/checker_mutations.py`: teach `Scratch` to clean up a directory it wrote (its
-  `reset` only unlinks files today), then add four `Mutation` entries: `unreadable-register`
-  (replace the register path with a directory so `register_entries`' `OSError` arm fires;
-  diagnostic `cannot be read`), `dangling-symlink-inside-theme` (a text asset under `theme/`
-  symlinked to a missing path inside the root; diagnostic `cannot be read`),
+- `tests/support/checker_scratch.py`: teach `Scratch` to clean up a directory it wrote (its
+  `reset` only unlinks files today), then add four `Mutation` entries to the per-checker tables
+  (`tests/support/invariants_mutations.py` and `tests/support/placeholders_mutations.py`):
+  `unreadable-register` (replace the register path with a directory so `register_entries`'
+  `OSError` arm fires; diagnostic `cannot be read`), `dangling-symlink-inside-theme` (a text
+  asset under `theme/` symlinked to a missing path inside the root; diagnostic `cannot be read`),
   `reference-with-nul-byte` (`_replace_first_reference` with a `\x00` in the path; diagnostic
   `NUL byte`), and `unreadable-test-file` (point the first row's reference at a scratch file
   written as undecodable bytes; diagnostic `cannot be read as Python`).
@@ -818,8 +821,9 @@ next bug of this kind reuses the scratch fixture instead of a one-off.
 rather than adding a new scratch path, so the stage self-check's added-nonexistent-path guard
 keeps seeing a repository path that exists.
 
-**Files touched.** `tests/support/checker_mutations.py`, `tests/placeholders.py`,
-`tests/invariants.py`.
+**Files touched.** The checker-mutation fixtures (now `tests/support/checker_scratch.py`,
+`tests/support/invariants_mutations.py` and `tests/support/placeholders_mutations.py`),
+`tests/placeholders.py`, `tests/invariants.py`.
 
 **Acceptance criteria.**
 - `tests/test_checker_mutations.py` drives each of the four new mutations, and each makes its
@@ -1877,10 +1881,12 @@ screenshots" (fixed 2026-10-08), is a different mechanism — a hard-coded ancho
 retired by the register's provenance-exception row and `TestProvenanceNote`, not by this harness.
 
 **Approach.**
-- Add `tests/support/checker_mutations.py`: one named mutation per rejection shape the two checkers
-must catch, each a transform of a copy of the real register or of a scratch theme root plus the
-diagnostic substring the checker must raise. Seed the table with the twelve shapes above. The
-reference mutations point the register's first row at `tests/support/mutant_module.py`, a shipped
+- Add `tests/support/checker_scratch.py` and its two per-checker tables
+(`tests/support/invariants_mutations.py` and `tests/support/placeholders_mutations.py`): one named
+mutation per rejection shape the two checkers must catch, each a transform of a copy of the real
+register or of a scratch theme root plus the diagnostic substring the checker must raise. Seed
+the table with the twelve shapes above. The reference mutations point the register's first row
+at `tests/support/mutant_module.py`, a shipped
 fixture holding the class shapes the shipped tests never define, and at a real test case in
 `tests/test_checker_mutations.py`; the placeholder mutations name real shipped theme files, so
 every path they cite exists in the tree.
@@ -1892,9 +1898,10 @@ marked file per text format the theme ships into the scratch theme root.
 `cross_check` docstring already enumerates), and add a test asserting the list and the mutation
 table name the same rejection boundaries, so a boundary named in one without the other fails.
 
-**Files touched.** `tests/support/checker_mutations.py` (new), `tests/test_checker_mutations.py`
-(new), `tests/support/mutant_module.py` (new), `tests/invariants.py`, `tests/placeholders.py`
-(the `REJECTION_SHAPES` lists).
+**Files touched.** The checker-mutation fixtures (now `tests/support/checker_scratch.py`,
+`tests/support/invariants_mutations.py` and `tests/support/placeholders_mutations.py`),
+`tests/test_checker_mutations.py` (new), `tests/support/mutant_module.py` (new),
+`tests/invariants.py`, `tests/placeholders.py` (the `REJECTION_SHAPES` lists).
 
 **Acceptance criteria.**
 - Every shape above is a mutation entry, and applying it makes the matching checker raise the named
