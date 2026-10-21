@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import unittest
+import zlib
 from pathlib import Path
 from unittest import mock
 
@@ -21,7 +22,13 @@ from support.process_assertions import assert_failed
 from support.tmp_dir import make_tmp_dir
 
 from support import repo_root
-from support.png_fixtures import rgb_image, with_ihdr_byte  # noqa: E402
+from support.png_fixtures import (  # noqa: E402
+    _PNG_SIGNATURE,
+    _chunk,
+    ihdr_chunk,
+    rgb_image,
+    with_ihdr_byte,
+)
 from tools import png  # noqa: E402
 from tools.png import read  # noqa: E402
 
@@ -131,6 +138,34 @@ class TestReadPng(unittest.TestCase):
         self._assert_size_matches_decode(
             with_ihdr_byte(data, 8, 16), "bit depth 16"
         )
+
+    def test_read_png_size_rejects_an_image_over_the_pixel_limit(self):
+        # read_png_size must apply decode_png's decompression-bomb guard: a
+        # header declaring more than the cap must not hand dimensions to a
+        # caller that would then try to decode them.
+        width, height = 8001, 8000  # 64,008,000 pixels, above the cap
+        path = self._file(
+            "huge.png", _PNG_SIGNATURE + ihdr_chunk(width, height, 2)
+        )
+        with mock.patch.object(read, "decode_png") as decode:
+            message = error_message(
+                self, png.PngError, png.read_png_size, path
+            )
+        decode.assert_not_called()
+        self.assertIn(str(path), message)
+        self.assertIn(str(read._MAX_PIXELS), message)
+
+    def test_read_png_size_rejects_a_png_whose_ihdr_is_not_first(self):
+        # The size read trusts the first chunk only when it is IHDR. With an
+        # IDAT first it must fall back to the decoder's framing check rather
+        # than scanning ahead and accepting a header the decoder refuses.
+        misordered = (
+            _PNG_SIGNATURE
+            + _chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03"))
+            + ihdr_chunk(1, 1, 2)
+            + _chunk(b"IEND", b"")
+        )
+        self._assert_size_matches_decode(misordered, "first chunk")
 
     def test_read_png_names_a_read_failure(self):
         # A read() that fails after a successful open (a disk error) must be
