@@ -42,16 +42,6 @@ and Firefox applications keep their own chrome.
 
 ### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
 
-**Needs replan 2026-10-21 by feature: rejected after 2 review rounds**
-
-> 1. (prior 1) The entry is still in `PLANS-DONE.md`, not `PLANS.md`: the diff adds it at
->    `PLANS-DONE.md:8` and deletes it from `PLANS.md`, leaving `PLANS.md`'s `## Done` empty. The
->    moved entry's own acceptance criterion at `PLANS-DONE.md:122-124` says `grep -l "Vendor the
->    Lato body font" PLANS.md PLANS…`
-
-The plan's acceptance criterion repeats the wrong disposition: the entry belongs under
-`PLANS.md`'s `## Done`, not in `PLANS-DONE.md`.
-
 **Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
 font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
 Bold (SIL OFL 1.1, already installed on this machine, so no network fetch) as the Charcoal-style
@@ -125,8 +115,9 @@ Chicago/selection parts, not copied.
   installs the family but does not select it. In the uninstall paragraph, add `fonts/` to the
   shared-directory list. In the Status paragraph, replace the archive sentence's tail: it currently
   ends `fixed bugs are archived in BUGS-FIXED.md.` and must end `fixed bugs are archived in
-  BUGS-FIXED.md and finished plans in PLANS-DONE.md.` This edit is required; the archive it names
-  exists and holds the finished plans, while `PLANS.md`'s own `## Done` section is empty.
+  BUGS-FIXED.md and finished plans in PLANS-DONE.md.` This edit is required because that
+  archive exists and holds the finished plans; this entry itself belongs in `PLANS.md`'s own
+  `## Done` when the work lands, and tumwater archives it to `PLANS-DONE.md` on merge.
 - `docs/invariants.md`: add a `## fonts` section between `## desktoptheme` and `## gtk` (every
   `theme/` subsystem needs one) with a row for the shipped Lato family/digests pinned to
   `tests/test_fonts.py::TestFontFiles` and a row for the install/uninstall lifecycle pinned to
@@ -140,8 +131,8 @@ Chicago/selection parts, not copied.
 `tests/support/installed_paths.py`, `tests/support/install_lifecycle_cases.py`,
 `tests/support/install_failure_cases.py`, `tests/support/theme_install.py`,
 `tests/test_fonts.py` (new), `tests/test_theme_install.py`, `README.md`,
-`docs/invariants.md`, and `PLANS.md`/`PLANS-DONE.md` (this entry moves between them when the
-work lands).
+`docs/invariants.md`, and `PLANS.md` (this entry moves from its `## Planned` section to its own
+`## Done` when the work lands). Do not edit `PLANS-DONE.md`.
 
 **Acceptance criteria.**
 - `make install INSTALL_PACKAGES=fonts DESTDIR=<tmp>` writes exactly the four files above under
@@ -163,8 +154,9 @@ work lands).
 - `git diff --name-status` names only the files listed under "Files touched"; an edit outside that
   list is out of scope for this part.
 - When the work lands, `grep -l "Vendor the Lato body font" PLANS.md PLANS-DONE.md` prints only
-  `PLANS-DONE.md`: the entry is moved into `PLANS-DONE.md`'s `## Done`, and `PLANS.md`'s own
-  `## Done` section stays empty.
+  `PLANS.md`, and the entry sits under `PLANS.md`'s `## Done` heading: `PLANS-DONE.md` is not
+  touched and `git diff --name-status` does not name it. Tumwater archives the entry to
+  `PLANS-DONE.md` after the merge; the feature run must not do that itself.
 - No `kdeglobals` write, global-theme `contents/defaults` change, `tools/apply_*` change, GTK or
   Firefox change is made in this part; `make check` is green.
 
