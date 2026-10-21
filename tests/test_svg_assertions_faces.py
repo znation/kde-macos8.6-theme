@@ -34,6 +34,21 @@ def _face_substituted(table, face):
     }
 
 
+def _shadow_substituted(table, shadow):
+    """Return *table* with each #999999 shadow pixel replaced by *shadow*.
+
+    The raised and sunken corner tables take the bevel shadow as a parameter,
+    so a test that pins the #999999 table derives the reference's #AAAAAA
+    table by swapping only the shadow pixels.
+    """
+    return {
+        name: tuple(
+            shadow if colour == "#999999" else colour for colour in pixels
+        )
+        for name, pixels in table.items()
+    }
+
+
 class TestSunkenFaceCorners(unittest.TestCase):
     def test_paints_the_outline_shadow_and_highlight_around_the_face(self):
         # The frame's sunken state reads its corner pixels from this
@@ -69,6 +84,10 @@ class TestSunkenFaceCorners(unittest.TestCase):
         self.assertEqual(
             sunken_face_corners("#FFFFFF"),
             _face_substituted(sunken, "#FFFFFF"),
+        )
+        self.assertEqual(
+            sunken_face_corners("#DDDDDD", shadow="#AAAAAA"),
+            _shadow_substituted(sunken, "#AAAAAA"),
         )
 
 
@@ -109,6 +128,10 @@ class TestSunkenOutsideFaceCorners(unittest.TestCase):
         self.assertEqual(
             sunken_outside_face_corners("#FFFFFF"),
             _face_substituted(sunken, "#FFFFFF"),
+        )
+        self.assertEqual(
+            sunken_outside_face_corners("#DDDDDD", shadow="#AAAAAA"),
+            _shadow_substituted(sunken, "#AAAAAA"),
         )
 
 
@@ -163,6 +186,16 @@ class TestFaceEdgeBands(unittest.TestCase):
              ("#DDDDDD", "#999999", "#000000")),
         )
         self.assertEqual(
+            face_edge_bands("#DDDDDD", "raised", shadow="#AAAAAA"),
+            (("#000000", "#FFFFFF", "#DDDDDD"),
+             ("#DDDDDD", "#AAAAAA", "#000000")),
+        )
+        self.assertEqual(
+            face_edge_bands("#DDDDDD", "sunken", shadow="#AAAAAA"),
+            (("#000000", "#AAAAAA", "#DDDDDD"),
+             ("#DDDDDD", "#FFFFFF", "#000000")),
+        )
+        self.assertEqual(
             face_edge_bands("#DDDDDD", "sunken"),
             (("#000000", "#999999", "#DDDDDD"),
              ("#DDDDDD", "#FFFFFF", "#000000")),
@@ -211,6 +244,22 @@ class TestFaceCorners(unittest.TestCase):
         )
         self.assertEqual(
             face_corners("#EEEEEE", "flat"), flat_face_corners("#EEEEEE")
+        )
+        self.assertEqual(
+            face_corners("#DDDDDD", "raised", shadow="#AAAAAA"),
+            _shadow_substituted(RAISED_FACE_CORNERS, "#AAAAAA"),
+        )
+        self.assertEqual(
+            face_corners("#DDDDDD", "sunken", shadow="#AAAAAA"),
+            sunken_face_corners("#DDDDDD", shadow="#AAAAAA"),
+        )
+        self.assertEqual(
+            face_corners("#DDDDDD", "sunken-outside", shadow="#AAAAAA"),
+            sunken_outside_face_corners("#DDDDDD", shadow="#AAAAAA"),
+        )
+        self.assertEqual(
+            face_corners("#EEEEEE", "flat", shadow="#AAAAAA"),
+            flat_face_corners("#EEEEEE"),
         )
 
     def test_rejects_an_unknown_bevel_naming_it(self):

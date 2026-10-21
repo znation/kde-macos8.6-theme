@@ -180,7 +180,8 @@ def assert_center_tile_is(case, slices, name, colour, size):
     assert_slice_pixels(case, slices, name, expected)
 
 
-def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
+def assert_face_bevel(case, slices, prefix, face, bevel, size=6,
+                      shadow="#999999", corners=None):
     """Assert *prefix*'s nine-slice paints the *bevel* on *face*.
 
     A face bevel is a *face*-coloured centre tile, the bevel's bands and the
@@ -190,15 +191,22 @@ def assert_face_bevel(case, slices, prefix, face, bevel, size=6):
     the widget's face colour (the #DDDDDD button/frame/scroll-bar-thumb face,
     the #FFFFFF line-edit/menu face, the #EEEEEE scroll-bar trough), *bevel*
     is ``"raised"``, ``"sunken"``, ``"sunken-outside"`` or ``"flat"``,
-    *prefix* names the state (``""`` for an unprefixed SVG), and *size* is the
-    centre and edge tile length. The corner table comes from `face_corners`,
-    so a raised face reads the fixed `RAISED_FACE_CORNERS` (#DDDDDD) and the
-    sunken, sunken-outside and flat faces their *face*-derived tables. *case*
-    is the calling ``unittest.TestCase``.
+    *prefix* names the state (``""`` for an unprefixed SVG), *size* is the
+    centre and edge tile length, and *shadow* is the bevel's shadow colour
+    (the default #999999, or the reference's #AAAAAA for the dialog body and
+    pressed button). The edge bands and corner table both come from the same
+    *shadow*: a raised face reads the fixed `RAISED_FACE_CORNERS` (#DDDDDD)
+    rebuilt with *shadow*, and the sunken, sunken-outside and flat faces
+    their *face*-derived tables. *corners* overrides that corner table where
+    a surface's reference geometry differs -- the dialog body leaves a face
+    pixel at its top-right and bottom-left mixed corners -- and defaults to
+    `face_corners`. *case* is the calling ``unittest.TestCase``.
     """
     sep = "-" if prefix else ""
     assert_center_tile_is(case, slices, f"{prefix}{sep}center", face, size)
-    outward, mirrored = face_edge_bands(face, bevel)
+    outward, mirrored = face_edge_bands(face, bevel, shadow=shadow)
     assert_edge_bevels(case, slices, prefix, outward, mirrored, size)
-    assert_face_corners(case, slices, prefix, face_corners(face, bevel))
+    if corners is None:
+        corners = face_corners(face, bevel, shadow=shadow)
+    assert_face_corners(case, slices, prefix, corners)
 

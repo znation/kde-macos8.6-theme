@@ -5,6 +5,89 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Ground the desktop theme dialog body's raised bevel shadow in the reference Get Info window body (planned 2026-10-19 by the plan role) — done 2026-10-21
+
+**Goal.** `theme/desktoptheme/org.macos8.desktop/dialogs/background.svg` paints the raised
+window body's bevel shadow `#999999`, and its header claims "the reference window body itself is
+flat, so no window-body pixel grounds those two". But the Get Info window body in
+`macos8.6-screenshots/aboutsystem_betawiki.png`, inside its 6px Aurorae frame, is a clean lossless
+raised Platinum body: the frame's inner black row/column is the visible outline, a 1px `#FFFFFF`
+highlight runs inside the top/left, a 1px `#AAAAAA` shadow inside the bottom/right, the face is
+`#DDDDDD`, and the top-right and bottom-left mixed corners leave a `#DDDDDD` face pixel where the
+bands would meet. Correct the shadow to `#AAAAAA`, notch those two corners, and pin them to those
+pixels.
+This is the same raised shadow the Kvantum `button` element and the desktop theme `button.svg`
+already use (`PLANS-DONE.md`; PLANS.md), while the reference's sunken field keeps `#999999`, so
+only the raised bevel moves. The other desktop-theme raised faces (`widgets/frame.svg`'s raised
+state, `widgets/scrollbar.svg`'s thumb, `widgets/toolbar.svg`, `widgets/actionbutton.svg`) are
+separate surfaces that the reference's window body does not directly ground; they keep `#999999`
+and their shared corner geometry, and are out of scope.
+
+**Reference.** `macos8.6-screenshots/aboutsystem_betawiki.png` (beta `8.6b2c4L8`, the same image
+the Kvantum button/check-box groundings use). The Get Info window body: the 6px Aurorae frame's
+inner black row/column at top `(200,46)`, left `(12,200)`, bottom `(200,419)` and right
+`(354,200)` is `#000000`; the body paints top `(200,47)=#FFFFFF`, left `(13,200)=#FFFFFF`, face
+`(200,100)=#DDDDDD`, bottom `(200,418)=#AAAAAA` (uniform across x=40..339) and right
+`(353,200)=#AAAAAA`. The four 3x3 corners start at `(12,46)`, `(352,46)`, `(12,417)` and
+`(352,417)`; their top-right and bottom-left mixed corners `(353,47)` and `(13,418)` are
+`#DDDDDD`, while the shared raised table paints the shadow and highlight there. The retail
+`#999999` sunken-field shadow (`firstboot_betawiki.png`) is unchanged.
+
+**Approach.**
+- `dialogs/background.svg`: in `bottom`, `right` and the four shadow corners, change the bevel
+  shadow `#999999` to `#AAAAAA`; notch the top-right and bottom-left mixed corners to the
+  reference's `#DDDDDD` face pixel; leave the `#000000` outline, `#FFFFFF` highlight and
+  `#DDDDDD` face elsewhere. Correct the header: the reference window body is a raised bevel, name
+  `aboutsystem_betawiki.png` and the sampled pixels (including that the black edge is the Aurorae
+  frame's inner row/column), and drop the "flat" claim and the "same bevel rule as
+  scrollbar.svg's thumb" cross-reference (the thumb keeps `#999999`).
+- `tests/svg_assertions/faces.py`: give `face_corners` a `shadow="#999999"` keyword that rebuilds
+  `RAISED_FACE_CORNERS` with the caller's shadow and substitutes it into the sunken tables;
+  `face_edge_bands` already takes the keyword from the button plan.
+- `tests/svg_assertions/pixels.py`: thread the same `shadow="#999999"` keyword through
+  `assert_face_bevel` into `face_edge_bands`/`face_corners`, and add a `corners=None` override for
+  a surface whose reference corner geometry differs.
+- `tests/support/platinum_palette.py`: no change needed; the button plan already gave
+  `assert_fill_palette` its `shadow=GREY` keyword, so this plan reuses it.
+- `tests/support/raised_face_case.py`: add a `SHADOW = GREY` class attribute and a `CORNERS =
+  None` override, and pass both to `assert_face_bevel`; pass `SHADOW` to `assert_fill_palette`.
+- `tests/test_desktoptheme_dialog.py`: set `SHADOW = "#AAAAAA"` and `CORNERS` to the reference's
+  four 3x3 corner table on `TestDialogBackground`; add
+  `TestDialogBackgroundRaisedReference(ReferenceScreenshotMixin, unittest.TestCase)` with
+  `REFERENCE`/`MAX_ROWS` from `support.aurorae_fixtures` (the existing
+  `TestDialogBackgroundReference` already covers the archiveorg face) that re-derives the four
+  colours and four 3x3 corners from the anchors above and asserts the rendered edges and corners,
+  skipping when the Git LFS image is not materialized.
+- `tests/test_svg_assertions_faces.py` and `tests/test_svg_assertions_pixels.py`: pin the new
+  `shadow` keyword in the helper tables and `assert_face_bevel`, and the corner-table override.
+- `tests/test_reference_image.py`: add the new reader to the aboutsystem shared-decode-bound
+  check.
+- `docs/invariants.md`: extend the `dialogs/background.svg` guarantees to name the reference's
+  raised bevel shadow and mixed corners.
+
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/dialogs/background.svg`,
+`tests/svg_assertions/faces.py`, `tests/svg_assertions/pixels.py`,
+`tests/support/raised_face_case.py`, `tests/test_desktoptheme_dialog.py`,
+`tests/test_svg_assertions_faces.py`, `tests/test_svg_assertions_pixels.py`,
+`tests/test_reference_image.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `python3 tools/sample.py macos8.6-screenshots/aboutsystem_betawiki.png 200 418` prints
+  `170,170,170 #AAAAAA`, `... 200 47` prints `#FFFFFF`, `... 12 200` prints `#000000`,
+  `... 200 100` prints `#DDDDDD`, and `... 353 47` and `... 13 418` print `#DDDDDD`.
+- `dialogs/background.svg`'s parsed fill set is exactly `{#000000, #FFFFFF, #AAAAAA, #DDDDDD}`
+  and `test_desktoptheme_dialog.py` passes.
+- `TestToolBar` and the frame/scrollbar/actionbutton raised tests still pin `#999999` and the
+  shared raised corners; the line-edit's and Kvantum item-view's sunken `#999999` shadow is
+  unchanged.
+- The new reference test re-derives the four colours and four 3x3 corners from
+  `aboutsystem_betawiki.png` and asserts both the edges and corners, passing when the image is
+  materialized and skipping (not failing) when it is not, through the existing
+  `ReferenceScreenshotMixin`/`skip_unless_materialized` path.
+- The helper self-tests pin the `shadow` keyword in both the corner tables and
+  `assert_face_bevel`, and the reference corner-table override.
+- `make check` is green.
+
 ### Ground the Kvantum combo box indicator in the reference's double up/down arrow (planned 2026-10-20 by the plan role — done 2026-10-21)
 
 **Goal.** `[ComboBox]` in `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`

@@ -65,20 +65,26 @@ def _bevel_slices(outward, mirrored, size, prefix=""):
     }
 
 
-def _face_slices(face, bevel, size, prefix=""):
+def _face_slices(face, bevel, size, prefix="", shadow="#999999",
+                 corners=None):
     """Build a nine-slice that `assert_face_bevel` accepts for *prefix*.
 
     The edges come from `face_edge_bands` and the corners from
     `face_corners`, so a failure here means the helper's wiring changed, not
     the pinned corner table (which the widget tests pin against artwork).
+    *shadow* is the bevel's shadow colour, defaulting to #999999; *corners*
+    overrides the corner table the way the dialog body's reference geometry
+    does.
     """
     sep = "-" if prefix else ""
-    outward, mirrored = face_edge_bands(face, bevel)
+    outward, mirrored = face_edge_bands(face, bevel, shadow=shadow)
     slices = _bevel_slices(outward, mirrored, size, prefix)
     slices[f"{prefix}{sep}center"] = pixel_map(
         (face,) * (size * size), size, size
     )
-    for name, colours in face_corners(face, bevel).items():
+    if corners is None:
+        corners = face_corners(face, bevel, shadow=shadow)
+    for name, colours in corners.items():
         slices[f"{prefix}{sep}{name}"] = pixel_map(colours, 3, 3)
     return slices
 
@@ -281,6 +287,54 @@ class TestPixelAssertions(unittest.TestCase):
         # size, which the declared-size pin must reject.
         bigger = {"center": pixel_map((colour,) * 49, 7, 7)}
         assert_rejects(assert_center_tile_is, bigger, "center", colour, 6)
+
+    def test_face_bevel_threads_the_shadow_colour(self):
+        size = 10
+        # The dialog body and pressed button paint the reference's #AAAAAA
+        # shadow, so the helper must pass the colour into both the edge bands
+        # and the corner table. A wrong shadow, or a helper that ignored the
+        # keyword, fails here.
+        for face, bevel in (("#DDDDDD", "raised"), ("#DDDDDD", "sunken")):
+            with self.subTest(face=face, bevel=bevel):
+                slices = _face_slices(
+                    face, bevel, size, shadow="#AAAAAA"
+                )
+                assert_face_bevel(
+                    self, slices, "", face, bevel, size=size,
+                    shadow="#AAAAAA",
+                )
+                assert_rejects(
+                    assert_face_bevel, slices, "", face, bevel, size=size
+                )
+
+    def test_face_bevel_accepts_a_reference_corner_table(self):
+        size = 10
+        face = "#DDDDDD"
+        # The dialog body's reference leaves a face pixel where the top-right
+        # and bottom-left bands would meet; the shared raised table paints
+        # the shadow and highlight there. Pass the reference's table and prove
+        # the helper uses it instead of the default.
+        corners = {
+            name: list(pixels)
+            for name, pixels in face_corners(
+                face, "raised", shadow="#AAAAAA"
+            ).items()
+        }
+        corners["topright"][4] = face
+        corners["bottomleft"][4] = face
+        corners = {name: tuple(pixels) for name, pixels in corners.items()}
+        slices = _face_slices(
+            face, "raised", size, shadow="#AAAAAA", corners=corners
+        )
+        assert_face_bevel(
+            self, slices, "", face, "raised", size=size,
+            shadow="#AAAAAA", corners=corners,
+        )
+        # The default table must reject the two notched pixels.
+        assert_rejects(
+            assert_face_bevel, slices, "", face, "raised", size=size,
+            shadow="#AAAAAA",
+        )
 
     def test_face_bevel_pins_centre_edges_and_corners(self):
         size = 10

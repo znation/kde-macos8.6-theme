@@ -293,11 +293,15 @@ class TestSharedReferenceBounds(unittest.TestCase):
 
     def test_readers_share_the_aboutsystem_bound(self):
         from support.aurorae_fixtures import REFERENCE, REFERENCE_ROWS
+        from test_desktoptheme_dialog import TestDialogBackgroundRaisedReference
         from test_kvantum_checkbox_reference import TestCheckBoxReference
         from test_render_surface import REFERENCE_BOUNDS
 
         self._assert_reader_shares(
-            REFERENCE, REFERENCE_ROWS, TestCheckBoxReference
+            REFERENCE,
+            REFERENCE_ROWS,
+            TestCheckBoxReference,
+            TestDialogBackgroundRaisedReference,
         )
         self.assertEqual(REFERENCE_ROWS, REFERENCE_BOUNDS[REFERENCE])
 

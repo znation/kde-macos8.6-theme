@@ -12,11 +12,15 @@
      canvas, square corners. The frame is a #DDDDDD face
      ([Colors:Window] BackgroundNormal=221,221,221) sampled from the About
      This Computer window body in desktop_archiveorg8.6hd.png at (584, 97) and
-     cross-checked at (1792, 1126) of desktop_fandom.png. Inside it run a 1px
-     #000000 outline and a 1px bevel (#FFFFFF on top/left, #999999 on
-     bottom/right, the same bevel rule as button.svg's normal state and
-     scrollbar.svg's thumb); the reference window body itself is flat, so no
-     window-body pixel grounds those two.
+     cross-checked at (1792, 1126) of desktop_fandom.png. The reference Get
+     Info window body in aboutsystem_betawiki.png paints a raised bevel
+     against the 6px Aurorae frame's inner black row/column: the frame edge
+     is (200,46), (12,200), (200,419) and (354,200)=#000000; the body paints
+     top (200,47)=#FFFFFF, left (13,200)=#FFFFFF, face (200,100)=#DDDDDD,
+     bottom (200,418)=#AAAAAA and right (353,200)=#AAAAAA. At the top-right
+     and bottom-left mixed corners the bands leave a #DDDDDD face pixel, as
+     at (353,47) and (13,418). The reference's sunken fields keep the darker
+     #999999 shadow.
 
      Known deviation: the default theme's `dialogs/background.svgz` also
      carries a `shadow-*` element set. This file defines only the main frame
@@ -31,7 +35,7 @@
   <rect id="hint-right-margin" x="13" y="3" width="3" height="10" style="fill:#ff00ff"/>
 
   <!-- Edges, outer-to-inner: #000000 outline, #FFFFFF bevel highlight on
-       top/left (mirrored to #999999 shadow on bottom/right), #DDDDDD face. -->
+       top/left (mirrored to #AAAAAA shadow on bottom/right), #DDDDDD face. -->
   <g id="top" transform="translate(3,0)">
     <rect width="10" height="3" fill="#DDDDDD"/>
     <rect y="1" width="10" height="1" fill="#FFFFFF"/>
@@ -39,7 +43,7 @@
   </g>
   <g id="bottom" transform="translate(3,13)">
     <rect width="10" height="3" fill="#DDDDDD"/>
-    <rect y="1" width="10" height="1" fill="#999999"/>
+    <rect y="1" width="10" height="1" fill="#AAAAAA"/>
     <rect y="2" width="10" height="1" fill="#000000"/>
   </g>
   <g id="left" transform="translate(0,3)">
@@ -49,15 +53,17 @@
   </g>
   <g id="right" transform="translate(13,3)">
     <rect width="3" height="10" fill="#DDDDDD"/>
-    <rect x="1" width="1" height="10" fill="#999999"/>
+    <rect x="1" width="1" height="10" fill="#AAAAAA"/>
     <rect x="2" width="1" height="10" fill="#000000"/>
   </g>
   <g id="center" transform="translate(3,3)">
     <rect width="10" height="10" fill="#DDDDDD"/>
   </g>
 
-  <!-- Square corners: the black L outline with the white highlight corner and
-       the grey shadow corner, the same 3x3 patterns as scrollbar.svg's thumb. -->
+  <!-- Square corners: the black L outline, the white highlight on the
+       top/left, the #AAAAAA shadow on the bottom/right, and a #DDDDDD face
+       pixel at the top-right and bottom-left mixed corners (the reference
+       Get Info body leaves that diagonal unpainted by either band). -->
   <g id="topleft">
     <rect width="3" height="3" fill="#DDDDDD"/>
     <rect y="1" width="3" height="1" fill="#FFFFFF"/>
@@ -68,21 +74,23 @@
   <g id="topright" transform="translate(13,0)">
     <rect width="3" height="3" fill="#DDDDDD"/>
     <rect y="1" width="3" height="1" fill="#FFFFFF"/>
-    <rect x="1" width="1" height="3" fill="#999999"/>
+    <rect x="1" width="1" height="3" fill="#AAAAAA"/>
+    <rect x="1" y="1" width="1" height="1" fill="#DDDDDD"/>
     <rect y="0" width="3" height="1" fill="#000000"/>
     <rect x="2" width="1" height="3" fill="#000000"/>
   </g>
   <g id="bottomleft" transform="translate(0,13)">
     <rect width="3" height="3" fill="#DDDDDD"/>
-    <rect y="1" width="3" height="1" fill="#999999"/>
+    <rect y="1" width="3" height="1" fill="#AAAAAA"/>
     <rect x="1" width="1" height="3" fill="#FFFFFF"/>
+    <rect x="1" y="1" width="1" height="1" fill="#DDDDDD"/>
     <rect y="2" width="3" height="1" fill="#000000"/>
     <rect x="0" width="1" height="3" fill="#000000"/>
   </g>
   <g id="bottomright" transform="translate(13,13)">
     <rect width="3" height="3" fill="#DDDDDD"/>
-    <rect y="1" width="3" height="1" fill="#999999"/>
-    <rect x="1" width="1" height="3" fill="#999999"/>
+    <rect y="1" width="3" height="1" fill="#AAAAAA"/>
+    <rect x="1" width="1" height="3" fill="#AAAAAA"/>
     <rect y="2" width="3" height="1" fill="#000000"/>
     <rect x="2" width="1" height="3" fill="#000000"/>
   </g>

@@ -42,6 +42,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `widgets/button.svg`'s raised bevel shadow is the reference's #AAAAAA. | `tests/test_desktoptheme_button_reference.py::TestButtonReference` | The reference's raised button bevel is the Get Info popup button (`aboutsystem_betawiki.png`), a beta build; the reference's rounded push buttons are only in the lossy `opendialog_macrumors86.jpg`. |
 | `widgets/checkmarks.svg` draws the black check and the radio indicator dot. | `tests/test_desktoptheme_checkmarks.py::TestCheckmarks` | none |
 | `dialogs/background.svg` draws the Platinum window body. | `tests/test_desktoptheme_dialog.py::TestDialogBackground` | none |
+| `dialogs/background.svg`'s raised bevel shadow and mixed corners are the reference Get Info body's #AAAAAA and #DDDDDD. | `tests/test_desktoptheme_dialog.py::TestDialogBackgroundRaisedReference` | The reference window body is the beta `aboutsystem_betawiki.png` Get Info window inside the 6px Aurorae frame; the retail sunken fields keep #999999. |
 | `widgets/frame.svg` draws the Platinum plain, raised and sunken frames. | `tests/test_desktoptheme_frame.py::TestFrame` | none |
 | `widgets/lineedit.svg` draws the white sunken text field. | `tests/test_desktoptheme_lineedit.py::TestLineEdit` | none |
 | `widgets/line.svg` draws the etched separator. | `tests/test_desktoptheme_line.py::TestLine` | none |

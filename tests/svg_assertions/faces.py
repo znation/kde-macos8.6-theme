@@ -8,12 +8,14 @@ the dispatchers that select a table and its edge bands by bevel name.
 from __future__ import annotations
 
 # The four 3x3 corner slices of the raised #DDDDDD face painted by the
-# scroll-bar thumb and the dialog body, row-major in slice-local coordinates:
+# scroll-bar thumb and the toolbar, row-major in slice-local coordinates:
 # the 1px #000000 outline on the two outer edges, a #FFFFFF highlight inside
 # the top/left edges and a #999999 shadow inside the bottom/right ones,
-# meeting over the #DDDDDD face. The frame's raised state shares the edges and
-# three of these corners but turns its bottom-left corner differently (a
-# #999999 pixel where these have #FFFFFF), so it overrides only that corner.
+# meeting over the #DDDDDD face. `face_corners` rebuilds this table with a
+# different shadow (the dialog body's reference #AAAAAA). The frame's raised
+# state shares the edges and three of these corners but turns its bottom-left
+# corner differently (a #999999 pixel where these have #FFFFFF), so it
+# overrides only that corner.
 RAISED_FACE_CORNERS = {
     "topleft": (
         "#000000", "#000000", "#000000",
@@ -38,30 +40,31 @@ RAISED_FACE_CORNERS = {
 }
 
 
-def sunken_face_corners(face):
+def sunken_face_corners(face, shadow="#999999"):
     """Return the four 3x3 sunken-face corner slices painted for *face*.
 
     A sunken face is a 1px #000000 outline with a 1px bevel inside it -- a
-    #999999 shadow on the top/left edges and a #FFFFFF highlight on the
-    bottom/right ones -- meeting over *face*. The frame's sunken state paints
-    a #DDDDDD face, so the face is the parameter. The raised face keeps its
-    own `RAISED_FACE_CORNERS` because the frame's raised bottom-left corner
-    turns differently; the line edit's field draws its bevel outside the
-    outline instead, from `sunken_outside_face_corners`.
+    *shadow* (the default #999999) on the top/left edges and a #FFFFFF
+    highlight on the bottom/right ones -- meeting over *face*. The frame's
+    sunken state paints a #DDDDDD face, so the face is the parameter; the
+    pressed button paints the reference's #AAAAAA shadow. The raised face
+    keeps its own `RAISED_FACE_CORNERS` because the frame's raised bottom-left
+    corner turns differently; the line edit's field draws its bevel outside
+    the outline instead, from `sunken_outside_face_corners`.
     """
     return {
         "topleft": (
             "#000000", "#000000", "#000000",
-            "#000000", "#999999", "#999999",
-            "#000000", "#999999", face,
+            "#000000", shadow, shadow,
+            "#000000", shadow, face,
         ),
         "topright": (
             "#000000", "#000000", "#000000",
-            "#999999", "#FFFFFF", "#000000",
+            shadow, "#FFFFFF", "#000000",
             face, "#FFFFFF", "#000000",
         ),
         "bottomleft": (
-            "#000000", "#999999", face,
+            "#000000", shadow, face,
             "#000000", "#FFFFFF", "#FFFFFF",
             "#000000", "#000000", "#000000",
         ),
@@ -106,16 +109,17 @@ def flat_face_corners(face):
     }
 
 
-def sunken_outside_face_corners(face):
+def sunken_outside_face_corners(face, shadow="#999999"):
     """Return the four 3x3 sunken-outside corner slices painted for *face*.
 
-    A sunken-outside face is a 1px #999999/#FFFFFF bevel on the outer edge, a
-    1px #000000 outline inside it and *face* innermost -- the Mac OS 8.6 text
-    field's order, the reverse of `sunken_face_corners`, which puts the
-    outline outside the bevel. The face pixels are (2,2) of the top-left,
-    (0,2) of the top-right, (2,0) of the bottom-left and (0,0) of the
-    bottom-right slice; the remaining #FFFFFF pixels are the bottom/right
-    outer highlight, so only the face pixels follow *face*.
+    A sunken-outside face is a 1px *shadow* (the default #999999)/#FFFFFF
+    bevel on the outer edge, a 1px #000000 outline inside it and *face*
+    innermost -- the Mac OS 8.6 text field's order, the reverse of
+    `sunken_face_corners`, which puts the outline outside the bevel. The face
+    pixels are (2,2) of the top-left, (0,2) of the top-right, (2,0) of the
+    bottom-left and (0,0) of the bottom-right slice; the remaining #FFFFFF
+    pixels are the bottom/right outer highlight, so only the face pixels
+    follow *face*.
 
     The reference field leaves the top-right outer pixel (2,0 of the
     top-right slice) unpainted -- the bevel's top shadow stops one pixel
@@ -128,18 +132,18 @@ def sunken_outside_face_corners(face):
     """
     return {
         "topleft": (
-            "#999999", "#999999", "#999999",
-            "#999999", "#000000", "#000000",
-            "#999999", "#000000", face,
+            shadow, shadow, shadow,
+            shadow, "#000000", "#000000",
+            shadow, "#000000", face,
         ),
         "topright": (
-            "#999999", "#999999", None,
+            shadow, shadow, None,
             "#000000", "#000000", "#FFFFFF",
             face, "#000000", "#FFFFFF",
         ),
         "bottomleft": (
-            "#999999", "#000000", face,
-            "#999999", "#000000", "#000000",
+            shadow, "#000000", face,
+            shadow, "#000000", "#000000",
             None, "#FFFFFF", "#FFFFFF",
         ),
         "bottomright": (
@@ -196,7 +200,7 @@ def face_edge_bands(face, bevel, shadow="#999999"):
         return ("#000000", face, face), (face, face, "#000000")
 
 
-def face_corners(face, bevel):
+def face_corners(face, bevel, shadow="#999999"):
     """Return the four 3x3 corner slices of a *bevel* painted on *face*.
 
     `assert_face_bevel` checks the corners its edges lead into, and its
@@ -204,16 +208,27 @@ def face_corners(face, bevel):
     corner geometry here: the fixed `RAISED_FACE_CORNERS` (#DDDDDD) for a
     raised face, and the *face*-derived `sunken_face_corners`,
     `sunken_outside_face_corners` and `flat_face_corners` tables otherwise.
-    *face* is the widget's face colour and *bevel* is ``"raised"``,
-    ``"sunken"``, ``"sunken-outside"`` or ``"flat"``; any other value is
-    rejected by `_require_known_bevel`.
+    *face* is the widget's face colour, *bevel* is ``"raised"``,
+    ``"sunken"``, ``"sunken-outside"`` or ``"flat"``, and *shadow* is the
+    bevel's shadow colour (the default #999999, or the reference's #AAAAAA
+    for the dialog body and pressed button). A non-default *shadow* rebuilds
+    the raised table and substitutes into the sunken tables; the flat table
+    has no shadow. Any other *bevel* is rejected by `_require_known_bevel`.
     """
     _require_known_bevel(bevel)
     if bevel == "raised":
-        return RAISED_FACE_CORNERS
+        if shadow == "#999999":
+            return RAISED_FACE_CORNERS
+        return {
+            name: tuple(
+                shadow if colour == "#999999" else colour
+                for colour in pixels
+            )
+            for name, pixels in RAISED_FACE_CORNERS.items()
+        }
     if bevel == "sunken":
-        return sunken_face_corners(face)
+        return sunken_face_corners(face, shadow)
     if bevel == "sunken-outside":
-        return sunken_outside_face_corners(face)
+        return sunken_outside_face_corners(face, shadow)
     if bevel == "flat":
         return flat_face_corners(face)
