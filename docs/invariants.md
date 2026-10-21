@@ -117,3 +117,4 @@ blank guarantee or provenance-exception cell fails `make check`.
 | The shared contributor-file readers refuse a FIFO or device by name, checking the opened descriptor so a path swapped for a FIFO cannot block the read. | `tests/test_containment.py` | none |
 | The KDE INI test reader reads through the shared containment reader, so a FIFO at a theme INI or `contents/defaults` is refused instead of blocking. | `tests/test_kde_config.py::TestReadKdeConfig::test_refuses_a_fifo_instead_of_blocking` | none |
 | The global theme's `contents/defaults` reader refuses a FIFO or device by name instead of blocking on open. | `tests/test_theme_defaults.py::TestDefaultsGroups` | none |
+| The package-metadata test reader reads through the shared containment reader, so a `metadata.json` FIFO is refused instead of blocking and an oversize one is refused instead of being loaded whole. | `tests/test_package_metadata.py::TestLoadMetadata` | none |

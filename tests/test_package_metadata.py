@@ -10,12 +10,16 @@ explicit UTF-8 decode and JSON-object guard.
 """
 
 import json
+import os
+import subprocess
+import sys
 import unittest
 from unittest import mock
 
 import support.package_metadata as package_metadata
 from support.package_metadata import PackageMetadata, kplugin, load_metadata
 from support.tmp_dir import make_tmp_dir
+from tools import containment as tools_containment
 
 
 def _metadata():
@@ -102,10 +106,13 @@ class TestLoadMetadata(unittest.TestCase):
     def test_values_are_read_as_utf8(self):
         # A package Description or Author name can hold non-ASCII text; the
         # file must be decoded as UTF-8 rather than the platform locale's
-        # encoding. The locale here is UTF-8, so pin the argument passed to
-        # open() instead.
+        # encoding. The locale here is UTF-8, so pin the encoding passed to the
+        # shared containment reader instead.
         path = self._metadata_file('{"Name": "Caf\u00e9"}')
-        with mock.patch("builtins.open", wraps=open) as spy:
+        with mock.patch.object(
+            package_metadata.containment, "read_text",
+            wraps=package_metadata.containment.read_text,
+        ) as spy:
             metadata = load_metadata(path)
         self.assertEqual(spy.call_args.kwargs.get("encoding"), "utf-8")
         self.assertEqual(metadata["Name"], "Caf\u00e9")
@@ -144,6 +151,45 @@ class TestLoadMetadata(unittest.TestCase):
         error = self._load_error(path)
         self.assertIn(str(path), str(error))
         self.assertIsInstance(error.__cause__, OSError)
+
+    def test_refuses_an_oversize_file_instead_of_loading_it_whole(self):
+        # metadata.json is contributor-supplied, so a stray (or LFS-smudged)
+        # multi-gigabyte file must not be loaded whole: json.load would
+        # allocate it and raise MemoryError, which is not a ValueError and
+        # would escape as a traceback naming neither the file nor the guard.
+        # The containment reader refuses one past its cap by name instead.
+        cap = tools_containment._MAX_READ_BYTES
+        padding = cap + 1 - len('{"Name": ""}')
+        path = self._metadata_file('{"Name": "' + "x" * padding + '"}')
+        error = self._load_error(path)
+        self.assertIn(str(path), str(error))
+        self.assertIn("larger than", str(error))
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # A FIFO at a metadata.json path blocks open() until a writer appears;
+        # load_metadata has no timeout, so one stray pipe would stall the
+        # whole suite with no diagnostic. Run it in a child so the pre-fix
+        # hang is a bounded timeout rather than a stalled run.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        path = make_tmp_dir(self) / "metadata.json"
+        os.mkfifo(path)
+        child = subprocess.run(
+            [
+                sys.executable,
+                "-c",
+                "import sys; from support.package_metadata import "
+                "load_metadata; load_metadata(sys.argv[1])",
+                str(path),
+            ],
+            cwd=os.path.join(os.path.dirname(__file__)),
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(path), child.stderr)
 
     def test_non_object_json_names_the_type_and_path(self):
         # Valid JSON of the wrong top-level shape reaches the mixin's

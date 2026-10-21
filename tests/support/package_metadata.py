@@ -33,13 +33,15 @@ def load_metadata(path):
     and a checked-in symlink can point at a private file; the mixin's field
     assertions echo a value from the parsed object, so following such a
     symlink would leak that file's content into a failing test's diagnostic.
-    A path that resolves outside the repository is refused before it is
-    opened.
+    The file is read through the shared containment reader, which refuses a
+    path that resolves outside the repository before it is opened, refuses a
+    FIFO or device by name instead of blocking on ``open()``, and refuses a
+    file past its size cap instead of loading it whole (which would raise an
+    uncaught ``MemoryError``).
     """
-    containment.require_within_repo(path, ROOT)
     try:
-        with open(path, encoding="utf-8") as handle:
-            metadata = json.load(handle)
+        text = containment.read_text(path, ROOT, encoding="utf-8")
+        metadata = json.loads(text)
     except json.JSONDecodeError as exc:
         # Several packages ship a metadata.json, so the decoder's own message
         # (which names line and column but not the file) is ambiguous;
