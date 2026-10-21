@@ -9,8 +9,13 @@ that the art is final), and the install/uninstall lifecycle.
 from __future__ import annotations
 
 import os
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kde_config import read as read_kde_config
 from support.platinum_palette import PLATINUM_FILLS
@@ -65,6 +70,50 @@ def _icon_path(icon):
     return "theme/icons/" + ICON_ID + "/" + icon.replace(os.sep, "/")
 
 
+def _read_icon_text(path):
+    """Read contributor-supplied icon-theme text, refusing a symlink escape.
+
+    The placeholder check reads PLACEHOLDERS.md and every shipped icon as raw
+    text. A checked-in symlink at either path can point at a private file or
+    a device outside the repository, and an unbounded read would load it
+    whole; the shared guard refuses that path before it is opened and caps
+    the read, the same way the other theme-text readers do.
+    """
+    return containment.read_text(path, ROOT)
+
+
+class TestIconTextContainment(unittest.TestCase):
+    """The placeholder check's text reads refuse a symlink escape."""
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.md"
+            secret.write_text("private marker\n", encoding="utf-8")
+            link = root / "PLACEHOLDERS.md"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    _read_icon_text(link)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("private marker", str(caught.exception))
+
+    def test_reads_a_symlink_that_stays_within_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            (root / "theme").mkdir(parents=True)
+            target = root / "theme" / "PLACEHOLDERS.md"
+            target.write_text("placeholder text\n", encoding="utf-8")
+            link = root / "PLACEHOLDERS.md"
+            link.symlink_to(target)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                text = _read_icon_text(link)
+        self.assertEqual(text, "placeholder text\n")
+
+
 class TestIndex(unittest.TestCase):
     def setUp(self):
         self.parser = read_kde_config(INDEX)
@@ -103,14 +152,12 @@ class TestIndex(unittest.TestCase):
         # Every shipped icon is final art, so neither side lists one: the
         # register's rows for these icons and the icons carrying a
         # `PLACEHOLDER:` marker are both empty and must stay equal.
-        with open(PLACEHOLDERS, encoding="utf-8") as handle:
-            register = handle.read()
+        register = _read_icon_text(PLACEHOLDERS)
         registered = {icon for icon in SHIPPED_ICONS if _icon_path(icon) in register}
         marked = set()
         for icon in SHIPPED_ICONS:
-            with open(os.path.join(PACKAGE, icon), encoding="utf-8") as handle:
-                if "PLACEHOLDER:" in handle.read():
-                    marked.add(icon)
+            if "PLACEHOLDER:" in _read_icon_text(os.path.join(PACKAGE, icon)):
+                marked.add(icon)
         self.assertEqual(registered, marked)
 
 
