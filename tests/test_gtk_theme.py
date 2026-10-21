@@ -9,9 +9,12 @@ adaptation rather than a reference crop.
 from __future__ import annotations
 
 import configparser
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
+from support import gtk_css
 from support.gtk_css import HEX, parse_css
 from support.platinum_palette import (
     BLACK,
@@ -118,9 +121,23 @@ TAB_STATES = (
 class TestGtkTheme(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.index_text = INDEX.read_text(encoding="utf-8")
-        cls.css = CSS.read_text(encoding="utf-8")
+        cls.index_text = gtk_css.read_theme_text(INDEX)
+        cls.css = gtk_css.read_theme_text(CSS)
         cls.colours, cls.rules, cls.selectors = parse_css(cls.css)
+
+    def test_theme_read_refuses_a_symlink_escape(self):
+        """A checked-in symlink must not feed a private file to a diagnostic."""
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret"
+            secret.write_text("PRIVATE-LINE\n", encoding="utf-8")
+            link = root / "index.theme"
+            link.symlink_to(secret)
+            with mock.patch.object(gtk_css, "ROOT", root):
+                with self.assertRaisesRegex(ValueError, "symlink escape"):
+                    gtk_css.read_theme_text(link)
 
     def assert_rule(self, selector, expected):
         """Assert *selector* exists and carries each declaration in *expected*."""

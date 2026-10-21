@@ -12,6 +12,7 @@ import re
 import unittest
 from pathlib import Path
 
+from support import gtk_css
 from support.gtk_css import COMMENT, HEX, parse_css
 from support.platinum_palette import (
     BLACK,
@@ -144,7 +145,7 @@ TAB_STATES = (
 class TestGtk4Theme(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.css = CSS.read_text(encoding="utf-8")
+        cls.css = gtk_css.read_theme_text(CSS)
         cls.colours, cls.rules, cls.selectors = parse_css(cls.css)
 
     def assert_rule(self, selector, expected):

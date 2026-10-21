@@ -1,4 +1,4 @@
-"""Shared parser for the standalone GTK 3 and GTK 4 Platinum sheets.
+"""Shared reader and parser for the standalone GTK 3 and GTK 4 Platinum sheets.
 
 Both sheet tests read their stylesheet into the same ``@define-color`` map,
 selector declarations and selector list with :func:`parse_css`, so a change to
@@ -9,6 +9,9 @@ from __future__ import annotations
 
 import re
 
+from support import containment
+from support.repo_root import ROOT
+
 
 DEFINE_COLOR = re.compile(
     r"@define-color\s+(?P<name>[-A-Za-z0-9_]+)\s+(?P<value>#[0-9A-Fa-f]{6})\s*;"
@@ -16,6 +19,20 @@ DEFINE_COLOR = re.compile(
 COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
 RULE = re.compile(r"(?P<selectors>[^{}]+)\{(?P<body>[^{}]*)\}")
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
+
+
+def read_theme_text(path):
+    """Return *path*'s text, refusing a symlink that escapes the repository.
+
+    A GTK theme's ``index.theme`` and ``gtk.css`` are contributor-supplied, and
+    a checked-in symlink at either path can point at a private file. The
+    standalone-sheet assertions echo the stylesheet (``assertNotIn`` prints the
+    whole container) and configparser echoes the line it rejects, so following
+    such a symlink would leak that file's content into a failing test's
+    diagnostic. The shared reader also refuses a FIFO or device instead of
+    blocking and bounds the file size instead of loading it whole.
+    """
+    return containment.read_text(path, ROOT, encoding="utf-8")
 
 
 def parse_css(text):
