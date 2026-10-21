@@ -123,4 +123,81 @@ this theme's adaptation; do not claim a GTK reference crop.
 - No install target, GTK selection, `kdeglobals` write or Firefox change is added in this part;
   `make check` is green.
 
+### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
+
+**Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
+font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
+Bold (SIL OFL 1.1, already installed on this machine, so no network fetch) as the Charcoal-style
+body face under a new `theme/fonts/org.macos8.desktop` artifact, installed to
+`$XDG_DATA_HOME/fonts/org.macos8.desktop`, so a later selection part can name the `Lato` family.
+This is part 1/3 of the UI-font series: it vendors and installs the body face only. Part 2/3 will
+vendor a Chicago-style menu face once a redistribution licence is confirmed (the ChicagoFLF
+provenance is still unresolved, so it is deliberately not shipped here); part 3/3 will select the
+installed families in KDE/Plasma/Qt. Neither sibling is in the queue yet, and this part does not
+depend on them.
+
+**Reference grounding.** `aboutsystem_betawiki.png`'s dialog body draws Charcoal's narrower
+humanist forms at 12px, but the theme ships no Apple font and samples no font pixel: Lato is this
+theme's substitute for Charcoal, and `PROVENANCE.md` records it as an approximation rather than a
+reference anchor. The two screenshot crops (the menu bar in `desktop_betawiki.png` and the
+`System` dialog body in `aboutsystem_betawiki.png`) are recorded there as context for the later
+Chicago/selection parts, not copied.
+
+**Approach.**
+- Add `theme/fonts/org.macos8.desktop/Lato-Regular.ttf` and `Lato-Bold.ttf`, copied byte for byte
+  from `/usr/share/fonts/truetype/lato/`, plus `LICENSE-Lato.txt` copied from
+  `/usr/share/doc/fonts-lato/copyright` (the full SIL OFL 1.1 text with the upstream copyright
+  notice). `PROVENANCE.md` records the local source paths, the upstream source
+  (`http://www.latofonts.com`, Debian package `fonts-lato`), both SHA-256 digests, the internal
+  family name `Lato`, and why the face is an approximation of Charcoal.
+- `Makefile`: add `FONT_ID := org.macos8.desktop`, `FONT_PACKAGE := theme/fonts/$(FONT_ID)` and
+  `FONT_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/fonts`; add `fonts` to `INSTALL_FAMILIES` and to
+  the default `INSTALL_PACKAGES`; in `_install` create `$(FONT_INSTALL_DIR)` and copy the package
+  with the existing `install_package` swap; in `_uninstall` remove
+  `$(FONT_INSTALL_DIR)/$(FONT_ID)` together with its `.staging` and `.old` siblings. Update the
+  `help` line's default family list (the default is compared against the `?=` value by
+  `tests/test_make_help.py`).
+- `tests/support/installed_paths.py`: add `installed_fonts_dir(destdir)` returning
+  `$DESTDIR/share/fonts` and `installed_font_package(destdir, package_id)` returning its
+  `org.macos8.desktop` child, matching the Makefile paths.
+- `tests/test_fonts.py` (new): `TestFontFiles` parses each TTF's sfnt `name` table (name ID 1) with
+  `struct` and asserts the family is `Lato` and the subfamily is `Regular`/`Bold`; pins the SHA-256
+  of both files and asserts `PROVENANCE.md` names both digests; asserts `LICENSE-Lato.txt` contains
+  `SIL OPEN FONT LICENSE` and the OFL version. `TestFontsInstall` subclasses `InstallLifecycleCases`
+  with `MAKE_PACKAGES = "fonts"`, `PACKAGE_DIR = "theme/fonts/org.macos8.desktop"`,
+  `INSTALLED_FILES` naming the four files, and `installed_parent`/`installed_package_dir` overridden
+  to the new helpers, so it gets the byte-for-byte, registry-coverage, repeat-install and
+  uninstall-leftover checks once.
+- `tests/test_theme_install.py`: include the font package in `TestWhitespaceInInstallPaths`'
+  round trip and in `TestInstallPackages.test_one_family_installs_only_that_family`'s absent list
+  (installing `color-scheme` must leave `fonts/` absent); update the "seven artifacts" docstrings
+  to eight.
+- `README.md`: change the Installing/Status/uninstall/apply "seven artifacts" counts to eight and
+  describe the font package's path, its OFL licence and its approximation status; note that this
+  part installs the family but does not select it, so the desktop font is unchanged until the
+  selection part lands.
+- `docs/invariants.md`: add a `## fonts` section (every `theme/` subsystem needs one) with a row for
+  the shipped Lato family/digests pinned to `tests/test_fonts.py::TestFontFiles` and a row for the
+  install/uninstall lifecycle pinned to `tests/test_fonts.py::TestFontsInstall`, with the provenance
+  exception stating that Lato is a Charcoal substitute, not a sampled reference face.
+
+**Files touched.** `theme/fonts/org.macos8.desktop/Lato-Regular.ttf` (new),
+`theme/fonts/org.macos8.desktop/Lato-Bold.ttf` (new),
+`theme/fonts/org.macos8.desktop/LICENSE-Lato.txt` (new),
+`theme/fonts/org.macos8.desktop/PROVENANCE.md` (new), `Makefile`,
+`tests/support/installed_paths.py`, `tests/test_fonts.py` (new), `tests/test_theme_install.py`,
+`README.md`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `make install INSTALL_PACKAGES=fonts DESTDIR=<tmp>` writes exactly the four files above under
+  `$XDG_DATA_HOME/fonts/org.macos8.desktop/`; a default `make install DESTDIR=<tmp>` writes them
+  too; `make uninstall` removes that directory and its `.staging`/`.old` leftovers while leaving a
+  sibling font family's directory in place.
+- `make check CHECK_TESTS=test_fonts` passes; removing either TTF, changing a byte, renaming the
+  family in the font, or dropping the OFL text makes it fail.
+- `tests/invariants.py` accepts `theme/fonts` with its `## fonts` section, and
+  `make check CHECK_TESTS=test_theme_install test_make_help` passes with the new family.
+- No `kdeglobals` write, global-theme `contents/defaults` change, `tools/apply_*` change, GTK or
+  Firefox change is made in this part; `make check` is green.
+
 ## Done
