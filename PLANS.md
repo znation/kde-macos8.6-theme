@@ -162,6 +162,17 @@ Chicago/selection parts, not copied.
 
 ### Install the GTK 3 and GTK 4 Platinum themes opt-in and select them (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
+**Needs replan 2026-10-21 by feature: rejected after 4 review rounds**
+
+> 1. (prior 1) The diff still adds the full GTK entry to `PLANS-DONE.md` (+135 lines) and deletes it
+>    from `PLANS.md`, leaving `PLANS.md`'s `## Done` heading empty. That contradicts
+>    `PLANS-DONE.md`'s “moved here by tumwater” contract and the current `PLANS.md` workflow, which
+>    requires the feature run to…
+> 2. The new `_data_home()` resolution is only tested with an absolute `XDG_DATA_HOME`. No test
+>    covers its relative/empty fallback to `$HOME/.local/share` or its documented exit-2 path when
+>    neither is absolute, even though the plan says it matches the Makefile's `require_data_home`.
+>    A regression in the…
+
 **Goal.** Parts 1/4 and 2/4 ship `theme/gtk/org.macos8.desktop/index.theme`,
 `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and
 `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, but no make target copies them, so a GTK
