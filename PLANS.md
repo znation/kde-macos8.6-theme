@@ -162,17 +162,6 @@ Chicago/selection parts, not copied.
 
 ### Install the GTK 3 and GTK 4 Platinum themes opt-in and select them (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
-**Needs replan 2026-10-21 by feature: rejected after 4 review rounds**
-
-> 1. (prior 1) The diff still adds the full GTK entry to `PLANS-DONE.md` (+135 lines) and deletes it
->    from `PLANS.md`, leaving `PLANS.md`'s `## Done` heading empty. That contradicts
->    `PLANS-DONE.md`'s “moved here by tumwater” contract and the current `PLANS.md` workflow, which
->    requires the feature run to…
-> 2. The new `_data_home()` resolution is only tested with an absolute `XDG_DATA_HOME`. No test
->    covers its relative/empty fallback to `$HOME/.local/share` or its documented exit-2 path when
->    neither is absolute, even though the plan says it matches the Makefile's `require_data_home`.
->    A regression in the…
-
 **Goal.** Parts 1/4 and 2/4 ship `theme/gtk/org.macos8.desktop/index.theme`,
 `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and
 `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, but no make target copies them, so a GTK
@@ -211,15 +200,20 @@ show; record that in `docs/invariants.md` rather than claiming a GTK reference c
   are empty (`|| true`), leaving `Kvantum/` and every other theme directory alone. Extend the
   shared-parent comment to name the `themes/org.macos8.desktop` sharing.
 - `Makefile`: add public targets `install-gtk` (runs the nested `$(MAKE) --no-print-directory
-  install INSTALL_PACKAGES=gtk`), `apply-gtk` (refuses a non-empty `DESTDIR`, requires Python, runs
-  the same nested install, then `$(PYTHON) tools/apply_gtk.py`) and `remove-gtk` (requires Python,
-  runs `$(PYTHON) tools/apply_gtk.py --remove`). Add them to `.PHONY` and to `help`'s target list.
+  install INSTALL_PACKAGES=gtk`), `apply-gtk` (refuses a non-empty `DESTDIR`, requires Python with
+  both `require_python` and `require_python_version`, runs the same nested install, then
+  `$(PYTHON) tools/apply_gtk.py`) and `remove-gtk` (requires Python the same way, runs
+  `$(PYTHON) tools/apply_gtk.py --remove`). Add them to `.PHONY` and to `help`'s target list.
   `install-gtk` is the opt-in install; `make uninstall` still removes all installed artifacts.
 - `tools/apply_gtk.py` (new): follow `tools/apply_theme.py`'s direct-or-package import block,
-  `EscapingArgumentParser`, `report_failure` and `escape_controls`. Resolve the config home as an
-  absolute `$XDG_CONFIG_HOME`, else an absolute `$HOME/.config`, else exit 2 with a diagnostic;
-  resolve the data home as an absolute `$XDG_DATA_HOME`, else an absolute
-  `$HOME/.local/share`, else exit 2 the same way, matching `require_data_home` in the Makefile.
+  `EscapingArgumentParser`, `report_error`, `report_failure` and `escape_controls`. Put the
+  fallback in two module-level helpers so both are directly testable: `_config_home(env)` returns
+  an absolute `$XDG_CONFIG_HOME`, else an absolute `$HOME/.config`, else `None`; `_data_home(env)`
+  returns an absolute `$XDG_DATA_HOME`, else an absolute `$HOME/.local/share`, else `None`. `main`
+  passes `os.environ` to both and, when either is `None`, exits 2 through `report_error` naming
+  the ineffective variable and saying to set `XDG_DATA_HOME`/`XDG_CONFIG_HOME` or an absolute
+  `HOME` -- the same resolution and refusal as the Makefile's `require_data_home`. Resolve both
+  homes before requiring the installed sheet, so the refusal is testable without an install.
   Constants: `TOOL = "apply_gtk"`, `GTK_ID = "org.macos8.desktop"`, the marker comment
   `/* org.macos8.desktop GTK 4 user CSS */`, and the shipped/installed CSS path built from the
   resolved data home. For apply: require the installed `themes/org.macos8.desktop/gtk-4.0/gtk.css`
@@ -251,11 +245,16 @@ show; record that in `docs/invariants.md` rather than claiming a GTK reference c
   `gtk-theme-name`; it preserves an existing `gtk-font-name` line and a comment; it replaces an
   existing `gtk-theme-name`; it appends `[Settings]` when absent; it creates the marker `gtk.css`
   whose second line imports the installed sheet as a file URI; it exits 1 naming `make install-gtk`
-  when the installed sheet is missing; a foreign `gtk.css` is left byte-identical with a note; a
-  relative `XDG_CONFIG_HOME` falls back to `HOME/.config`; `--remove` removes our key and marker and
-  leaves a foreign key and file. Add `TestMakeApplyGtk` for the target order (`install` before the
-  script), the non-empty-`DESTDIR` refusal, `make -n remove-gtk`, and `make help` listing all three
-  targets.
+  when the installed sheet is missing; a foreign `gtk.css` is left byte-identical with a note;
+  `--remove` removes our key and marker and leaves a foreign key and file. Add `TestHomeResolution`
+  that patches the environment for `main` and pins every helper branch: an absolute
+  `XDG_DATA_HOME` is used even with `HOME` unset (with `XDG_CONFIG_HOME` absolute); an empty and a
+  relative `XDG_DATA_HOME` each fall back to `$HOME/.local/share`; an empty and a relative
+  `XDG_CONFIG_HOME` each fall back to `$HOME/.config`; and `main` exits 2 with a diagnostic naming
+  `XDG_DATA_HOME` when that value is not absolute and `HOME` is unset or relative, and likewise for
+  `XDG_CONFIG_HOME`. Add `TestMakeApplyGtk` for the target order (`install` before the script), the
+  non-empty-`DESTDIR` refusal, the Python-version guard, `make -n remove-gtk`, and `make help`
+  listing all three targets.
 - `tests/support/installed_paths.py`: add `installed_gtk_theme(destdir)` returning
   `themes/org.macos8.desktop` below the module's `XDG_DATA_HOME`, and name the GTK theme in the
   module docstring; `tests/support/theme_install.py` and
@@ -280,8 +279,8 @@ show; record that in `docs/invariants.md` rather than claiming a GTK reference c
 (new), `tests/support/gtk_fixtures.py` (new), `tests/test_gtk_install.py` (new),
 `tests/test_gtk_apply.py` (new), `tests/test_gtk_theme.py`, `tests/support/installed_paths.py`,
 `tests/support/theme_install.py`, `tests/support/install_lifecycle_cases.py`, `README.md`,
-`docs/invariants.md`, and `PLANS.md`/`PLANS-DONE.md` (this entry moves between them when the work
-lands).
+`docs/invariants.md`, and `PLANS.md` (this entry moves to `PLANS.md`'s own `## Done` heading when
+the work lands; `PLANS-DONE.md` is not touched).
 
 **Acceptance criteria.**
 - `make install INSTALL_PACKAGES=gtk DESTDIR=<tmp>` writes exactly `index.theme`,
@@ -302,7 +301,15 @@ lands).
   test_make_help'` passes, and corrupting the settings edit, the marker check or a staged copy
   makes the matching test fail; `tests/invariants.py` accepts the new row and `make check` is
   green.
+- `make check CHECK_TESTS=test_gtk_apply` passes `TestHomeResolution`; making either helper skip
+  the `HOME` fallback, accept a relative value, or return a path when both candidates are
+  unusable makes a case fail.
 - `git diff --name-status` names only the files listed under "Files touched" (besides the
-  backlog move), and the README's default artifact list does not gain a GTK entry.
+  backlog move), does not name `PLANS-DONE.md`, and the README's default artifact list does not
+  gain a GTK entry.
+- When the work lands, `grep -l "Install the GTK 3 and GTK 4 Platinum themes" PLANS.md
+  PLANS-DONE.md` prints only `PLANS.md`, and the entry sits under `PLANS.md`'s `## Done` heading;
+  `PLANS-DONE.md` is not touched. Tumwater archives the entry to `PLANS-DONE.md` after the merge;
+  the feature run must not do that itself.
 
 ## Done
