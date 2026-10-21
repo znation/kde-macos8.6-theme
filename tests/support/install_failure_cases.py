@@ -10,7 +10,7 @@ assertions live here once.
 import os
 import shutil
 
-from support.process_assertions import assert_failed, assert_succeeded
+from support.process_assertions import assert_failed
 from support.installed_paths import (
     InstalledPackageLocation,
     old_sibling,
@@ -18,6 +18,7 @@ from support.installed_paths import (
 )
 from support.theme_install import (
     install,
+    installed_template,
     shadow_command_env,
 )
 from support.tmp_dir import make_tmp_dir
@@ -79,13 +80,16 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
             return installed, metadata, handle.read()
 
     def _install_ok(self):
-        """Install once into a fresh temp dir, assert it succeeded, snapshot it.
+        """Copy the class's installed tree into a fresh temp dir and snapshot it.
 
-        The dir is removed when the test ends. Returns the dir followed by
-        `_snapshot`'s (installed, metadata, good) triple.
+        The class's first caller installs the package once into a class
+        template; later callers copy that tree, so every test still gets its
+        own mutable dir. The dir is removed when the test ends. Returns the dir
+        followed by `_snapshot`'s (installed, metadata, good) triple.
         """
+        template = installed_template(self, self.MAKE_PACKAGES)
         tmp = str(make_tmp_dir(self))
-        assert_succeeded(self, install(tmp, packages=self.MAKE_PACKAGES))
+        shutil.copytree(template, tmp, dirs_exist_ok=True)
         return (tmp, *self._snapshot(tmp))
 
     def _assert_package_intact(self, installed, metadata, good):

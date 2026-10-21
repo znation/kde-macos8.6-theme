@@ -92,7 +92,7 @@ def uninstall(destdir, extra=(), env=None):
     return _run("uninstall", destdir, extra, env)
 
 
-def _installed_template(case, packages):
+def installed_template(case, packages):
     """Return this test class's installed tree for *packages*, installing once.
 
     A test class whose methods each need the same installed package would
@@ -134,7 +134,7 @@ def installed_destdir(case, **kwargs):
     """
     with tempfile.TemporaryDirectory() as destdir:
         if set(kwargs) == {"packages"}:
-            template = _installed_template(case, kwargs["packages"])
+            template = installed_template(case, kwargs["packages"])
             shutil.copytree(template, destdir, dirs_exist_ok=True)
         else:
             assert_succeeded(case, install(destdir, **kwargs))

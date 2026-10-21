@@ -17,6 +17,7 @@ import unittest.mock
 from pathlib import Path
 
 from support import installed_paths, theme_install
+from support.install_failure_cases import FailedInstallPreservesPackage
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -153,6 +154,43 @@ class TestInstalledDestdirSharing(unittest.TestCase):
             ) as destdir:
                 self.assertTrue((Path(destdir) / "marker").is_file())
         self.assertEqual(2, len(calls))
+
+
+class TestFailedInstallSharing(unittest.TestCase):
+    """`FailedInstallPreservesPackage` installs once per class and copies."""
+
+    def test_install_ok_installs_once_and_copies_per_test(self):
+        calls = []
+
+        def fake_install(destdir, **kwargs):
+            calls.append(kwargs)
+            (Path(destdir) / "marker").write_text(
+                "installed", encoding="utf-8"
+            )
+            return unittest.mock.Mock(returncode=0, stdout="", stderr="")
+
+        class Case(FailedInstallPreservesPackage, unittest.TestCase):
+            MAKE_PACKAGES = "color-scheme"
+
+            def runTest(self):
+                pass
+
+            def _snapshot(self, tmp):
+                return (str(tmp), "metadata", "good")
+
+        case = Case()
+        self.addCleanup(case.doCleanups)
+        self.addCleanup(Case.doClassCleanups)
+        with unittest.mock.patch.object(
+            theme_install, "install", fake_install
+        ):
+            first = case._install_ok()
+            second = case._install_ok()
+
+        self.assertEqual([{"packages": "color-scheme"}], calls)
+        self.assertNotEqual(first[0], second[0])
+        for result in (first, second):
+            self.assertTrue((Path(result[0]) / "marker").is_file())
 
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):
