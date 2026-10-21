@@ -22,7 +22,7 @@ from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
 from support.theme_install import ROOT
-from svg_assertions import pixel_map, render_slices
+from svg_assertions import corner_map, edge_map, pixel_map, render_slices
 from svg_assertions.faces import sunken_outside_face_corners
 
 # The Setup Assistant body text field in firstboot_betawiki.png (retail Mac OS
@@ -105,32 +105,6 @@ _OUTER_BLOCK_INDICES = {
 LINEEDIT_SIZE = 30
 
 
-def _edge_map(side, outer, inner):
-    """Return the 2px *side* edge slice, reading *outer* then *inner*."""
-    if side == "top":
-        rows = (outer,) * LINEEDIT_SIZE + (inner,) * LINEEDIT_SIZE
-    elif side == "bottom":
-        rows = (inner,) * LINEEDIT_SIZE + (outer,) * LINEEDIT_SIZE
-    elif side == "left":
-        return {(0, y): outer for y in range(LINEEDIT_SIZE)} | {
-            (1, y): inner for y in range(LINEEDIT_SIZE)
-        }
-    else:
-        return {(0, y): inner for y in range(LINEEDIT_SIZE)} | {
-            (1, y): outer for y in range(LINEEDIT_SIZE)
-        }
-    return pixel_map(rows, LINEEDIT_SIZE, 2)
-
-
-def _corner_map(colours):
-    """Return the 2x2 corner map for *colours*, dropping the unpainted None."""
-    return {
-        (index % 2, index // 2): colour
-        for index, colour in enumerate(colours)
-        if colour is not None
-    }
-
-
 class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
     """The line edit is the reference field's sunken-outside arrangement.
 
@@ -191,12 +165,12 @@ class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
         for side, (outer, inner) in edges.items():
             self.assertEqual(
                 slices[f"{prefix}-{side}"],
-                _edge_map(side, outer, inner),
+                edge_map(LINEEDIT_SIZE, side, outer, inner),
                 side,
             )
         table = sunken_outside_face_corners(colours["face"])
         for name, indices in _OUTER_BLOCK_INDICES.items():
-            expected = _corner_map(tuple(table[name][index] for index in indices))
+            expected = corner_map(tuple(table[name][index] for index in indices))
             self.assertEqual(slices[f"{prefix}-{name}"], expected, name)
 
 

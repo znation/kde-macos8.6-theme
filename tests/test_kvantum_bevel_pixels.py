@@ -21,6 +21,10 @@ from support.platinum_palette import (
 from support.svg_case import parse_svg
 from svg_assertions import (
     assert_slice_pixels,
+    bevel_corner_maps,
+    bevel_edge_maps,
+    corner_map,
+    edge_map,
     pixel_map,
     render_slices,
     sunken_outside_face_corners,
@@ -60,25 +64,13 @@ TAB_SELECTED_FACE = "#EEEEEE"
 
 
 def _button_corners(bevel, shadow, highlight=SURFACE_HIGHLIGHT):
-    """Return each 2x2 corner slice a *bevel* paints, keyed by corner name.
+    """Return each 2x2 corner pixel map a *bevel* paints, keyed by name.
 
-    Row-major in slice-local coordinates. The raised corners carry the
-    *shadow* where the bottom/right band turns, and the sunken ones where the
-    top/left band turns; the opposite corners carry the *highlight*.
+    The raised corners carry the *shadow* where the bottom/right band turns,
+    and the sunken ones where the top/left band turns; the opposite corners
+    carry the *highlight*.
     """
-    if bevel == "raised":
-        return {
-            "topleft": ("#000000", "#000000", "#000000", highlight),
-            "topright": ("#000000", "#000000", shadow, "#000000"),
-            "bottomleft": ("#000000", highlight, "#000000", "#000000"),
-            "bottomright": (shadow, "#000000", "#000000", "#000000"),
-        }
-    return {
-        "topleft": ("#000000", "#000000", "#000000", shadow),
-        "topright": ("#000000", "#000000", highlight, "#000000"),
-        "bottomleft": ("#000000", shadow, "#000000", "#000000"),
-        "bottomright": (highlight, "#000000", "#000000", "#000000"),
-    }
+    return bevel_corner_maps(bevel, "#000000", highlight, shadow)
 
 # Part 3's frame elements, the bevel each state paints and the colour of its
 # centre. `raised` and `sunken` paint the eight bevel slices and four corners
@@ -139,22 +131,9 @@ def _button_edge_maps(bevel, shadow, highlight=SURFACE_HIGHLIGHT):
     bevel shadow the element paints (the button's #AAAAAA, the other raised
     faces' #999999); *highlight* is the raised band's colour.
     """
-    if bevel == "raised":
-        top, bottom = ("#000000", highlight), (shadow, "#000000")
-        left, right = ("#000000", highlight), (shadow, "#000000")
-    else:
-        top, bottom = ("#000000", shadow), (highlight, "#000000")
-        left, right = ("#000000", shadow), (highlight, "#000000")
-    return {
-        "top": pixel_map(
-            (top[0],) * BUTTON_SIZE + (top[1],) * BUTTON_SIZE, BUTTON_SIZE, 2
-        ),
-        "bottom": pixel_map(
-            (bottom[0],) * BUTTON_SIZE + (bottom[1],) * BUTTON_SIZE, BUTTON_SIZE, 2
-        ),
-        "left": pixel_map(left * BUTTON_SIZE, 2, BUTTON_SIZE),
-        "right": pixel_map(right * BUTTON_SIZE, 2, BUTTON_SIZE),
-    }
+    return bevel_edge_maps(
+        BUTTON_SIZE, bevel, "#000000", highlight, shadow
+    )
 
 
 class TestButtonBevelPixels(unittest.TestCase):
@@ -185,7 +164,7 @@ class TestButtonBevelPixels(unittest.TestCase):
                     )
                 for name, colours in _button_corners(bevel, BUTTON_SHADOW).items():
                     assert_slice_pixels(
-                        self, self.slices, f"{prefix}-{name}", pixel_map(colours, 2, 2)
+                        self, self.slices, f"{prefix}-{name}", colours
                     )
 
 
@@ -198,7 +177,7 @@ LINEEDIT_FACE = WHITE
 
 # Each edge slice as (outer, inner), read from the field's outer edge inward.
 # A top/left edge runs outer-to-inner down/right; a bottom/right edge runs
-# inner-to-outer down/right, so `_lineedit_edge_map` places the pair.
+# inner-to-outer down/right, so `edge_map` places the pair.
 LINEEDIT_EDGES = {
     "top": ("#999999", "#000000"),
     "bottom": ("#FFFFFF", "#000000"),
@@ -218,37 +197,11 @@ _LINEEDIT_CORNER_BLOCKS = {
 }
 
 
-def _lineedit_edge_map(side, outer, inner):
-    """Return the 2px *side* edge slice, reading *outer* then *inner*."""
-    if side == "top":
-        rows = (outer,) * LINEEDIT_SIZE + (inner,) * LINEEDIT_SIZE
-    elif side == "bottom":
-        rows = (inner,) * LINEEDIT_SIZE + (outer,) * LINEEDIT_SIZE
-    elif side == "left":
-        return {(0, y): outer for y in range(LINEEDIT_SIZE)} | {
-            (1, y): inner for y in range(LINEEDIT_SIZE)
-        }
-    else:
-        return {(0, y): inner for y in range(LINEEDIT_SIZE)} | {
-            (1, y): outer for y in range(LINEEDIT_SIZE)
-        }
-    return pixel_map(rows, LINEEDIT_SIZE, 2)
-
-
-def _lineedit_corner_map(colours):
-    """Return the 2x2 corner map for *colours*, dropping the unpainted None."""
-    return {
-        (index % 2, index // 2): colour
-        for index, colour in enumerate(colours)
-        if colour is not None
-    }
-
-
 def _lineedit_corners():
     """Return each 2x2 corner's expected pixel map, keyed by corner name."""
     table = sunken_outside_face_corners(LINEEDIT_FACE)
     return {
-        name: _lineedit_corner_map(
+        name: corner_map(
             tuple(table[name][index] for index in indices)
         )
         for name, indices in _LINEEDIT_CORNER_BLOCKS.items()
@@ -283,7 +236,7 @@ class TestLineEditBevelPixels(unittest.TestCase):
                         self,
                         self.slices,
                         f"{prefix}-{side}",
-                        _lineedit_edge_map(side, outer, inner),
+                        edge_map(LINEEDIT_SIZE, side, outer, inner),
                     )
                 for name, expected in corners.items():
                     assert_slice_pixels(
@@ -320,7 +273,7 @@ class TestItemViewBevelPixels(unittest.TestCase):
                         self,
                         self.slices,
                         f"{prefix}-{side}",
-                        _lineedit_edge_map(side, outer, inner),
+                        edge_map(LINEEDIT_SIZE, side, outer, inner),
                     )
                 for name, expected in corners.items():
                     assert_slice_pixels(
@@ -386,7 +339,7 @@ class TestSurfaceBevelPixels(unittest.TestCase):
             bevel, SURFACE_SHADOW, highlight
         ).items():
             assert_slice_pixels(
-                self, self.slices, f"{prefix}-{name}", pixel_map(colours, 2, 2)
+                self, self.slices, f"{prefix}-{name}", colours
             )
 
 

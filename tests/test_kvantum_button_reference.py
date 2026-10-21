@@ -22,7 +22,12 @@ from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from svg_assertions import pixel_map, render_slices
+from svg_assertions import (
+    bevel_corner_maps,
+    bevel_edge_maps,
+    pixel_map,
+    render_slices,
+)
 
 # The Get Info window's "表示" popup button in aboutsystem_betawiki.png: a
 # raised bar at x=80..249, y=103..122. The "ラベル" popup button repeats it at
@@ -50,41 +55,14 @@ def _button_edges(bevel, outline, highlight, shadow):
     a raised bevel highlights the top/left and shadows the bottom/right, and a
     sunken one swaps those two colours.
     """
-    if bevel == "raised":
-        top, bottom = (outline, highlight), (shadow, outline)
-        left, right = (outline, highlight), (shadow, outline)
-    else:
-        top, bottom = (outline, shadow), (highlight, outline)
-        left, right = (outline, shadow), (highlight, outline)
-    return {
-        "top": pixel_map(
-            (top[0],) * BUTTON_SIZE + (top[1],) * BUTTON_SIZE, BUTTON_SIZE, 2
-        ),
-        "bottom": pixel_map(
-            (bottom[0],) * BUTTON_SIZE + (bottom[1],) * BUTTON_SIZE,
-            BUTTON_SIZE,
-            2,
-        ),
-        "left": pixel_map(left * BUTTON_SIZE, 2, BUTTON_SIZE),
-        "right": pixel_map(right * BUTTON_SIZE, 2, BUTTON_SIZE),
-    }
+    return bevel_edge_maps(
+        BUTTON_SIZE, bevel, outline, highlight, shadow
+    )
 
 
 def _button_corners(bevel, outline, highlight, shadow):
-    """Return each 2x2 corner slice a *bevel* paints, keyed by corner name."""
-    if bevel == "raised":
-        return {
-            "topleft": (outline, outline, outline, highlight),
-            "topright": (outline, outline, shadow, outline),
-            "bottomleft": (outline, highlight, outline, outline),
-            "bottomright": (shadow, outline, outline, outline),
-        }
-    return {
-        "topleft": (outline, outline, outline, shadow),
-        "topright": (outline, outline, highlight, outline),
-        "bottomleft": (outline, shadow, outline, outline),
-        "bottomright": (highlight, outline, outline, outline),
-    }
+    """Return each 2x2 corner pixel map a *bevel* paints, keyed by name."""
+    return bevel_corner_maps(bevel, outline, highlight, shadow)
 
 
 class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
@@ -152,9 +130,9 @@ class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
                     colours["highlight"],
                     colours["shadow"],
                 )
-                for name, pixels in corners.items():
+                for name, expected in corners.items():
                     self.assertEqual(
-                        slices[f"{prefix}-{name}"], pixel_map(pixels, 2, 2), name
+                        slices[f"{prefix}-{name}"], expected, name
                     )
 
 

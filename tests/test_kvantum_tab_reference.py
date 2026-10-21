@@ -25,7 +25,7 @@ from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from svg_assertions import pixel_map, render_slices
+from svg_assertions import edge_map, pixel_map, render_slices
 
 TAB_SIZE = 30
 
@@ -51,23 +51,6 @@ SELECTED_ANCHORS = {
     "face": (SELECTED_X, 57),
     "open_bottom": (SELECTED_X, 72),
 }
-
-
-def _edge_map(side, outer, inner):
-    """Return the 2px *side* edge slice, reading *outer* then *inner*."""
-    if side == "top":
-        rows = (outer,) * TAB_SIZE + (inner,) * TAB_SIZE
-    elif side == "bottom":
-        rows = (inner,) * TAB_SIZE + (outer,) * TAB_SIZE
-    elif side == "left":
-        return {(0, y): outer for y in range(TAB_SIZE)} | {
-            (1, y): inner for y in range(TAB_SIZE)
-        }
-    else:
-        return {(0, y): inner for y in range(TAB_SIZE)} | {
-            (1, y): outer for y in range(TAB_SIZE)
-        }
-    return pixel_map(rows, TAB_SIZE, 2)
 
 
 class TestTabReference(ReferenceScreenshotMixin, unittest.TestCase):
@@ -147,11 +130,11 @@ class TestTabReference(ReferenceScreenshotMixin, unittest.TestCase):
                 )
                 self.assertEqual(
                     slices[f"{prefix}-top"],
-                    _edge_map("top", outline, highlight),
+                    edge_map(TAB_SIZE, "top", outline, highlight),
                 )
                 self.assertEqual(
                     slices[f"{prefix}-left"],
-                    _edge_map("left", outline, highlight),
+                    edge_map(TAB_SIZE, "left", outline, highlight),
                 )
 
 

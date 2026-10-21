@@ -1,8 +1,9 @@
 """Nine-slice rendering for the SVG test helpers.
 
 Composites an id-bearing ``<g>`` of a nine-slice SVG into a ``{(x, y): fill}``
-map, and builds the same-shaped map from a flat colour sequence, so a widget
-test can compare a slice's pixels against an expected tile.
+map, and builds the same-shaped maps for a flat colour sequence and the edge
+and corner slices a two-tone bevel paints, so a widget test can compare a
+slice's pixels against an expected tile.
 """
 
 from __future__ import annotations
@@ -188,3 +189,125 @@ def pixel_map(colours, width, height):
         (index % width, index // width): colour
         for index, colour in enumerate(colours)
     }
+
+
+_EDGE_SIDES = ("top", "bottom", "left", "right")
+
+
+def _require_known_side(side):
+    """Raise ValueError unless *side* names one of the four edge slices."""
+    if side not in _EDGE_SIDES:
+        raise ValueError(
+            f"unknown side {side!r}; expected 'top', 'bottom', 'left' "
+            "or 'right'"
+        )
+
+
+def edge_map(size, side, outer, inner):
+    """Return the pixel map of one 2px edge slice of a beveled face.
+
+    *size* is the face's edge length in pixels, *side* is ``"top"``,
+    ``"bottom"``, ``"left"`` or ``"right"``, and *outer*/*inner* are the
+    colours on the slice's outer edge and one pixel in. A top/left edge reads
+    outer then inner down/right; a bottom/right edge reads inner then outer.
+    The map is *size* x 2 for a top/bottom slice and 2 x *size* for a
+    left/right one, the same shape as one entry of `render_slices`. An
+    unknown *side* is rejected by `_require_known_side`.
+    """
+    _require_known_side(side)
+    if side == "top":
+        return pixel_map((outer,) * size + (inner,) * size, size, 2)
+    if side == "bottom":
+        return pixel_map((inner,) * size + (outer,) * size, size, 2)
+    if side == "left":
+        return {(0, y): outer for y in range(size)} | {
+            (1, y): inner for y in range(size)
+        }
+    return {(0, y): inner for y in range(size)} | {
+        (1, y): outer for y in range(size)
+    }
+
+
+def corner_map(colours):
+    """Return the pixel map for a row-major 2x2 *colours* sequence.
+
+    A ``None`` entry is a corner pixel the reference leaves unpainted, so it
+    is omitted from the map rather than asserted. The map has the same shape
+    as one entry of `render_slices`.
+    """
+    return {
+        (index % 2, index // 2): colour
+        for index, colour in enumerate(colours)
+        if colour is not None
+    }
+
+
+def _require_two_tone_bevel(bevel):
+    """Raise ValueError unless *bevel* is ``"raised"`` or ``"sunken"``.
+
+    The 2px edge and 2x2 corner maps only describe these two bevels, whose
+    outline sits on the face's outer edge. A ``"sunken-outside"`` or
+    ``"flat"`` face paints different slices, so treating either as sunken
+    would silently pin the wrong art.
+    """
+    if bevel not in ("raised", "sunken"):
+        raise ValueError(
+            f"unsupported bevel {bevel!r}; expected 'raised' or 'sunken'"
+        )
+
+
+def bevel_edge_maps(size, bevel, outline, highlight, shadow):
+    """Return the four 2px edge slices a *bevel* paints, keyed by side.
+
+    Each slice has the 1px *outline* on its outer edge and a 1px bevel band
+    inside it: a raised bevel paints *highlight* on the top/left bands and
+    *shadow* on the bottom/right ones, and a sunken one swaps those two. A
+    *bevel* other than ``"raised"`` or ``"sunken"`` is rejected by
+    `_require_two_tone_bevel`.
+    """
+    _require_two_tone_bevel(bevel)
+    if bevel == "raised":
+        inner = {
+            "top": highlight,
+            "bottom": shadow,
+            "left": highlight,
+            "right": shadow,
+        }
+    else:
+        inner = {
+            "top": shadow,
+            "bottom": highlight,
+            "left": shadow,
+            "right": highlight,
+        }
+    return {
+        side: edge_map(size, side, outline, band)
+        for side, band in inner.items()
+    }
+
+
+def bevel_corner_maps(bevel, outline, highlight, shadow):
+    """Return the four 2x2 corner pixel maps a *bevel* paints.
+
+    A raised bevel carries *shadow* where its bottom/right band turns and
+    *highlight* at the opposite corners; a sunken one swaps those two. A
+    *bevel* other than ``"raised"`` or ``"sunken"`` is rejected by
+    `_require_two_tone_bevel`. The maps are keyed by corner name for
+    `assert_slice_pixels`.
+    """
+    _require_two_tone_bevel(bevel)
+    if bevel == "raised":
+        colours = {
+            "topleft": (outline, outline, outline, highlight),
+            "topright": (outline, outline, shadow, outline),
+            "bottomleft": (outline, highlight, outline, outline),
+            "bottomright": (shadow, outline, outline, outline),
+        }
+    else:
+        colours = {
+            "topleft": (outline, outline, outline, shadow),
+            "topright": (outline, outline, highlight, outline),
+            "bottomleft": (outline, shadow, outline, outline),
+            "bottomright": (highlight, outline, outline, outline),
+        }
+    return {name: corner_map(pixels) for name, pixels in colours.items()}

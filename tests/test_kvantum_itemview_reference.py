@@ -25,7 +25,7 @@ from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
 from support.theme_install import ROOT
-from svg_assertions import pixel_map, render_slices
+from svg_assertions import corner_map, edge_map, pixel_map, render_slices
 from svg_assertions.faces import sunken_outside_face_corners
 
 # The installer CD Finder window's item view in setup_emaculation.png (retail
@@ -98,32 +98,6 @@ _OUTER_BLOCK_INDICES = {
 ITEMVIEW_SIZE = 30
 
 
-def _edge_map(side, outer, inner):
-    """Return the 2px *side* edge slice, reading *outer* then *inner*."""
-    if side == "top":
-        rows = (outer,) * ITEMVIEW_SIZE + (inner,) * ITEMVIEW_SIZE
-    elif side == "bottom":
-        rows = (inner,) * ITEMVIEW_SIZE + (outer,) * ITEMVIEW_SIZE
-    elif side == "left":
-        return {(0, y): outer for y in range(ITEMVIEW_SIZE)} | {
-            (1, y): inner for y in range(ITEMVIEW_SIZE)
-        }
-    else:
-        return {(0, y): inner for y in range(ITEMVIEW_SIZE)} | {
-            (1, y): outer for y in range(ITEMVIEW_SIZE)
-        }
-    return pixel_map(rows, ITEMVIEW_SIZE, 2)
-
-
-def _corner_map(colours):
-    """Return the 2x2 corner map for *colours*, dropping the unpainted None."""
-    return {
-        (index % 2, index // 2): colour
-        for index, colour in enumerate(colours)
-        if colour is not None
-    }
-
-
 class TestItemViewReference(ReferenceScreenshotMixin, unittest.TestCase):
     """The item view is the reference field's sunken-outside arrangement.
 
@@ -184,12 +158,12 @@ class TestItemViewReference(ReferenceScreenshotMixin, unittest.TestCase):
         for side, (outer, inner) in edges.items():
             self.assertEqual(
                 slices[f"{prefix}-{side}"],
-                _edge_map(side, outer, inner),
+                edge_map(ITEMVIEW_SIZE, side, outer, inner),
                 side,
             )
         table = sunken_outside_face_corners(colours["face"])
         corners = {
-            name: _corner_map(tuple(table[name][index] for index in indices))
+            name: corner_map(tuple(table[name][index] for index in indices))
             for name, indices in _OUTER_BLOCK_INDICES.items()
         }
         for name, expected in corners.items():

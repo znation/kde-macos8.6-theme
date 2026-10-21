@@ -8,10 +8,10 @@ The helpers are split by concern and re-exported here, so a test module
 imports every public helper from ``svg_assertions`` regardless of which submodule
 defines it: ``tree`` traverses the parsed document and reads its attributes,
 ``safety`` guards the artwork a pixel test cannot see, ``render`` composites a
-nine-slice group into pixels, ``faces``, ``paths``, ``elements`` and
-``nine_slice`` hold the face, path, element and nine-slice arithmetic, and
-``pixels`` and ``layout`` hold the pixel-comparison and the id, layout and arc
-assertions.
+nine-slice group into pixels and builds the expected-slice maps, ``faces``,
+``paths``, ``elements`` and ``nine_slice`` hold the face, path, element and
+nine-slice arithmetic, and ``pixels`` and ``layout`` hold the pixel-comparison
+and the id, layout and arc assertions.
 """
 
 from __future__ import annotations
@@ -34,6 +34,10 @@ from .safety import (
 
 from .render import (
     _MAX_RENDERED_PIXELS,
+    bevel_corner_maps,
+    bevel_edge_maps,
+    corner_map,
+    edge_map,
     pixel_map,
     render_slices,
 )
