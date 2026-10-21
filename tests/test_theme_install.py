@@ -65,6 +65,96 @@ class TestMakeEnv(unittest.TestCase):
         self.assertNotIn("MAKEFLAGS", env)
 
 
+class TestInstalledDestdirSharing(unittest.TestCase):
+    """`installed_destdir` installs once per class and copies that tree."""
+
+    def setUp(self):
+        # The helper caches on the test class; each test here starts a new
+        # class-level cache so one test's install cannot satisfy another.
+        self.addCleanup(self._forget_templates)
+        self._forget_templates()
+
+    def _forget_templates(self):
+        if "_installed_templates" in type(self).__dict__:
+            delattr(type(self), "_installed_templates")
+
+    @staticmethod
+    def _fake_install(calls, results):
+        def install(destdir, **kwargs):
+            calls.append(kwargs)
+            if not results:
+                raise AssertionError("install called more often than expected")
+            result = results.pop(0)
+            if result.returncode == 0:
+                (Path(destdir) / "marker").write_text(
+                    "installed", encoding="utf-8"
+                )
+            return result
+
+        return install
+
+    def _succeeded(self):
+        return unittest.mock.Mock(returncode=0, stdout="", stderr="")
+
+    def test_repeated_calls_install_once_and_copy_the_tree(self):
+        calls = []
+        with unittest.mock.patch.object(
+            theme_install, "install", self._fake_install(calls, [self._succeeded()])
+        ):
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as first:
+                self.assertEqual(
+                    "installed",
+                    (Path(first) / "marker").read_text(encoding="utf-8"),
+                )
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as second:
+                self.assertEqual(
+                    "installed",
+                    (Path(second) / "marker").read_text(encoding="utf-8"),
+                )
+        self.assertEqual([{"packages": "color-scheme"}], calls)
+        self.assertNotEqual(first, second)
+
+    def test_each_package_family_gets_its_own_template(self):
+        calls = []
+        results = [self._succeeded(), self._succeeded()]
+        with unittest.mock.patch.object(
+            theme_install, "install", self._fake_install(calls, results)
+        ):
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ):
+                pass
+            with theme_install.installed_destdir(self, packages="kvantum"):
+                pass
+        self.assertEqual(
+            [{"packages": "color-scheme"}, {"packages": "kvantum"}], calls
+        )
+
+    def test_a_failed_install_is_not_reused(self):
+        calls = []
+        failed = unittest.mock.Mock(
+            returncode=1, stdout="", stderr="template install failed"
+        )
+        results = [failed, self._succeeded()]
+        with unittest.mock.patch.object(
+            theme_install, "install", self._fake_install(calls, results)
+        ):
+            with self.assertRaises(AssertionError):
+                with theme_install.installed_destdir(
+                    self, packages="color-scheme"
+                ):
+                    pass
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as destdir:
+                self.assertTrue((Path(destdir) / "marker").is_file())
+        self.assertEqual(2, len(calls))
+
+
 class TestWhitespaceInInstallPaths(unittest.TestCase):
     """`make install`/`uninstall` must quote paths that contain whitespace.
 

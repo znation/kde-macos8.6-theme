@@ -11,6 +11,7 @@ and process-group cleanup. The module also re-exports `ROOT` (from
 
 import contextlib
 import os
+import shutil
 import tempfile
 
 from support import containment
@@ -91,6 +92,29 @@ def uninstall(destdir, extra=(), env=None):
     return _run("uninstall", destdir, extra, env)
 
 
+def _installed_template(case, packages):
+    """Return this test class's installed tree for *packages*, installing once.
+
+    A test class whose methods each need the same installed package would
+    otherwise run `make install` once per method. The first call installs into
+    a class-owned temporary directory; later calls copy that tree, so every
+    caller still gets its own mutable DESTDIR. The template is removed when
+    the class's tests finish. A failed install raises through
+    ``assert_succeeded`` and is not remembered, so the next caller retries it.
+    """
+    templates = getattr(type(case), "_installed_templates", None)
+    if templates is None:
+        templates = {}
+        type(case)._installed_templates = templates
+    template = templates.get(packages)
+    if template is None:
+        template = tempfile.mkdtemp(prefix="installed-template-")
+        case.addClassCleanup(shutil.rmtree, template, ignore_errors=True)
+        assert_succeeded(case, install(template, packages=packages))
+        templates[packages] = template
+    return template
+
+
 @contextlib.contextmanager
 def installed_destdir(case, **kwargs):
     """Yield a fresh temporary DESTDIR with `make install` already succeeded.
@@ -101,9 +125,19 @@ def installed_destdir(case, **kwargs):
     only needs the installed tree alive while it inspects it writes
     ``with installed_destdir(self) as tmp:`` instead of repeating the
     tempdir/install/assert scaffold.
+
+    A call naming only `packages` shares one install per test class and copies
+    it into the yielded directory; those are the calls whose installed tree the
+    tests treat as read-only input. A call with any other make variable or a
+    replaced environment installs into the yielded directory each time, since
+    its result can differ from another call's.
     """
     with tempfile.TemporaryDirectory() as destdir:
-        assert_succeeded(case, install(destdir, **kwargs))
+        if set(kwargs) == {"packages"}:
+            template = _installed_template(case, kwargs["packages"])
+            shutil.copytree(template, destdir, dirs_exist_ok=True)
+        else:
+            assert_succeeded(case, install(destdir, **kwargs))
         yield destdir
 
 
