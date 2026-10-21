@@ -42,6 +42,11 @@ and Firefox applications keep their own chrome.
 
 ### Ship a GTK 3 Platinum theme for GTK applications (planned 2026-10-21 by the plan role; part 1/4)
 
+**Needs replan 2026-10-21 by feature: rejected after 5 review rounds**
+
+> 1. (prior 3) Checked hovered reorderable tabs still keep Adwaita's face. Imported `notebook > header tab:checked.reorderable-page:hover` is (0,3,3), outranking the new local `notebook > header > tabs > tab:hover.reorderable-page` at (0,2,4) on class count. A GTK style-context probe of that state resol…
+> 2. Reorderable tabs remain non-Platinum outside plain hover. A checked non-hovered reorderable tab resolves to Adwaita's `rgba(246,245,244,0.5)` background, `rgba(205,199,194,0.5)` border, and `border-style: none`; a backdrop reorderable tab resolves to transparent background/border and grey text. Imp…
+
 **Goal.** No GTK theme exists in the repository (no `theme/gtk` directory), so GTK 3
 applications -- including Firefox's GTK chrome -- keep the desktop's Breeze GTK theme. Ship a
 user-installable `org.macos8.desktop` GTK 3 theme whose windows, header bars, buttons, entries,
