@@ -12,8 +12,13 @@ from __future__ import annotations
 
 import os
 import re
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.reference_image import ReferenceScreenshotMixin
 from support.theme_install import ROOT
 
@@ -42,9 +47,9 @@ BLACK = (0, 0, 0)
 SAMPLE_COLUMN = 400
 
 
-def _read_layout():
-    with open(LAYOUT, encoding="utf-8") as handle:
-        return handle.read()
+def _read_layout(path=LAYOUT):
+    """Read the contributor-supplied layout text, refusing a symlink escape."""
+    return containment.read_text(path, ROOT)
 
 
 def panel_height(text):
@@ -173,6 +178,31 @@ class TestLayout(unittest.TestCase):
 
     def test_no_taskbar_template_is_loaded(self):
         self.assertNotIn("loadTemplate", self.text)
+
+
+class TestLayoutReadContainment(unittest.TestCase):
+    """The layout read refuses a symlink that escapes the repository.
+
+    The layout text is fed to ``assertRegex``, which echoes it when a pattern
+    is missing, so a checked-in layout symlink resolving outside the
+    repository must be refused before it is opened rather than leaking a
+    private file's text into the diagnostic.
+    """
+
+    def test_layout_read_refuses_an_escaping_symlink(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.js"
+            secret.write_text("PRIVATE-SECRET-TEXT", encoding="utf-8")
+            link = root / "layout.js"
+            link.symlink_to(secret)
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    _read_layout(link)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("PRIVATE-SECRET-TEXT", str(caught.exception))
 
 
 class TestPanelHeightMatchesReference(ReferenceScreenshotMixin, unittest.TestCase):
