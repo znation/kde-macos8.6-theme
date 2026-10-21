@@ -108,15 +108,22 @@ class TestHelp(unittest.TestCase):
     without the other fails.
     """
 
+    # The help output is one deterministic run of a static recipe, so the
+    # class runs `make help` once instead of once per test method that reads
+    # it. A failed run is not cached, so the next test retries and reports it.
+    _help_output = None
+
     def _output(self):
-        env = theme_install.make_env("CHECK_PATTERN")
-        result = theme_install.run_captured(
-            ["make", "help"],
-            cwd=theme_install.ROOT,
-            env=env,
-        )
-        assert_succeeded(self, result)
-        return result.stdout
+        if TestHelp._help_output is None:
+            env = theme_install.make_env("CHECK_PATTERN")
+            result = theme_install.run_captured(
+                ["make", "help"],
+                cwd=theme_install.ROOT,
+                env=env,
+            )
+            assert_succeeded(self, result)
+            TestHelp._help_output = result.stdout
+        return TestHelp._help_output
 
     def _public_targets(self):
         """Return the `.PHONY` targets other than the `_`-prefixed internals."""
