@@ -142,6 +142,11 @@ this theme's adaptation; do not claim a GTK reference crop.
 
 ### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
 
+**Needs replan 2026-10-21 by feature: rejected after 5 review rounds**
+
+> 1. (prior 2) The commit body still misdescribes the README change. At the measured base `015eaf1a`, the status line named only `BUGS-FIXED.md`; this diff edits it to add `PLANS-DONE.md`. Revision 5's RISK nevertheless says that line “already” names `PLANS-DONE.md` and that “no edit was needed,” and it…
+> 2. The new `fonts` family was not fully documented. `tests/support/install_lifecycle_cases.py`'s module docstring still lists only the look-and-feel, desktop-theme, Aurorae, wallpaper and icon-theme suites, omitting the new font suite, and the `Makefile`'s uninstall comment still omits `fonts` from th…
+
 **Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
 font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
 Bold (SIL OFL 1.1, already installed on this machine, so no network fetch) as the Charcoal-style
