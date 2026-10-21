@@ -1,0 +1,330 @@
+"""Validate the standalone GTK 3 Platinum theme.
+
+The theme is one ``index.theme`` descriptor and one standalone ``gtk.css``.
+The palette is reference-grounded through ``support.platinum_palette``; no
+reference screenshot shows a GTK widget, so the GTK geometry is this theme's
+adaptation rather than a reference crop.
+"""
+
+from __future__ import annotations
+
+import configparser
+import re
+import unittest
+from pathlib import Path
+
+from support.platinum_palette import (
+    BLACK,
+    BUTTON_SHADOW,
+    FACE,
+    GREY,
+    SELECTION,
+    TROUGH,
+    WHITE,
+)
+from support.repo_root import ROOT
+
+THEME_ID = "org.macos8.desktop"
+THEME_DIR = Path(ROOT) / "theme" / "gtk" / THEME_ID
+INDEX = THEME_DIR / "index.theme"
+CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
+
+# The etched separator's dark half, pinned to the reference by
+# tests/test_desktoptheme_line.py's DARK value.
+ETCH_DARK = "#888888"
+
+DEFINE_COLOR = re.compile(
+    r"@define-color\s+(?P<name>[-A-Za-z0-9_]+)\s+(?P<value>#[0-9A-Fa-f]{6})\s*;"
+)
+COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
+RULE = re.compile(r"(?P<selectors>[^{}]+)\{(?P<body>[^{}]*)\}")
+HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
+
+DEFINED_COLOURS = {
+    "theme_bg_color": FACE,
+    "theme_fg_color": BLACK,
+    "theme_base_color": WHITE,
+    "theme_text_color": BLACK,
+    "theme_selected_bg_color": SELECTION,
+    "theme_selected_fg_color": BLACK,
+    "borders": BLACK,
+    "unfocused_borders": GREY,
+}
+
+RAISED_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}"
+BUTTON_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW}"
+INVERTED_BUTTON_BEVEL = f"inset 1px 1px {BUTTON_SHADOW}, inset -1px -1px {WHITE}"
+
+# Every tab state covers both the plain and the notebook-scoped selectors, in
+# the plain and `.reorderable-page` forms. A checked state also names the third
+# member: whether its bevel and bottom border must be dropped.
+TAB_STATES = (
+    (
+        "base",
+        (
+            "tab",
+            "tab.reorderable-page",
+            "notebook > header > tabs > tab",
+            "notebook > header > tabs > tab.reorderable-page",
+        ),
+        False,
+    ),
+    (
+        "hover",
+        (
+            "tab:hover",
+            "tab.reorderable-page:hover",
+            "notebook > header > tabs > tab:hover",
+            "notebook > header > tabs > tab.reorderable-page:hover",
+        ),
+        False,
+    ),
+    (
+        "checked",
+        (
+            "tab:checked",
+            "tab.reorderable-page:checked",
+            "notebook > header > tabs > tab:checked",
+            "notebook > header > tabs > tab.reorderable-page:checked",
+        ),
+        True,
+    ),
+    (
+        "checked+hover",
+        (
+            "tab:checked:hover",
+            "tab.reorderable-page:checked:hover",
+            "notebook > header > tabs > tab:checked:hover",
+            "notebook > header > tabs > tab.reorderable-page:checked:hover",
+        ),
+        True,
+    ),
+    (
+        "backdrop",
+        (
+            "tab:backdrop",
+            "tab.reorderable-page:backdrop",
+            "notebook > header > tabs > tab:backdrop",
+            "notebook > header > tabs > tab.reorderable-page:backdrop",
+        ),
+        False,
+    ),
+    (
+        "backdrop+checked",
+        (
+            "tab:backdrop:checked",
+            "tab.reorderable-page:backdrop:checked",
+            "notebook > header > tabs > tab:backdrop:checked",
+            "notebook > header > tabs > tab.reorderable-page:backdrop:checked",
+        ),
+        True,
+    ),
+)
+
+
+def parse_css(text):
+    """Return the ``@define-color`` map, selector declarations and selector list.
+
+    A selector that appears in more than one block keeps every declaration,
+    with a later block's declaration replacing an earlier one, which is how the
+    cascade resolves the same declaration. Comments are removed first so a
+    colour named in the header cannot stand in for a rule's value.
+    """
+    text = COMMENT.sub("", text)
+    definitions = {
+        match.group("name"): match.group("value")
+        for match in DEFINE_COLOR.finditer(text)
+    }
+    rules = {}
+    selectors = []
+    without_definitions = DEFINE_COLOR.sub("", text)
+    for block in RULE.finditer(without_definitions):
+        declarations = {}
+        for chunk in block.group("body").split(";"):
+            if ":" not in chunk:
+                continue
+            name, value = chunk.split(":", 1)
+            declarations[" ".join(name.split())] = " ".join(value.split())
+        group = [
+            " ".join(selector.split())
+            for selector in block.group("selectors").split(",")
+        ]
+        for selector in group:
+            selectors.append(selector)
+            rules.setdefault(selector, {}).update(declarations)
+    return definitions, rules, selectors
+
+
+class TestGtkTheme(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.index_text = INDEX.read_text(encoding="utf-8")
+        cls.css = CSS.read_text(encoding="utf-8")
+        cls.colours, cls.rules, cls.selectors = parse_css(cls.css)
+
+    def assert_rule(self, selector, expected):
+        """Assert *selector* exists and carries each declaration in *expected*."""
+        self.assertIn(selector, self.rules, f"missing rule for {selector}")
+        for name, value in expected.items():
+            self.assertEqual(
+                self.rules[selector].get(name),
+                value,
+                f"{selector}: expected {name}: {value}",
+            )
+
+    def test_index_theme(self):
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.optionxform = str
+        parser.read_string(self.index_text)
+
+        entry = parser["Desktop Entry"]
+        self.assertEqual(entry["Type"], "X-GNOME-Metatheme")
+        self.assertEqual(entry["Name"], "Mac OS 8.6 Platinum")
+        self.assertEqual(entry["Encoding"], "UTF-8")
+        self.assertEqual(
+            entry["Comment"],
+            "Standalone Platinum controls for GTK 3 applications",
+        )
+
+        metatheme = parser["X-GNOME-Metatheme"]
+        self.assertEqual(metatheme["Name"], "Mac OS 8.6 Platinum")
+        self.assertEqual(metatheme["GtkTheme"], THEME_ID)
+
+    def test_theme_colours(self):
+        self.assertEqual(self.colours, DEFINED_COLOURS)
+
+    def test_imports_nothing_and_does_not_mention_adwaita(self):
+        self.assertNotIn("@import", self.css)
+        self.assertNotIn("adwaita", self.css.lower())
+
+    def test_only_palette_hex_literals(self):
+        palette = {
+            BLACK,
+            WHITE,
+            GREY,
+            FACE,
+            BUTTON_SHADOW,
+            TROUGH,
+            SELECTION,
+            ETCH_DARK,
+        }
+        self.assertEqual(set(HEX.findall(self.css)), palette)
+
+    def test_no_universal_selector(self):
+        for selector in self.selectors:
+            self.assertNotIn("*", selector)
+
+    def test_window_and_background(self):
+        for selector in ("window", ".background"):
+            self.assert_rule(
+                selector,
+                {"background-color": FACE, "color": BLACK},
+            )
+
+    def test_headerbar(self):
+        for selector in ("headerbar", ".titlebar"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "background-image": "none",
+                    "border": f"1px solid {BLACK}",
+                    "border-radius": "0",
+                    "box-shadow": "none",
+                },
+            )
+        self.assert_rule("headerbar", {"border-width": "0 0 1px 0"})
+
+    def test_button(self):
+        self.assert_rule(
+            "button",
+            {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": BUTTON_BEVEL,
+            },
+        )
+        self.assert_rule("button:hover", {"background-color": FACE})
+        for selector in ("button:active", "button:checked"):
+            self.assert_rule(selector, {"box-shadow": INVERTED_BUTTON_BEVEL})
+
+    def test_entry(self):
+        self.assert_rule(
+            "entry",
+            {
+                "background-color": WHITE,
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": f"inset 1px 1px {GREY}",
+                "color": BLACK,
+            },
+        )
+
+    def test_notebook_header(self):
+        self.assert_rule(
+            "notebook > header",
+            {"background-color": FACE, "border": f"1px solid {BLACK}"},
+        )
+
+    def test_tab_states(self):
+        for state, selectors, checked in TAB_STATES:
+            expected = {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+            }
+            if checked:
+                expected["border-bottom-color"] = FACE
+                expected["box-shadow"] = "none"
+            else:
+                expected["box-shadow"] = RAISED_BEVEL
+            for selector in selectors:
+                with self.subTest(state=state, selector=selector):
+                    self.assert_rule(selector, expected)
+
+    def test_menu(self):
+        for selector in ("menu", ".menu", "popover", ".popover"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "border": f"1px solid {BLACK}",
+                    "border-radius": "0",
+                },
+            )
+        for selector in ("menuitem:hover", ".menuitem:hover"):
+            self.assert_rule(selector, {"background-color": SELECTION})
+
+    def test_scrollbar(self):
+        self.assert_rule(
+            "scrollbar",
+            {"background-color": TROUGH, "border": f"1px solid {BLACK}"},
+        )
+        self.assert_rule(
+            "scrollbar slider",
+            {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": RAISED_BEVEL,
+            },
+        )
+
+    def test_toolbar_and_menubar(self):
+        for selector in ("toolbar", "menubar"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "border-bottom": f"1px solid {ETCH_DARK}",
+                    "box-shadow": f"inset 0 -1px {WHITE}",
+                },
+            )
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,157 @@
+/* Mac OS 8.6 Platinum for GTK 3 applications.
+
+   This is a standalone sheet: it imports nothing, so no upstream sheet's rule
+   can outrank the Platinum tab faces. The palette values are the reference-grounded
+   Platinum values pinned by tests/support/platinum_palette.py (#DDDDDD face,
+   #FFFFFF white, #999999 grey, #000000 black, #AAAAAA raised-button shadow,
+   #EEEEEE trough and #CCCCFF selection), plus the etched separator's #888888
+   dark half pinned by tests/test_desktoptheme_line.py. No reference screenshot
+   shows a GTK widget, so the GTK-specific geometry below is this theme's
+   adaptation, not a reference crop. */
+
+@define-color theme_bg_color #DDDDDD;
+@define-color theme_fg_color #000000;
+@define-color theme_base_color #FFFFFF;
+@define-color theme_text_color #000000;
+@define-color theme_selected_bg_color #CCCCFF;
+@define-color theme_selected_fg_color #000000;
+@define-color borders #000000;
+@define-color unfocused_borders #999999;
+
+window, .background {
+  background-color: #DDDDDD;
+  color: #000000;
+}
+
+headerbar, .titlebar {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+headerbar {
+  border-width: 0 0 1px 0;
+}
+
+button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+}
+
+button:hover {
+  background-color: #DDDDDD;
+}
+
+button:active, button:checked {
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+entry {
+  background-color: #FFFFFF;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+}
+
+notebook > header {
+  background-color: #DDDDDD;
+  border: 1px solid #000000;
+}
+
+tab, tab.reorderable-page,
+notebook > header > tabs > tab,
+notebook > header > tabs > tab.reorderable-page {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:hover, tab.reorderable-page:hover,
+notebook > header > tabs > tab:hover,
+notebook > header > tabs > tab.reorderable-page:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:checked, tab.reorderable-page:checked,
+notebook > header > tabs > tab:checked,
+notebook > header > tabs > tab.reorderable-page:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+tab:checked:hover, tab.reorderable-page:checked:hover,
+notebook > header > tabs > tab:checked:hover,
+notebook > header > tabs > tab.reorderable-page:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+tab:backdrop, tab.reorderable-page:backdrop,
+notebook > header > tabs > tab:backdrop,
+notebook > header > tabs > tab.reorderable-page:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+tab:backdrop:checked, tab.reorderable-page:backdrop:checked,
+notebook > header > tabs > tab:backdrop:checked,
+notebook > header > tabs > tab.reorderable-page:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+menu, .menu, popover, .popover {
+  background-color: #DDDDDD;
+  border: 1px solid #000000;
+  border-radius: 0;
+}
+
+menuitem:hover, .menuitem:hover {
+  background-color: #CCCCFF;
+}
+
+scrollbar {
+  background-color: #EEEEEE;
+  border: 1px solid #000000;
+}
+
+scrollbar slider {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+toolbar, menubar {
+  background-color: #DDDDDD;
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}

@@ -62,6 +62,12 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `widgets/viewitem.svg` draws the generic item highlight. | `tests/test_desktoptheme_viewitem.py::TestViewItem` | none |
 | The `viewitem.svg`, `menubaritem.svg` and `arrows.svg` provenance comments name the reference screenshot their claim rests on and do not claim the set shows no such surface. | `tests/test_desktoptheme_provenance.py::TestProvenance` | none |
 
+## gtk
+
+| Guarantee | Test | Provenance exception |
+| --- | --- | --- |
+| The standalone GTK 3 Platinum theme redefines the Platinum palette and paints the scoped Platinum control rules, including every plain and reorderable tab state, without importing Adwaita. | `tests/test_gtk_theme.py::TestGtkTheme` | No reference screenshot shows a GTK widget, so the palette comes from the pinned Platinum values and the geometry is this theme's adaptation. |
+
 ## icons
 
 | Guarantee | Test | Provenance exception |
