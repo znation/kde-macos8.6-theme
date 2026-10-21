@@ -402,7 +402,9 @@ class TestFlockTimeout(unittest.TestCase):
         # second, so the install must proceed and install the scheme.
         tmp = str(make_tmp_dir(self))
         result = theme_install.install(
-            tmp, extra=["FLOCK_TIMEOUT=00000000000000000001"]
+            tmp,
+            extra=["FLOCK_TIMEOUT=00000000000000000001"],
+            packages="color-scheme",
         )
         assert_succeeded(self, result)
         scheme = installed_paths.installed_color_scheme(tmp)
