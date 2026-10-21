@@ -46,6 +46,12 @@ user's desktop font, and GTK and Firefox applications keep their own chrome.
 
 ### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
 
+**Needs replan 2026-10-21 by feature: rejected after 3 review rounds**
+
+> 1. (prior 1) Lato entry removed from `PLANS.md` instead of moved under `## Done`; `## Done` remains empty and `PLANS-DONE.md` gains the entry.
+> 2. (prior 2) WHY and VERIFIED claims contradict the actual grep results and the diff against 3cce0229.
+> 3. New: The plan entry calls `LICENSE-Lato.txt` a byte-for-byte copy although a newline was added, contradicting `PROVENANCE.md`.
+
 **Plan record.** This entry is finished only when it sits under `PLANS.md`'s existing `## Done`
 heading, the file's last heading, with a closing date added to its `### ` heading. Follow the
 feature role's step 6 literally: cut it from `## Planned`, paste it as the first entry under
