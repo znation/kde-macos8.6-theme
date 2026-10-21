@@ -196,6 +196,12 @@ Chicago/selection parts, not copied.
 
 ### Install the GTK 3 and GTK 4 Platinum themes opt-in and select them (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
+**Needs replan 2026-10-21 by feature: rejected after 3 review rounds**
+
+> 1. (prior 1) The plan is still archived in the wrong file. `PLANS-DONE.md:8` contains the completed GTK entry, while `PLANS.md` removes it from `## Planned` and ends at the empty `## Done` heading on line 197. The entry itself says “Do **not** edit `PLANS-DONE.md`.” The interdiff shows revision 3 chan…
+> 2. (prior 2) The `VERIFIED` observations still do not match the tree. Running `grep -l "Install the GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md` prints `PLANS-DONE.md`, not `PLANS.md`; `grep -n '^## \|^### ' PLANS.md` shows only `6:## Planned` and `197:## Done`, with no GTK heading at 199.…
+> 3. The summary and RISK understate the merge. Against `a165145e` this change lands the entire GTK install/apply implementation—Makefile targets and staging logic, `tools/apply_gtk.py`, three test modules, README and invariant documentation—while the body says “only backlog bookkeeping changed; the GTK…
+
 **Plan record.** This entry is finished only when it sits under `PLANS.md`'s existing `## Done`
 heading, the file's last heading, with a closing date added to its `### ` heading. Follow the
 feature role's step 6 literally: cut it from `## Planned`, paste it as the first entry under
