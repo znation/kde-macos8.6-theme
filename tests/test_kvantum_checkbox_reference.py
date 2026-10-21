@@ -49,6 +49,20 @@ _REFERENCE_ANCHORS = {
 }
 
 
+def _raised_box_colour(x, y, size, outline, highlight, face, shadow):
+    """Return the fill of the raised square pixel at (*x*, *y*).
+
+    The outline wins, then the highlight and shadow bands.
+    """
+    if x in (0, size - 1) or y in (0, size - 1):
+        return outline
+    if y == 1 or x == 1:
+        return highlight
+    if y == size - 2 or x == size - 2:
+        return shadow
+    return face
+
+
 def _raised_box(size, outline, highlight, face, shadow):
     """Return the ``{(x, y): colour}`` raised Platinum square of *size* pixels.
 
@@ -61,14 +75,9 @@ def _raised_box(size, outline, highlight, face, shadow):
     pixels = {}
     for x in range(size):
         for y in range(size):
-            if x in (0, size - 1) or y in (0, size - 1):
-                pixels[(x, y)] = outline
-            elif y == 1 or x == 1:
-                pixels[(x, y)] = highlight
-            elif y == size - 2 or x == size - 2:
-                pixels[(x, y)] = shadow
-            else:
-                pixels[(x, y)] = face
+            pixels[(x, y)] = _raised_box_colour(
+                x, y, size, outline, highlight, face, shadow
+            )
     pixels[(size - 2, 1)] = face
     pixels[(1, size - 2)] = face
     return pixels

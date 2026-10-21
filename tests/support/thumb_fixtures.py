@@ -15,6 +15,26 @@ from __future__ import annotations
 from support.platinum_palette import BLACK, FACE, GREY, WHITE
 
 
+def _thumb_colour(x, y, width, height, top_left, bottom_right):
+    """Return the fill of the thumb pixel at (*x*, *y*).
+
+    The outline wins, then the left/right bevel, then the top/bottom bevel, so
+    the vertical bevel is painted over the horizontal and the two edges turn
+    the corners the way the scroll bar thumb's corner slices do.
+    """
+    if x in (0, width - 1) or y in (0, height - 1):
+        return BLACK
+    if x == 1:
+        return top_left
+    if x == width - 2:
+        return bottom_right
+    if y == 1:
+        return top_left
+    if y == height - 2:
+        return bottom_right
+    return FACE
+
+
 def thumb_pixels(width, height, top_left, bottom_right):
     """Return the {(x, y): fill} map of a *width* x *height* Platinum thumb.
 
@@ -28,19 +48,9 @@ def thumb_pixels(width, height, top_left, bottom_right):
     pixels = {}
     for y in range(height):
         for x in range(width):
-            if x in (0, width - 1) or y in (0, height - 1):
-                colour = BLACK
-            elif x == 1:
-                colour = top_left
-            elif x == width - 2:
-                colour = bottom_right
-            elif y == 1:
-                colour = top_left
-            elif y == height - 2:
-                colour = bottom_right
-            else:
-                colour = FACE
-            pixels[(x, y)] = colour
+            pixels[(x, y)] = _thumb_colour(
+                x, y, width, height, top_left, bottom_right
+            )
     return pixels
 
 
