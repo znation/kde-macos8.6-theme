@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The containment guard fails open for a root spelled with a POSIX double leading slash (found by the bugfix role 2026-10-21; fixed 2026-10-21 by the bugfix role)
+
+**Symptom:** `tools.containment.is_within("//tmp/repo", "/tmp/repo/link")` returns
+False even though both spellings name the same directory on POSIX. Because
+`require_within_repo` resolves a path only when `is_within` says it is eligible, a
+root spelled `//tmp/repo` makes `read_bytes` return a symlink target outside the
+repository instead of refusing the escape (fail open).
+
+**Reproduction:** a scratch read of a temporary root's escaping symlink, passing
+`"//" + root.lstrip("/")` as the root, returned the secret's bytes. The new
+`tests/test_containment.py::TestReadBytes::test_rejects_a_symlink_escape_when_the_root_has_a_double_slash_prefix`
+and
+`tests/test_containment.py::TestIsWithin::test_treats_a_posix_double_slash_spelling_as_the_same_root`
+failed before the fix and pass after.
+
+**Cause:** `os.path.abspath` preserves a path's exactly-two leading slashes, so
+the lexical comparison saw `//tmp/repo` and `/tmp/repo` as different, and the
+root's child was judged outside the root before the resolver ran.
+
+**Fix:** `is_within` normalizes a POSIX path's double-leading-slash spelling to
+one slash before comparing, and builds the boundary by trimming trailing
+separators and appending exactly one, so `/`, `//`, and ordinary roots all keep
+a correct component boundary.
+
+**Validation gap:** no-observability — no caller in the suite or tools passes a
+root with a double-slash spelling, so the fail-open left no trace until a direct
+scratch call with a temporary root surfaced it.
+
 ### The lexical containment guard rejects every child of a filesystem root (found by the bugfix role 2026-10-21; fixed 2026-10-21 by the bugfix role)
 
 **Symptom:** `tools.containment.is_within("/", "/etc")` returns False, though every

@@ -41,13 +41,33 @@ def resolves_within(directory, path):
     return resolved.is_relative_to(base)
 
 
+def _absolute_lexical(path):
+    """Return *path*'s absolute form with one POSIX double-slash spelling normalized.
+
+    POSIX permits a path to start with exactly two slashes, and
+    ``os.path.abspath`` preserves that spelling (``//tmp/repo``). On POSIX
+    systems those two slashes name the same root as one, so comparing both
+    spellings literally would make an equivalent root look different and skip
+    the symlink check. Windows treats ``//server/share`` as a UNC path, so only
+    a POSIX path is collapsed here.
+    """
+    absolute = os.path.abspath(path)
+    if (
+        os.name == "posix"
+        and absolute.startswith("//")
+        and not absolute.startswith("///")
+    ):
+        return "/" + absolute.lstrip("/")
+    return absolute
+
+
 def is_within(directory, path):
     """Return True when *path* is lexically inside *directory* (symlinks unresolved)."""
-    base = os.path.abspath(directory)
-    absolute = os.path.abspath(path)
+    base = _absolute_lexical(directory)
+    absolute = _absolute_lexical(path)
     # A root already ends with the separator; appending another would make
     # ``//`` and reject every real child (and skip the symlink check).
-    boundary = base if base.endswith(os.sep) else base + os.sep
+    boundary = base.rstrip(os.sep) + os.sep
     return absolute == base or absolute.startswith(boundary)
 
 

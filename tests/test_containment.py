@@ -62,6 +62,26 @@ class TestReadBytes(unittest.TestCase):
                 containment.read_bytes(link, root)
         self.assertIn(str(link), str(caught.exception))
 
+    def test_rejects_a_symlink_escape_when_the_root_has_a_double_slash_prefix(self):
+        # POSIX may spell a root with two leading slashes, and os.path.abspath
+        # preserves that spelling. If the lexical guard treats it as a
+        # different root, it skips the symlink check and returns the secret's
+        # bytes instead of refusing the escape.
+        if os.name != "posix":
+            self.skipTest("a double leading slash is POSIX-specific")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            secret = tmp / "secret.svg"
+            secret.write_bytes(b"PRIVATE-SECRET-BYTES")
+            link = root / "solid.svg"
+            link.symlink_to(secret)
+            double_root = "//" + str(root).lstrip("/")
+            with self.assertRaises(ValueError) as caught:
+                containment.read_bytes(link, double_root)
+        self.assertIn(str(link), str(caught.exception))
+
     def test_allows_a_symlink_that_stays_within_the_root(self):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
@@ -251,7 +271,9 @@ class TestIsWithin(unittest.TestCase):
     ``startswith(root)`` would judge the sibling inside, hand it to the
     resolver, and refuse a legitimate file outside the repository. A
     filesystem root already ends with the separator, so appending another
-    would make the boundary ``//`` and reject every real child.
+    would make the boundary ``//`` and reject every real child. A POSIX path
+    may also spell the root with exactly two leading slashes; both spellings
+    must name the same directory in the comparison.
     """
 
     def test_accepts_a_path_under_the_root(self):
@@ -267,6 +289,20 @@ class TestIsWithin(unittest.TestCase):
         # appending another makes the boundary ``//`` and every child fails
         # the lexical check; the guard then skips the symlink check entirely.
         self.assertTrue(containment.is_within("/", "/etc"))
+
+    def test_treats_a_posix_double_slash_spelling_as_the_same_root(self):
+        if os.name != "posix":
+            self.skipTest("a double leading slash is POSIX-specific")
+        self.assertTrue(containment.is_within("//", "/etc"))
+        self.assertTrue(
+            containment.is_within("//tmp/repo", "/tmp/repo/a.svg")
+        )
+        self.assertTrue(
+            containment.is_within("/tmp/repo", "//tmp/repo/a.svg")
+        )
+        self.assertFalse(
+            containment.is_within("//tmp/repo", "/tmp/repo-other/a.svg")
+        )
 
     def test_rejects_a_sibling_directory_that_shares_the_root_prefix(self):
         self.assertFalse(
