@@ -13,6 +13,7 @@ import unittest
 from support.colorscheme_fixtures import SCHEME
 from support.process_assertions import assert_failed, assert_succeeded
 from support.installed_paths import (
+    XDG_DATA_HOME,
     installed_color_scheme,
     installed_color_scheme_dir,
     staging_sibling,
@@ -23,8 +24,8 @@ from support.theme_install import (
     installed_destdir,
     make_env,
     run_captured,
+    run_make,
     shadow_command_env,
-    uninstall,
 )
 from support.tmp_dir import make_tmp_dir
 
@@ -46,9 +47,29 @@ def write_selected_scheme(tmp, scheme_id):
     return config
 
 
+def _uninstall_recipe(destdir, extra=(), env=None):
+    """Run the internal `_uninstall` recipe rooted at *destdir*.
+
+    These tests exercise the recipe that removes the scheme and warns about a
+    still-selected id. The public `uninstall` target only wraps it in the
+    data-home and flock guards, `install -d`, and a nested `make`; those are
+    covered by ``test_theme_install``. Calling the recipe directly keeps each
+    case from spawning that second make and taking the lock.
+    """
+    return run_make(
+        [
+            "_uninstall",
+            f"DESTDIR={destdir}",
+            f"XDG_DATA_HOME={XDG_DATA_HOME}",
+            *extra,
+        ],
+        env=env,
+    )
+
+
 def uninstall_with_config(tmp, config, extra=()):
-    """Run `make uninstall` with *config* as the user's `XDG_CONFIG_HOME`."""
-    return uninstall(
+    """Run the uninstall recipe with *config* as the user's config home."""
+    return _uninstall_recipe(
         tmp, extra=extra, env=dict(os.environ, XDG_CONFIG_HOME=config)
     )
 
@@ -157,7 +178,7 @@ class TestInstall(unittest.TestCase):
         with open(decoy, "w", encoding="utf-8") as handle:
             handle.write("[General]\nName=Decoy\n")
 
-        removed = uninstall(tmp, extra=extra)
+        removed = _uninstall_recipe(tmp, extra=extra)
         assert_succeeded(self, removed)
         self.assertFalse(
             os.path.exists(renamed),
@@ -181,7 +202,7 @@ class TestInstall(unittest.TestCase):
             with open(staging, "w", encoding="utf-8") as handle:
                 handle.write("[General]\nName=Partial\n")
 
-            removed = uninstall(tmp)
+            removed = _uninstall_recipe(tmp)
             assert_succeeded(self, removed)
             self.assertFalse(
                 os.path.exists(os.path.join(schemes, "MacOS8.colors")),
@@ -193,7 +214,7 @@ class TestInstall(unittest.TestCase):
             )
             self.assertTrue(os.path.isfile(other), other)
 
-            again = uninstall(tmp)
+            again = _uninstall_recipe(tmp)
             assert_succeeded(self, again)
 
     def test_make_uninstall_warns_when_the_removed_scheme_is_still_selected(self):
@@ -356,7 +377,7 @@ class TestInstall(unittest.TestCase):
             write_home_config(home, "[General]\nColorScheme=MacOS8\n")
             env = make_env("XDG_CONFIG_HOME", "HOME")
             env["HOME"] = home
-            removed = uninstall(tmp, env=env)
+            removed = _uninstall_recipe(tmp, env=env)
 
         assert_succeeded(self, removed)
         self.assertIn("is still selected", removed.stderr)
@@ -372,7 +393,7 @@ class TestInstall(unittest.TestCase):
             env = make_env("XDG_CONFIG_HOME", "HOME")
             env["HOME"] = home
             env["XDG_CONFIG_HOME"] = "relative/config"
-            removed = uninstall(tmp, env=env)
+            removed = _uninstall_recipe(tmp, env=env)
 
         assert_succeeded(self, removed)
         self.assertIn("is still selected", removed.stderr)
@@ -383,7 +404,7 @@ class TestInstall(unittest.TestCase):
         # than read a path built from an empty variable.
         with installed_destdir(self, packages="color-scheme") as tmp:
             env = make_env("XDG_CONFIG_HOME", "HOME")
-            removed = uninstall(tmp, env=env)
+            removed = _uninstall_recipe(tmp, env=env)
 
         assert_succeeded(self, removed)
         self.assertNotIn("is still selected", removed.stderr)
