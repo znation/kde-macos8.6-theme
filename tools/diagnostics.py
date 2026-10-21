@@ -7,8 +7,8 @@ input error (:func:`report_error`) and 1 for a failed external command
 tool that needs external commands refuses to run when one is absent from PATH
 through :func:`report_missing_tool`. Keeping the format and the exit statuses
 here means they cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
-``tools/apply_theme.py``, ``tools/local_hook.py`` and
-``tools/render_surface.py``.
+``tools/apply_theme.py``, ``tools/local_hook.py``, ``tools/make_wallpaper.py``
+and ``tools/render_surface.py``.
 
 Argument parsing lives in the sibling ``tools/argument_parsing.py``; the escaping itself in
 ``tools/terminal.py``.

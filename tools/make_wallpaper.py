@@ -18,12 +18,15 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from tools.diagnostics import report_error
     from tools.png import Image, PngError, read_png
     from tools.png.write import encode_png
 else:  # run directly: python3 tools/make_wallpaper.py
+    from diagnostics import report_error
     from png import Image, PngError, read_png
     from png.write import encode_png
 
+TOOL = "make_wallpaper"
 ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"
 TILE_ORIGIN = (0, 128)
@@ -116,28 +119,19 @@ def main() -> int:
     try:
         tile = tile_from_reference(read_png(ROOT / REFERENCE))
     except (PngError, ValueError) as exc:
-        print(f"make_wallpaper: error: {exc}", file=sys.stderr)
-        return 2
+        return report_error(TOOL, str(exc))
     images = ROOT / PACKAGE_DIR / "contents" / "images"
     try:
         images.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
-        print(
-            f"make_wallpaper: error: cannot create {images}: {exc}",
-            file=sys.stderr,
-        )
-        return 2
+        return report_error(TOOL, f"cannot create {images}: {exc}")
     for width, height in RESOLUTIONS:
         data = encode_png(width, height, tiled_rgb(tile, width, height))
         target = images / f"{width}x{height}.png"
         try:
             _write_atomic(target, data)
         except OSError as exc:
-            print(
-                f"make_wallpaper: error: cannot write {target}: {exc}",
-                file=sys.stderr,
-            )
-            return 2
+            return report_error(TOOL, f"cannot write {target}: {exc}")
     return 0
 
 

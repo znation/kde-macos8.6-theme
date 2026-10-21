@@ -154,6 +154,20 @@ class TestMain(unittest.TestCase):
         self.assertIn(make_wallpaper.REFERENCE, err)
         self.assertFalse(self.images.exists())
 
+    def test_a_control_character_in_the_reference_path_is_escaped(self):
+        # A checkout path can carry a control character, and read_png embeds
+        # the path in its error message. The tool must route that message
+        # through the shared escaped diagnostic instead of printing the raw
+        # ESC to the operator's terminal.
+        with mock.patch.object(
+            make_wallpaper, "REFERENCE", "\x1b[31mhidden.png"
+        ):
+            status, err = self.run_main()
+        self.assertEqual(status, 2)
+        self.assertTrue(err.startswith("make_wallpaper: error: "))
+        self.assertNotIn("\x1b", err)
+        self.assertIn("\\u001b", err)
+
     def test_reference_too_small_for_the_tile_exits_2_and_writes_nothing(self):
         self.write_reference(TILE, TILE)
         status, err = self.run_main()
