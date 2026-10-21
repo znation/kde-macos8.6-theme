@@ -7,30 +7,7 @@ each tick.
 
 ## Open
 
-### Should the theme ship a lock-screen override to remove the clock's drop shadow?
-
-(asked 2026-10-21 by the director role)
-
-**Context.** The supplied photo is the Plasma lock screen, and its time and date look blurred
-because `LockScreenUi.qml` draws a hardcoded `DropShadow` (radius 6, samples 14, spread 0.3)
-behind the Breeze `Clock`; the username and the other labels have no shadow. The lock screen is
-shell QML, not a desktop-theme widget, and its `config.xml` exposes only `alwaysShowClock`, so
-nothing in `theme/` can remove the shadow. BUGS.md records the details. The only project-owned
-ways to change it are to ship a lock-screen QML override (or a full custom lock screen), or to
-document the limitation and wait for an upstream KDE change. A lock-screen override is a new
-Plasma-version-fragile surface, needs a system-level install/selection path, and has no Mac OS
-8.6 reference screenshot to ground its layout.
-
-**Options.**
-1. Document the limitation and track the shadow removal upstream. No new surface; the blur stays
-   until KDE changes the lock screen.
-2. Ship a project-owned lock-screen override or custom lock screen with a crisp clock. Fixes the
-   blur now, but forks Plasma shell QML and needs revalidation on Plasma updates.
-3. Leave the lock screen alone and revisit it only as part of a broader login/lock-screen plan.
-
-**Recommendation.** Option 1 now; option 2 only if the lock screen becomes an explicit scope
-expansion, planned separately. The project has no lock-screen artifact and cannot reach the
-hardcoded shadow through its existing theme files.
+_None yet._
 
 ## Answered
 
@@ -202,3 +179,30 @@ Firefox frame with one preference. Revisit option 2 as a separate planned
 series if full-desktop fidelity outranks keeping the theme KDE/Qt-only.
 
 **Answered 2026-10-19 by the user:** Yes, I guess let's proceed to expand the scope of this project. We should also style GTK applications and Firefox.
+
+### Should the theme ship a lock-screen override to remove the clock's drop shadow?
+
+(asked 2026-10-21 by the director role)
+
+**Context.** The supplied photo is the Plasma lock screen, and its time and date look blurred
+because `LockScreenUi.qml` draws a hardcoded `DropShadow` (radius 6, samples 14, spread 0.3)
+behind the Breeze `Clock`; the username and the other labels have no shadow. The lock screen is
+shell QML, not a desktop-theme widget, and its `config.xml` exposes only `alwaysShowClock`, so
+nothing in `theme/` can remove the shadow. BUGS.md records the details. The only project-owned
+ways to change it are to ship a lock-screen QML override (or a full custom lock screen), or to
+document the limitation and wait for an upstream KDE change. A lock-screen override is a new
+Plasma-version-fragile surface, needs a system-level install/selection path, and has no Mac OS
+8.6 reference screenshot to ground its layout.
+
+**Options.**
+1. Document the limitation and track the shadow removal upstream. No new surface; the blur stays
+   until KDE changes the lock screen.
+2. Ship a project-owned lock-screen override or custom lock screen with a crisp clock. Fixes the
+   blur now, but forks Plasma shell QML and needs revalidation on Plasma updates.
+3. Leave the lock screen alone and revisit it only as part of a broader login/lock-screen plan.
+
+**Recommendation.** Option 1 now; option 2 only if the lock screen becomes an explicit scope
+expansion, planned separately. The project has no lock-screen artifact and cannot reach the
+hardcoded shadow through its existing theme files.
+
+**Answered 2026-10-21 by the user:** Let's go with option 3. Leave the lock screen alone and revisit it only as part of a broader login/lock-screen plan.
