@@ -2,8 +2,9 @@
 
 The package directory, the `.kvconfig` and `.svg` paths, the color scheme the
 palette is grounded in, and the two files the package ships. The
-`test_kvantum_*` modules each cover one concern of the Kvantum widget style and
-import what they share from here.
+`test_kvantum_*` modules each cover one concern of the Kvantum widget style,
+and `support.kvantum_config_spec` builds its pin tables from the same paths;
+all import what they share from here.
 """
 
 from __future__ import annotations

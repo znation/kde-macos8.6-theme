@@ -1,9 +1,9 @@
 """Shared path and parser loader for the color-scheme test modules.
 
-``test_colorscheme``, ``test_colorscheme_reference`` and
-``test_colorscheme_install`` all locate and parse
-``theme/color-schemes/MacOS8.colors``; the path and the KDE-INI loader live
-here once instead of in each module.
+``test_colorscheme``, ``test_colorscheme_reference``,
+``test_colorscheme_install`` and ``test_desktoptheme_tooltip`` all locate and
+parse ``theme/color-schemes/MacOS8.colors``; the path and the KDE-INI loader
+live here once instead of in each module.
 """
 
 import os

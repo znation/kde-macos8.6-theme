@@ -1,9 +1,10 @@
 """Shared paths, reference loader and constants for the Aurorae decoration tests.
 
-The package paths, the two reference screenshots the artwork is re-derived
+The package paths, the three reference screenshots the artwork is re-derived
 from, the inactive-state grey, and the `ReferenceImageCase` mixin that loads
 them. The `test_aurorae_*` modules each cover one concern of the
-`org.macos8.desktop` window decoration and import what they share from here.
+`org.macos8.desktop` window decoration, and the other reference tests that
+sample the same screenshots import the paths, bounds and loader from here.
 """
 
 from __future__ import annotations

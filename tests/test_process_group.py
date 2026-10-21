@@ -1,4 +1,4 @@
-"""Tests for tools/process_group.py, the render script's process supervisor."""
+"""Tests for tools/process_group.py, the render and apply scripts' process supervisor."""
 
 from __future__ import annotations
 

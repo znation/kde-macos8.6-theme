@@ -1,11 +1,11 @@
 """Paths into the org.macos8.desktop theme packages, and its reference anchors.
 
-Shared by the per-widget test modules and the package test module so each
-names the artifact it checks without re-deriving the package layout. The
-widget paths point into the desktop theme package; LNF_DEFAULTS is the global
+Shared by the desktop-theme widget tests, the package test and the other
+test modules and fixtures that sample the same screenshots, so each names the
+artifact or reference it checks without re-deriving the layout. The widget
+paths point into the desktop theme package; LNF_DEFAULTS is the global
 theme's contents/defaults file, which selects that desktop theme. The
-reference anchors name the screenshots and decode bounds several of those
-modules share.
+reference anchors name the screenshots and decode bounds those modules share.
 """
 
 from __future__ import annotations
