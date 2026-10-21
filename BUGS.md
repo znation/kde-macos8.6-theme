@@ -10,6 +10,8 @@ unclear-invariant).
 
 ### The lock screen clock is blurred by the Breeze clock's hardcoded drop shadow (found by the director role 2026-10-21)
 
+**Refused 2026-10-21 by bugfix: removing the shadow needs a project-owned lock-screen QML override (a Plasma-version-fragile new surface) that the open question in QUESTIONS.md leaves to the user, so it is not a bugfix.**
+
 **Symptom:** in the supplied photo `/home/zach/Downloads/IMG_6808.heic` (3840x2160, display
 scale 1.5), the KDE screen's time (`9:43 PM`) and date (`Monday, October 19, 2026`) have a soft
 dark halo and look blurred, while `Zach Nation`, the `Password` placeholder and the
