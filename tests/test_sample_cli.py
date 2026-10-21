@@ -16,6 +16,7 @@ from support.error_assertions import assert_escapes_escape_character  # noqa: E4
 from support.png_fixtures import (  # noqa: E402
     control_named_missing,
     control_named_png,
+    make_png,
     rgb_image,
     solid_rgb,
 )
@@ -109,6 +110,23 @@ class TestSampleCli(CliTestCase):
                 self._assert_success(result)
                 read.assert_called_once()
                 self.assertEqual(read.call_args.kwargs["max_rows"], rows)
+
+    def test_corruption_below_the_sampled_row_is_still_reported(self):
+        # The sampler bounds its decode to the sampled rectangle's bottom row,
+        # but that only skips predictor work: every scanline's filter type is
+        # still validated. A corrupt reference whose bad filter type sits
+        # below the sample must fail the run, not print a pixel from a file
+        # the decoder would reject. This is the guarantee the bounded-read
+        # change stated in its RISK line.
+        data = make_png(
+            4, 3, [bytes(12), bytes(12), bytes(12)], filter_types=[0, 9, 0]
+        )
+        path = self._write(self._tmp_dir(), "corrupt.png", data)
+        result = self._run(path, "0", "0")
+        self._assert_usage_error(
+            result, "unsupported PNG filter type 9 in row 1"
+        )
+        self.assertNotIn("pixel (", result.stdout)
 
     def test_region_is_row_major(self):
         path = self._image()
