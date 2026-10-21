@@ -1928,7 +1928,7 @@ rc test (`tests/test_aurorae_rc.py`), so nothing checks that KWin paints them at
 geometry. Extend the same render-and-byte-compare gate to those three border strips. It reuses
 the one render `TestRender.setUpClass` already makes; no second render runs.
 
-**Grounding (sampled 2026-10-18 with `tools/png.read_png` + `pixel_at` on a render from
+**Grounding (sampled 2026-10-18 with `tools.png.read_png` + `pixel_at` on a render from
 `tools/render_surface.py --settle 3`).** The 320x240 render puts the window at (0,0): a 6px left
 border at x=0..5, a 6px right border at x=314..319 and a 6px bottom border at y=234..239.
 `aboutsystem_betawiki.png`'s window has its left outline at x=7 and top outline at y=25, so its
@@ -1981,7 +1981,7 @@ first such crop — the window title bar — add a `--candidate-crop` option so 
 cropped to the reference crop's size, and pin the whole pipeline (install, KWin, Aurorae, render)
 with a `make check` test that byte-compares the strip.
 
-**Grounding (sampled 2026-10-18 with `tools/png.read_png` + `pixel_at`).** A 320x240 render
+**Grounding (sampled 2026-10-18 with `tools.png.read_png` + `pixel_at`).** A 320x240 render
 (`tools/render_surface.py --settle 3`, `org.kde.plasma.calculator`) puts the window's title bar at
 the top of the capture: row 0 is the `#000000` top outline, rows 1..20 are the Platinum pinstripes,
 row 21 is the `#000000` title-bar bottom outline. `aboutsystem_betawiki.png` (retail) has the same

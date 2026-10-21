@@ -235,7 +235,7 @@ show; record that in `docs/invariants.md` rather than claiming a GTK reference c
   `Kvantum/`; a shadowed failing `install` leaves the previous three files intact and removes every
   staging sibling; `make uninstall` removes the three files and staging siblings, leaves a sibling
   `Kvantum/` file and a second theme directory untouched, and a repeated uninstall succeeds.
-- `tests/test_gtk_apply.py` (new): drive `tools/apply_gtk.main` with `XDG_CONFIG_HOME` and `HOME`
+- `tests/test_gtk_apply.py` (new): drive `tools.apply_gtk.main` with `XDG_CONFIG_HOME` and `HOME`
   pointed at a temp directory. Pin: apply writes both settings files with `[Settings]` and our
   `gtk-theme-name`; it preserves an existing `gtk-font-name` line and a comment; it replaces an
   existing `gtk-theme-name`; it appends `[Settings]` when absent; it creates the marker `gtk.css`
