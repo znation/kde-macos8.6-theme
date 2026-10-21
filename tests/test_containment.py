@@ -245,11 +245,13 @@ class TestIsWithin(unittest.TestCase):
 
     ``is_within`` decides whether a path is even eligible for the symlink
     check: only a path lexically inside the root is resolved and refused. Its
-    comparison appends ``os.sep`` to the root, so a sibling directory whose
-    name merely shares the root's prefix (``repo-other`` beside ``repo``) is
-    outside, not inside. A bare ``startswith(root)`` would judge the sibling
-    inside, hand it to the resolver, and refuse a legitimate file outside the
-    repository.
+    comparison appends ``os.sep`` to a root that does not already end with
+    one, so a sibling directory whose name merely shares the root's prefix
+    (``repo-other`` beside ``repo``) is outside, not inside. A bare
+    ``startswith(root)`` would judge the sibling inside, hand it to the
+    resolver, and refuse a legitimate file outside the repository. A
+    filesystem root already ends with the separator, so appending another
+    would make the boundary ``//`` and reject every real child.
     """
 
     def test_accepts_a_path_under_the_root(self):
@@ -259,6 +261,12 @@ class TestIsWithin(unittest.TestCase):
 
     def test_accepts_the_root_itself(self):
         self.assertTrue(containment.is_within("/tmp/repo", "/tmp/repo"))
+
+    def test_accepts_a_path_under_the_filesystem_root(self):
+        # A root already ends with the separator, so unconditionally
+        # appending another makes the boundary ``//`` and every child fails
+        # the lexical check; the guard then skips the symlink check entirely.
+        self.assertTrue(containment.is_within("/", "/etc"))
 
     def test_rejects_a_sibling_directory_that_shares_the_root_prefix(self):
         self.assertFalse(

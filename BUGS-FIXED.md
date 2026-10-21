@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The lexical containment guard rejects every child of a filesystem root (found by the bugfix role 2026-10-21; fixed 2026-10-21 by the bugfix role)
+
+**Symptom:** `tools.containment.is_within("/", "/etc")` returns False, though every
+absolute path is inside `/`. Because `require_within_repo` resolves a path only when
+`is_within` says it is eligible, a root of `/` makes the guard skip the symlink-escape
+check for every path (fail open) instead of refusing an escaping one.
+
+**Reproduction:** a scratch call printed `False` for `is_within("/", "/etc")`;
+`tests/test_containment.py::TestIsWithin::test_accepts_a_path_under_the_filesystem_root`
+failed on it before the fix and passes after.
+
+**Cause:** the guard compared `absolute.startswith(base + os.sep)`. A base of `/`
+already ends with the separator, so the boundary became `//` and no real child matched it.
+
+**Fix:** `is_within` appends `os.sep` only when the base does not already end with one,
+so both a filesystem root and an ordinary directory keep a correct boundary.
+
+**Validation gap:** no-observability — no caller in the suite or tools passes a filesystem
+root, so the guard's contract violation left no trace until a direct scratch call and the
+new test surfaced it.
+
 ### A malformed KDE group header makes the test-side reader raise where KDE ignores it (found by the bugfix role 2026-10-19; fixed 2026-10-19 by the bugfix role)
 
 **Symptom:** a KDE INI text whose group header has no closing `]` (for example `[General`) makes

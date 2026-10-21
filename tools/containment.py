@@ -45,7 +45,10 @@ def is_within(directory, path):
     """Return True when *path* is lexically inside *directory* (symlinks unresolved)."""
     base = os.path.abspath(directory)
     absolute = os.path.abspath(path)
-    return absolute == base or absolute.startswith(base + os.sep)
+    # A root already ends with the separator; appending another would make
+    # ``//`` and reject every real child (and skip the symlink check).
+    boundary = base if base.endswith(os.sep) else base + os.sep
+    return absolute == base or absolute.startswith(boundary)
 
 
 def require_within_repo(path, root):
