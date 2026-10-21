@@ -85,6 +85,26 @@ class TestReadReferenceCache(unittest.TestCase):
         self.assertIsNone(full_error)
         self.assertIsNone(short_error)
 
+    def test_an_unbounded_request_after_a_bounded_decode_reads_the_whole_image(
+        self,
+    ):
+        # A bounded decode holds only its top rows, so a later unbounded
+        # request cannot be served from that cache entry: reusing it would
+        # hand every caller a silently truncated reference. Only a decode at
+        # least as tall as the image may answer an unbounded request.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                short, short_error = reference_image.read_reference(
+                    path, max_rows=1
+                )
+                full, full_error = reference_image.read_reference(path)
+        self.assertEqual(2, spy.call_count)
+        self.assertEqual((short.height, full.height), (1, 2))
+        self.assertEqual(full.rgb, bytes(12))
+        self.assertIsNone(short_error)
+        self.assertIsNone(full_error)
+
     def test_a_bound_past_the_height_is_reused_for_an_equal_request(self):
         # A bound above the image height means the whole image was decoded,
         # so an identical later request must not decode it again.
