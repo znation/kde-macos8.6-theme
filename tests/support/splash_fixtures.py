@@ -32,11 +32,11 @@ def read_qml():
     path can point at a private file. The QML probes and the ``assertIn``
     checks that consume this source echo its lines into a failing test's
     diagnostic, so a path that resolves outside the repository is refused
-    before it is opened.
+    before it is opened. The shared reader also refuses a FIFO or device by
+    name instead of blocking forever, and an oversize file instead of loading
+    it whole.
     """
-    containment.require_within_repo(SPLASH, ROOT)
-    with open(SPLASH, encoding="utf-8") as handle:
-        return handle.read()
+    return containment.read_text(SPLASH, ROOT, encoding="utf-8")
 
 
 def _match_qml(text, pattern, message):

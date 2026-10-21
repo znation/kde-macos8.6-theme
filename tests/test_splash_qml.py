@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import os
 import re
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,6 +13,7 @@ from unittest import mock
 
 from support import splash_fixtures
 from support.splash_fixtures import object_source, qml_unit_expression, read_qml
+from tools import containment as tools_containment
 
 
 class TestSplashQml(unittest.TestCase):
@@ -199,7 +203,57 @@ class TestSplashQml(unittest.TestCase):
 
 
 class TestSplashQmlContainment(unittest.TestCase):
-    """`read_qml` must refuse a symlink that escapes the repository."""
+    """`read_qml` must refuse an unusable contributor file, not hang or crash."""
+
+    def test_refuses_an_oversize_file_instead_of_loading_it_whole(self):
+        # Splash.qml is contributor-supplied, so a stray multi-gigabyte file
+        # must not be loaded whole: a plain read would allocate it and raise a
+        # MemoryError naming neither the file nor the guard. The shared reader
+        # refuses one past its cap by name instead.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            splash = root / "Splash.qml"
+            splash.write_bytes(b"x" * (tools_containment._MAX_READ_BYTES + 1))
+            with mock.patch.object(splash_fixtures, "ROOT", root), \
+                    mock.patch.object(splash_fixtures, "SPLASH", splash):
+                with self.assertRaises(ValueError) as caught:
+                    splash_fixtures.read_qml()
+        self.assertIn(str(splash), str(caught.exception))
+        self.assertIn("larger than", str(caught.exception))
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # A FIFO at the Splash.qml path blocks open() until a writer appears,
+        # and read_qml has no timeout, so one stray pipe would stall the whole
+        # suite with no diagnostic. Run it in a child so the pre-fix hang is a
+        # bounded timeout rather than a stalled run.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            fifo = root / "Splash.qml"
+            os.mkfifo(fifo)
+            child = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "import sys; import support.splash_fixtures as f; "
+                    "f.ROOT, f.SPLASH = sys.argv[1], sys.argv[2]; "
+                    "f.read_qml()",
+                    str(root),
+                    str(fifo),
+                ],
+                cwd=os.path.dirname(__file__),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(fifo), child.stderr)
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # Splash.qml is contributor-supplied, and a checked-in symlink can
