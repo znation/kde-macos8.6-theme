@@ -88,9 +88,11 @@ def _run_without_tool(main, required, missing, argv):
 def assert_missing_tool_named(case, main, required, argv=()):
     """Assert *main* names each tool in *required* when it alone is absent.
 
-    For every name, a temp directory holds executable stubs for the others
-    and ``PATH`` is narrowed to it, so ``report_missing_tool`` sees exactly
-    that one absent; the run must exit 2 and print *name* last on stderr.
+    *case* is the calling ``unittest.TestCase``, and *argv* is forwarded to
+    *main*. For every entry in *required*, a temp directory holds executable
+    stubs for the others and ``PATH`` is narrowed to it, so
+    ``report_missing_tool`` sees exactly that one absent; the run must exit 2
+    and print the missing tool last on stderr.
     """
     for missing in required:
         with case.subTest(missing=missing):
