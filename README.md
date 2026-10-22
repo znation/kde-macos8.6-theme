@@ -172,7 +172,9 @@ theme/wallpapers/org.macos8.desktop/contents/images/ from the reference desktop 
 (`macos8.6-screenshots/desktop_betawiki.png`, which needs its Git LFS image materialized). The
 output is deterministic, so re-running it rewrites identical bytes. It refuses a reference
 screenshot that resolves outside the repository — a checked-in symlink — with a diagnostic
-naming the path, so a private file's pixels cannot be copied into the package.
+naming the path, so a private file's pixels cannot be copied into the package. It refuses an
+images directory that resolves outside the repository the same way, so the generated images
+stay inside the wallpaper package.
 
 ## Reference screenshots
 

@@ -71,19 +71,22 @@ def is_within(directory, path):
     return absolute == base or absolute.startswith(boundary)
 
 
-def require_within_repo(path, root):
+def require_within_repo(path, root, action="read"):
     """Raise ``ValueError`` when a repository *path* resolves outside *root*.
 
     Only a *path* lexically inside *root* is checked, so a reader that is also
     handed a test's temporary file is unaffected. A checked-in symlink at a
     repository path resolves elsewhere and is refused with the path named.
+    *action* names the operation the caller was about to perform -- ``"read"``
+    or ``"write"`` -- so the diagnostic says which one the escape would have
+    reached.
     """
     if not is_within(root, path):
         return
     if not resolves_within(root, path):
         raise ValueError(
             f"{path} resolves outside {root} (a symlink escape); "
-            "refusing to read it"
+            f"refusing to {action} it"
         )
 
 

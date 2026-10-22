@@ -12,7 +12,10 @@ deterministic, so re-running rewrites identical bytes.
 The reference screenshot is a repository file, and a checked-in symlink can
 point anywhere on the machine. A reference that resolves outside the
 repository is refused by name before it is decoded, so a private file's pixels
-cannot be copied into the wallpaper package.
+cannot be copied into the wallpaper package. The images directory the
+generator writes into is a repository path as well, so one that resolves
+outside the repository (a checked-in symlink) is refused by name before
+anything is written: the wallpaper images stay in the wallpaper package.
 """
 
 from __future__ import annotations
@@ -136,6 +139,16 @@ def main() -> int:
     except (PngError, ValueError) as exc:
         return report_error(TOOL, str(exc))
     images = ROOT / PACKAGE_DIR / "contents" / "images"
+    try:
+        # The images directory is a repository path too, and a checked-in
+        # symlink can point anywhere on the machine: writing through it would
+        # put the wallpaper images outside the wallpaper package, into a
+        # directory a contributor names, and overwrite same-named files
+        # there. The shared guard refuses a repository path that resolves
+        # outside the repository before anything is written.
+        require_within_repo(images, ROOT, action="write")
+    except ValueError as exc:
+        return report_error(TOOL, str(exc))
     try:
         images.mkdir(parents=True, exist_ok=True)
     except OSError as exc:

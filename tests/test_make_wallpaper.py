@@ -245,6 +245,72 @@ class TestReferenceContainment(unittest.TestCase):
                 )
 
 
+class TestOutputContainment(unittest.TestCase):
+    """The images directory is a repository path; a symlink out of it is refused.
+
+    The generator writes the wallpaper images into the package's
+    ``contents/images`` directory. A checked-in symlink at that path points
+    anywhere on the machine, so writing through it would put the images
+    outside the wallpaper package, into a directory a contributor names, and
+    overwrite same-named files there.
+    """
+
+    def setUp(self):
+        self.root = make_tmp_dir(self)
+        self.outside = make_tmp_dir(self)
+        patches = (
+            mock.patch.object(make_wallpaper, "ROOT", self.root),
+            mock.patch.object(make_wallpaper, "RESOLUTIONS", SMALL_RESOLUTIONS),
+        )
+        for patch in patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+        self.images = self.root / make_wallpaper.PACKAGE_DIR / "contents" / "images"
+        self.reference = self.root / make_wallpaper.REFERENCE
+
+    def write_reference(self):
+        """Write a gradient reference PNG at the repository's reference path."""
+        width, height = X0 + TILE, Y0 + TILE
+        self.reference.parent.mkdir(parents=True)
+        self.reference.write_bytes(encode_png(width, height, gradient(width, height)))
+
+    def run_main(self):
+        """Run ``main`` and return ``(status, stderr)``."""
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            status = make_wallpaper.main()
+        return status, err.getvalue()
+
+    def test_an_images_directory_symlinked_outside_the_repository_is_refused(self):
+        # The symlink points at a directory outside the repository, so a
+        # generator that writes through it puts the wallpaper images there;
+        # the guard must refuse it before the first write.
+        self.write_reference()
+        self.images.parent.mkdir(parents=True)
+        self.images.symlink_to(self.outside, target_is_directory=True)
+
+        status, err = self.run_main()
+
+        self.assertEqual(status, 2)
+        self.assertTrue(err.startswith("make_wallpaper: error: "))
+        self.assertIn("symlink escape", err)
+        self.assertIn(str(self.images), err)
+        self.assertEqual(list(self.outside.iterdir()), [])
+
+    def test_an_images_directory_inside_the_repository_is_still_written(self):
+        # The guard must not refuse the ordinary case: the package's images
+        # directory lives in the repository, and the wallpaper belongs there.
+        self.write_reference()
+
+        status, err = self.run_main()
+
+        self.assertEqual((status, err), (0, ""))
+        self.assertEqual(
+            sorted(p.name for p in self.images.iterdir()),
+            sorted(f"{w}x{h}.png" for w, h in SMALL_RESOLUTIONS),
+        )
+
+
 class TestWriteAtomic(unittest.TestCase):
     def test_a_planted_symlink_does_not_redirect_the_write(self):
         # A local user who can write the images directory can create a

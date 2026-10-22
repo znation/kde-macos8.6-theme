@@ -255,6 +255,44 @@ class TestResolutionFailureFailsClosed(unittest.TestCase):
             self.assertIn("symlink escape", str(caught.exception))
 
 
+class TestRefusalNamesTheOperation(unittest.TestCase):
+    """The guard's diagnostic names the operation the escape would have reached.
+
+    The same guard refuses a path a caller is about to read and one it is
+    about to write (the wallpaper generator's output directory), so the
+    message says which one it is: the default is a read, and a caller that
+    passes ``action="write"`` says so.
+    """
+
+    def escaping_path(self, tmp):
+        """Return a path inside *tmp* that resolves outside it."""
+        root = tmp / "repo"
+        root.mkdir()
+        outside = tmp / "outside"
+        outside.mkdir()
+        path = root / "escape"
+        path.symlink_to(outside, target_is_directory=True)
+        return path, root
+
+    def test_the_default_refusal_names_a_read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path, root = self.escaping_path(Path(tmp))
+            with self.assertRaises(ValueError) as caught:
+                containment.require_within_repo(path, root)
+            message = str(caught.exception)
+            self.assertIn("refusing to read it", message)
+            self.assertIn(str(path), message)
+
+    def test_a_write_refusal_names_the_write(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path, root = self.escaping_path(Path(tmp))
+            with self.assertRaises(ValueError) as caught:
+                containment.require_within_repo(path, root, action="write")
+            message = str(caught.exception)
+            self.assertIn("refusing to write it", message)
+            self.assertIn("symlink escape", message)
+
+
 class TestIsWithin(unittest.TestCase):
     """The lexical half of the guard must respect the path-component boundary.
 
