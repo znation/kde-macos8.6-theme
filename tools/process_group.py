@@ -16,6 +16,13 @@ from collections.abc import Iterator
 from pathlib import Path
 from types import FrameType
 
+# A child that was just SIGKILLed normally dies at once. One stuck in
+# uninterruptible I/O (a hung network or FUSE mount) can keep the kernel from
+# reaping it for as long as that I/O lasts, which may be forever. The reap that
+# follows the group kill must not wait on that: a timeout that has already
+# fired must not turn back into an unbounded wait.
+_REAP_TIMEOUT = 5.0
+
 
 def _kill_group(process: subprocess.Popen) -> None:
     try:
@@ -31,7 +38,13 @@ def run_logged(
 
     Output goes to a file, not a pipe, so a descendant that outlives the
     child cannot keep the wait open. The whole process group is killed on the
-    way out, whatever happened.
+    way out, whatever happened. The reap after that kill is bounded too: a
+    child in uninterruptible I/O ignores SIGKILL until the kernel lets go, and
+    waiting for it forever would stall the caller after its timeout had
+    already fired. A reap that still times out is never re-raised: the first
+    wait either returned (the child is already reaped, so the second wait
+    cannot time out) or raised, in which case re-raising would replace the
+    timeout result or the in-flight ``SystemExit``/``KeyboardInterrupt``.
     """
     with log.open("wb") as sink:
         process = subprocess.Popen(
@@ -49,7 +62,17 @@ def run_logged(
             return None
         finally:
             _kill_group(process)
-            process.wait()
+            try:
+                process.wait(timeout=_REAP_TIMEOUT)
+            except subprocess.TimeoutExpired:
+                # The child has not been released yet, so there is nothing
+                # more to do: SIGKILL is already sent. Re-raising here would
+                # replace the caller's real outcome -- the None from the
+                # timeout path, or the SystemExit/KeyboardInterrupt the first
+                # wait raised -- with a spurious reap timeout. A child that
+                # exits normally was reaped by the first wait, which returned,
+                # so this second wait cannot time out on that path.
+                pass
 
 
 @contextlib.contextmanager

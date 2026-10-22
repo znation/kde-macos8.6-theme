@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import signal
+import subprocess
 import tempfile
 import time
 import unittest
@@ -95,6 +96,56 @@ class TestRunLogged(unittest.TestCase):
     def test_stdin_is_closed(self):
         self.assertEqual(0, self.run_sh("cat; exit 0", timeout=10))
         self.assertEqual("", self.log.read_text(encoding="utf-8"))
+
+    def test_an_unkillable_child_does_not_stall_after_its_timeout(self):
+        # A process in uninterruptible I/O (a hung network or FUSE mount)
+        # ignores SIGKILL until the kernel releases it, which may be never.
+        # `run_logged`'s cleanup wait used to have no timeout, so it would
+        # block forever after the command's own timeout had already fired;
+        # `make apply` and `make render` (and the post-commit hook running
+        # apply) would never return. The reap must be bounded like the wait.
+        process = mock.Mock(pid=4242)
+        process.wait.side_effect = [
+            subprocess.TimeoutExpired(["slow"], 0.1),
+            subprocess.TimeoutExpired(["slow"], 0.1),
+        ]
+        with mock.patch.object(
+            process_group.subprocess, "Popen", return_value=process
+        ), mock.patch.object(process_group, "_kill_group") as kill_group:
+            status = process_group.run_logged(
+                ["slow"], dict(os.environ), self.log, 0.1, self.root
+            )
+        self.assertIsNone(status)
+        kill_group.assert_called_once_with(process)
+        timeouts = [call.kwargs.get("timeout") for call in process.wait.call_args_list]
+        self.assertEqual(2, len(timeouts))
+        for wait_timeout in timeouts:
+            self.assertIsNotNone(wait_timeout)
+
+    def test_a_reap_timeout_does_not_replace_the_signal_that_interrupted_the_wait(self):
+        # A SIGTERM or SIGHUP makes exit_on_termination's handler raise
+        # SystemExit out of the first wait. If the just-killed child is in
+        # uninterruptible I/O, the bounded reap times out too; re-raising that
+        # would replace the shell-convention exit code (128 + signal) with a
+        # traceback, so `make render`/`make apply` would die noisy instead of
+        # unwinding.
+        process = mock.Mock(pid=4242)
+        process.wait.side_effect = [
+            SystemExit(128 + signal.SIGTERM),
+            subprocess.TimeoutExpired(["slow"], 0.1),
+        ]
+        with mock.patch.object(
+            process_group.subprocess, "Popen", return_value=process
+        ), mock.patch.object(process_group, "_kill_group"):
+            with self.assertRaises(SystemExit) as caught:
+                process_group.run_logged(
+                    ["slow"], dict(os.environ), self.log, 0.1, self.root
+                )
+        self.assertEqual(128 + signal.SIGTERM, caught.exception.code)
+        timeouts = [call.kwargs.get("timeout") for call in process.wait.call_args_list]
+        self.assertEqual(2, len(timeouts))
+        for wait_timeout in timeouts:
+            self.assertIsNotNone(wait_timeout)
 
 
 class TestExitOnTermination(unittest.TestCase):
