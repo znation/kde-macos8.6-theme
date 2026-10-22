@@ -39,160 +39,10 @@ four-part series: parts 1/4 (GTK 3 Platinum theme) and 2/4 (GTK 4/libadwaita sty
 landed, part 3/4 (the opt-in install and selection) is planned below, and part 4/4 (Firefox
 `userChrome.css` plus profile preference) is not planned yet. **The UI font** is to be vendored
 (QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
-Charcoal-style body face and is planned below; part 2/3 (a Chicago-style menu face, whose
-redistribution licence is still unresolved) and part 3/3 (selecting the installed families in
-KDE/Plasma/Qt) are not planned yet. Until those parts land, the menu bar and dialog text keep the
+Charcoal-style body face and has landed (installed but not yet selected); part 2/3 (a
+Chicago-style menu face, whose redistribution licence is still unresolved) and part 3/3
+(selecting the installed families in KDE/Plasma/Qt) are not planned yet. Until those parts land, the
 user's desktop font, and GTK and Firefox applications keep their own chrome.
-
-### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3)
-
-**Plan record.** The backlog move is part of this entry and must not touch any other file. Before
-starting, record `grep -n '^## Done$' PLANS.md` (one line) and `grep -n '^### Vendor the Lato body
-font and install it' PLANS.md` (one line). When the work is done, cut the whole entry from
-`## Planned` and paste it directly under that `## Done` heading, which stays the file's last
-heading, adding `— done YYYY-MM-DD` to its `### ` heading. Do **not** add a third `## ` heading, do
-**not** rename or move `## Planned`/`## Done`, and do **not** edit `PLANS-DONE.md`: tumwater moves
-the entry from `## Done` into that archive after the merge, so a feature-run diff to
-`PLANS-DONE.md` is wrong even when it looks like the finished archive. After the move,
-`grep -n '^## ' PLANS.md` must print exactly two lines (`## Planned` and `## Done`);
-`grep -n '^### Vendor the Lato body font and install it' PLANS.md` must print exactly one line
-whose number is greater than `## Done`'s line number; `grep -F 'Vendor the Lato body font'
-PLANS-DONE.md` must exit 1 with no output; and `git diff --name-status` must not name
-`PLANS-DONE.md`. The final `VERIFIED` line must quote the actual output of `grep -l "Vendor the Lato
-body font" PLANS.md PLANS-DONE.md` (exactly `PLANS.md`) and of `git diff --name-status`; do not make
-either claim unless that command printed it. If the entry cannot be moved, leave it under
-`## Planned` and say so; never edit `PLANS-DONE.md`.
-
-**Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
-font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
-Bold (SIL OFL 1.1, already installed on this machine, so no network fetch) as the Charcoal-style
-body face under a new `theme/fonts/org.macos8.desktop` artifact, installed to
-`$XDG_DATA_HOME/fonts/org.macos8.desktop`, so a later selection part can name the `Lato` family.
-This is part 1/3 of the UI-font series: it vendors and installs the body face only. Part 2/3 will
-vendor a Chicago-style menu face once a redistribution licence is confirmed (the ChicagoFLF
-provenance is still unresolved, so it is deliberately not shipped here); part 3/3 will select the
-installed families in KDE/Plasma/Qt. Neither sibling is in the queue yet, and this part does not
-depend on them.
-
-**Reference grounding.** `aboutsystem_betawiki.png`'s dialog body draws Charcoal's narrower
-humanist forms at 12px, but the theme ships no Apple font and samples no font pixel: Lato is this
-theme's substitute for Charcoal, and `PROVENANCE.md` records it as an approximation rather than a
-reference anchor. The two screenshot crops (the menu bar in `desktop_betawiki.png` and the
-`System` dialog body in `aboutsystem_betawiki.png`) are recorded there as context for the later
-Chicago/selection parts, not copied.
-
-**Approach.**
-- Add `theme/fonts/org.macos8.desktop/Lato-Regular.ttf` and `Lato-Bold.ttf`, copied byte for byte
-  from `/usr/share/fonts/truetype/lato/` (657,212 and 657,188 bytes; `.gitattributes` leaves
-  `.ttf` out of Git LFS, so they are committed directly). Add `LICENSE-Lato.txt` as an exact
-  byte-for-byte copy (`cp`, not an editor, heredoc or `sed`) of
-  `/usr/share/doc/fonts-lato/copyright`: 5,157 bytes, SHA-256
-  `1e6ccc54aa0b0aa4188cda121174f17cf1c28bac9734749bbe1128bb6dd89a97`, ending in the
-  `Files: debian/*` stanza's `... for the text of the GNU General Public License version 2".` with
-  **no trailing newline**. Do not append a newline (the prior attempt did, producing 5,158 bytes
-  and SHA-256 `6664793a025c96e6bb4f319a8c8d5b929296bf0df229db8b1c19e80a5988eb25`); an editor or
-  shell substitution that adds one makes the pinned test fail. The `Files: *` stanza carries the
-  upstream copyright line and the complete OFL-1.1 body, while the trailing `Files: debian/*`
-  stanza is Debian packaging GPL-2+ text that does not cover the fonts. `PROVENANCE.md` records the
-  local source paths, the upstream source (`http://www.latofonts.com`, Debian package `fonts-lato`),
-  the SHA-256 digests of all three files, that `LICENSE-Lato.txt` is the source byte for byte
-  including its missing final newline (not a newline-appended variant), the internal family name
-  `Lato`, the `debian/*` stanza's scope, and why the face is an approximation of Charcoal.
-- `Makefile`: add `FONT_ID := org.macos8.desktop`, `FONT_PACKAGE := theme/fonts/$(FONT_ID)` and
-  `FONT_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/fonts`; add `fonts` to `INSTALL_FAMILIES` and to
-  the default `INSTALL_PACKAGES`; in `_install` create `$(FONT_INSTALL_DIR)` and copy the package
-  with the existing `install_package` swap; in `_uninstall` remove
-  `$(FONT_INSTALL_DIR)/$(FONT_ID)` together with its `.staging` and `.old` siblings. Update the
-  `help` line's default family list (the default is compared against the `?=` value by
-  `tests/test_make_help.py`). Update the two family comments: the `INSTALL_FAMILIES` comment's
-  `all seven` becomes `all eight`, and `_uninstall`'s shared-parent-directory comment lists
-  `fonts` with the other families.
-- `tests/support/installed_paths.py`: add `installed_fonts_dir(destdir)` returning the `fonts`
-  directory under `$DESTDIR`'s data home, built from the module's `XDG_DATA_HOME` constant like
-  the other helpers, and `installed_font_package(destdir, package_id)` returning its `package_id`
-  child, matching the Makefile paths; add the font package to the module docstring's list of
-  installed artifacts.
-- `tests/support/install_lifecycle_cases.py`: add the font suite to the module docstring's family
-  list and change the `MAKE_PACKAGES` comment's `instead of all seven` to `instead of all eight`.
-  `tests/support/install_failure_cases.py`: change the same `instead of all seven` comment to
-  `instead of all eight` (the font package uses the shared staging swap, so the family count it
-  describes gains one). `tests/support/theme_install.py`: add the font package to its module
-  docstring's list of installable artifact suites.
-- `tests/test_fonts.py` (new): `TestFontFiles` parses each TTF's sfnt `name` table (name ID 1 and
-  2) with `struct` and asserts the family is `Lato` and the subfamily is `Regular`/`Bold`; pins the
-  SHA-256 of both TTFs (`6f6940be0835c3ddec9199e5fc42be4cbc61ebcfd58c623fdf719366253f1780` and
-  `bf1b8130069b44b9148eeece35e5423bedac49777ba746615b826b8276574a7b`) and of `LICENSE-Lato.txt`
-  (`1e6ccc54aa0b0aa4188cda121174f17cf1c28bac9734749bbe1128bb6dd89a97`), asserts that licence's
-  last byte is not a newline, and asserts `PROVENANCE.md` names all three digests; asserts
-  `LICENSE-Lato.txt` contains `License: OFL-1.1`, the copyright line
-  `(c) 2010-2011, Łukasz Dziedzic` and the OFL clause heading `PERMISSION & CONDITIONS` (the file
-  has no `SIL OPEN FONT LICENSE` heading, so do not assert that phrase). `TestFontsInstall`
-  subclasses `InstallLifecycleCases` with `MAKE_PACKAGES = "fonts"`,
-  `PACKAGE_DIR = "theme/fonts/org.macos8.desktop"`, `INSTALLED_FILES` naming the four files, and
-  `installed_parent`/`installed_package_dir` overridden to the new helpers, so it gets the
-  byte-for-byte, registry-coverage, repeat-install and uninstall-leftover checks once. Add
-  `test_uninstall_leaves_a_sibling_font_family`, which creates `$fonts/other-family` before the
-  uninstall and asserts it survives.
-- `tests/test_theme_install.py`: in `TestWhitespaceInInstallPaths`, add
-  `installed_paths.installed_font_package(destdir, package)` to the `directories` list checked
-  before and after the round trip, and change both `seven artifacts` docstrings to eight. In
-  `TestInstallPackages.test_one_family_installs_only_that_family`, add
-  `installed_paths.installed_fonts_dir(tmp)` to `other_dirs` so installing `color-scheme` leaves
-  `fonts/` absent.
-- `README.md`: change each of the four `seven artifacts` sentences -- the Status line, the
-  Installing paragraph, the uninstall paragraph and the `make apply` paragraph -- to eight, and add
-  the `org.macos8.desktop` Lato font package to each list with its
-  `$XDG_DATA_HOME/fonts/org.macos8.desktop` path, its OFL-1.1 licence and the note that this part
-  installs the family but does not select it. In the uninstall paragraph, add `fonts/` to the
-  shared-directory list. Leave the Status paragraph's archive sentence (`... fixed bugs are
-  archived in BUGS-FIXED.md.`) byte-identical: it is out of scope for this part, and mentioning
-  `PLANS-DONE.md` here would contradict the Plan record above.
-- `docs/invariants.md`: add a `## fonts` section between `## desktoptheme` and `## gtk` (every
-  `theme/` subsystem needs one) with a row for the shipped Lato family/digests pinned to
-  `tests/test_fonts.py::TestFontFiles` and a row for the install/uninstall lifecycle pinned to
-  `tests/test_fonts.py::TestFontsInstall`, with the provenance exception stating that Lato is a
-  Charcoal substitute, not a sampled reference face.
-
-**Files touched.** `theme/fonts/org.macos8.desktop/Lato-Regular.ttf` (new),
-`theme/fonts/org.macos8.desktop/Lato-Bold.ttf` (new),
-`theme/fonts/org.macos8.desktop/LICENSE-Lato.txt` (new),
-`theme/fonts/org.macos8.desktop/PROVENANCE.md` (new), `Makefile`,
-`tests/support/installed_paths.py`, `tests/support/install_lifecycle_cases.py`,
-`tests/support/install_failure_cases.py`, `tests/support/theme_install.py`,
-`tests/test_fonts.py` (new), `tests/test_theme_install.py`, `README.md`,
-`docs/invariants.md`, and `PLANS.md` (the entry moves to `## Done`; see Plan record). Do not edit
-`PLANS-DONE.md`.
-
-**Acceptance criteria.**
-- `make install INSTALL_PACKAGES=fonts DESTDIR=<tmp>` writes exactly the four files above under
-  `$XDG_DATA_HOME/fonts/org.macos8.desktop/`; a default `make install DESTDIR=<tmp>` writes them
-  too; `make uninstall` removes that directory and its `.staging`/`.old` leftovers while leaving a
-  sibling font family's directory in place (pinned by
-  `tests/test_fonts.py::TestFontsInstall.test_uninstall_leaves_a_sibling_font_family`).
-- `cmp -s theme/fonts/org.macos8.desktop/LICENSE-Lato.txt
-  /usr/share/doc/fonts-lato/copyright` exits 0: the shipped licence is the source's 5,157 bytes
-  including its missing final newline, not the 5,158-byte newline-appended variant.
-- `make check CHECK_TESTS=test_fonts` passes; removing either TTF, changing a byte, renaming the
-  family or subfamily in the font, editing `LICENSE-Lato.txt` (including appending a newline), or
-  dropping a digest from `PROVENANCE.md` makes it fail.
-- `tests/invariants.py` accepts `theme/fonts` with its `## fonts` section, and
-  `make check CHECK_TESTS=test_theme_install test_make_help` passes with the new family.
-- `grep -n seven README.md Makefile tests/support/install_lifecycle_cases.py
-  tests/support/install_failure_cases.py tests/test_theme_install.py` finds no artifact-count
-  text, and the README Status paragraph's archive sentence still reads exactly `Open work is
-  tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions
-  needed); fixed bugs are archived in BUGS-FIXED.md.` (a diff that rewrites it fails this plan).
-- `git diff --name-status` names only the files listed under "Files touched"; an edit outside that
-  list is out of scope for this part.
-- When the work lands, `grep -n '^### Vendor the Lato body font and install it' PLANS.md` prints
-  exactly one line whose number is greater than the `## Done` line's; `grep -F 'Vendor the Lato
-  body font' PLANS-DONE.md` exits 1 with no output; `grep -n '^## ' PLANS.md` prints exactly
-  `## Planned` and `## Done`; and `git diff --name-status` does not name `PLANS-DONE.md`. The final
-  report quotes the actual output of `grep -l "Vendor the Lato body font" PLANS.md PLANS-DONE.md`
-  (exactly `PLANS.md`) and of `git diff --name-status`; a `VERIFIED` line that says otherwise
-  contradicts those commands and fails this plan.
-- No `kdeglobals` write, global-theme `contents/defaults` change, `tools/apply_*` change, GTK,
-  Firefox or README archive-sentence change is made in this part; `make check` is green.
 
 ### GTK opt-in, part 1/2: Install the GTK 3 and GTK 4 Platinum themes opt-in (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
@@ -417,4 +267,247 @@ Do not edit `PLANS-DONE.md`.
   and its `RISK` names the GTK settings files and libadwaita user CSS; a report that calls the
   change only backlog bookkeeping contradicts the diff.
 
+### Select the Lato body face in KDE, Plasma and Qt applications (planned 2026-10-22 by the plan role; UI font series part 3/3, body face only)
+
+**Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
+directly under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
+`— done YYYY-MM-DD` to its `### ` heading. Do not add, rename or move a `## ` heading, and do not
+edit `PLANS-DONE.md`: tumwater moves the entry from `## Done` into that archive after the merge.
+Before editing, record `grep -n '^## Done$' PLANS.md`; after the move, `grep -n '^## ' PLANS.md`
+must print exactly two lines (`## Planned` and `## Done`) and `grep -n '^### Select the Lato body
+face in KDE, Plasma and Qt applications' PLANS.md` must print exactly one line whose number is
+greater than the `## Done` line's. The final report quotes the actual output of `grep -l "Select
+the Lato body face in KDE, Plasma and Qt applications" PLANS.md PLANS-DONE.md` (exactly
+`PLANS.md`) and of `git diff --name-status`; never claim a file the diff does not name.
+
+**Goal.** Part 1/3 landed the Lato package and `make install` copies it, but the global theme's
+`contents/defaults` names no font, so KDE, Plasma and Qt applications keep the user's font
+(README's Status line calls the package "installed but not yet selected"). Make the global theme
+select the installed `Lato` family for the general, menu, toolbar and smallest-readable fonts and
+for window titles, at KDE's default point sizes, by adding those keys to `contents/defaults` —
+the same declarative mechanism that already selects the colour scheme, icons, decoration and
+Kvantum style. This is the body face of part 3/3 only: part 2/3 (a Chicago-style menu face) has no
+confirmed redistribution licence and is not planned, so the menu bar and window titles wear Lato
+for now and the part that vendors a Chicago-style face will update `menuFont`/`activeFont` then.
+Monospaced text (`fixed`) keeps the user's fixed font because the package ships no monospace
+face. No `Makefile`, `tools/` or install behaviour changes: `make install` still only copies the
+family, and `make apply` selects it by re-applying the global theme.
+
+**Reference grounding.** No reference pixel is sampled: Lato is this theme's substitute for
+Charcoal (`theme/fonts/org.macos8.desktop/PROVENANCE.md`), and the point sizes are KDE's defaults
+(10 for `font`, `menuFont`, `toolBarFont` and `activeFont`; 8 for `smallestReadableFont`), not a
+metric measured in a screenshot. Record both as provenance exceptions in `docs/invariants.md`;
+matching the reference's 12px body text would need a rendered comparison, which this part does
+not claim.
+
+**Approach.**
+- `theme/look-and-feel/org.macos8.desktop/contents/defaults`: in `[kdeglobals][General]`, after
+  `ColorScheme=MacOS8`, add `font=Lato,10`, `menuFont=Lato,10`, `toolBarFont=Lato,10` and
+  `smallestReadableFont=Lato,8`; add a new `[kdeglobals][WM]` section between it and
+  `[kdeglobals][Icons]` holding `activeFont=Lato,10`. Leave every other group, key and byte
+  identical.
+- `tests/test_lookandfeel.py`: add `WM_SECTION = "kdeglobals][WM"` beside the other section
+  constants; in `TestDefaults.test_the_expected_sections_and_keys_are_set` put `WM_SECTION` after
+  `DEFAULTS_SECTION`, extend the `DEFAULTS_SECTION` options to `["ColorScheme", "font",
+  "menuFont", "toolBarFont", "smallestReadableFont"]` in file order, and expect
+  `["activeFont"]` for `WM_SECTION`. Add
+  `TestDefaults.test_fonts_name_the_installed_lato_family`: for each of the five
+  (section, key) pairs, split the value at the first comma, assert the family is exactly
+  `Lato`, assert the remaining point size parses as a positive integer, and assert
+  `smallestReadableFont` is not larger than `font`. The test reads the shipped file only; it runs
+  no KDE tool.
+- `theme/fonts/org.macos8.desktop/PROVENANCE.md`: replace the `## Selection` paragraph's "it does
+  not select it ... later part" with the selection this part adds (the five roles, KDE default
+  sizes, monospace left alone, the Chicago-style face still pending part 2/3).
+- `tests/test_fonts.py`: reword the module docstring's "but does not select it in KDE/Plasma/Qt"
+  to say the global theme's defaults select the family; no assertion in the file changes.
+- `README.md`: in the Status line change "installed but not yet selected" to "selected by the
+  global theme"; in the Installing font sentence replace "this part installs the family but does
+  not select it" with the five selected roles and KDE's default sizes, that monospaced text keeps
+  the user's fixed font, and that menus and window titles use Lato until a Chicago-style face
+  lands; in the `make apply` paragraph replace "(the Lato font package is installed but, like
+  `make install`, not selected)" with a statement that `make apply` re-applies the global theme,
+  which selects Lato, while a bare `make install` only copies it. Leave the artifact count
+  (eight) and the target list unchanged.
+- `docs/invariants.md`: extend the `## look-and-feel` row whose guarantee lists what
+  `contents/defaults` selects to name the `Lato` font family, and add a `## fonts` row pinned to
+  `tests/test_lookandfeel.py::TestDefaults`: the global theme selects the installed Lato family
+  for the general, menu, toolbar, smallest-readable and window-title fonts; provenance exception:
+  Lato is a Charcoal substitute, the point sizes are KDE defaults, and monospace keeps the user's
+  fixed font.
+
+**Files touched.** `theme/look-and-feel/org.macos8.desktop/contents/defaults`,
+`tests/test_lookandfeel.py`, `theme/fonts/org.macos8.desktop/PROVENANCE.md`,
+`tests/test_fonts.py`, `README.md`, `docs/invariants.md`, and `PLANS.md` (the entry moves to
+`## Done`; see Plan record). Do not edit `PLANS-DONE.md`.
+
+**Acceptance criteria.**
+- The defaults file holds exactly the five keys above with the `Lato` family and those sizes,
+  `make check CHECK_TESTS='test_lookandfeel test_fonts'` passes, and changing `Lato` to another
+  family, dropping a key, adding a sixth font role, or making a size zero, negative or
+  non-numeric makes the matching `TestDefaults` assertion fail.
+- `tests/invariants.py` accepts the extended look-and-feel row and the new fonts row, and
+  `make check` is green.
+- `git diff --name-status` names only the files listed under "Files touched" (besides the backlog
+  move) and does not name `PLANS-DONE.md`, `Makefile` or any file under `tools/`; README still
+  says eight artifacts and lists no new target.
+- When the work lands, `grep -n '^### Select the Lato body face in KDE, Plasma and Qt
+  applications' PLANS.md` prints exactly one line whose number is greater than the `## Done`
+  line's; `grep -F 'Select the Lato body face in KDE, Plasma and Qt applications' PLANS-DONE.md`
+  exits 1 with no output; and `git diff --name-status` does not name `PLANS-DONE.md`. The report's
+  `SUMMARY` names the `contents/defaults` font selection and its `RISK` names KDE reading the
+  font keys from the theme defaults and the menu/window-title face borrowing Lato until a
+  Chicago-style face lands; a report that calls the change only backlog bookkeeping contradicts
+  the diff.
+
 ## Done
+
+### Vendor the Lato body font and install it (planned 2026-10-21 by the plan role; part 1/3) — done 2026-10-22
+
+**Plan record.** The backlog move is part of this entry and must not touch any other file. Before
+starting, record `grep -n '^## Done$' PLANS.md` (one line) and `grep -n '^### Vendor the Lato body
+font and install it' PLANS.md` (one line). When the work is done, cut the whole entry from
+`## Planned` and paste it directly under that `## Done` heading, which stays the file's last
+heading, adding `— done YYYY-MM-DD` to its `### ` heading. Do **not** add a third `## ` heading, do
+**not** rename or move `## Planned`/`## Done`, and do **not** edit `PLANS-DONE.md`: tumwater moves
+the entry from `## Done` into that archive after the merge, so a feature-run diff to
+`PLANS-DONE.md` is wrong even when it looks like the finished archive. After the move,
+`grep -n '^## ' PLANS.md` must print exactly two lines (`## Planned` and `## Done`);
+`grep -n '^### Vendor the Lato body font and install it' PLANS.md` must print exactly one line
+whose number is greater than `## Done`'s line number; `grep -F 'Vendor the Lato body font'
+PLANS-DONE.md` must exit 1 with no output; and `git diff --name-status` must not name
+`PLANS-DONE.md`. The final `VERIFIED` line must quote the actual output of `grep -l "Vendor the Lato
+body font" PLANS.md PLANS-DONE.md` (exactly `PLANS.md`) and of `git diff --name-status`; do not make
+either claim unless that command printed it. If the entry cannot be moved, leave it under
+`## Planned` and say so; never edit `PLANS-DONE.md`.
+
+**Goal.** QUESTIONS.md's font answer (2026-10-19) directs the theme to vendor a Chicago/Charcoal-style
+font, but no `theme/fonts` directory exists and `make install` copies no font. Ship Lato Regular and
+Bold (SIL OFL 1.1, already installed on this machine, so no network fetch) as the Charcoal-style
+body face under a new `theme/fonts/org.macos8.desktop` artifact, installed to
+`$XDG_DATA_HOME/fonts/org.macos8.desktop`, so a later selection part can name the `Lato` family.
+This is part 1/3 of the UI-font series: it vendors and installs the body face only. Part 2/3 will
+vendor a Chicago-style menu face once a redistribution licence is confirmed (the ChicagoFLF
+provenance is still unresolved, so it is deliberately not shipped here); part 3/3 will select the
+installed families in KDE/Plasma/Qt. Neither sibling is in the queue yet, and this part does not
+depend on them.
+
+**Reference grounding.** `aboutsystem_betawiki.png`'s dialog body draws Charcoal's narrower
+humanist forms at 12px, but the theme ships no Apple font and samples no font pixel: Lato is this
+theme's substitute for Charcoal, and `PROVENANCE.md` records it as an approximation rather than a
+reference anchor. The two screenshot crops (the menu bar in `desktop_betawiki.png` and the
+`System` dialog body in `aboutsystem_betawiki.png`) are recorded there as context for the later
+Chicago/selection parts, not copied.
+
+**Approach.**
+- Add `theme/fonts/org.macos8.desktop/Lato-Regular.ttf` and `Lato-Bold.ttf`, copied byte for byte
+  from `/usr/share/fonts/truetype/lato/` (657,212 and 657,188 bytes; `.gitattributes` leaves
+  `.ttf` out of Git LFS, so they are committed directly). Add `LICENSE-Lato.txt` as an exact
+  byte-for-byte copy (`cp`, not an editor, heredoc or `sed`) of
+  `/usr/share/doc/fonts-lato/copyright`: 5,157 bytes, SHA-256
+  `1e6ccc54aa0b0aa4188cda121174f17cf1c28bac9734749bbe1128bb6dd89a97`, ending in the
+  `Files: debian/*` stanza's `... for the text of the GNU General Public License version 2".` with
+  **no trailing newline**. Do not append a newline (the prior attempt did, producing 5,158 bytes
+  and SHA-256 `6664793a025c96e6bb4f319a8c8d5b929296bf0df229db8b1c19e80a5988eb25`); an editor or
+  shell substitution that adds one makes the pinned test fail. The `Files: *` stanza carries the
+  upstream copyright line and the complete OFL-1.1 body, while the trailing `Files: debian/*`
+  stanza is Debian packaging GPL-2+ text that does not cover the fonts. `PROVENANCE.md` records the
+  local source paths, the upstream source (`http://www.latofonts.com`, Debian package `fonts-lato`),
+  the SHA-256 digests of all three files, that `LICENSE-Lato.txt` is the source byte for byte
+  including its missing final newline (not a newline-appended variant), the internal family name
+  `Lato`, the `debian/*` stanza's scope, and why the face is an approximation of Charcoal.
+- `Makefile`: add `FONT_ID := org.macos8.desktop`, `FONT_PACKAGE := theme/fonts/$(FONT_ID)` and
+  `FONT_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/fonts`; add `fonts` to `INSTALL_FAMILIES` and to
+  the default `INSTALL_PACKAGES`; in `_install` create `$(FONT_INSTALL_DIR)` and copy the package
+  with the existing `install_package` swap; in `_uninstall` remove
+  `$(FONT_INSTALL_DIR)/$(FONT_ID)` together with its `.staging` and `.old` siblings. Update the
+  `help` line's default family list (the default is compared against the `?=` value by
+  `tests/test_make_help.py`). Update the two family comments: the `INSTALL_FAMILIES` comment's
+  `all seven` becomes `all eight`, and `_uninstall`'s shared-parent-directory comment lists
+  `fonts` with the other families.
+- `tests/support/installed_paths.py`: add `installed_fonts_dir(destdir)` returning the `fonts`
+  directory under `$DESTDIR`'s data home, built from the module's `XDG_DATA_HOME` constant like
+  the other helpers, and `installed_font_package(destdir, package_id)` returning its `package_id`
+  child, matching the Makefile paths; add the font package to the module docstring's list of
+  installed artifacts.
+- `tests/support/install_lifecycle_cases.py`: add the font suite to the module docstring's family
+  list and change the `MAKE_PACKAGES` comment's `instead of all seven` to `instead of all eight`.
+  `tests/support/install_failure_cases.py`: change the same `instead of all seven` comment to
+  `instead of all eight` (the font package uses the shared staging swap, so the family count it
+  describes gains one). `tests/support/theme_install.py`: add the font package to its module
+  docstring's list of installable artifact suites.
+- `tests/test_fonts.py` (new): `TestFontFiles` parses each TTF's sfnt `name` table (name ID 1 and
+  2) with `struct` and asserts the family is `Lato` and the subfamily is `Regular`/`Bold`; pins the
+  SHA-256 of both TTFs (`6f6940be0835c3ddec9199e5fc42be4cbc61ebcfd58c623fdf719366253f1780` and
+  `bf1b8130069b44b9148eeece35e5423bedac49777ba746615b826b8276574a7b`) and of `LICENSE-Lato.txt`
+  (`1e6ccc54aa0b0aa4188cda121174f17cf1c28bac9734749bbe1128bb6dd89a97`), asserts that licence's
+  last byte is not a newline, and asserts `PROVENANCE.md` names all three digests; asserts
+  `LICENSE-Lato.txt` contains `License: OFL-1.1`, the copyright line
+  `(c) 2010-2011, Łukasz Dziedzic` and the OFL clause heading `PERMISSION & CONDITIONS` (the file
+  has no `SIL OPEN FONT LICENSE` heading, so do not assert that phrase). `TestFontsInstall`
+  subclasses `InstallLifecycleCases` with `MAKE_PACKAGES = "fonts"`,
+  `PACKAGE_DIR = "theme/fonts/org.macos8.desktop"`, `INSTALLED_FILES` naming the four files, and
+  `installed_parent`/`installed_package_dir` overridden to the new helpers, so it gets the
+  byte-for-byte, registry-coverage, repeat-install and uninstall-leftover checks once. Add
+  `test_uninstall_leaves_a_sibling_font_family`, which creates `$fonts/other-family` before the
+  uninstall and asserts it survives.
+- `tests/test_theme_install.py`: in `TestWhitespaceInInstallPaths`, add
+  `installed_paths.installed_font_package(destdir, package)` to the `directories` list checked
+  before and after the round trip, and change both `seven artifacts` docstrings to eight. In
+  `TestInstallPackages.test_one_family_installs_only_that_family`, add
+  `installed_paths.installed_fonts_dir(tmp)` to `other_dirs` so installing `color-scheme` leaves
+  `fonts/` absent.
+- `README.md`: change each of the four `seven artifacts` sentences -- the Status line, the
+  Installing paragraph, the uninstall paragraph and the `make apply` paragraph -- to eight, and add
+  the `org.macos8.desktop` Lato font package to each list with its
+  `$XDG_DATA_HOME/fonts/org.macos8.desktop` path, its OFL-1.1 licence and the note that this part
+  installs the family but does not select it. In the uninstall paragraph, add `fonts/` to the
+  shared-directory list. Leave the Status paragraph's archive sentence (`... fixed bugs are
+  archived in BUGS-FIXED.md.`) byte-identical: it is out of scope for this part, and mentioning
+  `PLANS-DONE.md` here would contradict the Plan record above.
+- `docs/invariants.md`: add a `## fonts` section between `## desktoptheme` and `## gtk` (every
+  `theme/` subsystem needs one) with a row for the shipped Lato family/digests pinned to
+  `tests/test_fonts.py::TestFontFiles` and a row for the install/uninstall lifecycle pinned to
+  `tests/test_fonts.py::TestFontsInstall`, with the provenance exception stating that Lato is a
+  Charcoal substitute, not a sampled reference face.
+
+**Files touched.** `theme/fonts/org.macos8.desktop/Lato-Regular.ttf` (new),
+`theme/fonts/org.macos8.desktop/Lato-Bold.ttf` (new),
+`theme/fonts/org.macos8.desktop/LICENSE-Lato.txt` (new),
+`theme/fonts/org.macos8.desktop/PROVENANCE.md` (new), `Makefile`,
+`tests/support/installed_paths.py`, `tests/support/install_lifecycle_cases.py`,
+`tests/support/install_failure_cases.py`, `tests/support/theme_install.py`,
+`tests/test_fonts.py` (new), `tests/test_theme_install.py`, `README.md`,
+`docs/invariants.md`, and `PLANS.md` (the entry moves to `## Done`; see Plan record). Do not edit
+`PLANS-DONE.md`.
+
+**Acceptance criteria.**
+- `make install INSTALL_PACKAGES=fonts DESTDIR=<tmp>` writes exactly the four files above under
+  `$XDG_DATA_HOME/fonts/org.macos8.desktop/`; a default `make install DESTDIR=<tmp>` writes them
+  too; `make uninstall` removes that directory and its `.staging`/`.old` leftovers while leaving a
+  sibling font family's directory in place (pinned by
+  `tests/test_fonts.py::TestFontsInstall.test_uninstall_leaves_a_sibling_font_family`).
+- `cmp -s theme/fonts/org.macos8.desktop/LICENSE-Lato.txt
+  /usr/share/doc/fonts-lato/copyright` exits 0: the shipped licence is the source's 5,157 bytes
+  including its missing final newline, not the 5,158-byte newline-appended variant.
+- `make check CHECK_TESTS=test_fonts` passes; removing either TTF, changing a byte, renaming the
+  family or subfamily in the font, editing `LICENSE-Lato.txt` (including appending a newline), or
+  dropping a digest from `PROVENANCE.md` makes it fail.
+- `tests/invariants.py` accepts `theme/fonts` with its `## fonts` section, and
+  `make check CHECK_TESTS=test_theme_install test_make_help` passes with the new family.
+- `grep -n seven README.md Makefile tests/support/install_lifecycle_cases.py
+  tests/support/install_failure_cases.py tests/test_theme_install.py` finds no artifact-count
+  text, and the README Status paragraph's archive sentence still reads exactly `Open work is
+  tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions
+  needed); fixed bugs are archived in BUGS-FIXED.md.` (a diff that rewrites it fails this plan).
+- `git diff --name-status` names only the files listed under "Files touched"; an edit outside that
+  list is out of scope for this part.
+- When the work lands, `grep -n '^### Vendor the Lato body font and install it' PLANS.md` prints
+  exactly one line whose number is greater than the `## Done` line's; `grep -F 'Vendor the Lato
+  body font' PLANS-DONE.md` exits 1 with no output; `grep -n '^## ' PLANS.md` prints exactly
+  `## Planned` and `## Done`; and `git diff --name-status` does not name `PLANS-DONE.md`. The final
+  report quotes the actual output of `grep -l "Vendor the Lato body font" PLANS.md PLANS-DONE.md`
+  (exactly `PLANS.md`) and of `git diff --name-status`; a `VERIFIED` line that says otherwise
+  contradicts those commands and fails this plan.
+- No `kdeglobals` write, global-theme `contents/defaults` change, `tools/apply_*` change, GTK,
+  Firefox or README archive-sentence change is made in this part; `make check` is green.

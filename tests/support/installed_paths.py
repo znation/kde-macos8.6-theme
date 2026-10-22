@@ -3,7 +3,8 @@
 Every artifact family lands at a fixed path below `$(DESTDIR)$(XDG_DATA_HOME)`:
 the color scheme under `color-schemes/`, the Plasma packages under `plasma/`,
 the Aurorae, wallpaper and icon themes in their own user-local directories,
-and the Kvantum widget style under `themes/<name>/Kvantum/`. The helpers
+the Lato font package under `fonts/`, and the Kvantum widget style under
+`themes/<name>/Kvantum/`. The helpers
 below name the paths the install tests share instead of re-deriving them, and
 `staging_sibling`/`old_sibling` build the hidden siblings the Makefile's
 atomic swap uses.
@@ -119,6 +120,21 @@ def installed_icons_dir(destdir):
 def installed_icon_theme(destdir, theme_id):
     """Directory `make install` writes one icon theme into."""
     return os.path.join(installed_icons_dir(destdir), theme_id)
+
+
+def installed_fonts_dir(destdir):
+    """Directory `make install` writes the font package into.
+
+    The Makefile installs it under `$(DESTDIR)$(XDG_DATA_HOME)/fonts`, the
+    user-local directory fontconfig searches; `installed_font_package` joins
+    a package's own directory onto the result.
+    """
+    return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "fonts")
+
+
+def installed_font_package(destdir, package_id):
+    """Directory `make install` writes one font package into."""
+    return os.path.join(installed_fonts_dir(destdir), package_id)
 
 
 def installed_color_scheme_dir(destdir):

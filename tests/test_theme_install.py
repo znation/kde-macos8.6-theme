@@ -198,11 +198,11 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
 
     A `DESTDIR` or `XDG_DATA_HOME` with a space is legal; an unquoted recipe
     word-splits it, so the copy lands in the wrong place or fails outright.
-    All seven artifacts must install and uninstall under a spaced root.
+    All eight artifacts must install and uninstall under a spaced root.
     """
 
     def _assert_round_trip(self, destdir):
-        """Install all seven artifacts under *destdir*, then uninstall them."""
+        """Install all eight artifacts under *destdir*, then uninstall them."""
         assert_succeeded(self, theme_install.install(destdir))
         package = "org.macos8.desktop"
         scheme = installed_paths.installed_color_scheme(destdir)
@@ -226,6 +226,7 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
         directories.append(installed_paths.installed_aurorae_theme(destdir, package))
         directories.append(installed_paths.installed_wallpaper(destdir, package))
         directories.append(installed_paths.installed_icon_theme(destdir, package))
+        directories.append(installed_paths.installed_font_package(destdir, package))
         self.assertTrue(os.path.isfile(scheme), scheme)
         for path in kvantum_files:
             self.assertTrue(os.path.isfile(path), path)
@@ -436,6 +437,7 @@ class TestInstallPackages(unittest.TestCase):
             installed_paths.installed_aurorae_dir(tmp),
             installed_paths.installed_wallpaper_dir(tmp),
             installed_paths.installed_icons_dir(tmp),
+            installed_paths.installed_fonts_dir(tmp),
             os.path.join(data_home, "themes", "org.macos8.desktop", "Kvantum"),
         ]
         for path in other_dirs:

@@ -60,6 +60,10 @@ ICON_THEME_ID := org.macos8.desktop
 ICON_THEME_PACKAGE := theme/icons/$(ICON_THEME_ID)
 ICON_THEME_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/icons
 
+FONT_ID := org.macos8.desktop
+FONT_PACKAGE := theme/fonts/$(FONT_ID)
+FONT_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/fonts
+
 # Kvantum's user-local theme search path is
 # `$XDG_DATA_HOME/themes/<name>/Kvantum/`, so a Kvantum theme installs as two
 # files directly inside a `Kvantum/` directory rather than as a package
@@ -71,13 +75,13 @@ KVANTUM_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(KVANTUM_ID)/Kvantum
 
 # The artifacts `_install` copies, as families. A caller can narrow the install
 # to the families it needs (`make install INSTALL_PACKAGES=look-and-feel`), so a
-# test of one artifact does not copy all seven; the default installs every
+# test of one artifact does not copy all eight; the default installs every
 # family and keeps the full install. The color scheme is a family of its own
 # even though it is one file. INSTALL_FAMILIES is the guard's vocabulary; the
 # default below must name the same families, and the guard rejects a default
 # that names one it does not know.
-INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum
-INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum
+INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts
+INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts
 
 # INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
 # value (`?=` keeps one from the environment) filters every family out, so the
@@ -211,7 +215,7 @@ help:
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
-	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum)"
+	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 
 # Opt-in: the repository check needs materialized Git LFS images, so it stays
@@ -339,10 +343,12 @@ _install:
 	$(if $(filter icon-theme,$(INSTALL_PACKAGES)),$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR)))
 	$(if $(filter kvantum,$(INSTALL_PACKAGES)),install -d "$(KVANTUM_INSTALL_DIR)")
 	$(if $(filter kvantum,$(INSTALL_PACKAGES)),$(call install_kvantum))
+	$(if $(filter fonts,$(INSTALL_PACKAGES)),install -d "$(FONT_INSTALL_DIR)")
+	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
 
 # Remove only the artifacts `install` copied: the parent directories are shared
-# (other color schemes, other look-and-feel/desktop-theme/Aurorae/wallpaper/icon
-# packages), so leave
+# (other color schemes, other look-and-feel/desktop-theme/Aurorae/wallpaper/icon/font
+# packages, other Kvantum themes), so leave
 # them and everything else in them alone. The hidden `.staging`/`.old` siblings
 # are install's own temporary state: an install killed by SIGKILL cannot run its
 # EXIT trap, so remove them here too instead of leaking them past uninstall.
@@ -360,6 +366,7 @@ _uninstall:
 	rm -rf "$(AURORAE_INSTALL_DIR)/$(AURORAE_ID)" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).staging" "$(AURORAE_INSTALL_DIR)/.$(AURORAE_ID).old"
 	rm -rf "$(WALLPAPER_INSTALL_DIR)/$(WALLPAPER_ID)" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).staging" "$(WALLPAPER_INSTALL_DIR)/.$(WALLPAPER_ID).old"
 	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"
+	rm -rf "$(FONT_INSTALL_DIR)/$(FONT_ID)" "$(FONT_INSTALL_DIR)/.$(FONT_ID).staging" "$(FONT_INSTALL_DIR)/.$(FONT_ID).old"
 	rm -f "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).kvconfig" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).svg" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"
 # Removing the scheme does not touch the user's `[General] ColorScheme`
 # selection. If it still names the scheme just removed, KDE cannot resolve the

@@ -6,6 +6,8 @@ must not let it read outside the reference directory.
 """
 
 import os
+import subprocess
+import sys
 import unittest
 from unittest import mock
 
@@ -18,6 +20,7 @@ from support.check_references_fixtures import (
     reference_set,
     symlinked_reference,
 )
+from support.repo_root import ROOT
 from tools import reference_validation
 from tools.image_format import PNG_MAGIC
 
@@ -205,6 +208,49 @@ class TestUndeclaredDanglingImageSymlink(CheckerTestCase):
             os.symlink(root / "gone.png", root / "dangling.png")
             problems = module.check_references(root)
         assert_problem(self, problems, "dangling.png", "no entry")
+
+
+class TestUndeclaredNonRegularEntry(CheckerTestCase):
+    """A non-regular entry without an image name is skipped, not opened.
+
+    ``_check_undeclared`` sniffs every file it does not recognize as a
+    declared image for image bytes. A directory is the ordinary non-regular
+    case and must not be reported as an undeclared image, and a FIFO must not
+    be opened at all: ``open()`` on a pipe with no writer blocks forever, so a
+    stray ``notes`` FIFO in the reference directory would stall
+    ``make check-references`` with no diagnostic.
+    """
+
+    def test_a_directory_without_an_image_name_is_not_an_undeclared_image(self):
+        module = self.checker
+        with reference_set(module, "") as root:
+            (root / "nested").mkdir()
+            problems = module.check_references(root)
+        self.assertEqual([], problems)
+
+    def test_a_fifo_without_an_image_name_is_skipped_without_being_opened(self):
+        # Run the check in a child so a regression that opens the FIFO fails
+        # this test at its timeout instead of stalling the whole suite.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        module = self.checker
+        with reference_set(module, "") as root:
+            os.mkfifo(root / "notes")
+            child = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "import sys; from pathlib import Path; "
+                    "from tools.reference_validation import check_references; "
+                    "sys.exit(1 if check_references(Path(sys.argv[1])) else 0)",
+                    str(root),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
 
 
 class TestResolveFailureIsFailClosed(CheckerTestCase):

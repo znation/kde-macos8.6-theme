@@ -13,7 +13,7 @@ from __future__ import annotations
 import time
 import unittest
 
-from support.error_assertions import assert_rejection_names
+from support.rejection_assertions import assert_rejection_names
 from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     assert_no_external_references,

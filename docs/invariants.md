@@ -62,6 +62,13 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `widgets/viewitem.svg` draws the generic item highlight. | `tests/test_desktoptheme_viewitem.py::TestViewItem` | none |
 | The `viewitem.svg`, `menubaritem.svg` and `arrows.svg` provenance comments name the reference screenshot their claim rests on and do not claim the set shows no such surface. | `tests/test_desktoptheme_provenance.py::TestProvenance` | none |
 
+## fonts
+
+| Guarantee | Test | Provenance exception |
+| --- | --- | --- |
+| The shipped Lato Regular and Bold faces name the `Lato` family, and the fonts, licence and provenance record carry the pinned source digests; the licence is the Debian copyright file byte for byte, including its missing final newline. | `tests/test_fonts.py::TestFontFiles` | Lato is this theme's substitute for Charcoal, not a face sampled from a reference screenshot; no Mac OS 8.6 reference in the set supplies a font pixel. |
+| `make install` copies the font package into `$XDG_DATA_HOME/fonts/org.macos8.desktop` byte for byte, a repeat install succeeds, and `make uninstall` removes it and its staging/old leftovers while leaving a sibling font family in place. | `tests/test_fonts.py::TestFontsInstall` | none |
+
 ## gtk
 
 | Guarantee | Test | Provenance exception |

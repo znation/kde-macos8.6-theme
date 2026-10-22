@@ -14,7 +14,8 @@ from __future__ import annotations
 import unittest
 import xml.etree.ElementTree as ET
 
-from support.error_assertions import assert_error_names, assert_rejects
+from support.error_assertions import assert_error_names
+from support.rejection_assertions import assert_rejects
 from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     SLICE_IDS,

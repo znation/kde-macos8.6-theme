@@ -103,7 +103,7 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
     # the first copy.
     COPY_FAILURE_GLOB = None
     # The `INSTALL_PACKAGES` family this suite installs, so the install copies
-    # only its own package instead of all seven.
+    # only its own package instead of all eight.
     MAKE_PACKAGES = None
 
     def reinstall_failure_env(self, tmp):

@@ -1,4 +1,4 @@
-"""Tests for tests/support/error_assertions.py -- the shared assertion helpers.
+"""Tests for tests/support/error_assertions.py -- the raised-exception helpers.
 
 The helpers replace repeated assertion idioms at their call sites, so pin
 their own contracts. ``error_message``: the message it returns, that it
@@ -9,12 +9,11 @@ needle, fails on a missing one, forwards the function's arguments without
 leaking ``needles``, and returns the message.
 ``assert_escapes_escape_character``: that it accepts escaped
 ESC text and fails on a raw ESC or a missing escape.
-``assert_rejection_names``: that it accepts a diagnostic naming every
-needle, fails on a missing one, forwards the guard's arguments without
-leaking ``needles``, and returns the message.
 ``assert_rejects_unequal_lengths``: that it accepts a helper rejecting both
 length-mismatch directions and fails the calling test when the helper does
 not reject, rejects only one direction, or names another function.
+The subTest-reporting guard helpers are tested in
+``test_rejection_assertions.py``.
 """
 
 from __future__ import annotations
@@ -23,22 +22,17 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.error_assertions import (
-    NoSubTest,
     assert_error_names,
     assert_escapes_escape_character,
-    assert_rejection_names,
     assert_rejects_unequal_lengths,
     error_message,
 )
+from support.rejection_assertions import NoSubTest
 from tools.png.filters import _byte_add  # noqa: E402
 
 
 def _raise(exception):
     raise exception
-
-
-def _reject(case, value, *, label="bad"):
-    case.fail(f"{label} value: {value}")
 
 
 def _accepts_any_lengths(a, b):
@@ -149,44 +143,6 @@ class TestAssertErrorNames(unittest.TestCase):
     def test_a_missing_raise_fails_the_calling_case(self):
         with self.assertRaises(AssertionError):
             assert_error_names(self, ValueError, lambda: None, needles=())
-
-
-class TestAssertRejectionNames(unittest.TestCase):
-    def test_passes_when_the_message_names_every_needle(self):
-        assert_rejection_names(
-            self, _reject, "alpha beta", needles=("alpha", "beta")
-        )
-
-    def test_returns_the_message(self):
-        self.assertEqual(
-            assert_rejection_names(self, _reject, "x", needles=("x",)),
-            "bad value: x",
-        )
-
-    def test_fails_when_a_needle_is_missing(self):
-        with self.assertRaises(AssertionError):
-            assert_rejection_names(self, _reject, "x", needles=("missing",))
-
-    def test_forwards_positional_and_keyword_arguments(self):
-        assert_rejection_names(
-            self,
-            _reject,
-            "x",
-            label="wrong",
-            needles=("wrong value: x",),
-        )
-
-    def test_needles_is_not_forwarded_to_the_guard(self):
-        def describe(case, *args, **kwargs):
-            raise AssertionError(f"args={args} kwargs={sorted(kwargs)}")
-
-        assert_rejection_names(
-            self, describe, 1, needles=("args=(1,)", "kwargs=[]")
-        )
-
-    def test_a_missing_raise_fails_the_calling_case(self):
-        with self.assertRaises(AssertionError):
-            assert_rejection_names(self, lambda case: None, needles=())
 
 
 class TestAssertRejectsUnequalLengths(unittest.TestCase):

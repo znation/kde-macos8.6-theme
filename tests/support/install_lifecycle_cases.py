@@ -1,7 +1,7 @@
 """Shared install/uninstall lifecycle cases for the installable packages.
 
-The look-and-feel, desktop-theme, Aurorae, wallpaper and icon-theme suites each
-install their package into a temporary data home and check the same lifecycle:
+The look-and-feel, desktop-theme, Aurorae, wallpaper, icon-theme and font suites
+each install their package into a temporary data home and check the same lifecycle:
 the installed files match the
 source byte for byte, a second install succeeds, and `make uninstall` removes
 the package along with any staging/old leftovers. Each suite subclasses
@@ -40,7 +40,7 @@ class InstallLifecycleCases(InstalledPackageLocation):
     PACKAGE_DIR = None
     INSTALLED_FILES = ()
     # The `INSTALL_PACKAGES` family this suite installs; a subclass sets it so
-    # the install copies only its own package instead of all seven.
+    # the install copies only its own package instead of all eight.
     MAKE_PACKAGES = None
 
     def test_make_install_copies_package_byte_for_byte(self):

@@ -9,14 +9,14 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: seven artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), and the `org.macos8.desktop` Kvantum widget style (selected by the global theme).
+Pre-alpha: eight artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), the `org.macos8.desktop` Kvantum widget style (selected by the global theme), and the `org.macos8.desktop` Lato font package (the Charcoal-style body face, OFL-1.1, installed but not yet selected).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed); fixed bugs are archived in BUGS-FIXED.md.
 <!-- tumwater:status:end -->
 
 ## Installing
 
-`make install` copies seven artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
+`make install` copies eight artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
 `$HOME/.local/share` when it is unset, empty, or relative; `make install` and `make uninstall`
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
 absolute path): the
@@ -25,8 +25,10 @@ color scheme
 into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 `plasma/desktoptheme/`, the `org.macos8.desktop` window decoration into `aurorae/themes/`, the
 `org.macos8.desktop` wallpaper into `wallpapers/`, the `org.macos8.desktop` icon theme into
-`icons/`, and the `org.macos8.desktop` Kvantum widget style into
-`themes/org.macos8.desktop/Kvantum/`. Applying the global theme selects that wallpaper: the retail 128x128 desktop
+`icons/`, the `org.macos8.desktop` Kvantum widget style into
+`themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
+package into `fonts/org.macos8.desktop/` (Lato Regular and Bold under the SIL
+OFL 1.1; this part installs the family but does not select it). Applying the global theme selects that wallpaper: the retail 128x128 desktop
 pattern, shipped at fixed resolutions so it renders 1:1 when the screen matches one.
 
 The `org.macos8.desktop` Kvantum widget style is selected by the global theme
@@ -126,8 +128,8 @@ active and inactive frames) with its gzipped `decoration.svgz` (the form
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make
-uninstall` removes the seven installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
-`aurorae/themes/`, `wallpapers/`, `icons/` and `themes/`
+uninstall` removes the eight installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
+`aurorae/themes/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
 directories and anything else in them in place. It removes only the artifacts
 `install` copied, never the user's configuration: if the removed scheme is still
 the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve
@@ -139,8 +141,9 @@ modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.
 one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Both
 `check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
-`make apply` installs the seven artifacts exactly as `make install` does and then re-applies them to
-the running Plasma session, so the just-built theme becomes current without a logout: it re-selects
+`make apply` installs the eight artifacts exactly as `make install` does and then re-applies them to
+the running Plasma session (the Lato font package is installed but, like
+`make install`, not selected), so the just-built theme becomes current without a logout: it re-selects
 the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
 `MacOS8` color scheme and the `org.macos8.desktop` desktop theme, tells Kvantum to draw our theme
 when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
