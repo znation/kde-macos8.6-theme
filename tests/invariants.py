@@ -156,7 +156,7 @@ def parse_rows(text):
     return sections
 
 
-def _defined_names(path):
+def _defined_names(path, root):
     """Return ``{class name: (method names, is a test case)}`` at *path*'s top level.
 
     A class is a test case when it names ``unittest.TestCase``, when it
@@ -165,6 +165,11 @@ def _defined_names(path):
     whose own bases cannot be inspected here). A class unittest never collects
     is not a test case however many ``test``-prefixed methods it defines, so
     the check follows bases rather than trusting a test-shaped method name.
+
+    The register naming *path* is contributor-supplied, so the module is read
+    through the shared containment reader: a file past its byte cap is refused
+    by name instead of being loaded whole, and a FIFO or device is refused
+    instead of blocking the check.
 
     A successful result is cached against the file's stat fingerprint, so a
     register with several rows naming the same module parses it once, and a
@@ -181,8 +186,7 @@ def _defined_names(path):
     cached = _DEFINED_NAMES_CACHE.get(key)
     if cached is not None and cached[0] == fingerprint:
         return cached[1]
-    with open(path, encoding="utf-8") as handle:
-        tree = ast.parse(handle.read(), filename=path)
+    tree = ast.parse(containment.read_text(path, root), filename=path)
     nodes = {
         node.name: node for node in tree.body if isinstance(node, ast.ClassDef)
     }
@@ -220,19 +224,22 @@ def _defined_names(path):
     return classes
 
 
-def _parse_test_module(section, reference, file_path):
-    """Return ``_defined_names(file_path)``, or raise a register ``AssertionError``.
+def _parse_test_module(section, reference, file_path, root):
+    """Return ``_defined_names(file_path, root)``, or raise a register ``AssertionError``.
 
     A referenced file that cannot be decoded or parsed (a stray byte, a
     syntax error) would otherwise escape as a `UnicodeDecodeError` or
     `SyntaxError` naming neither the section nor the reference. Report it as
     the register's own `AssertionError` so the failing row is identifiable.
-    The cause is suppressed: a `SyntaxError`'s traceback reprints the offending
-    source line, which can carry terminal control bytes.
+    The shared containment reader's `ValueError` for an oversize file is
+    reported the same way, so the row is identifiable instead of the cap's
+    message escaping on its own. The cause is suppressed: a `SyntaxError`'s
+    traceback reprints the offending source line, which can carry terminal
+    control bytes.
     """
     try:
-        return _defined_names(file_path)
-    except (OSError, UnicodeDecodeError, SyntaxError) as exc:
+        return _defined_names(file_path, root)
+    except (OSError, UnicodeDecodeError, SyntaxError, ValueError) as exc:
         raise AssertionError(
             escape_controls(
                 f"{section}: {reference} names a file that cannot be read as "
@@ -289,7 +296,7 @@ def check_reference(root, reference, section):
                     f"{section}: {reference} names no class or method after '::'"
                 )
             )
-        classes = _parse_test_module(section, reference, file_path)
+        classes = _parse_test_module(section, reference, file_path, root)
         if not any(test_case for _, test_case in classes.values()):
             # The bare ``path`` form names the whole file, so it pins the
             # guarantee to that file's tests. A file with no test case at all
@@ -308,7 +315,7 @@ def check_reference(root, reference, section):
                 f"{section}: {reference} names more than a class and method"
             )
         )
-    classes = _parse_test_module(section, reference, file_path)
+    classes = _parse_test_module(section, reference, file_path, root)
     class_name = names[0]
     if class_name not in classes:
         raise AssertionError(

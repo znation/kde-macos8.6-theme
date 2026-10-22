@@ -18,6 +18,7 @@ from invariants import REGISTER, Row, cross_check, parse_rows
 from support.error_assertions import assert_escapes_escape_character
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
+from tools import containment as containment_impl
 
 
 class TestHelpers(unittest.TestCase):
@@ -468,13 +469,13 @@ class TestHelpers(unittest.TestCase):
 
     def test_cross_check_rejects_a_reference_to_a_file_it_cannot_read(self):
         # `check_reference`'s isfile guard passes a file that exists but
-        # cannot be opened (a permission error, for example), so
-        # `_defined_names`'s `open` raises `OSError`. That exception names
+        # cannot be opened (a permission error, for example), so the
+        # `_defined_names` read raises `OSError`. That exception names
         # neither the register section nor the reference, so a maintainer
         # cannot tell which row points at the unreadable file. `OSError` is
-        # one of the three exception types the read guard catches; the other
-        # two (`UnicodeDecodeError`, `SyntaxError`) are pinned above, so this
-        # case keeps the `OSError` arm of that catch observable.
+        # one of the four exception types the read guard catches; the other
+        # three (`UnicodeDecodeError`, `SyntaxError`, `ValueError`) are pinned
+        # above or below, so this case keeps the `OSError` arm observable.
         register = self._valid_register(
             [("The thing holds.", f"{self.MODULE}::TestFake")]
         )
@@ -483,6 +484,21 @@ class TestHelpers(unittest.TestCase):
         ):
             with self.assertRaisesRegex(AssertionError, "cannot be read as Python"):
                 cross_check(self.root, register)
+
+    def test_cross_check_rejects_an_oversize_module_instead_of_loading_it_whole(self):
+        # A register row names a test module by path, and that module is
+        # contributor-supplied. A multi-gigabyte file must be refused by the
+        # shared reader's cap by name instead of being loaded whole, which
+        # could raise a MemoryError naming neither the row nor the file.
+        module = self.root / "huge_module.py"
+        module.write_bytes(b"x" * (containment_impl._MAX_READ_BYTES + 1))
+        register = self._valid_register(
+            [("The thing holds.", "huge_module.py::TestFake")]
+        )
+        with self.assertRaises(AssertionError) as caught:
+            cross_check(self.root, register)
+        self.assertIn(str(module), str(caught.exception))
+        self.assertIn("larger than", str(caught.exception))
 
     def test_cross_check_rejects_a_reference_with_a_nul_byte(self):
         # A NUL byte in the reference reaches `os.path.realpath`, which raises
