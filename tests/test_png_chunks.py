@@ -355,3 +355,7 @@ class TestIterChunks(unittest.TestCase):
             list(chunks.iter_chunks(truncated)),
         )
         self.assertIn("no IEND", decode_error_message(self, truncated))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -242,3 +242,7 @@ class TestToRgbUnsupportedColorType(unittest.TestCase):
                     ),
                     f"unsupported PNG color type {color_type}",
                 )
+
+
+if __name__ == "__main__":
+    unittest.main()

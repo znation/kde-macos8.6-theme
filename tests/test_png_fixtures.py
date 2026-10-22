@@ -291,3 +291,7 @@ class TestControlNamedMissing(unittest.TestCase):
         with control_named_missing() as path:
             self.assertTrue(path.endswith("evil\x1b[31m.png"))
             self.assertFalse(Path(path).exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

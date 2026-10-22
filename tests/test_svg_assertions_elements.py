@@ -120,3 +120,7 @@ class TestRectGeometry(unittest.TestCase):
             self, ValueError, rect_geometry, tree,
             needles=("hint-top-margin", "'x'", "'4px'"),
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

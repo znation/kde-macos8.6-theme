@@ -269,3 +269,7 @@ class TestFaceCorners(unittest.TestCase):
                 self, ValueError, face_corners, "#DDDDDD", "bevelled"
             ),
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

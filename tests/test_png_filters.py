@@ -124,3 +124,7 @@ class TestPaethDeltaTable(unittest.TestCase):
         with mock.patch.object(filters, "_PAETH_DELTA_ROWS", None):
             first = filters._paeth_delta_rows()
             self.assertIs(filters._paeth_delta_rows(), first)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -241,3 +241,7 @@ class TestReadPng(unittest.TestCase):
         )
         assert_failed(self, child)
         self.assertIn("not a regular file", child.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()

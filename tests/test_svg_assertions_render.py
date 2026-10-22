@@ -369,3 +369,7 @@ class TestBevelCornerMaps(unittest.TestCase):
                         "#000000", "#FFFFFF", "#999999",
                     ),
                 )
+
+
+if __name__ == "__main__":
+    unittest.main()

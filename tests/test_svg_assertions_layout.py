@@ -544,3 +544,7 @@ class TestBoundsRect(unittest.TestCase):
         group = elements_by_id(_svg_tree(body))["normal"]
         with self.assertRaises(AssertionError):
             assert_bounds_rect(self, group, ["0", "0", "16", "16", "none"])
+
+
+if __name__ == "__main__":
+    unittest.main()

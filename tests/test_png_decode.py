@@ -129,3 +129,7 @@ class TestDecode(unittest.TestCase):
         self.assertEqual(
             png.decode_png(data).rgb, bytes([7, 7, 7, 100, 100, 100])
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

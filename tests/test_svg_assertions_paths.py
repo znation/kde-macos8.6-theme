@@ -131,3 +131,7 @@ class TestArcCenter(unittest.TestCase):
             (6.0, 0.0),
             needles=("(0.0, 0.0)", "(6.0, 0.0)", "radius 2", "half its chord 3"),
         )
+
+
+if __name__ == "__main__":
+    unittest.main()

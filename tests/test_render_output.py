@@ -60,3 +60,7 @@ class TestPublishMode(unittest.TestCase):
 
             self.assertEqual(b"the new render", output.read_bytes())
             self.assertEqual(0o640, stat.S_IMODE(output.stat().st_mode))
+
+
+if __name__ == "__main__":
+    unittest.main()

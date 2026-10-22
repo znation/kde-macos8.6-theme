@@ -147,3 +147,7 @@ class TestPixelAt(unittest.TestCase):
                 message = self._pixel_error_message(image, x, y)
                 self.assertIn(f"({x}, {y})", message)
                 self.assertIn("2x3", message)
+
+
+if __name__ == "__main__":
+    unittest.main()

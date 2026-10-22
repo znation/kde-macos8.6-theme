@@ -165,3 +165,7 @@ class TestNineSliceTileSizes(unittest.TestCase):
                 "bottomright": (4, 5),
             },
         )
+
+
+if __name__ == "__main__":
+    unittest.main()
