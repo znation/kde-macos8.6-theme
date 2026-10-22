@@ -9,6 +9,7 @@ false phrase.
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 import tempfile
 import time
@@ -19,6 +20,7 @@ from unittest import mock
 from support import containment
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
 from support.repo_root import ROOT
+from tools import containment as tools_containment
 
 
 # The literal delimiters of an SVG/XML comment. The body is scanned with
@@ -39,11 +41,12 @@ def header_comment(path):
     point at a private file; the returned comment is fed to ``assertIn``,
     whose failure message echoes it, so following such a symlink would leak
     that file's content into a failing test's diagnostic. A path that resolves
-    outside the repository is refused before it is opened.
+    outside the repository is refused before it is opened. Reading through the
+    shared guard also bounds the read (an arbitrarily large SVG is refused by
+    name instead of being loaded whole) and refuses a FIFO or device by name
+    instead of blocking `make check` forever.
     """
-    containment.require_within_repo(path, ROOT)
-    with open(path, encoding="utf-8") as handle:
-        text = handle.read()
+    text = containment.read_text(path, ROOT)
     start = text.find(_COMMENT_OPEN)
     if start == -1:
         return ""
@@ -109,6 +112,48 @@ class TestHeaderCommentContainment(unittest.TestCase):
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 comment = header_comment(link)
         self.assertEqual(comment, " ok ")
+
+    def test_refuses_an_oversize_svg_instead_of_loading_it_whole(self):
+        # A theme SVG is contributor-supplied, so a stray multi-gigabyte file
+        # (or an LFS pointer's object) must not be loaded whole: a plain
+        # ``read()`` would allocate it and raise MemoryError, which names
+        # neither the file nor the guard. The shared reader refuses one past
+        # its cap by name instead.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "huge.svg")
+            with open(path, "wb") as handle:
+                handle.write(b"x" * (tools_containment._MAX_READ_BYTES + 1))
+            with self.assertRaises(ValueError) as caught:
+                header_comment(path)
+        self.assertIn(path, str(caught.exception))
+        self.assertIn("larger than", str(caught.exception))
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # open() on a FIFO blocks until a writer appears, and header_comment
+        # has no timeout, so one stray pipe at an SVG path would stall
+        # `make check` with no diagnostic. Run it in a child so the pre-fix
+        # hang is a bounded timeout rather than a stalled run.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            fifo = os.path.join(tmp, "viewitem.svg")
+            os.mkfifo(fifo)
+            child = subprocess.run(
+                [
+                    sys.executable,
+                    "-c",
+                    "import sys; from test_desktoptheme_provenance import "
+                    "header_comment; header_comment(sys.argv[1])",
+                    fifo,
+                ],
+                cwd=os.path.dirname(__file__),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(fifo, child.stderr)
 
 
 class TestHeaderCommentScanning(unittest.TestCase):

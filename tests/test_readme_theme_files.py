@@ -11,6 +11,7 @@ from __future__ import annotations
 import glob
 import os
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -20,6 +21,7 @@ from unittest import mock
 from support import containment
 from support.desktoptheme_paths import PACKAGE
 from support.repo_root import ROOT
+from tools import containment as tools_containment
 
 _DESKTOP_TOKEN = re.compile(r"`((?:widgets|dialogs)/[^`/]+\.svg)`")
 _AURORAE_TOKEN = re.compile(r"`([^`/]+\.svg)`")
@@ -33,11 +35,12 @@ def readme_text():
     path can point at a private file. The backticked SVG names this reader
     extracts are echoed by the ``assertEqual`` diagnostics below, so a path
     that resolves outside the repository is refused before it is opened.
+    Reading through the shared guard also bounds the read (an arbitrarily
+    large README is refused by name instead of being loaded whole) and refuses
+    a FIFO or device by name instead of blocking `make check` forever.
     """
     path = os.path.join(ROOT, "README.md")
-    containment.require_within_repo(path, ROOT)
-    with open(path, encoding="utf-8") as handle:
-        return handle.read()
+    return containment.read_text(path, ROOT)
 
 
 def shipped(package, pattern):
@@ -115,6 +118,52 @@ class TestReadmeTextContainment(unittest.TestCase):
             link.symlink_to(target)
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 self.assertEqual(readme_text(), "`widgets/a.svg`\n")
+
+    def test_refuses_an_oversize_readme_instead_of_loading_it_whole(self):
+        # README is contributor-supplied, so a stray multi-gigabyte file must
+        # not be loaded whole: a plain ``read()`` would allocate it and raise
+        # MemoryError, which names neither the file nor the guard. The shared
+        # reader refuses one past its cap by name instead.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "repo"
+            root.mkdir()
+            path = root / "README.md"
+            path.write_bytes(b"x" * (tools_containment._MAX_READ_BYTES + 1))
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    readme_text()
+        self.assertIn(str(path), str(caught.exception))
+        self.assertIn("larger than", str(caught.exception))
+
+    def test_refuses_a_fifo_instead_of_blocking(self):
+        # open() on a FIFO blocks until a writer appears, and readme_text has
+        # no timeout, so one stray pipe at README.md would stall `make check`
+        # with no diagnostic. Run it in a child so the pre-fix hang is a
+        # bounded timeout rather than a stalled run.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "repo"
+            root.mkdir()
+            fifo = root / "README.md"
+            os.mkfifo(fifo)
+            code = (
+                "import sys\n"
+                "from unittest import mock\n"
+                "import test_readme_theme_files as reader\n"
+                "with mock.patch.object(reader, 'ROOT', sys.argv[1]):\n"
+                "    reader.readme_text()\n"
+            )
+            child = subprocess.run(
+                [sys.executable, "-c", code, str(root)],
+                cwd=os.path.dirname(__file__),
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("not a regular file", child.stderr)
+        self.assertIn(str(fifo), child.stderr)
 
 
 class TestReadmeTokenParsing(unittest.TestCase):
