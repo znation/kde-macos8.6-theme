@@ -9,14 +9,13 @@ decoded as UTF-8 with a leading BOM stripped.
 """
 
 import os
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import kde_config
+from support import snippet_child
 from support.tmp_dir import make_tmp_dir
 
 
@@ -131,17 +130,13 @@ class TestReadKdeConfig(unittest.TestCase):
             self.skipTest("os.mkfifo is not available on this platform")
         path = make_tmp_dir(self) / "defaults"
         os.mkfifo(path)
-        child = subprocess.run(
+        child = snippet_child.run(
             [
-                sys.executable,
-                "-c",
                 "from pathlib import Path; import sys; "
                 "from support.kde_config import read; read(Path(sys.argv[1]))",
                 str(path),
             ],
             cwd=Path(__file__).resolve().parent,
-            capture_output=True,
-            text=True,
             timeout=10,
         )
         self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)

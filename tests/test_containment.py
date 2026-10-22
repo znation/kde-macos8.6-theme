@@ -13,14 +13,13 @@ from __future__ import annotations
 
 import ast
 import os
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import containment
+from support import snippet_child
 from support.repo_root import ROOT
 from tools import containment as containment_impl
 
@@ -32,18 +31,14 @@ def _run_reader_in_child(reader, path, root):
     direct call would stall the suite with no diagnostic. The child makes that
     hang a hard timeout instead.
     """
-    return subprocess.run(
+    return snippet_child.run(
         [
-            sys.executable,
-            "-c",
             f"import sys; from tools.containment import {reader}; "
             f"{reader}(sys.argv[1], sys.argv[2])",
             str(path),
             str(root),
         ],
         cwd=ROOT,
-        capture_output=True,
-        text=True,
         timeout=10,
     )
 

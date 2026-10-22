@@ -3,14 +3,13 @@
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import snippet_child
 from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
 
@@ -21,18 +20,14 @@ def _run_defaults_groups_in_child(path):
     A FIFO makes the reader's ``open()`` block until a writer appears; the
     child turns that pre-fix hang into a bounded timeout for the test.
     """
-    return subprocess.run(
+    return snippet_child.run(
         [
-            sys.executable,
-            "-c",
             "from pathlib import Path; import sys; "
             "from tools.theme_defaults import defaults_groups; "
             "defaults_groups(Path(sys.argv[1]))",
             str(path),
         ],
         cwd=repo_root.ROOT,
-        capture_output=True,
-        text=True,
         timeout=10,
     )
 

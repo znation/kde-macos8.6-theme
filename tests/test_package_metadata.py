@@ -11,12 +11,11 @@ explicit UTF-8 decode and JSON-object guard.
 
 import json
 import os
-import subprocess
-import sys
 import unittest
 from unittest import mock
 
 import support.package_metadata as package_metadata
+from support import snippet_child
 from support.package_metadata import PackageMetadata, kplugin, load_metadata
 from support.tmp_dir import make_tmp_dir
 from tools import containment as tools_containment
@@ -174,17 +173,13 @@ class TestLoadMetadata(unittest.TestCase):
             self.skipTest("os.mkfifo is not available on this platform")
         path = make_tmp_dir(self) / "metadata.json"
         os.mkfifo(path)
-        child = subprocess.run(
+        child = snippet_child.run(
             [
-                sys.executable,
-                "-c",
                 "import sys; from support.package_metadata import "
                 "load_metadata; load_metadata(sys.argv[1])",
                 str(path),
             ],
             cwd=os.path.join(os.path.dirname(__file__)),
-            capture_output=True,
-            text=True,
             timeout=10,
         )
         self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)

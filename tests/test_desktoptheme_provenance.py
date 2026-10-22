@@ -9,7 +9,6 @@ false phrase.
 from __future__ import annotations
 
 import os
-import subprocess
 import sys
 import tempfile
 import time
@@ -18,6 +17,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import containment
+from support import snippet_child
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
 from support.repo_root import ROOT
 from tools import containment as tools_containment
@@ -138,17 +138,13 @@ class TestHeaderCommentContainment(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             fifo = os.path.join(tmp, "viewitem.svg")
             os.mkfifo(fifo)
-            child = subprocess.run(
+            child = snippet_child.run(
                 [
-                    sys.executable,
-                    "-c",
                     "import sys; from test_desktoptheme_provenance import "
                     "header_comment; header_comment(sys.argv[1])",
                     fifo,
                 ],
                 cwd=os.path.dirname(__file__),
-                capture_output=True,
-                text=True,
                 timeout=10,
             )
         self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)

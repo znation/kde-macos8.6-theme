@@ -9,8 +9,6 @@ Run with the project's check harness (stdlib unittest)::
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 import unittest
 import zlib
 from pathlib import Path
@@ -22,6 +20,7 @@ from support.process_assertions import assert_failed
 from support.tmp_dir import make_tmp_dir
 
 from support import repo_root
+from support import snippet_child
 from support.png_fixtures import (  # noqa: E402
     _PNG_SIGNATURE,
     _chunk,
@@ -226,17 +225,13 @@ class TestReadPng(unittest.TestCase):
             self.skipTest("os.mkfifo is not available on this platform")
         fifo = make_tmp_dir(self) / "pipe.png"
         os.mkfifo(fifo)
-        child = subprocess.run(
+        child = snippet_child.run(
             [
-                sys.executable,
-                "-c",
                 "import sys; sys.path.insert(0, sys.argv[1]); import png; "
                 "png.read_png(sys.argv[2])",
                 str(repo_root.ROOT / "tools"),
                 str(fifo),
             ],
-            capture_output=True,
-            text=True,
             timeout=10,
         )
         assert_failed(self, child)

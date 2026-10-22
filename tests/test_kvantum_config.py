@@ -11,11 +11,10 @@ selection.
 
 from __future__ import annotations
 
-import subprocess
-import sys
 import unittest
 from pathlib import Path
 
+from support import snippet_child
 from support.kde_config import read as read_kde_config
 from support.kvantum_config_spec import (
     COLOR_ROLES,
@@ -92,15 +91,11 @@ class TestResolvedCycle(unittest.TestCase):
             "parser.read_string('[A]\\ninherits=B\\n[B]\\ninherits=A\\n')\n"
             "_resolved(parser, 'A', 'frame.top')\n"
         )
-        child = subprocess.run(
+        child = snippet_child.run(
             [
-                sys.executable,
-                "-c",
                 script,
                 str(Path(__file__).resolve().parent),
             ],
-            capture_output=True,
-            text=True,
             timeout=10,
         )
         self.assertNotEqual(child.returncode, 0)

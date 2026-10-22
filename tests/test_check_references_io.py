@@ -6,11 +6,10 @@ must not let it read outside the reference directory.
 """
 
 import os
-import subprocess
-import sys
 import unittest
 from unittest import mock
 
+from support import snippet_child
 from support.allocation_fixtures import peak_allocation
 from support.check_references_fixtures import (
     CheckerTestCase,
@@ -236,18 +235,14 @@ class TestUndeclaredNonRegularEntry(CheckerTestCase):
         module = self.checker
         with reference_set(module, "") as root:
             os.mkfifo(root / "notes")
-            child = subprocess.run(
+            child = snippet_child.run(
                 [
-                    sys.executable,
-                    "-c",
                     "import sys; from pathlib import Path; "
                     "from tools.reference_validation import check_references; "
                     "sys.exit(1 if check_references(Path(sys.argv[1])) else 0)",
                     str(root),
                 ],
                 cwd=ROOT,
-                capture_output=True,
-                text=True,
                 timeout=10,
             )
         self.assertEqual(0, child.returncode, child.stdout + child.stderr)

@@ -11,7 +11,6 @@ from __future__ import annotations
 import glob
 import os
 import re
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -19,6 +18,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import containment
+from support import snippet_child
 from support.desktoptheme_paths import PACKAGE
 from support.repo_root import ROOT
 from tools import containment as tools_containment
@@ -154,11 +154,9 @@ class TestReadmeTextContainment(unittest.TestCase):
                 "with mock.patch.object(reader, 'ROOT', sys.argv[1]):\n"
                 "    reader.readme_text()\n"
             )
-            child = subprocess.run(
-                [sys.executable, "-c", code, str(root)],
+            child = snippet_child.run(
+                [code, str(root)],
                 cwd=os.path.dirname(__file__),
-                capture_output=True,
-                text=True,
                 timeout=10,
             )
         self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)

@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import os
 import re
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import splash_fixtures
+from support import snippet_child
 from support.splash_fixtures import object_source, qml_unit_expression, read_qml
 from tools import containment as tools_containment
 
@@ -236,10 +235,8 @@ class TestSplashQmlContainment(unittest.TestCase):
             root.mkdir()
             fifo = root / "Splash.qml"
             os.mkfifo(fifo)
-            child = subprocess.run(
+            child = snippet_child.run(
                 [
-                    sys.executable,
-                    "-c",
                     "import sys; import support.splash_fixtures as f; "
                     "f.ROOT, f.SPLASH = sys.argv[1], sys.argv[2]; "
                     "f.read_qml()",
@@ -247,8 +244,6 @@ class TestSplashQmlContainment(unittest.TestCase):
                     str(fifo),
                 ],
                 cwd=os.path.dirname(__file__),
-                capture_output=True,
-                text=True,
                 timeout=10,
             )
         self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)

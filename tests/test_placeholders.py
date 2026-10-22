@@ -13,8 +13,6 @@ without a row (or a stale row whose file is gone or unmarked) fails
 from __future__ import annotations
 
 import os
-import subprocess
-import sys
 import unittest
 
 from placeholders import (
@@ -24,6 +22,7 @@ from placeholders import (
     markers,
     register_entries,
 )
+from support import snippet_child
 from support.error_assertions import assert_escapes_escape_character
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
@@ -35,15 +34,13 @@ def _run_reader_in_child(call, path):
 
     A reader handed a FIFO blocks in ``open()`` until a writer appears, so a
     direct call would stall the suite with no diagnostic. The child makes
-    that hang a hard timeout instead; ``subprocess.run`` kills it when the
+    that hang a hard timeout instead; ``snippet_child.run`` kills it when the
     timeout expires.
     """
-    return subprocess.run(
-        [sys.executable, "-c", f"import sys; from placeholders import {call}; "
+    return snippet_child.run(
+        [f"import sys; from placeholders import {call}; "
          f"{call}(sys.argv[1])", str(path)],
         cwd=ROOT / "tests",
-        capture_output=True,
-        text=True,
         timeout=10,
     )
 

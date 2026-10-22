@@ -7,12 +7,11 @@ a target or variable is added, renamed or removed without updating the index.
 
 import os
 import re
-import subprocess
-import sys
 import unittest
 from unittest import mock
 
 from support import containment, repo_root, theme_install
+from support import snippet_child
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
 
@@ -76,18 +75,14 @@ class TestReadFileContainment(unittest.TestCase):
         root = make_tmp_dir(self) / "repo"
         root.mkdir()
         os.mkfifo(root / "README.md")
-        child = subprocess.run(
+        child = snippet_child.run(
             [
-                sys.executable,
-                "-c",
                 "import sys, test_make_help; "
                 "test_make_help.repo_root.ROOT = sys.argv[1]; "
                 "test_make_help._read_repo_file('README.md')",
                 str(root),
             ],
             cwd=os.path.dirname(os.path.abspath(__file__)),
-            capture_output=True,
-            text=True,
             timeout=10,
         )
         self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)

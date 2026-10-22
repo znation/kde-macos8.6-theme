@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import gzip
 import os
-import subprocess
 import sys
 import tempfile
 import unittest
@@ -22,6 +21,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import containment
+from support import snippet_child
 from support.aurorae_fixtures import (
     AURORAE_DIR,
     DECORATION_SVG,
@@ -315,17 +315,13 @@ class TestReadCappedContainment(unittest.TestCase):
                 with self.subTest(path=name):
                     fifo = tmp / name
                     os.mkfifo(fifo)
-                    child = subprocess.run(
+                    child = snippet_child.run(
                         [
-                            sys.executable,
-                            "-c",
                             "import sys; sys.path.insert(0, 'tests'); "
                             "import test_aurorae_frame as m; " + statement,
                             str(fifo),
                         ],
                         cwd=ROOT,
-                        capture_output=True,
-                        text=True,
                         timeout=10,
                     )
                     self.assertNotEqual(
