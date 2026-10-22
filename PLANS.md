@@ -6,7 +6,8 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 ## Planned
 
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
-updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role):** The
+updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
+font facts re-trimmed 2026-10-22 by the steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
@@ -16,9 +17,11 @@ collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon th
 final, non-infringing 32x32 Platinum-style art for the desktop's hard-disk, folder, document,
 Trash and full-Trash icons, plus the menu bar's kicker logo `start-here-kde-symbolic` and the
 `go-next-symbolic` submenu arrow, our own marks rather than Apple's; `PLACEHOLDERS.md` is empty);
-the `org.macos8.desktop` Kvantum widget style (Platinum palette and core-control art); the GTK 3
-and GTK 4 Platinum stylesheets under `theme/gtk/` (not yet installable; part 3/4 is
-planned below); and the render and fidelity tooling
+the `org.macos8.desktop` Kvantum widget style (Platinum palette and core-control art); the
+`org.macos8.desktop` Lato font package (Lato Regular and Bold, the Debian copyright file
+carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by `make install`
+but not yet selected); the GTK 3 and GTK 4 Platinum stylesheets under `theme/gtk/` (not yet
+installable; part 3/4 is planned below); and the render and fidelity tooling
 that checks them against `macos8.6-screenshots/`. README.md describes the reference set as the
 source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
 prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-21 by the
@@ -41,9 +44,12 @@ selection (part 2/2) — and part 4/4 (Firefox `userChrome.css` plus profile pre
 planned yet. **The UI font** is to be vendored
 (QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
 Charcoal-style body face and has landed (installed but not yet selected); part 2/3 (a
-Chicago-style menu face, whose redistribution licence is still unresolved) and part 3/3
-(selecting the installed families in KDE/Plasma/Qt) are not planned yet. Until those parts land, the
-user's desktop font, and GTK and Firefox applications keep their own chrome.
+Chicago-style menu face, whose redistribution licence is still unresolved) is not planned
+yet; and part 3/3 (selecting the installed family in KDE/Plasma/Qt) is queued as one entry,
+the Lato body face only, because Lato is the only family the package installs. Until part
+3/3 lands, KDE, Plasma and Qt applications keep the user's own font; GTK and Firefox
+applications keep their own chrome regardless (the queued GTK entries cover GTK, and
+Firefox is GTK series part 4/4, not planned).
 
 ### GTK opt-in, part 1/2: Install the GTK 3 and GTK 4 Platinum themes opt-in (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
