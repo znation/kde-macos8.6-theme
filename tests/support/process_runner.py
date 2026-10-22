@@ -3,19 +3,28 @@
 A test that spawns `make`, `plasma-apply-*`, `kpackagetool6` or a tool script
 must not let a hung child stall `make check`, and a timeout must kill the whole
 process group so a shell's descendants (an inner `make`, a `flock`) do not
-survive as orphans. `run` is the common path; `start`/`finish`/`running` expose
-the lifecycle to a test that has to poll a child while it runs.
+survive as orphans. Every wait the cleanup does is bounded too, so a child the
+kernel has not released cannot stall the suite from the cleanup path.
+`run` is the common path; `start`/`finish`/`running` expose the lifecycle to a
+test that has to poll a child while it runs.
 """
 
 import contextlib
 import os
 import signal
 import subprocess
+import sys
 
 # Hard limit for every child process the test suite starts, so a `make`,
 # `plasma-apply-*` or `kpackagetool6` that never exits fails the test instead of
 # stalling `make check` forever.
 SUBPROCESS_TIMEOUT = 60
+
+# Bound on the reap that follows a group kill. A child that was just SIGKILLed
+# normally dies at once; one stuck in uninterruptible I/O (a hung network or
+# FUSE mount) is not released until the kernel lets go, which may be forever.
+# The cleanup that kills such a child must not wait on it without a bound.
+REAP_TIMEOUT = 5.0
 
 
 def _kill_process_group(process):
@@ -30,6 +39,32 @@ def _kill_process_group(process):
         os.killpg(os.getpgid(process.pid), signal.SIGKILL)
     except OSError:
         process.kill()
+
+
+def _reap(process):
+    """Wait for a killed *process* to be released, with a bound.
+
+    The child's whole process group has just been SIGKILLed, so it normally
+    dies at once and the wait returns immediately. A child stuck in
+    uninterruptible I/O is not released until the kernel lets go, which may be
+    never, so the wait is bounded: an unbounded one would stall `make check`
+    with no diagnostic, on the cleanup path of a test that was already
+    failing. A reap that still times out is not re-raised -- SIGKILL is
+    already sent and nothing more can be done for the child, and raising here
+    would replace the exception the block was unwinding with a cleanup
+    timeout. The timeout is reported on stderr instead, so the stuck child is
+    visible rather than silent.
+    """
+    timeout = REAP_TIMEOUT
+    try:
+        process.wait(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print(
+            f"process_runner: child {process.pid} was not released within "
+            f"{timeout:g}s after its process group was killed; it is stuck in "
+            "uninterruptible I/O and cannot be reaped",
+            file=sys.stderr,
+        )
 
 
 def start(argv, **kwargs):
@@ -91,7 +126,9 @@ def running(argv, **kwargs):
     `finish` first leaves nothing to kill, so the normal path is unaffected.
     It closes the child's pipes on the way out too, so a caller that did not
     reach `finish` -- including one whose child exited before the block ended
-    -- does not leak them.
+    -- does not leak them. The reap that follows the group kill is bounded, so
+    a child the kernel has not released cannot stall the suite from the
+    cleanup path.
 
     Yields the `Popen`; `kwargs` are as for `start`.
     """
@@ -101,7 +138,7 @@ def running(argv, **kwargs):
     finally:
         if process.poll() is None:
             _kill_process_group(process)
-            process.wait()
+            _reap(process)
         # `finish` drains and closes the pipes; a caller that never reached it
         # -- because the block raised, or because the child exited on its own
         # before the block ended -- leaves the read ends open until the
