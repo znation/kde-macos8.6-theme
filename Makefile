@@ -347,12 +347,12 @@ _install:
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
 
 # Remove only the artifacts `install` copied: the parent directories are shared
-# (other color schemes, other look-and-feel/desktop-theme/Aurorae/wallpaper/icon/font
-# packages, other Kvantum themes), so leave
-# them and everything else in them alone. The hidden `.staging`/`.old` siblings
-# are install's own temporary state: an install killed by SIGKILL cannot run its
-# EXIT trap, so remove them here too instead of leaking them past uninstall.
-# `rm -f`/`rm -rf` make a repeated run a no-op.
+# (other color schemes,
+# other look-and-feel/desktop-theme/Aurorae/wallpaper/icon/font packages, other
+# Kvantum themes), so leave them and everything else in them alone. The hidden
+# `.staging`/`.old` siblings are install's own temporary state: an install
+# killed by SIGKILL cannot run its EXIT trap, so remove them here too instead
+# of leaking them past uninstall. `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
 	@$(call require_data_home,uninstall)
 	@$(call require_flock_timeout,uninstall)
