@@ -123,7 +123,9 @@ class TestGtkTheme(unittest.TestCase):
     def setUpClass(cls):
         cls.index_text = gtk_css.read_theme_text(INDEX)
         cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(cls.css)
+        cls.colours, cls.rules, cls.selectors = parse_css(
+            cls.css, source=str(CSS.relative_to(ROOT))
+        )
 
     def test_theme_read_refuses_a_symlink_escape(self):
         """A checked-in symlink must not feed a private file to a diagnostic."""

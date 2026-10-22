@@ -146,7 +146,9 @@ class TestGtk4Theme(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(cls.css)
+        cls.colours, cls.rules, cls.selectors = parse_css(
+            cls.css, source=str(CSS.relative_to(ROOT))
+        )
 
     def assert_rule(self, selector, expected):
         """Assert *selector* exists and carries each declaration in *expected*."""

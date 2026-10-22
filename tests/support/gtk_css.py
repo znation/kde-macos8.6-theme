@@ -75,6 +75,40 @@ def _rule_blocks(text):
             buffer.append(char)
 
 
+def _split_declarations(body):
+    """Yield *body*'s declarations, split on ``;`` outside quotes and ``()``.
+
+    A quoted string and a ``url(...)`` value may both carry a semicolon that is
+    part of the value rather than a separator. Splitting on every semicolon cut
+    ``url("data:image/svg+xml;base64,...")`` in two and reported the second
+    half as malformed.
+    """
+    declaration = []
+    quote = None
+    depth = 0
+    escaped = False
+    for char in body:
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif quote is not None:
+            if char == quote:
+                quote = None
+        elif char in ('"', "'"):
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")" and depth:
+            depth -= 1
+        elif char == ";" and not depth:
+            yield "".join(declaration)
+            declaration = []
+            continue
+        declaration.append(char)
+    yield "".join(declaration)
+
+
 def read_theme_text(path):
     """Return *path*'s text, refusing a symlink that escapes the repository.
 
@@ -89,13 +123,20 @@ def read_theme_text(path):
     return containment.read_text(path, ROOT, encoding="utf-8")
 
 
-def parse_css(text):
+def parse_css(text, source=None):
     """Return the ``@define-color`` map, selector declarations and selector list.
 
     A selector that appears in more than one block keeps every declaration,
     with a later block's declaration replacing an earlier one, which is how the
     cascade resolves the same declaration. Comments are removed first so a
     colour named in the header cannot stand in for a rule's value.
+
+    A malformed declaration -- no ``:``, or an empty property name or value --
+    raises ``ValueError`` instead of being dropped silently, so a typo in a
+    contributor-supplied sheet names itself rather than surfacing later as a
+    missing key. *source* (usually the sheet's repository path) prefixes that
+    diagnostic. Repeated or trailing ``;`` separators are not malformed, and a
+    ``;`` inside a quoted string or parentheses is part of the value.
     """
     text = strip_comments(text)
     definitions = {
@@ -106,12 +147,25 @@ def parse_css(text):
     selectors = []
     without_definitions = DEFINE_COLOR.sub("", text)
     for selector_text, body in _rule_blocks(without_definitions):
+        label = " ".join(selector_text.split())
         declarations = {}
-        for chunk in body.split(";"):
-            if ":" not in chunk:
+        for chunk in _split_declarations(body):
+            declaration = chunk.strip()
+            if not declaration:
                 continue
-            name, value = chunk.split(":", 1)
-            declarations[" ".join(name.split())] = " ".join(value.split())
+            if ":" in declaration:
+                name, value = declaration.split(":", 1)
+                name = " ".join(name.split())
+                value = " ".join(value.split())
+            else:
+                name = value = ""
+            if not name or not value:
+                raise ValueError(
+                    f"{source or '<stylesheet>'}: malformed declaration in "
+                    f"selector {label!r}: {declaration!r} "
+                    "(expected 'property: value')"
+                )
+            declarations[name] = value
         group = [
             " ".join(selector.split())
             for selector in selector_text.split(",")

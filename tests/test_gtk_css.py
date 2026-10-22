@@ -40,6 +40,55 @@ class TestParseCss(unittest.TestCase):
         self.assertEqual(rules, {"a": {"color": "#111111"}})
         self.assertEqual(selectors, ["a"])
 
+    def test_a_declaration_without_a_colon_is_rejected(self):
+        # A missing ':' used to drop the declaration silently, leaving a sheet
+        # test that pinned it to fail on a missing key instead of the typo.
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^theme/gtk/org\.macos8\.desktop/gtk-3\.0/gtk\.css: "
+            r"malformed declaration in selector 'a': "
+            r"'background #111111' \(expected 'property: value'\)$",
+        ):
+            parse_css(
+                "a { background #111111; }",
+                source="theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css",
+            )
+
+    def test_an_empty_property_name_or_value_is_rejected(self):
+        for text in ("a { : #111111; }", "a { color: ; }"):
+            with self.subTest(text=text):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    r"^<stylesheet>: malformed declaration in selector 'a': ",
+                ):
+                    parse_css(text)
+
+    def test_empty_declarations_between_semicolons_are_ignored(self):
+        # The sheet's trailing ';' (and a doubled one) is not a declaration.
+        self.assertEqual(
+            parse_css("a { ; ; color: #111111; ; }")[1],
+            {"a": {"color": "#111111"}},
+        )
+
+    def test_a_semicolon_inside_a_string_or_url_is_not_a_separator(self):
+        # A quoted string and a url() value carry ';' in the value, not between
+        # declarations; splitting there reported the value's tail as malformed.
+        cases = {
+            'content: "x;y"': {"content": '"x;y"'},
+            'background-image: url("data:image/svg+xml;base64,AAAA")': {
+                "background-image": 'url("data:image/svg+xml;base64,AAAA")'
+            },
+            "background-image: url(data:image/svg+xml;base64,AAAA)": {
+                "background-image": "url(data:image/svg+xml;base64,AAAA)"
+            },
+        }
+        for declaration, expected in cases.items():
+            with self.subTest(declaration=declaration):
+                self.assertEqual(
+                    parse_css(f"a {{ {declaration}; margin: 1px; }}")[1],
+                    {"a": dict(expected, margin="1px")},
+                )
+
 
 class TestRuleBlockSemantics(unittest.TestCase):
     """The scanner must keep the parsing rules of the regular expression it replaced.
