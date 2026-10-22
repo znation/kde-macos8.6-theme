@@ -15,7 +15,9 @@ from __future__ import annotations
 
 import os
 
+from support import containment
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.repo_root import ROOT
 
 from tools import png  # noqa: E402
 from tools.png.read import _validate_max_rows  # noqa: E402
@@ -55,8 +57,11 @@ def read_reference(path, **kwargs):
     at different ``max_rows`` bounds is unfiltered once, not once per bound. A
     request that needs more rows re-decodes and replaces the entry. An invalid
     ``max_rows`` (not a positive plain int) is reported as an error whether or
-    not a decode is cached.
+    not a decode is cached. A path that resolves outside the repository (a
+    checked-in symlink escape) is refused before the cache is consulted, so a
+    swapped symlink is refused even when an earlier request cached its target.
     """
+    containment.require_within_repo(path, ROOT)
     key = os.path.abspath(str(path))
     max_rows = kwargs.get("max_rows")
     try:

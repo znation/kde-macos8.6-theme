@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support import reference_image  # noqa: E402
@@ -152,6 +153,52 @@ class TestReadReferenceCache(unittest.TestCase):
         self.assertIsNone(second)
         self.assertIs(first_error, second_error)
         self.assertIsInstance(first_error, reference_image.png.PngError)
+
+
+class TestReadReferenceContainment(unittest.TestCase):
+    """``read_reference`` refuses a screenshot symlink that escapes the repository.
+
+    A reference screenshot path is contributor-supplied, and a checked-in
+    symlink there can point at a private PNG outside the repository. The tests
+    decode the target and echo its pixels in assertion diagnostics, so the read
+    must refuse the escape before it is decoded -- including when an earlier
+    request already cached a decode under the same path.
+    """
+
+    def test_rejects_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            private = tmp / "private.png"
+            private.write_bytes(encode_png(2, 2, bytes(12)))
+            link = root / "reference.png"
+            link.symlink_to(private)
+            with mock.patch.object(reference_image, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    reference_image.read_reference(link)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertIn("resolves outside", str(caught.exception))
+
+    def test_a_cached_decode_does_not_bypass_the_guard(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            target = root / "actual.png"
+            target.write_bytes(encode_png(2, 2, bytes(12)))
+            link = root / "reference.png"
+            link.symlink_to(target)
+            with mock.patch.object(reference_image, "ROOT", root):
+                image, error = reference_image.read_reference(link)
+                self.assertIsNone(error)
+                self.assertEqual((image.width, image.height), (2, 2))
+                link.unlink()
+                link.symlink_to(tmp / "private.png")
+                with self.assertRaises(ValueError) as caught:
+                    reference_image.read_reference(link)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertIn("resolves outside", str(caught.exception))
 
 
 class TestReferenceScreenshotMixin(unittest.TestCase):

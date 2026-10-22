@@ -4,8 +4,13 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
+from support import containment
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kpackage_install_case import KPackageInstallCase
@@ -32,6 +37,22 @@ def block(image, x0, y0):
     )
 
 
+def read_shipped_png(path, **kwargs):
+    """Read a shipped PNG, refusing a path that escapes the repository.
+
+    The wallpaper images and the reference screenshots are contributor-supplied
+    theme assets, and a checked-in symlink at either path can point at a private
+    PNG outside the repository. The suite decodes these images and echoes a
+    mismatched image's RGB bytes in ``assertEqual``, so following such a symlink
+    would print the private file's pixels in a failing test's diagnostic. The
+    shared containment guard refuses the escape before :func:`png.read_png`
+    opens the path; a path outside the repository (a test's temporary output) is
+    read as before.
+    """
+    containment.require_within_repo(path, ROOT)
+    return png.read_png(path, **kwargs)
+
+
 class TestMetadata(PackageMetadata, unittest.TestCase):
     METADATA_PATH = METADATA
     PACKAGE_STRUCTURE = "Wallpaper/Images"
@@ -53,7 +74,7 @@ class TestImages(unittest.TestCase):
         cls.error = None
         try:
             for width, height in make_wallpaper.RESOLUTIONS:
-                cls.images[(width, height)] = png.read_png(
+                cls.images[(width, height)] = read_shipped_png(
                     os.path.join(IMAGES, f"{width}x{height}.png")
                 )
         except png.PngError as exc:
@@ -78,6 +99,38 @@ class TestImages(unittest.TestCase):
                 self.assertEqual(
                     image.rgb, make_wallpaper.tiled_rgb(tile, width, height)
                 )
+
+
+class TestImageReadContainment(unittest.TestCase):
+    """The suite's shipped-PNG reads refuse a repository symlink escape.
+
+    The wallpaper images are contributor-supplied, and a checked-in symlink at
+    one can point at a private PNG outside the repository. The suite echoes a
+    mismatched image's RGB bytes in ``assertEqual``, so the read must refuse the
+    escape before it is decoded, the same guard the other theme readers apply.
+    """
+
+    def test_image_reads_refuse_a_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            images = root / "images"
+            images.mkdir(parents=True)
+            private = tmp / "private.png"
+            private.write_bytes(png.encode_png(2, 2, bytes(12)))
+            link = images / "1024x768.png"
+            link.symlink_to(private)
+            # Drive the real setUpClass through a per-test subclass, so a
+            # failure here cannot clear the images the shipped suite loaded.
+            case = type("ContainmentCase", (TestImages,), {})
+            with mock.patch.object(sys.modules[__name__], "ROOT", root):
+                with mock.patch.object(
+                    sys.modules[__name__], "IMAGES", str(images)
+                ):
+                    with self.assertRaises(ValueError) as caught:
+                        case.setUpClass()
+        self.assertIn(str(link), str(caught.exception))
+        self.assertIn("resolves outside", str(caught.exception))
 
 
 class TestTiledRgb(unittest.TestCase):
@@ -107,8 +160,10 @@ class TestReferenceTile(unittest.TestCase):
         cls.reference_error = None
         cls.shipped = None
         try:
-            cls.reference = png.read_png(REFERENCE)
-            cls.shipped = png.read_png(os.path.join(IMAGES, "1024x768.png"))
+            cls.reference = read_shipped_png(REFERENCE)
+            cls.shipped = read_shipped_png(
+                os.path.join(IMAGES, "1024x768.png")
+            )
         except png.PngError as exc:
             cls.reference_error = exc
 
