@@ -6,7 +6,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 ## Planned
 
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
-updated 2026-10-21 by the clean role; plan status updated 2026-10-21 by the steward role):** The
+updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
@@ -36,8 +36,9 @@ shipped work should not be treated as the whole of the prompt.
 Two answers on 2026-10-19 widen the scope again, and both now have plan entries in the queue.
 **GTK applications and Firefox** are in scope (QUESTIONS.md, answered 2026-10-19) as a
 four-part series: parts 1/4 (GTK 3 Platinum theme) and 2/4 (GTK 4/libadwaita stylesheet) have
-landed, part 3/4 (the opt-in install and selection) is planned below, and part 4/4 (Firefox
-`userChrome.css` plus profile preference) is not planned yet. **The UI font** is to be vendored
+landed; part 3/4 is queued as two entries — the opt-in install (part 1/2) and, blocked on it, the
+selection (part 2/2) — and part 4/4 (Firefox `userChrome.css` plus profile preference) is not
+planned yet. **The UI font** is to be vendored
 (QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
 Charcoal-style body face and has landed (installed but not yet selected); part 2/3 (a
 Chicago-style menu face, whose redistribution licence is still unresolved) and part 3/3
