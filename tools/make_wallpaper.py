@@ -8,6 +8,11 @@ picks the image nearest the screen size, so a matching screen shows the tile 1:1
 
 Run ``python3 tools/make_wallpaper.py`` from anywhere; the output is
 deterministic, so re-running rewrites identical bytes.
+
+The reference screenshot is a repository file, and a checked-in symlink can
+point anywhere on the machine. A reference that resolves outside the
+repository is refused by name before it is decoded, so a private file's pixels
+cannot be copied into the wallpaper package.
 """
 
 from __future__ import annotations
@@ -18,10 +23,12 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.png import Image, PngError, read_png
     from tools.png.write import encode_png
 else:  # run directly: python3 tools/make_wallpaper.py
+    from containment import require_within_repo
     from diagnostics import report_error
     from png import Image, PngError, read_png
     from png.write import encode_png
@@ -116,8 +123,16 @@ def _write_atomic(path: Path, data: bytes) -> None:
 
 def main() -> int:
     """Write the tiled wallpaper PNG for every resolution; return 0, or 2 on error."""
+    reference = ROOT / REFERENCE
     try:
-        tile = tile_from_reference(read_png(ROOT / REFERENCE))
+        # The reference screenshot is a repository file, and a checked-in
+        # symlink can point anywhere on the machine. Reading it through such a
+        # symlink would decode a private file and copy its pixels into the
+        # wallpaper package, which the next commit would publish. The shared
+        # guard refuses a repository path that resolves outside the repository
+        # before the image is decoded.
+        require_within_repo(reference, ROOT)
+        tile = tile_from_reference(read_png(reference))
     except (PngError, ValueError) as exc:
         return report_error(TOOL, str(exc))
     images = ROOT / PACKAGE_DIR / "contents" / "images"

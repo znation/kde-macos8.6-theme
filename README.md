@@ -170,7 +170,9 @@ installs into a scratch data home and leaves your own Plasma configuration alone
 `python3 tools/make_wallpaper.py` rewrites the wallpaper package's images in
 theme/wallpapers/org.macos8.desktop/contents/images/ from the reference desktop screenshot
 (`macos8.6-screenshots/desktop_betawiki.png`, which needs its Git LFS image materialized). The
-output is deterministic, so re-running it rewrites identical bytes.
+output is deterministic, so re-running it rewrites identical bytes. It refuses a reference
+screenshot that resolves outside the repository — a checked-in symlink — with a diagnostic
+naming the path, so a private file's pixels cannot be copied into the package.
 
 ## Reference screenshots
 

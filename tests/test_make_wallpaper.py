@@ -1,4 +1,4 @@
-"""Tests for tools/make_wallpaper.py's tile bounds check and main() entry point."""
+"""Tests for tools/make_wallpaper.py's tile bounds check, main() entry point and reference guard."""
 
 from __future__ import annotations
 
@@ -174,6 +174,75 @@ class TestMain(unittest.TestCase):
         self.assertEqual(status, 2)
         self.assertIn("does not fit", err)
         self.assertFalse(self.images.exists())
+
+
+class TestReferenceContainment(unittest.TestCase):
+    """The reference screenshot is a repository file; a symlink out of it is refused.
+
+    A checked-in symlink can point anywhere on the machine, and the generator
+    copies what it reads into the wallpaper package inside the repository, so
+    reading a private file through such a symlink would publish its pixels
+    with the next commit.
+    """
+
+    def setUp(self):
+        self.root = make_tmp_dir(self)
+        self.outside = make_tmp_dir(self)
+        patches = (
+            mock.patch.object(make_wallpaper, "ROOT", self.root),
+            mock.patch.object(make_wallpaper, "RESOLUTIONS", SMALL_RESOLUTIONS),
+        )
+        for patch in patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+        self.images = self.root / make_wallpaper.PACKAGE_DIR / "contents" / "images"
+        self.reference = self.root / make_wallpaper.REFERENCE
+
+    def test_a_reference_symlinked_outside_the_repository_is_refused(self):
+        # The symlink points at a valid PNG outside the repository, so a
+        # generator that follows it decodes the file and writes its pixels
+        # into the package; the guard must refuse it before the decode.
+        width, height = X0 + TILE, Y0 + TILE
+        secret = self.outside / "private.png"
+        secret.write_bytes(encode_png(width, height, gradient(width, height)))
+        self.reference.parent.mkdir(parents=True)
+        self.reference.symlink_to(secret)
+
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            status = make_wallpaper.main()
+
+        self.assertEqual(status, 2)
+        self.assertTrue(err.getvalue().startswith("make_wallpaper: error: "))
+        self.assertIn("symlink escape", err.getvalue())
+        self.assertFalse(self.images.exists())
+
+    def test_a_reference_inside_the_repository_is_still_read(self):
+        # The guard must not refuse the ordinary case: the shipped reference
+        # lives in the repository, and its pixels are the wallpaper's tile.
+        width, height = X0 + TILE, Y0 + TILE
+        rgb = gradient(width, height)
+        self.reference.parent.mkdir(parents=True)
+        self.reference.write_bytes(encode_png(width, height, rgb))
+
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err):
+            status = make_wallpaper.main()
+
+        self.assertEqual((status, err.getvalue()), (0, ""))
+        for w, h in SMALL_RESOLUTIONS:
+            with self.subTest(size=(w, h)):
+                image = png.read_png(self.images / f"{w}x{h}.png")
+                self.assertEqual(
+                    image.rgb,
+                    make_wallpaper.tiled_rgb(
+                        make_wallpaper.tile_from_reference(
+                            png.Image(width, height, rgb)
+                        ),
+                        w,
+                        h,
+                    ),
+                )
 
 
 class TestWriteAtomic(unittest.TestCase):
