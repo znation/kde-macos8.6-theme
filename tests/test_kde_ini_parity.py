@@ -64,75 +64,85 @@ class TestReadersAgree(unittest.TestCase):
             for case in CASES:
                 with self.subTest(case=case.name):
                     ini.write_text(case.text, encoding="utf-8")
-                    self.assertEqual(
-                        case.expected,
-                        _kde_config_value(ini),
-                        "kde_config.read disagreed with the corpus",
-                    )
+                    self._assert_kde_config_agrees(case, ini)
 
                     defaults.write_text(
                         as_defaults(case.text), encoding="utf-8"
                     )
-                    if case.defaults_raises:
-                        # A malformed heading names no output file, so
-                        # defaults_groups refuses it rather than dropping a
-                        # whole config section; the KDE-facing readers skip
-                        # the line as KConfig does.
-                        with self.assertRaises(ValueError):
-                            theme_defaults.defaults_groups(defaults)
-                    else:
-                        groups = theme_defaults.defaults_groups(defaults)
-                        self.assertEqual(
-                            case.expected,
-                            groups.get(("kdeglobals", "General"), {}).get(
-                                "ColorScheme"
-                            ),
-                            "defaults_groups disagreed with the corpus",
-                        )
+                    self._assert_defaults_agrees(case, defaults)
 
-                    # `make uninstall` only exposes the selection by warning
-                    # when it equals the scheme id it removed, so pass the
-                    # case's expected value as that id: the warning then
-                    # pins the exact value the recipe's awk read, including
-                    # `%`, `=`, spaces and `#` inside a value. A case with no
-                    # selection uses the real id and must stay silent; an
-                    # empty expected value uses an empty id and must warn.
-                    # The no-selection check below proves that a missing key
-                    # stays silent even when compared with an empty id.
-                    scheme_id = (
-                        SCHEME_ID if case.expected is None else case.expected
-                    )
                     (config / "kdeglobals").write_text(
                         case.text, encoding="utf-8"
                     )
-                    removed = _uninstall_recipe(
-                        destdir, (f"COLOR_SCHEME_ID={scheme_id}",), config
-                    )
-                    assert_succeeded(self, removed)
-                    self.assertEqual(
-                        case.expected is not None,
-                        "is still selected" in removed.stderr,
-                        "the uninstall recipe disagreed with the corpus",
-                    )
+                    self._assert_uninstall_warns(case, destdir, config)
 
-                    if case.expected is None:
-                        # The non-empty id above makes no selection silent.
-                        # An empty id tells it apart only if the recipe
-                        # reports a present, empty value differently from a
-                        # missing key; an awk that skips `ColorScheme=` stays
-                        # silent and fails here. An empty expected value
-                        # already ran with an empty id above, so it needs no
-                        # second run.
-                        removed = _uninstall_recipe(
-                            destdir, ("COLOR_SCHEME_ID=",), config
-                        )
-                        assert_succeeded(self, removed)
-                        self.assertEqual(
-                            case.expected == "",
-                            "is still selected" in removed.stderr,
-                            "the uninstall recipe cannot tell an empty "
-                            "selection from no selection",
-                        )
+    def _assert_kde_config_agrees(self, case, ini):
+        """Assert `kde_config.read` resolves the case's expected selection."""
+        self.assertEqual(
+            case.expected,
+            _kde_config_value(ini),
+            "kde_config.read disagreed with the corpus",
+        )
+
+    def _assert_defaults_agrees(self, case, defaults):
+        """Assert `defaults_groups` resolves the case's expected selection.
+
+        A malformed heading names no output file, so `defaults_groups` refuses
+        it rather than dropping a whole config section; the KDE-facing readers
+        skip the line as KConfig does.
+        """
+        if case.defaults_raises:
+            with self.assertRaises(ValueError):
+                theme_defaults.defaults_groups(defaults)
+            return
+        groups = theme_defaults.defaults_groups(defaults)
+        self.assertEqual(
+            case.expected,
+            groups.get(("kdeglobals", "General"), {}).get("ColorScheme"),
+            "defaults_groups disagreed with the corpus",
+        )
+
+    def _assert_uninstall_warns(self, case, destdir, config):
+        """Assert the uninstall recipe's warning matches the case.
+
+        `make uninstall` only exposes the selection by warning when it equals
+        the scheme id it removed, so this passes the case's expected value as
+        that id: the warning then pins the exact value the recipe's awk read,
+        including `%`, `=`, spaces and `#` inside a value. A case with no
+        selection uses the real id and must stay silent; an empty expected
+        value uses an empty id and must warn.
+        """
+        scheme_id = SCHEME_ID if case.expected is None else case.expected
+        removed = _uninstall_recipe(
+            destdir, (f"COLOR_SCHEME_ID={scheme_id}",), config
+        )
+        assert_succeeded(self, removed)
+        self.assertEqual(
+            case.expected is not None,
+            "is still selected" in removed.stderr,
+            "the uninstall recipe disagreed with the corpus",
+        )
+
+        if case.expected is not None:
+            return
+
+        # The non-empty id above makes no selection silent.
+        # An empty id tells it apart only if the recipe
+        # reports a present, empty value differently from a
+        # missing key; an awk that skips `ColorScheme=` stays
+        # silent and fails here. An empty expected value
+        # already ran with an empty id above, so it needs no
+        # second run.
+        removed = _uninstall_recipe(
+            destdir, ("COLOR_SCHEME_ID=",), config
+        )
+        assert_succeeded(self, removed)
+        self.assertEqual(
+            case.expected == "",
+            "is still selected" in removed.stderr,
+            "the uninstall recipe cannot tell an empty "
+            "selection from no selection",
+        )
 
 
 if __name__ == "__main__":

@@ -97,10 +97,10 @@ class TestCheckerMutations(unittest.TestCase):
             private.write_text("private secret line\n", encoding="utf-8")
             (root / "docs" / "invariants.md").symlink_to(private)
             (root / "PLACEHOLDERS.md").write_text("", encoding="utf-8")
-            with mock.patch.object(checker_scratch, "ROOT", root):
-                with tempfile.TemporaryDirectory() as scratch_tmp:
-                    with self.assertRaises(ValueError) as caught:
-                        Scratch.build(scratch_tmp)
+            with mock.patch.object(checker_scratch, "ROOT", root), \
+                    tempfile.TemporaryDirectory() as scratch_tmp:
+                with self.assertRaises(ValueError) as caught:
+                    Scratch.build(scratch_tmp)
         self.assertIn("resolves outside", str(caught.exception))
         self.assertNotIn("private secret line", str(caught.exception))
 

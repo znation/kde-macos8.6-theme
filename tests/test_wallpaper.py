@@ -123,12 +123,12 @@ class TestImageReadContainment(unittest.TestCase):
             # Drive the real setUpClass through a per-test subclass, so a
             # failure here cannot clear the images the shipped suite loaded.
             case = type("ContainmentCase", (TestImages,), {})
-            with mock.patch.object(sys.modules[__name__], "ROOT", root):
-                with mock.patch.object(
-                    sys.modules[__name__], "IMAGES", str(images)
-                ):
-                    with self.assertRaises(ValueError) as caught:
-                        case.setUpClass()
+            with mock.patch.object(sys.modules[__name__], "ROOT", root), \
+                    mock.patch.object(
+                        sys.modules[__name__], "IMAGES", str(images)
+                    ):
+                with self.assertRaises(ValueError) as caught:
+                    case.setUpClass()
         self.assertIn(str(link), str(caught.exception))
         self.assertIn("resolves outside", str(caught.exception))
 

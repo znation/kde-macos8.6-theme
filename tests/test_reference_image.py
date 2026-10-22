@@ -132,15 +132,21 @@ class TestReadReferenceCache(unittest.TestCase):
             with _spy_on_read_png() as spy:
                 reference_image.read_reference(path)
                 for bad in (0, -1, True, 1.5, "2"):
-                    with self.subTest(max_rows=bad):
-                        image, error = reference_image.read_reference(
-                            path, max_rows=bad
-                        )
-                        self.assertIsNone(image)
-                        self.assertIsInstance(
-                            error, reference_image.png.PngError
-                        )
+                    self._assert_bound_is_rejected(path, bad)
         self.assertEqual(1, spy.call_count)
+
+    def _assert_bound_is_rejected(self, path, max_rows):
+        """Assert a read with the invalid bound *max_rows* fails.
+
+        The bound is rejected without a decode, so the read returns no image
+        and a ``PngError`` instead.
+        """
+        with self.subTest(max_rows=max_rows):
+            image, error = reference_image.read_reference(
+                path, max_rows=max_rows
+            )
+            self.assertIsNone(image)
+            self.assertIsInstance(error, reference_image.png.PngError)
 
     def test_a_failed_read_is_cached_like_a_decode(self):
         with tempfile.TemporaryDirectory() as tmp:
