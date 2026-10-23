@@ -253,6 +253,10 @@ class TestDefaultsGroups(unittest.TestCase):
 
 
 class TestWriteConfigs(unittest.TestCase):
+    def test_rejects_non_path_config_home(self):
+        with self.assertRaises(ValueError):
+            theme_defaults.write_configs("/tmp", ("kwinrc",))
+
     def test_written_configs_follow_the_defaults(self):
         directory = make_tmp_dir(self)
         theme_defaults.write_configs(directory, ("kwinrc", "plasmarc"))

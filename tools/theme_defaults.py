@@ -182,6 +182,11 @@ def _write_config_atomically(path: Path, content: str) -> None:
 
 def write_configs(config_home: Path, names: Iterable[str]) -> None:
     """Write one config file per name in *names* from the defaults' sections for it."""
+    if not isinstance(config_home, Path):
+        raise ValueError(
+            f"write_configs config_home must be a pathlib.Path, not "
+            f"{type(config_home).__name__}"
+        )
     groups = defaults_groups()
     for name in names:
         lines: list[str] = []
