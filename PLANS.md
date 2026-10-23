@@ -245,12 +245,4 @@ edit `PLANS-DONE.md`.
   `## Done` line's, and `grep -F 'Generate and ship the Xcursor arrow cursor artifact'
   PLANS-DONE.md` exits 1 with no output.
 
-### Retire the `no-observability` validation gap with test-side observability (planned 2026-10-23 by the steward role; promotes the recurring `gap: no-observability` tag, 20 Fixed entries)
-
-**Goal.** Twenty Fixed entries in BUGS-FIXED.md carry `gap: no-observability` — failures that left no trace the suite could see, so the bug could not be confirmed until instrumentation was added. Retire the tag by adding test-side observability helpers (trace capture, structured failure logging) that make such failures reproducible offline, so new bugs in those areas are confirmable without a real run.
-
-**Cited entries.** BUGS-FIXED.md lines recording `gap: no-observability` (20 entries), including the aurorae reader FIFO, containment guard, config-reading quirks, and invariants/placeholders register rows.
-
-**Acceptance criteria.** `make check` is green; the promoted tag's count stops growing.
-
 ## Done

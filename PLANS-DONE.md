@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Retire the `no-observability` validation gap with test-side observability (planned 2026-10-23 by the steward role; promotes the recurring `gap: no-observability` tag, 21 Fixed entries) — done 2026-10-23 by the feature role
+
+**Goal.** Twenty-one Fixed entries in BUGS-FIXED.md carry `gap: no-observability` — failures that left no trace the suite could see, so the bug could not be confirmed until instrumentation was added. Retire the tag by adding test-side observability helpers (trace capture, structured failure logging) that make such failures reproducible offline, so new bugs in those areas are confirmable without a real run.
+
+**Cited entries.** BUGS-FIXED.md lines recording `gap: no-observability` (21 entries), including the aurorae reader FIFO, containment guard, config-reading quirks, and invariants/placeholders register rows.
+
+**Acceptance criteria.** `make check` is green; the promoted tag's count stops growing.
+
+**Implementation note (2026-10-23).** Twelve of the thirteen one-line records were already retired by the record-checker mutation harness (`tests/test_checker_mutations.py`), the remaining palette-provenance record was retired by `tests/test_colorscheme.py::TestProvenanceNote`, and each of the eight prose records already names the test that reproduces it offline. This change makes the coverage explicit and bounded: `tests/support/validation_gaps.py` parses both record forms into a structured ledger mapping each mechanism to its reproducing test, and `tests/test_validation_gaps.py` asserts every archived record maps to a real test and caps the count at its 21-record baseline, so a new `no-observability` tag fails the suite instead of growing the gap. The invariant register's tooling row records the guarantee.
+
 ### GTK opt-in, part 3/3: Select the installed GTK 3 and GTK 4 Platinum themes (planned 2026-10-21 by the plan role; rewritten 2026-10-23 by the plan role; parts 1/3 and 2/3 landed) — done 2026-10-23 by the feature role
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
