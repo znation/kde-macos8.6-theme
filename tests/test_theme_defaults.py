@@ -252,6 +252,46 @@ class TestWriteConfigs(unittest.TestCase):
         self.assertIn("[Theme]\nname=org.macos8.desktop\n", plasmarc)
         self.assertNotIn("ColorScheme", kwinrc + plasmarc)
 
+    def test_failed_write_leaves_previous_config_intact(self):
+        directory = make_tmp_dir(self)
+        target = directory / "kwinrc"
+        target.write_text("ORIGINAL\n", encoding="utf-8")
+        original_mode = target.stat().st_mode & 0o777
+        td = theme_defaults
+        real_replace = os.replace
+        def boom(src, dst):
+            raise OSError("simulated failure")
+        os.replace = boom
+        try:
+            with self.assertRaises(OSError):
+                td._write_config_atomically(target, "NEW\n")
+        finally:
+            os.replace = real_replace
+        self.assertEqual("ORIGINAL\n", target.read_text(encoding="utf-8"))
+        self.assertEqual(original_mode, target.stat().st_mode & 0o777)
+        # no leftover temp files
+        self.assertEqual({"kwinrc"}, set(os.listdir(directory)))
+
+
+
+    def test_write_preserves_existing_target_mode(self):
+        directory = make_tmp_dir(self)
+        target = directory / "kwinrc"
+        target.write_text("ORIGINAL\n", encoding="utf-8")
+        target.chmod(0o644)
+        theme_defaults._write_config_atomically(target, "NEW\n")
+        self.assertEqual(0o644, target.stat().st_mode & 0o777)
+        self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
+
+    def test_new_file_mode_respects_umask(self):
+        directory = make_tmp_dir(self)
+        target = directory / "kwinrc"
+        old = os.umask(0o022)
+        try:
+            theme_defaults._write_config_atomically(target, "NEW\n")
+        finally:
+            os.umask(old)
+        self.assertEqual(0o644, target.stat().st_mode & 0o777)
 
 if __name__ == "__main__":
     unittest.main()
