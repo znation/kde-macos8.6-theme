@@ -5,6 +5,23 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### Non-consecutive IDAT chunks and PLTE/tRNS after IDAT are accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/png/stream.py`'s `collect_chunks` concatenated every IDAT payload and
+kept a PLTE or tRNS payload wherever it appeared, so a malformed stream whose
+IDAT chunks are separated by another chunk, or whose PLTE/tRNS follows the
+image data, decoded as if its chunk order were valid. Reproduce by building a
+1x1 RGB PNG whose IDAT is split around a tEXt chunk, or a palette PNG whose
+PLTE chunk is moved after IDAT: `png.decode_png` returned the image instead of
+raising.
+
+The guard now closes the IDAT run at the first non-IDAT chunk and refuses a
+later IDAT, and refuses a PLTE or tRNS once image data has started, matching
+the PNG chunk-order rules while still allowing ancillary chunks after the last
+IDAT.
+
+**Validation gap:** unclear-invariant — the chunk-order guarantee was neither stated in the module nor pinned by a test, so it had to be reconstructed from the PNG specification; the reconstructed invariant is recorded in docs/invariants.md.
+
 ### GTK settings edits rewrite a foreign file's line endings (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `gtk_settings.set_theme_name` and `remove_theme_name` split a settings file on every boundary `str.splitlines` recognises and rejoined the lines with `"\n"`, so editing the `gtk-theme-name` key in a CRLF, lone-CR or mixed-ending `settings.ini` rewrote every foreign line's terminator, contradicting the module's promise and `docs/invariants.md` that every foreign line is preserved.

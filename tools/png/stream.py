@@ -3,8 +3,9 @@
 Turns a PNG's chunk stream into the pieces the decoders and the size-only file
 reader need: the validated IHDR payload, the optional PLTE palette, the
 concatenated IDAT image data and the optional tRNS transparency payload. It
-refuses a misordered or duplicate IHDR, duplicate PLTE or tRNS, a malformed
-PLTE length, an unknown critical chunk, a missing IEND and a missing IHDR, so
+refuses a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
+chunk after the image data, non-consecutive IDAT chunks, a malformed PLTE
+length, an unknown critical chunk, a missing IEND and a missing IHDR, so
 every caller sees the same diagnosis. :func:`parse_ihdr` validates the header
 fields and :func:`check_pixel_limit` bounds the declared size;
 ``tools/png/chunks.py`` does the lower-level framing and CRC checks this
@@ -152,7 +153,8 @@ def collect_chunks(
 
     Walks the chunks after the signature, collecting the image header, palette,
     IDAT payloads and the optional tRNS transparency payload. It refuses a
-    misordered or duplicate IHDR, duplicate PLTE or tRNS, a malformed PLTE
+    misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS chunk
+    after the image data, non-consecutive IDAT chunks, a malformed PLTE
     length, an unknown critical chunk, a missing IEND and a missing IHDR.
     Filtering and colour expansion are the decoders' concern; this helper owns
     only the framing the rest of the decode reads.
@@ -161,6 +163,8 @@ def collect_chunks(
     palette = None
     trns = None
     idat = bytearray()
+    saw_idat = False
+    idat_closed = False
     saw_iend = False
     first_chunk = None
     for ctype, payload in iter_chunks(data):
@@ -173,7 +177,27 @@ def collect_chunks(
         if ctype == b"IHDR":
             header = _take_ihdr(payload, header, previous_first)
             continue
+        if ctype == b"IDAT":
+            if idat_closed:
+                raise PngError(
+                    "PNG has an IDAT chunk after a non-IDAT chunk; IDAT "
+                    "chunks must be consecutive"
+                )
+            saw_idat = True
+            idat += payload
+            continue
+        # The PNG spec requires the IDAT chunks to be consecutive, so any other
+        # chunk ends the image-data run: a later IDAT is misordered. Ancillary
+        # chunks after the final IDAT remain allowed, which is why this only
+        # closes the run rather than rejecting the chunk.
+        if saw_idat:
+            idat_closed = True
         if ctype == b"PLTE":
+            if saw_idat:
+                raise PngError(
+                    "PNG has a PLTE chunk after the image data; PLTE must "
+                    "precede IDAT"
+                )
             if palette is not None:
                 raise PngError(
                     "PNG has more than one PLTE chunk; the palette "
@@ -182,6 +206,11 @@ def collect_chunks(
             palette = _take_plte(payload)
             continue
         if ctype == b"tRNS":
+            if saw_idat:
+                raise PngError(
+                    "PNG has a tRNS chunk after the image data; tRNS must "
+                    "precede IDAT"
+                )
             # tRNS is ancillary, but it changes what the pixels mean for the
             # three non-alpha colour types, so it must be collected rather
             # than skipped with the other unknown ancillary chunks. Colour
@@ -196,9 +225,6 @@ def collect_chunks(
                     "must appear at most once"
                 )
             trns = payload
-            continue
-        if ctype == b"IDAT":
-            idat += payload
             continue
         if ctype == b"IEND":
             saw_iend = True

@@ -5,7 +5,8 @@ pin the container layer: that a valid image may split its zlib stream across
 several IDAT chunks or carry unknown ancillary chunks, and that the decoder
 rejects malformed framing -- unknown critical chunks, bad chunk types,
 oversized lengths, bad or truncated CRCs, a missing, duplicated or
-out-of-position IHDR, a missing PLTE/IEND and unsupported IHDR fields.
+out-of-position IHDR, non-consecutive IDAT chunks, a PLTE or tRNS chunk after
+the image data, a missing PLTE/IEND and unsupported IHDR fields.
 Scanline decoding lives in ``test_png_decode``; the malformed-image-data
 and resource-limit rejections live in ``test_png_malformed``.
 
@@ -57,6 +58,54 @@ class TestChunkFraming(unittest.TestCase):
             + tail
         )
         self.assertEqual(png.decode_png(two_chunks), image)
+
+    def test_rejects_idat_chunks_that_are_not_consecutive(self):
+        # PNG requires the IDAT chunks to be consecutive. An ancillary chunk
+        # between two IDATs leaves a stream whose concatenated payload still
+        # inflates, so without an ordering check the decoder accepts a file
+        # that a conformant reader rejects.
+        compressed = zlib.compress(b"\x00\x01\x02\x03")
+        split = len(compressed) // 2
+        data = (
+            _PNG_SIGNATURE
+            + ihdr_chunk(1, 1, 2)
+            + _chunk(b"IDAT", compressed[:split])
+            + _chunk(b"tEXt", b"Software\x00x")
+            + _chunk(b"IDAT", compressed[split:])
+            + _chunk(b"IEND", b"")
+        )
+        message = decode_error_message(self, data)
+        self.assertIn("IDAT", message)
+        self.assertIn("consecutive", message)
+
+    def test_rejects_plte_after_idat(self):
+        # PLTE must precede the image data. A palette arriving after IDAT
+        # would still be used to expand the indices even though the PNG spec
+        # puts it before the first IDAT.
+        data = (
+            _PNG_SIGNATURE
+            + ihdr_chunk(1, 1, 3)
+            + _chunk(b"IDAT", zlib.compress(b"\x00\x00"))
+            + _chunk(b"PLTE", bytes([1, 2, 3]))
+            + _chunk(b"IEND", b"")
+        )
+        message = decode_error_message(self, data)
+        self.assertIn("PLTE", message)
+        self.assertIn("precede IDAT", message)
+
+    def test_rejects_trns_after_idat(self):
+        # tRNS must also precede IDAT; accepted late, it would change the
+        # decoded alpha of an otherwise conformant-looking image.
+        data = (
+            _PNG_SIGNATURE
+            + ihdr_chunk(1, 1, 0)
+            + _chunk(b"IDAT", zlib.compress(b"\x00\x07"))
+            + _chunk(b"tRNS", struct.pack(">H", 7))
+            + _chunk(b"IEND", b"")
+        )
+        message = decode_error_message(self, data)
+        self.assertIn("tRNS", message)
+        self.assertIn("precede IDAT", message)
 
     def test_ignores_unknown_ancillary_chunks(self):
         # Real screenshots carry ancillary chunks (gAMA, sRGB, pHYs, tEXt,
