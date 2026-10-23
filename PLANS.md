@@ -54,7 +54,7 @@ the Lato body face only, because Lato is the only family the package installs. U
 applications keep their own chrome regardless (the queued GTK entries cover GTK, and
 Firefox is GTK series part 4/4, not planned).
 
-### GTK opt-in, part 3/3: Select the installed GTK 3 and GTK 4 Platinum themes (planned 2026-10-21 by the plan role; requires part 2/3 landed)
+### GTK opt-in, part 3/3: Select the installed GTK 3 and GTK 4 Platinum themes (planned 2026-10-21 by the plan role; rewritten 2026-10-23 by the plan role; parts 1/3 and 2/3 landed)
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
 directly under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
@@ -71,8 +71,8 @@ installed GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md` (exactly `PLA
 `$XDG_DATA_HOME/themes/org.macos8.desktop`, but nothing selects them, so GTK applications still
 draw their system theme. Add `make apply-gtk` and `make remove-gtk` plus `tools/apply_gtk.py`:
 set `gtk-theme-name=org.macos8.desktop` in both GTK settings files and give libadwaita
-applications the GTK 4 sheet as user CSS. This entry requires part 2/3 landed (the opt-in install family
-and installed file layout); do not reimplement them. It does not add Firefox chrome, which remains
+applications the GTK 4 sheet as user CSS. Parts 1/3 and 2/3 landed the opt-in install family and
+the installed file layout; this entry does not reimplement them. It does not add Firefox chrome, which remains
 GTK series part 4/4 and is not planned here.
 
 **Reference grounding.** No screenshot in `macos8.6-screenshots/` shows a GTK widget, so this part
@@ -121,11 +121,32 @@ libadwaita user-CSS path are GTK-required values the reference set does not show
   that patches the environment for `main` and pins every helper branch: an absolute
   `XDG_DATA_HOME` is used even with `HOME` unset (with `XDG_CONFIG_HOME` absolute); an empty and a
   relative `XDG_DATA_HOME` each fall back to `$HOME/.local/share`; an empty and a relative
-  `XDG_CONFIG_HOME` each fall back to `$HOME/.config`; and `main` exits 2 with a diagnostic naming
-  `XDG_DATA_HOME` when that value is not absolute and `HOME` is unset or relative, and likewise for
-  `XDG_CONFIG_HOME`. Add `TestMakeApplyGtk` for the target order (`install` before the script), the
-  non-empty-`DESTDIR` refusal, the Python-version guard, `make -n remove-gtk`, and `make help`
-  listing both targets.
+  `XDG_CONFIG_HOME` each fall back to `$HOME/.config`; and the diagnostic pins
+  `test_missing_data_home_names_xdg_data_home` and
+  `test_missing_config_home_names_xdg_config_home` each call `main` with the variable unset or
+  relative and `HOME` unusable, then, after `assert_failed` from `support.process_assertions`,
+  assert `result.stderr` contains `XDG_DATA_HOME` or `XDG_CONFIG_HOME` respectively -- a bare
+  exit-code assertion does not pin the diagnostic. Add `TestMakeApplyGtk` mirroring
+  `tests/test_apply_theme.py`'s `TestMakeApply`, with all five pins as named methods, each also
+  asserting its exact diagnostic or output substring, never the return code alone:
+  `test_dry_run_shows_install_before_the_script` (`run_make(["-n", "apply-gtk"], ...)`) asserts
+  `assert_succeeded`, that `result.stdout` contains both `INSTALL_PACKAGES=gtk` and
+  `tools/apply_gtk.py`, and that `result.stdout.index("INSTALL_PACKAGES=gtk")` is less than
+  `result.stdout.index("tools/apply_gtk.py")`; `test_non_empty_destdir_is_refused` runs
+  `run_make(["apply-gtk", "DESTDIR=<temp dir>"], ...)`, asserts `assert_failed`, that
+  `result.stderr` contains `DESTDIR must be empty`, and that neither stream names
+  `apply_gtk.py`; `test_python_version_is_refused` follows `tests/test_make_check.py`'s
+  `TestPythonVersion` (a fake interpreter script written to a temp dir, made executable, passed
+  as `PYTHON=<fake>`, that exits non-zero for every invocation) and asserts `result.stderr`
+  contains `Python 3.10 or newer` and the fake path; `test_dry_run_shows_remove_script`
+  (`run_make(["-n", "remove-gtk"], ...)`) asserts `assert_succeeded` and that `result.stdout`
+  contains `tools/apply_gtk.py --remove`; and `test_help_lists_both_targets`
+  (`run_make(["help"], ...)`) asserts `assert_succeeded` and that a `result.stdout` line starts
+  with ``  apply-gtk `` and a line starts with ``  remove-gtk ``.
+  Every refusal assertion on an exit status states its diagnostic substring in the same method:
+  `test_missing_sheet_names_make_install_gtk` asserts `result.stderr` contains both
+  `make install-gtk` and `gtk-4.0/gtk.css`, and the foreign-`gtk.css` pin asserts the stdout
+  note names `gtk.css`. A method that asserts only a return code does not implement its pin.
 - `README.md`: extend the GTK paragraph from part 3/4 with `make apply-gtk` and `make remove-gtk`
   (the `test_make_help` README check requires the exact target names), both `gtk-theme-name`
   settings keys, the libadwaita `gtk-4.0/gtk.css` marker/import, the need to restart GTK
@@ -144,8 +165,8 @@ Do not edit `PLANS-DONE.md`.
   `[Settings]`/`gtk-theme-name=org.macos8.desktop` to `gtk-3.0/settings.ini` and
   `gtk-4.0/settings.ini`, preserves an unrelated key and comment, and writes a `gtk-4.0/gtk.css`
   whose first line is the marker and whose second line is `@import url("file://<installed
-  gtk-4.0/gtk.css>");`; the same command exits 1 naming `make install-gtk` when the installed
-  sheet is absent.
+  gtk-4.0/gtk.css>");`; the same command fails and its stderr names `make install-gtk` and
+  `gtk-4.0/gtk.css` when the installed sheet is absent.
 - `make remove-gtk` removes only our `gtk-theme-name` line and marker `gtk.css`; a foreign value
   in `gtk-3.0/settings.ini` and a foreign `gtk-4.0/gtk.css` survive byte for byte.
 - `make check CHECK_TESTS='test_gtk_apply test_make_help'` passes; corrupting the settings edit,
@@ -154,6 +175,13 @@ Do not edit `PLANS-DONE.md`.
 - `make check CHECK_TESTS=test_gtk_apply` passes `TestHomeResolution`; making either helper skip
   the `HOME` fallback, accept a relative value, or return a path when both candidates are
   unusable makes a case fail.
+- `make check CHECK_TESTS=test_gtk_apply` passes `TestMakeApplyGtk`; dropping any of its five
+  named pins, or asserting a refusal pin only by return code while its named diagnostic
+  substring (`DESTDIR must be empty`, `Python 3.10 or newer`, `tools/apply_gtk.py --remove`)
+  goes unasserted, does not implement the pin above: mutating the matched message string in
+  `tools/apply_gtk.py` or the Makefile recipes -- dropping `make install-gtk` from the
+  missing-sheet error, `XDG_DATA_HOME`/`XDG_CONFIG_HOME` from a home refusal, or renaming an
+  `apply-gtk`/`remove-gtk` help line -- makes the matching assertion fail.
 - `git diff --name-status` names only the files listed under "Files touched" (besides the backlog
   move) and does not name `PLANS-DONE.md`.
 - When the work lands, `grep -n '^### GTK opt-in, part 3/3: Select the installed GTK 3 and
@@ -166,10 +194,6 @@ Do not edit `PLANS-DONE.md`.
   (exactly `PLANS.md`). The report's `SUMMARY` names the GTK selection tool and Makefile targets,
   and its `RISK` names the GTK settings files and libadwaita user CSS; a report that calls the
   change only backlog bookkeeping contradicts the diff.
-
-**Needs replan 2026-10-23 by feature: rejected after 2 review rounds**
-1. `TestMakeApplyGtk` remains a stub against the plan entry's explicit enumeration: of the five required pins (target order with `install` before the script, the non-empty-`DESTDIR` refusal, the Python-version guard, `make -n remove-gtk`, `make help` listing both targets), only the last two…
-2. Several plan-required diagnostic pins are asserted as bare exit codes only: `test_missing_sheet_exits_1` never checks the message names `make install-gtk`; `test_missing_data_home_and_home_exits_2`/`test_missing_config_home_and_home_exits_2` never check the diagnostics name `XDG_DATA_HOME`/`XDG_CON…
 
 ### Platinum cursor theme, part 1/3: RGBA PNG encode, decode and read in tools/png (planned 2026-10-23 by the plan role; split from the too-large "Generate and ship the Xcursor arrow cursor artifact" entry)
 
