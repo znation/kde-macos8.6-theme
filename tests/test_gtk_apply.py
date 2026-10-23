@@ -331,6 +331,30 @@ class TestRemove(GtkApplyCase):
         )
         self.assertEqual(foreign_css, css.read_text(encoding="utf-8"))
 
+    def test_remove_clears_the_selection_without_a_resolvable_data_home(self):
+        # Removal reads and writes only the config home. A user who sets an
+        # absolute XDG_CONFIG_HOME but has no usable HOME or XDG_DATA_HOME can
+        # still clear the selection; requiring the data home would refuse a
+        # removal that never touches it.
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+        )
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write(css, apply_gtk.GTK4_CSS_MARKER + "\n")
+
+        with mock.patch.dict(
+            os.environ, {"XDG_CONFIG_HOME": str(self.config)}, clear=True
+        ):
+            result = run_main(apply_gtk.main, "apply_gtk", ("--remove",))
+
+        assert_succeeded(self, result)
+        self.assertNotIn(
+            "gtk-theme-name",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+        self.assertFalse(css.exists())
+
 
 class TestHomeResolution(unittest.TestCase):
     def test_absolute_data_home_is_used_even_without_home(self):

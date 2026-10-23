@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `apply_gtk --remove` refuses to clear the GTK selection when no data home resolves (found by the bugfix role 2026-10-23; fixed 2026-10-23 by the bugfix role)
+
+**Symptom:** `python3 tools/apply_gtk.py --remove` (and so `make remove-gtk`)
+exits 2 with an `XDG_DATA_HOME` diagnostic and leaves the selection in place
+when `$XDG_DATA_HOME` and `$HOME` are unusable, even though
+`$XDG_CONFIG_HOME` is absolute and removal reads and writes only the config
+home.
+
+**Reproduction:** a scratch run with our `gtk-theme-name` lines in a temporary
+`$XDG_CONFIG_HOME`, `env -i PATH=... XDG_CONFIG_HOME=<tmp>` and no `HOME` or
+`XDG_DATA_HOME`, printed `apply_gtk: error: XDG_DATA_HOME is unset or not
+absolute ...` and exited 2 with the key still present. The new
+`tests/test_gtk_apply.py::TestRemove::test_remove_clears_the_selection_without_a_resolvable_data_home`
+failed the same way before the fix and passes after it.
+
+**Cause:** `main` resolved both the data and config homes before dispatching,
+although `_remove` takes only the config home; the apply path is the only one
+that reads the installed sheet below the data home.
+
+**Fix:** `main` resolves the data home only on the apply path and checks only
+the config home for removal. Applying still refuses an unresolvable data home.
+
+**Validation gap:** no-observability — every existing removal test supplied a
+data home, so the removal's needless data-home dependency left no failing
+trace; the closest tag is no-observability.
+
 ### The Aurorae decoration reader blocks forever on a FIFO at `decoration.svg` or `decoration.svgz` (found by the bugfix role 2026-10-21; fixed 2026-10-21 by the bugfix role)
 
 **Symptom:** the Aurorae decoration suite reads contributor-supplied artwork

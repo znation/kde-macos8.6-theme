@@ -14,8 +14,9 @@ Usage::
     python3 tools/apply_gtk.py --remove
 
 Exit status: 0 when the selection or removal ran, 1 when the installed GTK 4
-sheet is missing, 2 for a usage error, an unresolvable home directory, or a
-settings or user-CSS file that cannot be read or written.
+sheet is missing, 2 for a usage error, an unresolvable config home (or data
+home when applying), or a settings or user-CSS file that cannot be read or
+written.
 """
 
 from __future__ import annotations
@@ -366,8 +367,9 @@ def main(argv: list[str] | None = None) -> int:
         ),
         epilog=(
             "exit status: 0 when the selection ran, 1 when the installed GTK 4 "
-            "sheet is missing, 2 for a usage error, an unresolvable home "
-            "directory, or a settings file that cannot be read or written"
+            "sheet is missing, 2 for a usage error, an unresolvable config home "
+            "(or data home when applying), or a settings file that cannot be "
+            "read or written"
         ),
     )
     parser.add_argument(
@@ -378,29 +380,43 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     env = os.environ
-    data_home = _data_home(env)
-    config_home = _config_home(env)
-    if data_home is None:
-        return report_error(
-            TOOL,
-            "XDG_DATA_HOME is unset or not absolute and HOME cannot provide "
-            "$HOME/.local/share; set XDG_DATA_HOME to an absolute path or "
-            "export an absolute HOME",
-        )
-    if config_home is None:
-        return report_error(
-            TOOL,
-            "XDG_CONFIG_HOME is unset or not absolute and HOME cannot provide "
-            "$HOME/.config; set XDG_CONFIG_HOME to an absolute path or "
-            "export an absolute HOME",
-        )
-
-    try:
-        status = (
-            _remove(config_home) if args.remove else _apply(data_home, config_home)
-        )
-    except _ConfigError as exc:
-        return report_error(TOOL, str(exc))
+    if args.remove:
+        # Removal touches only the config home, so it must work when no data
+        # home resolves: refusing it would block clearing a selection that is
+        # already installed.
+        config_home = _config_home(env)
+        if config_home is None:
+            return report_error(
+                TOOL,
+                "XDG_CONFIG_HOME is unset or not absolute and HOME cannot "
+                "provide $HOME/.config; set XDG_CONFIG_HOME to an absolute "
+                "path or export an absolute HOME",
+            )
+        try:
+            status = _remove(config_home)
+        except _ConfigError as exc:
+            return report_error(TOOL, str(exc))
+    else:
+        data_home = _data_home(env)
+        if data_home is None:
+            return report_error(
+                TOOL,
+                "XDG_DATA_HOME is unset or not absolute and HOME cannot "
+                "provide $HOME/.local/share; set XDG_DATA_HOME to an absolute "
+                "path or export an absolute HOME",
+            )
+        config_home = _config_home(env)
+        if config_home is None:
+            return report_error(
+                TOOL,
+                "XDG_CONFIG_HOME is unset or not absolute and HOME cannot "
+                "provide $HOME/.config; set XDG_CONFIG_HOME to an absolute "
+                "path or export an absolute HOME",
+            )
+        try:
+            status = _apply(data_home, config_home)
+        except _ConfigError as exc:
+            return report_error(TOOL, str(exc))
     if status == 0:
         _note("restart running GTK applications to pick up the theme")
     return status
