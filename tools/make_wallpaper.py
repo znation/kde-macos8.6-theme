@@ -62,6 +62,11 @@ PACKAGE_DIR = "theme/wallpapers/org.macos8.desktop"
 
 def tile_from_reference(image: Image) -> bytes:
     """Return the 128x128 RGB block of *image* at ``TILE_ORIGIN``."""
+    if not isinstance(image, Image):
+        raise ValueError(
+            f"tile_from_reference image must be an Image, not "
+            f"{type(image).__name__}"
+        )
     x0, y0 = TILE_ORIGIN
     if x0 + TILE_SIZE > image.width or y0 + TILE_SIZE > image.height:
         raise ValueError(

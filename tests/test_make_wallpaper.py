@@ -40,6 +40,13 @@ class TestTileFromReferenceBounds(unittest.TestCase):
                 self.assertIn("does not fit", str(caught.exception))
                 self.assertIn(f"{width}x{height}", str(caught.exception))
 
+    def test_non_image_is_rejected(self):
+        for bad in (b"abc", 1, None):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError) as caught:
+                    make_wallpaper.tile_from_reference(bad)
+                self.assertIn("must be an Image", str(caught.exception))
+
     def test_image_exactly_fitting_the_tile_is_accepted(self):
         width, height = X0 + TILE, Y0 + TILE
         rgb = gradient(width, height)
