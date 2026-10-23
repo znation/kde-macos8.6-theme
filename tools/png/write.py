@@ -1,8 +1,9 @@
-"""Encode an 8-bit RGB image as a PNG file using only the standard library.
+"""Encode an 8-bit RGB or RGBA image as a PNG file using only the standard library.
 
 ``tools/png/loader.py`` reads a PNG file and ``tools/png/read.py`` decodes it;
 this is their minimal inverse, used to generate
-the wallpaper images. The output is deterministic: every row uses filter type
+the wallpaper images and the RGBA cursor frames. The output is deterministic:
+every row uses filter type
 0 and one IDAT chunk is compressed at zlib level 9, so the same pixels always
 produce the same bytes.
 """
@@ -76,6 +77,34 @@ def encode_png(width: int, height: int, rgb: bytes) -> bytes:
         for row in range(height)
     )
     header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    return (
+        _MAGIC
+        + _chunk(b"IHDR", header)
+        + _chunk(b"IDAT", zlib.compress(raw, 9))
+        + _chunk(b"IEND", b"")
+    )
+
+
+def encode_rgba_png(width: int, height: int, rgba: bytes) -> bytes:
+    """Return the PNG bytes of a *width* x *height* image of packed RGBA pixels."""
+    for name, value in (("width", width), ("height", height)):
+        _validate_dimension(name, value)
+    if not isinstance(rgba, (bytes, bytearray)):
+        raise ValueError(
+            f"PNG rgba must be bytes or bytearray, not {type(rgba).__name__}"
+        )
+    expected = width * height * 4
+    if len(rgba) != expected:
+        raise ValueError(
+            f"{len(rgba)} RGBA bytes given; a {width}x{height} image needs "
+            f"{expected} (width*height*4)"
+        )
+    stride = width * 4
+    raw = b"".join(
+        b"\x00" + bytes(rgba[row * stride : (row + 1) * stride])
+        for row in range(height)
+    )
+    header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
     return (
         _MAGIC
         + _chunk(b"IHDR", header)

@@ -24,9 +24,12 @@ PUBLIC_NAMES = {
     "Image": image.Image,
     "PngError": image.PngError,
     "decode_png": read.decode_png,
+    "decode_rgba": read.decode_rgba,
     "encode_png": write.encode_png,
+    "encode_rgba_png": write.encode_rgba_png,
     "pixel_at": image.pixel_at,
     "read_png": loader.read_png,
+    "read_rgba": loader.read_rgba,
     "read_png_size": loader.read_png_size,
 }
 

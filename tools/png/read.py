@@ -1,7 +1,8 @@
 """The PNG decode pipeline.
 
 Decodes 8-bit, non-interlaced PNG images (color types 0, 2, 3, 4 and 6) into
-tightly packed RGB bytes, using only the Python standard library. This module
+tightly packed RGB bytes (:func:`decode_png`) or RGBA bytes
+(:func:`decode_rgba`), using only the Python standard library. This module
 holds the decode pipeline (header validation, bounds, inflate and color
 expansion); the file reader that loads a path and applies the file-level
 guards is :func:`tools.png.loader.read_png`, and
@@ -325,3 +326,75 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
         return Image(width, rows, rgb[: rows * width * 3])
     samples = unfilter(raw, width, height, channels, rows)
     return Image(width, rows, _to_rgb(color_type, samples, palette))
+
+
+def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, bytes]:
+    if not isinstance(data, (bytes, bytearray)):
+        raise PngError(
+            f"decode_rgba data must be bytes or bytearray, not "
+            f"{type(data).__name__}"
+        )
+    data = bytes(data)
+    if not data.startswith(PNG_MAGIC):
+        detected = other_image_format(data)
+        if detected is not None:
+            raise PngError(
+                f"not a PNG file: the input is a {detected} image, not a PNG; "
+                "convert it to PNG first"
+            )
+        raise PngError("not a PNG file")
+    header, palette, idat = _collect_chunks(data)
+    width, height, color_type = _parse_ihdr(header)
+    _validate_max_rows(max_rows)
+    rows = height if max_rows is None else min(max_rows, height)
+    channels = _CHANNELS[color_type]
+    _check_pixel_limit(width, height)
+    expected_raw = raw_byte_length(width, height, channels)
+    if not idat:
+        raise PngError("PNG has no IDAT image data")
+    decompressor = zlib.decompressobj()
+    try:
+        raw = decompressor.decompress(bytes(idat), expected_raw)
+    except zlib.error as exc:
+        raise PngError(f"corrupt PNG image data: {exc}") from exc
+    if decompressor.unconsumed_tail:
+        raise PngError(
+            f"PNG image data decompresses to more than the {expected_raw} bytes "
+            f"its {width}x{height} header declares"
+        )
+    if not decompressor.eof:
+        raise PngError(
+            "PNG image data is truncated: the compressed stream ends before "
+            "its final block"
+        )
+    if color_type == 3:
+        samples = unfilter(raw, width, height, channels)
+        rgb = _to_rgb(color_type, samples, palette)
+        rgb = rgb[: rows * width * 3]
+        out = bytearray()
+        for i in range(0, len(rgb), 3):
+            out += rgb[i:i + 3] + b"\xff"
+        return width, rows, bytes(out)
+    samples = unfilter(raw, width, height, channels, rows)
+    if color_type == 6:
+        rgba = samples
+    elif color_type == 4:
+        out = bytearray()
+        for i in range(0, len(samples), 2):
+            g = samples[i]
+            a = samples[i + 1]
+            out += bytes((g, g, g, a))
+        rgba = bytes(out)
+    elif color_type == 2:
+        out = bytearray()
+        for i in range(0, len(samples), 3):
+            out += samples[i:i + 3] + b"\xff"
+        rgba = bytes(out)
+    elif color_type == 0:
+        out = bytearray()
+        for g in samples:
+            out += bytes((g, g, g, 255))
+        rgba = bytes(out)
+    else:
+        raise PngError(f"unsupported PNG color type {color_type}")
+    return width, rows, rgba

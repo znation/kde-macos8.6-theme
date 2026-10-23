@@ -4,7 +4,9 @@
 ``tools/png/read.py`` sees the data: it opens without blocking so a FIFO cannot
 hang ``open()``, rejects any non-regular file, bounds the read with
 ``_MAX_FILE_BYTES``, and names an unmaterialized Git LFS pointer instead of
-letting :func:`decode_png` report it as "not a PNG file". :func:`read_png_size`
+letting :func:`decode_png` report it as "not a PNG file". :func:`read_rgba`
+uses the same guards and decodes the image into packed RGBA bytes.
+:func:`read_png_size`
 uses the same guards but inspects only the IHDR chunk, returning the declared
 ``(width, height)`` without decoding rows. Decoding itself -- header
 validation, inflate and color expansion -- lives in ``read.py``.
@@ -23,7 +25,7 @@ except ImportError:  # imported as the top-level package `png` by a directly run
 
 from .chunks import iter_chunks
 from .image import Image, PngError
-from .read import _check_pixel_limit, _parse_ihdr, decode_png
+from .read import _check_pixel_limit, _parse_ihdr, decode_png, decode_rgba
 
 # Cap on the bytes read_png will load from disk. decode_png bounds the decoded
 # image by its pixel limit, but read_png reads the whole file before decode_png
@@ -86,6 +88,15 @@ def read_png(path: str | Path, max_rows: int | None = None) -> Image:
     data = _read_png_data(path)
     try:
         return decode_png(data, max_rows)
+    except PngError as exc:
+        raise PngError(f"cannot decode {path}: {exc}") from exc
+
+
+def read_rgba(path: str | Path, max_rows: int | None = None) -> tuple[int, int, bytes]:
+    """Read and decode the PNG at *path* into packed RGBA bytes."""
+    data = _read_png_data(path)
+    try:
+        return decode_rgba(data, max_rows)
     except PngError as exc:
         raise PngError(f"cannot decode {path}: {exc}") from exc
 

@@ -5,6 +5,84 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum cursor theme, part 1/3: RGBA PNG encode, decode and read in tools/png (planned 2026-10-23 by the plan role; split from the too-large "Generate and ship the Xcursor arrow cursor artifact" entry) — done 2026-10-23 by the feature role
+
+**Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
+under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
+`— done YYYY-MM-DD` to its `### ` heading. Do not add, rename or move a `## ` heading, and do not
+edit `PLANS-DONE.md`: tumwater moves the entry from `## Done` into that archive after the merge.
+After the move `grep -n '^## ' PLANS.md` must print exactly `## Planned` and `## Done`, and
+`grep -F 'Platinum cursor theme, part 1/3: RGBA PNG encode, decode and read in tools/png' PLANS.md` must print exactly one line, whose
+whose number is greater than the `## Done` line's. The final report quotes the actual output of
+`grep -l "RGBA PNG encode, decode and read in tools/png" PLANS.md PLANS-DONE.md` (exactly
+`PLANS.md`) and of `git diff --name-status`; never claim a file the diff does not name.
+
+**Goal.** The cursor series needs PNG frames that keep alpha: part 2/3 ("requires part 1/3 landed")
+decodes Xcursor image chunks that embed RGBA PNG, and part 3/3 generates them.
+`tools/png` today only round-trips opaque pixels (`encode_png`, `decode_png`, `read_png`;
+`tools/png/read.py` reduces everything through `_to_rgb`). Add `encode_rgba_png`, `decode_rgba` and
+`read_rgba` beside the existing pipeline, in the same one-responsibility style, leaving every
+existing function byte-identical and every existing caller untouched. Nothing in the repository
+consumes the new names yet — that is deliberate ground-laying, not a finished feature, and the
+later parts' headings name them. This part is independent of (and runs alongside) the queued GTK
+opt-in parts 1/3–3/3.
+
+**Reference grounding.** Codec plumbing carries no visual value and samples no pixel; the pixels
+the later cursor parts pin come from part 3/3's own grid and carry its provenance exception. No
+new KDE-required value appears in this part.
+
+**Approach.**
+- `tools/png/write.py`: add `encode_rgba_png(width, height, rgba)` beside `encode_png`: the same
+  deterministic framing (colour type 6, bit depth 8, every row filter type 0, one IDAT at zlib
+  level 9, so identical pixels produce identical bytes) but taking packed RGBA, rejecting anything
+  that is not `bytes`/`bytearray` of exactly `width * height * 4` and reusing
+  `_validate_dimension` for the bounds, each diagnostic naming the offending argument.
+  `encode_png`'s behaviour and output stay byte-identical; nothing else in the module changes.
+- `tools/png/read.py`: add `decode_rgba(data, max_rows=None)` that reuses the existing pipeline
+  (`_CHANNELS`, `_validate_max_rows`, `_parse_ihdr`, `_check_pixel_limit`, `_collect_chunks` and
+  the scanline unfiltering) but keeps four samples per pixel and bypasses `_to_rgb`'s palette
+  reduction: it returns `(width, height, rgba)`, and its alpha is 255 wherever the source colour
+  type has no alpha channel (every type in `_CHANNELS` — 0, 2, 3, 4 and 6). It touches neither
+  `Image` nor `decode_png`.
+- `tools/png/loader.py`: add `read_rgba(path)` that runs the existing `_read_png_data` file guards
+  (non-blocking open, non-regular refusal, `_MAX_FILE_BYTES`, the LFS-pointer diagnostic) and hands
+  the bytes to `decode_rgba`. `read_png` and `read_png_size` are untouched.
+- `tools/png/__init__.py`: extend the module docstring's name list, the `__all__` list and the
+  `from .…` imports with the three new public names, in the established order.
+- `tests/test_png_rgba.py` (new, modelled on the codec tests): `encode_rgba_png` round-trips
+  through `read_rgba` and `decode_rgba` byte for byte at every alpha value 0..255 in a small image;
+  the encoded IHDR declares colour type 6; two runs with the same pixels produce identical bytes;
+  a too-short or too-long RGBA buffer, a rejected dimension and a 3-bytes-per-pixel buffer raise
+  `ValueError` naming the argument (reuse `tests/support/rejection_assertions.py`); `decode_rgba`
+  on a colour-type-2 and a colour-type-3 fixture built with `tests/support/png_fixtures.py`'s
+  `make_png` (the decoder tests' own builder) returns alpha 255 everywhere; and `encode_png`'s
+  output for a small sample image is recorded as a literal in the test, so the RGBA work cannot
+  disturb it.
+- `docs/invariants.md`: in the existing `## tooling` section add one row — the RGBA PNG codec
+  round-trips alpha byte for byte and leaves `encode_png`'s output unchanged — pinned to
+  `tests/test_png_rgba.py`, column 3 `none`.
+
+**Files touched.** `tools/png/write.py`, `tools/png/read.py`, `tools/png/loader.py`,
+`tools/png/__init__.py`, `tests/test_png_rgba.py` (new), `docs/invariants.md`, and `PLANS.md`
+(the entry moves to `## Done`; see Plan record). Do not edit `PLANS-DONE.md`.
+
+**Acceptance criteria.**
+- `encode_rgba_png` followed by `read_rgba` returns the original RGBA bytes, at every alpha 0..255
+  in the round-trip test; the encoded IHDR declares colour type 6; two runs with the same pixels
+  produce identical bytes; an off-size buffer, a bad dimension or a 3-bytes-per-pixel buffer raises
+  `ValueError` naming its argument; a colour-type-2 and a colour-type-3 PNG decode with alpha 255
+  everywhere; `encode_png`'s pinned sample output is byte-identical to before this change, and no
+  existing test changes its expectations.
+- `make check` is green with the new module included; corrupting any of the pins above (encoding a
+  wrong alpha row, dropping a guard, changing the framing) fails the matching test,
+  `tests/invariants.py` accepts the new row, and `make check` is green.
+- `git diff --name-status` names only the files listed under "Files touched" (besides the backlog
+  move) and neither `PLANS-DONE.md` nor any `theme/` path.
+- When the work lands, `grep -n '^### Platinum cursor theme, part 1/3: RGBA PNG encode, decode and read in tools/png' PLANS.md`
+  prints exactly one line whose number is greater than the `## Done` line's, and
+  `grep -F 'Platinum cursor theme, part 1/3: RGBA PNG encode, decode and read in tools/png'
+  PLANS-DONE.md` exits 1 with no output.
+
 ### GTK opt-in, part 2/3: Uninstall the installed GTK 3 and GTK 4 Platinum themes (planned 2026-10-23 by the plan role; "requires part 1/3 landed") — done 2026-10-23 by the feature role
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
