@@ -55,11 +55,7 @@ the Lato body face only, because Lato is the only family the package installs. U
 applications keep their own chrome regardless (the queued GTK entries cover GTK, and
 Firefox chrome is part 1/2 below).
 
-### Platinum cursor theme, part 3/3: Generate and ship the Xcursor arrow cursor artifact (planned 2026-10-23 by the plan role; "requires part 2/3 landed")
-
-**Needs replan 2026-10-23 by feature: rejected after 2 review rounds**
-
-> 1. The archived part 2/3 entry in `PLANS-DONE.md` remains stale and now contradicts the landed change. It still says to carry the Xcursor provenance into the `## cursors` section part 3/3 adds, and that `docs/invariants.md` is untouched because the `## cursors` row belongs to part 3/3. The actual diff…
+### Platinum cursor theme, part 3/3: Generate and ship the Xcursor arrow cursor artifact (planned 2026-10-23 by the plan role; rewritten 2026-10-23 by the plan role; "requires part 2/3 landed")
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
 under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
@@ -86,8 +82,9 @@ reference pixel is sampled and the arrow is our own Platinum-style art drawn fro
 the generator, not traced from Apple's artwork (the icon theme's standing rule). Its two colours
 are `#000000` face and `#FFFFFF` outline, both already pinned in the colour scheme; the nominal
 sizes 16/24/32, the Xcursor binary format, the file name `left_ptr` and the X-name aliases are
-X/KDE-required values the reference set does not show. Record that provenance exception in
-`docs/invariants.md`. Xcursor files have no image extension, so Git LFS (`.gitattributes`) is
+X/KDE-required values the reference set does not show. Record that provenance exception in the
+`## icons` row of `docs/invariants.md` (the artifact ships inside the icon theme package). Xcursor
+files have no image extension, so Git LFS (`.gitattributes`) is
 untouched. The files ride the icon theme artifact, so README's artifact count stays at eight
 (status wording untouched); part 3/3 only extends their reader-facing description in the
 "Installing" section.
@@ -107,51 +104,55 @@ untouched. The files ride the icon theme artifact, so README's artifact count st
 - `tests/test_cursors_theme.py` (new): run the generator into a temp directory twice, asserting
   byte-identical output; parse the committed `left_ptr` with `tests/support/xcursor.py` (part 2/3)
   and pin: exactly one image chunk per nominal size in {16, 24, 32}; each chunk's PNG payload
-  decodes with `read_rgba` and its width/height equal its nominal size; the 16px frame's hotspot is
+  decodes with `decode_rgba` and its width/height equal its nominal size; the 16px frame's hotspot is
   (1,1) and its tip pixel (1,1) is opaque `#000000`, the outline corner (0,0) opaque `#FFFFFF`, and
   (15,15) transparent (alpha 0); the committed `arrow`, `default` and `top_left_arrow` are
   byte-identical to `left_ptr`; and corrupting the grid, dropping a nominal size, or moving the
   hotspot fails the matching assertion (the regression pattern `tests/support/mutant_module.py`
   uses).
-- `tests/test_icon_theme.py`: `test_icon_theme_ships_exactly_the_tracked_icons` extends its tracked
-  set so the tree holds exactly with the four cursor files added; the SVG-level assertions
-  (`test_each_icon_is_a_square_svg_of_its_declared_size`, the palette and pins and
-  `test_the_geometry_registry_covers_every_shipped_icon`) take the `suffix=".svg"` filter of
-  `tests/support/shipped_files.py`'s `shipped_files(root, suffix=None)` so they keep iterating only
-  the icons and do not mistake a binary cursor for an icon. The placeholder register and
-  `tests/support/package_metadata.py` stay untouched.
+- `tests/test_icon_theme.py`: `test_icon_theme_ships_exactly_the_tracked_icons` extends its expected
+  set and `TestInstall.INSTALLED_FILES` extends its registry, so both equal the package tree with
+  the four cursor files added (the inherited `test_installed_files_registry_covers_the_package`
+  compares that registry against `shipped_files(self.PACKAGE_DIR)`). The SVG-level assertions
+  iterate the explicit `SHIPPED_ICONS` tuple, not `shipped_files`, so they need no change; the
+  placeholder register stays untouched.
 - `README.md`: in the "Installing" section's icon theme sentence, add that the package ships the
   `cursors/` Xcursor arrow (black face, white outline, nominal sizes 16/24/32, X-name aliases
   `arrow`, `default`, `top_left_arrow`) and that nothing selects it yet. Name no make target (none
   exists or is planned) and change no artifact count.
-- `docs/invariants.md`: add a `## cursors` section with one row — the arrow draws the black face
-  and white outline at nominal sizes 16/24/32 with the hotspot at the tip, and the four files are
-  byte-identical apart from their names — pinned to `tests/test_cursors_theme.py`, carrying the
-  provenance exception above (this is the standing exception window the cursor series uses; no
-  screenshot shows a pointer).
+- `docs/invariants.md`: add one row to the existing `## icons` section — the icon theme's
+  `cursors/left_ptr` draws the black face and white outline at nominal sizes 16/24/32 with the
+  hotspot at the tip, and its `arrow`, `default` and `top_left_arrow` aliases are byte-identical to
+  it — pinned to `tests/test_cursors_theme.py::TestCursorArtifact`, carrying the provenance
+  exception above (no screenshot shows a pointer). Do not add a `## cursors` section:
+  `tests/invariants.py` accepts only `theme/` subsystem sections plus
+  `EXTRA_SECTIONS = ("tooling",)`, so an unregistered section fails `make check`.
 
 **Files touched.** `tools/make_cursors.py` (new),
 `theme/icons/org.macos8.desktop/cursors/` (four new generated files), `tests/test_cursors_theme.py`
-(new), `tests/test_icon_theme.py`, `README.md`, `docs/invariants.md`, and `PLANS.md` (the entry
-moves to `## Done`; see Plan record). The `Makefile` and `.gitattributes` are untouched; do not
-edit `PLANS-DONE.md`.
+(new), `tests/test_icon_theme.py`, `tools/xcursor.py` (only its module docstring's forward
+reference to a `## cursors` section becomes the `## icons` row), `README.md`,
+`docs/invariants.md`, and `PLANS.md` (the entry moves to `## Done`; see Plan record). The
+`Makefile`, `.gitattributes` and `tests/invariants.py` are untouched; do not edit
+`PLANS-DONE.md` (this replan already annotated its part 2/3 entry).
 
 **Acceptance criteria.**
 - `python3 tools/make_cursors.py` writes the four files under
   `theme/icons/org.macos8.desktop/cursors/` deterministically: two runs into one temp directory
   are byte-identical, and the regenerated files equal the committed ones byte for byte.
 - The test-side parser (`tests/support/xcursor.py`) accepts the committed `left_ptr` (magic,
-  version 65536, three image chunks) and rejects a truncated or hand-corrupted copy; the pinned
-  pixels and hotspots hold for all three nominal sizes (scaled accordingly); the aliases are
-  byte-identical to `left_ptr`; corrupting the committed file, dropping a nominal size from the
-  generator's output or moving the hotspot fails the matching assertion.
-- `tests/test_icon_theme.py`'s exact-tree pin holds with the four cursor files (removing one, or
-  editing the committed grid's colours, fails the matching test), and every SVG-level icon
-  assertion keeps iterating only the icons because of its `suffix=".svg"` filter from
-  `tests/support/shipped_files.py`.
+  version 65536, three image chunks) and rejects a truncated or hand-corrupted copy; each chunk's
+  PNG payload decodes with `tools.png.decode_rgba`, and its width/height equal the nominal size;
+  the pinned pixels and hotspots hold for all three nominal sizes (scaled accordingly); the
+  aliases are byte-identical to `left_ptr`; corrupting the committed file, dropping a nominal size
+  from the generator's output or moving the hotspot fails the matching assertion.
+- `tests/test_icon_theme.py`'s exact-tree pin and `TestInstall.INSTALLED_FILES` hold with the four
+  cursor files (removing one, or editing the committed grid's colours, fails the matching test),
+  while the SVG-level assertions still iterate only `SHIPPED_ICONS`.
 - `make check` is green with the new modules included and `tests/invariants.py` accepts the
-  `## cursors` row; `git diff --name-status` names only the files listed under "Files touched"
-  (besides the backlog move) and neither the `Makefile` nor `PLANS-DONE.md`.
+  `## icons` row; `grep -n '^## cursors' docs/invariants.md` prints nothing; `git diff
+  --name-status` names only the files listed under "Files touched" (besides the backlog move) and
+  none of `Makefile`, `.gitattributes`, `tests/invariants.py` or `PLANS-DONE.md`.
 - The entry moves from `## Planned` under `## Done` with its Done stamp, verified on the pre-merge
   working diff: `git diff --name-status` names `PLANS.md` and does not name `PLANS-DONE.md`, and
   `grep -n '^## ' PLANS.md` prints exactly `## Planned` and `## Done`. No acceptance criterion

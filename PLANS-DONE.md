@@ -37,6 +37,11 @@ converts the stored words back to RGBA and re-encodes them with `encode_rgba_png
 premultiplication loses colour precision — the tests pin the stored premultiplied word instead.
 Record that provenance first here and carry it into the `## cursors` section part 3/3 adds.
 
+> **Superseded 2026-10-23 by the plan role:** part 3/3 adds the cursor guarantee to the existing
+> `## icons` section of `docs/invariants.md`, not a new `## cursors` section, because
+> `tests/invariants.py` accepts only `theme/` subsystem sections plus
+> `EXTRA_SECTIONS = ("tooling",)`. The rest of this archived entry records what part 2/3 did.
+
 **Approach.**
 - `tools/xcursor.py` (new): module constants `MAGIC = b"Xcur"`, `FILE_VERSION = 0x00010000`,
   `FILE_HEADER_SIZE = 16`, `TOC_ENTRY_SIZE = 12`, `IMAGE_TYPE = 0xFFFD0002`,
