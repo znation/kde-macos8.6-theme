@@ -44,7 +44,7 @@ Two answers on 2026-10-19 widen the scope again, and both now have plan entries 
 four-part series: parts 1/4 (GTK 3 Platinum theme) and 2/4 (GTK 4/libadwaita stylesheet) have
 landed; part 3/4 is queued as three entries — the opt-in install (parts 1/3 and 2/3) and,
 blocked on them, the selection (part 3/3) — and part 4/4 is split into two runs: part 1/2 (the
-Firefox `userChrome.css` stylesheet) is queued below and part 2/2 (the profile install plus the
+Firefox `userChrome.css` stylesheet) has landed and part 2/2 (the profile install plus the
 preference) is not planned yet. **The UI font** is to be vendored
 (QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
 Charcoal-style body face and has landed (installed but not yet selected); part 2/3 (a
@@ -53,7 +53,7 @@ yet; and part 3/3 (selecting the installed family in KDE/Plasma/Qt) is queued as
 the Lato body face only, because Lato is the only family the package installs. Until part
 3/3 lands, KDE, Plasma and Qt applications keep the user's own font; GTK and Firefox
 applications keep their own chrome regardless (the queued GTK entries cover GTK, and
-Firefox chrome is part 1/2 below).
+Firefox chrome is part 1/2, which has landed).
 
 ### Platinum cursor theme, part 3/3: Generate and ship the Xcursor arrow cursor artifact (planned 2026-10-23 by the plan role; rewritten 2026-10-23 by the plan role; "requires part 2/3 landed")
 
@@ -157,118 +157,6 @@ reference to a `## cursors` section becomes the `## icons` row), `README.md`,
   working diff: `git diff --name-status` names `PLANS.md` and does not name `PLANS-DONE.md`, and
   `grep -n '^## ' PLANS.md` prints exactly `## Planned` and `## Done`. No acceptance criterion
   refers to `PLANS.md` or `PLANS-DONE.md` after the merge.
-
-### Firefox Platinum chrome, part 1/2: Ship the `userChrome.css` stylesheet (planned 2026-10-23 by the plan role; GTK and Firefox series part 4/4, split from the profile install)
-
-**Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
-under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
-`— done YYYY-MM-DD by the feature role` to its `### ` heading. Do not edit `PLANS-DONE.md`:
-tumwater archives `## Done` entries into that file after the merge, so neither its content nor
-`PLANS.md` after the merge is evidence this change controls. Verify the move on the pre-merge
-working diff only: `git diff --name-status` names `PLANS.md` and does not name `PLANS-DONE.md`, and
-`grep -n '^## ' PLANS.md` prints exactly `## Planned` and `## Done`. Do not claim any grep output
-for this entry's heading after the merge; tumwater may already have moved it out of `PLANS.md`.
-
-**Goal.** GTK series parts 1/4–3/4 landed the GTK 3 and GTK 4 Platinum sheets and their opt-in
-install and selection. Part 4/4 is Firefox: `browser.tabs.inTitlebar=0` in a Firefox profile gives
-Firefox a KWin-drawn Aurorae frame, but its tab strip, toolbars and menus keep Firefox's own look.
-This part ships the stylesheet alone, `theme/firefox/org.macos8.desktop/chrome/userChrome.css`,
-written against Firefox's `userChrome.css` chrome selectors and its own chrome theme variables,
-with a test module. It adds no Makefile target, no profile write, no preference and no selection:
-installing the sheet into a profile's `chrome/` directory and setting
-`toolkit.legacyUserProfileCustomizations.stylesheets=true` is part 2/2, which is not queued yet (a
-later plan run writes it with "requires part 1/2 landed" in its heading).
-
-**Reference grounding.** No screenshot in `macos8.6-screenshots/` shows Firefox's chrome, so no
-reference pixel is sampled; the sheet is checked only against the shared palette and its own
-rules. Its palette is the reference-grounded values in `tests/support/platinum_palette.py`
-(`#DDDDDD` face, `#FFFFFF` white, `#999999` grey, `#000000` black, `#EEEEEE` trough, `#CCCCFF`
-selection) plus the GTK sheets' `#888888` etched-separator dark half. Firefox's
-chrome custom-property names (`--lwt-accent-color`, `--toolbar-bgcolor`, `--tab-selected-bgcolor`,
-`--arrowpanel-background`, …), its XUL selectors (`#TabsToolbar`, `.tab-background`, `#nav-bar`,
-`#urlbar-background`, `menupopup`, …) and the `userChrome.css` filename are Firefox-required values
-the reference set does not show; the geometry below adapts the desktop theme's Platinum tab,
-toolbar and menu faces, not a reference crop. No repository test runs Firefox, so only the rules
-and palette are pinned here — whether Firefox draws them is observable only after part 2/2
-installs the sheet into a profile. Record that provenance
-exception in `docs/invariants.md`. The sheet carries no image, so `.gitattributes` is untouched.
-
-**Approach.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css` (new): a comment header naming the
-  provenance exception, the palette source and the preference part 2/2 must set; no `@` character
-  anywhere (so it has no at-rule and `tests/support/gtk_css.py::parse_css`, which walks plain rule
-  blocks, reads it); every declaration that must beat Firefox's own chrome rule carries
-  `!important`. The required rules are exactly these (extra palette-only rules are allowed, but
-  the test pins these):
-  - `:root` sets `--lwt-accent-color: #DDDDDD`, `--lwt-text-color: #000000`,
-    `--toolbar-bgcolor: #DDDDDD`, `--toolbar-color: #000000`,
-    `--tab-selected-bgcolor: #EEEEEE`, `--tab-selected-textcolor: #000000`,
-    `--arrowpanel-background: #DDDDDD`, `--arrowpanel-color: #000000` and
-    `--arrowpanel-border-color: #000000`, each `!important`.
-  - `#navigator-toolbox`: `background-color: #DDDDDD !important; border-bottom: 1px solid
-    #000000 !important;`.
-  - `#TabsToolbar`: `background-color: #DDDDDD !important;`.
-  - `#nav-bar`, `#PersonalToolbar` and `#toolbar-menubar`: `background-color: #DDDDDD
-    !important; border-bottom: 1px solid #888888 !important; box-shadow: inset 0 -1px #FFFFFF
-    !important;` (the GTK sheets' etched toolbar separator, light half under the dark line).
-  - `.tab-background`: `background-color: #DDDDDD !important; border: 1px solid #000000
-    !important; border-radius: 0 !important; box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px
-    #999999 !important;` (the desktop theme's raised Platinum tab face).
-  - `.tabbrowser-tab[selected] .tab-background`: `background-color: #EEEEEE !important;
-    border-bottom-color: #EEEEEE !important;` (the reference selected-tab face, its bottom border
-    dropped as the GTK checked tab does).
-  - `#urlbar-background`: `background-color: #FFFFFF !important; border: 1px solid #000000
-    !important; border-radius: 0 !important; box-shadow: none !important;` (the white sunken
-    Platinum text field, squared).
-  - `#statuspanel-label`: `background-color: #DDDDDD !important; color: #000000 !important;
-    border: 1px solid #000000 !important; border-radius: 0 !important;`.
-  - `menupopup`: `--panel-background: #DDDDDD !important; --panel-color: #000000 !important;
-    --panel-border-color: #000000 !important;`.
-  - `menupopup > menuitem:hover`: `background-color: #CCCCFF !important;` (the menu selection
-    fill the desktop theme's `widgets/background.svg` and the GTK sheets paint).
-- `tests/test_firefox_theme.py` (new): `TestFirefoxChrome(unittest.TestCase)` reads the sheet with
-  `support.containment.read_text(path, ROOT, encoding="utf-8")` (the containment guard, so a
-  checked-in symlink escaping the repository is refused instead of leaking a private file), parses
-  it with `support.gtk_css.parse_css` and imports the palette from
-  `support.platinum_palette`. A local `assert_rule(selector, expected)` helper asserts each
-  required selector is present and carries every listed declaration, including the `!important`
-  suffix. It also asserts: `set(HEX.findall(text))` is exactly {BLACK, WHITE, GREY, FACE, TROUGH,
-  SELECTION, ETCH_DARK}; `"@" in text` is false; the text mentions no
-  `adwaita`; no selector contains `*`; the header names the provenance exception and the
-  preference (`toolkit.legacyUserProfileCustomizations.stylesheets`) part 2/2 will set; and
-  `README.md`, read through the same containment reader, names the sheet's repository path.
-- `README.md`: in the "Installing" section after the GTK paragraph, add a Firefox paragraph saying
-  the standalone Platinum `userChrome.css` ships at
-  `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, that no target installs or selects it
-  yet, that part 2/2 will copy it into a Firefox profile's `chrome/` directory and set
-  `toolkit.legacyUserProfileCustomizations.stylesheets=true`, and that setting
-  `browser.tabs.inTitlebar=0` makes Firefox use the KWin Aurorae frame. Change no artifact count
-  and no `tumwater:status` text.
-- `docs/invariants.md`: add a `## firefox` section with one row — the standalone sheet paints the
-  Platinum palette on Firefox's tab strip, navigation bar, toolbars, menus and status panel with
-  no at-rule and no import — pinned to `tests/test_firefox_theme.py::TestFirefoxChrome`, with the
-  provenance exception above (no reference screenshot shows Firefox chrome; the geometry is the
-  theme's adaptation of the Platinum controls).
-- `PLANS.md`: this entry moves under `## Done` (see Plan record) and the scope-drift paragraph's
-  part 4/4 sentence now names part 1/2 and part 2/2.
-
-**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css` (new),
-`tests/test_firefox_theme.py` (new), `README.md`, `docs/invariants.md` and `PLANS.md` (this entry
-and the scope-drift sentence). Do not edit `PLANS-DONE.md`, `Makefile`, `.gitattributes`, any
-`theme/gtk/` path or any `tests/support/` module; no test-side spec module is needed for one sheet.
-
-**Acceptance criteria.**
-- `tests/test_firefox_theme.py` finds every required selector with every listed declaration and
-  the `!important` suffix, the hex-literal set equal to the seven palette values above, no `@`
-  character, no `adwaita`, no universal selector, the header naming the provenance exception and
-  the profile preference, and the README path; deleting a rule, dropping `!important` from a
-  declaration or writing a non-palette hex makes the matching assertion fail.
-- `make check CHECK_TESTS=test_firefox_theme` passes, then `make check` is green; `tests/invariants.py`
-  accepts the new `## firefox` row (it names a `theme/firefox` subsystem and a test that exists).
-- `git diff --name-status` names only the files listed under "Files touched" (including the
-  `PLANS.md` move) and does not name `PLANS-DONE.md`; `grep -n '^## ' PLANS.md` prints exactly
-  `## Planned` and `## Done`. No acceptance criterion refers to `PLANS.md` or `PLANS-DONE.md` after
-  the merge.
 
 ### Retire the `unclear-invariant` validation gap with an invariant-register ledger (planned 2026-10-23 by the steward role; promotes the recurring `gap: unclear-invariant` tag, 17 Fixed entries)
 

@@ -70,6 +70,12 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `make install` copies the font package into `$XDG_DATA_HOME/fonts/org.macos8.desktop` byte for byte, a repeat install succeeds, and `make uninstall` removes it and its staging/old leftovers while leaving a sibling font family in place. | `tests/test_fonts.py::TestFontsInstall` | none |
 | The global theme selects the installed Lato family for the general, menu, toolbar, smallest-readable and window-title fonts. | `tests/test_lookandfeel.py::TestDefaults` | Lato is a Charcoal substitute, the point sizes are KDE defaults, and monospace keeps the user's fixed font. |
 
+## firefox
+
+| Guarantee | Test | Provenance exception |
+| --- | --- | --- |
+| The standalone `userChrome.css` paints the Platinum palette on Firefox's tab strip, navigation bar, toolbars, menus and status panel with no at-rule and no import. | `tests/test_firefox_theme.py::TestFirefoxChrome` | No reference screenshot shows Firefox chrome, so the palette comes from the pinned Platinum values and the geometry is this theme's adaptation of the Platinum controls. |
+
 ## gtk
 
 | Guarantee | Test | Provenance exception |

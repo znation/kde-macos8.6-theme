@@ -58,6 +58,12 @@ GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it 
 leftovers and the emptied `gtk-3.0`/`gtk-4.0` directories but leaves `Kvantum/` and the theme
 directory itself.
 
+The standalone Firefox Platinum `userChrome.css` ships at
+`theme/firefox/org.macos8.desktop/chrome/userChrome.css`; no Makefile target installs or selects
+it yet. Part 2/2 will copy it into a Firefox profile's `chrome/` directory and set
+`toolkit.legacyUserProfileCustomizations.stylesheets=true`; setting
+`browser.tabs.inTitlebar=0` makes Firefox use the KWin-drawn Aurorae frame.
+
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
 `plasma-apply-colorscheme MacOS8`; because the filename stem is exactly `MacOS8`, the scheme
