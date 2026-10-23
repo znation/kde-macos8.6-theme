@@ -278,6 +278,8 @@ Do not edit `PLANS-DONE.md`.
 
 ### Platinum cursor theme, part 1/2: Generate and ship the Xcursor arrow cursor artifact (planned 2026-10-23 by the plan role; cursor series part 1/2)
 
+**Needs review 2026-10-23 by feature: too large for one run**
+
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it under
 `PLANS.md`'s last heading `## Done`, adding `— done YYYY-MM-DD` to its `### ` heading, exactly as
 the other entries' Plan record paragraphs require (never edit `PLANS-DONE.md`; after the move
