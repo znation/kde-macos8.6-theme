@@ -107,10 +107,14 @@ def resolve_profile(explicit: str | None, env: dict[str, str]) -> Path:
 
     *explicit* is the ``--profile`` value; when it is ``None`` an
     ``FIREFOX_PROFILE`` environment variable is used. Either named path must
-    be an absolute existing directory. Without one, ``HOME`` must be absolute
+    be an absolute existing directory. An empty ``FIREFOX_PROFILE`` is
+    treated as unset, matching the Makefile's ``$(if $(FIREFOX_PROFILE),...)``
+    which omits ``--profile``; without a named path, ``HOME`` must be absolute
     and the profile is resolved from ``$HOME/.mozilla/firefox``.
     """
-    named = explicit if explicit is not None else env.get("FIREFOX_PROFILE")
+    named = explicit
+    if named is None:
+        named = env.get("FIREFOX_PROFILE") or None
     if named is not None:
         path = Path(named)
         if not path.is_absolute():

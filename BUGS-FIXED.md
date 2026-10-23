@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An exported empty `FIREFOX_PROFILE` makes the Firefox targets fail instead of discovering the profile (found by the qa role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`make install-firefox` and `make remove-firefox` with an empty `FIREFOX_PROFILE` exit 2
+with `install_firefox: error: Firefox profile must be an absolute path: .` instead of
+using the active profile under `$HOME/.mozilla/firefox`, which the same targets use when
+the variable is unset.
+
+**Reproduce:** in a scratch directory, create `home/.mozilla/firefox/zz.default` and an
+`installs.ini` naming it, then run `HOME=$PWD/home FIREFOX_PROFILE= make install-firefox`
+(an empty value given as a make argument, `make install-firefox FIREFOX_PROFILE=`, does
+the same). It exits 2 without touching the profile. In the same tree,
+`HOME=$PWD/home env -u FIREFOX_PROFILE make install-firefox` installs the sheet and
+`user.js` block into `zz.default`; `FIREFOX_PROFILE= make remove-firefox` fails the
+same way.
+
+**Expected:** the Makefile's `$(if $(FIREFOX_PROFILE),--profile ...)` already treats an
+empty value as "no profile named" and omits `--profile`, so the tool should fall back to
+`installs.ini`/`profiles.ini`; `make help` lists the active profile under
+`$HOME/.mozilla/firefox` as the default.
+
+**Actual:** `tools/firefox_profile.py::resolve_profile` reads
+`env.get("FIREFOX_PROFILE")` and treats `""` as a named path. `Path("")` is `.`, which is
+relative, so it raises `ConfigError("Firefox profile must be an absolute path: .")`.
+GNU make exports an empty command-line variable to the recipe, so both spellings above
+reach the tool with the empty value set.
+
+**Validation gap:** none — the existing test harness reproduced it deterministically once the empty value was passed, but no test exercised an empty `FIREFOX_PROFILE`.
+
 ### An empty `gtk-4.0/gtk.css` is mistaken for a foreign user sheet (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/apply_gtk.py::_user_css_write` treated any existing `gtk.css` whose

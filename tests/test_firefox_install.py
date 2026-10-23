@@ -60,6 +60,21 @@ class TestProfileResolution(ProfileCase):
             self.resolve(None, {"HOME": str(self.home), "FIREFOX_PROFILE": str(self.profile)}),
         )
 
+    def test_an_empty_environment_profile_falls_back_to_discovery(self):
+        # GNU make exports a command-line FIREFOX_PROFILE= (empty) to the
+        # recipe, which must mean "no profile named", as the Makefile's own
+        # $(if ...) already treats it, not Path("") == ".".
+        profile = self.firefox_root / "Profiles" / "active.default"
+        profile.mkdir(parents=True)
+        _write(
+            self.firefox_root / "installs.ini",
+            f"[Install1234]\nDefault={profile.relative_to(self.firefox_root)}\n",
+        )
+        self.assertEqual(
+            profile,
+            self.resolve(None, {"HOME": str(self.home), "FIREFOX_PROFILE": ""}),
+        )
+
     def test_relative_named_profile_is_refused(self):
         with self.assertRaises(firefox_profile.ConfigError) as caught:
             self.resolve("profile")
