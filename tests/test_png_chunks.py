@@ -154,6 +154,30 @@ class TestChunkFraming(unittest.TestCase):
         message = decode_error_message(self, duplicated)
         self.assertIn("more than one IHDR", message)
 
+    def test_rejects_a_second_plte_chunk(self):
+        # The palette is defined once. A second PLTE would silently replace
+        # the table, so the same indices decode to pixels a conformant reader
+        # never produces; refuse it by name.
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        data = make_png(1, 1, [bytes([0])], color_type=3, palette=palette)
+        duplicated = splice_after_ihdr(
+            data, _chunk(b"PLTE", bytes([200, 0, 0]))
+        )
+        message = decode_error_message(self, duplicated)
+        self.assertIn("more than one PLTE", message)
+
+    def test_rejects_a_second_trns_chunk(self):
+        # Likewise only one tRNS may define the out-of-band transparency. A
+        # later chunk silently overriding an earlier one would change the
+        # decoded alpha with no sign that the file is malformed.
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        data = make_png(
+            1, 1, [bytes([0])], color_type=3, palette=palette, trns=bytes([0])
+        )
+        duplicated = splice_after_ihdr(data, _chunk(b"tRNS", bytes([255])))
+        message = decode_error_message(self, duplicated)
+        self.assertIn("more than one tRNS", message)
+
     def test_rejects_ihdr_that_is_not_the_first_chunk(self):
         # The PNG spec puts IHDR first. A stream that reaches IDAT before its
         # header is malformed framing; without this check the header that

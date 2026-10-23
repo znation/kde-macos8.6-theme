@@ -203,10 +203,10 @@ def _collect_chunks(
 
     Walks the chunks after the signature, collecting the image header, palette,
     IDAT payloads and the optional tRNS transparency payload. It refuses a
-    misordered or duplicate IHDR, a malformed PLTE length, an unknown critical
-    chunk, a missing IEND and a missing IHDR. Filtering and colour expansion
-    are the decoders' concern; this helper owns only the framing the rest of
-    the decode reads.
+    misordered or duplicate IHDR, duplicate PLTE or tRNS, a malformed PLTE
+    length, an unknown critical chunk, a missing IEND and a missing IHDR.
+    Filtering and colour expansion are the decoders' concern; this helper owns
+    only the framing the rest of the decode reads.
     """
     header = None
     palette = None
@@ -225,6 +225,11 @@ def _collect_chunks(
             header = _take_ihdr(payload, header, previous_first)
             continue
         if ctype == b"PLTE":
+            if palette is not None:
+                raise PngError(
+                    "PNG has more than one PLTE chunk; the palette "
+                    "must appear at most once"
+                )
             palette = _take_plte(payload)
             continue
         if ctype == b"tRNS":
@@ -232,7 +237,14 @@ def _collect_chunks(
             # three non-alpha colour types, so it must be collected rather
             # than skipped with the other unknown ancillary chunks. Colour
             # types 4 and 6 carry their transparency in the pixel itself, so
-            # :func:`decode_rgba` ignores it for those.
+            # :func:`decode_rgba` ignores it for those. A second tRNS would
+            # silently replace the first, changing the decoded alpha, so
+            # refuse it the way a second IHDR is refused.
+            if trns is not None:
+                raise PngError(
+                    "PNG has more than one tRNS chunk; transparency "
+                    "must appear at most once"
+                )
             trns = payload
             continue
         if ctype == b"IDAT":
