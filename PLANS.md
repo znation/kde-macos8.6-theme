@@ -276,4 +276,109 @@ Do not edit `PLANS-DONE.md`.
   and its `RISK` names the GTK settings files and libadwaita user CSS; a report that calls the
   change only backlog bookkeeping contradicts the diff.
 
+### Platinum cursor theme, part 1/2: Generate and ship the Xcursor arrow cursor artifact (planned 2026-10-23 by the plan role; cursor series part 1/2)
+
+**Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it under
+`PLANS.md`'s last heading `## Done`, adding `— done YYYY-MM-DD` to its `### ` heading, exactly as
+the other entries' Plan record paragraphs require (never edit `PLANS-DONE.md`; after the move
+`grep -n '^## ' PLANS.md` must print exactly `## Planned` and `## Done`). The final report quotes
+the actual output of `grep -l "Generate and ship the Xcursor arrow cursor artifact" PLANS.md
+PLANS-DONE.md` (exactly `PLANS.md`) and of `git diff --name-status`.
+
+**Goal.** The theme ships eight artifacts but no cursor, so a themed Plasma session still shows the
+Breeze arrow. Mac OS 8.6 draws a black arrow with a white outline; this part builds that cursor as a
+KDE/Xcursor theme artifact — `theme/cursors/org.macos8.desktop/cursors/{left_ptr,arrow,default,top_left_arrow}`
+(the last three byte-identical X-name copies of `left_ptr`, images at nominal sizes 16, 24 and 32 in
+one Xcursor file) — with a deterministic generator, and nothing else. It does not touch the
+`Makefile`, the global theme's `contents/defaults`, README's artifact list or any install or
+selection path: the sibling entry will add the opt-in install into the shared
+`icons/org.macos8.desktop/` directory (the GTK/Kvantum sharing precedent) and select it with
+`cursorTheme` in `contents/defaults`; that part is not in the queue yet and this part does not
+depend on it.
+
+**Reference grounding.** No screenshot in `macos8.6-screenshots/` shows the mouse pointer, so no
+reference pixel is sampled and the arrow is our own Platinum-style art drawn from a pixel grid in
+the generator, not traced from Apple's artwork (the icon theme's standing rule). Its two colours
+are `#000000` face and `#FFFFFF` outline, both already pinned in the colour scheme; the nominal
+sizes 16/24/32, the Xcursor binary format, the file name `left_ptr` and the X-name aliases are
+X/KDE-required values the reference set does not show. Record that provenance exception in
+`docs/invariants.md`. Xcursor files have no image extension, so Git LFS (`.gitattributes`) is
+untouched.
+
+**Approach.**
+- `tools/png/write.py`: add `encode_rgba_png(width, height, rgba)` beside `encode_png`: the same
+  deterministic framing (colour type 6, bit depth 8, every row filter type 0, one IDAT at zlib
+  level 9, so identical pixels produce identical bytes) but taking packed RGBA, rejecting anything
+  that is not `bytes`/`bytearray` of exactly `width * height * 4` and reusing
+  `_validate_dimension` for the bounds. `encode_png`'s behaviour stays byte-identical. Re-export it
+  from `tools/png/__init__.py`.
+- `tools/png/read.py`: add `decode_rgba(data, max_rows=None)` reusing the existing pipeline but
+  keeping alpha: it returns `(width, height, rgba)` with four samples per pixel, alpha 255 where
+  the source colour type has no alpha channel (types 0, 2, 3, 4, 6 — the set `_CHANNELS` already
+  accepts). It does not touch `Image` or `decode_png`.
+- `tools/png/loader.py`: add `read_rgba(path)` that runs `_read_png_data`'s existing file guards
+  (non-blocking open, non-regular refusal, `_MAX_FILE_BYTES`, the LFS-pointer diagnostic) and hands
+  the bytes to `decode_rgba`.
+- `tools/xcursor.py` (new): the Xcursor binary writer, standard library only. Module constants for
+  the magic (`b"Xcur"`, 0x58637273), file version 65536, TOC entry types image (0xfffd0002) and
+  comment (0xfffe0001, supported on the write side even though the generator writes none), the
+  36-byte image chunk header, and `write_cursor(images)` where each image carries `(nominal_size,
+  width, height, hotspot_x, hotspot_y, png_bytes)`: the 16-byte file header, one TOC entry per
+  image, then each chunk at its declared offset.
+- `tools/make_cursors.py` (new): follow `tools/make_wallpaper.py`'s direct-or-package import block,
+  `require_within_repo` containment guard and `report_error` diagnostics. It holds the 16x16 arrow
+  pixel grid as ASCII rows (`#` black face, `.` white outline, space transparent) with the tip at
+  (1,1), scales it nearest-neighbour to 16, 24 and 32 (hotspot scaled by the same mapping), encodes
+  each frame with `encode_rgba_png`, writes `left_ptr` with `write_cursor` and the three aliases as
+  byte-identical copies, into the repository's `theme/cursors/org.macos8.desktop/cursors/`. The
+  output is deterministic, so re-running it rewrites identical bytes; it refuses an output directory
+  that resolves outside the repository, naming the path.
+- Committed artifacts: the four generated files under
+  `theme/cursors/org.macos8.desktop/cursors/` (small binaries, regular git blobs, no LFS filter).
+- `tests/test_png_rgba.py` (new, modelled on the existing codec tests): `encode_rgba_png`
+  round-trips through `read_rgba` byte for byte at every alpha value 0..255 in a small image; the
+  encoded IHDR declares colour type 6; a rejected byte count and a rejected dimension raise
+  `ValueError` naming the argument; a 3-byte-per-pixel buffer is refused; and `encode_png`'s output
+  for a sample RGB image is byte-identical before and after this change (pinned against a literal
+  recorded in the test, so the RGBA work cannot disturb it).
+- `tests/support/xcursor.py` (new): the test-side Xcursor parser — validate the file header
+  (magic, declared size, version 65536, `ntoc`), read the TOC, slice each image chunk, and return
+  each image's PNG payload decoded with `read_rgba`.
+- `tests/test_cursors_theme.py` (new): run the generator into a temp directory (twice, asserting
+  byte-identical output), parse the committed `left_ptr` with the test-side parser, and pin: exactly
+  one image chunk per nominal size in {16, 24, 32}; each chunk's PNG payload decodes with RGBA and
+  its width/height equal its nominal size; the 16px frame's hotspot is (1,1) and its tip pixel
+  (1,1) is opaque `#000000`, the outline corner (0,0) opaque `#FFFFFF`, and (15,15) transparent
+  (alpha 0); the committed `arrow`, `default` and `top_left_arrow` are byte-identical to
+  `left_ptr`; and corrupting the grid, dropping a nominal size, or moving the hotspot fails the
+  matching assertion.
+- `docs/invariants.md`: add a `## cursors` section with one row — the arrow draws the black face
+  and white outline at nominal sizes 16/24/32 with the hotspot at the tip — pinned to
+  `tests/test_cursors_theme.py`, carrying the provenance exception above.
+
+**Files touched.** `tools/png/write.py`, `tools/png/read.py`, `tools/png/loader.py`,
+`tools/png/__init__.py`, `tools/xcursor.py` (new), `tools/make_cursors.py` (new),
+`theme/cursors/org.macos8.desktop/cursors/` (four new generated files), `tests/test_png_rgba.py`
+(new), `tests/support/xcursor.py` (new), `tests/test_cursors_theme.py` (new),
+`docs/invariants.md`, and `PLANS.md` (the entry moves to `## Done`; see Plan record).
+`Makefile`, `README.md` and `.gitattributes` are untouched.
+
+**Acceptance criteria.**
+- `python3 tools/make_cursors.py` writes the four files under
+  `theme/cursors/org.macos8.desktop/cursors/` deterministically: two runs into one temp directory
+  are byte-identical, and the regenerated files equal the committed ones byte for byte.
+- `encode_rgba_png` followed by `read_rgba` returns the original RGBA bytes; the encoded colour
+  type is 6; an off-size buffer or a bad dimension raises with a diagnostic naming it; `encode_png`'s
+  pinned sample output is byte-identical to before this change.
+- The test-side parser accepts the committed `left_ptr` (magic, version 65536, three image chunks)
+  and rejects a truncated or hand-corrupted copy; the pinned pixels and hotspots above hold for all
+  three nominal sizes (scaled accordingly); the aliases are byte-identical to `left_ptr`.
+- `make check` is green with the new modules included; `git diff --name-status` names only the files
+  listed under "Files touched" (besides the backlog move) and neither the `Makefile` nor
+  `PLANS-DONE.md`.
+- When the work lands, `grep -n '^### Platinum cursor theme, part 1/2: Generate and ship the Xcursor
+  arrow cursor artifact' PLANS.md` prints exactly one line whose number is greater than the
+  `## Done` line's, and `grep -F 'Generate and ship the Xcursor arrow cursor artifact'
+  PLANS-DONE.md` exits 1 with no output.
+
 ## Done
