@@ -103,7 +103,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 25
+UNCLEAR_INVARIANT_BASELINE = 26
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -324,6 +324,14 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "::test_empty_user_css_is_adopted",
         "an existing but empty `gtk.css` is adopted rather than treated as "
         "foreign, because it has no content to preserve",
+    ),
+    UnclearInvariant(
+        "firefox-empty-user-chrome",
+        ("empty `userChrome.css`",),
+        "tests/test_firefox_install.py::TestInstall"
+        "::test_an_empty_user_chrome_is_adopted",
+        "adopts an empty `userChrome.css`, refuses a non-empty foreign "
+        "`userChrome.css`",
     ),
 )
 

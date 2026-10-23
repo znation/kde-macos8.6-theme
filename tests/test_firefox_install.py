@@ -469,6 +469,21 @@ class TestInstall(ProfileCase):
         )
         self.assertEqual(first, _read(self.user_js_path()))
 
+    def test_an_empty_user_chrome_is_adopted(self):
+        # An empty file holds nothing to preserve, so it is ours to fill
+        # instead of being refused as a foreign sheet.
+        self.sheet_path().parent.mkdir(parents=True)
+        self.sheet_path().write_bytes(b"")
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(
+            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
+            self.sheet_path().read_bytes(),
+        )
+        self.assertIn(
+            firefox_user_js.USER_JS_MARKER, _read(self.user_js_path())
+        )
+
     def test_foreign_user_chrome_is_refused_and_nothing_is_written(self):
         foreign = "/* my own chrome */\n.tabbrowser-tab { color: red; }\n"
         _write(self.sheet_path(), foreign)

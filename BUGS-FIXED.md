@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An empty `userChrome.css` is refused as foreign, so the Firefox install fails (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/install_firefox.py::_apply` treated any existing `userChrome.css`
+whose first line is not our marker as a foreign sheet. An existing but empty
+file has no first line, so it took that same branch: `make install-firefox`
+exited 1 with "is not our userChrome.css; leaving it untouched" and wrote
+nothing, so the opt-in Firefox chrome could never be installed over an empty
+file. An empty file holds nothing to preserve.
+
+**Reproduce:** create an empty `chrome/userChrome.css` in a profile and run
+`python3 tools/install_firefox.py --profile PATH`; the file stays empty, no
+`user.js` is written, and the exit status is 1.
+
+**Fix:** the marker check now runs only for non-empty content, so an empty
+file is adopted and overwritten with our sheet, exactly like an absent file.
+A non-empty foreign sheet is still refused unchanged.
+`tests/test_firefox_install.py::TestInstall::test_an_empty_user_chrome_is_adopted`
+failed on the old code and passes now.
+
+**Validation gap:** unclear-invariant — the installer said a "foreign"
+`userChrome.css` is refused but never stated whether an empty file counts as
+foreign, so the rule that empty content is adoptable was reconstructed (the
+same rule the GTK user-CSS write already follows) and is now recorded in
+docs/invariants.md.
+
 ### An exported empty `FIREFOX_PROFILE` makes the Firefox targets fail instead of discovering the profile (found by the qa role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `make install-firefox` and `make remove-firefox` with an empty `FIREFOX_PROFILE` exit 2

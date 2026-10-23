@@ -96,14 +96,18 @@ def _paths(profile: Path) -> tuple[Path, Path]:
 
 
 def _apply(profile: Path) -> int:
-    """Install the sheet and preference into *profile*."""
+    """Install the sheet and preference into *profile*.
+
+    An empty ``userChrome.css`` holds nothing to preserve, so it is adopted
+    (overwritten with our sheet) rather than refused as a foreign sheet.
+    """
     try:
         sheet = read_bytes(Path(ROOT) / SHEET, ROOT)
     except (OSError, ValueError) as exc:
         raise ConfigError(f"cannot read {Path(ROOT) / SHEET}: {exc}") from exc
     sheet_path, js_path = _paths(profile)
     existing_sheet = _read_text(sheet_path)
-    if existing_sheet is not None and first_line(existing_sheet) != CSS_MARKER:
+    if existing_sheet and first_line(existing_sheet) != CSS_MARKER:
         return report_failure(
             TOOL,
             f"{sheet_path} is not our userChrome.css; leaving it untouched",
