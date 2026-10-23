@@ -42,5 +42,15 @@ def escape_controls(text: str) -> str:
     interpreted by the terminal. A literal backslash is doubled, so a name
     that contains the escape text itself (``\\u001b``) reads differently from
     the ESC that escapes to the same characters.
+
+    Raises :class:`ValueError` when *text* is not a :class:`str`: the function
+    iterates over characters and cannot meaningfully coerce bytes, integers or
+    other types, so a caller bug is reported with the offending type's name
+    rather than producing a confusing ``TypeError`` mid-iteration.
     """
+    if not isinstance(text, str):
+        raise ValueError(
+            f"escape_controls() requires str: text must be str, "
+            f"not {type(text).__name__}"
+        )
     return "".join(_escape(ch) for ch in text)

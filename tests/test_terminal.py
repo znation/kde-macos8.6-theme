@@ -82,6 +82,18 @@ class TestEscapeControls(unittest.TestCase):
         # POSIX). Doubling it keeps the escape sequences unambiguous.
         self.assertEqual(terminal.escape_controls("a\\b"), "a\\\\b")
 
+    def test_non_str_raises_naming_type(self):
+        # A non-str argument must be rejected by type, not silently coerced
+        # or mis-iterated; the diagnostic names the offending type.
+        for value, name in ((42, "int"), (b"nope", "bytes"), (None, "NoneType")):
+            with self.subTest(value=value):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    rf"^escape_controls\(\) requires str: text must be str, "
+                    rf"not {name}$",
+                ):
+                    terminal.escape_controls(value)
+
     def test_escape_text_and_a_real_control_do_not_print_alike(self):
         # A filename that literally holds the six characters \u001b must not
         # render identically to a filename holding an ESC, or an operator
