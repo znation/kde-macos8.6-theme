@@ -34,6 +34,11 @@ DEFAULTS = (
 
 _FILE_GROUP = re.compile(r"\[([^\[\]]+)\]\[([^\[\]]+)\]$")
 _ANY_HEADING = re.compile(r"\[[^\]]*\]")
+# Only CR, LF and CRLF end a line in this INI-shaped file. ``str.splitlines``
+# also breaks on U+2028/U+2029, NEL and the C0 separators, so a value containing
+# one would split into a phantom line and the rest of the value would be
+# silently dropped from the written config.
+_LINE_BREAK = re.compile(r"\r\n|\r|\n")
 # ``contents/defaults`` is contributor-supplied, so a checked-in (or
 # LFS-smudged) multi-gigabyte file must not be loaded whole: ``read_text``
 # would allocate it and raise ``MemoryError`` (which is neither an ``OSError``
@@ -115,7 +120,9 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     ``ValueError`` naming it, so its keys cannot silently vanish from the
     written config. A padded name (``[kwinrc ][Theme]``) would otherwise parse
     as the distinct file ``'kwinrc '``, which :func:`write_configs` compares
-    against the real name and drops. The file is decoded as
+    against the real name and drops. Only CR, LF and CRLF end a line, so
+    U+2028, U+2029, NEL or a C0 separator inside a value does not split it
+    into a phantom line. The file is decoded as
     ``utf-8-sig``, so a leading UTF-8 BOM is stripped instead of being folded
     into the first heading, where it would make that heading match neither
     pattern and silently drop its section. A file larger than
@@ -127,7 +134,7 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
     groups: dict[tuple[str, str], dict[str, str]] = {}
     current: dict[str, str] | None = None
     require_within_repo(path, ROOT)
-    for raw in _read_defaults_text(path).splitlines():
+    for raw in _LINE_BREAK.split(_read_defaults_text(path)):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue

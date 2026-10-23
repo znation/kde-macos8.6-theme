@@ -103,7 +103,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 23
+UNCLEAR_INVARIANT_BASELINE = 24
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -307,6 +307,15 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "tests/test_fidelity_cli.py::TestCli",
         "The fidelity gate passes only when no pixel differs beyond its "
         "tolerance, or within an aggregate budget when one is given.",
+    ),
+    UnclearInvariant(
+        "theme-defaults-line-break",
+        ("Unicode line separator",),
+        "tests/test_theme_defaults.py::TestDefaultsGroups"
+        "::test_a_unicode_line_separator_stays_inside_the_value",
+        "The global theme's `contents/defaults` reader treats only CR, LF and "
+        "CRLF as line breaks, so U+2028, U+2029, NEL or a C0 separator inside "
+        "a value does not split it into a phantom line.",
     ),
 )
 

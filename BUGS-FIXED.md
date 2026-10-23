@@ -5,6 +5,23 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### `defaults_groups` truncates a value at a Unicode line separator (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/theme_defaults.py`'s `defaults_groups` split the contributor-supplied
+`contents/defaults` with `str.splitlines()`, which treats U+2028, U+2029, NEL
+and the C0 separators as line breaks in addition to CR and LF. A value holding
+one was cut in two, and the continuation line, having no `=`, was discarded:
+`[kwinrc][Theme]\nname=Mac OS 8.6\u2028Platinum\n` parsed as `{"name": "Mac OS
+8.6"}` instead of the full value, and `write_configs` wrote the truncated
+value with no diagnostic.
+
+The reader now splits only on CR, LF and CRLF, the same line-delimiting rule
+`tools/reference_validation.py` uses for `sources.txt`.
+`tests/test_theme_defaults.py::TestDefaultsGroups::test_a_unicode_line_separator_stays_inside_the_value`
+failed on the old reader and passes now.
+
+**Validation gap:** unclear-invariant — the reader never stated which characters end a line, so the CR/LF-only invariant was reconstructed from the sibling reference reader and is now recorded in docs/invariants.md.
+
 ### An unstartable cursor selector escapes as a traceback instead of exit 2 (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `make apply-cursor` finds `plasma-apply-cursortheme` with `shutil.which`, but a

@@ -114,6 +114,22 @@ class TestDefaultsGroups(unittest.TestCase):
             theme_defaults.defaults_groups(path),
         )
 
+    def test_a_unicode_line_separator_stays_inside_the_value(self):
+        # Only CR, LF and CRLF end a line in this INI-shaped file; the rest of
+        # a value is data. ``str.splitlines`` also breaks on U+2028, so a
+        # filter or label containing one would be cut in two: the remainder
+        # is dropped (it has no ``=``), writing a config with a truncated
+        # value and no diagnostic.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_text(
+            "[kwinrc][Theme]\nname=Mac OS 8.6\u2028Platinum\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            {("kwinrc", "Theme"): {"name": "Mac OS 8.6\u2028Platinum"}},
+            theme_defaults.defaults_groups(path),
+        )
+
     def test_skips_a_bare_line_inside_a_section(self):
         # A hand-edited defaults file can carry a stray line with no "="
         # inside a [file][group] section. The guard skips it; without it
