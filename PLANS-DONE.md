@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme, part 2/2: ship 16x16 and 22x22 renditions of the hard-disk and document icons (planned 2026-10-23 by the plan role; "requires part 1/2 landed") — done 2026-10-23 by the feature role
+
+**Goal.** After part 1/2 the places icons have small-size renditions, but `drive-harddisk` and `text-x-generic` still ship only at 32x32, and `index.theme` declares no 16x16 or 22x22 devices or mimetypes directory. Add four renditions and the four directory declarations so the hard disk and document icons also have purpose-drawn art at menu, tree-view and small desktop sizes. The art is our own drawing on the same four-fill Platinum palette as the places art; the reference set has no pixel ground truth for the icon theme, as `docs/invariants.md`'s `## icons` row records.
+
+**Approach.**
+- Add these files, each an `<svg>` whose `width`, `height` and `viewBox` are the declared size:
+  - `theme/icons/org.macos8.desktop/16x16/devices/drive-harddisk.svg` (nine elements): rect `x=1 y=3 width=14 height=10` `#000000`; rect `x=2 y=4 width=12 height=8` `#DDDDDD`; rect `x=2 y=4 width=12 height=1` `#FFFFFF`; rect `x=2 y=4 width=1 height=8` `#FFFFFF`; rect `x=2 y=11 width=12 height=1` `#999999`; rect `x=13 y=4 width=1 height=8` `#999999`; rect `x=3 y=7 width=7 height=3` `#000000`; rect `x=4 y=8 width=5 height=1` `#FFFFFF`; circle `cx=12 cy=9 r=1` `#000000`.
+  - `theme/icons/org.macos8.desktop/22x22/devices/drive-harddisk.svg` (nine elements): rect `x=2 y=4 width=18 height=15` `#000000`; rect `x=3 y=5 width=16 height=13` `#DDDDDD`; rect `x=3 y=5 width=16 height=2` `#FFFFFF`; rect `x=3 y=5 width=1 height=13` `#FFFFFF`; rect `x=3 y=17 width=16 height=1` `#999999`; rect `x=18 y=5 width=1 height=13` `#999999`; rect `x=4 y=10 width=8 height=4` `#000000`; rect `x=5 y=11 width=6 height=2` `#FFFFFF`; circle `cx=15 cy=12 r=2` `#000000`.
+  - `theme/icons/org.macos8.desktop/16x16/mimetypes/text-x-generic.svg` (six elements): path `M3 1 h7 l3 3 v10 H3 Z` `#000000`; path `M4 2 h5 l3 3 v8 H4 Z` `#FFFFFF`; path `M9 2 L12 2 L12 5 Z` `#DDDDDD`; rect `x=5 y=7 width=6 height=1` `#999999`; rect `x=5 y=9 width=6 height=1` `#999999`; rect `x=5 y=11 width=4 height=1` `#999999`.
+  - `theme/icons/org.macos8.desktop/22x22/mimetypes/text-x-generic.svg` (six elements): path `M4 1 h10 l4 4 v15 H4 Z` `#000000`; path `M5 2 h8 l4 4 v13 H5 Z` `#FFFFFF`; path `M13 2 L17 2 L17 6 Z` `#DDDDDD`; rect `x=7 y=10 width=8 height=1` `#999999`; rect `x=7 y=13 width=8 height=1` `#999999`; rect `x=7 y=16 width=5 height=1` `#999999`.
+- `theme/icons/org.macos8.desktop/index.theme`: append `16x16/devices,16x16/mimetypes,22x22/devices,22x22/mimetypes` to `Directories`, and add four sections with `Size=16`/`Size=22`, `Context=Devices`/`Context=MimeTypes` and `Type=Fixed`.
+- `tests/test_icon_theme.py`: add the four new paths to `SHIPPED_ICONS`; add each file to `ICON_SHAPES` with the exact element tuple above, using the existing `_shape` helper and document order. `TestIndex.test_every_shipped_icon_lives_in_a_declared_size_directory` then proves the four new directories are declared.
+- `README.md`: in the icon-theme sentence (the lines that currently read `ships our own Platinum-style art for the desktop's hard-disk, folder, document, Trash and full-Trash icons`), add that the package draws these at 32x32 with 16x16 and 22x22 renditions. Do not touch the cursor sentence on the following line.
+
+**Files touched.** `tests/test_icon_theme.py`, `theme/icons/org.macos8.desktop/index.theme`, `README.md`, and four new SVGs under `theme/icons/org.macos8.desktop/16x16/{devices,mimetypes}/` and `22x22/{devices,mimetypes}/`.
+
+**Acceptance criteria.**
+- The four files exist; each parses as an SVG whose width, height and viewBox equal 16 or 22, each fill is one of the four `PLATINUM_FILLS`, and each has no script, style, external reference or duplicate id.
+- `index.theme` declares `16x16/devices`, `16x16/mimetypes`, `22x22/devices` and `22x22/mimetypes` in `Directories`, with the matching `Size`, `Context` and `Type` sections; `TestIndex` passes for every shipped icon.
+- `ICON_SHAPES` equals `SHIPPED_ICONS`, and each new file's drawing elements equal the tuple above in document order. Deleting an element, changing a coordinate or fill, moving an element or dropping a size fails a test.
+- The 32x32 art and the part 1/2 places renditions keep their pinned elements unchanged.
+- `README.md` names the 16x16 and 22x22 renditions without claiming a size for the cursor set, and the cursor sentence is untouched.
+- `make check` is green.
+
 ### Platinum icon theme, part 1/2: ship 16x16 and 22x22 renditions of the folder, directory and Trash icons (planned 2026-10-23 by the plan role; part 2/2 adds the hard-disk and document renditions) — done 2026-10-23 by the feature role
 
 **Goal.** `theme/icons/org.macos8.desktop/index.theme` declares `16x16/places` and `22x22/places`, but those directories hold no `folder`, `inode-directory`, `user-trash` or `user-trash-full` file: the package ships those four names only at 32x32. Add eight pixel-aligned renditions so a menu, tree view or small desktop icon can draw a dedicated Platinum shape at its own size instead of relying on the 32x32 art. The 32x32 art is our own drawing, and `docs/invariants.md`'s `## icons` row records that the reference set has no pixel ground truth for the icon theme; these renditions are our own simplified redraws using only the four pinned palette fills (`#000000` outline, `#DDDDDD` face, `#FFFFFF` top/left bevel, `#999999` bottom/right bevel), not traced from Apple's artwork.

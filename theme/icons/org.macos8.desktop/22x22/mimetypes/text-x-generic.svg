@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" generic document icon, 22x22 rendition.
+
+     Our own 22x22 redraw in the Platinum palette: a #FFFFFF page with a 1px
+     #000000 outline, a #DDDDDD folded top-right corner and #999999 text
+     lines. Drawn for this theme, not traced from Apple's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Page outline with the top-right corner cut away. -->
+  <path d="M4 1 h10 l4 4 v15 H4 Z" fill="#000000"/>
+  <!-- White page, inset one pixel. -->
+  <path d="M5 2 h8 l4 4 v13 H5 Z" fill="#FFFFFF"/>
+  <!-- Folded corner flap. -->
+  <path d="M13 2 L17 2 L17 6 Z" fill="#DDDDDD"/>
+  <!-- Text lines. -->
+  <rect x="7" y="10" width="8" height="1" fill="#999999"/>
+  <rect x="7" y="13" width="8" height="1" fill="#999999"/>
+  <rect x="7" y="16" width="5" height="1" fill="#999999"/>
+</svg>

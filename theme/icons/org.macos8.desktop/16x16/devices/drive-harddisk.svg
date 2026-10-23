@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" hard-disk icon, 16x16 rendition.
+
+     Our own 16x16 redraw in the Platinum palette: a #DDDDDD drive body with
+     a 1px #000000 outline and the Platinum bevel (#FFFFFF top/left, #999999
+     bottom/right), a white label plate and a black activity light. Drawn for
+     this theme, not traced from Apple's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Body outline and #DDDDDD face. -->
+  <rect x="1" y="3" width="14" height="10" fill="#000000"/>
+  <rect x="2" y="4" width="12" height="8" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <rect x="2" y="4" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="2" y="4" width="1" height="8" fill="#FFFFFF"/>
+  <rect x="2" y="11" width="12" height="1" fill="#999999"/>
+  <rect x="13" y="4" width="1" height="8" fill="#999999"/>
+  <!-- Front label plate. -->
+  <rect x="3" y="7" width="7" height="3" fill="#000000"/>
+  <rect x="4" y="8" width="5" height="1" fill="#FFFFFF"/>
+  <!-- Activity light. -->
+  <circle cx="12" cy="9" r="1" fill="#000000"/>
+</svg>
