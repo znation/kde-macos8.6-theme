@@ -368,6 +368,30 @@ class TestWriteAtomic(unittest.TestCase):
         self.assertEqual(0o640, stat.S_IMODE(target.stat().st_mode))
 
 
+class TestWriteAtomicFdopen(unittest.TestCase):
+    def test_failed_fdopen_closes_descriptor(self):
+        import tempfile
+        directory = tempfile.mkdtemp(prefix="make-wallpaper-fdopen-")
+        root = Path(directory)
+        target = root / "out.png"
+        real_close = os.close
+        closed = []
+        def track_close(fd):
+            closed.append(fd)
+            return real_close(fd)
+        def boom(*args, **kwargs):
+            raise OSError("simulated fdopen failure")
+        real_fdopen = os.fdopen
+        os.close = track_close
+        os.fdopen = boom
+        try:
+            with self.assertRaises(OSError):
+                make_wallpaper._write_atomic(target, b"data")
+        finally:
+            os.close = real_close
+            os.fdopen = real_fdopen
+        self.assertEqual(1, len(closed))
+
 class TestTiledRgbValidation(unittest.TestCase):
     def test_invalid_dimensions_are_rejected(self):
         tile = bytes(make_wallpaper.TILE_SIZE * make_wallpaper.TILE_SIZE * 3)

@@ -376,6 +376,30 @@ class TestInstall(unittest.TestCase):
         ]
         self.assertEqual([], leftovers, leftovers)
 
+    def test_failed_fdopen_closes_descriptor(self):
+        import tempfile
+        directory = tempfile.mkdtemp(prefix="local-hook-fdopen-")
+        path = Path(directory) / "hook"
+        real_close = os.close
+        closed = []
+        def track_close(fd):
+            closed.append(fd)
+            return real_close(fd)
+        def boom(*args, **kwargs):
+            raise OSError("simulated fdopen failure")
+        real_fdopen = os.fdopen
+        os.close = track_close
+        os.fdopen = boom
+        try:
+            with self.assertRaises(OSError):
+                local_hook._write_hook(path, local_hook.HOOK_SCRIPT)
+        finally:
+            os.close = real_close
+            os.fdopen = real_fdopen
+        self.assertEqual(1, len(closed))
+        # no leftover temp files
+        self.assertEqual([], [n for n in os.listdir(directory) if n.startswith(".")])
+
     def test_script_entry_point(self):
         # ``run_tool`` calls ``main`` in-process for speed; this spawns the
         # script once so its `if __name__ == "__main__": sys.exit(main())`

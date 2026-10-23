@@ -183,13 +183,17 @@ def _write_hook(path: Path, content: str) -> None:
         dir=path.parent, prefix=f".{HOOK_NAME}-", suffix=".tmp"
     )
     partial = Path(partial_name)
+    descriptor_closed = False
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8") as destination:
+            descriptor_closed = True
             # mkstemp opens the file 0600; the hook must be executable.
             os.chmod(destination.fileno(), 0o755)
             destination.write(content)
         os.replace(partial, path)
     except BaseException:
+        if not descriptor_closed:
+            os.close(descriptor)
         partial.unlink(missing_ok=True)
         raise
 

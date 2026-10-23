@@ -64,3 +64,30 @@ class TestPublishMode(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestPublishFdopen(unittest.TestCase):
+    def test_failed_fdopen_closes_descriptor(self):
+        import tempfile
+        directory = tempfile.mkdtemp(prefix="render-output-fdopen-")
+        root = Path(directory)
+        source = root / "src.png"
+        source.write_bytes(b"source")
+        output = root / "out.png"
+        real_close = os.close
+        closed = []
+        def track_close(fd):
+            closed.append(fd)
+            return real_close(fd)
+        def boom(*args, **kwargs):
+            raise OSError("simulated fdopen failure")
+        real_fdopen = os.fdopen
+        os.close = track_close
+        os.fdopen = boom
+        try:
+            with self.assertRaises(OSError):
+                render_output.publish(source, output)
+        finally:
+            os.close = real_close
+            os.fdopen = real_fdopen
+        self.assertEqual(1, len(closed))

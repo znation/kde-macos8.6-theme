@@ -40,8 +40,10 @@ def publish(source: Path, output: Path) -> None:
         dir=output.parent, prefix=".render-", suffix=".tmp"
     )
     partial = Path(partial_name)
+    descriptor_closed = False
     try:
         with os.fdopen(descriptor, "wb") as destination:
+            descriptor_closed = True
             # mkstemp opens the file 0600; the plain copy this replaces
             # created it with the process umask applied, so restore that mode
             # and leave the output's permissions unchanged.
@@ -52,5 +54,7 @@ def publish(source: Path, output: Path) -> None:
                 shutil.copyfileobj(origin, destination)
         os.replace(partial, output)
     except BaseException:
+        if not descriptor_closed:
+            os.close(descriptor)
         partial.unlink(missing_ok=True)
         raise
