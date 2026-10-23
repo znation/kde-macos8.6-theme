@@ -432,8 +432,9 @@ _install:
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
 	$(if $(filter gtk,$(INSTALL_PACKAGES)),$(call install_gtk))
 
-# Remove only the artifacts `install` copied: the parent directories are shared
-# (other color schemes,
+# Remove only the artifacts this theme installed -- including the opt-in GTK
+# files, which the default `install` does not copy: the parent directories are
+# shared (other color schemes,
 # other look-and-feel/desktop-theme/Aurorae/wallpaper/icon/font packages, other
 # Kvantum themes), so leave them and everything else in them alone. The hidden
 # `.staging`/`.old` siblings are install's own temporary state: an install
