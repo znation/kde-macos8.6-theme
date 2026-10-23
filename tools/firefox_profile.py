@@ -70,9 +70,10 @@ def _candidates(root: Path) -> list[Path]:
             # Firefox names these sections by install hash (and older releases
             # by ``Install`` plus a suffix), so any section can hold Default.
             candidate = _candidate(root, installs[name], "Default")
-            if candidate is not None:
-                candidates.append(candidate)
-                break
+            if candidate is None:
+                continue
+            candidates.append(candidate)
+            break
     profiles = _read_ini(root / "profiles.ini")
     if profiles is not None:
         sections = [
@@ -80,17 +81,24 @@ def _candidates(root: Path) -> list[Path]:
             for name in profiles.sections()
             if name.startswith("Profile")
         ]
-        for section in sections:
-            if section.get("Default", fallback="").strip() == "1":
-                candidate = _candidate(root, section, "Path")
-                if candidate is not None:
-                    candidates.append(candidate)
-                break
-        for section in sections:
-            candidate = _candidate(root, section, "Path")
+        default = next(
+            (
+                section
+                for section in sections
+                if section.get("Default", fallback="").strip() == "1"
+            ),
+            None,
+        )
+        if default is not None:
+            candidate = _candidate(root, default, "Path")
             if candidate is not None:
                 candidates.append(candidate)
-                break
+        for section in sections:
+            candidate = _candidate(root, section, "Path")
+            if candidate is None:
+                continue
+            candidates.append(candidate)
+            break
     return candidates
 
 
