@@ -56,6 +56,10 @@ Firefox is GTK series part 4/4, not planned).
 
 ### Platinum cursor theme, part 2/3: Xcursor binary writer and test-side parser (planned 2026-10-23 by the plan role; "requires part 1/3 landed")
 
+**Needs replan 2026-10-23 by feature: rejected after 5 review rounds**
+
+> 1. (prior 4) The plan-move/VERIFIED claim is still false. In this tree the part 2/3 entry exists only at `PLANS-DONE.md:8`; `PLANS.md` has an empty `## Done` at line 165 and no part 2/3 heading at all. The quoted `grep -l "Xcursor binary writer and test-side parser" PLANS.md PLANS-DONE.md` prints `PLA…
+
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
 under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
 `— done YYYY-MM-DD` to its `### ` heading. Do not add, rename or move a `## ` heading, and do not
