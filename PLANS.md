@@ -54,74 +54,96 @@ the Lato body face only, because Lato is the only family the package installs. U
 applications keep their own chrome regardless (the queued GTK entries cover GTK, and
 Firefox is GTK series part 4/4, not planned).
 
-### Platinum cursor theme, part 2/3: Xcursor binary writer and test-side parser (planned 2026-10-23 by the plan role; "requires part 1/3 landed")
-
-**Needs replan 2026-10-23 by feature: rejected after 5 review rounds**
-
-> 1. (prior 4) The plan-move/VERIFIED claim is still false. In this tree the part 2/3 entry exists only at `PLANS-DONE.md:8`; `PLANS.md` has an empty `## Done` at line 165 and no part 2/3 heading at all. The quoted `grep -l "Xcursor binary writer and test-side parser" PLANS.md PLANS-DONE.md` prints `PLA…
+### Platinum cursor theme, part 2/3: Xcursor binary writer and test-side parser (planned 2026-10-23 by the plan role; rewritten 2026-10-23 by the plan role; "requires part 1/3 landed")
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
 under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
-`— done YYYY-MM-DD` to its `### ` heading. Do not add, rename or move a `## ` heading, and do not
-edit `PLANS-DONE.md`: tumwater moves the entry from `## Done` into that archive after the merge.
-After the move `grep -n '^## ' PLANS.md` must print exactly `## Planned` and `## Done`, and
-`grep -F 'Xcursor binary writer and test-side parser' PLANS.md` must print exactly one line, whose
-number is greater than the `## Done` line's. The final report quotes the actual output of
-`grep -l "Xcursor binary writer and test-side parser" PLANS.md PLANS-DONE.md` (exactly `PLANS.md`)
-and of `git diff --name-status`; never claim a file the diff does not name.
+`— done YYYY-MM-DD by the feature role` to its `### ` heading. Do not edit `PLANS-DONE.md`:
+tumwater archives `## Done` entries into that file after the merge, so neither its content nor
+`PLANS.md` after the merge is evidence this change controls. Verify the move on the pre-merge
+working diff only: `git diff --name-status` names `PLANS.md` and does not name `PLANS-DONE.md`, and
+`grep -n '^## ' PLANS.md` prints exactly `## Planned` and `## Done`. Do not claim any grep output
+for this entry's heading after the merge; tumwater may already have moved it out of `PLANS.md`.
 
-**Goal.** Part 1/3 (the cursor series' part 1/3, not the GTK opt-in entry of the same number) added
-the RGBA PNG codec. This part adds the Xcursor binary container the cursor artifact needs, as a
-standard-library writer and an independent test-side parser that cross-checks it, and nothing else:
-no generator, no committed files, no Makefile, no README, no selection. The generator, the
-committed artifact and the registration are part 3/3 ("requires part 2/3 landed").
+**Goal.** Part 1/3 added the RGBA PNG codec (`tools/png/write.py::encode_rgba_png`,
+`tools/png/read.py::decode_rgba`). This part adds the Xcursor container the cursor artifact needs:
+a standard-library writer that turns PNG frames into one Xcursor file, and an independent
+test-side parser that reads that file back and cross-checks the writer's framing. Nothing else:
+no generator, no committed cursor files, no Makefile, no README, no `theme/` change, no selection.
+The generator, the shipped artifact and its registration are part 3/3 ("requires part 2/3
+landed").
 
 **Reference grounding.** No screenshot in `macos8.6-screenshots/` shows a pointer, so no reference
-pixel is sampled here; the Xcursor binary format — the magic (`b"Xcur"`, 0x58637273), file version
-65536, TOC entry types image (0xfffd0002) and comment (0xfffe0001) and the 36-byte image chunk
-header — is an X/KDE-required container the reference set does not show, provenance first recorded
-here and carried into the `## cursors` section part 3/3 adds.
+pixel is sampled here; the Xcursor binary layout is an X/KDE-required value the reference set does
+not show. Its facts: a 16-byte file header (`b"Xcur"`, header size 16, file version 0x00010000,
+TOC count), one 12-byte TOC entry per chunk (type, subtype, byte offset), and the 36-byte image
+chunk header (header size 36, type 0xfffd0002, subtype = nominal size, chunk version 1, width,
+height, hotspot x, hotspot y, delay 0). The image payload is `width * height` little-endian
+**premultiplied ARGB** words, not PNG bytes: the writer decodes each PNG frame with `decode_rgba`
+and premultiplies each colour channel with `(channel * alpha + 127) // 255`, and the parser
+converts the stored words back to RGBA and re-encodes them with `encode_rgba_png`. An opaque frame
+(alpha 255) therefore round-trips byte for byte; a translucent frame does not, because
+premultiplication loses colour precision — the tests pin the stored premultiplied word instead.
+Record that provenance first here and carry it into the `## cursors` section part 3/3 adds.
 
 **Approach.**
-- `tools/xcursor.py` (new): the Xcursor binary writer, standard library only. Module constants for
-  the magic, the version, the two TOC entry types, the image chunk header length and the fixed
-  sizes of the file header and TOC entry; `write_cursor(images)` taking one record per frame of
-  `(nominal_size, width, height, hotspot_x, hotspot_y, png_bytes)`: validate every numeric field
-  and reject anything that would overflow or misalign a chunk with a `ValueError` naming it; write
-  the 16-byte file header, one 12-byte TOC entry per image, then each image chunk at its declared
-  offset, so re-running with the same records produces byte-identical output.
-- `tests/support/xcursor.py` (new): the test-side parser, deliberately independent of the writer —
-  validate the file header (magic, declared size, version 65536, `ntoc` matching the TOC read),
-  read the TOC (an unknown entry type is tolerated, the supported names are the two constants),
-  slice each image chunk at its declared offset, and return each image's record with its PNG
-  payload decoded through `read_rgba` (part 1/3).
-- `tests/test_xcursor.py` (new): round-trip synthetic frames at 1x1, 2x2, 3x3 and 4x4 with hotspots
-  at their tips: `write_cursor` → `tests/support/xcursor.py` → per-frame `encode_rgba_png`
-  payloads compared byte for byte and every numeric field re-checked; two runs with the same
-  records produce identical bytes; a comment-type record (the writer-side constant) is written and
-  tolerated by the parser; truncated files, a corrupted TOC count, an out-of-range hotspot and a
-  size-0 dimension are rejected, naming the argument (reuse
-  `tests/support/rejection_assertions.py`).
-- `docs/invariants.md`: nothing yet — the `## cursors` section belongs to part 3/3, which pins the
-  shipped artifact; this part's guarantees are carried by `tests/test_xcursor.py` alone.
+- `tools/xcursor.py` (new): module constants `MAGIC = b"Xcur"`, `FILE_VERSION = 0x00010000`,
+  `FILE_HEADER_SIZE = 16`, `TOC_ENTRY_SIZE = 12`, `IMAGE_TYPE = 0xFFFD0002`,
+  `CHUNK_VERSION = 1`, `IMAGE_HEADER_SIZE = 36` and `MAX_IMAGE_SIZE = 0x7FFF`; follow
+  `tools/make_wallpaper.py`'s direct-or-package import block and use
+  `tools/ints.py::is_plain_int`. `write_cursor(images)` takes one `(nominal_size, width, height,
+  hotspot_x, hotspot_y, png_bytes)` record per frame; it rejects a dimension outside 1..0x7FFF, a
+  hotspot outside its image, a non-integer (including a bool) numeric field, a PNG field that is
+  not `bytes`/`bytearray` and a PNG whose size disagrees with `width`/`height`, each with a
+  `ValueError` naming the argument; it decodes with `decode_rgba`, premultiplies, writes the file
+  header, one TOC entry per image and each image chunk at its declared offset, so the same records
+  always produce byte-identical output. The public surface is `write_cursor` plus those constants;
+  no comment chunks.
+- `tests/support/xcursor.py` (new): the test-side parser, written independently of the writer and
+  importing no symbol from `tools/xcursor.py`. `read_cursor(path)` validates the file header
+  (magic, header size 16, version 0x00010000, `ntoc`), reads the TOC, skips a TOC entry whose type
+  is not `0xfffd0002` (tolerating, for example, a comment chunk), rejects a chunk offset or length
+  outside the file, validates the 36-byte image header (type, chunk version 1, nominal size, width,
+  height, hotspot), slices the ARGB payload, converts it back to RGBA and returns a `CursorFile`
+  NamedTuple of `CursorImage(nominal_size, width, height, hotspot_x, hotspot_y, png)` records whose
+  `png` is `encode_rgba_png(width, height, rgba)`. Errors are `ValueError` naming the path and the
+  field or offset that failed.
+- `tests/test_xcursor.py` (new): round-trip synthetic opaque frames at 1x1, 2x2, 3x3 and 4x4 whose
+  hotspot is the bottom-right tip and whose pixels vary by position: `write_cursor` → `read_cursor`
+  reproduces every field and returns the original `encode_rgba_png` bytes exactly. Pin the
+  container layout by unpacking the bytes: magic, header size, version, `ntoc`, each TOC entry's
+  type/subtype/offset, each chunk's 36-byte header (delay 0) and one known translucent pixel's
+  premultiplied ARGB word. Two runs with the same records are byte-identical. Rejections, using
+  `tests/support/rejection_assertions.py`'s `assert_rejection_names`: a truncated file header, a
+  truncated image payload, a bad magic, a wrong header size, a wrong version, a corrupt `ntoc`
+  whose TOC overruns the file, a hotspot outside its image, a zero dimension, a bool dimension, a
+  PNG sized differently from its record and a non-`bytes` PNG, each message naming the argument or
+  offset. One test builds a valid file plus a hand-appended unknown TOC entry and shows the parser
+  skips it while still returning the image.
+- `docs/invariants.md`: untouched. This part ships no artifact, so the `## cursors` row belongs to
+  part 3/3, which pins the committed file; this part's guarantees are pinned by
+  `tests/test_xcursor.py` alone.
 
 **Files touched.** `tools/xcursor.py` (new), `tests/support/xcursor.py` (new),
-`tests/test_xcursor.py` (new), and `PLANS.md` (the entry moves to `## Done`; see Plan record).
-Do not edit `PLANS-DONE.md`; touch no `theme/` path, no README and no `docs/invariants.md`.
+`tests/test_xcursor.py` (new) and `PLANS.md` (the entry moves to `## Done`; see Plan record). Do not
+edit `PLANS-DONE.md`, `Makefile`, `README.md`, `docs/invariants.md` or any `theme/` path.
 
 **Acceptance criteria.**
-- The round-trip test shows `write_cursor` → parser → `read_rgba` agreeing byte for byte on every
-  payload and every numeric field at all four synthetic sizes; two runs with the same records
-  produce byte-identical output; the malformed inputs above are rejected with diagnostics naming
-  the argument; the parser's header checks (magic, version 65536, `ntoc`) reject a hand-corrupted
-  copy at each of those fields.
-- `make check` is green with the new modules included; removing a guard, offsetting a chunk or
-  changing a constant makes the matching test fail.
-- `git diff --name-status` names only the files listed under "Files touched" (besides the backlog
-  move) and neither `PLANS-DONE.md` nor any `theme/` path.
-- When the work lands, `grep -n '^### Xcursor binary writer and test-side parser' PLANS.md` prints
-  exactly one line whose number is greater than the `## Done` line's, and
-  `grep -F 'Xcursor binary writer and test-side parser' PLANS-DONE.md` exits 1 with no output.
+- `tests/test_xcursor.py`'s round-trip case shows `write_cursor` → `read_cursor` agreeing on every
+  field and on the exact PNG bytes for all four opaque synthetic sizes; two runs with the same
+  records produce byte-identical files; the layout pin finds the constants above at their stated
+  offsets with delay 0 and the expected premultiplied translucent word; each malformed input above
+  raises `ValueError` whose message names the offending argument or offset; the hand-appended
+  unknown TOC entry is skipped and the remaining image still parses.
+- The test-side parser is independent of the writer:
+  `grep -n 'from tools import xcursor\|from tools\.xcursor' tests/support/xcursor.py` prints no
+  line.
+- `make check CHECK_TESTS=test_xcursor` passes, then `make check` is green; removing a guard,
+  offsetting a chunk or changing a constant makes the matching test fail.
+- `git diff --name-status` names only the files listed under "Files touched" (including the
+  `PLANS.md` move) and does not name `PLANS-DONE.md`; `grep -n '^## ' PLANS.md` prints exactly
+  `## Planned` and `## Done`. No acceptance criterion refers to `PLANS.md` or `PLANS-DONE.md` after
+  the merge; tumwater archives the `## Done` entry into `PLANS-DONE.md`.
 
 ### Platinum cursor theme, part 3/3: Generate and ship the Xcursor arrow cursor artifact (planned 2026-10-23 by the plan role; "requires part 2/3 landed")
 
