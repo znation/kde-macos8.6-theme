@@ -7,6 +7,7 @@ without touching a real Firefox profile.
 
 from __future__ import annotations
 
+import errno
 import os
 import unittest
 from pathlib import Path
@@ -170,10 +171,9 @@ class TestProfileResolution(ProfileCase):
 
     def test_a_malformed_profiles_ini_is_reported_by_name(self):
         # A hand-edited profiles.ini that is not INI at all must be reported
-        # by path. The reader's docstring promises a by-name ConfigError, but
-        # only a directory standing in for user.js exercises the OSError
-        # branch; without this a configparser exception would escape as a
-        # traceback that never names the file to fix.
+        # by path. The reader's docstring promises a by-name ConfigError;
+        # without this a configparser exception would escape as a traceback
+        # that never names the file to fix.
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"
         profiles.write_text("Profiles/onlydefault\n", encoding="utf-8")
@@ -535,8 +535,8 @@ class TestRemove(ProfileCase):
 
     def test_non_utf8_user_js_is_reported_without_writing_the_sheet(self):
         # The reader decodes user.js as UTF-8 and promises a by-name error for
-        # invalid bytes, but the directory case above is the only pinned read
-        # failure. A user.js with a stray latin-1 byte must exit 2 naming the
+        # invalid bytes, while the directory case above pins a non-regular
+        # path. A user.js with a stray latin-1 byte must exit 2 naming the
         # file, and the install must stop before writing the sheet.
         self.user_js_path().write_bytes(b'user_pref("x", "\xff");\n')
         result = self.run_tool("--profile", str(self.profile))
@@ -544,6 +544,32 @@ class TestRemove(ProfileCase):
         self.assertIn("cannot read", result.stderr)
         self.assertIn(str(self.user_js_path()), result.stderr)
         self.assertFalse(self.sheet_path().exists())
+
+    def test_an_unreadable_profile_file_is_reported_by_name(self):
+        # _read_text opens both profile files through the shared regular-file
+        # reader. A self-referential symlink makes that open fail with ELOOP,
+        # an OSError, deterministically -- no dependence on file permissions
+        # or on the test user. The directory and FIFO fixtures reach the
+        # ValueError arm and the stray-byte fixture the decode arm, so this
+        # pins the OSError arm that becomes a by-name ConfigError.
+        for name in ("userChrome.css", "user.js"):
+            with self.subTest(profile_file=name):
+                profile = self.root / f"unreadable-{name}"
+                profile.mkdir()
+                sheet = profile / "chrome" / "userChrome.css"
+                js = profile / "user.js"
+                unreadable = sheet if name == "userChrome.css" else js
+                untouched = js if name == "userChrome.css" else sheet
+                unreadable.parent.mkdir(parents=True, exist_ok=True)
+                try:
+                    unreadable.symlink_to(unreadable)
+                except OSError:
+                    self.skipTest("cannot create a symlink on this platform")
+                result = self.run_tool("--profile", str(profile))
+                self.assertEqual(2, result.returncode)
+                self.assertIn(f"cannot read {unreadable}", result.stderr)
+                self.assertIn(os.strerror(errno.ELOOP), result.stderr)
+                self.assertFalse(untouched.exists())
 
     def test_a_fifo_at_either_profile_file_is_refused_without_blocking(self):
         # A plain read_bytes on a FIFO waits forever for a writer, so it would
