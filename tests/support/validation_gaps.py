@@ -314,7 +314,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 16
+NO_FAKE_BASELINE = 17
 
 NO_FAKE_REPRODUCTIONS = (
     Reproduction(
@@ -412,6 +412,12 @@ NO_FAKE_REPRODUCTIONS = (
         ("reference to an unreadable test file",),
         "tests/test_checker_mutations.py::TestCheckerMutations"
         "::test_invariants_mutations",
+    ),
+    Reproduction(
+        "apply-cursor-unrunnable-selector",
+        ("unstartable cursor selector",),
+        "tests/test_apply_cursor.py::TestSelection"
+        "::test_unrunnable_selector_exits_2_without_a_traceback",
     ),
 )
 

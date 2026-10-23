@@ -236,6 +236,28 @@ class TestSelection(CursorCase):
         self.assertEqual(1, result.returncode)
         self.assertIn("timed out", result.stderr)
 
+    def test_unrunnable_selector_exits_2_without_a_traceback(self):
+        # `shutil.which` finds an executable script whose interpreter is
+        # missing, so the missing-tool check passes, but Popen raises OSError.
+        # The selector is as unusable as a missing one and must be reported as
+        # this tool's own diagnostic, not a traceback that skips the exit
+        # contract. PATH holds only the stub bin, so execvp cannot fall
+        # through to a real selector later on PATH.
+        self.install_theme()
+        selector = self.bin / apply_cursor.SELECT_TOOL
+        selector.write_text("#!/nonexistent/interpreter\n", encoding="utf-8")
+        selector.chmod(0o755)
+
+        result = self.run_tool()
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(
+            f"cannot run {apply_cursor.SELECT_TOOL}", result.stderr
+        )
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertTrue(self.link.is_symlink())
+
 
 class TestRemove(CursorCase):
     def make_our_link(self):

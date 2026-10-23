@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An unstartable cursor selector escapes as a traceback instead of exit 2 (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`make apply-cursor` finds `plasma-apply-cursortheme` with `shutil.which`, but a
+selector on `PATH` that cannot be started (a corrupt binary, or a script whose
+interpreter is missing) makes `Popen` in `run_logged` raise `OSError`.
+`tools/apply_cursor.py::_select` did not catch it, so the exception escaped
+`main` as a traceback instead of the tool's documented exit status.
+
+**Reproduce:** put an executable `plasma-apply-cursortheme` script with
+`#!/nonexistent/interpreter` on `PATH` and run `python3 tools/apply_cursor.py`
+with an installed icon theme; it raises `FileNotFoundError` instead of exiting 2.
+
+**Fix:** `_select` now catches the `OSError` and reports
+`apply_cursor: error: cannot run plasma-apply-cursortheme: ...` with exit 2,
+like a missing selector. The regression test stubs a selector that cannot start.
+
+**Validation gap:** no-fake — Confirming the escape needed an executable stub whose interpreter is missing, a fixture the suite did not have.
+
 ### A FIFO at either Firefox profile-discovery INI file blocks the install (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `make install-firefox` without `--profile` reads `installs.ini` and `profiles.ini`

@@ -14,8 +14,8 @@ Usage::
     python3 tools/apply_cursor.py --remove
 
 Exit status: 0 when the selection or removal ran, 1 when the selector failed,
-2 for a usage error, an unusable ``HOME``, a missing installed theme, or a
-foreign path at the link target.
+2 for a usage error, an unusable ``HOME``, a missing installed theme, a
+foreign path at the link target, or a selector that cannot be started.
 """
 
 from __future__ import annotations
@@ -142,7 +142,11 @@ def _select(env: dict[str, str]) -> int:
     """Select our cursor theme with ``plasma-apply-cursortheme``.
 
     A missing selector is a usage error; a timeout or non-zero exit is a
-    failed command whose bounded log tail is reported.
+    failed command whose bounded log tail is reported. A selector that
+    ``shutil.which`` found can still fail to start (a corrupt binary, or a
+    script whose interpreter is missing): ``run_logged`` reports that as an
+    ``OSError``, which is as unusable as a missing selector, so it becomes
+    this tool's own exit-2 diagnostic instead of an escaping traceback.
     """
     missing = report_missing_tool(TOOL, [SELECT_TOOL])
     if missing is not None:
@@ -150,13 +154,16 @@ def _select(env: dict[str, str]) -> int:
     scratch = Path(tempfile.mkdtemp(prefix="apply-cursor-"))
     try:
         log = scratch / "plasma-apply-cursortheme.log"
-        status = run_logged(
-            [SELECT_TOOL, CURSOR_THEME],
-            env,
-            log,
-            COMMAND_TIMEOUT,
-            ROOT,
-        )
+        try:
+            status = run_logged(
+                [SELECT_TOOL, CURSOR_THEME],
+                env,
+                log,
+                COMMAND_TIMEOUT,
+                ROOT,
+            )
+        except OSError as exc:
+            return report_error(TOOL, f"cannot run {SELECT_TOOL}: {exc}")
         if status is None:
             return report_failure(
                 TOOL,
@@ -246,7 +253,8 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when the selection ran, 1 when the selector "
             "failed, 2 for a usage error, an unusable HOME, a missing "
-            "installed theme, or a foreign path at the link target"
+            "installed theme, a foreign path at the link target, or a "
+            "selector that cannot be started"
         ),
     )
     parser.add_argument(
