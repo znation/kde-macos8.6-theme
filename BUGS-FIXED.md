@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A FIFO at a Firefox profile file blocks the install forever (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/install_firefox.py` read a profile's `chrome/userChrome.css` and `user.js` with
+`Path.read_bytes()`. A FIFO or device at either path makes that open wait for a writer (or stream
+forever), so `make install-firefox` never returned and printed no diagnostic. Placing a FIFO at
+either file reproduces it: the install stops in `_read_text` before writing the other file.
+
+The fix opens both files through the shared containment regular-file reader
+(`open_regular_binary`), which opens with `O_NONBLOCK` and inspects the opened descriptor, so a FIFO
+or device is refused by name with exit status 2 instead of blocking. A missing file still reads as
+absent, and a regular file's bytes are decoded as UTF-8 without newline translation, so its line
+endings stay intact. The regression test
+`tests/test_firefox_install.py::TestRemove::test_a_fifo_at_either_profile_file_is_refused_without_blocking`
+runs the install in a child for a FIFO at each profile file; both cases hit the child-process
+timeout before the fix and pass after it.
+
+**Validation gap:** no-fake — confirming it needed a FIFO fixture and a bounded child process the
+suite did not have, so the blocked open left no diagnostic; the closest tag is no-fake, and the new
+test now supplies that fixture.
+
 ### The cursor generator test patches a removed `_write_atomic` symbol (found by the plan role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 The entry was filed before an earlier coverage commit repaired the cursor-write test. On this tree,

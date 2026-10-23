@@ -77,7 +77,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
 | The standalone `userChrome.css` paints the Platinum palette on Firefox's tab strip, navigation bar, toolbars, menus and status panel with no at-rule and no import. | `tests/test_firefox_theme.py::TestFirefoxChrome` | No reference screenshot shows Firefox chrome, so the palette comes from the pinned Platinum values and the geometry is this theme's adaptation of the Platinum controls. |
-| The opt-in install copies the sheet byte-for-byte, adds only the marker-delimited preference while preserving foreign `user.js` lines and endings, refuses a foreign `userChrome.css`, and removal reverses only those two changes. | `tests/test_firefox_install.py::TestInstall`, `tests/test_firefox_install.py::TestRemove` | No reference screenshot shows Firefox chrome; the profile layout and preference name are Firefox-required. |
+| The opt-in install copies the sheet byte-for-byte, adds only the marker-delimited preference while preserving foreign `user.js` lines and endings, refuses a foreign `userChrome.css`, and removal reverses only those two changes; a FIFO at either profile file is refused by name as not a regular file before either file is written, instead of blocking the install on an open that waits for a writer. | `tests/test_firefox_install.py::TestInstall`, `tests/test_firefox_install.py::TestRemove`, `tests/test_firefox_install.py::TestRemove::test_a_fifo_at_either_profile_file_is_refused_without_blocking` | No reference screenshot shows Firefox chrome; the profile layout and preference name are Firefox-required. |
 
 ## gtk
 

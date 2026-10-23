@@ -8,11 +8,12 @@ without touching a real Firefox profile.
 from __future__ import annotations
 
 import os
+import stat
 import unittest
 from pathlib import Path
 from unittest import mock
 
-from support import containment
+from support import containment, snippet_child
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
 from support.tmp_dir import make_tmp_dir
@@ -467,6 +468,42 @@ class TestRemove(ProfileCase):
         self.assertIn("cannot read", result.stderr)
         self.assertIn(str(self.user_js_path()), result.stderr)
         self.assertFalse(self.sheet_path().exists())
+
+    def test_a_fifo_at_either_profile_file_is_refused_without_blocking(self):
+        # A plain read_bytes on a FIFO waits forever for a writer, so it would
+        # stall `make install-firefox` instead of reporting the profile file.
+        # Run the install in a child so a regression is a bounded timeout, and
+        # refuse the pipe by name before the other profile file is written.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        snippet = (
+            "import sys; from tools.install_firefox import main; "
+            "sys.exit(main(sys.argv[1:]))"
+        )
+        files = (
+            ("userChrome.css", Path("chrome") / "userChrome.css", Path("user.js")),
+            ("user.js", Path("user.js"), Path("chrome") / "userChrome.css"),
+        )
+        for name, fifo, untouched in files:
+            with self.subTest(profile_file=name):
+                profile = self.root / f"fifo-{name}"
+                profile.mkdir()
+                fifo_path = profile / fifo
+                fifo_path.parent.mkdir(parents=True, exist_ok=True)
+                os.mkfifo(fifo_path)
+                with mock.patch.dict(
+                    os.environ, {"HOME": str(self.home)}, clear=True
+                ):
+                    child = snippet_child.run(
+                        [snippet, "--profile", str(profile)],
+                        cwd=repo_root.ROOT,
+                        timeout=10,
+                    )
+                self.assertEqual(2, child.returncode, child.stdout + child.stderr)
+                self.assertIn(f"cannot read {fifo_path}", child.stderr)
+                self.assertIn("not a regular file", child.stderr)
+                self.assertTrue(stat.S_ISFIFO(fifo_path.stat().st_mode))
+                self.assertFalse((profile / untouched).exists())
 
     def test_a_failed_sheet_unlink_is_reported_by_path(self):
         # _remove promises a by-name "cannot remove" error when our sheet

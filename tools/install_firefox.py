@@ -28,7 +28,7 @@ from pathlib import Path
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_atomically
-    from tools.containment import read_bytes
+    from tools.containment import open_regular_binary, read_bytes
     from tools.diagnostics import report_error, report_failure
     from tools.firefox_profile import ConfigError, resolve_profile
     from tools.firefox_user_js import first_line, remove_user_js, set_user_js
@@ -37,7 +37,7 @@ if __package__:
 else:  # run directly: python3 tools/install_firefox.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_atomically
-    from containment import read_bytes
+    from containment import open_regular_binary, read_bytes
     from diagnostics import report_error, report_failure
     from firefox_profile import ConfigError, resolve_profile
     from firefox_user_js import first_line, remove_user_js, set_user_js
@@ -57,14 +57,19 @@ def _note(message: str) -> None:
 def _read_text(path: Path) -> str | None:
     """Return *path*'s UTF-8 text, or ``None`` when it does not exist.
 
-    A directory, a device, an unreadable file and invalid UTF-8 are reported
-    by name as a :class:`ConfigError` rather than escaping as a traceback.
+    The file is opened through the shared regular-file reader, so a FIFO or
+    device at the path is refused by name instead of blocking the install on
+    an open that waits for a writer, and the check inspects the opened
+    descriptor. A directory, a non-regular file, an unreadable file and
+    invalid UTF-8 are reported by name as a :class:`ConfigError` rather than
+    escaping as a traceback.
     """
     try:
-        data = path.read_bytes()
+        with open_regular_binary(path) as handle:
+            data = handle.read()
     except FileNotFoundError:
         return None
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
     try:
         return data.decode("utf-8")
