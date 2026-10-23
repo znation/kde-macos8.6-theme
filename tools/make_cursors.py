@@ -1,12 +1,14 @@
-"""Generate the Mac OS 8.6 Platinum Xcursor arrow from a pixel grid.
+"""Generate the Mac OS 8.6 Platinum Xcursor pointer set from pixel grids.
 
-The theme ships its cursor inside the ``org.macos8.desktop`` icon theme package,
-under ``cursors/``: ``left_ptr`` plus the X-name aliases ``arrow``, ``default``
-and ``top_left_arrow``. Each file holds the same art at nominal sizes 16, 24 and
-32. No reference screenshot in ``macos8.6-screenshots/`` shows the mouse
-pointer, so the arrow is our own Platinum-style drawing on the pinned #000000
-face and #FFFFFF outline, not traced from Apple's artwork; the nominal sizes,
-the Xcursor container and the X names are KDE/X-required values.
+The theme ships five cursors inside the ``org.macos8.desktop`` icon theme
+package, under ``cursors/``: ``left_ptr`` (the arrow), ``xterm`` (the text
+I-beam), ``hand2`` (the pointing hand), ``watch`` (the busy hourglass) and
+``fleur`` (the move cross), each with the X-name aliases listed in ``CURSORS``.
+Each file holds the same art at nominal sizes 16, 24 and 32. No reference
+screenshot in ``macos8.6-screenshots/`` shows the mouse pointer, so the art is
+our own Platinum-style drawing on the pinned #000000 face and #FFFFFF outline,
+not traced from Apple's artwork; the nominal sizes, the Xcursor container and
+the X names are KDE/X-required values.
 
 Run ``python3 tools/make_cursors.py`` from anywhere; the output is
 deterministic, so re-running rewrites identical bytes. A cursors directory that
@@ -41,7 +43,6 @@ else:  # run directly: python3 tools/make_cursors.py
 TOOL = "make_cursors"
 PACKAGE_DIR = Path("theme", "icons", "org.macos8.desktop")
 CURSORS_DIR = "cursors"
-CURSOR_NAMES = ("left_ptr", "arrow", "default", "top_left_arrow")
 NOMINAL_SIZES = (16, 24, 32)
 GRID_SIZE = 16
 HOTSPOT = (1, 1)
@@ -68,6 +69,103 @@ ARROW_GRID = (
     "   ....         ",
 )
 
+# The text I-beam has serifs at the top and bottom of a centred stem; its
+# hotspot is the middle of the stem.
+XTERM_HOTSPOT = (7, 7)
+XTERM_GRID = (
+    "   ..........   ",
+    "   .########.   ",
+    "   ....#.....   ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "   ....#.....   ",
+    "   .########.   ",
+    "   ..........   ",
+)
+
+# The pointing hand raises its index finger and holds the thumb to the right;
+# its hotspot is the fingertip.
+HAND2_HOTSPOT = (7, 2)
+HAND2_GRID = (
+    "                ",
+    "      ...       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#....    ",
+    "      .####.    ",
+    "      .####.    ",
+    "     .#####.    ",
+    "     .#####.    ",
+    "     .#####.    ",
+    "     .......    ",
+    "                ",
+    "                ",
+    "                ",
+)
+
+# The busy hourglass joins a wide top and bottom through a narrow waist; its
+# hotspot is the waist.
+WATCH_HOTSPOT = (7, 5)
+WATCH_GRID = (
+    "    ........    ",
+    "    .######.    ",
+    "    .######.    ",
+    "     .####.     ",
+    "      .##.      ",
+    "      .##.      ",
+    "      .##.      ",
+    "     .####.     ",
+    "    .######.    ",
+    "    .######.    ",
+    "    ........    ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+)
+
+# The move cross points up, down, left and right; its hotspot is the centre.
+FLEUR_HOTSPOT = (7, 7)
+FLEUR_GRID = (
+    "      ....      ",
+    "      .##.      ",
+    "     .####.     ",
+    "      .##.      ",
+    "      .##.      ",
+    "  .   .##.   .  ",
+    "..#....##....#..",
+    ".##############.",
+    ".##############.",
+    "..#....##....#..",
+    "  .   .##.   .  ",
+    "      .##.      ",
+    "      .##.      ",
+    "     .####.     ",
+    "      .##.      ",
+    "      ....      ",
+)
+
+# The canonical cursor name, its grid, its hotspot and the X-name aliases that
+# must carry byte-identical copies. ``main`` writes them in this order.
+CURSORS = (
+    ("left_ptr", ARROW_GRID, HOTSPOT, ("arrow", "default", "top_left_arrow")),
+    ("xterm", XTERM_GRID, XTERM_HOTSPOT, ("text", "ibeam")),
+    ("hand2", HAND2_GRID, HAND2_HOTSPOT, ("hand1", "pointer", "pointing_hand")),
+    ("watch", WATCH_GRID, WATCH_HOTSPOT, ("wait",)),
+    ("fleur", FLEUR_GRID, FLEUR_HOTSPOT, ("move", "all-scroll", "size_all")),
+)
+
 PIXELS = {
     "#": b"\x00\x00\x00\xff",
     ".": b"\xff\xff\xff\xff",
@@ -75,11 +173,11 @@ PIXELS = {
 }
 
 
-def _checked_rows(rows):
+def _checked_rows(rows, name="arrow"):
     """Return *rows* after checking it is a ``GRID_SIZE`` square of known cells."""
     if not isinstance(rows, (tuple, list)) or len(rows) != GRID_SIZE:
         raise ValueError(
-            f"the arrow grid must have {GRID_SIZE} rows, not "
+            f"the {name} grid must have {GRID_SIZE} rows, not "
             f"{len(rows) if isinstance(rows, (tuple, list)) else type(rows).__name__}"
         )
     checked = []
@@ -87,22 +185,22 @@ def _checked_rows(rows):
         if not isinstance(row, str) or len(row) != GRID_SIZE:
             width = len(row) if isinstance(row, str) else type(row).__name__
             raise ValueError(
-                f"arrow grid row {y} must be a {GRID_SIZE}-character string, "
+                f"{name} grid row {y} must be a {GRID_SIZE}-character string, "
                 f"not {width}"
             )
         for x, cell in enumerate(row):
             if cell not in PIXELS:
                 raise ValueError(
-                    f"arrow grid cell ({x}, {y}) is {cell!r}; expected one of "
+                    f"{name} grid cell ({x}, {y}) is {cell!r}; expected one of "
                     f"{sorted(PIXELS)}"
                 )
         checked.append(row)
     return tuple(checked)
 
 
-def render_rgba(rows, size):
+def render_rgba(rows, size, name="arrow"):
     """Return *size* x *size* packed RGBA pixels scaled from the 16x16 *rows*."""
-    checked = _checked_rows(rows)
+    checked = _checked_rows(rows, name)
     if not is_plain_int(size) or size < 1:
         raise ValueError(f"size must be a positive integer: size={size!r}")
     rgba = bytearray(size * size * 4)
@@ -140,9 +238,11 @@ def _scaled_hotspot(size, hotspot):
     )
 
 
-def cursor_bytes(rows=ARROW_GRID, sizes=NOMINAL_SIZES, hotspot=HOTSPOT):
+def cursor_bytes(
+    rows=ARROW_GRID, sizes=NOMINAL_SIZES, hotspot=HOTSPOT, name="arrow"
+):
     """Return the Xcursor bytes for *rows* at every nominal *size*."""
-    checked = _checked_rows(rows)
+    checked = _checked_rows(rows, name)
     frames = []
     for size in sizes:
         if not is_plain_int(size) or size < 1:
@@ -150,7 +250,7 @@ def cursor_bytes(rows=ARROW_GRID, sizes=NOMINAL_SIZES, hotspot=HOTSPOT):
                 f"nominal size must be a positive integer: size={size!r}"
             )
         hotspot_x, hotspot_y = _scaled_hotspot(size, hotspot)
-        png = encode_rgba_png(size, size, render_rgba(checked, size))
+        png = encode_rgba_png(size, size, render_rgba(checked, size, name))
         frames.append((size, size, size, hotspot_x, hotspot_y, png))
     if not frames:
         raise ValueError("at least one nominal size is required")
@@ -162,7 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = EscapingArgumentParser(
         prog=TOOL,
         description=(
-            "Regenerate the icon theme package's Xcursor arrow artifact."
+            "Regenerate the icon theme package's Xcursor pointer set."
         ),
         epilog=(
             "exit status: 0 when every cursor file was written, "
@@ -179,13 +279,14 @@ def main(argv: list[str] | None = None) -> int:
         directory.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         return report_error(TOOL, f"cannot create {directory}: {exc}")
-    data = cursor_bytes()
-    for name in CURSOR_NAMES:
-        target = directory / name
-        try:
-            write_bytes_atomically(target, data)
-        except OSError as exc:
-            return report_error(TOOL, f"cannot write {target}: {exc}")
+    for canonical, rows, hotspot, aliases in CURSORS:
+        data = cursor_bytes(rows, NOMINAL_SIZES, hotspot, name=canonical)
+        for name in (canonical, *aliases):
+            target = directory / name
+            try:
+                write_bytes_atomically(target, data)
+            except OSError as exc:
+                return report_error(TOOL, f"cannot write {target}: {exc}")
     return 0
 
 

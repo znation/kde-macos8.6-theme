@@ -55,12 +55,30 @@ SHIPPED_ICONS = (
     os.path.join("22x22", "actions", "go-next-symbolic.svg"),
 )
 
-# The package also ships the Platinum Xcursor arrow as the `left_ptr` cursor
-# with its X-name aliases. These are binary Xcursor files, not SVGs, so the
-# SVG-level assertions below keep iterating `SHIPPED_ICONS` only.
+# The package also ships the Platinum Xcursor pointer set with their X-name
+# aliases. These are binary Xcursor files, not SVGs, so the SVG-level
+# assertions below keep iterating `SHIPPED_ICONS` only.
 SHIPPED_CURSORS = tuple(
     os.path.join("cursors", name)
-    for name in ("left_ptr", "arrow", "default", "top_left_arrow")
+    for name in (
+        "left_ptr",
+        "arrow",
+        "default",
+        "top_left_arrow",
+        "xterm",
+        "text",
+        "ibeam",
+        "hand2",
+        "hand1",
+        "pointer",
+        "pointing_hand",
+        "watch",
+        "wait",
+        "fleur",
+        "move",
+        "all-scroll",
+        "size_all",
+    )
 )
 
 
