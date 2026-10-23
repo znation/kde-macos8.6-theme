@@ -24,6 +24,12 @@ from .image import PngError
 
 
 def to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
+    """Expand unfiltered *samples* of *color_type* into packed RGB bytes.
+
+    Color types 2 (truecolor), 0 (greyscale), 3 (palette, using *palette*)
+    and 4 (greyscale with alpha, which is dropped) are supported; any other
+    type raises :class:`PngError`.
+    """
     if color_type == 2:  # truecolor RGB
         return samples
     if color_type == 0:  # greyscale

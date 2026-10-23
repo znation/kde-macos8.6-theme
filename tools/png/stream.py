@@ -42,8 +42,9 @@ def validate_max_rows(max_rows: int | None) -> None:
 
     ``bool`` is rejected even though it is an ``int`` subclass: ``True`` would
     pass as 1 and silently select a different row bound. This lives apart from
-    :func:`decode_png` so a caller that serves an already-decoded image (the
-    test reference cache) can apply the same bound check without decoding.
+    :func:`tools.png.read.decode_png` so a caller that serves an already-decoded
+    image (the test reference cache) can apply the same bound check without
+    decoding.
     """
     if max_rows is None:
         return
@@ -58,9 +59,9 @@ def validate_max_rows(max_rows: int | None) -> None:
 def parse_ihdr(header: bytes) -> tuple[int, int, int]:
     """Validate a 13-byte IHDR payload, returning ``(width, height, color_type)``.
 
-    Both :func:`decode_png` and :func:`tools.png.loader.read_png_size` use this
-    so a size-only read rejects the same malformed or unsupported headers the
-    decoder does.
+    Both :func:`tools.png.read.decode_png` and
+    :func:`tools.png.loader.read_png_size` use this so a size-only read rejects
+    the same malformed or unsupported headers the decoder does.
     """
     if len(header) != 13:
         raise PngError(
@@ -102,6 +103,7 @@ def parse_ihdr(header: bytes) -> tuple[int, int, int]:
 
 
 def check_pixel_limit(width: int, height: int) -> None:
+    """Raise :class:`PngError` when *width* x *height* exceeds ``MAX_PIXELS``."""
     if width * height > MAX_PIXELS:
         raise PngError(
             f"PNG declares {width}x{height} ({width * height} pixels), larger "
@@ -184,7 +186,8 @@ def collect_chunks(
             # three non-alpha colour types, so it must be collected rather
             # than skipped with the other unknown ancillary chunks. Colour
             # types 4 and 6 carry their transparency in the pixel itself, so
-            # :func:`decode_rgba` ignores it for those. A second tRNS would
+            # :func:`tools.png.read.decode_rgba` ignores it for those. A second
+            # tRNS would
             # silently replace the first, changing the decoded alpha, so
             # refuse it the way a second IHDR is refused.
             if trns is not None:
