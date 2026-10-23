@@ -1,6 +1,7 @@
-"""The Mac OS 8.6 Platinum palette values the desktop-theme tests share.
+"""The Mac OS 8.6 Platinum palette values the theme's test suites share.
 
-The per-widget test modules name the colours their artwork is painted from --
+The desktop theme's per-widget test modules name the colours their artwork is
+painted from --
 the black outline, the white bevel highlight, the grey bevel shadow, the
 #DDDDDD face, the flat #EEEEEE trough, the flat #FFFFCC tooltip face and the
 flat #CCCCFF selection -- and assert their fill sets. Naming the values here

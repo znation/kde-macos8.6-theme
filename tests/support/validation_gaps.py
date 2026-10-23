@@ -3,12 +3,14 @@
 Every Fixed bug records a ``**Validation gap:**`` tag, or (for the older
 one-line bullets) a trailing ``; gap: <tag>``. The ``no-observability`` tag
 marked a failure that left no trace the suite could see, so it could not be
-confirmed until instrumentation was added. The records that used it now have
-test-side reproductions; this module turns them into a structured ledger that
-maps each mechanism to the test that confirms it offline, and refuses a record
-that names no reproduction. ``tests/test_validation_gaps.py`` drives the ledger
-and caps the count at its 21-record baseline, so a new ``no-observability`` tag fails the suite instead
-of silently growing the gap.
+confirmed until instrumentation was added; its records now have test-side
+reproductions. The ``unclear-invariant`` tag marked a guarantee the code or
+register left unstated or unpinned; its records now name the test and register
+row that state it. This module turns both into a structured ledger that maps
+each mechanism to the test that confirms it offline, and refuses a record that
+names no reproduction. ``tests/test_validation_gaps.py`` drives the ledgers and
+caps each tag's count at its baseline, so a new unrecorded tag fails the suite
+instead of silently growing the gap.
 """
 
 from __future__ import annotations

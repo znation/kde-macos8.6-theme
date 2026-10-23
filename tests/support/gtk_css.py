@@ -1,8 +1,9 @@
-"""Shared reader and parser for the standalone GTK 3 and GTK 4 Platinum sheets.
+"""Shared reader and parser for the standalone Platinum sheets.
 
-Both sheet tests read their stylesheet into the same ``@define-color`` map,
-selector declarations and selector list with :func:`parse_css`, so a change to
-the parsing rules is checked against both sheets rather than re-derived in each.
+The GTK 3, GTK 4 and Firefox sheet tests read their stylesheet into the same
+``@define-color`` map, selector declarations and selector list with
+:func:`parse_css`, so a change to the parsing rules is checked against all
+three rather than re-derived in each.
 """
 
 from __future__ import annotations

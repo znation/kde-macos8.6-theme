@@ -1,10 +1,11 @@
-"""Platinum spec values shared by the GTK 3 and GTK 4 sheet suites.
+"""Platinum spec values shared by the GTK 3, GTK 4 and Firefox sheet suites.
 
-The two stylesheets implement the same Platinum control spec: one etched
+The two GTK stylesheets implement the same Platinum control spec: one etched
 separator, the same bevels and tab-state selectors, and the same base
-``@define-color`` roles. Each suite still reads and asserts against its own
-stylesheet; this module only holds the values both sheets must agree on.
-The GTK 4 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
+``@define-color`` roles. Each GTK suite still reads and asserts against its own
+stylesheet; this module only holds the values both sheets must agree on. The
+Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
+sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 """
 
 from __future__ import annotations
