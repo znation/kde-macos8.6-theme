@@ -11,12 +11,14 @@ from __future__ import annotations
 
 import os
 import shutil
+import stat
 import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import snippet_child
 from support import theme_install
 from support.cli_fixtures import run_main
 from support.process_assertions import assert_failed, assert_succeeded
@@ -45,6 +47,23 @@ class GtkApplyCase(unittest.TestCase):
         with mock.patch.dict(os.environ, self.env, clear=True):
             return run_main(apply_gtk.main, "apply_gtk", args)
 
+    def run_tool_in_child(self, *args):
+        """Run the tool in a child so a FIFO open that slips through times out.
+
+        ``run_tool`` cannot bound a blocking ``open``: if the guard regresses,
+        the call hangs the whole check instead of failing this test. The child
+        inherits ``self.env`` and is killed at the timeout, like the suite's
+        other FIFO guards.
+        """
+        snippet = (
+            "import sys; from tools.apply_gtk import main; "
+            "sys.exit(main(sys.argv[1:]))"
+        )
+        with mock.patch.dict(os.environ, self.env, clear=True):
+            return snippet_child.run(
+                [snippet, *args], cwd=repo_root.ROOT, timeout=10
+            )
+
     def install_sheet(self):
         self.sheet.parent.mkdir(parents=True, exist_ok=True)
         self.sheet.write_text("/* installed sheet */\n", encoding="utf-8")
@@ -59,6 +78,13 @@ class GtkApplyCase(unittest.TestCase):
     def write_bytes(self, path, data):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
+
+    def make_fifo(self, path):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            os.mkfifo(path)
+        except (AttributeError, OSError) as exc:
+            self.skipTest(f"cannot create a FIFO: {exc}")
 
 
 class TestApply(GtkApplyCase):
@@ -438,6 +464,143 @@ class TestLineEndings(GtkApplyCase):
             b"[Settings]\r\ngtk-font-name=Lato 10\r\n",
             self.settings("gtk-4.0").read_bytes(),
         )
+
+
+class TestUnreadableConfig(GtkApplyCase):
+    """A config file that cannot be read stops the run before anything is written.
+
+    The fault is planted in the *second* file the tool would touch, so a fix
+    that only reports the error after the first write still fails: the first
+    file's bytes must stay exactly as they were.
+    """
+
+    def test_apply_refuses_a_non_utf8_settings_file_before_writing_anything(self):
+        self.install_sheet()
+        gtk3 = self.settings("gtk-3.0")
+        self.write(gtk3, "[Settings]\ngtk-theme-name=Adwaita\n")
+        before = gtk3.read_bytes()
+        gtk4 = self.settings("gtk-4.0")
+        gtk4.parent.mkdir(parents=True, exist_ok=True)
+        gtk4.write_bytes(b"[Settings]\ngtk-theme-name=\xff\n")
+
+        result = self.run_tool()
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn("settings.ini", result.stderr)
+        self.assertIn("utf-8", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertEqual(before, gtk3.read_bytes())
+        self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
+
+    def test_remove_refuses_a_non_utf8_settings_file_before_clearing_anything(self):
+        self.install_sheet()
+        gtk3 = self.settings("gtk-3.0")
+        self.write(gtk3, "[Settings]\ngtk-theme-name=org.macos8.desktop\n")
+        assert_succeeded(self, self.run_tool())
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.assertTrue(css.is_file())
+        gtk3_before = gtk3.read_bytes()
+        self.settings("gtk-4.0").write_bytes(
+            b"[Settings]\ngtk-theme-name=\xff\n"
+        )
+
+        result = self.run_tool("--remove")
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn("utf-8", result.stderr)
+        self.assertEqual(gtk3_before, gtk3.read_bytes())
+        self.assertTrue(css.is_file())
+
+    def test_apply_refuses_a_fifo_settings_file_before_writing_anything(self):
+        self.install_sheet()
+        gtk3 = self.settings("gtk-3.0")
+        self.write(gtk3, "[Settings]\ngtk-theme-name=Adwaita\n")
+        before = gtk3.read_bytes()
+        gtk4 = self.settings("gtk-4.0")
+        self.make_fifo(gtk4)
+
+        result = self.run_tool_in_child()
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn(f"cannot read {gtk4}", result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertEqual(before, gtk3.read_bytes())
+        self.assertTrue(stat.S_ISFIFO(gtk4.stat().st_mode))
+        self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
+
+    def test_a_fifo_swapped_in_for_a_regular_settings_file_is_refused(self):
+        # A regular file can become a FIFO between a path check and the open.
+        # Patching os.open to open the FIFO while the path still names a
+        # regular file proves the guard inspects the opened descriptor, so the
+        # swap is refused by name instead of blocking on or reading the pipe.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        gtk4 = self.settings("gtk-4.0")
+        self.write(gtk4, "[Settings]\ngtk-theme-name=Adwaita\n")
+        fifo = self.root / "pipe"
+        os.mkfifo(fifo)
+        real_open = os.open
+
+        def open_the_fifo(target, flags, *args, **kwargs):
+            # O_RDWR makes the test itself independent of the flags under
+            # test, so a missing O_NONBLOCK fails the assertion, not the run.
+            return real_open(fifo, os.O_RDWR | os.O_NONBLOCK)
+
+        with mock.patch.object(apply_gtk.os, "open", side_effect=open_the_fifo):
+            with self.assertRaises(apply_gtk.ConfigError) as caught:
+                apply_gtk._read_config_text(gtk4)
+        self.assertIn(f"cannot read {gtk4}", str(caught.exception))
+        self.assertIn("not a regular file", str(caught.exception))
+
+    def test_apply_refuses_a_fifo_user_css_before_writing_anything(self):
+        self.install_sheet()
+        gtk3 = self.settings("gtk-3.0")
+        self.write(gtk3, "[Settings]\ngtk-theme-name=Adwaita\n")
+        before = gtk3.read_bytes()
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.make_fifo(css)
+
+        result = self.run_tool_in_child()
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn(f"cannot read {css}", result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertEqual(before, gtk3.read_bytes())
+        self.assertFalse(self.settings("gtk-4.0").exists())
+        self.assertTrue(stat.S_ISFIFO(css.stat().st_mode))
+
+    def test_remove_refuses_a_fifo_settings_file_before_clearing_anything(self):
+        gtk3 = self.settings("gtk-3.0")
+        self.write(gtk3, "[Settings]\ngtk-theme-name=org.macos8.desktop\n")
+        before = gtk3.read_bytes()
+        gtk4 = self.settings("gtk-4.0")
+        self.make_fifo(gtk4)
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write(css, f"{apply_gtk.GTK4_CSS_MARKER}\n")
+
+        result = self.run_tool_in_child("--remove")
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn(f"cannot read {gtk4}", result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertEqual(before, gtk3.read_bytes())
+        self.assertTrue(css.is_file())
+        self.assertTrue(stat.S_ISFIFO(gtk4.stat().st_mode))
+
+    def test_remove_refuses_a_fifo_user_css_before_clearing_anything(self):
+        gtk3 = self.settings("gtk-3.0")
+        self.write(gtk3, "[Settings]\ngtk-theme-name=org.macos8.desktop\n")
+        before = gtk3.read_bytes()
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.make_fifo(css)
+
+        result = self.run_tool_in_child("--remove")
+
+        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
+        self.assertIn(f"cannot read {css}", result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertEqual(before, gtk3.read_bytes())
+        self.assertTrue(stat.S_ISFIFO(css.stat().st_mode))
 
 
 class TestHomeResolution(unittest.TestCase):

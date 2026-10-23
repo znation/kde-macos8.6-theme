@@ -21,7 +21,9 @@ written.
 
 from __future__ import annotations
 
+import errno
 import os
+import stat
 import sys
 from pathlib import Path
 
@@ -104,17 +106,43 @@ def _require_home(path: Path | None, variable: str, fallback: str) -> Path:
     return path
 
 
-def _read_text(path: Path) -> str:
-    """Return *path*'s UTF-8 text without translating its line endings.
+def _read_config_text(path: Path) -> str | None:
+    """Return *path*'s UTF-8 text, or ``None`` when nothing occupies it.
 
-    ``Path.read_text`` opens in universal-newline mode, which turns CRLF and
-    lone CR into LF before the transforms see them; reading the bytes keeps
-    every line ending so a rewrite can preserve it.
+    The read opens *path* once and inspects the opened descriptor: a regular
+    file swapped for a FIFO before the open still returns at once because of
+    ``O_NONBLOCK``, and is then refused as not a regular file instead of
+    blocking or being consumed. A directory returns ``None`` so the staging
+    step reports it as an unwritable target instead of this read path
+    refusing it.
+
+    The bytes are decoded directly rather than through ``Path.read_text``,
+    whose universal-newline mode would turn CRLF and lone CR into LF before
+    the transforms see them; every line ending must stay intact for a rewrite.
     """
     try:
-        return path.read_bytes().decode("utf-8")
+        descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
+    except (FileNotFoundError, NotADirectoryError):
+        return None
+    except OSError as exc:
+        # Some platforms refuse to open a directory for reading at all.
+        if exc.errno == errno.EISDIR:
+            return None
+        raise ConfigError(f"cannot read {path}: {exc}") from exc
+    try:
+        mode = os.fstat(descriptor).st_mode
+        if stat.S_ISDIR(mode):
+            return None
+        if not stat.S_ISREG(mode):
+            raise ConfigError(f"cannot read {path}: not a regular file")
+        chunks = []
+        while chunk := os.read(descriptor, 65536):
+            chunks.append(chunk)
+        return b"".join(chunks).decode("utf-8")
     except (OSError, UnicodeDecodeError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
+    finally:
+        os.close(descriptor)
 
 
 def _settings_path(config_home: Path, version: str) -> Path:
@@ -136,8 +164,9 @@ def _user_css_write(
     before any settings write, so an unreadable file changes nothing.
     """
     path = _user_css_path(config_home)
-    if path.is_file():
-        first = _read_text(path).splitlines()
+    existing = _read_config_text(path)
+    if existing is not None:
+        first = existing.splitlines()
         if not first or first[0] != GTK4_CSS_MARKER:
             _note(f"{path} exists but is not our user CSS; leaving it untouched")
             return None
@@ -152,9 +181,10 @@ def _user_css_remove(config_home: Path) -> Path | None:
     ``gtk.css`` changes nothing.
     """
     path = _user_css_path(config_home)
-    if not path.is_file():
+    existing = _read_config_text(path)
+    if existing is None:
         return None
-    first = _read_text(path).splitlines()
+    first = existing.splitlines()
     if first and first[0] == GTK4_CSS_MARKER:
         return path
     return None
@@ -182,7 +212,7 @@ def _apply(data_home: Path, config_home: Path) -> int:
     writes = []
     for version in ("gtk-3.0", "gtk-4.0"):
         path = _settings_path(config_home, version)
-        original = _read_text(path) if path.is_file() else ""
+        original = _read_config_text(path) or ""
         updated = set_theme_name(original, GTK_ID)
         if updated != original:
             writes.append((path, updated))
@@ -200,9 +230,10 @@ def _remove(config_home: Path) -> int:
     writes = []
     for version in ("gtk-3.0", "gtk-4.0"):
         path = _settings_path(config_home, version)
-        if not path.is_file():
+        original = _read_config_text(path)
+        if original is None:
             continue
-        updated, removed = remove_theme_name(_read_text(path))
+        updated, removed = remove_theme_name(original)
         if removed:
             writes.append((path, updated))
     css = _user_css_remove(config_home)
