@@ -328,6 +328,56 @@ class TestRemove(CursorCase):
         self.assertNotIn("breeze_cursors", child.stdout)
 
 
+class TestCursorThemeSetting(unittest.TestCase):
+    """Pin the ``[Mouse] cursorTheme`` reader the removal note depends on."""
+
+    def setUp(self):
+        self.config = make_tmp_dir(self)
+        self.path = self.config / "kcminputrc"
+
+    def test_a_leading_bom_does_not_hide_the_mouse_section(self):
+        # kcminputrc is decoded as utf-8-sig; plain utf-8 would fold the BOM
+        # into the section heading, so the reset note would silently vanish.
+        self.path.write_bytes(
+            b"\xef\xbb\xbf[Mouse]\ncursorTheme=org.macos8.desktop\n"
+        )
+        self.assertEqual(
+            apply_cursor.CURSOR_THEME,
+            apply_cursor._cursor_theme_setting(self.config),
+        )
+
+    def test_a_setting_outside_the_mouse_section_is_ignored(self):
+        # A cursorTheme before any heading or under another group must not
+        # make removal print a reset note for a selection KDE does not use.
+        self.path.write_text(
+            "cursorTheme=org.macos8.desktop\n"
+            "[Other]\ncursorTheme=org.macos8.desktop\n",
+            encoding="utf-8",
+        )
+        self.assertIsNone(apply_cursor._cursor_theme_setting(self.config))
+
+    def test_comments_and_spacing_around_the_key_are_handled(self):
+        self.path.write_text(
+            "[Mouse]\n"
+            "# a comment\n"
+            "; another comment\n"
+            "  cursorTheme = org.macos8.desktop  \n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            apply_cursor.CURSOR_THEME,
+            apply_cursor._cursor_theme_setting(self.config),
+        )
+
+    def test_a_non_utf8_file_reads_as_no_setting(self):
+        self.path.write_bytes(b"[Mouse]\ncursorTheme=\xff\n")
+        self.assertIsNone(apply_cursor._cursor_theme_setting(self.config))
+
+    def test_a_directory_reads_as_no_setting(self):
+        self.path.mkdir()
+        self.assertIsNone(apply_cursor._cursor_theme_setting(self.config))
+
+
 class TestMakeApplyCursor(unittest.TestCase):
     def test_dry_run_shows_install_before_the_script(self):
         result = theme_install.run_make(
