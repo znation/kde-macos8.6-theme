@@ -24,7 +24,7 @@ import unittest
 import zlib
 
 from support.allocation_fixtures import peak_allocation
-from support.error_assertions import error_message
+from support.error_assertions import assert_error_names, error_message
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.png_fixtures import (  # noqa: E402
@@ -234,6 +234,89 @@ class TestMalformedImageData(unittest.TestCase):
         message = decode_error_message(self, data)
         self.assertIn("unsupported PNG filter type 5", message)
         self.assertIn("row 2", message)
+
+
+class TestTrnsColorTypeValidation(unittest.TestCase):
+    """Both decoders refuse a tRNS chunk the header cannot carry.
+
+    ``decode_rgba`` is the only decoder that applies tRNS to pixels, but a
+    malformed chunk still makes the file non-conformant: ``decode_png`` used
+    to discard transparency without validating it, so the same bytes decoded
+    as RGB and raised on the RGBA path.
+    """
+
+    def test_alpha_color_types_refuse_trns(self):
+        for color_type, channels in ((4, 2), (6, 4)):
+            blob = make_png(
+                1,
+                1,
+                [bytes(range(channels))],
+                color_type=color_type,
+                trns=b"\x00\x01\x00\x02\x00\x03",
+            )
+            for decoder in (png.decode_png, png.decode_rgba):
+                with self.subTest(
+                    color_type=color_type, decoder=decoder.__name__
+                ):
+                    assert_error_names(
+                        self,
+                        png.PngError,
+                        decoder,
+                        blob,
+                        needles=(
+                            "tRNS chunk",
+                            f"color type {color_type}",
+                            "0, 2 and 3",
+                        ),
+                    )
+
+    def test_rgb_path_refuses_wrong_length_sample_trns(self):
+        cases = (
+            (0, 2, bytes([7]), b"\x00\x07\x00", "exactly 2"),
+            (2, 3, bytes([1, 2, 3]), bytes(5), "exactly 6"),
+        )
+        for color_type, channels, row, trns, length_needle in cases:
+            blob = make_png(
+                1, 1, [row], color_type=color_type, trns=trns
+            )
+            with self.subTest(color_type=color_type):
+                assert_error_names(
+                    self,
+                    png.PngError,
+                    png.decode_png,
+                    blob,
+                    needles=(f"has {len(trns)} bytes", length_needle),
+                )
+
+    def test_rgb_path_refuses_overlong_palette_trns(self):
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        blob = make_png(
+            1, 1, [bytes([0])], color_type=3, palette=palette, trns=bytes(3)
+        )
+        assert_error_names(
+            self,
+            png.PngError,
+            png.decode_png,
+            blob,
+            needles=("tRNS chunk has 3 bytes", "needs 1 to 2"),
+        )
+
+    def test_valid_trns_still_decodes_as_rgb(self):
+        # The new check must not reject the valid chunk the RGB path discards:
+        # a conformant tRNS is still part of a decodable file.
+        truecolor = make_png(
+            1,
+            1,
+            [bytes([1, 2, 3])],
+            color_type=2,
+            trns=b"\x00\x01\x00\x02\x00\x03",
+        )
+        self.assertEqual(png.decode_png(truecolor).rgb, bytes([1, 2, 3]))
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        indexed = make_png(
+            1, 1, [bytes([1])], color_type=3, palette=palette, trns=b"\x00\x80"
+        )
+        self.assertEqual(png.decode_png(indexed).rgb, bytes([40, 50, 60]))
 
 
 class TestToRgbUnsupportedColorType(unittest.TestCase):

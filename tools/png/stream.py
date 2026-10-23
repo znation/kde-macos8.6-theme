@@ -4,11 +4,13 @@ Turns a PNG's chunk stream into the pieces the decoders and the size-only file
 reader need: the validated IHDR payload, the optional PLTE palette, the
 concatenated IDAT image data and the optional tRNS transparency payload. It
 refuses a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
-chunk after the image data, non-consecutive IDAT chunks, a malformed PLTE
+chunk after the image data, a tRNS chunk the header's color type or palette
+cannot carry, non-consecutive IDAT chunks, a malformed PLTE
 length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
 missing IHDR, so
 every caller sees the same diagnosis. :func:`parse_ihdr` validates the header
-fields and :func:`check_pixel_limit` bounds the declared size;
+fields, :func:`check_trns` validates transparency against that header and
+:func:`check_pixel_limit` bounds the declared size;
 ``tools/png/chunks.py`` does the lower-level framing and CRC checks this
 builds on.
 
@@ -102,6 +104,53 @@ def parse_ihdr(header: bytes) -> tuple[int, int, int]:
             "both dimensions must be positive"
         )
     return width, height, color_type
+
+
+# tRNS payload length for the two color types that name a transparent sample
+# value; a palette image uses one alpha byte per palette entry instead.
+_TRNS_SAMPLE_LENGTHS = {0: 2, 2: 6}
+
+
+def check_trns(
+    trns: bytes | None, color_type: int, palette: bytes | None
+) -> None:
+    """Refuse a *trns* payload the header's color type and palette cannot carry.
+
+    The PNG spec allows tRNS only for greyscale (0), truecolor (2) and palette
+    (3) images: color types 4 and 6 carry an alpha channel in every pixel, so
+    a tRNS chunk there has no meaning. A greyscale tRNS names one 16-bit
+    sample, a truecolor one three, and a palette tRNS one alpha byte for each
+    of its first palette entries. Both decoders call this, so the RGB path
+    refuses the same malformed transparency the RGBA path would even though it
+    discards alpha.
+    """
+    if trns is None:
+        return
+    if color_type in (4, 6):
+        raise PngError(
+            f"PNG has a tRNS chunk, but color type {color_type} carries "
+            "transparency in each pixel; tRNS is only valid for color types "
+            "0, 2 and 3"
+        )
+    if color_type == 3:
+        if palette is None:
+            # The decoder names the missing PLTE chunk; a tRNS length cannot
+            # be judged until the palette that bounds it is present.
+            return
+        entries = len(palette) // 3
+        if not 1 <= len(trns) <= entries:
+            raise PngError(
+                f"tRNS chunk has {len(trns)} bytes; a palette PNG with "
+                f"{entries} entries needs 1 to {entries}"
+            )
+        return
+    expected = _TRNS_SAMPLE_LENGTHS[color_type]
+    if len(trns) != expected:
+        name = "greyscale" if color_type == 0 else "truecolor"
+        raise PngError(
+            f"tRNS chunk has {len(trns)} bytes; a {name} PNG (color type "
+            f"{color_type}) needs exactly {expected}"
+        )
 
 
 def check_pixel_limit(width: int, height: int) -> None:

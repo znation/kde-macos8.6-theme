@@ -4,7 +4,8 @@ Decodes 8-bit, non-interlaced PNG images (color types 0, 2, 3, 4 and 6) into
 tightly packed RGB bytes (:func:`decode_png`) or RGBA bytes
 (:func:`decode_rgba`), using only the Python standard library. The RGBA path
 also applies a ``tRNS`` chunk's transparency for the color types that store it
-out of band. This module
+out of band; both paths refuse a ``tRNS`` chunk the header's color type or
+palette cannot carry, even though the RGB path discards alpha. This module
 holds the decode pipeline (inflate and row handling); the chunk-stream and
 header validation it reads first lives in ``tools/png/stream.py``, and the
 color expansion from unfiltered samples to RGB or RGBA lives in
@@ -51,6 +52,7 @@ from .scanlines import drop_alpha, raw_byte_length, unfilter
 from .stream import (
     CHANNELS,
     check_pixel_limit,
+    check_trns,
     collect_chunks,
     parse_ihdr,
     validate_max_rows,
@@ -84,6 +86,7 @@ def _decode_image(
         raise PngError("not a PNG file")
     header, palette, idat, trns = collect_chunks(data)
     width, height, color_type = parse_ihdr(header)
+    check_trns(trns, color_type, palette)
     validate_max_rows(max_rows)
     rows = height if max_rows is None else min(max_rows, height)
     channels = CHANNELS[color_type]

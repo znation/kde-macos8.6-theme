@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### tRNS validation ran only on the RGBA decode path (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/png/read.py`'s `decode_rgba` validated a tRNS chunk's length while it
+applied alpha, but `decode_png` discarded the chunk without looking at it and
+neither path checked whether the header's color type could carry one. A
+truecolor PNG with a 5-byte tRNS decoded as RGB but raised on the RGBA path;
+an overlong palette tRNS did the same; and a tRNS chunk on an alpha color type
+(4 or 6), which the PNG specification forbids outright, was accepted by both.
+Reproduce with `make_png(1, 1, [bytes([1, 2, 3, 4])], color_type=6,
+trns=b"\x00\x01\x00\x02\x00\x03")`: `decode_rgba` returned the image instead
+of raising.
+
+`tools/png/stream.py` now exports `check_trns`, which refuses a tRNS chunk on
+color types 4 and 6, a greyscale or truecolor tRNS whose length is not exactly
+2 or 6 bytes, and a palette tRNS outside 1 to the palette's entry count.
+`_decode_image` calls it right after `parse_ihdr`, so both decoders reject the
+same malformed transparency (a palette image with no PLTE still gets the
+missing-palette diagnosis).
+
+**Validation gap:** unclear-invariant — the rule that tRNS is valid only for color types 0, 2 and 3 with color-type-specific lengths was stated nowhere and pinned only indirectly by the RGBA path, so it had to be reconstructed from the PNG specification; the invariant is recorded in docs/invariants.md.
+
 ### A non-empty IEND payload is silently accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/png/chunks.py`'s `iter_chunks` checked an IEND chunk's length and CRC
