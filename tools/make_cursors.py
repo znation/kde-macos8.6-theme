@@ -32,18 +32,16 @@ if __package__:
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.ints import is_plain_int
-    from tools.png import encode_rgba_png
     from tools.repo_root import ROOT
-    from tools.xcursor import write_cursor
+    from tools.xcursor import write_rgba_cursor
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
     from containment import require_within_repo
     from diagnostics import report_error
     from ints import is_plain_int
-    from png import encode_rgba_png
     from repo_root import ROOT
-    from xcursor import write_cursor
+    from xcursor import write_rgba_cursor
 
 TOOL = "make_cursors"
 PACKAGE_DIR = Path("theme", "icons", "org.macos8.desktop")
@@ -517,11 +515,14 @@ def cursor_bytes(
                 f"nominal size must be a positive integer: size={size!r}"
             )
         hotspot_x, hotspot_y = _scaled_hotspot(size, hotspot)
-        png = encode_rgba_png(size, size, render_rgba(checked, size, name))
-        frames.append((size, size, size, hotspot_x, hotspot_y, png))
+        rgba = render_rgba(checked, size, name)
+        frames.append((size, size, size, hotspot_x, hotspot_y, rgba))
     if not frames:
         raise ValueError("at least one nominal size is required")
-    return write_cursor(frames)
+    # The frames are already RGBA, so write them directly: encoding each one
+    # to PNG for ``write_cursor`` to decode again would redo the pixel work
+    # twice for no change in the written bytes.
+    return write_rgba_cursor(frames)
 
 
 def main(argv: list[str] | None = None) -> int:

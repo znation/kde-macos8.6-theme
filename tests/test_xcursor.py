@@ -119,6 +119,40 @@ class TestContainerLayout(unittest.TestCase):
         self.assertEqual(word, (128 << 24) | (5 << 16) | (10 << 8) | 15)
 
 
+class TestRgbaWriter(unittest.TestCase):
+    """The raw-RGBA writer matches the PNG writer without the round trip."""
+
+    def test_rgba_frames_match_the_same_pixels_encoded_as_png(self):
+        for rgba in (
+            opaque_frame(2, 2),
+            bytes((10, 20, 30, 128, 1, 2, 3, 255, 4, 5, 6, 0, 7, 8, 9, 64)),
+        ):
+            with self.subTest(rgba=rgba):
+                from_png = xcursor.write_cursor(
+                    [(24, 2, 2, 1, 1, encode_rgba_png(2, 2, rgba))]
+                )
+                from_rgba = xcursor.write_rgba_cursor(
+                    [(24, 2, 2, 1, 1, rgba)]
+                )
+                self.assertEqual(from_png, from_rgba)
+
+    def test_rejects_a_pixel_buffer_of_the_wrong_length(self):
+        assert_error_names(
+            self,
+            ValueError,
+            xcursor.write_rgba_cursor,
+            [(2, 2, 2, 1, 1, bytes(15))],
+            needles=("images[0]", "15 bytes", "16"),
+        )
+
+    def test_accepts_a_bytearray_pixel_buffer(self):
+        rgba = opaque_frame(2, 2)
+        self.assertEqual(
+            xcursor.write_rgba_cursor([(2, 2, 2, 1, 1, rgba)]),
+            xcursor.write_rgba_cursor([(2, 2, 2, 1, 1, bytearray(rgba))]),
+        )
+
+
 class TestWriterRejections(unittest.TestCase):
     def setUp(self):
         self.png = encode_rgba_png(2, 2, opaque_frame(2, 2))
