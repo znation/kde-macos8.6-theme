@@ -77,6 +77,49 @@ class TestPublishFdopen(unittest.TestCase):
         self.assertEqual(1, len(closed))
 
 
+class TestOutputProblem(unittest.TestCase):
+    """`output_problem` names each reason the output path is unusable.
+
+    The CLI test in ``tests/test_render_surface.py`` only asserts the generic
+    ``cannot write`` prefix for the directory and missing-parent cases, so a
+    refusal that lost its specific reason would still pass there.
+    """
+
+    def test_a_directory_output_is_named(self):
+        with tempfile.TemporaryDirectory(prefix="render-problem-") as directory:
+            self.assertEqual(
+                "is a directory", render_output.output_problem(Path(directory))
+            )
+
+    def test_a_missing_parent_directory_is_named(self):
+        with tempfile.TemporaryDirectory(prefix="render-problem-") as directory:
+            output = Path(directory) / "missing" / "render.png"
+            self.assertEqual(
+                "its directory does not exist", render_output.output_problem(output)
+            )
+
+    def test_an_unwritable_parent_directory_is_named(self):
+        with tempfile.TemporaryDirectory(prefix="render-problem-") as directory:
+            locked = Path(directory) / "locked"
+            locked.mkdir()
+            locked.chmod(0o500)
+            try:
+                if os.access(locked, os.W_OK):
+                    self.skipTest("directory permissions are not enforced for this user")
+                self.assertEqual(
+                    "its directory is not writable",
+                    render_output.output_problem(locked / "render.png"),
+                )
+            finally:
+                locked.chmod(0o700)
+
+    def test_a_writable_output_has_no_problem(self):
+        with tempfile.TemporaryDirectory(prefix="render-problem-") as directory:
+            self.assertIsNone(
+                render_output.output_problem(Path(directory) / "render.png")
+            )
+
+
 class TestOutputProblemTypeGuard(unittest.TestCase):
     def test_non_path_output_raises_naming_type(self):
         with self.assertRaisesRegex(

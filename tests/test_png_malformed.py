@@ -305,13 +305,12 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
         # the PLTE chunk whose entries it gives alpha. The chunk collector
         # used to accept the two payloads independently, so a file that gave
         # transparency to a palette appearing later still decoded.
-        blob = (
-            _PNG_SIGNATURE
-            + ihdr_chunk(1, 1, 3)
-            + _chunk(b"tRNS", bytes([0, 128]))
-            + _chunk(b"PLTE", bytes([255, 0, 0, 0, 255, 0]))
-            + _chunk(b"IDAT", zlib.compress(bytes([0, 0])))
-            + _chunk(b"IEND", b"")
+        blob = png_stream(
+            ihdr_chunk(1, 1, 3),
+            _chunk(b"tRNS", bytes([0, 128])),
+            _chunk(b"PLTE", bytes([255, 0, 0, 0, 255, 0])),
+            _chunk(b"IDAT", zlib.compress(bytes([0, 0]))),
+            _chunk(b"IEND", b""),
         )
         for decoder in (png.decode_png, png.decode_rgba):
             with self.subTest(decoder=decoder.__name__):
