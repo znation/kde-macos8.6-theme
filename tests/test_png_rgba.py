@@ -122,6 +122,43 @@ class TestRgbaPng(unittest.TestCase):
         blob = make_png(2, 1, [bytes([0, 1])], color_type=3, palette=palette)
         self.assertEqual(png.decode_rgba(blob), (2, 1, rgba))
 
+    def test_greyscale_types_expand_to_rgba(self):
+        grey = make_png(2, 1, [bytes([7, 8])], color_type=0)
+        self.assertEqual(
+            png.decode_rgba(grey),
+            (2, 1, bytes([7, 7, 7, 255, 8, 8, 8, 255])),
+        )
+        grey_alpha = make_png(2, 1, [bytes([7, 200, 8, 100])], color_type=4)
+        self.assertEqual(
+            png.decode_rgba(grey_alpha),
+            (2, 1, bytes([7, 7, 7, 200, 8, 8, 8, 100])),
+        )
+
+    def test_max_rows_returns_only_the_top_rows(self):
+        rows = [bytes([1, 2, 3, 4, 5, 6]), bytes([7, 8, 9, 10, 11, 12])]
+        blob = make_png(2, 2, rows, color_type=2)
+        self.assertEqual(
+            png.decode_rgba(blob, max_rows=1),
+            (2, 1, bytes([1, 2, 3, 255, 4, 5, 6, 255])),
+        )
+
+    def test_palette_index_past_the_row_bound_is_rejected(self):
+        blob = make_png(
+            1,
+            2,
+            [bytes([0]), bytes([5])],
+            color_type=3,
+            palette=bytes([10, 20, 30]),
+        )
+        assert_error_names(
+            self,
+            png.PngError,
+            png.decode_rgba,
+            blob,
+            max_rows=1,
+            needles=("index 5", "1 entry"),
+        )
+
     def test_palette_trns_sets_alpha(self):
         palette = bytes([10, 20, 30, 40, 50, 60])
         blob = make_png(
@@ -175,6 +212,27 @@ class TestRgbaPng(unittest.TestCase):
             png.decode_rgba(truecolor),
             (2, 1, bytes([1, 2, 3, 0, 4, 5, 6, 255])),
         )
+
+    def test_trns_key_matches_only_whole_pixels(self):
+        # A key that straddles a pixel boundary is not a match, and a 16-bit
+        # key above 255 cannot equal an 8-bit sample.
+        opaque = (2, 1, bytes([1, 2, 3, 255, 4, 5, 6, 255]))
+        crossing = make_png(
+            2,
+            1,
+            [bytes([1, 2, 3, 4, 5, 6])],
+            color_type=2,
+            trns=struct.pack(">HHH", 2, 3, 4),
+        )
+        self.assertEqual(png.decode_rgba(crossing), opaque)
+        high = make_png(
+            2,
+            1,
+            [bytes([1, 2, 3, 4, 5, 6])],
+            color_type=2,
+            trns=struct.pack(">HHH", 1, 2, 0x0103),
+        )
+        self.assertEqual(png.decode_rgba(high), opaque)
 
     def test_malformed_trns_length_rejected(self):
         grey = make_png(

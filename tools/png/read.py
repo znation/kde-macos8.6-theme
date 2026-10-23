@@ -395,6 +395,87 @@ def _sample_trns_key(
     return struct.unpack(">HHH", trns)
 
 
+def _interleave_alpha(rgb: bytes, alpha: bytes) -> bytes:
+    """Interleave 3-byte RGB pixels with one *alpha* byte per pixel.
+
+    Each channel and the alpha plane are gathered with a strided slice and
+    written back with another, so the whole expansion runs in C. A per-pixel
+    Python loop built the same bytes one ``+=`` at a time and dominated a
+    truecolor decode.
+    """
+    pixels = len(rgb) // 3
+    out = bytearray(pixels * 4)
+    out[0::4] = rgb[0::3]
+    out[1::4] = rgb[1::3]
+    out[2::4] = rgb[2::3]
+    out[3::4] = alpha
+    return bytes(out)
+
+
+def _greyscale_rgba(grey: bytes, key: int | None) -> bytes:
+    """Expand greyscale *grey* to RGBA, transparent where it equals *key*."""
+    pixels = len(grey)
+    if key is None:
+        alpha = b"\xff" * pixels
+    else:
+        # A tRNS grey sample names a 16-bit value; for an 8-bit image only
+        # 0-255 can match a pixel, and the table leaves the rest opaque.
+        alpha = grey.translate(
+            bytes(0 if value == key else 255 for value in range(256))
+        )
+    out = bytearray(pixels * 4)
+    out[0::4] = grey
+    out[1::4] = grey
+    out[2::4] = grey
+    out[3::4] = alpha
+    return bytes(out)
+
+
+def _truecolor_rgba(rgb: bytes, key: tuple[int, ...] | None) -> bytes:
+    """Expand truecolor *rgb* to RGBA, transparent where a pixel equals *key*."""
+    pixels = len(rgb) // 3
+    if key is None or any(value > 255 for value in key):
+        # A 16-bit sample above 255 cannot equal an 8-bit pixel value.
+        return _interleave_alpha(rgb, b"\xff" * pixels)
+    key_bytes = bytes(key)
+    alpha = bytearray(b"\xff" * pixels)
+    start = 0
+    while True:
+        # Find each key occurrence in C; only a match starting on a pixel
+        # boundary (a multiple of 3) names a transparent pixel.
+        index = rgb.find(key_bytes, start)
+        if index < 0:
+            break
+        if index % 3 == 0:
+            alpha[index // 3] = 0
+        start = index + 1
+    return _interleave_alpha(rgb, bytes(alpha))
+
+
+def _palette_rgba(
+    samples: bytes,
+    palette: bytes,
+    trns: bytes | None,
+    width: int,
+    rows: int,
+) -> bytes:
+    """Expand palette *samples* to RGBA, applying *trns* alphas.
+
+    Every index is validated even past the returned *rows* bound, matching
+    the RGB decoder: a malformed index below the bound must not pass as a
+    valid image.
+    """
+    entries = len(palette) // 3
+    if samples and max(samples) >= entries:
+        index = next(i for i in samples if i >= entries)
+        raise _palette_index_error(index, entries, len(palette))
+    alphas = _palette_trns_alphas(trns, entries)
+    table = [
+        palette[i * 3 : i * 3 + 3] + alphas[i : i + 1] for i in range(entries)
+    ]
+    return b"".join(map(table.__getitem__, samples[: rows * width]))
+
+
 def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, bytes]:
     """Decode an 8-bit, non-interlaced PNG into packed RGBA bytes.
 
@@ -408,7 +489,7 @@ def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, byt
     *max_rows* bounds the returned rows as :func:`decode_png` does: the whole
     compressed stream is still inflated and validated, every scanline's filter
     type is still checked, and a palette image's every index is still
-    expanded. ``height`` in the result is the number of rows returned.
+    validated. ``height`` in the result is the number of rows returned.
     """
     if not isinstance(data, (bytes, bytearray)):
         raise PngError(
@@ -452,38 +533,22 @@ def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, byt
         if palette is None:
             raise PngError("palette PNG has no PLTE chunk")
         samples = unfilter(raw, width, height, channels)
-        rgb = _to_rgb(color_type, samples, palette)
-        alphas = _palette_trns_alphas(trns, len(palette) // 3)
-        rgb = rgb[: rows * width * 3]
-        out = bytearray()
-        for i in range(0, len(rgb), 3):
-            index = samples[i // 3]
-            out += rgb[i:i + 3] + alphas[index:index + 1]
-        return width, rows, bytes(out)
+        return width, rows, _palette_rgba(samples, palette, trns, width, rows)
     samples = unfilter(raw, width, height, channels, rows)
     if color_type == 6:
         rgba = samples
     elif color_type == 4:
-        out = bytearray()
-        for i in range(0, len(samples), 2):
-            g = samples[i]
-            a = samples[i + 1]
-            out += bytes((g, g, g, a))
+        grey = samples[0::2]
+        out = bytearray(len(grey) * 4)
+        out[0::4] = grey
+        out[1::4] = grey
+        out[2::4] = grey
+        out[3::4] = samples[1::2]
         rgba = bytes(out)
     elif color_type == 2:
-        key = _sample_trns_key(trns, color_type)
-        out = bytearray()
-        for i in range(0, len(samples), 3):
-            pixel = samples[i:i + 3]
-            alpha = 0 if key is not None and tuple(pixel) == key else 255
-            out += pixel + bytes((alpha,))
-        rgba = bytes(out)
+        rgba = _truecolor_rgba(samples, _sample_trns_key(trns, color_type))
     elif color_type == 0:
-        key = _sample_trns_key(trns, color_type)
-        out = bytearray()
-        for g in samples:
-            out += bytes((g, g, g, 0 if g == key else 255))
-        rgba = bytes(out)
+        rgba = _greyscale_rgba(samples, _sample_trns_key(trns, color_type))
     else:
         raise PngError(f"unsupported PNG color type {color_type}")
     return width, rows, rgba
