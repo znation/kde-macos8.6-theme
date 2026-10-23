@@ -1,7 +1,7 @@
-"""Expose the shipped Xcursor arrow and select it for the running session.
+"""Expose the shipped Xcursor pointer set and select it for the running session.
 
 ``make apply-cursor`` installs the icon theme, which carries the Platinum
-arrow at ``cursors/left_ptr``, and then runs this script. Xcursor searches
+pointer set under ``cursors/``, and then runs this script. Xcursor searches
 ``~/.icons``, not ``$XDG_DATA_HOME/icons``, so the installed theme is exposed
 at ``$HOME/.icons/org.macos8.desktop`` as a symlink and selected with
 ``plasma-apply-cursortheme org.macos8.desktop``. ``make remove-cursor`` runs
@@ -240,8 +240,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = EscapingArgumentParser(
         prog=TOOL,
         description=(
-            "Expose the installed Mac OS 8.6 Xcursor arrow at the Xcursor "
-            "path and select it."
+            "Expose the installed Mac OS 8.6 Xcursor pointer set at the "
+            "Xcursor path and select it."
         ),
         epilog=(
             "exit status: 0 when the selection ran, 1 when the selector "

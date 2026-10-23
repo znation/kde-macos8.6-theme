@@ -222,7 +222,7 @@ help:
 	@echo "  install-gtk       install the opt-in GTK 3 and GTK 4 Platinum themes"
 	@echo "  apply-gtk         install and select the opt-in GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
-	@echo "  apply-cursor      install the icon theme and select its Xcursor arrow"
+	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
 	@echo "  install-firefox   install the opt-in Firefox Platinum chrome into one profile"
 	@echo "  remove-firefox    remove the Firefox Platinum chrome from one profile"
@@ -290,7 +290,7 @@ remove-gtk:
 	$(PYTHON) tools/apply_gtk.py --remove
 
 # Apply the opt-in cursor: install the icon theme (which carries the Xcursor
-# arrow), expose it at ~/.icons/org.macos8.desktop -- the path Xcursor searches
+# pointer set), expose it at ~/.icons/org.macos8.desktop -- the path Xcursor searches
 # instead of $XDG_DATA_HOME/icons -- and select it with
 # plasma-apply-cursortheme. A non-empty DESTDIR is refused for the same reason
 # as `apply`: the selection is for the running session, not a staged tree.
