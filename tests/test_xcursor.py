@@ -219,6 +219,41 @@ class TestWriterRejections(unittest.TestCase):
             needles=("png", "str"),
         )
 
+    def test_rejects_a_record_with_the_wrong_number_of_fields(self):
+        # The part-3 frame table is written by hand, so a miscounted tuple is a
+        # likely mistake. The writer's contract is a ValueError naming the
+        # record, not a bare unpacking error that hides which frame is wrong.
+        for record in ((2, 2, 2, 1, self.png), self.record() + (None,), 42):
+            with self.subTest(record=record):
+                assert_error_names(
+                    self,
+                    ValueError,
+                    xcursor.write_cursor,
+                    [record],
+                    needles=("images[0]", "6-item"),
+                )
+
+    def test_rejects_a_png_that_does_not_decode(self):
+        # A frame PNG is read from the frame table; a corrupt or non-PNG frame
+        # must be reported against its index and cause instead of escaping as a
+        # PngError the writer never promises or a bare traceback.
+        assert_error_names(
+            self,
+            ValueError,
+            xcursor.write_cursor,
+            [self.record(png=b"not a png")],
+            needles=("images[0]", "could not be decoded", "not a PNG file"),
+        )
+
+    def test_accepts_a_bytearray_png(self):
+        # The documented input accepts bytes or bytearray, so a mutable frame
+        # buffer must produce the same cursor bytes as its immutable copy.
+        record = self.record()
+        mutable = record[:5] + (bytearray(record[5]),)
+        self.assertEqual(
+            xcursor.write_cursor([record]), xcursor.write_cursor([mutable])
+        )
+
 
 class TestParserRejections(unittest.TestCase):
     def setUp(self):
