@@ -96,6 +96,22 @@ class TestApply(GtkApplyCase):
         self.assertIn("gtk-theme-name=org.macos8.desktop", gtk4)
         self.assertIn("gtk-font-name=Lato 10", gtk4)
 
+    def test_apply_leaves_a_foreign_section_key_alone(self):
+        self.install_sheet()
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Other]\ngtk-theme-name=Adwaita\n",
+        )
+        result = self.run_tool()
+        assert_succeeded(self, result)
+        # The tool edits only [Settings]: a same-named key in a foreign
+        # section keeps its value and gains nothing from our selection.
+        self.assertEqual(
+            "[Other]\ngtk-theme-name=Adwaita\n"
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+
     def test_apply_keeps_a_leading_bom_for_matching_and_writing(self):
         self.install_sheet()
         self.write(self.settings("gtk-3.0"), "\ufeff[Settings]\ngtk-theme-name=Adwaita\n")
@@ -310,6 +326,21 @@ class TestRemove(GtkApplyCase):
         self.assertNotIn("gtk-theme-name", gtk4)
         self.assertFalse(css.exists())
         self.assertIn("restart", result.stdout)
+
+    def test_remove_keeps_a_matching_key_outside_settings(self):
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Other]\ngtk-theme-name=org.macos8.desktop\n"
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+        )
+        result = self.run_tool("--remove")
+        assert_succeeded(self, result)
+        # A value that happens to equal ours is not ours to delete outside
+        # [Settings]; only the [Settings] line goes.
+        self.assertEqual(
+            "[Other]\ngtk-theme-name=org.macos8.desktop\n[Settings]\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
 
     def test_remove_leaves_a_foreign_key_and_file_byte_identical(self):
         foreign_settings = "[Settings]\ngtk-theme-name=Adwaita\n# mine\n"
