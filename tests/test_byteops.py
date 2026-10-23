@@ -71,5 +71,30 @@ class TestRequireEqualLengths(unittest.TestCase):
                     byteops.require_equal_lengths(b"\x01", b"", name)
 
 
+    def test_non_bytes_a_raises_naming_type(self):
+        # A non-byte first argument must be rejected by type, not silently
+        # coerced or mis-measured; the diagnostic names the caller and the
+        # offending type.
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^_byte_add\(\) requires byte strings: a must be bytes or "
+            r"bytearray, not int$",
+        ):
+            byteops.require_equal_lengths(42, b"\x01", "_byte_add")
+
+    def test_non_bytes_b_raises_naming_type(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^_abs_diff\(\) requires byte strings: b must be bytes or "
+            r"bytearray, not str$",
+        ):
+            byteops.require_equal_lengths(b"\x01", "nope", "_abs_diff")
+
+    def test_bytearray_is_accepted(self):
+        # bytearray is a legitimate byte string and must not be rejected.
+        self.assertEqual(
+            byteops.require_equal_lengths(bytearray(b"\x01\x02"), b"\x03\x04", "op"), 2
+        )
+
 if __name__ == "__main__":
     unittest.main()

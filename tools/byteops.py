@@ -17,6 +17,16 @@ def require_equal_lengths(a: bytes, b: bytes, name: str) -> int:
     lengths, so a caller bug surfaces instead of a silently truncated or
     overflowing result.
     """
+    if not isinstance(a, (bytes, bytearray)):
+        raise ValueError(
+            f"{name}() requires byte strings: a must be bytes or bytearray, "
+            f"not {type(a).__name__}"
+        )
+    if not isinstance(b, (bytes, bytearray)):
+        raise ValueError(
+            f"{name}() requires byte strings: b must be bytes or bytearray, "
+            f"not {type(b).__name__}"
+        )
     if len(a) != len(b):
         raise ValueError(
             f"{name}() requires equal-length byte strings: "
