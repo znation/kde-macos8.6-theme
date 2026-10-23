@@ -163,16 +163,24 @@ require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.ver
 require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac
 
 # CHECK_PATTERN is the filename glob `check` hands to `unittest discover -p`,
-# so an empty value (`?=` keeps one from the environment) or a whitespace-only
-# one matches no file and the run executes nothing. Interpreters before 3.12
-# then exit 0 -- a green run that ran no tests; 3.12 and newer exit 5 with only
-# "NO TESTS RAN", naming neither the variable nor its value. Refuse an empty
-# or whitespace-only pattern with a diagnostic naming CHECK_PATTERN. The
-# recipe hands `unittest` the whitespace-stripped glob, not the raw value, so
-# a pattern the guard accepts cannot reach `unittest` with the surrounding
-# whitespace that made it match no file. A leading dash is left alone: it
-# reaches `-p` as that option's argument, not a flag. $(1) names the target.
-require_check_pattern = set -- "$(CHECK_PATTERN)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in '') echo "$(1): CHECK_PATTERN must name a test-module glob, not an empty or whitespace-only value: '$$1'" >&2; exit 2;; esac
+# so an empty value (`?=` keeps one from the environment), a whitespace-only
+# one, or a typo (`test_colorscheme*.pyx`) matches no test module and the run
+# executes nothing. Interpreters before 3.12 then exit 0 -- a green run that
+# ran no tests; 3.12 and newer exit 5 with only "NO TESTS RAN", naming neither
+# the variable nor its value. Refuse all three with a diagnostic naming
+# CHECK_PATTERN. Make strips leading whitespace from a command-line
+# assignment before the recipe sees it, so `make check CHECK_PATTERN=' '`
+# arrives empty; the guard recovers the caller's text from make's command
+# line through /proc where available, so the diagnostic names the value the
+# caller typed rather than an empty string. The guard and the recipe both use
+# `$(strip ...)`, so the value checked is the value handed to `unittest`
+# (surrounding whitespace would otherwise make it match no file). The pattern
+# must match a `tests/test*.py` module, not merely a helper such as
+# `tests/invariants.py`: discovery would import the helper and still run no
+# tests. A leading dash is not rejected as an option-like value -- `-p`
+# receives it as that option's argument -- but it matches no test module and
+# so fails the same check. $(1) names the target.
+require_check_pattern = set -- "$(CHECK_PATTERN)"; original="$$1"; value="$(strip $(CHECK_PATTERN))"; if [ -z "$$value" ] && [ -z "$$original" ] && [ -r "/proc/$$PPID/cmdline" ]; then original="$$(tr '\0' '\n' < "/proc/$$PPID/cmdline" | sed -n 's/^CHECK_PATTERN=//p' | tail -n 1)"; fi; case "$$value" in '') echo "$(1): CHECK_PATTERN must name a test-module glob, not an empty or whitespace-only value: '$$original'" >&2; exit 2;; esac; if [ -z "$$(find tests -type f -name "$$value" -name 'test*.py' | head -n 1)" ]; then echo "$(1): CHECK_PATTERN must match at least one test module (tests/test*.py): '$$original'" >&2; exit 2; fi
 
 # The CHECK_TESTS recipe runs `cd tests` before it invokes the interpreter, so
 # a relative PYTHON path (`PYTHON=./.venv/bin/python`) would resolve against

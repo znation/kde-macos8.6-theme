@@ -66,16 +66,66 @@ class TestCheckPattern(unittest.TestCase):
 
     def test_whitespace_pattern_is_refused(self):
         # A whitespace-only value is no better: `-p ' '` matches no file
-        # either, so it must be refused the same way.
+        # either, so it must be refused the same way. The environment keeps
+        # the whitespace, so the diagnostic must name it rather than report an
+        # empty string.
         env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
         env["CHECK_PATTERN"] = " "
         result = theme_install.run_make(["check"], env=env)
         assert_failed(self, result)
         self.assertIn("CHECK_PATTERN must name", result.stderr)
+        self.assertIn(": ' '", result.stderr)
+
+    @unittest.skipUnless(
+        os.path.isdir("/proc"), "recovery reads make's /proc command line"
+    )
+    def test_command_line_whitespace_pattern_is_refused(self):
+        # Make strips leading whitespace from a command-line assignment before
+        # the recipe sees it, so `make check CHECK_PATTERN=' '` arrives empty.
+        # The guard recovers the caller's text from make's command line, so the
+        # diagnostic names the whitespace the caller typed instead of an empty
+        # string.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        result = theme_install.run_make(["check", "CHECK_PATTERN= "], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_PATTERN must name", result.stderr)
+        self.assertIn(": ' '", result.stderr)
+
+    def test_pattern_matching_no_module_is_refused(self):
+        # A typo in the glob matches no test module, so `unittest discover`
+        # would import nothing and, on interpreters before 3.12, exit 0 -- the
+        # same silent green run the empty-pattern guard exists to prevent. The
+        # guard must match the pattern against the modules on disk and refuse
+        # it, naming CHECK_PATTERN and the offending value.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        env["CHECK_PATTERN"] = "test_no_such_module*.py"
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_PATTERN must match at least one", result.stderr)
+        self.assertIn("test_no_such_module*.py", result.stderr)
+
+    def test_pattern_matching_only_a_helper_module_is_refused(self):
+        # `tests/invariants.py` matches `invar*.py` but defines no test case:
+        # discovery would import it and run an empty suite, another green run
+        # that ran nothing. Requiring a `test*.py` match refuses it.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        env["CHECK_PATTERN"] = "invar*.py"
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_PATTERN must match at least one", result.stderr)
+
+    def test_pattern_matching_a_module_runs_that_module(self):
+        # The match guard must not refuse a real narrowing glob; run one
+        # module for real, which also exercises the guard's accepting path.
+        env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")
+        env["CHECK_PATTERN"] = "test_byteops.py"
+        result = theme_install.run_make(["check"], env=env)
+        assert_succeeded(self, result)
+        self.assertIn("-p 'test_byteops.py'", result.stdout)
 
     def test_surrounding_whitespace_pattern_is_stripped(self):
-        # The guard trims leading whitespace to spot a whitespace-only value,
-        # but the recipe used to hand the untrimmed glob to `unittest
+        # The guard strips surrounding whitespace to spot a whitespace-only
+        # value, but the recipe used to hand the untrimmed glob to `unittest
         # discover`, so `-p ' test_byteops.py '` matched no file: a silent
         # green run on interpreters before 3.12 (which the version guard
         # accepts), and a "NO TESTS RAN" failure on newer ones. The recipe
