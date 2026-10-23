@@ -152,6 +152,11 @@ class TestTiledRgb(unittest.TestCase):
         with self.assertRaises(ValueError):
             make_wallpaper.tiled_rgb(bytes(3), 4, 4)
 
+    def test_a_non_byte_tile_is_rejected(self):
+        with self.assertRaises(ValueError) as caught:
+            make_wallpaper.tiled_rgb("not bytes", 4, 4)
+        self.assertIn("bytes or bytearray", str(caught.exception))
+
 
 class TestReferenceTile(unittest.TestCase):
     @classmethod

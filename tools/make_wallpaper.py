@@ -82,6 +82,15 @@ def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
             raise ValueError(
                 f"tiled_rgb {name} must be a positive integer: {name}={value!r}"
             )
+    # ``tile`` must be a byte buffer: a str or list of the right length
+    # would slice into the wrong type and fail later inside ``bytes.join``
+    # with an opaque TypeError that named neither the field nor its type.
+    # ``bytes`` and ``bytearray`` are both accepted, matching ``Image.rgb``.
+    if not isinstance(tile, (bytes, bytearray)):
+        raise ValueError(
+            f"tiled_rgb tile must be bytes or bytearray, not "
+            f"{type(tile).__name__}"
+        )
     row_bytes = TILE_SIZE * 3
     if len(tile) != TILE_SIZE * row_bytes:
         raise ValueError(
