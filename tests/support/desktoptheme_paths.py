@@ -27,6 +27,9 @@ LINEEDIT_SVG = os.path.join(PACKAGE, "widgets", "lineedit.svg")
 LISTITEM_SVG = os.path.join(PACKAGE, "widgets", "listitem.svg")
 VIEWITEM_SVG = os.path.join(PACKAGE, "widgets", "viewitem.svg")
 MENUBARITEM_SVG = os.path.join(PACKAGE, "widgets", "menubaritem.svg")
+MARGINS_HIGHLIGHT_SVG = os.path.join(
+    PACKAGE, "widgets", "margins-highlight.svg"
+)
 TABBAR_SVG = os.path.join(PACKAGE, "widgets", "tabbar.svg")
 SCROLLBAR_SVG = os.path.join(PACKAGE, "widgets", "scrollbar.svg")
 SLIDER_SVG = os.path.join(PACKAGE, "widgets", "slider.svg")

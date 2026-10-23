@@ -48,6 +48,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | `widgets/lineedit.svg`'s corner tiles reproduce the reference field's outline and top-right notch, including the bottom outline row and the face-coloured outer corner. | `tests/test_desktoptheme_lineedit.py::TestLineEditReference::test_corners_match_the_reference` | none |
 | `widgets/line.svg` draws the etched separator. | `tests/test_desktoptheme_line.py::TestLine` | none |
 | `widgets/listitem.svg` draws the selection row. | `tests/test_desktoptheme_listitem.py::TestListItem` | none |
+| `widgets/margins-highlight.svg` draws the lavender panel edit-mode margin band as a flat fill and four half-canvas corner wedges at the selection colour and KDE's 0.3 highlight opacity. | `tests/test_desktoptheme_marginshighlight.py::TestMarginsHighlight` | No reference screenshot shows panel edit mode; the five element ids and the 0.3 opacity are KDE-required (the default theme's margin-highlight opacity), and the #CCCCFF colour reuses the grounded selection anchor. |
 | `widgets/menubaritem.svg` draws the menu-bar title background. | `tests/test_desktoptheme_menubaritem.py::TestMenuBarItem` | none |
 | `widgets/panel-background.svg` draws the menu bar, including its top-panel north state, and its `solid/` copy is byte-identical. | `tests/test_desktoptheme_panel.py::TestPanelBackground` | none |
 | `widgets/plasmoidheading.svg` draws the popup band. | `tests/test_desktoptheme_plasmoidheading.py::TestPlasmoidHeading` | none |

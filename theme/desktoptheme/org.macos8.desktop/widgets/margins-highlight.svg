@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" panel edit-mode margin highlight
+     (widgets/margins-highlight).
+
+     The translucent band Plasma draws inside a panel while it is in edit
+     mode. The org.kde.panel main.qml SideMargin component resolves five
+     elements through KSvg.SvgItem: `fill` for the flat band and `topleft`,
+     `topright`, `bottomleft` and `bottomright` for the corner wedges it
+     builds from the margin's side and thick-area state. The component
+     stretches each element over the margin band, so this 4x4 canvas is a
+     tile, not a fixed size.
+
+     Provenance: no reference screenshot shows panel edit mode, so the five
+     element ids and the 0.3 opacity are KDE-required (0.3 is the Breeze
+     default theme's margins-highlight opacity). The colour is the grounded
+     reference selection token [Colors:Selection] BackgroundNormal #CCCCFF.
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4" viewBox="0 0 4 4">
+  <rect id="fill" x="0" y="0" width="4" height="4" fill="#CCCCFF" fill-opacity="0.3"/>
+  <path id="topleft" d="M 0,0 H 4 L 0,4 Z" fill="#CCCCFF" fill-opacity="0.3"/>
+  <path id="topright" d="M 0,0 H 4 V 4 Z" fill="#CCCCFF" fill-opacity="0.3"/>
+  <path id="bottomleft" d="M 0,0 V 4 H 4 Z" fill="#CCCCFF" fill-opacity="0.3"/>
+  <path id="bottomright" d="M 4,0 V 4 H 0 Z" fill="#CCCCFF" fill-opacity="0.3"/>
+</svg>
