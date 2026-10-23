@@ -39,6 +39,16 @@ def report_error(tool: str, message: str) -> int:
     is the unescaped text; a caller passes an exception's ``str()`` or a
     diagnostic it built itself.
     """
+    if not isinstance(tool, str):
+        raise ValueError(
+            f"report_error() requires str: tool must be str, "
+            f"not {type(tool).__name__}"
+        )
+    if not isinstance(message, str):
+        raise ValueError(
+            f"report_error() requires str: message must be str, "
+            f"not {type(message).__name__}"
+        )
     print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
     return 2
 
@@ -107,6 +117,21 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
     unescaped text. ``tools/apply_theme.py`` and ``tools/render_surface.py``
     both return this result directly as the process exit status.
     """
+    if not isinstance(tool, str):
+        raise ValueError(
+            f"report_failure() requires str: tool must be str, "
+            f"not {type(tool).__name__}"
+        )
+    if not isinstance(message, str):
+        raise ValueError(
+            f"report_failure() requires str: message must be str, "
+            f"not {type(message).__name__}"
+        )
+    if log is not None and not isinstance(log, Path):
+        raise ValueError(
+            f"report_failure() requires pathlib.Path or None: log must be "
+            f"Path or None, not {type(log).__name__}"
+        )
     text = f"{tool}: error: {escape_controls(message)}"
     if log is not None and log.is_file():
         for line in _log_tail_lines(log):

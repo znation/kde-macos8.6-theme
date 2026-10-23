@@ -5,7 +5,8 @@
 through this module, but their own tests reach the helpers only through a
 tool's diagnostic. These tests pin the helpers' contracts directly: the
 ``<tool>: error:`` line, the 2-for-input / 1-for-command exit statuses, the
-control-character escaping, and the bounded log tail. The log-tail cases pin
+control-character escaping, the non-str type guards, and the bounded log
+tail. The log-tail cases pin
 the CR/LF line-boundary rules that several BUGS-FIXED.md entries fixed.
 
 Argument parsing lives in the sibling ``tools/argument_parsing.py`` and is pinned by
@@ -51,6 +52,22 @@ class TestReportError(unittest.TestCase):
         self.assertNotIn("\x1b", err)
         self.assertIn("\\u001b", err)
         self.assertIn("\\u000a", err)
+
+    def test_non_str_tool_or_message_raises_naming_type(self):
+        # A non-str argument must be rejected by type, not mis-formatted or
+        # silently coerced; the diagnostic names the offending parameter and
+        # type. escape_controls() rejects text the same way.
+        for kwargs, name, parameter in (
+            ({"tool": 42, "message": "m"}, "int", "tool"),
+            ({"tool": "t", "message": b"nope"}, "bytes", "message"),
+        ):
+            with self.subTest(parameter=parameter, value=kwargs[parameter]):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    rf"^report_error\(\) requires str: {parameter} must be str, "
+                    rf"not {name}$",
+                ):
+                    diagnostics.report_error(**kwargs)
 
 
 class TestReportMissingTool(unittest.TestCase):
@@ -125,6 +142,32 @@ class TestReportFailure(unittest.TestCase):
         self.assertNotIn("\x1b", err)
         self.assertIn("\\u001b", err)
         self.assertIn("\\u000a", err)
+
+    def test_non_str_tool_or_message_raises_naming_type(self):
+        # Same type contract as report_error(); a caller passes an exception's
+        # str() or a diagnostic it built itself, never a bare object.
+        for kwargs, name, parameter in (
+            ({"tool": 42, "message": "m"}, "int", "tool"),
+            ({"tool": "t", "message": b"nope"}, "bytes", "message"),
+        ):
+            with self.subTest(parameter=parameter, value=kwargs[parameter]):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    rf"^report_failure\(\) requires str: {parameter} must be str, "
+                    rf"not {name}$",
+                ):
+                    diagnostics.report_failure(**kwargs)
+
+    def test_non_path_log_raises_naming_type(self):
+        # A str log would silently skip the tail (str has no .is_file), hiding
+        # the command output the caller meant to attach, so only Path is
+        # accepted.
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^report_failure\(\) requires pathlib\.Path or None: log must be "
+            r"Path or None, not str$",
+        ):
+            diagnostics.report_failure("t", "m", "cmd.log")
 
     def test_appends_the_log_tail_indented_and_escaped(self):
         log = make_tmp_dir(self) / "cmd.log"
