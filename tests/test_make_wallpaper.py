@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import errno
+import functools
 import io
 import os
 import stat
@@ -24,6 +25,7 @@ X0, Y0 = make_wallpaper.TILE_ORIGIN
 SMALL_RESOLUTIONS = ((130, 3), (5, 2))
 
 
+@functools.lru_cache(maxsize=16)
 def gradient(width, height):
     """Return a deterministic *width* x *height* RGB byte string."""
     return bytes((i * 5 + i // 251) % 256 for i in range(width * height * 3))
