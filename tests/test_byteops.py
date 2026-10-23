@@ -1,6 +1,6 @@
 """Tests for tools/byteops.py -- the shared equal-length precondition.
 
-``tools.png.filters._byte_add`` and ``fidelity_metrics._abs_diff`` both pack byte strings
+``tools.png.filters._byte_add`` and ``tools.byte_lanes.abs_diff`` both pack byte strings
 into big-integer lanes and call ``require_equal_lengths`` first. Their own
 tests exercise only the length-mismatch branch and check that the raised
 message names *their* function, so they pin neither the value the helper
@@ -37,7 +37,7 @@ class TestRequireEqualLengths(unittest.TestCase):
         # A zero-width lane is the one success case a truthiness check would
         # mistake for failure; pin that it still returns the length.
         self.assertEqual(
-            byteops.require_equal_lengths(b"", b"", "_abs_diff"), 0
+            byteops.require_equal_lengths(b"", b"", "abs_diff"), 0
         )
 
     def test_unequal_lengths_raise_naming_the_caller_and_both_lengths(self):
@@ -57,12 +57,12 @@ class TestRequireEqualLengths(unittest.TestCase):
             ValueError,
             r"len\(a\)=1 len\(b\)=3$",
         ):
-            byteops.require_equal_lengths(b"\x01", b"\x01\x02\x03", "_abs_diff")
+            byteops.require_equal_lengths(b"\x01", b"\x01\x02\x03", "abs_diff")
 
     def test_the_caller_name_is_interpolated_not_hardcoded(self):
         # Each name must appear verbatim, so the helper cannot pass its
         # caller tests by always printing one fixed function name.
-        for name in ("_byte_add", "_abs_diff", "custom_lane_op"):
+        for name in ("_byte_add", "abs_diff", "custom_lane_op"):
             with self.subTest(name=name):
                 with self.assertRaisesRegex(
                     ValueError,
@@ -85,10 +85,10 @@ class TestRequireEqualLengths(unittest.TestCase):
     def test_non_bytes_b_raises_naming_type(self):
         with self.assertRaisesRegex(
             ValueError,
-            r"^_abs_diff\(\) requires byte strings: b must be bytes or "
+            r"^abs_diff\(\) requires byte strings: b must be bytes or "
             r"bytearray, not str$",
         ):
-            byteops.require_equal_lengths(b"\x01", "nope", "_abs_diff")
+            byteops.require_equal_lengths(b"\x01", "nope", "abs_diff")
 
     def test_bytearray_is_accepted(self):
         # bytearray is a legitimate byte string and must not be rejected.

@@ -41,9 +41,10 @@ class TestImage(unittest.TestCase):
         # decode_png rejects a zero-dimension PNG, but a directly constructed
         # Image accepted one: 0 * height * 3 == 0 bytes, so the byte-count
         # check passed and compare() later raised an opaque ValueError from
-        # _max_byte_index. A negative dimension was worse still, reporting a
-        # nonsensical negative "needs" byte count. The invariant belongs at
-        # construction, named with the offending dimensions.
+        # max_byte_index in tools/byte_lanes. A negative dimension was worse
+        # still, reporting a nonsensical negative "needs" byte count. The
+        # invariant belongs at construction, named with the offending
+        # dimensions.
         for width, height in ((0, 1), (1, 0), (0, 0), (-2, 3), (3, -1)):
             with self.subTest(width=width, height=height):
                 self.assertIn(
@@ -68,7 +69,7 @@ class TestImage(unittest.TestCase):
         # opaque TypeError ("can only concatenate str (not bytes) to str")
         # naming neither the field nor the offending type. Reject it at
         # construction, by type. memoryview is included because it also fails
-        # later (_abs_diff cannot concatenate a memoryview with bytes).
+        # later (abs_diff cannot concatenate a memoryview with bytes).
         for rgb in ("abc", [1, 2, 3], memoryview(b"abc"), 1):
             with self.subTest(rgb=type(rgb).__name__):
                 message = self._image_error_message(1, 1, rgb)

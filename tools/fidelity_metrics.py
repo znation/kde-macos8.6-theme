@@ -11,8 +11,9 @@ pixels whose worst channel differs by more than a tolerance.
 PNG decoding lives in the sibling ``tools/png`` package and the command-line
 entry point in ``tools/fidelity.py``; this module holds the comparison math
 and the crop geometry the CLI and :func:`crop` both validate against
-(:func:`crop_rect_problem`). It uses only the Python standard library, keeping
-the check self-contained and deterministic.
+(:func:`crop_rect_problem`).  The packed byte-lane arithmetic it measures with
+lives in the sibling :mod:`tools.byte_lanes` module.  It uses only the Python
+standard library, keeping the check self-contained and deterministic.
 """
 
 from __future__ import annotations
@@ -20,133 +21,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 if __package__:
-    from tools.byteops import require_equal_lengths
+    from tools.byte_lanes import abs_diff, max_byte_index, sum_squares
     from tools.ints import is_plain_int
     from tools.png import Image
 else:  # imported from inside tools/: python3 -c 'import fidelity_metrics'
-    from byteops import require_equal_lengths
+    from byte_lanes import abs_diff, max_byte_index, sum_squares
     from ints import is_plain_int
     from png import Image
 
 
 class FidelityError(Exception):
     """A candidate and reference image could not be compared."""
-
-
-# value -> the low and high bytes of value squared.  A byte string's sum of
-# squares is then ``sum(low bytes) + (sum(high bytes) << 8)``: two C-level
-# ``bytes.translate`` passes instead of a Python call per byte.
-_SQUARES_LOW = bytes((value * value) & 0xFF for value in range(256))
-_SQUARES_HIGH = bytes((value * value) >> 8 for value in range(256))
-
-
-def _sum_squares(channel: bytes) -> int:
-    """Return the sum of the squares of one channel's byte values.
-
-    ``sum(value * value for value in channel)`` is the obvious spelling, but
-    it runs a Python-level generator step per byte.  Splitting each square
-    into its low and high byte tables keeps the work inside
-    ``bytes.translate`` and ``sum``, which run in C; the result is identical
-    because ``value**2 == (value**2 & 0xFF) + ((value**2 >> 8) << 8)``.
-    """
-    return sum(channel.translate(_SQUARES_LOW)) + (
-        sum(channel.translate(_SQUARES_HIGH)) << 8
-    )
-
-
-_MAX_BYTE_ONES_CACHE: dict[int, int] = {}
-
-
-def _max_byte_index(data: bytes) -> int:
-    """Return the index of the first occurrence of the maximum byte in *data*.
-
-    ``max(data)`` walks the channel as Python ints and a following
-    ``data.find`` rescans it to locate the winner; this returns both from one
-    bit-sliced pass.  It treats *data* as one big integer and narrows the set
-    of candidate byte positions one bit at a time: ``ones`` marks bit 0 of
-    every byte lane, so ``(value >> bit) & ones`` keeps exactly the lanes whose
-    byte has that bit set.  Intersecting the eight bit levels leaves the lanes
-    holding the maximum, and the lowest set bit of that mask is its first
-    index.  *data* must be non-empty.
-    """
-    length = len(data)
-    if length == 0:
-        raise ValueError("_max_byte_index() arg is an empty byte string")
-    value = int.from_bytes(data, "little")
-    ones = _MAX_BYTE_ONES_CACHE.get(length)
-    if ones is None:
-        ones = int.from_bytes(b"\x01" * length, "little")
-        _MAX_BYTE_ONES_CACHE[length] = ones
-    candidates = ones
-    for bit in range(7, -1, -1):
-        has_bit = (value >> bit) & ones
-        narrowed = has_bit & candidates
-        if narrowed:
-            candidates = narrowed
-    lowest = candidates & -candidates
-    return (lowest.bit_length() - 1) >> 3
-
-
-_ABS_DIFF_MASKS_CACHE: dict[int, tuple[int, int]] = {}
-
-_OVER_TABLE_CACHE: dict[int, bytes] = {}
-
-
-def _abs_diff(a: bytes, b: bytes) -> bytes:
-    """Return the per-byte absolute difference of two equal-length byte strings.
-
-    ``bytes(map(abs, map(sub, a, b)))`` is the obvious spelling, but it walks
-    both strings one Python int at a time.  This computes the same bytes with
-    a handful of big-integer operations: the input is packed two bytes per
-    16-bit lane, each lane gets a guard bit so a subtraction cannot borrow
-    into its neighbour, and the absolute value is selected from the two
-    per-lane differences.
-
-    Both byte strings must be the same length; :func:`require_equal_lengths`
-    rejects a mismatch and returns the shared length.
-    """
-    length = require_equal_lengths(a, b, "_abs_diff")
-    if length == 0:
-        return b""
-    if length & 1:
-        # Pad to a whole number of 16-bit lanes; the extra byte is dropped by
-        # ``to_bytes(length)`` at the end.
-        a = a + b"\x00"
-        b = b + b"\x00"
-    lanes = len(a) // 2
-    cached = _ABS_DIFF_MASKS_CACHE.get(lanes)
-    if cached is None:
-        # 0xFF in the low byte of every lane, and the guard bit (bit 8) of every
-        # lane -- the lane-parallel equivalents of a scalar mask.
-        low = int.from_bytes(b"\xff\x00" * lanes, "little")
-        guard_bit = int.from_bytes(b"\x00\x01" * lanes, "little")
-        cached = (low, guard_bit)
-        _ABS_DIFF_MASKS_CACHE[lanes] = cached
-    else:
-        low, guard_bit = cached
-    x = int.from_bytes(a, "little")
-    y = int.from_bytes(b, "little")
-    # Split each string into its even- and odd-indexed bytes, each already
-    # sitting in the low byte of its own 16-bit lane.
-    even_x, odd_x = x & low, (x >> 8) & low
-    even_y, odd_y = y & low, (y >> 8) & low
-
-    def lane_abs(u: int, v: int) -> int:
-        # With the guard bit set, ``u - v`` is 256 + u - v in [1, 511], so the
-        # subtraction never borrows across a lane and bit 8 is set exactly when
-        # u >= v.  That lane's low byte is then |u - v| already, so the result
-        # picks the low byte of whichever of the two differences is >= 256.
-        ge = (u | guard_bit) - v
-        lt = (v | guard_bit) - u
-        higher = ge & guard_bit
-        ge_mask = higher - (higher >> 8)  # 0xFF in lanes where u >= v
-        return ((ge & low) & ge_mask) | ((lt & low) & (low ^ ge_mask))
-
-    # Lane j of the even/odd halves carries byte 2j / 2j+1, so interleaving the
-    # two lane-packed results reconstructs the original byte order.
-    return (lane_abs(even_x, even_y) | (lane_abs(odd_x, odd_y) << 8)).to_bytes(
-        length, "little"
-    )
 
 
 @dataclass(frozen=True)
@@ -231,6 +116,9 @@ def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
     return Image(width, height, b"".join(rows))
 
 
+_OVER_TABLE_CACHE: dict[int, bytes] = {}
+
+
 def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     """Compare a candidate image against a reference image.
 
@@ -261,16 +149,16 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         )
     pa, pb = candidate.rgb, reference.rgb
     # Compare one channel at a time: a strided slice picks a channel,
-    # ``_abs_diff`` turns it into that channel's absolute deltas as a byte
+    # ``abs_diff`` turns it into that channel's absolute deltas as a byte
     # string, and integer sums feed the metrics.  The equivalent per-byte
     # Python loop dominated runtime on screenshot-sized inputs (tens of
     # millions of bytes).  The list is ordered R, G, B.
     deltas = [
-        _abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)
+        abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)
     ]
     totals = [sum(delta) for delta in deltas]
     total_abs_r, total_abs_g, total_abs_b = totals
-    total_sq = sum(_sum_squares(delta) for delta in deltas)
+    total_sq = sum(sum_squares(delta) for delta in deltas)
 
     # One bit-sliced pass per channel gives both that channel's maximum and
     # the first byte reaching it, replacing a ``max`` walk plus a ``find``
@@ -278,7 +166,7 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     # first offset among the channels that actually reach it.  A channel's
     # byte offset equals its pixel offset, because the three slices are the
     # same length.
-    indices = [_max_byte_index(delta) for delta in deltas]
+    indices = [max_byte_index(delta) for delta in deltas]
     maxima = [delta[index] for delta, index in zip(deltas, indices)]
     max_delta = max(maxima)
     max_x = 0

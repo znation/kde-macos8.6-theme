@@ -17,7 +17,7 @@ tools' output is expected to have: no raw ESC byte, its visible escape shown.
 
 ``assert_rejects_unequal_lengths`` names the caller side of the shared
 ``tools.byteops.require_equal_lengths`` precondition: the packed-lane byte
-helpers in ``tools/png/filters.py`` and ``tools/fidelity_metrics.py`` both reject a
+helpers in ``tools/png/filters.py`` and ``tools/byte_lanes.py`` both reject a
 length mismatch, and each must name itself in the diagnostic.
 
 Guards that report a bad slice through ``case.subTest`` need the opposite
@@ -74,7 +74,7 @@ def assert_rejects_unequal_lengths(case, function):
     """Assert *function* rejects byte strings whose lengths differ.
 
     *function* is a packed-lane byte helper (``tools.png.filters._byte_add`` or
-    ``tools.fidelity_metrics._abs_diff``) whose length precondition is
+    ``tools.byte_lanes.abs_diff``) whose length precondition is
     ``tools.byteops.require_equal_lengths``. A second argument that is too
     short would silently drop bytes and one that is too long would overflow
     ``to_bytes``, so both directions must raise a ``ValueError`` naming

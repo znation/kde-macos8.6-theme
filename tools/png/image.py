@@ -45,8 +45,8 @@ class Image:
                 f"Image dimensions must be positive: {self.width}x{self.height}"
             )
         # The annotation says bytes, but only the length was checked: a str
-        # or list of the right length passed here and reached fidelity_metrics'
-        # _abs_diff as an opaque TypeError ("can only concatenate str (not
+        # or list of the right length passed here and reached byte_lanes'
+        # abs_diff as an opaque TypeError ("can only concatenate str (not
         # bytes) to str") that named neither the field nor its type. bytes and
         # bytearray are both accepted -- the decoder returns bytes and a caller
         # may build a buffer in place, and a bytearray supports every operation
