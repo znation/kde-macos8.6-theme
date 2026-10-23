@@ -275,6 +275,21 @@ class TestParserRejections(unittest.TestCase):
             needles=(str(path),) + needles,
         )
 
+    def chunk_offset(self):
+        """Return the first image chunk's offset in the valid cursor bytes.
+
+        Each TOC entry is 12 bytes: chunk type, nominal size, then the chunk
+        offset at +8. The parser tests mutate fields inside that chunk, so
+        they share this lookup instead of re-deriving the TOC layout.
+        """
+        return struct.unpack_from("<I", self.valid, FILE_HEADER_SIZE + 8)[0]
+
+    def mutated(self, offset, value):
+        """Return the valid cursor with the little-endian word at *offset* replaced."""
+        data = bytearray(self.valid)
+        struct.pack_into("<I", data, offset, value)
+        return bytes(data)
+
     def test_rejects_a_truncated_file_header(self):
         self.assert_reader_names(b"Xcur", ("header", "0"))
 
@@ -282,137 +297,101 @@ class TestParserRejections(unittest.TestCase):
         self.assert_reader_names(b"Bad!" + self.valid[4:], ("magic", "0"))
 
     def test_rejects_a_wrong_file_header_size(self):
-        data = bytearray(self.valid)
-        struct.pack_into("<I", data, 4, 20)
-        self.assert_reader_names(bytes(data), ("header size", "4"))
+        self.assert_reader_names(self.mutated(4, 20), ("header size", "4"))
 
     def test_rejects_a_wrong_file_version(self):
-        data = bytearray(self.valid)
-        struct.pack_into("<I", data, 8, 0x00020000)
-        self.assert_reader_names(bytes(data), ("version", "8"))
+        self.assert_reader_names(
+            self.mutated(8, 0x00020000), ("version", "8")
+        )
 
     def test_rejects_a_toc_that_overruns_the_file(self):
-        data = bytearray(self.valid)
-        struct.pack_into("<I", data, 12, 1000)
-        self.assert_reader_names(bytes(data), ("TOC", "16"))
+        self.assert_reader_names(self.mutated(12, 1000), ("TOC", "16"))
 
     def test_rejects_a_chunk_offset_outside_the_file(self):
-        data = bytearray(self.valid)
-        struct.pack_into("<I", data, FILE_HEADER_SIZE + 8, len(data) + 4)
-        self.assert_reader_names(bytes(data), ("offset",))
+        self.assert_reader_names(
+            self.mutated(FILE_HEADER_SIZE + 8, len(self.valid) + 4),
+            ("offset",),
+        )
 
     def test_rejects_a_truncated_image_payload(self):
         self.assert_reader_names(self.valid[:-1], ("payload", "offset"))
 
     def test_rejects_a_hotspot_outside_its_image(self):
-        data = bytearray(self.valid)
-        chunk_offset = struct.unpack_from(
-            "<I", data, FILE_HEADER_SIZE + 8
-        )[0]
-        struct.pack_into("<I", data, chunk_offset + 24, 2)
-        self.assert_reader_names(bytes(data), ("hotspot_x",))
+        self.assert_reader_names(
+            self.mutated(self.chunk_offset() + 24, 2), ("hotspot_x",)
+        )
 
     def test_rejects_a_hotspot_y_outside_its_image(self):
-        data = bytearray(self.valid)
-        chunk_offset = struct.unpack_from(
-            "<I", data, FILE_HEADER_SIZE + 8
-        )[0]
-        struct.pack_into("<I", data, chunk_offset + 28, 2)
-        self.assert_reader_names(bytes(data), ("hotspot_y",))
+        self.assert_reader_names(
+            self.mutated(self.chunk_offset() + 28, 2), ("hotspot_y",)
+        )
 
     def test_rejects_a_zero_toc_nominal_size(self):
-        data = bytearray(self.valid)
-        struct.pack_into("<I", data, FILE_HEADER_SIZE + 4, 0)
-        self.assert_reader_names(bytes(data), ("TOC nominal size", "positive"))
+        self.assert_reader_names(
+            self.mutated(FILE_HEADER_SIZE + 4, 0),
+            ("TOC nominal size", "positive"),
+        )
 
     def test_rejects_a_zero_image_nominal_size(self):
-        data = bytearray(self.valid)
-        chunk_offset = struct.unpack_from(
-            "<I", data, FILE_HEADER_SIZE + 8
-        )[0]
-        struct.pack_into("<I", data, chunk_offset + 8, 0)
         self.assert_reader_names(
-            bytes(data), ("image nominal size", "positive")
+            self.mutated(self.chunk_offset() + 8, 0),
+            ("image nominal size", "positive"),
         )
 
     def test_rejects_a_toc_nominal_size_above_the_maximum(self):
-        data = bytearray(self.valid)
-        struct.pack_into(
-            "<I", data, FILE_HEADER_SIZE + 4, xcursor_reader.MAX_IMAGE_SIZE + 1
-        )
         self.assert_reader_names(
-            bytes(data), ("TOC nominal size", "exceeds")
+            self.mutated(
+                FILE_HEADER_SIZE + 4, xcursor_reader.MAX_IMAGE_SIZE + 1
+            ),
+            ("TOC nominal size", "exceeds"),
         )
 
     def test_rejects_an_image_nominal_size_above_the_maximum(self):
-        data = bytearray(self.valid)
-        chunk_offset = struct.unpack_from(
-            "<I", data, FILE_HEADER_SIZE + 8
-        )[0]
-        struct.pack_into(
-            "<I",
-            data,
-            chunk_offset + 8,
-            xcursor_reader.MAX_IMAGE_SIZE + 1,
-        )
         self.assert_reader_names(
-            bytes(data), ("image nominal size", "exceeds")
+            self.mutated(
+                self.chunk_offset() + 8, xcursor_reader.MAX_IMAGE_SIZE + 1
+            ),
+            ("image nominal size", "exceeds"),
         )
 
     def test_rejects_an_image_size_above_the_maximum(self):
-        chunk_offset = struct.unpack_from(
-            "<I", self.valid, FILE_HEADER_SIZE + 8
-        )[0]
+        chunk_offset = self.chunk_offset()
         for field, offset, dimensions in (
             ("width", 16, f"{xcursor_reader.MAX_IMAGE_SIZE + 1}x2"),
             ("height", 20, f"2x{xcursor_reader.MAX_IMAGE_SIZE + 1}"),
         ):
             with self.subTest(field=field):
-                data = bytearray(self.valid)
-                struct.pack_into(
-                    "<I",
-                    data,
-                    chunk_offset + offset,
-                    xcursor_reader.MAX_IMAGE_SIZE + 1,
+                data = self.mutated(
+                    chunk_offset + offset, xcursor_reader.MAX_IMAGE_SIZE + 1
                 )
-                self.assert_reader_names(bytes(data), (dimensions, "exceed"))
+                self.assert_reader_names(data, (dimensions, "exceed"))
 
     def test_rejects_a_nominal_size_that_disagrees_with_the_toc(self):
-        data = bytearray(self.valid)
-        chunk_offset = struct.unpack_from(
-            "<I", data, FILE_HEADER_SIZE + 8
-        )[0]
-        struct.pack_into("<I", data, chunk_offset + 8, 3)
         self.assert_reader_names(
-            bytes(data), ("image nominal size", "does not match")
+            self.mutated(self.chunk_offset() + 8, 3),
+            ("image nominal size", "does not match"),
         )
 
     def test_rejects_bad_image_header_fields(self):
-        chunk_offset = struct.unpack_from(
-            "<I", self.valid, FILE_HEADER_SIZE + 8
-        )[0]
+        chunk_offset = self.chunk_offset()
         for field, offset, value, needle in (
             ("header size", 0, 40, "image header size"),
             ("type", 4, 0, "image chunk type"),
             ("version", 12, 2, "image chunk version"),
         ):
             with self.subTest(field=field):
-                data = bytearray(self.valid)
-                struct.pack_into("<I", data, chunk_offset + offset, value)
-                self.assert_reader_names(bytes(data), (needle,))
+                data = self.mutated(chunk_offset + offset, value)
+                self.assert_reader_names(data, (needle,))
 
     def test_rejects_a_zero_image_dimension(self):
-        chunk_offset = struct.unpack_from(
-            "<I", self.valid, FILE_HEADER_SIZE + 8
-        )[0]
+        chunk_offset = self.chunk_offset()
         for field, offset, dimensions in (
             ("width", 16, "0x2"),
             ("height", 20, "2x0"),
         ):
             with self.subTest(field=field):
-                data = bytearray(self.valid)
-                struct.pack_into("<I", data, chunk_offset + offset, 0)
-                self.assert_reader_names(bytes(data), (dimensions, "positive"))
+                data = self.mutated(chunk_offset + offset, 0)
+                self.assert_reader_names(data, (dimensions, "positive"))
 
 
 class TestUnknownChunk(unittest.TestCase):
