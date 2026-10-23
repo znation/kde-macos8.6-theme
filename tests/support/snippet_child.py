@@ -142,6 +142,25 @@ def _run_snippet(snippet_argv, cwd, out_write, err_write):
     os._exit(status)
 
 
+def _drain(open_streams, data):
+    """Read every available chunk into *data*, dropping a stream at EOF.
+
+    *open_streams* is updated in place: a descriptor the child has closed
+    returns an empty chunk and is removed, so the caller can stop once every
+    stream is drained. A non-blocking descriptor with nothing to read is left
+    for the next pass.
+    """
+    for fd in tuple(open_streams):
+        try:
+            chunk = os.read(fd, 65536)
+        except BlockingIOError:
+            continue
+        if chunk:
+            data[fd] += chunk
+        else:
+            open_streams.discard(fd)
+
+
 def _collect(pid, out_read, err_read, snippet_argv, timeout):
     """Wait for the child, capture its output and return its `CompletedProcess`.
 
@@ -162,36 +181,29 @@ def _collect(pid, out_read, err_read, snippet_argv, timeout):
     deadline = time.monotonic() + timeout
     status = None
     while True:
-        for fd in tuple(open_streams):
-            try:
-                chunk = os.read(fd, 65536)
-            except BlockingIOError:
-                continue
-            if chunk:
-                data[fd] += chunk
-            else:
-                open_streams.discard(fd)
+        _drain(open_streams, data)
         if status is None:
             reaped, raw = os.waitpid(pid, os.WNOHANG)
             if reaped == pid:
                 status = raw
         if status is not None and not open_streams:
             break
-        if time.monotonic() >= deadline:
-            if status is None:
-                # The child is still running: kill it, then wait for the
-                # kernel to release it, with a bound.
-                _kill(pid)
-                _reap(pid)
-                for fd in (out_read, err_read):
-                    os.close(fd)
-                raise subprocess.TimeoutExpired(snippet_argv, timeout)
+        if time.monotonic() < deadline:
+            time.sleep(0.005)
+            continue
+        if status is not None:
             # The child has exited and been reaped; only a writer that
             # outlived it keeps the pipe open. There is nothing to kill --
             # its pid is gone -- so the wait ends here and the child's own
             # result is reported.
             break
-        time.sleep(0.005)
+        # The child is still running: kill it, then wait for the kernel to
+        # release it, with a bound.
+        _kill(pid)
+        _reap(pid)
+        for fd in (out_read, err_read):
+            os.close(fd)
+        raise subprocess.TimeoutExpired(snippet_argv, timeout)
     for fd in (out_read, err_read):
         os.close(fd)
     encoding = locale.getpreferredencoding(False)
