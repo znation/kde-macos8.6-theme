@@ -4,8 +4,9 @@
 reference set, and the reference directory holds the images it names. This
 module reads both and returns the problems it finds: an entry that names a
 missing, unreadable, non-image or unmaterialized-LFS file, a source URL that
-is not a well-formed absolute URL, a file on disk with no entry, or a path
-that escapes the reference directory through a symlink. ``check_references``
+is not a well-formed absolute URL, a file on disk with no entry, a path
+that escapes the reference directory through a symlink, or a reference
+directory that itself resolves outside the repository. ``check_references``
 runs those checks and returns the problem list; the checker script
 ``tools/check_references.py`` handles its arguments and reports its problems.
 
@@ -21,17 +22,20 @@ import re
 from pathlib import Path
 
 if __package__:
-    from tools.containment import resolves_within
+    from tools.containment import require_within_repo, resolves_within
     from tools.image_format import LFS_POINTER_MAGIC, is_image
     from tools.terminal import escape_controls
     from tools.url_check import url_problem
 else:  # imported from a directly run tool
-    from containment import resolves_within
+    from containment import require_within_repo, resolves_within
     from image_format import LFS_POINTER_MAGIC, is_image
     from terminal import escape_controls
     from url_check import url_problem
 
 SOURCES_NAME = "sources.txt"
+# The repository the reference set belongs to. The reference directory is a
+# repository path, so its own containment is measured against this root.
+ROOT = Path(__file__).resolve().parents[1]
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 SEPARATOR = " | "
 # The provenance record is contributor-supplied, so a checked-in (or LFS-
@@ -233,7 +237,21 @@ def check_references(directory: Path) -> list[str]:
     An empty list means every source entry names an existing image, every image
     has exactly one entry, and every entry has the three expected fields with an
     absolute source URL.
+
+    The reference directory is contributor-supplied too: git stores a symlink,
+    so ``macos8.6-screenshots`` itself can be a symlink to a directory outside
+    the repository. Every containment check below uses *directory* as its base,
+    so with such a symlink every path under the target would count as
+    contained: the checker would list the target directory and read its
+    ``sources.txt``, echoing that file's lines into the problem list the CLI
+    prints. The directory is therefore refused when it resolves outside the
+    repository, before anything inside it is touched. A directory outside the
+    repository (a test's temporary reference set) is left alone.
     """
+    try:
+        require_within_repo(directory, ROOT)
+    except ValueError as exc:
+        return [escape_controls(str(exc))]
     sources = directory / SOURCES_NAME
     if not resolves_within(directory, sources):
         return [f"{sources}: points outside {directory}/ (a symlink escape)"]

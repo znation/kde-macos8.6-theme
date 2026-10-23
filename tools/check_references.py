@@ -8,7 +8,8 @@ forgotten image cannot silently drop out of the evidence trail. It also rejects
 unmaterialized Git LFS pointer files, files whose bytes are not a known image
 format (such as an HTML error page saved under an image name), and source URLs
 that are not well-formed absolute URLs (a bare host, a relative path, or a raw
-space is a broken citation).
+space is a broken citation). A reference directory that resolves outside the
+repository (a checked-in symlink) is refused before anything inside it is read.
 
 Usage::
 

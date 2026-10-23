@@ -6,7 +6,9 @@ must not let it read outside the reference directory.
 """
 
 import os
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support import snippet_child
@@ -160,6 +162,37 @@ class TestSymlinkEscape(CheckerTestCase):
         joined = "\n".join(problems)
         self.assertNotIn("SECRET_TOKEN_abc123", joined)
         assert_problem(self, problems, "outside")
+
+    def test_reference_directory_symlink_outside_repository_is_not_read(self):
+        """A symlinked reference directory must not become the containment base.
+
+        Git stores a symlink, so ``macos8.6-screenshots`` itself can point at
+        a directory outside the repository. Every containment check inside
+        ``check_references`` measures that directory as the base, so such a
+        symlink would make every path under the target look contained: the
+        checker would list the target and read its ``sources.txt``, printing
+        the target's filenames and that file's lines as problems. The
+        directory must be refused against the repository root instead.
+        """
+        module = self.checker
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            repo = base / "repo"
+            repo.mkdir()
+            private = base / "private"
+            private.mkdir()
+            (private / module.SOURCES_NAME).write_bytes(
+                b"SECRET_TOKEN_abc123\n"
+            )
+            (private / "holiday.png").write_bytes(PNG_MAGIC)
+            ref = repo / "macos8.6-screenshots"
+            os.symlink(private, ref)
+            with mock.patch.object(reference_validation, "ROOT", repo):
+                problems = module.check_references(ref)
+        joined = "\n".join(problems)
+        self.assertNotIn("SECRET_TOKEN_abc123", joined)
+        self.assertNotIn("holiday.png", joined)
+        assert_problem(self, problems, "symlink escape")
 
     def test_declared_image_symlink_outside_directory_is_reported(self):
         module = self.checker
