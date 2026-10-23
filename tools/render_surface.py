@@ -17,7 +17,8 @@ Usage::
         [--height H] [--settle SECONDS] [--timeout SECONDS]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
-2 for a usage error or a missing external tool.
+2 for a usage error, a missing external tool, or a command this tool starts
+directly (``make`` or ``dbus-run-session``) that cannot be started.
 """
 
 from __future__ import annotations
@@ -133,13 +134,19 @@ def _render(args: argparse.Namespace) -> int:
         )
 
         install_log = scratch / "install.log"
-        status = run_logged(
-            ["make", "install", f"XDG_DATA_HOME={data}"],
-            env,
-            install_log,
-            INSTALL_TIMEOUT,
-            ROOT,
-        )
+        try:
+            status = run_logged(
+                ["make", "install", f"XDG_DATA_HOME={data}"],
+                env,
+                install_log,
+                INSTALL_TIMEOUT,
+                ROOT,
+            )
+        except OSError as exc:
+            # `make` was found on PATH but cannot be started (a corrupt or
+            # unexecutable binary); report it as this tool's own diagnostic
+            # rather than letting the OSError escape as a traceback.
+            return report_error(TOOL, f"cannot run make: {exc}")
         if status != 0:
             reason = "timed out" if status is None else f"exited {status}"
             return report_failure(TOOL, f"make install {reason}", install_log)
@@ -163,27 +170,30 @@ def _render(args: argparse.Namespace) -> int:
             ]
         )
         render_log = scratch / "render.log"
-        status = run_logged(
-            [
-                "dbus-run-session",
-                "--",
-                "kwin_wayland",
-                "--virtual",
-                "--no-lockscreen",
-                "--width",
-                str(args.width),
-                "--height",
-                str(args.height),
-                "--socket",
-                SOCKET,
-                "--exit-with-session",
-                session,
-            ],
-            env,
-            render_log,
-            args.timeout,
-            ROOT,
-        )
+        try:
+            status = run_logged(
+                [
+                    "dbus-run-session",
+                    "--",
+                    "kwin_wayland",
+                    "--virtual",
+                    "--no-lockscreen",
+                    "--width",
+                    str(args.width),
+                    "--height",
+                    str(args.height),
+                    "--socket",
+                    SOCKET,
+                    "--exit-with-session",
+                    session,
+                ],
+                env,
+                render_log,
+                args.timeout,
+                ROOT,
+            )
+        except OSError as exc:
+            return report_error(TOOL, f"cannot run dbus-run-session: {exc}")
         if status is None:
             return report_failure(
                 TOOL, f"render timed out after {args.timeout:g}s", render_log
@@ -245,7 +255,8 @@ def main(argv: list[str] | None = None) -> int:
         ),
         epilog=(
             "exit status: 0 when OUTPUT was written, 1 when the render or "
-            "capture failed, 2 usage error, unwritable OUTPUT or missing external tool"
+            "capture failed, 2 usage error, unwritable OUTPUT, missing external "
+            "tool, or an unstartable make or dbus-run-session"
         ),
     )
     parser.add_argument("output", help="PNG file to write")

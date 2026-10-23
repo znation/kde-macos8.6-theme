@@ -67,6 +67,18 @@ class StubTools(unittest.TestCase):
         """Remove the stub script named *name* from the stub bin."""
         (self.bin / name).unlink()
 
+    def broken_stub(self, name):
+        """Make *name* executable but unable to start.
+
+        ``shutil.which`` finds it, so the missing-tool check passes, but the
+        kernel cannot exec a script whose interpreter does not exist; Popen
+        raises ``OSError``. This is the fault a corrupt binary or a broken
+        shell script presents.
+        """
+        path = self.bin / name
+        path.write_text("#!/nonexistent/interpreter\n", encoding="utf-8")
+        path.chmod(path.stat().st_mode | stat.S_IXUSR)
+
     def recorded(self):
         """Return the ``"<name> <argv>"`` lines the stubs appended, in order."""
         if not self.calls.exists():
@@ -197,6 +209,42 @@ class TestTimeoutPaths(StubTools):
             stderr,
         )
         self.assertIn("fall back", stderr)
+
+
+class TestUnrunnableTools(StubTools):
+    """A tool on PATH that cannot be started is a diagnostic, not a traceback.
+
+    ``report_missing_tool`` only proves each command exists; a corrupt binary
+    or a script whose interpreter is missing still fails in ``Popen``. The
+    required steps must report that as the tool's own exit-2 diagnostic, and
+    the best-effort selections must treat it like any other failure so an
+    otherwise successful apply still exits 0.
+    """
+
+    def test_an_unrunnable_required_step_exits_2_without_a_traceback(self):
+        self.broken_stub("plasma-apply-colorscheme")
+
+        status, stderr = call_main(apply_theme.main)
+
+        self.assertEqual(2, status)
+        self.assertIn("cannot run plasma-apply-colorscheme", stderr)
+        self.assertIn("apply_theme: error:", stderr)
+        self.assertNotIn("Traceback", stderr)
+        # The first step ran, then the unrunnable one stopped the run: no
+        # later selection may be attempted after the failure.
+        self.assertEqual(
+            ["lookandfeeltool -a org.macos8.desktop"], self.recorded()
+        )
+
+    def test_an_unrunnable_kwin_reconfigure_is_a_note_and_exits_0(self):
+        self.broken_stub("qdbus6")
+
+        status, stderr = call_main(apply_theme.main)
+
+        self.assertEqual(0, status, stderr)
+        self.assertIn("KWin reconfigure could not be started", stderr)
+        self.assertIn("KWin reloads the decoration on its next start", stderr)
+        self.assertNotIn("Traceback", stderr)
 
 
 class TestMissingTool(unittest.TestCase):

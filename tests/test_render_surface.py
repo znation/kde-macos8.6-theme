@@ -138,6 +138,46 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_an_unrunnable_make_exits_2_and_removes_scratch(self):
+        # `which` still finds an executable script whose interpreter is gone,
+        # so the missing-tool check passes and Popen raises OSError. The tool
+        # must report that itself instead of letting the OSError traceback.
+        make = self.bin / "make"
+        make.write_text("#!/nonexistent/interpreter\n", encoding="utf-8")
+        make.chmod(make.stat().st_mode | stat.S_IXUSR)
+
+        # Narrow PATH to the stub bin: with a real make later on PATH, execvp
+        # treats the broken script's ENOENT as "not in this directory" and
+        # silently falls through to it.
+        with mock.patch.dict(os.environ, {"PATH": str(self.bin)}):
+            status, stderr, output = self.run_main()
+
+        self.assertEqual(2, status)
+        self.assertIn("render_surface: error: cannot run make:", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
+    def test_an_unrunnable_session_launcher_exits_2_and_removes_scratch(self):
+        # Same fault as the make test, at the second command the tool starts
+        # itself: `shutil.which` finds dbus-run-session, but Popen raises
+        # OSError. It must be the tool's own exit-2 diagnostic, not a
+        # traceback that skips the scratch cleanup.
+        launcher = self.bin / "dbus-run-session"
+        launcher.write_text("#!/nonexistent/interpreter\n", encoding="utf-8")
+        launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR)
+
+        # Narrow PATH to the stub bin for the same reason as the make test:
+        # execvp falls through to a later real launcher on ENOENT.
+        with mock.patch.dict(os.environ, {"PATH": str(self.bin)}):
+            status, stderr, output = self.run_main()
+
+        self.assertEqual(2, status)
+        self.assertIn("render_surface: error: cannot run dbus-run-session:", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_a_failed_session_config_write_exits_1_with_a_diagnostic(self):
         # The session config is derived from the shipped defaults and written
         # into the scratch config home. A write that fails there (a full disk),

@@ -18,7 +18,7 @@ Usage::
     python3 tools/apply_theme.py
 
 Exit status: 0 when the theme was applied, 1 when a required command failed,
-2 for a usage error or a missing external tool.
+2 for a usage error, a missing external tool, or one that cannot be started.
 """
 
 from __future__ import annotations
@@ -31,13 +31,17 @@ from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.diagnostics import report_failure, report_missing_tool
+    from tools.diagnostics import (
+        report_error,
+        report_failure,
+        report_missing_tool,
+    )
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
-    from diagnostics import report_failure, report_missing_tool
+    from diagnostics import report_error, report_failure, report_missing_tool
     from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
     from terminal import escape_controls
@@ -102,15 +106,23 @@ def _run_best_effort(
     label: str,
     consequence: str,
 ) -> None:
-    """Run *argv*, noting a timeout or non-zero exit; never change the status.
+    """Run *argv*, noting a timeout, exit or start failure; never change the status.
 
     *label* names the command in the note and *consequence* completes the
-    sentence with what happens because the command did not run. The missing-
-    tool note is the caller's, since each tool needs a different remedy. A
-    successful run prints nothing.
+    sentence with what happens because the command did not run. A command that
+    ``shutil.which`` found can still fail to start (a corrupt binary, or a
+    script whose interpreter is missing); ``run_logged`` reports that as an
+    ``OSError``, and a best-effort selection must turn it into a note like any
+    other failure rather than aborting the apply. The missing-tool note is the
+    caller's, since each tool needs a different remedy. A successful run prints
+    nothing.
     """
     log = scratch / log_name
-    status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
+    try:
+        status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
+    except OSError as exc:
+        _note(f"{label} could not be started: {exc}; {consequence}")
+        return
     if status is None:
         _note(f"{label} timed out after {COMMAND_TIMEOUT:g}s; {consequence}")
     elif status != 0:
@@ -176,7 +188,13 @@ def _apply() -> int:
         env = _session_env()
         for tool, argv in STEPS:
             log = scratch / f"{tool}.log"
-            status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
+            try:
+                status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
+            except OSError as exc:
+                # A tool on PATH that cannot be started is as unusable as a
+                # missing one: report it as this tool's own diagnostic (exit 2)
+                # instead of letting the OSError escape as a traceback.
+                return report_error(TOOL, f"cannot run {tool}: {exc}")
             if status is None:
                 return report_failure(
                     TOOL, f"{tool} timed out after {COMMAND_TIMEOUT:g}s", log
@@ -199,7 +217,8 @@ def main(argv: list[str] | None = None) -> int:
         ),
         epilog=(
             "exit status: 0 when the theme was applied, 1 when a required "
-            "command failed, 2 usage error or missing external tool"
+            "command failed, 2 usage error, missing external tool, or one that "
+            "cannot be started"
         ),
     )
     parser.parse_args(argv)
