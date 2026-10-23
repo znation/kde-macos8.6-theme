@@ -97,4 +97,27 @@ landed, while its profile install is part 2/2, which has landed).
 - The README names the new widget and its five states, and `tests/invariants.py` accepts the new `## desktoptheme` row.
 - `make check` is green.
 
+### Platinum virtual-desktop pager: ship `widgets/pager.svg` for the optional Pager applet (planned 2026-10-23 by the plan role; independent of the waiting task-manager plan)
+
+**Goal.** The optional Pager (`org.kde.plasma.pager`; `org.kde.plasma.activitypager` shares its QML through `X-Plasma-RootPath`) draws every virtual-desktop cell with `KSvg.FrameSvgItem imagePath: "widgets/pager"` in `contents/ui/main.qml`, one frame per prefix `normal`, `hover` and `active`. The theme ships no `widgets/pager.svg`, so KSvg falls back to Breeze's pager frames and a Pager added to the Platinum menu bar draws Breeze's cells. Add a Platinum pager frame: an idle desktop as a thin grey outline, a hovered desktop as the pale grey view trough, and the current desktop as the lavender selection fill. The reference set shows no virtual-desktop pager, so this is our own Platinum art; the three prefixes are KDE-required and the colours reuse grounded palette tokens.
+
+**Approach.**
+- Add `theme/desktoptheme/org.macos8.desktop/widgets/pager.svg` on a 12x9 canvas: a 1px border around a 10x7 centre tile. It declares exactly these ids: `hint-tile-center`; for each prefix `normal`, `hover` and `active`, the four `-hint-{top,bottom,left,right}-margin` rects and the nine `-{top,bottom,left,right,center,topleft,topright,bottomleft,bottomright}` slice groups (39 ids besides `hint-tile-center`).
+- Hints: `hint-tile-center` at (1,1,10,7); top/bottom margins at (1,0,10,1)/(1,8,10,1); left/right margins at (0,1,1,7)/(11,1,1,7). Slice groups translate to (1,0), (1,8), (0,1), (11,1), (1,1), (0,0), (11,0), (0,8) and (11,8).
+- Paint the states as follows: `normal` is a 1px `#999999` border on its eight edge and corner tiles with a transparent 0.01-opacity `#FFFFFF` placeholder for the centre (an idle desktop is an outlined cell on the panel face); `hover` is the same `#999999` border around a flat `#EEEEEE` centre; `active` is a 1px `#000000` border around a flat `#CCCCFF` centre. Each colour is a `fill` attribute; the centre placeholder uses `style` plus `fill-opacity="0.01"`, the menubaritem convention, so the parsed fill set stays the art colours.
+- `tests/support/desktoptheme_paths.py`: add `PAGER_SVG = os.path.join(PACKAGE, "widgets", "pager.svg")`.
+- `tests/test_desktoptheme.py`: import `PAGER_SVG` and add `("pager.svg", PAGER_SVG, 12, 9)` to `SVG_CANVASES`, so the shared root-canvas, unique-id, self-containment and registry tests cover the new file.
+- Add `tests/test_desktoptheme_pager.py` with `TestPager(NineSliceCase)`: set `SVG_PATH = PAGER_SVG` and `PREFIXES = ("normal", "hover", "active")`; pin the exact 40-id set and the exact hint map with `rect_geometry`; pin `normal`'s eight `#999999` edge tiles plus its fill-less centre (`fill-opacity` set exactly `{"0.01"}`); pin every `hover` tile to `#999999` on the border and `#EEEEEE` in the centre; pin every `active` tile to `#000000` on the border and `#CCCCFF` in the centre; pin the parsed `fill` set to exactly `{"#000000", "#999999", "#CCCCFF", "#EEEEEE"}`. Use `nine_slice_tile_sizes(12, 9, 1, 1, 1, 1)` and `assert_slice_pixels` so a one-pixel-short rect or a recoloured tile fails.
+- `README.md`: after the `widgets/menubaritem.svg` sentence, add that `widgets/pager.svg` draws the optional Pager's virtual-desktop cells: an idle `#999999` outline, a hovered `#EEEEEE` fill and the current desktop's `#CCCCFF` selection, as one 1px-border nine-slice shared by such a panel applet.
+- `docs/invariants.md`: add a `## desktoptheme` row for `widgets/pager.svg`, citing `tests/test_desktoptheme_pager.py::TestPager`; its provenance exception records that no reference screenshot shows a virtual-desktop pager, the `normal`/`hover`/`active` prefixes are KDE-required (read from the installed Pager's `contents/ui/main.qml`), the 12x9 tile is this theme's own, and the colours reuse the grounded bevel, trough, outline and selection anchors.
+
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/pager.svg`, `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, new `tests/test_desktoptheme_pager.py`, `README.md`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `pager.svg` exists on a 12x9 canvas and declares exactly the id set above; `tests/test_desktoptheme.py`'s registry sees it, and a missing or extra prefix, hint or slice id fails the id-set test.
+- Every prefix's four hints and nine slice groups sit at the geometry above; moving a group or hint off its tile fails `NineSliceCase.test_tiles_placed_by_margins` or the hint-map test.
+- `normal` renders eight `#999999` border tiles around a fill-less centre, `hover` renders `#999999` borders around an `#EEEEEE` centre, and `active` renders `#000000` borders around an `#CCCCFF` centre; changing one pixel, dropping a state or recolouring a slice fails the pixel tests.
+- The README names the new widget and its three states, and `tests/invariants.py` accepts the new `## desktoptheme` row.
+- `make check` is green.
+
 ## Done
