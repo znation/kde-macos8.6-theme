@@ -21,7 +21,7 @@ from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.atomic_write import write_atomically
+    from tools.atomic_write import write_bytes_atomically
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.ints import is_plain_int
@@ -30,7 +30,7 @@ if __package__:
     from tools.xcursor import write_cursor
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
-    from atomic_write import write_atomically
+    from atomic_write import write_bytes_atomically
     from containment import require_within_repo
     from diagnostics import report_error
     from ints import is_plain_int
@@ -157,11 +157,6 @@ def cursor_bytes(rows=ARROW_GRID, sizes=NOMINAL_SIZES, hotspot=HOTSPOT):
     return write_cursor(frames)
 
 
-def _write_atomic(path: Path, data: bytes) -> None:
-    """Write *data* to *path* so *path* is the old file or the whole new one."""
-    write_atomically(path, lambda destination: destination.write(data))
-
-
 def main(argv: list[str] | None = None) -> int:
     """Run the generator CLI; *argv* is the argument list without a program name."""
     parser = EscapingArgumentParser(
@@ -188,7 +183,7 @@ def main(argv: list[str] | None = None) -> int:
     for name in CURSOR_NAMES:
         target = directory / name
         try:
-            _write_atomic(target, data)
+            write_bytes_atomically(target, data)
         except OSError as exc:
             return report_error(TOOL, f"cannot write {target}: {exc}")
     return 0

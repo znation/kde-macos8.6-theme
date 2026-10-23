@@ -23,6 +23,15 @@ from pathlib import Path
 from typing import BinaryIO
 
 
+def write_bytes_atomically(path: Path, data: bytes) -> None:
+    """Write *data* to *path* through :func:`write_atomically`.
+
+    Use this when the whole new contents are already in memory as bytes;
+    it fills the temporary sibling with one ``write`` call.
+    """
+    write_atomically(path, lambda destination: destination.write(data))
+
+
 def write_atomically(
     path: Path,
     fill: Callable[[BinaryIO], None],

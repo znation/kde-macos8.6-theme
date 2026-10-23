@@ -366,7 +366,7 @@ class TestWriteAtomic(unittest.TestCase):
         planted = target.with_name(f".{target.name}-{os.getpid()}.tmp")
         planted.symlink_to(victim)
 
-        make_wallpaper._write_atomic(target, b"new wallpaper")
+        atomic_write.write_bytes_atomically(target, b"new wallpaper")
 
         self.assertEqual(b"do not overwrite", victim.read_bytes())
         self.assertEqual(b"new wallpaper", target.read_bytes())
@@ -391,7 +391,7 @@ class TestWriteAtomic(unittest.TestCase):
             return descriptor, name
 
         with mock.patch.object(atomic_write.tempfile, "mkstemp", swapping_mkstemp):
-            make_wallpaper._write_atomic(target, b"new wallpaper")
+            atomic_write.write_bytes_atomically(target, b"new wallpaper")
 
         self.assertEqual(b"do not overwrite", victim.read_bytes())
 
@@ -404,7 +404,7 @@ class TestWriteAtomic(unittest.TestCase):
         previous = os.umask(0o027)
         self.addCleanup(os.umask, previous)
 
-        make_wallpaper._write_atomic(target, b"new wallpaper")
+        atomic_write.write_bytes_atomically(target, b"new wallpaper")
 
         self.assertEqual(b"new wallpaper", target.read_bytes())
         self.assertEqual(0o640, stat.S_IMODE(target.stat().st_mode))
@@ -418,7 +418,7 @@ class TestWriteAtomicFdopen(unittest.TestCase):
         target = root / "out.png"
         with failing_fdopen() as closed:
             with self.assertRaises(OSError):
-                make_wallpaper._write_atomic(target, b"data")
+                atomic_write.write_bytes_atomically(target, b"data")
         self.assertEqual(1, len(closed))
 
 class TestTiledRgbValidation(unittest.TestCase):

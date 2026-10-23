@@ -25,7 +25,7 @@ from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.atomic_write import write_atomically
+    from tools.atomic_write import write_bytes_atomically
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.png import Image, PngError, read_png
@@ -34,7 +34,7 @@ if __package__:
     from tools.repo_root import ROOT
 else:  # run directly: python3 tools/make_wallpaper.py
     from argument_parsing import EscapingArgumentParser
-    from atomic_write import write_atomically
+    from atomic_write import write_bytes_atomically
     from containment import require_within_repo
     from diagnostics import report_error
     from png import Image, PngError, read_png
@@ -113,16 +113,6 @@ def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
     return b"".join(rows[y % TILE_SIZE] for y in range(height))
 
 
-def _write_atomic(path: Path, data: bytes) -> None:
-    """Write *data* to *path* so *path* is the old file or the whole new one.
-
-    A crash mid-write leaves the previous wallpaper rather than a truncated
-    PNG that a later ``make install`` would ship; see
-    :func:`tools.atomic_write.write_atomically`.
-    """
-    write_atomically(path, lambda destination: destination.write(data))
-
-
 def main(argv: list[str] | None = None) -> int:
     """Run the generator CLI; *argv* is the argument list without a program name.
 
@@ -175,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
         data = encode_png(width, height, tiled_rgb(tile, width, height))
         target = images / f"{width}x{height}.png"
         try:
-            _write_atomic(target, data)
+            write_bytes_atomically(target, data)
         except OSError as exc:
             return report_error(TOOL, f"cannot write {target}: {exc}")
     return 0
