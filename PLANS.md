@@ -12,7 +12,7 @@ by the clean role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
-(startup splash, desktop layout, defaults); the desktop theme (twenty-six widget SVGs under
+(startup splash, desktop layout, defaults); the desktop theme (twenty-seven widget SVGs under
 `widgets/`, including the `widgets/margins-highlight.svg` panel edit-mode margin highlight and the
 `widgets/containment-controls.svg` panel resize and slider handles, plus
 `dialogs/background.svg`); the Aurorae window decoration (frame, close, zoom and
@@ -71,33 +71,7 @@ applications keep their own chrome unless the opt-in GTK targets or the Firefox 
 install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
 landed, while its profile install is part 2/2, which has landed).
 
-### Platinum task-manager buttons: ship `widgets/tasks.svg` for the optional Task Manager applet (planned 2026-10-23 by the plan role; independent of the waiting icon series)
-
-**Goal.** The default layout draws the window list with `widgets/menubaritem.svg`, but the optional Task Manager (`org.kde.plasma.taskmanager`) draws every task through `KSvg.FrameSvgItem imagePath: "widgets/tasks"` (`Task.qml`, `main.qml`, `TaskProgressOverlay.qml`, `GroupExpanderOverlay.qml`). The theme ships no `widgets/tasks.svg`, so KSvg falls back to Breeze's task backgrounds and a Task Manager added to the Platinum menu bar draws Breeze task items instead of Platinum ones. Add the missing nine-slice and its four group-expander arrows. The reference set shows no KDE task manager, so this is our own Platinum art; the element names are KDE-required and the colours reuse the already-grounded tokens (#CCCCFF selection, #FFFFCC tooltip, #999999 bevel, #FFFFFF placeholder).
-
-**Approach.**
-- Add `theme/desktoptheme/org.macos8.desktop/widgets/tasks.svg` on the same 20x12 canvas and 7px left/right, 3px top/bottom, 6x6-centre contract as `widgets/menubaritem.svg`. It declares exactly these ids: `hint-tile-center`; for each prefix `normal`, `hover`, `focus`, `attention`, `minimized` and `progress`, the four `-hint-{top,bottom,left,right}-margin` rects and the nine `-{top,bottom,left,right,center,topleft,topright,bottomleft,bottomright}` slice groups; and `group-expander-{top,bottom,left,right}`.
-- Every prefix's hints and slices use the menubaritem geometry: `hint-tile-center` at (7,3,6,6); top/bottom hints at (7,0,6,3)/(7,9,6,3); left/right hints at (0,3,7,6)/(13,3,7,6); slice groups translated to (7,0), (7,9), (0,3), (13,3), (7,3), (0,0), (13,0), (0,9) and (13,9).
-- Paint the states as follows: `normal` is the transparent 0.01-opacity #FFFFFF placeholder in all nine tiles (an idle task shows the menu-bar face); `hover` and `focus` are flat #CCCCFF in every tile; `attention` is flat #FFFFCC in every tile; `minimized` is the placeholder in six tiles, but `minimized-bottom`, `minimized-bottomleft` and `minimized-bottomright` each paint a 2px #999999 rule at the bottom of their 3px band (local y=1, height 2; the bottom tile is 6px wide, the corner tiles 7px wide); `progress` is the same six placeholders with a 2px #CCCCFF bottom rule. The transparent states keep the `fill-opacity="0.01"` placeholder convention so the existing no-fill helpers read them as empty.
-- Ship only the bare state prefixes. `TaskTools.taskPrefix` in the installed task manager's `code/tools.js` returns `[edge-prefixed, bare]` for every state, and `taskPrefixHovered` appends `hover` before the base state, so the bare `normal`/`hover`/`focus`/`attention`/`minimized`/`progress` elements resolve on a top, bottom, left or right panel without duplicating the art four ways. The group overlay is the exception: it names `elementId: "group-expander-<edge>"` directly, so ship all four arrows.
-- Draw each group expander as an 8x8 black triangle: top `M1 6 L4 3 L7 6 Z`, bottom `M1 2 L4 5 L7 2 Z`, left `M6 1 L3 4 L6 7 Z`, right `M2 1 L5 4 L2 7 Z`.
-- `tests/support/desktoptheme_paths.py`: add `TASKS_SVG = os.path.join(PACKAGE, "widgets", "tasks.svg")`.
-- `tests/test_desktoptheme.py`: import `TASKS_SVG` and add `("tasks.svg", TASKS_SVG, 20, 12)` to `SVG_CANVASES`, so the shared root-canvas, unique-id, self-containment and registry tests cover the new file.
-- Add `tests/test_desktoptheme_tasks.py` with `TestTasks(NineSliceCase)`: set `SVG_PATH = TASKS_SVG`, `PREFIXES = ("normal", "hover", "focus", "attention", "minimized", "progress")` and `EXTRA_GROUPS` mapping the four expander ids to (0,0); pin the exact hint map, the exact id set, the flat fills (`hover`/`focus` #CCCCFF, `attention` #FFFFCC), the `normal` placeholders, the minimized/progress bottom rules pixel by pixel, and each expander's path and fill.
-- `README.md`: in the desktop-theme widget list, after the `widgets/menubaritem.svg` sentence, add that `widgets/tasks.svg` draws an optional Task Manager's idle (transparent), hover/focus (#CCCCFF), attention (#FFFFCC), minimized (#999999 rule) and progress (#CCCCFF rule) task faces as one 7px/3px nine-slice shared by every panel edge, plus the four group-expander arrows.
-- `docs/invariants.md`: add a `## desktoptheme` row for `widgets/tasks.svg`, citing `tests/test_desktoptheme_tasks.py::TestTasks`; its provenance exception records that no reference screenshot shows a KDE task manager, the six state prefixes and four expander ids are KDE-required (read from the installed task manager's `Task.qml`, `TaskProgressOverlay.qml` and `GroupExpanderOverlay.qml`), and the colours reuse the grounded selection, tooltip and bevel tokens.
-
-**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/tasks.svg`, `tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, new `tests/test_desktoptheme_tasks.py`, `README.md`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- `tasks.svg` exists on a 20x12 canvas and declares exactly the id set above; `tests/test_desktoptheme.py`'s registry sees it, and a missing or extra prefix, hint or slice id fails the id-set test.
-- Every prefix's four hints and nine slice groups sit at the menubaritem geometry; moving a group or hint off its tile fails `NineSliceCase.test_tiles_placed_by_margins` or the hint-map test.
-- `normal` renders no fill (0.01-opacity #FFFFFF placeholders), `hover` and `focus` render flat #CCCCFF, `attention` flat #FFFFCC, and `minimized`/`progress` render a 2px #999999/#CCCCFF rule across the bottom band with transparent tiles above it; changing one pixel, dropping a state or recolouring a slice fails the pixel tests.
-- The four `group-expander-*` elements are 8x8 black triangles with the paths above; removing or repointing one fails.
-- The README names the new widget and its five states, and `tests/invariants.py` accepts the new `## desktoptheme` row.
-- `make check` is green.
-
-### Platinum virtual-desktop pager: ship `widgets/pager.svg` for the optional Pager applet (planned 2026-10-23 by the plan role; independent of the waiting task-manager plan)
+### Platinum virtual-desktop pager: ship `widgets/pager.svg` for the optional Pager applet (planned 2026-10-23 by the plan role)
 
 **Goal.** The optional Pager (`org.kde.plasma.pager`; `org.kde.plasma.activitypager` shares its QML through `X-Plasma-RootPath`) draws every virtual-desktop cell with `KSvg.FrameSvgItem imagePath: "widgets/pager"` in `contents/ui/main.qml`, one frame per prefix `normal`, `hover` and `active`. The theme ships no `widgets/pager.svg`, so KSvg falls back to Breeze's pager frames and a Pager added to the Platinum menu bar draws Breeze's cells. Add a Platinum pager frame: an idle desktop as a thin grey outline, a hovered desktop as the pale grey view trough, and the current desktop as the lavender selection fill. The reference set shows no virtual-desktop pager, so this is our own Platinum art; the three prefixes are KDE-required and the colours reuse grounded palette tokens.
 

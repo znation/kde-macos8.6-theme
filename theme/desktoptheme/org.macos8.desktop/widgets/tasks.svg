@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" task-manager task background.
+
+     The optional Task Manager applet (org.kde.plasma.taskmanager) draws every
+     task through KSvg.FrameSvgItem imagePath "widgets/tasks": Task.qml,
+     TaskProgressOverlay.qml and GroupExpanderOverlay.qml name these elements.
+     No reference screenshot in macos8.6-screenshots/ shows a KDE task
+     manager, so this is this theme's own Platinum art. The six state prefixes
+     and the four group-expander ids are KDE-required; the colours reuse the
+     grounded [Colors:Selection] BackgroundNormal=#CCCCFF token, the #FFFFCC
+     tooltip token, the #999999 bevel token and the #FFFFFF placeholder
+     convention.
+
+     The nine-slice contract is a 7px left and right border and a 3px top and
+     bottom border around a 6x6 centre tile on a tight 20x12 canvas, the same
+     contract as widgets/menubaritem.svg. Every state ships its bare prefix
+     because TaskTools.taskPrefix returns both the edge-prefixed and the bare
+     id and taskPrefixHovered appends hover before the base state, so one set
+     of slices serves a top, bottom, left or right panel.
+
+     normal is the idle menu-bar face: transparent 0.01-opacity placeholders
+     that carry the margins (a nine-slice element with no rendered content has
+     no bounding box for KSvg to read margins from). hover and focus are the
+     flat selection fill; attention the flat tooltip fill. minimized and
+     progress keep the transparent face but paint a 2px bottom rule, #999999
+     and #CCCCFF respectively, across the bottom, bottom-left and
+     bottom-right tiles.
+
+     A group expander is the black triangle GroupExpanderOverlay.qml draws at
+     the edge it names; all four edges ship because it names
+     group-expander-<edge> directly rather than going through taskPrefix. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="12" viewBox="0 0 20 12">
+  <!-- Nine-slice hints: tile size and border margins. KSvg reads their
+       geometry, not their colour. -->
+  <rect id="hint-tile-center" x="7" y="3" width="6" height="6" style="fill:#ff6600"/>
+  <rect id="normal-hint-top-margin" x="7" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-bottom-margin" x="7" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="normal-hint-left-margin" x="0" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="normal-hint-right-margin" x="13" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="hover-hint-top-margin" x="7" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="hover-hint-bottom-margin" x="7" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="hover-hint-left-margin" x="0" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="hover-hint-right-margin" x="13" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="focus-hint-top-margin" x="7" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="focus-hint-bottom-margin" x="7" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="focus-hint-left-margin" x="0" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="focus-hint-right-margin" x="13" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="attention-hint-top-margin" x="7" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="attention-hint-bottom-margin" x="7" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="attention-hint-left-margin" x="0" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="attention-hint-right-margin" x="13" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="minimized-hint-top-margin" x="7" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="minimized-hint-bottom-margin" x="7" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="minimized-hint-left-margin" x="0" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="minimized-hint-right-margin" x="13" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="progress-hint-top-margin" x="7" y="0" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="progress-hint-bottom-margin" x="7" y="9" width="6" height="3" style="fill:#ff00ff"/>
+  <rect id="progress-hint-left-margin" x="0" y="3" width="7" height="6" style="fill:#ff00ff"/>
+  <rect id="progress-hint-right-margin" x="13" y="3" width="7" height="6" style="fill:#ff00ff"/>
+
+  <!-- Normal: an idle task paints the menu-bar face, so every slice is a
+       transparent 0.01-opacity placeholder that only carries the margins. -->
+  <g id="normal-top" transform="translate(7,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottom" transform="translate(7,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-left" transform="translate(0,3)">
+    <rect width="7" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-right" transform="translate(13,3)">
+    <rect width="7" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-center" transform="translate(7,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topleft">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-topright" transform="translate(13,0)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomleft" transform="translate(0,9)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="normal-bottomright" transform="translate(13,9)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+
+  <!-- Hover: the flat selection fill in every tile. -->
+  <g id="hover-top" transform="translate(7,0)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-bottom" transform="translate(7,9)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-left" transform="translate(0,3)">
+    <rect width="7" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-right" transform="translate(13,3)">
+    <rect width="7" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-center" transform="translate(7,3)">
+    <rect width="6" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-topleft">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-topright" transform="translate(13,0)">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-bottomleft" transform="translate(0,9)">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="hover-bottomright" transform="translate(13,9)">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+
+  <!-- Focus: the same flat selection fill as hover. -->
+  <g id="focus-top" transform="translate(7,0)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-bottom" transform="translate(7,9)">
+    <rect width="6" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-left" transform="translate(0,3)">
+    <rect width="7" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-right" transform="translate(13,3)">
+    <rect width="7" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-center" transform="translate(7,3)">
+    <rect width="6" height="6" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-topleft">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-topright" transform="translate(13,0)">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-bottomleft" transform="translate(0,9)">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+  <g id="focus-bottomright" transform="translate(13,9)">
+    <rect width="7" height="3" fill="#CCCCFF"/>
+  </g>
+
+  <!-- Attention: the flat tooltip fill in every tile. -->
+  <g id="attention-top" transform="translate(7,0)">
+    <rect width="6" height="3" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-bottom" transform="translate(7,9)">
+    <rect width="6" height="3" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-left" transform="translate(0,3)">
+    <rect width="7" height="6" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-right" transform="translate(13,3)">
+    <rect width="7" height="6" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-center" transform="translate(7,3)">
+    <rect width="6" height="6" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-topleft">
+    <rect width="7" height="3" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-topright" transform="translate(13,0)">
+    <rect width="7" height="3" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-bottomleft" transform="translate(0,9)">
+    <rect width="7" height="3" fill="#FFFFCC"/>
+  </g>
+  <g id="attention-bottomright" transform="translate(13,9)">
+    <rect width="7" height="3" fill="#FFFFCC"/>
+  </g>
+
+  <!-- Minimized: the transparent face with a 2px bevel rule along the bottom
+       band. The rule starts one pixel into the 3px band: a full-width bottom
+       tile is 6px, the bottom corners are 7px. -->
+  <g id="minimized-top" transform="translate(7,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="minimized-bottom" transform="translate(7,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="1" width="6" height="2" fill="#999999"/>
+  </g>
+  <g id="minimized-left" transform="translate(0,3)">
+    <rect width="7" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="minimized-right" transform="translate(13,3)">
+    <rect width="7" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="minimized-center" transform="translate(7,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="minimized-topleft">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="minimized-topright" transform="translate(13,0)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="minimized-bottomleft" transform="translate(0,9)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="1" width="7" height="2" fill="#999999"/>
+  </g>
+  <g id="minimized-bottomright" transform="translate(13,9)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="1" width="7" height="2" fill="#999999"/>
+  </g>
+
+  <!-- Progress: the same face, with a 2px selection rule along the bottom
+       band instead of the bevel rule. -->
+  <g id="progress-top" transform="translate(7,0)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="progress-bottom" transform="translate(7,9)">
+    <rect width="6" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="1" width="6" height="2" fill="#CCCCFF"/>
+  </g>
+  <g id="progress-left" transform="translate(0,3)">
+    <rect width="7" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="progress-right" transform="translate(13,3)">
+    <rect width="7" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="progress-center" transform="translate(7,3)">
+    <rect width="6" height="6" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="progress-topleft">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="progress-topright" transform="translate(13,0)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+  </g>
+  <g id="progress-bottomleft" transform="translate(0,9)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="1" width="7" height="2" fill="#CCCCFF"/>
+  </g>
+  <g id="progress-bottomright" transform="translate(13,9)">
+    <rect width="7" height="3" style="fill:#FFFFFF" fill-opacity="0.01"/>
+    <rect y="1" width="7" height="2" fill="#CCCCFF"/>
+  </g>
+
+  <!-- Group expander: the black triangle GroupExpanderOverlay.qml draws on
+       each edge, pointing away from the group's row. -->
+  <g id="group-expander-top">
+    <path d="M1 6 L4 3 L7 6 Z" fill="#000000"/>
+  </g>
+  <g id="group-expander-bottom">
+    <path d="M1 2 L4 5 L7 2 Z" fill="#000000"/>
+  </g>
+  <g id="group-expander-left">
+    <path d="M6 1 L3 4 L6 7 Z" fill="#000000"/>
+  </g>
+  <g id="group-expander-right">
+    <path d="M2 1 L5 4 L2 7 Z" fill="#000000"/>
+  </g>
+</svg>
