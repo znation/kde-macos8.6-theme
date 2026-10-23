@@ -120,6 +120,11 @@ def _cells(line):
         text = text[1:]
     if text.endswith("|"):
         text = text[:-1]
+    if "\\" not in text:
+        # Most register rows carry no Markdown escape, so a plain split gives
+        # the cells at C speed instead of scanning every character in Python.
+        cells = [cell.strip() for cell in text.split("|")]
+        return cells if len(cells) == 3 else None
     cells = []
     current = []
     index = 0
