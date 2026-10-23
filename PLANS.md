@@ -57,6 +57,10 @@ Firefox chrome is part 1/2 below).
 
 ### Platinum cursor theme, part 3/3: Generate and ship the Xcursor arrow cursor artifact (planned 2026-10-23 by the plan role; "requires part 2/3 landed")
 
+**Needs replan 2026-10-23 by feature: rejected after 2 review rounds**
+
+> 1. The archived part 2/3 entry in `PLANS-DONE.md` remains stale and now contradicts the landed change. It still says to carry the Xcursor provenance into the `## cursors` section part 3/3 adds, and that `docs/invariants.md` is untouched because the `## cursors` row belongs to part 3/3. The actual diff…
+
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
 under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
 `— done YYYY-MM-DD by the feature role` to its `### ` heading. Do not edit `PLANS-DONE.md`:
