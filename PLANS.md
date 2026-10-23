@@ -141,4 +141,61 @@ canonical names and fourteen aliases), `README.md`, `docs/invariants.md`, `PLANS
   `## icons` row.
 - `make check` is green.
 
+### Platinum panel edit-mode chrome, part 1/2: ship the panel margin highlight (planned 2026-10-23 by the plan role; independent of the waiting cursor series)
+
+**Goal.** The desktop theme ships no `widgets/margins-highlight.svg`, so while a panel is in
+edit mode Plasma falls back to the default theme's blue translucent margin band. Ship our own
+4x4 highlight tile: the flat `fill` and four corner wedges the panel's `SideMargin` reads, tinted
+the reference selection lavender instead of Breeze blue. The panel's resize/slider handles
+(`widgets/containment-controls.svg`) stay on the fallback theme in this part; part 2/2 covers
+them. No reference screenshot shows panel edit mode, so the tile is our own art: the lavender is
+the grounded selection colour `#CCCCFF`, and the 0.3 translucency is the default theme's
+margin-highlight opacity.
+
+**Approach.**
+- New `theme/desktoptheme/org.macos8.desktop/widgets/margins-highlight.svg`, a 4x4 canvas with the
+five ids the installed `org.kde.panel` `main.qml` `SideMargin` resolves: `fill` for the flat band
+and `topleft`, `topright`, `bottomleft`, `bottomright` for the corner wedges (the component builds
+`side + 'left'`/`'right'`, or `'top'`/`'bottom'` + side, so those four names are the only ones it
+asks for).
+  - `fill` is `<rect id="fill" x="0" y="0" width="4" height="4" fill="#CCCCFF"
+fill-opacity="0.3"/>`.
+  - The four corner ids are quarter-canvas triangles, each `fill="#CCCCFF"` and
+`fill-opacity="0.3"`: `topleft` `M 0,0 H 4 L 0,4 Z`, `topright` `M 0,0 H 4 V 4 Z`, `bottomleft`
+`M 0,0 V 4 H 4 Z`, `bottomright` `M 4,0 V 4 H 0 Z`.
+  - Open the SVG with a comment naming the consumer, the five ids, and the provenance: the
+consumer stretches each element over the margin band, `#CCCCFF` is the reference selection colour,
+and 0.3 is the default theme's margin-highlight opacity.
+- `tests/support/desktoptheme_paths.py`: add `MARGINS_HIGHLIGHT_SVG` pointing at
+`widgets/margins-highlight.svg`.
+- `tests/test_desktoptheme.py`: add `("margins-highlight.svg", MARGINS_HIGHLIGHT_SVG, 4, 4)` to
+`SVG_CANVASES`, so `TestSvgRootCanvas`'s canvas, unique-id and self-contained loops cover it.
+- New `tests/test_desktoptheme_marginshighlight.py`: pin the five ids, the flat `fill` rect at
+`(0,0,4,4)`, each corner path's exact `d` and the four corner orientations, every fill `#CCCCFF`,
+every `fill-opacity` `0.3`, and the absence of scripts, styles and external references.
+- `README.md`: after the `widgets/action-overlays.svg` sentence, record
+`widgets/margins-highlight.svg` as the translucent lavender panel-margin highlight shown in edit
+mode, and note that the panel resize/slider handles still come from the fallback theme.
+- `docs/invariants.md`: add a `## desktoptheme` row stating that the margin highlight's flat fill
+and four corner wedges share the grounded selection lavender at KDE's 0.3 highlight opacity, pinned
+by `tests/test_desktoptheme_marginshighlight.py`; the provenance exception records that no
+reference screenshot shows panel edit mode, so the five ids and 0.3 opacity are KDE-required while
+the colour reuses the reference selection anchor.
+- `PLANS.md`: in the scope-drift paragraph, change the desktop-theme count from twenty-four to
+twenty-five widget SVGs, name the new margin highlight, and state that
+`widgets/containment-controls.svg` still falls back.
+
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/margins-highlight.svg` (new),
+`tests/test_desktoptheme_marginshighlight.py` (new), `tests/support/desktoptheme_paths.py`,
+`tests/test_desktoptheme.py`, `README.md`, `docs/invariants.md`, `PLANS.md`.
+
+**Acceptance criteria.**
+- The new SVG parses as a 4x4 square with the five ids present and unique, every fill `#CCCCFF`,
+every `fill-opacity` `0.3`, and no script, style or external reference.
+- `fill` is the full 4x4 rect and each corner id is its pinned quarter-canvas triangle; dropping
+an id, nudging a path, changing a fill or changing the opacity fails a test.
+- `TestSvgRootCanvas`'s registry covers the new file, and the README and `docs/invariants.md`
+name it; `tests/invariants.py` accepts the new row and the scope-drift count is twenty-five.
+- `make check` is green.
+
 ## Done
