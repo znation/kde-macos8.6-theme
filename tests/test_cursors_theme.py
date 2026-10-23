@@ -25,13 +25,48 @@ PACKAGE = make_cursors.ROOT / make_cursors.PACKAGE_DIR
 CURSORS = PACKAGE / make_cursors.CURSORS_DIR
 LEFT_PTR = CURSORS / "left_ptr"
 SIZES = (16, 24, 32)
-CANONICAL = ("left_ptr", "xterm", "hand2", "watch", "fleur")
+CANONICAL = (
+    "left_ptr",
+    "xterm",
+    "hand2",
+    "watch",
+    "fleur",
+    "size_hor",
+    "size_ver",
+    "size_fdiag",
+    "size_bdiag",
+    "crosshair",
+    "not-allowed",
+)
 ALIASES = {
     "left_ptr": ("arrow", "default", "top_left_arrow"),
     "xterm": ("text", "ibeam"),
     "hand2": ("hand1", "pointer", "pointing_hand"),
     "watch": ("wait",),
     "fleur": ("move", "all-scroll", "size_all"),
+    "size_hor": (
+        "e-resize",
+        "ew-resize",
+        "w-resize",
+        "h_double_arrow",
+        "sb_h_double_arrow",
+    ),
+    "size_ver": (
+        "n-resize",
+        "ns-resize",
+        "s-resize",
+        "sb_v_double_arrow",
+        "v_double_arrow",
+        "00008160000006810000408080010102",
+    ),
+    "size_fdiag": ("nw-resize", "se-resize", "nwse-resize"),
+    "size_bdiag": ("ne-resize", "sw-resize", "nesw-resize"),
+    "crosshair": ("cross", "tcross"),
+    "not-allowed": (
+        "circle",
+        "crossed_circle",
+        "03b6e0fcb3499374a867c041f52298f0",
+    ),
 }
 CURSOR_FILES = tuple(
     name for canonical in CANONICAL for name in (canonical, *ALIASES[canonical])
@@ -42,6 +77,12 @@ HOTSPOTS = {
     "hand2": {16: (7, 2), 24: (11, 3), 32: (14, 4)},
     "watch": {16: (7, 5), 24: (11, 8), 32: (14, 10)},
     "fleur": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "size_hor": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "size_ver": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "size_fdiag": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "size_bdiag": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "crosshair": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "not-allowed": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
 }
 # A grid pixel that must be black (the face) and one that must be white (the
 # outline) at the same place in every nominal size.
@@ -51,10 +92,27 @@ PINNED_PIXELS = {
     "hand2": {"face": (7, 2), "outline": (7, 1)},
     "watch": {"face": (7, 5), "outline": (6, 5)},
     "fleur": {"face": (7, 7), "outline": (7, 0)},
+    "size_hor": {"face": (7, 7), "outline": (7, 6)},
+    "size_ver": {"face": (7, 7), "outline": (6, 7)},
+    "size_fdiag": {"face": (7, 7), "outline": (6, 7)},
+    "size_bdiag": {"face": (7, 7), "outline": (6, 7)},
+    "crosshair": {"face": (7, 7), "outline": (6, 6)},
+    "not-allowed": {"face": (7, 7), "outline": (7, 0)},
 }
 # The arrow's top-left corner is its white outline pixel; the other cursors
 # leave all four corners transparent.
-TRANSPARENT_CORNER_CURSORS = ("xterm", "hand2", "watch", "fleur")
+TRANSPARENT_CORNER_CURSORS = (
+    "xterm",
+    "hand2",
+    "watch",
+    "fleur",
+    "size_hor",
+    "size_ver",
+    "size_fdiag",
+    "size_bdiag",
+    "crosshair",
+    "not-allowed",
+)
 BLACK = (0, 0, 0, 255)
 WHITE = (255, 255, 255, 255)
 TRANSPARENT = (0, 0, 0, 0)
@@ -296,6 +354,74 @@ class TestCursorSet(unittest.TestCase):
                 self.assertIn(
                     f"{canonical} grid cell (0, 0)", str(caught.exception)
                 )
+
+    def test_size_ver_is_the_horizontal_glyph_rotated_a_quarter_turn(self):
+        size = make_cursors.GRID_SIZE
+        rotated = tuple(
+            "".join(
+                make_cursors.SIZE_HOR_GRID[size - 1 - x][y]
+                for x in range(size)
+            )
+            for y in range(size)
+        )
+        self.assertEqual(
+            make_cursors.render_rgba(make_cursors.SIZE_VER_GRID, size),
+            make_cursors.render_rgba(rotated, size),
+        )
+
+    def test_size_bdiag_is_the_forward_diagonal_mirrored(self):
+        size = make_cursors.GRID_SIZE
+        mirrored = tuple(row[::-1] for row in make_cursors.SIZE_FDIAG_GRID)
+        self.assertEqual(
+            make_cursors.render_rgba(make_cursors.SIZE_BDIAG_GRID, size),
+            make_cursors.render_rgba(mirrored, size),
+        )
+
+    def test_crosshair_black_cells_lie_on_the_centre_row_or_column(self):
+        size = make_cursors.GRID_SIZE
+        centre = size // 2 - 1
+        rgba = make_cursors.render_rgba(make_cursors.CROSSHAIR_GRID, size)
+        for y in range(size):
+            for x in range(size):
+                if _pixel(rgba, size, x, y) == BLACK:
+                    with self.subTest(x=x, y=y):
+                        self.assertTrue(x == centre or y == centre)
+
+    def test_not_allowed_is_a_ring_with_a_slash(self):
+        cursor = _read_cursor(CURSORS / "not-allowed")
+        image = next(
+            image for image in cursor.images if image.nominal_size == 16
+        )
+        width, _, rgba = decode_rgba(image.png)
+        for x, y in ((0, 0), (15, 0), (0, 15), (15, 15)):
+            with self.subTest(corner=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
+        self.assertEqual(_pixel(rgba, width, 7, 7), BLACK)
+        for x, y in ((7, 0), (7, 15), (0, 7), (15, 7)):
+            with self.subTest(cardinal=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+
+    def test_not_allowed_ring_interior_is_transparent_except_the_slash(self):
+        cursor = _read_cursor(CURSORS / "not-allowed")
+        image = next(
+            image for image in cursor.images if image.nominal_size == 16
+        )
+        width, height, rgba = decode_rgba(image.png)
+        slash = {(i, i) for i in range(4, 13)}
+        slash_outline = {
+            (x + dx, y + dy)
+            for x, y in slash
+            for dx, dy in ((1, 0), (0, 1))
+        }
+        for y in range(height):
+            for x in range(width):
+                if (x, y) in slash or (x, y) in slash_outline:
+                    continue
+                if (x - 7.5) ** 2 + (y - 7.5) ** 2 < 7.0**2:
+                    with self.subTest(interior=(x, y)):
+                        self.assertNotEqual(
+                            _pixel(rgba, width, x, y), WHITE
+                        )
 
 
 class TestGridValidation(unittest.TestCase):
