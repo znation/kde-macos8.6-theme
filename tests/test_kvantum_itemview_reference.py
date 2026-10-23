@@ -24,8 +24,7 @@ from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from svg_assertions import corner_map, edge_map, pixel_map, render_slices
-from svg_assertions.faces import sunken_outside_face_corners
+from svg_assertions import assert_sunken_outside_field, render_slices
 
 # The installer CD Finder window's item view in setup_emaculation.png (retail
 # Mac OS 8.6). Its 2px border is a #999999/#FFFFFF bevel outside a 1px #000000
@@ -82,16 +81,6 @@ FIELD_ANCHORS = {
     "highlight": (453, 200),
 }
 
-# The outer 2x2 block of each `sunken_outside` 3x3 corner table: the block
-# holding the outer corner pixel, which never contains the table's face
-# pixel. Row-major slice-local indices into the 3x3 table.
-_OUTER_BLOCK_INDICES = {
-    "topleft": (0, 1, 3, 4),
-    "topright": (1, 2, 4, 5),
-    "bottomleft": (3, 4, 6, 7),
-    "bottomright": (4, 5, 7, 8),
-}
-
 ITEMVIEW_SIZE = 30
 
 
@@ -137,34 +126,9 @@ class TestItemViewReference(ReferenceScreenshotMixin, unittest.TestCase):
         self.assertEqual(colours["face"], "#FFFFFF")
         self.assertEqual(colours["highlight"], "#FFFFFF")
         slices = render_slices(parse_svg(SVG))
-        prefix = "itemview-normal"
-        self.assertEqual(
-            slices[prefix],
-            pixel_map(
-                (colours["face"],) * (ITEMVIEW_SIZE * ITEMVIEW_SIZE),
-                ITEMVIEW_SIZE,
-                ITEMVIEW_SIZE,
-            ),
+        assert_sunken_outside_field(
+            self, slices, "itemview-normal", ITEMVIEW_SIZE, colours
         )
-        edges = {
-            "top": (colours["shadow"], colours["outline"]),
-            "bottom": (colours["highlight"], colours["outline"]),
-            "left": (colours["shadow"], colours["outline"]),
-            "right": (colours["highlight"], colours["outline"]),
-        }
-        for side, (outer, inner) in edges.items():
-            self.assertEqual(
-                slices[f"{prefix}-{side}"],
-                edge_map(ITEMVIEW_SIZE, side, outer, inner),
-                side,
-            )
-        table = sunken_outside_face_corners(colours["face"])
-        corners = {
-            name: corner_map(tuple(table[name][index] for index in indices))
-            for name, indices in _OUTER_BLOCK_INDICES.items()
-        }
-        for name, expected in corners.items():
-            self.assertEqual(slices[f"{prefix}-{name}"], expected, name)
 
 
 if __name__ == "__main__":

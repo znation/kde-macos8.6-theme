@@ -8,9 +8,9 @@ its message. The layout and arc assertions live in
 
 from __future__ import annotations
 
-from .faces import face_corners, face_edge_bands
+from .faces import face_corners, face_edge_bands, sunken_outside_face_corners
 from .nine_slice import nine_slice_tile_sizes
-from .render import pixel_map, render_slices
+from .render import corner_map, edge_map, pixel_map, render_slices
 from .tree import SLICE_IDS, attribute_values
 
 
@@ -165,6 +165,48 @@ def assert_face_corners(case, slices, prefix, corners):
     sep = "-" if prefix else ""
     for name, expected in corners.items():
         assert_corner_pixels(case, slices, f"{prefix}{sep}{name}", expected)
+
+
+# The outer 2x2 block of each `sunken_outside` 3x3 corner table: the block
+# holding the outer corner pixel, which never contains the table's face
+# pixel. Row-major slice-local indices into the 3x3 table.
+_OUTER_BLOCK_INDICES = {
+    "topleft": (0, 1, 3, 4),
+    "topright": (1, 2, 4, 5),
+    "bottomleft": (3, 4, 6, 7),
+    "bottomright": (4, 5, 7, 8),
+}
+
+
+def assert_sunken_outside_field(case, slices, prefix, size, colours):
+    """Assert *prefix* paints the reference field's sunken-outside arrangement.
+
+    *colours* maps ``"face"``, ``"shadow"``, ``"outline"`` and
+    ``"highlight"`` to the values sampled for the field: a solid *face*
+    centre *size* x *size*, each 2px edge as (outer, inner) with the
+    top/left edges shadow then outline and the bottom/right ones highlight
+    then outline, and the outer 2x2 block of each
+    `sunken_outside_face_corners` corner. The Kvantum line-edit and
+    item-view reference tests and the Kvantum line-edit/item-view bevel
+    tests derive *colours* from their reference or palette and pass the
+    shipped `render_slices`; this names the arrangement once instead of
+    repeating it in each. *case* is the calling ``unittest.TestCase``.
+    """
+    assert_center_tile_is(case, slices, prefix, colours["face"], size)
+    edges = {
+        "top": (colours["shadow"], colours["outline"]),
+        "bottom": (colours["highlight"], colours["outline"]),
+        "left": (colours["shadow"], colours["outline"]),
+        "right": (colours["highlight"], colours["outline"]),
+    }
+    for side, (outer, inner) in edges.items():
+        assert_slice_pixels(
+            case, slices, f"{prefix}-{side}", edge_map(size, side, outer, inner)
+        )
+    table = sunken_outside_face_corners(colours["face"])
+    for name, indices in _OUTER_BLOCK_INDICES.items():
+        expected = corner_map(tuple(table[name][index] for index in indices))
+        assert_slice_pixels(case, slices, f"{prefix}-{name}", expected)
 
 
 def assert_center_tile_is(case, slices, name, colour, size):

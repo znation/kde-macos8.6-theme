@@ -14,74 +14,15 @@ image is not materialized.
 
 from __future__ import annotations
 
-import os
 import unittest
 
+from support.desktoptheme_paths import FIRSTBOOT_MAX_ROWS, FIRSTBOOT_REFERENCE
+from support.firstboot_lineedit import FIELD_BORDER_RUNS, FIELD_CORNER_PIXELS
 from support.kvantum_fixtures import SVG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
-from support.repo_root import ROOT
-from svg_assertions import corner_map, edge_map, pixel_map, render_slices
-from svg_assertions.faces import sunken_outside_face_corners
-
-# The Setup Assistant body text field in firstboot_betawiki.png (retail Mac OS
-# 8.6). Its 2px border is a #999999/#FFFFFF bevel outside a 1px #000000
-# outline, over the #FFFFFF face. Only the field's bottom row is a constant,
-# to bound the decode; the runs and corners below pin its other edges.
-REFERENCE = os.path.join(
-    ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
-)
-FIELD_BOTTOM = 377
-MAX_ROWS = FIELD_BOTTOM + 1
-
-# The field's border runs, read from the outside in: the bevel's outer pixel,
-# the #000000 outline and the #FFFFFF face. One run per side, away from the
-# corners.
-FIELD_BORDER_RUNS = (
-    # left border, left to right at y=95
-    ((28, 95), "#999999"),
-    ((29, 95), "#000000"),
-    ((30, 95), "#FFFFFF"),
-    # top border, top to bottom at x=100
-    ((100, 58), "#999999"),
-    ((100, 59), "#000000"),
-    ((100, 60), "#FFFFFF"),
-    # right border at y=150: face, outline, outer highlight
-    ((429, 150), "#FFFFFF"),
-    ((430, 150), "#000000"),
-    ((431, 150), "#FFFFFF"),
-    # bottom border at x=100: outline, outer highlight
-    ((100, 376), "#000000"),
-    ((100, 377), "#FFFFFF"),
-)
-
-# The field's four 2x2 corners, row-major from the field's top-left pixel.
-# The top-right outer pixel (431,58) is the window face #CCCCCC: the top
-# shadow stops one pixel short of the outer highlight, so that corner leaves
-# it unpainted, and the shipped corner tile does too. The field's true bottom
-# is y=377: the bottom-left outer pixel (28,377) is the window face #CCCCCC
-# (the highlight starts one pixel in at (29,377)), and the bottom-right
-# outline stops one row short at (430,376), leaving (430,377) to the
-# highlight.
-FIELD_CORNER_PIXELS = (
-    ((28, 58), "#999999"),
-    ((29, 58), "#999999"),
-    ((28, 59), "#999999"),
-    ((29, 59), "#000000"),
-    ((430, 58), "#999999"),
-    ((431, 58), "#CCCCCC"),
-    ((430, 59), "#000000"),
-    ((431, 59), "#FFFFFF"),
-    ((28, 376), "#999999"),
-    ((29, 376), "#000000"),
-    ((28, 377), "#CCCCCC"),
-    ((29, 377), "#FFFFFF"),
-    ((430, 376), "#000000"),
-    ((431, 376), "#FFFFFF"),
-    ((430, 377), "#FFFFFF"),
-    ((431, 377), "#FFFFFF"),
-)
+from svg_assertions import assert_sunken_outside_field, render_slices
 
 # One reference pixel per colour: the top-left shadow, the #000000 outline
 # inside it, the #FFFFFF face, and the right edge's outer #FFFFFF highlight.
@@ -90,16 +31,6 @@ FIELD_ANCHORS = {
     "outline": (29, 95),
     "face": (30, 95),
     "highlight": (431, 150),
-}
-
-# The outer 2x2 block of each `sunken_outside` 3x3 corner table: the block
-# holding the outer corner pixel, which never contains the table's face
-# pixel. Row-major slice-local indices into the 3x3 table.
-_OUTER_BLOCK_INDICES = {
-    "topleft": (0, 1, 3, 4),
-    "topright": (1, 2, 4, 5),
-    "bottomleft": (3, 4, 6, 7),
-    "bottomright": (4, 5, 7, 8),
 }
 
 LINEEDIT_SIZE = 30
@@ -115,8 +46,8 @@ class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
     to paint the arrangement they describe.
     """
 
-    REFERENCE = REFERENCE
-    MAX_ROWS = MAX_ROWS
+    REFERENCE = FIRSTBOOT_REFERENCE
+    MAX_ROWS = FIRSTBOOT_MAX_ROWS
 
     def test_borders_are_the_sunken_bevel_outside_the_outline(self):
         # Re-derive the field's four border runs from the reference rather
@@ -147,31 +78,9 @@ class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
         self.assertEqual(colours["face"], "#FFFFFF")
         self.assertEqual(colours["highlight"], "#FFFFFF")
         slices = render_slices(parse_svg(SVG))
-        prefix = "lineedit-normal"
-        self.assertEqual(
-            slices[prefix],
-            pixel_map(
-                (colours["face"],) * (LINEEDIT_SIZE * LINEEDIT_SIZE),
-                LINEEDIT_SIZE,
-                LINEEDIT_SIZE,
-            ),
+        assert_sunken_outside_field(
+            self, slices, "lineedit-normal", LINEEDIT_SIZE, colours
         )
-        edges = {
-            "top": (colours["shadow"], colours["outline"]),
-            "bottom": (colours["highlight"], colours["outline"]),
-            "left": (colours["shadow"], colours["outline"]),
-            "right": (colours["highlight"], colours["outline"]),
-        }
-        for side, (outer, inner) in edges.items():
-            self.assertEqual(
-                slices[f"{prefix}-{side}"],
-                edge_map(LINEEDIT_SIZE, side, outer, inner),
-                side,
-            )
-        table = sunken_outside_face_corners(colours["face"])
-        for name, indices in _OUTER_BLOCK_INDICES.items():
-            expected = corner_map(tuple(table[name][index] for index in indices))
-            self.assertEqual(slices[f"{prefix}-{name}"], expected, name)
 
 
 if __name__ == "__main__":

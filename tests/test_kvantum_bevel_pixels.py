@@ -21,13 +21,12 @@ from support.platinum_palette import (
 from support.svg_case import parse_svg
 from svg_assertions import (
     assert_slice_pixels,
+    assert_sunken_outside_field,
     bevel_corner_maps,
     bevel_edge_maps,
-    corner_map,
     edge_map,
     pixel_map,
     render_slices,
-    sunken_outside_face_corners,
 )
 
 # Each button state's bevel direction. Kvantum draws the `button-pressed` and
@@ -175,37 +174,14 @@ class TestButtonBevelPixels(unittest.TestCase):
 LINEEDIT_SIZE = 30
 LINEEDIT_FACE = WHITE
 
-# Each edge slice as (outer, inner), read from the field's outer edge inward.
-# A top/left edge runs outer-to-inner down/right; a bottom/right edge runs
-# inner-to-outer down/right, so `edge_map` places the pair.
-LINEEDIT_EDGES = {
-    "top": ("#999999", "#000000"),
-    "bottom": ("#FFFFFF", "#000000"),
-    "left": ("#999999", "#000000"),
-    "right": ("#FFFFFF", "#000000"),
+# The field's four colours: the top/left outer shadow, the #000000 outline
+# inside it, the #FFFFFF face and the bottom/right outer highlight.
+LINEEDIT_COLOURS = {
+    "shadow": "#999999",
+    "outline": "#000000",
+    "face": LINEEDIT_FACE,
+    "highlight": WHITE,
 }
-
-# The 2x2 corner slices are the outer 2x2 block of each `sunken_outside`
-# 3x3 corner table -- the block holding the outer corner pixel, which never
-# contains the table's face pixel. Row-major slice-local indices into the
-# 3x3 table.
-_LINEEDIT_CORNER_BLOCKS = {
-    "topleft": (0, 1, 3, 4),
-    "topright": (1, 2, 4, 5),
-    "bottomleft": (3, 4, 6, 7),
-    "bottomright": (4, 5, 7, 8),
-}
-
-
-def _lineedit_corners():
-    """Return each 2x2 corner's expected pixel map, keyed by corner name."""
-    table = sunken_outside_face_corners(LINEEDIT_FACE)
-    return {
-        name: corner_map(
-            tuple(table[name][index] for index in indices)
-        )
-        for name, indices in _LINEEDIT_CORNER_BLOCKS.items()
-    }
 
 
 class TestLineEditBevelPixels(unittest.TestCase):
@@ -221,27 +197,15 @@ class TestLineEditBevelPixels(unittest.TestCase):
         self.slices = render_slices(parse_svg(SVG))
 
     def test_every_lineedit_state_paints_the_sunken_outside_field(self):
-        centre = pixel_map(
-            (LINEEDIT_FACE,) * (LINEEDIT_SIZE * LINEEDIT_SIZE),
-            LINEEDIT_SIZE,
-            LINEEDIT_SIZE,
-        )
-        corners = _lineedit_corners()
         for state in ("normal", "focused"):
-            prefix = f"lineedit-{state}"
             with self.subTest(state=state):
-                assert_slice_pixels(self, self.slices, prefix, centre)
-                for side, (outer, inner) in LINEEDIT_EDGES.items():
-                    assert_slice_pixels(
-                        self,
-                        self.slices,
-                        f"{prefix}-{side}",
-                        edge_map(LINEEDIT_SIZE, side, outer, inner),
-                    )
-                for name, expected in corners.items():
-                    assert_slice_pixels(
-                        self, self.slices, f"{prefix}-{name}", expected
-                    )
+                assert_sunken_outside_field(
+                    self,
+                    self.slices,
+                    f"lineedit-{state}",
+                    LINEEDIT_SIZE,
+                    LINEEDIT_COLOURS,
+                )
 
 
 class TestItemViewBevelPixels(unittest.TestCase):
@@ -258,27 +222,15 @@ class TestItemViewBevelPixels(unittest.TestCase):
         self.slices = render_slices(parse_svg(SVG))
 
     def test_every_itemview_state_paints_the_sunken_outside_field(self):
-        centre = pixel_map(
-            (LINEEDIT_FACE,) * (LINEEDIT_SIZE * LINEEDIT_SIZE),
-            LINEEDIT_SIZE,
-            LINEEDIT_SIZE,
-        )
-        corners = _lineedit_corners()
         for state in ("normal", "focused"):
-            prefix = f"itemview-{state}"
             with self.subTest(state=state):
-                assert_slice_pixels(self, self.slices, prefix, centre)
-                for side, (outer, inner) in LINEEDIT_EDGES.items():
-                    assert_slice_pixels(
-                        self,
-                        self.slices,
-                        f"{prefix}-{side}",
-                        edge_map(LINEEDIT_SIZE, side, outer, inner),
-                    )
-                for name, expected in corners.items():
-                    assert_slice_pixels(
-                        self, self.slices, f"{prefix}-{name}", expected
-                    )
+                assert_sunken_outside_field(
+                    self,
+                    self.slices,
+                    f"itemview-{state}",
+                    LINEEDIT_SIZE,
+                    LINEEDIT_COLOURS,
+                )
 
 
 class TestSurfaceBevelPixels(unittest.TestCase):

@@ -9,6 +9,7 @@ from support.desktoptheme_paths import (
     FIRSTBOOT_REFERENCE,
     LINEEDIT_SVG,
 )
+from support.firstboot_lineedit import FIELD_BORDER_RUNS, FIELD_CORNER_PIXELS
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
@@ -72,52 +73,14 @@ class TestLineEdit(NineSliceCase, unittest.TestCase):
         )
 
 
-# The three border runs of the Setup Assistant body text field in
-# macos8.6-screenshots/firstboot_betawiki.png (retail Mac OS 8.6). Each run
-# reads the field's edge inward: the bevel is the outer pixel, the #000000
-# outline sits inside it, and the #FFFFFF face is innermost.
-FIELD_BORDER_RUNS = (
-    # left border, left to right at y=95
-    ((28, 95), "#999999"),
-    ((29, 95), "#000000"),
-    ((30, 95), "#FFFFFF"),
-    # right border at y=150: face, outline, outer highlight
-    ((429, 150), "#FFFFFF"),
-    ((430, 150), "#000000"),
-    ((431, 150), "#FFFFFF"),
-    # bottom border at x=100: outline, outer highlight
-    ((100, 376), "#000000"),
-    ((100, 377), "#FFFFFF"),
-)
-
-# The field's corner pixels in the same screenshot. The top-right outer pixel
-# is the window face #CCCCCC: the top shadow stops one pixel short of the
-# outer highlight, so the field's top-right corner tile leaves it unpainted.
-# The field's true bottom is y=377: the bottom-left outer pixel (28,377) is
-# the window face #CCCCCC (the highlight starts one pixel in), and the
-# #000000 outline stops one row short of the bottom-right outer edge.
-FIELD_CORNER_PIXELS = (
-    ((28, 58), "#999999"),
-    ((431, 58), "#CCCCCC"),
-    ((28, 376), "#999999"),
-    ((29, 376), "#000000"),
-    ((28, 377), "#CCCCCC"),
-    ((29, 377), "#FFFFFF"),
-    ((430, 376), "#000000"),
-    ((431, 376), "#FFFFFF"),
-    ((430, 377), "#FFFFFF"),
-    ((431, 377), "#FFFFFF"),
-)
-
-
 class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = FIRSTBOOT_REFERENCE
     MAX_ROWS = FIRSTBOOT_MAX_ROWS
 
     def test_borders_are_the_sunken_bevel_outside_the_outline(self):
-        # Re-derive the field's three border runs from the reference rather
-        # than trust the SVG comment: the outer ring is the bevel, the inner
-        # ring the #000000 outline, and the face #FFFFFF.
+        # Re-derive the field's border runs from the reference rather than
+        # trust the SVG comment: the outer ring is the bevel, the inner ring
+        # the #000000 outline, and the face #FFFFFF.
         for (x, y), colour in FIELD_BORDER_RUNS:
             self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
 

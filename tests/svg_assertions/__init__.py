@@ -93,4 +93,5 @@ from .pixels import (
     assert_slices_fill_their_tiles,
     assert_slices_have_no_fill,
     assert_slices_uniform,
+    assert_sunken_outside_field,
 )
