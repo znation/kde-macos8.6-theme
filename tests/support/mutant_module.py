@@ -12,6 +12,7 @@ class Helper:
     """A class with no test-shaped method; a reference to it names no test."""
 
     def helper(self):
+        """Do nothing; the resolver must see no test-shaped method here."""
         pass
 
 

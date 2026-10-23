@@ -60,6 +60,7 @@ class Scratch:
 
     @classmethod
     def build(cls, tmp):
+        """Copy the shipped tests tree and registers into *tmp*; return it reset."""
         root = Path(tmp)
         shutil.copytree(
             ROOT / "tests",
@@ -77,16 +78,20 @@ class Scratch:
 
     @property
     def invariants_register(self):
+        """Return the scratch copy's invariants-register path."""
         return str(self.root / INVARIANTS_REGISTER)
 
     @property
     def placeholders_register(self):
+        """Return the scratch copy's placeholder-register path."""
         return str(self.root / PLACEHOLDERS_REGISTER)
 
     def read_invariants(self):
+        """Return the scratch invariants register's text."""
         return (self.root / INVARIANTS_REGISTER).read_text(encoding="utf-8")
 
     def reset(self):
+        """Restore the scratch root's seeded files and remove every mutation."""
         for path in self._directories:
             shutil.rmtree(path, ignore_errors=True)
         self._directories = []
@@ -100,9 +105,11 @@ class Scratch:
         self._write(PLACEHOLDERS_REGISTER, self.placeholders_text)
 
     def write_invariants(self, text):
+        """Replace the scratch invariants register with *text*."""
         self._write(INVARIANTS_REGISTER, text)
 
     def write_placeholders(self, text):
+        """Replace the scratch placeholder register with *text*."""
         self._write(PLACEHOLDERS_REGISTER, text)
 
     def write_repo_file(self, rel, text):
