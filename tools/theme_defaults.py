@@ -165,15 +165,55 @@ def _write_config_atomically(path: Path, content: str) -> None:
     )
 
 
+def _config_name(name: object) -> str:
+    """Return *name* as a plain config filename, refusing a path.
+
+    :func:`write_configs` joins each name onto the caller's config home, so a
+    name carrying a separator (``../kwinrc``) or an absolute path would write
+    outside it. The defaults file only ever names flat files such as
+    ``kwinrc``, so anything that is not its own basename is refused before a
+    single file is written. A NUL byte is refused too: ``open()`` would raise
+    ``ValueError`` for it after the earlier files had already been written.
+    """
+    if not isinstance(name, str):
+        raise ValueError(
+            f"write_configs names must be str config filenames, not "
+            f"{type(name).__name__}"
+        )
+    if (
+        not name
+        or name in (".", "..")
+        or name != Path(name).name
+        or "\0" in name
+    ):
+        raise ValueError(
+            f"write_configs names must be plain config filenames inside "
+            f"the config home: {name!r}"
+        )
+    return name
+
+
 def write_configs(config_home: Path, names: Iterable[str]) -> None:
-    """Write one config file per name in *names* from the defaults' sections for it."""
+    """Write one config file per name in *names* from the defaults' sections for it.
+
+    Each name must be a bare filename, so the writes stay inside *config_home*;
+    a list of names is validated before any of them is written, and a single
+    string is refused rather than iterated character by character into one
+    file per letter.
+    """
     if not isinstance(config_home, Path):
         raise ValueError(
             f"write_configs config_home must be a pathlib.Path, not "
             f"{type(config_home).__name__}"
         )
+    if isinstance(names, (str, bytes)):
+        raise ValueError(
+            "write_configs names must be a sequence of config filenames, "
+            f"not a single {type(names).__name__}: {names!r}"
+        )
+    wanted = [_config_name(name) for name in names]
     groups = defaults_groups()
-    for name in names:
+    for name in wanted:
         lines: list[str] = []
         for (file, group), values in groups.items():
             if file != name:
