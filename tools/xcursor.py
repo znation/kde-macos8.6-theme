@@ -13,8 +13,10 @@ ARGB words, not PNG bytes: each PNG frame is decoded with
 ``(channel * alpha + 127) // 255``, and alpha is stored unchanged. The write
 is deterministic, so the same records always produce byte-identical output.
 
-Part 3/3's ``## cursors`` invariant section carries this provenance to the
-committed artifact.
+When part 3/3 ships the artifact it records this provenance in the existing
+``## icons`` row of ``docs/invariants.md``; no ``## cursors`` section exists,
+because ``tests/invariants.py`` accepts only ``theme/`` subsystem sections plus
+``tooling``.
 """
 
 from __future__ import annotations
