@@ -65,6 +65,7 @@ SHIPPED_CURSORS = tuple(
         "arrow",
         "default",
         "top_left_arrow",
+        "dnd-none",
         "xterm",
         "text",
         "ibeam",
@@ -78,6 +79,7 @@ SHIPPED_CURSORS = tuple(
         "move",
         "all-scroll",
         "size_all",
+        "dnd-move",
         "size_hor",
         "e-resize",
         "ew-resize",
@@ -106,6 +108,12 @@ SHIPPED_CURSORS = tuple(
         "circle",
         "crossed_circle",
         "03b6e0fcb3499374a867c041f52298f0",
+        "forbidden",
+        "no-drop",
+        "dnd-no-drop",
+        "dnd-copy",
+        "grab",
+        "grabbing",
     )
 )
 

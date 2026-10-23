@@ -37,13 +37,16 @@ CANONICAL = (
     "size_bdiag",
     "crosshair",
     "not-allowed",
+    "dnd-copy",
+    "grab",
+    "grabbing",
 )
 ALIASES = {
-    "left_ptr": ("arrow", "default", "top_left_arrow"),
+    "left_ptr": ("arrow", "default", "top_left_arrow", "dnd-none"),
     "xterm": ("text", "ibeam"),
     "hand2": ("hand1", "pointer", "pointing_hand"),
     "watch": ("wait",),
-    "fleur": ("move", "all-scroll", "size_all"),
+    "fleur": ("move", "all-scroll", "size_all", "dnd-move"),
     "size_hor": (
         "e-resize",
         "ew-resize",
@@ -66,7 +69,13 @@ ALIASES = {
         "circle",
         "crossed_circle",
         "03b6e0fcb3499374a867c041f52298f0",
+        "forbidden",
+        "no-drop",
+        "dnd-no-drop",
     ),
+    "dnd-copy": (),
+    "grab": (),
+    "grabbing": (),
 }
 CURSOR_FILES = tuple(
     name for canonical in CANONICAL for name in (canonical, *ALIASES[canonical])
@@ -83,6 +92,9 @@ HOTSPOTS = {
     "size_bdiag": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "crosshair": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "not-allowed": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "dnd-copy": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "grab": {16: (7, 12), 24: (11, 18), 32: (14, 24)},
+    "grabbing": {16: (7, 12), 24: (11, 18), 32: (14, 24)},
 }
 # A grid pixel that must be black (the face) and one that must be white (the
 # outline) at the same place in every nominal size.
@@ -98,6 +110,9 @@ PINNED_PIXELS = {
     "size_bdiag": {"face": (7, 7), "outline": (6, 7)},
     "crosshair": {"face": (7, 7), "outline": (6, 6)},
     "not-allowed": {"face": (7, 7), "outline": (7, 0)},
+    "dnd-copy": {"face": (7, 7), "outline": (6, 7)},
+    "grab": {"face": (7, 12), "outline": (1, 12)},
+    "grabbing": {"face": (7, 12), "outline": (1, 12)},
 }
 # The arrow's top-left corner is its white outline pixel; the other cursors
 # leave all four corners transparent.
@@ -112,6 +127,9 @@ TRANSPARENT_CORNER_CURSORS = (
     "size_bdiag",
     "crosshair",
     "not-allowed",
+    "dnd-copy",
+    "grab",
+    "grabbing",
 )
 BLACK = (0, 0, 0, 255)
 WHITE = (255, 255, 255, 255)
@@ -422,6 +440,56 @@ class TestCursorSet(unittest.TestCase):
                         self.assertNotEqual(
                             _pixel(rgba, width, x, y), WHITE
                         )
+    def test_dnd_copy_is_a_centred_plus(self):
+        cursor = _read_cursor(CURSORS / "dnd-copy")
+        image = next(
+            image for image in cursor.images if image.nominal_size == 16
+        )
+        width, _, rgba = decode_rgba(image.png)
+        for x, y in ((7, 2), (7, 12), (2, 7), (12, 7), (7, 7)):
+            with self.subTest(black=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in ((6, 7), (7, 1)):
+            with self.subTest(white=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+        for x, y in ((0, 0), (15, 0), (0, 15), (15, 15)):
+            with self.subTest(corner=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
+
+    def test_grab_and_grabbing_pin_open_and_closed_hands(self):
+        images = {}
+        for name in ("grab", "grabbing"):
+            cursor = _read_cursor(CURSORS / name)
+            image = next(
+                image for image in cursor.images if image.nominal_size == 16
+            )
+            images[name] = (image.nominal_size, *decode_rgba(image.png))
+        for name in ("grab", "grabbing"):
+            width, _, rgba = images[name][1:]
+            with self.subTest(name=name):
+                self.assertEqual(_pixel(rgba, width, 7, 12), BLACK)
+                self.assertEqual(_pixel(rgba, width, 1, 12), WHITE)
+        width, _, rgba = images["grab"][1:]
+        self.assertEqual(_pixel(rgba, width, 3, 2), BLACK)
+        width, _, rgba = images["grabbing"][1:]
+        self.assertEqual(_pixel(rgba, width, 3, 2), TRANSPARENT)
+        self.assertNotEqual(
+            make_cursors.GRAB_GRID, make_cursors.GRABBING_GRID
+        )
+
+    def test_dnd_aliases_reuse_the_landed_glyphs(self):
+        for alias, canonical in (
+            ("dnd-move", "fleur"),
+            ("dnd-none", "left_ptr"),
+            ("forbidden", "not-allowed"),
+            ("no-drop", "not-allowed"),
+            ("dnd-no-drop", "not-allowed"),
+        ):
+            with self.subTest(alias=alias):
+                self.assertEqual(
+                    (CURSORS / alias).read_bytes(),
+                    (CURSORS / canonical).read_bytes(),
+                )
 
 
 class TestGridValidation(unittest.TestCase):

@@ -1,12 +1,14 @@
 """Generate the Mac OS 8.6 Platinum Xcursor pointer set from pixel grids.
 
-The theme ships eleven cursors inside the ``org.macos8.desktop`` icon theme
+The theme ships fourteen cursors inside the ``org.macos8.desktop`` icon theme
 package, under ``cursors/``: ``left_ptr`` (the arrow), ``xterm`` (the text
 I-beam), ``hand2`` (the pointing hand), ``watch`` (the busy hourglass),
 ``fleur`` (the move cross), ``size_hor`` and ``size_ver`` (the horizontal and
 vertical resize arrows), ``size_fdiag`` and ``size_bdiag`` (the NW-SE and NE-SW
-resize arrows), ``crosshair`` (the precision cross) and ``not-allowed`` (the
-circle-slash), each with the X-name aliases listed in ``CURSORS``.
+resize arrows), ``crosshair`` (the precision cross), ``not-allowed`` (the
+circle-slash), ``dnd-copy`` (the drag-and-drop copy plus), ``grab`` (the open
+hand) and ``grabbing`` (the closed fist), each with the X-name aliases listed
+in ``CURSORS``.
 Each file holds the same art at nominal sizes 16, 24 and 32. No reference
 screenshot in ``macos8.6-screenshots/`` shows the mouse pointer, so the art is
 our own Platinum-style drawing on the pinned #000000 face and #FFFFFF outline,
@@ -291,14 +293,90 @@ NOT_ALLOWED_GRID = (
     "    ........    ",
 )
 
+# The copy plus draws a black vertical bar and two horizontal arms; the
+# vertical bar's white outline splits the arms, and the hotspot is the centre.
+DND_COPY_HOTSPOT = (7, 7)
+DND_COPY_GRID = (
+    "                ",
+    "       .        ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "  .....#.....   ",
+    " .####.#.####.  ",
+    "  .....#.....   ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "      .#.       ",
+    "       .        ",
+    "                ",
+    "                ",
+)
+
+# The open hand raises four 1px fingers over a black palm; the hotspot is the
+# middle of the palm.
+GRAB_HOTSPOT = (7, 12)
+GRAB_GRID = (
+    "                ",
+    "   .  .  .  .   ",
+    "  .#..#..#..#.  ",
+    "  .#..#..#..#.  ",
+    "  .#..#..#..#.  ",
+    "  .#..#..#..#.  ",
+    "  .#..#..#..#.  ",
+    "  .#..#..#..#.  ",
+    "  .#..#..#..#.  ",
+    "  .#..#..#..#.  ",
+    " .############. ",
+    " .############. ",
+    " .############. ",
+    " .############. ",
+    " .............. ",
+    "                ",
+)
+
+# The closed fist drops the raised fingers and folds a thumb across the black
+# block; the hotspot is the middle of the palm.
+GRABBING_HOTSPOT = (7, 12)
+GRABBING_GRID = (
+    "                ",
+    "                ",
+    "                ",
+    "                ",
+    " .............. ",
+    " .############. ",
+    " ........#####. ",
+    " .#######.####. ",
+    " .#######.####. ",
+    " .#######.####. ",
+    " ........#####. ",
+    " .############. ",
+    " .############. ",
+    " .############. ",
+    " .............. ",
+    "                ",
+)
+
 # The canonical cursor name, its grid, its hotspot and the X-name aliases that
 # must carry byte-identical copies. ``main`` writes them in this order.
 CURSORS = (
-    ("left_ptr", ARROW_GRID, HOTSPOT, ("arrow", "default", "top_left_arrow")),
+    (
+        "left_ptr",
+        ARROW_GRID,
+        HOTSPOT,
+        ("arrow", "default", "top_left_arrow", "dnd-none"),
+    ),
     ("xterm", XTERM_GRID, XTERM_HOTSPOT, ("text", "ibeam")),
     ("hand2", HAND2_GRID, HAND2_HOTSPOT, ("hand1", "pointer", "pointing_hand")),
     ("watch", WATCH_GRID, WATCH_HOTSPOT, ("wait",)),
-    ("fleur", FLEUR_GRID, FLEUR_HOTSPOT, ("move", "all-scroll", "size_all")),
+    (
+        "fleur",
+        FLEUR_GRID,
+        FLEUR_HOTSPOT,
+        ("move", "all-scroll", "size_all", "dnd-move"),
+    ),
     (
         "size_hor",
         SIZE_HOR_GRID,
@@ -345,8 +423,14 @@ CURSORS = (
             "circle",
             "crossed_circle",
             "03b6e0fcb3499374a867c041f52298f0",
+            "forbidden",
+            "no-drop",
+            "dnd-no-drop",
         ),
     ),
+    ("dnd-copy", DND_COPY_GRID, DND_COPY_HOTSPOT, ()),
+    ("grab", GRAB_GRID, GRAB_HOTSPOT, ()),
+    ("grabbing", GRABBING_GRID, GRABBING_HOTSPOT, ()),
 )
 
 PIXELS = {
