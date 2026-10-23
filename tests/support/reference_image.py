@@ -20,7 +20,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.repo_root import ROOT
 
 from tools import png  # noqa: E402
-from tools.png.read import _validate_max_rows  # noqa: E402
+from tools.png.stream import validate_max_rows  # noqa: E402
 
 # Decoded references, keyed by absolute path. A reference is a read-only Git
 # LFS asset that cannot change during a run, so a path is unfiltered at most
@@ -65,7 +65,7 @@ def read_reference(path, **kwargs):
     key = os.path.abspath(str(path))
     max_rows = kwargs.get("max_rows")
     try:
-        _validate_max_rows(max_rows)
+        validate_max_rows(max_rows)
     except png.PngError as exc:
         # The cold path gets this check from ``read_png``; run it here so a
         # cached decode cannot let an invalid bound reach ``_bounded`` (whose

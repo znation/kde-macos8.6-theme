@@ -30,7 +30,7 @@ from tools.ints import is_plain_int  # noqa: E402
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
-# color_type -> channels per pixel at bit depth 8, mirroring tools/png/read.py's set.
+# color_type -> channels per pixel at bit depth 8, mirroring tools/png/stream.py's set.
 _CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
 
 

@@ -1,4 +1,9 @@
-"""Tests for tools/png/read.py's decode_png -- malformed image data and limits.
+"""Tests for the PNG decoder's malformed image data and limits.
+
+``tools/png/read.py``'s inflate guards, ``tools/png/stream.py``'s header and
+pixel-limit checks and ``tools/png/expand.py``'s palette guard all reject
+malformed input; the decoders run them in pipeline order: stream validation,
+then inflate, then expansion.
 
 After the chunk stream is well-formed, the image data can still be
 untrustworthy: a palette index can fall outside its table, the IDAT stream can
@@ -31,7 +36,7 @@ from support.png_fixtures import (  # noqa: E402
     png_with_idat,
 )
 from tools import png
-from tools.png import read
+from tools.png import expand, read, stream
 
 
 class TestMalformedImageData(unittest.TestCase):
@@ -169,7 +174,7 @@ class TestMalformedImageData(unittest.TestCase):
         )
         message = decode_error_message(self, data)
         self.assertIn("100000x100000", message)
-        self.assertIn(str(read._MAX_PIXELS), message)
+        self.assertIn(str(stream.MAX_PIXELS), message)
 
     def test_rejects_non_png(self):
         with self.assertRaises(png.PngError):
@@ -221,16 +226,17 @@ class TestMalformedImageData(unittest.TestCase):
 
 
 class TestToRgbUnsupportedColorType(unittest.TestCase):
-    """``_to_rgb`` names a color type it has no expansion for.
+    """``to_rgb`` names a color type it has no expansion for.
 
-    ``decode_png`` rejects a color type outside ``_CHANNELS`` before calling
-    ``_to_rgb``, so the four types it handles (0, 2, 3 and 4; ``decode_png``
-    expands type 6 itself) are the only ones a real PNG can reach it with. The
-    helper's final guard is the contract that keeps a future
-    ``_CHANNELS`` entry from silently decoding with the wrong expansion: adding
-    a color type there without a matching branch here must fail loudly, naming
-    the type. No PNG can drive that branch through ``decode_png``, so call the
-    helper directly with the color types the PNG spec does not define.
+    ``decode_png`` rejects a color type outside ``stream.CHANNELS`` before
+    calling ``to_rgb``, so the four types it handles (0, 2, 3 and 4;
+    ``decode_png`` expands type 6 itself) are the only ones a real PNG can
+    reach it with. The helper's final guard is the contract that keeps a
+    future ``CHANNELS`` entry from silently decoding with the wrong expansion:
+    adding a color type there without a matching branch here must fail loudly,
+    naming the type. No PNG can drive that branch through ``decode_png``, so
+    call the helper directly with the color types the PNG spec does not
+    define.
     """
 
     def test_unsupported_color_type_names_the_type(self):
@@ -238,7 +244,7 @@ class TestToRgbUnsupportedColorType(unittest.TestCase):
             with self.subTest(color_type=color_type):
                 self.assertEqual(
                     error_message(
-                        self, png.PngError, read._to_rgb, color_type, b"", None
+                        self, png.PngError, expand.to_rgb, color_type, b"", None
                     ),
                     f"unsupported PNG color type {color_type}",
                 )

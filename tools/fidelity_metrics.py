@@ -8,7 +8,7 @@ per-channel mean absolute error (R, G, B), root-mean-square error (RMSE), the
 worst per-channel delta and the coordinate where it occurs, and the fraction of
 pixels whose worst channel differs by more than a tolerance.
 
-PNG decoding lives in the sibling module ``tools/png/read.py`` and the command-line
+PNG decoding lives in the sibling ``tools/png`` package and the command-line
 entry point in ``tools/fidelity.py``; this module holds the comparison math
 and the crop geometry the CLI and :func:`crop` both validate against
 (:func:`crop_rect_problem`). It uses only the Python standard library, keeping

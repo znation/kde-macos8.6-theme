@@ -3,7 +3,7 @@
 Turns the inflated IDAT bytes (one filter-type byte plus the filtered samples
 per row) into plain samples. The Sub/Up lane arithmetic and Paeth delta table
 live in ``tools/png/filters.py``; the chunk framing in ``tools/png/chunks.py``
-and the color-type expansion in ``tools/png/read.py``.
+and the color-type expansion in ``tools/png/expand.py``.
 """
 
 from __future__ import annotations
@@ -140,9 +140,9 @@ def drop_alpha(raw: bytes, width: int, height: int) -> bytes:
     PNG filters reference only same-channel neighbours, so an alpha byte never
     influences a colour channel's predictor.  Removing alpha before
     unfiltering lets a colour-type-6 image unfilter as three channels instead
-    of four and leaves the result already RGB, so ``read.py``'s ``_to_rgb`` has no
-    colour-type-6 case.  The filter-type byte at the start of each scanline is
-    kept.
+    of four and leaves the result already RGB, so ``expand.py``'s ``to_rgb``
+    has no colour-type-6 case.  The filter-type byte at the start of each
+    scanline is kept.
     """
     _require_raw_length(raw, width, height, 4)
     stride = width * 4

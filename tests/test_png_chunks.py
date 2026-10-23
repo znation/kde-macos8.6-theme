@@ -1,4 +1,4 @@
-"""Tests for tools/png/read.py's decode_png -- chunk framing.
+"""Tests for ``tools/png/stream.py``'s chunk framing, through ``decode_png``.
 
 The PNG stream is a sequence of length/type/payload/CRC chunks. These tests
 pin the container layer: that a valid image may split its zlib stream across
@@ -285,7 +285,7 @@ class TestChunkFraming(unittest.TestCase):
         # IHDR's bit depth, color type, interlace flag and dimensions each
         # change how scanlines are interpreted. If a guard regressed, a 16-bit
         # or interlaced image would be silently decoded as 8-bit non-interlaced
-        # (wrong pixels), an unknown color type would KeyError in _CHANNELS, and
+        # (wrong pixels), an unknown color type would KeyError in CHANNELS, and
         # a zero dimension would produce a degenerate image. Each must be
         # rejected by name before any scanline work.
         _, data = solid_rgb(1, 1)

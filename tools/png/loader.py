@@ -8,8 +8,9 @@ letting :func:`decode_png` report it as "not a PNG file". :func:`read_rgba`
 uses the same guards and decodes the image into packed RGBA bytes.
 :func:`read_png_size`
 uses the same guards but inspects only the IHDR chunk, returning the declared
-``(width, height)`` without decoding rows. Decoding itself -- header
-validation, inflate and color expansion -- lives in ``read.py``.
+``(width, height)`` without decoding rows. Decoding itself lives in
+``read.py`` (inflate), ``stream.py`` (chunk-stream and header validation) and
+``expand.py`` (color expansion).
 """
 
 from __future__ import annotations
@@ -25,7 +26,8 @@ except ImportError:  # imported as the top-level package `png` by a directly run
 
 from .chunks import iter_chunks
 from .image import Image, PngError
-from .read import _check_pixel_limit, _parse_ihdr, decode_png, decode_rgba
+from .read import decode_png, decode_rgba
+from .stream import check_pixel_limit, parse_ihdr
 
 # Cap on the bytes read_png will load from disk. decode_png bounds the decoded
 # image by its pixel limit, but read_png reads the whole file before decode_png
@@ -112,7 +114,7 @@ def read_png_size(path: str | Path) -> tuple[int, int]:
     """
     data = _read_png_data(path)
     if data.startswith(PNG_MAGIC):
-        # Walking the first chunk validates its framing and CRC; _parse_ihdr
+        # Walking the first chunk validates its framing and CRC; parse_ihdr
         # then applies the same field checks decode_png does.
         try:
             first = next(iter_chunks(data), None)
@@ -120,8 +122,8 @@ def read_png_size(path: str | Path) -> tuple[int, int]:
             raise PngError(f"cannot decode {path}: {exc}") from exc
         if first is not None and first[0] == b"IHDR":
             try:
-                width, height, _ = _parse_ihdr(first[1])
-                _check_pixel_limit(width, height)
+                width, height, _ = parse_ihdr(first[1])
+                check_pixel_limit(width, height)
             except PngError as exc:
                 raise PngError(f"cannot decode {path}: {exc}") from exc
             return width, height

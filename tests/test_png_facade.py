@@ -1,7 +1,8 @@
 """Tests for ``tools/png/__init__.py`` -- the codec's public facade.
 
 The codec's pieces are split by concern across ``image.py``, ``loader.py``,
-``read.py`` and ``write.py``, and the package's ``__init__.py`` re-exports the
+``read.py``, ``expand.py``, ``stream.py`` and ``write.py``, and the package's
+``__init__.py`` re-exports the
 public names so
 a consumer imports them from ``tools.png`` regardless of which submodule
 defines them. Nothing pinned that contract: a rename in a submodule, or a name
