@@ -107,6 +107,41 @@ class TestChunkFraming(unittest.TestCase):
         self.assertIn("tRNS", message)
         self.assertIn("precede IDAT", message)
 
+    def test_rejects_a_chunk_after_iend(self):
+        # IEND marks the end of the PNG datastream and must be last. A complete
+        # chunk after it would otherwise be silently ignored, so the decoder
+        # would accept a file whose trailing data a conformant reader refuses.
+        _, data = rgb_image(1, 1, lambda x, y: (1, 2, 3))
+        trailing = data + _chunk(b"tEXt", b"Software\x00x")
+        message = decode_error_message(self, trailing)
+        self.assertIn("after IEND", message)
+        self.assertIn("last chunk", message)
+
+    def test_rejects_a_second_idat_after_iend(self):
+        # A second IDAT after IEND is not image data: the first IEND already
+        # ended the stream. Without the guard it is dropped silently, while a
+        # conformant reader treats it as malformed trailing data.
+        _, data = rgb_image(1, 1, lambda x, y: (1, 2, 3))
+        trailing = data + _chunk(b"IDAT", zlib.compress(b"\x00\x04\x05\x06"))
+        message = decode_error_message(self, trailing)
+        self.assertIn("IDAT", message)
+        self.assertIn("after IEND", message)
+
+    def test_rejects_a_trailing_fragment_after_iend(self):
+        # A file can also end part-way through a chunk after IEND: 1-7 bytes
+        # are too short to carry a length and type, so the framing loop used
+        # to exit and drop them, and decode_png returned the image. Those
+        # bytes follow the datastream's end, so they are malformed trailing
+        # data and must be refused just like a complete chunk after IEND.
+        _, data = rgb_image(1, 1, lambda x, y: (1, 2, 3))
+        chunk = _chunk(b"tEXt", b"Software\x00x")
+        for length in range(1, 8):
+            with self.subTest(length=length):
+                message = decode_error_message(self, data + chunk[:length])
+                self.assertIn("trailing", message)
+                self.assertIn("after IEND", message)
+                self.assertIn("last chunk", message)
+
     def test_ignores_unknown_ancillary_chunks(self):
         # Real screenshots carry ancillary chunks (gAMA, sRGB, pHYs, tEXt,
         # iCCP) between IHDR and IDAT that decode_png does not model. The PNG
@@ -380,11 +415,12 @@ class TestChunkFraming(unittest.TestCase):
 class TestIterChunks(unittest.TestCase):
     """tools/png/chunks.py's framing iterator, tested directly.
 
-    decode_png stops pulling the iterator at IEND, and its no-IEND case cuts
-    the file exactly at a chunk boundary, so the iterator's own loop exit --
-    the ``pos + 8 <= len(data)`` guard -- is never exercised with a trailing
-    fragment shorter than a chunk header. These tests pin the iterator's
-    contract that the decoder layer relies on.
+    collect_chunks keeps pulling the iterator past IEND so it can refuse a
+    chunk after it, and the iterator itself refuses a trailing fragment after
+    IEND. Before IEND its ``pos + 8 <= len(data)`` loop exit still ignores a
+    fragment shorter than a chunk header, and collect_chunks then reports the
+    missing IEND. These tests pin the iterator's contract that the decoder
+    layer relies on.
     """
 
     def test_iter_chunks_rejects_non_bytes_input(self):
@@ -410,9 +446,10 @@ class TestIterChunks(unittest.TestCase):
         )
 
     def test_does_not_stop_at_iend(self):
-        # decode_png breaks on IEND, so nothing above the framing layer proves
-        # the iterator itself treats IEND as ordinary. It must keep yielding
-        # the chunks after it; where the image ends is the decoder's call.
+        # collect_chunks keeps pulling past IEND so it can refuse a later
+        # chunk, so nothing above the framing layer proves the iterator itself
+        # treats IEND as ordinary. It must keep yielding the chunks after it;
+        # refusing a malformed post-IEND chunk is the decoder's call.
         data = (
             _PNG_SIGNATURE
             + _chunk(b"IEND", b"")
@@ -425,10 +462,12 @@ class TestIterChunks(unittest.TestCase):
 
     def test_a_trailing_fragment_shorter_than_a_header_is_ignored(self):
         # A file cut inside a chunk header leaves 1-7 bytes after the last
-        # complete chunk. There is no type or length to validate, so the
-        # iterator stops at the last whole chunk instead of unpacking the
-        # fragment (which would raise struct.error). decode_png then reports
-        # the missing IEND, so the truncation is not lost.
+        # complete chunk. Before IEND there is no datastream end to place them
+        # after, so the iterator stops at the last whole chunk instead of
+        # unpacking the fragment (which would raise struct.error);
+        # collect_chunks then reports the missing IEND, so the truncation is
+        # not lost. (After IEND the fragment is refused instead; see
+        # TestChunkFraming.test_rejects_a_trailing_fragment_after_iend.)
         _, data = solid_rgb(1, 1)
         without_iend = data[: data.rindex(b"IEND") - 4]
         truncated = without_iend + b"\x00\x00\x00\x01"  # part of a length field

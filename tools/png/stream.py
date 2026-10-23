@@ -5,7 +5,8 @@ reader need: the validated IHDR payload, the optional PLTE palette, the
 concatenated IDAT image data and the optional tRNS transparency payload. It
 refuses a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
 chunk after the image data, non-consecutive IDAT chunks, a malformed PLTE
-length, an unknown critical chunk, a missing IEND and a missing IHDR, so
+length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
+missing IHDR, so
 every caller sees the same diagnosis. :func:`parse_ihdr` validates the header
 fields and :func:`check_pixel_limit` bounds the declared size;
 ``tools/png/chunks.py`` does the lower-level framing and CRC checks this
@@ -155,7 +156,8 @@ def collect_chunks(
     IDAT payloads and the optional tRNS transparency payload. It refuses a
     misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS chunk
     after the image data, non-consecutive IDAT chunks, a malformed PLTE
-    length, an unknown critical chunk, a missing IEND and a missing IHDR.
+    length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
+    missing IHDR.
     Filtering and colour expansion are the decoders' concern; this helper owns
     only the framing the rest of the decode reads.
     """
@@ -168,6 +170,15 @@ def collect_chunks(
     saw_iend = False
     first_chunk = None
     for ctype, payload in iter_chunks(data):
+        if saw_iend:
+            # IEND ends the PNG datastream and must be last, so a complete
+            # chunk after it is malformed trailing data. Without this guard
+            # the break below drops that chunk, accepting a stream a
+            # conformant reader refuses.
+            raise PngError(
+                f"PNG has a {chunk_name(ctype)} chunk after IEND; IEND "
+                "must be the last chunk"
+            )
         # Record the first chunk before handling it, but pass the previous
         # value to the IHDR guard: the first chunk is allowed to be IHDR, while
         # a later one is not.
@@ -227,8 +238,10 @@ def collect_chunks(
             trns = payload
             continue
         if ctype == b"IEND":
+            # Keep iterating rather than breaking so a chunk after IEND is
+            # refused by the guard above instead of silently dropped.
             saw_iend = True
-            break
+            continue
         if ctype[:1].isupper():
             # A chunk whose first byte is uppercase is critical: the decoder
             # must understand it to know how the image is interpreted. The

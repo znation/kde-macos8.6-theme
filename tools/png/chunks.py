@@ -2,8 +2,9 @@
 
 :func:`iter_chunks` walks the chunk stream after the signature and yields
 ``(type, payload)`` for each chunk, rejecting an oversized length, an invalid
-type code, a truncated payload or CRC, and a bad checksum by name. What the
-chunks mean (IHDR, PLTE, IDAT, IEND) is ``tools/png/stream.py``'s concern.
+type code, a truncated payload or CRC, a bad checksum, and a trailing fragment
+after IEND by name. What the chunks mean (IHDR, PLTE, IDAT, IEND) is
+``tools/png/stream.py``'s concern.
 """
 
 from __future__ import annotations
@@ -36,7 +37,10 @@ def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     """Yield ``(type, payload)`` for each chunk in *data* after the signature.
 
     A declared length above the PNG spec's maximum, an invalid type code, a
-    truncated payload or CRC, and a bad checksum raise :class:`PngError`.
+    truncated payload or CRC, and a bad checksum raise :class:`PngError`. So
+    does a trailing fragment shorter than a chunk header when it follows IEND:
+    IEND ends the datastream, so those bytes are malformed trailing data, not
+    the truncated start of a chunk a later read could complete.
     """
     if not isinstance(data, (bytes, bytearray)):
         raise PngError(
@@ -45,6 +49,7 @@ def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
         )
     data = bytes(data)
     pos = len(PNG_MAGIC)
+    saw_iend = False
     while pos + 8 <= len(data):
         (length,) = struct.unpack(">I", data[pos : pos + 4])
         ctype = data[pos + 4 : pos + 8]
@@ -88,4 +93,18 @@ def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
                 f"0x{actual:08x}"
             )
         yield ctype, payload
+        if ctype == b"IEND":
+            saw_iend = True
         pos += 12 + length
+    if saw_iend and pos < len(data):
+        # IEND ends the PNG datastream, so bytes left over after it cannot be
+        # a chunk a later read completes; they are trailing data a conformant
+        # reader refuses. Before IEND the same fragment instead surfaces as
+        # collect_chunks' missing-IEND error, so only the post-IEND case needs
+        # its own diagnosis here.
+        leftover = len(data) - pos
+        raise PngError(
+            f"PNG has {leftover} trailing byte"
+            f"{'' if leftover == 1 else 's'} after IEND that do not form a "
+            "chunk; IEND must be the last chunk"
+        )

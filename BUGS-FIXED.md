@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### PNG chunks after IEND are silently ignored (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/png/stream.py`'s `collect_chunks` stopped at the first IEND, so a
+complete chunk after it — an ancillary `tEXt`, a second `IDAT`, even a second
+`IHDR` — was dropped and `png.decode_png` returned the image. The same held
+for 1-7 trailing bytes too short to be a chunk header. Reproduce by appending
+`_chunk(b"tEXt", b"x")`, a second IDAT, or a few bytes of a chunk to a valid
+PNG's bytes: the decoder returned the image instead of raising.
+
+The reader now keeps walking after IEND and refuses any later complete chunk
+by name ("… after IEND; IEND must be the last chunk"), while the framing
+iterator still yields those chunks to callers that want them. A trailing
+fragment after IEND, which the iterator's framing loop cannot see as a chunk,
+is refused there by name ("… trailing bytes after IEND that do not form a
+chunk; IEND must be the last chunk").
+
+**Validation gap:** unclear-invariant — the IEND-last guarantee was not stated in the module or pinned by a test, so it had to be reconstructed from the PNG specification; the reconstructed invariant is recorded in docs/invariants.md.
+
 ### Non-consecutive IDAT chunks and PLTE/tRNS after IDAT are accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/png/stream.py`'s `collect_chunks` concatenated every IDAT payload and
