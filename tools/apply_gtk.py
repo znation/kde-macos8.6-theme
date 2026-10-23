@@ -87,6 +87,23 @@ def _installed_sheet(data_home: Path) -> Path:
     return data_home / "themes" / GTK_ID / "gtk-4.0" / "gtk.css"
 
 
+def _require_home(path: Path | None, variable: str, fallback: str) -> Path:
+    """Return *path*, or refuse naming the unusable XDG *variable*.
+
+    *fallback* is the ``$HOME``-relative path the XDG spec falls back to,
+    included in the diagnostic so the user can see which directory could not
+    be resolved. Every caller resolves its path the same way and must refuse
+    rather than guess where to write, so the diagnostic lives here once.
+    """
+    if path is None:
+        raise ConfigError(
+            f"{variable} is unset or not absolute and HOME cannot provide "
+            f"{fallback}; set {variable} to an absolute path or export an "
+            "absolute HOME"
+        )
+    return path
+
+
 def _read_text(path: Path) -> str:
     """Return *path*'s UTF-8 text without translating its line endings.
 
@@ -225,43 +242,33 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     env = os.environ
-    if args.remove:
-        # Removal touches only the config home, so it must work when no data
-        # home resolves: refusing it would block clearing a selection that is
-        # already installed.
-        config_home = _config_home(env)
-        if config_home is None:
-            return report_error(
-                TOOL,
-                "XDG_CONFIG_HOME is unset or not absolute and HOME cannot "
-                "provide $HOME/.config; set XDG_CONFIG_HOME to an absolute "
-                "path or export an absolute HOME",
+    try:
+        if args.remove:
+            # Removal touches only the config home, so it must work when no
+            # data home resolves: refusing it would block clearing a
+            # selection that is already installed.
+            status = _remove(
+                _require_home(
+                    _config_home(env),
+                    "XDG_CONFIG_HOME",
+                    "$HOME/.config",
+                )
             )
-        try:
-            status = _remove(config_home)
-        except ConfigError as exc:
-            return report_error(TOOL, str(exc))
-    else:
-        data_home = _data_home(env)
-        if data_home is None:
-            return report_error(
-                TOOL,
-                "XDG_DATA_HOME is unset or not absolute and HOME cannot "
-                "provide $HOME/.local/share; set XDG_DATA_HOME to an absolute "
-                "path or export an absolute HOME",
+        else:
+            status = _apply(
+                _require_home(
+                    _data_home(env),
+                    "XDG_DATA_HOME",
+                    "$HOME/.local/share",
+                ),
+                _require_home(
+                    _config_home(env),
+                    "XDG_CONFIG_HOME",
+                    "$HOME/.config",
+                ),
             )
-        config_home = _config_home(env)
-        if config_home is None:
-            return report_error(
-                TOOL,
-                "XDG_CONFIG_HOME is unset or not absolute and HOME cannot "
-                "provide $HOME/.config; set XDG_CONFIG_HOME to an absolute "
-                "path or export an absolute HOME",
-            )
-        try:
-            status = _apply(data_home, config_home)
-        except ConfigError as exc:
-            return report_error(TOOL, str(exc))
+    except ConfigError as exc:
+        return report_error(TOOL, str(exc))
     if status == 0:
         _note("restart running GTK applications to pick up the theme")
     return status
