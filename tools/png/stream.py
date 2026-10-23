@@ -6,7 +6,7 @@ concatenated IDAT image data, the optional tRNS transparency payload and
 whether that tRNS came before any PLTE chunk. It refuses a misordered or
 duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS chunk after the image
 data, a tRNS chunk the header's color type or palette cannot carry, a tRNS
-chunk before the PLTE a palette image indexes, a PLTE chunk on a greyscale
+chunk before a PLTE chunk that is present, a PLTE chunk on a greyscale
 color type, non-consecutive IDAT
 chunks, a malformed PLTE
 length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
@@ -127,10 +127,12 @@ def check_trns(
     (3) images: color types 4 and 6 carry an alpha channel in every pixel, so
     a tRNS chunk there has no meaning. A greyscale tRNS names one 16-bit
     sample, a truecolor one three, and a palette tRNS one alpha byte for each
-    of its first palette entries. A palette tRNS must also follow the PLTE
-    chunk it gives alpha to; *trns_before_plte* records that the stream put it
-    earlier. Both decoders call this, so the RGB path refuses the same
-    malformed transparency the RGBA path would even though it discards alpha.
+    of its first palette entries. A tRNS chunk must follow the PLTE chunk, if
+    any, so *trns_before_plte* records that the stream put it earlier; that
+    ordering is illegal whenever a PLTE is present, including a truecolor
+    image's suggested palette. Both decoders call this, so the RGB path refuses
+    the same malformed transparency the RGBA path would even though it discards
+    alpha.
     """
     if trns is None:
         return
@@ -140,16 +142,16 @@ def check_trns(
             "transparency in each pixel; tRNS is only valid for color types "
             "0, 2 and 3"
         )
+    if color_type == 3 and palette is None:
+        # The decoder names the missing PLTE chunk; a tRNS length cannot be
+        # judged until the palette that bounds it is present.
+        return
+    if trns_before_plte and palette is not None:
+        raise PngError(
+            "PNG has a tRNS chunk before its PLTE chunk; tRNS must follow "
+            "the PLTE chunk, if any"
+        )
     if color_type == 3:
-        if palette is None:
-            # The decoder names the missing PLTE chunk; a tRNS length cannot
-            # be judged until the palette that bounds it is present.
-            return
-        if trns_before_plte:
-            raise PngError(
-                "PNG has a tRNS chunk before its PLTE chunk; a palette "
-                "PNG's transparency must follow the palette it indexes"
-            )
         entries = len(palette) // 3
         if not 1 <= len(trns) <= entries:
             raise PngError(
@@ -233,8 +235,8 @@ def collect_chunks(
 
     Walks the chunks after the signature, collecting the image header, palette,
     IDAT payloads, the optional tRNS transparency payload and whether that
-    tRNS appeared before any PLTE chunk (an ordering only a palette image
-    forbids, so the color-type check stays in :func:`check_trns`). It refuses
+    tRNS appeared before any PLTE chunk (an ordering :func:`check_trns` refuses
+    once a PLTE is known to be present). It refuses
     a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
     chunk after the image data, non-consecutive IDAT chunks, a malformed PLTE
     length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
@@ -319,10 +321,10 @@ def collect_chunks(
                 )
             trns = payload
             if palette is None:
-                # Record the ordering, not a verdict: tRNS before PLTE is
-                # legal for a truecolor suggested palette and illegal only for
-                # a palette image, which :func:`check_trns` decides once the
-                # header names its color type.
+                # Record the ordering, not a verdict: :func:`check_trns`
+                # decides once the stream has shown whether a PLTE follows.
+                # tRNS before a PLTE chunk is illegal for every color type,
+                # including a truecolor image's suggested palette.
                 trns_before_plte = True
             continue
         if ctype == b"IEND":

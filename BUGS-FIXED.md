@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A truecolor tRNS before a suggested PLTE is accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+The chunk collector treated a tRNS before PLTE as illegal only for a color
+type 3 palette image, so a truecolor (color type 2) image whose suggested
+palette followed its tRNS still decoded. The PNG spec says a tRNS chunk must
+follow the PLTE chunk, if any, not only the palette an indexed image indexes.
+Repro from a hand-built 1x1 color type 2 stream with tRNS, then PLTE, then
+IDAT: `decode_png` returned `b'\x01\x02\x03'` and `decode_rgba` returned
+`(1, 1, b'\x01\x02\x03\x00')`; both now raise "PNG has a tRNS chunk before
+its PLTE chunk; tRNS must follow the PLTE chunk, if any". A tRNS with no PLTE
+in the stream, and a tRNS after the suggested PLTE, still decode. `check_trns`
+now refuses the ordering whenever a palette is present, and a color type 3
+image with no PLTE keeps its missing-palette diagnosis. Test:
+`tests/test_png_malformed.py::TestTrnsColorTypeValidation::test_truecolor_trns_before_suggested_plte_is_refused`
+(fails both subtests without the fix).
+
+**Validation gap:** unclear-invariant — the code and its comments stated the
+ordering was legal for a truecolor suggested palette, so the spec rule had to
+be reconstructed; the invariant is recorded in docs/invariants.md.
+
 ### A palette image with tRNS before PLTE is accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 The PNG specification requires a `tRNS` chunk to follow `PLTE`. `tools/png/stream.py`'s

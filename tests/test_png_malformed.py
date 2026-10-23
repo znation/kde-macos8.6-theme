@@ -323,6 +323,29 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
                     needles=("tRNS chunk before", "PLTE chunk", "follow"),
                 )
 
+    def test_truecolor_trns_before_suggested_plte_is_refused(self):
+        # The spec's "follow the PLTE chunk, if any" covers a truecolor
+        # image's suggested palette too, not just the palette a color type 3
+        # image requires. The collector used to treat the ordering as illegal
+        # only for color type 3, so this stream still decoded.
+        blob = (
+            _PNG_SIGNATURE
+            + ihdr_chunk(1, 1, 2)
+            + _chunk(b"tRNS", b"\x00\x01\x00\x02\x00\x03")
+            + _chunk(b"PLTE", bytes([255, 0, 0]))
+            + _chunk(b"IDAT", zlib.compress(bytes([0, 1, 2, 3])))
+            + _chunk(b"IEND", b"")
+        )
+        for decoder in (png.decode_png, png.decode_rgba):
+            with self.subTest(decoder=decoder.__name__):
+                assert_error_names(
+                    self,
+                    png.PngError,
+                    decoder,
+                    blob,
+                    needles=("tRNS chunk before", "PLTE chunk", "follow"),
+                )
+
     def test_palette_trns_without_any_plte_still_names_the_missing_palette(
         self,
     ):
