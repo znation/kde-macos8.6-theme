@@ -21,6 +21,7 @@ from unittest import mock
 from support import containment
 from support import snippet_child
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from tools import containment as containment_impl
 
 
@@ -46,13 +47,9 @@ def _run_reader_in_child(reader, path, root):
 class TestReadBytes(unittest.TestCase):
     def test_rejects_a_symlink_that_escapes_the_root(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_bytes(b"PRIVATE-SECRET-BYTES")
-            link = root / "solid.svg"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "solid.svg", b"PRIVATE-SECRET-BYTES"
+            )
             with self.assertRaises(ValueError) as caught:
                 containment.read_bytes(link, root)
         self.assertIn(str(link), str(caught.exception))
@@ -65,13 +62,9 @@ class TestReadBytes(unittest.TestCase):
         if os.name != "posix":
             self.skipTest("a double leading slash is POSIX-specific")
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_bytes(b"PRIVATE-SECRET-BYTES")
-            link = root / "solid.svg"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "solid.svg", b"PRIVATE-SECRET-BYTES"
+            )
             double_root = "//" + str(root).lstrip("/")
             with self.assertRaises(ValueError) as caught:
                 containment.read_bytes(link, double_root)
@@ -81,13 +74,9 @@ class TestReadBytes(unittest.TestCase):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "solid.svg"
-            target.write_bytes(b"inside")
-            link = root / "link.svg"
-            link.symlink_to(target)
+            root, link = symlinked_repo(
+                tmp, "link.svg", b"inside", target="theme/solid.svg"
+            )
             self.assertEqual(containment.read_bytes(link, root), b"inside")
 
     def test_reads_a_path_outside_the_root(self):
@@ -161,13 +150,9 @@ class TestReadBytes(unittest.TestCase):
 class TestReadText(unittest.TestCase):
     def test_rejects_a_symlink_that_escapes_the_root(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.colors"
-            secret.write_text("# PRIVATE-SECRET-TEXT", encoding="utf-8")
-            link = root / "MacOS8.colors"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "MacOS8.colors", "# PRIVATE-SECRET-TEXT"
+            )
             with self.assertRaises(ValueError) as caught:
                 containment.read_text(link, root)
         self.assertIn(str(link), str(caught.exception))
@@ -176,13 +161,9 @@ class TestReadText(unittest.TestCase):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "MacOS8.colors"
-            target.write_text("inside", encoding="utf-8")
-            link = root / "link.colors"
-            link.symlink_to(target)
+            root, link = symlinked_repo(
+                tmp, "link.colors", "inside", target="theme/MacOS8.colors"
+            )
             self.assertEqual(containment.read_text(link, root), "inside")
 
     def test_reads_a_path_outside_the_root(self):

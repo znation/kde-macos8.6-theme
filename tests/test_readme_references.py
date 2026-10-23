@@ -30,6 +30,7 @@ from support import repo_root
 from support import theme_install
 from support.check_references_fixtures import CheckerTestCase
 from support.process_assertions import assert_succeeded
+from support.symlink_fixtures import symlinked_repo
 from tools import reference_validation
 
 _TOKEN = re.compile(r"`([^`]+)`")
@@ -337,15 +338,9 @@ class TestReadmeTextContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.md"
-            secret.write_text(
-                "| Leak | 1 | `private.png` |\n", encoding="utf-8"
+            root, link = symlinked_repo(
+                tmp, "README.md", "| Leak | 1 | `private.png` |\n"
             )
-            link = root / "README.md"
-            link.symlink_to(secret)
             with mock.patch.object(repo_root, "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     readme_text()
@@ -354,13 +349,9 @@ class TestReadmeTextContainment(unittest.TestCase):
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            target = root / "actual-readme.md"
-            target.write_text("`a.png`\n", encoding="utf-8")
-            link = root / "README.md"
-            link.symlink_to(target)
+            root, _ = symlinked_repo(
+                tmp, "README.md", "`a.png`\n", target="actual-readme.md"
+            )
             with mock.patch.object(repo_root, "ROOT", root):
                 self.assertEqual(readme_text(), "`a.png`\n")
 
@@ -377,17 +368,11 @@ class TestDeclaredReferenceNamesContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            ref = root / "macos8.6-screenshots"
-            ref.mkdir(parents=True)
-            secret = tmp / "secret"
-            secret.write_text(
+            root, link = symlinked_repo(
+                tmp,
+                "macos8.6-screenshots/sources.txt",
                 "private.png | https://example.test/p.png | leaked\n",
-                encoding="utf-8",
             )
-            link = ref / "sources.txt"
-            link.symlink_to(secret)
             checker = mock.Mock(
                 REFERENCE_DIR="macos8.6-screenshots",
                 SOURCES_NAME="sources.txt",

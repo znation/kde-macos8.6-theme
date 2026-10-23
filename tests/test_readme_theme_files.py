@@ -21,6 +21,7 @@ from support import containment
 from support import snippet_child
 from support.desktoptheme_paths import PACKAGE
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
 
 _DESKTOP_TOKEN = re.compile(r"`((?:widgets|dialogs)/[^`/]+\.svg)`")
@@ -93,15 +94,9 @@ class TestReadmeTextContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.md"
-            secret.write_text(
-                "`widgets/private.svg`\n", encoding="utf-8"
+            root, link = symlinked_repo(
+                tmp, "README.md", "`widgets/private.svg`\n"
             )
-            link = root / "README.md"
-            link.symlink_to(secret)
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     readme_text()
@@ -109,13 +104,12 @@ class TestReadmeTextContainment(unittest.TestCase):
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            target = root / "actual-readme.md"
-            target.write_text("`widgets/a.svg`\n", encoding="utf-8")
-            link = root / "README.md"
-            link.symlink_to(target)
+            root, _ = symlinked_repo(
+                tmp,
+                "README.md",
+                "`widgets/a.svg`\n",
+                target="actual-readme.md",
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 self.assertEqual(readme_text(), "`widgets/a.svg`\n")
 

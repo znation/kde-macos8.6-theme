@@ -12,6 +12,7 @@ from unittest import mock
 from support import splash_fixtures
 from support import snippet_child
 from support.splash_fixtures import object_source, qml_unit_expression, read_qml
+from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
 
 
@@ -257,13 +258,7 @@ class TestSplashQmlContainment(unittest.TestCase):
         # would leak that file's content. A path that resolves outside the
         # repository must be refused before it is opened.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.qml"
-            secret.write_text("PRIVATE-SECRET\n", encoding="utf-8")
-            link = root / "Splash.qml"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(tmp, "Splash.qml", "PRIVATE-SECRET\n")
             with mock.patch.object(splash_fixtures, "ROOT", root), \
                     mock.patch.object(splash_fixtures, "SPLASH", link):
                 with self.assertRaises(ValueError) as caught:
@@ -274,13 +269,9 @@ class TestSplashQmlContainment(unittest.TestCase):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "Splash.qml"
-            target.write_text("// inside\n", encoding="utf-8")
-            link = root / "link.qml"
-            link.symlink_to(target)
+            root, link = symlinked_repo(
+                tmp, "link.qml", "// inside\n", target="theme/Splash.qml"
+            )
             with mock.patch.object(splash_fixtures, "ROOT", root), \
                     mock.patch.object(splash_fixtures, "SPLASH", link):
                 self.assertEqual(

@@ -12,6 +12,7 @@ from unittest import mock
 
 from support import containment
 from support.install_failure_cases import FailedInstallPreservesPackage
+from support.symlink_fixtures import symlinked_repo
 from support.install_lifecycle_cases import InstallLifecycleCases
 from support.kpackage_install_case import KPackageInstallCase
 from support.package_metadata import PackageMetadata
@@ -112,20 +113,15 @@ class TestImageReadContainment(unittest.TestCase):
 
     def test_image_reads_refuse_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            images = root / "images"
-            images.mkdir(parents=True)
-            private = tmp / "private.png"
-            private.write_bytes(png.encode_png(2, 2, bytes(12)))
-            link = images / "1024x768.png"
-            link.symlink_to(private)
+            root, link = symlinked_repo(
+                tmp, "images/1024x768.png", png.encode_png(2, 2, bytes(12))
+            )
             # Drive the real setUpClass through a per-test subclass, so a
             # failure here cannot clear the images the shipped suite loaded.
             case = type("ContainmentCase", (TestImages,), {})
             with mock.patch.object(sys.modules[__name__], "ROOT", root), \
                     mock.patch.object(
-                        sys.modules[__name__], "IMAGES", str(images)
+                        sys.modules[__name__], "IMAGES", str(root / "images")
                     ):
                 with self.assertRaises(ValueError) as caught:
                     case.setUpClass()

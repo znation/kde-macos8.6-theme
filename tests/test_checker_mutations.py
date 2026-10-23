@@ -12,7 +12,6 @@ list but missing from the other fails here.
 
 from __future__ import annotations
 
-import pathlib
 import tempfile
 import unittest
 from unittest import mock
@@ -23,6 +22,7 @@ from placeholders import REJECTION_SHAPES as PLACEHOLDER_REJECTION_SHAPES
 from placeholders import cross_check as placeholders_cross_check
 from support import checker_scratch
 from support.checker_scratch import Scratch
+from support.symlink_fixtures import symlinked_repo
 from support.invariants_mutations import INVARIANTS_MUTATIONS
 from support.placeholders_mutations import PLACEHOLDER_MUTATIONS
 
@@ -87,15 +87,11 @@ class TestCheckerMutations(unittest.TestCase):
         # and its private text copied into the scratch, where the checker
         # echoes a malformed row's line. `Scratch.build` must refuse it.
         with tempfile.TemporaryDirectory() as tmp:
-            base = pathlib.Path(tmp)
-            root = base / "repo"
-            root.mkdir()
+            root, _ = symlinked_repo(
+                tmp, "docs/invariants.md", "private secret line\n"
+            )
             (root / "tests").mkdir()
             (root / "theme").mkdir()
-            (root / "docs").mkdir()
-            private = base / "private.txt"
-            private.write_text("private secret line\n", encoding="utf-8")
-            (root / "docs" / "invariants.md").symlink_to(private)
             (root / "PLACEHOLDERS.md").write_text("", encoding="utf-8")
             with mock.patch.object(checker_scratch, "ROOT", root), \
                     tempfile.TemporaryDirectory() as scratch_tmp:

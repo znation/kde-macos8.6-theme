@@ -17,6 +17,7 @@ import unittest.mock
 from pathlib import Path
 
 from support import installed_paths, repo_root, theme_install
+from support.symlink_fixtures import symlinked_repo
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
@@ -565,13 +566,9 @@ class TestAssertFilesIdentical(unittest.TestCase):
     def test_rejects_a_source_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            root = tmp / "repo"
-            package = root / "theme" / "icons"
-            package.mkdir(parents=True)
-            secret = tmp / "secret.svg"
-            secret.write_bytes(b"PRIVATE-SECRET-BYTES")
-            source = package / "icon.svg"
-            source.symlink_to(secret)
+            root, source = symlinked_repo(
+                tmp, "theme/icons/icon.svg", b"PRIVATE-SECRET-BYTES"
+            )
             target = tmp / "installed.svg"
             target.write_bytes(b"a different installed copy")
             with unittest.mock.patch.object(repo_root, "ROOT", root):
@@ -585,13 +582,12 @@ class TestAssertFilesIdentical(unittest.TestCase):
         # reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            root = tmp / "repo"
-            package = root / "theme" / "icons"
-            package.mkdir(parents=True)
-            real = package / "icon.svg"
-            real.write_bytes(b"same bytes")
-            source = package / "alias.svg"
-            source.symlink_to(real)
+            root, source = symlinked_repo(
+                tmp,
+                "theme/icons/alias.svg",
+                b"same bytes",
+                target="theme/icons/icon.svg",
+            )
             target = tmp / "installed.svg"
             target.write_bytes(b"same bytes")
             with unittest.mock.patch.object(repo_root, "ROOT", root):

@@ -23,6 +23,7 @@ from support.shipped_files import shipped_files
 from support.svg_case import parse_svg
 from support.installed_paths import installed_icon_theme, installed_icons_dir
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -87,13 +88,9 @@ class TestIconTextContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.md"
-            secret.write_text("private marker\n", encoding="utf-8")
-            link = root / "PLACEHOLDERS.md"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "PLACEHOLDERS.md", "private marker\n"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     _read_icon_text(link)
@@ -102,13 +99,12 @@ class TestIconTextContainment(unittest.TestCase):
 
     def test_reads_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "PLACEHOLDERS.md"
-            target.write_text("placeholder text\n", encoding="utf-8")
-            link = root / "PLACEHOLDERS.md"
-            link.symlink_to(target)
+            root, link = symlinked_repo(
+                tmp,
+                "PLACEHOLDERS.md",
+                "placeholder text\n",
+                target="theme/PLACEHOLDERS.md",
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 text = _read_icon_text(link)
         self.assertEqual(text, "placeholder text\n")

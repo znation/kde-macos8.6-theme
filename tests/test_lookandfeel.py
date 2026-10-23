@@ -20,6 +20,7 @@ from support.package_metadata import PackageMetadata, load_metadata
 from support.process_assertions import assert_failed, assert_succeeded
 from support.installed_paths import XDG_DATA_HOME, installed_package
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from support.theme_install import (
     install,
     installed_destdir,
@@ -257,15 +258,11 @@ class TestWallpaperMetadataContainment(unittest.TestCase):
     """
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
-        tmp = Path(make_tmp_dir(self))
-        root = tmp / "repo"
-        root.mkdir()
-        secret = tmp / "secret.json"
-        secret.write_text(
-            '{"KPlugin": {"Id": "PRIVATE-ID"}}', encoding="utf-8"
+        root, link = symlinked_repo(
+            make_tmp_dir(self),
+            "metadata.json",
+            '{"KPlugin": {"Id": "PRIVATE-ID"}}',
         )
-        link = root / "metadata.json"
-        link.symlink_to(secret)
         with mock.patch.object(
             sys.modules[__name__], "WALLPAPER_METADATA", str(link)
         ):

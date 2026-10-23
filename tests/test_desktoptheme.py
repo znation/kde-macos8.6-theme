@@ -56,6 +56,7 @@ from support.package_metadata import PackageMetadata, kplugin, load_metadata
 from support.process_assertions import assert_succeeded
 from support.shipped_files import shipped_files
 from support.svg_case import parse_svg
+from support.symlink_fixtures import symlinked_repo
 from support.theme_install import installed_destdir, run_captured
 from svg_assertions import (
     assert_no_external_references,
@@ -197,16 +198,11 @@ class TestSvgContainment(unittest.TestCase):
         # registry stops routing through the guard. The target is a valid SVG
         # so a bare `ET.parse` would succeed and the escape go unnoticed.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_text(
+            root, link = symlinked_repo(
+                tmp,
+                "frame.svg",
                 "<svg><rect id='private' width='1' height='1'/></svg>\n",
-                encoding="utf-8",
             )
-            link = root / "frame.svg"
-            link.symlink_to(secret)
             module = sys.modules[__name__]
             with mock.patch.object(svg_case, "ROOT", root), mock.patch.object(
                 module, "SVG_CANVASES", (("frame", str(link), 1, 1),)

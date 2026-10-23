@@ -17,6 +17,7 @@ from unittest import mock
 import support.package_metadata as package_metadata
 from support import snippet_child
 from support.package_metadata import PackageMetadata, kplugin, load_metadata
+from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 from tools import containment as tools_containment
 
@@ -214,18 +215,10 @@ class TestLoadMetadataContainment(unittest.TestCase):
     path that resolves outside the repository before it is opened.
     """
 
-    def _escaped_link(self, root):
-        """Return a repository-root path whose symlink points outside *root*."""
-        secret = root.parent / "secret.json"
-        secret.write_text(json.dumps(_metadata()), encoding="utf-8")
-        link = root / "metadata.json"
-        link.symlink_to(secret)
-        return link
-
     def test_rejects_a_symlink_that_escapes_the_repository(self):
-        root = make_tmp_dir(self) / "repo"
-        root.mkdir()
-        link = self._escaped_link(root)
+        root, link = symlinked_repo(
+            make_tmp_dir(self), "metadata.json", json.dumps(_metadata())
+        )
         with mock.patch.object(package_metadata, "ROOT", root):
             with self.assertRaises(ValueError) as caught:
                 load_metadata(link)
@@ -234,12 +227,12 @@ class TestLoadMetadataContainment(unittest.TestCase):
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
-        root = make_tmp_dir(self) / "repo"
-        root.mkdir()
-        target = root / "real-metadata.json"
-        target.write_text(json.dumps(_metadata()), encoding="utf-8")
-        link = root / "metadata.json"
-        link.symlink_to(target)
+        root, link = symlinked_repo(
+            make_tmp_dir(self),
+            "metadata.json",
+            json.dumps(_metadata()),
+            target="real-metadata.json",
+        )
         with mock.patch.object(package_metadata, "ROOT", root):
             metadata = load_metadata(link)
         self.assertEqual(metadata, _metadata())

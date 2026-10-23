@@ -32,6 +32,7 @@ from support.aurorae_fixtures import (
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 from support.svg_case import parse_svg
 from svg_assertions import (
@@ -271,13 +272,9 @@ class TestReadCappedContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_bytes(b"PRIVATE-SECRET-BYTES")
-            link = root / "decoration.svg"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "decoration.svg", b"PRIVATE-SECRET-BYTES"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     _read_capped(link)
@@ -332,13 +329,9 @@ class TestReadCappedContainment(unittest.TestCase):
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            real = root / "theme" / "decoration.svg"
-            real.parent.mkdir(parents=True)
-            real.write_bytes(b"artwork")
-            link = root / "decoration.svg"
-            link.symlink_to(real)
+            root, link = symlinked_repo(
+                tmp, "decoration.svg", b"artwork", target="theme/decoration.svg"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 self.assertEqual(_read_capped(link), b"artwork")
 

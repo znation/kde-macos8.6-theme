@@ -11,6 +11,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support.close_tracking import tracking_closes
+from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
 
@@ -139,16 +140,11 @@ class TestDefaultsGroups(unittest.TestCase):
         # file's content into the diagnostic. A path that resolves outside the
         # repository must be refused before it is opened.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret"
-            secret.write_text(
+            root, link = symlinked_repo(
+                tmp,
+                "defaults",
                 "[kwinrc][org.kde.kdecoration2]\ntheme=leaked\n",
-                encoding="utf-8",
             )
-            link = root / "defaults"
-            link.symlink_to(secret)
             with mock.patch.object(theme_defaults, "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     theme_defaults.defaults_groups(link)
@@ -158,16 +154,12 @@ class TestDefaultsGroups(unittest.TestCase):
         # The guard must refuse only escapes, not a legitimate repository path
         # reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "defaults"
-            target.write_text(
+            root, link = symlinked_repo(
+                tmp,
+                "link",
                 "[kwinrc][org.kde.kdecoration2]\ntheme=x\n",
-                encoding="utf-8",
+                target="theme/defaults",
             )
-            link = root / "link"
-            link.symlink_to(target)
             with mock.patch.object(theme_defaults, "ROOT", root):
                 groups = theme_defaults.defaults_groups(link)
         self.assertEqual(

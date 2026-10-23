@@ -9,6 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import reference_image  # noqa: E402
+from support.symlink_fixtures import symlinked_repo
 from tools.png.write import encode_png  # noqa: E402
 
 
@@ -173,13 +174,9 @@ class TestReadReferenceContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            private = tmp / "private.png"
-            private.write_bytes(encode_png(2, 2, bytes(12)))
-            link = root / "reference.png"
-            link.symlink_to(private)
+            root, link = symlinked_repo(
+                tmp, "reference.png", encode_png(2, 2, bytes(12))
+            )
             with mock.patch.object(reference_image, "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     reference_image.read_reference(link)

@@ -13,6 +13,7 @@ from unittest import mock
 from support import containment, repo_root, theme_install
 from support import snippet_child
 from support.process_assertions import assert_succeeded
+from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 
 
@@ -41,28 +42,22 @@ class TestReadFileContainment(unittest.TestCase):
     refuse such a path before it is opened rather than leak the private file.
     """
 
-    def _symlinked_root(self, target_text):
-        tmp = make_tmp_dir(self)
-        root = tmp / "repo"
-        root.mkdir()
-        secret = tmp / "secret"
-        secret.write_text(target_text, encoding="utf-8")
-        (root / "README.md").symlink_to(secret)
-        return root, root / "README.md"
-
     def test_rejects_a_symlink_that_escapes_the_repository(self):
-        root, link = self._symlinked_root("make private-target\n")
+        root, link = symlinked_repo(
+            make_tmp_dir(self), "README.md", "make private-target\n"
+        )
         with mock.patch.object(repo_root, "ROOT", root):
             with self.assertRaises(ValueError) as caught:
                 _read_repo_file("README.md")
         self.assertIn(str(link), str(caught.exception))
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
-        root = make_tmp_dir(self) / "repo"
-        root.mkdir()
-        target = root / "actual-readme.md"
-        target.write_text("make check\n", encoding="utf-8")
-        (root / "README.md").symlink_to(target)
+        root, _ = symlinked_repo(
+            make_tmp_dir(self),
+            "README.md",
+            "make check\n",
+            target="actual-readme.md",
+        )
         with mock.patch.object(repo_root, "ROOT", root):
             self.assertEqual(_read_repo_file("README.md"), "make check\n")
 

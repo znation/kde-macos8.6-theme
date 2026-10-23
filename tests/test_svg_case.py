@@ -15,6 +15,7 @@ from unittest import mock
 
 from support import svg_case
 from support.svg_case import SvgCase
+from support.symlink_fixtures import symlinked_repo
 
 
 class _Case(SvgCase):
@@ -31,15 +32,9 @@ class TestSvgCaseContainment(unittest.TestCase):
         # the symlink would leak that file's content. A path that resolves
         # outside the repository must be refused before it is opened.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_text(
-                "<svg><path d='private'/></svg>\n", encoding="utf-8"
+            root, link = symlinked_repo(
+                tmp, "viewitem.svg", "<svg><path d='private'/></svg>\n"
             )
-            link = root / "viewitem.svg"
-            link.symlink_to(secret)
             case = _Case()
             case.SVG_PATH = link
             with mock.patch.object(svg_case, "ROOT", root):
@@ -51,13 +46,9 @@ class TestSvgCaseContainment(unittest.TestCase):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "viewitem.svg"
-            target.write_text("<svg id='ok'/>\n", encoding="utf-8")
-            link = root / "link.svg"
-            link.symlink_to(target)
+            root, link = symlinked_repo(
+                tmp, "link.svg", "<svg id='ok'/>\n", target="theme/viewitem.svg"
+            )
             case = _Case()
             case.SVG_PATH = link
             with mock.patch.object(svg_case, "ROOT", root):

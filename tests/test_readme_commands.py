@@ -17,6 +17,7 @@ from unittest import mock
 
 from support import containment
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from tools import render_surface
 
 _MAKE_TARGET = re.compile(r"\bmake\s+([a-z][a-z-]*)\b")
@@ -84,13 +85,9 @@ class TestReadCommandContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret"
-            secret.write_text("make private-target\n", encoding="utf-8")
-            link = root / "README.md"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "README.md", "make private-target\n"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     read("README.md")
@@ -98,13 +95,9 @@ class TestReadCommandContainment(unittest.TestCase):
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            target = root / "actual-readme.md"
-            target.write_text("make check\n", encoding="utf-8")
-            link = root / "README.md"
-            link.symlink_to(target)
+            root, _ = symlinked_repo(
+                tmp, "README.md", "make check\n", target="actual-readme.md"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 self.assertEqual(read("README.md"), "make check\n")
 

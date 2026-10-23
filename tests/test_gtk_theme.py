@@ -35,6 +35,7 @@ from support.platinum_palette import (
     WHITE,
 )
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 
 THEME_ID = "org.macos8.desktop"
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / THEME_ID
@@ -54,13 +55,9 @@ class TestGtkTheme(GtkRuleAssertions, unittest.TestCase):
     def test_theme_read_refuses_a_symlink_escape(self):
         """A checked-in symlink must not feed a private file to a diagnostic."""
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret"
-            secret.write_text("PRIVATE-LINE\n", encoding="utf-8")
-            link = root / "index.theme"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "index.theme", "PRIVATE-LINE\n"
+            )
             with mock.patch.object(gtk_css, "ROOT", root):
                 with self.assertRaisesRegex(ValueError, "symlink escape"):
                     gtk_css.read_theme_text(link)

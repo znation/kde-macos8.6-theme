@@ -15,6 +15,7 @@ from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_band_pixels,
@@ -194,13 +195,9 @@ class TestPaletteReadContainment(unittest.TestCase):
 
     def test_palette_read_refuses_an_escaping_symlink(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_text("PRIVATE-SECRET-TEXT", encoding="utf-8")
-            link = root / "tabbar.svg"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "tabbar.svg", "PRIVATE-SECRET-TEXT"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     _svg_text(link)

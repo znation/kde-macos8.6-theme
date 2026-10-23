@@ -16,6 +16,7 @@ from unittest import mock
 
 from support import kde_config
 from support import snippet_child
+from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 
 
@@ -151,13 +152,9 @@ class TestReadKdeConfig(unittest.TestCase):
         # test's diagnostic. A path that resolves outside the repository must
         # be refused before it is opened.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret"
-            secret.write_text("[General]\nsecret = leaked\n", encoding="utf-8")
-            link = root / "MacOS8.colors"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "MacOS8.colors", "[General]\nsecret = leaked\n"
+            )
             with mock.patch.object(kde_config, "ROOT", root, create=True):
                 with self.assertRaises(ValueError) as caught:
                     kde_config.read(link)
@@ -167,15 +164,12 @@ class TestReadKdeConfig(unittest.TestCase):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "MacOS8.colors"
-            target.write_text(
-                "[General]\nColorScheme=MacOS8\n", encoding="utf-8"
+            root, link = symlinked_repo(
+                tmp,
+                "link.ini",
+                "[General]\nColorScheme=MacOS8\n",
+                target="theme/MacOS8.colors",
             )
-            link = root / "link.ini"
-            link.symlink_to(target)
             with mock.patch.object(kde_config, "ROOT", root, create=True):
                 parser = kde_config.read(link)
         self.assertEqual(parser.get("General", "ColorScheme"), "MacOS8")

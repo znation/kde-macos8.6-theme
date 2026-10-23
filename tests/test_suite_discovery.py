@@ -39,6 +39,7 @@ from unittest import mock
 
 from support import containment
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 
 
@@ -90,15 +91,9 @@ class TestMakefileReadContainment(unittest.TestCase):
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "private-config.mk"
-            secret.write_text(
-                "CHECK_PATTERN ?= private-*.py\n", encoding="utf-8"
+            root, link = symlinked_repo(
+                tmp, "Makefile", "CHECK_PATTERN ?= private-*.py\n"
             )
-            link = root / "Makefile"
-            link.symlink_to(secret)
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     makefile_check_pattern()
@@ -107,13 +102,12 @@ class TestMakefileReadContainment(unittest.TestCase):
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            target = root / "actual.mk"
-            target.write_text("CHECK_PATTERN ?= test*.py\n", encoding="utf-8")
-            link = root / "Makefile"
-            link.symlink_to(target)
+            root, _ = symlinked_repo(
+                tmp,
+                "Makefile",
+                "CHECK_PATTERN ?= test*.py\n",
+                target="actual.mk",
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 self.assertEqual(makefile_check_pattern(), "test*.py")
 

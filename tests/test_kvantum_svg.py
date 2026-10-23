@@ -26,6 +26,7 @@ from support.platinum_palette import (
     assert_fill_palette,
 )
 from support.svg_case import parse_svg
+from support.symlink_fixtures import symlinked_repo
 from svg_assertions import (
     assert_no_external_references,
     assert_no_script_elements,
@@ -415,16 +416,11 @@ class TestSvgContainment(unittest.TestCase):
         # guard. The target is a valid SVG so a bare `ET.parse` would succeed
         # and the escape would go unnoticed.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_text(
+            root, link = symlinked_repo(
+                tmp,
+                "org.macos8.desktop.svg",
                 "<svg><g id='secret'><rect width='1' height='1'/></g></svg>\n",
-                encoding="utf-8",
             )
-            link = root / "org.macos8.desktop.svg"
-            link.symlink_to(secret)
             module = sys.modules[__name__]
             with mock.patch.object(svg_case, "ROOT", root), mock.patch.object(
                 module, "SVG", str(link)

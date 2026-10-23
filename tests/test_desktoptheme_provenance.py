@@ -20,6 +20,7 @@ from support import containment
 from support import snippet_child
 from support.desktoptheme_paths import ARROWS_SVG, MENUBARITEM_SVG, VIEWITEM_SVG
 from support.repo_root import ROOT
+from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
 
 
@@ -86,13 +87,9 @@ class TestHeaderCommentContainment(unittest.TestCase):
         # that file's content into the test diagnostic. A path that resolves
         # outside the repository must be refused before it is opened.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            root.mkdir()
-            secret = tmp / "secret.svg"
-            secret.write_text("<!-- private -->\n", encoding="utf-8")
-            link = root / "viewitem.svg"
-            link.symlink_to(secret)
+            root, link = symlinked_repo(
+                tmp, "viewitem.svg", "<!-- private -->\n"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 with self.assertRaises(ValueError) as caught:
                     header_comment(link)
@@ -102,13 +99,9 @@ class TestHeaderCommentContainment(unittest.TestCase):
         # The guard must refuse only escapes, not a legitimate repository path
         # that happens to be reached through a symlink inside the repository.
         with tempfile.TemporaryDirectory() as tmp:
-            tmp = Path(tmp)
-            root = tmp / "repo"
-            (root / "theme").mkdir(parents=True)
-            target = root / "theme" / "viewitem.svg"
-            target.write_text("<!-- ok -->\n", encoding="utf-8")
-            link = root / "link.svg"
-            link.symlink_to(target)
+            root, link = symlinked_repo(
+                tmp, "link.svg", "<!-- ok -->\n", target="theme/viewitem.svg"
+            )
             with mock.patch.object(sys.modules[__name__], "ROOT", root):
                 comment = header_comment(link)
         self.assertEqual(comment, " ok ")
