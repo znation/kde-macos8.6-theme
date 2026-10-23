@@ -5,6 +5,112 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum cursor set, part 4: ship the help, progress, pencil and zoom pointers (planned 2026-10-23 by the plan role; completes the cursor set after the landed parts 1-3) — done 2026-10-23 by the feature role
+
+**Goal.** The icon theme's `cursors/` covers fourteen pointers; README records that `help`,
+`progress`, `pencil`, `zoom-in` and `zoom-out` still come from the fallback cursor theme, so the
+busy, help, drawing and zoom pointer roles change shape when the Platinum theme is selected. Add
+the five remaining pointers and their aliases: `help` (the landed arrow plus a question mark),
+`progress` (the arrow plus a small hourglass), `pencil` (a diagonal pencil), and `zoom-in` /
+`zoom-out` (a magnifier with a plus or minus). No reference screenshot shows a pointer, so the art
+stays our own `#000000`-face/`#FFFFFF`-outline drawing. The canonical names are X/KDE-required and
+taken from the installed Breeze set (`/usr/share/icons/breeze_cursors/cursors`): `help`,
+`left_ptr_help`, `question_arrow` and `whats_this` share one byte group there with the hash
+aliases `5c6cd98b3f3ebcb1f9c7f1c204630408` and `d9ce0ab605698f320427677b458ad60b`; `progress`,
+`half-busy` and `left_ptr_watch` share another with the hash aliases
+`00000000000000020006000e7e9ffc3f`, `08e8e1c95fe2fc01f976f1e063a24ccd` and
+`3ecb610c1bf2410f44200f48c40d3599`; `pencil`, `zoom-in` and `zoom-out` have no aliases there
+(checked with `md5sum` over that directory).
+
+**Approach.**
+- `tools/cursor_art.py`: add five 16x16 grids in the existing `#` face / `.` white / space
+transparent vocabulary and append them to `CURSORS`; `tools/make_cursors.py` needs no change.
+  - `HELP_HOTSPOT = (1, 1)`; `HELP_GRID`: `ARROW_GRID` with a question mark stamped in the free
+    right-hand area -- a white plate at columns 9-14, rows 2-8 carrying a black top bar
+    `(10,3)-(13,3)`, a right stem `(13,4)-(13,5)`, a curve at `(12,5)` and a black dot `(12,7)`,
+    with white at `(12,6)` separating the hook from the dot.
+  - `PROGRESS_HOTSPOT = (1, 1)`; `PROGRESS_GRID`: `ARROW_GRID` with a white plate at columns
+    9-14, rows 8-14 carrying a black hourglass -- a top bar `(10,9)-(13,9)`, a two-pixel-wide
+    neck `(11,10)-(12,12)` and a bottom bar `(10,13)-(13,13)`, with white rows at 8 and 14.
+  - `PENCIL_HOTSPOT = (2, 14)`; `PENCIL_GRID`: a two-pixel black shaft on the anti-diagonal
+    `x+y = 15`/`16` from the writing tip `(2,14)` to the eraser `(13,2)`, each black edge bounded
+    by one white cell; black at `(2,14)`, `(8,7)` and `(12,3)`, white at `(1,14)` and `(13,1)`.
+  - `ZOOM_IN_HOTSPOT = (7, 7)` and `ZOOM_OUT_HOTSPOT = (7, 7)`; the two grids share a
+    white-outlined black lens ring centred on `(7,7)` (black at `(7,3)`, `(3,7)`, `(11,7)`,
+    `(7,11)` and white at `(7,2)`), a black handle along `(11,11)-(13,13)` (black at `(13,13)`),
+    and a black plus in the lens at `(7,5)`, `(5,7)`, `(9,7)`, `(7,9)` and `(7,7)`; `ZOOM_OUT_GRID`
+    keeps only the horizontal bar of the plus, leaving `(7,5)` and `(7,9)` transparent.
+  - Append `("help", HELP_GRID, HELP_HOTSPOT, ("left_ptr_help", "question_arrow", "whats_this",
+    "5c6cd98b3f3ebcb1f9c7f1c204630408", "d9ce0ab605698f320427677b458ad60b"))`,
+    `("progress", PROGRESS_GRID, PROGRESS_HOTSPOT, ("half-busy", "left_ptr_watch",
+    "00000000000000020006000e7e9ffc3f", "08e8e1c95fe2fc01f976f1e063a24ccd",
+    "3ecb610c1bf2410f44200f48c40d3599"))`,
+    `("pencil", PENCIL_GRID, PENCIL_HOTSPOT, ())`,
+    `("zoom-in", ZOOM_IN_GRID, ZOOM_IN_HOTSPOT, ())` and
+    `("zoom-out", ZOOM_OUT_GRID, ZOOM_OUT_HOTSPOT, ())` to `CURSORS`.
+  - Update `tools/cursor_art.py`'s module docstring: the package ships nineteen canonical cursors, not fourteen, and
+    list the new names and their aliases.
+- `tests/test_cursors_theme.py`: extend `CANONICAL` with the five names and `ALIASES` with their
+  alias tuples (empty for `pencil`, `zoom-in` and `zoom-out`). Add the five names to `HOTSPOTS` --
+  `help`/`progress`: `(1,1)` at 16, `(2,2)` at 24, `(2,2)` at 32; `pencil`: `(2,14)`, `(3,21)`,
+  `(4,28)`; `zoom-in`/`zoom-out`: `(7,7)`, `(11,11)`, `(14,14)` -- and to `PINNED_PIXELS` (face
+  `(1,1)` / outline `(0,0)` for `help` and `progress`; face `(2,14)` / outline `(1,14)` for
+  `pencil`; face `(7,7)` / outline `(7,2)` for `zoom-in` and `zoom-out`). Add `pencil`, `zoom-in`
+  and `zoom-out` to `TRANSPARENT_CORNER_CURSORS`; `help` and `progress` keep the arrow's white
+  top-left corner, so they stay out. The existing `TestCursorSet` loops then cover the new files,
+  aliases, hotspots, face/outline pixels and determinism. Add focused tests:
+  - `test_help_pins_the_arrow_and_question_mark`: at 16px black at `(1,1)`, `(10,3)`, `(13,5)` and
+    `(12,7)`; white at `(0,0)` and `(12,6)`.
+  - `test_progress_pins_the_arrow_and_hourglass`: at 16px black at `(1,1)`, `(10,9)`, `(11,10)`,
+    `(11,11)`, `(11,12)`, `(12,11)` and `(10,13)`; white at `(12,8)` and `(12,14)`.
+  - `test_pencil_draws_a_diagonal_shaft_to_its_writing_tip`: at 16px black at `(2,14)`, `(8,7)`
+    and `(12,3)`; white at `(1,14)` and `(13,1)`; all four corners transparent.
+  - `test_zoom_in_and_out_differ_only_at_the_plus_arms`: at 16px both have black at `(7,3)`,
+    `(3,7)`, `(7,11)` and the handle tip `(13,13)`, and white at `(7,2)`; `zoom-in` is black at
+    `(7,5)`, `(5,7)`, `(9,7)` and `(7,9)`, while `zoom-out` is black only at `(5,7)` and `(9,7)`
+    and transparent at `(7,5)` and `(7,9)`.
+  - `test_help_and_progress_alias_names_reuse_their_canonical`: `left_ptr_help`, `question_arrow`,
+    `whats_this` and the two `help` hash names are byte-identical to `help`; `half-busy`,
+    `left_ptr_watch` and the three `progress` hash names to `progress`.
+- Regenerate the artifacts with `python3 tools/make_cursors.py` (deterministic output).
+- `tests/test_icon_theme.py`: add the fifteen new X names (`help`, `left_ptr_help`, `question_arrow`,
+  `whats_this`, `5c6cd98b3f3ebcb1f9c7f1c204630408`, `d9ce0ab605698f320427677b458ad60b`, `progress`,
+  `half-busy`, `left_ptr_watch`, `00000000000000020006000e7e9ffc3f`,
+  `08e8e1c95fe2fc01f976f1e063a24ccd`, `3ecb610c1bf2410f44200f48c40d3599`, `pencil`, `zoom-in`,
+  `zoom-out`) to `SHIPPED_CURSORS`, so the shipped-file registry and the shared install-lifecycle
+  list cover them.
+- `README.md`: name the five new pointers and their aliases in the cursor sentence, and replace the
+  fallback sentence with "Xcursor roles the theme does not name still come from the fallback cursor
+  theme".
+- `docs/invariants.md`: extend the `## icons` cursor row to name all nineteen canonical files and
+  every alias, still citing `tests/test_cursors_theme.py::TestCursorArtifact` and `::TestCursorSet`;
+  extend the provenance exception: no reference screenshot shows the pointer, the help, progress
+  and zoom names are X/KDE-required and taken from the installed Breeze set, and the help/progress
+  alias groups follow Breeze's byte groups while `pencil`, `zoom-in` and `zoom-out` have no alias.
+- `PLANS.md`: in the scope-drift paragraph, add the help, progress, pencil and zoom pointers to the
+  shipped cursor clause, and say Xcursor roles the theme does not name still fall back.
+
+**Files touched.** `tools/cursor_art.py`, `tests/test_cursors_theme.py`,
+`tests/test_icon_theme.py`, the new binaries under `theme/icons/org.macos8.desktop/cursors/`
+(five canonical names and ten alias names), `README.md`, `docs/invariants.md`, `PLANS.md`.
+
+**Acceptance criteria.**
+- `python3 tools/make_cursors.py` writes the five new canonical files and the ten aliases; running
+  it twice leaves every committed cursor byte-identical, and each new canonical parses to three
+  chunks at nominal sizes 16/24/32 with its pinned hotspot, black face pixel and white outline
+  pixel, and the pencil and zoom files keep transparent corners.
+- The focused tests pin the arrow-plus-question-mark, the arrow-plus-hourglass, the diagonal
+  pencil and the plus/minus magnifiers; deleting a grid, dropping a size, moving a hotspot,
+  drawing `zoom-out` as a copy of `zoom-in`, or losing the pencil's white outline fails a test.
+- `left_ptr_help`, `question_arrow`, `whats_this`, the two `help` hash names, `half-busy`,
+  `left_ptr_watch` and the three `progress` hash names are byte-identical to their canonical
+  files; the generator writes exactly the fifteen new names into a temp directory.
+- `tests/test_icon_theme.py`'s shipped-file registry and install lifecycle include all fifteen new
+  names; README and `docs/invariants.md` name them; `tests/invariants.py` accepts the updated
+  `## icons` row; the scope-drift clause no longer lists help, progress, pencil or zoom as
+  fallback.
+- `make check` is green.
+
 ### Retire the `no-fake` validation gap with a fixture ledger (planned 2026-10-23 by the steward role; promotes the recurring `gap: no-fake` tag, 16 Fixed entries) — done 2026-10-23 by the feature role
 
 **Goal.** Sixteen Fixed entries in BUGS-FIXED.md carry `gap: no-fake` — confirming the failure

@@ -40,6 +40,11 @@ CANONICAL = (
     "dnd-copy",
     "grab",
     "grabbing",
+    "help",
+    "progress",
+    "pencil",
+    "zoom-in",
+    "zoom-out",
 )
 ALIASES = {
     "left_ptr": ("arrow", "default", "top_left_arrow", "dnd-none"),
@@ -76,6 +81,23 @@ ALIASES = {
     "dnd-copy": (),
     "grab": (),
     "grabbing": (),
+    "help": (
+        "left_ptr_help",
+        "question_arrow",
+        "whats_this",
+        "5c6cd98b3f3ebcb1f9c7f1c204630408",
+        "d9ce0ab605698f320427677b458ad60b",
+    ),
+    "progress": (
+        "half-busy",
+        "left_ptr_watch",
+        "00000000000000020006000e7e9ffc3f",
+        "08e8e1c95fe2fc01f976f1e063a24ccd",
+        "3ecb610c1bf2410f44200f48c40d3599",
+    ),
+    "pencil": (),
+    "zoom-in": (),
+    "zoom-out": (),
 }
 CURSOR_FILES = tuple(
     name for canonical in CANONICAL for name in (canonical, *ALIASES[canonical])
@@ -95,6 +117,11 @@ HOTSPOTS = {
     "dnd-copy": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "grab": {16: (7, 12), 24: (11, 18), 32: (14, 24)},
     "grabbing": {16: (7, 12), 24: (11, 18), 32: (14, 24)},
+    "help": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
+    "progress": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
+    "pencil": {16: (2, 14), 24: (3, 21), 32: (4, 28)},
+    "zoom-in": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "zoom-out": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
 }
 # A grid pixel that must be black (the face) and one that must be white (the
 # outline) at the same place in every nominal size.
@@ -113,6 +140,11 @@ PINNED_PIXELS = {
     "dnd-copy": {"face": (7, 7), "outline": (6, 7)},
     "grab": {"face": (7, 12), "outline": (1, 12)},
     "grabbing": {"face": (7, 12), "outline": (1, 12)},
+    "help": {"face": (1, 1), "outline": (0, 0)},
+    "progress": {"face": (1, 1), "outline": (0, 0)},
+    "pencil": {"face": (2, 14), "outline": (1, 14)},
+    "zoom-in": {"face": (7, 7), "outline": (7, 2)},
+    "zoom-out": {"face": (7, 7), "outline": (7, 2)},
 }
 # The arrow's top-left corner is its white outline pixel; the other cursors
 # leave all four corners transparent.
@@ -130,6 +162,9 @@ TRANSPARENT_CORNER_CURSORS = (
     "dnd-copy",
     "grab",
     "grabbing",
+    "pencil",
+    "zoom-in",
+    "zoom-out",
 )
 BLACK = (0, 0, 0, 255)
 WHITE = (255, 255, 255, 255)
@@ -484,6 +519,91 @@ class TestCursorSet(unittest.TestCase):
             ("forbidden", "not-allowed"),
             ("no-drop", "not-allowed"),
             ("dnd-no-drop", "not-allowed"),
+        ):
+            with self.subTest(alias=alias):
+                self.assertEqual(
+                    (CURSORS / alias).read_bytes(),
+                    (CURSORS / canonical).read_bytes(),
+                )
+
+
+    def test_help_pins_the_arrow_and_question_mark(self):
+        cursor = _read_cursor(CURSORS / "help")
+        image = next(
+            image for image in cursor.images if image.nominal_size == 16
+        )
+        width, _, rgba = decode_rgba(image.png)
+        for x, y in ((1, 1), (10, 3), (13, 5), (12, 7)):
+            with self.subTest(black=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in ((0, 0), (12, 6)):
+            with self.subTest(white=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+
+    def test_progress_pins_the_arrow_and_hourglass(self):
+        cursor = _read_cursor(CURSORS / "progress")
+        image = next(
+            image for image in cursor.images if image.nominal_size == 16
+        )
+        width, _, rgba = decode_rgba(image.png)
+        for x, y in ((1, 1), (10, 9), (11, 10), (11, 11), (11, 12), (12, 11), (10, 13)):
+            with self.subTest(black=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in ((12, 8), (12, 14)):
+            with self.subTest(white=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+
+    def test_pencil_draws_a_diagonal_shaft_to_its_writing_tip(self):
+        cursor = _read_cursor(CURSORS / "pencil")
+        image = next(
+            image for image in cursor.images if image.nominal_size == 16
+        )
+        width, _, rgba = decode_rgba(image.png)
+        for x, y in ((2, 14), (8, 7), (12, 3)):
+            with self.subTest(black=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in ((1, 14), (13, 1)):
+            with self.subTest(white=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
+        for x, y in ((0, 0), (15, 0), (0, 15), (15, 15)):
+            with self.subTest(corner=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), TRANSPARENT)
+
+    def test_zoom_in_and_out_differ_only_at_the_plus_arms(self):
+        images = {}
+        for name in ("zoom-in", "zoom-out"):
+            cursor = _read_cursor(CURSORS / name)
+            image = next(
+                image for image in cursor.images if image.nominal_size == 16
+            )
+            images[name] = decode_rgba(image.png)
+        for name in ("zoom-in", "zoom-out"):
+            width, _, rgba = images[name]
+            with self.subTest(name=name):
+                for x, y in ((7, 3), (3, 7), (7, 11), (13, 13)):
+                    self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+                self.assertEqual(_pixel(rgba, width, 7, 2), WHITE)
+        width, _, zoom_in = images["zoom-in"]
+        for x, y in ((7, 5), (5, 7), (9, 7), (7, 9)):
+            self.assertEqual(_pixel(zoom_in, width, x, y), BLACK)
+        width, _, zoom_out = images["zoom-out"]
+        for x, y in ((5, 7), (9, 7)):
+            self.assertEqual(_pixel(zoom_out, width, x, y), BLACK)
+        for x, y in ((7, 5), (7, 9)):
+            self.assertEqual(_pixel(zoom_out, width, x, y), TRANSPARENT)
+
+    def test_help_and_progress_alias_names_reuse_their_canonical(self):
+        for alias, canonical in (
+            ("left_ptr_help", "help"),
+            ("question_arrow", "help"),
+            ("whats_this", "help"),
+            ("5c6cd98b3f3ebcb1f9c7f1c204630408", "help"),
+            ("d9ce0ab605698f320427677b458ad60b", "help"),
+            ("half-busy", "progress"),
+            ("left_ptr_watch", "progress"),
+            ("00000000000000020006000e7e9ffc3f", "progress"),
+            ("08e8e1c95fe2fc01f976f1e063a24ccd", "progress"),
+            ("3ecb610c1bf2410f44200f48c40d3599", "progress"),
         ):
             with self.subTest(alias=alias):
                 self.assertEqual(

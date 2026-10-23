@@ -114,6 +114,21 @@ SHIPPED_CURSORS = tuple(
         "dnd-copy",
         "grab",
         "grabbing",
+        "help",
+        "left_ptr_help",
+        "question_arrow",
+        "whats_this",
+        "5c6cd98b3f3ebcb1f9c7f1c204630408",
+        "d9ce0ab605698f320427677b458ad60b",
+        "progress",
+        "half-busy",
+        "left_ptr_watch",
+        "00000000000000020006000e7e9ffc3f",
+        "08e8e1c95fe2fc01f976f1e063a24ccd",
+        "3ecb610c1bf2410f44200f48c40d3599",
+        "pencil",
+        "zoom-in",
+        "zoom-out",
     )
 )
 

@@ -1,14 +1,23 @@
 """The Mac OS 8.6 Platinum cursor pixel art: grids, hotspots and aliases.
 
-The theme ships fourteen cursors inside the ``org.macos8.desktop`` icon theme
+The theme ships nineteen cursors inside the ``org.macos8.desktop`` icon theme
 package, under ``cursors/``: ``left_ptr`` (the arrow), ``xterm`` (the text
 I-beam), ``hand2`` (the pointing hand), ``watch`` (the busy hourglass),
 ``fleur`` (the move cross), ``size_hor`` and ``size_ver`` (the horizontal and
 vertical resize arrows), ``size_fdiag`` and ``size_bdiag`` (the NW-SE and NE-SW
 resize arrows), ``crosshair`` (the precision cross), ``not-allowed`` (the
 circle-slash), ``dnd-copy`` (the drag-and-drop copy plus), ``grab`` (the open
-hand) and ``grabbing`` (the closed fist), each with the X-name aliases listed
-in ``CURSORS``.
+hand), ``grabbing`` (the closed fist), ``help`` (the arrow plus a question
+mark, aliases ``left_ptr_help``, ``question_arrow``, ``whats_this`` and the
+Breeze hash names ``5c6cd98b3f3ebcb1f9c7f1c204630408`` and
+``d9ce0ab605698f320427677b458ad60b``), ``progress`` (the arrow plus a small
+hourglass, aliases ``half-busy``, ``left_ptr_watch`` and the Breeze hash names
+``00000000000000020006000e7e9ffc3f``, ``08e8e1c95fe2fc01f976f1e063a24ccd`` and
+``3ecb610c1bf2410f44200f48c40d3599``), ``pencil`` (a diagonal pencil), ``zoom-in`` and
+``zoom-out`` (magnifiers with a plus or minus), each with the X-name aliases
+listed in ``CURSORS``. The help, progress and zoom names are X/KDE-required
+and follow the installed Breeze cursor set; ``pencil``, ``zoom-in`` and
+``zoom-out`` have no aliases there.
 Each file holds the same art at nominal sizes 16, 24 and 32. No reference
 screenshot in ``macos8.6-screenshots/`` shows the mouse pointer, so the art is
 our own Platinum-style drawing on the pinned #000000 face and #FFFFFF outline,
@@ -327,6 +336,116 @@ GRABBING_GRID = (
     "                ",
 )
 
+# The help pointer is the arrow with a question mark stamped in the free
+# right-hand area; its hotspot is the arrow tip.
+HELP_HOTSPOT = (1, 1)
+HELP_GRID = (
+    "...             ",
+    ".#..            ",
+    ".##..    ...... ",
+    ".###..   .####. ",
+    ".####..  ....#. ",
+    ".#####.. ...##. ",
+    ".######........ ",
+    ".#######....#.. ",
+    ".########...... ",
+    "....##....      ",
+    "   .##.         ",
+    "   .##.         ",
+    "   .##.         ",
+    "   .##.         ",
+    "   .##.         ",
+    "   ....         ",
+)
+
+# The progress pointer is the arrow with a small hourglass in the free
+# right-hand area; its hotspot is the arrow tip.
+PROGRESS_HOTSPOT = (1, 1)
+PROGRESS_GRID = (
+    "...             ",
+    ".#..            ",
+    ".##..           ",
+    ".###..          ",
+    ".####..         ",
+    ".#####..        ",
+    ".######..       ",
+    ".#######..      ",
+    ".########...... ",
+    "....##....####. ",
+    "   .##.  ..##.. ",
+    "   .##.  ..##.. ",
+    "   .##.  ..##.. ",
+    "   .##.  .####. ",
+    "   .##.  ...... ",
+    "   ....         ",
+)
+
+# The pencil draws a two-pixel black shaft on the anti-diagonal band x+y =
+# 15/16 from the writing tip (2, 14) to the eraser (13, 2), bounded by one
+# white cell on every side; its hotspot is the writing tip.
+PENCIL_HOTSPOT = (2, 14)
+PENCIL_GRID = (
+    "                ",
+    "             .  ",
+    "            .#. ",
+    "           .##. ",
+    "          .##.  ",
+    "         .##.   ",
+    "        .##.    ",
+    "       .##.     ",
+    "      .##.      ",
+    "     .##.       ",
+    "    .##.        ",
+    "   .##.         ",
+    "  .##.          ",
+    " .##.           ",
+    " .#.            ",
+    "  .             ",
+)
+
+# The zoom pointers share a white-outlined black lens ring and a black
+# handle; their hotspots are the lens centre. ``zoom-in`` fills the plus and
+# ``zoom-out`` keeps only its horizontal bar.
+ZOOM_IN_HOTSPOT = (7, 7)
+ZOOM_IN_GRID = (
+    "                ",
+    "                ",
+    "     .....      ",
+    "    .#####.     ",
+    "   .##...##.    ",
+    "  .##. # .##.   ",
+    "  .#.  #  .#.   ",
+    "  .#.#####.#.   ",
+    "  .#.  #  .#.   ",
+    "  .##. # .##.   ",
+    "   .##...##.    ",
+    "    .#####.#.   ",
+    "     ..... .#.  ",
+    "            .#. ",
+    "             .  ",
+    "                ",
+)
+
+ZOOM_OUT_HOTSPOT = (7, 7)
+ZOOM_OUT_GRID = (
+    "                ",
+    "                ",
+    "     .....      ",
+    "    .#####.     ",
+    "   .##...##.    ",
+    "  .##.   .##.   ",
+    "  .#.     .#.   ",
+    "  .#.#####.#.   ",
+    "  .#.     .#.   ",
+    "  .##.   .##.   ",
+    "   .##...##.    ",
+    "    .#####.#.   ",
+    "     ..... .#.  ",
+    "            .#. ",
+    "             .  ",
+    "                ",
+)
+
 # The canonical cursor name, its grid, its hotspot and the X-name aliases that
 # must carry byte-identical copies. ``main`` writes them in this order.
 CURSORS = (
@@ -399,6 +518,33 @@ CURSORS = (
     ("dnd-copy", DND_COPY_GRID, DND_COPY_HOTSPOT, ()),
     ("grab", GRAB_GRID, GRAB_HOTSPOT, ()),
     ("grabbing", GRABBING_GRID, GRABBING_HOTSPOT, ()),
+    (
+        "help",
+        HELP_GRID,
+        HELP_HOTSPOT,
+        (
+            "left_ptr_help",
+            "question_arrow",
+            "whats_this",
+            "5c6cd98b3f3ebcb1f9c7f1c204630408",
+            "d9ce0ab605698f320427677b458ad60b",
+        ),
+    ),
+    (
+        "progress",
+        PROGRESS_GRID,
+        PROGRESS_HOTSPOT,
+        (
+            "half-busy",
+            "left_ptr_watch",
+            "00000000000000020006000e7e9ffc3f",
+            "08e8e1c95fe2fc01f976f1e063a24ccd",
+            "3ecb610c1bf2410f44200f48c40d3599",
+        ),
+    ),
+    ("pencil", PENCIL_GRID, PENCIL_HOTSPOT, ()),
+    ("zoom-in", ZOOM_IN_GRID, ZOOM_IN_HOTSPOT, ()),
+    ("zoom-out", ZOOM_OUT_GRID, ZOOM_OUT_HOTSPOT, ()),
 )
 
 PIXELS = {
