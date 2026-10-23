@@ -110,6 +110,39 @@ class TestProfileResolution(ProfileCase):
         )
         self.assertEqual(alive, self.resolve())
 
+    def test_stale_installs_default_does_not_hide_a_profiles_default_marker(self):
+        # installs.ini can name a deleted profile while profiles.ini marks a
+        # different, live profile Default=1. The stale install candidate must
+        # be skipped without discarding the marker or falling back to the
+        # first profiles.ini section instead of the marked one.
+        first = self.firefox_root / "first"
+        chosen = self.firefox_root / "chosen"
+        first.mkdir(parents=True)
+        chosen.mkdir()
+        _write(
+            self.firefox_root / "installs.ini",
+            "[Install4F96]\nDefault=Profiles/deleted.default\n",
+        )
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=first\nPath=first\n"
+            "[Profile1]\nName=chosen\nPath=chosen\nDefault=1\n",
+        )
+        self.assertEqual(chosen, self.resolve())
+
+    def test_a_profiles_default_that_is_stale_falls_back_to_a_live_profile(self):
+        # A Default=1 marker can outlive the profile directory it names. The
+        # marked candidate is tried first, then the other sections, so a
+        # deleted default must not turn into a not-found error.
+        live = self.firefox_root / "live"
+        live.mkdir(parents=True)
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=live\nPath=live\n"
+            "[Profile1]\nName=gone\nPath=gone\nDefault=1\n",
+        )
+        self.assertEqual(live, self.resolve())
+
     def test_installs_section_without_default_is_skipped(self):
         # Firefox names installs.ini sections by install hash; a section
         # carrying no Default (or an empty one) must not hide a later one.
