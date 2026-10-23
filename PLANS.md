@@ -167,6 +167,10 @@ Do not edit `PLANS-DONE.md`.
   and its `RISK` names the GTK settings files and libadwaita user CSS; a report that calls the
   change only backlog bookkeeping contradicts the diff.
 
+**Needs replan 2026-10-23 by feature: rejected after 2 review rounds**
+1. `TestMakeApplyGtk` remains a stub against the plan entry's explicit enumeration: of the five required pins (target order with `install` before the script, the non-empty-`DESTDIR` refusal, the Python-version guard, `make -n remove-gtk`, `make help` listing both targets), only the last two…
+2. Several plan-required diagnostic pins are asserted as bare exit codes only: `test_missing_sheet_exits_1` never checks the message names `make install-gtk`; `test_missing_data_home_and_home_exits_2`/`test_missing_config_home_and_home_exits_2` never check the diagnostics name `XDG_DATA_HOME`/`XDG_CON…
+
 ### Platinum cursor theme, part 1/3: RGBA PNG encode, decode and read in tools/png (planned 2026-10-23 by the plan role; split from the too-large "Generate and ship the Xcursor arrow cursor artifact" entry)
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
