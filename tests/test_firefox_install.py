@@ -126,6 +126,29 @@ class TestProfileResolution(ProfileCase):
         )
         self.assertEqual(chosen, self.resolve())
 
+    def test_a_malformed_profiles_ini_is_reported_by_name(self):
+        # A hand-edited profiles.ini that is not INI at all must be reported
+        # by path. The reader's docstring promises a by-name ConfigError, but
+        # only a directory standing in for user.js exercises the OSError
+        # branch; without this a configparser exception would escape as a
+        # traceback that never names the file to fix.
+        self.firefox_root.mkdir(parents=True)
+        profiles = self.firefox_root / "profiles.ini"
+        profiles.write_text("Profiles/onlydefault\n", encoding="utf-8")
+        with self.assertRaises(install_firefox.ConfigError) as caught:
+            self.resolve()
+        self.assertIn(f"cannot read {profiles}", str(caught.exception))
+
+    def test_a_non_utf8_profiles_ini_is_reported_by_name(self):
+        # Firefox's own ini files are UTF-8, but a stray byte must still name
+        # the file rather than raise UnicodeDecodeError out of the tool.
+        self.firefox_root.mkdir(parents=True)
+        profiles = self.firefox_root / "profiles.ini"
+        profiles.write_bytes(b"[Profile0]\nPath=\xff\n")
+        with self.assertRaises(install_firefox.ConfigError) as caught:
+            self.resolve()
+        self.assertIn(f"cannot read {profiles}", str(caught.exception))
+
     def test_no_existing_candidate_names_the_root_and_candidates(self):
         self.firefox_root.mkdir(parents=True)
         _write(
@@ -357,6 +380,18 @@ class TestRemove(ProfileCase):
         self.user_js_path().mkdir()
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
+        self.assertIn(str(self.user_js_path()), result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+
+    def test_non_utf8_user_js_is_reported_without_writing_the_sheet(self):
+        # The reader decodes user.js as UTF-8 and promises a by-name error for
+        # invalid bytes, but the directory case above is the only pinned read
+        # failure. A user.js with a stray latin-1 byte must exit 2 naming the
+        # file, and the install must stop before writing the sheet.
+        self.user_js_path().write_bytes(b'user_pref("x", "\xff");\n')
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn("cannot read", result.stderr)
         self.assertIn(str(self.user_js_path()), result.stderr)
         self.assertFalse(self.sheet_path().exists())
 

@@ -245,7 +245,7 @@ class TestMainErrors(unittest.TestCase):
     def test_reports_a_failed_write_and_stops_at_that_cursor(self):
         tmp = make_tmp_dir(self)
         directory = tmp / make_cursors.PACKAGE_DIR / make_cursors.CURSORS_DIR
-        real_write = make_cursors._write_atomic
+        real_write = make_cursors.write_bytes_atomically
         attempted = []
 
         def flaky_write(path, data):
@@ -256,7 +256,9 @@ class TestMainErrors(unittest.TestCase):
 
         stderr = io.StringIO()
         with mock.patch.object(make_cursors, "ROOT", tmp):
-            with mock.patch.object(make_cursors, "_write_atomic", flaky_write):
+            with mock.patch.object(
+                make_cursors, "write_bytes_atomically", flaky_write
+            ):
                 with contextlib.redirect_stderr(stderr):
                     status = make_cursors.main([])
         self.assertEqual(status, 2)
