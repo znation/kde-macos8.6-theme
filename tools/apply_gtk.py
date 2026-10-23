@@ -25,10 +25,12 @@ from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
+    from tools.atomic_write import write_atomically
     from tools.diagnostics import report_error, report_failure
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_gtk.py
     from argument_parsing import EscapingArgumentParser
+    from atomic_write import write_atomically
     from diagnostics import report_error, report_failure
     from terminal import escape_controls
 
@@ -184,17 +186,11 @@ def _remove_theme_name(text: str) -> tuple[str, bool]:
 
 
 def _write_atomic(path: Path, text: str) -> None:
-    """Write *text* through a ``.staging`` sibling then ``os.replace`` it."""
+    """Write *text* through a temporary sibling and an atomic rename."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    staging = path.with_name(f".{path.name}.staging")
-    try:
-        staging.write_text(text, encoding="utf-8")
-        os.replace(staging, path)
-    finally:
-        try:
-            staging.unlink()
-        except FileNotFoundError:
-            pass
+    write_atomically(
+        path, lambda destination: destination.write(text.encode("utf-8"))
+    )
 
 
 def _write_user_css(config_home: Path, sheet: Path) -> None:

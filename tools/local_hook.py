@@ -23,19 +23,19 @@ unreadable file), a git invocation fails, or the arguments are a usage error.
 
 from __future__ import annotations
 
-import os
 import stat
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
+    from tools.atomic_write import write_atomically
     from tools.diagnostics import report_error
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/local_hook.py
     from argument_parsing import EscapingArgumentParser
+    from atomic_write import write_atomically
     from diagnostics import report_error
     from terminal import escape_controls
 
@@ -167,35 +167,16 @@ def _existing_hook(path: Path) -> bytes | None:
 def _write_hook(path: Path, content: str) -> None:
     """Write *content* to *path* atomically, with the executable bit set.
 
-    The hook is written to a sibling temporary file, made executable, and then
-    renamed over *path*, so a crash mid-write leaves either the previous hook
-    or the complete new one -- never a truncated file that git would run. The
-    temporary file is removed when the write fails.
-
-    The temporary file's name is picked by :func:`tempfile.mkstemp`, which
-    creates it exclusively: a fixed, guessable name would let another local
-    user who can write the hooks directory park a symlink there first and make
-    the write clobber whatever file it names. The bytes go through the file
-    descriptor ``mkstemp`` returned rather than the path being reopened by
-    name, so a path swapped after the exclusive create cannot redirect them.
+    A crash mid-write leaves either the previous hook or the complete new one
+    -- never a truncated file that git would run; see
+    :func:`tools.atomic_write.write_atomically`.
     """
-    descriptor, partial_name = tempfile.mkstemp(
-        dir=path.parent, prefix=f".{HOOK_NAME}-", suffix=".tmp"
+    write_atomically(
+        path,
+        lambda destination: destination.write(content.encode("utf-8")),
+        prefix=f".{HOOK_NAME}-",
+        mode=0o755,
     )
-    partial = Path(partial_name)
-    descriptor_closed = False
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as destination:
-            descriptor_closed = True
-            # mkstemp opens the file 0600; the hook must be executable.
-            os.chmod(destination.fileno(), 0o755)
-            destination.write(content)
-        os.replace(partial, path)
-    except BaseException:
-        if not descriptor_closed:
-            os.close(descriptor)
-        partial.unlink(missing_ok=True)
-        raise
 
 
 def install() -> int:

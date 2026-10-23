@@ -15,7 +15,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main  # noqa: E402
 from support.tmp_dir import make_tmp_dir
-from tools import make_wallpaper, png  # noqa: E402
+from tools import atomic_write, make_wallpaper, png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
 
 TILE = make_wallpaper.TILE_SIZE
@@ -389,7 +389,7 @@ class TestWriteAtomic(unittest.TestCase):
             os.symlink(victim, name)
             return descriptor, name
 
-        with mock.patch.object(make_wallpaper.tempfile, "mkstemp", swapping_mkstemp):
+        with mock.patch.object(atomic_write.tempfile, "mkstemp", swapping_mkstemp):
             make_wallpaper._write_atomic(target, b"new wallpaper")
 
         self.assertEqual(b"do not overwrite", victim.read_bytes())

@@ -15,8 +15,10 @@ from collections.abc import Iterable
 from pathlib import Path
 
 if __package__:
+    from tools.atomic_write import write_atomically
     from tools.containment import open_regular_binary, require_within_repo
 else:  # imported from a directly run tool
+    from atomic_write import write_atomically
     from containment import open_regular_binary, require_within_repo
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -148,36 +150,16 @@ def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, st
 def _write_config_atomically(path: Path, content: str) -> None:
     """Write *content* to *path* so it is either the old file or the whole new one.
 
-    The bytes go to a sibling temporary file that is renamed over *path*, so a
-    crash mid-write leaves the previous config (or no file) rather than a
-    truncated one that Plasma would read as malformed. The temporary file is
-    removed when the write fails.
+    A crash mid-write leaves the previous config (or no file) rather than a
+    truncated one that Plasma would read as malformed; see
+    :func:`tools.atomic_write.write_atomically`.
     """
-    import os
-    import tempfile
-
-    descriptor, partial_name = tempfile.mkstemp(
-        dir=path.parent, prefix=f".{path.name}-", suffix=".tmp"
+    mode = path.stat().st_mode & 0o777 if path.exists() else None
+    write_atomically(
+        path,
+        lambda destination: destination.write(content.encode("utf-8")),
+        mode=mode,
     )
-    partial = Path(partial_name)
-    descriptor_closed = False
-    try:
-        if path.exists():
-            mode = path.stat().st_mode & 0o777
-        else:
-            previous_umask = os.umask(0)
-            os.umask(previous_umask)
-            mode = 0o666 & ~previous_umask
-        os.chmod(partial, mode)
-        with os.fdopen(descriptor, "w", encoding="utf-8") as destination:
-            descriptor_closed = True
-            destination.write(content)
-        os.replace(partial, path)
-    except BaseException:
-        if not descriptor_closed:
-            os.close(descriptor)
-        partial.unlink(missing_ok=True)
-        raise
 
 
 def write_configs(config_home: Path, names: Iterable[str]) -> None:

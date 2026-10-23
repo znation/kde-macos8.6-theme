@@ -20,13 +20,12 @@ anything is written: the wallpaper images stay in the wallpaper package.
 
 from __future__ import annotations
 
-import os
 import sys
-import tempfile
 from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
+    from tools.atomic_write import write_atomically
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.png import Image, PngError, read_png
@@ -34,6 +33,7 @@ if __package__:
     from tools.ints import is_plain_int
 else:  # run directly: python3 tools/make_wallpaper.py
     from argument_parsing import EscapingArgumentParser
+    from atomic_write import write_atomically
     from containment import require_within_repo
     from diagnostics import report_error
     from png import Image, PngError, read_png
@@ -115,40 +115,11 @@ def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
 def _write_atomic(path: Path, data: bytes) -> None:
     """Write *data* to *path* so *path* is the old file or the whole new one.
 
-    The bytes go to a sibling temporary file that is renamed over *path*, so a
-    crash mid-write leaves the previous wallpaper rather than a truncated PNG
-    that a later ``make install`` would ship. The temporary file is removed
-    when the write fails.
-
-    The temporary file's name is picked by :func:`tempfile.mkstemp`, which
-    creates it exclusively: a fixed, guessable name would let another local
-    user who can write the images directory park a symlink there first and
-    make the write clobber whatever file it names. The bytes go through the
-    file descriptor ``mkstemp`` returned rather than the path being reopened
-    by name, so a path swapped after the exclusive create cannot redirect
-    them.
+    A crash mid-write leaves the previous wallpaper rather than a truncated
+    PNG that a later ``make install`` would ship; see
+    :func:`tools.atomic_write.write_atomically`.
     """
-    descriptor, partial_name = tempfile.mkstemp(
-        dir=path.parent, prefix=f".{path.name}-", suffix=".tmp"
-    )
-    partial = Path(partial_name)
-    descriptor_closed = False
-    try:
-        with os.fdopen(descriptor, "wb") as destination:
-            descriptor_closed = True
-            # mkstemp opens the file 0600; the plain write this replaces
-            # created it with the process umask applied, so restore that mode
-            # before the rename leaves the image owner-only.
-            umask = os.umask(0)
-            os.umask(umask)
-            os.chmod(destination.fileno(), 0o666 & ~umask)
-            destination.write(data)
-        os.replace(partial, path)
-    except BaseException:
-        if not descriptor_closed:
-            os.close(descriptor)
-        partial.unlink(missing_ok=True)
-        raise
+    write_atomically(path, lambda destination: destination.write(data))
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -294,7 +294,7 @@ class TestWriteConfigs(unittest.TestCase):
         target = directory / "kwinrc"
         target.write_text("ORIGINAL\n", encoding="utf-8")
         td = theme_defaults
-        real_chmod = os.chmod
+        real_chmod = os.fchmod
         real_close = os.close
         closed = []
         def boom(path, mode):
@@ -302,13 +302,13 @@ class TestWriteConfigs(unittest.TestCase):
         def track_close(fd):
             closed.append(fd)
             return real_close(fd)
-        os.chmod = boom
+        os.fchmod = boom
         os.close = track_close
         try:
             with self.assertRaises(OSError):
                 td._write_config_atomically(target, "NEW\n")
         finally:
-            os.chmod = real_chmod
+            os.fchmod = real_chmod
             os.close = real_close
         self.assertEqual("ORIGINAL\n", target.read_text(encoding="utf-8"))
         self.assertEqual({"kwinrc"}, set(os.listdir(directory)))

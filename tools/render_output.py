@@ -12,8 +12,12 @@ from __future__ import annotations
 
 import os
 import shutil
-import tempfile
 from pathlib import Path
+
+if __package__:
+    from tools.atomic_write import write_atomically
+else:  # imported from inside tools/: python3 -c 'import render_output'
+    from atomic_write import write_atomically
 
 
 def output_problem(output: Path) -> str | None:
@@ -51,25 +55,8 @@ def publish(source: Path, output: Path) -> None:
             f"publish() requires pathlib.Path: output must be Path, "
             f"not {type(output).__name__}"
         )
-    descriptor, partial_name = tempfile.mkstemp(
-        dir=output.parent, prefix=".render-", suffix=".tmp"
-    )
-    partial = Path(partial_name)
-    descriptor_closed = False
-    try:
-        with os.fdopen(descriptor, "wb") as destination:
-            descriptor_closed = True
-            # mkstemp opens the file 0600; the plain copy this replaces
-            # created it with the process umask applied, so restore that mode
-            # and leave the output's permissions unchanged.
-            umask = os.umask(0)
-            os.umask(umask)
-            os.chmod(destination.fileno(), 0o666 & ~umask)
-            with source.open("rb") as origin:
-                shutil.copyfileobj(origin, destination)
-        os.replace(partial, output)
-    except BaseException:
-        if not descriptor_closed:
-            os.close(descriptor)
-        partial.unlink(missing_ok=True)
-        raise
+    def copy_into(destination):
+        with source.open("rb") as origin:
+            shutil.copyfileobj(origin, destination)
+
+    write_atomically(output, copy_into, prefix=".render-")

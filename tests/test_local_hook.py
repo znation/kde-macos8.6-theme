@@ -28,7 +28,7 @@ from support import theme_install
 from support import tmp_dir
 from support.cli_fixtures import run_main
 from support.process_assertions import assert_failed, assert_succeeded
-from tools import local_hook
+from tools import atomic_write, local_hook
 
 
 def make_repo(case):
@@ -448,7 +448,7 @@ class TestInstall(unittest.TestCase):
             os.symlink(victim, name)
             return descriptor, name
 
-        with mock.patch.object(local_hook.tempfile, "mkstemp", swapping_mkstemp):
+        with mock.patch.object(atomic_write.tempfile, "mkstemp", swapping_mkstemp):
             local_hook._write_hook(hook, local_hook.HOOK_SCRIPT)
 
         self.assertEqual(b"do not overwrite", victim.read_bytes())
