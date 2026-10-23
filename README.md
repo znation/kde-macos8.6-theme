@@ -162,10 +162,12 @@ active and inactive frames) with its gzipped `decoration.svgz` (the form
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make
-uninstall` removes the eight installed artifacts, leaving the shared `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
+uninstall` removes the eight default artifacts and the three opt-in GTK files, leaving the shared
+`color-schemes/`, `look-and-feel/`, `desktoptheme/`,
 `aurorae/themes/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
-directories and anything else in them in place. It removes only the artifacts
-`install` copied, never the user's configuration: if the removed scheme is still
+directories and anything else in them in place. It removes only those artifacts, their
+hidden `.staging`/`.old` leftovers and the emptied GTK directories, and never edits the
+user's configuration: if the removed scheme is still
 the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve
 it after the uninstall and falls back to BreezeLight on the next start, so
 `make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
