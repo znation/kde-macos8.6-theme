@@ -39,9 +39,10 @@ PLACEHOLDERS = os.path.join(ROOT, "PLACEHOLDERS.md")
 
 # The icons the package ships: the desktop's hard disk, folder, document,
 # Trash and full Trash (32x32), the `inode-directory` alias KDE resolves a
-# directory to, the kicker logo the menu bar's top-left button shows at the
-# two panel sizes, and the `go-next-symbolic` submenu arrow the reference's
-# open Apple menu draws.
+# directory to, 16x16 and 22x22 renditions of the folder, alias, Trash and
+# full Trash (part 1/2 of the Platinum icon theme), the kicker logo the menu
+# bar's top-left button shows at the two panel sizes, and the
+# `go-next-symbolic` submenu arrow the reference's open Apple menu draws.
 SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-harddisk.svg"),
     os.path.join("32x32", "mimetypes", "text-x-generic.svg"),
@@ -49,6 +50,14 @@ SHIPPED_ICONS = (
     os.path.join("32x32", "places", "inode-directory.svg"),
     os.path.join("32x32", "places", "user-trash.svg"),
     os.path.join("32x32", "places", "user-trash-full.svg"),
+    os.path.join("16x16", "places", "folder.svg"),
+    os.path.join("16x16", "places", "inode-directory.svg"),
+    os.path.join("16x16", "places", "user-trash.svg"),
+    os.path.join("16x16", "places", "user-trash-full.svg"),
+    os.path.join("22x22", "places", "folder.svg"),
+    os.path.join("22x22", "places", "inode-directory.svg"),
+    os.path.join("22x22", "places", "user-trash.svg"),
+    os.path.join("22x22", "places", "user-trash-full.svg"),
     os.path.join("16x16", "places", "start-here-kde-symbolic.svg"),
     os.path.join("22x22", "places", "start-here-kde-symbolic.svg"),
     os.path.join("16x16", "actions", "go-next-symbolic.svg"),
@@ -363,6 +372,90 @@ ICON_SHAPES = {
         _shape("rect", x="17", y="16", width="1", height="10", fill="#999999"),
         _shape("rect", x="18", y="16", width="1", height="10", fill="#FFFFFF"),
     ),
+    os.path.join("16x16", "places", "folder.svg"): (
+        _shape("path", d="M1 4 h5 l2 2 h6 v7 H1 Z", fill="#000000"),
+        _shape("path", d="M2 5 h4 l2 2 h5 v4 H2 Z", fill="#DDDDDD"),
+        _shape("path", d="M2 5 h4 l2 2 h5 v1 h-5 l-2 -2 h-4 Z", fill="#FFFFFF"),
+        _shape("rect", x="2", y="5", width="1", height="6", fill="#FFFFFF"),
+        _shape("rect", x="2", y="11", width="11", height="1", fill="#999999"),
+        _shape("rect", x="12", y="8", width="1", height="3", fill="#999999"),
+    ),
+    os.path.join("16x16", "places", "inode-directory.svg"): (
+        _shape("path", d="M1 4 h5 l2 2 h6 v7 H1 Z", fill="#000000"),
+        _shape("path", d="M2 5 h4 l2 2 h5 v4 H2 Z", fill="#DDDDDD"),
+        _shape("path", d="M2 5 h4 l2 2 h5 v1 h-5 l-2 -2 h-4 Z", fill="#FFFFFF"),
+        _shape("rect", x="2", y="5", width="1", height="6", fill="#FFFFFF"),
+        _shape("rect", x="2", y="11", width="11", height="1", fill="#999999"),
+        _shape("rect", x="12", y="8", width="1", height="3", fill="#999999"),
+    ),
+    os.path.join("16x16", "places", "user-trash.svg"): (
+        _shape("rect", x="6", y="1", width="4", height="2", fill="#000000"),
+        _shape("rect", x="7", y="2", width="2", height="1", fill="#DDDDDD"),
+        _shape("rect", x="3", y="3", width="10", height="3", fill="#000000"),
+        _shape("rect", x="4", y="4", width="8", height="2", fill="#DDDDDD"),
+        _shape("rect", x="4", y="4", width="8", height="1", fill="#FFFFFF"),
+        _shape("rect", x="4", y="5", width="8", height="1", fill="#999999"),
+        _shape("path", d="M5 6 h6 l-1 9 H6 Z", fill="#000000"),
+        _shape("path", d="M6 7 h4 l-1 7 H7 Z", fill="#DDDDDD"),
+        _shape("rect", x="7", y="8", width="1", height="5", fill="#999999"),
+        _shape("rect", x="8", y="8", width="1", height="5", fill="#FFFFFF"),
+    ),
+    os.path.join("16x16", "places", "user-trash-full.svg"): (
+        _shape("path", d="M6 0 l2 1 l2 -1 l1 4 h-6 Z", fill="#000000"),
+        _shape("path", d="M7 1 l1 1 l1 -1 l1 3 h-4 Z", fill="#FFFFFF"),
+        _shape("rect", x="3", y="3", width="10", height="3", fill="#000000"),
+        _shape("rect", x="4", y="4", width="8", height="2", fill="#DDDDDD"),
+        _shape("rect", x="4", y="4", width="8", height="1", fill="#FFFFFF"),
+        _shape("rect", x="4", y="5", width="8", height="1", fill="#999999"),
+        _shape("path", d="M5 6 h6 l-1 9 H6 Z", fill="#000000"),
+        _shape("path", d="M6 7 h4 l-1 7 H7 Z", fill="#DDDDDD"),
+        _shape("rect", x="7", y="8", width="1", height="5", fill="#999999"),
+        _shape("rect", x="8", y="8", width="1", height="5", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "places", "folder.svg"): (
+        _shape("path", d="M2 6 h7 l3 3 h8 v8 H2 Z", fill="#000000"),
+        _shape("path", d="M3 7 h6 l3 3 h7 v6 H3 Z", fill="#DDDDDD"),
+        _shape("path", d="M3 7 h6 l3 3 h7 v1 h-7 l-3 -3 h-6 Z", fill="#FFFFFF"),
+        _shape("rect", x="3", y="7", width="1", height="8", fill="#FFFFFF"),
+        _shape("rect", x="3", y="15", width="16", height="1", fill="#999999"),
+        _shape("rect", x="18", y="10", width="1", height="5", fill="#999999"),
+    ),
+    os.path.join("22x22", "places", "inode-directory.svg"): (
+        _shape("path", d="M2 6 h7 l3 3 h8 v8 H2 Z", fill="#000000"),
+        _shape("path", d="M3 7 h6 l3 3 h7 v6 H3 Z", fill="#DDDDDD"),
+        _shape("path", d="M3 7 h6 l3 3 h7 v1 h-7 l-3 -3 h-6 Z", fill="#FFFFFF"),
+        _shape("rect", x="3", y="7", width="1", height="8", fill="#FFFFFF"),
+        _shape("rect", x="3", y="15", width="16", height="1", fill="#999999"),
+        _shape("rect", x="18", y="10", width="1", height="5", fill="#999999"),
+    ),
+    os.path.join("22x22", "places", "user-trash.svg"): (
+        _shape("rect", x="8", y="1", width="6", height="3", fill="#000000"),
+        _shape("rect", x="9", y="2", width="4", height="2", fill="#DDDDDD"),
+        _shape("rect", x="4", y="4", width="14", height="4", fill="#000000"),
+        _shape("rect", x="5", y="5", width="12", height="3", fill="#DDDDDD"),
+        _shape("rect", x="5", y="5", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="5", y="7", width="12", height="1", fill="#999999"),
+        _shape("path", d="M6 8 h10 l-1 12 H7 Z", fill="#000000"),
+        _shape("path", d="M7 9 h8 l-1 10 H8 Z", fill="#DDDDDD"),
+        _shape("rect", x="9", y="11", width="1", height="8", fill="#999999"),
+        _shape("rect", x="10", y="11", width="1", height="8", fill="#FFFFFF"),
+        _shape("rect", x="12", y="11", width="1", height="8", fill="#999999"),
+        _shape("rect", x="13", y="11", width="1", height="8", fill="#FFFFFF"),
+    ),
+    os.path.join("22x22", "places", "user-trash-full.svg"): (
+        _shape("path", d="M8 0 l3 2 l3 -2 l1 6 h-8 Z", fill="#000000"),
+        _shape("path", d="M9 1 l2 1 l2 -1 l1 4 h-6 Z", fill="#FFFFFF"),
+        _shape("rect", x="4", y="4", width="14", height="4", fill="#000000"),
+        _shape("rect", x="5", y="5", width="12", height="3", fill="#DDDDDD"),
+        _shape("rect", x="5", y="5", width="12", height="1", fill="#FFFFFF"),
+        _shape("rect", x="5", y="7", width="12", height="1", fill="#999999"),
+        _shape("path", d="M6 8 h10 l-1 12 H7 Z", fill="#000000"),
+        _shape("path", d="M7 9 h8 l-1 10 H8 Z", fill="#DDDDDD"),
+        _shape("rect", x="9", y="11", width="1", height="8", fill="#999999"),
+        _shape("rect", x="10", y="11", width="1", height="8", fill="#FFFFFF"),
+        _shape("rect", x="12", y="11", width="1", height="8", fill="#999999"),
+        _shape("rect", x="13", y="11", width="1", height="8", fill="#FFFFFF"),
+    ),
     os.path.join("16x16", "places", "start-here-kde-symbolic.svg"): (
         _shape("rect", x="1", y="1", width="14", height="10", fill="#000000"),
         _shape("rect", x="2", y="2", width="12", height="8", fill="#DDDDDD"),
@@ -410,17 +503,22 @@ class TestIconGeometry(unittest.TestCase):
 
     def test_the_folder_alias_shares_the_folder_art(self):
         # Mac OS 8.6 draws one folder shape for both the `folder` and
-        # `inode-directory` names, so the alias must stay the same drawing;
-        # pinning only each one's own elements would let them drift apart.
-        folder = _drawing_elements(
-            parse_svg(os.path.join(PACKAGE, "32x32", "places", "folder.svg"))
-        )
-        alias = _drawing_elements(
-            parse_svg(
-                os.path.join(PACKAGE, "32x32", "places", "inode-directory.svg")
-            )
-        )
-        self.assertEqual(alias, folder)
+        # `inode-directory` names, so the alias must stay the same drawing
+        # at every shipped size; pinning only each one's own elements would
+        # let them drift apart.
+        for size in ("16x16", "22x22", "32x32"):
+            with self.subTest(size=size):
+                folder = _drawing_elements(
+                    parse_svg(os.path.join(PACKAGE, size, "places", "folder.svg"))
+                )
+                alias = _drawing_elements(
+                    parse_svg(
+                        os.path.join(
+                            PACKAGE, size, "places", "inode-directory.svg"
+                        )
+                    )
+                )
+                self.assertEqual(alias, folder)
 
 
 class TestInstall(InstallLifecycleCases, unittest.TestCase):

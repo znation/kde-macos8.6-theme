@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" directory icon, 22x22 rendition.
+
+     The folder KDE resolves a directory to (`inode-directory`). This 22x22
+     redraw shares `places/folder.svg`'s geometry because Mac OS 8.6 draws
+     one folder shape for both names: a #DDDDDD face with a tab on the top
+     left, a 1px #000000 outline and the Platinum bevel (#FFFFFF top/left,
+     #999999 bottom/right). Drawn for this theme, not traced from Apple's
+     artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Outline: a tab on the top left and a taller front panel. -->
+  <path d="M2 6 h7 l3 3 h8 v8 H2 Z" fill="#000000"/>
+  <!-- #DDDDDD face, inset one pixel. -->
+  <path d="M3 7 h6 l3 3 h7 v6 H3 Z" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <path d="M3 7 h6 l3 3 h7 v1 h-7 l-3 -3 h-6 Z" fill="#FFFFFF"/>
+  <rect x="3" y="7" width="1" height="8" fill="#FFFFFF"/>
+  <rect x="3" y="15" width="16" height="1" fill="#999999"/>
+  <rect x="18" y="10" width="1" height="5" fill="#999999"/>
+</svg>

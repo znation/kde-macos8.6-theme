@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum icon theme, part 1/2: ship 16x16 and 22x22 renditions of the folder, directory and Trash icons (planned 2026-10-23 by the plan role; part 2/2 adds the hard-disk and document renditions) — done 2026-10-23 by the feature role
+
+**Goal.** `theme/icons/org.macos8.desktop/index.theme` declares `16x16/places` and `22x22/places`, but those directories hold no `folder`, `inode-directory`, `user-trash` or `user-trash-full` file: the package ships those four names only at 32x32. Add eight pixel-aligned renditions so a menu, tree view or small desktop icon can draw a dedicated Platinum shape at its own size instead of relying on the 32x32 art. The 32x32 art is our own drawing, and `docs/invariants.md`'s `## icons` row records that the reference set has no pixel ground truth for the icon theme; these renditions are our own simplified redraws using only the four pinned palette fills (`#000000` outline, `#DDDDDD` face, `#FFFFFF` top/left bevel, `#999999` bottom/right bevel), not traced from Apple's artwork.
+
+**Approach.**
+- Add these files, each an `<svg>` whose `width`, `height` and `viewBox` are the directory's declared size:
+  - `theme/icons/org.macos8.desktop/16x16/places/folder.svg` (six elements, in order): path `M1 4 h5 l2 2 h6 v7 H1 Z` `#000000`; path `M2 5 h4 l2 2 h5 v4 H2 Z` `#DDDDDD`; path `M2 5 h4 l2 2 h5 v1 h-5 l-2 -2 h-4 Z` `#FFFFFF`; rect `x=2 y=5 width=1 height=6` `#FFFFFF`; rect `x=2 y=11 width=11 height=1` `#999999`; rect `x=12 y=8 width=1 height=3` `#999999`.
+  - `theme/icons/org.macos8.desktop/22x22/places/folder.svg` (six elements): path `M2 6 h7 l3 3 h8 v8 H2 Z` `#000000`; path `M3 7 h6 l3 3 h7 v6 H3 Z` `#DDDDDD`; path `M3 7 h6 l3 3 h7 v1 h-7 l-3 -3 h-6 Z` `#FFFFFF`; rect `x=3 y=7 width=1 height=8` `#FFFFFF`; rect `x=3 y=15 width=16 height=1` `#999999`; rect `x=18 y=10 width=1 height=5` `#999999`.
+  - `theme/icons/org.macos8.desktop/16x16/places/inode-directory.svg` and `22x22/places/inode-directory.svg`: the same drawing elements as the matching `folder.svg`, in the same order; only the comment differs, saying the alias shares the folder geometry because Mac OS 8.6 draws one folder shape for both names.
+  - `theme/icons/org.macos8.desktop/16x16/places/user-trash.svg` (ten elements): rect `x=6 y=1 width=4 height=2` `#000000`; rect `x=7 y=2 width=2 height=1` `#DDDDDD`; rect `x=3 y=3 width=10 height=3` `#000000`; rect `x=4 y=4 width=8 height=2` `#DDDDDD`; rect `x=4 y=4 width=8 height=1` `#FFFFFF`; rect `x=4 y=5 width=8 height=1` `#999999`; path `M5 6 h6 l-1 9 H6 Z` `#000000`; path `M6 7 h4 l-1 7 H7 Z` `#DDDDDD`; rect `x=7 y=8 width=1 height=5` `#999999`; rect `x=8 y=8 width=1 height=5` `#FFFFFF`.
+  - `theme/icons/org.macos8.desktop/22x22/places/user-trash.svg` (twelve elements): rect `x=8 y=1 width=6 height=3` `#000000`; rect `x=9 y=2 width=4 height=2` `#DDDDDD`; rect `x=4 y=4 width=14 height=4` `#000000`; rect `x=5 y=5 width=12 height=3` `#DDDDDD`; rect `x=5 y=5 width=12 height=1` `#FFFFFF`; rect `x=5 y=7 width=12 height=1` `#999999`; path `M6 8 h10 l-1 12 H7 Z` `#000000`; path `M7 9 h8 l-1 10 H8 Z` `#DDDDDD`; rect `x=9 y=11 width=1 height=8` `#999999`; rect `x=10 y=11 width=1 height=8` `#FFFFFF`; rect `x=12 y=11 width=1 height=8` `#999999`; rect `x=13 y=11 width=1 height=8` `#FFFFFF`.
+  - `theme/icons/org.macos8.desktop/16x16/places/user-trash-full.svg` (ten elements): the two paper paths path `M6 0 l2 1 l2 -1 l1 4 h-6 Z` `#000000` and path `M7 1 l1 1 l1 -1 l1 3 h-4 Z` `#FFFFFF`, then the `user-trash.svg` elements from its rim outline through its white rib (elements 3-10 above), in the same order.
+  - `theme/icons/org.macos8.desktop/22x22/places/user-trash-full.svg` (twelve elements): the two paper paths path `M8 0 l3 2 l3 -2 l1 6 h-8 Z` `#000000` and path `M9 1 l2 1 l2 -1 l1 4 h-6 Z` `#FFFFFF`, then the `22x22/places/user-trash.svg` elements from its rim outline through its last white rib (elements 3-12 above), in the same order.
+- `theme/icons/org.macos8.desktop/index.theme`: no change; `16x16/places` and `22x22/places` are already declared with `Size=16`/`Size=22`, `Context=Places` and `Type=Fixed`.
+- `tests/test_icon_theme.py`: add the eight new paths to `SHIPPED_ICONS`; add each file to `ICON_SHAPES` with the exact element tuple listed above, using the existing `_shape` helper and the same document order. Extend `TestIconGeometry.test_the_folder_alias_shares_the_folder_art` to compare the `folder.svg` and `inode-directory.svg` drawings at 16x16, 22x22 and 32x32, so the alias cannot drift at a new size.
+- `README.md` and `docs/invariants.md`: no change here. The existing README sentence names the icon art without claiming a size, and the existing `## icons` guarantee (`Every shipped icon draws its pinned drawing elements in document order`) already covers these files because `TestIconGeometry.test_the_geometry_registry_covers_every_shipped_icon` requires `ICON_SHAPES` to equal `SHIPPED_ICONS`. Part 2/2 updates the README sentence once the complete set of renditions ships.
+
+**Files touched.** `tests/test_icon_theme.py` and eight new SVGs under `theme/icons/org.macos8.desktop/16x16/places/` and `22x22/places/`.
+
+**Acceptance criteria.**
+- The eight files exist; each parses as an SVG whose width, height and viewBox equal 16 or 22, each fill is one of the four `PLATINUM_FILLS`, and each has no script, style, external reference or duplicate id.
+- `TestIndex` sees the eight files in its declared directories, `TestIconGeometry.test_the_geometry_registry_covers_every_shipped_icon` sees `ICON_SHAPES` equal to the shipped set, and every new file's drawing elements equal the tuple above in document order.
+- The `inode-directory` drawing elements equal the matching `folder` elements at 16x16, 22x22 and 32x32.
+- Deleting an element, changing a coordinate or fill, moving an element, dropping a size, or drawing an alias differently from its folder fails a test.
+- `make check` is green.
+
 ### Platinum cursor set, part 4: ship the help, progress, pencil and zoom pointers (planned 2026-10-23 by the plan role; completes the cursor set after the landed parts 1-3) — done 2026-10-23 by the feature role
 
 **Goal.** The icon theme's `cursors/` covers fourteen pointers; README records that `help`,

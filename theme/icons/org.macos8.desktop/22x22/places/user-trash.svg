@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" Trash icon, 22x22 rendition.
+
+     Our own 22x22 redraw in the Platinum palette: a #DDDDDD can with a lid
+     and a handle, a 1px #000000 outline, the Platinum bevel (#FFFFFF
+     top/left, #999999 bottom/right) and rib lines down the body. Drawn for
+     this theme, not traced from Apple's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <!-- Handle. -->
+  <rect x="8" y="1" width="6" height="3" fill="#000000"/>
+  <rect x="9" y="2" width="4" height="2" fill="#DDDDDD"/>
+  <!-- Lid outline and face. -->
+  <rect x="4" y="4" width="14" height="4" fill="#000000"/>
+  <rect x="5" y="5" width="12" height="3" fill="#DDDDDD"/>
+  <rect x="5" y="5" width="12" height="1" fill="#FFFFFF"/>
+  <rect x="5" y="7" width="12" height="1" fill="#999999"/>
+  <!-- Body outline and face. -->
+  <path d="M6 8 h10 l-1 12 H7 Z" fill="#000000"/>
+  <path d="M7 9 h8 l-1 10 H8 Z" fill="#DDDDDD"/>
+  <!-- Ribs: grey and white lines down the body. -->
+  <rect x="9" y="11" width="1" height="8" fill="#999999"/>
+  <rect x="10" y="11" width="1" height="8" fill="#FFFFFF"/>
+  <rect x="12" y="11" width="1" height="8" fill="#999999"/>
+  <rect x="13" y="11" width="1" height="8" fill="#FFFFFF"/>
+</svg>

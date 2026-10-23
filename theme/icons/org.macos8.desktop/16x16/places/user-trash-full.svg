@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" full-Trash icon, 16x16 rendition.
+
+     The same #DDDDDD can as user-trash.svg, drawn with a #FFFFFF paper sheet
+     outlined in #000000 rising above the lid so KDE's non-empty Trash state
+     stays Platinum. Our own 16x16 redraw in the Platinum palette: a lid, a
+     1px #000000 outline, the Platinum bevel (#FFFFFF top/left, #999999
+     bottom/right) and rib lines down the body. Drawn for this theme, not
+     traced from Apple's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Paper sheet rising above the lid. -->
+  <path d="M6 0 l2 1 l2 -1 l1 4 h-6 Z" fill="#000000"/>
+  <path d="M7 1 l1 1 l1 -1 l1 3 h-4 Z" fill="#FFFFFF"/>
+  <!-- Lid outline and face. -->
+  <rect x="3" y="3" width="10" height="3" fill="#000000"/>
+  <rect x="4" y="4" width="8" height="2" fill="#DDDDDD"/>
+  <rect x="4" y="4" width="8" height="1" fill="#FFFFFF"/>
+  <rect x="4" y="5" width="8" height="1" fill="#999999"/>
+  <!-- Body outline and face. -->
+  <path d="M5 6 h6 l-1 9 H6 Z" fill="#000000"/>
+  <path d="M6 7 h4 l-1 7 H7 Z" fill="#DDDDDD"/>
+  <!-- Ribs: grey and white lines down the body. -->
+  <rect x="7" y="8" width="1" height="5" fill="#999999"/>
+  <rect x="8" y="8" width="1" height="5" fill="#FFFFFF"/>
+</svg>
