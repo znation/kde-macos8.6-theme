@@ -22,9 +22,10 @@ import io
 import os
 import stat
 from pathlib import Path
+from typing import BinaryIO
 
 
-def resolves_within(directory, path):
+def resolves_within(directory: str | Path, path: str | Path) -> bool:
     """Return True when *path* resolves to a location inside *directory*.
 
     A resolution that fails is not assumed to be contained: an ``OSError`` (a
@@ -41,7 +42,7 @@ def resolves_within(directory, path):
     return resolved.is_relative_to(base)
 
 
-def _absolute_lexical(path):
+def _absolute_lexical(path: str | Path) -> str:
     """Return *path*'s absolute form with one POSIX double-slash spelling normalized.
 
     POSIX permits a path to start with exactly two slashes, and
@@ -61,7 +62,7 @@ def _absolute_lexical(path):
     return absolute
 
 
-def is_within(directory, path):
+def is_within(directory: str | Path, path: str | Path) -> bool:
     """Return True when *path* is lexically inside *directory* (symlinks unresolved)."""
     base = _absolute_lexical(directory)
     absolute = _absolute_lexical(path)
@@ -71,7 +72,9 @@ def is_within(directory, path):
     return absolute == base or absolute.startswith(boundary)
 
 
-def require_within_repo(path, root, action="read"):
+def require_within_repo(
+    path: str | Path, root: str | Path, action: str = "read"
+) -> None:
     """Raise ``ValueError`` when a repository *path* resolves outside *root*.
 
     Only a *path* lexically inside *root* is checked, so a reader that is also
@@ -90,7 +93,7 @@ def require_within_repo(path, root, action="read"):
         )
 
 
-def open_regular_binary(path):
+def open_regular_binary(path: str | Path) -> BinaryIO:
     """Open *path* for binary reading, refusing a non-regular file.
 
     ``open()`` on a FIFO blocks until a writer appears and a device can stream
@@ -123,7 +126,7 @@ def open_regular_binary(path):
 _MAX_READ_BYTES = 1 << 20
 
 
-def _read_bounded(handle, path):
+def _read_bounded(handle: BinaryIO, path: str | Path) -> bytes:
     """Return at most ``_MAX_READ_BYTES`` from *handle*, refusing a longer file.
 
     One byte past the cap is read, so a file exactly at the limit is accepted
@@ -138,7 +141,7 @@ def _read_bounded(handle, path):
     return data
 
 
-def read_bytes(path, root):
+def read_bytes(path: str | Path, root: str | Path) -> bytes:
     """Return the bytes of repository *path*, refusing a symlink escape.
 
     A contributor-supplied file that a test compares with a second copy is
@@ -156,7 +159,9 @@ def read_bytes(path, root):
         return _read_bounded(handle, path)
 
 
-def read_text(path, root, encoding="utf-8"):
+def read_text(
+    path: str | Path, root: str | Path, encoding: str = "utf-8"
+) -> str:
     """Return the text of repository *path*, refusing a symlink escape.
 
     A contributor-supplied file whose lines a test feeds to an assertion that
