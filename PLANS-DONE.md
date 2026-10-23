@@ -5,6 +5,97 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum cursor theme, part 2/3: Xcursor binary writer and test-side parser (planned 2026-10-23 by the plan role; rewritten 2026-10-23 by the plan role; "requires part 1/3 landed") — done 2026-10-23 by the feature role
+
+**Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it directly
+under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
+`— done YYYY-MM-DD by the feature role` to its `### ` heading. Do not edit `PLANS-DONE.md`:
+tumwater archives `## Done` entries into that file after the merge, so neither its content nor
+`PLANS.md` after the merge is evidence this change controls. Verify the move on the pre-merge
+working diff only: `git diff --name-status` names `PLANS.md` and does not name `PLANS-DONE.md`, and
+`grep -n '^## ' PLANS.md` prints exactly `## Planned` and `## Done`. Do not claim any grep output
+for this entry's heading after the merge; tumwater may already have moved it out of `PLANS.md`.
+
+**Goal.** Part 1/3 added the RGBA PNG codec (`tools/png/write.py::encode_rgba_png`,
+`tools/png/read.py::decode_rgba`). This part adds the Xcursor container the cursor artifact needs:
+a standard-library writer that turns PNG frames into one Xcursor file, and an independent
+test-side parser that reads that file back and cross-checks the writer's framing. Nothing else:
+no generator, no committed cursor files, no Makefile, no README, no `theme/` change, no selection.
+The generator, the shipped artifact and its registration are part 3/3 ("requires part 2/3
+landed").
+
+**Reference grounding.** No screenshot in `macos8.6-screenshots/` shows a pointer, so no reference
+pixel is sampled here; the Xcursor binary layout is an X/KDE-required value the reference set does
+not show. Its facts: a 16-byte file header (`b"Xcur"`, header size 16, file version 0x00010000,
+TOC count), one 12-byte TOC entry per chunk (type, subtype, byte offset), and the 36-byte image
+chunk header (header size 36, type 0xfffd0002, subtype = nominal size, chunk version 1, width,
+height, hotspot x, hotspot y, delay 0). The image payload is `width * height` little-endian
+**premultiplied ARGB** words, not PNG bytes: the writer decodes each PNG frame with `decode_rgba`
+and premultiplies each colour channel with `(channel * alpha + 127) // 255`, and the parser
+converts the stored words back to RGBA and re-encodes them with `encode_rgba_png`. An opaque frame
+(alpha 255) therefore round-trips byte for byte; a translucent frame does not, because
+premultiplication loses colour precision — the tests pin the stored premultiplied word instead.
+Record that provenance first here and carry it into the `## cursors` section part 3/3 adds.
+
+**Approach.**
+- `tools/xcursor.py` (new): module constants `MAGIC = b"Xcur"`, `FILE_VERSION = 0x00010000`,
+  `FILE_HEADER_SIZE = 16`, `TOC_ENTRY_SIZE = 12`, `IMAGE_TYPE = 0xFFFD0002`,
+  `CHUNK_VERSION = 1`, `IMAGE_HEADER_SIZE = 36` and `MAX_IMAGE_SIZE = 0x7FFF`; follow
+  `tools/make_wallpaper.py`'s direct-or-package import block and use
+  `tools/ints.py::is_plain_int`. `write_cursor(images)` takes one `(nominal_size, width, height,
+  hotspot_x, hotspot_y, png_bytes)` record per frame; it rejects a dimension outside 1..0x7FFF, a
+  hotspot outside its image, a non-integer (including a bool) numeric field, a PNG field that is
+  not `bytes`/`bytearray` and a PNG whose size disagrees with `width`/`height`, each with a
+  `ValueError` naming the argument; it decodes with `decode_rgba`, premultiplies, writes the file
+  header, one TOC entry per image and each image chunk at its declared offset, so the same records
+  always produce byte-identical output. The public surface is `write_cursor` plus those constants;
+  no comment chunks.
+- `tests/support/xcursor.py` (new): the test-side parser, written independently of the writer and
+  importing no symbol from `tools/xcursor.py`. `read_cursor(path)` validates the file header
+  (magic, header size 16, version 0x00010000, `ntoc`), reads the TOC, skips a TOC entry whose type
+  is not `0xfffd0002` (tolerating, for example, a comment chunk), rejects a chunk offset or length
+  outside the file, validates the 36-byte image header (type, chunk version 1, nominal size, width,
+  height, hotspot), slices the ARGB payload, converts it back to RGBA and returns a `CursorFile`
+  NamedTuple of `CursorImage(nominal_size, width, height, hotspot_x, hotspot_y, png)` records whose
+  `png` is `encode_rgba_png(width, height, rgba)`. Errors are `ValueError` naming the path and the
+  field or offset that failed.
+- `tests/test_xcursor.py` (new): round-trip synthetic opaque frames at 1x1, 2x2, 3x3 and 4x4 whose
+  hotspot is the bottom-right tip and whose pixels vary by position: `write_cursor` → `read_cursor`
+  reproduces every field and returns the original `encode_rgba_png` bytes exactly. Pin the
+  container layout by unpacking the bytes: magic, header size, version, `ntoc`, each TOC entry's
+  type/subtype/offset, each chunk's 36-byte header (delay 0) and one known translucent pixel's
+  premultiplied ARGB word. Two runs with the same records are byte-identical. Rejections, using
+  `tests/support/error_assertions.py`'s `assert_error_names` (the rejections raise `ValueError`, which `assert_rejection_names` does not observe): a truncated file header, a
+  truncated image payload, a bad magic, a wrong header size, a wrong version, a corrupt `ntoc`
+  whose TOC overruns the file, a hotspot outside its image, a zero dimension, a bool dimension, a
+  PNG sized differently from its record and a non-`bytes` PNG, each message naming the argument or
+  offset. One test builds a valid file plus a hand-appended unknown TOC entry and shows the parser
+  skips it while still returning the image.
+- `docs/invariants.md`: untouched. This part ships no artifact, so the `## cursors` row belongs to
+  part 3/3, which pins the committed file; this part's guarantees are pinned by
+  `tests/test_xcursor.py` alone.
+
+**Files touched.** `tools/xcursor.py` (new), `tests/support/xcursor.py` (new),
+`tests/test_xcursor.py` (new) and `PLANS.md` (the entry moves to `## Done`; see Plan record). Do not
+edit `PLANS-DONE.md`, `Makefile`, `README.md`, `docs/invariants.md` or any `theme/` path.
+
+**Acceptance criteria.**
+- `tests/test_xcursor.py`'s round-trip case shows `write_cursor` → `read_cursor` agreeing on every
+  field and on the exact PNG bytes for all four opaque synthetic sizes; two runs with the same
+  records produce byte-identical files; the layout pin finds the constants above at their stated
+  offsets with delay 0 and the expected premultiplied translucent word; each malformed input above
+  raises `ValueError` whose message names the offending argument or offset; the hand-appended
+  unknown TOC entry is skipped and the remaining image still parses.
+- The test-side parser is independent of the writer:
+  `grep -n 'from tools import xcursor\|from tools\.xcursor' tests/support/xcursor.py` prints no
+  line.
+- `make check CHECK_TESTS=test_xcursor` passes, then `make check` is green; removing a guard,
+  offsetting a chunk or changing a constant makes the matching test fail.
+- `git diff --name-status` names only the files listed under "Files touched" (including the
+  `PLANS.md` move) and does not name `PLANS-DONE.md`; `grep -n '^## ' PLANS.md` prints exactly
+  `## Planned` and `## Done`. No acceptance criterion refers to `PLANS.md` or `PLANS-DONE.md` after
+  the merge; tumwater archives the `## Done` entry into `PLANS-DONE.md`.
+
 ### Retire the `no-observability` validation gap with test-side observability (planned 2026-10-23 by the steward role; promotes the recurring `gap: no-observability` tag, 21 Fixed entries) — done 2026-10-23 by the feature role
 
 **Goal.** Twenty-one Fixed entries in BUGS-FIXED.md carry `gap: no-observability` — failures that left no trace the suite could see, so the bug could not be confirmed until instrumentation was added. Retire the tag by adding test-side observability helpers (trace capture, structured failure logging) that make such failures reproducible offline, so new bugs in those areas are confirmable without a real run.
