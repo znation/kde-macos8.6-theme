@@ -133,8 +133,10 @@ ships the round Platinum button `PlasmaComponents.RoundButton` and `PlasmaCompon
 `widgets/action-overlays.svg` ships the desktop containment's folder-icon
 add/open/remove action buttons in normal, hover and pressed states.
 `widgets/margins-highlight.svg` ships the translucent lavender panel-margin
-highlight Plasma draws while a panel is in edit mode; the panel resize and
-slider handles still come from the fallback theme.
+highlight Plasma draws while a panel is in edit mode, and
+`widgets/containment-controls.svg` ships its black-edged Platinum ruler frame,
+its twelve offset/minimum/maximum drag sliders as raised Platinum thumbs and
+its two lavender centre indicators.
 `widgets/slider.svg` ships the same flat grey trough (its `groove` nine-slice)
 with a raised grey thumb for `PlasmaComponents.Slider` and `RangeSlider`, in
 both orientations. `widgets/switch.svg` ships the Platinum track-and-thumb

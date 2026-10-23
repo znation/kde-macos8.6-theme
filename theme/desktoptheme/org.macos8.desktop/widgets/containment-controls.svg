@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" panel edit-mode chrome
+     (widgets/containment-controls).
+
+     Plasma draws these while a panel is in edit mode. PanelConfiguration.qml
+     sets the `north`, `south`, `east` and `west` panel-edge prefix, and
+     Ruler.qml is a KSvg.FrameSvgItem for that prefix, so the twelve frame
+     slices are `north-center`, `north-top`, `north-bottom` and the same three
+     for `south`, plus `east-center`, `east-left`, `east-right` and the same
+     three for `west`. A horizontal ruler's `top`/`bottom` strips are 10x1 and
+     its centre 10x12; a vertical ruler's `left`/`right` strips are 1x10 and
+     its centre 12x10, so the ruler band is 14px thick. The 1px edge strips
+     are the black outline and the centre is the Platinum face.
+
+     Ruler.qml also asks for the two centre indicators, and SliderHandle.qml
+     builds `prefix + '-' + graphicElementName`, so the twelve slider ids are
+     `north-offsetslider`, `north-minslider`, `north-maxslider` and the same
+     three repeated for `south`, `east` and `west`. Each slider is a 9x9 raised
+     Platinum thumb: a #DDDDDD face with a 1px bevel inside a 1px #000000
+     outline, painted in the same document order as slider.svg's handles. The
+     offset thumb carries a 3x3 black centre dot, and the min/max thumbs a 1px
+     black bar across their drag axis.
+
+     The two centre indicators are `vertical-centerindicator` (a 42x1 line a
+     vertical panel stretches across its width) and
+     `horizontal-centerindicator` (a 1x42 line a horizontal panel stretches
+     down its height).
+
+     Provenance: no Mac OS 8.6 reference screenshot in the set shows panel
+     edit mode. The twenty-six element ids are KDE-required (its consumers
+     name them); the frame slice and indicator geometry and the 0.4 indicator
+     opacity are taken from the installed default theme; the 9x9 slider size
+     and all the artwork are this theme's own. The colours reuse the grounded
+     Platinum face/bevel palette and the #CCCCFF selection anchor. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 42 42">
+  <!-- Ruler frame slices: the 1px black outline strips and the Platinum face
+       band each panel edge stretches along the ruler. -->
+  <g id="north-center">
+    <rect width="10" height="12" fill="#DDDDDD"/>
+  </g>
+  <g id="north-top">
+    <rect width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="north-bottom">
+    <rect width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="south-center">
+    <rect width="10" height="12" fill="#DDDDDD"/>
+  </g>
+  <g id="south-top">
+    <rect width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="south-bottom">
+    <rect width="10" height="1" fill="#000000"/>
+  </g>
+  <g id="east-center">
+    <rect width="12" height="10" fill="#DDDDDD"/>
+  </g>
+  <g id="east-left">
+    <rect width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="east-right">
+    <rect width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="west-center">
+    <rect width="12" height="10" fill="#DDDDDD"/>
+  </g>
+  <g id="west-left">
+    <rect width="1" height="10" fill="#000000"/>
+  </g>
+  <g id="west-right">
+    <rect width="1" height="10" fill="#000000"/>
+  </g>
+
+  <!-- Slider thumbs: base, then the horizontal bevel, then the vertical bevel
+       so the vertical edges turn the corners, then the 1px outline, then the
+       grip. -->
+  <g id="north-offsetslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="3" y="3" width="3" height="3" fill="#000000"/>
+  </g>
+  <g id="north-minslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="4" y="2" width="1" height="5" fill="#000000"/>
+  </g>
+  <g id="north-maxslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="4" y="2" width="1" height="5" fill="#000000"/>
+  </g>
+  <g id="south-offsetslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="3" y="3" width="3" height="3" fill="#000000"/>
+  </g>
+  <g id="south-minslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="4" y="2" width="1" height="5" fill="#000000"/>
+  </g>
+  <g id="south-maxslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="4" y="2" width="1" height="5" fill="#000000"/>
+  </g>
+  <g id="east-offsetslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="3" y="3" width="3" height="3" fill="#000000"/>
+  </g>
+  <g id="east-minslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="2" y="4" width="5" height="1" fill="#000000"/>
+  </g>
+  <g id="east-maxslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="2" y="4" width="5" height="1" fill="#000000"/>
+  </g>
+  <g id="west-offsetslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="3" y="3" width="3" height="3" fill="#000000"/>
+  </g>
+  <g id="west-minslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="2" y="4" width="5" height="1" fill="#000000"/>
+  </g>
+  <g id="west-maxslider">
+    <rect width="9" height="9" fill="#DDDDDD"/>
+    <rect y="1" width="9" height="1" fill="#FFFFFF"/>
+    <rect y="7" width="9" height="1" fill="#999999"/>
+    <rect x="1" width="1" height="9" fill="#FFFFFF"/>
+    <rect x="7" width="1" height="9" fill="#999999"/>
+    <rect width="9" height="1" fill="#000000"/>
+    <rect y="8" width="9" height="1" fill="#000000"/>
+    <rect width="1" height="9" fill="#000000"/>
+    <rect x="8" width="1" height="9" fill="#000000"/>
+    <rect x="2" y="4" width="5" height="1" fill="#000000"/>
+  </g>
+
+  <!-- Centre indicators: the 42px line an edge panel stretches along its
+       length, at the KDE-required 0.4 opacity. -->
+  <g id="vertical-centerindicator">
+    <rect width="42" height="1" fill="#CCCCFF" fill-opacity="0.4"/>
+  </g>
+  <g id="horizontal-centerindicator">
+    <rect width="1" height="42" fill="#CCCCFF" fill-opacity="0.4"/>
+  </g>
+</svg>

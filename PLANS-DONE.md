@@ -5,6 +5,113 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum panel edit-mode chrome, part 2/2: ship the panel resize and slider handles (planned 2026-10-23 by the plan role; follows the landed part 1/2 margin highlight) — done 2026-10-23 by the feature role
+
+**Goal.** The desktop theme ships no `widgets/containment-controls.svg`, so while a panel is in
+edit mode its offset, minimum and maximum drag handles and its centre indicators come from the
+default theme's blue-grey artwork. Ship our own `widgets/containment-controls.svg` for the
+twenty-six element ids the installed panel configuration and its ruler resolve, drawn as raised
+Platinum thumbs, a black-edged face band and lavender centre lines. No reference screenshot
+shows panel edit mode, so the art is our own: the element ids are KDE-required (its consumers
+name them), the frame slice and indicator geometry plus the indicator opacity are the installed
+default theme's, and the 9x9 slider size is this theme's own. The colours reuse the grounded
+Platinum face/bevel palette and the `#CCCCFF` selection anchor.
+
+**Approach.**
+- New `theme/desktoptheme/org.macos8.desktop/widgets/containment-controls.svg`: a `<svg
+width="42" height="42" viewBox="0 0 42 42">` whose twenty-six consumers are id-bearing `<g>`
+elements at the origin, each holding rects with 0-based coordinates so KSvg reads that group's
+bounding box as its natural size. Open with a comment naming the consumers
+(`PanelConfiguration.qml` sets the north/south/east/west prefix, `Ruler.qml` is a
+`KSvg.FrameSvgItem` for that prefix and asks for the two centre indicators, and
+`SliderHandle.qml` builds `prefix + '-' + graphicElementName`), the ids,
+and the provenance exception.
+  - The twelve ruler frame groups are `north-center`, `north-top`, `north-bottom` and the
+same three for `south`, plus `east-center`, `east-left`, `east-right` and the same three for
+`west`. A horizontal ruler's top/bottom strips are 10x1 black and its centre 10x12 #DDDDDD; a
+vertical ruler's left/right strips are 1x10 black and its centre 12x10 #DDDDDD, so the band is
+14px thick. The geometry is the installed default theme's.
+  - The twelve slider groups are `north-offsetslider`, `north-minslider`, `north-maxslider`,
+`north` repeated for `south`, `east` and `west`. Each is a 9x9 raised Platinum thumb painted in
+this document order (later rects override earlier ones, the slider.svg rule):
+`<rect width="9" height="9" fill="#DDDDDD"/>`; `<rect y="1" width="9" height="1"
+fill="#FFFFFF"/>`; `<rect y="7" width="9" height="1" fill="#999999"/>`; `<rect x="1"
+width="1" height="9" fill="#FFFFFF"/>`; `<rect x="7" width="1" height="9"
+fill="#999999"/>`; then the four outline rects `<rect width="9" height="1"
+fill="#000000"/>`, `<rect y="8" width="9" height="1" fill="#000000"/>`, `<rect width="1"
+height="9" fill="#000000"/>` and `<rect x="8" width="1" height="9" fill="#000000"/>`.
+  - The grip is the last rect of each slider group: the four offset sliders carry a 3x3 black
+centre dot `<rect x="3" y="3" width="3" height="3" fill="#000000"/>`; the north/south
+min/max sliders carry a vertical 1x5 black bar `<rect x="4" y="2" width="1" height="5"
+fill="#000000"/>`; the east/west min/max sliders carry the horizontal 5x1 bar `<rect x="2"
+y="4" width="5" height="1" fill="#000000"/>`.
+  - The two centre indicators are `vertical-centerindicator` (a vertical panel stretches it
+across the panel width) with one `<rect width="42" height="1" fill="#CCCCFF"
+fill-opacity="0.4"/>`, and `horizontal-centerindicator` (a horizontal panel stretches it down
+the panel height) with one `<rect width="1" height="42" fill="#CCCCFF"
+fill-opacity="0.4"/>`. The 42x1/1x42 natural geometry and the 0.4 opacity are the installed
+default theme's; the colour is the grounded selection lavender.
+- `tests/support/desktoptheme_paths.py`: add `CONTAINMENT_CONTROLS_SVG` pointing at
+`widgets/containment-controls.svg`.
+- `tests/test_desktoptheme.py`: add `("containment-controls.svg", CONTAINMENT_CONTROLS_SVG,
+42, 42)` to `SVG_CANVASES` and `os.path.join("widgets", "containment-controls.svg")` to
+`TestInstall.INSTALLED_FILES`, so the canvas, unique-id, self-containment, registry-completeness
+and install-lifecycle checks cover the new file.
+- New `tests/test_desktoptheme_containmentcontrols.py` (`SvgCase`, `SVG_PATH =
+CONTAINMENT_CONTROLS_SVG`):
+  - `test_containment_controls_contract`: all twenty-six ids are present, ids are unique, and
+the file has no script, style or external reference.
+  - `test_groups_sit_at_the_origin`: `tile_origins` finds every id-bearing group at (0, 0), so a
+future transform cannot move a slice off its canvas region while the pixel tests still pass.
+  - `test_ruler_frame_slices_are_black_edges_on_a_face_band`: each of the twelve frame groups
+holds one rect at its pinned natural size and fill, and `render_slices` paints exactly that
+pixel map.
+  - `test_sliders_are_raised_platinum_thumbs_with_grips`: render each of the twelve slider
+groups with `render_slices` and compare its full pixel map to `raised_thumb_pixels(9, 9)` from
+`support.thumb_fixtures` with the pinned grip pixels overwritten to `BLACK` -- the 3x3 dot for
+the offset sliders, the vertical 1x5 bar for north/south min/max, the horizontal 5x1 bar for
+east/west min/max. This pins every pixel, the 9x9 natural size and the grip orientation, so a
+shifted bevel, a resized group or a swapped grip fails.
+  - `test_center_indicators_are_lavender_lines`: each indicator group renders exactly 42
+`SELECTION` pixels in the pinned 42x1 or 1x42 shape, and each of its rects carries
+`fill-opacity="0.4"`.
+  - `test_containment_controls_colours`: `assert_fill_palette(self, self.tree,
+extra={SELECTION})`, so the parsed fill set is exactly the Platinum face/bevel palette plus the
+selection lavender.
+- `README.md`: replace the sentence that says the panel resize and slider handles still come from
+the fallback theme with one naming `widgets/containment-controls.svg`, its black-edged ruler
+frame, its twelve offset/min/max sliders and its two centre indicators.
+- `docs/invariants.md`: add a `## desktoptheme` row stating that the panel edit-mode ruler frame
+is black-edged Platinum face slices, the sliders are raised Platinum thumbs and the centre
+indicators lavender lines, pinned by
+`tests/test_desktoptheme_containmentcontrols.py::TestContainmentControls`; the provenance
+exception records that no reference screenshot shows panel edit mode; the twenty-six ids are
+KDE-required (the consumers name them), the frame slice and 42x1/1x42 indicator geometry plus
+0.4 opacity are the installed default theme's, and the 9x9 slider size and artwork are this
+theme's own; the colours reuse the grounded Platinum and selection anchors.
+- `PLANS.md`: in the scope-drift paragraph, change the widget-SVG count from twenty-five to
+twenty-six, name the new containment-controls file, and drop the claim that its handles still
+come from the default theme.
+
+**Files touched.** `theme/desktoptheme/org.macos8.desktop/widgets/containment-controls.svg` (new),
+`tests/test_desktoptheme_containmentcontrols.py` (new),
+`tests/support/desktoptheme_paths.py`, `tests/test_desktoptheme.py`, `README.md`,
+`docs/invariants.md`, `PLANS.md`.
+
+**Acceptance criteria.**
+- The new SVG parses as a 42x42 canvas with the twenty-six pinned ids present and unique, every
+ruler frame group rendering its pinned 10x1/10x12 or 1x10/12x10 slice, every slider group
+rendering as the pinned 9x9 raised thumb plus its orientation's grip, the two indicator groups
+rendering as the pinned 42x1 or 1x42 lavender line at 0.4 opacity, and every id-bearing group at
+the origin.
+- The parsed fill set is exactly `#000000`, `#FFFFFF`, `#999999`, `#DDDDDD` and `#CCCCFF`;
+dropping an id, resizing a group, swapping a bevel colour or turning a grip the wrong way fails
+a test.
+- `TestSvgRootCanvas`'s registry and `TestInstall.INSTALLED_FILES` cover the new file,
+`tests/invariants.py` accepts the new `## desktoptheme` row, and README and the scope-drift
+paragraph name it with the scope-drift count at twenty-six.
+- `make check` is green.
+
 ### Platinum cursor set, part 3: ship the drag-and-drop, grab and forbidden pointers (planned 2026-10-23 by the plan role; follows the landed resize/diagonal/crosshair/not-allowed set) — done 2026-10-23 by the feature role
 
 **Goal.** The icon theme's `cursors/` covers the arrow, text I-beam, pointing hand, busy
