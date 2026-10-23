@@ -156,7 +156,7 @@ class TestSectionCoverage(unittest.TestCase):
         metadata = {"%General", "GeneralColors"}
         self.assertEqual(set(parser.sections()) - covered - metadata, set())
 
-    def test_every_frameless_section_suppresses_its_frame(self):
+    def test_every_frameless_section_resolves_its_pins(self):
         _assert_pins_resolve(self, FRAMELESS_SECTIONS)
 
 
@@ -206,8 +206,10 @@ class TestValueKeys(unittest.TestCase):
             }
         )
         # `author` and `comment` are metadata, not styling. `inherits` is
-        # structural: a wrong target resolves every element and margin key
-        # above to a different value, so the tables catch it.
+        # structural: the frameless table pins it directly (those sections set
+        # frame/interior themselves), while a wrong target for the other
+        # sections resolves every element and margin key above to a different
+        # value, so those tables catch it.
         pinned.update(("%General", key) for key in ("author", "comment"))
         # `[GeneralColors]` is pinned exactly by
         # `TestGeneralColors.test_declares_exactly_the_mapped_colours`.

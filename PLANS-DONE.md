@@ -5,6 +5,84 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum Kvantum secondary controls: map toolbars, tree views and status bars onto the Platinum art (planned 2026-10-23 by the plan role; follows the landed four-part Kvantum series) — done 2026-10-23 by the feature role
+
+**Goal.** The Kvantum style defines the core, track/value and surface controls, but the six
+sections Kvantum maps common Qt widgets to are left to its compiled-in default: `[ToolbarButton]`
+(a `QToolButton` in a `QToolBar`), `[ToolbarComboBox]`, `[ToolbarLineEdit]`, `[DropDownButton]`
+(a tool button with a menu popup), `[TreeExpander]` (a `QTreeView`'s branch indicator) and
+`[StatusBar]`. `org.macos8.desktop.kvconfig`'s own header records that Kvantum "merges this file
+over its compiled-in default.kvconfig and draws an element the theme SVG lacks from its
+compiled-in default.svg", so these six sections are not defined by the Platinum style. State
+them explicitly so a KDE application's toolbar buttons, toolbar combo boxes and line edits,
+split-button dropdowns, tree-view expanders and status bar draw the same grounded Platinum
+controls as the rest of the style instead of inheriting Kvantum's default. The button, line-edit,
+comboarrow and arrow-down elements already ship; the tree expander needs Kvantum's
+`arrow-minus-*`/`arrow-plus-*` branch names added to the SVG, reusing the grounded down and right
+arrow paths.
+
+**Approach.**
+- `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`: after `[Toolbar]`, add these
+  sections with a short comment naming the provenance exception (no reference screenshot shows a
+  KDE/Qt toolbar, tree view or status bar, so the section and key names are Kvantum-required):
+  - `[ToolbarButton]` -- `inherits=PanelButtonCommand`, the 2px raised Platinum push button with
+    its black label in every state.
+  - `[ToolbarComboBox]` -- `inherits=ComboBox`, the raised face whose `comboarrow` indicator is
+    the reference popup's double arrow at size 12.
+  - `[ToolbarLineEdit]` -- `inherits=LineEdit`, the white sunken field.
+  - `[DropDownButton]` -- `inherits=PanelButtonCommand`, the raised face with Kvantum's
+    `arrow-down` indicator at size 9 (its unqualified `arrow` would resolve to the missing
+    `arrow-normal` when Kvantum appends only the state).
+  - `[TreeExpander]` -- `inherits=PanelButtonCommand`, `indicator.element=arrow`, `frame=false`,
+    `interior=false`, so only the branch triangle is drawn (Kvantum names it
+    `arrow-minus-<state>`/`arrow-plus-<state>`: black in the normal states, #999999 disabled).
+  - `[StatusBar]` -- `inherits=GenericFrame`, `frame=false`, `interior=false`, a flat bar in the
+    `[GeneralColors]` window face with no bevel.
+- `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`: add the eight branch triangles
+  (`arrow-minus-*` pointing down, `arrow-plus-*` pointing right) for the normal, focused, pressed
+  and disabled states, reusing the grounded arrow paths and fills; enlarge the canvas height to
+  hold them.
+- `tests/support/kvantum_config_spec.py`: add the four framed sections to `CORE_FRAME_MARGINS`
+  (all 2) and to `CORE_CONTROL_CONFIG` with the element mappings they resolve to -- for
+  `ToolbarButton` the frame and interior `button` and the indicator `arrow`, for `DropDownButton`
+  the frame and interior `button` and the indicator `arrow-down`, for `ToolbarComboBox` the frame
+  and interior `button` and the indicator `comboarrow`, for `ToolbarLineEdit` the frame and
+  interior `lineedit`. Add `TreeExpander` and `StatusBar` to `FRAMELESS_SECTIONS` with
+  `frame=false`, `interior=false` and their pinned `inherits` targets (plus the expander's
+  `indicator.element=arrow`). The existing `test_every_section_is_pinned`,
+  `test_every_core_section_mapping_is_pinned`, `test_every_core_section_resolves_to_the_expected_frame_margin`
+  and `test_every_frameless_section_resolves_its_pins` then fail if a section, margin, inherited
+  element target or frameless pin is dropped or changed.
+- `tests/test_kvantum_svg.py`: pin that every branch triangle ships in every state and draws its
+  grounded down/right path with the per-state fill.
+- `README.md`: in the Kvantum paragraph, change "Its Platinum palette and core-control art live
+  in ..." to "Its Platinum palette and control art live in ..." and add that the toolbar buttons,
+  toolbar combo boxes and line edits, split-button dropdowns, tree-view expanders and status bar
+  map to the same Platinum button, line-edit and arrow art.
+- `docs/invariants.md`: add one `## kvantum` row -- the four framed secondary sections resolve to
+  the grounded Platinum elements and margins above, the tree expander to the pinned branch
+  triangles, and the status bar to no frame or interior, with both frameless sections' `inherits`
+  targets pinned -- citing `tests/test_kvantum_config_elements.py::TestCoreControlElements`,
+  `tests/test_kvantum_config.py::TestFrameMargins`, `tests/test_kvantum_config.py::TestSectionCoverage`
+  and `tests/test_kvantum_svg.py::TestSvg`; its provenance exception is the missing reference
+  screenshot (the section and key names are Kvantum-required, the art is grounded).
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`,
+`theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/support/kvantum_config_spec.py`,
+`tests/test_kvantum_config.py`, `tests/test_kvantum_svg.py`, `README.md`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Each new section resolves (following `inherits`) to its pinned element mapping and, for the four
+  framed sections, the 2px frame margin; `DropDownButton` resolves its indicator to `arrow-down`;
+  `TreeExpander` and `StatusBar` resolve `frame` and `interior` to `false` with their `inherits`
+  targets pinned.
+- `test_every_section_is_pinned` names all six new sections, and deleting one, dropping its frame
+  margin, repointing an inherited element target, or removing a branch arrow or one of its states
+  fails a test.
+- The SVG change is limited to the eight branch triangles and the canvas height they need, and no
+  new colour is introduced.
+- `make check` is green and `tests/invariants.py` accepts the new `## kvantum` row.
+
 ### Platinum cursor set: ship the text, hand, busy and move pointers (planned 2026-10-23 by the plan role; follows the landed arrow artifact) — done 2026-10-23 by the feature role
 
 **Goal.** The icon theme package ships `cursors/{left_ptr,arrow,default,top_left_arrow}`, so after

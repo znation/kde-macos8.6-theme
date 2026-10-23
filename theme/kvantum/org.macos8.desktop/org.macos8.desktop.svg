@@ -41,7 +41,7 @@
      popup in systeminfo_betawiki.png (x233..244, y106..117); the cell's
      divider and right bevel are frame art, not indicator art, and are not
      shipped here. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="23140" viewBox="0 0 200 23140">
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="23620" viewBox="0 0 200 23620">
   <g id="button-normal-top" transform="translate(10,10)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
@@ -1730,5 +1730,29 @@
     <rect x="3" y="8" width="5" height="1" fill="#999999"/>
     <rect x="4" y="9" width="3" height="1" fill="#999999"/>
     <rect x="5" y="10" width="1" height="1" fill="#999999"/>
+  </g>
+  <g id="arrow-minus-normal" transform="translate(10,23170)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-minus-focused" transform="translate(10,23230)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-minus-pressed" transform="translate(10,23290)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-minus-disabled" transform="translate(10,23350)">
+    <path d="M0,0 L9,0 L4.5,9 Z" fill="#999999"/>
+  </g>
+  <g id="arrow-plus-normal" transform="translate(10,23410)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-plus-focused" transform="translate(10,23470)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-plus-pressed" transform="translate(10,23530)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#000000"/>
+  </g>
+  <g id="arrow-plus-disabled" transform="translate(10,23590)">
+    <path d="M0,0 L9,4.5 L0,9 Z" fill="#999999"/>
   </g>
 </svg>

@@ -71,6 +71,10 @@ CORE_FRAME_MARGINS = {
     "ItemView": 2,
     "HeaderSection": 2,
     "Toolbar": 2,
+    "ToolbarButton": 2,
+    "ToolbarComboBox": 2,
+    "ToolbarLineEdit": 2,
+    "DropDownButton": 2,
 }
 
 # The core controls added in part 1/4: the SVG element Kvantum draws for each
@@ -117,6 +121,25 @@ CORE_CONTROL_CONFIG = {
     },
     "IndicatorArrow": {
         "indicator.element": "arrow",
+    },
+    "ToolbarButton": {
+        "frame.element": "button",
+        "interior.element": "button",
+        "indicator.element": "arrow",
+    },
+    "ToolbarComboBox": {
+        "frame.element": "button",
+        "interior.element": "button",
+        "indicator.element": "comboarrow",
+    },
+    "ToolbarLineEdit": {
+        "frame.element": "lineedit",
+        "interior.element": "lineedit",
+    },
+    "DropDownButton": {
+        "frame.element": "button",
+        "interior.element": "button",
+        "indicator.element": "arrow-down",
     },
 }
 
@@ -237,10 +260,27 @@ SURFACE_CONTROL_CONFIG = {
 # Sections that explicitly draw no frame or interior. `[TabBarFrame]` inherits
 # `GenericFrame`, whose `common` element would frame the tab bar; its
 # `frame=false`/`interior=false` suppress that, so removing either silently
-# gives the tab bar a border. A section in neither this table nor the three
-# element tables is unpinned, which `test_every_section_is_pinned` rejects.
+# gives the tab bar a border. `[TreeExpander]` and `[StatusBar]` inherit
+# framed sections too: the expander must draw only its branch arrow, and the
+# status bar is a flat window-face bar with no bevel. Their `inherits` targets
+# are pinned here because, unlike the framed sections, their element mappings
+# do not resolve through the inherited section: a wrong target would leave
+# the branch indicator or window face unpinned. A section in neither this
+# table nor the three element tables is unpinned, which
+# `test_every_section_is_pinned` rejects.
 FRAMELESS_SECTIONS = {
     "TabBarFrame": {"frame": "false", "interior": "false"},
+    "TreeExpander": {
+        "inherits": "PanelButtonCommand",
+        "indicator.element": "arrow",
+        "frame": "false",
+        "interior": "false",
+    },
+    "StatusBar": {
+        "inherits": "GenericFrame",
+        "frame": "false",
+        "interior": "false",
+    },
 }
 
 # The remaining settings that name no element and draw no frame margin, but

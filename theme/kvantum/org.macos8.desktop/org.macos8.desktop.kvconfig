@@ -294,3 +294,36 @@ frame.element=toolbar
 interior.element=toolbar
 indicator.element=toolbar
 indicator.size=5
+
+# The secondary controls Kvantum maps common Qt widgets to. No reference
+# screenshot shows a KDE/Qt toolbar, tree view or status bar, so the section
+# and key names here are Kvantum-required; every element they resolve to is
+# the grounded Platinum art above. Toolbar buttons and split-button
+# dropdowns are the 2px raised push button, the dropdown adding Kvantum's
+# arrow-down indicator, toolbar combo boxes the combo box face with its 12px
+# double arrow, and toolbar line edits the white sunken field. The tree
+# expander draws only its black branch triangle, and the status bar is a flat
+# window-face bar with no bevel.
+[ToolbarButton]
+inherits=PanelButtonCommand
+
+[ToolbarComboBox]
+inherits=ComboBox
+
+[ToolbarLineEdit]
+inherits=LineEdit
+
+[DropDownButton]
+inherits=PanelButtonCommand
+indicator.element=arrow-down
+
+[TreeExpander]
+inherits=PanelButtonCommand
+indicator.element=arrow
+frame=false
+interior=false
+
+[StatusBar]
+inherits=GenericFrame
+frame=false
+interior=false

@@ -107,6 +107,14 @@ ARROW_FILL = {
     "pressed": "#000000",
     "disabled": "#999999",
 }
+# Kvantum's tree expander names its branch art `<element>-minus-<state>` for
+# an open branch and `<element>-plus-<state>` for a closed one, not
+# `arrow-<direction>-<state>`. The branch triangles reuse the grounded arrow
+# paths: minus (open) points down and plus (closed) points right.
+BRANCH_ARROW_PATH_D = {
+    "minus": ARROW_PATH_D["down"],
+    "plus": ARROW_PATH_D["right"],
+}
 
 
 def _rect(x, y, width, height, fill):
@@ -334,6 +342,24 @@ class TestSvg(unittest.TestCase):
                 with self.subTest(direction=direction, state=state):
                     self.assertEqual(len(paths), 1)
                     self.assertEqual(paths[0].get("d"), ARROW_PATH_D[direction])
+                    self.assertEqual(paths[0].get("fill"), ARROW_FILL[state])
+
+    def test_branch_arrows_ship_every_shape_and_state(self):
+        for shape in BRANCH_ARROW_PATH_D:
+            for state in ARROW_STATES:
+                with self.subTest(shape=shape, state=state):
+                    self.assertIn(f"arrow-{shape}-{state}", self.ids)
+
+    def test_branch_arrows_draw_the_pinned_triangle_and_fill(self):
+        by_id = elements_by_id(self.tree)
+        for shape, path_d in BRANCH_ARROW_PATH_D.items():
+            for state in ARROW_STATES:
+                paths = children_named(
+                    by_id[f"arrow-{shape}-{state}"], "path"
+                )
+                with self.subTest(shape=shape, state=state):
+                    self.assertEqual(len(paths), 1)
+                    self.assertEqual(paths[0].get("d"), path_d)
                     self.assertEqual(paths[0].get("fill"), ARROW_FILL[state])
 
     def test_checkbox_and_radio_interiors_draw_the_pinned_shapes(self):
