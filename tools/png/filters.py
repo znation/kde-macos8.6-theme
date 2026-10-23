@@ -86,16 +86,27 @@ def _paeth_delta_rows() -> tuple[bytes, ...]:
     return rows
 
 
+_LANE_MASKS_CACHE: dict[int, tuple[int, int]] = {}
+
+
 def _lane_masks(length: int) -> tuple[int, int]:
     """Return the low-seven-bit and high-bit masks for *length* packed bytes.
 
     The two masks :func:`_lane_add` needs to add one byte per big-integer
-    lane without a carry crossing between lanes.
+    lane without a carry crossing between lanes. The result depends only on
+    *length*, so cache it: this is called once per channel per scanline on
+    the Sub/Up hot path, and rebuilding the two big-integer masks each time
+    is pure waste.
     """
-    return (
+    cached = _LANE_MASKS_CACHE.get(length)
+    if cached is not None:
+        return cached
+    masks = (
         int.from_bytes(b"\x7f" * length, "little"),
         int.from_bytes(b"\x80" * length, "little"),
     )
+    _LANE_MASKS_CACHE[length] = masks
+    return masks
 
 
 def _lane_add(x: int, y: int, low7: int, high: int) -> int:
