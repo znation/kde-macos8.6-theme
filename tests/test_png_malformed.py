@@ -30,6 +30,7 @@ from support.error_assertions import assert_error_names, error_message
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.png_fixtures import (  # noqa: E402
     _chunk,
+    assert_both_decoders_refuse,
     decode_error_message,
     ihdr_chunk,
     make_png,
@@ -254,21 +255,16 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
                 color_type=color_type,
                 trns=b"\x00\x01\x00\x02\x00\x03",
             )
-            for decoder in (png.decode_png, png.decode_rgba):
-                with self.subTest(
-                    color_type=color_type, decoder=decoder.__name__
-                ):
-                    assert_error_names(
-                        self,
-                        png.PngError,
-                        decoder,
-                        blob,
-                        needles=(
-                            "tRNS chunk",
-                            f"color type {color_type}",
-                            "0, 2 and 3",
-                        ),
-                    )
+            assert_both_decoders_refuse(
+                self,
+                blob,
+                needles=(
+                    "tRNS chunk",
+                    f"color type {color_type}",
+                    "0, 2 and 3",
+                ),
+                color_type=color_type,
+            )
 
     def test_rgb_path_refuses_wrong_length_sample_trns(self):
         cases = (
@@ -310,15 +306,11 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
         blob = make_png(
             1, 1, [bytes([0])], color_type=3, palette=palette, trns=b""
         )
-        for decoder in (png.decode_png, png.decode_rgba):
-            with self.subTest(decoder=decoder.__name__):
-                assert_error_names(
-                    self,
-                    png.PngError,
-                    decoder,
-                    blob,
-                    needles=("tRNS chunk has 0 bytes", "needs 1 to 2"),
-                )
+        assert_both_decoders_refuse(
+            self,
+            blob,
+            needles=("tRNS chunk has 0 bytes", "needs 1 to 2"),
+        )
 
     def test_palette_trns_before_plte_is_refused(self):
         # The PNG spec requires a color type 3 image's tRNS chunk to follow
@@ -332,15 +324,11 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
             _chunk(b"IDAT", zlib.compress(bytes([0, 0]))),
             _chunk(b"IEND", b""),
         )
-        for decoder in (png.decode_png, png.decode_rgba):
-            with self.subTest(decoder=decoder.__name__):
-                assert_error_names(
-                    self,
-                    png.PngError,
-                    decoder,
-                    blob,
-                    needles=("tRNS chunk before", "PLTE chunk", "follow"),
-                )
+        assert_both_decoders_refuse(
+            self,
+            blob,
+            needles=("tRNS chunk before", "PLTE chunk", "follow"),
+        )
 
     def test_truecolor_trns_before_suggested_plte_is_refused(self):
         # The spec's "follow the PLTE chunk, if any" covers a truecolor
@@ -354,15 +342,11 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
             _chunk(b"IDAT", zlib.compress(bytes([0, 1, 2, 3]))),
             _chunk(b"IEND", b""),
         )
-        for decoder in (png.decode_png, png.decode_rgba):
-            with self.subTest(decoder=decoder.__name__):
-                assert_error_names(
-                    self,
-                    png.PngError,
-                    decoder,
-                    blob,
-                    needles=("tRNS chunk before", "PLTE chunk", "follow"),
-                )
+        assert_both_decoders_refuse(
+            self,
+            blob,
+            needles=("tRNS chunk before", "PLTE chunk", "follow"),
+        )
 
     def test_palette_trns_without_any_plte_still_names_the_missing_palette(
         self,
@@ -371,15 +355,11 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
         # image that has no palette at all: there is no PLTE for its tRNS to
         # precede, so the missing-palette error must still win.
         blob = make_png(1, 1, [bytes([0])], color_type=3, trns=b"\x00")
-        for decoder in (png.decode_png, png.decode_rgba):
-            with self.subTest(decoder=decoder.__name__):
-                assert_error_names(
-                    self,
-                    png.PngError,
-                    decoder,
-                    blob,
-                    needles=("palette PNG has no PLTE chunk",),
-                )
+        assert_both_decoders_refuse(
+            self,
+            blob,
+            needles=("palette PNG has no PLTE chunk",),
+        )
 
     def test_valid_trns_still_decodes_as_rgb(self):
         # The new check must not reject the valid chunk the RGB path discards:
@@ -418,21 +398,16 @@ class TestPlteColorTypeValidation(unittest.TestCase):
                 color_type=color_type,
                 palette=bytes([10, 20, 30]),
             )
-            for decoder in (png.decode_png, png.decode_rgba):
-                with self.subTest(
-                    color_type=color_type, decoder=decoder.__name__
-                ):
-                    assert_error_names(
-                        self,
-                        png.PngError,
-                        decoder,
-                        blob,
-                        needles=(
-                            "PLTE chunk",
-                            f"color type {color_type}",
-                            "prohibited for the greyscale color types 0 and 4",
-                        ),
-                    )
+            assert_both_decoders_refuse(
+                self,
+                blob,
+                needles=(
+                    "PLTE chunk",
+                    f"color type {color_type}",
+                    "prohibited for the greyscale color types 0 and 4",
+                ),
+                color_type=color_type,
+            )
 
     def test_truecolor_color_types_still_accept_a_suggested_palette(self):
         # PLTE is optional for truecolor and truecolor with alpha, so the new

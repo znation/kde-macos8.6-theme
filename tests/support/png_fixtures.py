@@ -24,7 +24,10 @@ from collections.abc import Callable
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support.error_assertions import error_message  # noqa: E402
+from support.error_assertions import (  # noqa: E402
+    assert_error_names,
+    error_message,
+)
 from tools import png  # noqa: E402
 from tools.ints import is_plain_int  # noqa: E402
 
@@ -134,6 +137,22 @@ def decode_error_message(case, data, **kwargs):
     ``decode_png``.
     """
     return error_message(case, png.PngError, png.decode_png, data, **kwargs)
+
+
+def assert_both_decoders_refuse(case, blob, *, needles=(), **context):
+    """Assert both decoders reject *blob*, naming each of *needles*.
+
+    A malformed chunk must be refused on both decode paths, even when only
+    one of them applies it to pixels. This runs the same rejection assertion
+    against ``decode_png`` and ``decode_rgba`` and labels each subtest with
+    the decoder; *context* adds further ``subTest`` labels such as a color
+    type. *case* is the calling ``unittest.TestCase``.
+    """
+    for decoder in (png.decode_png, png.decode_rgba):
+        with case.subTest(decoder=decoder.__name__, **context):
+            assert_error_names(
+                case, png.PngError, decoder, blob, needles=needles
+            )
 
 
 def _paeth(a: int, b: int, c: int) -> int:
