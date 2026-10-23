@@ -16,6 +16,10 @@ Usage::
     python3 tools/check_references.py              # check the repository
     python3 tools/check_references.py --self-test  # exercise the checks
     python3 tools/check_references.py --help       # show usage
+
+Exit status: 0 when the repository check or the self-test passes (and for
+``--help``/``-h``), 1 when the reference set has problems or a self-test case
+misbehaves, and 2 for an unrecognized argument.
 """
 
 from __future__ import annotations
