@@ -88,9 +88,14 @@ def _installed_sheet(data_home: Path) -> Path:
 
 
 def _read_text(path: Path) -> str:
-    """Return *path*'s UTF-8 text, reporting a read failure by path."""
+    """Return *path*'s UTF-8 text without translating its line endings.
+
+    ``Path.read_text`` opens in universal-newline mode, which turns CRLF and
+    lone CR into LF before the transforms see them; reading the bytes keeps
+    every line ending so a rewrite can preserve it.
+    """
     try:
-        return path.read_text(encoding="utf-8")
+        return path.read_bytes().decode("utf-8")
     except (OSError, UnicodeDecodeError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
 

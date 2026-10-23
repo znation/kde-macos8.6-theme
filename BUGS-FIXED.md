@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### GTK settings edits rewrite a foreign file's line endings (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`gtk_settings.set_theme_name` and `remove_theme_name` split a settings file on every boundary `str.splitlines` recognises and rejoined the lines with `"\n"`, so editing the `gtk-theme-name` key in a CRLF, lone-CR or mixed-ending `settings.ini` rewrote every foreign line's terminator, contradicting the module's promise and `docs/invariants.md` that every foreign line is preserved.
+
+**Reproduction.** `set_theme_name("[Settings]\r\ngtk-font-name=Lato 10\r\n", "org.macos8.desktop")` returned `'[Settings]\ngtk-font-name=Lato 10\n...'`; `tests/test_gtk_settings.py::TestLineEndings` now pins every foreign line's ending through replacement, insertion, appending and removal.
+
+**Validation gap:** none — a scratch call to `set_theme_name` showed the rewritten endings immediately; no shim or real run was needed, though no existing test covered a CRLF file.
+
 ### The PNG decoder accepts trailing bytes after the IDAT zlib stream (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `decode_png` and `decode_rgba` inflate the IDAT stream and check its output length, end marker and adler32, but never inspect `zlib.decompressobj.unused_data`. A PNG whose IDAT payload is a valid zlib stream followed by arbitrary bytes therefore decodes successfully, silently dropping the trailing bytes instead of refusing the malformed image.

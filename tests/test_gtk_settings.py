@@ -2,10 +2,12 @@
 
 ``tools/apply_gtk.py`` drives ``set_theme_name`` and ``remove_theme_name``
 through the CLI, so ``tests/test_gtk_apply.py`` covers the choose/replace,
-insert and append shapes end to end. These tests pin the transforms directly
-and add the file shapes that suite does not write: spaces around ``=``, a
-commented-out key, a leading BOM on removal, a missing final newline, and a
-key before the first section. They need no filesystem or environment.
+insert, append and removal shapes end to end, including a CRLF file read and
+written back as bytes. These tests pin the transforms directly and add the
+file shapes that suite does not write: spaces around ``=``, a commented-out
+key, a leading BOM on removal, a missing final newline, a key before the
+first section, and CRLF, lone-CR and mixed line endings. They need no
+filesystem or environment.
 
 Run with the project's check harness (stdlib unittest)::
 
@@ -123,6 +125,118 @@ class TestRemoveThemeName(unittest.TestCase):
         selected = set_theme_name(original, GTK_ID)
         self.assertNotEqual(original, selected)
         self.assertEqual((original, True), remove_theme_name(selected))
+
+
+class TestLineEndings(unittest.TestCase):
+    """A foreign file's CRLF, lone-CR or mixed endings survive an edit."""
+
+    def test_replaces_the_key_and_keeps_crlf_endings(self):
+        text = (
+            "[Settings]\r\n"
+            "gtk-font-name=Lato 10\r\n"
+            "# keep this comment\r\n"
+            "gtk-theme-name=Adwaita\r\n"
+        )
+        self.assertEqual(
+            "[Settings]\r\n"
+            "gtk-font-name=Lato 10\r\n"
+            "# keep this comment\r\n"
+            f"gtk-theme-name={GTK_ID}\r\n",
+            set_theme_name(text, GTK_ID),
+        )
+
+    def test_inserts_with_the_section_headers_ending(self):
+        text = "[Settings]\r\ngtk-font-name=Lato 10\r\n"
+        self.assertEqual(
+            f"[Settings]\r\ngtk-theme-name={GTK_ID}\r\n"
+            "gtk-font-name=Lato 10\r\n",
+            set_theme_name(text, GTK_ID),
+        )
+
+    def test_appends_with_the_first_line_ending(self):
+        # An appended section copies the file's first ending, so a file that
+        # mixes CRLF and LF gets neither normalized nor guessed from its last
+        # line.
+        text = "gtk-font-name=Lato 10\r\ngtk-icon-theme=Adwaita\n"
+        self.assertEqual(
+            "gtk-font-name=Lato 10\r\ngtk-icon-theme=Adwaita\n"
+            f"[Settings]\r\ngtk-theme-name={GTK_ID}\r\n",
+            set_theme_name(text, GTK_ID),
+        )
+
+    def test_replaces_the_key_and_keeps_lone_cr_endings(self):
+        text = "[Settings]\rgtk-font-name=Lato 10\rgtk-theme-name=Adwaita\r"
+        self.assertEqual(
+            "[Settings]\rgtk-font-name=Lato 10\r"
+            f"gtk-theme-name={GTK_ID}\r",
+            set_theme_name(text, GTK_ID),
+        )
+
+    def test_removal_keeps_the_foreign_lines_and_endings(self):
+        text = (
+            "[Settings]\r\n"
+            f"gtk-theme-name={GTK_ID}\r\n"
+            "gtk-font-name=Lato 10\r\n"
+        )
+        updated, removed = remove_theme_name(text)
+        self.assertTrue(removed)
+        self.assertEqual("[Settings]\r\ngtk-font-name=Lato 10\r\n", updated)
+
+    def test_keeps_the_endings_of_a_mixed_ending_file(self):
+        text = (
+            "[Settings]\r\n"
+            "gtk-font-name=Lato 10\n"
+            "gtk-theme-name=Adwaita\r\n"
+        )
+        self.assertEqual(
+            "[Settings]\r\n"
+            "gtk-font-name=Lato 10\n"
+            f"gtk-theme-name={GTK_ID}\r\n",
+            set_theme_name(text, GTK_ID),
+        )
+
+    def test_removal_keeps_lone_cr_endings(self):
+        text = (
+            f"[Settings]\rgtk-theme-name={GTK_ID}\r"
+            "gtk-font-name=Lato 10\r"
+        )
+        updated, removed = remove_theme_name(text)
+        self.assertTrue(removed)
+        self.assertEqual("[Settings]\rgtk-font-name=Lato 10\r", updated)
+
+    def test_removing_an_unterminated_last_line_leaves_no_final_ending(self):
+        text = f"[Settings]\r\ngtk-theme-name={GTK_ID}"
+        updated, removed = remove_theme_name(text)
+        self.assertTrue(removed)
+        # The file ended without a line ending; the new last line must too.
+        self.assertEqual("[Settings]", updated)
+
+    def test_inserting_after_an_unterminated_header_terminates_it(self):
+        # The header is the last line and has no ending; the inserted key
+        # needs a separator, so the header gets one and stays followed by an
+        # unterminated last line.
+        text = "[Other]\r\n[Settings]"
+        self.assertEqual(
+            f"[Other]\r\n[Settings]\r\ngtk-theme-name={GTK_ID}",
+            set_theme_name(text, GTK_ID),
+        )
+
+    def test_appending_terminates_an_unterminated_last_line(self):
+        # The file has no [Settings] section and its last foreign line has no
+        # ending; appending a section must not concatenate it with that line.
+        text = "gtk-font-name=Lato 10\r\ngtk-icon-theme=Adwaita"
+        self.assertEqual(
+            "gtk-font-name=Lato 10\r\ngtk-icon-theme=Adwaita\r\n"
+            f"[Settings]\r\ngtk-theme-name={GTK_ID}",
+            set_theme_name(text, GTK_ID),
+        )
+
+    def test_a_replaced_last_line_without_an_ending_gains_none(self):
+        text = "[Settings]\r\ngtk-theme-name=Adwaita"
+        self.assertEqual(
+            f"[Settings]\r\ngtk-theme-name={GTK_ID}",
+            set_theme_name(text, GTK_ID),
+        )
 
 
 if __name__ == "__main__":

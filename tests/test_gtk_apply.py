@@ -56,6 +56,10 @@ class GtkApplyCase(unittest.TestCase):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
 
+    def write_bytes(self, path, data):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+
 
 class TestApply(GtkApplyCase):
     def test_apply_writes_both_settings_and_user_css(self):
@@ -385,6 +389,55 @@ class TestRemove(GtkApplyCase):
             self.settings("gtk-3.0").read_text(encoding="utf-8"),
         )
         self.assertFalse(css.exists())
+
+
+class TestLineEndings(GtkApplyCase):
+    """A CRLF or mixed-ending settings file keeps its endings end to end."""
+
+    def test_apply_keeps_crlf_endings_in_both_settings_files(self):
+        self.install_sheet()
+        self.write_bytes(
+            self.settings("gtk-3.0"),
+            b"[Settings]\r\ngtk-font-name=Lato 10\r\ngtk-theme-name=Adwaita\r\n",
+        )
+        self.write_bytes(
+            self.settings("gtk-4.0"),
+            b"[Settings]\r\ngtk-font-name=Lato 10\r\n",
+        )
+        result = self.run_tool()
+        assert_succeeded(self, result)
+        self.assertEqual(
+            b"[Settings]\r\ngtk-font-name=Lato 10\r\n"
+            b"gtk-theme-name=org.macos8.desktop\r\n",
+            self.settings("gtk-3.0").read_bytes(),
+        )
+        self.assertEqual(
+            b"[Settings]\r\ngtk-theme-name=org.macos8.desktop\r\n"
+            b"gtk-font-name=Lato 10\r\n",
+            self.settings("gtk-4.0").read_bytes(),
+        )
+
+    def test_remove_keeps_the_foreign_lines_and_mixed_endings(self):
+        self.write_bytes(
+            self.settings("gtk-3.0"),
+            b"[Settings]\r\ngtk-theme-name=org.macos8.desktop\r\n"
+            b"gtk-font-name=Lato 10\r\n",
+        )
+        self.write_bytes(
+            self.settings("gtk-4.0"),
+            b"[Settings]\r\ngtk-theme-name=org.macos8.desktop\n"
+            b"gtk-font-name=Lato 10\r\n",
+        )
+        result = self.run_tool("--remove")
+        assert_succeeded(self, result)
+        self.assertEqual(
+            b"[Settings]\r\ngtk-font-name=Lato 10\r\n",
+            self.settings("gtk-3.0").read_bytes(),
+        )
+        self.assertEqual(
+            b"[Settings]\r\ngtk-font-name=Lato 10\r\n",
+            self.settings("gtk-4.0").read_bytes(),
+        )
 
 
 class TestHomeResolution(unittest.TestCase):
