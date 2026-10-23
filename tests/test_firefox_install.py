@@ -312,6 +312,38 @@ class TestInstall(ProfileCase):
         self.assertEqual(foreign, _read(self.sheet_path()))
         self.assertFalse(self.user_js_path().exists())
 
+    def test_an_uncreatable_chrome_directory_is_reported_by_path(self):
+        # _apply promises a by-name "cannot create" error when the chrome
+        # directory cannot be made, rather than a traceback. The directory
+        # does not exist yet, so the earlier reads return None and the mkdir
+        # is reached; fail only that call.
+        with mock.patch.object(Path, "mkdir", side_effect=OSError("simulated failure")):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot create {self.sheet_path().parent}", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_a_failed_user_js_write_is_reported_by_path(self):
+        # A write failure must name the file that failed and stop the install:
+        # the sheet is published first, but user.js is left absent.
+        real_write = install_firefox.write_atomically
+
+        def flaky_write(path, writer):
+            if Path(path) == self.user_js_path():
+                raise OSError("simulated failure")
+            return real_write(path, writer)
+
+        with mock.patch.object(install_firefox, "write_atomically", flaky_write):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.assertEqual(
+            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
+            self.sheet_path().read_bytes(),
+        )
+        self.assertFalse(self.user_js_path().exists())
+
 
 class TestRemove(ProfileCase):
     def run_tool(self, *args):
@@ -394,6 +426,17 @@ class TestRemove(ProfileCase):
         self.assertIn("cannot read", result.stderr)
         self.assertIn(str(self.user_js_path()), result.stderr)
         self.assertFalse(self.sheet_path().exists())
+
+    def test_a_failed_sheet_unlink_is_reported_by_path(self):
+        # _remove promises a by-name "cannot remove" error when our sheet
+        # cannot be deleted, leaving the sheet in place rather than crashing.
+        self.install()
+        sheet = containment.read_bytes(self.sheet_path(), repo_root.ROOT)
+        with mock.patch.object(Path, "unlink", side_effect=OSError("simulated failure")):
+            result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {self.sheet_path()}", result.stderr)
+        self.assertEqual(sheet, containment.read_bytes(self.sheet_path(), repo_root.ROOT))
 
 
 if __name__ == "__main__":
