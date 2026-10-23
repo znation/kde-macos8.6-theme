@@ -124,6 +124,165 @@ class TestApply(GtkApplyCase):
         self.assertIn("gtk.css", result.stdout)
 
 
+class TestSettingsErrors(GtkApplyCase):
+    """A config file that cannot be read or written is a diagnostic by name."""
+
+    def test_unreadable_settings_file_is_reported_by_name(self):
+        self.install_sheet()
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+        )
+        bad = self.settings("gtk-4.0")
+        bad.parent.mkdir(parents=True, exist_ok=True)
+        bad.write_bytes(b"\xff\xfe[Settings]\n")
+
+        result = self.run_tool()
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot read {bad}", result.stderr)
+        self.assertIn("apply_gtk: error:", result.stderr)
+        # Every settings file is read before any is written: the readable
+        # gtk-3.0 file keeps its foreign value when the gtk-4.0 read failed.
+        self.assertEqual(
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+
+    def test_settings_path_that_is_a_directory_is_reported_by_name(self):
+        self.install_sheet()
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+        )
+        path = self.settings("gtk-4.0")
+        path.mkdir(parents=True)
+
+        result = self.run_tool()
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {path}", result.stderr)
+        # Every write is staged before any is committed: the unwritable
+        # gtk-4.0 settings path leaves the gtk-3.0 file unchanged.
+        self.assertEqual(
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+
+    def test_settings_parent_that_is_a_file_is_reported_by_name(self):
+        self.install_sheet()
+        path = self.settings("gtk-4.0")
+        self.write(path.parent, "not a directory\n")
+
+        result = self.run_tool()
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {path}", result.stderr)
+        self.assertFalse(self.settings("gtk-3.0").exists())
+
+    def test_remove_reports_an_unreadable_settings_file(self):
+        path = self.settings("gtk-3.0")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(b"\xff[Settings]\n")
+
+        result = self.run_tool("--remove")
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot read {path}", result.stderr)
+
+    def test_foreign_user_css_that_is_not_utf8_is_reported_by_name(self):
+        self.install_sheet()
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+        )
+        css = self.config / "gtk-4.0" / "gtk.css"
+        css.parent.mkdir(parents=True, exist_ok=True)
+        css.write_bytes(b"\xff\xfe")
+
+        result = self.run_tool()
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot read {css}", result.stderr)
+        # The user CSS is read before any settings write: neither settings
+        # file is created or changed when its read fails.
+        self.assertEqual(
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+        self.assertFalse(self.settings("gtk-4.0").exists())
+
+    def test_unwritable_user_css_write_leaves_settings_unmodified(self):
+        self.install_sheet()
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+        )
+        css = self.config / "gtk-4.0" / "gtk.css"
+        css.mkdir(parents=True)
+
+        result = self.run_tool()
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {css}", result.stderr)
+        # The user CSS is staged after the settings: its failure discards the
+        # staged settings, so the gtk-3.0 file is unchanged and the missing
+        # gtk-4.0 file is not created.
+        self.assertEqual(
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+        self.assertFalse(self.settings("gtk-4.0").exists())
+
+    def test_remove_reports_an_unreadable_user_css(self):
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+        )
+        css = self.config / "gtk-4.0" / "gtk.css"
+        css.parent.mkdir(parents=True, exist_ok=True)
+        css.write_bytes(b"\xff\xfe")
+
+        result = self.run_tool("--remove")
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot read {css}", result.stderr)
+        # The user CSS is read before any settings write: the settings file
+        # still carries our selection.
+        self.assertEqual(
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+
+    def test_remove_reports_a_failed_user_css_unlink(self):
+        if os.geteuid() == 0:
+            self.skipTest("root ignores a read-only directory")
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+        )
+        css = self.config / "gtk-4.0" / "gtk.css"
+        css.parent.mkdir(parents=True, exist_ok=True)
+        css.write_text(
+            f"{apply_gtk.GTK4_CSS_MARKER}\n@import url(\"file:///sheet.css\");\n",
+            encoding="utf-8",
+        )
+        css.parent.chmod(0o500)
+        self.addCleanup(css.parent.chmod, 0o700)
+
+        result = self.run_tool("--remove")
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {css}", result.stderr)
+        # The settings write is only staged when the unlink fails, so the
+        # gtk-3.0 selection is left untouched.
+        self.assertEqual(
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+        self.assertTrue(css.is_file())
+
+
 class TestRemove(GtkApplyCase):
     def test_remove_deletes_our_key_and_marker_but_keeps_other_lines(self):
         self.install_sheet()

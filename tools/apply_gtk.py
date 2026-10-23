@@ -14,7 +14,8 @@ Usage::
     python3 tools/apply_gtk.py --remove
 
 Exit status: 0 when the selection or removal ran, 1 when the installed GTK 4
-sheet is missing, 2 for a usage error or an unresolvable home directory.
+sheet is missing, 2 for a usage error, an unresolvable home directory, or a
+settings or user-CSS file that cannot be read or written.
 """
 
 from __future__ import annotations
@@ -38,6 +39,16 @@ TOOL = "apply_gtk"
 GTK_ID = "org.macos8.desktop"
 GTK4_CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
 _BOM = "\ufeff"
+
+
+class _ConfigError(Exception):
+    """A GTK settings or user-CSS file could not be read or written.
+
+    The message names the offending path and the underlying error, so
+    ``main`` can report it as the one-line diagnostic instead of letting a
+    bare ``OSError`` or ``UnicodeDecodeError`` traceback escape. A decoder's
+    own error names the byte that failed but not the file it came from.
+    """
 
 
 def _note(message: str) -> None:
@@ -185,34 +196,113 @@ def _remove_theme_name(text: str) -> tuple[str, bool]:
     return _with_bom(had_bom, result), True
 
 
-def _write_atomic(path: Path, text: str) -> None:
-    """Write *text* through a temporary sibling and an atomic rename."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    write_atomically(
-        path, lambda destination: destination.write(text.encode("utf-8"))
-    )
+def _read_text(path: Path) -> str:
+    """Return *path*'s UTF-8 text, reporting a read failure by path."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise _ConfigError(f"cannot read {path}: {exc}") from exc
 
 
-def _write_user_css(config_home: Path, sheet: Path) -> None:
-    """Write the libadwaita user CSS, leaving a foreign ``gtk.css`` alone."""
-    path = config_home / "gtk-4.0" / "gtk.css"
+def _discard(staging: Path) -> None:
+    """Remove a staging file, ignoring a path that never became one."""
+    try:
+        staging.unlink()
+    except OSError:
+        pass
+
+
+def _stage(path: Path, text: str) -> Path:
+    """Write *text* to a ``.staging`` sibling and return its path."""
+    staging = path.with_name(f".{path.name}.staging")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.is_dir():
+            raise _ConfigError(f"cannot write {path}: is a directory")
+        write_atomically(
+            staging, lambda destination: destination.write(text.encode("utf-8"))
+        )
+    except OSError as exc:
+        _discard(staging)
+        raise _ConfigError(f"cannot write {path}: {exc}") from exc
+    return staging
+
+
+def _stage_all(writes: list[tuple[Path, str]]) -> list[tuple[Path, Path]]:
+    """Stage every ``(path, text)`` write, discarding all on a failure."""
+    staged = []
+    try:
+        for path, text in writes:
+            staged.append((path, _stage(path, text)))
+    except _ConfigError:
+        for _, staging in staged:
+            _discard(staging)
+        raise
+    return staged
+
+
+def _commit(staged: list[tuple[Path, Path]]) -> None:
+    """Rename each staged file over its target, discarding leftovers."""
+    try:
+        for path, staging in staged:
+            try:
+                os.replace(staging, path)
+            except OSError as exc:
+                raise _ConfigError(f"cannot write {path}: {exc}") from exc
+    finally:
+        for _, staging in staged:
+            _discard(staging)
+
+
+def _settings_path(config_home: Path, version: str) -> Path:
+    """Return the ``gtk-3.0`` or ``gtk-4.0`` settings file below *config_home*."""
+    return config_home / version / "settings.ini"
+
+
+def _user_css_path(config_home: Path) -> Path:
+    """Return the libadwaita user stylesheet below *config_home*."""
+    return config_home / "gtk-4.0" / "gtk.css"
+
+
+def _user_css_write(
+    config_home: Path, sheet: Path
+) -> tuple[Path, str] | None:
+    """Return the ``(path, text)`` user-CSS write, or None to leave it alone.
+
+    A foreign ``gtk.css`` is read and left untouched. The read happens here,
+    before any settings write, so an unreadable file changes nothing.
+    """
+    path = _user_css_path(config_home)
     if path.is_file():
-        first = path.read_text(encoding="utf-8").splitlines()
+        first = _read_text(path).splitlines()
         if not first or first[0] != GTK4_CSS_MARKER:
             _note(f"{path} exists but is not our user CSS; leaving it untouched")
-            return
+            return None
     content = f'{GTK4_CSS_MARKER}\n@import url("{sheet.as_uri()}");\n'
-    _write_atomic(path, content)
+    return path, content
 
 
-def _remove_user_css(config_home: Path) -> None:
-    """Delete ``gtk-4.0/gtk.css`` only when our marker opens it."""
-    path = config_home / "gtk-4.0" / "gtk.css"
+def _user_css_remove(config_home: Path) -> Path | None:
+    """Return the marker-led user CSS to delete, or None to keep the file.
+
+    The file is read here, before any settings write, so an unreadable
+    ``gtk.css`` changes nothing.
+    """
+    path = _user_css_path(config_home)
     if not path.is_file():
-        return
-    first = path.read_text(encoding="utf-8").splitlines()
+        return None
+    first = _read_text(path).splitlines()
     if first and first[0] == GTK4_CSS_MARKER:
+        return path
+    return None
+
+
+def _unlink(path: Path) -> None:
+    """Delete *path*, reporting a failure by path."""
+    try:
         path.unlink()
+    except OSError as exc:
+        raise _ConfigError(f"cannot remove {path}: {exc}") from exc
 
 
 def _apply(data_home: Path, config_home: Path) -> int:
@@ -223,27 +313,47 @@ def _apply(data_home: Path, config_home: Path) -> int:
             TOOL,
             f"installed GTK 4 sheet is missing: {sheet}; run make install-gtk",
         )
+    # Read every settings and user-CSS file before writing any, so an
+    # unreadable file leaves every file unmodified instead of applying half
+    # the selection.
+    writes = []
     for version in ("gtk-3.0", "gtk-4.0"):
-        path = config_home / version / "settings.ini"
-        original = path.read_text(encoding="utf-8") if path.is_file() else ""
+        path = _settings_path(config_home, version)
+        original = _read_text(path) if path.is_file() else ""
         updated = _set_theme_name(original, GTK_ID)
         if updated != original:
-            _write_atomic(path, updated)
-    _write_user_css(config_home, sheet)
+            writes.append((path, updated))
+    css = _user_css_write(config_home, sheet)
+    if css is not None:
+        writes.append(css)
+    # Stage every write before replacing anything: an unwritable settings
+    # file or user CSS leaves all of them unmodified.
+    _commit(_stage_all(writes))
     return 0
 
 
 def _remove(config_home: Path) -> int:
     """Clear our selection from both settings files and the user CSS."""
+    writes = []
     for version in ("gtk-3.0", "gtk-4.0"):
-        path = config_home / version / "settings.ini"
+        path = _settings_path(config_home, version)
         if not path.is_file():
             continue
-        original = path.read_text(encoding="utf-8")
-        updated, removed = _remove_theme_name(original)
+        updated, removed = _remove_theme_name(_read_text(path))
         if removed:
-            _write_atomic(path, updated)
-    _remove_user_css(config_home)
+            writes.append((path, updated))
+    css = _user_css_remove(config_home)
+    # Stage the settings, then delete the user CSS, then replace the settings:
+    # a failure in either step leaves every settings file unmodified.
+    staged = _stage_all(writes)
+    if css is not None:
+        try:
+            _unlink(css)
+        except _ConfigError:
+            for _, staging in staged:
+                _discard(staging)
+            raise
+    _commit(staged)
     return 0
 
 
@@ -256,7 +366,8 @@ def main(argv: list[str] | None = None) -> int:
         ),
         epilog=(
             "exit status: 0 when the selection ran, 1 when the installed GTK 4 "
-            "sheet is missing, 2 usage error or an unresolvable home directory"
+            "sheet is missing, 2 for a usage error, an unresolvable home "
+            "directory, or a settings file that cannot be read or written"
         ),
     )
     parser.add_argument(
@@ -284,7 +395,12 @@ def main(argv: list[str] | None = None) -> int:
             "export an absolute HOME",
         )
 
-    status = _remove(config_home) if args.remove else _apply(data_home, config_home)
+    try:
+        status = (
+            _remove(config_home) if args.remove else _apply(data_home, config_home)
+        )
+    except _ConfigError as exc:
+        return report_error(TOOL, str(exc))
     if status == 0:
         _note("restart running GTK applications to pick up the theme")
     return status
