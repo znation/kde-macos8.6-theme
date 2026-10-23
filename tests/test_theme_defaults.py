@@ -225,6 +225,18 @@ class TestDefaultsGroups(unittest.TestCase):
             str(theme_defaults._MAX_DEFAULTS_BYTES), str(caught.exception)
         )
 
+    def test_rejects_a_defaults_file_that_is_not_valid_utf8(self):
+        # A contributor-supplied defaults file that is not valid UTF-8 would
+        # otherwise raise UnicodeDecodeError, which the render's handler does
+        # catch but with a low-level message. The reader names the file and
+        # the decode failure instead.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_bytes(b"\xff\xfe[kwinrc][org.kde.kdecoration2]\ntheme=x\n")
+        with self.assertRaises(ValueError) as caught:
+            theme_defaults.defaults_groups(path)
+        self.assertIn("not valid UTF-8", str(caught.exception))
+        self.assertIn(str(path), str(caught.exception))
+
     def test_refuses_a_fifo_instead_of_blocking(self):
         # contents/defaults is opened before the size cap is applied, and a
         # FIFO with no writer blocks open() forever; the render has no timeout

@@ -49,7 +49,9 @@ def _read_defaults_text(path: Path) -> str:
     without loading the rest of it; a longer file raises ``ValueError`` naming
     the limit, like a malformed heading, so the caller reports it instead of a
     ``MemoryError`` aborting the run. Decoding as ``utf-8-sig`` strips a
-    leading UTF-8 BOM, which an editor may have added. A FIFO or device
+    leading UTF-8 BOM, which an editor may have added. A file that is not
+    valid UTF-8 raises ``ValueError`` naming the path instead of a bare
+    ``UnicodeDecodeError``. A FIFO or device
     would block or stream forever, so it is refused by name when the opened
     descriptor turns out not to be a regular file.
     """
@@ -60,7 +62,12 @@ def _read_defaults_text(path: Path) -> str:
             f"{path}: is larger than the {_MAX_DEFAULTS_BYTES}-byte limit "
             "for a defaults file"
         )
-    return data.decode("utf-8-sig")
+    try:
+        return data.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise ValueError(
+            f"{path}: is not valid UTF-8: {exc}"
+        ) from exc
 
 
 def _section_heading(path: Path, line: str) -> tuple[str, str] | None:
