@@ -7,8 +7,8 @@ input error (:func:`report_error`) and 1 for a failed external command
 tool that needs external commands refuses to run when one is absent from PATH
 through :func:`report_missing_tool`. Keeping the format and the exit statuses
 here means they cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
-``tools/apply_theme.py``, ``tools/local_hook.py``, ``tools/make_wallpaper.py``
-and ``tools/render_surface.py``.
+``tools/apply_theme.py``, ``tools/apply_gtk.py``, ``tools/local_hook.py``,
+``tools/make_wallpaper.py`` and ``tools/render_surface.py``.
 
 Argument parsing lives in the sibling ``tools/argument_parsing.py``; the escaping itself in
 ``tools/terminal.py``.
@@ -114,8 +114,9 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
     control-character-escaped diagnostic line prefixed with the tool's name,
     the last ``_LOG_TAIL_LINES`` lines of the command's log (each escaped and
     indented) when *log* names a file, and exit status 1. *message* is the
-    unescaped text. ``tools/apply_theme.py`` and ``tools/render_surface.py``
-    both return this result directly as the process exit status.
+    unescaped text. ``tools/apply_theme.py``, ``tools/apply_gtk.py`` and
+    ``tools/render_surface.py`` return this result directly as the process exit
+    status.
     """
     if not isinstance(tool, str):
         raise ValueError(
