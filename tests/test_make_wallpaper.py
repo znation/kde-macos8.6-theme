@@ -96,7 +96,14 @@ class TestArguments(unittest.TestCase):
         self.assertFalse(self.images.exists())
 
 
-class TestMain(unittest.TestCase):
+class WallpaperCase(unittest.TestCase):
+    """A temp repository root with the tiny resolution table and a reference.
+
+    The generator suites below all point ``make_wallpaper.ROOT`` at a temp
+    directory, shrink ``RESOLUTIONS`` to two tiny sizes and run ``main``, so
+    that setup, the reference writer and the ``main`` runner live here once.
+    """
+
     def setUp(self):
         self.root = make_tmp_dir(self)
         patches = (
@@ -107,13 +114,13 @@ class TestMain(unittest.TestCase):
             patch.start()
             self.addCleanup(patch.stop)
         self.images = self.root / make_wallpaper.PACKAGE_DIR / "contents" / "images"
+        self.reference = self.root / make_wallpaper.REFERENCE
 
-    def write_reference(self, width, height):
+    def write_reference(self, width=X0 + TILE, height=Y0 + TILE):
         """Write a gradient reference PNG and return its RGB bytes."""
         rgb = gradient(width, height)
-        path = self.root / make_wallpaper.REFERENCE
-        path.parent.mkdir(parents=True)
-        path.write_bytes(encode_png(width, height, rgb))
+        self.reference.parent.mkdir(parents=True)
+        self.reference.write_bytes(encode_png(width, height, rgb))
         return rgb
 
     def run_main(self):
@@ -123,6 +130,16 @@ class TestMain(unittest.TestCase):
             status = make_wallpaper.main([])
         return status, err.getvalue()
 
+
+class ContainmentCase(WallpaperCase):
+    """A ``WallpaperCase`` that also has a directory outside the repository."""
+
+    def setUp(self):
+        super().setUp()
+        self.outside = make_tmp_dir(self)
+
+
+class TestMain(WallpaperCase):
     def test_writes_one_tiled_image_per_resolution_from_the_reference_tile(self):
         width, height = X0 + TILE, Y0 + TILE
         rgb = self.write_reference(width, height)
@@ -203,7 +220,7 @@ class TestMain(unittest.TestCase):
         self.assertFalse(self.images.exists())
 
 
-class TestReferenceContainment(unittest.TestCase):
+class TestReferenceContainment(ContainmentCase):
     """The reference screenshot is a repository file; a symlink out of it is refused.
 
     A checked-in symlink can point anywhere on the machine, and the generator
@@ -211,19 +228,6 @@ class TestReferenceContainment(unittest.TestCase):
     reading a private file through such a symlink would publish its pixels
     with the next commit.
     """
-
-    def setUp(self):
-        self.root = make_tmp_dir(self)
-        self.outside = make_tmp_dir(self)
-        patches = (
-            mock.patch.object(make_wallpaper, "ROOT", self.root),
-            mock.patch.object(make_wallpaper, "RESOLUTIONS", SMALL_RESOLUTIONS),
-        )
-        for patch in patches:
-            patch.start()
-            self.addCleanup(patch.stop)
-        self.images = self.root / make_wallpaper.PACKAGE_DIR / "contents" / "images"
-        self.reference = self.root / make_wallpaper.REFERENCE
 
     def test_a_reference_symlinked_outside_the_repository_is_refused(self):
         # The symlink points at a valid PNG outside the repository, so a
@@ -235,13 +239,11 @@ class TestReferenceContainment(unittest.TestCase):
         self.reference.parent.mkdir(parents=True)
         self.reference.symlink_to(secret)
 
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            status = make_wallpaper.main([])
+        status, err = self.run_main()
 
         self.assertEqual(status, 2)
-        self.assertTrue(err.getvalue().startswith("make_wallpaper: error: "))
-        self.assertIn("symlink escape", err.getvalue())
+        self.assertTrue(err.startswith("make_wallpaper: error: "))
+        self.assertIn("symlink escape", err)
         self.assertFalse(self.images.exists())
 
     def test_a_reference_inside_the_repository_is_still_read(self):
@@ -252,11 +254,9 @@ class TestReferenceContainment(unittest.TestCase):
         self.reference.parent.mkdir(parents=True)
         self.reference.write_bytes(encode_png(width, height, rgb))
 
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            status = make_wallpaper.main([])
+        status, err = self.run_main()
 
-        self.assertEqual((status, err.getvalue()), (0, ""))
+        self.assertEqual((status, err), (0, ""))
         for w, h in SMALL_RESOLUTIONS:
             with self.subTest(size=(w, h)):
                 image = png.read_png(self.images / f"{w}x{h}.png")
@@ -272,7 +272,7 @@ class TestReferenceContainment(unittest.TestCase):
                 )
 
 
-class TestOutputContainment(unittest.TestCase):
+class TestOutputContainment(ContainmentCase):
     """The images directory is a repository path; a symlink out of it is refused.
 
     The generator writes the wallpaper images into the package's
@@ -281,32 +281,6 @@ class TestOutputContainment(unittest.TestCase):
     outside the wallpaper package, into a directory a contributor names, and
     overwrite same-named files there.
     """
-
-    def setUp(self):
-        self.root = make_tmp_dir(self)
-        self.outside = make_tmp_dir(self)
-        patches = (
-            mock.patch.object(make_wallpaper, "ROOT", self.root),
-            mock.patch.object(make_wallpaper, "RESOLUTIONS", SMALL_RESOLUTIONS),
-        )
-        for patch in patches:
-            patch.start()
-            self.addCleanup(patch.stop)
-        self.images = self.root / make_wallpaper.PACKAGE_DIR / "contents" / "images"
-        self.reference = self.root / make_wallpaper.REFERENCE
-
-    def write_reference(self):
-        """Write a gradient reference PNG at the repository's reference path."""
-        width, height = X0 + TILE, Y0 + TILE
-        self.reference.parent.mkdir(parents=True)
-        self.reference.write_bytes(encode_png(width, height, gradient(width, height)))
-
-    def run_main(self):
-        """Run ``main`` and return ``(status, stderr)``."""
-        err = io.StringIO()
-        with contextlib.redirect_stderr(err):
-            status = make_wallpaper.main([])
-        return status, err.getvalue()
 
     def test_an_images_directory_symlinked_outside_the_repository_is_refused(self):
         # The symlink points at a directory outside the repository, so a
