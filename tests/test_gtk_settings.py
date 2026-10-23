@@ -6,7 +6,8 @@ insert, append and removal shapes end to end, including a CRLF file read and
 written back as bytes. These tests pin the transforms directly and add the
 file shapes that suite does not write: spaces around ``=``, a commented-out
 key, a leading BOM on removal, a missing final newline, a key before the
-first section, and CRLF, lone-CR and mixed line endings. They need no
+first section, a duplicate key in ``[Settings]``, a same-named key in a later
+foreign section, and CRLF, lone-CR and mixed line endings. They need no
 filesystem or environment.
 
 Run with the project's check harness (stdlib unittest)::
@@ -57,6 +58,36 @@ class TestSetThemeName(unittest.TestCase):
             GTK_ID,
         )
         self.assertEqual(once, set_theme_name(once, GTK_ID))
+
+    def test_replaces_only_the_last_of_two_matching_keys(self):
+        # The module documents that the last matching key is replaced;
+        # replacing an earlier duplicate would leave the later foreign value.
+        self.assertEqual(
+            "[Settings]\n"
+            "gtk-theme-name=First\n"
+            "gtk-font-name=Lato 10\n"
+            f"gtk-theme-name={GTK_ID}\n",
+            set_theme_name(
+                "[Settings]\n"
+                "gtk-theme-name=First\n"
+                "gtk-font-name=Lato 10\n"
+                "gtk-theme-name=Second\n",
+                GTK_ID,
+            ),
+        )
+
+    def test_a_matching_key_in_a_later_foreign_section_is_left_alone(self):
+        # A [Settings] key stays the target even when a later section has a
+        # same-named key; only that key's value must change.
+        self.assertEqual(
+            f"[Settings]\ngtk-theme-name={GTK_ID}\n"
+            "[Other]\ngtk-theme-name=Foreign\n",
+            set_theme_name(
+                "[Settings]\ngtk-theme-name=Adwaita\n"
+                "[Other]\ngtk-theme-name=Foreign\n",
+                GTK_ID,
+            ),
+        )
 
 
 class TestRemoveThemeName(unittest.TestCase):
