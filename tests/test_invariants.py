@@ -242,6 +242,33 @@ class TestHelpers(unittest.TestCase):
         sections = cross_check(self.root, self._valid_register())
         self.assertEqual(set(sections), {"aurorae", "tooling"})
 
+    def test_parsed_module_reuses_an_unchanged_files_parse(self):
+        # The invariant checker and the entry-point guard test both read the
+        # test modules in one run, so the second reader must reuse the first's
+        # tree rather than parsing the same unchanged file again.
+        path = self.root / self.MODULE
+        with mock.patch.object(
+            invariants.ast, "parse", wraps=invariants.ast.parse
+        ) as parse:
+            first = invariants.parsed_module(path, self.root)
+            second = invariants.parsed_module(path, self.root)
+        self.assertIs(first, second)
+        self.assertEqual(parse.call_count, 1)
+
+    def test_parsed_module_rechecks_containment_on_a_cache_hit(self):
+        # A tree first read while the path was outside the named root is
+        # cached; a later call naming a root the path escapes must still run
+        # the containment check instead of serving the cached tree.
+        private_root = make_tmp_dir(self)
+        private = private_root / "private.py"
+        private.write_text("secret = 1\n", encoding="utf-8")
+        path = self.root / self.MODULE
+        path.unlink()
+        path.symlink_to(private)
+        invariants.parsed_module(path, private_root)
+        with self.assertRaisesRegex(ValueError, "resolves outside"):
+            invariants.parsed_module(path, self.root)
+
     def test_cross_check_reuses_an_unchanged_modules_parse(self):
         # The same module is named by two rows, and the check runs over the
         # same tree repeatedly (the mutation cases do), so an unchanged file

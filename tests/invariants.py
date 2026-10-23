@@ -67,6 +67,46 @@ Row = namedtuple("Row", "guarantee tests provenance")
 # classes; a failed read or parse is never cached.
 _DEFINED_NAMES_CACHE = {}
 
+# Parsed module trees, keyed by absolute path, with the stat fingerprint they
+# were read at. The register checker parses most test modules and
+# ``tests/test_entry_point_guards.py`` parses every one of them; both run in
+# the same ``make check`` process, so the second reader reuses the first's
+# tree instead of parsing the same file again. A rewritten or replaced file
+# has a new fingerprint and is reparsed; a failed read or parse is never
+# cached.
+_TREE_CACHE = {}
+
+
+def _fingerprint(path):
+    """Return *path*'s stat fingerprint, the key an unchanged file is cached by."""
+    stat = os.stat(path)
+    return (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+
+
+def parsed_module(path, root):
+    """Return the parsed AST of *path*, reusing an unchanged file's parse.
+
+    *path* is read through the shared containment reader, as
+    :func:`_defined_names` does, so a contributor-supplied module past the
+    byte cap or resolving outside *root* is refused before it is opened. The
+    tree is cached against the file's stat fingerprint: both this checker and
+    the entry-point guard test read the same test modules, so the later one
+    reuses the tree rather than parsing every module a second time.
+
+    The containment check runs on every call, before the cache is consulted,
+    so a tree cached when the path was read outside *root* is still refused
+    when a later call names a root the path escapes.
+    """
+    containment.require_within_repo(path, root)
+    key = os.path.abspath(path)
+    fingerprint = _fingerprint(path)
+    cached = _TREE_CACHE.get(key)
+    if cached is not None and cached[0] == fingerprint:
+        return cached[1]
+    tree = ast.parse(containment.read_text(path, root), filename=path)
+    _TREE_CACHE[key] = (fingerprint, tree)
+    return tree
+
 
 def _cells(line):
     """Return a table row's three cells, or None for a non-row line.
@@ -176,17 +216,11 @@ def _defined_names(path, root):
     repeated check over an unchanged tree reuses those parses.
     """
     key = os.path.abspath(path)
-    stat = os.stat(path)
-    fingerprint = (
-        stat.st_ino,
-        stat.st_size,
-        stat.st_mtime_ns,
-        stat.st_ctime_ns,
-    )
+    fingerprint = _fingerprint(path)
     cached = _DEFINED_NAMES_CACHE.get(key)
     if cached is not None and cached[0] == fingerprint:
         return cached[1]
-    tree = ast.parse(containment.read_text(path, root), filename=path)
+    tree = parsed_module(path, root)
     nodes = {
         node.name: node for node in tree.body if isinstance(node, ast.ClassDef)
     }

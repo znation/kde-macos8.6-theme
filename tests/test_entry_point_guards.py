@@ -20,7 +20,7 @@ from __future__ import annotations
 import ast
 import unittest
 
-from support import containment
+from invariants import parsed_module
 from support import repo_root
 
 TESTS_DIR = repo_root.ROOT / "tests"
@@ -78,10 +78,10 @@ class TestEntryPointGuard(unittest.TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.modules = test_modules()
+        # The invariant checker parses most of these modules too; the shared
+        # cache makes the two readers parse each unchanged file once per run.
         cls.trees = {
-            path.name: ast.parse(
-                containment.read_text(path, repo_root.ROOT)
-            )
+            path.name: parsed_module(path, repo_root.ROOT)
             for path in cls.modules
         }
 
