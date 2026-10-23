@@ -30,8 +30,11 @@ Plasma shell widgets, so a KDE app's own buttons, menus and scroll bars would ke
 by the global theme's selection of our Kvantum theme: the user answered
 2026-10-18 that a pixel-matched Platinum style should ship as a Kvantum theme (a new
 dependency) — shipped as the four-part "Mac OS 8.6 Kvantum widget style" series (each part
-waited on the one before); a **cursor theme** is out of scope (no reference screenshot shows a
-cursor, so no pixel ground truth exists to match); **system sounds** are out of scope (not a
+waited on the one before); a **cursor theme** was out of scope on 2026-10-17 because no reference
+screenshot shows a cursor, so no pixel ground truth exists to match; on 2026-10-23 the plan role
+queued it anyway as the theme's own Platinum-style art (a black-face, white-outline arrow not
+traced from Apple's artwork) with its provenance exception recorded in its entry and
+`docs/invariants.md`; **system sounds** are out of scope (not a
 visual surface, so the reference set cannot ground them); and a **lock screen** is out of scope
 unless a broader login/lock-screen plan is taken up (QUESTIONS.md, answered 2026-10-21). The
 shipped work should not be treated as the whole of the prompt.
@@ -39,9 +42,9 @@ shipped work should not be treated as the whole of the prompt.
 Two answers on 2026-10-19 widen the scope again, and both now have plan entries in the queue.
 **GTK applications and Firefox** are in scope (QUESTIONS.md, answered 2026-10-19) as a
 four-part series: parts 1/4 (GTK 3 Platinum theme) and 2/4 (GTK 4/libadwaita stylesheet) have
-landed; part 3/4 is queued as two entries — the opt-in install (part 1/2) and, blocked on it, the
-selection (part 2/2) — and part 4/4 (Firefox `userChrome.css` plus profile preference) is not
-planned yet. **The UI font** is to be vendored
+landed; part 3/4 is queued as three entries — the opt-in install (parts 1/3 and 2/3) and,
+blocked on them, the selection (part 3/3) — and part 4/4 (Firefox `userChrome.css` plus profile
+preference) is not planned yet. **The UI font** is to be vendored
 (QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
 Charcoal-style body face and has landed (installed but not yet selected); part 2/3 (a
 Chicago-style menu face, whose redistribution licence is still unresolved) is not planned
@@ -51,9 +54,7 @@ the Lato body face only, because Lato is the only family the package installs. U
 applications keep their own chrome regardless (the queued GTK entries cover GTK, and
 Firefox is GTK series part 4/4, not planned).
 
-### GTK opt-in, part 1/2: Install the GTK 3 and GTK 4 Platinum themes opt-in (planned 2026-10-21 by the plan role; GTK series part 3/4)
-
-**Needs review 2026-10-23 by feature: too large for one run**
+### GTK opt-in, part 1/3: Install the GTK 3 and GTK 4 Platinum themes opt-in (planned 2026-10-23 by the plan role; GTK series part 3/4, split from the too-large 2026-10-21 entry)
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
 directly under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
@@ -61,9 +62,9 @@ directly under `PLANS.md`'s existing `## Done` heading, which is the file's last
 edit `PLANS-DONE.md`: tumwater moves the entry from `## Done` into that archive after the merge, so
 a feature-run diff to `PLANS-DONE.md` is wrong. Before editing, record `grep -n '^## Done$'
 PLANS.md`; after the move, `grep -n '^## ' PLANS.md` must print exactly two lines (`## Planned`
-and `## Done`) and `grep -n '^### GTK opt-in, part 1/2: Install the GTK 3 and GTK 4
-Platinum themes opt-in' PLANS.md` must print exactly one line whose number is greater than the
-`## Done` line's. The final report
+and `## Done`) and `grep -n '^### GTK opt-in, part 1/3: Install the GTK 3 and
+GTK 4 Platinum themes opt-in' PLANS.md` must print exactly one line whose number is greater than
+the `## Done` line's. The final report
 quotes the actual output of `grep -l "Install the GTK 3 and GTK 4 Platinum themes opt-in" PLANS.md
 PLANS-DONE.md` (exactly `PLANS.md`) and of `git diff --name-status`; never claim a file the diff
 does not name.
@@ -71,12 +72,12 @@ does not name.
 **Goal.** Parts 1/4 and 2/4 ship `theme/gtk/org.macos8.desktop/index.theme`,
 `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and
 `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, but no make target copies them, so a GTK
-application cannot use them without a manual copy. Add an opt-in `gtk` install family, an
-`install-gtk` target, and uninstall cleanup, keeping the default `make install` at the families
-`INSTALL_PACKAGES` already names and copying no GTK files. This part installs the three files
-only; the sibling selection entry below (`requires part 1/2 landed`) adds `make
-apply-gtk`/`remove-gtk` and is not part of this diff. This part does not depend on the waiting
-Lato font entry.
+application cannot use them without a manual copy. Add an opt-in `gtk` install family, staged
+copies, and an `install-gtk` target, keeping the default `make install` at the families
+`INSTALL_PACKAGES` already names and copying no GTK files. Feature sent the 2026-10-21 entry this
+splits back as too large for one run; this part carries the install half only. It installs the
+three files but does not remove or select them: the uninstall cleanup is part 2/3
+(`requires part 1/3 landed`) and the selection is part 3/3; neither is part of this diff.
 
 **Reference grounding.** No screenshot in `macos8.6-screenshots/` shows a GTK widget, so this part
 adds no visual value and samples no pixel. The GTK theme directory name and its `gtk-3.0/` and
@@ -89,7 +90,8 @@ grounded through `tests/support/platinum_palette.py`.
   `GTK_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(GTK_ID)`. This is the directory the
   Kvantum package already uses (`.../themes/org.macos8.desktop/Kvantum/`), so the two artifacts
   share a theme directory; do not use `install_package`, which would replace the whole directory
-  and delete `Kvantum/`.
+  and delete `Kvantum/`. Name the part-2/3 uninstall in the new comment so the sharing is
+  documented before the removal lands.
 - `Makefile`: add `gtk` to `INSTALL_FAMILIES` but not to the default `INSTALL_PACKAGES`; reword
   the comment above them so it says the default installs the families `INSTALL_PACKAGES` names and
   that `gtk` is opt-in. Add a `define install_gtk` after `install_kvantum`: create
@@ -98,23 +100,20 @@ grounded through `tests/support/platinum_palette.py`.
   `gtk-3.0/.gtk.css.staging` and `gtk-4.0/.gtk.css.staging` under one EXIT trap that removes all
   three, then rename each into place. A failed copy leaves the previous files untouched and
   removes every staging sibling.
-- `Makefile`: gate the `install_gtk` call on `gtk` in `_install`; in `_uninstall` remove the three
-  GTK files and those three staging siblings, then `rmdir` `gtk-3.0` and `gtk-4.0` when they are
-  empty (`|| true`), leaving `Kvantum/` and every other theme directory alone. Extend the
-  shared-parent comment to name the `themes/org.macos8.desktop` sharing.
+- `Makefile`: gate the `install_gtk` call on `gtk` in `_install`; do not touch `_uninstall` in
+  this part.
 - `Makefile`: add the public `install-gtk` target (runs the nested `$(MAKE) --no-print-directory
-  install INSTALL_PACKAGES=gtk`), add it to `.PHONY` and the `help` target list. `make uninstall`
-  still removes all installed artifacts.
+  install INSTALL_PACKAGES=gtk`), add it to `.PHONY` and the `help` target list.
 - `tests/support/gtk_fixtures.py` (new): `GTK_ID`, `PACKAGE` and `SHIPPED_FILES` naming
-  `index.theme`, `gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`, so the install test and the selection
-  test can share them.
+  `index.theme`, `gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`, so this part's test and the part-2/3
+  uninstall and part-3/3 selection tests can share them.
 - `tests/test_gtk_install.py` (new, modelled on `tests/test_kvantum_install.py` because the theme
   shares `themes/org.macos8.desktop`): the source package's `shipped_files` equals
-  `SHIPPED_FILES`; `make install INSTALL_PACKAGES=gtk` copies all three byte for byte and is
-  repeatable; a default `make install` writes no `index.theme` or `gtk-*/gtk.css` but still writes
-  `Kvantum/`; a shadowed failing `install` leaves the previous three files intact and removes
-  every staging sibling; `make uninstall` removes the three files and staging siblings, leaves a
-  sibling `Kvantum/` file and a second theme directory untouched, and repeats successfully.
+  `SHIPPED_FILES`; `make install INSTALL_PACKAGES=gtk` copies all three byte for byte beside a
+  pre-existing `Kvantum/` file and is repeatable; a default `make install` writes no
+  `index.theme` or `gtk-*/gtk.css` but still writes `Kvantum/`; a shadowed failing `install`
+  leaves the previous three files intact and removes every staging sibling. The uninstall cases
+  are part 2/3's additions to this module.
 - `tests/support/installed_paths.py`: add `installed_gtk_theme(destdir)` returning
   `themes/org.macos8.desktop` below the module's `XDG_DATA_HOME`, and name the theme in the
   module docstring.
@@ -123,10 +122,10 @@ grounded through `tests/support/platinum_palette.py`.
   installs every default family; `gtk` is opt-in).
 - `README.md`: add a GTK paragraph after the Kvantum section that names `make install-gtk` (the
   `test_make_help` README check requires the exact target name), the installed path
-  `$XDG_DATA_HOME/themes/org.macos8.desktop`, the shared `Kvantum/` directory, that the default
-  `make install` copies no GTK files, and that `make uninstall` removes the GTK files. State that
-  this part installs the files but does not select them. Do not add the GTK files to the default
-  artifact list or change that list's count.
+  `$XDG_DATA_HOME/themes/org.macos8.desktop`, the shared `Kvantum/` directory, and that the
+  default `make install` copies no GTK files. State that this part installs the files but does not
+  select them, and hold the uninstall sentence for part 2/3. Do not add the GTK files to the
+  default artifact list or change that list's count.
 - `docs/invariants.md`: in the existing `## gtk` section add a row for the opt-in install pinned to
   `tests/test_gtk_install.py`, with the provenance exception that no reference screenshot shows a
   GTK widget and the theme directory layout is GTK-required.
@@ -142,16 +141,15 @@ grounded through `tests/support/platinum_palette.py`.
   leaves a pre-existing `Kvantum/` file there untouched; the default `make install DESTDIR=<tmp>`
   still writes the default families and leaves all three GTK files absent.
 - A shadowed `install` that fails on a GTK copy leaves the previous three files byte-identical and
-  no `.staging` sibling; `make uninstall DESTDIR=<tmp>` removes the three GTK files and their
-  `.staging` leftovers, leaves `Kvantum/` and a second theme directory untouched, and repeats
-  successfully.
+  no `.staging` sibling.
 - `make check CHECK_TESTS='test_gtk_install test_gtk_theme test_make_help test_theme_install'`
   passes; corrupting a staged copy, removing `gtk` from `INSTALL_FAMILIES`, or adding it to the
-  default `INSTALL_PACKAGES` makes the matching test fail.
+  default `INSTALL_PACKAGES` makes the matching test fail; `tests/invariants.py` accepts the new
+  row and `make check` is green.
 - `git diff --name-status` names only the files listed under "Files touched" (besides the backlog
   move), does not name `PLANS-DONE.md`, and the README's default artifact list does not gain a GTK
   entry or change its count.
-- When the work lands, `grep -n '^### GTK opt-in, part 1/2: Install the GTK 3 and GTK 4
+- When the work lands, `grep -n '^### GTK opt-in, part 1/3: Install the GTK 3 and GTK 4
   Platinum themes opt-in' PLANS.md` prints exactly one line whose number is greater than the
   `## Done` line's;
   `grep -F 'Install the GTK 3 and GTK 4 Platinum themes opt-in' PLANS-DONE.md` exits 1 with no
@@ -163,7 +161,7 @@ grounded through `tests/support/platinum_palette.py`.
   the opt-in default; a report that calls the change only backlog bookkeeping contradicts the
   diff.
 
-### GTK opt-in, part 2/2: Select the installed GTK 3 and GTK 4 Platinum themes (planned 2026-10-21 by the plan role; requires part 1/2 landed)
+### GTK opt-in, part 2/3: Uninstall the installed GTK 3 and GTK 4 Platinum themes (planned 2026-10-23 by the plan role; "requires part 1/3 landed")
 
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
 directly under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
@@ -171,7 +169,77 @@ directly under `PLANS.md`'s existing `## Done` heading, which is the file's last
 edit `PLANS-DONE.md`: tumwater moves the entry from `## Done` into that archive after the merge.
 Before editing, record `grep -n '^## Done$' PLANS.md`; after the move, `grep -n '^## ' PLANS.md`
 must print exactly two lines (`## Planned` and `## Done`) and `grep -n '^### GTK opt-in, part
-2/2: Select the installed GTK 3 and GTK 4 Platinum themes' PLANS.md` must print exactly one line
+2/3: Uninstall the installed GTK 3 and GTK 4 Platinum themes' PLANS.md` must print exactly one
+line whose number is greater than the `## Done` line's. The final report quotes the actual output
+of `grep -l "Uninstall the installed GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md`
+(exactly `PLANS.md`) and of `git diff --name-status`; never claim a file the diff does not name.
+
+**Goal.** Part 1/3 adds the opt-in `gtk` install family and the staged copies of the three sheets,
+but leaves `make uninstall` alone, so uninstalling would leave an orphaned GTK theme and staging
+leftovers in the shared `themes/org.macos8.desktop` directory. This part extends `make uninstall`
+to remove exactly what part 1/3 installs — the three files, their three staging siblings and the
+emptied `gtk-3.0`/`gtk-4.0` directories — and nothing else: `Kvantum/`, the theme directory itself
+and every other theme stay in place. It is a follow-on, not a rewrite: the install half is part
+1/3, and the selection that points GTK at the installed theme is part 3/3 (`requires part 2/3
+landed`).
+
+**Reference grounding.** No screenshot in `macos8.6-screenshots/` shows a GTK widget, so this part
+adds no visual value and samples no pixel; the uninstall paths are GTK-required values the
+reference set does not show. Part 1/3 already records that provenance exception on the install
+row; this part extends that same row with the uninstall guarantee rather than adding a new one.
+
+**Approach.**
+- `Makefile`: in `_uninstall`, remove `index.theme`, `gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`
+  relative to the part-1/3 `$(GTK_INSTALL_DIR)` and the three `.staging` siblings, then `rmdir`
+  `gtk-3.0` and `gtk-4.0` when empty (`|| true`), leaving `Kvantum/` and every other theme
+  directory alone. Extend the shared-parent comment to name the `themes/org.macos8.desktop`
+  sharing. Do not touch `_install` or the `install_gtk` define.
+- `tests/test_gtk_install.py`: add a `TestUninstall` class (modelled on the uninstall cases in
+  `tests/test_kvantum_install.py`): after `make install INSTALL_PACKAGES=gtk`,
+  `make uninstall` removes the three files and seeded staging leftovers, leaves a pre-planted
+  `Kvantum/` file and a sibling second theme directory byte for byte, and repeats successfully.
+- `README.md`: extend the part-1/3 GTK paragraph with one uninstall sentence — `make uninstall`
+  removes the three GTK files, their `.staging` leftovers and the emptied `gtk-3.0`/`gtk-4.0`
+  directories but leaves `Kvantum/` and the theme directory itself.
+- `docs/invariants.md`: extend the part-1/3 `## gtk` row with the uninstall guarantee (remove only
+  the three files, the staging siblings and the emptied `gtk-3.0`/`gtk-4.0` directories), still
+  pinned to `tests/test_gtk_install.py`.
+
+**Files touched.** `Makefile`, `tests/test_gtk_install.py`, `README.md`, `docs/invariants.md`,
+and `PLANS.md` (the entry moves to `## Done`; see Plan record). Do not edit `PLANS-DONE.md`.
+
+**Acceptance criteria.**
+- After `make install INSTALL_PACKAGES=gtk DESTDIR=<tmp>` with a planted `Kvantum/` file and a
+  second theme directory under `<tmp>/share/themes/`, `make uninstall DESTDIR=<tmp>` removes
+  `index.theme`, both `gtk-*/gtk.css` and any planted `.staging` siblings, removes the emptied
+  `gtk-3.0` and `gtk-4.0` directories, and leaves the `Kvantum/` file, the second theme directory
+  and the `org.macos8.desktop` directory itself untouched; a repeat uninstall succeeds, and so
+  does an uninstall on a tree with no GTK install.
+- `make check CHECK_TESTS='test_gtk_install test_make_help'` passes; dropping the staging-sibling
+  removal, the empty-`rmdir` guard, or letting the removal touch `Kvantum/` makes the matching
+  case fail; `tests/invariants.py` accepts the extended row and `make check` is green.
+- `git diff --name-status` names only the files listed under "Files touched" (besides the backlog
+  move) and does not name `PLANS-DONE.md`.
+- When the work lands, `grep -n '^### GTK opt-in, part 2/3: Uninstall the installed GTK 3 and
+  GTK 4 Platinum themes' PLANS.md` prints exactly one line whose number is greater than the
+  `## Done` line's; `grep -F 'Uninstall the installed GTK 3 and GTK 4 Platinum themes'
+  PLANS-DONE.md` exits 1 with no output; `grep -n '^## ' PLANS.md` prints exactly `## Planned`
+  and `## Done`; and `git diff --name-status` does not name `PLANS-DONE.md`. The final report
+  quotes the actual output of `grep -l "Uninstall the installed GTK 3 and GTK 4 Platinum themes"
+  PLANS.md PLANS-DONE.md` (exactly `PLANS.md`). The report's `SUMMARY` names `make uninstall` and
+  the three GTK files, and its `RISK` names the shared `themes/org.macos8.desktop` directory
+  (`Kvantum/` must survive); a report that calls the change only backlog bookkeeping contradicts
+  the diff.
+
+### GTK opt-in, part 3/3: Select the installed GTK 3 and GTK 4 Platinum themes (planned 2026-10-21 by the plan role; requires part 2/3 landed)
+
+**Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
+directly under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
+`— done YYYY-MM-DD` to its `### ` heading. Do not add, rename or move a `## ` heading, and do not
+edit `PLANS-DONE.md`: tumwater moves the entry from `## Done` into that archive after the merge.
+Before editing, record `grep -n '^## Done$' PLANS.md`; after the move, `grep -n '^## ' PLANS.md`
+must print exactly two lines (`## Planned` and `## Done`) and `grep -n '^### GTK opt-in, part
+3/3: Select the installed GTK 3 and GTK 4 Platinum themes' PLANS.md` must print exactly one line
 whose number is greater than the `## Done` line's. The final report quotes the actual output of `grep -l "Select the
 installed GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md` (exactly `PLANS.md`) and of
 `git diff --name-status`; never claim a file the diff does not name.
@@ -180,7 +248,7 @@ installed GTK 3 and GTK 4 Platinum themes" PLANS.md PLANS-DONE.md` (exactly `PLA
 `$XDG_DATA_HOME/themes/org.macos8.desktop`, but nothing selects them, so GTK applications still
 draw their system theme. Add `make apply-gtk` and `make remove-gtk` plus `tools/apply_gtk.py`:
 set `gtk-theme-name=org.macos8.desktop` in both GTK settings files and give libadwaita
-applications the GTK 4 sheet as user CSS. This entry requires part 1/2 landed (the opt-in install family
+applications the GTK 4 sheet as user CSS. This entry requires part 2/3 landed (the opt-in install family
 and installed file layout); do not reimplement them. It does not add Firefox chrome, which remains
 GTK series part 4/4 and is not planned here.
 
@@ -265,7 +333,7 @@ Do not edit `PLANS-DONE.md`.
   unusable makes a case fail.
 - `git diff --name-status` names only the files listed under "Files touched" (besides the backlog
   move) and does not name `PLANS-DONE.md`.
-- When the work lands, `grep -n '^### GTK opt-in, part 2/2: Select the installed GTK 3 and
+- When the work lands, `grep -n '^### GTK opt-in, part 3/3: Select the installed GTK 3 and
   GTK 4 Platinum themes' PLANS.md` prints exactly one line whose number is greater than the
   `## Done` line's;
   `grep -F 'Select the installed GTK 3 and GTK 4 Platinum themes' PLANS-DONE.md` exits 1 with no
