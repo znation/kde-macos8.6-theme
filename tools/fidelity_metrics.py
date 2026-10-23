@@ -54,6 +54,9 @@ def _sum_squares(channel: bytes) -> int:
     )
 
 
+_MAX_BYTE_ONES_CACHE: dict[int, int] = {}
+
+
 def _max_byte_index(data: bytes) -> int:
     """Return the index of the first occurrence of the maximum byte in *data*.
 
@@ -70,7 +73,10 @@ def _max_byte_index(data: bytes) -> int:
     if length == 0:
         raise ValueError("_max_byte_index() arg is an empty byte string")
     value = int.from_bytes(data, "little")
-    ones = int.from_bytes(b"\x01" * length, "little")
+    ones = _MAX_BYTE_ONES_CACHE.get(length)
+    if ones is None:
+        ones = int.from_bytes(b"\x01" * length, "little")
+        _MAX_BYTE_ONES_CACHE[length] = ones
     candidates = ones
     for bit in range(7, -1, -1):
         has_bit = (value >> bit) & ones
@@ -79,6 +85,9 @@ def _max_byte_index(data: bytes) -> int:
             candidates = narrowed
     lowest = candidates & -candidates
     return (lowest.bit_length() - 1) >> 3
+
+
+_ABS_DIFF_MASKS_CACHE: dict[int, tuple[int, int]] = {}
 
 
 def _abs_diff(a: bytes, b: bytes) -> bytes:
@@ -103,10 +112,16 @@ def _abs_diff(a: bytes, b: bytes) -> bytes:
         a = a + b"\x00"
         b = b + b"\x00"
     lanes = len(a) // 2
-    # 0xFF in the low byte of every lane, and the guard bit (bit 8) of every
-    # lane -- the lane-parallel equivalents of a scalar mask.
-    low = int.from_bytes(b"\xff\x00" * lanes, "little")
-    guard_bit = int.from_bytes(b"\x00\x01" * lanes, "little")
+    cached = _ABS_DIFF_MASKS_CACHE.get(lanes)
+    if cached is None:
+        # 0xFF in the low byte of every lane, and the guard bit (bit 8) of every
+        # lane -- the lane-parallel equivalents of a scalar mask.
+        low = int.from_bytes(b"\xff\x00" * lanes, "little")
+        guard_bit = int.from_bytes(b"\x00\x01" * lanes, "little")
+        cached = (low, guard_bit)
+        _ABS_DIFF_MASKS_CACHE[lanes] = cached
+    else:
+        low, guard_bit = cached
     x = int.from_bytes(a, "little")
     y = int.from_bytes(b, "little")
     # Split each string into its even- and odd-indexed bytes, each already
