@@ -269,6 +269,43 @@ class TestLineEndings(unittest.TestCase):
             set_theme_name(text, GTK_ID),
         )
 
+    def test_every_other_line_break_the_splitter_recognises_is_preserved(self):
+        # _split_lines names every boundary str.splitlines recognises, not only
+        # CR, LF and CRLF. An edit must keep a foreign line's vertical tab,
+        # form feed, ASCII separator, NEL or Unicode separator just as it keeps
+        # a newline; otherwise a file using one is silently rewritten.
+        endings = (
+            "\v",
+            "\f",
+            "\x1c",
+            "\x1d",
+            "\x1e",
+            "\x85",
+            "\u2028",
+            "\u2029",
+        )
+        for ending in endings:
+            with self.subTest(ending=repr(ending)):
+                text = (
+                    f"gtk-font-name=Lato 10{ending}"
+                    f"[Settings]{ending}"
+                    f"gtk-theme-name=Adwaita{ending}"
+                )
+                selected = set_theme_name(text, GTK_ID)
+                self.assertEqual(
+                    f"gtk-font-name=Lato 10{ending}"
+                    f"[Settings]{ending}"
+                    f"gtk-theme-name={GTK_ID}{ending}",
+                    selected,
+                )
+
+                removed, changed = remove_theme_name(selected)
+                self.assertTrue(changed)
+                self.assertEqual(
+                    f"gtk-font-name=Lato 10{ending}[Settings]{ending}",
+                    removed,
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
