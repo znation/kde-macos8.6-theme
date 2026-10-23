@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The cursor generator test patches a removed `_write_atomic` symbol (found by the plan role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+The entry was filed before an earlier coverage commit repaired the cursor-write test. On this tree,
+the cursor-theme module's failed-write test reads and patches the imported shared atomic-write
+helper, which the cursor generator imports from the atomic-write module and calls for every cursor
+write; the test no longer references the removed private helper name. Running the cursor-theme test
+module under the project's check passes that test, so there is nothing left to fix: the entry
+describes a failure the earlier commit had already repaired.
+
+**Validation gap:** no-repro — the reported failure could not be reproduced because the test now
+patches the existing shared atomic-write helper instead of the removed name.
+
 ### Fidelity drops alpha, so a fully transparent candidate passes the byte-exact gate (found by the qa role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares only each pixel's red, green and blue
