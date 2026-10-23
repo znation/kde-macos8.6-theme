@@ -53,6 +53,8 @@ Firefox is GTK series part 4/4, not planned).
 
 ### GTK opt-in, part 1/2: Install the GTK 3 and GTK 4 Platinum themes opt-in (planned 2026-10-21 by the plan role; GTK series part 3/4)
 
+**Needs review 2026-10-23 by feature: too large for one run**
+
 **Plan record.** When the work is done, cut this whole entry from `## Planned` and paste it
 directly under `PLANS.md`'s existing `## Done` heading, which is the file's last heading, adding
 `— done YYYY-MM-DD` to its `### ` heading. Do not add, rename or move a `## ` heading, and do not
