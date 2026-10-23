@@ -92,6 +92,34 @@ class TestProfileResolution(ProfileCase):
         )
         self.assertEqual(profile, self.resolve())
 
+    def test_stale_installs_default_falls_through_to_profiles_ini(self):
+        # installs.ini can outlive the profile directory it names after a
+        # profile is deleted; resolution must keep trying profiles.ini
+        # instead of reporting that the stale candidate was not found.
+        alive = self.firefox_root / "alive"
+        alive.mkdir(parents=True)
+        _write(
+            self.firefox_root / "installs.ini",
+            "[Install4F96]\nDefault=Profiles/deleted.default\n",
+        )
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=alive\nPath=alive\n",
+        )
+        self.assertEqual(alive, self.resolve())
+
+    def test_installs_section_without_default_is_skipped(self):
+        # Firefox names installs.ini sections by install hash; a section
+        # carrying no Default (or an empty one) must not hide a later one.
+        profile = self.firefox_root / "Profiles" / "live.default"
+        profile.mkdir(parents=True)
+        _write(
+            self.firefox_root / "installs.ini",
+            "[InstallOld]\nName=old\nDefault=\n"
+            "[InstallNew]\nDefault=Profiles/live.default\n",
+        )
+        self.assertEqual(profile, self.resolve())
+
     def test_profiles_ini_default_marker_is_used(self):
         first = self.firefox_root / "first"
         chosen = self.firefox_root / "chosen"
@@ -103,6 +131,19 @@ class TestProfileResolution(ProfileCase):
             "[Profile1]\nName=chosen\nPath=chosen\nDefault=1\n",
         )
         self.assertEqual(chosen, self.resolve())
+
+    def test_profiles_default_without_a_path_falls_back_to_the_first_path(self):
+        # A Default=1 marker on a section with no Path names no directory;
+        # resolution must still use the first section that has one rather
+        # than dropping every profile candidate.
+        first = self.firefox_root / "first"
+        first.mkdir(parents=True)
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=first\nPath=first\n"
+            "[Profile1]\nName=chosen\nDefault=1\n",
+        )
+        self.assertEqual(first, self.resolve())
 
     def test_first_profile_with_a_path_is_the_fallback(self):
         first = self.firefox_root / "first"
