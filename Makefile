@@ -120,7 +120,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk remove-gtk check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk remove-gtk install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -222,6 +222,8 @@ help:
 	@echo "  install-gtk       install the opt-in GTK 3 and GTK 4 Platinum themes"
 	@echo "  apply-gtk         install and select the opt-in GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
+	@echo "  install-firefox   install the opt-in Firefox Platinum chrome into one profile"
+	@echo "  remove-firefox    remove the Firefox Platinum chrome from one profile"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
 	@echo "Variables (make VAR=value TARGET):"
@@ -231,6 +233,7 @@ help:
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"
 	@echo "  DESTDIR=path        staging prefix prepended to XDG_DATA_HOME"
+	@echo "  FIREFOX_PROFILE=path  absolute Firefox profile for install-firefox/remove-firefox (default: active profile under \$$HOME/.mozilla/firefox)"
 	@echo "  INSTALL_PACKAGES=list  artifact families 'install' copies (default color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts)"
 	@echo "  FLOCK_TIMEOUT=s     seconds to wait for the install lock (default 60)"
 
@@ -283,6 +286,22 @@ remove-gtk:
 	@$(call require_python,remove-gtk)
 	@$(call require_python_version,remove-gtk)
 	$(PYTHON) tools/apply_gtk.py --remove
+
+# Copy the standalone Firefox sheet into one profile's chrome/ directory and
+# add the marker-delimited preference that makes Firefox read it. This is
+# opt-in and installs nothing under XDG_DATA_HOME, so it needs no DESTDIR
+# guard or data-home lock.
+install-firefox:
+	@$(call require_python,install-firefox)
+	@$(call require_python_version,install-firefox)
+	$(PYTHON) tools/install_firefox.py $(if $(FIREFOX_PROFILE),--profile "$(FIREFOX_PROFILE)")
+
+# Remove only the sheet and preference block this theme wrote; a foreign
+# userChrome.css and a foreign user_pref are left untouched.
+remove-firefox:
+	@$(call require_python,remove-firefox)
+	@$(call require_python_version,remove-firefox)
+	$(PYTHON) tools/install_firefox.py --remove $(if $(FIREFOX_PROFILE),--profile "$(FIREFOX_PROFILE)")
 
 # Write a local-only post-commit hook (this clone's git hooks directory, never
 # committed) so every commit re-runs `make apply`. tools/local_hook.py refuses

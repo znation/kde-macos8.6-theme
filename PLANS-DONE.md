@@ -5,6 +5,95 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Platinum chrome, part 2/2: Install the stylesheet and preference into a Firefox profile (planned 2026-10-23 by the plan role; GTK and Firefox series part 4/4, split from the stylesheet; "requires part 1/2 landed") — done 2026-10-23 by the feature role
+
+**Goal.** Part 1/2 landed `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, but no
+target puts it where Firefox reads it. This part makes the sheet usable for one opt-in profile:
+`make install-firefox` copies the sheet into the profile's `chrome/userChrome.css` and adds the
+marker-delimited `toolkit.legacyUserProfileCustomizations.stylesheets=true` preference to its
+`user.js`, and `make remove-firefox` removes exactly those two changes. It is opt-in like the GTK
+targets: `make install` and `make apply` stay unchanged and install no Firefox files.
+
+**Approach.**
+- `tools/install_firefox.py` (new CLI, `TOOL = "install_firefox"`). It takes `--profile PATH` and
+  `--remove`, parses with `tools.argument_parsing.EscapingArgumentParser`, reports through
+  `tools.diagnostics.report_error`/`report_failure`, and escapes path text with
+  `tools.terminal.escape_controls`. Constants name the source
+  (`theme/firefox/org.macos8.desktop/chrome/userChrome.css`), the CSS first-line marker
+  (`/* org.macos8.desktop Firefox chrome, standalone userChrome.css`), the `user.js` marker
+  (`// org.macos8.desktop Firefox Platinum userChrome`) and the exact pref line
+  `user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);`.
+- `resolve_profile(explicit, env)`: an explicit `--profile` (or `FIREFOX_PROFILE` when the flag is
+  absent, which also lets the script run directly) must be an absolute existing directory, else
+  exit 2. Otherwise `HOME` must be absolute and the profile root is `$HOME/.mozilla/firefox`.
+  Build candidates in this order: the first non-empty `Default=` in any section of
+  `installs.ini` (Firefox names the section by install hash, older releases by `Install` plus a
+  suffix); the first `[Profile…]` section of `profiles.ini` whose `Default=1`; the first
+  `[Profile…]` section with a `Path`. Read the INI files with `configparser` and
+  `interpolation=None`, resolve a `Path` relative to the root unless `IsRelative=0`, and take the
+  first candidate whose directory exists. When none exists, exit 2 with a diagnostic naming the
+  root and the candidates tried.
+- Install (`_apply(profile)`): read the shipped sheet through
+  `tools.containment.read_bytes(SHEET, ROOT)`, then read an existing
+  `<profile>/chrome/userChrome.css` before writing anything. An existing file whose first line is
+  not the CSS marker is foreign: report with `report_failure` (status 1) naming its path and write
+  nothing. Otherwise create `<profile>/chrome`, publish the sheet with
+  `tools.atomic_write.write_atomically` (byte-for-byte), and publish `<profile>/user.js` with the
+  same writer.
+- `set_user_js(text)` and `remove_user_js(text)` are pure text transforms. They preserve every
+  foreign line and that line's own CRLF/CR/LF ending, and a missing final newline. Install removes
+  any earlier marker line plus the exact pref line immediately after it, then appends the marker
+  and pref at the end, terminating an unterminated last line first and using the file's dominant
+  ending (a new file uses `\n`), so a repeat install leaves exactly one block and our line follows
+  any foreign setting of the same pref. Removal deletes only that marker-plus-pref pair and leaves
+  a foreign `user_pref` for the same name untouched; it leaves an emptied `user.js` and the
+  `chrome/` directory in place rather than deleting a file it cannot prove it created.
+- Remove (`_remove(profile)`): delete `<profile>/chrome/userChrome.css` only when its first line
+  is the CSS marker, then rewrite `user.js` with `remove_user_js`. A foreign file, a foreign pref
+  line, and a repeated remove are all no-ops; an unreadable file or failed write exits 2 naming
+  the path.
+- `Makefile`: add `install-firefox` and `remove-firefox` to `.PHONY` and `make help`, each behind
+  `require_python`/`require_python_version`, running
+  `$(PYTHON) tools/install_firefox.py $(if $(FIREFOX_PROFILE),--profile "$(FIREFOX_PROFILE)")`
+  (with `--remove` for removal). Add a `FIREFOX_PROFILE=path` help line naming the default
+  (the active profile under `$HOME/.mozilla/firefox`); do not add a `?=` variable. No DESTDIR
+  guard or data-home lock is needed because neither target writes the installed theme tree.
+- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: replace the header sentence saying no
+  Makefile target installs it with the two target names and the profile rule; keep the provenance
+  text, the preference name and every rule and hex value unchanged.
+- `README.md`: replace the Firefox paragraph with the opt-in install/remove commands, profile
+  resolution and `FIREFOX_PROFILE`, the restart note, and the existing
+  `browser.tabs.inTitlebar=0` explanation; keep the artifact count and `tumwater:status` text.
+  `PLANS.md`'s scope-drift paragraph already named part 2/2 as queued under `## Planned`;
+  both mentions now say the profile install has landed.
+- `docs/invariants.md`: add one row under `## firefox`: the opt-in install copies the sheet
+  byte-for-byte, adds only the marker-delimited pref while preserving foreign lines and endings,
+  refuses a foreign `userChrome.css`, and removal reverses only those two changes — pinned to
+  `tests/test_firefox_install.py::TestInstall` and `::TestRemove`.
+
+**Files touched.** `tools/install_firefox.py` (new), `tests/test_firefox_install.py` (new),
+`Makefile`, `README.md`, `docs/invariants.md`, `theme/firefox/org.macos8.desktop/chrome/userChrome.css`
+(header only) and `PLANS.md` (this entry and the scope-drift sentences). Do not edit
+`PLANS-DONE.md`, any `theme/gtk/` path or any installed-theme directory layout.
+
+**Acceptance criteria.**
+- `tests/test_firefox_install.py` pins: explicit and `FIREFOX_PROFILE` profile resolution, an
+  `installs.ini` `[Install…]` default and a hash-named section default, a `profiles.ini`
+  `Default=1` and first-profile fallback, relative and
+  absolute `Path`, and a named refusal when `HOME` is unusable or no candidate exists; install
+  writes a byte-identical sheet and exactly one marker-plus-pref block; a foreign
+  `userChrome.css` is refused with nothing written; a repeat install does not duplicate the block;
+  foreign `user.js` lines, a foreign pref with the same name, CRLF endings and a missing final
+  newline survive install and removal; removal deletes only our sheet and marker block and a
+  repeated removal succeeds. Deleting the marker, changing the pref value, or dropping the foreign
+  line assertion makes the matching test fail.
+- `make check CHECK_TESTS=test_firefox_install` passes, then `make check` is green;
+  `tests/invariants.py` accepts the new `## firefox` row. `tests/test_make_help.py` finds both new
+  targets in `.PHONY`, `make help` and README, and the `FIREFOX_PROFILE` help line resolves to a
+  variable the Makefile expands.
+- `git diff --name-status` names only the files listed under "Files touched" and does not name
+  `PLANS-DONE.md`.
+
 ### Retire the `unclear-invariant` validation gap with an invariant-register ledger (planned 2026-10-23 by the steward role; promotes the recurring `gap: unclear-invariant` tag, 22 Fixed entries) — done 2026-10-23 by the feature role
 
 **Goal.** Twenty-two Fixed entries in BUGS-FIXED.md carry `gap: unclear-invariant` — each bug

@@ -7,9 +7,10 @@
    the etched separator's #888888 dark half); its geometry adapts the
    desktop theme's Platinum tabs, toolbars, fields and menus.
 
-   No Makefile target installs or selects this sheet. GTK and Firefox part
-   2/2 copies it into a Firefox profile's chrome/ directory and sets
-   toolkit.legacyUserProfileCustomizations.stylesheets=true. Setting
+   Install it opt-in with `make install-firefox`, which copies this sheet
+   into one Firefox profile's chrome/ directory and adds
+   toolkit.legacyUserProfileCustomizations.stylesheets=true to its user.js;
+   `make remove-firefox` removes both. Setting
    browser.tabs.inTitlebar=0 makes Firefox use the KWin-drawn Aurorae frame.
 */
 
