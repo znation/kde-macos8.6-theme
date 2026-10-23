@@ -36,7 +36,7 @@ from support.png_fixtures import (  # noqa: E402
     png_with_idat,
 )
 from tools import png
-from tools.png import expand, read, stream
+from tools.png import expand, stream
 
 
 class TestMalformedImageData(unittest.TestCase):

@@ -24,7 +24,6 @@ from svg_assertions import (
     assert_sunken_outside_field,
     bevel_corner_maps,
     bevel_edge_maps,
-    edge_map,
     pixel_map,
     render_slices,
 )

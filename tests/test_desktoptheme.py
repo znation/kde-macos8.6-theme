@@ -11,7 +11,6 @@ import shutil
 import sys
 import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 from support import svg_case

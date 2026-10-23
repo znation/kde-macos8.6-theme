@@ -10,7 +10,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-from support import containment, gtk_css
+from support import containment
 from support.gtk_css import HEX, parse_css
 from support.gtk_theme_spec import ETCH_DARK
 from support.platinum_palette import (

@@ -7,7 +7,6 @@ import shutil
 import sys
 import time
 import unittest
-from pathlib import Path
 from unittest import mock
 
 from support import package_metadata
