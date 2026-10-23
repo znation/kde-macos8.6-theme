@@ -57,6 +57,26 @@ class TestCli(FidelityCliTestCase):
         self.assertIn("differing pixels: 1 / 9", different.stdout)
         self.assertIn("max channel delta: 50 at (1, 0)", different.stdout)
 
+    def test_alpha_difference_fails_the_default_gate(self):
+        # A candidate matching the reference's RGB but fully transparent must
+        # not pass the byte-exact gate: the alpha byte is part of the pixel.
+        # Before alpha was compared, both images decoded to the same RGB bytes
+        # and this pair passed with zero differing pixels.
+        clear = make_png(
+            2, 1, [bytes([10, 20, 30, 0, 10, 20, 30, 0])], color_type=6
+        )
+        opaque = make_png(
+            2, 1, [bytes([10, 20, 30, 255, 10, 20, 30, 255])], color_type=6
+        )
+        result = self._run_png_pair(clear, opaque)
+        self._assert_fail(result)
+        self.assertIn("differing pixels: 2 / 2", result.stdout)
+        self.assertIn("max channel delta: 255 at (0, 0)", result.stdout)
+        self.assertIn(
+            "per-channel MAE (R, G, B, A): 0.0000 0.0000 0.0000 255.0000",
+            result.stdout,
+        )
+
     def test_tolerance_is_the_default_gate(self):
         # --tolerance alone decides the verdict: a candidate whose worst
         # channel delta equals the requested tolerance passes even though its
@@ -78,8 +98,8 @@ class TestCli(FidelityCliTestCase):
     def test_explicit_budget_replaces_default_gate(self):
         # A budget set with --max-mae is the verdict criterion, not an extra
         # constraint on top of the default all-pixels-within-tolerance gate:
-        # the candidate has a 50-level pixel but passes when its MAE (50/27,
-        # about 1.85) is within the budget.
+        # the candidate has a 50-level pixel but passes when its MAE (50/36,
+        # about 1.39 over the 3x3 RGB and alpha channels) is within the budget.
         tmp = self._tmp_dir()
         candidate, altered = self._write_altered_pair(tmp)
 
@@ -141,7 +161,8 @@ class TestCli(FidelityCliTestCase):
         result = self._run_png_pair(a_png, b_png)
         self._assert_fail(result)
         self.assertIn(
-            "per-channel MAE (R, G, B): 10.0000 0.0000 0.0000", result.stdout
+            "per-channel MAE (R, G, B, A): 10.0000 0.0000 0.0000 0.0000",
+            result.stdout,
         )
 
     def test_help_documents_exit_status(self):

@@ -36,8 +36,9 @@ class FidelityCliTestCase(CliTestCase):
         """Write a 3x3 candidate and a one-pixel-altered copy of it.
 
         Pixel (1, 0) of the candidate is (20, 0, 60); the altered copy raises
-        its green channel to 50, so exactly one of the 27 bytes differs by 50
-        (MAE 50/27, differing fraction 1/9). Returns the two paths.
+        its green channel to 50, so exactly one of the 27 RGB bytes differs by
+        50 while the alpha channels agree (MAE 50/36, differing fraction 1/9).
+        Returns the two paths.
         """
         surface, png = rgb_image(3, 3, lambda x, y: (x * 20, y * 20, 60))
         changed = bytearray(surface.rgb)

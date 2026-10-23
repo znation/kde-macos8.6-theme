@@ -1,9 +1,10 @@
 """The in-memory image type and error class of the PNG reader.
 
 :class:`PngError` is the one exception every PNG-reading module raises,
-:class:`Image` is the 8-bit RGB buffer the decoder returns and the fidelity
-tools compare, and :func:`pixel_at` is the bounds-checked accessor the palette
-and metric tests sample through. They carry no decoding logic, so a consumer
+:class:`Image` is the 8-bit packed buffer the decoder returns and the fidelity
+tools compare -- RGB bytes with an optional one-byte-per-pixel alpha plane --
+and :func:`pixel_at` is the bounds-checked accessor the palette and metric
+tests sample through. They carry no decoding logic, so a consumer
 can build or inspect an image without importing the codec; ``tools/png/__init__.py``
 re-exports all three.
 """
@@ -24,11 +25,17 @@ class PngError(Exception):
 
 @dataclass(frozen=True)
 class Image:
-    """An 8-bit RGB image with tightly packed ``width * height * 3`` bytes."""
+    """An 8-bit RGB image with an optional packed alpha plane.
+
+    ``rgb`` holds tightly packed ``width * height * 3`` colour bytes. ``alpha``
+    is ``None`` for an RGB-only image (every pixel opaque) or holds
+    ``width * height`` transparency bytes, one per pixel in row order.
+    """
 
     width: int
     height: int
     rgb: bytes
+    alpha: bytes | None = None
 
     def __post_init__(self) -> None:
         # A non-int dimension reaches the comparison below as an opaque
@@ -62,6 +69,19 @@ class Image:
                 f"Image has {len(self.rgb)} RGB bytes; a {self.width}x"
                 f"{self.height} image needs {expected} (width*height*3)"
             )
+        if self.alpha is not None:
+            if not isinstance(self.alpha, (bytes, bytearray)):
+                raise PngError(
+                    f"Image alpha must be bytes or bytearray, not "
+                    f"{type(self.alpha).__name__}"
+                )
+            expected_alpha = self.width * self.height
+            if len(self.alpha) != expected_alpha:
+                raise PngError(
+                    f"Image has {len(self.alpha)} alpha bytes; a "
+                    f"{self.width}x{self.height} image needs {expected_alpha} "
+                    "(width*height)"
+                )
 
 
 def pixel_at(image: Image, x: int, y: int) -> tuple[int, int, int]:

@@ -5,6 +5,47 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### Fidelity drops alpha, so a fully transparent candidate passes the byte-exact gate (found by the qa role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`python3 tools/fidelity.py CANDIDATE REFERENCE` compares only each pixel's red, green and blue
+bytes. A candidate that matches the reference's RGB but not its alpha therefore reports zero
+error and passes the default no-differing-pixel gate. Reproduction (any 8-bit RGBA PNG encoder;
+this uses ImageMagick, and the two images differ only in alpha):
+
+```
+$ tmp=$(mktemp -d) && cd "$tmp"
+$ magick -size 2x2 xc:'rgba(0,0,0,1)' PNG32:opaque.png
+$ magick -size 2x2 xc:'rgba(0,0,0,0)' PNG32:clear.png
+$ python3 <repo>/tools/fidelity.py clear.png opaque.png
+candidate: clear.png  2x2
+reference: opaque.png  2x2
+pixels compared: 4
+mean absolute error: 0.0000
+per-channel MAE (R, G, B): 0.0000 0.0000 0.0000
+RMSE: 0.0000
+max channel delta: 0 at (0, 0)
+differing pixels: 0 / 4 (0.000000)
+PASS: max-mae=unset max-frac=unset tolerance=0
+$ echo $?
+0
+```
+
+Expected: the default gate fails with exit 1 and a nonzero differing-pixel count, because every
+pixel's alpha differs by 255; README's "Fidelity checking" says a run passes only when no pixel
+differs from the reference, and docs/invariants.md's tooling row says the gate passes only when no
+pixel differs beyond its tolerance. Actual: exit 0 and a byte-exact report for a fully
+transparent surface. If RGB-only comparison is intentional, the README and that invariant need to
+say alpha is not compared; as written a user cannot tell a transparent surface from the reference.
+
+Suspected cause: `tools/png/read.py`'s `decode_png` drops the alpha byte of a color-type-6 image
+(`drop_alpha`) before unfiltering, and `read_png` returns the `Image` type that
+`tools/png/image.py` describes as an 8-bit RGB buffer, so `tools/fidelity_metrics.compare` never
+sees alpha. The RGBA decoder (`read_rgba`) exists for the cursor PNGs but the fidelity CLI uses
+the RGB path.
+
+**Validation gap:** none — the dropped alpha bytes are deterministic and the CLI reproduces
+the pass offline.
+
 ### The PNG tRNS-order test names an unimported `_PNG_SIGNATURE` (found by the plan role 2026-10-23) — fixed 2026-10-23 by the dedupe role
 
 `tests/test_png_malformed.py::TestTrnsColorTypeValidation.test_truecolor_trns_before_suggested_plte_is_refused`

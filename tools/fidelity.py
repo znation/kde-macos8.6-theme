@@ -2,7 +2,7 @@
 
 Compares a rendered PNG surface against a reference screenshot and reports the
 comparison metrics from the sibling ``tools/fidelity_metrics.py``: mean
-absolute error, per-channel mean absolute error (R, G, B), RMSE, the worst
+absolute error, per-channel mean absolute error (R, G, B, A), RMSE, the worst
 per-channel delta and where it occurs, and the fraction of differing pixels.
 
 Only PNG is read, so the harness crops a reference screenshot to a surface and
@@ -59,7 +59,7 @@ else:  # run directly: python3 tools/fidelity.py
 def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
     """Read *path*, decoding only the scanlines *crop_rect* needs when given.
 
-    ``crop`` slices the decoded RGB rows afterwards, so rows below the crop's
+    ``crop`` slices the decoded pixel rows afterwards, so rows below the crop's
     bottom edge would be decoded and thrown away. Passing ``max_rows`` lets the
     PNG decoder skip their predictor work while still inflating and validating
     the whole stream, which saves seconds on a large Paeth-filtered reference.
@@ -67,15 +67,17 @@ def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
     image sideways is re-read whole; ``crop`` then reports it against the real
     width and height as before. A rectangle that overflows vertically is
     already read whole because the decoder clamps the bound to the height.
+    The alpha plane is decoded too, so a transparent candidate cannot compare
+    equal to an opaque reference.
     """
     if crop_rect is None:
-        return read_png(path)
+        return read_png(path, alpha=True)
     x, y, width, height = crop_rect
-    image = read_png(path, max_rows=y + height)
+    image = read_png(path, max_rows=y + height, alpha=True)
     if x + width > image.width:
         # The crop is rejected either way; re-read unbounded only so its
         # diagnostic names the file's real height rather than the bound's.
-        return read_png(path)
+        return read_png(path, alpha=True)
     return image
 
 
@@ -265,10 +267,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"reference crop: {x},{y},{width},{height}")
     print(f"pixels compared: {metrics.pixels}")
     print(f"mean absolute error: {metrics.mae:.4f}")
-    print(
-        f"per-channel MAE (R, G, B): {metrics.mae_r:.4f} "
-        f"{metrics.mae_g:.4f} {metrics.mae_b:.4f}"
-    )
+    if metrics.mae_a is None:
+        print(
+            f"per-channel MAE (R, G, B): {metrics.mae_r:.4f} "
+            f"{metrics.mae_g:.4f} {metrics.mae_b:.4f}"
+        )
+    else:
+        print(
+            f"per-channel MAE (R, G, B, A): {metrics.mae_r:.4f} "
+            f"{metrics.mae_g:.4f} {metrics.mae_b:.4f} "
+            f"{metrics.mae_a:.4f}"
+        )
     print(f"RMSE: {metrics.rmse:.4f}")
     print(
         f"max channel delta: {metrics.max_delta} "

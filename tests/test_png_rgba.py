@@ -42,6 +42,21 @@ class TestRgbaPng(unittest.TestCase):
         self.assertEqual(png.read_rgba(path), (2, 1, pixels))
         self.assertEqual(png.read_rgba(path), png.decode_rgba(blob))
 
+    def test_read_png_alpha_splits_rgb_and_alpha_planes(self):
+        # The fidelity CLI asks read_png for alpha so it can compare
+        # transparency; the returned Image must keep both the colour bytes and
+        # one alpha byte per pixel, while the default stays RGB-only.
+        tmp = make_tmp_dir(self)
+        path = tmp / "rgba.png"
+        path.write_bytes(
+            make_png(2, 1, [bytes([1, 2, 3, 4, 5, 6, 7, 8])], color_type=6)
+        )
+        image = png.read_png(path, alpha=True)
+        self.assertEqual((image.width, image.height), (2, 1))
+        self.assertEqual(image.rgb, bytes([1, 2, 3, 5, 6, 7]))
+        self.assertEqual(image.alpha, bytes([4, 8]))
+        self.assertIsNone(png.read_png(path).alpha)
+
     def test_read_rgba_forwards_max_rows(self):
         # read_rgba's second argument is the only way a caller bounds a decode
         # to the top rows; pin that it reaches decode_rgba instead of being

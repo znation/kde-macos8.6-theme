@@ -287,14 +287,17 @@ with a diagnostic naming the coordinate, region, image size or path.
 ## Fidelity checking
 
 `python3 tools/fidelity.py CANDIDATE REFERENCE` compares a rendered PNG surface against a
-reference screenshot and reports mean absolute error, per-channel mean absolute error (R, G, B),
-RMSE, worst per-channel delta and where it occurs, and the fraction of differing pixels.
+reference screenshot and reports mean absolute error, per-channel mean absolute error
+(R, G, B, A), RMSE, worst per-channel delta and where it occurs, and the fraction of
+differing pixels.
 Pass `--candidate-crop X,Y,W,H` to crop the candidate and `--crop X,Y,W,H` to select a
 surface region of the reference.
 
 The exit status is 0 when the comparison passes, 1 when it fails, and 2 for a usage or read error.
 By default a run passes only when no pixel differs from the reference by more than `--tolerance`
-(a per-channel delta; 0, i.e. byte-exact, unless given). `--max-mae F` and `--max-frac F` set
+(a per-channel delta; 0, i.e. byte-exact, unless given). Each pixel's alpha byte is compared
+along with its red, green and blue bytes, so a transparent candidate cannot pass as an opaque
+reference. `--max-mae F` and `--max-frac F` set
 aggregate budgets instead: when either is given, a run passes when each given budget is met —
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
 the default no-differing-pixel gate no longer applies. `make render` (`tools/render_surface.py`)

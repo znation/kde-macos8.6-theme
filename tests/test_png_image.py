@@ -82,6 +82,29 @@ class TestImage(unittest.TestCase):
         image = png.Image(1, 1, bytearray(b"abc"))
         self.assertEqual(image.rgb, bytearray(b"abc"))
 
+    def test_accepts_alpha_plane_matching_dimensions(self):
+        image = png.Image(2, 1, bytes(6), bytes([0, 255]))
+        self.assertEqual(image.alpha, bytes([0, 255]))
+
+    def test_rejects_alpha_length_that_does_not_match_dimensions(self):
+        # An alpha plane holds exactly one byte per pixel; a short or long one
+        # would make compare()'s alpha lane a different length from the RGB
+        # lanes and silently mis-locate or mis-count differences.
+        for size in (0, 1, 3):
+            with self.subTest(size=size):
+                message = error_message(
+                    self, png.PngError, png.Image, 2, 1, bytes(6), bytes(size)
+                )
+                self.assertIn(str(size), message)
+                self.assertIn("2x1", message)
+
+    def test_rejects_non_bytes_alpha_naming_its_type(self):
+        message = error_message(
+            self, png.PngError, png.Image, 1, 1, bytes(3), [0]
+        )
+        self.assertIn("alpha", message)
+        self.assertIn("list", message)
+
     def test_rejects_non_integer_dimensions_naming_the_value(self):
         # A non-int dimension used to reach the positivity comparison as an
         # opaque TypeError (a str) or report a non-integral byte count (a

@@ -143,6 +143,27 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(fidelity_metrics.compare(a, b, tolerance=3).differing, 0)
         self.assertEqual(fidelity_metrics.compare(a, b, tolerance=2).differing, 1)
 
+    def test_alpha_channel_difference_is_counted(self):
+        # Two images with identical RGB but different transparency must not
+        # compare equal: a fully transparent surface is not the opaque
+        # reference. The alpha plane joins both the mean and the differing
+        # pixel count, while an RGB-only image is treated as fully opaque.
+        rgb = bytes([10, 20, 30] * 2)
+        clear = fidelity_metrics.Image(2, 1, rgb, bytes([0, 0]))
+        opaque = fidelity_metrics.Image(2, 1, rgb, bytes([255, 255]))
+        metrics = fidelity_metrics.compare(clear, opaque)
+        self.assertEqual(metrics.differing, 2)
+        self.assertEqual(metrics.max_delta, 255)
+        self.assertEqual((metrics.max_x, metrics.max_y), (0, 0))
+        self.assertAlmostEqual(metrics.mae_a, 255.0)
+        self.assertAlmostEqual(metrics.mae, 63.75)
+        self.assertAlmostEqual(metrics.rmse, 127.5)
+
+        rgb_only = fidelity_metrics.Image(2, 1, rgb)
+        metrics = fidelity_metrics.compare(rgb_only, opaque)
+        self.assertEqual(metrics.differing, 0)
+        self.assertAlmostEqual(metrics.mae_a, 0.0)
+
     def test_tolerance_outside_channel_range_raises(self):
         # A per-channel delta is a byte, so a tolerance above 255 can never be
         # exceeded (every pixel reads as within tolerance) and a negative one
@@ -209,6 +230,14 @@ class TestCompare(unittest.TestCase):
                 ]
             ),
         )
+
+    def test_crop_keeps_alpha_plane(self):
+        # A cropped image must carry the alpha bytes that belong to its pixels,
+        # not drop them and silently become opaque.
+        image = fidelity_metrics.Image(2, 2, bytes(range(12)), bytes([0, 1, 2, 3]))
+        region = fidelity_metrics.crop(image, 1, 1, 1, 1)
+        self.assertEqual(region.rgb, bytes([9, 10, 11]))
+        self.assertEqual(region.alpha, bytes([3]))
 
     def test_crop_whole_image_returns_it_unchanged(self):
         # Selecting the entire surface is the degenerate crop; it must be

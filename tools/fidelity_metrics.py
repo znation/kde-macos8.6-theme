@@ -4,7 +4,8 @@ The project's acceptance bar is "pixel-perfect", but a rendered surface cannot
 be confirmed against its Mac OS 8.6 reference without a repeatable measurement.
 This module supplies that measurement: it compares two decoded images pixel by
 pixel and reports objective difference metrics -- mean absolute error (MAE),
-per-channel mean absolute error (R, G, B), root-mean-square error (RMSE), the
+per-channel mean absolute error (R, G, B, and A when either image carries
+alpha), root-mean-square error (RMSE), the
 worst per-channel delta and the coordinate where it occurs, and the fraction of
 pixels whose worst channel differs by more than a tolerance.
 
@@ -40,9 +41,10 @@ class Metrics:
 
     ``mae`` is averaged over all channels; ``mae_r``/``mae_g``/``mae_b`` average
     one channel each, so a systematic colour cast shows up as one channel's MAE
-    standing out from the other two. ``max_x``/``max_y`` locate the first pixel
-    whose worst channel delta equals ``max_delta``; both are 0 when the images
-    are identical.
+    standing out from the other two. ``mae_a`` is the alpha channel's mean
+    absolute error when alpha was compared, or ``None`` for an RGB-only
+    comparison. ``max_x``/``max_y`` locate the first pixel whose worst channel
+    delta equals ``max_delta``; both are 0 when the images are identical.
     """
 
     width: int
@@ -58,6 +60,7 @@ class Metrics:
     max_y: int
     differing: int
     frac_differing: float
+    mae_a: float | None = None
 
 
 def crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
@@ -110,10 +113,15 @@ def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
             f"the {image.width}x{image.height} image"
         )
     rows = []
+    alpha_rows = [] if image.alpha is not None else None
     for row in range(y, y + height):
         start = (row * image.width + x) * 3
         rows.append(image.rgb[start : start + width * 3])
-    return Image(width, height, b"".join(rows))
+        if alpha_rows is not None:
+            alpha_start = row * image.width + x
+            alpha_rows.append(image.alpha[alpha_start : alpha_start + width])
+    alpha = None if alpha_rows is None else b"".join(alpha_rows)
+    return Image(width, height, b"".join(rows), alpha)
 
 
 _OVER_TABLE_CACHE: dict[int, bytes] = {}
@@ -148,24 +156,36 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
             f"vs reference {reference.width}x{reference.height}"
         )
     pa, pb = candidate.rgb, reference.rgb
+    pixels = candidate.width * candidate.height
+    alpha_a, alpha_b = candidate.alpha, reference.alpha
+    compare_alpha = alpha_a is not None or alpha_b is not None
+    if compare_alpha:
+        # An Image without an alpha plane is fully opaque; representing it as
+        # 255 lets an RGB reference be compared against an RGBA candidate.
+        opaque = bytes([255]) * pixels
+        alpha_a = opaque if alpha_a is None else alpha_a
+        alpha_b = opaque if alpha_b is None else alpha_b
     # Compare one channel at a time: a strided slice picks a channel,
     # ``abs_diff`` turns it into that channel's absolute deltas as a byte
     # string, and integer sums feed the metrics.  The equivalent per-byte
     # Python loop dominated runtime on screenshot-sized inputs (tens of
-    # millions of bytes).  The list is ordered R, G, B.
+    # millions of bytes).  The list is ordered R, G, B, then A when compared.
     deltas = [
         abs_diff(pa[channel::3], pb[channel::3]) for channel in range(3)
     ]
+    if compare_alpha:
+        deltas.append(abs_diff(alpha_a, alpha_b))
+    channel_count = len(deltas)
     totals = [sum(delta) for delta in deltas]
-    total_abs_r, total_abs_g, total_abs_b = totals
+    total_abs_r, total_abs_g, total_abs_b = totals[:3]
     total_sq = sum(sum_squares(delta) for delta in deltas)
 
     # One bit-sliced pass per channel gives both that channel's maximum and
     # the first byte reaching it, replacing a ``max`` walk plus a ``find``
-    # rescan.  The global maximum is the largest of the three; the pixel is the
-    # first offset among the channels that actually reach it.  A channel's
-    # byte offset equals its pixel offset, because the three slices are the
-    # same length.
+    # rescan.  The global maximum is the largest of the channels; the pixel is
+    # the first offset among the channels that actually reach it.  A channel's
+    # byte offset equals its pixel offset, because every slice is the same
+    # length.
     indices = [max_byte_index(delta) for delta in deltas]
     maxima = [delta[index] for delta, index in zip(deltas, indices)]
     max_delta = max(maxima)
@@ -181,25 +201,23 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         max_y = first // candidate.width
 
     # A pixel differs when any channel exceeds tolerance.  Translate each
-    # channel to a 0/1 flag byte, OR the three flag strings as one big integer,
-    # and popcount it, so a pixel with several differing channels counts once.
+    # channel to a 0/1 flag byte, OR the flag strings as one big integer, and
+    # popcount it, so a pixel with several differing channels counts once.
     over = _OVER_TABLE_CACHE.get(tolerance)
     if over is None:
         over = bytes(1 if value > tolerance else 0 for value in range(256))
         _OVER_TABLE_CACHE[tolerance] = over
-    differing = (
-        int.from_bytes(deltas[0].translate(over), "little")
-        | int.from_bytes(deltas[1].translate(over), "little")
-        | int.from_bytes(deltas[2].translate(over), "little")
-    ).bit_count()
+    flags = 0
+    for delta in deltas:
+        flags |= int.from_bytes(delta.translate(over), "little")
+    differing = flags.bit_count()
 
-    pixels = candidate.width * candidate.height
-    channels = pixels * 3
+    channels = pixels * channel_count
     return Metrics(
         width=candidate.width,
         height=candidate.height,
         pixels=pixels,
-        mae=(total_abs_r + total_abs_g + total_abs_b) / channels,
+        mae=sum(totals) / channels,
         mae_r=total_abs_r / pixels,
         mae_g=total_abs_g / pixels,
         mae_b=total_abs_b / pixels,
@@ -209,4 +227,5 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         max_y=max_y,
         differing=differing,
         frac_differing=differing / pixels,
+        mae_a=None if not compare_alpha else totals[3] / pixels,
     )

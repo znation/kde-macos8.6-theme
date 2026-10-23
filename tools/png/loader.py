@@ -5,7 +5,9 @@
 hang ``open()``, rejects any non-regular file, bounds the read with
 ``_MAX_FILE_BYTES``, and names an unmaterialized Git LFS pointer instead of
 letting :func:`decode_png` report it as "not a PNG file". :func:`read_rgba`
-uses the same guards and decodes the image into packed RGBA bytes.
+uses the same guards and decodes the image into packed RGBA bytes; passing
+``alpha=True`` to :func:`read_png` does the same and splits them into an
+:class:`Image`'s colour and alpha planes.
 :func:`read_png_size`
 uses the same guards but inspects only the IHDR chunk, returning the declared
 ``(width, height)`` without decoding rows. Decoding itself lives in
@@ -81,14 +83,32 @@ def _read_png_data(path: str | Path) -> bytes:
     return data
 
 
-def read_png(path: str | Path, max_rows: int | None = None) -> Image:
+def _image_with_alpha(width: int, height: int, rgba: bytes) -> Image:
+    """Split packed RGBA bytes into an :class:`Image`'s colour and alpha planes."""
+    rgb = bytearray(width * height * 3)
+    rgb[0::3] = rgba[0::4]
+    rgb[1::3] = rgba[1::4]
+    rgb[2::3] = rgba[2::4]
+    return Image(width, height, bytes(rgb), rgba[3::4])
+
+
+def read_png(
+    path: str | Path, max_rows: int | None = None, *, alpha: bool = False
+) -> Image:
     """Read and decode the PNG at *path*, naming it in any :class:`PngError`.
 
     *max_rows* is forwarded to :func:`decode_png`: the returned image holds at
-    most that many top scanlines.
+    most that many top scanlines. With *alpha* true the image is decoded
+    through :func:`decode_rgba` instead, so the returned image's alpha plane
+    holds each pixel's transparency (including a ``tRNS`` chunk's) and its
+    RGB plane holds the same colour bytes; the default returns the RGB-only
+    image as before.
     """
     data = _read_png_data(path)
     try:
+        if alpha:
+            width, height, rgba = decode_rgba(data, max_rows)
+            return _image_with_alpha(width, height, rgba)
         return decode_png(data, max_rows)
     except PngError as exc:
         raise PngError(f"cannot decode {path}: {exc}") from exc
