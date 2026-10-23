@@ -30,14 +30,14 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import read_text
     from tools.diagnostics import report_error, report_failure, report_missing_tool
-    from tools.process_group import run_logged
+    from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_cursor.py
     from argument_parsing import EscapingArgumentParser
     from containment import read_text
     from diagnostics import report_error, report_failure, report_missing_tool
-    from process_group import run_logged
+    from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
     from terminal import escape_controls
 
@@ -268,7 +268,8 @@ def main(argv: list[str] | None = None) -> int:
         home, data_home, config_home = resolve_homes(dict(os.environ))
         if args.remove:
             return _remove(home, data_home, config_home)
-        return _apply(home, data_home, dict(os.environ))
+        with exit_on_termination():
+            return _apply(home, data_home, dict(os.environ))
     except CursorError as exc:
         return report_error(TOOL, str(exc))
 

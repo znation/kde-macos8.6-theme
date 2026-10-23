@@ -12,11 +12,16 @@ from __future__ import annotations
 
 import os
 import shutil
+import signal
+import subprocess
+import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
 
+from support import process_runner
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support import theme_install
@@ -235,6 +240,53 @@ class TestSelection(CursorCase):
         assert_failed(self, result)
         self.assertEqual(1, result.returncode)
         self.assertIn("timed out", result.stderr)
+
+    def test_sigterm_kills_the_selector_group_and_removes_scratch(self):
+        # run_logged starts the selector in its own session, so without a
+        # SIGTERM handler the tool dies before its finally blocks: the
+        # selector keeps running and the scratch directory is left behind.
+        self.install_theme()
+        scratch_parent = self.root / "tmp"
+        scratch_parent.mkdir()
+        pidfile = self.root / "selector.pid"
+        self.stub_selector(f'echo $$ > "{pidfile}"; exec sleep 60')
+        env = dict(
+            self.env,
+            PATH=f"{self.bin}{os.pathsep}{os.environ['PATH']}",
+            TMPDIR=str(scratch_parent),
+        )
+        selector_pid = None
+
+        def kill_selector():
+            if selector_pid is not None:
+                try:
+                    os.kill(selector_pid, signal.SIGKILL)
+                except OSError:
+                    pass
+
+        self.addCleanup(kill_selector)
+        with process_runner.running(
+            [sys.executable, apply_cursor.__file__],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ) as process:
+            deadline = time.monotonic() + 30
+            while not (
+                pidfile.is_file() and pidfile.read_text(encoding="utf-8").strip()
+            ):
+                self.assertIsNone(
+                    process.poll(), "apply_cursor exited before the selector started"
+                )
+                self.assertLess(time.monotonic(), deadline, "selector never started")
+                time.sleep(0.05)
+            selector_pid = int(pidfile.read_text(encoding="utf-8").strip())
+            process.send_signal(signal.SIGTERM)
+            process_runner.finish(process)
+        self.assertEqual(128 + signal.SIGTERM, process.returncode)
+        self.assertEqual([], os.listdir(scratch_parent))
+        with self.assertRaises(ProcessLookupError):
+            os.kill(selector_pid, 0)
 
     def test_unrunnable_selector_exits_2_without_a_traceback(self):
         # `shutil.which` finds an executable script whose interpreter is
