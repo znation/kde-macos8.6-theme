@@ -41,6 +41,7 @@ ICON_THEME_DIR = os.path.join(ROOT, "theme", "icons", "org.macos8.desktop")
 # the section key includes the inner bracket pair.
 STYLE_SECTION = "kdeglobals][KDE"
 DEFAULTS_SECTION = "kdeglobals][General"
+WM_SECTION = "kdeglobals][WM"
 ICONS_SECTION = "kdeglobals][Icons"
 PLASMA_SECTION = "plasmarc][Theme"
 KWIN_SECTION = "kwinrc][org.kde.kdecoration2"
@@ -134,6 +135,7 @@ class TestDefaults(unittest.TestCase):
             [
                 STYLE_SECTION,
                 DEFAULTS_SECTION,
+                WM_SECTION,
                 ICONS_SECTION,
                 PLASMA_SECTION,
                 KWIN_SECTION,
@@ -141,7 +143,8 @@ class TestDefaults(unittest.TestCase):
             ],
         )
         self.assertEqual(self.parser.options(STYLE_SECTION), ["widgetStyle"])
-        self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme"])
+        self.assertEqual(self.parser.options(DEFAULTS_SECTION), ["ColorScheme", "font", "menuFont", "toolBarFont", "smallestReadableFont"])
+        self.assertEqual(self.parser.options(WM_SECTION), ["activeFont"])
         self.assertEqual(self.parser.options(ICONS_SECTION), ["Theme"])
         self.assertEqual(self.parser.options(PLASMA_SECTION), ["name"])
         self.assertEqual(
@@ -149,6 +152,24 @@ class TestDefaults(unittest.TestCase):
             ["library", "theme", "ButtonsOnLeft", "ButtonsOnRight"],
         )
         self.assertEqual(self.parser.options(WALLPAPER_SECTION), ["Image"])
+
+    def test_fonts_name_the_installed_lato_family(self):
+        pairs = [
+            (DEFAULTS_SECTION, "font"),
+            (DEFAULTS_SECTION, "menuFont"),
+            (DEFAULTS_SECTION, "toolBarFont"),
+            (DEFAULTS_SECTION, "smallestReadableFont"),
+            (WM_SECTION, "activeFont"),
+        ]
+        font_value = self.parser.get(DEFAULTS_SECTION, "font")
+        font_size = int(font_value.split(",", 1)[1])
+        for section, key in pairs:
+            value = self.parser.get(section, key)
+            family, size_str = value.split(",", 1)
+            self.assertEqual(family, "Lato", f"{section}/{key}")
+            self.assertGreater(int(size_str), 0, f"{section}/{key}")
+        smallest = int(self.parser.get(DEFAULTS_SECTION, "smallestReadableFont").split(",", 1)[1])
+        self.assertLessEqual(smallest, font_size)
 
     def test_widget_style_is_kvantum(self):
         """The global theme selects our Kvantum widget style, which draws the

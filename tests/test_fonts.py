@@ -2,8 +2,8 @@
 
 This is part 1/3 of the UI-font series: the package ships Lato Regular and
 Bold, the SIL OFL 1.1 licence and a provenance record. It installs the family
-under ``$XDG_DATA_HOME/fonts/org.macos8.desktop`` but does not select it in
-KDE/Plasma/Qt. Lato substitutes for Charcoal; it is not sampled from a
+under ``$XDG_DATA_HOME/fonts/org.macos8.desktop``; the global theme's
+defaults select the family. Lato substitutes for Charcoal; it is not sampled from a
 reference screenshot.
 """
 

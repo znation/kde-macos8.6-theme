@@ -68,6 +68,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | --- | --- | --- |
 | The shipped Lato Regular and Bold faces name the `Lato` family, and the fonts, licence and provenance record carry the pinned source digests; the licence is the Debian copyright file byte for byte, including its missing final newline. | `tests/test_fonts.py::TestFontFiles` | Lato is this theme's substitute for Charcoal, not a face sampled from a reference screenshot; no Mac OS 8.6 reference in the set supplies a font pixel. |
 | `make install` copies the font package into `$XDG_DATA_HOME/fonts/org.macos8.desktop` byte for byte, a repeat install succeeds, and `make uninstall` removes it and its staging/old leftovers while leaving a sibling font family in place. | `tests/test_fonts.py::TestFontsInstall` | none |
+| The global theme selects the installed Lato family for the general, menu, toolbar, smallest-readable and window-title fonts. | `tests/test_lookandfeel.py::TestDefaults` | Lato is a Charcoal substitute, the point sizes are KDE defaults, and monospace keeps the user's fixed font. |
 
 ## gtk
 
@@ -110,7 +111,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
-| The global theme's `contents/defaults` selects the color scheme, desktop theme, icon theme, window decoration, wallpaper and Kvantum widget style. | `tests/test_lookandfeel.py::TestDefaults` | none |
+| The global theme's `contents/defaults` selects the color scheme, desktop theme, icon theme, window decoration, wallpaper, Kvantum widget style and the `Lato` font family. | `tests/test_lookandfeel.py::TestDefaults` | Lato is a Charcoal substitute and the point sizes are KDE defaults; monospace keeps the user's fixed font. |
 | The desktop layout's panel, widget order, clock format and desktop icons match the reference. | `tests/test_lookandfeel_layout.py::TestLayout` | none |
 
 ## wallpapers

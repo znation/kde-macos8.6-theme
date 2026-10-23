@@ -34,5 +34,7 @@ Debian packaging GPL-2+ text and does not cover the fonts.
 ## Selection
 
 This package installs the family under
-`$XDG_DATA_HOME/fonts/org.macos8.desktop`; it does not select it. Selecting
-the installed families in KDE/Plasma/Qt is a later part of the UI-font series.
+`$XDG_DATA_HOME/fonts/org.macos8.desktop`. The global theme selects it for the
+general, menu, toolbar, smallest-readable and window-title fonts at KDE's
+default point sizes (10 / 10 / 10 / 8 / 10). Monospaced text keeps the user's
+fixed font. Menus and window titles use Lato until a Chicago-style face lands.

@@ -3,6 +3,13 @@ widgetStyle=kvantum
 
 [kdeglobals][General]
 ColorScheme=MacOS8
+font=Lato,10
+menuFont=Lato,10
+toolBarFont=Lato,10
+smallestReadableFont=Lato,8
+
+[kdeglobals][WM]
+activeFont=Lato,10
 
 [kdeglobals][Icons]
 Theme=org.macos8.desktop

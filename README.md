@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: eight artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), the `org.macos8.desktop` Kvantum widget style (selected by the global theme), and the `org.macos8.desktop` Lato font package (the Charcoal-style body face, OFL-1.1, installed but not yet selected).
+Pre-alpha: eight artifacts have landed — the Mac OS 8.6 "Platinum" color scheme, the `org.macos8.desktop` global theme (with its startup splash), the `org.macos8.desktop` desktop theme (Platinum widgets and dialog body), the `org.macos8.desktop` Aurorae window decoration, the `org.macos8.desktop` wallpaper package, the `org.macos8.desktop` icon theme (our own Platinum-style art), the `org.macos8.desktop` Kvantum widget style (selected by the global theme), and the `org.macos8.desktop` Lato font package (the Charcoal-style body face, OFL-1.1, selected by the global theme).
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed); fixed bugs are archived in BUGS-FIXED.md.
 <!-- tumwater:status:end -->
@@ -28,7 +28,7 @@ into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 `icons/`, the `org.macos8.desktop` Kvantum widget style into
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
 package into `fonts/org.macos8.desktop/` (Lato Regular and Bold under the SIL
-OFL 1.1; this part installs the family but does not select it). Applying the global theme selects that wallpaper: the retail 128x128 desktop
+OFL 1.1; the global theme selects it for the general, menu, toolbar, smallest-readable and window-title fonts at KDE default sizes, monospaced text keeps the user's fixed font, and menus and window titles use Lato until a Chicago-style face lands). Applying the global theme selects that wallpaper: the retail 128x128 desktop
 pattern, shipped at fixed resolutions so it renders 1:1 when the screen matches one.
 
 The `org.macos8.desktop` Kvantum widget style is selected by the global theme
@@ -142,8 +142,8 @@ one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAn
 `check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
 `make apply` installs the eight artifacts exactly as `make install` does and then re-applies them to
-the running Plasma session (the Lato font package is installed but, like
-`make install`, not selected), so the just-built theme becomes current without a logout: it re-selects
+the running Plasma session (`make apply` re-applies the global theme, which
+selects Lato; a bare `make install` only copies the family), so the just-built theme becomes current without a logout: it re-selects
 the `org.macos8.desktop` global theme (without `--resetLayout`, so your panels are left alone), the
 `MacOS8` color scheme and the `org.macos8.desktop` desktop theme, tells Kvantum to draw our theme
 when `kvantummanager` is on `PATH` (otherwise it notes that and the widgets fall back), then asks
