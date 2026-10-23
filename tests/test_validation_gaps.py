@@ -1,11 +1,13 @@
-"""Pin the ``no-observability`` validation-gap ledger and its non-growth.
+"""Pin the validation-gap ledgers and their non-growth.
 
 ``tests/support/validation_gaps.py`` maps each surviving ``no-observability``
-record to the test that now reproduces its failure offline. These tests drive
-that ledger against the shipped ``BUGS.md``/``BUGS-FIXED.md`` archives: every
-record must name a reproduction, every reproduction must name a real test, and
-the record count must not exceed the baseline so a new tag fails the suite
-instead of growing the gap.
+record to the test that now reproduces its failure offline, and each
+``unclear-invariant`` record to the test and the ``docs/invariants.md`` row
+that now state the guarantee it needed. These tests drive both ledgers against
+the shipped ``BUGS.md``/``BUGS-FIXED.md`` archives: every record must name an
+entry, every entry must name a real test and an existing register guarantee,
+and each tag's record count must not exceed its baseline so a new tag fails the
+suite instead of growing the gap.
 
 Run with the project's check harness (stdlib unittest)::
 
@@ -17,8 +19,8 @@ from __future__ import annotations
 import pathlib
 import unittest
 
-from invariants import check_reference
-from support import validation_gaps
+from invariants import check_reference, parse_rows
+from support import containment, validation_gaps
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 
@@ -120,6 +122,86 @@ class TestNoObservabilityLedger(unittest.TestCase):
             "no-observability", "bugs.md", 1, "A brand-new failure mode"
         )
         self.assertIsNone(validation_gaps.reproduction(record))
+
+
+class TestUnclearInvariantLedger(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.records = validation_gaps.unclear_invariant(
+            validation_gaps.read_gaps(ROOT / "BUGS.md")
+            + validation_gaps.read_gaps(ROOT / "BUGS-FIXED.md")
+        )
+        cls.rows = parse_rows(
+            containment.read_text(ROOT / "docs" / "invariants.md", ROOT)
+        )
+
+    def test_every_record_names_a_register_guarantee_and_test(self):
+        for record in self.records:
+            with self.subTest(source=record.source, line=record.line):
+                self.assertIsNotNone(
+                    validation_gaps.reproduction_for(record),
+                    f"{record.source}:{record.line} is tagged unclear-invariant "
+                    "but names no register guarantee or test; add one to "
+                    "tests/support/validation_gaps.py instead of growing the "
+                    "ledger",
+                )
+
+    def test_every_entry_names_a_real_test(self):
+        for entry in validation_gaps.UNCLEAR_INVARIANT_REPRODUCTIONS:
+            with self.subTest(entry=entry.name):
+                check_reference(
+                    ROOT,
+                    entry.reference,
+                    f"unclear-invariant:{entry.name}",
+                )
+
+    def test_every_entry_names_a_register_guarantee(self):
+        guarantees = [
+            row.guarantee for rows in self.rows.values() for row in rows
+        ]
+        for entry in validation_gaps.UNCLEAR_INVARIANT_REPRODUCTIONS:
+            with self.subTest(entry=entry.name):
+                self.assertTrue(
+                    entry.guarantee,
+                    f"{entry.name} names no guarantee text",
+                )
+                self.assertTrue(
+                    any(entry.guarantee in text for text in guarantees),
+                    f"{entry.name} names a guarantee no docs/invariants.md "
+                    "row states",
+                )
+
+    def test_every_ledger_entry_covers_a_shipped_record(self):
+        # A stale entry would make the ledger read as coverage for a mechanism
+        # no archived record names; the reproduction tests above would still
+        # pass, so pin the other direction too.
+        for entry in validation_gaps.UNCLEAR_INVARIANT_REPRODUCTIONS:
+            with self.subTest(entry=entry.name):
+                self.assertTrue(
+                    any(
+                        validation_gaps.reproduction_for(record) is entry
+                        for record in self.records
+                    ),
+                    f"{entry.name} matches no unclear-invariant record",
+                )
+
+    def test_the_record_count_does_not_grow(self):
+        lines = ", ".join(
+            f"{record.source}:{record.line}" for record in self.records
+        )
+        self.assertLessEqual(
+            len(self.records),
+            validation_gaps.UNCLEAR_INVARIANT_BASELINE,
+            "the unclear-invariant tag grew past its baseline (records at "
+            f"BUGS-FIXED.md lines {lines}); record its register row and test "
+            "instead of raising UNCLEAR_INVARIANT_BASELINE",
+        )
+
+    def test_an_unmatched_mechanism_has_no_reproduction(self):
+        record = validation_gaps.Gap(
+            "unclear-invariant", "bugs.md", 1, "A brand-new failure mode"
+        )
+        self.assertIsNone(validation_gaps.reproduction_for(record))
 
 
 if __name__ == "__main__":

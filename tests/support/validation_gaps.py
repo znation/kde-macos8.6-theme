@@ -95,6 +95,206 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 )
 
 
+# The number of ``unclear-invariant`` records the archive held when the ledger
+# landed. A new record must be retired with a register row and a test instead
+# of raising this.
+UNCLEAR_INVARIANT_BASELINE = 22
+
+# One archived ``unclear-invariant`` mechanism: the record markers that
+# identify it, the test that now pins it, and the guarantee text stated by its
+# row in ``docs/invariants.md``.
+UnclearInvariant = namedtuple(
+    "UnclearInvariant", "name markers reference guarantee"
+)
+
+KDE_INI_GUARANTEE = (
+    "The three KDE INI readers (`support.kde_config.read`, "
+    "`theme_defaults.defaults_groups` and the `uninstall` recipe's `awk`) "
+    "agree on one shared corpus's `[General] ColorScheme` selection: `=` is "
+    "the only key/value delimiter (a colon-delimited line is ignored), each "
+    "line is trimmed, section and key names are case-sensitive, the last "
+    "duplicate key wins, a leading UTF-8 BOM is stripped, a present but "
+    "empty value is distinct from a missing key, and a group header with no "
+    "closing `]` is ignored (the open section continues). An empty `[]` "
+    "header starts its own group, so the following key does not join the "
+    "previous section, and `support.kde_config.read` keeps a key before the "
+    "first heading in KDE's `<default>` root group instead of treating it as "
+    "invalid. `defaults_groups` instead refuses a malformed heading because "
+    "its headings name output files."
+)
+
+URL_CHECK_GUARANTEE = (
+    "Every provenance citation is a well-formed absolute RFC 3986 URI: the "
+    "scheme, authority, path, query and fragment each hold to the RFC's "
+    "grammar, including case-insensitive IPvFuture, no IPv6 zone "
+    "identifier, and a valid userinfo, bracketed host and port."
+)
+
+UNCLEAR_INVARIANT_REPRODUCTIONS = (
+    UnclearInvariant(
+        "png-iend-payload",
+        ("non-empty IEND payload",),
+        "tests/test_png_chunks.py::TestChunkFraming",
+        "A PNG chunk stream whose IEND chunk carries a payload is refused by "
+        "name instead of its non-empty data field being silently dropped, "
+        "because IEND's data field must be empty.",
+    ),
+    UnclearInvariant(
+        "png-chunks-after-iend",
+        ("PNG chunks after IEND",),
+        "tests/test_png_chunks.py::TestChunkFraming",
+        "A PNG chunk stream carrying a complete chunk, or a shorter trailing "
+        "fragment that cannot form one, after IEND is refused by name "
+        "instead of decoded while silently dropping those bytes, because "
+        "IEND must be the last chunk.",
+    ),
+    UnclearInvariant(
+        "png-idat-consecutive",
+        ("Non-consecutive IDAT chunks",),
+        "tests/test_png_chunks.py::TestChunkFraming",
+        "A PNG chunk stream whose IDAT chunks are not consecutive, or whose "
+        "PLTE or tRNS chunk follows the image data, is refused by name "
+        "rather than decoded as if its chunk order were valid.",
+    ),
+    UnclearInvariant(
+        "png-plte-color-type",
+        ("PLTE chunk on a greyscale color type",),
+        "tests/test_png_malformed.py::TestPlteColorTypeValidation",
+        "A PNG's `PLTE` chunk is refused for the greyscale color types 0 and "
+        "4, where the PNG spec prohibits it, while a suggested palette on the "
+        "truecolor color types 2 and 6 and the required palette on color type "
+        "3 still decode, on both the RGB and RGBA decode paths.",
+    ),
+    UnclearInvariant(
+        "png-trns-color-type",
+        ("tRNS validation ran only on the RGBA decode path",),
+        "tests/test_png_malformed.py::TestTrnsColorTypeValidation",
+        "A PNG's `tRNS` chunk is refused unless the header's color type and "
+        "palette can carry it — never for the alpha color types 4 and 6, "
+        "only at its exact length for the greyscale and truecolor sample "
+        "types, and only for 1 to the palette's entry count for color type "
+        "3 — on both the RGB and RGBA decode paths.",
+    ),
+    UnclearInvariant(
+        "png-idat-zlib-trailer",
+        ("trailing bytes after the IDAT zlib stream",),
+        "tests/test_png_malformed.py::TestMalformedImageData"
+        "::test_rejects_trailing_bytes_after_the_zlib_stream",
+        "The PNG decoder refuses bytes after the end of the IDAT zlib stream "
+        "instead of silently dropping them, so the concatenated IDAT payload "
+        "holds exactly one zlib stream.",
+    ),
+    UnclearInvariant(
+        "kde-ini-indented-header",
+        ("indented `[General]` section header",),
+        "tests/test_kde_ini_parity.py::TestReadersAgree",
+        KDE_INI_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "install-packages-family",
+        ("INSTALL_PACKAGES=<unknown>",),
+        "tests/test_theme_install.py::TestInstallPackagesGuard",
+        "`INSTALL_PACKAGES` names only known artifact families, so `make "
+        "install` copies at least one artifact or refuses before creating "
+        "the data home.",
+    ),
+    UnclearInvariant(
+        "kde-ini-last-duplicate-key",
+        ("first duplicate `ColorScheme` key",),
+        "tests/test_kde_ini_parity.py::TestReadersAgree",
+        KDE_INI_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "render-config-search-path",
+        ("leaks the caller's `XDG_CONFIG_DIRS`",),
+        "tests/test_render_surface.py::TestFailurePaths"
+        "::test_session_ignores_a_config_search_path_from_the_environment",
+        "The render session resolves configuration only from its scratch "
+        "data and config homes and the system defaults, never the caller's "
+        "`XDG_CONFIG_DIRS`, so an ambient KDE configuration cannot change "
+        "the rendered surface.",
+    ),
+    UnclearInvariant(
+        "lineedit-corner-tiles",
+        ("corner tiles miss the reference field's",),
+        "tests/test_desktoptheme_lineedit.py::TestLineEditReference"
+        "::test_corners_match_the_reference",
+        "`widgets/lineedit.svg`'s corner tiles reproduce the reference "
+        "field's outline and top-right notch, including the bottom outline "
+        "row and the face-coloured outer corner.",
+    ),
+    UnclearInvariant(
+        "url-check-path-query-fragment",
+        ("malformed path, query or fragment",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "url-check-ipvfuture-case",
+        ("uppercase IPvFuture host",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "url-check-ipv6-zone",
+        ("IPv6 zone identifier",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "url-check-userinfo",
+        ("malformed userinfo",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "url-check-empty-bracketed-host",
+        ("empty bracketed host",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "url-check-unbracketed-host",
+        ("non-reg-name characters",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "url-check-port",
+        ("non-numeric or doubled port",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "url-check-bracketed-host",
+        ("malformed bracketed host",),
+        "tests/test_url_check.py",
+        URL_CHECK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "icon-final-art",
+        ('placeholder icons',),
+        "tests/test_icon_theme.py::TestIndex",
+        "The icon theme names our own final Platinum art, ships exactly the "
+        "tracked icons, and declares each icon's size directory.",
+    ),
+    UnclearInvariant(
+        "palette-anchor",
+        ("Selection palette anchor",),
+        "tests/test_colorscheme_reference.py::TestReferenceAnchors",
+        "Every sampled palette anchor is still the pixel it was sampled from "
+        "in a retail screenshot.",
+    ),
+    UnclearInvariant(
+        "fidelity-objective-gate",
+        ('No objective fidelity check',),
+        "tests/test_fidelity_cli.py::TestCli",
+        "The fidelity gate passes only when no pixel differs beyond its "
+        "tolerance, or within an aggregate budget when one is given.",
+    ),
+)
+
+
 def read_gaps(path, root=ROOT):
     """Return every validation-gap record in *path* as a list of :class:`Gap`.
 
@@ -130,9 +330,38 @@ def no_observability(records):
     return [record for record in records if record.tag == "no-observability"]
 
 
-def reproduction(record):
-    """Return the ledger entry whose markers match *record*, or ``None``."""
-    for entry in NO_OBSERVABILITY_REPRODUCTIONS:
+def unclear_invariant(records):
+    """Return the subset of *records* tagged ``unclear-invariant``."""
+    return [record for record in records if record.tag == "unclear-invariant"]
+
+
+def _lookup(record, entries):
+    """Return the entry whose markers match *record*, or ``None``."""
+    for entry in entries:
         if any(marker in record.subject for marker in entry.markers):
             return entry
+    return None
+
+
+def reproduction(record):
+    """Return the no-observability entry matching *record*, or ``None``."""
+    return _lookup(record, NO_OBSERVABILITY_REPRODUCTIONS)
+
+
+def unclear_invariant_reproduction(record):
+    """Return the unclear-invariant entry matching *record*, or ``None``."""
+    return _lookup(record, UNCLEAR_INVARIANT_REPRODUCTIONS)
+
+
+def reproduction_for(record):
+    """Return the ledger entry for *record*'s tag, or ``None``.
+
+    A record carrying a tag this module does not ledger (or one whose subject
+    matches no entry) has no reproduction, so a new tag cannot borrow another
+    ledger's entries.
+    """
+    if record.tag == "no-observability":
+        return reproduction(record)
+    if record.tag == "unclear-invariant":
+        return unclear_invariant_reproduction(record)
     return None
