@@ -44,6 +44,22 @@ class TestDefaultsGroups(unittest.TestCase):
         groups = theme_defaults.defaults_groups()
         self.assertNotIn("Wallpaper", {group for _, group in groups})
 
+    def test_merges_a_repeated_file_group_heading(self):
+        # A contributor can extend an existing section by repeating its
+        # heading rather than moving the new keys into the first occurrence.
+        # The second heading must continue the same group instead of starting
+        # an empty one, or the keys unique to the first occurrence vanish from
+        # the config the theme writes.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_text(
+            "[kwinrc][Theme]\nfirst=1\n[kwinrc][Theme]\nsecond=2\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            {("kwinrc", "Theme"): {"first": "1", "second": "2"}},
+            theme_defaults.defaults_groups(path),
+        )
+
     def test_parses_comments_blank_lines_and_spacing(self):
         path = make_tmp_dir(self) / "defaults"
         path.write_text(

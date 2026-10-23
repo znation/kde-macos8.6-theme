@@ -105,7 +105,10 @@ def _section_heading(path: Path, line: str) -> tuple[str, str] | None:
 def defaults_groups(path: Path = DEFAULTS) -> dict[tuple[str, str], dict[str, str]]:
     """Return ``{(file, group): {key: value}}`` for the ``[file][group]`` sections.
 
-    A plain ``[Wallpaper]`` section names no file and is skipped. A heading
+    A plain ``[Wallpaper]`` section names no file and is skipped. A
+    repeated ``[file][group]`` heading continues the same group: keys from
+    both occurrences are kept, and a key repeated within it keeps the later
+    value. A heading
     that is neither a plain ``[group]`` nor a complete ``[file][group]`` -- a
     mistyped bracket, a missing closing bracket, trailing text after the
     closing ``]``, or surrounding whitespace inside a bracket pair -- raises
