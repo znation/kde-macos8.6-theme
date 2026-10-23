@@ -314,6 +314,15 @@ class TestIterChunks(unittest.TestCase):
     contract that the decoder layer relies on.
     """
 
+    def test_iter_chunks_rejects_non_bytes_input(self):
+        # The framing iterator must not accept arbitrary buffers: a caller
+        # passing a str or list gets a PngError naming the offending type
+        # instead of a confusing bytes/struct failure deeper in.
+        with self.assertRaises(png.PngError) as caught:
+            list(chunks.iter_chunks("not bytes"))
+        self.assertIn("must be bytes or bytearray", str(caught.exception))
+        self.assertIn("str", str(caught.exception))
+
     def test_yields_each_chunk_type_and_payload_in_order(self):
         # A complete stream of two chunks: the iterator must pair each type
         # with its own payload, not reuse one or reorder them.

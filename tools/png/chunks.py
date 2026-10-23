@@ -38,6 +38,12 @@ def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     A declared length above the PNG spec's maximum, an invalid type code, a
     truncated payload or CRC, and a bad checksum raise :class:`PngError`.
     """
+    if not isinstance(data, (bytes, bytearray)):
+        raise PngError(
+            f"iter_chunks data must be bytes or bytearray, not "
+            f"{type(data).__name__}"
+        )
+    data = bytes(data)
     pos = len(PNG_MAGIC)
     while pos + 8 <= len(data):
         (length,) = struct.unpack(">I", data[pos : pos + 4])
