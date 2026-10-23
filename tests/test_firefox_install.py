@@ -423,6 +423,33 @@ class TestUserJs(unittest.TestCase):
             firefox_user_js.set_user_js(foreign),
         )
 
+    def test_foreign_lines_keep_lone_cr_endings(self):
+        # A user.js written with classic-Mac lone-CR line endings keeps every
+        # foreign line's CR, the unterminated last line gains the file's own
+        # ending, and the appended block uses CR too.
+        foreign = 'user_pref("a", 1);\ruser_pref("b", 2);'
+        self.assertEqual(
+            foreign
+            + "\r"
+            + firefox_user_js.USER_JS_MARKER
+            + "\r"
+            + firefox_user_js.PREF_LINE
+            + "\r",
+            firefox_user_js.set_user_js(foreign),
+        )
+
+    def test_remove_keeps_lone_cr_endings(self):
+        foreign = 'user_pref("a", 1);\r'
+        text = (
+            foreign
+            + firefox_user_js.USER_JS_MARKER
+            + "\r"
+            + firefox_user_js.PREF_LINE
+            + "\r"
+        )
+        self.assertEqual(foreign, firefox_user_js.remove_user_js(text))
+        self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
+
 
 class TestInstall(ProfileCase):
     def run_tool(self, *args, env=None):
