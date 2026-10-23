@@ -301,6 +301,25 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
             needles=("tRNS chunk has 3 bytes", "needs 1 to 2"),
         )
 
+    def test_zero_length_palette_trns_is_refused(self):
+        # A palette tRNS names at least one entry, so its valid range is 1 to
+        # the palette size. Only the upper bound was pinned; an empty chunk
+        # (no entry gets alpha) must be refused on both decode paths rather
+        # than expanding to an all-opaque surface.
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        blob = make_png(
+            1, 1, [bytes([0])], color_type=3, palette=palette, trns=b""
+        )
+        for decoder in (png.decode_png, png.decode_rgba):
+            with self.subTest(decoder=decoder.__name__):
+                assert_error_names(
+                    self,
+                    png.PngError,
+                    decoder,
+                    blob,
+                    needles=("tRNS chunk has 0 bytes", "needs 1 to 2"),
+                )
+
     def test_palette_trns_before_plte_is_refused(self):
         # The PNG spec requires a color type 3 image's tRNS chunk to follow
         # the PLTE chunk whose entries it gives alpha. The chunk collector
