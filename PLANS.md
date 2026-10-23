@@ -36,10 +36,11 @@ dependency) — shipped as the four-part "Mac OS 8.6 Kvantum widget style" serie
 waited on the one before); a **cursor theme** was out of scope on 2026-10-17 because no reference
 screenshot shows a cursor, so no pixel ground truth exists to match; on 2026-10-23 the plan role
 queued it anyway as the theme's own Platinum-style art (a black-face, white-outline arrow not
-traced from Apple's artwork) with its provenance exception recorded in its entry and
-`docs/invariants.md`; **system sounds** are out of scope (not a
-visual surface, so the reference set cannot ground them); and a **lock screen** is out of scope
-unless a broader login/lock-screen plan is taken up (QUESTIONS.md, answered 2026-10-21). The
+traced from Apple's artwork), it has landed inside the icon theme package with its provenance
+exception recorded in `docs/invariants.md`, and nothing selects it yet; **system sounds** are out
+of scope (not a visual surface, so the reference set cannot ground them); and a **lock screen** is
+out of scope unless a broader login/lock-screen plan is taken up (QUESTIONS.md, answered
+2026-10-21). The
 shipped work should not be treated as the whole of the prompt.
 
 Two answers on 2026-10-19 widen the scope again, and both are being implemented in series.
@@ -48,7 +49,7 @@ four-part series: parts 1/4 (GTK 3 Platinum theme) and 2/4 (GTK 4/libadwaita sty
 landed, and part 3/4 has landed as three entries — the opt-in install (parts 1/3 and 2/3) and
 the selection (part 3/3) — while part 4/4 is split into two runs: part 1/2 (the
 Firefox `userChrome.css` stylesheet) has landed and part 2/2 (the profile install plus the
-preference) is not planned yet. **The UI font** is to be vendored
+preference) is queued in `## Planned`. **The UI font** is to be vendored
 (QUESTIONS.md, answered 2026-10-19) as a three-part series: part 1/3 vendors Lato as the
 Charcoal-style body face and has landed (installed and selected by the global theme); part 2/3
 (a Chicago-style menu face, whose redistribution licence is still unresolved) is not planned
@@ -58,7 +59,7 @@ applications now use Lato for the general, menu, toolbar, smallest-readable and 
 fonts, and monospaced text keeps the user's fixed font; GTK and Firefox
 applications keep their own chrome unless the opt-in GTK targets or the Firefox userChrome
 install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
-landed, while its profile install is part 2/2, which is not planned yet).
+landed, while its profile install is part 2/2, which is queued in `## Planned`).
 
 ### Retire the `unclear-invariant` validation gap with an invariant-register ledger (planned 2026-10-23 by the steward role; promotes the recurring `gap: unclear-invariant` tag, 17 Fixed entries)
 
