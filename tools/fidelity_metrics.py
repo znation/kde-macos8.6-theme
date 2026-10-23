@@ -212,6 +212,10 @@ def crop_rect_problem(x: int, y: int, width: int, height: int) -> str | None:
 
 def crop(image: Image, x: int, y: int, width: int, height: int) -> Image:
     """Return the ``width x height`` region of ``image`` at ``(x, y)``."""
+    if not isinstance(image, Image):
+        raise FidelityError(
+            f"crop image must be an Image, not {type(image).__name__}"
+        )
     problem = crop_rect_problem(x, y, width, height)
     if problem is not None:
         raise FidelityError(problem)
@@ -241,6 +245,14 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
         raise FidelityError(
             f"tolerance must be a per-channel delta between 0 and 255: "
             f"{tolerance!r}"
+        )
+    if not isinstance(candidate, Image):
+        raise FidelityError(
+            f"candidate must be an Image, not {type(candidate).__name__}"
+        )
+    if not isinstance(reference, Image):
+        raise FidelityError(
+            f"reference must be an Image, not {type(reference).__name__}"
         )
     if candidate.width != reference.width or candidate.height != reference.height:
         raise FidelityError(

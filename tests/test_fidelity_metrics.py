@@ -404,6 +404,38 @@ class TestCompare(unittest.TestCase):
         self.assertIn("x=0 y=3 w=2 h=2", message)
         self.assertIn("4x4", message)
 
+    def test_crop_rejects_non_image(self):
+        for bad in (b"abc", 1, None):
+            with self.subTest(bad=bad):
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.crop, bad, 0, 0, 1, 1,
+                )
+                self.assertIn("must be an Image", message)
+                self.assertIn(type(bad).__name__, message)
+
+    def test_compare_rejects_non_image_candidate(self):
+        image, _ = solid_rgb(1, 1)
+        for bad in (b"abc", 1, None):
+            with self.subTest(bad=bad):
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.compare, bad, image,
+                )
+                self.assertIn("must be an Image", message)
+                self.assertIn(type(bad).__name__, message)
+
+    def test_compare_rejects_non_image_reference(self):
+        image, _ = solid_rgb(1, 1)
+        for bad in (b"abc", 1, None):
+            with self.subTest(bad=bad):
+                message = error_message(
+                    self, fidelity_metrics.FidelityError,
+                    fidelity_metrics.compare, image, bad,
+                )
+                self.assertIn("must be an Image", message)
+                self.assertIn(type(bad).__name__, message)
+
 
 if __name__ == "__main__":
     unittest.main()
