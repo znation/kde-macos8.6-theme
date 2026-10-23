@@ -70,8 +70,6 @@ applications keep their own chrome unless the opt-in GTK targets or the Firefox 
 install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
 landed, while its profile install is part 2/2, which has landed).
 
-_None yet._
-
 ### Platinum cursor set, part 4: ship the help, progress, pencil and zoom pointers (planned 2026-10-23 by the plan role; completes the cursor set after the landed parts 1-3)
 
 **Goal.** The icon theme's `cursors/` covers fourteen pointers; README records that `help`,
