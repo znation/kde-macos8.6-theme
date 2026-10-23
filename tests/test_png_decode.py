@@ -29,6 +29,13 @@ class TestDecode(unittest.TestCase):
         image, data = rgb_image(3, 2, lambda x, y: (x * 10, y * 20, 30))
         self.assertEqual(png.decode_png(data), image)
 
+    def test_non_bytes_data_is_rejected(self):
+        for bad in ("not bytes", [1, 2, 3], 42, None):
+            with self.subTest(data=bad):
+                with self.assertRaises(png.PngError) as caught:
+                    png.decode_png(bad)
+                self.assertIn("bytes or bytearray", str(caught.exception))
+
     def test_max_rows_returns_only_the_top_scanlines(self):
         image, data = rgb_image(3, 4, lambda x, y: (x * 10, y * 20, 30))
         top = png.decode_png(data, max_rows=2)

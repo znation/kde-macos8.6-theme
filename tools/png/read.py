@@ -261,6 +261,12 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     exception: every row is expanded, because that lookup also validates each
     index and an out-of-range index below the bound is still a malformed PNG.
     """
+    if not isinstance(data, (bytes, bytearray)):
+        raise PngError(
+            f"decode_png data must be bytes or bytearray, not "
+            f"{type(data).__name__}"
+        )
+    data = bytes(data)
     if not data.startswith(PNG_MAGIC):
         detected = other_image_format(data)
         if detected is not None:

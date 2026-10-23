@@ -62,10 +62,6 @@ class TestPublishMode(unittest.TestCase):
             self.assertEqual(0o640, stat.S_IMODE(output.stat().st_mode))
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestPublishFdopen(unittest.TestCase):
     def test_failed_fdopen_closes_descriptor(self):
         import tempfile
@@ -91,3 +87,7 @@ class TestPublishFdopen(unittest.TestCase):
             os.close = real_close
             os.fdopen = real_fdopen
         self.assertEqual(1, len(closed))
+
+
+if __name__ == "__main__":
+    unittest.main()
