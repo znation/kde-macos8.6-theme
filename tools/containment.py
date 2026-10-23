@@ -13,7 +13,9 @@ instead of the private copies the guard used to be reimplemented in.
 
 :func:`require_within_repo` resolves the path and refuses one that is lexically
 inside the repository but lands outside it; a path that is not inside the
-repository at all (a test's temporary file) is left alone.
+repository at all -- a test's temporary file, or the user's own configuration
+such as the ``kcminputrc`` the cursor selection inspects -- skips that check.
+Every read still passes the regular-file and size guards below.
 """
 
 from __future__ import annotations
@@ -78,7 +80,8 @@ def require_within_repo(
     """Raise ``ValueError`` when a repository *path* resolves outside *root*.
 
     Only a *path* lexically inside *root* is checked, so a reader that is also
-    handed a test's temporary file is unaffected. A checked-in symlink at a
+    handed a path outside the repository -- a test's temporary file, or the
+    user's ``kcminputrc`` -- is unaffected. A checked-in symlink at a
     repository path resolves elsewhere and is refused with the path named.
     *action* names the operation the caller was about to perform -- ``"read"``
     or ``"write"`` -- so the diagnostic says which one the escape would have
@@ -142,7 +145,7 @@ def _read_bounded(handle: BinaryIO, path: str | Path) -> bytes:
 
 
 def read_bytes(path: str | Path, root: str | Path) -> bytes:
-    """Return the bytes of repository *path*, refusing a symlink escape.
+    """Return the bytes of *path*, refusing a symlink escape inside *root*.
 
     A contributor-supplied file that a test compares with a second copy is
     read through here: the comparison echoes both byte strings when they
@@ -152,7 +155,8 @@ def read_bytes(path: str | Path, root: str | Path) -> bytes:
     refused with a ``ValueError`` naming *path* instead of being loaded whole,
     which could raise an uncaught ``MemoryError``. A FIFO or device is refused
     by name rather than opened, since it would block or stream forever. A
-    *path* outside *root* (a test's temporary file) is read as before.
+    *path* outside *root* is not a repository file, so the containment check
+    does not apply and it is read as given.
     """
     require_within_repo(path, root)
     with open_regular_binary(path) as handle:
@@ -162,7 +166,7 @@ def read_bytes(path: str | Path, root: str | Path) -> bytes:
 def read_text(
     path: str | Path, root: str | Path, encoding: str = "utf-8"
 ) -> str:
-    """Return the text of repository *path*, refusing a symlink escape.
+    """Return the text of *path*, refusing a symlink escape inside *root*.
 
     A contributor-supplied file whose lines a test feeds to an assertion that
     echoes them (``assertIn``, ``assertRegex``) is read through here: a
@@ -172,7 +176,8 @@ def read_text(
     ``ValueError`` naming *path* instead of being loaded whole, which could
     raise an uncaught ``MemoryError``. A FIFO or device is refused by name
     rather than opened, since it would block or stream forever. A *path*
-    outside *root* (a test's temporary file) is read as before.
+    outside *root* is not a repository file, so the containment check does
+    not apply and it is read as given.
     """
     require_within_repo(path, root)
     with open_regular_binary(path) as handle:
