@@ -40,6 +40,32 @@ def _assert_both_targets_refused(case, env, args, expected):
                 case.assertIn(substring, result.stderr)
 
 
+def _assert_install_packages_refused(case, value, *expected):
+    """Run `make install` with *value* and assert the guard refuses it.
+
+    The `INSTALL_PACKAGES` guard tests share this setup: the run must fail
+    before the data home exists, so a refused install leaves no tree behind.
+    *expected* names each substring the diagnostic must carry. Each of the
+    four tests in `TestInstallPackagesGuard` calls this once.
+    """
+    tmp = make_tmp_dir(case)
+    env = theme_install.make_env("INSTALL_PACKAGES")
+    env["INSTALL_PACKAGES"] = value
+    result = theme_install.run_make(
+        [
+            "install",
+            f"DESTDIR={tmp}",
+            f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
+        ],
+        env=env,
+    )
+    assert_failed(case, result)
+    for substring in expected:
+        case.assertIn(substring, result.stderr)
+    data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
+    case.assertFalse(os.path.exists(data_home), data_home)
+
+
 class TestMakeEnv(unittest.TestCase):
     """`make_env` drops `MAKEFLAGS` and each named variable, and nothing else.
 
@@ -544,48 +570,20 @@ class TestInstallPackagesGuard(unittest.TestCase):
     """
 
     def test_empty_is_refused_before_creating_the_data_home(self):
-        tmp = make_tmp_dir(self)
-        env = theme_install.make_env("INSTALL_PACKAGES")
-        env["INSTALL_PACKAGES"] = ""
-        result = theme_install.run_make(
-            [
-                "install",
-                f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
-            ],
-            env=env,
+        _assert_install_packages_refused(
+            self, "", "INSTALL_PACKAGES must name at least one artifact family"
         )
-        assert_failed(self, result)
-        self.assertIn(
-            "INSTALL_PACKAGES must name at least one artifact family",
-            result.stderr,
-        )
-        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
-        self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_unknown_family_is_refused_before_creating_the_data_home(self):
         # A typo'd family name filters every real family out, so without a
         # guard `make install` would create the data home, copy nothing and
         # exit 0 -- the same green install the empty-value guard refuses.
-        tmp = make_tmp_dir(self)
-        env = theme_install.make_env("INSTALL_PACKAGES")
-        env["INSTALL_PACKAGES"] = "colour-scheme"
-        result = theme_install.run_make(
-            [
-                "install",
-                f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
-            ],
-            env=env,
-        )
-        assert_failed(self, result)
-        self.assertIn(
+        _assert_install_packages_refused(
+            self,
+            "colour-scheme",
             "INSTALL_PACKAGES names unknown artifact families: colour-scheme",
-            result.stderr,
+            "color-scheme",
         )
-        self.assertIn("color-scheme", result.stderr)
-        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
-        self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_an_unknown_family_after_a_known_one_is_still_refused(self):
         # The guard must check every word, not just the first: a known family
@@ -594,26 +592,13 @@ class TestInstallPackagesGuard(unittest.TestCase):
         # test_unknown_family_is_refused_before_creating_the_data_home -- there
         # the single word is the typo -- and install the known family while
         # quietly dropping the unknown one.
-        tmp = make_tmp_dir(self)
-        env = theme_install.make_env("INSTALL_PACKAGES")
-        env["INSTALL_PACKAGES"] = "color-scheme bogus"
-        result = theme_install.run_make(
-            [
-                "install",
-                f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
-            ],
-            env=env,
-        )
-        assert_failed(self, result)
         # Only the unknown word is named as unknown; the known family may
         # appear only in the trailing "known families" list.
-        self.assertIn(
+        _assert_install_packages_refused(
+            self,
+            "color-scheme bogus",
             "INSTALL_PACKAGES names unknown artifact families: bogus;",
-            result.stderr,
         )
-        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
-        self.assertFalse(os.path.exists(data_home), data_home)
 
     def test_a_glob_shaped_family_is_reported_literally_not_expanded(self):
         # `require_install_packages` opens with `set -f`, so a glob-shaped
@@ -622,24 +607,11 @@ class TestInstallPackagesGuard(unittest.TestCase):
         # passed. Without `set -f`, `*.md` would expand to the repository's
         # markdown files (README.md and the backlog) and the guard would report
         # those names instead, sending the reader after files they never named.
-        tmp = make_tmp_dir(self)
-        env = theme_install.make_env("INSTALL_PACKAGES")
-        env["INSTALL_PACKAGES"] = "*.md"
-        result = theme_install.run_make(
-            [
-                "install",
-                f"DESTDIR={tmp}",
-                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
-            ],
-            env=env,
-        )
-        assert_failed(self, result)
-        self.assertIn(
+        _assert_install_packages_refused(
+            self,
+            "*.md",
             "INSTALL_PACKAGES names unknown artifact families: *.md;",
-            result.stderr,
         )
-        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
-        self.assertFalse(os.path.exists(data_home), data_home)
 
 
 class TestAssertFilesIdentical(unittest.TestCase):
