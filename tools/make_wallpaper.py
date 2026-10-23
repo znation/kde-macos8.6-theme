@@ -26,12 +26,14 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.png import Image, PngError, read_png
     from tools.png.write import encode_png
     from tools.ints import is_plain_int
 else:  # run directly: python3 tools/make_wallpaper.py
+    from argument_parsing import EscapingArgumentParser
     from containment import require_within_repo
     from diagnostics import report_error
     from png import Image, PngError, read_png
@@ -149,8 +151,27 @@ def _write_atomic(path: Path, data: bytes) -> None:
         raise
 
 
-def main() -> int:
-    """Write the tiled wallpaper PNG for every resolution; return 0, or 2 on error."""
+def main(argv: list[str] | None = None) -> int:
+    """Run the generator CLI; *argv* is the argument list without a program name.
+
+    Following ``argparse`` and the sibling tools, ``None`` reads
+    ``sys.argv``. The generator takes no options, but its command line is
+    still parsed so a mistaken argument (``--help``, a typo, an old flag) is
+    a diagnostic instead of being silently ignored while every checked-in
+    wallpaper image is rewritten.
+    """
+    parser = EscapingArgumentParser(
+        prog=TOOL,
+        description=(
+            "Regenerate the wallpaper package's images from the reference "
+            "desktop screenshot."
+        ),
+        epilog=(
+            "exit status: 0 when every image was written, "
+            "2 on a usage or read/write error"
+        ),
+    )
+    parser.parse_args(argv)
     reference = ROOT / REFERENCE
     try:
         # The reference screenshot is a repository file, and a checked-in

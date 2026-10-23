@@ -13,6 +13,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.cli_fixtures import run_main  # noqa: E402
 from support.tmp_dir import make_tmp_dir
 from tools import make_wallpaper, png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
@@ -56,6 +57,39 @@ class TestTileFromReferenceBounds(unittest.TestCase):
         self.assertEqual(tile[-3:], rgb[-3:])
 
 
+class TestArguments(unittest.TestCase):
+    """The generator has no options, but must not silently ignore its argv.
+
+    The tool rewrites the checked-in wallpaper images, so an argument it does
+    not understand (a typo, an old flag, ``--help``) must be a usage
+    diagnostic before anything is written, not an ignored word followed by a
+    full rewrite.
+    """
+
+    def setUp(self):
+        self.root = make_tmp_dir(self)
+        patch = mock.patch.object(make_wallpaper, "ROOT", self.root)
+        patch.start()
+        self.addCleanup(patch.stop)
+        self.images = self.root / make_wallpaper.PACKAGE_DIR / "contents" / "images"
+
+    def test_help_prints_usage_and_exits_zero(self):
+        result = run_main(make_wallpaper.main, "make_wallpaper", ["--help"])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("usage: make_wallpaper", result.stdout)
+        self.assertIn(
+            "exit status: 0 when every image was written", result.stdout
+        )
+        self.assertFalse(self.images.exists())
+
+    def test_unknown_argument_is_a_usage_error_and_writes_nothing(self):
+        result = run_main(make_wallpaper.main, "make_wallpaper", ["--dry-run"])
+        self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
+        self.assertIn("unrecognized arguments: --dry-run", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+        self.assertFalse(self.images.exists())
+
+
 class TestMain(unittest.TestCase):
     def setUp(self):
         self.root = make_tmp_dir(self)
@@ -80,7 +114,7 @@ class TestMain(unittest.TestCase):
         """Run ``main`` and return ``(status, stderr)``."""
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
-            status = make_wallpaper.main()
+            status = make_wallpaper.main([])
         return status, err.getvalue()
 
     def test_writes_one_tiled_image_per_resolution_from_the_reference_tile(self):
@@ -217,7 +251,7 @@ class TestReferenceContainment(unittest.TestCase):
 
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
-            status = make_wallpaper.main()
+            status = make_wallpaper.main([])
 
         self.assertEqual(status, 2)
         self.assertTrue(err.getvalue().startswith("make_wallpaper: error: "))
@@ -234,7 +268,7 @@ class TestReferenceContainment(unittest.TestCase):
 
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
-            status = make_wallpaper.main()
+            status = make_wallpaper.main([])
 
         self.assertEqual((status, err.getvalue()), (0, ""))
         for w, h in SMALL_RESOLUTIONS:
@@ -285,7 +319,7 @@ class TestOutputContainment(unittest.TestCase):
         """Run ``main`` and return ``(status, stderr)``."""
         err = io.StringIO()
         with contextlib.redirect_stderr(err):
-            status = make_wallpaper.main()
+            status = make_wallpaper.main([])
         return status, err.getvalue()
 
     def test_an_images_directory_symlinked_outside_the_repository_is_refused(self):
