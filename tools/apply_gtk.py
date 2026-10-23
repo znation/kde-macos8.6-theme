@@ -27,29 +27,19 @@ from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.atomic_write import write_atomically
     from tools.diagnostics import report_error, report_failure
+    from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
+    from tools.gtk_staging import ConfigError, commit, discard, stage_all
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_gtk.py
     from argument_parsing import EscapingArgumentParser
-    from atomic_write import write_atomically
     from diagnostics import report_error, report_failure
+    from gtk_settings import GTK_ID, remove_theme_name, set_theme_name
+    from gtk_staging import ConfigError, commit, discard, stage_all
     from terminal import escape_controls
 
 TOOL = "apply_gtk"
-GTK_ID = "org.macos8.desktop"
 GTK4_CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
-_BOM = "\ufeff"
-
-
-class _ConfigError(Exception):
-    """A GTK settings or user-CSS file could not be read or written.
-
-    The message names the offending path and the underlying error, so
-    ``main`` can report it as the one-line diagnostic instead of letting a
-    bare ``OSError`` or ``UnicodeDecodeError`` traceback escape. A decoder's
-    own error names the byte that failed but not the file it came from.
-    """
 
 
 def _note(message: str) -> None:
@@ -97,162 +87,12 @@ def _installed_sheet(data_home: Path) -> Path:
     return data_home / "themes" / GTK_ID / "gtk-4.0" / "gtk.css"
 
 
-def _section_name(line: str) -> str | None:
-    """Return the name of a ``[Section]`` line, else ``None``."""
-    stripped = line.strip()
-    if len(stripped) >= 2 and stripped.startswith("[") and stripped.endswith("]"):
-        return stripped[1:-1].strip()
-    return None
-
-
-def _key_name(line: str) -> str | None:
-    """Return the key name of a ``key=value`` line, else ``None``."""
-    stripped = line.strip()
-    if not stripped or stripped[0] in "#;":
-        return None
-    name, separator, _ = stripped.partition("=")
-    return name.strip() if separator else None
-
-
-def _split_bom(text: str) -> tuple[bool, str]:
-    """Split a leading UTF-8 BOM from *text*, returning ``(had_bom, body)``."""
-    if text.startswith(_BOM):
-        return True, text[len(_BOM) :]
-    return False, text
-
-
-def _with_bom(had_bom: bool, text: str) -> str:
-    """Prepend a UTF-8 BOM to *text* when *had_bom* is true."""
-    return _BOM + text if had_bom else text
-
-
-def _set_theme_name(text: str, value: str) -> str:
-    """Return *text* with ``gtk-theme-name=value`` in its ``[Settings]``.
-
-    Every other line is preserved. The last matching key in the section is
-    replaced; with no key a line is inserted after the header, and with no
-    ``[Settings]`` section one is appended. A leading UTF-8 BOM is kept for
-    matching but written back, as GTK accepts a BOM-prefixed file.
-    """
-    had_bom, body = _split_bom(text)
-    had_newline = body.endswith("\n")
-    lines = body.splitlines()
-    header = None
-    last_key = None
-    section = None
-    for index, line in enumerate(lines):
-        name = _section_name(line)
-        if name is not None:
-            section = name
-            if name == "Settings" and header is None:
-                header = index
-            continue
-        if section == "Settings" and _key_name(line) == "gtk-theme-name":
-            last_key = index
-    assignment = f"gtk-theme-name={value}"
-    if last_key is not None:
-        lines[last_key] = assignment
-    elif header is not None:
-        lines.insert(header + 1, assignment)
-    else:
-        lines.append("[Settings]")
-        lines.append(assignment)
-    result = "\n".join(lines)
-    if had_newline or not body:
-        result += "\n"
-    return _with_bom(had_bom, result)
-
-
-def _remove_theme_name(text: str) -> tuple[str, bool]:
-    """Remove our ``gtk-theme-name`` lines from ``[Settings]``.
-
-    Returns ``(new_text, removed)``. Only a key whose value is exactly
-    ``org.macos8.desktop`` is deleted; a foreign value, and every other line,
-    is kept. A leading UTF-8 BOM is preserved. When nothing matched, *text* is
-    returned unchanged so a foreign file is not rewritten.
-    """
-    had_bom, body = _split_bom(text)
-    had_newline = body.endswith("\n")
-    lines = body.splitlines()
-    kept = []
-    section = None
-    removed = False
-    for line in lines:
-        name = _section_name(line)
-        if name is not None:
-            section = name
-            kept.append(line)
-            continue
-        if section == "Settings" and _key_name(line) == "gtk-theme-name":
-            value = line.split("=", 1)[1].strip()
-            if value == GTK_ID:
-                removed = True
-                continue
-        kept.append(line)
-    if not removed:
-        return text, False
-    result = "\n".join(kept)
-    if had_newline and kept:
-        result += "\n"
-    return _with_bom(had_bom, result), True
-
-
 def _read_text(path: Path) -> str:
     """Return *path*'s UTF-8 text, reporting a read failure by path."""
     try:
         return path.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError) as exc:
-        raise _ConfigError(f"cannot read {path}: {exc}") from exc
-
-
-def _discard(staging: Path) -> None:
-    """Remove a staging file, ignoring a path that never became one."""
-    try:
-        staging.unlink()
-    except OSError:
-        pass
-
-
-def _stage(path: Path, text: str) -> Path:
-    """Write *text* to a ``.staging`` sibling and return its path."""
-    staging = path.with_name(f".{path.name}.staging")
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        if path.is_dir():
-            raise _ConfigError(f"cannot write {path}: is a directory")
-        write_atomically(
-            staging, lambda destination: destination.write(text.encode("utf-8"))
-        )
-    except OSError as exc:
-        _discard(staging)
-        raise _ConfigError(f"cannot write {path}: {exc}") from exc
-    return staging
-
-
-def _stage_all(writes: list[tuple[Path, str]]) -> list[tuple[Path, Path]]:
-    """Stage every ``(path, text)`` write, discarding all on a failure."""
-    staged = []
-    try:
-        for path, text in writes:
-            staged.append((path, _stage(path, text)))
-    except _ConfigError:
-        for _, staging in staged:
-            _discard(staging)
-        raise
-    return staged
-
-
-def _commit(staged: list[tuple[Path, Path]]) -> None:
-    """Rename each staged file over its target, discarding leftovers."""
-    try:
-        for path, staging in staged:
-            try:
-                os.replace(staging, path)
-            except OSError as exc:
-                raise _ConfigError(f"cannot write {path}: {exc}") from exc
-    finally:
-        for _, staging in staged:
-            _discard(staging)
+        raise ConfigError(f"cannot read {path}: {exc}") from exc
 
 
 def _settings_path(config_home: Path, version: str) -> Path:
@@ -303,7 +143,7 @@ def _unlink(path: Path) -> None:
     try:
         path.unlink()
     except OSError as exc:
-        raise _ConfigError(f"cannot remove {path}: {exc}") from exc
+        raise ConfigError(f"cannot remove {path}: {exc}") from exc
 
 
 def _apply(data_home: Path, config_home: Path) -> int:
@@ -321,7 +161,7 @@ def _apply(data_home: Path, config_home: Path) -> int:
     for version in ("gtk-3.0", "gtk-4.0"):
         path = _settings_path(config_home, version)
         original = _read_text(path) if path.is_file() else ""
-        updated = _set_theme_name(original, GTK_ID)
+        updated = set_theme_name(original, GTK_ID)
         if updated != original:
             writes.append((path, updated))
     css = _user_css_write(config_home, sheet)
@@ -329,7 +169,7 @@ def _apply(data_home: Path, config_home: Path) -> int:
         writes.append(css)
     # Stage every write before replacing anything: an unwritable settings
     # file or user CSS leaves all of them unmodified.
-    _commit(_stage_all(writes))
+    commit(stage_all(writes))
     return 0
 
 
@@ -340,21 +180,21 @@ def _remove(config_home: Path) -> int:
         path = _settings_path(config_home, version)
         if not path.is_file():
             continue
-        updated, removed = _remove_theme_name(_read_text(path))
+        updated, removed = remove_theme_name(_read_text(path))
         if removed:
             writes.append((path, updated))
     css = _user_css_remove(config_home)
     # Stage the settings, then delete the user CSS, then replace the settings:
     # a failure in either step leaves every settings file unmodified.
-    staged = _stage_all(writes)
+    staged = stage_all(writes)
     if css is not None:
         try:
             _unlink(css)
-        except _ConfigError:
+        except ConfigError:
             for _, staging in staged:
-                _discard(staging)
+                discard(staging)
             raise
-    _commit(staged)
+    commit(staged)
     return 0
 
 
@@ -394,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         try:
             status = _remove(config_home)
-        except _ConfigError as exc:
+        except ConfigError as exc:
             return report_error(TOOL, str(exc))
     else:
         data_home = _data_home(env)
@@ -415,7 +255,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         try:
             status = _apply(data_home, config_home)
-        except _ConfigError as exc:
+        except ConfigError as exc:
             return report_error(TOOL, str(exc))
     if status == 0:
         _note("restart running GTK applications to pick up the theme")
