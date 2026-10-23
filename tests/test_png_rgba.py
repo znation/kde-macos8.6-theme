@@ -42,6 +42,30 @@ class TestRgbaPng(unittest.TestCase):
         self.assertEqual(png.read_rgba(path), (2, 1, pixels))
         self.assertEqual(png.read_rgba(path), png.decode_rgba(blob))
 
+    def test_read_rgba_forwards_max_rows(self):
+        # read_rgba's second argument is the only way a caller bounds a decode
+        # to the top rows; pin that it reaches decode_rgba instead of being
+        # dropped, which would decode the whole image and return every row.
+        tmp = make_tmp_dir(self)
+        rows = [bytes([1, 2, 3, 4]), bytes([5, 6, 7, 8])]
+        path = tmp / "rgba.png"
+        path.write_bytes(make_png(1, 2, rows, color_type=6))
+        self.assertEqual(png.read_rgba(path, max_rows=1), (1, 1, rows[0]))
+
+    def test_read_rgba_names_an_undecodable_file(self):
+        # A two-input caller must be able to tell which file failed, so the
+        # loader names the path it wraps decode_rgba's error with.
+        tmp = make_tmp_dir(self)
+        path = tmp / "not-an-image.png"
+        path.write_bytes(b"not a png")
+        assert_error_names(
+            self,
+            png.PngError,
+            png.read_rgba,
+            path,
+            needles=(str(path), "not a PNG file"),
+        )
+
     def test_ihdr_colour_type_is_6(self):
         blob = encode_rgba_png(1, 1, bytes([1, 2, 3, 4]))
         data_start = blob.index(b"IHDR") + 4
