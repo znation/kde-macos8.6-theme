@@ -91,7 +91,7 @@ ships our own Platinum-style art for the desktop's hard-disk, folder, document, 
 full-Trash icons
 and for the menu bar's kicker logo (`start-here-kde-symbolic`, our own mark rather than Apple's)
 and the `go-next-symbolic` submenu arrow the reference's open Apple menu draws,
-drawn for this theme, not traced from Apple's artwork, and inherits Breeze for every other name. The global theme also selects the
+drawn for this theme, not traced from Apple's artwork, and inherits Breeze for every other name. The package also ships the `cursors/` Xcursor arrow: a black face with a white outline at nominal sizes 16, 24 and 32, with byte-identical `cursors/arrow`, `cursors/default` and `cursors/top_left_arrow` X-name aliases. Nothing selects it yet. The global theme also selects the
 `kvantum` widget style (`[kdeglobals][KDE] widgetStyle`), so KDE applications draw the Platinum
 bevelled controls instead of Breeze's rounded ones; when Kvantum is not installed they fall back to
 another style, which you can choose in System Settings → Application Style. The desktop theme ships

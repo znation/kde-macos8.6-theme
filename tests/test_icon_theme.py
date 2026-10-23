@@ -56,6 +56,14 @@ SHIPPED_ICONS = (
     os.path.join("22x22", "actions", "go-next-symbolic.svg"),
 )
 
+# The package also ships the Platinum Xcursor arrow as the `left_ptr` cursor
+# with its X-name aliases. These are binary Xcursor files, not SVGs, so the
+# SVG-level assertions below keep iterating `SHIPPED_ICONS` only.
+SHIPPED_CURSORS = tuple(
+    os.path.join("cursors", name)
+    for name in ("left_ptr", "arrow", "default", "top_left_arrow")
+)
+
 
 def _declared_size(icon):
     """Return the pixel size declared by *icon*'s leading ``NNxNN`` directory."""
@@ -142,7 +150,10 @@ class TestIndex(unittest.TestCase):
 
     def test_icon_theme_ships_exactly_the_tracked_icons(self):
         shipped = shipped_files(PACKAGE)
-        self.assertEqual(shipped, {"index.theme", *SHIPPED_ICONS})
+        self.assertEqual(
+            shipped,
+            {"index.theme", *SHIPPED_ICONS, *SHIPPED_CURSORS},
+        )
 
     def test_placeholder_register_matches_the_icon_art(self):
         # Every shipped icon is final art, so neither side lists one: the
@@ -348,7 +359,7 @@ class TestInstall(InstallLifecycleCases, unittest.TestCase):
     PACKAGE_ID = ICON_ID
     MAKE_PACKAGES = "icon-theme"
     PACKAGE_DIR = PACKAGE
-    INSTALLED_FILES = ("index.theme",) + SHIPPED_ICONS
+    INSTALLED_FILES = ("index.theme",) + SHIPPED_ICONS + SHIPPED_CURSORS
 
     def installed_parent(self, tmp):
         """Return the directory holding the installed icon themes."""
