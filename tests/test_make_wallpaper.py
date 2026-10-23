@@ -8,12 +8,15 @@ import functools
 import io
 import os
 import stat
-import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.atomic_write_failures import (  # noqa: E402
+    crashing_fdopen,
+    swapping_mkstemp,
+)
 from support.cli_fixtures import run_main  # noqa: E402
 from support.close_tracking import failing_fdopen  # noqa: E402
 from support.tmp_dir import make_tmp_dir
@@ -150,28 +153,8 @@ class TestMain(unittest.TestCase):
         first.parent.mkdir(parents=True, exist_ok=True)
         first.write_bytes(b"previous good wallpaper")
 
-        def crashing_fdopen(descriptor, *args, **kwargs):
-            handle = real_fdopen(descriptor, *args, **kwargs)
-
-            class CrashingWriter:
-                def __getattr__(self, name):
-                    return getattr(handle, name)
-
-                def __enter__(self):
-                    return self
-
-                def __exit__(self, *exc_info):
-                    handle.close()
-                    return False
-
-                def write(self, data):
-                    handle.write(data[: len(data) // 2])
-                    raise OSError(errno.ENOSPC, "No space left on device")
-
-            return CrashingWriter()
-
-        real_fdopen = os.fdopen
-        with mock.patch.object(os, "fdopen", crashing_fdopen):
+        crash = crashing_fdopen(OSError(errno.ENOSPC, "No space left on device"))
+        with mock.patch.object(os, "fdopen", crash):
             status, err = self.run_main()
         self.assertEqual(status, 2)
         self.assertIn("cannot write", err)
@@ -384,15 +367,9 @@ class TestWriteAtomic(unittest.TestCase):
         victim = root / "victim.txt"
         victim.write_bytes(b"do not overwrite")
 
-        real_mkstemp = tempfile.mkstemp
-
-        def swapping_mkstemp(*args, **kwargs):
-            descriptor, name = real_mkstemp(*args, **kwargs)
-            os.unlink(name)
-            os.symlink(victim, name)
-            return descriptor, name
-
-        with mock.patch.object(atomic_write.tempfile, "mkstemp", swapping_mkstemp):
+        with mock.patch.object(
+            atomic_write.tempfile, "mkstemp", swapping_mkstemp(victim)
+        ):
             atomic_write.write_bytes_atomically(target, b"new wallpaper")
 
         self.assertEqual(b"do not overwrite", victim.read_bytes())

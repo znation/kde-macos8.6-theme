@@ -18,7 +18,6 @@ import shutil
 import stat
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -26,6 +25,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import theme_install
 from support import tmp_dir
+from support.atomic_write_failures import crashing_fdopen, swapping_mkstemp
 from support.cli_fixtures import run_main
 from support.close_tracking import failing_fdopen
 from support.process_assertions import assert_failed, assert_succeeded
@@ -339,32 +339,12 @@ class TestInstall(unittest.TestCase):
         hook = hook_path(repo)
         complete = hook.read_bytes()
 
-        def crashing_fdopen(descriptor, *args, **kwargs):
-            # Simulate a process death after a partial write: the temporary
-            # file is left truncated, then the write raises.
-            handle = real_fdopen(descriptor, *args, **kwargs)
-
-            class CrashingWriter:
-                def __getattr__(self, name):
-                    return getattr(handle, name)
-
-                def __enter__(self):
-                    return self
-
-                def __exit__(self, *exc_info):
-                    handle.close()
-                    return False
-
-                def write(self, data):
-                    handle.write(data[: len(data) // 2])
-                    raise OSError("simulated crash mid-write")
-
-            return CrashingWriter()
-
-        real_fdopen = os.fdopen
+        # Simulate a process death after a partial write: the temporary
+        # file is left truncated, then the write raises.
+        crash = crashing_fdopen(OSError("simulated crash mid-write"))
         with mock.patch.object(local_hook, "hooks_dir", lambda: hook.parent), \
                 mock.patch.object(local_hook, "top_level", lambda: Path(repo)), \
-                mock.patch.object(os, "fdopen", crashing_fdopen):
+                mock.patch.object(os, "fdopen", crash):
             status = local_hook.install()
 
         self.assertEqual(status, 2)
@@ -428,15 +408,9 @@ class TestInstall(unittest.TestCase):
         victim = Path(repo) / "victim.txt"
         victim.write_bytes(b"do not overwrite")
 
-        real_mkstemp = tempfile.mkstemp
-
-        def swapping_mkstemp(*args, **kwargs):
-            descriptor, name = real_mkstemp(*args, **kwargs)
-            os.unlink(name)
-            os.symlink(victim, name)
-            return descriptor, name
-
-        with mock.patch.object(atomic_write.tempfile, "mkstemp", swapping_mkstemp):
+        with mock.patch.object(
+            atomic_write.tempfile, "mkstemp", swapping_mkstemp(victim)
+        ):
             local_hook._write_hook(hook, local_hook.HOOK_SCRIPT)
 
         self.assertEqual(b"do not overwrite", victim.read_bytes())
