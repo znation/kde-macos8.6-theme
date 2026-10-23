@@ -166,6 +166,17 @@ class TestMalformedImageData(unittest.TestCase):
         data = png_with_idat(b"\xff\xff\xff\xff")
         self.assertIn("corrupt PNG image data", decode_error_message(self, data))
 
+    def test_rejects_trailing_bytes_after_the_zlib_stream(self):
+        # IDAT holds exactly one zlib stream, which ends at its adler32
+        # trailer. Bytes after that end are not image data; zlib reports them
+        # as unused_data, and accepting them would let a malformed PNG carry
+        # hidden payload the decoder silently drops.
+        raw = bytes([0, 1, 2, 3])  # 1x1 RGB: filter byte + three channels
+        data = png_with_idat(zlib.compress(raw) + b"trailing")
+        message = decode_error_message(self, data)
+        self.assertIn("trailing", message)
+        self.assertIn("zlib stream", message)
+
     def test_rejects_declared_image_over_pixel_limit(self):
         # A header may declare dimensions far larger than any screenshot; the
         # pixel limit must reject it before zlib decompresses anything.

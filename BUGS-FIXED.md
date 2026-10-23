@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The PNG decoder accepts trailing bytes after the IDAT zlib stream (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`decode_png` and `decode_rgba` inflate the IDAT stream and check its output length, end marker and adler32, but never inspect `zlib.decompressobj.unused_data`. A PNG whose IDAT payload is a valid zlib stream followed by arbitrary bytes therefore decodes successfully, silently dropping the trailing bytes instead of refusing the malformed image.
+
+**Reproduction.** `png_with_idat(zlib.compress(raw) + b"trailing")`, where `raw` is a valid 1x1 RGB scanline, decoded to the pixel instead of raising `PngError`; `tests/test_png_malformed.py::TestMalformedImageData::test_rejects_trailing_bytes_after_the_zlib_stream` now pins the refusal.
+
+**Validation gap:** unclear-invariant — the decoder's docstring promised the whole compressed stream was validated but never stated that the IDAT stream must end exactly at the zlib trailer, so the reconstructed invariant is recorded in `docs/invariants.md`.
+
 ### `apply_gtk --remove` refuses to clear the GTK selection when no data home resolves (found by the bugfix role 2026-10-23; fixed 2026-10-23 by the bugfix role)
 
 **Symptom:** `python3 tools/apply_gtk.py --remove` (and so `make remove-gtk`)

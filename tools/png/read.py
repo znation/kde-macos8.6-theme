@@ -108,6 +108,16 @@ def _decode_image(
             f"PNG image data decompresses to more than the {expected_raw} bytes "
             f"its {width}x{height} header declares"
         )
+    if decompressor.unused_data:
+        # IDAT holds exactly one zlib stream. Once its end marker is reached,
+        # any remaining bytes are not image data; zlib keeps them in
+        # unused_data instead of failing, so refusing them here keeps a
+        # malformed PNG from carrying a payload the decoder silently drops.
+        count = len(decompressor.unused_data)
+        raise PngError(
+            f"PNG image data has {count} trailing "
+            f"byte{'s' if count != 1 else ''} after the zlib stream"
+        )
     if not decompressor.eof:
         # A stream cut before its end marker can still yield exactly
         # expected_raw bytes; without this its adler32 trailer would go
