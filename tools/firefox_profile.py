@@ -8,8 +8,14 @@ following Firefox's own ``installs.ini`` then ``profiles.ini`` order.
 from __future__ import annotations
 
 import configparser
+import io
 import os
 from pathlib import Path
+
+if __package__:
+    from tools.containment import open_regular_binary
+else:  # run directly from tools/
+    from containment import open_regular_binary
 
 
 class ConfigError(Exception):
@@ -17,14 +23,22 @@ class ConfigError(Exception):
 
 
 def _read_ini(path: Path) -> configparser.ConfigParser | None:
-    """Return *path* parsed without interpolation, or ``None`` when absent."""
+    """Return *path* parsed without interpolation, or ``None`` when absent.
+
+    The file is opened through the shared regular-file reader, so a FIFO or
+    device at an INI path is refused by name instead of blocking profile
+    discovery on an open that waits for a writer. The opened descriptor is
+    checked, so a regular file swapped for a pipe before the open is still
+    refused.
+    """
     parser = configparser.ConfigParser(interpolation=None)
     try:
-        with path.open(encoding="utf-8") as handle:
-            parser.read_file(handle)
+        with open_regular_binary(path) as binary:
+            with io.TextIOWrapper(binary, encoding="utf-8") as handle:
+                parser.read_file(handle)
     except FileNotFoundError:
         return None
-    except (OSError, UnicodeDecodeError, configparser.Error) as exc:
+    except (OSError, UnicodeDecodeError, ValueError, configparser.Error) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
     return parser
 

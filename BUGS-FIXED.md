@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A FIFO at either Firefox profile-discovery INI file blocks the install (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`make install-firefox` without `--profile` reads `installs.ini` and `profiles.ini`
+under `$HOME/.mozilla/firefox` to find the active profile. `tools/firefox_profile.py`
+opened each with `Path.open`, so a FIFO at either path waited forever for a writer and
+the install hung with no diagnostic.
+
+**Reproduce:** create a fresh `$HOME`, put a FIFO at
+`.mozilla/firefox/installs.ini` (or `profiles.ini`), and run
+`python3 tools/install_firefox.py` with `HOME` pointing there. The process blocks
+instead of exiting 2.
+
+**Fix:** `_read_ini` now opens the file through the shared
+`containment.open_regular_binary`, which opens with `O_NONBLOCK` and checks the
+opened descriptor, and wraps a non-regular file, an unreadable file and invalid
+UTF-8 as a by-name `ConfigError`. A missing INI still reads as absent and a regular
+file still parses the same way. The regression test runs the install in a bounded
+child for a FIFO at each INI path.
+
+**Validation gap:** no-fake — Confirming the hang needed a FIFO fixture plus a bounded child process, neither of which the suite had.
+
 ### A FIFO at a Firefox profile file blocks the install forever (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/install_firefox.py` read a profile's `chrome/userChrome.css` and `user.js` with

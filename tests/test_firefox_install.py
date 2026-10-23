@@ -191,6 +191,34 @@ class TestProfileResolution(ProfileCase):
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
+    def test_a_fifo_at_either_ini_file_is_refused_without_blocking(self):
+        # Profile discovery used Path.open, whose read waits forever on a FIFO,
+        # so `make install-firefox` without --profile hung with no diagnostic.
+        # Run the tool in a child so a regression fails on a timeout instead of
+        # stalling the suite, and check the pipe is named before it is read.
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        snippet = (
+            "import sys; from tools.install_firefox import main; "
+            "sys.exit(main([]))"
+        )
+        for name in ("installs.ini", "profiles.ini"):
+            with self.subTest(ini=name):
+                home = self.root / f"home-{name}"
+                home.mkdir()
+                root = home / ".mozilla" / "firefox"
+                root.mkdir(parents=True)
+                fifo = root / name
+                os.mkfifo(fifo)
+                with mock.patch.dict(os.environ, {"HOME": str(home)}, clear=True):
+                    child = snippet_child.run(
+                        [snippet], cwd=repo_root.ROOT, timeout=10
+                    )
+                self.assertEqual(2, child.returncode, child.stdout + child.stderr)
+                self.assertIn(f"cannot read {fifo}", child.stderr)
+                self.assertIn("not a regular file", child.stderr)
+                self.assertTrue(stat.S_ISFIFO(fifo.stat().st_mode))
+
     def test_no_existing_candidate_names_the_root_and_candidates(self):
         self.firefox_root.mkdir(parents=True)
         _write(
