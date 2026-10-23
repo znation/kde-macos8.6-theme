@@ -18,12 +18,9 @@ from support import gtk_css
 from support.gtk_css import HEX, parse_css
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
-    BUTTON_BEVEL,
     ETCH_DARK,
-    SheetRuleAssertions,
-    INVERTED_BUTTON_BEVEL,
+    GtkSheetRuleCases,
     RAISED_BEVEL,
-    TAB_STATES,
 )
 from support.platinum_palette import (
     BLACK,
@@ -43,7 +40,7 @@ INDEX = THEME_DIR / "index.theme"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
 
-class TestGtkTheme(SheetRuleAssertions, unittest.TestCase):
+class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.index_text = gtk_css.read_theme_text(INDEX)
@@ -111,69 +108,11 @@ class TestGtkTheme(SheetRuleAssertions, unittest.TestCase):
                 {"background-color": FACE, "color": BLACK},
             )
 
-    def test_headerbar(self):
-        for selector in ("headerbar", ".titlebar"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-color": FACE,
-                    "background-image": "none",
-                    "border": f"1px solid {BLACK}",
-                    "border-radius": "0",
-                    "box-shadow": "none",
-                },
-            )
-        self.assert_rule("headerbar", {"border-width": "0 0 1px 0"})
-
-    def test_button(self):
-        self.assert_rule(
-            "button",
-            {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-                "box-shadow": BUTTON_BEVEL,
-            },
-        )
-        self.assert_rule("button:hover", {"background-color": FACE})
-        for selector in ("button:active", "button:checked"):
-            self.assert_rule(selector, {"box-shadow": INVERTED_BUTTON_BEVEL})
-
-    def test_entry(self):
-        self.assert_rule(
-            "entry",
-            {
-                "background-color": WHITE,
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-                "box-shadow": f"inset 1px 1px {GREY}",
-                "color": BLACK,
-            },
-        )
-
     def test_notebook_header(self):
         self.assert_rule(
             "notebook > header",
             {"background-color": FACE, "border": f"1px solid {BLACK}"},
         )
-
-    def test_tab_states(self):
-        for state, selectors, checked in TAB_STATES:
-            expected = {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-            }
-            if checked:
-                expected["border-bottom-color"] = FACE
-                expected["box-shadow"] = "none"
-            else:
-                expected["box-shadow"] = RAISED_BEVEL
-            for selector in selectors:
-                with self.subTest(state=state, selector=selector):
-                    self.assert_rule(selector, expected)
 
     def test_menu(self):
         for selector in ("menu", ".menu", "popover", ".popover"):

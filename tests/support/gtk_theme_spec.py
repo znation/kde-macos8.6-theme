@@ -7,6 +7,7 @@ own stylesheet; this module only holds the values the sheets must agree on.
 The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
+:class:`GtkSheetRuleCases` holds the control rules the two GTK suites share.
 """
 
 from __future__ import annotations
@@ -118,3 +119,71 @@ class SheetRuleAssertions:
                 value,
                 f"{selector}: expected {name}: {value}",
             )
+
+
+class GtkSheetRuleCases(SheetRuleAssertions):
+    """The control rules the GTK 3 and GTK 4 sheets must both satisfy.
+
+    Both suites inherit these four cases and run them against their own parsed
+    ``self.rules``. Selectors and values that differ between the sheets
+    (window, notebook header, scrollbar, popover, toolbar) stay in the suite
+    that owns them.
+    """
+
+    def test_headerbar(self):
+        for selector in ("headerbar", ".titlebar"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "background-image": "none",
+                    "border": f"1px solid {BLACK}",
+                    "border-radius": "0",
+                    "box-shadow": "none",
+                },
+            )
+        self.assert_rule("headerbar", {"border-width": "0 0 1px 0"})
+
+    def test_button(self):
+        self.assert_rule(
+            "button",
+            {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": BUTTON_BEVEL,
+            },
+        )
+        self.assert_rule("button:hover", {"background-color": FACE})
+        for selector in ("button:active", "button:checked"):
+            self.assert_rule(selector, {"box-shadow": INVERTED_BUTTON_BEVEL})
+
+    def test_entry(self):
+        self.assert_rule(
+            "entry",
+            {
+                "background-color": WHITE,
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": f"inset 1px 1px {GREY}",
+                "color": BLACK,
+            },
+        )
+
+    def test_tab_states(self):
+        for state, selectors, checked in TAB_STATES:
+            expected = {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+            }
+            if checked:
+                expected["border-bottom-color"] = FACE
+                expected["box-shadow"] = "none"
+            else:
+                expected["box-shadow"] = RAISED_BEVEL
+            for selector in selectors:
+                with self.subTest(state=state, selector=selector):
+                    self.assert_rule(selector, expected)
