@@ -17,6 +17,7 @@ from support.check_references_fixtures import (
     CheckerTestCase,
     assert_problem,
     assert_sources_failure,
+    os_open_raises,
     path_method_raises,
     reference_set,
     symlinked_reference,
@@ -42,9 +43,7 @@ class TestUnreadableImage(CheckerTestCase):
             {"locked.png": PNG_MAGIC},
         ) as root:
             image = root / "locked.png"
-            with path_method_raises(
-                "open", image, PermissionError, 13, "Permission denied"
-            ):
+            with os_open_raises(image, PermissionError, 13, "Permission denied"):
                 problems = module.check_references(root)
         assert_problem(self, problems, "locked.png", "could not be read")
 
@@ -63,9 +62,7 @@ class TestUnreadableUndeclaredImage(CheckerTestCase):
         module = self.checker
         with reference_set(module, "", {"stray.bin": PNG_MAGIC}) as root:
             stray = root / "stray.bin"
-            with path_method_raises(
-                "open", stray, PermissionError, 13, "Permission denied"
-            ):
+            with os_open_raises(stray, PermissionError, 13, "Permission denied"):
                 problems = module.check_references(root)
         assert_problem(self, problems, "stray.bin", "could not be read")
 
@@ -277,6 +274,71 @@ class TestUndeclaredNonRegularEntry(CheckerTestCase):
                 ],
                 cwd=ROOT,
                 timeout=10,
+            )
+        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
+
+
+class TestFifoSwapAfterCheck(CheckerTestCase):
+    """A file that becomes a FIFO after the existence check is refused.
+
+    The checker stats a declared image and ``sources.txt`` and then reads
+    their leading bytes. A concurrent process can replace the regular file
+    with a FIFO in that window; opening the FIFO for reading then blocks
+    until a writer appears, stalling ``make check-references`` with no
+    diagnostic. The shared regular-file guard opens the path non-blocking and
+    inspects that same descriptor, so the FIFO is reported by name instead.
+
+    ``Path.is_file`` is made to report True so the check reaches the open the
+    race would reach: with a FIFO already on disk a real ``is_file`` returns
+    False and the checker never opens it.
+    """
+
+    def _run_child(self, root, filename, snippet):
+        if not hasattr(os, "mkfifo"):
+            self.skipTest("os.mkfifo is not available on this platform")
+        # ``sources.txt`` already exists in the fixture root; the race is a
+        # replace, so remove the regular file before putting the FIFO there.
+        (root / filename).unlink(missing_ok=True)
+        os.mkfifo(root / filename)
+        # Run the check in a child so a regression that opens the FIFO fails
+        # this test at its timeout instead of stalling the whole suite.
+        return snippet_child.run(
+            [snippet, str(root)], cwd=ROOT, timeout=10
+        )
+
+    def test_declared_image_swapped_for_a_fifo_is_refused_without_blocking(self):
+        module = self.checker
+        with reference_set(
+            module, "locked.png | https://example.test/l.png | label\n"
+        ) as root:
+            child = self._run_child(
+                root,
+                "locked.png",
+                "import sys; from pathlib import Path; "
+                "from tools import reference_validation as rv; "
+                "real = Path.is_file; "
+                "Path.is_file = lambda self: True if self.name == 'locked.png' "
+                "else real(self); "
+                "problems = rv.check_references(Path(sys.argv[1])); "
+                "sys.exit(0 if any('locked.png' in p and 'could not be read' in p "
+                "for p in problems) else 1)",
+            )
+        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
+
+    def test_sources_swapped_for_a_fifo_is_refused_without_blocking(self):
+        module = self.checker
+        with reference_set(module, "") as root:
+            child = self._run_child(
+                root,
+                module.SOURCES_NAME,
+                "import sys; from pathlib import Path; "
+                "from tools import reference_validation as rv; "
+                "real = Path.is_file; "
+                "Path.is_file = lambda self: True if self.name == 'sources.txt' "
+                "else real(self); "
+                "problems = rv.check_references(Path(sys.argv[1])); "
+                "sys.exit(0 if any('could not be read' in p for p in problems) "
+                "else 1)",
             )
         self.assertEqual(0, child.returncode, child.stdout + child.stderr)
 

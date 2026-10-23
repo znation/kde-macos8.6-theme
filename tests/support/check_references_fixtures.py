@@ -119,6 +119,28 @@ def check_references_in(module, sources, files=()):
 
 
 @contextlib.contextmanager
+def os_open_raises(path, error_type, errno, message):
+    """Patch ``os.open`` to fail for *path* and delegate otherwise.
+
+    The checker reads every contributor-supplied file through the shared
+    regular-file guard, which opens the path with ``os.open`` (so it can
+    inspect the same descriptor it reads) rather than ``Path.open``. A test
+    that drives an unreadable-file failure must therefore fail the descriptor
+    open the guard actually uses; every other path still opens normally.
+    """
+    real = os.open
+    target = os.fspath(path)
+
+    def raises_for(candidate, *args, **kwargs):
+        if os.fspath(candidate) == target:
+            raise error_type(errno, message, target)
+        return real(candidate, *args, **kwargs)
+
+    with unittest.mock.patch.object(os, "open", raises_for):
+        yield
+
+
+@contextlib.contextmanager
 def path_method_raises(method, path, error_type, errno, message):
     """Patch ``Path.<method>`` to fail for ``path`` and delegate otherwise.
 
@@ -156,13 +178,20 @@ def assert_sources_failure(case, method, error_type, errno, message, needle):
     """Assert a failure on sources.txt is reported, not raised.
 
     The checker reads and resolves ``sources.txt`` during a run, so a test
-    drives one filesystem failure on that path by patching ``Path.<method>``
-    to raise and asserts the checker returns a problem line naming the path
-    and *needle* rather than letting the ``OSError`` escape.
+    drives one filesystem failure on that path and asserts the checker returns
+    a problem line naming the path and *needle* rather than letting the
+    exception escape. ``method`` is a ``Path`` method the checker calls, or
+    ``"open"`` for the descriptor open the regular-file guard performs.
     """
     module = case.checker
     with good_reference(module) as root:
         sources = root / module.SOURCES_NAME
-        with path_method_raises(method, sources, error_type, errno, message):
+        if method == "open":
+            failure = os_open_raises(sources, error_type, errno, message)
+        else:
+            failure = path_method_raises(
+                method, sources, error_type, errno, message
+            )
+        with failure:
             problems = module.check_references(root)
     assert_problem(case, problems, str(sources), needle)

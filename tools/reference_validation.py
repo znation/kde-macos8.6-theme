@@ -22,13 +22,17 @@ import re
 from pathlib import Path
 
 if __package__:
-    from tools.containment import require_within_repo, resolves_within
+    from tools.containment import (
+        open_regular_binary,
+        require_within_repo,
+        resolves_within,
+    )
     from tools.image_format import LFS_POINTER_MAGIC, is_image
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
     from tools.url_check import url_problem
 else:  # imported from a directly run tool
-    from containment import require_within_repo, resolves_within
+    from containment import open_regular_binary, require_within_repo, resolves_within
     from image_format import LFS_POINTER_MAGIC, is_image
     from repo_root import ROOT
     from terminal import escape_controls
@@ -50,8 +54,14 @@ _LINE_BREAK = re.compile(r"\r\n|\r|\n")
 
 
 def _is_lfs_pointer(path: Path) -> bool:
-    """Return True when *path* is an unmaterialized Git LFS pointer, not data."""
-    with path.open("rb") as handle:
+    """Return True when *path* is an unmaterialized Git LFS pointer, not data.
+
+    The file is opened through the shared regular-file reader: a regular file
+    that a concurrent writer replaces with a FIFO between the caller's
+    ``is_file`` check and this read is refused by its opened descriptor
+    instead of blocking on an open that waits for a writer.
+    """
+    with open_regular_binary(path) as handle:
         return handle.read(len(LFS_POINTER_MAGIC)) == LFS_POINTER_MAGIC
 
 
@@ -59,9 +69,11 @@ def _looks_like_image(path: Path) -> bool:
     """Return True when *path* begins with a known raster image signature.
 
     Only the bytes decide, never the extension: ``sherlock_fandom.jpg`` is a
-    WebP payload by design, so the WebP signature is accepted here too.
+    WebP payload by design, so the WebP signature is accepted here too. The
+    read goes through the shared regular-file reader for the same reason as
+    :func:`_is_lfs_pointer`.
     """
-    with path.open("rb") as handle:
+    with open_regular_binary(path) as handle:
         head = handle.read(12)
     return is_image(head)
 
@@ -74,10 +86,12 @@ def _read_sources_text(sources: Path) -> tuple[str | None, str | None]:
         # strips a leading UTF-8 BOM that an editor may have added: the BOM is
         # invisible, so decoding as plain UTF-8 folds it into the first
         # filename and the check reports a phantom missing file instead of the
-        # real one, which then looks undeclared.
-        with sources.open("rb") as handle:
+        # real one, which then looks undeclared. The shared regular-file
+        # reader refuses a FIFO or device the caller raced to put here, so the
+        # read cannot block on a pipe with no writer.
+        with open_regular_binary(sources) as handle:
             data = handle.read(_MAX_SOURCES_BYTES + 1)
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         return None, f"{sources}: could not be read: {exc}"
     if len(data) > _MAX_SOURCES_BYTES:
         return None, (
@@ -164,7 +178,7 @@ def _check_entries(
                     f"{sources}:{lineno}: {filename!r} is not a PNG, JPEG, GIF or WebP image; "
                     "it may be an HTML error page or a truncated download"
                 )
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
             problems.append(
                 f"{sources}:{lineno}: {filename!r} could not be read: {exc}"
             )
@@ -217,7 +231,7 @@ def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
         # its name.
         try:
             has_image_bytes = _looks_like_image(path)
-        except OSError as exc:
+        except (OSError, ValueError) as exc:
             problems.append(
                 f"{escape_controls(str(path))}: could not be read: {exc}"
             )
