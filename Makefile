@@ -120,7 +120,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk remove-gtk check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -212,6 +212,8 @@ help:
 	@echo "  uninstall-local-hook  remove that post-commit hook"
 	@echo "  install           install the color scheme and theme packages"
 	@echo "  install-gtk       install the opt-in GTK 3 and GTK 4 Platinum themes"
+	@echo "  apply-gtk         install and select the opt-in GTK 3 and GTK 4 Platinum themes"
+	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
 	@echo "Variables (make VAR=value TARGET):"
@@ -256,6 +258,23 @@ apply:
 	@$(call require_python_version,apply)
 	$(MAKE) --no-print-directory install
 	$(PYTHON) tools/apply_theme.py
+
+# Apply the opt-in GTK themes: install them as `install-gtk` does, then select
+# them in the user's GTK 3 and GTK 4 settings and libadwaita user CSS. A
+# non-empty DESTDIR is refused first for the same reason as `apply`.
+apply-gtk:
+	@if [ -n "$(DESTDIR)" ]; then echo "apply-gtk: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$(DESTDIR)'" >&2; exit 2; fi
+	@$(call require_python,apply-gtk)
+	@$(call require_python_version,apply-gtk)
+	$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk
+	$(PYTHON) tools/apply_gtk.py
+
+# Clear only the GTK selection this theme wrote; a foreign gtk-theme-name and
+# a foreign gtk-4.0/gtk.css are left untouched.
+remove-gtk:
+	@$(call require_python,remove-gtk)
+	@$(call require_python_version,remove-gtk)
+	$(PYTHON) tools/apply_gtk.py --remove
 
 # Write a local-only post-commit hook (this clone's git hooks directory, never
 # committed) so every commit re-runs `make apply`. tools/local_hook.py refuses

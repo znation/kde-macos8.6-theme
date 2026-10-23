@@ -45,8 +45,16 @@ when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
 GTK applications use the separate opt-in install: `make install-gtk` copies the GTK 3 and GTK 4
 Platinum stylesheets into `$XDG_DATA_HOME/themes/org.macos8.desktop/`, the same directory that
 holds the shared `Kvantum/` widget style, so the two artifacts share one theme directory. The
-default `make install` copies no GTK files. This part installs the files but does not select
-them; selection is part 3/3. `make uninstall` removes the three GTK files, their `.staging`
+default `make install` copies no GTK files. `make apply-gtk` installs them the same way and then
+selects them: it sets `gtk-theme-name=org.macos8.desktop` in `[Settings]` of
+`$XDG_CONFIG_HOME/gtk-3.0/settings.ini` and `gtk-4.0/settings.ini` (the XDG default
+`$HOME/.config`), and writes `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` with the
+`/* org.macos8.desktop GTK 4 user CSS */` marker and an `@import url(...)` of the installed GTK 4
+sheet, so libadwaita applications use it too. Restart running GTK applications to pick up the
+selection; KDE users can also choose the theme in System Settings -> Application Style ->
+GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it removes only our
+`gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file untouched.
+`make uninstall` removes the three GTK files, their `.staging`
 leftovers and the emptied `gtk-3.0`/`gtk-4.0` directories but leaves `Kvantum/` and the theme
 directory itself.
 
