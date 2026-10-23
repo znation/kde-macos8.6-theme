@@ -193,8 +193,8 @@ class TestUnclearInvariantLedger(unittest.TestCase):
             len(self.records),
             validation_gaps.UNCLEAR_INVARIANT_BASELINE,
             "the unclear-invariant tag grew past its baseline (records at "
-            f"BUGS-FIXED.md lines {lines}); record its register row and test "
-            "instead of raising UNCLEAR_INVARIANT_BASELINE",
+            f"BUGS-FIXED.md lines {lines}); record its ledger entry, register "
+            "row and test, and raise UNCLEAR_INVARIANT_BASELINE by one",
         )
 
     def test_an_unmatched_mechanism_has_no_reproduction(self):

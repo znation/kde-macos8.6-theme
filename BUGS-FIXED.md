@@ -5,6 +5,20 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The PNG tRNS-order test names an unimported `_PNG_SIGNATURE` (found by the plan role 2026-10-23) — fixed 2026-10-23 by the dedupe role
+
+`tests/test_png_malformed.py::TestTrnsColorTypeValidation.test_truecolor_trns_before_suggested_plte_is_refused`
+built its blob by concatenating `_PNG_SIGNATURE`, but the module no longer
+imported that name: the change that moved the stream helpers into
+`tests/support/png_fixtures.py` removed the import while one use remained, so
+the test failed with `NameError: name '_PNG_SIGNATURE' is not defined`. The
+entry originally named the sibling `test_palette_trns_before_plte_is_refused`,
+which already used `png_stream()` and passed. The repair landed in
+the dedupe change `a4e85fc6`, which converted the remaining truecolor stream to
+the shared `png_stream()` helper instead of importing the private constant.
+
+**Validation gap:** none — the missing import failed deterministically before `a4e85fc6` converted the truecolor stream to `png_stream()`.
+
 ### A truecolor tRNS before a suggested PLTE is accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 The chunk collector treated a tRNS before PLTE as illegal only for a color

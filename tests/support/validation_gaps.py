@@ -95,10 +95,10 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 )
 
 
-# The number of ``unclear-invariant`` records the archive held when the ledger
-# landed. A new record must be retired with a register row and a test instead
-# of raising this.
-UNCLEAR_INVARIANT_BASELINE = 22
+# The number of ``unclear-invariant`` records the archive holds with ledger
+# coverage. A new record must add its ledger entry, register row and test, and
+# raise this by one in the same change instead of landing uncovered.
+UNCLEAR_INVARIANT_BASELINE = 23
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -174,6 +174,16 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "only at its exact length for the greyscale and truecolor sample "
         "types, and only for 1 to the palette's entry count for color type "
         "3 — on both the RGB and RGBA decode paths.",
+    ),
+    UnclearInvariant(
+        "png-trns-before-plte",
+        ("truecolor tRNS before a suggested PLTE",),
+        "tests/test_png_malformed.py::TestTrnsColorTypeValidation",
+        "A PNG's `tRNS` chunk that precedes a `PLTE` chunk which is present is "
+        "refused on both decode paths for every color type — the palette "
+        "image's required palette and a truecolor image's suggested palette "
+        "alike — while a color type 3 image with no `PLTE` at all keeps its "
+        "missing-palette diagnosis.",
     ),
     UnclearInvariant(
         "png-idat-zlib-trailer",
