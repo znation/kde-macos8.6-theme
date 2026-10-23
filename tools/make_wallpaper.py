@@ -21,7 +21,6 @@ anything is written: the wallpaper images stay in the wallpaper package.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
