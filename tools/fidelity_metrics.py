@@ -89,6 +89,8 @@ def _max_byte_index(data: bytes) -> int:
 
 _ABS_DIFF_MASKS_CACHE: dict[int, tuple[int, int]] = {}
 
+_OVER_TABLE_CACHE: dict[int, bytes] = {}
+
 
 def _abs_diff(a: bytes, b: bytes) -> bytes:
     """Return the per-byte absolute difference of two equal-length byte strings.
@@ -281,7 +283,10 @@ def compare(candidate: Image, reference: Image, tolerance: int = 0) -> Metrics:
     # A pixel differs when any channel exceeds tolerance.  Translate each
     # channel to a 0/1 flag byte, OR the three flag strings as one big integer,
     # and popcount it, so a pixel with several differing channels counts once.
-    over = bytes(1 if value > tolerance else 0 for value in range(256))
+    over = _OVER_TABLE_CACHE.get(tolerance)
+    if over is None:
+        over = bytes(1 if value > tolerance else 0 for value in range(256))
+        _OVER_TABLE_CACHE[tolerance] = over
     differing = (
         int.from_bytes(deltas[0].translate(over), "little")
         | int.from_bytes(deltas[1].translate(over), "little")
