@@ -2,8 +2,8 @@
 
 The installed artifacts land under `$(DESTDIR)$(XDG_DATA_HOME)`; the install
 tests of each artifact family (color scheme, global theme, desktop theme,
-Aurorae decoration, wallpaper, icon theme, Kvantum widget style and Lato font
-package) pass a throwaway `DESTDIR` and inspect the result there, using
+Aurorae decoration, wallpaper, icon theme, Kvantum widget style, Lato font
+package and GTK theme) pass a throwaway `DESTDIR` and inspect the result there, using
 `support.installed_paths` where it names the layout.
 Child processes go through `process_runner`, which applies the suite's timeout
 and process-group cleanup. The repository root the commands run in, and the
@@ -80,7 +80,7 @@ def install(destdir, extra=(), env=None, packages=None):
     replaces the environment, for tests that shadow a tool on PATH. `packages`
     narrows the install to one `INSTALL_PACKAGES` family (`look-and-feel`), so
     a test of one artifact does not copy the other seven; the default installs
-    every family.
+    every default family (`gtk` is opt-in).
     """
     if packages is not None:
         extra = (*extra, f"INSTALL_PACKAGES={packages}")

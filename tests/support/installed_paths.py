@@ -3,8 +3,8 @@
 Every artifact family lands at a fixed path below `$(DESTDIR)$(XDG_DATA_HOME)`:
 the color scheme under `color-schemes/`, the Plasma packages under `plasma/`,
 the Aurorae, wallpaper and icon themes in their own user-local directories,
-the Lato font package under `fonts/`, and the Kvantum widget style under
-`themes/<name>/Kvantum/`. The helpers
+the Lato font package under `fonts/`, the Kvantum widget style under
+`themes/<name>/Kvantum/`, and the GTK theme under `themes/<name>/`. The helpers
 below name the paths the install tests share instead of re-deriving them, and
 `staging_sibling`/`old_sibling` build the hidden siblings the Makefile's
 atomic swap uses.
@@ -175,3 +175,12 @@ def old_sibling(parent, name):
     removes it after the rename, so a killed install can leave it behind.
     """
     return os.path.join(parent, "." + name + ".old")
+
+
+def installed_gtk_theme(destdir):
+    """Directory `make install` writes the GTK theme into.
+
+    The Makefile installs under `$(DESTDIR)$(XDG_DATA_HOME)/themes/
+    org.macos8.desktop`, the same theme directory the Kvantum package uses.
+    """
+    return os.path.join(destdir, XDG_DATA_HOME.lstrip("/"), "themes", "org.macos8.desktop")

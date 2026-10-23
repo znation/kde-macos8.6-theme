@@ -73,14 +73,19 @@ KVANTUM_ID := org.macos8.desktop
 KVANTUM_PACKAGE := theme/kvantum/$(KVANTUM_ID)
 KVANTUM_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(KVANTUM_ID)/Kvantum
 
+# GTK themes share the Kvantum theme directory: .../themes/org.macos8.desktop
+GTK_ID := org.macos8.desktop
+GTK_PACKAGE := theme/gtk/$(GTK_ID)
+GTK_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(GTK_ID)
+
 # The artifacts `_install` copies, as families. A caller can narrow the install
 # to the families it needs (`make install INSTALL_PACKAGES=look-and-feel`), so a
-# test of one artifact does not copy all eight; the default installs every
-# family and keeps the full install. The color scheme is a family of its own
-# even though it is one file. INSTALL_FAMILIES is the guard's vocabulary; the
-# default below must name the same families, and the guard rejects a default
-# that names one it does not know.
-INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts
+# test of one artifact does not copy all eight; the default installs the families
+# INSTALL_PACKAGES names, and `gtk` is opt-in (not in the default). The color
+# scheme is a family of its own even though it is one file. INSTALL_FAMILIES is
+# the guard's vocabulary; the default below must name the same families, and the
+# guard rejects a default that names one it does not know.
+INSTALL_FAMILIES := color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts gtk
 INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper icon-theme kvantum fonts
 
 # INSTALL_PACKAGES selects which artifact families `_install` copies. An empty
@@ -115,7 +120,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -206,6 +211,7 @@ help:
 	@echo "  install-local-hook  install a post-commit hook that runs 'make apply' (this clone only)"
 	@echo "  uninstall-local-hook  remove that post-commit hook"
 	@echo "  install           install the color scheme and theme packages"
+	@echo "  install-gtk       install the opt-in GTK 3 and GTK 4 Platinum themes"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
 	@echo "Variables (make VAR=value TARGET):"
@@ -329,6 +335,17 @@ define install_kvantum
 	done
 endef
 
+define install_gtk
+	@install -d "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0"; \
+	trap 'rm -f "$(GTK_INSTALL_DIR)/.index.theme.staging" "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging"' EXIT; \
+	install -Dm644 "$(GTK_PACKAGE)/index.theme" "$(GTK_INSTALL_DIR)/.index.theme.staging" && \
+	mv "$(GTK_INSTALL_DIR)/.index.theme.staging" "$(GTK_INSTALL_DIR)/index.theme" && \
+	install -Dm644 "$(GTK_PACKAGE)/gtk-3.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" && \
+	mv "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-3.0/gtk.css" && \
+	install -Dm644 "$(GTK_PACKAGE)/gtk-4.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging" && \
+	mv "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-4.0/gtk.css"
+endef
+
 _install:
 	$(if $(filter color-scheme,$(INSTALL_PACKAGES)),$(call install_color_scheme))
 	$(if $(filter look-and-feel,$(INSTALL_PACKAGES)),install -d "$(LNF_INSTALL_DIR)")
@@ -345,6 +362,7 @@ _install:
 	$(if $(filter kvantum,$(INSTALL_PACKAGES)),$(call install_kvantum))
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),install -d "$(FONT_INSTALL_DIR)")
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
+	$(if $(filter gtk,$(INSTALL_PACKAGES)),$(call install_gtk))
 
 # Remove only the artifacts `install` copied: the parent directories are shared
 # (other color schemes,
@@ -392,3 +410,6 @@ _uninstall:
 	    echo "uninstall: color scheme $(COLOR_SCHEME_ID) is still selected in $$kdeglobals after removal; if KDE cannot resolve it, it falls back to BreezeLight on the next start. Reset it with: plasma-apply-colorscheme BreezeLight" >&2; \
 	  fi; \
 	fi
+
+install-gtk:
+	@$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk

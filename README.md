@@ -42,6 +42,12 @@ live in
 `$HOME/.local/share/themes/<name>/Kvantum/` with that literal path, so it finds the theme only
 when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
 
+GTK applications use the separate opt-in install: `make install-gtk` copies the GTK 3 and GTK 4
+Platinum stylesheets into `$XDG_DATA_HOME/themes/org.macos8.desktop/`, the same directory that
+holds the shared `Kvantum/` widget style, so the two artifacts share one theme directory. The
+default `make install` copies no GTK files. This part installs the files but does not select
+them; selection is part 3/3.
+
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
 `plasma-apply-colorscheme MacOS8`; because the filename stem is exactly `MacOS8`, the scheme
