@@ -5,6 +5,22 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A PLTE chunk on a greyscale color type is silently ignored (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/png/stream.py`'s `collect_chunks` validated a PLTE chunk's length but neither decoder
+checked whether the header's color type could carry a palette. The PNG specification makes PLTE
+required for color type 3, optional for the truecolor types 2 and 6, and prohibited for the
+greyscale types 0 and 4. Reproduce with `make_png(1, 1, [bytes([7])], color_type=0,
+palette=bytes([255, 0, 0]))`: both `decode_png` and `decode_rgba` returned the image instead of
+refusing the non-conformant chunk.
+
+`tools/png/stream.py` now exports `check_plte(palette, color_type)`, which refuses a palette on
+color types 0 and 4 and leaves the optional truecolor suggested palette and the required palette
+image accepted. `_decode_image` calls it right after `parse_ihdr`, next to `check_trns`, so both
+decode paths refuse the same file.
+
+**Validation gap:** unclear-invariant — the chunk reader's docstrings described framing checks but nowhere stated that PLTE legality depends on the header's color type, so that rule had to be reconstructed from the PNG specification; the invariant is recorded in docs/invariants.md.
+
 ### tRNS validation ran only on the RGBA decode path (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/png/read.py`'s `decode_rgba` validated a tRNS chunk's length while it

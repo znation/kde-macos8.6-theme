@@ -319,6 +319,60 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
         self.assertEqual(png.decode_png(indexed).rgb, bytes([40, 50, 60]))
 
 
+class TestPlteColorTypeValidation(unittest.TestCase):
+    """Both decoders refuse a PLTE chunk the header's color type forbids.
+
+    The PNG spec permits PLTE for color type 3 (required), color types 2 and
+    6 (optional suggested palette) and prohibits it for the greyscale color
+    types 0 and 4. The decoder used to ignore such a palette, so a
+    non-conformant file decoded even though its palette could never affect a
+    pixel.
+    """
+
+    def test_greyscale_color_types_refuse_plte(self):
+        for color_type, channels in ((0, 1), (4, 2)):
+            blob = make_png(
+                1,
+                1,
+                [bytes(range(channels))],
+                color_type=color_type,
+                palette=bytes([10, 20, 30]),
+            )
+            for decoder in (png.decode_png, png.decode_rgba):
+                with self.subTest(
+                    color_type=color_type, decoder=decoder.__name__
+                ):
+                    assert_error_names(
+                        self,
+                        png.PngError,
+                        decoder,
+                        blob,
+                        needles=(
+                            "PLTE chunk",
+                            f"color type {color_type}",
+                            "prohibited for the greyscale color types 0 and 4",
+                        ),
+                    )
+
+    def test_truecolor_color_types_still_accept_a_suggested_palette(self):
+        # PLTE is optional for truecolor and truecolor with alpha, so the new
+        # guard must not reject the suggested palette a conformant file may
+        # carry.
+        for color_type, channels in ((2, 3), (6, 4)):
+            row = bytes(range(1, channels + 1))
+            blob = make_png(
+                1,
+                1,
+                [row],
+                color_type=color_type,
+                palette=bytes([10, 20, 30]),
+            )
+            with self.subTest(color_type=color_type):
+                self.assertEqual(png.decode_png(blob).rgb, row[:3])
+                rgba = row if channels == 4 else row + b"\xff"
+                self.assertEqual(png.decode_rgba(blob), (1, 1, rgba))
+
+
 class TestToRgbUnsupportedColorType(unittest.TestCase):
     """``to_rgb`` names a color type it has no expansion for.
 

@@ -5,11 +5,13 @@ reader need: the validated IHDR payload, the optional PLTE palette, the
 concatenated IDAT image data and the optional tRNS transparency payload. It
 refuses a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
 chunk after the image data, a tRNS chunk the header's color type or palette
-cannot carry, non-consecutive IDAT chunks, a malformed PLTE
+cannot carry, a PLTE chunk on a greyscale color type, non-consecutive IDAT
+chunks, a malformed PLTE
 length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
 missing IHDR, so
 every caller sees the same diagnosis. :func:`parse_ihdr` validates the header
-fields, :func:`check_trns` validates transparency against that header and
+fields, :func:`check_plte` refuses a palette the header's color type cannot
+carry, :func:`check_trns` validates transparency against that header and
 :func:`check_pixel_limit` bounds the declared size;
 ``tools/png/chunks.py`` does the lower-level framing and CRC checks this
 builds on.
@@ -151,6 +153,23 @@ def check_trns(
             f"tRNS chunk has {len(trns)} bytes; a {name} PNG (color type "
             f"{color_type}) needs exactly {expected}"
         )
+
+
+def check_plte(palette: bytes | None, color_type: int) -> None:
+    """Refuse a palette the header's color type does not permit.
+
+    The PNG spec makes PLTE required for color type 3, optional as a
+    suggested palette for the truecolor types 2 and 6, and prohibited for the
+    greyscale types 0 and 4 (whose pixels are samples, not palette indices).
+    Both decoders call this, so a file carrying a palette its color type can
+    never use is refused instead of decoding as if that chunk were absent.
+    """
+    if palette is None or color_type in (2, 3, 6):
+        return
+    raise PngError(
+        f"PNG has a PLTE chunk, but color type {color_type} is greyscale; "
+        "PLTE is prohibited for the greyscale color types 0 and 4"
+    )
 
 
 def check_pixel_limit(width: int, height: int) -> None:
