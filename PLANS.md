@@ -130,4 +130,79 @@ Makefile change is needed.
   colour is introduced.
 - `make check` is green and `tests/invariants.py` accepts the new `## kvantum` row.
 
+### Platinum cursor set, part 2: ship the resize, diagonal, crosshair and not-allowed pointers (planned 2026-10-23 by the plan role; follows the landed cursor set)
+
+**Goal.** The icon theme's `cursors/` covers the arrow, text I-beam, pointing hand, busy hourglass
+and move cross, and README records that resize, diagonal, drag and not-allowed pointers still come
+from the fallback cursor theme. Add the six pointers that make window resizing, precise pointing
+and a forbidden action wear the same Platinum art: `size_hor` (horizontal double arrow),
+`size_ver` (vertical double arrow), `size_fdiag` (NW-SE double arrow), `size_bdiag` (NE-SW double
+arrow), `crosshair` (precision cross) and `not-allowed` (circle-slash). No reference screenshot
+shows a pointer, so the art stays our own black-face/white-outline drawing; the canonical names and
+the alias groups are KDE/X-required and are copied from the installed Breeze theme's own
+byte-identical groups (verified with `md5sum` in `/usr/share/icons/breeze_cursors/cursors`):
+`size_hor` with `e-resize`/`ew-resize`/`w-resize`, `size_ver` with
+`n-resize`/`ns-resize`/`s-resize`, `size_fdiag` with `nw-resize`/`se-resize`, `size_bdiag` with
+`ne-resize`/`sw-resize`, `crosshair` with `cross`/`tcross`, and `not-allowed` with
+`forbidden`/`no-drop`. Drag-and-drop (`dnd-*`), grab, help, progress and zoom pointers stay on the
+fallback theme.
+
+**Approach.**
+- `tools/make_cursors.py`: add six 16x16 grids in the existing `#` face / `.` white / space
+transparent vocabulary, each with hotspot `(7, 7)`, and append their tuples to `CURSORS` (the
+`cursor_bytes`, `NOMINAL_SIZES` and `main` paths need no change):
+  - `SIZE_HOR_GRID` -- solid black left and right arrowheads joined by a black stem on rows 7-8,
+    with a 1px white outline on the outside of every face cell.
+  - `SIZE_VER_GRID` -- `SIZE_HOR_GRID` rotated a quarter turn; `SIZE_BDIAG_GRID` --
+    `SIZE_FDIAG_GRID` mirrored left to right. Write both grids literally so the art is reviewable,
+    and let the tests pin the relationship to their sibling (a wrong orientation fails).
+  - `SIZE_FDIAG_GRID` -- the same double-arrow art along the NW-SE axis, arrowheads at the top-left
+    and bottom-right, hotspot on the shaft.
+  - `CROSSHAIR_GRID` -- a 1px black horizontal arm on row 7 and vertical arm on column 7 crossing at
+    the hotspot, 1px white outline alongside each arm, transparent corners.
+  - `NOT_ALLOWED_GRID` -- a black ring (1-2px, inset one pixel from the canvas edge) with a black
+    NW-SE slash through the centre, a 1px white outline outside the ring and slash, the ring's
+    interior transparent except the slash, transparent corners; (7, 7) is black on the slash.
+  - Update the module docstring: the package ships eleven cursors, not five, and list the new names.
+- `tests/test_cursors_theme.py`: extend `CANONICAL`, `ALIASES`, `HOTSPOTS` (`(7, 7)`, `(11, 11)`,
+  `(14, 14)` at 16/24/32), `PINNED_PIXELS` (one black face and one white outline cell per new glyph)
+  and `TRANSPARENT_CORNER_CURSORS`; the existing `TestCursorSet` loops then cover the new files,
+  aliases and determinism. Add three focused tests:
+  - `test_size_ver_is_the_horizontal_glyph_rotated_a_quarter_turn` and
+    `test_size_bdiag_is_the_forward_diagonal_mirrored`: compare the 16px `render_rgba`
+    results, rotating with destination `(x, y)` read from source `(y, GRID_SIZE - 1 - x)` and
+    mirroring with destination `(x, y)` read from source `(GRID_SIZE - 1 - x, y)`.
+  - `test_crosshair_black_cells_lie_on_the_centre_row_or_column`.
+  - `test_not_allowed_is_a_ring_with_a_slash`: every corner transparent, `(7, 7)` black, and the
+    four cardinal exterior cells (`(7, 0)`, `(7, 15)`, `(0, 7)`, `(15, 7)`) white.
+- Regenerate and commit the artifacts with `python3 tools/make_cursors.py` (deterministic output).
+- `tests/test_icon_theme.py`: add the twenty new X names to `SHIPPED_CURSORS`, so the
+  shipped-file registry and the shared install-lifecycle `INSTALLED_FILES` list include them.
+- `README.md`: in the cursor sentence name the six new pointers and their aliases, and narrow the
+  fallback sentence to drag-and-drop (`dnd-*`), grab, help, progress and zoom pointers.
+- `docs/invariants.md`: extend the `## icons` cursor row to name all eleven canonical files and
+every alias, still citing `tests/test_cursors_theme.py::TestCursorArtifact` and `::TestCursorSet`;
+the provenance exception keeps "no reference screenshot shows the mouse pointer" and adds that the
+six new alias groups mirror Breeze's own byte-identical files.
+- `PLANS.md`: in the scope-drift paragraph, extend the cursor clause to name the resize, diagonal,
+crosshair and not-allowed pointers alongside the five landed ones, and state what still falls back.
+
+**Files touched.** `tools/make_cursors.py`, `tests/test_cursors_theme.py`,
+`tests/test_icon_theme.py`, the new binaries under `theme/icons/org.macos8.desktop/cursors/` (six
+canonical names and fourteen aliases), `README.md`, `docs/invariants.md`, `PLANS.md`.
+
+**Acceptance criteria.**
+- `python3 tools/make_cursors.py` writes the six canonical files and fourteen aliases; running it
+  twice leaves every committed cursor byte-identical, and each new canonical parses to three chunks
+  at nominal sizes 16/24/32 with its pinned hotspot, black face pixel, white outline pixel and
+  transparent corners.
+- Every new alias is byte-identical to its canonical file, and the generator writes exactly the
+  twenty new names into a temp directory.
+- The rotation, mirror and crosshair-geometry tests pass; dropping a glyph or alias, rotating a
+  grid the wrong way or redrawing the crosshair off the centre row/column fails a test.
+- `tests/test_icon_theme.py`'s shipped-file registry and install lifecycle include all twenty new
+  files, README and `docs/invariants.md` name them, and `tests/invariants.py` accepts the updated
+  `## icons` row.
+- `make check` is green.
+
 ## Done
