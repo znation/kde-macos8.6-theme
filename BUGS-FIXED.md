@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An empty `gtk-4.0/gtk.css` is mistaken for a foreign user sheet (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/apply_gtk.py::_user_css_write` treated any existing `gtk.css` whose
+first line is not our marker as a foreign sheet and left it untouched. An
+existing but empty file has no first line, so it took that same branch:
+`make apply-gtk` set `gtk-theme-name` in both settings files and exited 0
+while printing "exists but is not our user CSS; leaving it untouched", so
+libadwaita applications never imported the installed GTK 4 sheet. An empty
+file holds nothing to preserve.
+
+**Reproduce:** create an empty `gtk-4.0/gtk.css` in an empty config home,
+then run `apply_gtk` with both installed sheets present; the file stays empty
+and the exit status is 0.
+
+**Fix:** the marker check now runs only for non-empty content, so an empty
+file is adopted and written with the marker and the sheet's `@import`, exactly
+like an absent file. `tests/test_gtk_apply.py::TestApply::test_empty_user_css_is_adopted`
+failed on the old code and passes now.
+
+**Validation gap:** unclear-invariant — the docstring said a "foreign"
+`gtk.css` is preserved but never stated whether an empty file counts as
+foreign, so the rule that empty content is adoptable was reconstructed and is
+now recorded in docs/invariants.md.
+
 ### `defaults_groups` truncates a value at a Unicode line separator (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/theme_defaults.py`'s `defaults_groups` split the contributor-supplied

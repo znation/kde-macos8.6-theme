@@ -160,12 +160,14 @@ def _user_css_write(
 ) -> tuple[Path, str] | None:
     """Return the ``(path, text)`` user-CSS write, or None to leave it alone.
 
-    A foreign ``gtk.css`` is read and left untouched. The read happens here,
-    before any settings write, so an unreadable file changes nothing.
+    A foreign ``gtk.css`` is read and left untouched. An empty file has no
+    foreign content to preserve, so it is adopted (filled with our marker and
+    import) instead of being mistaken for a foreign sheet. The read happens
+    here, before any settings write, so an unreadable file changes nothing.
     """
     path = _user_css_path(config_home)
     existing = _read_config_text(path)
-    if existing is not None:
+    if existing:
         first = existing.splitlines()
         if not first or first[0] != GTK4_CSS_MARKER:
             _note(f"{path} exists but is not our user CSS; leaving it untouched")

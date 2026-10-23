@@ -176,6 +176,18 @@ class TestApply(GtkApplyCase):
         )
         self.assertFalse(self.settings("gtk-4.0").exists())
 
+    def test_empty_user_css_is_adopted(self):
+        self.install_sheet()
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write_bytes(css, b"")
+        result = self.run_tool()
+        assert_succeeded(self, result)
+        self.assertEqual(
+            f'{apply_gtk.GTK4_CSS_MARKER}\n@import url("{self.sheet.as_uri()}");\n',
+            css.read_text(encoding="utf-8"),
+        )
+        self.assertNotIn("not our user CSS", result.stdout)
+
     def test_foreign_user_css_is_left_byte_identical_with_a_note(self):
         self.install_sheet()
         css = self.config / "gtk-4.0" / "gtk.css"
