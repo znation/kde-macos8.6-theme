@@ -17,6 +17,7 @@ from support.installed_paths import (
     staging_sibling,
 )
 from support.theme_install import (
+    copy_installed_tree,
     install,
     installed_template,
     shadow_command_env,
@@ -89,7 +90,7 @@ class FailedInstallPreservesPackage(InstalledPackageLocation):
         """
         template = installed_template(self, self.MAKE_PACKAGES)
         tmp = str(make_tmp_dir(self))
-        shutil.copytree(template, tmp, dirs_exist_ok=True)
+        copy_installed_tree(template, tmp)
         return (tmp, *self._snapshot(tmp))
 
     def _assert_package_intact(self, installed, metadata, good):

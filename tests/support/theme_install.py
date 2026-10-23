@@ -118,6 +118,44 @@ def installed_template(case, packages):
     return template
 
 
+def _require_no_escaping_symlinks(root):
+    """Refuse a symlink under *root* that resolves outside it.
+
+    An installed package can contain a checked-in symlink: ``make install``'s
+    ``cp -r`` preserves it in the template. Copying that template with
+    ``copytree``'s default ``symlinks=False`` dereferences the link, so a
+    private file or an arbitrary directory named by it lands in the test's
+    DESTDIR (and a FIFO or device would block or stream forever). Each link
+    is therefore resolved before the copy starts, and an escape is refused by
+    name.
+    """
+    root = os.path.abspath(root)
+    for directory, dirnames, filenames in os.walk(root):
+        for name in (*dirnames, *filenames):
+            path = os.path.join(directory, name)
+            if os.path.islink(path) and not containment.resolves_within(
+                root, path
+            ):
+                raise ValueError(
+                    f"{path} resolves outside {root} (a symlink escape); "
+                    "refusing to copy it"
+                )
+
+
+def copy_installed_tree(source, dest):
+    """Copy an installed template into *dest*, refusing an escaping symlink.
+
+    *source* is a tree ``make install`` produced, so it can contain a symlink
+    copied from the package. The copy preserves symlinks as links instead of
+    dereferencing them, and a link that resolves outside *source* is refused
+    before anything is written, so a private file's bytes never enter the
+    test's DESTDIR. An inner link that stays inside *source* is copied as a
+    link.
+    """
+    _require_no_escaping_symlinks(source)
+    shutil.copytree(source, dest, dirs_exist_ok=True, symlinks=True)
+
+
 @contextlib.contextmanager
 def installed_destdir(case, **kwargs):
     """Yield a fresh temporary DESTDIR with `make install` already succeeded.
@@ -138,7 +176,7 @@ def installed_destdir(case, **kwargs):
     with tempfile.TemporaryDirectory() as destdir:
         if set(kwargs) == {"packages"}:
             template = installed_template(case, kwargs["packages"])
-            shutil.copytree(template, destdir, dirs_exist_ok=True)
+            copy_installed_tree(template, destdir)
         else:
             assert_succeeded(case, install(destdir, **kwargs))
         yield destdir

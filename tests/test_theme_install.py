@@ -10,13 +10,14 @@ before the lock is taken. `make check`'s variables live in
 ``test_make_check.py`` and `make help` in ``test_make_help.py``.
 """
 
+import contextlib
 import os
 import tempfile
 import unittest
 import unittest.mock
 from pathlib import Path
 
-from support import installed_paths, repo_root, theme_install
+from support import install_failure_cases, installed_paths, repo_root, theme_install
 from support.symlink_fixtures import symlinked_repo
 from support.install_failure_cases import FailedInstallPreservesPackage
 from support.process_assertions import assert_failed, assert_succeeded
@@ -156,6 +157,60 @@ class TestInstalledDestdirSharing(unittest.TestCase):
                 self.assertTrue((Path(destdir) / "marker").is_file())
         self.assertEqual(2, len(calls))
 
+    def test_an_escaping_template_symlink_is_refused(self):
+        # The template comes from `make install`, whose `cp -r` preserves a
+        # package symlink. Copying it with `copytree`'s default dereferences
+        # the link into the test's DESTDIR, so a private file's bytes enter
+        # the test tree; the copy must refuse the escape before it starts.
+        private = make_tmp_dir(self) / "private"
+        private.write_text("private secret line\n", encoding="utf-8")
+        dest = make_tmp_dir(self) / "dest"
+        dest.mkdir()
+
+        def fake_install(destdir, **kwargs):
+            (Path(destdir) / "leak").symlink_to(private)
+            return self._succeeded()
+
+        with unittest.mock.patch.object(
+            theme_install, "install", fake_install
+        ):
+            with unittest.mock.patch.object(
+                theme_install.tempfile,
+                "TemporaryDirectory",
+                lambda *args, **kwargs: contextlib.nullcontext(str(dest)),
+            ):
+                with self.assertRaises(ValueError) as caught:
+                    with theme_install.installed_destdir(
+                        self, packages="color-scheme"
+                    ):
+                        pass
+        self.assertIn("resolves outside", str(caught.exception))
+        self.assertNotIn("private secret line", str(caught.exception))
+        self.assertEqual(
+            "private secret line\n", private.read_text(encoding="utf-8")
+        )
+        self.assertEqual([], list(dest.iterdir()))
+
+    def test_a_contained_template_symlink_is_copied_as_a_link(self):
+        # `make install`'s `cp -r` also preserves a link whose target stays
+        # inside the package; the copy must keep it a link rather than
+        # dereferencing it into a second copy.
+        def fake_install(destdir, **kwargs):
+            target = Path(destdir) / "target"
+            target.write_text("kept\n", encoding="utf-8")
+            (Path(destdir) / "inside-link").symlink_to("target")
+            return self._succeeded()
+
+        with unittest.mock.patch.object(
+            theme_install, "install", fake_install
+        ):
+            with theme_install.installed_destdir(
+                self, packages="color-scheme"
+            ) as destdir:
+                link = Path(destdir) / "inside-link"
+                self.assertTrue(link.is_symlink())
+                self.assertEqual("target", os.readlink(link))
+
 
 class TestFailedInstallSharing(unittest.TestCase):
     """`FailedInstallPreservesPackage` installs once per class and copies."""
@@ -192,6 +247,40 @@ class TestFailedInstallSharing(unittest.TestCase):
         self.assertNotEqual(first[0], second[0])
         for result in (first, second):
             self.assertTrue((Path(result[0]) / "marker").is_file())
+
+    def test_install_ok_refuses_an_escaping_template_symlink(self):
+        private = make_tmp_dir(self) / "private"
+        private.write_text("private secret line\n", encoding="utf-8")
+        copy_dir = make_tmp_dir(self) / "copy"
+        copy_dir.mkdir()
+
+        def fake_install(destdir, **kwargs):
+            (Path(destdir) / "leak").symlink_to(private)
+            return unittest.mock.Mock(returncode=0, stdout="", stderr="")
+
+        class Case(FailedInstallPreservesPackage, unittest.TestCase):
+            MAKE_PACKAGES = "color-scheme"
+
+            def runTest(self):
+                pass
+
+        case = Case()
+        self.addCleanup(case.doCleanups)
+        self.addCleanup(Case.doClassCleanups)
+        with unittest.mock.patch.object(
+            install_failure_cases, "make_tmp_dir", lambda case: copy_dir
+        ):
+            with unittest.mock.patch.object(
+                theme_install, "install", fake_install
+            ):
+                with self.assertRaises(ValueError) as caught:
+                    case._install_ok()
+        self.assertIn("resolves outside", str(caught.exception))
+        self.assertNotIn("private secret line", str(caught.exception))
+        self.assertEqual(
+            "private secret line\n", private.read_text(encoding="utf-8")
+        )
+        self.assertEqual([], list(copy_dir.iterdir()))
 
 
 class TestWhitespaceInInstallPaths(unittest.TestCase):
