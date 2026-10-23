@@ -79,7 +79,15 @@ def pixel_at(image: Image, x: int, y: int) -> tuple[int, int, int]:
     pixel, while a float, string or ``None`` raised an opaque ``TypeError``
     from the comparison or the RGB index that named neither the coordinate nor
     this function.
+
+    *image* must be an :class:`Image`: anything else would reach
+    ``image.width`` / ``image.rgb`` as an opaque ``AttributeError`` that
+    named neither the argument nor this function.
     """
+    if not isinstance(image, Image):
+        raise ValueError(
+            f"pixel_at image must be an Image, not {type(image).__name__}"
+        )
     for name, value in (("x", x), ("y", y)):
         if not is_plain_int(value):
             raise ValueError(

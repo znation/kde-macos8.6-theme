@@ -136,6 +136,14 @@ class TestPixelAt(unittest.TestCase):
                 value = x if named == "x" else y
                 self.assertIn(f"{named}={value!r}", message)
 
+    def test_rejects_non_image_input(self):
+        for value in (None, "not an image", 42, b"bytes"):
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError) as ctx:
+                    png.pixel_at(value, 0, 0)
+                self.assertIn("must be an Image", str(ctx.exception))
+                self.assertIn(type(value).__name__, str(ctx.exception))
+
     def test_rejects_coordinates_outside_the_image(self):
         # A coordinate outside the image must not be read: the RGB slice would
         # be empty, and an x past the row end would wrap to the next row and
