@@ -17,11 +17,11 @@ from pathlib import Path
 if __package__:
     from tools.atomic_write import write_atomically
     from tools.containment import open_regular_binary, require_within_repo
+    from tools.repo_root import ROOT
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
     from containment import open_regular_binary, require_within_repo
-
-ROOT = Path(__file__).resolve().parents[1]
+    from repo_root import ROOT
 
 DEFAULTS = (
     ROOT

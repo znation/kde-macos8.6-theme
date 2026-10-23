@@ -21,15 +21,16 @@ Usage::
 from __future__ import annotations
 
 import sys
-from pathlib import Path
 
 try:
     from tools.check_references_selftest import run_self_test
     from tools.reference_validation import SOURCES_NAME, check_references
+    from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 except ImportError:  # run directly: python3 tools/check_references.py
     from check_references_selftest import run_self_test
     from reference_validation import SOURCES_NAME, check_references
+    from repo_root import ROOT
     from terminal import escape_controls
 
 REFERENCE_DIR = "macos8.6-screenshots"
@@ -83,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         print(USAGE, end="", file=sys.stderr)
         return 2
 
-    directory = Path(__file__).resolve().parent.parent / REFERENCE_DIR
+    directory = ROOT / REFERENCE_DIR
     problems = check_references(directory)
     if problems:
         for problem in problems:

@@ -26,6 +26,7 @@ if __package__:
     from tools.diagnostics import report_error
     from tools.ints import is_plain_int
     from tools.png import encode_rgba_png
+    from tools.repo_root import ROOT
     from tools.xcursor import write_cursor
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
@@ -34,10 +35,10 @@ else:  # run directly: python3 tools/make_cursors.py
     from diagnostics import report_error
     from ints import is_plain_int
     from png import encode_rgba_png
+    from repo_root import ROOT
     from xcursor import write_cursor
 
 TOOL = "make_cursors"
-ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = Path("theme", "icons", "org.macos8.desktop")
 CURSORS_DIR = "cursors"
 CURSOR_NAMES = ("left_ptr", "arrow", "default", "top_left_arrow")

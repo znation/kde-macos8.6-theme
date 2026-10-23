@@ -31,6 +31,7 @@ if __package__:
     from tools.png import Image, PngError, read_png
     from tools.png.write import encode_png
     from tools.ints import is_plain_int
+    from tools.repo_root import ROOT
 else:  # run directly: python3 tools/make_wallpaper.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_atomically
@@ -39,9 +40,9 @@ else:  # run directly: python3 tools/make_wallpaper.py
     from png import Image, PngError, read_png
     from png.write import encode_png
     from ints import is_plain_int
+    from repo_root import ROOT
 
 TOOL = "make_wallpaper"
-ROOT = Path(__file__).resolve().parents[1]
 REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"
 TILE_ORIGIN = (0, 128)
 TILE_SIZE = 128

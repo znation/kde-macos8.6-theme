@@ -24,18 +24,17 @@ from pathlib import Path
 if __package__:
     from tools.containment import require_within_repo, resolves_within
     from tools.image_format import LFS_POINTER_MAGIC, is_image
+    from tools.repo_root import ROOT
     from tools.terminal import escape_controls
     from tools.url_check import url_problem
 else:  # imported from a directly run tool
     from containment import require_within_repo, resolves_within
     from image_format import LFS_POINTER_MAGIC, is_image
+    from repo_root import ROOT
     from terminal import escape_controls
     from url_check import url_problem
 
 SOURCES_NAME = "sources.txt"
-# The repository the reference set belongs to. The reference directory is a
-# repository path, so its own containment is measured against this root.
-ROOT = Path(__file__).resolve().parents[1]
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".gif", ".webp"})
 SEPARATOR = " | "
 # The provenance record is contributor-supplied, so a checked-in (or LFS-

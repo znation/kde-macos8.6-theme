@@ -33,15 +33,16 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_failure, report_missing_tool
     from tools.process_group import exit_on_termination, run_logged
+    from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_failure, report_missing_tool
     from process_group import exit_on_termination, run_logged
+    from repo_root import ROOT
     from terminal import escape_controls
 
 TOOL = "apply_theme"
-ROOT = Path(__file__).resolve().parents[1]
 LNF_ID = "org.macos8.desktop"
 DTHEME_ID = "org.macos8.desktop"
 COLOR_SCHEME = "MacOS8"

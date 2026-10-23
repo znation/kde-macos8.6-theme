@@ -45,6 +45,7 @@ if __package__:
     from tools.png import PngError, read_png
     from tools.process_group import exit_on_termination, run_logged
     from tools.render_output import output_problem, publish
+    from tools.repo_root import ROOT
     from tools.theme_defaults import write_configs
 else:  # run directly: python3 tools/render_surface.py
     from argument_parsing import (
@@ -60,10 +61,10 @@ else:  # run directly: python3 tools/render_surface.py
     from png import PngError, read_png
     from process_group import exit_on_termination, run_logged
     from render_output import output_problem, publish
+    from repo_root import ROOT
     from theme_defaults import write_configs
 
 TOOL = "render_surface"
-ROOT = Path(__file__).resolve().parents[1]
 REQUIRED_TOOLS = (
     "make",
     "dbus-run-session",
