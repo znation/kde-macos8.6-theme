@@ -138,6 +138,22 @@ def greyscale_rgba(grey: bytes, key: int | None) -> bytes:
     return bytes(out)
 
 
+# Alpha for a whole-pixel tRNS key match: index 0 is an opaque pixel, index 1
+# a matching (transparent) one.
+_MATCH_ALPHA = bytes(0 if value == 1 else 255 for value in range(256))
+# Marking dense key matches by scanning each channel is cheaper than one
+# Python ``find`` per occurrence once a match falls in every 32 pixels; below
+# that the per-occurrence loop wins.
+_DENSE_MATCHES_PER_PIXEL = 32
+
+
+def _match_table(value: int) -> bytes:
+    """Return a translation table with 1 at *value* and 0 at every other byte."""
+    table = bytearray(256)
+    table[value] = 1
+    return bytes(table)
+
+
 def truecolor_rgba(rgb: bytes, key: tuple[int, ...] | None) -> bytes:
     """Expand truecolor *rgb* to RGBA, transparent where a pixel equals *key*."""
     pixels = len(rgb) // 3
@@ -145,6 +161,26 @@ def truecolor_rgba(rgb: bytes, key: tuple[int, ...] | None) -> bytes:
         # A 16-bit sample above 255 cannot equal an 8-bit pixel value.
         return _interleave_alpha(rgb, b"\xff" * pixels)
     key_bytes = bytes(key)
+    occurrences = rgb.count(key_bytes)
+    if occurrences == 0:
+        return _interleave_alpha(rgb, b"\xff" * pixels)
+    if occurrences * _DENSE_MATCHES_PER_PIXEL >= pixels:
+        # Three C-level ``translate`` passes mark each channel's key bytes, a
+        # big-integer AND keeps the lanes where all three match, and one more
+        # ``translate`` turns those lanes into alpha. The per-occurrence
+        # ``find`` loop below is one Python iteration per match, which
+        # dominated an image whose tRNS key fills most of the frame.
+        match = int.from_bytes(
+            rgb[0::3].translate(_match_table(key[0])), "little"
+        )
+        match &= int.from_bytes(
+            rgb[1::3].translate(_match_table(key[1])), "little"
+        )
+        match &= int.from_bytes(
+            rgb[2::3].translate(_match_table(key[2])), "little"
+        )
+        alpha = match.to_bytes(pixels, "little").translate(_MATCH_ALPHA)
+        return _interleave_alpha(rgb, alpha)
     alpha = bytearray(b"\xff" * pixels)
     start = 0
     while True:

@@ -234,6 +234,57 @@ class TestRgbaPng(unittest.TestCase):
         )
         self.assertEqual(png.decode_rgba(high), opaque)
 
+    def test_dense_truecolor_trns_key_marks_every_matching_pixel(self):
+        # Three key pixels in every four take the bulk-match path, so this
+        # pins its alpha against the same whole-pixel rule the sparse path
+        # applies.
+        width = height = 64
+        key = bytes([1, 2, 3])
+        other = bytes([4, 5, 6])
+        rows = []
+        expected = bytearray()
+        for y in range(height):
+            row = bytearray()
+            for x in range(width):
+                if (x + y) % 4 == 0:
+                    row += other
+                    expected += other + b"\xff"
+                else:
+                    row += key
+                    expected += key + b"\x00"
+            rows.append(bytes(row))
+        blob = make_png(
+            width,
+            height,
+            rows,
+            color_type=2,
+            trns=struct.pack(">HHH", 1, 2, 3),
+        )
+        self.assertEqual(
+            png.decode_rgba(blob), (width, height, bytes(expected))
+        )
+
+    def test_sparse_truecolor_trns_key_marks_only_its_pixel(self):
+        # One match in a 64-pixel row stays under the bulk-match threshold.
+        width = 64
+        key = bytes([1, 2, 3])
+        other = bytes([4, 5, 6])
+        row = key + other * (width - 1)
+        blob = make_png(
+            width, 1, [row], color_type=2, trns=struct.pack(">HHH", 1, 2, 3)
+        )
+        expected = key + b"\x00" + (other + b"\xff") * (width - 1)
+        self.assertEqual(png.decode_rgba(blob), (width, 1, expected))
+
+    def test_absent_truecolor_trns_key_leaves_every_pixel_opaque(self):
+        row = bytes([4, 5, 6]) * 64
+        blob = make_png(
+            64, 1, [row], color_type=2, trns=struct.pack(">HHH", 1, 2, 3)
+        )
+        self.assertEqual(
+            png.decode_rgba(blob), (64, 1, bytes([4, 5, 6, 255]) * 64)
+        )
+
     def test_malformed_trns_length_rejected(self):
         grey = make_png(
             1, 1, [bytes([7])], color_type=0, trns=b"\x00\x07\x00"
