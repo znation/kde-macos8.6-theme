@@ -14,8 +14,8 @@ initial prompt asks for
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
 (startup splash, desktop layout, defaults); the desktop theme (twenty-five widget SVGs under
 `widgets/`, including the `widgets/margins-highlight.svg` panel edit-mode margin highlight,
-plus `dialogs/background.svg`; the panel resize and slider handles in
-`widgets/containment-controls.svg` still come from the default theme); the Aurorae window decoration (frame, close, zoom and
+plus `dialogs/background.svg`; the panel resize and slider handles still come
+from the default theme); the Aurorae window decoration (frame, close, zoom and
 collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon theme (our own
 final, non-infringing 32x32 Platinum-style art for the desktop's hard-disk, folder, document,
 Trash and full-Trash icons, plus the menu bar's kicker logo `start-here-kde-symbolic` and the
