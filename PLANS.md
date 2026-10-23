@@ -265,4 +265,55 @@ and the scope-drift sentence). Do not edit `PLANS-DONE.md`, `Makefile`, `.gitatt
   `## Planned` and `## Done`. No acceptance criterion refers to `PLANS.md` or `PLANS-DONE.md` after
   the merge.
 
+### Retire the `unclear-invariant` validation gap with an invariant-register ledger (planned 2026-10-23 by the steward role; promotes the recurring `gap: unclear-invariant` tag, 17 Fixed entries)
+
+**Goal.** Seventeen Fixed entries in BUGS-FIXED.md carry `gap: unclear-invariant` — each bug
+could be confirmed only after reconstructing what the code was supposed to guarantee first.
+`docs/invariants.md` already has rows for the KDE INI rules, the PNG IDAT trailer, the
+`INSTALL_PACKAGES` guard, the icon theme, the palette anchors and the fidelity gate, but it has
+no row for `tools/url_check.py`'s RFC 3986 rules, the render session's config-search-path
+isolation or the lineedit corner tiles, and nothing ties an archived record to its register row.
+Retire the tag with a ledger that maps each record to the register row and the test that pins
+it, and a count cap so a new `unclear-invariant` tag fails the suite until its invariant is
+recorded.
+
+**Cited entries.** BUGS-FIXED.md lines recording `gap: unclear-invariant` (17 entries): the PNG
+IDAT-trailer invariant, three KDE config-reader rules, the render session's `XDG_CONFIG_DIRS`
+isolation, the lineedit corner geometry, the eight `tools/url_check.py` RFC 3986 cases, and the
+three older one-line records (icon-theme placeholder naming, the selection palette anchor and
+the objective fidelity check).
+
+**Approach.**
+- `tests/support/validation_gaps.py`: add `UNCLEAR_INVARIANT_BASELINE = 17` and one
+  `UNCLEAR_INVARIANT_REPRODUCTIONS` entry per mechanism, matching both the prose and the older
+  one-line record forms. Give each entry the register row's guarantee text in addition to its
+  test reference, and add an `unclear_invariant(records)` selector plus a tag-aware lookup that
+  returns `None` for an unmatched record, mirroring the `no-observability` ledger without
+  changing its entries.
+- `tests/test_validation_gaps.py`: add `TestUnclearInvariantLedger` asserting that every
+  archived `unclear-invariant` record maps to an entry; that each entry's test reference passes
+  `tests/invariants.check_reference`; that each entry's guarantee text occurs in a row
+  `tests/invariants.parse_rows` returns from `docs/invariants.md`; that each entry covers a
+  shipped record; and that the record count does not exceed 17.
+- `docs/invariants.md`: add the three missing tooling rows — `tools/url_check.py`'s RFC 3986
+  well-formedness pinned to `tests/test_url_check.py`, the render session's
+  `XDG_CONFIG_DIRS` isolation pinned to
+  `tests/test_render_surface.py::TestFailurePaths::test_session_ignores_a_config_search_path_from_the_environment`,
+  and the lineedit corner tiles pinned to
+  `tests/test_desktoptheme_lineedit.py::TestLineEditReference::test_corners_match_the_reference`
+  — and extend the existing validation-gap ledger row to name both tags.
+- `PLANS.md`: this entry moves under `## Done` when the work is done.
+
+**Files touched.** `tests/support/validation_gaps.py`, `tests/test_validation_gaps.py`,
+`docs/invariants.md` and `PLANS.md` (this entry). Do not edit `PLANS-DONE.md` or any `theme/`
+path; the invariants are already recorded, so no shipped artwork or config changes.
+
+**Acceptance criteria.**
+- `tests/test_validation_gaps.py::TestUnclearInvariantLedger` passes, and deleting a ledger
+  entry, pointing one at an absent register row or a non-existent test, or adding an
+  `unclear-invariant` record without an entry makes the matching assertion fail.
+- `make check` is green; `tests/invariants.py` accepts the new and extended `## tooling` rows.
+- `git diff --name-status` names only the files listed under "Files touched" and does not name
+  `PLANS-DONE.md`; `grep -n '^## ' PLANS.md` prints exactly `## Planned` and `## Done`.
+
 ## Done
