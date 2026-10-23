@@ -1,4 +1,4 @@
-"""Tests for tools/install_firefox.py and the Firefox profile targets.
+"""Tests for the Firefox profile install and its two helper modules.
 
 The tool runs in-process with ``HOME`` pointed at a temp root, so profile
 resolution, the sheet copy, the ``user.js`` edit and the removal are pinned
@@ -16,7 +16,7 @@ from support import containment
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
 from support.tmp_dir import make_tmp_dir
-from tools import install_firefox
+from tools import firefox_profile, firefox_user_js, install_firefox
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 
@@ -41,7 +41,7 @@ class ProfileCase(unittest.TestCase):
     def resolve(self, explicit=None, env=None):
         if env is None:
             env = {"HOME": str(self.home)}
-        return install_firefox.resolve_profile(explicit, env)
+        return firefox_profile.resolve_profile(explicit, env)
 
     @property
     def firefox_root(self):
@@ -59,18 +59,18 @@ class TestProfileResolution(ProfileCase):
         )
 
     def test_relative_named_profile_is_refused(self):
-        with self.assertRaises(install_firefox.ConfigError) as caught:
+        with self.assertRaises(firefox_profile.ConfigError) as caught:
             self.resolve("profile")
         self.assertIn("absolute", str(caught.exception))
 
     def test_missing_named_profile_is_refused(self):
         missing = self.root / "missing"
-        with self.assertRaises(install_firefox.ConfigError) as caught:
+        with self.assertRaises(firefox_profile.ConfigError) as caught:
             self.resolve(str(missing))
         self.assertIn(str(missing), str(caught.exception))
 
     def test_unusable_home_is_refused(self):
-        with self.assertRaises(install_firefox.ConfigError) as caught:
+        with self.assertRaises(firefox_profile.ConfigError) as caught:
             self.resolve(None, {"HOME": "relative/home"})
         self.assertIn("HOME", str(caught.exception))
 
@@ -176,7 +176,7 @@ class TestProfileResolution(ProfileCase):
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"
         profiles.write_text("Profiles/onlydefault\n", encoding="utf-8")
-        with self.assertRaises(install_firefox.ConfigError) as caught:
+        with self.assertRaises(firefox_profile.ConfigError) as caught:
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
@@ -186,7 +186,7 @@ class TestProfileResolution(ProfileCase):
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"
         profiles.write_bytes(b"[Profile0]\nPath=\xff\n")
-        with self.assertRaises(install_firefox.ConfigError) as caught:
+        with self.assertRaises(firefox_profile.ConfigError) as caught:
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
@@ -196,7 +196,7 @@ class TestProfileResolution(ProfileCase):
             self.firefox_root / "profiles.ini",
             "[Profile0]\nPath=absent\n",
         )
-        with self.assertRaises(install_firefox.ConfigError) as caught:
+        with self.assertRaises(firefox_profile.ConfigError) as caught:
             self.resolve()
         message = str(caught.exception)
         self.assertIn(str(self.firefox_root), message)
@@ -211,11 +211,11 @@ class TestUserJs(unittest.TestCase):
         )
         self.assertEqual(
             "// org.macos8.desktop Firefox Platinum userChrome",
-            install_firefox.USER_JS_MARKER,
+            firefox_user_js.USER_JS_MARKER,
         )
         self.assertEqual(
             'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);',
-            install_firefox.PREF_LINE,
+            firefox_user_js.PREF_LINE,
         )
         first_line = containment.read_bytes(SHEET_PATH, repo_root.ROOT).decode(
             "utf-8"
@@ -224,18 +224,18 @@ class TestUserJs(unittest.TestCase):
 
     def test_new_file_gets_one_marker_and_pref_block(self):
         self.assertEqual(
-            install_firefox.USER_JS_MARKER
+            firefox_user_js.USER_JS_MARKER
             + "\n"
-            + install_firefox.PREF_LINE
+            + firefox_user_js.PREF_LINE
             + "\n",
-            install_firefox.set_user_js(""),
+            firefox_user_js.set_user_js(""),
         )
 
     def test_repeat_install_leaves_exactly_one_block(self):
-        once = install_firefox.set_user_js("")
-        self.assertEqual(once, install_firefox.set_user_js(once))
-        self.assertEqual(1, once.count(install_firefox.USER_JS_MARKER))
-        self.assertEqual(1, once.count(install_firefox.PREF_LINE))
+        once = firefox_user_js.set_user_js("")
+        self.assertEqual(once, firefox_user_js.set_user_js(once))
+        self.assertEqual(1, once.count(firefox_user_js.USER_JS_MARKER))
+        self.assertEqual(1, once.count(firefox_user_js.PREF_LINE))
 
     def test_foreign_lines_keep_their_crlf_and_terminated_last_line(self):
         foreign = (
@@ -245,23 +245,23 @@ class TestUserJs(unittest.TestCase):
         self.assertEqual(
             foreign
             + "\r\n"
-            + install_firefox.USER_JS_MARKER
+            + firefox_user_js.USER_JS_MARKER
             + "\r\n"
-            + install_firefox.PREF_LINE
+            + firefox_user_js.PREF_LINE
             + "\r\n",
-            install_firefox.set_user_js(foreign),
+            firefox_user_js.set_user_js(foreign),
         )
 
     def test_foreign_setting_of_the_same_pref_survives_before_our_line(self):
-        foreign = install_firefox.PREF_LINE + "\n"
-        updated = install_firefox.set_user_js(foreign)
-        self.assertEqual(2, updated.count(install_firefox.PREF_LINE))
+        foreign = firefox_user_js.PREF_LINE + "\n"
+        updated = firefox_user_js.set_user_js(foreign)
+        self.assertEqual(2, updated.count(firefox_user_js.PREF_LINE))
         self.assertTrue(updated.startswith(foreign))
         self.assertTrue(
             updated.endswith(
-                install_firefox.USER_JS_MARKER
+                firefox_user_js.USER_JS_MARKER
                 + "\n"
-                + install_firefox.PREF_LINE
+                + firefox_user_js.PREF_LINE
                 + "\n"
             )
         )
@@ -270,33 +270,33 @@ class TestUserJs(unittest.TestCase):
         foreign = 'user_pref("a", 1);\n'
         text = (
             foreign
-            + install_firefox.USER_JS_MARKER
+            + firefox_user_js.USER_JS_MARKER
             + "\n"
-            + install_firefox.PREF_LINE
+            + firefox_user_js.PREF_LINE
             + "\n"
         )
-        self.assertEqual(foreign, install_firefox.remove_user_js(text))
+        self.assertEqual(foreign, firefox_user_js.remove_user_js(text))
 
     def test_remove_leaves_a_foreign_pref_and_missing_final_newline(self):
-        foreign = install_firefox.PREF_LINE + "\nuser_pref(\"last\", 1);"
-        self.assertEqual(foreign, install_firefox.remove_user_js(foreign))
+        foreign = firefox_user_js.PREF_LINE + "\nuser_pref(\"last\", 1);"
+        self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
         self.assertEqual(
             'user_pref("last", 1);',
-            install_firefox.remove_user_js('user_pref("last", 1);'),
+            firefox_user_js.remove_user_js('user_pref("last", 1);'),
         )
 
     def test_remove_is_repeatable_and_keeps_crlf(self):
         foreign = 'user_pref("a", 1);\r\n'
         text = (
             foreign
-            + install_firefox.USER_JS_MARKER
+            + firefox_user_js.USER_JS_MARKER
             + "\r\n"
-            + install_firefox.PREF_LINE
+            + firefox_user_js.PREF_LINE
             + "\r\n"
         )
-        once = install_firefox.remove_user_js(text)
+        once = firefox_user_js.remove_user_js(text)
         self.assertEqual(foreign, once)
-        self.assertEqual(once, install_firefox.remove_user_js(once))
+        self.assertEqual(once, firefox_user_js.remove_user_js(once))
 
 
 class TestInstall(ProfileCase):
@@ -321,13 +321,13 @@ class TestInstall(ProfileCase):
         )
         user_js = _read(self.user_js_path())
         self.assertEqual(
-            install_firefox.USER_JS_MARKER
+            firefox_user_js.USER_JS_MARKER
             + "\n"
-            + install_firefox.PREF_LINE
+            + firefox_user_js.PREF_LINE
             + "\n",
             user_js,
         )
-        self.assertEqual(1, user_js.count(install_firefox.USER_JS_MARKER))
+        self.assertEqual(1, user_js.count(firefox_user_js.USER_JS_MARKER))
 
     def test_environment_profile_is_used_by_the_target(self):
         result = self.run_tool(
@@ -427,7 +427,7 @@ class TestRemove(ProfileCase):
 
     def test_remove_keeps_a_foreign_sheet_and_foreign_pref(self):
         foreign_sheet = "/* my own chrome */\n"
-        foreign_js = 'user_pref("tabs", 0);\r\n' + install_firefox.PREF_LINE + "\r\n"
+        foreign_js = 'user_pref("tabs", 0);\r\n' + firefox_user_js.PREF_LINE + "\r\n"
         _write(self.sheet_path(), foreign_sheet)
         _write(self.user_js_path(), foreign_js)
         result = self.run_tool("--remove", "--profile", str(self.profile))
@@ -444,7 +444,7 @@ class TestRemove(ProfileCase):
         self.install()
         installed = _read(self.user_js_path())
         self.assertTrue(installed.startswith(foreign + "\r\n"))
-        self.assertEqual(1, installed.count(install_firefox.USER_JS_MARKER))
+        self.assertEqual(1, installed.count(firefox_user_js.USER_JS_MARKER))
         result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(foreign + "\r\n", _read(self.user_js_path()))
