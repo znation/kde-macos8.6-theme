@@ -183,6 +183,20 @@ class TestRgbaPng(unittest.TestCase):
             needles=("index 5", "1 entry"),
         )
 
+    def test_palette_without_plte_is_rejected(self):
+        # decode_rgba expands a color-type-3 image through its own palette
+        # branch, which no decode_png test reaches. Without the explicit
+        # guard, a PLTE-less palette PNG would hand None to palette_rgba and
+        # raise a TypeError instead of the decoder's PngError.
+        blob = make_png(1, 1, [bytes([0])], color_type=3, palette=None)
+        assert_error_names(
+            self,
+            png.PngError,
+            png.decode_rgba,
+            blob,
+            needles=("no PLTE",),
+        )
+
     def test_palette_trns_sets_alpha(self):
         palette = bytes([10, 20, 30, 40, 50, 60])
         blob = make_png(
