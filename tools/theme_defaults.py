@@ -160,6 +160,7 @@ def _write_config_atomically(path: Path, content: str) -> None:
         dir=path.parent, prefix=f".{path.name}-", suffix=".tmp"
     )
     partial = Path(partial_name)
+    descriptor_closed = False
     try:
         if path.exists():
             mode = path.stat().st_mode & 0o777
@@ -169,9 +170,12 @@ def _write_config_atomically(path: Path, content: str) -> None:
             mode = 0o666 & ~previous_umask
         os.chmod(partial, mode)
         with os.fdopen(descriptor, "w", encoding="utf-8") as destination:
+            descriptor_closed = True
             destination.write(content)
         os.replace(partial, path)
     except BaseException:
+        if not descriptor_closed:
+            os.close(descriptor)
         partial.unlink(missing_ok=True)
         raise
 
