@@ -89,5 +89,31 @@ class TestPublishFdopen(unittest.TestCase):
         self.assertEqual(1, len(closed))
 
 
+class TestOutputProblemTypeGuard(unittest.TestCase):
+    def test_non_path_output_raises_naming_type(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^output_problem\(\) requires a pathlib\.Path: output must be Path, "
+            r"not int$",
+        ):
+            render_output.output_problem(42)
+
+
+class TestPublishTypeGuards(unittest.TestCase):
+    def test_non_path_source_raises_naming_type(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^publish\(\) requires pathlib\.Path: source must be Path, not str$",
+        ):
+            render_output.publish("not-a-path", Path("/tmp/x"))
+
+    def test_non_path_output_raises_naming_type(self):
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^publish\(\) requires pathlib\.Path: output must be Path, not int$",
+        ):
+            render_output.publish(Path("/tmp/x"), 42)
+
+
 if __name__ == "__main__":
     unittest.main()

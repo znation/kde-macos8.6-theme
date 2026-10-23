@@ -18,6 +18,11 @@ from pathlib import Path
 
 def output_problem(output: Path) -> str | None:
     """Return why *output* cannot be written, or None when it looks writable."""
+    if not isinstance(output, Path):
+        raise ValueError(
+            f"output_problem() requires a pathlib.Path: output must be Path, "
+            f"not {type(output).__name__}"
+        )
     if output.is_dir():
         return "is a directory"
     if not output.parent.is_dir():
@@ -36,6 +41,16 @@ def publish(source: Path, output: Path) -> None:
     park a symlink there first and make the copy overwrite whatever file it
     names.
     """
+    if not isinstance(source, Path):
+        raise ValueError(
+            f"publish() requires pathlib.Path: source must be Path, "
+            f"not {type(source).__name__}"
+        )
+    if not isinstance(output, Path):
+        raise ValueError(
+            f"publish() requires pathlib.Path: output must be Path, "
+            f"not {type(output).__name__}"
+        )
     descriptor, partial_name = tempfile.mkstemp(
         dir=output.parent, prefix=".render-", suffix=".tmp"
     )
