@@ -17,8 +17,9 @@ initial prompt asks for
 collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon theme (our own
 final, non-infringing 32x32 Platinum-style art for the desktop's hard-disk, folder, document,
 Trash and full-Trash icons, plus the menu bar's kicker logo `start-here-kde-symbolic` and the
-`go-next-symbolic` submenu arrow, our own marks rather than Apple's; `PLACEHOLDERS.md` is empty);
-the `org.macos8.desktop` Kvantum widget style (Platinum palette and core-control art); the
+`go-next-symbolic` submenu arrow, our own marks rather than Apple's;
+`PLACEHOLDERS.md` records no remaining placeholders); the `org.macos8.desktop` Kvantum widget
+style (Platinum palette and core-control art); the
 `org.macos8.desktop` Lato font package (Lato Regular and Bold, the Debian copyright file
 carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by `make install`,
 and the global theme selects its `Lato` family for the general, menu, toolbar, smallest-readable
@@ -27,7 +28,7 @@ Platinum stylesheets under `theme/gtk/` (installed by the opt-in `install-gtk` t
 selected by `apply-gtk`; `make install` copies no GTK files); and the render and fidelity tooling
 that checks them against `macos8.6-screenshots/`. README.md describes the reference set as the
 source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
-prompt's surfaces the theme does not ship are each tracked here (updated 2026-10-21 by the
+prompt's surfaces and their status are each tracked here (updated 2026-10-21 by the
 steward role): a **Qt widget style** for KDE applications (the desktop theme styles only
 Plasma shell widgets, so a KDE app's own buttons, menus and scroll bars would keep the Breeze look) is served
 by the global theme's selection of our Kvantum theme: the user answered
