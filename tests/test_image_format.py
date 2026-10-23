@@ -99,5 +99,17 @@ class TestOtherImageFormat(unittest.TestCase):
         self.assertIsNone(image_format.other_image_format(b""))
 
 
+
+
+class TestRejectsNonBytesInput(unittest.TestCase):
+    def test_each_detector_rejects_non_bytes_with_valueerror(self):
+        for func in (image_format.is_webp, image_format.is_image,
+                     image_format.other_image_format):
+            for bad in ("str", [1, 2], memoryview(b"abc"), 42, None):
+                with self.subTest(func=func.__name__, bad=bad):
+                    with self.assertRaises(ValueError) as ctx:
+                        func(bad)
+                    self.assertIn(type(bad).__name__, str(ctx.exception))
+
 if __name__ == "__main__":
     unittest.main()

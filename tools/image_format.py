@@ -32,6 +32,11 @@ _WEBP_FOURCC = b"WEBP"
 
 def is_webp(data: bytes) -> bool:
     """Return True when *data* begins with the RIFF/WEBP container signature."""
+    if not isinstance(data, (bytes, bytearray)):
+        raise ValueError(
+            f"is_webp data must be bytes or bytearray, not "
+            f"{type(data).__name__}"
+        )
     return data[:4] == _RIFF_MAGIC and data[8:12] == _WEBP_FOURCC
 
 
@@ -41,6 +46,11 @@ def is_image(data: bytes) -> bool:
     PNG, JPEG, GIF and WebP are recognized; only the leading bytes decide,
     never a file extension.
     """
+    if not isinstance(data, (bytes, bytearray)):
+        raise ValueError(
+            f"is_image data must be bytes or bytearray, not "
+            f"{type(data).__name__}"
+        )
     return any(data.startswith(magic) for magic in IMAGE_MAGICS) or is_webp(data)
 
 
@@ -51,6 +61,11 @@ def other_image_format(data: bytes) -> str | None:
     so a decode failure can say which wrong file was passed instead of only
     "not a PNG file".
     """
+    if not isinstance(data, (bytes, bytearray)):
+        raise ValueError(
+            f"other_image_format data must be bytes or bytearray, not "
+            f"{type(data).__name__}"
+        )
     if data.startswith(JPEG_MAGIC):
         return "JPEG"
     if any(data.startswith(magic) for magic in GIF_MAGICS):
