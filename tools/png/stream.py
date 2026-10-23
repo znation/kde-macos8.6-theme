@@ -2,10 +2,12 @@
 
 Turns a PNG's chunk stream into the pieces the decoders and the size-only file
 reader need: the validated IHDR payload, the optional PLTE palette, the
-concatenated IDAT image data and the optional tRNS transparency payload. It
-refuses a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
-chunk after the image data, a tRNS chunk the header's color type or palette
-cannot carry, a PLTE chunk on a greyscale color type, non-consecutive IDAT
+concatenated IDAT image data, the optional tRNS transparency payload and
+whether that tRNS came before any PLTE chunk. It refuses a misordered or
+duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS chunk after the image
+data, a tRNS chunk the header's color type or palette cannot carry, a tRNS
+chunk before the PLTE a palette image indexes, a PLTE chunk on a greyscale
+color type, non-consecutive IDAT
 chunks, a malformed PLTE
 length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
 missing IHDR, so
@@ -114,7 +116,10 @@ _TRNS_SAMPLE_LENGTHS = {0: 2, 2: 6}
 
 
 def check_trns(
-    trns: bytes | None, color_type: int, palette: bytes | None
+    trns: bytes | None,
+    color_type: int,
+    palette: bytes | None,
+    trns_before_plte: bool = False,
 ) -> None:
     """Refuse a *trns* payload the header's color type and palette cannot carry.
 
@@ -122,9 +127,10 @@ def check_trns(
     (3) images: color types 4 and 6 carry an alpha channel in every pixel, so
     a tRNS chunk there has no meaning. A greyscale tRNS names one 16-bit
     sample, a truecolor one three, and a palette tRNS one alpha byte for each
-    of its first palette entries. Both decoders call this, so the RGB path
-    refuses the same malformed transparency the RGBA path would even though it
-    discards alpha.
+    of its first palette entries. A palette tRNS must also follow the PLTE
+    chunk it gives alpha to; *trns_before_plte* records that the stream put it
+    earlier. Both decoders call this, so the RGB path refuses the same
+    malformed transparency the RGBA path would even though it discards alpha.
     """
     if trns is None:
         return
@@ -139,6 +145,11 @@ def check_trns(
             # The decoder names the missing PLTE chunk; a tRNS length cannot
             # be judged until the palette that bounds it is present.
             return
+        if trns_before_plte:
+            raise PngError(
+                "PNG has a tRNS chunk before its PLTE chunk; a palette "
+                "PNG's transparency must follow the palette it indexes"
+            )
         entries = len(palette) // 3
         if not 1 <= len(trns) <= entries:
             raise PngError(
@@ -217,13 +228,15 @@ def _take_plte(payload: bytes) -> bytes:
 
 def collect_chunks(
     data: bytes,
-) -> tuple[bytes, bytes | None, bytearray, bytes | None]:
-    """Return ``(header, palette, idat, trns)`` from *data*'s chunk stream.
+) -> tuple[bytes, bytes | None, bytearray, bytes | None, bool]:
+    """Return ``(header, palette, idat, trns, trns_before_plte)``.
 
     Walks the chunks after the signature, collecting the image header, palette,
-    IDAT payloads and the optional tRNS transparency payload. It refuses a
-    misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS chunk
-    after the image data, non-consecutive IDAT chunks, a malformed PLTE
+    IDAT payloads, the optional tRNS transparency payload and whether that
+    tRNS appeared before any PLTE chunk (an ordering only a palette image
+    forbids, so the color-type check stays in :func:`check_trns`). It refuses
+    a misordered or duplicate IHDR, duplicate PLTE or tRNS, a PLTE or tRNS
+    chunk after the image data, non-consecutive IDAT chunks, a malformed PLTE
     length, an unknown critical chunk, a chunk after IEND, a missing IEND and a
     missing IHDR.
     Filtering and colour expansion are the decoders' concern; this helper owns
@@ -232,6 +245,7 @@ def collect_chunks(
     header = None
     palette = None
     trns = None
+    trns_before_plte = False
     idat = bytearray()
     saw_idat = False
     idat_closed = False
@@ -304,6 +318,12 @@ def collect_chunks(
                     "must appear at most once"
                 )
             trns = payload
+            if palette is None:
+                # Record the ordering, not a verdict: tRNS before PLTE is
+                # legal for a truecolor suggested palette and illegal only for
+                # a palette image, which :func:`check_trns` decides once the
+                # header names its color type.
+                trns_before_plte = True
             continue
         if ctype == b"IEND":
             # Keep iterating rather than breaking so a chunk after IEND is
@@ -331,4 +351,4 @@ def collect_chunks(
         raise PngError(
             "PNG has no IEND chunk (the chunk stream may be truncated)"
         )
-    return header, palette, idat, trns
+    return header, palette, idat, trns, trns_before_plte

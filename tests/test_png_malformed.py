@@ -301,6 +301,46 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
             needles=("tRNS chunk has 3 bytes", "needs 1 to 2"),
         )
 
+    def test_palette_trns_before_plte_is_refused(self):
+        # The PNG spec requires a color type 3 image's tRNS chunk to follow
+        # the PLTE chunk whose entries it gives alpha. The chunk collector
+        # used to accept the two payloads independently, so a file that gave
+        # transparency to a palette appearing later still decoded.
+        blob = (
+            _PNG_SIGNATURE
+            + ihdr_chunk(1, 1, 3)
+            + _chunk(b"tRNS", bytes([0, 128]))
+            + _chunk(b"PLTE", bytes([255, 0, 0, 0, 255, 0]))
+            + _chunk(b"IDAT", zlib.compress(bytes([0, 0])))
+            + _chunk(b"IEND", b"")
+        )
+        for decoder in (png.decode_png, png.decode_rgba):
+            with self.subTest(decoder=decoder.__name__):
+                assert_error_names(
+                    self,
+                    png.PngError,
+                    decoder,
+                    blob,
+                    needles=("tRNS chunk before", "PLTE chunk", "follow"),
+                )
+
+    def test_palette_trns_without_any_plte_still_names_the_missing_palette(
+        self,
+    ):
+        # An ordering guard must not swallow the diagnosis for a color type 3
+        # image that has no palette at all: there is no PLTE for its tRNS to
+        # precede, so the missing-palette error must still win.
+        blob = make_png(1, 1, [bytes([0])], color_type=3, trns=b"\x00")
+        for decoder in (png.decode_png, png.decode_rgba):
+            with self.subTest(decoder=decoder.__name__):
+                assert_error_names(
+                    self,
+                    png.PngError,
+                    decoder,
+                    blob,
+                    needles=("palette PNG has no PLTE chunk",),
+                )
+
     def test_valid_trns_still_decodes_as_rgb(self):
         # The new check must not reject the valid chunk the RGB path discards:
         # a conformant tRNS is still part of a decodable file.

@@ -5,6 +5,21 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A palette image with tRNS before PLTE is accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+The PNG specification requires a `tRNS` chunk to follow `PLTE`. `tools/png/stream.py`'s
+`collect_chunks` collects the two payloads independently and checks only that both precede
+`IDAT`, so a color type 3 image carrying `tRNS` before `PLTE` decodes on both the RGB and RGBA
+paths. Reproduce by assembling the chunks by hand:
+`_PNG_SIGNATURE + ihdr_chunk(1, 1, 3) + _chunk(b"tRNS", bytes([0, 128])) + _chunk(b"PLTE",
+bytes([255, 0, 0, 0, 255, 0])) + _chunk(b"IDAT", zlib.compress(bytes([0, 0]))) +
+_chunk(b"IEND", b"")`; both `decode_png` and `decode_rgba` return the image. Suspected cause:
+no ordering guard for `tRNS` against an earlier-or-absent `PLTE`; the missing-`PLTE` diagnosis
+for color type 3 must keep winning when no palette appears at all.
+
+**Validation gap:** no-fake — no fixture could emit a `tRNS` before `PLTE`, so confirming the
+acceptance needed a hand-assembled chunk stream from the lower-level `_chunk` helpers.
+
 ### A PLTE chunk on a greyscale color type is silently ignored (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/png/stream.py`'s `collect_chunks` validated a PLTE chunk's length but neither decoder

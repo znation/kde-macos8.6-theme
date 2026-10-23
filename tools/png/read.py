@@ -86,10 +86,10 @@ def _decode_image(
                 "convert it to PNG first"
             )
         raise PngError("not a PNG file")
-    header, palette, idat, trns = collect_chunks(data)
+    header, palette, idat, trns, trns_before_plte = collect_chunks(data)
     width, height, color_type = parse_ihdr(header)
     check_plte(palette, color_type)
-    check_trns(trns, color_type, palette)
+    check_trns(trns, color_type, palette, trns_before_plte)
     validate_max_rows(max_rows)
     rows = height if max_rows is None else min(max_rows, height)
     channels = CHANNELS[color_type]
