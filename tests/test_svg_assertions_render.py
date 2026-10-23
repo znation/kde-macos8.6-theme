@@ -131,16 +131,24 @@ class TestRenderSlices(unittest.TestCase):
     def test_render_limit_is_cumulative_across_rects_and_inclusive(self):
         # The limit bounds the whole SVG, not each rect: many modest rects
         # must not add up past it. A total exactly at the limit still renders.
+        # The comparison is size-independent, so the boundary is exercised at
+        # a small patched cap: painting the shipped 65,536-pixel cap would
+        # build (and discard) a 65,536-entry map on every check without
+        # covering anything the small cap does not. The shipped value itself
+        # is pinned first.
         self.assertEqual(_MAX_RENDERED_PIXELS, 256 * 256)
-        half = _MAX_RENDERED_PIXELS // 2
-        at_limit = (
-            f'<rect x="0" y="0" width="{half}" height="1" fill="#111111"/>'
-            f'<rect x="0" y="1" width="{half}" height="1" fill="#222222"/>'
-        )
-        pixels = render_slices(_svg_tree(f'<g id="g">{at_limit}</g>'))["g"]
-        self.assertEqual(len(pixels), 2 * half)
-        over = f'<g id="g">{at_limit}<rect id="extra" width="1" height="1"/></g>'
-        message = error_message(self, ValueError, render_slices, _svg_tree(over))
+        with mock.patch.object(render_module, "_MAX_RENDERED_PIXELS", 8):
+            half = 4
+            at_limit = (
+                f'<rect x="0" y="0" width="{half}" height="1" fill="#111111"/>'
+                f'<rect x="0" y="1" width="{half}" height="1" fill="#222222"/>'
+            )
+            pixels = render_slices(_svg_tree(f'<g id="g">{at_limit}</g>'))["g"]
+            self.assertEqual(len(pixels), 2 * half)
+            over = f'<g id="g">{at_limit}<rect id="extra" width="1" height="1"/></g>'
+            message = error_message(
+                self, ValueError, render_slices, _svg_tree(over)
+            )
         self.assertIn("'extra'", message)
         self.assertIn("1x1", message)
 
