@@ -6,11 +6,14 @@ marked a failure that left no trace the suite could see, so it could not be
 confirmed until instrumentation was added; its records now have test-side
 reproductions. The ``unclear-invariant`` tag marked a guarantee the code or
 register left unstated or unpinned; its records now name the test and register
-row that state it. This module turns both into a structured ledger that maps
-each mechanism to the test that confirms it offline, and refuses a record that
-names no reproduction. ``tests/test_validation_gaps.py`` drives the ledgers and
-caps each tag's count at its baseline, so a new unrecorded tag fails the suite
-instead of silently growing the gap.
+row that state it. The ``no-fake`` tag marked a failure whose confirmation
+needed a fake, shim or manufactured fixture the suite did not have; its records
+now name the fixture and the test that builds it. This module turns all three
+into a structured ledger that maps each mechanism to the test that confirms it
+offline, and refuses a record that names no reproduction.
+``tests/test_validation_gaps.py`` drives the ledgers and caps each tag's count
+at its baseline, so a new unrecorded tag fails the suite instead of silently
+growing the gap.
 """
 
 from __future__ import annotations
@@ -308,6 +311,111 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 )
 
 
+# The number of ``no-fake`` records the archive holds with ledger coverage. A
+# new record must name its fixture and reproducing test, and raise this by one
+# in the same change instead of landing uncovered.
+NO_FAKE_BASELINE = 16
+
+NO_FAKE_REPRODUCTIONS = (
+    Reproduction(
+        "firefox-ini-fifo",
+        ("Firefox profile-discovery INI",),
+        "tests/test_firefox_install.py::TestProfileResolution"
+        "::test_a_fifo_at_either_ini_file_is_refused_without_blocking",
+    ),
+    Reproduction(
+        "firefox-profile-file-fifo",
+        ("Firefox profile file blocks the install",),
+        "tests/test_firefox_install.py::TestRemove"
+        "::test_a_fifo_at_either_profile_file_is_refused_without_blocking",
+    ),
+    Reproduction(
+        "png-trns-before-plte",
+        ("palette image with tRNS before PLTE",),
+        "tests/test_png_malformed.py::TestTrnsColorTypeValidation"
+        "::test_palette_trns_before_plte_is_refused",
+    ),
+    Reproduction(
+        "placeholders-symlinked-register",
+        ("reads a symlinked `PLACEHOLDERS.md` bare",),
+        "tests/test_placeholders.py::TestHelpers"
+        "::test_cross_check_refuses_a_symlinked_register_that_escapes",
+    ),
+    Reproduction(
+        "invariants-symlinked-register",
+        ("reads a symlinked register bare",),
+        "tests/test_invariants.py::TestHelpers"
+        "::test_cross_check_refuses_a_symlinked_register_that_escapes",
+    ),
+    Reproduction(
+        "checker-mutations-symlinked-register",
+        ("register reads follow a symlinked register outside",),
+        "tests/test_checker_mutations.py::TestCheckerMutations"
+        "::test_register_reads_refuse_a_symlink_escape",
+    ),
+    Reproduction(
+        "colorscheme-provenance-symlink",
+        ("color-scheme provenance test",),
+        "tests/test_containment.py::TestReadText"
+        "::test_rejects_a_symlink_that_escapes_the_root",
+    ),
+    Reproduction(
+        "desktoptheme-copy-symlink",
+        ("secondary SVG copy unguarded",),
+        "tests/test_containment.py::TestReadBytes"
+        "::test_rejects_a_symlink_that_escapes_the_root",
+    ),
+    Reproduction(
+        "splash-symlink",
+        ("follows a symlinked `Splash.qml`",),
+        "tests/test_splash_qml.py::TestSplashQmlContainment"
+        "::test_rejects_a_symlink_that_escapes_the_repository",
+    ),
+    Reproduction(
+        "metadata-symlink",
+        ("load_metadata` follows a symlinked `metadata.json`",),
+        "tests/test_package_metadata.py::TestLoadMetadataContainment"
+        "::test_rejects_a_symlink_that_escapes_the_repository",
+    ),
+    Reproduction(
+        "invariants-unreadable-register",
+        ("`tests/invariants.py`'s `cross_check` lets an unreadable register",),
+        "tests/test_invariants.py::TestHelpers"
+        "::test_cross_check_rejects_an_unreadable_register",
+    ),
+    Reproduction(
+        "metadata-unreadable",
+        ("lets an unreadable `metadata.json`",),
+        "tests/test_package_metadata.py::TestLoadMetadata"
+        "::test_unreadable_file_names_the_path",
+    ),
+    Reproduction(
+        "placeholders-unreadable-register",
+        ("`tests/placeholders.py` lets an unreadable register",),
+        "tests/test_placeholders.py::TestHelpers"
+        "::test_register_entries_rejects_an_unreadable_register",
+    ),
+    Reproduction(
+        "placeholders-dangling-symlink",
+        ("dangling symlink inside `theme/`",),
+        "tests/test_placeholders.py::TestHelpers"
+        "::test_markers_rejects_a_dangling_symlink_within_the_theme_root",
+    ),
+    Reproduction(
+        "invariants-nul-row",
+        ("register reference with a NUL byte",),
+        "tests/test_invariants.py::TestHelpers"
+        "::test_cross_check_rejects_a_reference_with_a_nul_byte",
+    ),
+    Reproduction(
+        "invariants-unreadable-test-file",
+        ("reference to an unreadable test file",),
+        "tests/test_checker_mutations.py::TestCheckerMutations"
+        "::test_invariants_mutations",
+    ),
+)
+
+
 def read_gaps(path, root=ROOT):
     """Return every validation-gap record in *path* as a list of :class:`Gap`.
 
@@ -348,6 +456,11 @@ def unclear_invariant(records):
     return [record for record in records if record.tag == "unclear-invariant"]
 
 
+def no_fake(records):
+    """Return the subset of *records* tagged ``no-fake``."""
+    return [record for record in records if record.tag == "no-fake"]
+
+
 def _lookup(record, entries):
     """Return the entry whose markers match *record*, or ``None``."""
     for entry in entries:
@@ -366,15 +479,23 @@ def unclear_invariant_reproduction(record):
     return _lookup(record, UNCLEAR_INVARIANT_REPRODUCTIONS)
 
 
+def no_fake_reproduction(record):
+    """Return the no-fake entry matching *record*, or ``None``."""
+    return _lookup(record, NO_FAKE_REPRODUCTIONS)
+
+
 def reproduction_for(record):
     """Return the ledger entry for *record*'s tag, or ``None``.
 
     A record carrying a tag this module does not ledger (or one whose subject
     matches no entry) has no reproduction, so a new tag cannot borrow another
-    ledger's entries.
+    ledger's entries. The three ledgers are ``no-observability``,
+    ``unclear-invariant`` and ``no-fake``.
     """
     if record.tag == "no-observability":
         return reproduction(record)
     if record.tag == "unclear-invariant":
         return unclear_invariant_reproduction(record)
+    if record.tag == "no-fake":
+        return no_fake_reproduction(record)
     return None

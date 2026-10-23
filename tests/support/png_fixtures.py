@@ -309,6 +309,23 @@ def png_with_idat(
     )
 
 
+def palette_trns_before_plte() -> bytes:
+    """Return a color type 3 PNG whose ``tRNS`` chunk precedes ``PLTE``.
+
+    The PNG specification requires the palette before the transparency chunk
+    whose entries it indexes. The image is 1x1 and its IDAT holds one palette
+    index, so a decoder that accepts the order returns a valid image instead
+    of refusing the stream; both decode paths must name the ordering.
+    """
+    return png_stream(
+        ihdr_chunk(1, 1, 3),
+        _chunk(b"tRNS", bytes([0, 128])),
+        _chunk(b"PLTE", bytes([255, 0, 0, 0, 255, 0])),
+        _chunk(b"IDAT", zlib.compress(bytes([0, 0]))),
+        _chunk(b"IEND", b""),
+    )
+
+
 def _pixel_channels(x: int, y: int, value: object) -> bytes:
     """Validate one ``pixel(x, y)`` result and return its three channel bytes.
 
