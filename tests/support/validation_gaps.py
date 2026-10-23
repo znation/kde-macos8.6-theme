@@ -178,7 +178,8 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "png-trns-before-plte",
         ("truecolor tRNS before a suggested PLTE",),
-        "tests/test_png_malformed.py::TestTrnsColorTypeValidation",
+        "tests/test_png_malformed.py::TestTrnsColorTypeValidation"
+        "::test_truecolor_trns_before_suggested_plte_is_refused",
         "A PNG's `tRNS` chunk that precedes a `PLTE` chunk which is present is "
         "refused on both decode paths for every color type — the palette "
         "image's required palette and a truecolor image's suggested palette "
