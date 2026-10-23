@@ -386,6 +386,8 @@ _uninstall:
 	rm -rf "$(ICON_THEME_INSTALL_DIR)/$(ICON_THEME_ID)" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).staging" "$(ICON_THEME_INSTALL_DIR)/.$(ICON_THEME_ID).old"
 	rm -rf "$(FONT_INSTALL_DIR)/$(FONT_ID)" "$(FONT_INSTALL_DIR)/.$(FONT_ID).staging" "$(FONT_INSTALL_DIR)/.$(FONT_ID).old"
 	rm -f "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).kvconfig" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).kvconfig.staging" "$(KVANTUM_INSTALL_DIR)/$(KVANTUM_ID).svg" "$(KVANTUM_INSTALL_DIR)/.$(KVANTUM_ID).svg.staging"
+	rm -f "$(GTK_INSTALL_DIR)/index.theme" "$(GTK_INSTALL_DIR)/.index.theme.staging" "$(GTK_INSTALL_DIR)/gtk-3.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-3.0/.gtk.css.staging" "$(GTK_INSTALL_DIR)/gtk-4.0/gtk.css" "$(GTK_INSTALL_DIR)/gtk-4.0/.gtk.css.staging"
+	rmdir "$(GTK_INSTALL_DIR)/gtk-3.0" "$(GTK_INSTALL_DIR)/gtk-4.0" 2>/dev/null || true
 # Removing the scheme does not touch the user's `[General] ColorScheme`
 # selection. If it still names the scheme just removed, KDE cannot resolve the
 # id and falls back to BreezeLight on every start without rewriting the stale

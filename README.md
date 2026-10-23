@@ -46,7 +46,9 @@ GTK applications use the separate opt-in install: `make install-gtk` copies the 
 Platinum stylesheets into `$XDG_DATA_HOME/themes/org.macos8.desktop/`, the same directory that
 holds the shared `Kvantum/` widget style, so the two artifacts share one theme directory. The
 default `make install` copies no GTK files. This part installs the files but does not select
-them; selection is part 3/3.
+them; selection is part 3/3. `make uninstall` removes the three GTK files, their `.staging`
+leftovers and the emptied `gtk-3.0`/`gtk-4.0` directories but leaves `Kvantum/` and the theme
+directory itself.
 
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with

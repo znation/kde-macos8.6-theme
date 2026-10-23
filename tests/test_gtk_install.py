@@ -15,6 +15,7 @@ from support.theme_install import (
     install,
     installed_destdir,
     shadow_command_env,
+    uninstall,
 )
 
 
@@ -96,6 +97,46 @@ class TestInstall(unittest.TestCase):
             installed = _installed_dir(tmp)
             for name in SHIPPED_FILES:
                 self.assertFalse(os.path.exists(os.path.join(installed, name)))
+
+
+
+
+class TestUninstall(unittest.TestCase):
+    def test_make_uninstall_removes_the_installed_files(self):
+        with installed_destdir(self, packages="gtk") as tmp:
+            installed = _installed_dir(tmp)
+            self.assertTrue(os.path.isdir(installed), installed)
+            planted = os.path.join(installed, "Kvantum", "sentinel.txt")
+            os.makedirs(os.path.dirname(planted), exist_ok=True)
+            with open(planted, "wb") as handle:
+                handle.write(b"keep me")
+            sibling = os.path.join(os.path.dirname(installed), "second-theme")
+            os.makedirs(sibling, exist_ok=True)
+            with open(os.path.join(sibling, "marker"), "wb") as handle:
+                handle.write(b"sibling")
+            # staging leftovers
+            for path in [os.path.join(installed, ".index.theme.staging"),
+                         os.path.join(installed, "gtk-3.0", ".gtk.css.staging"),
+                         os.path.join(installed, "gtk-4.0", ".gtk.css.staging")]:
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                with open(path, "w") as handle:
+                    handle.write("partial")
+            assert_succeeded(self, uninstall(tmp))
+            for name in SHIPPED_FILES:
+                self.assertFalse(os.path.exists(os.path.join(installed, name)))
+            self.assertFalse(os.path.isdir(os.path.join(installed, "gtk-3.0")))
+            self.assertFalse(os.path.isdir(os.path.join(installed, "gtk-4.0")))
+            with open(planted, "rb") as handle:
+                self.assertEqual(handle.read(), b"keep me")
+            with open(os.path.join(sibling, "marker"), "rb") as handle:
+                self.assertEqual(handle.read(), b"sibling")
+            self.assertTrue(os.path.isdir(installed))
+            again = uninstall(tmp)
+            assert_succeeded(self, again)
+
+    def test_make_uninstall_on_tree_with_no_gtk_install(self):
+        with installed_destdir(self) as tmp:
+            assert_succeeded(self, uninstall(tmp))
 
 
 if __name__ == "__main__":
