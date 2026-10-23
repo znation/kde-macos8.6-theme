@@ -191,6 +191,22 @@ class TestProfileResolution(ProfileCase):
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
+    def test_an_unreadable_profiles_ini_is_reported_by_name(self):
+        # The reader's docstring promises an unreadable INI becomes a by-name
+        # ConfigError. A self-referential symlink makes the open fail with
+        # ELOOP deterministically -- no dependence on file permissions or on
+        # the test user -- exercising the OSError arm that the malformed, the
+        # non-UTF-8, the missing and the FIFO fixtures each miss.
+        self.firefox_root.mkdir(parents=True)
+        profiles = self.firefox_root / "profiles.ini"
+        try:
+            profiles.symlink_to(profiles)
+        except OSError:
+            self.skipTest("cannot create a symlink on this platform")
+        with self.assertRaises(firefox_profile.ConfigError) as caught:
+            self.resolve()
+        self.assertIn(f"cannot read {profiles}", str(caught.exception))
+
     def test_a_fifo_at_either_ini_file_is_refused_without_blocking(self):
         # Profile discovery used Path.open, whose read waits forever on a FIFO,
         # so `make install-firefox` without --profile hung with no diagnostic.
