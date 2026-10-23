@@ -5,6 +5,22 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A non-empty IEND payload is silently accepted (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/png/chunks.py`'s `iter_chunks` checked an IEND chunk's length and CRC
+but not its payload, so `png.decode_png`, `png.decode_rgba` and the file
+readers accepted an IEND carrying data. The PNG specification gives IEND an
+empty data field, so a conformant reader refuses that file; ours decoded it as
+if the extra bytes did not exist. Reproduce by replacing a valid PNG's final
+`IEND` chunk with `_chunk(b"IEND", b"x")`: the decoder returned the image
+instead of raising.
+
+`iter_chunks` now refuses a non-empty IEND by name and offset before yielding
+it ("PNG IEND chunk at offset N has M payload bytes; IEND's data field must be
+empty"), so every consumer of the chunk stream sees the same diagnosis.
+
+**Validation gap:** unclear-invariant — the IEND-empty-data-field guarantee was not stated in the module docstring or pinned by a test, so it had to be reconstructed from the PNG specification; the invariant is recorded in docs/invariants.md.
+
 ### PNG chunks after IEND are silently ignored (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/png/stream.py`'s `collect_chunks` stopped at the first IEND, so a

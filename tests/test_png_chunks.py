@@ -6,7 +6,8 @@ several IDAT chunks or carry unknown ancillary chunks, and that the decoder
 rejects malformed framing -- unknown critical chunks, bad chunk types,
 oversized lengths, bad or truncated CRCs, a missing, duplicated or
 out-of-position IHDR, non-consecutive IDAT chunks, a PLTE or tRNS chunk after
-the image data, a missing PLTE/IEND and unsupported IHDR fields.
+the image data, a non-empty IEND payload, a missing PLTE/IEND and unsupported
+IHDR fields.
 Scanline decoding lives in ``test_png_decode``; the malformed-image-data
 and resource-limit rejections live in ``test_png_malformed``.
 
@@ -333,6 +334,17 @@ class TestChunkFraming(unittest.TestCase):
         self.assertIn("truncated PNG chunk 'IEND' CRC", message)
         self.assertIn(f"offset {data.rindex(b'IEND') + 4}", message)
         self.assertIn("expected 4 bytes, got 3", message)
+
+    def test_rejects_an_iend_with_a_payload(self):
+        # The PNG spec gives IEND an empty data field. A non-empty one is
+        # malformed framing, and dropping its payload silently would decode a
+        # file a conformant reader refuses as if it were whole.
+        _, data = rgb_image(2, 1, lambda x, y: (x * 10, y * 20, 30))
+        head = data[: data.rindex(b"IEND") - 4]
+        bad = head + _chunk(b"IEND", b"\x00")
+        message = decode_error_message(self, bad)
+        self.assertIn("IEND", message)
+        self.assertIn("payload", message)
 
     def test_rejects_png_without_end_marker(self):
         # IEND terminates the chunk stream. A file cut at a chunk boundary

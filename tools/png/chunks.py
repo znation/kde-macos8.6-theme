@@ -2,7 +2,8 @@
 
 :func:`iter_chunks` walks the chunk stream after the signature and yields
 ``(type, payload)`` for each chunk, rejecting an oversized length, an invalid
-type code, a truncated payload or CRC, a bad checksum, and a trailing fragment
+type code, a truncated payload or CRC, a bad checksum, a non-empty IEND
+payload, and a trailing fragment
 after IEND by name. What the chunks mean (IHDR, PLTE, IDAT, IEND) is
 ``tools/png/stream.py``'s concern.
 """
@@ -37,7 +38,8 @@ def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
     """Yield ``(type, payload)`` for each chunk in *data* after the signature.
 
     A declared length above the PNG spec's maximum, an invalid type code, a
-    truncated payload or CRC, and a bad checksum raise :class:`PngError`. So
+    truncated payload or CRC, a bad checksum, and a non-empty IEND payload
+    raise :class:`PngError`. So
     does a trailing fragment shorter than a chunk header when it follows IEND:
     IEND ends the datastream, so those bytes are malformed trailing data, not
     the truncated start of a chunk a later read could complete.
@@ -91,6 +93,15 @@ def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
                 f"PNG chunk {chunk_name(ctype)} at offset {pos} "
                 f"has a bad CRC: stored 0x{expected:08x}, computed "
                 f"0x{actual:08x}"
+            )
+        if ctype == b"IEND" and payload:
+            # The spec gives IEND an empty data field: its only job is to end
+            # the datastream. A payload is malformed framing, and dropping it
+            # silently would decode a file a conformant reader refuses.
+            raise PngError(
+                f"PNG IEND chunk at offset {pos} has {len(payload)} payload "
+                f"byte{'' if len(payload) == 1 else 's'}; IEND's data field "
+                "must be empty"
             )
         yield ctype, payload
         if ctype == b"IEND":
