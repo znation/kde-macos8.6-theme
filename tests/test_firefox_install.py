@@ -8,7 +8,6 @@ without touching a real Firefox profile.
 from __future__ import annotations
 
 import os
-import stat
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -16,6 +15,7 @@ from unittest import mock
 from support import containment, snippet_child
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
+from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.tmp_dir import make_tmp_dir
 from tools import firefox_profile, firefox_user_js, install_firefox
 
@@ -212,8 +212,6 @@ class TestProfileResolution(ProfileCase):
         # so `make install-firefox` without --profile hung with no diagnostic.
         # Run the tool in a child so a regression fails on a timeout instead of
         # stalling the suite, and check the pipe is named before it is read.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         snippet = (
             "import sys; from tools.install_firefox import main; "
             "sys.exit(main([]))"
@@ -225,15 +223,12 @@ class TestProfileResolution(ProfileCase):
                 root = home / ".mozilla" / "firefox"
                 root.mkdir(parents=True)
                 fifo = root / name
-                os.mkfifo(fifo)
+                make_fifo(self, fifo)
                 with mock.patch.dict(os.environ, {"HOME": str(home)}, clear=True):
                     child = snippet_child.run(
                         [snippet], cwd=repo_root.ROOT, timeout=10
                     )
-                self.assertEqual(2, child.returncode, child.stdout + child.stderr)
-                self.assertIn(f"cannot read {fifo}", child.stderr)
-                self.assertIn("not a regular file", child.stderr)
-                self.assertTrue(stat.S_ISFIFO(fifo.stat().st_mode))
+                assert_fifo_refused(self, child, fifo)
 
     def test_no_existing_candidate_names_the_root_and_candidates(self):
         self.firefox_root.mkdir(parents=True)
@@ -555,8 +550,6 @@ class TestRemove(ProfileCase):
         # stall `make install-firefox` instead of reporting the profile file.
         # Run the install in a child so a regression is a bounded timeout, and
         # refuse the pipe by name before the other profile file is written.
-        if not hasattr(os, "mkfifo"):
-            self.skipTest("os.mkfifo is not available on this platform")
         snippet = (
             "import sys; from tools.install_firefox import main; "
             "sys.exit(main(sys.argv[1:]))"
@@ -570,8 +563,7 @@ class TestRemove(ProfileCase):
                 profile = self.root / f"fifo-{name}"
                 profile.mkdir()
                 fifo_path = profile / fifo
-                fifo_path.parent.mkdir(parents=True, exist_ok=True)
-                os.mkfifo(fifo_path)
+                make_fifo(self, fifo_path)
                 with mock.patch.dict(
                     os.environ, {"HOME": str(self.home)}, clear=True
                 ):
@@ -580,10 +572,7 @@ class TestRemove(ProfileCase):
                         cwd=repo_root.ROOT,
                         timeout=10,
                     )
-                self.assertEqual(2, child.returncode, child.stdout + child.stderr)
-                self.assertIn(f"cannot read {fifo_path}", child.stderr)
-                self.assertIn("not a regular file", child.stderr)
-                self.assertTrue(stat.S_ISFIFO(fifo_path.stat().st_mode))
+                assert_fifo_refused(self, child, fifo_path)
                 self.assertFalse((profile / untouched).exists())
 
     def test_a_failed_sheet_unlink_is_reported_by_path(self):

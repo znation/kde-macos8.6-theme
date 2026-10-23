@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 import shutil
-import stat
 import tempfile
 import unittest
 from pathlib import Path
@@ -21,6 +20,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import snippet_child
 from support import theme_install
 from support.cli_fixtures import run_main
+from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.process_assertions import assert_failed, assert_succeeded
 from support.tmp_dir import make_tmp_dir
 from tools import apply_gtk
@@ -81,13 +81,6 @@ class GtkApplyCase(unittest.TestCase):
     def write_bytes(self, path, data):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-
-    def make_fifo(self, path):
-        path.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            os.mkfifo(path)
-        except (AttributeError, OSError) as exc:
-            self.skipTest(f"cannot create a FIFO: {exc}")
 
 
 class TestApply(GtkApplyCase):
@@ -541,15 +534,12 @@ class TestUnreadableConfig(GtkApplyCase):
         self.write(gtk3, "[Settings]\ngtk-theme-name=Adwaita\n")
         before = gtk3.read_bytes()
         gtk4 = self.settings("gtk-4.0")
-        self.make_fifo(gtk4)
+        make_fifo(self, gtk4)
 
         result = self.run_tool_in_child()
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
-        self.assertIn(f"cannot read {gtk4}", result.stderr)
-        self.assertIn("not a regular file", result.stderr)
+        assert_fifo_refused(self, result, gtk4)
         self.assertEqual(before, gtk3.read_bytes())
-        self.assertTrue(stat.S_ISFIFO(gtk4.stat().st_mode))
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
     def test_a_fifo_swapped_in_for_a_regular_settings_file_is_refused(self):
@@ -582,49 +572,40 @@ class TestUnreadableConfig(GtkApplyCase):
         self.write(gtk3, "[Settings]\ngtk-theme-name=Adwaita\n")
         before = gtk3.read_bytes()
         css = self.config / "gtk-4.0" / "gtk.css"
-        self.make_fifo(css)
+        make_fifo(self, css)
 
         result = self.run_tool_in_child()
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
-        self.assertIn(f"cannot read {css}", result.stderr)
-        self.assertIn("not a regular file", result.stderr)
+        assert_fifo_refused(self, result, css)
         self.assertEqual(before, gtk3.read_bytes())
         self.assertFalse(self.settings("gtk-4.0").exists())
-        self.assertTrue(stat.S_ISFIFO(css.stat().st_mode))
 
     def test_remove_refuses_a_fifo_settings_file_before_clearing_anything(self):
         gtk3 = self.settings("gtk-3.0")
         self.write(gtk3, "[Settings]\ngtk-theme-name=org.macos8.desktop\n")
         before = gtk3.read_bytes()
         gtk4 = self.settings("gtk-4.0")
-        self.make_fifo(gtk4)
+        make_fifo(self, gtk4)
         css = self.config / "gtk-4.0" / "gtk.css"
         self.write(css, f"{apply_gtk.GTK4_CSS_MARKER}\n")
 
         result = self.run_tool_in_child("--remove")
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
-        self.assertIn(f"cannot read {gtk4}", result.stderr)
-        self.assertIn("not a regular file", result.stderr)
+        assert_fifo_refused(self, result, gtk4)
         self.assertEqual(before, gtk3.read_bytes())
         self.assertTrue(css.is_file())
-        self.assertTrue(stat.S_ISFIFO(gtk4.stat().st_mode))
 
     def test_remove_refuses_a_fifo_user_css_before_clearing_anything(self):
         gtk3 = self.settings("gtk-3.0")
         self.write(gtk3, "[Settings]\ngtk-theme-name=org.macos8.desktop\n")
         before = gtk3.read_bytes()
         css = self.config / "gtk-4.0" / "gtk.css"
-        self.make_fifo(css)
+        make_fifo(self, css)
 
         result = self.run_tool_in_child("--remove")
 
-        self.assertEqual(2, result.returncode, result.stdout + result.stderr)
-        self.assertIn(f"cannot read {css}", result.stderr)
-        self.assertIn("not a regular file", result.stderr)
+        assert_fifo_refused(self, result, css)
         self.assertEqual(before, gtk3.read_bytes())
-        self.assertTrue(stat.S_ISFIFO(css.stat().st_mode))
 
 
 class TestHomeResolution(unittest.TestCase):
