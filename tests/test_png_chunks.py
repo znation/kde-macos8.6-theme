@@ -24,12 +24,12 @@ import zlib
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.png_fixtures import (  # noqa: E402
-    _PNG_SIGNATURE,
     _chunk,
     decode_error_message,
     ihdr_chunk,
     ihdr_end,
     make_png,
+    png_stream,
     rgb_image,
     solid_rgb,
     splice_after_ihdr,
@@ -67,13 +67,12 @@ class TestChunkFraming(unittest.TestCase):
         # that a conformant reader rejects.
         compressed = zlib.compress(b"\x00\x01\x02\x03")
         split = len(compressed) // 2
-        data = (
-            _PNG_SIGNATURE
-            + ihdr_chunk(1, 1, 2)
-            + _chunk(b"IDAT", compressed[:split])
-            + _chunk(b"tEXt", b"Software\x00x")
-            + _chunk(b"IDAT", compressed[split:])
-            + _chunk(b"IEND", b"")
+        data = png_stream(
+            ihdr_chunk(1, 1, 2),
+            _chunk(b"IDAT", compressed[:split]),
+            _chunk(b"tEXt", b"Software\x00x"),
+            _chunk(b"IDAT", compressed[split:]),
+            _chunk(b"IEND", b""),
         )
         message = decode_error_message(self, data)
         self.assertIn("IDAT", message)
@@ -83,12 +82,11 @@ class TestChunkFraming(unittest.TestCase):
         # PLTE must precede the image data. A palette arriving after IDAT
         # would still be used to expand the indices even though the PNG spec
         # puts it before the first IDAT.
-        data = (
-            _PNG_SIGNATURE
-            + ihdr_chunk(1, 1, 3)
-            + _chunk(b"IDAT", zlib.compress(b"\x00\x00"))
-            + _chunk(b"PLTE", bytes([1, 2, 3]))
-            + _chunk(b"IEND", b"")
+        data = png_stream(
+            ihdr_chunk(1, 1, 3),
+            _chunk(b"IDAT", zlib.compress(b"\x00\x00")),
+            _chunk(b"PLTE", bytes([1, 2, 3])),
+            _chunk(b"IEND", b""),
         )
         message = decode_error_message(self, data)
         self.assertIn("PLTE", message)
@@ -97,12 +95,11 @@ class TestChunkFraming(unittest.TestCase):
     def test_rejects_trns_after_idat(self):
         # tRNS must also precede IDAT; accepted late, it would change the
         # decoded alpha of an otherwise conformant-looking image.
-        data = (
-            _PNG_SIGNATURE
-            + ihdr_chunk(1, 1, 0)
-            + _chunk(b"IDAT", zlib.compress(b"\x00\x07"))
-            + _chunk(b"tRNS", struct.pack(">H", 7))
-            + _chunk(b"IEND", b"")
+        data = png_stream(
+            ihdr_chunk(1, 1, 0),
+            _chunk(b"IDAT", zlib.compress(b"\x00\x07")),
+            _chunk(b"tRNS", struct.pack(">H", 7)),
+            _chunk(b"IEND", b""),
         )
         message = decode_error_message(self, data)
         self.assertIn("tRNS", message)
@@ -221,10 +218,9 @@ class TestChunkFraming(unittest.TestCase):
         # A chunk stream that reaches IDAT/IEND with no IHDR leaves decode_png
         # with no dimensions or colour type; it must name the missing chunk
         # rather than unpacking None or decoding against defaults.
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"IDAT", zlib.compress(b"\x00"))
-            + _chunk(b"IEND", b"")
+        data = png_stream(
+            _chunk(b"IDAT", zlib.compress(b"\x00")),
+            _chunk(b"IEND", b""),
         )
         self.assertIn("no IHDR", decode_error_message(self, data))
 
@@ -269,11 +265,10 @@ class TestChunkFraming(unittest.TestCase):
         # arrives later would be used and the file accepted, while a
         # conformant reader rejects it. The diagnostic names both the
         # requirement and the chunk that came first.
-        misordered = (
-            _PNG_SIGNATURE
-            + _chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03"))
-            + ihdr_chunk(1, 1, 2)
-            + _chunk(b"IEND", b"")
+        misordered = png_stream(
+            _chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03")),
+            ihdr_chunk(1, 1, 2),
+            _chunk(b"IEND", b""),
         )
         message = decode_error_message(self, misordered)
         self.assertIn("IHDR", message)
@@ -286,10 +281,9 @@ class TestChunkFraming(unittest.TestCase):
         # rejected by length, naming the actual and expected sizes. The CLI test
         # test_fidelity_cli.TestCli.test_malformed_png_is_error already drives
         # this guard end-to-end; this test pins the message it does not assert.
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"IHDR", b"\x00" * 12)
-            + _chunk(b"IEND", b"")
+        data = png_stream(
+            _chunk(b"IHDR", b"\x00" * 12),
+            _chunk(b"IEND", b""),
         )
         message = decode_error_message(self, data)
         self.assertIn("12 bytes", message)
@@ -359,7 +353,9 @@ class TestChunkFraming(unittest.TestCase):
         # A chunk header declaring more payload than the file holds must name
         # the chunk, its offset, and the byte counts, not just say "truncated".
         ihdr = ihdr_chunk(1, 1, 2)
-        data = _PNG_SIGNATURE + ihdr + struct.pack(">I", 100) + b"IDAT" + b"\x00\x01"
+        data = png_stream(
+            ihdr, struct.pack(">I", 100) + b"IDAT" + b"\x00\x01"
+        )
         message = decode_error_message(self, data)
         self.assertIn("truncated PNG chunk 'IDAT'", message)
         self.assertIn("offset 33", message)
@@ -447,10 +443,9 @@ class TestIterChunks(unittest.TestCase):
     def test_yields_each_chunk_type_and_payload_in_order(self):
         # A complete stream of two chunks: the iterator must pair each type
         # with its own payload, not reuse one or reorder them.
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"tEXt", b"a")
-            + _chunk(b"gAMA", b"bc")
+        data = png_stream(
+            _chunk(b"tEXt", b"a"),
+            _chunk(b"gAMA", b"bc"),
         )
         self.assertEqual(
             [(b"tEXt", b"a"), (b"gAMA", b"bc")],
@@ -462,10 +457,9 @@ class TestIterChunks(unittest.TestCase):
         # chunk, so nothing above the framing layer proves the iterator itself
         # treats IEND as ordinary. It must keep yielding the chunks after it;
         # refusing a malformed post-IEND chunk is the decoder's call.
-        data = (
-            _PNG_SIGNATURE
-            + _chunk(b"IEND", b"")
-            + _chunk(b"tEXt", b"after")
+        data = png_stream(
+            _chunk(b"IEND", b""),
+            _chunk(b"tEXt", b"after"),
         )
         self.assertEqual(
             [(b"IEND", b""), (b"tEXt", b"after")],

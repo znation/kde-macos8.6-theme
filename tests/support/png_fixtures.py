@@ -44,6 +44,16 @@ def _chunk(ctype: bytes, payload: bytes) -> bytes:
     )
 
 
+def png_stream(*chunks: bytes) -> bytes:
+    """Return a PNG datastream: the signature followed by *chunks*.
+
+    Tests that assemble a stream from hand-built chunks share the signature
+    and concatenation here. IEND stays with the caller because a test may
+    omit it, place it before trailing data, or give it a payload.
+    """
+    return _PNG_SIGNATURE + b"".join(chunks)
+
+
 def ihdr_end(data: bytes) -> int:
     """Return the offset just past the IHDR chunk in *data*.
 
@@ -222,7 +232,7 @@ def make_png(
         ftype = filter_types[index] if filter_types is not None else 0
         filtered += bytes([ftype]) + _filter_line(ftype, row, prev, bpp)
         prev = row
-    out = _PNG_SIGNATURE + ihdr_chunk(width, height, color_type)
+    out = png_stream(ihdr_chunk(width, height, color_type))
     if palette is not None:
         out += _chunk(b"PLTE", palette)
     if trns is not None:
@@ -273,11 +283,10 @@ def png_with_idat(
     closed with IEND.
     """
     _require_positive_dimensions("png_with_idat", width, height)
-    return (
-        _PNG_SIGNATURE
-        + ihdr_chunk(width, height, 2)
-        + _chunk(b"IDAT", payload)
-        + _chunk(b"IEND", b"")
+    return png_stream(
+        ihdr_chunk(width, height, 2),
+        _chunk(b"IDAT", payload),
+        _chunk(b"IEND", b""),
     )
 
 

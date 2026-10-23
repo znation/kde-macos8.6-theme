@@ -17,11 +17,11 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.error_assertions import assert_escapes_escape_character  # noqa: E402
 from support.fidelity_cli_case import FidelityCliTestCase  # noqa: E402
 from support.png_fixtures import (  # noqa: E402
-    _PNG_SIGNATURE,
     _chunk,
     control_named_missing,
     control_named_png,
     make_png,
+    png_stream,
     rgb_image,
     solid_rgb,
 )
@@ -161,12 +161,11 @@ class TestCli(FidelityCliTestCase):
         # A PNG whose IHDR payload is not the 13 bytes the spec requires must
         # fail with the tool's clean error path (exit 2), not a struct.error
         # traceback from the unpack in decode_png.
-        short_ihdr = (
-            _PNG_SIGNATURE
-            + _chunk(
+        short_ihdr = png_stream(
+            _chunk(
                 b"IHDR", b"\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00"
-            )
-            + _chunk(b"IEND", b"")
+            ),
+            _chunk(b"IEND", b""),
         )
         reference = self._solid_reference()
         tmp = self._tmp_dir()

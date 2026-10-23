@@ -28,11 +28,11 @@ from support.error_assertions import assert_error_names, error_message
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.png_fixtures import (  # noqa: E402
-    _PNG_SIGNATURE,
     _chunk,
     decode_error_message,
     ihdr_chunk,
     make_png,
+    png_stream,
     png_with_idat,
 )
 from tools import png
@@ -124,12 +124,11 @@ class TestMalformedImageData(unittest.TestCase):
         # opaque "incomplete or truncated stream".
         ihdr = ihdr_chunk(1, 1, 2)
         cases = {
-            "no IDAT": _PNG_SIGNATURE + ihdr + _chunk(b"IEND", b""),
-            "empty IDAT": (
-                _PNG_SIGNATURE
-                + ihdr
-                + _chunk(b"IDAT", b"")
-                + _chunk(b"IEND", b"")
+            "no IDAT": png_stream(ihdr, _chunk(b"IEND", b"")),
+            "empty IDAT": png_stream(
+                ihdr,
+                _chunk(b"IDAT", b""),
+                _chunk(b"IEND", b""),
             ),
         }
         for label, data in cases.items():

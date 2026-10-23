@@ -23,9 +23,9 @@ from support.tmp_dir import make_tmp_dir
 from support import repo_root
 from support import snippet_child
 from support.png_fixtures import (  # noqa: E402
-    _PNG_SIGNATURE,
     _chunk,
     ihdr_chunk,
+    png_stream,
     rgb_image,
     with_ihdr_byte,
 )
@@ -145,7 +145,7 @@ class TestReadPng(unittest.TestCase):
         # caller that would then try to decode them.
         width, height = 8001, 8000  # 64,008,000 pixels, above the cap
         path = self._file(
-            "huge.png", _PNG_SIGNATURE + ihdr_chunk(width, height, 2)
+            "huge.png", png_stream(ihdr_chunk(width, height, 2))
         )
         with mock.patch.object(loader, "decode_png") as decode:
             message = error_message(
@@ -159,11 +159,10 @@ class TestReadPng(unittest.TestCase):
         # The size read trusts the first chunk only when it is IHDR. With an
         # IDAT first it must fall back to the decoder's framing check rather
         # than scanning ahead and accepting a header the decoder refuses.
-        misordered = (
-            _PNG_SIGNATURE
-            + _chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03"))
-            + ihdr_chunk(1, 1, 2)
-            + _chunk(b"IEND", b"")
+        misordered = png_stream(
+            _chunk(b"IDAT", zlib.compress(b"\x00\x01\x02\x03")),
+            ihdr_chunk(1, 1, 2),
+            _chunk(b"IEND", b""),
         )
         self._assert_size_matches_decode(misordered, "first chunk")
 
