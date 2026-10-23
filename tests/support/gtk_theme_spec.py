@@ -2,10 +2,11 @@
 
 The two GTK stylesheets implement the same Platinum control spec: one etched
 separator, the same bevels and tab-state selectors, and the same base
-``@define-color`` roles. Each GTK suite still reads and asserts against its own
-stylesheet; this module only holds the values both sheets must agree on. The
-Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
+``@define-color`` roles. Each sheet suite still reads and asserts against its
+own stylesheet; this module only holds the values the sheets must agree on.
+The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
+:class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 """
 
 from __future__ import annotations
@@ -105,7 +106,7 @@ TAB_STATES = (
 )
 
 
-class GtkRuleAssertions:
+class SheetRuleAssertions:
     """Rule assertion for suites that store the parsed sheet in ``self.rules``."""
 
     def assert_rule(self, selector, expected):

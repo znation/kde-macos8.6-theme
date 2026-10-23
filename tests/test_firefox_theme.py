@@ -12,7 +12,7 @@ from pathlib import Path
 
 from support import containment
 from support.gtk_css import HEX, parse_css
-from support.gtk_theme_spec import ETCH_DARK
+from support.gtk_theme_spec import ETCH_DARK, SheetRuleAssertions
 from support.platinum_palette import (
     BLACK,
     FACE,
@@ -113,7 +113,7 @@ REQUIRED_RULES = {
 }
 
 
-class TestFirefoxChrome(unittest.TestCase):
+class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.text = containment.read_text(SHEET, ROOT, encoding="utf-8")
@@ -121,16 +121,6 @@ class TestFirefoxChrome(unittest.TestCase):
         cls.colours, cls.rules, cls.selectors = parse_css(
             cls.text, source=SHEET_PATH
         )
-
-    def assert_rule(self, selector, expected):
-        """Assert *selector* exists and carries each declaration in *expected*."""
-        self.assertIn(selector, self.rules, f"missing rule for {selector}")
-        for name, value in expected.items():
-            self.assertEqual(
-                self.rules[selector].get(name),
-                value,
-                f"{selector}: expected {name}: {value}",
-            )
 
     def test_required_rules(self):
         for selector, expected in REQUIRED_RULES.items():

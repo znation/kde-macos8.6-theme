@@ -20,7 +20,7 @@ from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
     BUTTON_BEVEL,
     ETCH_DARK,
-    GtkRuleAssertions,
+    SheetRuleAssertions,
     INVERTED_BUTTON_BEVEL,
     RAISED_BEVEL,
     TAB_STATES,
@@ -43,7 +43,7 @@ INDEX = THEME_DIR / "index.theme"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
 
-class TestGtkTheme(GtkRuleAssertions, unittest.TestCase):
+class TestGtkTheme(SheetRuleAssertions, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.index_text = gtk_css.read_theme_text(INDEX)

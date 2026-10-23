@@ -18,7 +18,7 @@ from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     BUTTON_BEVEL,
     ETCH_DARK,
-    GtkRuleAssertions,
+    SheetRuleAssertions,
     INVERTED_BUTTON_BEVEL,
     RAISED_BEVEL,
     TAB_STATES,
@@ -69,7 +69,7 @@ DEFINED_COLOURS = {
     "scrollbar_outline_color": BLACK,
 }
 
-class TestGtk4Theme(GtkRuleAssertions, unittest.TestCase):
+class TestGtk4Theme(SheetRuleAssertions, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.css = gtk_css.read_theme_text(CSS)
