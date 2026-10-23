@@ -21,6 +21,7 @@ from __future__ import annotations
 import struct
 
 from .image import PngError
+from .trns import check_palette_trns_length, check_sample_trns_length
 
 
 def to_rgb(color_type: int, samples: bytes, palette: bytes | None) -> bytes:
@@ -77,11 +78,7 @@ def _palette_trns_alphas(trns: bytes | None, entries: int) -> bytes:
     """
     if trns is None:
         return b"\xff" * entries
-    if not 1 <= len(trns) <= entries:
-        raise PngError(
-            f"tRNS chunk has {len(trns)} bytes; a palette PNG with "
-            f"{entries} entries needs 1 to {entries}"
-        )
+    check_palette_trns_length(trns, entries)
     return trns + b"\xff" * (entries - len(trns))
 
 
@@ -96,13 +93,7 @@ def sample_trns_key(
     """
     if trns is None:
         return None
-    expected = 2 if color_type == 0 else 6
-    if len(trns) != expected:
-        name = "greyscale" if color_type == 0 else "truecolor"
-        raise PngError(
-            f"tRNS chunk has {len(trns)} bytes; a {name} PNG (color type "
-            f"{color_type}) needs exactly {expected}"
-        )
+    check_sample_trns_length(trns, color_type)
     if color_type == 0:
         return struct.unpack(">H", trns)[0]
     return struct.unpack(">HHH", trns)

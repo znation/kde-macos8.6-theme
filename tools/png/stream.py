@@ -34,6 +34,7 @@ except ImportError:  # imported as the top-level package `png` by a directly run
 
 from .chunks import chunk_name, iter_chunks
 from .image import PngError
+from .trns import check_palette_trns_length, check_sample_trns_length
 
 # color_type -> channels per pixel at bit depth 8
 CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
@@ -110,11 +111,6 @@ def parse_ihdr(header: bytes) -> tuple[int, int, int]:
     return width, height, color_type
 
 
-# tRNS payload length for the two color types that name a transparent sample
-# value; a palette image uses one alpha byte per palette entry instead.
-_TRNS_SAMPLE_LENGTHS = {0: 2, 2: 6}
-
-
 def check_trns(
     trns: bytes | None,
     color_type: int,
@@ -152,20 +148,9 @@ def check_trns(
             "the PLTE chunk, if any"
         )
     if color_type == 3:
-        entries = len(palette) // 3
-        if not 1 <= len(trns) <= entries:
-            raise PngError(
-                f"tRNS chunk has {len(trns)} bytes; a palette PNG with "
-                f"{entries} entries needs 1 to {entries}"
-            )
+        check_palette_trns_length(trns, len(palette) // 3)
         return
-    expected = _TRNS_SAMPLE_LENGTHS[color_type]
-    if len(trns) != expected:
-        name = "greyscale" if color_type == 0 else "truecolor"
-        raise PngError(
-            f"tRNS chunk has {len(trns)} bytes; a {name} PNG (color type "
-            f"{color_type}) needs exactly {expected}"
-        )
+    check_sample_trns_length(trns, color_type)
 
 
 def check_plte(palette: bytes | None, color_type: int) -> None:

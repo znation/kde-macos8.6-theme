@@ -11,9 +11,10 @@ public name from ``tools.png`` regardless of which submodule defines it:
 pipeline :func:`decode_png` and :func:`decode_rgba`, and
 ``tools/png/write.py`` the inverses :func:`encode_png` and
 :func:`encode_rgba_png`.
-``tools/png/chunks.py``, ``tools/png/stream.py``, ``tools/png/scanlines.py``,
-``tools/png/expand.py`` and ``tools/png/filters.py`` hold the chunk framing,
-chunk-stream and header validation, unfiltering, color expansion and filter
+``tools/png/chunks.py``, ``tools/png/stream.py``, ``tools/png/trns.py``,
+``tools/png/scanlines.py``, ``tools/png/expand.py`` and
+``tools/png/filters.py`` hold the chunk framing, chunk-stream and header
+validation, tRNS length rules, unfiltering, color expansion and filter
 arithmetic those are built from.
 """
 

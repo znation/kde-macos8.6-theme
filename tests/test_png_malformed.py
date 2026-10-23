@@ -1,7 +1,8 @@
 """Tests for the PNG decoder's malformed image data and limits.
 
 ``tools/png/read.py``'s inflate guards, ``tools/png/stream.py``'s header and
-pixel-limit checks and ``tools/png/expand.py``'s palette guard all reject
+pixel-limit checks, ``tools/png/trns.py``'s tRNS length rules and
+``tools/png/expand.py``'s palette guard all reject
 malformed input; the decoders run them in pipeline order: stream validation,
 then inflate, then expansion.
 
@@ -327,13 +328,12 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
         # image's suggested palette too, not just the palette a color type 3
         # image requires. The collector used to treat the ordering as illegal
         # only for color type 3, so this stream still decoded.
-        blob = (
-            _PNG_SIGNATURE
-            + ihdr_chunk(1, 1, 2)
-            + _chunk(b"tRNS", b"\x00\x01\x00\x02\x00\x03")
-            + _chunk(b"PLTE", bytes([255, 0, 0]))
-            + _chunk(b"IDAT", zlib.compress(bytes([0, 1, 2, 3])))
-            + _chunk(b"IEND", b"")
+        blob = png_stream(
+            ihdr_chunk(1, 1, 2),
+            _chunk(b"tRNS", b"\x00\x01\x00\x02\x00\x03"),
+            _chunk(b"PLTE", bytes([255, 0, 0])),
+            _chunk(b"IDAT", zlib.compress(bytes([0, 1, 2, 3]))),
+            _chunk(b"IEND", b""),
         )
         for decoder in (png.decode_png, png.decode_rgba):
             with self.subTest(decoder=decoder.__name__):

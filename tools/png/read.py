@@ -8,7 +8,8 @@ out of band; both paths refuse a ``tRNS`` chunk the header's color type or
 palette cannot carry, even though the RGB path discards alpha, and both refuse
 a ``PLTE`` chunk the header's greyscale color type can never use. This module
 holds the decode pipeline (inflate and row handling); the chunk-stream and
-header validation it reads first lives in ``tools/png/stream.py``, and the
+header validation it reads first lives in ``tools/png/stream.py``, its tRNS
+length rules in ``tools/png/trns.py``, and the
 color expansion from unfiltered samples to RGB or RGBA lives in
 ``tools/png/expand.py``. The file reader that loads a path and applies the
 file-level guards is :func:`tools.png.loader.read_png`, and
@@ -16,6 +17,7 @@ file-level guards is :func:`tools.png.loader.read_png`, and
 the declared dimensions. The pieces the decoder is built from live in sibling
 modules: ``tools/png/image.py`` (``PngError``, ``Image``, ``pixel_at``),
 ``tools/png/stream.py`` (chunk-stream and header validation),
+``tools/png/trns.py`` (tRNS length rules),
 ``tools/png/chunks.py`` (chunk framing), ``tools/png/scanlines.py``
 (unfiltering), ``tools/png/expand.py`` (color expansion) and
 ``tools/png/filters.py`` (the Sub/Up lane arithmetic and Paeth delta table).
