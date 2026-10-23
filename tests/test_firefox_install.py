@@ -327,6 +327,43 @@ class TestUserJs(unittest.TestCase):
         self.assertEqual(foreign, once)
         self.assertEqual(once, firefox_user_js.remove_user_js(once))
 
+    def test_remove_drops_a_marker_with_no_pref_line_after_it(self):
+        # The block is exactly the marker plus the pref line immediately after
+        # it, so a marker whose next line is foreign must not take that line
+        # with it: losing a user preference is worse than leaving a comment.
+        foreign = 'user_pref("a", 1);\n'
+        following = 'user_pref("b", 2);\n'
+        text = foreign + firefox_user_js.USER_JS_MARKER + "\n" + following
+        self.assertEqual(foreign + following, firefox_user_js.remove_user_js(text))
+
+    def test_install_removes_every_earlier_block(self):
+        # A hand-edited user.js can hold two copies of our block; the docstring
+        # promises exactly one at the end, and every foreign line survives
+        # once, whatever the number of earlier pairs.
+        foreign = 'user_pref("a", 1);\n'
+        block = (
+            firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.PREF_LINE
+            + "\n"
+        )
+        updated = firefox_user_js.set_user_js(foreign + block + foreign + block)
+        self.assertEqual(foreign + foreign + block, updated)
+
+    def test_dominant_ending_tie_keeps_the_earliest_ending(self):
+        # One CRLF and one LF line tie; the block must use the ending the file
+        # opened with rather than sorting or taking the last one seen, and the
+        # foreign lines must keep their own endings either way.
+        foreign = 'user_pref("a", 1);\r\nuser_pref("b", 2);\n'
+        self.assertEqual(
+            foreign
+            + firefox_user_js.USER_JS_MARKER
+            + "\r\n"
+            + firefox_user_js.PREF_LINE
+            + "\r\n",
+            firefox_user_js.set_user_js(foreign),
+        )
+
 
 class TestInstall(ProfileCase):
     def run_tool(self, *args, env=None):
