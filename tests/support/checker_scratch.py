@@ -60,12 +60,26 @@ class Scratch:
 
     @classmethod
     def build(cls, tmp):
-        """Copy the shipped tests tree and registers into *tmp*; return it reset."""
+        """Copy the shipped tests tree and registers into *tmp*; return it reset.
+
+        ``tests/`` is contributor-supplied, and git stores symlinks. A
+        checked-in symlink at the ``tests`` directory itself would make
+        ``copytree`` recurse into whatever it names (a private tree, or a
+        device directory), and an inner symlink would be dereferenced into a
+        regular file, copying a private file's bytes into the scratch tree
+        where every path under the scratch root counts as contained. The
+        directory is therefore refused when it resolves outside the
+        repository, and inner symlinks are copied as links (``symlinks=True``)
+        so a mutation that writes through one is refused by the scratch
+        writers instead of touching the link's target.
+        """
         root = Path(tmp)
+        containment.require_within_repo(ROOT / "tests", ROOT)
         shutil.copytree(
             ROOT / "tests",
             root / "tests",
             ignore=shutil.ignore_patterns("__pycache__"),
+            symlinks=True,
         )
         for name in os.listdir(ROOT / "theme"):
             if os.path.isdir(ROOT / "theme" / name):
@@ -138,6 +152,7 @@ class Scratch:
     def write_bytes(self, rel, data):
         """Write *data* at *rel*, restoring an overwritten file on ``reset``."""
         path = self.root / rel
+        self._require_contained(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.exists():
             self._originals.setdefault(path, path.read_bytes())
@@ -147,6 +162,18 @@ class Scratch:
 
     def _write(self, rel, text):
         path = self.root / rel
+        self._require_contained(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
         self._written.append(path)
+
+    def _require_contained(self, path):
+        """Refuse a scratch path whose symlinks resolve outside the scratch root.
+
+        ``build`` preserves an inner ``tests/`` symlink as a link, so a
+        mutation that writes the link's name must not follow it: writing
+        through it would overwrite the link's target, which may be a private
+        file, and a dangling link would create a new file outside the scratch
+        tree that ``reset`` never removes.
+        """
+        containment.require_within_repo(path, self.root, action="write")

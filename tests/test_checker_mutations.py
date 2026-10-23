@@ -12,6 +12,7 @@ list but missing from the other fails here.
 
 from __future__ import annotations
 
+import pathlib
 import tempfile
 import unittest
 from unittest import mock
@@ -99,6 +100,107 @@ class TestCheckerMutations(unittest.TestCase):
                     Scratch.build(scratch_tmp)
         self.assertIn("resolves outside", str(caught.exception))
         self.assertNotIn("private secret line", str(caught.exception))
+
+    def test_tests_tree_symlink_outside_the_repository_is_refused(self):
+        # ``tests/`` itself can be a checked-in symlink. Dereferencing it
+        # would copy an arbitrary directory into the scratch, so the copy
+        # must be refused before it starts.
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            root = base / "repo"
+            root.mkdir()
+            private = base / "private"
+            private.mkdir()
+            (private / "secret.py").write_text(
+                "PRIVATE_SECRET = 'do not copy'\n", encoding="utf-8"
+            )
+            (root / "tests").symlink_to(private)
+            (root / "theme").mkdir()
+            (root / "docs").mkdir()
+            (root / "docs" / "invariants.md").write_text(
+                "", encoding="utf-8"
+            )
+            (root / "PLACEHOLDERS.md").write_text("", encoding="utf-8")
+            with mock.patch.object(checker_scratch, "ROOT", root), \
+                    tempfile.TemporaryDirectory() as scratch_tmp:
+                with self.assertRaises(ValueError) as caught:
+                    Scratch.build(scratch_tmp)
+        message = str(caught.exception)
+        self.assertIn("resolves outside", message)
+        self.assertNotIn("do not copy", message)
+
+    def test_an_inner_tests_symlink_is_preserved_not_dereferenced(self):
+        # A symlink inside tests/ that names a private file must be copied as
+        # a link; copying its target's bytes would put a private file into
+        # the scratch tree, where the checkers treat every path under the
+        # scratch root as contained. A mutation that writes the link's name
+        # must then be refused rather than following it.
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            root = base / "repo"
+            root.mkdir()
+            private = base / "private.txt"
+            private.write_text("private secret line\n", encoding="utf-8")
+            absent = base / "absent.txt"
+            (root / "tests").mkdir()
+            (root / "tests" / "support").mkdir()
+            (root / "tests" / "support" / "mutant_module.py").symlink_to(private)
+            (root / "tests" / "support" / "repo_root.py").symlink_to(absent)
+            (root / "theme").mkdir()
+            (root / "docs").mkdir()
+            (root / "docs" / "invariants.md").write_text(
+                "", encoding="utf-8"
+            )
+            (root / "PLACEHOLDERS.md").write_text("", encoding="utf-8")
+            with mock.patch.object(checker_scratch, "ROOT", root), \
+                    tempfile.TemporaryDirectory() as scratch_tmp:
+                scratch = Scratch.build(scratch_tmp)
+                copied = scratch.root / "tests" / "support" / "mutant_module.py"
+                self.assertTrue(copied.is_symlink(), str(copied))
+                self.assertEqual(copied.readlink(), private)
+                with self.assertRaises(ValueError) as caught:
+                    scratch.write_bytes(
+                        "tests/support/mutant_module.py", b"overwritten\n"
+                    )
+                self.assertIn("resolves outside", str(caught.exception))
+                self.assertEqual(
+                    private.read_text(encoding="utf-8"),
+                    "private secret line\n",
+                )
+                with self.assertRaises(ValueError) as caught:
+                    scratch.write_bytes(
+                        "tests/support/repo_root.py", b"created\n"
+                    )
+                self.assertIn("resolves outside", str(caught.exception))
+                self.assertFalse(absent.exists())
+                # The text writers take the same guard, not only write_bytes.
+                with self.assertRaises(ValueError) as caught:
+                    scratch.write_repo_file(
+                        "tests/support/mutant_module.py", "overwritten\n"
+                    )
+                self.assertIn("resolves outside", str(caught.exception))
+                self.assertEqual(
+                    private.read_text(encoding="utf-8"),
+                    "private secret line\n",
+                )
+                with self.assertRaises(ValueError) as caught:
+                    scratch.write_repo_file(
+                        "tests/support/repo_root.py", "created\n"
+                    )
+                self.assertIn("resolves outside", str(caught.exception))
+                self.assertFalse(absent.exists())
+                # write_invariants is a _write caller too; a register that
+                # became a link must not be replaced through the link.
+                register = scratch.root / "docs" / "invariants.md"
+                register.unlink()
+                register.symlink_to(private)
+                with self.assertRaises(ValueError) as caught:
+                    scratch.write_invariants("replaced\n")
+                self.assertIn("resolves outside", str(caught.exception))
+                self.assertEqual(
+                    private.read_text(encoding="utf-8"),
+                    "private secret line\n",
+                )
 
     def test_harness_fails_when_the_diagnostic_is_wrong(self):
         # A scratch run with one mutation's expected diagnostic removed must
