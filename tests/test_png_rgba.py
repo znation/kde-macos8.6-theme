@@ -122,6 +122,100 @@ class TestRgbaPng(unittest.TestCase):
         blob = make_png(2, 1, [bytes([0, 1])], color_type=3, palette=palette)
         self.assertEqual(png.decode_rgba(blob), (2, 1, rgba))
 
+    def test_palette_trns_sets_alpha(self):
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        blob = make_png(
+            2,
+            1,
+            [bytes([0, 1])],
+            color_type=3,
+            palette=palette,
+            trns=bytes([0, 255]),
+        )
+        self.assertEqual(
+            png.decode_rgba(blob),
+            (2, 1, bytes([10, 20, 30, 0, 40, 50, 60, 255])),
+        )
+        # The RGB decoder's contract is still RGB: it ignores transparency.
+        self.assertEqual(
+            png.decode_png(blob).rgb, bytes([10, 20, 30, 40, 50, 60])
+        )
+
+    def test_palette_trns_shorter_than_palette_leaves_rest_opaque(self):
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        blob = make_png(
+            2,
+            1,
+            [bytes([0, 1])],
+            color_type=3,
+            palette=palette,
+            trns=bytes([7]),
+        )
+        self.assertEqual(
+            png.decode_rgba(blob),
+            (2, 1, bytes([10, 20, 30, 7, 40, 50, 60, 255])),
+        )
+
+    def test_greyscale_and_truecolor_trns_make_matching_pixels_transparent(self):
+        grey = make_png(
+            2, 1, [bytes([7, 8])], color_type=0, trns=struct.pack(">H", 7)
+        )
+        self.assertEqual(
+            png.decode_rgba(grey),
+            (2, 1, bytes([7, 7, 7, 0, 8, 8, 8, 255])),
+        )
+        truecolor = make_png(
+            2,
+            1,
+            [bytes([1, 2, 3, 4, 5, 6])],
+            color_type=2,
+            trns=struct.pack(">HHH", 1, 2, 3),
+        )
+        self.assertEqual(
+            png.decode_rgba(truecolor),
+            (2, 1, bytes([1, 2, 3, 0, 4, 5, 6, 255])),
+        )
+
+    def test_malformed_trns_length_rejected(self):
+        grey = make_png(
+            1, 1, [bytes([7])], color_type=0, trns=b"\x00\x07\x00"
+        )
+        assert_error_names(
+            self,
+            png.PngError,
+            png.decode_rgba,
+            grey,
+            needles=("tRNS chunk has 3 bytes", "exactly 2"),
+        )
+        truecolor = make_png(
+            1, 1, [bytes([1, 2, 3])], color_type=2, trns=bytes(5)
+        )
+        assert_error_names(
+            self,
+            png.PngError,
+            png.decode_rgba,
+            truecolor,
+            needles=("tRNS chunk has 5 bytes", "exactly 6"),
+        )
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        for trns in (b"", bytes(3)):
+            blob = make_png(
+                1,
+                1,
+                [bytes([0])],
+                color_type=3,
+                palette=palette,
+                trns=trns,
+            )
+            with self.subTest(length=len(trns)):
+                assert_error_names(
+                    self,
+                    png.PngError,
+                    png.decode_rgba,
+                    blob,
+                    needles=(f"has {len(trns)} bytes", "1 to 2"),
+                )
+
     def test_encode_png_unchanged(self):
         blob = png.encode_png(2, 1, bytes([1, 2, 3, 4, 5, 6]))
         self.assertEqual(blob, _ENCODE_PNG_2X1)

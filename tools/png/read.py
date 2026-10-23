@@ -2,7 +2,9 @@
 
 Decodes 8-bit, non-interlaced PNG images (color types 0, 2, 3, 4 and 6) into
 tightly packed RGB bytes (:func:`decode_png`) or RGBA bytes
-(:func:`decode_rgba`), using only the Python standard library. This module
+(:func:`decode_rgba`), using only the Python standard library. The RGBA path
+also applies a ``tRNS`` chunk's transparency for the color types that store it
+out of band. This module
 holds the decode pipeline (header validation, bounds, inflate and color
 expansion); the file reader that loads a path and applies the file-level
 guards is :func:`tools.png.loader.read_png`, and
@@ -194,17 +196,21 @@ def _take_plte(payload: bytes) -> bytes:
     return payload
 
 
-def _collect_chunks(data: bytes) -> tuple[bytes, bytes | None, bytearray]:
-    """Return ``(header, palette, idat)`` from *data*'s chunk stream.
+def _collect_chunks(
+    data: bytes,
+) -> tuple[bytes, bytes | None, bytearray, bytes | None]:
+    """Return ``(header, palette, idat, trns)`` from *data*'s chunk stream.
 
-    Walks the chunks after the signature, collecting the image header, palette
-    and IDAT payloads. It refuses a misordered or duplicate IHDR, a malformed
-    PLTE length, an unknown critical chunk, a missing IEND and a missing IHDR.
-    Filtering and colour expansion are :func:`decode_png`'s concern; this
-    helper owns only the framing the rest of the decode reads.
+    Walks the chunks after the signature, collecting the image header, palette,
+    IDAT payloads and the optional tRNS transparency payload. It refuses a
+    misordered or duplicate IHDR, a malformed PLTE length, an unknown critical
+    chunk, a missing IEND and a missing IHDR. Filtering and colour expansion
+    are the decoders' concern; this helper owns only the framing the rest of
+    the decode reads.
     """
     header = None
     palette = None
+    trns = None
     idat = bytearray()
     saw_iend = False
     first_chunk = None
@@ -220,6 +226,14 @@ def _collect_chunks(data: bytes) -> tuple[bytes, bytes | None, bytearray]:
             continue
         if ctype == b"PLTE":
             palette = _take_plte(payload)
+            continue
+        if ctype == b"tRNS":
+            # tRNS is ancillary, but it changes what the pixels mean for the
+            # three non-alpha colour types, so it must be collected rather
+            # than skipped with the other unknown ancillary chunks. Colour
+            # types 4 and 6 carry their transparency in the pixel itself, so
+            # :func:`decode_rgba` ignores it for those.
+            trns = payload
             continue
         if ctype == b"IDAT":
             idat += payload
@@ -248,7 +262,7 @@ def _collect_chunks(data: bytes) -> tuple[bytes, bytes | None, bytearray]:
         raise PngError(
             "PNG has no IEND chunk (the chunk stream may be truncated)"
         )
-    return header, palette, idat
+    return header, palette, idat, trns
 
 
 def decode_png(data: bytes, max_rows: int | None = None) -> Image:
@@ -276,7 +290,7 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
                 "convert it to PNG first"
             )
         raise PngError("not a PNG file")
-    header, palette, idat = _collect_chunks(data)
+    header, palette, idat, _trns = _collect_chunks(data)
     width, height, color_type = _parse_ihdr(header)
     _validate_max_rows(max_rows)
     rows = height if max_rows is None else min(max_rows, height)
@@ -328,7 +342,62 @@ def decode_png(data: bytes, max_rows: int | None = None) -> Image:
     return Image(width, rows, _to_rgb(color_type, samples, palette))
 
 
+def _palette_trns_alphas(trns: bytes | None, entries: int) -> bytes:
+    """Return one alpha byte per palette entry, applying a ``tRNS`` chunk.
+
+    A palette ``tRNS`` chunk names alphas only for its first entries; a shorter
+    chunk leaves the remaining entries opaque. An empty chunk, or one longer
+    than the palette, cannot describe a palette entry, so it is refused by
+    length instead of ignored.
+    """
+    if trns is None:
+        return b"\xff" * entries
+    if not 1 <= len(trns) <= entries:
+        raise PngError(
+            f"tRNS chunk has {len(trns)} bytes; a palette PNG with "
+            f"{entries} entries needs 1 to {entries}"
+        )
+    return trns + b"\xff" * (entries - len(trns))
+
+
+def _sample_trns_key(
+    trns: bytes | None, color_type: int
+) -> int | tuple[int, ...] | None:
+    """Return the sample value a greyscale or truecolor ``tRNS`` names.
+
+    Color type 0 names one 16-bit greyscale sample, color type 2 three 16-bit
+    samples (red, green, blue); a pixel equal to that value is transparent.
+    ``None`` means the image has no tRNS and every pixel is opaque.
+    """
+    if trns is None:
+        return None
+    expected = 2 if color_type == 0 else 6
+    if len(trns) != expected:
+        name = "greyscale" if color_type == 0 else "truecolor"
+        raise PngError(
+            f"tRNS chunk has {len(trns)} bytes; a {name} PNG (color type "
+            f"{color_type}) needs exactly {expected}"
+        )
+    if color_type == 0:
+        return struct.unpack(">H", trns)[0]
+    return struct.unpack(">HHH", trns)
+
+
 def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, bytes]:
+    """Decode an 8-bit, non-interlaced PNG into packed RGBA bytes.
+
+    The result is ``(width, height, rgba)`` where *rgba* holds
+    ``width * height * 4`` bytes in row order. A tRNS chunk's transparency is
+    applied for the palette, greyscale and truecolor color types, so a PNG
+    whose transparency lives in that chunk decodes with the same alpha as one
+    that stores it per pixel; the alpha color types (4 and 6) already carry
+    it.
+
+    *max_rows* bounds the returned rows as :func:`decode_png` does: the whole
+    compressed stream is still inflated and validated, every scanline's filter
+    type is still checked, and a palette image's every index is still
+    expanded. ``height`` in the result is the number of rows returned.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise PngError(
             f"decode_rgba data must be bytes or bytearray, not "
@@ -343,7 +412,7 @@ def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, byt
                 "convert it to PNG first"
             )
         raise PngError("not a PNG file")
-    header, palette, idat = _collect_chunks(data)
+    header, palette, idat, trns = _collect_chunks(data)
     width, height, color_type = _parse_ihdr(header)
     _validate_max_rows(max_rows)
     rows = height if max_rows is None else min(max_rows, height)
@@ -368,12 +437,16 @@ def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, byt
             "its final block"
         )
     if color_type == 3:
+        if palette is None:
+            raise PngError("palette PNG has no PLTE chunk")
         samples = unfilter(raw, width, height, channels)
         rgb = _to_rgb(color_type, samples, palette)
+        alphas = _palette_trns_alphas(trns, len(palette) // 3)
         rgb = rgb[: rows * width * 3]
         out = bytearray()
         for i in range(0, len(rgb), 3):
-            out += rgb[i:i + 3] + b"\xff"
+            index = samples[i // 3]
+            out += rgb[i:i + 3] + alphas[index:index + 1]
         return width, rows, bytes(out)
     samples = unfilter(raw, width, height, channels, rows)
     if color_type == 6:
@@ -386,14 +459,18 @@ def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, byt
             out += bytes((g, g, g, a))
         rgba = bytes(out)
     elif color_type == 2:
+        key = _sample_trns_key(trns, color_type)
         out = bytearray()
         for i in range(0, len(samples), 3):
-            out += samples[i:i + 3] + b"\xff"
+            pixel = samples[i:i + 3]
+            alpha = 0 if key is not None and tuple(pixel) == key else 255
+            out += pixel + bytes((alpha,))
         rgba = bytes(out)
     elif color_type == 0:
+        key = _sample_trns_key(trns, color_type)
         out = bytearray()
         for g in samples:
-            out += bytes((g, g, g, 255))
+            out += bytes((g, g, g, 0 if g == key else 255))
         rgba = bytes(out)
     else:
         raise PngError(f"unsupported PNG color type {color_type}")

@@ -177,6 +177,7 @@ def make_png(
     color_type: int = 2,
     palette: bytes | None = None,
     filter_types: list[int] | None = None,
+    trns: bytes | None = None,
 ) -> bytes:
     """Encode an 8-bit non-interlaced PNG from raw scanlines (test-only).
 
@@ -187,7 +188,9 @@ def make_png(
     must be one of the supported PNG types (0, 2, 3, 4 or 6); anything else is
     reported the same way. Fewer rows than ``height`` is allowed: a test
     builds a deliberately truncated IDAT that way. ``width`` and ``height``
-    must be positive.
+    must be positive. ``trns``, when given, is emitted verbatim as an
+    ancillary tRNS chunk after the header and palette, so a test can build an
+    image whose transparency lives in that chunk.
     """
     _require_positive_dimensions("make_png", width, height)
     channels = _CHANNELS.get(color_type)
@@ -220,6 +223,8 @@ def make_png(
     out = _PNG_SIGNATURE + ihdr_chunk(width, height, color_type)
     if palette is not None:
         out += _chunk(b"PLTE", palette)
+    if trns is not None:
+        out += _chunk(b"tRNS", trns)
     out += _chunk(b"IDAT", zlib.compress(bytes(filtered))) + _chunk(b"IEND", b"")
     return out
 
