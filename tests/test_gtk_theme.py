@@ -16,6 +16,15 @@ from unittest import mock
 
 from support import gtk_css
 from support.gtk_css import HEX, parse_css
+from support.gtk_theme_spec import (
+    BASE_DEFINED_COLOURS as DEFINED_COLOURS,
+    BUTTON_BEVEL,
+    ETCH_DARK,
+    GtkRuleAssertions,
+    INVERTED_BUTTON_BEVEL,
+    RAISED_BEVEL,
+    TAB_STATES,
+)
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -32,93 +41,8 @@ THEME_DIR = Path(ROOT) / "theme" / "gtk" / THEME_ID
 INDEX = THEME_DIR / "index.theme"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
-# The etched separator's dark half, pinned to the reference by
-# tests/test_desktoptheme_line.py's DARK value.
-ETCH_DARK = "#888888"
 
-DEFINED_COLOURS = {
-    "theme_bg_color": FACE,
-    "theme_fg_color": BLACK,
-    "theme_base_color": WHITE,
-    "theme_text_color": BLACK,
-    "theme_selected_bg_color": SELECTION,
-    "theme_selected_fg_color": BLACK,
-    "borders": BLACK,
-    "unfocused_borders": GREY,
-}
-
-RAISED_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {GREY}"
-BUTTON_BEVEL = f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW}"
-INVERTED_BUTTON_BEVEL = f"inset 1px 1px {BUTTON_SHADOW}, inset -1px -1px {WHITE}"
-
-# Every tab state covers both the plain and the notebook-scoped selectors, in
-# the plain and `.reorderable-page` forms. A checked state also names the third
-# member: whether its bevel and bottom border must be dropped.
-TAB_STATES = (
-    (
-        "base",
-        (
-            "tab",
-            "tab.reorderable-page",
-            "notebook > header > tabs > tab",
-            "notebook > header > tabs > tab.reorderable-page",
-        ),
-        False,
-    ),
-    (
-        "hover",
-        (
-            "tab:hover",
-            "tab.reorderable-page:hover",
-            "notebook > header > tabs > tab:hover",
-            "notebook > header > tabs > tab.reorderable-page:hover",
-        ),
-        False,
-    ),
-    (
-        "checked",
-        (
-            "tab:checked",
-            "tab.reorderable-page:checked",
-            "notebook > header > tabs > tab:checked",
-            "notebook > header > tabs > tab.reorderable-page:checked",
-        ),
-        True,
-    ),
-    (
-        "checked+hover",
-        (
-            "tab:checked:hover",
-            "tab.reorderable-page:checked:hover",
-            "notebook > header > tabs > tab:checked:hover",
-            "notebook > header > tabs > tab.reorderable-page:checked:hover",
-        ),
-        True,
-    ),
-    (
-        "backdrop",
-        (
-            "tab:backdrop",
-            "tab.reorderable-page:backdrop",
-            "notebook > header > tabs > tab:backdrop",
-            "notebook > header > tabs > tab.reorderable-page:backdrop",
-        ),
-        False,
-    ),
-    (
-        "backdrop+checked",
-        (
-            "tab:backdrop:checked",
-            "tab.reorderable-page:backdrop:checked",
-            "notebook > header > tabs > tab:backdrop:checked",
-            "notebook > header > tabs > tab.reorderable-page:backdrop:checked",
-        ),
-        True,
-    ),
-)
-
-
-class TestGtkTheme(unittest.TestCase):
+class TestGtkTheme(GtkRuleAssertions, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.index_text = gtk_css.read_theme_text(INDEX)
@@ -140,16 +64,6 @@ class TestGtkTheme(unittest.TestCase):
             with mock.patch.object(gtk_css, "ROOT", root):
                 with self.assertRaisesRegex(ValueError, "symlink escape"):
                     gtk_css.read_theme_text(link)
-
-    def assert_rule(self, selector, expected):
-        """Assert *selector* exists and carries each declaration in *expected*."""
-        self.assertIn(selector, self.rules, f"missing rule for {selector}")
-        for name, value in expected.items():
-            self.assertEqual(
-                self.rules[selector].get(name),
-                value,
-                f"{selector}: expected {name}: {value}",
-            )
 
     def test_index_theme(self):
         parser = configparser.ConfigParser(interpolation=None)
