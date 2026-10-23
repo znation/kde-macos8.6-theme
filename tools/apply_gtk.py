@@ -13,10 +13,10 @@ Usage::
     python3 tools/apply_gtk.py
     python3 tools/apply_gtk.py --remove
 
-Exit status: 0 when the selection or removal ran, 1 when the installed GTK 4
-sheet is missing, 2 for a usage error, an unresolvable config home (or data
-home when applying), or a settings or user-CSS file that cannot be read or
-written.
+Exit status: 0 when the selection or removal ran, 1 when an installed GTK 3
+or GTK 4 sheet is missing, 2 for a usage error, an unresolvable config home
+(or data home when applying), or a settings or user-CSS file that cannot be
+read or written.
 """
 
 from __future__ import annotations
@@ -84,9 +84,9 @@ def _data_home(env: dict[str, str]) -> Path | None:
     return _absolute(env, "XDG_DATA_HOME") or _home_child(env, ".local", "share")
 
 
-def _installed_sheet(data_home: Path) -> Path:
-    """Return the installed GTK 4 sheet below *data_home*."""
-    return data_home / "themes" / GTK_ID / "gtk-4.0" / "gtk.css"
+def _installed_sheet(data_home: Path, version: str) -> Path:
+    """Return the installed GTK *version* sheet below *data_home*."""
+    return data_home / "themes" / GTK_ID / version / "gtk.css"
 
 
 def _require_home(path: Path | None, variable: str, fallback: str) -> Path:
@@ -200,12 +200,19 @@ def _unlink(path: Path) -> None:
 
 def _apply(data_home: Path, config_home: Path) -> int:
     """Select our GTK themes in both settings files and the user CSS."""
-    sheet = _installed_sheet(data_home)
-    if not sheet.is_file():
-        return report_failure(
-            TOOL,
-            f"installed GTK 4 sheet is missing: {sheet}; run make install-gtk",
-        )
+    # Both settings files name our theme, so both sheets must exist: selecting
+    # a GTK 3 theme whose sheet is absent would silently leave GTK 3 unstyled.
+    sheets = {}
+    for version in ("gtk-4.0", "gtk-3.0"):
+        sheet = _installed_sheet(data_home, version)
+        if not sheet.is_file():
+            return report_failure(
+                TOOL,
+                f"installed {version} sheet is missing: {sheet}; "
+                "run make install-gtk",
+            )
+        sheets[version] = sheet
+    sheet = sheets["gtk-4.0"]
     # Read every settings and user-CSS file before writing any, so an
     # unreadable file leaves every file unmodified instead of applying half
     # the selection.
@@ -259,10 +266,10 @@ def main(argv: list[str] | None = None) -> int:
             "Select or clear the Mac OS 8.6 GTK 3 and GTK 4 Platinum themes."
         ),
         epilog=(
-            "exit status: 0 when the selection ran, 1 when the installed GTK 4 "
-            "sheet is missing, 2 for a usage error, an unresolvable config home "
-            "(or data home when applying), or a settings file that cannot be "
-            "read or written"
+            "exit status: 0 when the selection ran, 1 when an installed GTK 3 "
+            "or GTK 4 sheet is missing, 2 for a usage error, an unresolvable "
+            "config home (or data home when applying), or a settings file that "
+            "cannot be read or written"
         ),
     )
     parser.add_argument(

@@ -64,9 +64,12 @@ class GtkApplyCase(unittest.TestCase):
                 [snippet, *args], cwd=repo_root.ROOT, timeout=10
             )
 
-    def install_sheet(self):
-        self.sheet.parent.mkdir(parents=True, exist_ok=True)
-        self.sheet.write_text("/* installed sheet */\n", encoding="utf-8")
+    def install_sheet(self, *versions):
+        """Write the installed sheet for each *versions* (both by default)."""
+        for version in versions or ("gtk-3.0", "gtk-4.0"):
+            sheet = self.data / "themes" / apply_gtk.GTK_ID / version / "gtk.css"
+            sheet.parent.mkdir(parents=True, exist_ok=True)
+            sheet.write_text("/* installed sheet */\n", encoding="utf-8")
 
     def settings(self, version):
         return self.config / version / "settings.ini"
@@ -158,6 +161,27 @@ class TestApply(GtkApplyCase):
         self.assertEqual(1, result.returncode)
         self.assertIn("make install-gtk", result.stderr)
         self.assertIn("gtk-4.0/gtk.css", result.stderr)
+
+    def test_missing_gtk3_sheet_names_make_install_gtk(self):
+        # Selecting the theme in gtk-3.0/settings.ini would point GTK 3 at a
+        # theme whose only sheet is absent; refuse before writing either
+        # settings file, naming the GTK 3 sheet rather than letting the GTK 4
+        # sheet hide it.
+        self.install_sheet("gtk-4.0")
+        self.write(
+            self.settings("gtk-3.0"),
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+        )
+        result = self.run_tool()
+        assert_failed(self, result)
+        self.assertEqual(1, result.returncode)
+        self.assertIn("make install-gtk", result.stderr)
+        self.assertIn("gtk-3.0/gtk.css", result.stderr)
+        self.assertEqual(
+            "[Settings]\ngtk-theme-name=Adwaita\n",
+            self.settings("gtk-3.0").read_text(encoding="utf-8"),
+        )
+        self.assertFalse(self.settings("gtk-4.0").exists())
 
     def test_foreign_user_css_is_left_byte_identical_with_a_note(self):
         self.install_sheet()
