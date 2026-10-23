@@ -87,7 +87,7 @@ taken from the installed Breeze set (`/usr/share/icons/breeze_cursors/cursors`):
 there (checked with `md5sum` over that directory).
 
 **Approach.**
-- `tools/make_cursors.py`: add five 16x16 grids in the existing `#` face / `.` white / space
+- `tools/cursor_art.py`: add five 16x16 grids in the existing `#` face / `.` white / space
 transparent vocabulary and append them to `CURSORS`; `cursor_bytes`, `NOMINAL_SIZES` and `main`
 need no change.
   - `HELP_HOTSPOT = (1, 1)`; `HELP_GRID`: `ARROW_GRID` with a question mark stamped in the free
@@ -110,8 +110,8 @@ need no change.
     `("pencil", PENCIL_GRID, PENCIL_HOTSPOT, ())`,
     `("zoom-in", ZOOM_IN_GRID, ZOOM_IN_HOTSPOT, ())` and
     `("zoom-out", ZOOM_OUT_GRID, ZOOM_OUT_HOTSPOT, ())` to `CURSORS`.
-  - Update the module docstring: the package ships nineteen canonical cursors, not fourteen, and
-    list the new names and their aliases.
+  - Update `tools/cursor_art.py`'s docstring: the package ships nineteen canonical cursors, not
+    fourteen, and list the new names and their aliases.
 - `tests/test_cursors_theme.py`: extend `CANONICAL` with the five names and `ALIASES` with their
   alias tuples (empty for `pencil`, `zoom-in` and `zoom-out`). Add the five names to `HOTSPOTS` --
   `help`/`progress`: `(1,1)` at 16, `(2,2)` at 24, `(2,2)` at 32; `pencil`: `(2,14)`, `(3,21)`,
@@ -148,7 +148,7 @@ need no change.
 - `PLANS.md`: in the scope-drift paragraph, add the help, progress, pencil and zoom pointers to the
   shipped cursor clause, and say Xcursor roles the theme does not name still fall back.
 
-**Files touched.** `tools/make_cursors.py`, `tests/test_cursors_theme.py`,
+**Files touched.** `tools/cursor_art.py`, `tests/test_cursors_theme.py`,
 `tests/test_icon_theme.py`, the new binaries under `theme/icons/org.macos8.desktop/cursors/`
 (five canonical names and five alias names), `README.md`, `docs/invariants.md`, `PLANS.md`.
 

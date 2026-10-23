@@ -18,7 +18,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
-from tools import make_cursors  # noqa: E402
+from tools import cursor_art, make_cursors  # noqa: E402
 from tools.png import decode_rgba  # noqa: E402
 
 PACKAGE = make_cursors.ROOT / make_cursors.PACKAGE_DIR
@@ -201,7 +201,7 @@ class TestCursorArtifact(unittest.TestCase):
         self.assertEqual(LEFT_PTR.read_bytes(), make_cursors.cursor_bytes())
 
     def test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_the_artifact(self):
-        rows = list(make_cursors.ARROW_GRID)
+        rows = list(cursor_art.ARROW_GRID)
         rows[1] = rows[1][0] + "." + rows[1][2:]
         variants = {
             "corrupted grid": make_cursors.cursor_bytes(rows=tuple(rows)),
@@ -225,7 +225,7 @@ class TestCursorArtifact(unittest.TestCase):
                     _read_cursor(path)
 
     def test_generator_refuses_a_grid_with_an_unknown_cell(self):
-        rows = list(make_cursors.ARROW_GRID)
+        rows = list(cursor_art.ARROW_GRID)
         rows[3] = "x" + rows[3][1:]
         with self.assertRaises(ValueError) as caught:
             make_cursors.cursor_bytes(rows=tuple(rows))
@@ -299,7 +299,7 @@ class TestCursorSet(unittest.TestCase):
                     self.assertEqual((CURSORS / alias).read_bytes(), expected)
 
     def test_every_committed_cursor_is_a_fresh_generator_result(self):
-        for canonical, rows, hotspot, aliases in make_cursors.CURSORS:
+        for canonical, rows, hotspot, aliases in cursor_art.CURSORS:
             expected = make_cursors.cursor_bytes(
                 rows=rows, hotspot=hotspot, name=canonical
             )
@@ -308,9 +308,9 @@ class TestCursorSet(unittest.TestCase):
                     self.assertEqual((CURSORS / name).read_bytes(), expected)
 
     def test_each_new_grid_differs_from_the_arrow_grid(self):
-        for name, rows, _, _ in make_cursors.CURSORS[1:]:
+        for name, rows, _, _ in cursor_art.CURSORS[1:]:
             with self.subTest(name=name):
-                self.assertNotEqual(rows, make_cursors.ARROW_GRID)
+                self.assertNotEqual(rows, cursor_art.ARROW_GRID)
 
     def test_generator_writes_every_file_deterministically_in_a_temp_directory(self):
         tmp = make_tmp_dir(self)
@@ -334,7 +334,7 @@ class TestCursorSet(unittest.TestCase):
                 self.assertEqual(data, (CURSORS / name).read_bytes())
 
     def test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_each_glyph(self):
-        for canonical, rows, hotspot, _ in make_cursors.CURSORS:
+        for canonical, rows, hotspot, _ in cursor_art.CURSORS:
             committed = (CURSORS / canonical).read_bytes()
             mutated = list(rows)
             y = next(index for index, row in enumerate(mutated) if "#" in row)
@@ -361,7 +361,7 @@ class TestCursorSet(unittest.TestCase):
                     self.assertNotEqual(data, committed)
 
     def test_an_unknown_cell_names_the_glyph(self):
-        for canonical, rows, hotspot, _ in make_cursors.CURSORS:
+        for canonical, rows, hotspot, _ in cursor_art.CURSORS:
             mutated = list(rows)
             mutated[0] = "x" + mutated[0][1:]
             with self.subTest(name=canonical):
@@ -374,31 +374,31 @@ class TestCursorSet(unittest.TestCase):
                 )
 
     def test_size_ver_is_the_horizontal_glyph_rotated_a_quarter_turn(self):
-        size = make_cursors.GRID_SIZE
+        size = cursor_art.GRID_SIZE
         rotated = tuple(
             "".join(
-                make_cursors.SIZE_HOR_GRID[size - 1 - x][y]
+                cursor_art.SIZE_HOR_GRID[size - 1 - x][y]
                 for x in range(size)
             )
             for y in range(size)
         )
         self.assertEqual(
-            make_cursors.render_rgba(make_cursors.SIZE_VER_GRID, size),
+            make_cursors.render_rgba(cursor_art.SIZE_VER_GRID, size),
             make_cursors.render_rgba(rotated, size),
         )
 
     def test_size_bdiag_is_the_forward_diagonal_mirrored(self):
-        size = make_cursors.GRID_SIZE
-        mirrored = tuple(row[::-1] for row in make_cursors.SIZE_FDIAG_GRID)
+        size = cursor_art.GRID_SIZE
+        mirrored = tuple(row[::-1] for row in cursor_art.SIZE_FDIAG_GRID)
         self.assertEqual(
-            make_cursors.render_rgba(make_cursors.SIZE_BDIAG_GRID, size),
+            make_cursors.render_rgba(cursor_art.SIZE_BDIAG_GRID, size),
             make_cursors.render_rgba(mirrored, size),
         )
 
     def test_crosshair_black_cells_lie_on_the_centre_row_or_column(self):
-        size = make_cursors.GRID_SIZE
+        size = cursor_art.GRID_SIZE
         centre = size // 2 - 1
-        rgba = make_cursors.render_rgba(make_cursors.CROSSHAIR_GRID, size)
+        rgba = make_cursors.render_rgba(cursor_art.CROSSHAIR_GRID, size)
         for y in range(size):
             for x in range(size):
                 if _pixel(rgba, size, x, y) == BLACK:
@@ -474,7 +474,7 @@ class TestCursorSet(unittest.TestCase):
         width, _, rgba = images["grabbing"][1:]
         self.assertEqual(_pixel(rgba, width, 3, 2), TRANSPARENT)
         self.assertNotEqual(
-            make_cursors.GRAB_GRID, make_cursors.GRABBING_GRID
+            cursor_art.GRAB_GRID, cursor_art.GRABBING_GRID
         )
 
     def test_dnd_aliases_reuse_the_landed_glyphs(self):
@@ -496,7 +496,7 @@ class TestGridValidation(unittest.TestCase):
     """The grid checks turn a bad contributor edit into a named ValueError."""
 
     def test_refuses_a_grid_with_the_wrong_row_count(self):
-        for name, rows, _, _ in make_cursors.CURSORS:
+        for name, rows, _, _ in cursor_art.CURSORS:
             with self.subTest(name=name):
                 with self.assertRaises(ValueError) as caught:
                     make_cursors._checked_rows(rows[:-1], name)
@@ -506,7 +506,7 @@ class TestGridValidation(unittest.TestCase):
                 )
 
     def test_refuses_a_row_that_is_not_a_grid_width_string(self):
-        for name, rows, _, _ in make_cursors.CURSORS:
+        for name, rows, _, _ in cursor_art.CURSORS:
             short = list(rows)
             short[0] = short[0][:-1]
             non_text = list(rows)
@@ -529,7 +529,7 @@ class TestGeneratorValidation(unittest.TestCase):
         for size in (0, -1, True, 1.5):
             with self.subTest(size=size):
                 with self.assertRaises(ValueError) as caught:
-                    make_cursors.render_rgba(make_cursors.ARROW_GRID, size)
+                    make_cursors.render_rgba(cursor_art.ARROW_GRID, size)
                 self.assertIn(
                     f"size must be a positive integer: size={size!r}",
                     str(caught.exception),
