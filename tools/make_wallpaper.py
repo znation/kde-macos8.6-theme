@@ -30,11 +30,13 @@ if __package__:
     from tools.diagnostics import report_error
     from tools.png import Image, PngError, read_png
     from tools.png.write import encode_png
+    from tools.ints import is_plain_int
 else:  # run directly: python3 tools/make_wallpaper.py
     from containment import require_within_repo
     from diagnostics import report_error
     from png import Image, PngError, read_png
     from png.write import encode_png
+    from ints import is_plain_int
 
 TOOL = "make_wallpaper"
 ROOT = Path(__file__).resolve().parents[1]
@@ -75,6 +77,11 @@ def tile_from_reference(image: Image) -> bytes:
 
 def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
     """Return a *width* x *height* RGB image where pixel (x, y) is tile[y % 128][x % 128]."""
+    for name, value in (("width", width), ("height", height)):
+        if not is_plain_int(value) or value < 1:
+            raise ValueError(
+                f"tiled_rgb {name} must be a positive integer: {name}={value!r}"
+            )
     row_bytes = TILE_SIZE * 3
     if len(tile) != TILE_SIZE * row_bytes:
         raise ValueError(

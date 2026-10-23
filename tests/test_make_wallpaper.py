@@ -368,5 +368,23 @@ class TestWriteAtomic(unittest.TestCase):
         self.assertEqual(0o640, stat.S_IMODE(target.stat().st_mode))
 
 
+class TestTiledRgbValidation(unittest.TestCase):
+    def test_invalid_dimensions_are_rejected(self):
+        tile = bytes(make_wallpaper.TILE_SIZE * make_wallpaper.TILE_SIZE * 3)
+        cases = (0, -1, True, False, 1.0, "1", None)
+        for value in cases:
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    make_wallpaper.tiled_rgb(tile, value, 2)
+            with self.subTest(value=value):
+                with self.assertRaises(ValueError):
+                    make_wallpaper.tiled_rgb(tile, 2, value)
+
+    def test_valid_dimensions_accepted(self):
+        tile = bytes(make_wallpaper.TILE_SIZE * make_wallpaper.TILE_SIZE * 3)
+        out = make_wallpaper.tiled_rgb(tile, 2, 2)
+        self.assertEqual(len(out), 2 * 2 * 3)
+
+
 if __name__ == "__main__":
     unittest.main()
