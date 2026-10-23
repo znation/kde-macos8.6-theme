@@ -120,7 +120,7 @@ define install_package
 	rm -rf "$$old"
 endef
 
-.PHONY: help check install-gtk apply-gtk remove-gtk install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
+.PHONY: help check install-gtk apply-gtk remove-gtk apply-cursor remove-cursor install-firefox remove-firefox check-references render apply install-local-hook uninstall-local-hook install uninstall _install _uninstall
 
 # `check` runs the whole suite by default. A caller can narrow it to the test
 # modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`,
@@ -222,6 +222,8 @@ help:
 	@echo "  install-gtk       install the opt-in GTK 3 and GTK 4 Platinum themes"
 	@echo "  apply-gtk         install and select the opt-in GTK 3 and GTK 4 Platinum themes"
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
+	@echo "  apply-cursor      install the icon theme and select its Xcursor arrow"
+	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
 	@echo "  install-firefox   install the opt-in Firefox Platinum chrome into one profile"
 	@echo "  remove-firefox    remove the Firefox Platinum chrome from one profile"
 	@echo "  uninstall         remove the installed artifacts"
@@ -286,6 +288,26 @@ remove-gtk:
 	@$(call require_python,remove-gtk)
 	@$(call require_python_version,remove-gtk)
 	$(PYTHON) tools/apply_gtk.py --remove
+
+# Apply the opt-in cursor: install the icon theme (which carries the Xcursor
+# arrow), expose it at ~/.icons/org.macos8.desktop -- the path Xcursor searches
+# instead of $XDG_DATA_HOME/icons -- and select it with
+# plasma-apply-cursortheme. A non-empty DESTDIR is refused for the same reason
+# as `apply`: the selection is for the running session, not a staged tree.
+apply-cursor:
+	@if [ -n "$(DESTDIR)" ]; then echo "apply-cursor: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$(DESTDIR)'" >&2; exit 2; fi
+	@$(call require_python,apply-cursor)
+	@$(call require_python_version,apply-cursor)
+	$(MAKE) --no-print-directory install INSTALL_PACKAGES=icon-theme
+	$(PYTHON) tools/apply_cursor.py
+
+# Remove only our ~/.icons symlink; a foreign path and kcminputrc are left
+# untouched (the tool notes the reset command when the selection still names
+# our theme).
+remove-cursor:
+	@$(call require_python,remove-cursor)
+	@$(call require_python_version,remove-cursor)
+	$(PYTHON) tools/apply_cursor.py --remove
 
 # Copy the standalone Firefox sheet into one profile's chrome/ directory and
 # add the marker-delimited preference that makes Firefox read it. This is

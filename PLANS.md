@@ -38,7 +38,8 @@ waited on the one before); a **cursor theme** was out of scope on 2026-10-17 bec
 screenshot shows a cursor, so no pixel ground truth exists to match; on 2026-10-23 the plan role
 queued it anyway as the theme's own Platinum-style art (a black-face, white-outline arrow not
 traced from Apple's artwork), it has landed inside the icon theme package with its provenance
-exception recorded in `docs/invariants.md`, and nothing selects it yet; **system sounds** are out
+exception recorded in `docs/invariants.md`, and `make apply-cursor`/`make remove-cursor`
+link it into the Xcursor path and select it; **system sounds** are out
 of scope (not a visual surface, so the reference set cannot ground them); and a **lock screen** is
 out of scope unless a broader login/lock-screen plan is taken up (QUESTIONS.md, answered
 2026-10-21). The
@@ -62,88 +63,6 @@ applications keep their own chrome unless the opt-in GTK targets or the Firefox 
 install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
 landed, while its profile install is part 2/2, which has landed).
 
-### Platinum cursor selection: link the shipped cursor into the Xcursor user path and apply it (planned 2026-10-23 by the plan role; follows the landed cursor artifact)
-
-**Goal.** The icon theme package ships `cursors/{left_ptr,arrow,default,top_left_arrow}`, but nothing
-selects them. Xcursor searches `~/.icons`, `/usr/share/icons` and `/usr/share/pixmaps` (its
-`XcursorLibraryPath()` default), not `$XDG_DATA_HOME/icons`: `plasma-apply-cursortheme --list-themes`
-and `XcursorLibraryPath()` both ignore a theme copied under `$XDG_DATA_HOME/icons`, and list it when
-the same theme is under `~/.icons`. This part adds an opt-in `make apply-cursor` that exposes the
-installed icon theme at `$HOME/.icons/org.macos8.desktop` as a symlink and selects it with
-`plasma-apply-cursortheme org.macos8.desktop`; `make remove-cursor` removes only that link. `make
-install` and `make apply` stay unchanged and select no cursor.
-
-**Approach.**
-- `tools/apply_cursor.py` (new CLI, `TOOL = "apply_cursor"`, `CURSOR_THEME =
-  "org.macos8.desktop"`, `SELECT_TOOL = "plasma-apply-cursortheme"`, `COMMAND_TIMEOUT = 60.0`).
-  It uses `tools.argument_parsing.EscapingArgumentParser` (`--remove`), reports through
-  `tools.diagnostics.report_error`/`report_failure`/`report_missing_tool`, runs the selector with
-  `tools.process_group.run_logged` into a temporary log, escapes path text with
-  `tools.terminal.escape_controls`, and imports `tools.repo_root.ROOT`.
-- `resolve_homes(env)` returns `(home, data_home, config_home)`: `$HOME` must be absolute; data home
-  is an absolute `$XDG_DATA_HOME` else `$HOME/.local/share`; config home is an absolute
-  `$XDG_CONFIG_HOME` else `$HOME/.config` (only for the removal note). A missing or relative `HOME`
-  exits 2 naming it.
-- `installed_theme(data_home)` is `$XDG_DATA_HOME/icons/org.macos8.desktop`; it must contain a
-  regular `index.theme` and a regular `cursors/left_ptr`, else exit 2 naming the path. That file is
-  the icon theme's own `index.theme`, so the symlinked directory is also a valid cursor theme (the
-  KDE cursor model lists it by the directory name `org.macos8.desktop`).
-- Install: the target path is `$HOME/.icons/org.macos8.desktop`. A missing `~/.icons` is created; an
-  existing symlink to the installed theme is success (a repeat install changes nothing); any other
-  existing path (a foreign symlink, a real directory or a file) is refused with exit 2 naming it and
-  is not touched; a `~/.icons` that exists but is not a directory is refused the same way. A new link
-  is created with `os.symlink(str(installed_theme), str(target))`.
-  Then `plasma-apply-cursortheme org.macos8.desktop` runs with the inherited environment; a missing
-  tool exits 2 through `report_missing_tool`, a timeout or non-zero exit returns `report_failure`
-  (status 1) with the log tail.
-- Remove (`--remove`): unlink the target only when it is a symlink whose link text is the installed
-  theme path (a dangling link to a since-uninstalled theme counts as ours); a real directory, a file
-  or a symlink elsewhere is left alone with a note and exit 0, like `remove-gtk` leaving a foreign
-  file. Do not edit `kcminputrc`; if its `[Mouse] cursorTheme` still names `org.macos8.desktop`,
-  print a note naming `plasma-apply-cursortheme breeze_cursors` as the reset. Leave `~/.icons`
-  itself in place.
-- `Makefile`: add `apply-cursor` and `remove-cursor` to `.PHONY` and `make help`. `apply-cursor`
-  refuses a non-empty `DESTDIR` (like `apply`/`apply-gtk`), then runs
-  `$(MAKE) --no-print-directory install INSTALL_PACKAGES=icon-theme` followed by
-  `$(PYTHON) tools/apply_cursor.py`, behind `require_python`/`require_python_version`.
-  `remove-cursor` runs `$(PYTHON) tools/apply_cursor.py --remove` behind the same Python guards.
-- `README.md`: replace the cursor paragraph's "Nothing selects it yet." with the opt-in commands,
-  the `$HOME/.icons/org.macos8.desktop` symlink, the selection name, the restart note (the selector
-  says a restart is needed for the new pointer to display correctly), and the removal note. Add no
-  new `?=` variable.
-- `docs/invariants.md`: add one row under `## icons`: the opt-in link/selection exposes the shipped
-  arrow at the Xcursor path and selects it, refuses a foreign path, and removal reverses only our
-  link, leaving a foreign path and `kcminputrc` untouched; pinned to
-  `tests/test_apply_cursor.py::TestInstall`, `::TestRemove` and `::TestSelection`. The provenance
-  exception records that no reference screenshot shows a pointer, and that the `~/.icons` path, the
-  theme name and the selector are Xcursor/KDE-required values.
-- `PLANS.md`'s scope-drift paragraph changes its "nothing selects it yet" phrase to name `make
-  apply-cursor`/`make remove-cursor` once this lands; the historical "not planned yet" wording in
-  `PLANS-DONE.md` is left alone.
-
-**Files touched.** `tools/apply_cursor.py` (new), `tests/test_apply_cursor.py` (new), `Makefile`,
-`README.md`, `docs/invariants.md` and `PLANS.md` (this entry and the scope-drift sentences). Do not
-edit `PLANS-DONE.md`, the cursor generator, any `theme/` file, or the installed-theme layout.
-
-**Acceptance criteria.**
-- `tests/test_apply_cursor.py` pins: an absolute `HOME` is required (unset and relative refused by
-  name); the data-home fallback; a missing installed theme, `index.theme` or `cursors/left_ptr` is
-  refused by name; install creates `$HOME/.icons/org.macos8.desktop` as a symlink to the installed
-  icon theme, a repeat install succeeds, and a foreign symlink, real directory or file is refused
-  without being changed; the selector is invoked as `plasma-apply-cursortheme org.macos8.desktop`,
-  a missing selector exits 2 naming it, and a non-zero selector exits 1 with its log tail; removal
-  unlinks only our symlink (including a dangling one), leaves a foreign path and `.icons` in place,
-  succeeds when repeated, and prints the `kcminputrc` note only when the selection still names
-  `org.macos8.desktop`. Changing the link target, deleting the installed-theme check or dropping
-  the foreign-path guard makes the matching test fail.
-- The Makefile tests pin `apply-cursor`'s dry run (`INSTALL_PACKAGES=icon-theme` before
-  `tools/apply_cursor.py`), its `DESTDIR` refusal, and the Python-version refusal; `make help` lists
-  both targets and README names `make apply-cursor` and `make remove-cursor`.
-- `make check CHECK_TESTS=test_apply_cursor` passes, then `make check` is green; `tests/invariants.py`
-  accepts the new `## icons` row.
-- `git diff --name-status` names only the files listed under "Files touched" and does not name
-  `PLANS-DONE.md`.
-
 ### Platinum cursor set: ship the text, hand, busy and move pointers (planned 2026-10-23 by the plan role; follows the landed arrow artifact)
 
 **Goal.** The icon theme package ships `cursors/{left_ptr,arrow,default,top_left_arrow}`, so after
@@ -154,9 +73,10 @@ I-beam (`xterm`), the pointing hand (`hand2`), the busy hourglass (`watch`) and 
 (`fleur`) -- with the X-name aliases applications use, generated by the same tool. All art is our
 own Platinum-style drawing on the pinned #000000 face and #FFFFFF outline, not traced from
 Apple's artwork; no reference screenshot shows a pointer, so the existing `## icons` provenance
-exception covers the new names. This entry does not change the arrow's bytes or select the theme
-(that is the waiting "Platinum cursor selection" entry). Resize, diagonal, drag and not-allowed
-pointers stay on the fallback theme and are recorded as such; a later entry can complete them.
+exception covers the new names. This entry does not change the arrow's bytes; the landed
+"Platinum cursor selection" entry's `make apply-cursor` selects the set. Resize, diagonal, drag
+and not-allowed pointers stay on the fallback theme and are recorded as such; a later entry can
+complete them.
 
 **Approach.**
 - `tools/make_cursors.py`: replace the one-glyph constants' use with a fixed `CURSORS` table whose
@@ -186,15 +106,16 @@ pointers stay on the fallback theme and are recorded as such; a later entry can 
   order is pinned. `HOTSPOTS` becomes a per-glyph mapping.
 - `README.md`: the cursor sentence in the installed-theme paragraph names the arrow plus the
   `xterm`, `hand2`, `watch` and `fleur` pointers and their aliases, and says resize/drag pointers
-  still come from the fallback theme. Do not mention selection here; the waiting entry owns the
-  "Nothing selects it yet" sentence.
+  still come from the fallback theme. Keep the landed `make apply-cursor`/`make remove-cursor`
+  selection sentences as they are.
 - `docs/invariants.md`: extend the existing `## icons` cursor row to name every canonical file and
   alias and cite both `tests/test_cursors_theme.py::TestCursorArtifact` and `::TestCursorSet`; the
   provenance exception keeps "no reference screenshot shows the pointer; our own Platinum-style
   art on the pinned face and outline; the nominal sizes, Xcursor layout and X names are KDE/X
   required".
 - `PLANS.md`: the scope-drift paragraph's artifact list names the cursor set instead of only the
-  arrow; leave its "nothing selects it yet" words to the selection entry.
+  arrow; its selection sentence already names the landed `make apply-cursor`/`make remove-cursor`
+  commands.
 
 **Files touched.** `tools/make_cursors.py`, `tests/test_cursors_theme.py`, the new files under
 `theme/icons/org.macos8.desktop/cursors/` (canonical names and aliases listed above), `README.md`,
