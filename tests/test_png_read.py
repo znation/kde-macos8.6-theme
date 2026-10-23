@@ -15,6 +15,7 @@ from pathlib import Path
 from unittest import mock
 
 from support.allocation_fixtures import peak_allocation
+from support.close_tracking import tracking_closes
 from support.error_assertions import error_message
 from support.process_assertions import assert_failed
 from support.tmp_dir import make_tmp_dir
@@ -194,17 +195,11 @@ class TestReadPng(unittest.TestCase):
         # OSError into a PngError naming the file, so the fidelity CLI stays
         # on its exit-2 path instead of tracing back.
         path = self._file("unstattable.png", b"x")
-        real_close = loader.os.close
-        closed_fds = []
-
-        def recording_close(fd):
-            closed_fds.append(fd)
-            return real_close(fd)
 
         with mock.patch.object(
             loader.os, "fstat", side_effect=OSError(5, "Input/output error")
         ):
-            with mock.patch.object(loader.os, "close", recording_close):
+            with tracking_closes() as closed_fds:
                 self._assert_png_error_names_path(
                     path, "cannot read", "Input/output error"
                 )

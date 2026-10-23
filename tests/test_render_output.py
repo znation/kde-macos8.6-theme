@@ -13,6 +13,7 @@ import unittest
 from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.close_tracking import failing_fdopen  # noqa: E402
 from tools import render_output  # noqa: E402
 
 
@@ -70,22 +71,9 @@ class TestPublishFdopen(unittest.TestCase):
         source = root / "src.png"
         source.write_bytes(b"source")
         output = root / "out.png"
-        real_close = os.close
-        closed = []
-        def track_close(fd):
-            closed.append(fd)
-            return real_close(fd)
-        def boom(*args, **kwargs):
-            raise OSError("simulated fdopen failure")
-        real_fdopen = os.fdopen
-        os.close = track_close
-        os.fdopen = boom
-        try:
+        with failing_fdopen() as closed:
             with self.assertRaises(OSError):
                 render_output.publish(source, output)
-        finally:
-            os.close = real_close
-            os.fdopen = real_fdopen
         self.assertEqual(1, len(closed))
 
 

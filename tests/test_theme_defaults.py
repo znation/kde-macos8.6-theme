@@ -10,6 +10,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
+from support.close_tracking import tracking_closes
 from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
 
@@ -295,21 +296,15 @@ class TestWriteConfigs(unittest.TestCase):
         target.write_text("ORIGINAL\n", encoding="utf-8")
         td = theme_defaults
         real_chmod = os.fchmod
-        real_close = os.close
-        closed = []
         def boom(path, mode):
             raise OSError("simulated failure")
-        def track_close(fd):
-            closed.append(fd)
-            return real_close(fd)
         os.fchmod = boom
-        os.close = track_close
         try:
-            with self.assertRaises(OSError):
-                td._write_config_atomically(target, "NEW\n")
+            with tracking_closes() as closed:
+                with self.assertRaises(OSError):
+                    td._write_config_atomically(target, "NEW\n")
         finally:
             os.fchmod = real_chmod
-            os.close = real_close
         self.assertEqual("ORIGINAL\n", target.read_text(encoding="utf-8"))
         self.assertEqual({"kwinrc"}, set(os.listdir(directory)))
         self.assertEqual(1, len(closed))

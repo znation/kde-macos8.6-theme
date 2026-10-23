@@ -14,6 +14,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main  # noqa: E402
+from support.close_tracking import failing_fdopen  # noqa: E402
 from support.tmp_dir import make_tmp_dir
 from tools import atomic_write, make_wallpaper, png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
@@ -415,22 +416,9 @@ class TestWriteAtomicFdopen(unittest.TestCase):
         directory = tempfile.mkdtemp(prefix="make-wallpaper-fdopen-")
         root = Path(directory)
         target = root / "out.png"
-        real_close = os.close
-        closed = []
-        def track_close(fd):
-            closed.append(fd)
-            return real_close(fd)
-        def boom(*args, **kwargs):
-            raise OSError("simulated fdopen failure")
-        real_fdopen = os.fdopen
-        os.close = track_close
-        os.fdopen = boom
-        try:
+        with failing_fdopen() as closed:
             with self.assertRaises(OSError):
                 make_wallpaper._write_atomic(target, b"data")
-        finally:
-            os.close = real_close
-            os.fdopen = real_fdopen
         self.assertEqual(1, len(closed))
 
 class TestTiledRgbValidation(unittest.TestCase):

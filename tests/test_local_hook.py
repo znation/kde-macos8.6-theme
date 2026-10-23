@@ -27,6 +27,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import theme_install
 from support import tmp_dir
 from support.cli_fixtures import run_main
+from support.close_tracking import failing_fdopen
 from support.process_assertions import assert_failed, assert_succeeded
 from tools import atomic_write, local_hook
 
@@ -380,22 +381,9 @@ class TestInstall(unittest.TestCase):
         import tempfile
         directory = tempfile.mkdtemp(prefix="local-hook-fdopen-")
         path = Path(directory) / "hook"
-        real_close = os.close
-        closed = []
-        def track_close(fd):
-            closed.append(fd)
-            return real_close(fd)
-        def boom(*args, **kwargs):
-            raise OSError("simulated fdopen failure")
-        real_fdopen = os.fdopen
-        os.close = track_close
-        os.fdopen = boom
-        try:
+        with failing_fdopen() as closed:
             with self.assertRaises(OSError):
                 local_hook._write_hook(path, local_hook.HOOK_SCRIPT)
-        finally:
-            os.close = real_close
-            os.fdopen = real_fdopen
         self.assertEqual(1, len(closed))
         # no leftover temp files
         self.assertEqual([], [n for n in os.listdir(directory) if n.startswith(".")])
