@@ -462,6 +462,32 @@ class TestInstall(ProfileCase):
         )
         self.assertFalse(self.user_js_path().exists())
 
+    def test_a_missing_shipped_sheet_is_reported_by_path(self):
+        # _apply reads the shipped userChrome.css before touching the profile
+        # and promises a by-name "cannot read" error rather than a traceback
+        # when the source tree is incomplete. Point ROOT at a tree with no
+        # theme/ directory; neither profile file may be written.
+        with mock.patch.object(install_firefox, "ROOT", self.root):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        sheet = self.root / install_firefox.SHEET
+        self.assertIn(f"cannot read {sheet}", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_a_shipped_sheet_that_is_a_directory_is_reported_by_path(self):
+        # The shared regular-file reader refuses a directory with a
+        # ValueError; _apply must wrap that in the same by-name diagnostic.
+        sheet = self.root / install_firefox.SHEET
+        sheet.mkdir(parents=True)
+        with mock.patch.object(install_firefox, "ROOT", self.root):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot read {sheet}", result.stderr)
+        self.assertIn("not a regular file", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
 
 class TestRemove(ProfileCase):
     def run_tool(self, *args):
