@@ -42,6 +42,9 @@ else:  # run directly: python3 tools/apply_gtk.py
 
 TOOL = "apply_gtk"
 GTK4_CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
+# GTK settings and user CSS are small user files; anything larger is refused
+# rather than loaded, so a corrupt or hostile file cannot exhaust memory.
+_MAX_CONFIG_FILE_BYTES = 1 << 20
 
 
 def _note(message: str) -> None:
@@ -119,6 +122,8 @@ def _read_config_text(path: Path) -> str | None:
     The bytes are decoded directly rather than through ``Path.read_text``,
     whose universal-newline mode would turn CRLF and lone CR into LF before
     the transforms see them; every line ending must stay intact for a rewrite.
+    At most one byte past ``_MAX_CONFIG_FILE_BYTES`` is read, so an oversize
+    file is refused by name instead of being loaded whole.
     """
     try:
         descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK)
@@ -136,9 +141,20 @@ def _read_config_text(path: Path) -> str | None:
         if not stat.S_ISREG(mode):
             raise ConfigError(f"cannot read {path}: not a regular file")
         chunks = []
-        while chunk := os.read(descriptor, 65536):
+        remaining = _MAX_CONFIG_FILE_BYTES + 1
+        while remaining > 0:
+            chunk = os.read(descriptor, min(remaining, 65536))
+            if not chunk:
+                break
             chunks.append(chunk)
-        return b"".join(chunks).decode("utf-8")
+            remaining -= len(chunk)
+        data = b"".join(chunks)
+        if len(data) > _MAX_CONFIG_FILE_BYTES:
+            raise ConfigError(
+                f"{path} is larger than the {_MAX_CONFIG_FILE_BYTES}-byte "
+                "limit this tool reads; refusing to load it whole"
+            )
+        return data.decode("utf-8")
     except (OSError, UnicodeDecodeError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
     finally:
@@ -228,6 +244,15 @@ def _apply(data_home: Path, config_home: Path) -> int:
     css = _user_css_write(config_home, sheet)
     if css is not None:
         writes.append(css)
+    # A settings file at the read cap can grow past it when our longer value
+    # replaces a shorter foreign one. Refuse before staging, or a later apply
+    # or removal would refuse the file this run wrote.
+    for path, text in writes:
+        if len(text.encode("utf-8")) > _MAX_CONFIG_FILE_BYTES:
+            raise ConfigError(
+                f"{path} would grow past the {_MAX_CONFIG_FILE_BYTES}-byte "
+                "limit this tool reads; refusing to write it"
+            )
     # Stage every write before replacing anything: an unwritable settings
     # file or user CSS leaves all of them unmodified.
     commit(stage_all(writes))

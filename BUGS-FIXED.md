@@ -5,6 +5,23 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An oversize GTK settings or user-CSS file crashes the GTK selection with a MemoryError (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/apply_gtk.py::_read_config_text` read the whole of
+`$XDG_CONFIG_HOME/gtk-3.0/settings.ini`, `gtk-4.0/settings.ini` or
+`gtk-4.0/gtk.css` into memory in chunks with no size cap. A GTK config file
+of hundreds of megabytes raised `MemoryError`, which is not an `OSError`, so
+the tool's `except ConfigError` path never ran and `make apply-gtk` or
+`make remove-gtk` ended in a traceback instead of its documented exit-2
+diagnostic naming the file.
+
+The reader now stops one byte past the same 1 MiB cap
+`tools/install_firefox.py::_read_text` uses and refuses an oversize file by
+name as a `ConfigError`; `_apply` also refuses, before staging any write, a
+settings file whose longer value would grow it past that cap.
+
+**Validation gap:** real-run-needed — the existing suite had no oversize config case, so the MemoryError was confirmed only by a 300 MB sparse `gtk.css` run under `ulimit -v 120000`, which exited 1 before the fix and 2 after.
+
 ### An oversize Firefox profile file crashes the installer with a MemoryError (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/install_firefox.py::_read_text` opened an existing `userChrome.css` or
