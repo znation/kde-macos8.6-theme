@@ -784,6 +784,26 @@ class TestInstall(ProfileCase):
         self.assertEqual(previous, _read(self.sheet_path()))
         self.assertFalse(self.user_js_path().exists())
 
+    def test_a_failed_user_js_write_keeps_a_block_that_was_already_installed(self):
+        # A repeat install over an outdated sheet rewrites a user.js that
+        # already holds our block unchanged. When that write fails, the
+        # sheet goes back to its previous text and the block stays in place.
+        first = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(0, first.returncode, first.stderr)
+        installed_js = _read(self.user_js_path())
+        previous_sheet = f"{install_firefox.CSS_MARKER}\n/* outdated sheet */\n"
+        _write(self.sheet_path(), previous_sheet)
+        with mock.patch.object(
+            firefox_user_files,
+            "write_atomically",
+            self.fail_write_to(self.user_js_path()),
+        ):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.assertEqual(previous_sheet, _read(self.sheet_path()))
+        self.assertEqual(installed_js, _read(self.user_js_path()))
+
     def test_a_failed_sheet_restore_is_reported_with_the_original_error(self):
         # When the user.js write and the sheet restore both fail, the restore
         # cannot put the profile back. The error must name both failures so
