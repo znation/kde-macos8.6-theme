@@ -13,6 +13,7 @@ import os
 import xml.etree.ElementTree as ET
 
 from support import containment
+from support.file_identity import fingerprint_or_none
 from support.repo_root import ROOT
 
 # Parsed SVG trees, keyed by absolute path. A widget suite parses its SVG in
@@ -23,19 +24,6 @@ from support.repo_root import ROOT
 # artwork; a failed read or parse is never cached. Callers treat the tree as
 # read-only, and `render_slices` caches its pixels against the same identity.
 _TREE_CACHE = {}
-
-
-def _fingerprint(path):
-    """Return *path*'s stat fingerprint, or None when it cannot be read.
-
-    A failed stat is not cached, so the caller's `ET.parse` still reports the
-    missing or unreadable path the way it did before.
-    """
-    try:
-        stat = os.stat(path)
-    except OSError:
-        return None
-    return (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
 
 
 def parse_svg(path):
@@ -58,7 +46,7 @@ def parse_svg(path):
     """
     containment.require_within_repo(path, ROOT)
     key = os.path.abspath(path)
-    fingerprint = _fingerprint(path)
+    fingerprint = fingerprint_or_none(path)
     cached = _TREE_CACHE.get(key)
     if cached is not None and cached[0] == fingerprint:
         return cached[1]

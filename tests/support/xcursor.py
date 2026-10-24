@@ -13,12 +13,12 @@ alpha, so only an opaque frame reproduces its original PNG bytes). Errors are
 from __future__ import annotations
 
 import functools
-import os
 import struct
 from pathlib import Path
 from typing import NamedTuple
 
 from support import containment  # noqa: E402
+from support.file_identity import fingerprint_or_none  # noqa: E402
 from support.repo_root import ROOT  # noqa: E402
 from tools.png.write import encode_rgba_png  # noqa: E402
 
@@ -64,19 +64,6 @@ def _rgba_from_words(data: bytes, offset: int, count: int) -> bytes:
         rgba[start + 2] = word & 0xFF
         rgba[start + 3] = (word >> 24) & 0xFF
     return bytes(rgba)
-
-
-def _fingerprint(path):
-    """Return *path*'s stat fingerprint, or None when it cannot be read.
-
-    A failed stat is not cached, so the caller's read still reports the missing
-    or unreadable path the way it did before.
-    """
-    try:
-        stat = os.stat(path)
-    except OSError:
-        return None
-    return (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
 
 
 def _read_cursor_file(path: Path, root: Path) -> CursorFile:
@@ -268,7 +255,7 @@ def read_cursor(path, root=None) -> CursorFile:
         root = ROOT
     else:
         root = Path(root)
-    fingerprint = _fingerprint(path)
+    fingerprint = fingerprint_or_none(path)
     if fingerprint is None:
         return _read_cursor_file(path, root)
     return _parse_cached(str(path), fingerprint, str(root))
