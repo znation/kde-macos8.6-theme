@@ -26,6 +26,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.tmp_dir import make_tmp_dir
+from support.unlink_failure import unlink_failing_for
 from tools import apply_gtk, gtk_user_files
 
 
@@ -435,16 +436,10 @@ class TestSettingsErrors(GtkApplyCase):
             f"{gtk_user_files.GTK4_CSS_MARKER}\n@import url(\"file:///sheet.css\");\n",
             encoding="utf-8",
         )
-        real_unlink = Path.unlink
 
-        def fail_the_user_css_unlink(path, *args, **kwargs):
-            # The backup link and the settings replacement succeed, so this
-            # reaches the unlink itself, after the settings were changed.
-            if path == css:
-                raise OSError("injected unlink failure")
-            return real_unlink(path, *args, **kwargs)
-
-        with mock.patch.object(Path, "unlink", fail_the_user_css_unlink):
+        # The backup link and the settings replacement succeed, so this
+        # reaches the unlink itself, after the settings were changed.
+        with unlink_failing_for(css):
             result = self.run_tool("--remove")
 
         assert_exit_2_without_traceback(self, result)

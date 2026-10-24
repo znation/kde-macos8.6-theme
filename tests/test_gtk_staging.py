@@ -25,6 +25,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
+from support.unlink_failure import unlink_failing_for
 from tools.gtk_staging import _stage, commit, discard, stage_all
 from tools.gtk_user_files import ConfigError
 
@@ -226,14 +227,8 @@ class TestCommit(StagingCase):
         css = self.root / "gtk-4.0" / "gtk.css"
         css.parent.mkdir(parents=True)
         css.write_text("marker\n", encoding="utf-8")
-        real_unlink = Path.unlink
 
-        def fail_the_css_unlink(path, *args, **kwargs):
-            if path == css:
-                raise OSError("injected unlink failure")
-            return real_unlink(path, *args, **kwargs)
-
-        with mock.patch.object(Path, "unlink", fail_the_css_unlink):
+        with unlink_failing_for(css):
             with self.assertRaises(ConfigError):
                 commit([], removals=[css])
 
