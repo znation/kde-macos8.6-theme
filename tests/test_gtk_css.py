@@ -89,6 +89,35 @@ class TestParseCss(unittest.TestCase):
                     {"a": dict(expected, margin="1px")},
                 )
 
+    def test_an_escaped_or_foreign_quote_does_not_end_a_string(self):
+        # A backslash-escaped quote and the other quote character stay inside
+        # the string, so the ';' after them is still part of the value.
+        cases = (
+            'content: "a\\"b;c"',
+            "content: 'a\"b;c'",
+        )
+        for declaration in cases:
+            with self.subTest(declaration=declaration):
+                value = declaration.split(": ", 1)[1]
+                self.assertEqual(
+                    parse_css(f"a {{ {declaration}; margin: 1px; }}")[1],
+                    {"a": {"content": value, "margin": "1px"}},
+                )
+
+    def test_a_stray_closing_parenthesis_does_not_hide_a_separator(self):
+        # An unmatched ')' must not drive the depth negative and swallow the
+        # ';' that follows.
+        self.assertEqual(
+            parse_css("a { color: red); margin: 1px; }")[1],
+            {"a": {"color": "red)", "margin": "1px"}},
+        )
+
+    def test_a_block_without_a_selector_is_not_a_rule(self):
+        self.assertEqual(
+            parse_css("{color:#111111} b{color:#222222}"),
+            ({}, {"b": {"color": "#222222"}}, ["b"]),
+        )
+
 
 class TestRuleBlockSemantics(unittest.TestCase):
     """The scanner must keep the parsing rules of the regular expression it replaced.
