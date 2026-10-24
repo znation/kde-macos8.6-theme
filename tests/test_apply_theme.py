@@ -26,7 +26,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import process_runner, theme_install
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
-from tools import apply_theme
+from tools import apply_theme, required_command
 
 
 class StubTools(unittest.TestCase):
@@ -167,17 +167,21 @@ class TestFailurePaths(StubTools):
 
 
 class TestTimeoutPaths(StubTools):
-    """The ``run_logged`` timeout result (``None``) at both call sites.
+    """The ``run_logged`` timeout result (``None``) at the three call sites.
 
     ``run_logged`` returns ``None`` when a command exceeds the 60s
     ``COMMAND_TIMEOUT``. A real timeout would need a hung child and the full
-    timeout, so these patch ``run_logged`` to report the timeout directly and
-    pin the diagnostic each call site prints. ``test_render_surface`` covers
-    the process-group kill that produces the ``None`` in the first place.
+    timeout, so these patch it to report the timeout directly and pin the
+    diagnostic each call site prints: the shared required-command runner for
+    the steps, and ``apply_theme.run_logged`` for the best-effort selections.
+    ``test_render_surface`` covers the process-group kill that produces the
+    ``None`` in the first place.
     """
 
     def test_a_required_step_timeout_exits_1_naming_the_tool(self):
-        with mock.patch.object(apply_theme, "run_logged", return_value=None):
+        with mock.patch.object(
+            required_command, "run_logged", return_value=None
+        ):
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(1, status)
         self.assertIn(

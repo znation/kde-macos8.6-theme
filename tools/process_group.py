@@ -3,8 +3,9 @@
 :func:`run_logged` supervises one command with a timeout and a log file;
 :func:`exit_on_termination` makes SIGTERM and SIGHUP unwind the caller's
 ``finally`` blocks. ``tools/render_surface.py`` and ``tools/apply_theme.py``
-use both around the external commands they run; ``tools/apply_cursor.py`` uses
-:func:`run_logged` for its selector.
+use both around the external commands they run; ``tools/required_command.py``
+wraps :func:`run_logged` with the shared required-command diagnostic for
+``tools/apply_theme.py`` and ``tools/apply_cursor.py``.
 """
 
 from __future__ import annotations

@@ -31,26 +31,18 @@ if __package__:
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import read_text
-    from tools.diagnostics import (
-        report_error,
-        report_failure,
-        report_missing_tool,
-        report_note,
-    )
-    from tools.process_group import exit_on_termination, run_logged
+    from tools.diagnostics import report_error, report_missing_tool, report_note
+    from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
+    from tools.required_command import run_required
 else:  # run directly: python3 tools/apply_cursor.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from containment import read_text
-    from diagnostics import (
-        report_error,
-        report_failure,
-        report_missing_tool,
-        report_note,
-    )
-    from process_group import exit_on_termination, run_logged
+    from diagnostics import report_error, report_missing_tool, report_note
+    from process_group import exit_on_termination
     from repo_root import ROOT
+    from required_command import run_required
 
 TOOL = "apply_cursor"
 CURSOR_THEME = "org.macos8.desktop"
@@ -157,26 +149,15 @@ def _select(env: dict[str, str]) -> int:
         return missing
     scratch = Path(tempfile.mkdtemp(prefix="apply-cursor-"))
     try:
-        log = scratch / "plasma-apply-cursortheme.log"
-        try:
-            status = run_logged(
-                [SELECT_TOOL, CURSOR_THEME],
-                env,
-                log,
-                COMMAND_TIMEOUT,
-                ROOT,
-            )
-        except OSError as exc:
-            return report_error(TOOL, f"cannot run {SELECT_TOOL}: {exc}")
-        if status is None:
-            return report_failure(
-                TOOL,
-                f"{SELECT_TOOL} timed out after {COMMAND_TIMEOUT:g}s",
-                log,
-            )
-        if status != 0:
-            return report_failure(TOOL, f"{SELECT_TOOL} exited {status}", log)
-        return 0
+        status = run_required(
+            TOOL,
+            [SELECT_TOOL, CURSOR_THEME],
+            env,
+            scratch / "plasma-apply-cursortheme.log",
+            COMMAND_TIMEOUT,
+            ROOT,
+        )
+        return 0 if status is None else status
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
 

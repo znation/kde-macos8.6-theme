@@ -32,24 +32,16 @@ from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.diagnostics import (
-        report_error,
-        report_failure,
-        report_missing_tool,
-        report_note,
-    )
+    from tools.diagnostics import report_missing_tool, report_note
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
+    from tools.required_command import run_required
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
-    from diagnostics import (
-        report_error,
-        report_failure,
-        report_missing_tool,
-        report_note,
-    )
+    from diagnostics import report_missing_tool, report_note
     from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
+    from required_command import run_required
 
 TOOL = "apply_theme"
 LNF_ID = "org.macos8.desktop"
@@ -68,11 +60,11 @@ REQUIRED_TOOLS = (
     "plasma-apply-colorscheme",
     "plasma-apply-desktoptheme",
 )
-# Each required step as (tool name, argv), in the order it runs.
+# Each required step's argv, in the order it runs; argv[0] names the tool.
 STEPS = (
-    ("lookandfeeltool", ["lookandfeeltool", "-a", LNF_ID]),
-    ("plasma-apply-colorscheme", ["plasma-apply-colorscheme", COLOR_SCHEME]),
-    ("plasma-apply-desktoptheme", ["plasma-apply-desktoptheme", DTHEME_ID]),
+    ["lookandfeeltool", "-a", LNF_ID],
+    ["plasma-apply-colorscheme", COLOR_SCHEME],
+    ["plasma-apply-desktoptheme", DTHEME_ID],
 )
 COMMAND_TIMEOUT = 60.0
 
@@ -191,21 +183,17 @@ def _apply() -> int:
     scratch = Path(tempfile.mkdtemp(prefix="apply-theme-"))
     try:
         env = _session_env()
-        for tool, argv in STEPS:
-            log = scratch / f"{tool}.log"
-            try:
-                status = run_logged(argv, env, log, COMMAND_TIMEOUT, ROOT)
-            except OSError as exc:
-                # A tool on PATH that cannot be started is as unusable as a
-                # missing one: report it as this tool's own diagnostic (exit 2)
-                # instead of letting the OSError escape as a traceback.
-                return report_error(TOOL, f"cannot run {tool}: {exc}")
-            if status is None:
-                return report_failure(
-                    TOOL, f"{tool} timed out after {COMMAND_TIMEOUT:g}s", log
-                )
-            if status != 0:
-                return report_failure(TOOL, f"{tool} exited {status}", log)
+        for argv in STEPS:
+            status = run_required(
+                TOOL,
+                argv,
+                env,
+                scratch / f"{argv[0]}.log",
+                COMMAND_TIMEOUT,
+                ROOT,
+            )
+            if status is not None:
+                return status
         _select_kvantum_theme(scratch, env)
         return _reconfigure_kwin(scratch, env)
     finally:

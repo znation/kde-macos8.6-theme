@@ -31,7 +31,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.tmp_dir import make_tmp_dir
-from tools import apply_cursor
+from tools import apply_cursor, required_command
 
 
 class CursorCase(unittest.TestCase):
@@ -230,7 +230,9 @@ class TestSelection(CursorCase):
     def test_selector_timeout_exits_1_with_the_log_tail(self):
         self.install_theme()
         self.stub_selector()
-        with mock.patch.object(apply_cursor, "run_logged", return_value=None):
+        with mock.patch.object(
+            required_command, "run_logged", return_value=None
+        ):
             result = self.run_tool()
         assert_failed(self, result)
         self.assertEqual(1, result.returncode)
