@@ -1,9 +1,11 @@
 """Generate the Mac OS 8.6 Platinum Xcursor pointer set from pixel grids.
 
-The grids, hotspots and X-name aliases live in ``tools/cursor_art.py``; this
-module validates a grid, scales it nearest-neighbour to the nominal sizes 16,
-24 and 32, encodes each frame as an Xcursor image chunk, and writes every
-canonical cursor and alias into the icon theme package's ``cursors/``.
+The grids and hotspots live in ``tools/cursor_art_pointers.py``,
+``tools/cursor_art_resize.py`` and ``tools/cursor_art_drag.py``; the X-name
+manifest and palette live in ``tools/cursor_art.py``. This module validates a
+grid, scales it nearest-neighbour to the nominal sizes 16, 24 and 32, encodes
+each frame as an Xcursor image chunk, and writes every canonical cursor and
+alias into the icon theme package's ``cursors/``.
 
 Run ``python3 tools/make_cursors.py`` from anywhere; the output is
 deterministic, so re-running rewrites identical bytes. A cursors directory that

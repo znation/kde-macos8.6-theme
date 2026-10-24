@@ -1,4 +1,4 @@
-"""The Mac OS 8.6 Platinum cursor pixel art: grids, hotspots and aliases.
+"""The Mac OS 8.6 Platinum cursor set: X names, aliases and the shared palette.
 
 The theme ships twenty cursors inside the ``org.macos8.desktop`` icon theme
 package, under ``cursors/``: ``left_ptr`` (the arrow), ``xterm`` (the text
@@ -27,451 +27,112 @@ Each file holds the same art at nominal sizes 16, 24 and 32. No reference
 screenshot in ``macos8.6-screenshots/`` shows the mouse pointer, so the art is
 our own Platinum-style drawing on the pinned #000000 face and #FFFFFF outline,
 not traced from Apple's artwork; the nominal sizes, the Xcursor container and
-the X names are KDE/X-required values. ``tools/make_cursors.py`` scales the
-grids and writes the files.
+the X names are KDE/X-required values. The pixel grids and hotspots live
+in ``tools/cursor_art_pointers.py``, ``tools/cursor_art_resize.py`` and
+``tools/cursor_art_drag.py``; this module
+binds each canonical name to its grid and hotspot and lists the aliases that
+must carry byte-identical copies. ``tools/make_cursors.py`` scales the grids
+and writes the files.
 """
 
+from __future__ import annotations
+
+if __package__:
+    from tools.cursor_art_drag import (
+        DND_COPY_GRID,
+        DND_COPY_HOTSPOT,
+        GRAB_GRID,
+        GRAB_HOTSPOT,
+        GRABBING_GRID,
+        GRABBING_HOTSPOT,
+        NOT_ALLOWED_GRID,
+        NOT_ALLOWED_HOTSPOT,
+    )
+    from tools.cursor_art_pointers import (
+        ARROW_GRID,
+        CONTEXT_MENU_GRID,
+        CONTEXT_MENU_HOTSPOT,
+        HAND2_GRID,
+        HAND2_HOTSPOT,
+        HELP_GRID,
+        HELP_HOTSPOT,
+        HOTSPOT,
+        PENCIL_GRID,
+        PENCIL_HOTSPOT,
+        PROGRESS_GRID,
+        PROGRESS_HOTSPOT,
+        WATCH_GRID,
+        WATCH_HOTSPOT,
+        XTERM_GRID,
+        XTERM_HOTSPOT,
+        ZOOM_IN_GRID,
+        ZOOM_IN_HOTSPOT,
+        ZOOM_OUT_GRID,
+        ZOOM_OUT_HOTSPOT,
+    )
+    from tools.cursor_art_resize import (
+        CROSSHAIR_GRID,
+        CROSSHAIR_HOTSPOT,
+        FLEUR_GRID,
+        FLEUR_HOTSPOT,
+        SIZE_BDIAG_GRID,
+        SIZE_BDIAG_HOTSPOT,
+        SIZE_FDIAG_GRID,
+        SIZE_FDIAG_HOTSPOT,
+        SIZE_HOR_GRID,
+        SIZE_HOR_HOTSPOT,
+        SIZE_VER_GRID,
+        SIZE_VER_HOTSPOT,
+    )
+else:  # imported from a directly run tool
+    from cursor_art_drag import (
+        DND_COPY_GRID,
+        DND_COPY_HOTSPOT,
+        GRAB_GRID,
+        GRAB_HOTSPOT,
+        GRABBING_GRID,
+        GRABBING_HOTSPOT,
+        NOT_ALLOWED_GRID,
+        NOT_ALLOWED_HOTSPOT,
+    )
+    from cursor_art_pointers import (
+        ARROW_GRID,
+        CONTEXT_MENU_GRID,
+        CONTEXT_MENU_HOTSPOT,
+        HAND2_GRID,
+        HAND2_HOTSPOT,
+        HELP_GRID,
+        HELP_HOTSPOT,
+        HOTSPOT,
+        PENCIL_GRID,
+        PENCIL_HOTSPOT,
+        PROGRESS_GRID,
+        PROGRESS_HOTSPOT,
+        WATCH_GRID,
+        WATCH_HOTSPOT,
+        XTERM_GRID,
+        XTERM_HOTSPOT,
+        ZOOM_IN_GRID,
+        ZOOM_IN_HOTSPOT,
+        ZOOM_OUT_GRID,
+        ZOOM_OUT_HOTSPOT,
+    )
+    from cursor_art_resize import (
+        CROSSHAIR_GRID,
+        CROSSHAIR_HOTSPOT,
+        FLEUR_GRID,
+        FLEUR_HOTSPOT,
+        SIZE_BDIAG_GRID,
+        SIZE_BDIAG_HOTSPOT,
+        SIZE_FDIAG_GRID,
+        SIZE_FDIAG_HOTSPOT,
+        SIZE_HOR_GRID,
+        SIZE_HOR_HOTSPOT,
+        SIZE_VER_GRID,
+        SIZE_VER_HOTSPOT,
+    )
+
 GRID_SIZE = 16
-HOTSPOT = (1, 1)
-
-# The arrow's tip is at grid (1, 1). ``#`` is the black face, ``.`` the white
-# outline and a space is transparent. The art is drawn at 16x16 and scaled
-# nearest-neighbour to the larger nominal sizes.
-ARROW_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..           ",
-    ".###..          ",
-    ".####..         ",
-    ".#####..        ",
-    ".######..       ",
-    ".#######..      ",
-    ".########.      ",
-    "....##....      ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   ....         ",
-)
-
-# The text I-beam has serifs at the top and bottom of a centred stem; its
-# hotspot is the middle of the stem.
-XTERM_HOTSPOT = (7, 7)
-XTERM_GRID = (
-    "   ..........   ",
-    "   .########.   ",
-    "   ....#.....   ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "   ....#.....   ",
-    "   .########.   ",
-    "   ..........   ",
-)
-
-# The pointing hand raises its index finger and holds the thumb to the right;
-# its hotspot is the fingertip.
-HAND2_HOTSPOT = (7, 2)
-HAND2_GRID = (
-    "                ",
-    "      ...       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#....    ",
-    "      .####.    ",
-    "      .####.    ",
-    "     .#####.    ",
-    "     .#####.    ",
-    "     .#####.    ",
-    "     .......    ",
-    "                ",
-    "                ",
-    "                ",
-)
-
-# The busy hourglass joins a wide top and bottom through a narrow waist; its
-# hotspot is the waist.
-WATCH_HOTSPOT = (7, 5)
-WATCH_GRID = (
-    "    ........    ",
-    "    .######.    ",
-    "    .######.    ",
-    "     .####.     ",
-    "      .##.      ",
-    "      .##.      ",
-    "      .##.      ",
-    "     .####.     ",
-    "    .######.    ",
-    "    .######.    ",
-    "    ........    ",
-    "                ",
-    "                ",
-    "                ",
-    "                ",
-    "                ",
-)
-
-# The move cross points up, down, left and right; its hotspot is the centre.
-FLEUR_HOTSPOT = (7, 7)
-FLEUR_GRID = (
-    "      ....      ",
-    "      .##.      ",
-    "     .####.     ",
-    "      .##.      ",
-    "      .##.      ",
-    "  .   .##.   .  ",
-    "..#....##....#..",
-    ".##############.",
-    ".##############.",
-    "..#....##....#..",
-    "  .   .##.   .  ",
-    "      .##.      ",
-    "      .##.      ",
-    "     .####.     ",
-    "      .##.      ",
-    "      ....      ",
-)
-
-# The horizontal resize arrow joins left and right arrowheads through a stem
-# on rows 7-8; its hotspot is the centre of the stem.
-SIZE_HOR_HOTSPOT = (7, 7)
-SIZE_HOR_GRID = (
-    "                ",
-    "                ",
-    "                ",
-    "                ",
-    "  ...      ...  ",
-    " ..#.      .#.. ",
-    "..##........##..",
-    ".##############.",
-    ".##############.",
-    "..##........##..",
-    " ..#.      .#.. ",
-    "  ...      ...  ",
-    "                ",
-    "                ",
-    "                ",
-    "                ",
-)
-
-# The vertical resize arrow is the horizontal glyph rotated a quarter turn;
-# its hotspot is the centre of its stem.
-SIZE_VER_HOTSPOT = (7, 7)
-SIZE_VER_GRID = (
-    "      ....      ",
-    "     ..##..     ",
-    "    ..####..    ",
-    "    .######.    ",
-    "    ...##...    ",
-    "      .##.      ",
-    "      .##.      ",
-    "      .##.      ",
-    "      .##.      ",
-    "      .##.      ",
-    "      .##.      ",
-    "    ...##...    ",
-    "    .######.    ",
-    "    ..####..    ",
-    "     ..##..     ",
-    "      ....      ",
-)
-
-# The NW-SE resize arrow draws a black arrowhead in each corner joined by a
-# two-pixel shaft along the main diagonal; its hotspot is on the shaft.
-SIZE_FDIAG_HOTSPOT = (7, 7)
-SIZE_FDIAG_GRID = (
-    "                ",
-    " .......        ",
-    " .#####.        ",
-    " .####..        ",
-    " .####..        ",
-    " .##.##..       ",
-    " .#...##..      ",
-    " ... ..##..     ",
-    "      ..##..... ",
-    "       ..##..#. ",
-    "        ..####. ",
-    "         ..###. ",
-    "        ..####. ",
-    "        .#####. ",
-    "        ....... ",
-    "                ",
-)
-
-# The NE-SW resize arrow is the forward diagonal glyph mirrored left to right;
-# its hotspot is on the shaft.
-SIZE_BDIAG_HOTSPOT = (7, 7)
-SIZE_BDIAG_GRID = (
-    "                ",
-    "        ....... ",
-    "        .#####. ",
-    "        ..####. ",
-    "        ..####. ",
-    "       ..##.##. ",
-    "      ..##...#. ",
-    "     ..##.. ... ",
-    " .....##..      ",
-    " .#..##..       ",
-    " .####..        ",
-    " .###..         ",
-    " .####..        ",
-    " .#####.        ",
-    " .......        ",
-    "                ",
-)
-
-# The precision cross puts a one-pixel black arm on row 7 and another on
-# column 7, crossing at the hotspot; every other cell is outline or blank.
-CROSSHAIR_HOTSPOT = (7, 7)
-CROSSHAIR_GRID = (
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    ".......#........",
-    "################",
-    ".......#........",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-)
-
-# The circle-slash draws a black ring with a black NW-SE slash through its
-# centre; the hotspot is the middle of the slash.
-NOT_ALLOWED_HOTSPOT = (7, 7)
-NOT_ALLOWED_GRID = (
-    "    ........    ",
-    "   ..######..   ",
-    "  ..########..  ",
-    " ..##      ##.. ",
-    "..###.      ##..",
-    ".## .#.      ##.",
-    ".##  .#.     ##.",
-    ".##   .#.    ##.",
-    ".##    .#.   ##.",
-    ".##     .#.  ##.",
-    ".##      .#. ##.",
-    "..##      .###..",
-    " ..##      ##.. ",
-    "  ..########..  ",
-    "   ..######..   ",
-    "    ........    ",
-)
-
-# The copy plus draws a black vertical bar and two horizontal arms; the
-# vertical bar's white outline splits the arms, and the hotspot is the centre.
-DND_COPY_HOTSPOT = (7, 7)
-DND_COPY_GRID = (
-    "                ",
-    "       .        ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "  .....#.....   ",
-    " .####.#.####.  ",
-    "  .....#.....   ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "      .#.       ",
-    "       .        ",
-    "                ",
-    "                ",
-)
-
-# The open hand raises four 1px fingers over a black palm; the hotspot is the
-# middle of the palm.
-GRAB_HOTSPOT = (7, 12)
-GRAB_GRID = (
-    "                ",
-    "   .  .  .  .   ",
-    "  .#..#..#..#.  ",
-    "  .#..#..#..#.  ",
-    "  .#..#..#..#.  ",
-    "  .#..#..#..#.  ",
-    "  .#..#..#..#.  ",
-    "  .#..#..#..#.  ",
-    "  .#..#..#..#.  ",
-    "  .#..#..#..#.  ",
-    " .############. ",
-    " .############. ",
-    " .############. ",
-    " .############. ",
-    " .............. ",
-    "                ",
-)
-
-# The closed fist drops the raised fingers and folds a thumb across the black
-# block; the hotspot is the middle of the palm.
-GRABBING_HOTSPOT = (7, 12)
-GRABBING_GRID = (
-    "                ",
-    "                ",
-    "                ",
-    "                ",
-    " .............. ",
-    " .############. ",
-    " ........#####. ",
-    " .#######.####. ",
-    " .#######.####. ",
-    " .#######.####. ",
-    " ........#####. ",
-    " .############. ",
-    " .############. ",
-    " .############. ",
-    " .............. ",
-    "                ",
-)
-
-# The help pointer is the arrow with a question mark stamped in the free
-# right-hand area; its hotspot is the arrow tip.
-HELP_HOTSPOT = (1, 1)
-HELP_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..    ...... ",
-    ".###..   .####. ",
-    ".####..  ....#. ",
-    ".#####.. ...##. ",
-    ".######........ ",
-    ".#######....#.. ",
-    ".########...... ",
-    "....##....      ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   .##.         ",
-    "   ....         ",
-)
-
-# The progress pointer is the arrow with a small hourglass in the free
-# right-hand area; its hotspot is the arrow tip.
-PROGRESS_HOTSPOT = (1, 1)
-PROGRESS_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..           ",
-    ".###..          ",
-    ".####..         ",
-    ".#####..        ",
-    ".######..       ",
-    ".#######..      ",
-    ".########...... ",
-    "....##....####. ",
-    "   .##.  ..##.. ",
-    "   .##.  ..##.. ",
-    "   .##.  ..##.. ",
-    "   .##.  .####. ",
-    "   .##.  ...... ",
-    "   ....         ",
-)
-
-# The pencil draws a two-pixel black shaft on the anti-diagonal band x+y =
-# 15/16 from the writing tip (2, 14) to the eraser (13, 2), bounded by one
-# white cell on every side; its hotspot is the writing tip.
-PENCIL_HOTSPOT = (2, 14)
-PENCIL_GRID = (
-    "                ",
-    "             .  ",
-    "            .#. ",
-    "           .##. ",
-    "          .##.  ",
-    "         .##.   ",
-    "        .##.    ",
-    "       .##.     ",
-    "      .##.      ",
-    "     .##.       ",
-    "    .##.        ",
-    "   .##.         ",
-    "  .##.          ",
-    " .##.           ",
-    " .#.            ",
-    "  .             ",
-)
-
-# The zoom pointers share a white-outlined black lens ring and a black
-# handle; their hotspots are the lens centre. ``zoom-in`` fills the plus and
-# ``zoom-out`` keeps only its horizontal bar.
-ZOOM_IN_HOTSPOT = (7, 7)
-ZOOM_IN_GRID = (
-    "                ",
-    "                ",
-    "     .....      ",
-    "    .#####.     ",
-    "   .##...##.    ",
-    "  .##. # .##.   ",
-    "  .#.  #  .#.   ",
-    "  .#.#####.#.   ",
-    "  .#.  #  .#.   ",
-    "  .##. # .##.   ",
-    "   .##...##.    ",
-    "    .#####.#.   ",
-    "     ..... .#.  ",
-    "            .#. ",
-    "             .  ",
-    "                ",
-)
-
-ZOOM_OUT_HOTSPOT = (7, 7)
-ZOOM_OUT_GRID = (
-    "                ",
-    "                ",
-    "     .....      ",
-    "    .#####.     ",
-    "   .##...##.    ",
-    "  .##.   .##.   ",
-    "  .#.     .#.   ",
-    "  .#.#####.#.   ",
-    "  .#.     .#.   ",
-    "  .##.   .##.   ",
-    "   .##...##.    ",
-    "    .#####.#.   ",
-    "     ..... .#.  ",
-    "            .#. ",
-    "             .  ",
-    "                ",
-)
-
-# The context-menu pointer adds a white-faced, black-bordered menu panel to
-# the arrow's right, with two black text bars; its hotspot is the arrow tip.
-CONTEXT_MENU_HOTSPOT = (1, 1)
-CONTEXT_MENU_GRID = (
-    "...             ",
-    ".#..            ",
-    ".##..           ",
-    ".###..          ",
-    ".####..         ",
-    ".#####..        ",
-    ".######..       ",
-    ".#######..      ",
-    ".########.      ",
-    "....##..#######.",
-    "   .##..#.....#.",
-    "   .##..#.###.#.",
-    "   .##..#.....#.",
-    "   .##..#.##..#.",
-    "   .##..#######.",
-    "   ....         ",
-)
 
 # The canonical cursor name, its grid, its hotspot and the X-name aliases that
 # must carry byte-identical copies. ``main`` writes them in this order.
