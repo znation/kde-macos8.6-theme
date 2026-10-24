@@ -76,6 +76,46 @@ SHIPPED_ICONS = (
     os.path.join("22x22", "actions", "go-next-symbolic.svg"),
 )
 
+# The standard XDG folder places KDE resolves; the package draws each one
+# with the matching size's Platinum folder, as Mac OS 8.6 draws one folder
+# shape for a directory. KIO's places model names these eight names
+# (read from `libKF6KIOCore.so.6`), while the standard `user-places.xbel`
+# entries spell Downloads with the plural `folder-downloads` (the installed
+# file's Downloads bookmark, line 58), so ship both download names.
+STANDARD_PLACES = (
+    "folder-documents",
+    "folder-download",
+    "folder-downloads",
+    "folder-music",
+    "folder-pictures",
+    "folder-videos",
+    "folder-templates",
+    "folder-public",
+    "folder-temp",
+)
+SHIPPED_ICONS += tuple(
+    os.path.join(size, "places", place + ".svg")
+    for size in ("16x16", "22x22", "32x32")
+    for place in STANDARD_PLACES
+)
+
+# The standard places data's folder names that this package draws. KDE
+# writes these into a user's Places list, and its Downloads entry is the
+# plural `folder-downloads` rather than the `folder-download` the KIO places
+# model also names; pin them separately so the inventory cannot pass by
+# dropping a name KDE actually resolves.
+USER_PLACES_ICONS = (
+    "folder-documents",
+    "folder-downloads",
+    "folder-music",
+    "folder-pictures",
+    "folder-videos",
+)
+
+# The names that share the folder art: the KDE directory alias, the Home and
+# Desktop places, and every standard XDG place.
+FOLDER_ALIASES = ("inode-directory", "user-home", "user-desktop", *STANDARD_PLACES)
+
 # The package also ships the Platinum Xcursor pointer set with their X-name
 # aliases. These are binary Xcursor files, not SVGs, so the SVG-level
 # assertions below keep iterating `SHIPPED_ICONS` only.
@@ -521,12 +561,14 @@ ICON_SHAPES = {
     ),
 }
 
-# KDE resolves a directory to `inode-directory` and names the Home and Desktop
-# places `user-home` and `user-desktop`; Mac OS 8.6 draws one folder shape for
-# all of them, so each alias shares its size's folder tuple.
+# KDE resolves a directory to `inode-directory`, names the Home and Desktop
+# places `user-home` and `user-desktop`, and names the standard XDG places
+# (Documents, Downloads, Music, ...) after `STANDARD_PLACES`; Mac OS 8.6
+# draws one folder shape for all of them, so each alias shares its size's
+# folder tuple.
 for _size in ("16x16", "22x22", "32x32"):
     _folder = ICON_SHAPES[os.path.join(_size, "places", "folder.svg")]
-    for _alias in ("inode-directory", "user-home", "user-desktop"):
+    for _alias in FOLDER_ALIASES:
         ICON_SHAPES[os.path.join(_size, "places", _alias + ".svg")] = _folder
 
 
@@ -546,17 +588,33 @@ class TestIconGeometry(unittest.TestCase):
                 tree = parse_svg(os.path.join(PACKAGE, icon))
                 self.assertEqual(_drawing_elements(tree), expected)
 
-    def test_the_folder_alias_shares_the_folder_art(self):
-        # Mac OS 8.6 draws one folder shape for the `folder`,
-        # `inode-directory`, `user-home` and `user-desktop` names, so each
-        # alias must stay the same drawing at every shipped size; pinning
-        # only each one's own elements would let them drift apart.
+    def test_standard_places_file_names_are_shipped(self):
+        # The inventory above must cover the names the standard places data
+        # writes, not just the names KIO's model happens to list. In
+        # particular Downloads is `folder-downloads` (plural) in the
+        # standard `user-places.xbel` entries, so that shared-folder alias
+        # has to be present at every size.
+        for name in USER_PLACES_ICONS:
+            with self.subTest(name=name):
+                self.assertIn(name, STANDARD_PLACES)
+                for size in ("16x16", "22x22", "32x32"):
+                    self.assertIn(
+                        os.path.join(size, "places", name + ".svg"),
+                        SHIPPED_ICONS,
+                    )
+
+    def test_every_place_alias_shares_the_folder_art(self):
+        # Mac OS 8.6 draws one folder shape for the `folder` name and every
+        # place alias (`inode-directory`, `user-home`, `user-desktop` and the
+        # standard XDG places), so each alias must stay the same drawing at
+        # every shipped size; pinning only each one's own elements would let
+        # them drift apart.
         for size in ("16x16", "22x22", "32x32"):
             with self.subTest(size=size):
                 folder = _drawing_elements(
                     parse_svg(os.path.join(PACKAGE, size, "places", "folder.svg"))
                 )
-                for alias in ("inode-directory", "user-home", "user-desktop"):
+                for alias in FOLDER_ALIASES:
                     with self.subTest(size=size, alias=alias):
                         drawing = _drawing_elements(
                             parse_svg(
