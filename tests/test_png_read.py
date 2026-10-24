@@ -191,6 +191,18 @@ class TestReadPng(unittest.TestCase):
         )
         self._assert_size_matches_decode(misordered, "first chunk")
 
+    def test_read_png_size_falls_back_when_the_prefix_cuts_off_the_first_chunk(self):
+        # The size read inspects a 33-byte prefix, which cannot frame a first
+        # chunk whose payload is longer than 13 bytes. A misordered stream with
+        # such an IDAT first must still be refused with the decoder's canonical
+        # diagnosis, not the prefix's "truncated chunk" one.
+        misordered = png_stream(
+            _chunk(b"IDAT", zlib.compress(bytes(range(100)))),
+            ihdr_chunk(1, 1, 2),
+            _chunk(b"IEND", b""),
+        )
+        self._assert_size_matches_decode(misordered, "must be the first chunk")
+
     def test_read_png_names_a_read_failure(self):
         # A read() that fails after a successful open (a disk error) must be
         # reported as a PngError naming the file, not leak the raw OSError:
