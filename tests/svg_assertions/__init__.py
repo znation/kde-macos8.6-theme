@@ -67,6 +67,7 @@ from .nine_slice import (
     nine_slice_inset_hints,
     nine_slice_margins,
     nine_slice_tile_sizes,
+    solid_tile,
     tile_origins,
 )
 

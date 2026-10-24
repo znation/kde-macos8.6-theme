@@ -1,7 +1,7 @@
 """Nine-slice margin, hint and tile geometry for the SVG test helpers.
 
 Derives a centred nine-slice SVG's margin hints, its full hint geometry and
-each tile's size, reads each slice group's transform origin, and yields each
+each tile's size, paints a tile flat, reads each slice group's transform origin, and yields each
 state's margin hints.
 """
 
@@ -10,6 +10,7 @@ from __future__ import annotations
 import re
 
 from .elements import rect_geometry
+from .render import pixel_map
 from .tree import groups_with_id
 
 
@@ -112,6 +113,15 @@ def nine_slice_tile_sizes(canvas_w, canvas_h, left, right, top, bottom):
         "bottomleft": (left, bottom),
         "bottomright": (right, bottom),
     }
+
+
+def solid_tile(sizes, name, colour):
+    """Return the pixel map of tile *name* from *sizes* painted flat with *colour*.
+
+    *sizes* is a ``nine_slice_tile_sizes`` mapping.
+    """
+    width, height = sizes[name]
+    return pixel_map((colour,) * (width * height), width, height)
 
 
 _TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")

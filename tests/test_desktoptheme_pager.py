@@ -13,9 +13,9 @@ from svg_assertions import (
     children_named,
     elements_by_id,
     nine_slice_tile_sizes,
-    pixel_map,
     rect_geometry,
     render_slices,
+    solid_tile,
 )
 
 LEFT = RIGHT = TOP = BOTTOM = 1
@@ -52,12 +52,6 @@ def expected_id_set():
     return ids
 
 
-def solid_tile(name, colour):
-    """Return the pixel map of tile *name* painted flat with *colour*."""
-    width, height = SIZES[name]
-    return pixel_map((colour,) * (width * height), width, height)
-
-
 class TestPager(NineSliceCase, unittest.TestCase):
     SVG_PATH = PAGER_SVG
     PREFIXES = PREFIXES
@@ -80,10 +74,10 @@ class TestPager(NineSliceCase, unittest.TestCase):
         slices = render_slices(self.tree)
         for name in BORDER_TILES:
             assert_slice_pixels(
-                self, slices, f"normal-{name}", solid_tile(name, "#999999")
+                self, slices, f"normal-{name}", solid_tile(SIZES, name, "#999999")
             )
         assert_slice_pixels(
-            self, slices, "normal-center", solid_tile("center", None)
+            self, slices, "normal-center", solid_tile(SIZES, "center", None)
         )
 
     def test_pager_state_centres_stay_translucent(self):
@@ -116,10 +110,10 @@ class TestPager(NineSliceCase, unittest.TestCase):
         slices = render_slices(self.tree)
         for name in BORDER_TILES:
             assert_slice_pixels(
-                self, slices, f"hover-{name}", solid_tile(name, "#999999")
+                self, slices, f"hover-{name}", solid_tile(SIZES, name, "#999999")
             )
         assert_slice_pixels(
-            self, slices, "hover-center", solid_tile("center", "#EEEEEE")
+            self, slices, "hover-center", solid_tile(SIZES, "center", "#EEEEEE")
         )
 
     def test_pager_active_fills_the_selection(self):
@@ -129,10 +123,10 @@ class TestPager(NineSliceCase, unittest.TestCase):
         slices = render_slices(self.tree)
         for name in BORDER_TILES:
             assert_slice_pixels(
-                self, slices, f"active-{name}", solid_tile(name, "#000000")
+                self, slices, f"active-{name}", solid_tile(SIZES, name, "#000000")
             )
         assert_slice_pixels(
-            self, slices, "active-center", solid_tile("center", "#CCCCFF")
+            self, slices, "active-center", solid_tile(SIZES, "center", "#CCCCFF")
         )
 
     def test_pager_colours(self):

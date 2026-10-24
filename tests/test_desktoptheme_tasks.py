@@ -19,6 +19,7 @@ from svg_assertions import (
     pixel_map,
     rect_geometry,
     render_slices,
+    solid_tile,
 )
 
 LEFT = RIGHT = 7
@@ -72,12 +73,6 @@ def expected_id_set():
     return ids
 
 
-def solid_tile(name, colour):
-    """Return the pixel map of tile *name* painted flat with *colour*."""
-    width, height = SIZES[name]
-    return pixel_map((colour,) * (width * height), width, height)
-
-
 def bottom_rule_tile(name, colour):
     """Return tile *name* with its bottom two rows *colour* and the top row empty."""
     width, height = SIZES[name]
@@ -111,7 +106,7 @@ class TestTasks(NineSliceCase, unittest.TestCase):
         slices = render_slices(self.tree)
         for name in SIZES:
             assert_slice_pixels(
-                self, slices, f"normal-{name}", solid_tile(name, None)
+                self, slices, f"normal-{name}", solid_tile(SIZES, name, None)
             )
 
     def test_tasks_hover_focus_and_attention_are_flat(self):
@@ -130,7 +125,7 @@ class TestTasks(NineSliceCase, unittest.TestCase):
                     self,
                     slices,
                     f"{prefix}-{name}",
-                    solid_tile(name, colour),
+                    solid_tile(SIZES, name, colour),
                 )
 
     def test_tasks_minimized_and_progress_paint_a_bottom_rule(self):
@@ -148,7 +143,7 @@ class TestTasks(NineSliceCase, unittest.TestCase):
                     self,
                     slices,
                     f"{prefix}-{name}",
-                    solid_tile(name, None),
+                    solid_tile(SIZES, name, None),
                 )
             for name in RULE_TILES:
                 assert_slice_pixels(
