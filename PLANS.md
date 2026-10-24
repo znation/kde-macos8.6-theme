@@ -73,4 +73,26 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
+### Platinum GTK disabled text: grey the labels and entry text of insensitive widgets (planned 2026-10-24 by the plan role; independent of the waiting GTK rubberband plan)
+
+**Goal.** Neither standalone GTK sheet greys the text of an insensitive widget, so a disabled button, check box, menu item, entry or spin button reads exactly like an enabled one. Measured live with PyGObject under `GTK_THEME=org.macos8.desktop` (with `XDG_DATA_HOME` pointing at a temp dir holding a `themes/org.macos8.desktop` symlink to `theme/gtk/org.macos8.desktop`): after `set_sensitive(False)`, a GTK 3 `Gtk.Label`, `Gtk.Button`, `Gtk.Entry`, `Gtk.CheckButton` and `Gtk.SpinButton` all resolve `get_color()` to `rgb(0,0,0)`, and in GTK 4 the `Label` child of a `Gtk.Button` or `Gtk.CheckButton`, and the `Text` child of a `Gtk.Entry` or `Gtk.SpinButton`, are also `rgb(0,0,0)`. Stock Adwaita greys them (`rgb(146,149,149)`). The KDE side already greys disabled text with `#888888`: the colour scheme's `ForegroundInactive=136,136,136` and Kvantum's `disabled.text.color`, which `COLOR_ROLES` in `tests/support/kvantum_config_spec.py` pins to `("Button", "ForegroundInactive")`. With the rules below appended to scratch copies of both sheets, the same check gives `rgb(136,136,136)` for each of those labels and text nodes (GTK 3 also greys a disabled `Gtk.MenuBar` item's label) and `rgb(0,0,0)` once they are sensitive again.
+
+**Design (decided; do not widen).**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: append `label:disabled, entry:disabled, spinbutton:disabled { color: #888888; }` at the end of the sheet. Insensitivity reaches child nodes, so `label:disabled` covers the labels of buttons, check and radio buttons and menu items.
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: append `label:disabled, text:disabled { color: #888888; }` at the end of the sheet. `text` is the editable node inside GTK 4 entries and spin buttons.
+- Colour only. Do not use `*:disabled`: it would also reach `switch image`, whose transparent colour hides the switch glyph. Out of scope: disabled faces, borders and glyph assets (a URL icon's fill is fixed, as the GTK 3 header comment already says), and `:backdrop`.
+- No new hex literal: `#888888` is already in both palettes as `ETCH_DARK`.
+
+**Files touched.**
+- Both sheets: the rule above. Add one sentence to each header comment: an insensitive widget's label and entry text use the colour scheme's `ForegroundInactive` grey `#888888`, which Kvantum's disabled text also uses; no reference screenshot shows a disabled GTK widget, and the node names and `:disabled` state are GTK-required.
+- `tests/support/gtk_theme_spec.py`: add `DISABLED_TEXT = {"color": ETCH_DARK}` with a short comment, and an `assert_disabled_text(self, selectors)` method in `GtkSheetRuleCases` next to `assert_view_background`. It calls `assert_rule` for each selector. It also re-derives the grey: `hex_colour` of the `int` parts of `load_scheme().get("Colors:Button", "ForegroundInactive")` (`load_scheme` from `support.colorscheme_fixtures`, `hex_colour` from `support.platinum_palette`) must equal `DISABLED_TEXT["color"]`. Mention the disabled-text assertion in the class docstring's list of assertions that take the suite's own selectors.
+- `tests/test_gtk_theme.py`: `TestGtkTheme.test_disabled_text` calls `self.assert_disabled_text(("label:disabled", "entry:disabled", "spinbutton:disabled"))`.
+- `tests/test_gtk4_theme.py`: `TestGtk4Theme.test_disabled_text` calls `self.assert_disabled_text(("label:disabled", "text:disabled"))`.
+- `docs/invariants.md`: add a new `## gtk` row at the end of the gtk section. Guarantee: both GTK sheets colour an insensitive widget's labels and entry text with the colour scheme's `ForegroundInactive` grey `#888888`. Tests: the two `test_disabled_text` tests. Provenance exception: no reference screenshot shows a disabled GTK widget; the grey copies the colour scheme's `ForegroundInactive` role (also Kvantum's disabled text), whose value matches the reference-sampled etched-rule dark `#888888`, and the node names and `:disabled` state are GTK-required.
+
+**Acceptance criteria.**
+- The GTK 3 sheet has the `label:disabled, entry:disabled, spinbutton:disabled` rule and the GTK 4 sheet has the `label:disabled, text:disabled` rule, each with only the `color: #888888` declaration.
+- Removing either rule, dropping one of its selectors or changing its colour fails that sheet's `test_disabled_text`. Changing the colour scheme's `[Colors:Button] ForegroundInactive` alone also fails both tests.
+- `test_only_palette_hex_literals` still passes in both suites, `tests/invariants.py` accepts the new row, and `make check` is green.
+
 ## Done
