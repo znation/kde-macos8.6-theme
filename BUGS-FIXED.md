@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A cursor generator nominal size above the Xcursor frame limit allocates an unbounded pixel buffer (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/make_cursors.py` accepted every positive nominal size and
+`render_rgba` allocated `size * size * 4` bytes before
+`write_rgba_cursor` applied its 1..0x7FFF frame-dimension limit. A caller of
+the library entry points could therefore exhaust memory on a size the writer
+rejects; the generator's own `main` only passes the shipped 16/24/32 sizes.
+
+**Reproduce:** `make_cursors._checked_sizes((0x8000,))` returned the tuple
+instead of raising, while `write_rgba_cursor` refuses the same size, so the
+generator accepted a request its writer could never encode.
+
+**Fix:** a shared `_checked_size` helper now refuses a size above
+`MAX_IMAGE_SIZE` in both `render_rgba` and the nominal-size check, naming the
+Xcursor frame limit before any pixel buffer is allocated.
+
+**Validation gap:** none — the existing validation path reproduced it
+directly: `_checked_sizes` accepted the same size `write_rgba_cursor`
+rejects, without needing the buffer allocation.
+
 ### A failed GTK commit leaves the settings and user CSS half-applied (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/gtk_staging.py::commit` renamed each staged settings file over its

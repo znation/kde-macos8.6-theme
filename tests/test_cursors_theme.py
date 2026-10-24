@@ -719,6 +719,27 @@ class TestGeneratorValidation(unittest.TestCase):
             make_cursors.cursor_bytes(sizes=())
         self.assertIn("at least one nominal size is required", str(caught.exception))
 
+    def test_a_nominal_size_above_the_xcursor_frame_limit_is_refused(self):
+        # 0x7FFF is the Xcursor image-dimension limit the writer enforces; the
+        # generator must refuse it before render_rgba allocates size * size * 4
+        # bytes.
+        with self.assertRaises(ValueError) as caught:
+            make_cursors._checked_sizes((0x8000,))
+        self.assertIn(
+            "nominal size must be at most 32767 (the Xcursor frame limit): "
+            "size=32768",
+            str(caught.exception),
+        )
+
+    def test_render_rgba_refuses_a_size_above_the_xcursor_frame_limit(self):
+        with self.assertRaises(ValueError) as caught:
+            make_cursors.render_rgba(cursor_art.ARROW_GRID, 0x8000)
+        self.assertIn(
+            "size must be at most 32767 (the Xcursor frame limit): "
+            "size=32768",
+            str(caught.exception),
+        )
+
     def test_a_size_below_the_grid_keeps_its_hotspot_inside_the_frame(self):
         # Below the grid the downscale skips source pixel 15, so its ceiling
         # lands on ``size`` and must be clamped to ``size - 1``, the last

@@ -25,7 +25,7 @@ if __package__:
     from tools.diagnostics import report_error
     from tools.ints import is_plain_int
     from tools.repo_root import ROOT
-    from tools.xcursor import write_rgba_cursor
+    from tools.xcursor import MAX_IMAGE_SIZE, write_rgba_cursor
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
@@ -34,7 +34,7 @@ else:  # run directly: python3 tools/make_cursors.py
     from diagnostics import report_error
     from ints import is_plain_int
     from repo_root import ROOT
-    from xcursor import write_rgba_cursor
+    from xcursor import MAX_IMAGE_SIZE, write_rgba_cursor
 
 TOOL = "make_cursors"
 PACKAGE_DIR = Path("theme", "icons", "org.macos8.desktop")
@@ -67,11 +67,32 @@ def _checked_rows(rows, name="arrow"):
     return tuple(checked)
 
 
-def render_rgba(rows, size, name="arrow"):
-    """Return *size* x *size* packed RGBA pixels scaled from the 16x16 *rows*."""
-    checked = _checked_rows(rows, name)
+def _checked_size(size, noun="size"):
+    """Return *size* after checking it fits an Xcursor image frame.
+
+    The renderer allocates ``size * size * 4`` bytes, so a value above the
+    writer's frame-dimension limit is refused here, naming the limit, instead
+    of attempting an enormous allocation and only then failing in
+    :func:`tools.xcursor.write_rgba_cursor`.
+    """
     if not is_plain_int(size) or size < 1:
-        raise ValueError(f"size must be a positive integer: size={size!r}")
+        raise ValueError(f"{noun} must be a positive integer: size={size!r}")
+    if size > MAX_IMAGE_SIZE:
+        raise ValueError(
+            f"{noun} must be at most {MAX_IMAGE_SIZE} (the Xcursor frame "
+            f"limit): size={size}"
+        )
+    return size
+
+
+def render_rgba(rows, size, name="arrow"):
+    """Return *size* x *size* packed RGBA pixels scaled from the 16x16 *rows*.
+
+    Raises ``ValueError`` when *size* is not an integer in
+    1..``MAX_IMAGE_SIZE``, the writer's frame-dimension limit.
+    """
+    checked = _checked_rows(rows, name)
+    size = _checked_size(size)
     rgba = bytearray(size * size * 4)
     for y in range(size):
         source_y = y * GRID_SIZE // size
@@ -102,14 +123,8 @@ def _checked_hotspot(hotspot):
 
 
 def _checked_sizes(sizes):
-    """Return *sizes* as a tuple after checking every nominal size."""
-    checked = []
-    for size in sizes:
-        if not is_plain_int(size) or size < 1:
-            raise ValueError(
-                f"nominal size must be a positive integer: size={size!r}"
-            )
-        checked.append(size)
+    """Return *sizes* after checking each is an Xcursor frame dimension."""
+    checked = [_checked_size(size, "nominal size") for size in sizes]
     if not checked:
         raise ValueError("at least one nominal size is required")
     return tuple(checked)
@@ -167,7 +182,8 @@ def cursor_bytes(
 ):
     """Return the Xcursor bytes for *rows* at every nominal *size*.
 
-    The result is cached by the validated rows, sizes, hotspot and name, so a
+    Each size must be an integer in 1..``MAX_IMAGE_SIZE``, the writer's
+    frame-dimension limit. The result is cached by the validated rows, sizes, hotspot and name, so a
     caller that regenerates an unchanged cursor (the manifest checks do) does
     not redo its pixel and container work. Sizes and the hotspot are checked
     before the lookup, so a malformed request is refused on every call rather
