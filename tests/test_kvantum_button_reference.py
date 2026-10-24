@@ -47,11 +47,6 @@ def _button_edges(bevel, outline, highlight, shadow):
     )
 
 
-def _button_corners(bevel, outline, highlight, shadow):
-    """Return each 2x2 corner pixel map a *bevel* paints, keyed by name."""
-    return bevel_corner_maps(bevel, outline, highlight, shadow)
-
-
 class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
     """The button bevel shadow is the reference popup buttons' #AAAAAA.
 
@@ -97,7 +92,7 @@ class TestButtonReference(ReferenceScreenshotMixin, unittest.TestCase):
                 )
                 for name, expected in edges.items():
                     self.assertEqual(slices[f"{prefix}-{name}"], expected, name)
-                corners = _button_corners(
+                corners = bevel_corner_maps(
                     bevel,
                     colours["outline"],
                     colours["highlight"],
