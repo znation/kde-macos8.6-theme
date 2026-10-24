@@ -2,7 +2,9 @@
 
 No reference screenshot shows Firefox chrome, so the palette is the shared
 Platinum palette and the geometry adapts this theme's Platinum controls. The
-sheet ships alone; a later part installs it into a Firefox profile.
+sheet ships as a standalone file; ``make install-firefox`` copies it into one
+Firefox profile, and ``tests/test_firefox_install.py`` pins that install and
+its removal.
 """
 
 from __future__ import annotations
