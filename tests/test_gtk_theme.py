@@ -231,6 +231,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_menu_separator(self):
         self.assert_menu_separator(("menu separator", ".menu separator"))
 
+    def test_titlebutton_separator_hidden(self):
+        for selector in (
+            "headerbar separator.titlebutton",
+            ".titlebar separator.titlebutton",
+        ):
+            self.assert_rule(selector, {"opacity": "0"})
+
+    def test_separator(self):
+        self.assert_separators()
+
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 

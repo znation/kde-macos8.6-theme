@@ -71,7 +71,10 @@
    Selected text in entries, spin buttons, labels and text views reuses the
    reference-grounded #CCCCFF selection fill with black text; no reference
    screenshot shows selected text in a field, so applying the fill there is
-   this theme's adaptation, and the node names are GTK-required. */
+   this theme's adaptation, and the node names are GTK-required.
+
+   The standalone separators reuse the reference-grounded etched pair in both
+   orientations; the orientation classes are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -365,6 +368,26 @@ menu separator, .menu separator {
   margin: 2px 0;
   min-height: 1px;
   padding: 0;
+}
+
+separator.horizontal {
+  background-color: #888888;
+  border: 0;
+  border-bottom: 1px solid #FFFFFF;
+  min-height: 1px;
+  padding: 0;
+}
+
+separator.vertical {
+  background-color: #888888;
+  border: 0;
+  border-right: 1px solid #FFFFFF;
+  min-width: 1px;
+  padding: 0;
+}
+
+headerbar separator.titlebutton, .titlebar separator.titlebutton {
+  opacity: 0;
 }
 
 frame > border, .frame {

@@ -132,6 +132,23 @@ MENU_SEPARATOR = {
     "padding": "0",
 }
 
+# The reference's etched rule from widgets/line.svg, in both orientations. The
+# horizontal one declares no margin so the menu separator's margin stays in force.
+SEPARATOR_HORIZONTAL = {
+    "background-color": ETCH_DARK,
+    "border": "0",
+    "border-bottom": f"1px solid {WHITE}",
+    "min-height": "1px",
+    "padding": "0",
+}
+SEPARATOR_VERTICAL = {
+    "background-color": ETCH_DARK,
+    "border": "0",
+    "border-right": f"1px solid {WHITE}",
+    "min-width": "1px",
+    "padding": "0",
+}
+
 FRAME = {
     "border": f"1px solid {BLACK}",
     "border-radius": "0",
@@ -378,7 +395,8 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
     that owns them. The progress-bar, scale, switch, menu-separator, frame and
     text-selection assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
-    same nodes differently.
+    same nodes differently. The standalone separators are spelled alike in both,
+    so ``assert_separators`` takes no selectors.
     """
 
     def test_headerbar(self):
@@ -483,6 +501,15 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         self.assert_rule(trough, PROGRESSBAR_TROUGH)
         self.assert_rule(progress, PROGRESSBAR_PROGRESS)
         self.assert_rule(disabled, {"background-color": GREY})
+
+    def assert_separators(self):
+        """Assert the etched standalone separators in both orientations."""
+        for selector, spec in (
+            ("separator.horizontal", SEPARATOR_HORIZONTAL),
+            ("separator.vertical", SEPARATOR_VERTICAL),
+        ):
+            self.assert_rule(selector, spec)
+            self.assertNotIn("margin", self.rules[selector])
 
     def assert_menu_separator(self, selectors):
         """Assert the Platinum etched menu separator against *selectors*."""

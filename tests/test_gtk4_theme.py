@@ -233,6 +233,9 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             ("popover separator", "popover.background separator")
         )
 
+    def test_separator(self):
+        self.assert_separators()
+
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 
