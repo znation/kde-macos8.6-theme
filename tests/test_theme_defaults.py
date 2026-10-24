@@ -60,6 +60,21 @@ class TestDefaultsGroups(unittest.TestCase):
             theme_defaults.defaults_groups(path),
         )
 
+    def test_a_repeated_key_keeps_the_later_value(self):
+        # The docstring promises the later value wins, whether the repeat
+        # sits in the same occurrence of a heading or in a second one. A
+        # key line before any heading belongs to no group and is dropped
+        # rather than attached to the first heading that follows.
+        path = make_tmp_dir(self) / "defaults"
+        path.write_text(
+            "orphan=0\n[a][B]\nk=1\nk=2\n[a][B]\nk=3\nother=4\n",
+            encoding="utf-8",
+        )
+        self.assertEqual(
+            {("a", "B"): {"k": "3", "other": "4"}},
+            theme_defaults.defaults_groups(path),
+        )
+
     def test_parses_comments_blank_lines_and_spacing(self):
         path = make_tmp_dir(self) / "defaults"
         path.write_text(
