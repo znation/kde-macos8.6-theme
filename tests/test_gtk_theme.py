@@ -293,6 +293,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             disabled="progressbar progress:disabled",
         )
 
+    def test_levelbar(self):
+        self.assert_levelbar(
+            trough="levelbar trough",
+            filled="levelbar block.filled",
+            empty="levelbar block.empty",
+            disabled="levelbar block.filled:disabled",
+            horizontal="levelbar.horizontal block",
+            vertical="levelbar.vertical block",
+        )
+
     def test_switch(self):
         self.assert_switch(
             slider="switch slider",

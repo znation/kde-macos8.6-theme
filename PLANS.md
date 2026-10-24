@@ -73,28 +73,4 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Platinum GTK level bars: paint `levelbar` as the Platinum progress bar's trough and fill (planned 2026-10-24 by the plan role; independent of the waiting GTK separator plan)
-
-**Goal.** Neither standalone GTK sheet has a `levelbar` rule (`grep -n levelbar theme/gtk` finds nothing). Stock GTK sizes and paints a `GtkLevelBar`'s blocks only in its own Adwaita/Default sheets, which we never load: GTK 3 `levelbar.horizontal block { min-height: 1px; }` plus `levelbar trough`/`levelbar block.*` colours, and GTK 4 `levelbar.horizontal trough > block { min-height: 9px; }` plus `levelbar > trough > block.*`. So a level bar in our theme, such as a password-strength meter or a disk-usage gauge, has no styled trough, and its zero-height blocks most likely draw nothing (from reading the sheets; not checked in a running app). Mac OS 8.6 has no separate level meter. Its gauge is the progress bar, which both sheets already paint from the reference-grounded spec pinned in `tests/support/gtk_theme_spec.py` (`PROGRESSBAR_TROUGH`, `PROGRESSBAR_PROGRESS`, which `test_progressbar` pins in both suites). Paint the level bar with that same trough and fill. No new colour or spec value is introduced.
-
-**Design (decided; do not widen).**
-- Nodes: in both GTK 3 and 4 a level bar is `levelbar[.horizontal|.vertical][.discrete] > trough > block`, where each filled block carries `.filled` (plus the `low`/`high`/`full` offset class) and each unfilled block carries `.empty`. Style `.filled` and `.empty` only. Platinum has one fill colour, so the offset classes get no rule.
-- The trough is `PROGRESSBAR_TROUGH` without its `min-height`/`min-width`, plus `padding: 0`. The blocks set the size instead: `min-height: 10px` on horizontal blocks and `min-width: 10px` on vertical blocks, so the content box matches the progress trough's 10px.
-- A filled block is `PROGRESSBAR_PROGRESS` (flat `#CCCCFF`, no border, bevel or margin). A disabled filled block is `#999999`, like `progressbar progress:disabled`. An empty block is `SCALE_EMPTY_FILL` (transparent, so the `#EEEEEE` trough shows).
-- Discrete mode gets no rule: its blocks abut like one continuous progress fill. Out of scope.
-- Spell selectors the way each sheet already spells the progress bar: GTK 3 uses descendants (`levelbar trough`, `levelbar block.filled`, `levelbar block.empty`, `levelbar block.filled:disabled`, `levelbar.horizontal block`, `levelbar.vertical block`). GTK 4 uses children (`levelbar > trough`, `levelbar > trough > block.filled`, `levelbar > trough > block.empty`, `levelbar > trough > block.filled:disabled`, `levelbar.horizontal > trough > block`, `levelbar.vertical > trough > block`).
-
-**Approach.**
-- `tests/support/gtk_theme_spec.py`: after `SCALE_EMPTY_FILL` add `LEVELBAR_TROUGH`, built from `PROGRESSBAR_TROUGH` minus `min-height`/`min-width` plus `"padding": "0"`, with a comment saying it reuses the progress trough. Add `GtkSheetRuleCases.assert_levelbar(self, trough, filled, empty, disabled, horizontal, vertical)` beside `assert_progressbar`. It asserts `LEVELBAR_TROUGH` on *trough* and `assertNotIn` for `min-height` and `min-width` there; `PROGRESSBAR_PROGRESS` on *filled*; `SCALE_EMPTY_FILL` on *empty*; `{"background-color": GREY}` on *disabled*; `{"min-height": "10px"}` on *horizontal*; and `{"min-width": "10px"}` on *vertical*. Add "level-bar" to the module docstring's list of named assertions.
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`: after each sheet's `progressbar … progress:disabled` rule, add the six rules above with exactly those declarations. Add one header-comment sentence: the level bar reuses the reference-grounded progress-bar trough and selection fill, and its node and class names are GTK-required.
-- `tests/test_gtk_theme.py` (`TestGtkTheme`) and `tests/test_gtk4_theme.py` (`TestGtk4Theme`): add `test_levelbar` after `test_progressbar`, calling `assert_levelbar` with that sheet's selectors.
-- `docs/invariants.md`: add one `## gtk` row after the text-selection row. It reads "Both GTK sheets paint a level bar as the Platinum progress bar: the `#EEEEEE` black-bordered inset trough with no padding, flat `#CCCCFF` filled blocks (`#999999` when disabled), transparent empty blocks and a 10px block cross-size in each orientation". It is tested by `test_levelbar` in both suites. Its exception: the trough and fill reuse the reference-grounded progress-bar spec, no reference screenshot shows a level meter, and the node and class names are GTK-required.
-
-**Files touched.** `tests/support/gtk_theme_spec.py`, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- Both sheets carry the six level-bar rules with the declarations above. `test_levelbar` runs in `TestGtkTheme` and `TestGtk4Theme`. Dropping any asserted declaration, or adding `min-height` to the trough, fails it.
-- `test_progressbar` and `test_scale` still pass unchanged in both suites, and `test_only_palette_hex_literals` passes with its expected set unchanged.
-- The new invariant row is accepted by `tests/invariants.py`, and `make check` is green.
-
 ## Done

@@ -8,7 +8,7 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the progress-bar, scale, switch, menu-separator and frame assertions they name
+plus the progress-bar, level-bar, scale, switch, menu-separator and frame assertions they name
 with their own selectors.
 """
 
@@ -73,6 +73,11 @@ SCALE_EMPTY_FILL = {
     "border-radius": "0",
     "box-shadow": "none",
     "margin": "0",
+}
+# A level bar reuses the progress trough; its blocks, not the trough, set the size.
+LEVELBAR_TROUGH = {
+    **{k: v for k, v in PROGRESSBAR_TROUGH.items() if k not in ("min-height", "min-width")},
+    "padding": "0",
 }
 SCALE_THUMB = {
     "background-color": FACE,
@@ -501,6 +506,17 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         self.assert_rule(trough, PROGRESSBAR_TROUGH)
         self.assert_rule(progress, PROGRESSBAR_PROGRESS)
         self.assert_rule(disabled, {"background-color": GREY})
+
+    def assert_levelbar(self, trough, filled, empty, disabled, horizontal, vertical):
+        """Assert the level bar paints as the progress bar, sized by its blocks."""
+        self.assert_rule(trough, LEVELBAR_TROUGH)
+        for prop in ("min-height", "min-width"):
+            self.assertNotIn(prop, self.rules[trough])
+        self.assert_rule(filled, PROGRESSBAR_PROGRESS)
+        self.assert_rule(empty, SCALE_EMPTY_FILL)
+        self.assert_rule(disabled, {"background-color": GREY})
+        self.assert_rule(horizontal, {"min-height": "10px"})
+        self.assert_rule(vertical, {"min-width": "10px"})
 
     def assert_separators(self):
         """Assert the etched standalone separators in both orientations."""
