@@ -738,6 +738,47 @@ class TestGeneratorValidation(unittest.TestCase):
                     (expected, expected),
                 )
 
+    def test_a_size_below_the_grid_maps_each_hotspot_to_its_first_covered_pixel(
+        self,
+    ):
+        # Nearest-neighbour sends destination pixel ``d`` to source
+        # ``d * 16 // size``, so at a size below the grid some source rows and
+        # columns are skipped. The hotspot must round up to the first
+        # destination pixel whose source is at or past the grid hotspot -- not
+        # down, which would name a pixel before it -- and only a hotspot no
+        # destination reaches clamps to the last rendered pixel. Pinning the
+        # symmetric (15, 15) case alone cannot tell a ceiling from a floor.
+        tmp = make_tmp_dir(self)
+        for size in (5, 8, 15):
+            reached = tuple(
+                destination * make_cursors.GRID_SIZE // size
+                for destination in range(size)
+            )
+            for hotspot in ((0, 0), (1, 14), (7, 8), (14, 15), (15, 15)):
+                with self.subTest(size=size, hotspot=hotspot):
+                    expected = tuple(
+                        next(
+                            (
+                                destination
+                                for destination, source in enumerate(reached)
+                                if source >= coordinate
+                            ),
+                            size - 1,
+                        )
+                        for coordinate in hotspot
+                    )
+                    path = tmp / f"arrow-{size}-{hotspot[0]}-{hotspot[1]}"
+                    path.write_bytes(
+                        make_cursors.cursor_bytes(
+                            sizes=(size,), hotspot=hotspot
+                        )
+                    )
+                    image = xcursor_reader.read_cursor(path).images[0]
+                    self.assertEqual(image.nominal_size, size)
+                    self.assertEqual(
+                        (image.hotspot_x, image.hotspot_y), expected
+                    )
+
 
 class TestMainErrors(unittest.TestCase):
     """``main`` must report a creation or write failure and stop, exiting 2."""
