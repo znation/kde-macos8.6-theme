@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import os
 import shutil
+import sys
+import tempfile
 import unittest
+from unittest import mock
 
+from support import containment, repo_root
 from support.gtk_fixtures import PACKAGE, SHIPPED_FILES
 from support.process_assertions import assert_failed, assert_succeeded
 from support.shipped_files import shipped_files
+from support.symlink_fixtures import symlinked_repo
 from support.installed_paths import installed_gtk_theme
 from support.theme_install import (
     assert_files_identical,
@@ -24,8 +29,17 @@ def _installed_dir(destdir):
 
 
 def _package_bytes(name):
-    with open(os.path.join(PACKAGE, name), "rb") as handle:
-        return handle.read()
+    """Return a shipped GTK package file's bytes through the containment guard.
+
+    The package is contributor-supplied, so a checked-in symlink at *name*
+    can resolve outside the repository; a plain ``open().read()`` would
+    follow it into a private file or stream a device such as ``/dev/zero``
+    without bound. The shared reader refuses that escape before opening and
+    bounds the read to a regular file.
+    """
+    return containment.read_bytes(
+        os.path.join(PACKAGE, name), repo_root.ROOT
+    )
 
 
 def _sentinel(name):
@@ -48,6 +62,21 @@ class TestPackage(unittest.TestCase):
     def test_package_ships_exactly_the_theme_files(self):
         shipped = shipped_files(PACKAGE)
         self.assertEqual(shipped, set(SHIPPED_FILES))
+
+
+class TestPackageBytesContainment(unittest.TestCase):
+    """The package-bytes read refuses a checked-in symlink escape."""
+
+    def test_a_package_symlink_outside_the_repository_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root, link = symlinked_repo(tmp, "index.theme", "PRIVATE-SECRET")
+            with mock.patch.object(
+                sys.modules[__name__], "PACKAGE", str(root)
+            ), mock.patch.object(repo_root, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    _package_bytes("index.theme")
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("PRIVATE-SECRET", str(caught.exception))
 
 
 class TestInstall(unittest.TestCase):
