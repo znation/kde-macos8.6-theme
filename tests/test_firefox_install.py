@@ -740,8 +740,9 @@ class TestInstall(ProfileCase):
         self.assertFalse(self.user_js_path().exists())
 
     def test_a_failed_user_js_write_is_reported_by_path(self):
-        # A write failure must name the file that failed and stop the install:
-        # the sheet is published first, but user.js is left absent.
+        # A write failure must name the file that failed and stop the install.
+        # The sheet is published first, so the failure must remove it again:
+        # a failed install leaves neither half of the pair behind.
         with mock.patch.object(
             firefox_user_files,
             "write_atomically",
@@ -750,6 +751,197 @@ class TestInstall(ProfileCase):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_a_failed_user_js_write_restores_the_previous_sheet(self):
+        # A repeat install over an earlier sheet of ours must not replace it
+        # when the user.js write fails: the previous sheet is put back, not
+        # deleted and not left as the new one.
+        previous = f"{install_firefox.CSS_MARKER}\n/* previous sheet */\n"
+        _write(self.sheet_path(), previous)
+        real_write = firefox_user_files.write_atomically
+
+        def flaky_write(path, writer):
+            if Path(path) == self.user_js_path():
+                raise OSError("simulated failure")
+            return real_write(path, writer)
+
+        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.assertEqual(previous, _read(self.sheet_path()))
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_a_failed_sheet_restore_is_reported_with_the_original_error(self):
+        # When the user.js write and the sheet restore both fail, the restore
+        # cannot put the profile back. The error must name both failures so
+        # the half-applied sheet is visible instead of reported as clean, and
+        # the failed restore leaves the shipped sheet in place.
+        previous = f"{install_firefox.CSS_MARKER}\n/* previous sheet */\n"
+        _write(self.sheet_path(), previous)
+        real_write = firefox_user_files.write_atomically
+        sheet_writes = []
+
+        def flaky_write(path, writer):
+            if Path(path) == self.user_js_path():
+                raise OSError("simulated user.js failure")
+            if Path(path) == self.sheet_path():
+                sheet_writes.append(path)
+                if len(sheet_writes) > 1:
+                    raise OSError("simulated restore failure")
+            return real_write(path, writer)
+
+        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
+        self.assertEqual(
+            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
+            self.sheet_path().read_bytes(),
+        )
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_an_interrupt_during_the_user_js_write_restores_the_previous_sheet(self):
+        # An interrupt is not a ConfigError, but it must roll the published
+        # sheet back all the same and then propagate instead of being
+        # swallowed; otherwise Ctrl-C leaves a half-installed profile.
+        previous = f"{install_firefox.CSS_MARKER}\n/* previous sheet */\n"
+        _write(self.sheet_path(), previous)
+        real_write = firefox_user_files.write_atomically
+
+        def interrupt_the_user_js_write(path, writer):
+            if Path(path) == self.user_js_path():
+                raise KeyboardInterrupt
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", interrupt_the_user_js_write
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--profile", str(self.profile))
+        self.assertEqual(previous, _read(self.sheet_path()))
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_an_interrupt_after_the_user_js_write_takes_effect_restores_it(self):
+        # The user.js write can publish the preference block and then raise
+        # before the call returns. The install must put the previous user.js
+        # back as well as the sheet, so the pair is not left half-applied.
+        previous_sheet = f"{install_firefox.CSS_MARKER}\n/* previous sheet */\n"
+        previous_js = 'user_pref("keep.me", true);\n'
+        _write(self.sheet_path(), previous_sheet)
+        _write(self.user_js_path(), previous_js)
+        real_write = firefox_user_files.write_atomically
+
+        def interrupt_after_the_user_js_write(path, writer):
+            if Path(path) == self.user_js_path():
+                real_write(path, writer)
+                raise KeyboardInterrupt
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", interrupt_after_the_user_js_write
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--profile", str(self.profile))
+        self.assertEqual(previous_sheet, _read(self.sheet_path()))
+        self.assertEqual(previous_js, _read(self.user_js_path()))
+
+    def test_an_interrupt_after_a_created_user_js_is_published_removes_it(self):
+        # A first install has no previous user.js, so when the write
+        # publishes it and then raises, the rollback removes the file it
+        # created instead of leaving the preference block behind.
+        real_write = firefox_user_files.write_atomically
+
+        def interrupt_after_the_user_js_write(path, writer):
+            if Path(path) == self.user_js_path():
+                real_write(path, writer)
+                raise KeyboardInterrupt
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", interrupt_after_the_user_js_write
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--profile", str(self.profile))
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_a_failed_user_js_restore_is_reported_with_the_original_error(self):
+        # The user.js write publishes and then raises, and putting the
+        # previous user.js back fails too. The error must name both
+        # failures, and the sheet is still rolled back.
+        previous_sheet = f"{install_firefox.CSS_MARKER}\n/* previous sheet */\n"
+        previous_js = 'user_pref("keep.me", true);\n'
+        _write(self.sheet_path(), previous_sheet)
+        _write(self.user_js_path(), previous_js)
+        real_write = firefox_user_files.write_atomically
+        js_writes = []
+
+        def flaky_write(path, writer):
+            if Path(path) == self.user_js_path():
+                js_writes.append(path)
+                if len(js_writes) > 1:
+                    raise OSError("simulated user.js restore failure")
+                real_write(path, writer)
+                raise OSError("simulated user.js failure")
+            return real_write(path, writer)
+
+        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn("simulated user.js failure", result.stderr)
+        self.assertIn("simulated user.js restore failure", result.stderr)
+        self.assertEqual(previous_sheet, _read(self.sheet_path()))
+
+    def test_an_interrupt_after_the_sheet_write_takes_effect_removes_it(self):
+        # The sheet write can publish its file and then raise before the
+        # caller records any state. A rollback flag set after the write would
+        # miss that interrupt and leave the sheet behind; the install must
+        # remove the sheet it just published and propagate the interrupt.
+        real_write = firefox_user_files.write_atomically
+
+        def interrupt_after_the_sheet_write(path, writer):
+            if Path(path) == self.sheet_path():
+                real_write(path, writer)
+                raise KeyboardInterrupt
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", interrupt_after_the_sheet_write
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--profile", str(self.profile))
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_a_failed_new_sheet_restore_is_reported_with_the_original_error(self):
+        # A first install has no previous sheet, so its rollback removes the
+        # shipped sheet it published. If that unlink also fails, the error
+        # must name both failures and the sheet that could not be removed
+        # stays visible instead of the rollback failure being swallowed.
+        real_write = firefox_user_files.write_atomically
+        real_unlink = Path.unlink
+
+        def flaky_write(path, writer):
+            if Path(path) == self.user_js_path():
+                raise OSError("simulated user.js failure")
+            return real_write(path, writer)
+
+        def flaky_unlink(path, *args, **kwargs):
+            if Path(path) == self.sheet_path():
+                raise OSError("simulated restore failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", flaky_write
+        ), mock.patch.object(Path, "unlink", flaky_unlink):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.assertIn(f"cannot restore {self.sheet_path()}", result.stderr)
         self.assertEqual(
             containment.read_bytes(SHEET_PATH, repo_root.ROOT),
             self.sheet_path().read_bytes(),
@@ -1070,11 +1262,12 @@ class TestRemove(ProfileCase):
                 self.assertFalse((profile / untouched).exists())
 
     def test_a_failed_user_js_write_during_removal_is_reported_by_path(self):
-        # Removal unlinks our sheet and then rewrites user.js without the
-        # block. A failure on that second step must name user.js and leave
-        # its content unchanged instead of escaping as a traceback.
+        # Removal rewrites user.js before it deletes the sheet. A failure on
+        # that first step must name user.js and leave both files unchanged
+        # instead of deleting the sheet and leaving a stale preference.
         self.install()
-        before = _read(self.user_js_path())
+        before_js = _read(self.user_js_path())
+        before_sheet = _read(self.sheet_path())
         with mock.patch.object(
             firefox_user_files,
             "write_atomically",
@@ -1083,18 +1276,117 @@ class TestRemove(ProfileCase):
             result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
-        self.assertEqual(before, _read(self.user_js_path()))
+        self.assertEqual(before_js, _read(self.user_js_path()))
+        self.assertEqual(before_sheet, _read(self.sheet_path()))
 
     def test_a_failed_sheet_unlink_is_reported_by_path(self):
         # _remove promises a by-name "cannot remove" error when our sheet
         # cannot be deleted, leaving the sheet in place rather than crashing.
+        # The user.js rewrite that preceded it is put back, so the failure
+        # does not leave the preference removed from a sheet that remains.
         self.install()
-        sheet = containment.read_bytes(self.sheet_path(), repo_root.ROOT)
+        sheet = _read(self.sheet_path())
+        before_js = _read(self.user_js_path())
         with mock.patch.object(Path, "unlink", side_effect=OSError("simulated failure")):
             result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot remove {self.sheet_path()}", result.stderr)
-        self.assertEqual(sheet, containment.read_bytes(self.sheet_path(), repo_root.ROOT))
+        self.assertEqual(sheet, _read(self.sheet_path()))
+        self.assertEqual(before_js, _read(self.user_js_path()))
+
+    def test_a_failed_user_js_restore_during_removal_names_both_errors(self):
+        # If the sheet cannot be deleted and the user.js rewrite cannot be put
+        # back, the removal cannot restore the pair. The error must name both
+        # failures, so the preference-less user.js beside the surviving sheet
+        # is visible instead of the rollback failure being swallowed.
+        self.install()
+        before_js = _read(self.user_js_path())
+        before_sheet = _read(self.sheet_path())
+        real_write = firefox_user_files.write_atomically
+        js_writes = []
+
+        def flaky_write(path, writer):
+            if Path(path) == self.user_js_path():
+                js_writes.append(path)
+                if len(js_writes) > 1:
+                    raise OSError("simulated rollback failure")
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", flaky_write
+        ), mock.patch.object(
+            Path, "unlink", side_effect=OSError("simulated failure")
+        ):
+            result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {self.sheet_path()}", result.stderr)
+        self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
+        self.assertEqual(before_sheet, _read(self.sheet_path()))
+        self.assertNotEqual(before_js, _read(self.user_js_path()))
+
+    def test_an_interrupt_during_the_sheet_unlink_restores_user_js(self):
+        # An interrupt after the user.js rewrite is not an OSError, but the
+        # removal must still put the preference block back and then propagate
+        # the interrupt instead of leaving a sheet with no preference.
+        self.install()
+        before_js = _read(self.user_js_path())
+        before_sheet = _read(self.sheet_path())
+        with mock.patch.object(Path, "unlink", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(before_sheet, _read(self.sheet_path()))
+        self.assertEqual(before_js, _read(self.user_js_path()))
+
+    def test_an_interrupt_after_the_user_js_rewrite_takes_effect_restores_it(self):
+        # The rewrite can remove the preference block and then raise before
+        # the caller records it. Without a pre-set intent flag that interrupt
+        # skips the rollback and leaves the surviving sheet without its
+        # preference; the previous user.js must be put back.
+        self.install()
+        before_js = _read(self.user_js_path())
+        before_sheet = _read(self.sheet_path())
+        real_write = firefox_user_files.write_atomically
+        js_writes = []
+
+        def interrupt_after_the_user_js_rewrite(path, writer):
+            if Path(path) == self.user_js_path():
+                js_writes.append(path)
+                real_write(path, writer)
+                if len(js_writes) == 1:
+                    raise KeyboardInterrupt
+                return
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", interrupt_after_the_user_js_rewrite
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(before_js, _read(self.user_js_path()))
+        self.assertEqual(before_sheet, _read(self.sheet_path()))
+
+    def test_an_interrupt_after_the_sheet_unlink_takes_effect_keeps_the_removal(self):
+        # An interrupt can arrive after the unlink removed the sheet but before
+        # the removal records it. The sheet is gone, so the already rewritten
+        # user.js matches a completed removal and must not be put back: a
+        # rollback keyed on a late flag would leave a preference with no sheet.
+        self.install()
+        before_js = _read(self.user_js_path())
+        real_unlink = Path.unlink
+
+        def interrupt_after_the_sheet_unlink(path, *args, **kwargs):
+            if Path(path) == self.sheet_path():
+                real_unlink(path, *args, **kwargs)
+                raise KeyboardInterrupt
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", interrupt_after_the_sheet_unlink):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertFalse(self.sheet_path().exists())
+        self.assertEqual(
+            firefox_user_js.remove_user_js(before_js), _read(self.user_js_path())
+        )
 
 
 if __name__ == "__main__":
