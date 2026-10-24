@@ -19,7 +19,12 @@
    widgets/arrows.svg shape. GTK 4 scrolls menus inside a popover rather than
    through the menu arrow nodes, so this sheet names no menu scroll arrows.
    Spin-button arrows stay from the icon theme because GTK draws them there,
-   not from a CSS -gtk-icon-source this sheet can redirect. The tree-view,
+   not from a CSS -gtk-icon-source this sheet can redirect.
+   Views (the view class and the list box) paint
+   the reference-grounded white content field, the colour scheme's View
+   background, with black text; no reference screenshot shows a GTK widget, and
+   the view class and node names are GTK-required.
+   The tree-view,
    list-box, column-view and list-view row rules adapt the reference-grounded
    row in widgets/listitem.svg: a hovered row stays the view background and a
    selected row is its flat #CCCCFF fill with square corners and black text.
@@ -445,6 +450,12 @@ frame > border, .frame {
   box-shadow: inset 1px 1px #999999;
   margin: 0;
   padding: 0;
+}
+
+/* Views paint the white content field with black text. */
+.view, list {
+  background-color: #FFFFFF;
+  color: #000000;
 }
 
 treeview.view:hover, list row.activatable:hover,

@@ -268,6 +268,11 @@ TREE_HEADER_LAST = {"border-right-width": "0"}
 # widgets/listitem.svg row: a hovered row stays the view background and a
 # selected row is the flat selection fill with square corners and black text.
 ROW_HOVER = {"background-color": "transparent"}
+# Views paint the white content field with black text; the white is the colour
+# scheme's View background that
+# test_colorscheme_reference.TestReferenceAnchors.test_window_view_background
+# re-derives from the reference.
+VIEW_BACKGROUND = {"background-color": WHITE, "color": BLACK}
 ROW_SELECTED = {
     "background-color": SELECTION,
     "color": BLACK,
@@ -413,8 +418,8 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     Both suites inherit these cases and run them against their own parsed
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
-    that owns them. The progress-bar, scale, switch, menu-separator, frame and
-    text-selection assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
+    that owns them. The progress-bar, scale, switch, menu-separator, frame,
+    text-selection and view-background assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
     same nodes differently. The standalone separators are spelled alike in both,
     so ``assert_separators`` takes no selectors.
     """
@@ -552,6 +557,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the selected-text fill against *selectors*."""
         for selector in selectors:
             self.assert_rule(selector, TEXT_SELECTION)
+
+    def assert_view_background(self, selectors):
+        """Assert the white view fill against the view *selectors*."""
+        for selector in selectors:
+            self.assert_rule(selector, VIEW_BACKGROUND)
 
     def assert_spin_button_field(self, selectors):
         """Assert the entry field against the spin-button *selectors*."""

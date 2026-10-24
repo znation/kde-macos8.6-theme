@@ -170,6 +170,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             ("entry selection", "spinbutton selection", "label selection", "textview text selection")
         )
 
+    def test_view_background(self):
+        self.assert_view_background((".view", "textview text", "list"))
+
     def test_spin_button_field(self):
         self.assert_spin_button_field(("spinbutton:not(.vertical)",))
         self.assertNotIn("spinbutton.vertical > text", self.rules)
