@@ -282,6 +282,10 @@ ROW_HOVER = {"background-color": "transparent"}
 # test_colorscheme_reference.TestReferenceAnchors.test_window_view_background
 # re-derives from the reference.
 VIEW_BACKGROUND = {"background-color": WHITE, "color": BLACK}
+
+# The drag-selection marquee: a dotted outline with no fill, after the Mac OS
+# Finder marquee.
+RUBBERBAND = {"background-color": "transparent", "border": f"1px dotted {BLACK}"}
 ROW_SELECTED = {
     "background-color": SELECTION,
     "color": BLACK,
@@ -571,6 +575,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the white view fill against the view *selectors*."""
         for selector in selectors:
             self.assert_rule(selector, VIEW_BACKGROUND)
+
+    def assert_rubberband(self, selectors):
+        """Assert the dotted, unfilled marquee against *selectors*."""
+        for selector in selectors:
+            self.assert_rule(selector, RUBBERBAND)
 
     def assert_spin_button_field(self, selectors):
         """Assert the entry field against the spin-button *selectors*."""

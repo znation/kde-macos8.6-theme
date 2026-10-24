@@ -25,6 +25,10 @@
    the reference-grounded white content field, the colour scheme's View
    background, with black text; no reference screenshot shows a GTK widget, and
    the view class and node names are GTK-required.
+   The drag-selection rubberband is a 1px dotted black outline with no fill,
+   after the Mac OS Finder marquee; no reference screenshot shows a marquee,
+   so its shape is this theme's adaptation, and the rubberband node and class
+   names are GTK-required.
    Menu-bar titles (menubar > menuitem) take widgets/menubaritem.svg's 3px/7px
    margins, re-derived from the reference title gaps; an open title's colour
    comes from the existing menuitem:hover rule.
@@ -439,6 +443,12 @@ frame > border, .frame {
 .view, textview text, list {
   background-color: #FFFFFF;
   color: #000000;
+}
+
+/* The drag-selection marquee is a dotted outline with no fill. */
+.rubberband, rubberband {
+  background-color: transparent;
+  border: 1px dotted #000000;
 }
 
 treeview.view:hover, list row.activatable:hover {

@@ -183,6 +183,9 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
     def test_view_background(self):
         self.assert_view_background((".view", "list"))
 
+    def test_rubberband(self):
+        self.assert_rubberband(("rubberband",))
+
     def test_spin_button_field(self):
         self.assert_spin_button_field(
             ("spinbutton:not(.vertical)", "spinbutton.vertical > text")

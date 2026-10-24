@@ -180,6 +180,14 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))
 
+    def test_rubberband(self):
+        self.assert_rubberband((".rubberband", "rubberband"))
+        # A later .view rule would win the cascade again.
+        self.assertGreater(
+            self.css.index(".rubberband, rubberband {"),
+            self.css.index(".view, textview text, list {"),
+        )
+
     def test_spin_button_field(self):
         self.assert_spin_button_field(("spinbutton:not(.vertical)",))
         self.assertNotIn("spinbutton.vertical > text", self.rules)
