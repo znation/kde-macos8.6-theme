@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Platinum chrome: paint the toolbar button states, bookmark items, menu separators and the find bar (planned 2026-10-23 by the plan role; independent of the waiting GTK meters plan) — done 2026-10-23 by the feature role
+
+**Goal.** The Firefox sheet paints the tab strip, navigation bar, bookmarks-bar background, menus and status panel, but it leaves Firefox's own rounded hover and pressed washes on the toolbar buttons, rounded highlights on bookmarks-bar items, the stock grey menu separator, and the default find bar. Paint those surfaces with the pinned Platinum values the sheet already uses: the #EEEEEE trough as the hover wash, the #CCCCFF selection as the pressed/open fill, the raised bevel (`inset 1px 1px #FFFFFF, inset -1px -1px #999999`) on the hovered button, the etched #888888/#FFFFFF rule from `widgets/line.svg`, the #DDDDDD face for the find bar and the white sunken field with its #999999 shadow for its text box. No reference screenshot shows Firefox chrome, so the geometry is this theme's adaptation of the Platinum controls; the new rules introduce no new hex literal.
+
+**Approach.**
+- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`:
+  - Extend the `:root` block with Firefox's toolbarbutton variables: `--toolbarbutton-border-radius: 0 !important`, `--toolbarbutton-background-color-hover: #EEEEEE !important` and `--toolbarbutton-background-color-active: #CCCCFF !important`.
+  - Add `toolbarbutton:hover:not([disabled="true"])` with the raised bevel box-shadow and `toolbarbutton:hover:active:not([disabled="true"])` with `box-shadow: inset 1px 1px #999999 !important`.
+  - Add one rule `#PersonalToolbar .bookmark-item:hover, #PersonalToolbar .bookmark-item[open]` with `background-color: #CCCCFF !important`, `border-radius: 0 !important` and `box-shadow: inset 1px 1px #FFFFFF !important`.
+  - Add `menupopup > menuseparator` with `padding: 0 !important` and `margin: 2px 0 !important`, and `menupopup > menuseparator::before` with `border-top: 1px solid #888888 !important` and `border-bottom: 1px solid #FFFFFF !important` (the etched separator, matching `widgets/line.svg`).
+  - Add `findbar` with `background-color: #DDDDDD !important` and `border-top: 1px solid #000000 !important`, and `findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus)` with `background-color: #FFFFFF !important`, `border: 1px solid #000000 !important`, `border-radius: 0 !important` and `box-shadow: inset 1px 1px #999999 !important`; the guards leave Firefox's own red not-found wash, yellow flash and focus ring in place.
+  - Extend the header's provenance paragraph to name the toolbar button states, bookmark items, menu separators and find bar among the sheet's adapted surfaces.
+- `tests/test_firefox_theme.py`: add the three `:root` variables to `REQUIRED_RULES[":root"]` and add `REQUIRED_RULES` entries for the toolbar button states, bookmark-item, menuseparator and `::before`, findbar and findbar-textbox selectors, reusing the imported `BLACK`, `FACE`, `GREY`, `SELECTION`, `TROUGH` and `WHITE` values and importing `RAISED_BEVEL` from `support.gtk_theme_spec`; leave `test_palette_is_exact`'s expected set unchanged (every new declaration uses a value it already accepts).
+- `docs/invariants.md`: extend the `## firefox` standalone-sheet guarantee sentence to name the toolbar button states, bookmark items, menu separators and find bar; keep its no-reference-screenshot provenance exception.
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/test_firefox_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The sheet carries the pinned `:root` variables and the bookmark-item, menuseparator and findbar rules, and `test_required_rules` fails if any selector or declaration changes.
+- `test_palette_is_exact` still passes with the same hex set, the sheet still contains no at-rule or import, and no selector is universal.
+- `tests/invariants.py` accepts the updated `## firefox` row and `make check` is green.
+
 ### Platinum GTK meters and sliders: paint the progress-bar track and fill and the scale trough and thumb (planned 2026-10-23 by the plan role; independent of the waiting pointer plan) — done 2026-10-23 by the feature role
 
 **Goal.** Both opt-in GTK sheets cover windows, buttons, entries, tabs, menus, scroll bars and toolbars, but they leave `GtkProgressBar` and `GtkScale` to the Adwaita fallback, so a file-copy meter or a volume slider still draws Adwaita's rounded blue track and thumb. Paint them from the Platinum art the theme already ships: the flat #EEEEEE trough with its 1px #000000 outline that `widgets/scrollbar.svg` and `widgets/slider.svg` ship, the #999999 sunken shadow `widgets/lineedit.svg` uses, the flat #CCCCFF selection for the progress fill (the reference progress gradient's middle row is `#CBCCFF`), and the desktop theme's raised #DDDDDD slider thumb from `widgets/slider.svg`. No reference screenshot shows a GTK widget, so the geometry stays this theme's adaptation, but every colour is an existing pinned Platinum palette value and the sheets stay standalone (no `@import`, no `url()`).

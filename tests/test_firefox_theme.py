@@ -12,7 +12,7 @@ from pathlib import Path
 
 from support import containment
 from support.gtk_css import HEX, parse_css
-from support.gtk_theme_spec import ETCH_DARK, SheetRuleAssertions
+from support.gtk_theme_spec import ETCH_DARK, RAISED_BEVEL, SheetRuleAssertions
 from support.platinum_palette import (
     BLACK,
     FACE,
@@ -46,6 +46,9 @@ REQUIRED_RULES = {
         "--arrowpanel-background": f"{FACE} !important",
         "--arrowpanel-color": f"{BLACK} !important",
         "--arrowpanel-border-color": f"{BLACK} !important",
+        "--toolbarbutton-border-radius": "0 !important",
+        "--toolbarbutton-background-color-hover": f"{TROUGH} !important",
+        "--toolbarbutton-background-color-active": f"{SELECTION} !important",
     },
     "#navigator-toolbox": {
         "background-color": f"{FACE} !important",
@@ -109,6 +112,40 @@ REQUIRED_RULES = {
     },
     'menupopup > menu[_moz-menuactive="true"]': {
         "background-color": f"{SELECTION} !important",
+    },
+    "#PersonalToolbar .bookmark-item:hover": {
+        "background-color": f"{SELECTION} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"inset 1px 1px {WHITE} !important",
+    },
+    "#PersonalToolbar .bookmark-item[open]": {
+        "background-color": f"{SELECTION} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"inset 1px 1px {WHITE} !important",
+    },
+    "toolbarbutton:hover:not([disabled=\"true\"])": {
+        "box-shadow": f"{RAISED_BEVEL} !important",
+    },
+    "toolbarbutton:hover:active:not([disabled=\"true\"])": {
+        "box-shadow": f"inset 1px 1px {GREY} !important",
+    },
+    "menupopup > menuseparator": {
+        "padding": "0 !important",
+        "margin": "2px 0 !important",
+    },
+    "menupopup > menuseparator::before": {
+        "border-top": f"1px solid {ETCH_DARK} !important",
+        "border-bottom": f"1px solid {WHITE} !important",
+    },
+    "findbar": {
+        "background-color": f"{FACE} !important",
+        "border-top": f"1px solid {BLACK} !important",
+    },
+    "findbar .findbar-textbox:not([status=\"notfound\"]):not([flash=\"true\"]):not(:focus)": {
+        "background-color": f"{WHITE} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"inset 1px 1px {GREY} !important",
     },
 }
 

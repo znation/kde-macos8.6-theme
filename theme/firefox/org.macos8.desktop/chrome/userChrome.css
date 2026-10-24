@@ -5,7 +5,8 @@
    the shared Platinum palette (the desktop theme's #DDDDDD face, #FFFFFF
    white, #999999 grey, #000000 black, #EEEEEE trough, #CCCCFF selection and
    the etched separator's #888888 dark half); its geometry adapts the
-   desktop theme's Platinum tabs, toolbars, fields and menus.
+   desktop theme's Platinum tabs, toolbars, toolbar button states, bookmark
+   items, fields, menu separators and find bar.
 
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
@@ -24,6 +25,9 @@
   --arrowpanel-background: #DDDDDD !important;
   --arrowpanel-color: #000000 !important;
   --arrowpanel-border-color: #000000 !important;
+  --toolbarbutton-border-radius: 0 !important;
+  --toolbarbutton-background-color-hover: #EEEEEE !important;
+  --toolbarbutton-background-color-active: #CCCCFF !important;
 }
 
 #navigator-toolbox {
@@ -75,9 +79,48 @@ menupopup {
   --panel-border-color: #000000 !important;
 }
 
+toolbarbutton:hover:not([disabled="true"]) {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999 !important;
+}
+
+toolbarbutton:hover:active:not([disabled="true"]) {
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
 menupopup > menuitem:hover,
 menupopup > menu:hover,
 menupopup > menuitem[_moz-menuactive="true"],
 menupopup > menu[_moz-menuactive="true"] {
   background-color: #CCCCFF !important;
+}
+
+#PersonalToolbar .bookmark-item:hover,
+#PersonalToolbar .bookmark-item[open] {
+  background-color: #CCCCFF !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF !important;
+}
+
+menupopup > menuseparator {
+  padding: 0 !important;
+  margin: 2px 0 !important;
+}
+
+menupopup > menuseparator::before {
+  border-top: 1px solid #888888 !important;
+  border-bottom: 1px solid #FFFFFF !important;
+}
+
+findbar {
+  background-color: #DDDDDD !important;
+  border-top: 1px solid #000000 !important;
+}
+
+/* Leave Firefox's not-found, flash and focus states to its own sheet, so
+   the find bar keeps its red/yellow result feedback and focus ring. */
+findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus) {
+  background-color: #FFFFFF !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
 }
