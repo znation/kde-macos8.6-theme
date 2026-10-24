@@ -279,6 +279,21 @@ class TestWriterRejections(unittest.TestCase):
             needles=("images[0]", "could not be decoded", "not a PNG file"),
         )
 
+    def test_rejects_an_empty_image_list(self):
+        # A zero-TOC Xcursor parses as a cursor file with no image to draw.
+        # Both writers must refuse it instead of handing that unusable file
+        # to the installer, and an empty generator must fail the same way.
+        for writer in (xcursor.write_cursor, xcursor.write_rgba_cursor):
+            for images in ([], iter(())):
+                with self.subTest(writer=writer.__name__, images=images):
+                    assert_error_names(
+                        self,
+                        ValueError,
+                        writer,
+                        images,
+                        needles=("at least one frame",),
+                    )
+
     def test_accepts_a_bytearray_png(self):
         # The documented input accepts bytes or bytearray, so a mutable frame
         # buffer must produce the same cursor bytes as its immutable copy.

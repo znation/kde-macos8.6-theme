@@ -178,7 +178,12 @@ def _rgba_frame(index: int, record: object) -> tuple[int, int, int, int, int, by
 
 
 def _assemble(frames) -> bytes:
-    """Return the Xcursor bytes for already-validated *frames*."""
+    """Return the Xcursor bytes for already-validated, non-empty *frames*."""
+    if not frames:
+        raise ValueError(
+            "images must contain at least one frame; a cursor file with no "
+            "image cannot be drawn"
+        )
     ntoc = len(frames)
     next_offset = FILE_HEADER_SIZE + TOC_ENTRY_SIZE * ntoc
     toc = bytearray()
@@ -217,10 +222,11 @@ def write_cursor(images) -> bytes:
     *images* is an iterable of ``(nominal_size, width, height, hotspot_x,
     hotspot_y, png_bytes)`` records, one per image frame. Each ``png_bytes``
     must decode to exactly ``width`` x ``height`` RGBA pixels. Raises
-    ``ValueError`` naming the offending record field for a dimension outside
-    1..``MAX_IMAGE_SIZE``, a hotspot outside its image, a non-integer numeric
-    field (including a ``bool``), a PNG field that is not
-    ``bytes``/``bytearray``, and a PNG whose size disagrees with the record.
+    ``ValueError`` when *images* contains no frames, and otherwise naming the
+    offending record field for a dimension outside 1..``MAX_IMAGE_SIZE``, a
+    hotspot outside its image, a non-integer numeric field (including a
+    ``bool``), a PNG field that is not ``bytes``/``bytearray``, and a PNG
+    whose size disagrees with the record.
     """
     frames = [_build_payload(index, record) for index, record in enumerate(images)]
     return _assemble(frames)
@@ -235,7 +241,8 @@ def write_rgba_cursor(images) -> bytes:
     byte-identical to :func:`write_cursor` given the same pixels encoded as
     PNG, without the encode/decode round trip. Raises ``ValueError`` naming
     the offending record field, as :func:`write_cursor` does, when a dimension
-    or hotspot is invalid or the pixel buffer is the wrong type or length.
+    or hotspot is invalid or the pixel buffer is the wrong type or length, and
+    when *images* contains no frames.
     """
     frames = [_rgba_frame(index, record) for index, record in enumerate(images)]
     return _assemble(frames)
