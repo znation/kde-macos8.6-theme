@@ -108,6 +108,31 @@ class TestReadPng(unittest.TestCase):
             self.assertEqual(png.read_png_size(path), (3, 4))
         decode.assert_not_called()
 
+    def test_read_png_size_reads_only_the_header_prefix(self):
+        # The sampler reads a large reference twice: once for the sampled rows
+        # and once for the declared size. A size read must not load the whole
+        # file for the second pass. A megabyte after IEND keeps the header
+        # valid, so both the old and new reads report 3x4; only a bounded
+        # prefix read keeps the allocation small.
+        _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        path = self._file("padded.png", data + b"\x00" * (1 << 20))
+        size, peak = peak_allocation(lambda: png.read_png_size(path))
+        self.assertEqual(size, (3, 4))
+        self.assertLess(peak, 64 * 1024)
+
+    def test_read_png_size_still_rejects_an_oversize_file(self):
+        # Reading only a prefix must not bypass the file-size cap: a file over
+        # the cap whose first chunk is a valid IHDR is refused by name, with
+        # the size an operator needs, just as the whole-file reader does.
+        limit = 4096
+        _, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        path = self._file("oversize.png", data + b"\x00" * (limit + 1 - len(data)))
+        with mock.patch.object(loader, "_MAX_FILE_BYTES", limit):
+            message = error_message(self, png.PngError, png.read_png_size, path)
+        self.assertIn(str(path), message)
+        self.assertIn(str(limit), message)
+        self.assertIn(f"{limit + 1} bytes", message)
+
     def test_read_png_size_names_undecodable_file(self):
         path = self._file("broken.png", b"not a png")
         message = error_message(self, png.PngError, png.read_png_size, path)
