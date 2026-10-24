@@ -528,6 +528,23 @@ class TestUserJs(unittest.TestCase):
         self.assertEqual(foreign, firefox_user_js.remove_user_js(text))
         self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
 
+    def test_only_cr_and_lf_end_a_line(self):
+        # A foreign line carrying another Unicode line separator (VT, FF,
+        # U+0085 or U+2028) is content, not an ending: splitting there would
+        # move our block into the middle of that line and a removal could
+        # leave an extra line break behind.
+        foreign = 'user_pref("a", "x\u2028y\u0085z\v\f");'
+        self.assertEqual(
+            foreign
+            + "\n"
+            + firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.PREF_LINE
+            + "\n",
+            firefox_user_js.set_user_js(foreign),
+        )
+        self.assertEqual(foreign + "\n", firefox_user_js.remove_user_js(foreign + "\n"))
+
 
 class TestInstall(ProfileCase):
     def test_install_copies_the_sheet_byte_for_byte_and_adds_one_block(self):

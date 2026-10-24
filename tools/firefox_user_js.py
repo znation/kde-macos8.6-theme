@@ -6,10 +6,17 @@ the installer never has to reason about foreign lines or their line endings.
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 
 USER_JS_MARKER = "// org.macos8.desktop Firefox Platinum userChrome"
 PREF_LINE = 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);'
+
+# Only CR, LF and CRLF end a line here: ``str.splitlines`` also splits on VT,
+# FF, U+0085 and U+2028, which a foreign user.js line may contain as data and
+# must keep. The capture group makes ``split`` return each ending between the
+# contents, and the scan runs in C instead of character by character.
+_LINE_ENDING = re.compile(r"(\r\n|\r|\n)")
 
 
 def _lines(text: str) -> list[tuple[str, str]]:
@@ -18,22 +25,12 @@ def _lines(text: str) -> list[tuple[str, str]]:
     The final pair's ending is ``""`` when the text does not end with a line
     break, so joining the pairs reproduces *text* exactly.
     """
+    parts = _LINE_ENDING.split(text)
     lines = []
-    index = 0
-    while index < len(text):
-        end = index
-        while end < len(text) and text[end] not in "\r\n":
-            end += 1
-        if end == len(text):
-            lines.append((text[index:end], ""))
-            break
-        if text[end] == "\r" and end + 1 < len(text) and text[end + 1] == "\n":
-            lines.append((text[index:end], "\r\n"))
-            end += 2
-        else:
-            lines.append((text[index:end], text[end]))
-            end += 1
-        index = end
+    for index in range(0, len(parts) - 1, 2):
+        lines.append((parts[index], parts[index + 1]))
+    if parts[-1]:
+        lines.append((parts[-1], ""))
     return lines
 
 
