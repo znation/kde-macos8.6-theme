@@ -385,6 +385,28 @@ class TestCli(FidelityCliTestCase):
         self._assert_usage_error(result, "resolves outside", str(root))
         self.assertNotIn("max channel delta", result.stdout)
 
+    def test_rejects_a_candidate_that_symlinks_outside_the_repository(self):
+        # The guard sits in _read_source, so it covers the candidate too, and
+        # both the whole-image and the cropped read paths.
+        _, data = solid_rgb(2, 2)
+        root, link = symlinked_repo(self._tmp_dir(), "candidate.png", data)
+        reference = self._write(self._tmp_dir(), "reference.png", data)
+        for extra in ((), ("--candidate-crop", "0,0,1,1")):
+            with self.subTest(extra=extra), mock.patch.object(fidelity, "ROOT", str(root)):
+                result = self._run(str(link), reference, *extra)
+            self._assert_usage_error(result, "resolves outside", str(root))
+            self.assertNotIn("max channel delta", result.stdout)
+
+    def test_reads_a_symlink_that_stays_inside_the_repository(self):
+        _, data = solid_rgb(1, 1)
+        root, link = symlinked_repo(
+            self._tmp_dir(), "reference.png", data, target="real/target.png"
+        )
+        candidate = self._write(self._tmp_dir(), "candidate.png", data)
+        with mock.patch.object(fidelity, "ROOT", str(root)):
+            result = self._run(candidate, str(link))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
