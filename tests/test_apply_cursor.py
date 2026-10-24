@@ -204,6 +204,27 @@ class TestInstall(CursorCase):
         assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.home / ".icons"), result.stderr)
 
+    def test_a_failed_link_creation_is_reported_by_path(self):
+        # Creating the symlink can still fail (a read-only ~/.icons, for
+        # example). The OSError must become the tool's own exit-2 diagnostic
+        # naming the link -- not a traceback -- and the selector must not run
+        # after the link it was meant to expose is missing.
+        self.install_theme()
+        self.stub_selector()
+        self.link.parent.mkdir(parents=True)
+
+        def failing_symlink(source, target, *args, **kwargs):
+            raise OSError("simulated link failure")
+
+        with mock.patch.object(apply_cursor.os, "symlink", failing_symlink):
+            result = self.run_tool()
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn("cannot create", result.stderr)
+        self.assertIn(str(self.link), result.stderr)
+        self.assertFalse(os.path.lexists(self.link))
+        self.assertEqual([], self.recorded())
+
 
 class TestSelection(CursorCase):
     def test_selector_is_invoked_with_the_theme_name(self):
@@ -351,6 +372,25 @@ class TestRemove(CursorCase):
                 assert_succeeded(self, result)
                 self.assertIn(str(self.link), result.stdout)
                 self.assertTrue(os.path.lexists(self.link))
+
+    def test_a_failed_link_removal_is_reported_by_path(self):
+        # The link this tool created can still fail to unlink (a read-only
+        # ~/.icons, for example). The OSError must become the tool's own exit-2
+        # diagnostic naming the link -- not a traceback -- and the link must
+        # stay in place so the operator can retry.
+        self.make_our_link()
+
+        def failing_unlink(path, *args, **kwargs):
+            raise OSError("simulated unlink failure")
+
+        with mock.patch.object(Path, "unlink", failing_unlink):
+            result = self.run_tool("--remove")
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn("cannot remove", result.stderr)
+        self.assertIn(str(self.link), result.stderr)
+        self.assertTrue(self.link.is_symlink())
+        self.assertEqual(str(self.installed), os.readlink(self.link))
 
     def test_kcminputrc_note_names_the_reset_only_when_our_theme_is_selected(self):
         self.make_our_link()
