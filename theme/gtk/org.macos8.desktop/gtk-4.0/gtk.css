@@ -18,6 +18,9 @@
    assets/arrow-down.svg, whose triangle reuses the desktop theme's pinned
    widgets/arrows.svg shape. GTK 4 scrolls menus inside a popover rather than
    through the menu arrow nodes, so this sheet names no menu scroll arrows.
+   The scroll-bar thumb's 12px minimum fills the reference's 16px bar inside
+   the trough's and thumb's 1px borders, because GTK 4 has no steppers to
+   size the bar.
    Spin-button arrows stay from the icon theme because GTK draws them there,
    not from a CSS -gtk-icon-source this sheet can redirect.
    Views (the view class and the list box) paint
@@ -507,6 +510,8 @@ scrollbar > range > trough > slider {
   border: 1px solid #000000;
   border-radius: 0;
   margin: 0;
+  min-width: 12px;
+  min-height: 12px;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
 }
 

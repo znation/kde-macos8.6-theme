@@ -26,6 +26,7 @@ from support.gtk_theme_spec import (
     TITLE_BUTTON_IMAGE,
     TITLE_BUTTON_IMAGE_STATE,
 )
+from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -36,7 +37,9 @@ from support.platinum_palette import (
     TOOLTIP_FACE,
     TROUGH,
     WHITE,
+    hex_colour,
 )
+from support.reference_image import ReferenceScreenshotMixin
 from support.repo_root import ROOT
 
 THEME_ID = "org.macos8.desktop"
@@ -284,6 +287,8 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                 "border": f"1px solid {BLACK}",
                 "border-radius": "0",
                 "margin": "0",
+                "min-width": "12px",
+                "min-height": "12px",
                 "box-shadow": RAISED_BEVEL,
             },
         )
@@ -338,6 +343,33 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
         self.assert_rule(
             "menubar > item:selected", {"background-color": SELECTION}
         )
+
+
+class TestScrollbarBreadthReference(ReferenceScreenshotMixin, unittest.TestCase):
+    """The GTK 4 thumb minimum must fill the reference's 16px scroll bar."""
+
+    REFERENCE = SETUP_REFERENCE
+    MAX_ROWS = SETUP_MAX_ROWS
+
+    def test_thumb_minimum_fills_reference_band(self):
+        top, bottom = 462, 477
+        x = 200
+        for y in (top, bottom):
+            with self.subTest(y=y):
+                self.assertEqual(hex_colour(self.pixel(x, y)), BLACK)
+        for y in range(top + 1, bottom):
+            with self.subTest(y=y):
+                self.assertEqual(hex_colour(self.pixel(x, y)), TROUGH)
+        band = bottom - top + 1
+        self.assertEqual(band, 16)
+        _, rules, _ = parse_css(CSS.read_text())
+        slider = rules["scrollbar > range > trough > slider"]
+        trough = rules["scrollbar > range > trough"]
+        # The 4 is the trough's and thumb's 1px borders on each side.
+        self.assertEqual(slider["min-width"], f"{band - 4}px")
+        self.assertEqual(slider["min-height"], f"{band - 4}px")
+        self.assertEqual(slider["border"], f"1px solid {BLACK}")
+        self.assertEqual(trough["border"], f"1px solid {BLACK}")
 
 
 if __name__ == "__main__":
