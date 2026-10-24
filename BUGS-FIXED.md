@@ -5,6 +5,33 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An oversize Firefox profile-discovery INI file crashes with a MemoryError (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/firefox_profile.py::_read_ini` opened `installs.ini` or
+`profiles.ini` through the shared regular-file reader but then handed the
+unbounded stream to `configparser.read_file`, which reads the whole file. A
+profile-discovery INI of hundreds of megabytes therefore raised
+`MemoryError`, which is not an `OSError`, so `make install-firefox` without a
+named profile ended in a traceback instead of the module's exit-2
+`ConfigError` naming the file.
+
+**Reproduce:** under `ulimit -v 120000`, with a 300 MB sparse
+`$HOME/.mozilla/firefox/installs.ini`, call
+`firefox_profile.resolve_profile(None, {'HOME': ...})`; before the fix it
+raised `MemoryError` while decoding, now it raises `ConfigError` naming the
+path and the 1048576-byte limit.
+
+**Fix:** the reader stops one byte past a 1 MiB cap, the same bound the
+installer's profile files use, and refuses a longer INI by name before
+`configparser` sees it. The accepted cap-size boundary and both discovery
+INIs are covered by
+`tests/test_firefox_install.py::TestProfileResolution::test_an_oversize_ini_file_is_refused_by_name`
+and
+`tests/test_firefox_install.py::TestProfileResolution::test_an_ini_file_at_the_1_mib_cap_is_accepted`;
+the oversize test failed against the old unbounded reader and passes now.
+
+**Validation gap:** real-run-needed — the existing suite had no oversize INI case, so the MemoryError was confirmed only by a 300 MB sparse `installs.ini` run under `ulimit -v 120000`; the new tests now pin the cap offline.
+
 ### An oversize GTK settings or user-CSS file crashes the GTK selection with a MemoryError (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/apply_gtk.py::_read_config_text` read the whole of

@@ -255,6 +255,47 @@ class TestProfileResolution(ProfileCase):
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
+    def test_an_oversize_ini_file_is_refused_by_name(self):
+        # A profile-discovery INI is the user's file and can name something
+        # arbitrarily large. Before the read cap, configparser read it whole,
+        # so a huge file raised MemoryError instead of the by-name
+        # ConfigError the reader promises.
+        self.firefox_root.mkdir(parents=True)
+        for name in ("installs.ini", "profiles.ini"):
+            with self.subTest(ini=name):
+                ini = self.firefox_root / name
+                with ini.open("wb") as handle:
+                    handle.truncate(firefox_profile._MAX_INI_FILE_BYTES + 1)
+                with self.assertRaises(firefox_profile.ConfigError) as caught:
+                    self.resolve()
+                message = str(caught.exception)
+                self.assertIn(str(ini), message)
+                self.assertIn(
+                    f"{firefox_profile._MAX_INI_FILE_BYTES}-byte", message
+                )
+                ini.unlink()
+
+    def test_an_ini_file_at_the_1_mib_cap_is_accepted(self):
+        profile = self.firefox_root / "Profiles" / "live.default"
+        profile.mkdir(parents=True)
+        header = b"[Install]\nDefault=Profiles/live.default\n"
+        comment = (
+            b"#"
+            + b"x"
+            * (
+                firefox_profile._MAX_INI_FILE_BYTES
+                - len(header)
+                - len(b"#\n")
+            )
+            + b"\n"
+        )
+        installs = self.firefox_root / "installs.ini"
+        installs.write_bytes(header + comment)
+        self.assertEqual(
+            firefox_profile._MAX_INI_FILE_BYTES, installs.stat().st_size
+        )
+        self.assertEqual(profile, self.resolve())
+
     def test_a_fifo_at_either_ini_file_is_refused_without_blocking(self):
         # Profile discovery used Path.open, whose read waits forever on a FIFO,
         # so `make install-firefox` without --profile hung with no diagnostic.

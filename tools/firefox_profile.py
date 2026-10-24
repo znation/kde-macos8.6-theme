@@ -22,6 +22,13 @@ class ConfigError(Exception):
     """A profile or file cannot be used; the installer reports it by name."""
 
 
+# Firefox's INI files are a few kilobytes at most. The path is the user's and
+# can name something arbitrarily large (a wrong file dropped in the Firefox
+# root); configparser would read the whole thing, and a MemoryError is not an
+# OSError, so it would escape as a traceback instead of this module's ConfigError.
+_MAX_INI_FILE_BYTES = 1 << 20
+
+
 def _read_ini(path: Path) -> configparser.ConfigParser | None:
     """Return *path* parsed without interpolation, or ``None`` when absent.
 
@@ -29,16 +36,26 @@ def _read_ini(path: Path) -> configparser.ConfigParser | None:
     device at an INI path is refused by name instead of blocking profile
     discovery on an open that waits for a writer. The opened descriptor is
     checked, so a regular file swapped for a pipe before the open is still
-    refused.
+    refused. At most one byte past ``_MAX_INI_FILE_BYTES`` is read, so an
+    oversize INI is refused by name instead of being loaded whole.
     """
-    parser = configparser.ConfigParser(interpolation=None)
     try:
         with open_regular_binary(path) as binary:
-            with io.TextIOWrapper(binary, encoding="utf-8") as handle:
-                parser.read_file(handle)
+            data = binary.read(_MAX_INI_FILE_BYTES + 1)
     except FileNotFoundError:
         return None
-    except (OSError, UnicodeDecodeError, ValueError, configparser.Error) as exc:
+    except (OSError, ValueError) as exc:
+        raise ConfigError(f"cannot read {path}: {exc}") from exc
+    if len(data) > _MAX_INI_FILE_BYTES:
+        raise ConfigError(
+            f"{path} is larger than the {_MAX_INI_FILE_BYTES}-byte limit "
+            "this discovery reads; refusing to load it whole"
+        )
+    parser = configparser.ConfigParser(interpolation=None)
+    try:
+        with io.TextIOWrapper(io.BytesIO(data), encoding="utf-8") as handle:
+            parser.read_file(handle)
+    except (UnicodeDecodeError, ValueError, configparser.Error) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
     return parser
 
