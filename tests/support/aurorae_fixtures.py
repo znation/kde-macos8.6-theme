@@ -1,10 +1,13 @@
-"""Shared paths, reference loader and constants for the Aurorae decoration tests.
+"""Shared paths, reference loader and constants for the Aurorae decoration art.
 
 The package paths, the three reference screenshots the artwork is re-derived
-from, the inactive-state grey, and the `ReferenceImageCase` mixin that loads
-them. The `test_aurorae_*` modules each cover one concern of the
-`org.macos8.desktop` window decoration, and the other reference tests that
-sample the same screenshots import the paths, bounds and loader from here.
+from, the inactive-state greys and outline, the zoom box's local x offset, and
+the `ReferenceImageCase` mixin that loads the screenshots. The
+`test_aurorae_*` modules each cover one concern of the `org.macos8.desktop`
+window decoration, the GTK title-button test reuses the package path and zoom
+offset, and the other reference tests that sample the same screenshots import
+the paths and decoder bounds from here, loading them through
+`support.reference_image`.
 """
 
 from __future__ import annotations
