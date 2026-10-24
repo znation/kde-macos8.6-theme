@@ -72,6 +72,20 @@ MENU_SCROLL_DOWN = (
 )
 
 
+def assert_svg_root_first(test, path):
+    """Assert *path* puts its SVG root before any provenance comment.
+
+    GTK loads a ``-gtk-icon-source`` SVG through gdk-pixbuf, whose sniffer
+    only recognizes a file whose ``<svg`` root sits near the start; a comment
+    before the root leaves the glyph blank. An XML declaration is optional
+    and accepted, but the provenance comment belongs inside the root.
+    """
+    test.assertRegex(
+        path.read_text(encoding="utf-8"),
+        r"^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b",
+    )
+
+
 class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -336,6 +350,11 @@ class TestCheckGlyphs(unittest.TestCase):
             assert_no_script_elements(self, tree)
             assert_no_style_elements(self, tree)
 
+    def test_assets_put_the_root_first(self):
+        for path in (CHECKMARK, BULLET):
+            with self.subTest(asset=path.name):
+                assert_svg_root_first(self, path)
+
     def test_assets_span_a_14px_canvas(self):
         for tree in (self.checkmark, self.bullet):
             assert_root_canvas(self, tree, 14, 14)
@@ -381,14 +400,9 @@ class TestArrowGlyphs(unittest.TestCase):
             assert_no_style_elements(self, tree)
 
     def test_assets_put_the_root_first(self):
-        # GTK 3's CSS icon loader rejects a file whose first markup is a
-        # comment, so the provenance comment sits inside the root element.
         for path in (ARROW_DOWN, ARROW_UP):
             with self.subTest(asset=path.name):
-                self.assertRegex(
-                    path.read_text(encoding="utf-8"),
-                    r"^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b",
-                )
+                assert_svg_root_first(self, path)
 
     def test_assets_span_a_16px_canvas(self):
         for tree in (self.down, self.up):

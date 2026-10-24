@@ -106,7 +106,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 32
+UNCLEAR_INVARIANT_BASELINE = 33
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -174,6 +174,11 @@ BOM_MARKER_GUARANTEE = (
 USER_JS_BOM_MARKER_GUARANTEE = (
     "a leading UTF-8 BOM does not hide our sheet marker or our `user.js` "
     "marker block"
+)
+
+GTK_GLYPH_ROOT_GUARANTEE = (
+    "the check, radio and arrow assets keep their provenance comments inside "
+    "the root so GTK's CSS icon loader accepts them"
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
@@ -414,6 +419,13 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "tests/test_firefox_install.py::TestUserJs"
         "::test_a_bom_before_our_marker_still_matches_the_block",
         USER_JS_BOM_MARKER_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "gtk-glyph-svg-root-first",
+        ("A checked GTK check box draws no check",),
+        "tests/test_gtk_theme.py::TestCheckGlyphs"
+        "::test_assets_put_the_root_first",
+        GTK_GLYPH_ROOT_GUARANTEE,
     ),
 )
 

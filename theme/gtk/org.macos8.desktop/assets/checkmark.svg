@@ -1,7 +1,7 @@
-<!-- The Platinum check glyph GTK loads for a checked check box: the desktop
-     theme's `widgets/checkmarks.svg` 2px black check adapted to this asset's
-     14px canvas. tests/test_gtk_theme.py::TestCheckGlyphs pins the path, the
-     2px square-capped stroke and the #000000 stroke. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+  <!-- The Platinum check glyph GTK loads for a checked check box: the desktop
+       theme's `widgets/checkmarks.svg` 2px black check adapted to this asset's
+       14px canvas. tests/test_gtk_theme.py::TestCheckGlyphs pins the path, the
+       2px square-capped stroke and the #000000 stroke. -->
   <path d="M 2.5,7.5 L 5.5,10.5 L 11.5,4.5" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"/>
 </svg>

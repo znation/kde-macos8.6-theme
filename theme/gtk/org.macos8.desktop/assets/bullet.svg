@@ -1,6 +1,6 @@
-<!-- The Platinum radio dot GTK loads for a checked radio: the Kvantum radio
-     dot drawn as a 2.5px-radius #000000 circle on this asset's 14px canvas.
-     tests/test_gtk_theme.py::TestCheckGlyphs pins the circle and the fill. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">
+  <!-- The Platinum radio dot GTK loads for a checked radio: the Kvantum radio
+       dot drawn as a 2.5px-radius #000000 circle on this asset's 14px canvas.
+       tests/test_gtk_theme.py::TestCheckGlyphs pins the circle and the fill. -->
   <circle cx="7" cy="7" r="2.5" fill="#000000"/>
 </svg>

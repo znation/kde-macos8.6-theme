@@ -5,6 +5,36 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A checked GTK check box draws no check because its SVG comment precedes the root (found by the bugfix role 2026-10-24) — fixed 2026-10-24 by the bugfix role
+
+The checked check box's shipped `assets/checkmark.svg` began with its
+provenance comment, so its `-gtk-icon-source` did not load: GTK loads that
+SVG through gdk-pixbuf, whose sniffer did not recognize a file whose `<svg`
+root starts later than byte 256. The check box rendered as an empty Platinum
+face. The radio asset (`bullet.svg`) loaded only because its shorter comment
+left the root inside that window, so it was one comment edit away from the
+same blank glyph.
+
+**Reproduce:** a broadway-backed offscreen GTK 3.24.49 render of a checked
+check box showed only the 14px `#DDDDDD` face; after the comment moved inside
+the root the render differed in 53 pixels and the black check stroke
+appeared. In gdk-pixbuf directly, `Pixbuf.new_from_file("checkmark.svg")`
+raised "Couldn't recognize the image file format" before the fix and returned
+a 14x14 pixbuf after it.
+
+**Fix:** both checked-glyph assets now put `<svg>` first and keep their
+provenance comments inside the root, matching the arrow assets. The title-bar
+boxes keep their leading XML declaration and comment because the sheet loads
+them as `background-image`, which the same render drew identically before and
+after.
+
+**Validation gap:** unclear-invariant — the register pinned the root-first
+rule only for the arrow assets, so the checked glyphs' same loader
+requirement had to be reconstructed (a broadway-backed offscreen GTK render
+confirmed the blank check); the extended rule is now in docs/invariants.md,
+and the new root-first test fails on the old checkmark and passes after the
+fix.
+
 ### A UTF-8 BOM before our Firefox `user.js` marker duplicates the block on install and leaves it on removal (found by the bugfix role 2026-10-24) — fixed 2026-10-24 by the bugfix role
 
 A UTF-8 BOM at the start of `user.js` is valid JavaScript and some editors
