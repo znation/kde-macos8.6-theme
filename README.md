@@ -115,7 +115,7 @@ compatibility dot), `widgets/lineedit.svg` (the white sunken field for
 selection row for list and applet item delegates), `widgets/viewitem.svg` (the flat #CCCCFF
 highlight for menu items and icon-grid selection), `widgets/menubaritem.svg` (the
 flat #CCCCFF title fill an application-menu title shows while its menu is open, with
-no hover highlight; its 7px side padding spaces the titles as the reference menu bar does), `widgets/tasks.svg` (the optional Task Manager's task faces — idle (transparent), hover/focus (#CCCCFF), attention (#FFFFCC), minimized (#999999 rule) and progress (#CCCCFF rule) — as one 7px/3px nine-slice shared by every panel edge, plus the four group-expander arrows), `widgets/tabbar.svg` (the raised Platinum tab highlights for
+no hover highlight; its 7px side padding spaces the titles as the reference menu bar does), `widgets/pager.svg` (the optional Pager's virtual-desktop cells: an idle #999999 outline, a translucent #EEEEEE hover wash and the current desktop's translucent #CCCCFF selection, as one 1px-border nine-slice shared by such a panel applet), `widgets/tasks.svg` (the optional Task Manager's task faces — idle (transparent), hover/focus (#CCCCFF), attention (#FFFFCC), minimized (#999999 rule) and progress (#CCCCFF rule) — as one 7px/3px nine-slice shared by every panel edge, plus the four group-expander arrows), `widgets/tabbar.svg` (the raised Platinum tab highlights for
 Plasma TabBar, TabButton, kickoff footer, and panel applets), `widgets/toolbar.svg` (the
 raised grey Platinum toolbar background for `PlasmaComponents.ToolBar` and its
 consumers in kickoff, the system tray, and the desktop shell), `widgets/arrows.svg` (the solid

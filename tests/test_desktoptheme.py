@@ -35,6 +35,7 @@ from support.desktoptheme_paths import (
     MENUBARITEM_SVG,
     METADATA,
     PACKAGE,
+    PAGER_SVG,
     PANEL_SVG,
     PLASMOIDHEADING_SVG,
     RADIOBUTTON_SVG,
@@ -77,7 +78,8 @@ PLASMA_SECTION = "plasmarc][Theme"
 # Each shipped SVG's root canvas. Seven widgets (the frame, button,
 # line edit, list item, view item, tab bar and plasmoid heading) share a tight
 # 12x12 canvas; the menu bar is 12x22 (its `north-` state is 18px tall in the
-# centre); the menu-bar item is 20x12 (7px side borders); the scrollbar,
+# centre); the menu-bar item is 20x12 (7px side borders); the pager is 12x9
+# (a 1px border around a 10x7 cell); the scrollbar,
 # slider, toolbar, arrows, menu body, tooltip (and its solid/ copy) and dialog
 # window body are 16x16; checkmarks is two stacked 16x16 cells and radiobutton
 # three side-by-side, so their canvases are 16x32 and 48x16; the progress bar
@@ -95,6 +97,7 @@ SVG_CANVASES = (
     ("listitem.svg", LISTITEM_SVG, 12, 12),
     ("viewitem.svg", VIEWITEM_SVG, 12, 12),
     ("menubaritem.svg", MENUBARITEM_SVG, 20, 12),
+    ("pager.svg", PAGER_SVG, 12, 9),
     ("tasks.svg", TASKS_SVG, 20, 12),
     ("margins-highlight.svg", MARGINS_HIGHLIGHT_SVG, 4, 4),
     ("containment-controls.svg", CONTAINMENT_CONTROLS_SVG, 42, 42),
@@ -246,6 +249,7 @@ class TestInstall(
         os.path.join("widgets", "listitem.svg"),
         os.path.join("widgets", "viewitem.svg"),
         os.path.join("widgets", "menubaritem.svg"),
+        os.path.join("widgets", "pager.svg"),
         os.path.join("widgets", "tasks.svg"),
         os.path.join("widgets", "margins-highlight.svg"),
         os.path.join("widgets", "containment-controls.svg"),
