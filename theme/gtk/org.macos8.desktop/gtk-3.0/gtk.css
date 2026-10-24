@@ -11,7 +11,12 @@
    adaptation, not a reference crop. The check button's raised #DDDDDD face
    reuses the reference-grounded Kvantum check box, the radio face matches
    widgets/radiobutton.svg, and the checked glyphs load from the shared
-   assets/checkmark.svg and assets/bullet.svg this package installs. */
+   assets/checkmark.svg and assets/bullet.svg this package installs. The combo
+   box dropdown arrow and the menu scroll arrows load from the shared
+   assets/arrow-down.svg and assets/arrow-up.svg, whose triangles reuse the
+   desktop theme's pinned widgets/arrows.svg shapes. Spin-button arrows stay
+   from the icon theme because GTK draws them there, not from a CSS
+   -gtk-icon-source this sheet can redirect. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -89,6 +94,20 @@ check:checked {
 
 radio:checked {
   -gtk-icon-source: url("../assets/bullet.svg");
+}
+
+combobox arrow {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  min-height: 16px;
+  min-width: 16px;
+}
+
+menu > arrow.top, .menu > arrow.top, .context-menu > arrow.top {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+}
+
+menu > arrow.bottom, .menu > arrow.bottom, .context-menu > arrow.bottom {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
 }
 
 notebook > header {

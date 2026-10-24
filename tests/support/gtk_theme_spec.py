@@ -134,6 +134,14 @@ RADIO = {
 CHECK_GLYPH = {"-gtk-icon-source": 'url("../assets/checkmark.svg")'}
 RADIO_GLYPH = {"-gtk-icon-source": 'url("../assets/bullet.svg")'}
 
+# The combo box dropdown arrow both sheets paint from the desktop theme's
+# pinned down-arrow triangle, sized to the installed default sheet's 16px.
+COMBO_ARROW = {
+    "-gtk-icon-source": 'url("../assets/arrow-down.svg")',
+    "min-height": "16px",
+    "min-width": "16px",
+}
+
 # A menu item's check box shows the bare glyph, not the raised content face.
 MENU_CHECK = {
     "margin": "0",
@@ -280,6 +288,9 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         self.assert_rule("radio", RADIO)
         self.assert_rule("check:checked", CHECK_GLYPH)
         self.assert_rule("radio:checked", RADIO_GLYPH)
+
+    def test_combobox_arrow(self):
+        self.assert_rule("combobox arrow", COMBO_ARROW)
 
     def test_tooltip(self):
         self.assert_rule("tooltip", TOOLTIP)

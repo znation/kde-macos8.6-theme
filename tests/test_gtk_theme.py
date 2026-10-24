@@ -9,6 +9,7 @@ adaptation rather than a reference crop.
 from __future__ import annotations
 
 import configparser
+import re
 import tempfile
 import unittest
 from pathlib import Path
@@ -51,6 +52,15 @@ INDEX = THEME_DIR / "index.theme"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 CHECKMARK = THEME_DIR / "assets" / "checkmark.svg"
 BULLET = THEME_DIR / "assets" / "bullet.svg"
+ARROW_DOWN = THEME_DIR / "assets" / "arrow-down.svg"
+ARROW_UP = THEME_DIR / "assets" / "arrow-up.svg"
+
+MENU_SCROLL_UP = ("menu > arrow.top", ".menu > arrow.top", ".context-menu > arrow.top")
+MENU_SCROLL_DOWN = (
+    "menu > arrow.bottom",
+    ".menu > arrow.bottom",
+    ".context-menu > arrow.bottom",
+)
 
 
 class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
@@ -140,6 +150,27 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             )
         for selector in ("menuitem:hover", ".menuitem:hover"):
             self.assert_rule(selector, {"background-color": SELECTION})
+
+    def test_menu_scroll_arrows(self):
+        for selector in MENU_SCROLL_UP:
+            self.assert_rule(
+                selector, {"-gtk-icon-source": 'url("../assets/arrow-up.svg")'}
+            )
+        for selector in MENU_SCROLL_DOWN:
+            self.assert_rule(
+                selector, {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'}
+            )
+
+    def test_icon_sources_point_at_shipped_assets(self):
+        self.assertEqual(
+            set(re.findall(r"url\(([^)]*)\)", self.css)),
+            {
+                '"../assets/checkmark.svg"',
+                '"../assets/bullet.svg"',
+                '"../assets/arrow-down.svg"',
+                '"../assets/arrow-up.svg"',
+            },
+        )
 
     def test_menu_check_and_radio_are_boxless(self):
         for selector in (
@@ -241,6 +272,43 @@ class TestCheckGlyphs(unittest.TestCase):
             circle_geometry_and_fill(circles[0]),
             (7.0, 7.0, 2.5, BLACK),
         )
+
+
+class TestArrowGlyphs(unittest.TestCase):
+    """The combo box and menu scroll arrow glyphs GTK loads from assets."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.down = parse_svg(ARROW_DOWN)
+        cls.up = parse_svg(ARROW_UP)
+
+    def test_assets_stand_alone(self):
+        for tree in (self.down, self.up):
+            assert_no_script_elements(self, tree)
+            assert_no_style_elements(self, tree)
+
+    def test_assets_span_a_16px_canvas(self):
+        for tree in (self.down, self.up):
+            assert_root_canvas(self, tree, 16, 16)
+
+    def test_assets_use_only_the_black_fill(self):
+        self.assertEqual(
+            attribute_values(self.down, "fill")
+            | attribute_values(self.up, "fill"),
+            {BLACK},
+        )
+
+    def test_arrow_geometry(self):
+        expected = (
+            (self.down, "M 4,5 L 12,5 L 8,11 Z"),
+            (self.up, "M 4,11 L 12,11 L 8,5 Z"),
+        )
+        for tree, path_d in expected:
+            with self.subTest(path=path_d):
+                paths = children_named(tree.getroot(), "path")
+                self.assertEqual(len(paths), 1)
+                self.assertEqual(paths[0].get("d"), path_d)
+                self.assertEqual(paths[0].get("fill"), BLACK)
 
 
 if __name__ == "__main__":

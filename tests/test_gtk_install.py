@@ -39,6 +39,8 @@ STAGING_PATHS = {
     "gtk-4.0/gtk.css": "gtk-4.0/.gtk.css.staging",
     "assets/checkmark.svg": "assets/.checkmark.svg.staging",
     "assets/bullet.svg": "assets/.bullet.svg.staging",
+    "assets/arrow-down.svg": "assets/.arrow-down.svg.staging",
+    "assets/arrow-up.svg": "assets/.arrow-up.svg.staging",
 }
 
 
@@ -76,7 +78,7 @@ class TestInstall(unittest.TestCase):
                 "install",
                 "#!/bin/sh\n"
                 'case "$3" in\n'
-                "  */assets/.bullet.svg.staging)\n"
+                "  */assets/.arrow-up.svg.staging)\n"
                 '    dest="$3"\n'
                 '    mkdir -p "$(dirname "$dest")"\n'
                 '    printf partial > "$dest"\n'

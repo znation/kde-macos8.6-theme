@@ -16,6 +16,7 @@ from support import gtk_css
 from support.gtk_css import HEX, parse_css, strip_comments
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
+    COMBO_ARROW,
     ETCH_DARK,
     GtkSheetRuleCases,
     MENU_CHECK,
@@ -86,6 +87,7 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             {
                 '"../assets/checkmark.svg"',
                 '"../assets/bullet.svg"',
+                '"../assets/arrow-down.svg"',
             },
         )
         self.assertNotIn("adwaita", self.css.lower())
@@ -163,6 +165,9 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             "popover.menu modelbutton:selected",
         ):
             self.assert_rule(selector, {"background-color": SELECTION})
+
+    def test_dropdown_arrow(self):
+        self.assert_rule("dropdown arrow", COMBO_ARROW)
 
     def test_menu_check_and_radio_are_boxless(self):
         for selector in (
