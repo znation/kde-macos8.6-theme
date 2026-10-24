@@ -20,6 +20,7 @@ from unittest import mock
 
 from support import containment
 from support import snippet_child
+from support.close_tracking import failing_fdopen, tracking_closes
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as containment_impl
@@ -145,6 +146,41 @@ class TestReadBytes(unittest.TestCase):
                     containment.read_bytes(path, tmp / "repo")
         self.assertIn(str(path), str(caught.exception))
         self.assertIn("not a regular file", str(caught.exception))
+
+
+class TestOpenRegularBinaryCleanup(unittest.TestCase):
+    """A failure after the descriptor is opened must close it.
+
+    ``open_regular_binary`` opens the path with ``os.open`` and then inspects
+    and wraps that descriptor. If either later step fails, the raw descriptor
+    must be closed, or a caller that keeps reading through the guard leaks one
+    descriptor per failure. The read paths reach these arms only through a
+    filesystem error, so each failure is injected and the closes counted.
+    """
+
+    def test_a_failed_fdopen_closes_the_descriptor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "asset.svg"
+            path.write_bytes(b"inside")
+            with failing_fdopen() as closed:
+                with self.assertRaises(OSError):
+                    containment_impl.open_regular_binary(path)
+            self.assertEqual(1, len(closed))
+            self.assertEqual(b"inside", path.read_bytes())
+
+    def test_a_failed_fstat_closes_the_descriptor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "asset.svg"
+            path.write_bytes(b"inside")
+            with tracking_closes() as closed:
+                with mock.patch.object(
+                    containment_impl.os,
+                    "fstat",
+                    side_effect=OSError("simulated fstat failure"),
+                ):
+                    with self.assertRaises(OSError):
+                        containment_impl.open_regular_binary(path)
+            self.assertEqual(1, len(closed))
 
 
 class TestReadText(unittest.TestCase):
