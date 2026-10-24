@@ -12,6 +12,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     elements_by_id,
+    nine_slice_rect_hint_geometry,
     nine_slice_tile_sizes,
     rect_geometry,
     render_slices,
@@ -23,21 +24,6 @@ SIZES = nine_slice_tile_sizes(12, 9, LEFT, RIGHT, TOP, BOTTOM)
 
 PREFIXES = ("normal", "hover", "active")
 BORDER_TILES = tuple(name for name in SIZES if name != "center")
-
-
-def expected_hint_geometry():
-    """Return the ``{id: (x, y, width, height)}`` map for every hint rect."""
-    expected = {"hint-tile-center": ("1", "1", "10", "7")}
-    for prefix in PREFIXES:
-        expected.update(
-            {
-                f"{prefix}-hint-top-margin": ("1", "0", "10", "1"),
-                f"{prefix}-hint-bottom-margin": ("1", "8", "10", "1"),
-                f"{prefix}-hint-left-margin": ("0", "1", "1", "7"),
-                f"{prefix}-hint-right-margin": ("11", "1", "1", "7"),
-            }
-        )
-    return expected
 
 
 def expected_id_set():
@@ -65,7 +51,10 @@ class TestPager(NineSliceCase, unittest.TestCase):
     def test_pager_hint_geometry(self):
         # Every state shares the same cell: a 1px border around a 10x7 centre
         # tile on the 12x9 canvas.
-        self.assertEqual(rect_geometry(self.tree), expected_hint_geometry())
+        self.assertEqual(
+            rect_geometry(self.tree),
+            nine_slice_rect_hint_geometry(PREFIXES, 1, 1, 10, 7),
+        )
 
     def test_pager_normal_outlines_an_idle_desktop(self):
         # An idle desktop is a thin #999999 outline on the panel face, so the

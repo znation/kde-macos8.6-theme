@@ -15,6 +15,7 @@ from svg_assertions import (
     children_named,
     elements_by_id,
     local_name,
+    nine_slice_rect_hint_geometry,
     nine_slice_tile_sizes,
     pixel_map,
     rect_geometry,
@@ -44,21 +45,6 @@ TRANSPARENT_TILES = (
     "topright",
 )
 RULE_TILES = ("bottom", "bottomleft", "bottomright")
-
-
-def expected_hint_geometry():
-    """Return the ``{id: (x, y, width, height)}`` map for every hint rect."""
-    expected = {"hint-tile-center": ("7", "3", "6", "6")}
-    for prefix in PREFIXES:
-        expected.update(
-            {
-                f"{prefix}-hint-top-margin": ("7", "0", "6", "3"),
-                f"{prefix}-hint-bottom-margin": ("7", "9", "6", "3"),
-                f"{prefix}-hint-left-margin": ("0", "3", "7", "6"),
-                f"{prefix}-hint-right-margin": ("13", "3", "7", "6"),
-            }
-        )
-    return expected
 
 
 def expected_id_set():
@@ -97,7 +83,10 @@ class TestTasks(NineSliceCase, unittest.TestCase):
     def test_tasks_hint_geometry(self):
         # Every state shares the menubaritem nine-slice: a 7px left/right and
         # 3px top/bottom border around a 6x6 centre on the 20x12 canvas.
-        self.assertEqual(rect_geometry(self.tree), expected_hint_geometry())
+        self.assertEqual(
+            rect_geometry(self.tree),
+            nine_slice_rect_hint_geometry(PREFIXES, 7, 3, 6, 6),
+        )
 
     def test_tasks_normal_is_transparent(self):
         # An idle task shows the menu-bar face, so normal carries only the

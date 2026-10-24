@@ -90,6 +90,32 @@ def nine_slice_hint_geometry(prefixes, border, size):
     return geometry
 
 
+def nine_slice_rect_hint_geometry(prefixes, border_x, border_y, width, height):
+    """Return the full hint geometry of a nine-slice SVG with a rectangular centre.
+
+    The shared ``hint-tile-center`` is *width* x *height* at
+    ``(border_x, border_y)``; each prefix in *prefixes* gets four margin
+    hints that wrap it: top/bottom *border_y* tall, left/right *border_x*
+    wide. Unlike `nine_slice_hint_geometry`, the centre need not be square
+    and the horizontal and vertical borders may differ. Every prefix must be
+    non-empty.
+    """
+    geometry = {
+        "hint-tile-center": tuple(
+            str(value) for value in (border_x, border_y, width, height)
+        )
+    }
+    for prefix in prefixes:
+        for name, rect in (
+            ("top", (border_x, 0, width, border_y)),
+            ("bottom", (border_x, border_y + height, width, border_y)),
+            ("left", (0, border_y, border_x, height)),
+            ("right", (border_x + width, border_y, border_x, height)),
+        ):
+            geometry[f"{prefix}-hint-{name}-margin"] = tuple(map(str, rect))
+    return geometry
+
+
 def nine_slice_tile_sizes(canvas_w, canvas_h, left, right, top, bottom):
     """Return the ``(width, height)`` of each of a nine-slice's nine tiles.
 

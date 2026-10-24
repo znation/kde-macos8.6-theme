@@ -13,6 +13,7 @@ from svg_assertions import (
     nine_slice_hint_geometry,
     nine_slice_inset_hints,
     nine_slice_margins,
+    nine_slice_rect_hint_geometry,
     nine_slice_tile_sizes,
     tile_origins,
 )
@@ -95,6 +96,28 @@ class TestNineSliceHintGeometry(unittest.TestCase):
                 **nine_slice_margins("normal", 3, 6),
                 **nine_slice_margins("pressed", 3, 6),
             },
+        )
+
+
+class TestNineSliceRectHintGeometry(unittest.TestCase):
+    def test_wraps_a_rectangular_centre_with_unequal_borders(self):
+        # The pager's 1px border around a 10x7 centre tests the width and
+        # height are not swapped; unequal borders test the x and y insets.
+        self.assertEqual(
+            nine_slice_rect_hint_geometry(("normal",), 2, 3, 10, 7),
+            {
+                "hint-tile-center": ("2", "3", "10", "7"),
+                "normal-hint-top-margin": ("2", "0", "10", "3"),
+                "normal-hint-bottom-margin": ("2", "10", "10", "3"),
+                "normal-hint-left-margin": ("0", "3", "2", "7"),
+                "normal-hint-right-margin": ("12", "3", "2", "7"),
+            },
+        )
+
+    def test_agrees_with_the_square_helper_on_a_square_centre(self):
+        self.assertEqual(
+            nine_slice_rect_hint_geometry(("a", "b"), 3, 3, 6, 6),
+            nine_slice_hint_geometry(("a", "b"), 3, 6),
         )
 
 
