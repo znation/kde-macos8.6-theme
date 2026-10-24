@@ -73,4 +73,25 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
+### Firefox Platinum chrome: paint the toolbar button states, bookmark items, menu separators and the find bar (planned 2026-10-23 by the plan role; independent of the waiting GTK meters plan)
+
+**Goal.** The Firefox sheet paints the tab strip, navigation bar, bookmarks-bar background, menus and status panel, but it leaves Firefox's own rounded hover and pressed washes on the toolbar buttons, rounded highlights on bookmarks-bar items, the stock grey menu separator, and the default find bar. Paint those surfaces with the pinned Platinum values the sheet already uses: the #EEEEEE trough as the hover wash, the #CCCCFF selection as the pressed/open fill, the raised bevel (`inset 1px 1px #FFFFFF, inset -1px -1px #999999`) on the hovered button, the etched #888888/#FFFFFF rule from `widgets/line.svg`, the #DDDDDD face for the find bar and the white sunken field with its #999999 shadow for its text box. No reference screenshot shows Firefox chrome, so the geometry is this theme's adaptation of the Platinum controls; the new rules introduce no new hex literal.
+
+**Approach.**
+- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`:
+  - Extend the `:root` block with Firefox's toolbarbutton variables: `--toolbarbutton-border-radius: 0 !important`, `--toolbarbutton-hover-background: #EEEEEE !important`, `--toolbarbutton-active-background: #CCCCFF !important`, `--toolbarbutton-hover-boxshadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999 !important` and `--toolbarbutton-active-boxshadow: inset 1px 1px #999999 !important`.
+  - Add one rule `#PersonalToolbar .bookmark-item:hover, #PersonalToolbar .bookmark-item[open]` with `background-color: #CCCCFF !important`, `border-radius: 0 !important` and `box-shadow: inset 1px 1px #FFFFFF !important`.
+  - Add `menupopup > menuseparator` with `border-top: 1px solid #888888 !important`, `border-bottom: 1px solid #FFFFFF !important`, `padding: 0 !important` and `margin: 2px 0 !important` (the etched separator, matching `widgets/line.svg`).
+  - Add `findbar` with `background-color: #DDDDDD !important` and `border-top: 1px solid #000000 !important`, and `findbar .findbar-textbox` with `background-color: #FFFFFF !important`, `border: 1px solid #000000 !important`, `border-radius: 0 !important` and `box-shadow: inset 1px 1px #999999 !important`.
+  - Extend the header's provenance paragraph to name the toolbar button states, bookmark items, menu separators and find bar among the sheet's adapted surfaces.
+- `tests/test_firefox_theme.py`: add the five `:root` variables to `REQUIRED_RULES[":root"]` and add `REQUIRED_RULES` entries for the bookmark-item, menuseparator, findbar and findbar-textbox selectors, reusing the imported `BLACK`, `FACE`, `GREY`, `SELECTION`, `TROUGH` and `WHITE` values and importing `RAISED_BEVEL` from `support.gtk_theme_spec`; leave `test_palette_is_exact`'s expected set unchanged (every new declaration uses a value it already accepts).
+- `docs/invariants.md`: extend the `## firefox` standalone-sheet guarantee sentence to name the toolbar button states, bookmark items, menu separators and find bar; keep its no-reference-screenshot provenance exception.
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/test_firefox_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The sheet carries the pinned `:root` variables and the bookmark-item, menuseparator and findbar rules, and `test_required_rules` fails if any selector or declaration changes.
+- `test_palette_is_exact` still passes with the same hex set, the sheet still contains no at-rule or import, and no selector is universal.
+- `tests/invariants.py` accepts the updated `## firefox` row and `make check` is green.
+
 ## Done
