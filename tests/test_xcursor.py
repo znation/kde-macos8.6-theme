@@ -498,5 +498,26 @@ class TestReadCache(unittest.TestCase):
         self.assertEqual([image.nominal_size for image in parsed.images], [2])
 
 
+class TestContainment(unittest.TestCase):
+    """A scratch root is a containment boundary, as the repository root is."""
+
+    def test_a_symlink_that_escapes_the_root_is_refused(self):
+        tmp = make_tmp_dir(self)
+        root = tmp / "root"
+        root.mkdir()
+        outside = tmp / "outside"
+        outside.mkdir()
+        private = outside / "private.xcursor"
+        private.write_bytes(xcursor.write_cursor([frame_record(2)]))
+        link = root / "cursor.xcursor"
+        link.symlink_to(private)
+
+        with self.assertRaises(ValueError) as caught:
+            xcursor_reader.read_cursor(link, root=root)
+
+        self.assertIn("symlink escape", str(caught.exception))
+        self.assertIn(str(link), str(caught.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

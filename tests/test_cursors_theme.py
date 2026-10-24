@@ -15,6 +15,7 @@ import os
 import unittest
 from unittest import mock
 
+from support import containment  # noqa: E402
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import xcursor as xcursor_reader  # noqa: E402
 from support.tmp_dir import make_tmp_dir  # noqa: E402
@@ -195,6 +196,17 @@ def _read_cursor(path):
     return xcursor_reader.read_cursor(path)
 
 
+def _repo_bytes(path):
+    """Return *path*'s bytes, refusing a repository symlink escape.
+
+    The committed cursor files are contributor-supplied, so a checked-in
+    symlink at one could make a direct read follow it outside the repository
+    (or block on a FIFO). The shared containment reader refuses such a path,
+    a non-regular file, and an oversize file by name.
+    """
+    return containment.read_bytes(path, repo_root.ROOT)
+
+
 class TestCursorArtifact(unittest.TestCase):
     """Pin the committed ``left_ptr`` artifact and its alias bytes."""
 
@@ -235,13 +247,13 @@ class TestCursorArtifact(unittest.TestCase):
                 )
 
     def test_aliases_are_byte_identical_to_left_ptr(self):
-        expected = LEFT_PTR.read_bytes()
+        expected = _repo_bytes(LEFT_PTR)
         for name in ALIASES["left_ptr"]:
             with self.subTest(name=name):
-                self.assertEqual((CURSORS / name).read_bytes(), expected)
+                self.assertEqual(_repo_bytes(CURSORS / name), expected)
 
     def test_committed_artifact_is_a_fresh_generator_result(self):
-        self.assertEqual(LEFT_PTR.read_bytes(), make_cursors.cursor_bytes())
+        self.assertEqual(_repo_bytes(LEFT_PTR), make_cursors.cursor_bytes())
 
     def test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_the_artifact(self):
         rows = list(cursor_art.ARROW_GRID)
@@ -251,7 +263,7 @@ class TestCursorArtifact(unittest.TestCase):
             "dropped size": make_cursors.cursor_bytes(sizes=(16, 24)),
             "moved hotspot": make_cursors.cursor_bytes(hotspot=(2, 2)),
         }
-        expected = LEFT_PTR.read_bytes()
+        expected = _repo_bytes(LEFT_PTR)
         for name, data in variants.items():
             with self.subTest(variant=name):
                 self.assertNotEqual(data, expected)
@@ -259,7 +271,7 @@ class TestCursorArtifact(unittest.TestCase):
     def test_reader_rejects_a_truncated_or_corrupted_copy(self):
         tmp = make_tmp_dir(self)
         truncated = tmp / "truncated"
-        truncated.write_bytes(LEFT_PTR.read_bytes()[:20])
+        truncated.write_bytes(_repo_bytes(LEFT_PTR)[:20])
         corrupted = tmp / "corrupted"
         corrupted.write_bytes(b"Xcur" + b"\xff" * 28)
         for name, path in (("truncated", truncated), ("corrupted", corrupted)):
@@ -336,10 +348,10 @@ class TestCursorSet(unittest.TestCase):
 
     def test_every_alias_is_byte_identical_to_its_canonical(self):
         for name in CANONICAL:
-            expected = (CURSORS / name).read_bytes()
+            expected = _repo_bytes(CURSORS / name)
             for alias in ALIASES[name]:
                 with self.subTest(name=name, alias=alias):
-                    self.assertEqual((CURSORS / alias).read_bytes(), expected)
+                    self.assertEqual(_repo_bytes(CURSORS / alias), expected)
 
     def test_every_committed_cursor_is_a_fresh_generator_result(self):
         for canonical, rows, hotspot, aliases in cursor_art.CURSORS:
@@ -348,7 +360,7 @@ class TestCursorSet(unittest.TestCase):
             )
             for name in (canonical, *aliases):
                 with self.subTest(name=name):
-                    self.assertEqual((CURSORS / name).read_bytes(), expected)
+                    self.assertEqual(_repo_bytes(CURSORS / name), expected)
 
     def test_each_new_grid_differs_from_the_arrow_grid(self):
         for name, rows, _, _ in cursor_art.CURSORS[1:]:
@@ -374,11 +386,11 @@ class TestCursorSet(unittest.TestCase):
         self.assertEqual(first, second)
         for name, data in first.items():
             with self.subTest(name=name):
-                self.assertEqual(data, (CURSORS / name).read_bytes())
+                self.assertEqual(data, _repo_bytes(CURSORS / name))
 
     def test_a_corrupted_grid_dropped_size_or_moved_hotspot_changes_each_glyph(self):
         for canonical, rows, hotspot, _ in cursor_art.CURSORS:
-            committed = (CURSORS / canonical).read_bytes()
+            committed = _repo_bytes(CURSORS / canonical)
             mutated = list(rows)
             y = next(index for index, row in enumerate(mutated) if "#" in row)
             x = mutated[y].index("#")
@@ -538,8 +550,8 @@ class TestCursorSet(unittest.TestCase):
         ):
             with self.subTest(alias=alias):
                 self.assertEqual(
-                    (CURSORS / alias).read_bytes(),
-                    (CURSORS / canonical).read_bytes(),
+                    _repo_bytes(CURSORS / alias),
+                    _repo_bytes(CURSORS / canonical),
                 )
 
 
@@ -636,8 +648,8 @@ class TestCursorSet(unittest.TestCase):
         ):
             with self.subTest(alias=alias):
                 self.assertEqual(
-                    (CURSORS / alias).read_bytes(),
-                    (CURSORS / canonical).read_bytes(),
+                    _repo_bytes(CURSORS / alias),
+                    _repo_bytes(CURSORS / canonical),
                 )
 
 

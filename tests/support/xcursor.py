@@ -18,7 +18,8 @@ import struct
 from pathlib import Path
 from typing import NamedTuple
 
-from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import containment  # noqa: E402
+from support.repo_root import ROOT  # noqa: E402
 from tools.png.write import encode_rgba_png  # noqa: E402
 
 MAGIC = b"Xcur"
@@ -78,9 +79,18 @@ def _fingerprint(path):
     return (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
 
 
-def _read_cursor_file(path: Path) -> CursorFile:
-    """Read and validate the Xcursor file at *path*."""
-    data = path.read_bytes()
+def _read_cursor_file(path: Path, root: Path) -> CursorFile:
+    """Read and validate the Xcursor file at *path* inside *root*.
+
+    The cursor files under ``theme/`` are contributor-supplied, and a
+    checked-in symlink can point anywhere on the machine. Reading such a path
+    directly would follow the link: a private file's bytes would be parsed and
+    could reach a failing test's diagnostic, and a link to ``/dev/zero`` or a
+    FIFO would read without bound. The shared containment reader refuses a
+    repository path that resolves outside *root* before opening it, and also
+    rejects a non-regular or oversize file by name.
+    """
+    data = containment.read_bytes(path, root)
     if len(data) < FILE_HEADER_SIZE:
         _fail(
             path,
@@ -233,22 +243,32 @@ def _read_cursor_file(path: Path) -> CursorFile:
 
 
 @functools.lru_cache(maxsize=128)
-def _parse_cached(path_text, fingerprint):
-    """Parse *path_text*; the stat fingerprint is the cache's change key."""
-    return _read_cursor_file(Path(path_text))
+def _parse_cached(path_text, fingerprint, root_text):
+    """Parse *path_text* inside *root_text*; the fingerprint keys the cache."""
+    return _read_cursor_file(Path(path_text), Path(root_text))
 
 
-def read_cursor(path) -> CursorFile:
+def read_cursor(path, root=None) -> CursorFile:
     """Read and validate the Xcursor file at *path* into a :class:`CursorFile`.
+
+    *root* is the containment boundary a repository path must stay inside; it
+    defaults to the repository root. A test that builds its own scratch tree
+    passes that tree as *root*, so a symlink escaping it is refused the same
+    way a checked-in escape under ``theme/`` is.
 
     A cursor suite reads the same file from many test methods, so a successful
     parse is reused instead of re-reading and re-encoding every PNG frame. The
-    key carries the file's stat fingerprint, so a rewritten or replaced file is
-    parsed again; a failed read is never cached, and the cache is bounded to
-    128 entries. Callers treat the returned immutable frames as read-only.
+    key carries the file's stat fingerprint and the root, so a rewritten or
+    replaced file is parsed again; a failed read is never cached, and the cache
+    is bounded to 128 entries. Callers treat the returned immutable frames as
+    read-only.
     """
     path = Path(path)
+    if root is None:
+        root = ROOT
+    else:
+        root = Path(root)
     fingerprint = _fingerprint(path)
     if fingerprint is None:
-        return _read_cursor_file(path)
-    return _parse_cached(str(path), fingerprint)
+        return _read_cursor_file(path, root)
+    return _parse_cached(str(path), fingerprint, str(root))
