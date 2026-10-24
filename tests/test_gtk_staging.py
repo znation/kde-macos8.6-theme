@@ -7,7 +7,9 @@ rename that fails during :func:`commit`, the step that actually replaces the
 user's settings files. The failure must be a one-line ``ConfigError`` naming
 the target, and every leftover ``.staging`` sibling must be removed. A
 later failure must also restore every target the commit already changed,
-including a user-CSS removal, instead of leaving the selection half-applied.
+including a user-CSS removal, instead of leaving the selection half-applied;
+that rollback covers a non-``OSError`` interrupt (Ctrl-C's
+``KeyboardInterrupt``) as well as an errno-carrying failure.
 
 Run with the project's check harness (stdlib unittest)::
 
@@ -190,6 +192,38 @@ class TestCommit(StagingCase):
         # would leave the backup sibling behind.
         self.assertEqual("old settings\n", target.read_text(encoding="utf-8"))
         self.assertEqual([], self.backups_of(target))
+
+    def test_an_interrupt_during_the_commit_restores_the_earlier_target(self):
+        # Ctrl-C surfaces as KeyboardInterrupt, which is not an OSError. The
+        # commit promises rollback for a failure at any step, not only an
+        # errno-carrying one, so an aborted apply-gtk must not leave the
+        # selection half-applied with a hidden backup beside it.
+        good = self.root / "gtk-3.0" / "settings.ini"
+        interrupted = self.root / "gtk-4.0" / "settings.ini"
+        good.parent.mkdir(parents=True)
+        good.write_text("old good\n", encoding="utf-8")
+        staged = stage_all([(good, "new good\n"), (interrupted, "new blocked\n")])
+        real_replace = os.replace
+
+        def interrupt_the_second_rename(source, destination, *args, **kwargs):
+            if Path(destination) == interrupted and str(source).endswith(
+                ".staging"
+            ):
+                raise KeyboardInterrupt
+            return real_replace(source, destination, *args, **kwargs)
+
+        with mock.patch.object(
+            os, "replace", side_effect=interrupt_the_second_rename
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                commit(staged)
+
+        self.assertEqual("old good\n", good.read_text(encoding="utf-8"))
+        self.assertFalse(interrupted.exists())
+        self.assertEqual([], self.backups_of(good))
+        self.assertEqual([], self.backups_of(interrupted))
+        for _, staging in staged:
+            self.assertFalse(staging.exists())
 
     def test_a_failed_removal_unlink_leaves_no_backup_sibling(self):
         css = self.root / "gtk-4.0" / "gtk.css"
