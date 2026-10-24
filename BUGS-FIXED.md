@@ -5,6 +5,41 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### An oversize Firefox profile file crashes the installer with a MemoryError (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/install_firefox.py::_read_text` opened an existing `userChrome.css` or
+`user.js` and read it whole, only to compare the sheet's first line or append
+one marker block. A profile file of hundreds of megabytes therefore raised
+`MemoryError`, which is not an `OSError`, so `make install-firefox` or
+`make remove-firefox` ended in a traceback naming neither the tool nor the
+file instead of the documented exit-2 diagnostic.
+
+**Reproduce:** in a profile with a 300 MB `chrome/userChrome.css`, run
+`HOME=... python3 tools/install_firefox.py --profile PATH` under
+`ulimit -v 120000`; before the fix it printed a `MemoryError` traceback and
+exited 1 (or, without a memory limit, treated the file as a foreign sheet).
+
+**Fix:** the reader reads at most `_MAX_PROFILE_FILE_BYTES + 1` (1 MiB plus
+one byte, the same bound `tools/containment.py` and `tools/local_hook.py`
+use) and refuses a longer file by name after that one byte, so an oversize
+profile file becomes the same exit-2 `ConfigError` as any other unreadable
+file. The bound applies to both profile files because both go through this
+reader. The install also refuses by name, before writing either file, a
+`user.js` whose marker block would grow it past that same cap, so a profile
+the installer creates can always be read back and removed; the
+empty/foreign-sheet and marker-removal logic is otherwise unchanged.
+`tests/test_firefox_install.py::TestInstall::test_an_oversize_user_chrome_is_refused_by_name`
+and `tests/test_firefox_install.py::TestInstall::test_an_oversize_user_js_is_refused_by_name`
+failed on the old reader (exit 1 and exit 0 respectively), the
+`test_an_install_that_would_grow_user_js_past_the_1_mib_cap_is_refused` test
+failed on the old install (exit 0), and all pass now with the accepted 1 MiB
+boundary and its removal path pinned as well.
+
+**Validation gap:** real-run-needed — the existing suite never read a profile
+file larger than memory, and confirming the MemoryError required a bounded
+real run of the installer under a memory limit (`ulimit -v`); the two new
+tests now pin the cap offline.
+
 ### An empty `userChrome.css` is refused as foreign, so the Firefox install fails (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/install_firefox.py::_apply` treated any existing `userChrome.css`

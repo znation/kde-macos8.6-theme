@@ -47,6 +47,14 @@ else:  # run directly: python3 tools/install_firefox.py
 TOOL = "install_firefox"
 SHEET = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
 CSS_MARKER = "/* org.macos8.desktop Firefox chrome, standalone userChrome.css"
+# A profile file is read only to compare its first line or to append one
+# marker block, so a real userChrome.css/user.js is a few kilobytes. The path
+# is the user's and can name something arbitrarily large (a generated user.js
+# or a wrong file dropped in the profile); a plain read() would allocate the
+# whole file, and a MemoryError is not an OSError, so it would escape as a
+# traceback instead of the documented exit-2 diagnostic. Bound the read the
+# way containment, reference_validation and local_hook bound theirs.
+_MAX_PROFILE_FILE_BYTES = 1 << 20
 
 
 def _note(message: str) -> None:
@@ -62,15 +70,22 @@ def _read_text(path: Path) -> str | None:
     an open that waits for a writer, and the check inspects the opened
     descriptor. A directory, a non-regular file, an unreadable file and
     invalid UTF-8 are reported by name as a :class:`ConfigError` rather than
-    escaping as a traceback.
+    escaping as a traceback. At most one byte past
+    ``_MAX_PROFILE_FILE_BYTES`` is read, so an oversize profile file is
+    refused by name instead of being loaded whole.
     """
     try:
         with open_regular_binary(path) as handle:
-            data = handle.read()
+            data = handle.read(_MAX_PROFILE_FILE_BYTES + 1)
     except FileNotFoundError:
         return None
     except (OSError, ValueError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
+    if len(data) > _MAX_PROFILE_FILE_BYTES:
+        raise ConfigError(
+            f"{path} is larger than the {_MAX_PROFILE_FILE_BYTES}-byte limit "
+            "this installer reads; refusing to load it whole"
+        )
     try:
         return data.decode("utf-8")
     except UnicodeDecodeError as exc:
@@ -113,12 +128,18 @@ def _apply(profile: Path) -> int:
             f"{sheet_path} is not our userChrome.css; leaving it untouched",
         )
     existing_js = _read_text(js_path)
+    updated_js = set_user_js(existing_js or "")
+    if len(updated_js.encode("utf-8")) > _MAX_PROFILE_FILE_BYTES:
+        raise ConfigError(
+            f"{js_path} would grow past the {_MAX_PROFILE_FILE_BYTES}-byte "
+            "limit this installer reads; refusing to write it"
+        )
     try:
         sheet_path.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise ConfigError(f"cannot create {sheet_path.parent}: {exc}") from exc
     _write_bytes(sheet_path, sheet)
-    _write_text(js_path, set_user_js(existing_js or ""))
+    _write_text(js_path, updated_js)
     _note(f"installed the Firefox Platinum chrome into {profile}")
     return 0
 

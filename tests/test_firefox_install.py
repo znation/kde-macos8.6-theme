@@ -578,6 +578,72 @@ class TestInstall(ProfileCase):
         self.assertFalse(self.sheet_path().exists())
         self.assertFalse(self.user_js_path().exists())
 
+    def test_an_oversize_user_chrome_is_refused_by_name(self):
+        # The existing sheet is read only to compare its first line, so a
+        # multi-gigabyte file at that path must be refused by name after one
+        # byte past the cap. Reading it whole would exhaust memory, and a
+        # MemoryError is not an OSError, so it would escape as a traceback
+        # instead of the documented exit 2. A sparse file keeps the test
+        # cheap without changing what the reader sees.
+        path = self.sheet_path()
+        path.parent.mkdir(parents=True)
+        with path.open("wb") as handle:
+            handle.truncate(install_firefox._MAX_PROFILE_FILE_BYTES + 1)
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(str(path), result.stderr)
+        self.assertIn("larger than", result.stderr)
+        self.assertEqual(
+            install_firefox._MAX_PROFILE_FILE_BYTES + 1, path.stat().st_size
+        )
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_an_oversize_user_js_is_refused_by_name(self):
+        # user.js goes through the same reader, so its read is bounded too;
+        # no sheet may be published before the refusal.
+        path = self.user_js_path()
+        with path.open("wb") as handle:
+            handle.truncate(install_firefox._MAX_PROFILE_FILE_BYTES + 1)
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(str(path), result.stderr)
+        self.assertIn("larger than", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+
+    def test_a_user_chrome_at_the_1_mib_cap_is_accepted(self):
+        # One byte past the cap is refused; exactly 1 MiB is the accepted
+        # boundary, so the documented cap is pinned by an actual file rather
+        # than only by one past the private constant.
+        cap = 1 << 20
+        path = self.sheet_path()
+        path.parent.mkdir(parents=True)
+        first_line = (install_firefox.CSS_MARKER + "\n").encode("utf-8")
+        path.write_bytes(first_line + b"x" * (cap - len(first_line)))
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(
+            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
+            path.read_bytes(),
+        )
+
+    def test_an_install_that_would_grow_user_js_past_the_1_mib_cap_is_refused(
+        self,
+    ):
+        # The reader accepts exactly 1 MiB, but appending our marker block to
+        # a file at that boundary would make a user.js the reader itself
+        # refuses; a successful install must never create that state, or
+        # every later install and removal would exit 2 and strand the sheet.
+        cap = 1 << 20
+        path = self.user_js_path()
+        original = b"x" * (cap - 1) + b"\n"
+        path.write_bytes(original)
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode, result.stderr)
+        self.assertIn(str(path), result.stderr)
+        self.assertIn("1048576-byte limit", result.stderr)
+        self.assertEqual(original, path.read_bytes())
+        self.assertFalse(self.sheet_path().exists())
+
 
 class TestRemove(ProfileCase):
     def run_tool(self, *args):
@@ -617,6 +683,26 @@ class TestRemove(ProfileCase):
         self.assertEqual(
             0, self.run_tool("--remove", "--profile", str(self.profile)).returncode
         )
+
+    def test_remove_after_install_at_the_1_mib_user_js_boundary(self):
+        # A user.js whose marker block keeps it at exactly 1 MiB is accepted
+        # by the reader; installing must leave it readable so removal can
+        # reverse the block and restore the foreign line.
+        cap = 1 << 20
+        block = (
+            firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.PREF_LINE
+            + "\n"
+        )
+        foreign = "x" * (cap - len(block.encode("utf-8")) - 1) + "\n"
+        _write(self.user_js_path(), foreign + block)
+        self.assertEqual(cap, self.user_js_path().stat().st_size)
+        self.install()
+        self.assertEqual(cap, self.user_js_path().stat().st_size)
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(foreign, _read(self.user_js_path()))
 
     def test_remove_keeps_a_foreign_sheet_and_foreign_pref(self):
         foreign_sheet = "/* my own chrome */\n"
