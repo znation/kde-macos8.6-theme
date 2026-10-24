@@ -110,6 +110,25 @@ def _split_declarations(body):
     yield "".join(declaration)
 
 
+def _split_selector_list(selector_text):
+    """Split *selector_text* at commas outside parentheses.
+
+    A comma inside ``:not(.a, .b)`` separates that pseudo-class's arguments,
+    not two selectors of the group.
+    """
+    depth = 0
+    start = 0
+    for index, char in enumerate(selector_text):
+        if char == "(":
+            depth += 1
+        elif char == ")" and depth:
+            depth -= 1
+        elif char == "," and not depth:
+            yield selector_text[start:index]
+            start = index + 1
+    yield selector_text[start:]
+
+
 def read_theme_text(path):
     """Return *path*'s text, refusing a symlink that escapes the repository.
 
@@ -169,7 +188,7 @@ def parse_css(text, source=None):
             declarations[name] = value
         group = [
             " ".join(selector.split())
-            for selector in selector_text.split(",")
+            for selector in _split_selector_list(selector_text)
         ]
         for selector in group:
             selectors.append(selector)

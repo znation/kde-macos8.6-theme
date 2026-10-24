@@ -129,6 +129,19 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ),
         )
 
+    def test_a_comma_inside_parentheses_does_not_split_the_group(self):
+        self.assertEqual(
+            parse_css("a:not(.x, .y), b { color: #111111; }"),
+            (
+                {},
+                {
+                    "a:not(.x, .y)": {"color": "#111111"},
+                    "b": {"color": "#111111"},
+                },
+                ["a:not(.x, .y)", "b"],
+            ),
+        )
+
     def test_a_nested_block_replaces_the_pending_selector(self):
         # The expression's selector body could not cross a brace, so the inner
         # block's text became its match: only `a` is a rule here, not `x`.
