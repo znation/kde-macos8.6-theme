@@ -26,6 +26,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import process_runner, theme_install
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
+from support.recorded_lines import recorded_lines
 from tools import apply_theme, required_command
 
 
@@ -85,15 +86,11 @@ class StubTools(unittest.TestCase):
 
     def recorded(self):
         """Return the ``"<name> <argv>"`` lines the stubs appended, in order."""
-        if not self.calls.exists():
-            return []
-        return self.calls.read_text(encoding="utf-8").splitlines()
+        return recorded_lines(self.calls)
 
     def env_recorded(self):
         """Return the ``"<name> DBUS=<address>"`` lines the stubs appended."""
-        if not self.env_log.exists():
-            return []
-        return self.env_log.read_text(encoding="utf-8").splitlines()
+        return recorded_lines(self.env_log)
 
 
 class TestCommandOrder(StubTools):

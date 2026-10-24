@@ -30,6 +30,7 @@ from support.process_assertions import (
     assert_failed,
     assert_succeeded,
 )
+from support.recorded_lines import recorded_lines
 from support.tmp_dir import make_tmp_dir
 from tools import apply_cursor, required_command
 
@@ -81,9 +82,7 @@ class CursorCase(unittest.TestCase):
             return run_main(apply_cursor.main, "apply_cursor", args)
 
     def recorded(self):
-        if not self.calls.exists():
-            return []
-        return self.calls.read_text(encoding="utf-8").splitlines()
+        return recorded_lines(self.calls)
 
 
 class TestHomes(CursorCase):
