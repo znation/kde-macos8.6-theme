@@ -1,4 +1,4 @@
-"""Tests for the Firefox profile install and its two helper modules.
+"""Tests for the Firefox profile install and its three helper modules.
 
 The tool runs in-process with ``HOME`` pointed at a temp root, so profile
 resolution, the sheet copy, the ``user.js`` edit and the removal are pinned
@@ -18,7 +18,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.cli_fixtures import run_main
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.tmp_dir import make_tmp_dir
-from tools import firefox_profile, firefox_user_js, install_firefox
+from tools import firefox_profile, firefox_user_files, firefox_user_js, install_firefox
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 
@@ -88,18 +88,18 @@ class TestProfileResolution(ProfileCase):
         )
 
     def test_relative_named_profile_is_refused(self):
-        with self.assertRaises(firefox_profile.ConfigError) as caught:
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve("profile")
         self.assertIn("absolute", str(caught.exception))
 
     def test_missing_named_profile_is_refused(self):
         missing = self.root / "missing"
-        with self.assertRaises(firefox_profile.ConfigError) as caught:
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve(str(missing))
         self.assertIn(str(missing), str(caught.exception))
 
     def test_unusable_home_is_refused(self):
-        with self.assertRaises(firefox_profile.ConfigError) as caught:
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve(None, {"HOME": "relative/home"})
         self.assertIn("HOME", str(caught.exception))
 
@@ -262,7 +262,7 @@ class TestProfileResolution(ProfileCase):
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"
         profiles.write_text("Profiles/onlydefault\n", encoding="utf-8")
-        with self.assertRaises(firefox_profile.ConfigError) as caught:
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
@@ -272,7 +272,7 @@ class TestProfileResolution(ProfileCase):
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"
         profiles.write_bytes(b"[Profile0]\nPath=\xff\n")
-        with self.assertRaises(firefox_profile.ConfigError) as caught:
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
@@ -288,7 +288,7 @@ class TestProfileResolution(ProfileCase):
             profiles.symlink_to(profiles)
         except OSError:
             self.skipTest("cannot create a symlink on this platform")
-        with self.assertRaises(firefox_profile.ConfigError) as caught:
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
@@ -303,7 +303,7 @@ class TestProfileResolution(ProfileCase):
                 ini = self.firefox_root / name
                 with ini.open("wb") as handle:
                     handle.truncate(firefox_profile._MAX_INI_FILE_BYTES + 1)
-                with self.assertRaises(firefox_profile.ConfigError) as caught:
+                with self.assertRaises(firefox_user_files.ConfigError) as caught:
                     self.resolve()
                 message = str(caught.exception)
                 self.assertIn(str(ini), message)
@@ -362,7 +362,7 @@ class TestProfileResolution(ProfileCase):
             self.firefox_root / "profiles.ini",
             "[Profile0]\nPath=absent\n",
         )
-        with self.assertRaises(firefox_profile.ConfigError) as caught:
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve()
         message = str(caught.exception)
         self.assertIn(str(self.firefox_root), message)
@@ -601,14 +601,14 @@ class TestInstall(ProfileCase):
     def test_a_failed_user_js_write_is_reported_by_path(self):
         # A write failure must name the file that failed and stop the install:
         # the sheet is published first, but user.js is left absent.
-        real_write = install_firefox.write_atomically
+        real_write = firefox_user_files.write_atomically
 
         def flaky_write(path, writer):
             if Path(path) == self.user_js_path():
                 raise OSError("simulated failure")
             return real_write(path, writer)
 
-        with mock.patch.object(install_firefox, "write_atomically", flaky_write):
+        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
@@ -623,14 +623,14 @@ class TestInstall(ProfileCase):
         # first write must name the sheet and leave no user.js behind instead
         # of escaping as a traceback. The existing user.js write-failure test
         # pins the second publication; this pins the first.
-        real_write = install_firefox.write_atomically
+        real_write = firefox_user_files.write_atomically
 
         def flaky_write(path, writer):
             if Path(path) == self.sheet_path():
                 raise OSError("simulated failure")
             return real_write(path, writer)
 
-        with mock.patch.object(install_firefox, "write_atomically", flaky_write):
+        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
@@ -673,13 +673,13 @@ class TestInstall(ProfileCase):
         path = self.sheet_path()
         path.parent.mkdir(parents=True)
         with path.open("wb") as handle:
-            handle.truncate(install_firefox._MAX_PROFILE_FILE_BYTES + 1)
+            handle.truncate(firefox_user_files.MAX_PROFILE_FILE_BYTES + 1)
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode, result.stderr)
         self.assertIn(str(path), result.stderr)
         self.assertIn("larger than", result.stderr)
         self.assertEqual(
-            install_firefox._MAX_PROFILE_FILE_BYTES + 1, path.stat().st_size
+            firefox_user_files.MAX_PROFILE_FILE_BYTES + 1, path.stat().st_size
         )
         self.assertFalse(self.user_js_path().exists())
 
@@ -688,7 +688,7 @@ class TestInstall(ProfileCase):
         # no sheet may be published before the refusal.
         path = self.user_js_path()
         with path.open("wb") as handle:
-            handle.truncate(install_firefox._MAX_PROFILE_FILE_BYTES + 1)
+            handle.truncate(firefox_user_files.MAX_PROFILE_FILE_BYTES + 1)
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode, result.stderr)
         self.assertIn(str(path), result.stderr)
@@ -816,7 +816,7 @@ class TestRemove(ProfileCase):
         self.assertFalse(self.sheet_path().exists())
 
     def test_an_unreadable_profile_file_is_reported_by_name(self):
-        # _read_text opens both profile files through the shared regular-file
+        # read_profile_text opens both profile files through the shared regular-file
         # reader. A self-referential symlink makes that open fail with ELOOP,
         # an OSError, deterministically -- no dependence on file permissions
         # or on the test user. The directory and FIFO fixtures reach the
@@ -877,14 +877,14 @@ class TestRemove(ProfileCase):
         # its content unchanged instead of escaping as a traceback.
         self.install()
         before = _read(self.user_js_path())
-        real_write = install_firefox.write_atomically
+        real_write = firefox_user_files.write_atomically
 
         def flaky_write(path, writer):
             if Path(path) == self.user_js_path():
                 raise OSError("simulated failure")
             return real_write(path, writer)
 
-        with mock.patch.object(install_firefox, "write_atomically", flaky_write):
+        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
             result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)

@@ -3,6 +3,10 @@
 An explicit ``--profile``/``FIREFOX_PROFILE`` names the directory directly;
 otherwise the active profile is discovered under ``$HOME/.mozilla/firefox``
 following Firefox's own ``installs.ini`` then ``profiles.ini`` order.
+
+:class:`ConfigError` is the Firefox install's refusal type, defined in
+``tools/firefox_user_files.py`` so this module and the installer raise the
+same one.
 """
 
 from __future__ import annotations
@@ -14,12 +18,10 @@ from pathlib import Path
 
 if __package__:
     from tools.containment import open_regular_binary
+    from tools.firefox_user_files import ConfigError
 else:  # imported from a directly run tool
     from containment import open_regular_binary
-
-
-class ConfigError(Exception):
-    """A profile or file cannot be used; the installer reports it by name."""
+    from firefox_user_files import ConfigError
 
 
 # Firefox's INI files are a few kilobytes at most. The path is the user's and
