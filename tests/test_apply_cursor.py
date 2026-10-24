@@ -32,6 +32,7 @@ from support.process_assertions import (
 )
 from support.recorded_lines import recorded_lines
 from support.tmp_dir import make_tmp_dir
+from support.unlink_failure import unlink_failing_for
 from tools import apply_cursor, required_command
 
 
@@ -379,10 +380,7 @@ class TestRemove(CursorCase):
         # stay in place so the operator can retry.
         self.make_our_link()
 
-        def failing_unlink(path, *args, **kwargs):
-            raise OSError("simulated unlink failure")
-
-        with mock.patch.object(Path, "unlink", failing_unlink):
+        with unlink_failing_for(self.link, "simulated unlink failure"):
             result = self.run_tool("--remove")
 
         assert_exit_2_without_traceback(self, result)

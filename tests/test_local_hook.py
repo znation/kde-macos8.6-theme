@@ -33,6 +33,7 @@ from support.process_assertions import (
     assert_failed,
     assert_succeeded,
 )
+from support.unlink_failure import unlink_failing_for
 from tools import atomic_write, local_hook
 
 
@@ -463,10 +464,7 @@ class TestUninstall(unittest.TestCase):
         hook = hook_path(repo)
         complete = hook.read_bytes()
 
-        def failing_unlink(path, *args, **kwargs):
-            raise OSError("simulated unlink failure")
-
-        with mock.patch.object(Path, "unlink", failing_unlink):
+        with unlink_failing_for(hook, "simulated unlink failure"):
             result = run_tool(repo, "uninstall")
 
         assert_exit_2_without_traceback(self, result)

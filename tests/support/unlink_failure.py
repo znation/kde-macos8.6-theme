@@ -1,6 +1,6 @@
 """Failure injection for tests that make one path's ``Path.unlink`` fail.
 
-The GTK staging and apply suites each fail the unlink of a single CSS file
+The GTK staging and apply, local-hook and cursor suites each fail the unlink of a single CSS file
 while every other unlink still succeeds::
 
     with unlink_failing_for(css):
