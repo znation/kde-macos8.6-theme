@@ -144,6 +144,7 @@ blank guarantee or provenance-exception cell fails `make check`.
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
 | The fidelity gate passes only when no pixel differs beyond its tolerance, or within an aggregate budget when one is given. Each pixel's red, green, blue and alpha bytes are compared. | `tests/test_fidelity_cli.py::TestCli` | none |
+| The reference-pixel sampler validates the requested pixel or region against the PNG header's declared size before calling its bounded row decoder, so an out-of-bounds request never reaches that decoder. | `tests/test_sample_cli.py::TestSampleCli::test_out_of_bounds_request_skips_the_row_decode` | none |
 | The rendered window's title-bar strip is byte-identical to the same strip of the reference screenshot. | `tests/test_render_surface.py::TestRender::test_title_bar_matches_the_reference` | none |
 | The rendered window's side and bottom border strips are byte-identical to the same strips of the reference screenshot. | `tests/test_render_surface.py::TestRender::test_frame_borders_match_the_reference` | none |
 | The rendered window's title-bar boxes (close, zoom, collapse) are byte-identical to the same regions of the reference screenshots. | `tests/test_render_surface.py::TestRender::test_title_bar_boxes_match_the_reference` | none |

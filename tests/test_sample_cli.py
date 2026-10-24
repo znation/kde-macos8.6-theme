@@ -111,6 +111,23 @@ class TestSampleCli(CliTestCase):
                 read.assert_called_once()
                 self.assertEqual(read.call_args.kwargs["max_rows"], rows)
 
+    def test_out_of_bounds_request_skips_the_row_decode(self):
+        # The requested pixel or region is checked against the header size
+        # before the sampler's bounded row decode, so an out-of-bounds request
+        # on a large (or undecodable) reference names the coordinate without
+        # being handed to the decoder. Patch the decode entry point to fail if
+        # it is reached at all.
+        path = self._image()
+        for arguments in (("4", "1"), ("2", "1", "--width", "3")):
+            with self.subTest(arguments=arguments):
+                with mock.patch.object(
+                    sample,
+                    "read_png",
+                    side_effect=AssertionError("decoded an out-of-bounds request"),
+                ):
+                    result = self._run(path, *arguments)
+                self._assert_usage_error(result, "outside the 4x3 image")
+
     def test_corruption_below_the_sampled_row_is_still_reported(self):
         # The sampler bounds its decode to the sampled rectangle's bottom row,
         # but that only skips predictor work: every scanline's filter type is

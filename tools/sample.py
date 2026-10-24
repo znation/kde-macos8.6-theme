@@ -10,7 +10,9 @@ copied into a ``.colors`` file and the ``#RRGGBB`` literal copied into an SVG
 or QML file. ``--width``/``--height`` extend that
 from one pixel to a rectangle (default 1x1), printed row-major, so grounding a
 title bar's column or a widget's box takes one command instead of one per
-pixel. Only the rows through the sampled rectangle are decoded; the full
+pixel. The header is read first and the requested pixel or region is validated
+against the declared size, so an out-of-bounds request never reaches the row
+decoder; only the rows through a valid rectangle are decoded, and the full
 height printed in the header comes from ``read_png_size``.
 """
 
@@ -82,40 +84,26 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     try:
-        # Decode only through the rectangle's bottom row; the sampled pixels
-        # are all in the top y+height rows, so the rest of a large reference
-        # need not be unfiltered. A negative y makes the bound non-positive,
-        # so clamp it: the rectangle's out-of-bounds diagnostic below still
-        # names the full image size, and one row is enough to reach it.
-        image = read_png(args.image, max_rows=max(1, args.y + args.height))
         width, height = read_png_size(args.image)
     except PngError as exc:
         return report_error("sample", str(exc))
 
     header = f"image: {escape_controls(args.image)}  {width}x{height}"
     if args.width == 1 and args.height == 1:
-        # The decoded image is truncated at y+1, so validate the coordinate
-        # against the size the header declares; the message matches pixel_at's
-        # out-of-image diagnostic.
+        # Validate the coordinate against the size the header declares before
+        # calling the row decoder; the message matches pixel_at's out-of-image
+        # diagnostic.
         if not (0 <= args.x < width and 0 <= args.y < height):
             return report_error(
                 "sample",
                 f"pixel ({args.x}, {args.y}) is outside the "
                 f"{width}x{height} image",
             )
-        rgb = pixel_at(image, args.x, args.y)
-        print(header)
-        print(
-            f"pixel ({args.x}, {args.y}): "
-            f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}"
-        )
-        return 0
-
     # Validate the whole rectangle before sampling any pixel: a region whose
     # origin is negative or that runs past the right or bottom edge must
     # produce one region diagnostic, not a pixel diagnostic for its origin and
     # not a partial dump followed by pixel_at's error on a later coordinate.
-    if (
+    elif (
         args.x < 0
         or args.y < 0
         or args.x + args.width > width
@@ -127,6 +115,24 @@ def main(argv: list[str] | None = None) -> int:
             f"{args.width}x{args.height} is outside the "
             f"{width}x{height} image",
         )
+
+    try:
+        # Decode only through the rectangle's bottom row; the sampled pixels
+        # are all in the top y+height rows, so the rest of a large reference
+        # need not be unfiltered. The validation above guarantees y is
+        # non-negative, so the bound is at least one row.
+        image = read_png(args.image, max_rows=args.y + args.height)
+    except PngError as exc:
+        return report_error("sample", str(exc))
+
+    if args.width == 1 and args.height == 1:
+        rgb = pixel_at(image, args.x, args.y)
+        print(header)
+        print(
+            f"pixel ({args.x}, {args.y}): "
+            f"{rgb[0]},{rgb[1]},{rgb[2]}  {_hex(rgb)}"
+        )
+        return 0
 
     print(header)
     print(f"region ({args.x}, {args.y}) {args.width}x{args.height}:")
