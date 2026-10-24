@@ -183,6 +183,32 @@ class TestProfileResolution(ProfileCase):
         )
         self.assertEqual(live, self.resolve())
 
+    def test_a_stale_default_and_a_stale_first_section_fall_through_a_later_profile(self):
+        # A Default=1 marker and the first section can both name deleted
+        # profiles while a later section is live. Discovery must try every
+        # section that names a Path, not stop after the first one.
+        live = self.firefox_root / "live"
+        live.mkdir(parents=True)
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=gone\nPath=gone\n"
+            "[Profile1]\nName=also-gone\nPath=also-gone\nDefault=1\n"
+            "[Profile2]\nName=live\nPath=live\n",
+        )
+        self.assertEqual(live, self.resolve())
+
+    def test_the_candidates_tried_diagnostic_lists_a_profile_once(self):
+        # A profiles.ini whose marked default is also its first section names
+        # one directory; the not-found diagnostic must not list it twice.
+        missing = self.firefox_root / "only"
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=only\nPath=only\nDefault=1\n",
+        )
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve()
+        self.assertEqual(str(caught.exception).count(str(missing)), 1)
+
     def test_installs_section_without_default_is_skipped(self):
         # Firefox names installs.ini sections by install hash; a section
         # carrying no Default (or an empty one) must not hide a later one.

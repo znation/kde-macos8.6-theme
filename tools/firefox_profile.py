@@ -81,8 +81,21 @@ def _candidate(
 
 
 def _candidates(root: Path) -> list[Path]:
-    """Return profile candidates in Firefox's own preference order."""
-    candidates = []
+    """Return profile candidates in Firefox's own preference order.
+
+    The installs.ini default comes first, then a ``profiles.ini`` section marked
+    ``Default=1``, then every ``profiles.ini`` section that names a ``Path`` in
+    file order. Every section is listed, not just the first, so a stale marked
+    default (or a stale first section) falls through to a later live profile
+    instead of reporting that no profile was found. Each directory appears
+    once: the marked default is normally also a section in file order.
+    """
+    candidates: list[Path] = []
+
+    def remember(candidate: Path | None) -> None:
+        if candidate is not None and candidate not in candidates:
+            candidates.append(candidate)
+
     installs = _read_ini(root / "installs.ini")
     if installs is not None:
         for name in installs.sections():
@@ -91,7 +104,7 @@ def _candidates(root: Path) -> list[Path]:
             candidate = _candidate(root, installs[name], "Default")
             if candidate is None:
                 continue
-            candidates.append(candidate)
+            remember(candidate)
             break
     profiles = _read_ini(root / "profiles.ini")
     if profiles is not None:
@@ -109,15 +122,9 @@ def _candidates(root: Path) -> list[Path]:
             None,
         )
         if default is not None:
-            candidate = _candidate(root, default, "Path")
-            if candidate is not None:
-                candidates.append(candidate)
+            remember(_candidate(root, default, "Path"))
         for section in sections:
-            candidate = _candidate(root, section, "Path")
-            if candidate is None:
-                continue
-            candidates.append(candidate)
-            break
+            remember(_candidate(root, section, "Path"))
     return candidates
 
 
