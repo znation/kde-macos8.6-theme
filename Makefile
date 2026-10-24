@@ -376,12 +376,19 @@ require_flock_timeout = set -- "$(FLOCK_TIMEOUT)"; case "$$1" in ''|*[!0-9]*) ec
 # bounded wait expires instead of letting the command's own failure be blamed.
 run_locked = flock -w $(FLOCK_TIMEOUT) -E $(FLOCK_CONFLICT_EXIT) "$(DATA_HOME)" $(MAKE) --no-print-directory $(1) || { status=$$?; if [ $$status -eq $(FLOCK_CONFLICT_EXIT) ]; then echo "$(2): gave up after $(FLOCK_TIMEOUT)s waiting for the $(DATA_HOME) lock; another install or uninstall holds it" >&2; fi; exit $$status; }
 
+# The guards, the data-home creation and the locked sub-make share one shell
+# instead of one child per recipe line: `install` runs on every local-hook commit
+# and dozens of times in the suite. A guard's `exit 2` and the lock's failure
+# status still stop the recipe, and the guards still run before the data home is
+# created. The lock command is braced so its `||` diagnostic binds to flock
+# alone: an `install -d` failure that happens to share flock's conflict status
+# must not be reported as a lock timeout.
 install:
-	@$(call require_data_home,install)
-	@$(call require_flock_timeout,install)
-	@$(call require_install_packages,install)
-	@install -d "$(DATA_HOME)"
-	@$(call run_locked,_install,install)
+	@$(call require_data_home,install) && \
+	$(call require_flock_timeout,install) && \
+	$(call require_install_packages,install) && \
+	install -d "$(DATA_HOME)" && \
+	{ $(call run_locked,_install,install); }
 
 # Stage the color scheme as a hidden sibling and rename it in, so a copy that
 # fails or is interrupted cannot truncate the working installed scheme. The
@@ -438,10 +445,10 @@ _install:
 # killed by SIGKILL cannot run its EXIT trap, so remove them here too instead
 # of leaking them past uninstall. `rm -f`/`rm -rf` make a repeated run a no-op.
 uninstall:
-	@$(call require_data_home,uninstall)
-	@$(call require_flock_timeout,uninstall)
-	@install -d "$(DATA_HOME)"
-	@$(call run_locked,_uninstall,uninstall)
+	@$(call require_data_home,uninstall) && \
+	$(call require_flock_timeout,uninstall) && \
+	install -d "$(DATA_HOME)" && \
+	{ $(call run_locked,_uninstall,uninstall); }
 
 # The removals share one shell (and one `set -e`) so a run spawns one child
 # process instead of ten; each command keeps its own quoting and a failure

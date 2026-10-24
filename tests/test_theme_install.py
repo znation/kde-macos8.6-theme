@@ -527,6 +527,33 @@ class TestFlockTimeout(unittest.TestCase):
         scheme = installed_paths.installed_color_scheme(tmp)
         self.assertTrue(os.path.isfile(scheme), result.stderr)
 
+    def test_install_d_failure_is_not_blamed_on_the_lock(self):
+        # The guards, `install -d` and the locked sub-make share one recipe
+        # shell in both `install` and `uninstall`. An `install -d` failure with
+        # flock's conflict status (75) must not print the lock-wait diagnostic:
+        # only flock's own failure means the data-home lock was busy. Both
+        # targets are driven because a missing or misplaced brace on either
+        # recipe line would reintroduce the misleading message.
+        for target in ("install", "uninstall"):
+            with self.subTest(target=target):
+                tmp = make_tmp_dir(self)
+                env = theme_install.shadow_command_env(
+                    tmp, "install", "#!/bin/sh\nexit 75\n"
+                )
+                result = theme_install.run_make(
+                    [
+                        target,
+                        f"DESTDIR={tmp}",
+                        f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
+                    ],
+                    env=env,
+                )
+                assert_failed(self, result)
+                self.assertNotIn("gave up after", result.stderr)
+                self.assertNotIn(
+                    "another install or uninstall holds it", result.stderr
+                )
+
 
 class TestInstallPackages(unittest.TestCase):
     """`INSTALL_PACKAGES` must narrow `_install` to the named families.
