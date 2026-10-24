@@ -72,6 +72,17 @@ class TestReportError(unittest.TestCase):
 
 
 class TestReportMissingTool(unittest.TestCase):
+    def test_bare_str_required_and_non_str_arguments_raise(self):
+        for args, pattern in (
+            (("t", "git"), r"required must not be a bare str$"),
+            (("t", b"git"), r"required must not be a bare bytes$"),
+            ((7, ["git"]), r"tool must be str, not int$"),
+            (("t", ["git", 3]), r"required item must be str, not int$"),
+        ):
+            with self.subTest(args=args):
+                with self.assertRaisesRegex(ValueError, pattern):
+                    diagnostics.report_missing_tool(*args)
+
     def _report(self, tool, required, present=()):
         """Call report_missing_tool with which() finding only *present*."""
         stderr = io.StringIO()

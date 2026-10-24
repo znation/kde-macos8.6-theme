@@ -144,9 +144,17 @@ def report_missing_tool(tool: str, required: Iterable[str]) -> int | None:
     ``tools/apply_theme.py`` and ``tools/render_surface.py`` both refuse to run
     when an external command they need is absent, naming the first missing one
     in the shared ``report_error`` diagnostic. *required* is checked in order,
-    so the tool the message names is deterministic.
+    so the tool the message names is deterministic. A bare str *required* is
+    rejected: iterating it would look up each character as a tool name.
     """
+    _require_str("report_missing_tool", "tool", tool)
+    if isinstance(required, (str, bytes)):
+        raise ValueError(
+            "report_missing_tool() requires an iterable of str: required must "
+            f"not be a bare {type(required).__name__}"
+        )
     for name in required:
+        _require_str("report_missing_tool", "required item", name)
         if shutil.which(name) is None:
             return report_error(tool, f"required tool not found on PATH: {name}")
     return None
