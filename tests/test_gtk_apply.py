@@ -350,8 +350,9 @@ class TestSettingsErrors(GtkApplyCase):
 
         assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot remove {css}", result.stderr)
-        # The failed removal rolls the whole commit back, so the gtk-3.0
-        # selection and the user CSS are both left as they were.
+        self.assertIn("injected unlink failure", result.stderr)
+        # The settings were already replaced when the CSS unlink failed, so the
+        # rollback restores the gtk-3.0 selection and leaves the CSS in place.
         self.assertEqual(
             "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
             self.settings("gtk-3.0").read_text(encoding="utf-8"),

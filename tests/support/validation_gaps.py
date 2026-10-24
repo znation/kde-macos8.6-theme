@@ -106,7 +106,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 27
+UNCLEAR_INVARIANT_BASELINE = 28
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -144,6 +144,13 @@ CURSOR_HOTSPOT_GUARANTEE = (
     "up to the first destination pixel its source pixel covers, clamped to "
     "the last rendered pixel (size - 1), which bounds it even at a nominal "
     "size below the 16x16 grid where the downscale skips source pixels."
+)
+
+GTK_COMMIT_ROLLBACK_GUARANTEE = (
+    "the commit replaces the settings and deletes the user CSS together, so "
+    "a rename or removal that fails during it is reported by name after "
+    "every file already changed is restored from its same-directory "
+    "hard-link backup"
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
@@ -350,6 +357,13 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "tests/test_cursors_theme.py::TestGeneratorValidation"
         "::test_a_size_below_the_grid_keeps_its_hotspot_inside_the_frame",
         CURSOR_HOTSPOT_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "gtk-commit-rollback",
+        ("GTK commit",),
+        "tests/test_gtk_staging.py::TestCommit"
+        "::test_a_failed_rename_is_reported_by_name_and_restores_the_earlier_target",
+        GTK_COMMIT_ROLLBACK_GUARANTEE,
     ),
 )
 

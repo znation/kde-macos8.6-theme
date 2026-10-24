@@ -125,17 +125,27 @@ class TestCommit(StagingCase):
         good.parent.mkdir(parents=True)
         good.write_text("old good\n", encoding="utf-8")
         staged = stage_all([(good, "new good\n"), (blocked, "new blocked\n")])
-        # A directory occupies the second target by the time the commit runs:
-        # os.replace() cannot rename a file over it and raises OSError. By
-        # then the first target has already been replaced, so the commit must
-        # restore it rather than leave the selection half-applied.
-        blocked.mkdir()
+        # The second target's rename raises after the first target has already
+        # been replaced, so the commit must restore the first rather than
+        # leave the selection half-applied.
+        real_replace = os.replace
 
-        with self.assertRaises(ConfigError) as caught:
-            commit(staged)
+        def fail_the_second_rename(source, destination, *args, **kwargs):
+            if os.fspath(destination) == os.fspath(blocked) and str(
+                source
+            ).endswith(".staging"):
+                raise OSError("injected rename failure")
+            return real_replace(source, destination, *args, **kwargs)
+
+        with mock.patch.object(
+            os, "replace", side_effect=fail_the_second_rename
+        ):
+            with self.assertRaises(ConfigError) as caught:
+                commit(staged)
 
         self.assertIn(f"cannot write {blocked}", str(caught.exception))
-        self.assertTrue(blocked.is_dir())
+        self.assertIn("injected rename failure", str(caught.exception))
+        self.assertFalse(blocked.exists())
         self.assertEqual("old good\n", good.read_text(encoding="utf-8"))
         self.assertEqual([], self.backups_of(good))
         self.assertEqual([], self.backups_of(blocked))

@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A failed GTK commit leaves the settings and user CSS half-applied (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/gtk_staging.py::commit` renamed each staged settings file over its
+target in turn and had no way back. If a later rename failed, the earlier
+settings file kept its new contents; `apply_gtk --remove` also unlinked the
+user CSS before the commit, so a failed commit deleted the CSS while a
+settings file was already cleared. The module's staging guarantee ("a file
+that cannot be read or staged leaves all of them unchanged") did not cover
+the commit step, and `tests/test_gtk_staging.py`'s failed-rename case
+accepted the half-applied result in its comment.
+
+**Reproduce:** stage two settings writes, create a directory at the second
+target, then call `commit(staged)`: it raises `ConfigError` as expected but
+the first target keeps `new good` instead of `old good`. At the workflow
+level, `apply_gtk --remove` with `os.replace` failing on the second
+`settings.ini` leaves the GTK 3 selection cleared and the user CSS deleted.
+
+**Fix:** `commit` now takes removals and publishes staged writes and the CSS
+deletion as one transaction. Every target is first hard-linked to a uniquely
+named `.<name>.<token>.backup` sibling before its staged file replaces it or
+its removal deletes it. On any failure raised during the commit, every
+changed target is restored from its backup (a target that did not exist
+before is removed again) and a failed restoration is reported alongside the
+original error. A signal that ends the process before the rollback can still
+leave the targets half-published and a hidden backup behind. Successful
+commits discard the backups. The user-CSS deletion moved from `apply_gtk`
+into that commit, so a raised failure restores the settings instead of
+leaving them half-cleared with the CSS already deleted.
+`tools/gtk_user_files.py` no longer needs its `unlink` helper.
+
+**Validation gap:** unclear-invariant — the old failed-rename test deliberately
+documented that earlier targets were not rolled back, so what "staged before
+any is committed" was supposed to guarantee at commit time had to be
+reconstructed; `docs/invariants.md` now states the transaction and rollback
+behavior the tests pin.
+
 ### A nominal size below the 16x16 grid puts the cursor hotspot outside its frame (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/make_cursors.py::_scaled_hotspot` scaled a grid hotspot to the first

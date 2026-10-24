@@ -8,8 +8,8 @@ where those files live, the bounded non-blocking read they share, and the
 marker policy for the user stylesheet: an empty file is adopted, our
 marker-led file is rewritten, and a foreign file is left untouched.
 
-:class:`ConfigError` is the GTK selection's refusal type: every read, write
-and removal below raises it, and so do the staging and workflow modules, so
+:class:`ConfigError` is the GTK selection's refusal type: every read and
+write below raises it, and so do the staging and workflow modules, so
 ``main`` can report one ``apply_gtk: error:`` line instead of letting a bare
 ``OSError`` or ``UnicodeDecodeError`` traceback escape. The text transforms
 live in ``tools/gtk_settings.py``, the staged publication in
@@ -141,11 +141,3 @@ def user_css_remove(config_home: Path) -> Path | None:
     if first and first[0] == GTK4_CSS_MARKER:
         return path
     return None
-
-
-def unlink(path: Path) -> None:
-    """Delete *path*, reporting a failure by path."""
-    try:
-        path.unlink()
-    except OSError as exc:
-        raise ConfigError(f"cannot remove {path}: {exc}") from exc

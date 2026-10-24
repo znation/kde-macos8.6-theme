@@ -64,11 +64,12 @@ def _backup(path: Path) -> Path | None:
 
     The sibling name carries a random token, so a file the user already keeps
     at ``.gtk.css.backup`` (or any other name) is never removed or
-    overwritten. A hard link keeps the previous inode reachable without a
-    moment when the target is missing, so a process killed during the commit
-    still leaves the old settings file in place. A target that became a
-    directory is refused rather than linked, so the commit reports it instead
-    of replacing it.
+    overwritten. A hard link keeps the previous inode reachable without first
+    moving the target. A process killed mid-commit can still leave the targets
+    half-published and a hidden backup behind, because only an exception
+    raised during the commit is rolled back. A target that became a directory
+    is refused rather than linked, so the commit reports it instead of
+    replacing it.
     """
     if path.is_dir():
         raise IsADirectoryError(f"is a directory: {path}")
@@ -131,6 +132,8 @@ def commit(
     exist before is removed again, so a failure on the second settings file
     cannot leave the first one rewritten or the user CSS already deleted.
     Backups and leftover staging files are removed when the commit succeeds.
+    A signal that ends the process before the rollback can still leave the
+    targets half-published and a hidden backup behind.
     """
     applied: list[tuple[Path, Path | None]] = []
     try:
