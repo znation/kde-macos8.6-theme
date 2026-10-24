@@ -896,6 +896,28 @@ class TestCursorBytesCache(unittest.TestCase):
         self.assertEqual(listed, tupled)
         self.assertEqual(render.call_count, 2)
 
+    def test_the_cache_keeps_at_most_the_documented_entry_count(self):
+        # The module documents an entry-count bound so a caller generating
+        # many variants cannot grow the cache without limit. Fill one entry
+        # past the bound, then ask for the oldest again: it must have been
+        # evicted and rebuilt, while the newest entry is still a hit.
+        limit = make_cursors._MAX_CACHED_CURSORS
+        with mock.patch.object(
+            make_cursors,
+            "_build_cursor_bytes",
+            wraps=make_cursors._build_cursor_bytes,
+        ) as build:
+            for index in range(limit + 1):
+                make_cursors.cursor_bytes(sizes=(1,), name=f"variant-{index}")
+            self.assertEqual(build.call_count, limit + 1)
+            make_cursors.cursor_bytes(sizes=(1,), name="variant-0")
+            self.assertEqual(build.call_count, limit + 2)
+            make_cursors.cursor_bytes(sizes=(1,), name=f"variant-{limit}")
+            self.assertEqual(build.call_count, limit + 2)
+        info = make_cursors._cached_cursor_bytes.cache_info()
+        self.assertEqual(info.maxsize, limit)
+        self.assertEqual(info.currsize, limit)
+
     def test_a_malformed_grid_is_refused_on_every_call(self):
         rows = list(cursor_art.ARROW_GRID)
         rows[3] = "x" + rows[3][1:]
