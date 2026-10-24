@@ -19,7 +19,8 @@ Usage::
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, or a
 command this tool starts directly (``make`` or ``dbus-run-session``) that
-cannot be started.
+cannot be started, and 128 plus the signal number when a SIGTERM or SIGHUP
+ends the run.
 """
 
 from __future__ import annotations
@@ -257,7 +258,8 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when OUTPUT was written, 1 when the render or "
             "capture failed, 2 usage error, unwritable OUTPUT, missing external "
-            "tool, or an unstartable make or dbus-run-session"
+            "tool, or an unstartable make or dbus-run-session, and 128 plus the "
+            "signal number when a SIGTERM or SIGHUP ends the run"
         ),
     )
     parser.add_argument("output", help="PNG file to write")

@@ -18,7 +18,8 @@ Usage::
     python3 tools/apply_theme.py
 
 Exit status: 0 when the theme was applied, 1 when a required command failed,
-2 for a usage error, a missing external tool, or one that cannot be started.
+2 for a usage error, a missing external tool, or one that cannot be started,
+and 128 plus the signal number when a SIGTERM or SIGHUP ends the run.
 """
 
 from __future__ import annotations
@@ -222,7 +223,8 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when the theme was applied, 1 when a required "
             "command failed, 2 usage error, missing external tool, or one that "
-            "cannot be started"
+            "cannot be started, and 128 plus the signal number when a SIGTERM "
+            "or SIGHUP ends the run"
         ),
     )
     parser.parse_args(argv)

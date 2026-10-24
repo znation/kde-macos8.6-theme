@@ -15,8 +15,8 @@ Usage::
 
 Exit status: 0 when the selection or removal ran, 1 when an installed GTK 3
 or GTK 4 sheet is missing, 2 for a usage error, an unresolvable config home
-(or data home when applying), or a settings or user-CSS file that cannot be
-read or written.
+(or data home when applying), a settings or user-CSS path that is a symbolic
+link, or a settings or user-CSS file that cannot be read or written.
 """
 
 from __future__ import annotations
@@ -185,8 +185,9 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when the selection or removal ran, 1 when an "
             "installed GTK 3 or GTK 4 sheet is missing, 2 for a usage error, "
-            "an unresolvable config home (or data home when applying), or a "
-            "settings or user-CSS file that cannot be read or written"
+            "an unresolvable config home (or data home when applying), a "
+            "settings or user-CSS path that is a symbolic link, or a settings "
+            "or user-CSS file that cannot be read or written"
         ),
     )
     parser.add_argument(

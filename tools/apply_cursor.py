@@ -15,7 +15,8 @@ Usage::
 
 Exit status: 0 when the selection or removal ran, 1 when the selector failed,
 2 for a usage error, an unusable ``HOME``, a missing installed theme, a
-foreign path at the link target, or a selector that cannot be started.
+foreign path at the link target, or a selector that cannot be started, and
+128 plus the signal number when a SIGTERM or SIGHUP ends the run.
 """
 
 from __future__ import annotations
@@ -257,7 +258,8 @@ def main(argv: list[str] | None = None) -> int:
             "exit status: 0 when the selection or removal ran, 1 when the "
             "selector failed, 2 for a usage error, an unusable HOME, a "
             "missing installed theme, a foreign path at the link target, or a "
-            "selector that cannot be started"
+            "selector that cannot be started, and 128 plus the signal number "
+            "when a SIGTERM or SIGHUP ends the run"
         ),
     )
     parser.add_argument(
