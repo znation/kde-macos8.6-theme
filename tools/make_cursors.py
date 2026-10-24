@@ -120,10 +120,13 @@ def _scaled_hotspot(size, hotspot):
     x, y = _checked_hotspot(hotspot)
     # The nearest-neighbour mapping sends destination pixel ``d`` to source
     # pixel ``d * 16 // size``, so a source pixel's first destination pixel is
-    # the ceiling of its scaled start.
+    # the ceiling of its scaled start. A size below the grid maps several
+    # source pixels to one destination pixel and can skip the hotspot's source
+    # pixel entirely; clamp to the last rendered pixel so the frame's hotspot
+    # stays inside its image.
     return (
-        (x * size + GRID_SIZE - 1) // GRID_SIZE,
-        (y * size + GRID_SIZE - 1) // GRID_SIZE,
+        min((x * size + GRID_SIZE - 1) // GRID_SIZE, size - 1),
+        min((y * size + GRID_SIZE - 1) // GRID_SIZE, size - 1),
     )
 
 

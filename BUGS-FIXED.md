@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A nominal size below the 16x16 grid puts the cursor hotspot outside its frame (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`tools/make_cursors.py::_scaled_hotspot` scaled a grid hotspot to the first
+destination pixel of its source pixel with the ceiling of `x * size / 16`.
+For a nominal size below the 16x16 grid, that source pixel can be skipped by
+the nearest-neighbour downscale, so the ceiling equals `size` (for example
+size 8 with hotspot 15 produced x=8 on an 8-pixel image). `cursor_bytes`
+accepts every positive nominal size, so a valid request failed from the
+Xcursor writer with `ValueError: images[0] hotspot_x ... lies outside its
+...-pixel image`.
+
+**Reproduce:** `make_cursors.cursor_bytes(sizes=(8,), hotspot=(15, 15))`;
+before the fix it raised the writer's `ValueError`, now it returns a cursor
+whose decoded frame pins `(7, 7)`.
+
+**Fix:** the scaled hotspot is clamped to `size - 1`, the last destination
+pixel the downscale renders, so it stays inside the frame. Sizes at or above
+the grid are unchanged: the ceiling is already below `size` for them, so the
+shipped 16/24/32 frames keep their pinned bytes.
+
+**Validation gap:** unclear-invariant — the frame hotspot bound was implied
+only by the Xcursor writer's validation, and no test stated what a size below
+the 16x16 grid should do, so the mapping had to be reconstructed and pinned in
+`docs/invariants.md` as well as the new test.
+
 ### An oversize Firefox profile-discovery INI file crashes with a MemoryError (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/firefox_profile.py::_read_ini` opened `installs.ini` or

@@ -719,6 +719,25 @@ class TestGeneratorValidation(unittest.TestCase):
             make_cursors.cursor_bytes(sizes=())
         self.assertIn("at least one nominal size is required", str(caught.exception))
 
+    def test_a_size_below_the_grid_keeps_its_hotspot_inside_the_frame(self):
+        # Below the grid the downscale skips source pixel 15, so its ceiling
+        # lands on ``size`` and must be clamped to ``size - 1``, the last
+        # rendered pixel.
+        for size, expected in ((1, 0), (8, 7), (15, 14)):
+            with self.subTest(size=size):
+                data = make_cursors.cursor_bytes(
+                    sizes=(size,), hotspot=(15, 15)
+                )
+                path = make_tmp_dir(self) / f"arrow-{size}"
+                path.write_bytes(data)
+                images = xcursor_reader.read_cursor(path).images
+                self.assertEqual(len(images), 1)
+                self.assertEqual(images[0].nominal_size, size)
+                self.assertEqual(
+                    (images[0].hotspot_x, images[0].hotspot_y),
+                    (expected, expected),
+                )
+
 
 class TestMainErrors(unittest.TestCase):
     """``main`` must report a creation or write failure and stop, exiting 2."""
