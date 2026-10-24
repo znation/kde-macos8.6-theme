@@ -63,6 +63,11 @@
    screenshot shows selected text in a field, so applying the fill there is
    this theme's adaptation, and the node names are GTK-required.
 
+   Tree-view and expander disclosure arrows load the shared assets/arrow-right.svg
+   (collapsed) and assets/arrow-down.svg (expanded), whose triangles reuse the
+   desktop theme's pinned widgets/arrows.svg shapes; no reference screenshot
+   shows a GTK widget, and the node names are GTK-required.
+
    The standalone separators reuse the reference-grounded etched pair in both
    orientations, and the paned split handles reuse the same etch; the
    orientation classes and the paned orientation classes are GTK-required. The level bar
@@ -470,6 +475,16 @@ listview > row.activatable:selected, listview > row.activatable:selected:hover {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;
+}
+
+treeview.view.expander, expander {
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: url("../assets/arrow-right.svg");
+}
+
+treeview.view.expander:checked, expander:checked {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
 }
 
 text > selection, label > selection {

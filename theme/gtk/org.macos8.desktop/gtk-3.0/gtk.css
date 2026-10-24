@@ -17,6 +17,10 @@
    desktop theme's pinned widgets/arrows.svg shapes. Spin-button arrows stay
    from the icon theme because GTK draws them there, not from a CSS
    -gtk-icon-source this sheet can redirect.
+   Tree-view and expander disclosure arrows load the shared assets/arrow-right.svg
+   (collapsed) and assets/arrow-down.svg (expanded), whose triangles reuse the
+   desktop theme's pinned widgets/arrows.svg shapes; no reference screenshot
+   shows a GTK widget, and the node names are GTK-required.
    Views (the view class, the list box and GTK 3's text-view text node) paint
    the reference-grounded white content field, the colour scheme's View
    background, with black text; no reference screenshot shows a GTK widget, and
@@ -443,6 +447,16 @@ list row.activatable:selected, list row.activatable:selected:hover {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;
+}
+
+treeview.view.expander, expander title > arrow {
+  min-width: 16px;
+  min-height: 16px;
+  -gtk-icon-source: url("../assets/arrow-right.svg");
+}
+
+treeview.view.expander:checked, expander title > arrow:checked {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
 }
 
 entry selection, spinbutton selection, label selection, textview text selection {

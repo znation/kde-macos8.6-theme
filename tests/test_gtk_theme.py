@@ -63,6 +63,7 @@ CHECKMARK = THEME_DIR / "assets" / "checkmark.svg"
 BULLET = THEME_DIR / "assets" / "bullet.svg"
 ARROW_DOWN = THEME_DIR / "assets" / "arrow-down.svg"
 ARROW_UP = THEME_DIR / "assets" / "arrow-up.svg"
+ARROW_RIGHT = THEME_DIR / "assets" / "arrow-right.svg"
 
 MENU_SCROLL_UP = ("menu > arrow.top", ".menu > arrow.top", ".context-menu > arrow.top")
 MENU_SCROLL_DOWN = (
@@ -165,6 +166,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_tree_header(self):
         self.assert_tree_header(("treeview.view header button",))
 
+    def test_expander_arrows(self):
+        self.assert_expander_arrows(
+            ("treeview.view.expander", "expander title > arrow"),
+            ("treeview.view.expander:checked", "expander title > arrow:checked"),
+        )
+
     def test_text_selection(self):
         self.assert_text_selection(
             ("entry selection", "spinbutton selection", "label selection", "textview text selection")
@@ -222,6 +229,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 '"../assets/bullet.svg"',
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
+                '"../assets/arrow-right.svg"',
                 '"../assets/window-close.svg"',
                 '"../assets/window-maximize.svg"',
                 '"../assets/window-minimize.svg"',
@@ -429,31 +437,33 @@ class TestCheckGlyphs(unittest.TestCase):
 
 
 class TestArrowGlyphs(unittest.TestCase):
-    """The combo box and menu scroll arrow glyphs GTK loads from assets."""
+    """The combo box, menu scroll and disclosure arrow glyphs GTK loads from assets."""
 
     @classmethod
     def setUpClass(cls):
         cls.down = parse_svg(ARROW_DOWN)
         cls.up = parse_svg(ARROW_UP)
+        cls.right = parse_svg(ARROW_RIGHT)
 
     def test_assets_stand_alone(self):
-        for tree in (self.down, self.up):
+        for tree in (self.down, self.up, self.right):
             assert_no_script_elements(self, tree)
             assert_no_style_elements(self, tree)
 
     def test_assets_put_the_root_first(self):
-        for path in (ARROW_DOWN, ARROW_UP):
+        for path in (ARROW_DOWN, ARROW_UP, ARROW_RIGHT):
             with self.subTest(asset=path.name):
                 assert_svg_root_first(self, path)
 
     def test_assets_span_a_16px_canvas(self):
-        for tree in (self.down, self.up):
+        for tree in (self.down, self.up, self.right):
             assert_root_canvas(self, tree, 16, 16)
 
     def test_assets_use_only_the_black_fill(self):
         self.assertEqual(
             attribute_values(self.down, "fill")
-            | attribute_values(self.up, "fill"),
+            | attribute_values(self.up, "fill")
+            | attribute_values(self.right, "fill"),
             {BLACK},
         )
 
@@ -461,6 +471,7 @@ class TestArrowGlyphs(unittest.TestCase):
         expected = (
             (self.down, "M 4,5 L 12,5 L 8,11 Z"),
             (self.up, "M 4,11 L 12,11 L 8,5 Z"),
+            (self.right, "M 5,4 L 5,12 L 11,8 Z"),
         )
         for tree, path_d in expected:
             with self.subTest(path=path_d):

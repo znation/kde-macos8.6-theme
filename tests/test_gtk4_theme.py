@@ -94,6 +94,7 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                 '"../assets/bullet.svg"',
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
+                '"../assets/arrow-right.svg"',
                 '"../assets/window-close.svg"',
                 '"../assets/window-maximize.svg"',
                 '"../assets/window-minimize.svg"',
@@ -148,6 +149,12 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                     "border-radius": "0",
                 },
             )
+
+    def test_expander_arrows(self):
+        self.assert_expander_arrows(
+            ("treeview.view.expander", "expander"),
+            ("treeview.view.expander:checked", "expander:checked"),
+        )
 
     def test_tree_and_column_headers(self):
         selectors = (

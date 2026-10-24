@@ -55,6 +55,7 @@ STAGING_PATHS = {
     "assets/bullet.svg": "assets/.bullet.svg.staging",
     "assets/arrow-down.svg": "assets/.arrow-down.svg.staging",
     "assets/arrow-up.svg": "assets/.arrow-up.svg.staging",
+    "assets/arrow-right.svg": "assets/.arrow-right.svg.staging",
     "assets/window-close.svg": "assets/.window-close.svg.staging",
     "assets/window-maximize.svg": "assets/.window-maximize.svg.staging",
     "assets/window-minimize.svg": "assets/.window-minimize.svg.staging",

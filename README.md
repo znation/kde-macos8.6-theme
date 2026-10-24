@@ -45,8 +45,8 @@ Platinum button, line-edit and arrow art. Kvantum searches
 when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
 
 GTK applications use the separate opt-in install: `make install-gtk` copies the GTK 3 and GTK 4
-Platinum stylesheets, their `index.theme` theme descriptor and the seven shared check, radio,
-combo box, menu arrow and title-button box assets into
+Platinum stylesheets, their `index.theme` theme descriptor and the eight shared check, radio,
+combo box, menu arrow, disclosure arrow and title-button box assets into
 `$XDG_DATA_HOME/themes/org.macos8.desktop/`, the same directory that
 holds the shared `Kvantum/` widget style, so the two artifacts share one theme directory. The
 default `make install` copies no GTK files. `make apply-gtk` installs them the same way and then
@@ -58,7 +58,7 @@ sheet, so libadwaita applications use it too. Restart running GTK applications t
 selection; KDE users can also choose the theme in System Settings -> Application Style ->
 GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it removes only our
 `gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file untouched.
-`make uninstall` removes the ten GTK files, their `.staging`
+`make uninstall` removes the eleven GTK files, their `.staging`
 leftovers and the emptied `assets`/`gtk-3.0`/`gtk-4.0` directories but leaves `Kvantum/` and the
 theme directory itself.
 
@@ -166,7 +166,7 @@ active and inactive frames) with its gzipped `decoration.svgz` (the form
 active and inactive widgets); select it in System Settings → Window
 Decorations. An unfocused window wears the flat grey inactive frame and
 boxes. `make
-uninstall` removes the eight default artifacts and the ten opt-in GTK files, leaving the shared
+uninstall` removes the eight default artifacts and the eleven opt-in GTK files, leaving the shared
 `color-schemes/`, `look-and-feel/`, `desktoptheme/`,
 `aurorae/themes/`, `wallpapers/`, `icons/`, `fonts/` and `themes/`
 directories and anything else in them in place. It removes only those artifacts, their

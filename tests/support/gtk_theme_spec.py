@@ -8,7 +8,7 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator and frame assertions they name
+plus the progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator, frame and expander-arrow assertions they name
 with their own selectors.
 """
 
@@ -263,6 +263,12 @@ TREE_HEADER_ACTIVE = {
 }
 # The last column shares the header's bottom line but ends the row's grid.
 TREE_HEADER_LAST = {"border-right-width": "0"}
+EXPANDER_COLLAPSED = {
+    "min-width": "16px",
+    "min-height": "16px",
+    "-gtk-icon-source": 'url("../assets/arrow-right.svg")',
+}
+EXPANDER_EXPANDED = {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'}
 
 # The list and tree rows both sheets paint, adapted from the reference-grounded
 # widgets/listitem.svg row: a hovered row stays the view background and a
@@ -616,3 +622,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             self.assert_rule(f"{selector}:hover", TREE_HEADER_HOVER)
             self.assert_rule(f"{selector}:active", TREE_HEADER_ACTIVE)
             self.assert_rule(f"{selector}:last-child", TREE_HEADER_LAST)
+
+    def assert_expander_arrows(self, collapsed, expanded):
+        """Assert the right (collapsed) and down (checked) disclosure arrows."""
+        for selector in collapsed:
+            self.assert_rule(selector, EXPANDER_COLLAPSED)
+        for selector in expanded:
+            self.assert_rule(selector, EXPANDER_EXPANDED)
