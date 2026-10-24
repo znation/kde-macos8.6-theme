@@ -52,6 +52,47 @@ def _validate_dimension(name: str, value: object) -> None:
         )
 
 
+def _encode(
+    width: int,
+    height: int,
+    pixels: bytes,
+    channels: int,
+    color_type: int,
+    kind: str,
+) -> bytes:
+    """Return the PNG bytes of packed *pixels* with *channels* per pixel.
+
+    *kind* names the buffer in diagnostics (``rgb`` or ``rgba``) and
+    *color_type* is the IHDR colour type that goes with *channels* (2 for
+    RGB, 6 for RGBA).
+    """
+    for name, value in (("width", width), ("height", height)):
+        _validate_dimension(name, value)
+    if not isinstance(pixels, (bytes, bytearray)):
+        raise ValueError(
+            f"PNG {kind} must be bytes or bytearray, not "
+            f"{type(pixels).__name__}"
+        )
+    expected = width * height * channels
+    if len(pixels) != expected:
+        raise ValueError(
+            f"{len(pixels)} {kind.upper()} bytes given; a {width}x{height} "
+            f"image needs {expected} (width*height*{channels})"
+        )
+    stride = width * channels
+    raw = b"".join(
+        b"\x00" + bytes(pixels[row * stride : (row + 1) * stride])
+        for row in range(height)
+    )
+    header = struct.pack(">IIBBBBB", width, height, 8, color_type, 0, 0, 0)
+    return (
+        _MAGIC
+        + _chunk(b"IHDR", header)
+        + _chunk(b"IDAT", zlib.compress(raw, 9))
+        + _chunk(b"IEND", b"")
+    )
+
+
 def encode_png(width: int, height: int, rgb: bytes) -> bytes:
     """Return the PNG bytes of a *width* x *height* image of packed *rgb* pixels.
 
@@ -59,55 +100,9 @@ def encode_png(width: int, height: int, rgb: bytes) -> bytes:
     header's 1..2**31-1 range, or *rgb* is not ``bytes``/``bytearray`` of
     exactly ``width * height * 3`` bytes.
     """
-    for name, value in (("width", width), ("height", height)):
-        _validate_dimension(name, value)
-    if not isinstance(rgb, (bytes, bytearray)):
-        raise ValueError(
-            f"PNG rgb must be bytes or bytearray, not {type(rgb).__name__}"
-        )
-    expected = width * height * 3
-    if len(rgb) != expected:
-        raise ValueError(
-            f"{len(rgb)} RGB bytes given; a {width}x{height} image needs "
-            f"{expected} (width*height*3)"
-        )
-    stride = width * 3
-    raw = b"".join(
-        b"\x00" + bytes(rgb[row * stride : (row + 1) * stride])
-        for row in range(height)
-    )
-    header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
-    return (
-        _MAGIC
-        + _chunk(b"IHDR", header)
-        + _chunk(b"IDAT", zlib.compress(raw, 9))
-        + _chunk(b"IEND", b"")
-    )
+    return _encode(width, height, rgb, 3, 2, "rgb")
 
 
 def encode_rgba_png(width: int, height: int, rgba: bytes) -> bytes:
     """Return the PNG bytes of a *width* x *height* image of packed RGBA pixels."""
-    for name, value in (("width", width), ("height", height)):
-        _validate_dimension(name, value)
-    if not isinstance(rgba, (bytes, bytearray)):
-        raise ValueError(
-            f"PNG rgba must be bytes or bytearray, not {type(rgba).__name__}"
-        )
-    expected = width * height * 4
-    if len(rgba) != expected:
-        raise ValueError(
-            f"{len(rgba)} RGBA bytes given; a {width}x{height} image needs "
-            f"{expected} (width*height*4)"
-        )
-    stride = width * 4
-    raw = b"".join(
-        b"\x00" + bytes(rgba[row * stride : (row + 1) * stride])
-        for row in range(height)
-    )
-    header = struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0)
-    return (
-        _MAGIC
-        + _chunk(b"IHDR", header)
-        + _chunk(b"IDAT", zlib.compress(raw, 9))
-        + _chunk(b"IEND", b"")
-    )
+    return _encode(width, height, rgba, 4, 6, "rgba")
