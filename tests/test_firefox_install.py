@@ -45,6 +45,18 @@ class ProfileCase(unittest.TestCase):
             env = {"HOME": str(self.home)}
         return firefox_profile.resolve_profile(explicit, env)
 
+    def run_tool(self, *args, env=None):
+        if env is None:
+            env = {"HOME": str(self.home)}
+        with mock.patch.dict(os.environ, env, clear=True):
+            return run_main(install_firefox.main, install_firefox.TOOL, args)
+
+    def sheet_path(self):
+        return self.profile / "chrome" / "userChrome.css"
+
+    def user_js_path(self):
+        return self.profile / "user.js"
+
     @property
     def firefox_root(self):
         return self.home / ".mozilla" / "firefox"
@@ -493,18 +505,6 @@ class TestUserJs(unittest.TestCase):
 
 
 class TestInstall(ProfileCase):
-    def run_tool(self, *args, env=None):
-        if env is None:
-            env = {"HOME": str(self.home)}
-        with mock.patch.dict(os.environ, env, clear=True):
-            return run_main(install_firefox.main, install_firefox.TOOL, args)
-
-    def sheet_path(self, profile=None):
-        return (profile or self.profile) / "chrome" / "userChrome.css"
-
-    def user_js_path(self, profile=None):
-        return (profile or self.profile) / "user.js"
-
     def test_install_copies_the_sheet_byte_for_byte_and_adds_one_block(self):
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
@@ -687,25 +687,8 @@ class TestInstall(ProfileCase):
 
 
 class TestRemove(ProfileCase):
-    def run_tool(self, *args):
-        with mock.patch.dict(os.environ, {"HOME": str(self.home)}, clear=True):
-            return run_main(install_firefox.main, install_firefox.TOOL, args)
-
-    def sheet_path(self):
-        return self.profile / "chrome" / "userChrome.css"
-
-    def user_js_path(self):
-        return self.profile / "user.js"
-
     def install(self):
-        with mock.patch.dict(
-            os.environ, {"HOME": str(self.home)}, clear=True
-        ):
-            result = run_main(
-                install_firefox.main,
-                install_firefox.TOOL,
-                ("--profile", str(self.profile)),
-            )
+        result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
 
     def test_remove_deletes_our_sheet_and_block_and_keeps_the_directory(self):
