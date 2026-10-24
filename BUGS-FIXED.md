@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A UTF-8 BOM before our Firefox `user.js` marker duplicates the block on install and leaves it on removal (found by the bugfix role 2026-10-24) — fixed 2026-10-24 by the bugfix role
+
+A UTF-8 BOM at the start of `user.js` is valid JavaScript and some editors
+add one. The marker-block transform compared the first line exactly, so a
+BOM-prefixed copy of our own block looked foreign: `make install-firefox`
+appended a second marker-plus-preference block, and `make remove-firefox`
+deleted neither the old marker nor its preference line.
+
+**Reproduce:** `set_user_js("\ufeff" + USER_JS_MARKER + "\n" + PREF_LINE + "\n")`
+returned two copies of the block before the fix, and `remove_user_js` on the
+same text returned it unchanged.
+
+**Fix:** `_without_block` strips one leading BOM from the first line before
+comparing it with the marker, so a BOM-prefixed block is recognised and
+removed. A BOM before a foreign first line is still kept byte for byte.
+
+**Validation gap:** unclear-invariant — the suite pinned BOM handling for the two CSS markers but said nothing about the `user.js` marker block; the reconstructed rule (a BOM does not hide that block either) is now in `docs/invariants.md`, and the new test failed before the fix and passes after.
+
 ### A UTF-8 BOM before our marker hides our own GTK user CSS and Firefox sheet (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `make apply-gtk` and `make install-firefox` decide whether an existing

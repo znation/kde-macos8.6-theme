@@ -451,6 +451,28 @@ class TestUserJs(unittest.TestCase):
             firefox_user_js.remove_user_js('user_pref("last", 1);'),
         )
 
+    def test_a_bom_before_our_marker_still_matches_the_block(self):
+        # A UTF-8 BOM is valid at the start of a JavaScript file and some
+        # editors add one. It must not hide our marker block: a repeat install
+        # must not append a second copy, and a removal must delete the pair.
+        block = (
+            firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.PREF_LINE
+            + "\n"
+        )
+        text = "\ufeff" + block
+        self.assertEqual(block, firefox_user_js.set_user_js(text))
+        self.assertEqual("", firefox_user_js.remove_user_js(text))
+
+    def test_a_bom_before_a_foreign_first_line_stays(self):
+        # Only a marker line ignores the BOM; a foreign first line keeps it
+        # byte for byte through an install and a removal.
+        foreign = '\ufeffuser_pref("a", 1);\n'
+        updated = firefox_user_js.set_user_js(foreign)
+        self.assertTrue(updated.startswith(foreign))
+        self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
+
     def test_remove_is_repeatable_and_keeps_crlf(self):
         foreign = 'user_pref("a", 1);\r\n'
         text = (

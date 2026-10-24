@@ -106,7 +106,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 31
+UNCLEAR_INVARIANT_BASELINE = 32
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -168,8 +168,12 @@ FIREFOX_SYMLINK_GUARANTEE = (
 )
 
 BOM_MARKER_GUARANTEE = (
-    "a leading UTF-8 BOM does not hide our sheet marker, so a BOM-prefixed "
-    "marker-led `userChrome.css` is still replaced or removed"
+    "a leading UTF-8 BOM does not hide our sheet marker"
+)
+
+USER_JS_BOM_MARKER_GUARANTEE = (
+    "a leading UTF-8 BOM does not hide our sheet marker or our `user.js` "
+    "marker block"
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
@@ -403,6 +407,13 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "tests/test_firefox_install.py::TestInstall"
         "::test_a_bom_before_our_marker_keeps_the_sheet_ours",
         BOM_MARKER_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "user-js-bom-before-marker",
+        ("A UTF-8 BOM before our Firefox `user.js` marker",),
+        "tests/test_firefox_install.py::TestUserJs"
+        "::test_a_bom_before_our_marker_still_matches_the_block",
+        USER_JS_BOM_MARKER_GUARANTEE,
     ),
 )
 

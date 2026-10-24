@@ -17,6 +17,7 @@ PREF_LINE = 'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", tr
 # must keep. The capture group makes ``split`` return each ending between the
 # contents, and the scan runs in C instead of character by character.
 _LINE_ENDING = re.compile(r"(\r\n|\r|\n)")
+_BOM = "\ufeff"
 
 
 def _lines(text: str) -> list[tuple[str, str]]:
@@ -52,11 +53,20 @@ def _dominant_ending(lines: list[tuple[str, str]]) -> str:
 
 
 def _without_block(lines: list[tuple[str, str]]) -> list[tuple[str, str]]:
-    """Drop each marker line and the exact pref line immediately after it."""
+    """Drop each marker line and the exact pref line immediately after it.
+
+    A leading UTF-8 BOM is valid at the start of a JavaScript file and some
+    editors add one, so it must not hide a marker no later than the first
+    line. The comparison strips one BOM at the file's first line; a marker
+    elsewhere, and every foreign line, is matched and kept unchanged.
+    """
     kept = []
     index = 0
     while index < len(lines):
-        if lines[index][0] == USER_JS_MARKER:
+        content = lines[index][0]
+        if index == 0:
+            content = content.removeprefix(_BOM)
+        if content == USER_JS_MARKER:
             index += 1
             if index < len(lines) and lines[index][0] == PREF_LINE:
                 index += 1
