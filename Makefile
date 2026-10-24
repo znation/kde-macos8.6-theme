@@ -105,13 +105,16 @@ require_install_packages = set -f; set -- $(INSTALL_PACKAGES); if [ $$\# -eq 0 ]
 # QML. A SIGKILL between the two renames cannot run the trap, leaving the
 # package absent and its bytes in `.old`; the recovery below moves `.old` back
 # before anything is removed, so the next install (or a copy that fails) leaves
-# the last working package installed instead of deleting it. $(1) is the
-# package id, $(2) its source directory, $(3) the install dir.
+# the last working package installed instead of deleting it. The shell also
+# creates the parent directory, so a package costs one child process rather
+# than a separate `install -d` plus this one. $(1) is the package id, $(2) its
+# source directory, $(3) the install dir.
 define install_package
 	@staging="$(3)/.$(1).staging"; \
 	old="$(3)/.$(1).old"; \
 	final="$(3)/$(1)"; \
 	trap 'rm -rf "$$staging"; if [ ! -e "$$final" ] && [ -e "$$old" ]; then mv "$$old" "$$final"; fi' EXIT; \
+	install -d "$(3)" && \
 	if [ ! -e "$(3)/$(1)" ] && [ -e "$$old" ]; then mv "$$old" "$(3)/$(1)"; fi && \
 	rm -rf "$$staging" "$$old" && \
 	cp -r "$(2)" "$$staging" && \
@@ -395,7 +398,8 @@ endef
 # color scheme does; the two files sit directly in the Kvantum/ directory, so
 # the package-directory swap does not fit.
 define install_kvantum
-	@for name in $(KVANTUM_ID).kvconfig $(KVANTUM_ID).svg; do \
+	@install -d "$(KVANTUM_INSTALL_DIR)" && \
+	for name in $(KVANTUM_ID).kvconfig $(KVANTUM_ID).svg; do \
 	  staging="$(KVANTUM_INSTALL_DIR)/.$$name.staging"; \
 	  trap 'rm -f "$$staging"' EXIT; \
 	  install -Dm644 "$(KVANTUM_PACKAGE)/$$name" "$$staging" && \
@@ -416,19 +420,12 @@ endef
 
 _install:
 	$(if $(filter color-scheme,$(INSTALL_PACKAGES)),$(call install_color_scheme))
-	$(if $(filter look-and-feel,$(INSTALL_PACKAGES)),install -d "$(LNF_INSTALL_DIR)")
 	$(if $(filter look-and-feel,$(INSTALL_PACKAGES)),$(call install_package,$(LNF_ID),$(LNF_PACKAGE),$(LNF_INSTALL_DIR)))
-	$(if $(filter desktop-theme,$(INSTALL_PACKAGES)),install -d "$(DTHEME_INSTALL_DIR)")
 	$(if $(filter desktop-theme,$(INSTALL_PACKAGES)),$(call install_package,$(DTHEME_ID),$(DTHEME_PACKAGE),$(DTHEME_INSTALL_DIR)))
-	$(if $(filter aurorae,$(INSTALL_PACKAGES)),install -d "$(AURORAE_INSTALL_DIR)")
 	$(if $(filter aurorae,$(INSTALL_PACKAGES)),$(call install_package,$(AURORAE_ID),$(AURORAE_PACKAGE),$(AURORAE_INSTALL_DIR)))
-	$(if $(filter wallpaper,$(INSTALL_PACKAGES)),install -d "$(WALLPAPER_INSTALL_DIR)")
 	$(if $(filter wallpaper,$(INSTALL_PACKAGES)),$(call install_package,$(WALLPAPER_ID),$(WALLPAPER_PACKAGE),$(WALLPAPER_INSTALL_DIR)))
-	$(if $(filter icon-theme,$(INSTALL_PACKAGES)),install -d "$(ICON_THEME_INSTALL_DIR)")
 	$(if $(filter icon-theme,$(INSTALL_PACKAGES)),$(call install_package,$(ICON_THEME_ID),$(ICON_THEME_PACKAGE),$(ICON_THEME_INSTALL_DIR)))
-	$(if $(filter kvantum,$(INSTALL_PACKAGES)),install -d "$(KVANTUM_INSTALL_DIR)")
 	$(if $(filter kvantum,$(INSTALL_PACKAGES)),$(call install_kvantum))
-	$(if $(filter fonts,$(INSTALL_PACKAGES)),install -d "$(FONT_INSTALL_DIR)")
 	$(if $(filter fonts,$(INSTALL_PACKAGES)),$(call install_package,$(FONT_ID),$(FONT_PACKAGE),$(FONT_INSTALL_DIR)))
 	$(if $(filter gtk,$(INSTALL_PACKAGES)),$(call install_gtk))
 
