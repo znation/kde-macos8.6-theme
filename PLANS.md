@@ -75,6 +75,11 @@ _None yet._
 
 ### Platinum GTK control glyphs, part 1/2: paint the check and radio buttons and their checked glyphs (planned 2026-10-23 by the plan role; part 2/2 adds the combo box and menu scroll arrows)
 
+**Needs replan 2026-10-23 by feature: rejected after 5 review rounds**
+
+> 1. The phase-3 cleanup failure path still leaves a mixed install. After all renames succeed, `rm -f "$old" || exit 1` can fail; the EXIT trap then restores the `.old` files not yet cleaned over their new files while leaving new files whose `.old` was already removed. I reproduced this with a shim fail…
+> 2. `README.md:166` still says `make uninstall` removes “the three opt-in GTK files,” but this change makes five opt-in GTK files (the three theme files plus the two glyph assets). The GTK paragraph at `README.md:60` and `docs/invariants.md` now correctly say five, leaving the general uninstall paragraph stale.
+
 **Goal.** Both opt-in GTK sheets paint windows, header bars, buttons, entries, tabs, menus, scroll bars, meters, toolbars, tooltips, separators and frames, but leave `GtkCheckButton` and `GtkRadioButton` to GTK's generic rounded rendering, so a check box is a rounded grey square and a checked box draws no Platinum glyph (the sheet imports no upstream stylesheet, so it supplies none). Paint them from the Platinum art the theme already ships: the raised `#DDDDDD` check square inside a `#000000` outline with a `#FFFFFF` top/left bevel and an `#888888` bottom/right bevel (the reference-grounded Kvantum check box face), and the round `#FFFFFF` radio face with the `#000000` outline (matching `widgets/radiobutton.svg`). GTK draws the checked glyph from `-gtk-icon-source`, which the sheet cannot compose itself, so ship two tiny glyph assets beside the sheets — a 2px black check and a black 2.5px-radius dot — and copy them in the same opt-in install.
 
 **Approach.**
