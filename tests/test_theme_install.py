@@ -109,6 +109,43 @@ class TestThemeSymlinkGuard(unittest.TestCase):
             destdir.exists(), "install created DESTDIR before refusing"
         )
 
+    def test_a_symlinked_theme_root_is_refused_before_the_data_home(self):
+        """A `THEME_ROOT` that is itself a link is refused by the guard.
+
+        A checkout can replace `theme/` with a link (for example to another
+        checkout); the guard checks the root with `-L` before it scans for
+        links, and refuses before the data home is created, so neither the
+        link nor the directory it names is installed.
+        """
+        tmp = make_tmp_dir(self)
+        real = tmp / "real-theme"
+        real.mkdir()
+        (real / "MacOS8.colors").write_text(
+            "PRIVATE-SECRET-BYTES", encoding="utf-8"
+        )
+        theme_root = tmp / "theme"
+        theme_root.symlink_to(real, target_is_directory=True)
+        destdir = tmp / "dest"
+        env = theme_install.make_env("THEME_ROOT", "COLOR_SCHEME")
+        result = theme_install.run_make(
+            [
+                "install",
+                f"DESTDIR={destdir}",
+                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
+                f"THEME_ROOT={theme_root}",
+                f"COLOR_SCHEME={theme_root / 'MacOS8.colors'}",
+                "INSTALL_PACKAGES=color-scheme",
+            ],
+            env=env,
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "refusing a symlink in the theme package tree", result.stderr
+        )
+        self.assertFalse(
+            destdir.exists(), "install created DESTDIR before refusing"
+        )
+
 
 class TestMakeEnv(unittest.TestCase):
     """`make_env` drops `MAKEFLAGS` and each named variable, and nothing else.
