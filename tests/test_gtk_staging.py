@@ -43,6 +43,21 @@ class StagingCase(unittest.TestCase):
         """Return the ``.backup`` siblings ``commit`` may use for *target*."""
         return list(target.parent.glob(f".{target.name}.*.backup"))
 
+    def fail_the_staged_rename(self, target: Path):
+        """Return an ``os.replace`` stand-in that refuses to publish *target*.
+
+        The staged file's rename onto *target* raises ``OSError``; every
+        other rename goes to the real ``os.replace``.
+        """
+        real_replace = os.replace
+
+        def replace(source, destination, *args, **kwargs):
+            if str(source).endswith(".staging") and Path(destination) == target:
+                raise OSError("injected rename failure")
+            return real_replace(source, destination, *args, **kwargs)
+
+        return replace
+
 
 class TestStage(StagingCase):
     def test_writes_the_text_to_a_hidden_sibling_and_leaves_the_target_alone(self):
@@ -130,18 +145,8 @@ class TestCommit(StagingCase):
         # The second target's rename raises after the first target has already
         # been replaced, so the commit must restore the first rather than
         # leave the selection half-applied.
-        real_replace = os.replace
 
-        def fail_the_second_rename(source, destination, *args, **kwargs):
-            if os.fspath(destination) == os.fspath(blocked) and str(
-                source
-            ).endswith(".staging"):
-                raise OSError("injected rename failure")
-            return real_replace(source, destination, *args, **kwargs)
-
-        with mock.patch.object(
-            os, "replace", side_effect=fail_the_second_rename
-        ):
+        with mock.patch.object(os, "replace", self.fail_the_staged_rename(blocked)):
             with self.assertRaises(ConfigError) as caught:
                 commit(staged)
 
@@ -174,16 +179,8 @@ class TestCommit(StagingCase):
         target.parent.mkdir(parents=True)
         target.write_text("old settings\n", encoding="utf-8")
         staged = stage_all([(target, "new settings\n")])
-        real_replace = os.replace
 
-        def fail_the_staged_rename(source, destination, *args, **kwargs):
-            if str(source).endswith(".staging") and Path(destination) == target:
-                raise OSError("injected rename failure")
-            return real_replace(source, destination, *args, **kwargs)
-
-        with mock.patch.object(
-            os, "replace", fail_the_staged_rename
-        ):
+        with mock.patch.object(os, "replace", self.fail_the_staged_rename(target)):
             with self.assertRaises(ConfigError):
                 commit(staged)
 
@@ -250,14 +247,8 @@ class TestCommit(StagingCase):
         target.parent.mkdir(parents=True)
         target.write_text("old settings\n", encoding="utf-8")
         staged = stage_all([(target, "new settings\n")])
-        real_replace = os.replace
 
-        def fail_once(source, destination, *args, **kwargs):
-            if str(source).endswith(".staging") and Path(destination) == target:
-                raise OSError("injected rename failure")
-            return real_replace(source, destination, *args, **kwargs)
-
-        with mock.patch.object(os, "replace", fail_once):
+        with mock.patch.object(os, "replace", self.fail_the_staged_rename(target)):
             with self.assertRaises(ConfigError):
                 commit(staged)
 
