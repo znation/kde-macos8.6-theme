@@ -35,7 +35,15 @@
    hit area with the toolkit glyph hidden. GTK's restore state keeps the
    maximize class, so it uses the zoom art and needs no fourth asset. No
    reference screenshot shows a GTK widget, so the 16px hit area is this
-   theme's adaptation. The scroll-bar stepper rules paint the reference's
+   theme's adaptation. The headerbar is floored at the reference's 22px title
+   bar (the Aurorae TitleHeight) with the 4px title edge
+   (TitleEdgeLeft/TitleEdgeRight), and a backdrop headerbar paints the
+   reference's flat inactive frame from desktop_fandom.png: the #DDDDDD field,
+   the #555555 outline and the rc's #999999 inactive title text. The floor is
+   not a cap, so a headerbar with a taller child still grows. No reference
+   screenshot shows a GTK widget, so the headerbar and backdrop node names
+   are GTK-required and the geometry is this theme's adaptation. The
+   scroll-bar stepper rules paint the reference's
    arrow box at each end of a normal scroll bar: the installer CD window's
    bar (setup_emaculation.png, y=462..477) shows a 16px box whose 14px
    #EEEEEE face sits inside the bar's 1px #000000 border, with a 1px
@@ -75,10 +83,20 @@ headerbar, .titlebar {
   border: 1px solid #000000;
   border-radius: 0;
   box-shadow: none;
+  min-height: 22px;
+  padding: 0 4px;
 }
 
 headerbar {
   border-width: 0 0 1px 0;
+}
+
+headerbar:backdrop, .titlebar:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #555555;
+  box-shadow: none;
+  color: #999999;
 }
 
 headerbar button.titlebutton.close, .titlebar button.titlebutton.close {

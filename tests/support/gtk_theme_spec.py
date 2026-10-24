@@ -14,12 +14,12 @@ with their own selectors.
 
 from __future__ import annotations
 
-from support.aurorae_fixtures import INACTIVE_OUTLINE
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
     FACE,
     GREY,
+    INACTIVE_OUTLINE,
     SELECTION,
     TOOLTIP_FACE,
     TROUGH,
@@ -359,9 +359,22 @@ class GtkSheetRuleCases(SheetRuleAssertions):
                     "border": f"1px solid {BLACK}",
                     "border-radius": "0",
                     "box-shadow": "none",
+                    "min-height": "22px",
+                    "padding": "0 4px",
                 },
             )
         self.assert_rule("headerbar", {"border-width": "0 0 1px 0"})
+        for selector in ("headerbar:backdrop", ".titlebar:backdrop"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "background-image": "none",
+                    "border-color": INACTIVE_OUTLINE,
+                    "box-shadow": "none",
+                    "color": GREY,
+                },
+            )
 
     def test_button(self):
         self.assert_rule(

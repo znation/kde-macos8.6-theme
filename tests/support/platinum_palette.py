@@ -30,6 +30,12 @@ WHITE = "#FFFFFF"
 GREY = "#999999"
 FACE = "#DDDDDD"
 
+# The inactive frame's 1px outline, sampled from the unfocused windows' outer
+# frame edge in `desktop_fandom.png` (x=25 and y=57) by
+# `tests/test_aurorae_frame.py`; both GTK sheets reuse it for a backdrop
+# headerbar's border.
+INACTIVE_OUTLINE = "#555555"
+
 # The four fills a raised Platinum face artwork uses: the black outline, the
 # white bevel highlight, the grey bevel shadow and the #DDDDDD face.
 PLATINUM_FILLS = frozenset({BLACK, WHITE, GREY, FACE})

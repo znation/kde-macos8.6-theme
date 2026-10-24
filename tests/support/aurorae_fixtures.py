@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 
 from support.desktoptheme_paths import FANDOM_MAX_ROWS, FANDOM_REFERENCE
-from support.platinum_palette import hex_colour
+from support.platinum_palette import INACTIVE_OUTLINE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
 from support.repo_root import ROOT
 
@@ -59,9 +59,8 @@ INACTIVE_GREY = "#CCCCCC"
 # The inactive frame's field, sampled from the four unfocused windows' title
 # fields in `INACTIVE_REFERENCE`.
 INACTIVE_FRAME_GREY = "#DDDDDD"
-# The inactive frame's 1px outline, sampled from the same windows' outer
-# frame edge.
-INACTIVE_OUTLINE = "#555555"
+# The inactive frame's 1px outline lives in `support.platinum_palette` so the
+# palette has one source; it is re-exported here for the Aurorae tests.
 # The zoom face's local x in the 21x13 zoom canvas: the stripe-free gap to its left.
 ZOOM_BOX_X = 5
 

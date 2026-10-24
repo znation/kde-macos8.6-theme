@@ -31,6 +31,7 @@ from support.platinum_palette import (
     BUTTON_SHADOW,
     FACE,
     GREY,
+    INACTIVE_OUTLINE,
     SELECTION,
     TOOLTIP_FACE,
     TROUGH,
@@ -111,6 +112,7 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             SELECTION,
             ETCH_DARK,
             TOOLTIP_FACE,
+            INACTIVE_OUTLINE,
         }
         self.assertEqual(set(HEX.findall(strip_comments(self.css))), palette)
 
