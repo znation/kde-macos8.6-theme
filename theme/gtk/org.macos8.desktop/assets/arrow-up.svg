@@ -1,3 +1,7 @@
+<!-- The Platinum up triangle GTK loads as a GTK 3 menu scroll arrow and a
+     GTK 4 ascending sort indicator. The path is the desktop theme's
+     `widgets/arrows.svg` `up-arrow` shape; tests/test_gtk_theme.py::
+     TestArrowGlyphs pins the 16x16 canvas, the path and the #000000 fill. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
   <path d="M 4,11 L 12,11 L 8,5 Z" fill="#000000"/>
 </svg>
