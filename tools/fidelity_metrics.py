@@ -25,7 +25,7 @@ if __package__:
     from tools.byte_lanes import abs_diff, max_byte_index, sum_squares
     from tools.ints import is_plain_int
     from tools.png import Image
-else:  # imported from inside tools/: python3 -c 'import fidelity_metrics'
+else:  # imported from a directly run tool
     from byte_lanes import abs_diff, max_byte_index, sum_squares
     from ints import is_plain_int
     from png import Image

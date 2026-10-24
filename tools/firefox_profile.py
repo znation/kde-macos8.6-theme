@@ -14,7 +14,7 @@ from pathlib import Path
 
 if __package__:
     from tools.containment import open_regular_binary
-else:  # run directly from tools/
+else:  # imported from a directly run tool
     from containment import open_regular_binary
 
 

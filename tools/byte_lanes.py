@@ -18,7 +18,7 @@ from __future__ import annotations
 
 if __package__:
     from tools.byteops import require_equal_lengths
-else:  # imported from inside tools/: python3 -c 'import byte_lanes'
+else:  # imported from a directly run tool
     from byteops import require_equal_lengths
 
 

@@ -16,7 +16,7 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_atomically
-else:  # imported from inside tools/: python3 -c 'import render_output'
+else:  # imported from a directly run tool
     from atomic_write import write_atomically
 
 

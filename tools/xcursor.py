@@ -31,7 +31,7 @@ import struct
 try:
     from tools.ints import is_plain_int
     from tools.png import PngError, decode_rgba
-except ImportError:  # imported as the top-level package `png` by a directly run tool
+except ImportError:  # imported from a directly run tool
     from ints import is_plain_int
     from png import PngError, decode_rgba
 

@@ -17,7 +17,7 @@ from typing import Callable
 
 try:
     from tools.image_format import JPEG_MAGIC, PNG_MAGIC
-except ImportError:  # run directly: python3 tools/check_references.py
+except ImportError:  # imported from a directly run tool
     from image_format import JPEG_MAGIC, PNG_MAGIC
 
 
