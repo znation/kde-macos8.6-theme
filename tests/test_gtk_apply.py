@@ -21,7 +21,11 @@ from support import snippet_child
 from support import theme_install
 from support.cli_fixtures import run_main
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
-from support.process_assertions import assert_failed, assert_succeeded
+from support.process_assertions import (
+    assert_exit_2_without_traceback,
+    assert_failed,
+    assert_succeeded,
+)
 from support.tmp_dir import make_tmp_dir
 from tools import apply_gtk
 
@@ -213,8 +217,7 @@ class TestSettingsErrors(GtkApplyCase):
         bad.write_bytes(b"\xff\xfe[Settings]\n")
 
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot read {bad}", result.stderr)
         self.assertIn("apply_gtk: error:", result.stderr)
         # Every settings file is read before any is written: the readable
@@ -234,8 +237,7 @@ class TestSettingsErrors(GtkApplyCase):
         path.mkdir(parents=True)
 
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot write {path}", result.stderr)
         # Every write is staged before any is committed: the unwritable
         # gtk-4.0 settings path leaves the gtk-3.0 file unchanged.
@@ -250,8 +252,7 @@ class TestSettingsErrors(GtkApplyCase):
         self.write(path.parent, "not a directory\n")
 
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot write {path}", result.stderr)
         self.assertFalse(self.settings("gtk-3.0").exists())
 
@@ -261,8 +262,7 @@ class TestSettingsErrors(GtkApplyCase):
         path.write_bytes(b"\xff[Settings]\n")
 
         result = self.run_tool("--remove")
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot read {path}", result.stderr)
 
     def test_foreign_user_css_that_is_not_utf8_is_reported_by_name(self):
@@ -276,8 +276,7 @@ class TestSettingsErrors(GtkApplyCase):
         css.write_bytes(b"\xff\xfe")
 
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot read {css}", result.stderr)
         # The user CSS is read before any settings write: neither settings
         # file is created or changed when its read fails.
@@ -297,8 +296,7 @@ class TestSettingsErrors(GtkApplyCase):
         css.mkdir(parents=True)
 
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot write {css}", result.stderr)
         # The user CSS is staged after the settings: its failure discards the
         # staged settings, so the gtk-3.0 file is unchanged and the missing
@@ -319,8 +317,7 @@ class TestSettingsErrors(GtkApplyCase):
         css.write_bytes(b"\xff\xfe")
 
         result = self.run_tool("--remove")
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot read {css}", result.stderr)
         # The user CSS is read before any settings write: the settings file
         # still carries our selection.
@@ -346,8 +343,7 @@ class TestSettingsErrors(GtkApplyCase):
         self.addCleanup(css.parent.chmod, 0o700)
 
         result = self.run_tool("--remove")
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot remove {css}", result.stderr)
         # The settings write is only staged when the unlink fails, so the
         # gtk-3.0 selection is left untouched.

@@ -26,7 +26,11 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import snippet_child
 from support import theme_install
 from support.cli_fixtures import run_main
-from support.process_assertions import assert_failed, assert_succeeded
+from support.process_assertions import (
+    assert_exit_2_without_traceback,
+    assert_failed,
+    assert_succeeded,
+)
 from support.tmp_dir import make_tmp_dir
 from tools import apply_cursor
 
@@ -91,8 +95,7 @@ class TestHomes(CursorCase):
                 if home is not None:
                     env["HOME"] = home
                 result = self.run_tool(env=env)
-                assert_failed(self, result)
-                self.assertEqual(2, result.returncode)
+                assert_exit_2_without_traceback(self, result)
                 self.assertIn("HOME", result.stderr)
 
     def test_data_home_falls_back_to_home(self):
@@ -149,8 +152,7 @@ class TestInstall(CursorCase):
     def test_missing_installed_theme_names_the_path(self):
         self.stub_selector()
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.installed / "index.theme"), result.stderr)
         self.assertIn("make install", result.stderr)
         self.assertFalse(self.link.exists())
@@ -160,8 +162,7 @@ class TestInstall(CursorCase):
         (self.installed / "cursors" / "left_ptr").unlink()
         self.stub_selector()
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.installed / "cursors" / "left_ptr"), result.stderr)
 
     def test_foreign_symlink_is_refused_and_unchanged(self):
@@ -172,8 +173,7 @@ class TestInstall(CursorCase):
         self.link.parent.mkdir(parents=True)
         os.symlink(str(elsewhere), str(self.link))
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.link), result.stderr)
         self.assertEqual(str(elsewhere), os.readlink(self.link))
         self.assertEqual([], self.recorded())
@@ -183,8 +183,7 @@ class TestInstall(CursorCase):
         self.stub_selector()
         self.link.mkdir(parents=True)
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.link), result.stderr)
         self.assertTrue(self.link.is_dir())
 
@@ -194,8 +193,7 @@ class TestInstall(CursorCase):
         self.link.parent.mkdir(parents=True)
         self.link.write_text("foreign\n", encoding="utf-8")
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.link), result.stderr)
         self.assertEqual("foreign\n", self.link.read_text(encoding="utf-8"))
 
@@ -204,8 +202,7 @@ class TestInstall(CursorCase):
         self.stub_selector()
         (self.home / ".icons").write_text("not a directory\n", encoding="utf-8")
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.home / ".icons"), result.stderr)
 
 
@@ -219,8 +216,7 @@ class TestSelection(CursorCase):
     def test_missing_selector_exits_2_naming_it(self):
         self.install_theme()
         result = self.run_tool()
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(apply_cursor.SELECT_TOOL, result.stderr)
 
     def test_failed_selector_exits_1_with_the_log_tail(self):
@@ -302,8 +298,7 @@ class TestSelection(CursorCase):
 
         result = self.run_tool()
 
-        assert_failed(self, result)
-        self.assertEqual(2, result.returncode)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(
             f"cannot run {apply_cursor.SELECT_TOOL}", result.stderr
         )

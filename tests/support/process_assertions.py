@@ -33,8 +33,8 @@ def assert_exit_2_without_traceback(case, result):
 
     A tool reports refused input with its own diagnostic and status 2; a
     ``Traceback`` on stderr means an unexpected exception escaped instead.
-    The local-hook suite uses this for its install and uninstall refusal
-    paths, which each append the diagnostic or path they expect.
+    The local-hook, GTK-apply and cursor-apply suites use this for their
+    refusal paths, each appending the diagnostic or path it expects.
     """
     assert_failed(case, result)
     case.assertEqual(result.returncode, 2, result.stderr)
