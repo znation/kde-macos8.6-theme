@@ -8,7 +8,10 @@
    dark half pinned by tests/test_desktoptheme_line.py and the #FFFFCC tooltip
    face pinned by tests/support/platinum_palette.py. No reference screenshot
    shows a GTK widget, so the GTK-specific geometry below is this theme's
-   adaptation, not a reference crop. */
+   adaptation, not a reference crop. The check button's raised #DDDDDD face
+   reuses the reference-grounded Kvantum check box, the radio face matches
+   widgets/radiobutton.svg, and the checked glyphs load from the shared
+   assets/checkmark.svg and assets/bullet.svg this package installs. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -58,6 +61,34 @@ entry {
   border-radius: 0;
   box-shadow: inset 1px 1px #999999;
   color: #000000;
+}
+
+check, radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+check {
+  border-radius: 0;
+}
+
+radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+check:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+}
+
+radio:checked {
+  -gtk-icon-source: url("../assets/bullet.svg");
 }
 
 notebook > header {
@@ -136,6 +167,13 @@ menu, .menu, popover, .popover {
 
 menuitem:hover, .menuitem:hover {
   background-color: #CCCCFF;
+}
+
+menu menuitem check, menu menuitem radio {
+  margin: 0;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 tooltip {

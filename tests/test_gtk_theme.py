@@ -20,6 +20,7 @@ from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
     ETCH_DARK,
     GtkSheetRuleCases,
+    MENU_CHECK,
     RAISED_BEVEL,
 )
 from support.platinum_palette import (
@@ -33,12 +34,23 @@ from support.platinum_palette import (
     WHITE,
 )
 from support.repo_root import ROOT
+from support.svg_case import parse_svg
 from support.symlink_fixtures import symlinked_repo
+from svg_assertions import (
+    assert_no_script_elements,
+    assert_no_style_elements,
+    assert_root_canvas,
+    attribute_values,
+    children_named,
+    circle_geometry_and_fill,
+)
 
 THEME_ID = "org.macos8.desktop"
 THEME_DIR = Path(ROOT) / "theme" / "gtk" / THEME_ID
 INDEX = THEME_DIR / "index.theme"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
+CHECKMARK = THEME_DIR / "assets" / "checkmark.svg"
+BULLET = THEME_DIR / "assets" / "bullet.svg"
 
 
 class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
@@ -129,6 +141,13 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         for selector in ("menuitem:hover", ".menuitem:hover"):
             self.assert_rule(selector, {"background-color": SELECTION})
 
+    def test_menu_check_and_radio_are_boxless(self):
+        for selector in (
+            "menu menuitem check",
+            "menu menuitem radio",
+        ):
+            self.assert_rule(selector, MENU_CHECK)
+
     def test_menu_separator(self):
         self.assert_menu_separator(("menu separator", ".menu separator"))
 
@@ -178,6 +197,50 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     "box-shadow": f"inset 0 -1px {WHITE}",
                 },
             )
+
+
+class TestCheckGlyphs(unittest.TestCase):
+    """The checked check and radio glyphs GTK loads from the shipped assets."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.checkmark = parse_svg(CHECKMARK)
+        cls.bullet = parse_svg(BULLET)
+
+    def test_assets_stand_alone(self):
+        for tree in (self.checkmark, self.bullet):
+            assert_no_script_elements(self, tree)
+            assert_no_style_elements(self, tree)
+
+    def test_assets_span_a_14px_canvas(self):
+        for tree in (self.checkmark, self.bullet):
+            assert_root_canvas(self, tree, 14, 14)
+
+    def test_assets_use_only_the_two_glyph_fills(self):
+        self.assertEqual(
+            attribute_values(self.checkmark, "fill")
+            | attribute_values(self.bullet, "fill"),
+            {"none", BLACK},
+        )
+
+    def test_checkmark_geometry(self):
+        paths = children_named(self.checkmark.getroot(), "path")
+        self.assertEqual(len(paths), 1)
+        path = paths[0]
+        self.assertEqual(path.get("d"), "M 2.5,7.5 L 5.5,10.5 L 11.5,4.5")
+        self.assertEqual(path.get("fill"), "none")
+        self.assertEqual(path.get("stroke"), BLACK)
+        self.assertEqual(path.get("stroke-width"), "2")
+        self.assertEqual(path.get("stroke-linecap"), "square")
+        self.assertEqual(path.get("stroke-linejoin"), "miter")
+
+    def test_bullet_geometry(self):
+        circles = children_named(self.bullet.getroot(), "circle")
+        self.assertEqual(len(circles), 1)
+        self.assertEqual(
+            circle_geometry_and_fill(circles[0]),
+            (7.0, 7.0, 2.5, BLACK),
+        )
 
 
 if __name__ == "__main__":

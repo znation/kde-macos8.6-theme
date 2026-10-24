@@ -10,7 +10,11 @@
    shows a GTK widget, so the GTK-specific geometry below is this theme's
    adaptation, not a reference crop. The opaque GTK 4 surface names use those
    same values; status and translucent shade roles keep the toolkit defaults
-   because the reference set shows no Platinum value for them. */
+   because the reference set shows no Platinum value for them. The check
+   button's raised #DDDDDD face reuses the reference-grounded Kvantum check
+   box, the radio face matches widgets/radiobutton.svg, and the checked glyphs
+   load from the shared assets/checkmark.svg and assets/bullet.svg this
+   package installs. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -88,6 +92,34 @@ entry {
   border-radius: 0;
   box-shadow: inset 1px 1px #999999;
   color: #000000;
+}
+
+check, radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+}
+
+check {
+  border-radius: 0;
+}
+
+radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+check:checked {
+  -gtk-icon-source: url("../assets/checkmark.svg");
+}
+
+radio:checked {
+  -gtk-icon-source: url("../assets/bullet.svg");
 }
 
 notebook > header {
@@ -168,6 +200,14 @@ popover > contents, popover > arrow {
 
 popover.menu modelbutton:hover, popover.menu modelbutton:selected {
   background-color: #CCCCFF;
+}
+
+popover modelbutton check, popover modelbutton radio,
+popover.background modelbutton check, popover.background modelbutton radio {
+  margin: 0;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 tooltip {

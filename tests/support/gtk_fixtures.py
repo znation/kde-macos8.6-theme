@@ -9,4 +9,10 @@ from support.repo_root import ROOT
 GTK_ID = "org.macos8.desktop"
 PACKAGE = os.path.join(ROOT, "theme", "gtk", GTK_ID)
 
-SHIPPED_FILES = ("index.theme", "gtk-3.0/gtk.css", "gtk-4.0/gtk.css")
+SHIPPED_FILES = (
+    "index.theme",
+    "gtk-3.0/gtk.css",
+    "gtk-4.0/gtk.css",
+    "assets/checkmark.svg",
+    "assets/bullet.svg",
+)

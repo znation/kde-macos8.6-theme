@@ -18,6 +18,7 @@ from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     ETCH_DARK,
     GtkSheetRuleCases,
+    MENU_CHECK,
     RAISED_BEVEL,
 )
 from support.platinum_palette import (
@@ -80,7 +81,13 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_stands_alone(self):
         self.assertNotIn("@import", self.css)
-        self.assertNotIn("url(", self.css)
+        self.assertEqual(
+            set(re.findall(r"url\(([^)]*)\)", self.css)),
+            {
+                '"../assets/checkmark.svg"',
+                '"../assets/bullet.svg"',
+            },
+        )
         self.assertNotIn("adwaita", self.css.lower())
 
     def test_only_palette_hex_literals(self):
@@ -156,6 +163,15 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             "popover.menu modelbutton:selected",
         ):
             self.assert_rule(selector, {"background-color": SELECTION})
+
+    def test_menu_check_and_radio_are_boxless(self):
+        for selector in (
+            "popover modelbutton check",
+            "popover modelbutton radio",
+            "popover.background modelbutton check",
+            "popover.background modelbutton radio",
+        ):
+            self.assert_rule(selector, MENU_CHECK)
 
     def test_menu_separator(self):
         self.assert_menu_separator(

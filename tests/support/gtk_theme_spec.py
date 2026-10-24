@@ -112,6 +112,36 @@ FRAME = {
     "padding": "0",
 }
 
+# The check box and radio faces both sheets paint. The box reuses the
+# reference-grounded Kvantum check face; the radio's flat white face matches
+# widgets/radiobutton.svg.
+CHECK_RADIO = {
+    "min-height": "14px",
+    "min-width": "14px",
+    "margin": "0 4px",
+    "background-color": FACE,
+    "background-image": "none",
+    "border": f"1px solid {BLACK}",
+    "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK}",
+}
+CHECK = {**CHECK_RADIO, "border-radius": "0"}
+RADIO = {
+    **CHECK_RADIO,
+    "background-color": WHITE,
+    "border-radius": "50%",
+    "box-shadow": "none",
+}
+CHECK_GLYPH = {"-gtk-icon-source": 'url("../assets/checkmark.svg")'}
+RADIO_GLYPH = {"-gtk-icon-source": 'url("../assets/bullet.svg")'}
+
+# A menu item's check box shows the bare glyph, not the raised content face.
+MENU_CHECK = {
+    "margin": "0",
+    "background-color": "transparent",
+    "border-color": "transparent",
+    "box-shadow": "none",
+}
+
 # Every tab state covers both the plain and the notebook-scoped selectors, in
 # the plain and `.reorderable-page` forms. A checked state also names the third
 # member: whether its bevel and bottom border must be dropped.
@@ -244,6 +274,12 @@ class GtkSheetRuleCases(SheetRuleAssertions):
                 "color": BLACK,
             },
         )
+
+    def test_check_and_radio(self):
+        self.assert_rule("check", CHECK)
+        self.assert_rule("radio", RADIO)
+        self.assert_rule("check:checked", CHECK_GLYPH)
+        self.assert_rule("radio:checked", RADIO_GLYPH)
 
     def test_tooltip(self):
         self.assert_rule("tooltip", TOOLTIP)

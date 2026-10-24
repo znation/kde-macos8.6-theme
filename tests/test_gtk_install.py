@@ -23,6 +23,25 @@ def _installed_dir(destdir):
     return installed_gtk_theme(destdir)
 
 
+def _package_bytes(name):
+    with open(os.path.join(PACKAGE, name), "rb") as handle:
+        return handle.read()
+
+
+def _sentinel(name):
+    return ("sentinel:" + name).encode()
+
+
+# Every staging path the opt-in install writes, by shipped name.
+STAGING_PATHS = {
+    "index.theme": ".index.theme.staging",
+    "gtk-3.0/gtk.css": "gtk-3.0/.gtk.css.staging",
+    "gtk-4.0/gtk.css": "gtk-4.0/.gtk.css.staging",
+    "assets/checkmark.svg": "assets/.checkmark.svg.staging",
+    "assets/bullet.svg": "assets/.bullet.svg.staging",
+}
+
+
 class TestPackage(unittest.TestCase):
     def test_package_ships_exactly_the_theme_files(self):
         shipped = shipped_files(PACKAGE)
@@ -30,7 +49,7 @@ class TestPackage(unittest.TestCase):
 
 
 class TestInstall(unittest.TestCase):
-    def test_make_install_copies_all_three_byte_for_byte(self):
+    def test_make_install_copies_every_shipped_file_byte_for_byte(self):
         with installed_destdir(self, packages="gtk") as tmp:
             installed = _installed_dir(tmp)
             for name in SHIPPED_FILES:
@@ -48,17 +67,16 @@ class TestInstall(unittest.TestCase):
     def test_failed_install_keeps_previous_files(self):
         with installed_destdir(self, packages="gtk") as tmp:
             installed = _installed_dir(tmp)
-            good = {}
             for name in SHIPPED_FILES:
-                with open(os.path.join(installed, name), "rb") as handle:
-                    good[name] = handle.read()
+                with open(os.path.join(installed, name), "wb") as handle:
+                    handle.write(_sentinel(name))
             real_install = shutil.which("install")
             env = shadow_command_env(
                 tmp,
                 "install",
                 "#!/bin/sh\n"
                 'case "$3" in\n'
-                "  */gtk-3.0/.gtk.css.staging|*/gtk-4.0/.gtk.css.staging|*/.index.theme.staging)\n"
+                "  */assets/.bullet.svg.staging)\n"
                 '    dest="$3"\n'
                 '    mkdir -p "$(dirname "$dest")"\n'
                 '    printf partial > "$dest"\n'
@@ -68,14 +86,50 @@ class TestInstall(unittest.TestCase):
             )
             result = install(tmp, env=env, packages="gtk")
             assert_failed(self, result)
-            # check no staging siblings
-            for path in [os.path.join(installed, ".index.theme.staging"),
-                         os.path.join(installed, "gtk-3.0", ".gtk.css.staging"),
-                         os.path.join(installed, "gtk-4.0", ".gtk.css.staging")]:
-                self.assertFalse(os.path.exists(path))
+            # The last staging step fails after every earlier one succeeded.
+            # The trap removes every staging path, and the sentinels survive
+            # only if no rename ran before that last staging step, so this
+            # fails unless every staging step precedes every rename.
+            for relative in STAGING_PATHS.values():
+                self.assertFalse(
+                    os.path.exists(os.path.join(installed, relative)), relative
+                )
             for name in SHIPPED_FILES:
                 with open(os.path.join(installed, name), "rb") as handle:
-                    self.assertEqual(handle.read(), good[name])
+                    self.assertEqual(handle.read(), _sentinel(name), name)
+
+    def test_a_failed_rename_does_not_roll_back_earlier_renames(self):
+        with installed_destdir(self, packages="gtk") as tmp:
+            installed = _installed_dir(tmp)
+            for name in SHIPPED_FILES:
+                with open(os.path.join(installed, name), "wb") as handle:
+                    handle.write(_sentinel(name))
+            real_mv = shutil.which("mv")
+            env = shadow_command_env(
+                tmp,
+                "mv",
+                "#!/bin/sh\n"
+                'case "$2" in\n'
+                "  */assets/checkmark.svg) exit 1;;\n"
+                "esac\n"
+                'exec "%s" "$@"\n' % real_mv,
+            )
+            result = install(tmp, env=env, packages="gtk")
+            assert_failed(self, result)
+            # The renames before the failing one stay committed, each holding
+            # the new package bytes; there is no .old backup and no rollback.
+            for name in ("index.theme", "gtk-3.0/gtk.css", "gtk-4.0/gtk.css"):
+                with open(os.path.join(installed, name), "rb") as handle:
+                    self.assertEqual(handle.read(), _package_bytes(name), name)
+            for name in ("assets/checkmark.svg", "assets/bullet.svg"):
+                with open(os.path.join(installed, name), "rb") as handle:
+                    self.assertEqual(handle.read(), _sentinel(name), name)
+            for dirpath, dirnames, filenames in os.walk(installed):
+                for name in dirnames + filenames:
+                    self.assertFalse(
+                        name.endswith((".old", ".staging")),
+                        os.path.join(dirpath, name),
+                    )
 
 
     def test_make_install_leaves_preexisting_kvantum_file_untouched(self):
@@ -115,15 +169,15 @@ class TestUninstall(unittest.TestCase):
             with open(os.path.join(sibling, "marker"), "wb") as handle:
                 handle.write(b"sibling")
             # staging leftovers
-            for path in [os.path.join(installed, ".index.theme.staging"),
-                         os.path.join(installed, "gtk-3.0", ".gtk.css.staging"),
-                         os.path.join(installed, "gtk-4.0", ".gtk.css.staging")]:
+            for relative in STAGING_PATHS.values():
+                path = os.path.join(installed, relative)
                 os.makedirs(os.path.dirname(path), exist_ok=True)
                 with open(path, "w") as handle:
                     handle.write("partial")
             assert_succeeded(self, uninstall(tmp))
             for name in SHIPPED_FILES:
                 self.assertFalse(os.path.exists(os.path.join(installed, name)))
+            self.assertFalse(os.path.isdir(os.path.join(installed, "assets")))
             self.assertFalse(os.path.isdir(os.path.join(installed, "gtk-3.0")))
             self.assertFalse(os.path.isdir(os.path.join(installed, "gtk-4.0")))
             with open(planted, "rb") as handle:
