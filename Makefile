@@ -28,6 +28,10 @@ require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(fil
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 
+# The theme tree `make install` copies from. A test overrides it on the command
+# line to point the symlink guard below at a scratch package tree.
+THEME_ROOT := theme
+
 COLOR_SCHEME := theme/color-schemes/MacOS8.colors
 # KDE derives the scheme id from the installed filename, so install under the
 # source's own basename: renaming the scheme then moves the id with it instead
@@ -95,6 +99,17 @@ INSTALL_PACKAGES ?= color-scheme look-and-feel desktop-theme aurorae wallpaper i
 # `colour-scheme`) does the same. Refuse either before the data home exists,
 # with a diagnostic that names INSTALL_PACKAGES. $(1) names the target.
 require_install_packages = set -f; set -- $(INSTALL_PACKAGES); if [ $$\# -eq 0 ]; then echo "$(1): INSTALL_PACKAGES must name at least one artifact family, not an empty or whitespace-only value: '$(INSTALL_PACKAGES)'" >&2; exit 2; fi; unknown=; for family in "$$@"; do case " $(INSTALL_FAMILIES) " in *" $$family "*) ;; *) unknown="$$unknown $$family";; esac; done; if [ -n "$$unknown" ]; then echo "$(1): INSTALL_PACKAGES names unknown artifact families:$$unknown; known families: $(INSTALL_FAMILIES)" >&2; exit 2; fi
+
+# The theme packages are contributor-supplied, and git stores symlinks. The
+# single-file installs use `install`, which follows a source symlink, so one at
+# the color scheme, a Kvantum file or a GTK file would copy a private file's
+# bytes or stream a device into the installed theme. The directory installs use
+# `cp -r`, which preserves a link and puts it in the user's data home, where a
+# later reader follows it. Refuse any symlink under the theme tree before the
+# data home is created. `find` does not follow links, so it lists one without
+# reading its target; the diagnostic names neither the link nor its target, so
+# a contributor-supplied name cannot drive the terminal. $(1) names the target.
+require_theme_links = if [ -L "$(THEME_ROOT)" ] || [ -n "$$(find "$(THEME_ROOT)" -type l -print -quit 2>/dev/null)" ]; then echo "$(1): refusing a symlink in the theme package tree; theme packages must ship regular files, not links" >&2; exit 2; fi
 
 # Stage a directory package as a sibling, then swap it in with a rename, so a
 # copy that fails or is interrupted cannot leave a partial package installed or
@@ -387,6 +402,7 @@ install:
 	@$(call require_data_home,install) && \
 	$(call require_flock_timeout,install) && \
 	$(call require_install_packages,install) && \
+	$(call require_theme_links,install) && \
 	install -d "$(DATA_HOME)" && \
 	{ $(call run_locked,_install,install); }
 

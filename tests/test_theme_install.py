@@ -66,6 +66,50 @@ def _assert_install_packages_refused(case, value, *expected):
     case.assertFalse(os.path.exists(data_home), data_home)
 
 
+class TestThemeSymlinkGuard(unittest.TestCase):
+    """`make install` must refuse a symlink under the theme package tree.
+
+    The package files are contributor-supplied and git stores symlinks. The
+    single-file installs use `install`, which follows a source symlink, so one
+    at the color scheme, a Kvantum file or a GTK file would copy a private
+    file's bytes or stream a device into the installed theme; the directory
+    installs use `cp -r`, which preserves a link into the user's data home
+    where a later reader follows it. The guard runs before the data home is
+    created, so a refused install leaves no tree behind.
+    """
+
+    def test_a_symlink_under_the_theme_tree_is_refused_before_the_data_home(self):
+        tmp = make_tmp_dir(self)
+        private = make_tmp_dir(self) / "private"
+        private.write_text("PRIVATE-SECRET-BYTES", encoding="utf-8")
+        # The color scheme is installed with `install -Dm644`, which follows a
+        # source symlink; without the guard this link's target bytes would land
+        # in the installed scheme.
+        source = tmp / "MacOS8.colors"
+        source.symlink_to(private)
+        destdir = tmp / "dest"
+        env = theme_install.make_env("THEME_ROOT", "COLOR_SCHEME")
+        result = theme_install.run_make(
+            [
+                "install",
+                f"DESTDIR={destdir}",
+                f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}",
+                f"THEME_ROOT={tmp}",
+                f"COLOR_SCHEME={source}",
+                "INSTALL_PACKAGES=color-scheme",
+            ],
+            env=env,
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "refusing a symlink in the theme package tree", result.stderr
+        )
+        self.assertNotIn("PRIVATE-SECRET-BYTES", result.stderr)
+        self.assertFalse(
+            destdir.exists(), "install created DESTDIR before refusing"
+        )
+
+
 class TestMakeEnv(unittest.TestCase):
     """`make_env` drops `MAKEFLAGS` and each named variable, and nothing else.
 
