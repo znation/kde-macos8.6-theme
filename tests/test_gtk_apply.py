@@ -191,6 +191,22 @@ class TestApply(GtkApplyCase):
         )
         self.assertNotIn("not our user CSS", result.stdout)
 
+    def test_a_bom_before_our_marker_keeps_the_user_css_ours(self):
+        # A UTF-8 BOM is valid in a CSS file and some editors add one. It must
+        # not make our marker-led stylesheet look foreign: the apply rewrites
+        # it with the current import and the removal deletes it.
+        self.install_sheet()
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write(css, f"\ufeff{gtk_user_files.GTK4_CSS_MARKER}\n")
+
+        result = self.run_tool()
+        assert_succeeded(self, result)
+        self.assertEqual(
+            f'{gtk_user_files.GTK4_CSS_MARKER}\n@import url("{self.sheet.as_uri()}");\n',
+            css.read_text(encoding="utf-8"),
+        )
+        self.assertNotIn("not our user CSS", result.stdout)
+
     def test_foreign_user_css_is_left_byte_identical_with_a_note(self):
         self.install_sheet()
         css = self.config / "gtk-4.0" / "gtk.css"
@@ -501,6 +517,19 @@ class TestRemove(GtkApplyCase):
         self.assertNotIn("gtk-theme-name", gtk4)
         self.assertFalse(css.exists())
         self.assertIn("restart", result.stdout)
+
+    def test_remove_deletes_a_bom_prefixed_our_user_css(self):
+        settings = self.settings("gtk-3.0")
+        self.write(settings, "[Settings]\ngtk-theme-name=org.macos8.desktop\n")
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write(css, f"\ufeff{gtk_user_files.GTK4_CSS_MARKER}\n")
+
+        result = self.run_tool("--remove")
+        assert_succeeded(self, result)
+        self.assertFalse(css.exists())
+        self.assertNotIn(
+            "gtk-theme-name", settings.read_text(encoding="utf-8")
+        )
 
     def test_remove_keeps_a_matching_key_outside_settings(self):
         self.write(

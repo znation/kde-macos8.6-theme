@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A UTF-8 BOM before our marker hides our own GTK user CSS and Firefox sheet (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`make apply-gtk` and `make install-firefox` decide whether an existing
+`gtk-4.0/gtk.css` or `chrome/userChrome.css` is theirs by comparing its first
+line with the shipped marker. Both readers decode the file as plain UTF-8, so
+a UTF-8 BOM (valid in CSS, and added by some editors) stays in the first line
+and the comparison fails. An apply-gtk then reports that our own file "is not
+our user CSS; leaving it untouched" and never installs the import libadwaita
+needs; a remove-gtk or remove-firefox leaves the marker-led file behind.
+
+**Reproduce:** write `\ufeff` followed by the marker as the first line of
+`gtk-4.0/gtk.css` with the selection installed, then run `apply_gtk.main`;
+before the fix it exited 0 with the file unchanged and "not our user CSS" on
+stdout. The same BOM on Firefox's `chrome/userChrome.css` made
+`install_firefox.main` exit 1 and leave the sheet untouched.
+
+**Fix:** the GTK user-CSS and Firefox sheet checks now strip one leading UTF-8
+BOM before comparing the first line with the marker, so a BOM-prefixed
+marker-led file is adopted and rewritten (dropping the BOM) or removed. A
+foreign first line, BOM or not, is still left untouched.
+
+**Validation gap:** unclear-invariant — neither the code nor the suite said whether a BOM before the marker kept a file ours; the reconstructed rule (a BOM does not hide our marker) is now in `docs/invariants.md`, and the four new tests failed before the fix (the GTK file stayed unchanged, the Firefox install exited 1) and pass after.
+
 ### A Firefox install replaces or removes a symlinked profile file (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `make install-firefox` and `make remove-firefox` reached

@@ -86,6 +86,15 @@ def _refuse_symlink(path: Path, action: str) -> None:
         )
 
 
+def _is_our_sheet(text: str) -> bool:
+    """Return whether *text*'s first line is our marker.
+
+    A UTF-8 BOM is valid in CSS and some editors add one, so it must not hide
+    the marker and make our own installed sheet look foreign.
+    """
+    return first_line(text).removeprefix("\ufeff") == CSS_MARKER
+
+
 def _apply(profile: Path) -> int:
     """Install the sheet and preference into *profile*.
 
@@ -98,7 +107,7 @@ def _apply(profile: Path) -> int:
         raise ConfigError(f"cannot read {Path(ROOT) / SHEET}: {exc}") from exc
     sheet_path, js_path = user_chrome_path(profile), user_js_path(profile)
     existing_sheet = read_profile_text(sheet_path)
-    if existing_sheet and first_line(existing_sheet) != CSS_MARKER:
+    if existing_sheet and not _is_our_sheet(existing_sheet):
         return report_failure(
             TOOL,
             f"{sheet_path} is not our userChrome.css; leaving it untouched",
@@ -131,7 +140,7 @@ def _remove(profile: Path) -> int:
     existing_sheet = read_profile_text(sheet_path)
     existing_js = read_profile_text(js_path)
     remove_sheet = (
-        existing_sheet is not None and first_line(existing_sheet) == CSS_MARKER
+        existing_sheet is not None and _is_our_sheet(existing_sheet)
     )
     updated = None if existing_js is None else remove_user_js(existing_js)
     # Check every planned change before making any: a symlinked path is the

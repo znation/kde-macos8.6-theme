@@ -40,6 +40,17 @@ class ConfigError(Exception):
 MAX_CONFIG_FILE_BYTES = 1 << 20
 
 GTK4_CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
+_BOM = "\ufeff"
+
+
+def _is_our_user_css(text: str) -> bool:
+    """Return whether *text*'s first line is our marker.
+
+    A UTF-8 BOM is valid in CSS and some editors add one, so it must not hide
+    the marker and make our own generated stylesheet look foreign.
+    """
+    first = text.splitlines()
+    return bool(first) and first[0].removeprefix(_BOM) == GTK4_CSS_MARKER
 
 
 def read_config_text(path: Path) -> str | None:
@@ -118,11 +129,9 @@ def user_css_write(
     """
     path = user_css_path(config_home)
     existing = read_config_text(path)
-    if existing:
-        first = existing.splitlines()
-        if not first or first[0] != GTK4_CSS_MARKER:
-            note(f"{path} exists but is not our user CSS; leaving it untouched")
-            return None
+    if existing and not _is_our_user_css(existing):
+        note(f"{path} exists but is not our user CSS; leaving it untouched")
+        return None
     content = f'{GTK4_CSS_MARKER}\n@import url("{sheet.as_uri()}");\n'
     return path, content
 
@@ -137,7 +146,4 @@ def user_css_remove(config_home: Path) -> Path | None:
     existing = read_config_text(path)
     if existing is None:
         return None
-    first = existing.splitlines()
-    if first and first[0] == GTK4_CSS_MARKER:
-        return path
-    return None
+    return path if _is_our_user_css(existing) else None

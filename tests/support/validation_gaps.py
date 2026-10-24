@@ -106,7 +106,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 30
+UNCLEAR_INVARIANT_BASELINE = 31
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -165,6 +165,11 @@ FIREFOX_SYMLINK_GUARANTEE = (
     "by name before the install writes or the removal deletes anything, so "
     "the user's link and the file it names are left untouched instead of the "
     "link being replaced or deleted"
+)
+
+BOM_MARKER_GUARANTEE = (
+    "a leading UTF-8 BOM does not hide our sheet marker, so a BOM-prefixed "
+    "marker-led `userChrome.css` is still replaced or removed"
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
@@ -392,8 +397,14 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "::test_install_refuses_a_symlinked_user_chrome_before_writing_anything",
         FIREFOX_SYMLINK_GUARANTEE,
     ),
+    UnclearInvariant(
+        "bom-before-marker",
+        ("A UTF-8 BOM before our marker",),
+        "tests/test_firefox_install.py::TestInstall"
+        "::test_a_bom_before_our_marker_keeps_the_sheet_ours",
+        BOM_MARKER_GUARANTEE,
+    ),
 )
-
 
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one

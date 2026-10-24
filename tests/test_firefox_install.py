@@ -648,6 +648,21 @@ class TestInstall(ProfileCase):
         self.assertEqual(original, target.read_text(encoding="utf-8"))
         self.assertFalse(self.sheet_path().exists())
 
+    def test_a_bom_before_our_marker_keeps_the_sheet_ours(self):
+        # A UTF-8 BOM is valid in CSS and some editors add one. It must not
+        # make our marker-led sheet look foreign: the install replaces it with
+        # the shipped sheet, and the removal deletes it.
+        _write(
+            self.sheet_path(),
+            f"\ufeff{install_firefox.CSS_MARKER}\nbody {{}}\n",
+        )
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(
+            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
+            self.sheet_path().read_bytes(),
+        )
+
     def test_an_uncreatable_chrome_directory_is_reported_by_path(self):
         # _apply promises a by-name "cannot create" error when the chrome
         # directory cannot be made, rather than a traceback. The directory
@@ -833,6 +848,22 @@ class TestRemove(ProfileCase):
         result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(foreign, _read(self.user_js_path()))
+
+    def test_remove_deletes_a_bom_prefixed_our_sheet(self):
+        sheet_text = f"\ufeff{install_firefox.CSS_MARKER}\nbody {{}}\n"
+        _write(self.sheet_path(), sheet_text)
+        block = (
+            firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.PREF_LINE
+            + "\n"
+        )
+        _write(self.user_js_path(), block)
+
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertEqual("", _read(self.user_js_path()))
 
     def test_remove_keeps_a_foreign_sheet_and_foreign_pref(self):
         foreign_sheet = "/* my own chrome */\n"
