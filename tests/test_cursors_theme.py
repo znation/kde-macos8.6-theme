@@ -791,6 +791,18 @@ class TestCursorBytesCache(unittest.TestCase):
         self.assertNotEqual(default, moved)
         self.assertEqual(render.call_count, 2 * len(SIZES))
 
+    def test_list_sizes_and_hotspot_are_canonicalized_before_the_lookup(self):
+        # ``cursor_bytes`` has always accepted lists for both arguments. The
+        # cache key is built from the checked tuples, so a list request must
+        # neither raise "unhashable type" nor miss the cached tuple request.
+        with mock.patch.object(
+            make_cursors, "render_rgba", wraps=make_cursors.render_rgba
+        ) as render:
+            listed = make_cursors.cursor_bytes(sizes=[16, 24], hotspot=[1, 1])
+            tupled = make_cursors.cursor_bytes(sizes=(16, 24), hotspot=(1, 1))
+        self.assertEqual(listed, tupled)
+        self.assertEqual(render.call_count, 2)
+
     def test_a_malformed_grid_is_refused_on_every_call(self):
         rows = list(cursor_art.ARROW_GRID)
         rows[3] = "x" + rows[3][1:]
