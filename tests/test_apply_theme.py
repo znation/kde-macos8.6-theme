@@ -252,24 +252,22 @@ class TestUnrunnableTools(StubTools):
 
 
 class TestTermination(StubTools):
-    """A SIGTERM while a required step runs unwinds through the cleanup.
+    """A SIGTERM while a command runs unwinds through the cleanup.
 
-    ``run_logged`` starts each step in its own session. Without
+    ``run_logged`` starts each command in its own session. Without
     ``exit_on_termination``, SIGTERM would kill ``apply_theme`` before its
-    ``finally`` blocks ran: the step would keep running and its scratch
+    ``finally`` blocks ran: the command would keep running and its scratch
     directory would be left behind. This runs the CLI as a child and signals
-    it mid-step, so the handler, the group kill and the scratch removal are
+    it mid-command, so the handler, the group kill and the scratch removal are
     all exercised together rather than mocked.
     """
 
-    def test_sigterm_kills_the_step_group_and_removes_scratch(self):
+    def assert_sigterm_cleanup(self, tool, body):
+        """Signal apply_theme once its stub *tool* has started; assert cleanup."""
         scratch_parent = self.root / "tmp"
         scratch_parent.mkdir()
         pidfile = self.root / "step.pid"
-        self.stub(
-            "lookandfeeltool",
-            f'echo $$ > "{pidfile}"; exec /bin/sleep 60',
-        )
+        self.stub(tool, f'echo $$ > "{pidfile}"; {body}')
         env = dict(os.environ, TMPDIR=str(scratch_parent))
         step_pid = None
 
@@ -306,6 +304,15 @@ class TestTermination(StubTools):
         self.assertEqual([], os.listdir(scratch_parent))
         with self.assertRaises(ProcessLookupError):
             os.kill(step_pid, 0)
+
+    def test_sigterm_kills_the_step_group_and_removes_scratch(self):
+        self.assert_sigterm_cleanup("lookandfeeltool", "exec /bin/sleep 60")
+
+    def test_sigterm_during_a_best_effort_selection_also_cleans_up(self):
+        # Kvantum's selection and KWin's reconfigure are best-effort, but an
+        # interrupt must still leave no command running and no scratch behind;
+        # their shared helper must not swallow the SystemExit on the way out.
+        self.assert_sigterm_cleanup("kvantummanager", "exec /bin/sleep 60")
 
 
 class TestMissingTool(unittest.TestCase):
