@@ -269,10 +269,10 @@ class TestTrnsColorTypeValidation(unittest.TestCase):
 
     def test_rgb_path_refuses_wrong_length_sample_trns(self):
         cases = (
-            (0, 2, bytes([7]), b"\x00\x07\x00", "exactly 2"),
-            (2, 3, bytes([1, 2, 3]), bytes(5), "exactly 6"),
+            (0, bytes([7]), b"\x00\x07\x00", "exactly 2"),
+            (2, bytes([1, 2, 3]), bytes(5), "exactly 6"),
         )
-        for color_type, channels, row, trns, length_needle in cases:
+        for color_type, row, trns, length_needle in cases:
             blob = make_png(
                 1, 1, [row], color_type=color_type, trns=trns
             )

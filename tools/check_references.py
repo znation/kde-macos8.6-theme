@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Check that the Mac OS 8.6 reference screenshot set is self-consistent.
 
 ``macos8.6-screenshots/sources.txt`` is the provenance record for the reference
