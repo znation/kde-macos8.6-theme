@@ -391,6 +391,39 @@ class TestTiledRgbValidation(unittest.TestCase):
         out = make_wallpaper.tiled_rgb(tile, 2, 2)
         self.assertEqual(len(out), 2 * 2 * 3)
 
+    def test_a_non_buffer_tile_is_rejected_by_type_name(self):
+        # A str or list of the right length would slice into the wrong type
+        # and fail later inside bytes.join with an opaque TypeError that
+        # named neither the tile nor its type; the guard must raise a named
+        # ValueError before any slicing happens.
+        for tile in ("x" * (TILE * TILE * 3), [0] * (TILE * TILE * 3), None):
+            with self.subTest(tile=type(tile).__name__):
+                with self.assertRaises(ValueError) as caught:
+                    make_wallpaper.tiled_rgb(tile, 2, 2)
+                message = str(caught.exception)
+                self.assertIn("tiled_rgb tile must be bytes or bytearray", message)
+                self.assertIn(type(tile).__name__, message)
+
+    def test_a_wrong_length_tile_is_rejected_with_both_counts(self):
+        expected = TILE * TILE * 3
+        for length in (0, expected - 1, expected + 1):
+            with self.subTest(length=length):
+                with self.assertRaises(ValueError) as caught:
+                    make_wallpaper.tiled_rgb(bytes(length), 2, 2)
+                message = str(caught.exception)
+                self.assertIn(f"tile has {length} bytes", message)
+                self.assertIn(f"needs {expected}", message)
+
+    def test_a_bytearray_tile_is_accepted_like_bytes(self):
+        # The guard accepts bytes and bytearray, matching Image.rgb; a
+        # bytearray must tile identically, wrapping rows and columns past one
+        # tile edge, rather than being refused or producing different bytes.
+        tile = bytes((i * 7) % 256 for i in range(TILE * TILE * 3))
+        self.assertEqual(
+            make_wallpaper.tiled_rgb(tile, 130, 3),
+            make_wallpaper.tiled_rgb(bytearray(tile), 130, 3),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
