@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK secondary chrome: paint the tooltip, menu separator and frame (planned 2026-10-23 by the plan role; independent of the waiting Firefox chrome plan) — done 2026-10-23 by the feature role
+
+**Goal.** Both opt-in GTK sheets paint windows, header bars, buttons, entries, tabs, menus, scroll bars, progress bars, scales and toolbars, but they leave `GtkTooltip`, `GtkSeparatorMenuItem` and `GtkFrame` to GTK's generic rendering, so a tooltip, a menu separator and a group box still draw the toolkit's own rounded greys. Paint them from the Platinum art the theme already ships: the flat `#FFFFCC` tooltip face with a 1px `#000000` outline (matching `widgets/tooltip.svg`), the etched `#888888` over `#FFFFFF` menu separator (matching `widgets/line.svg`), and the sunken 1px `#000000` frame with the `#999999` inner shadow the entry and trough rules already use. No reference screenshot shows a GTK widget, so the geometry is this theme's adaptation; the only palette value the sheets do not already carry is the already-pinned `TOOLTIP_FACE` from `tests/support/platinum_palette.py`, and every other declaration reuses a token the sheet already names.
+
+**Approach.**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: after the `menuitem:hover` rules and before `scrollbar`, add:
+  - `tooltip` with `background-color: #FFFFCC`, `color: #000000`, `border: 1px solid #000000`, `border-radius: 0`, `box-shadow: none` and `padding: 2px 4px`; `tooltip.background` with `background-color: #FFFFCC` and `background-clip: padding-box`.
+  - `menu separator, .menu separator` with `background-color: #888888`, `border: 0`, `border-bottom: 1px solid #FFFFFF`, `margin: 2px 0`, `min-height: 1px` and `padding: 0`.
+  - `frame > border, .frame` with `border: 1px solid #000000`, `border-radius: 0`, `box-shadow: inset 1px 1px #999999`, `margin: 0` and `padding: 0`.
+  - Extend the header provenance paragraph to name the `#FFFFCC` tooltip face pinned by `tests/support/platinum_palette.py` beside the existing `#888888` separator sentence.
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: add the same tooltip and frame rules, and the GTK 4 menu selector `popover separator, popover.background separator` (the selector the installed Breeze GTK 4 sheet uses for menu separators) with the same separator declarations, after the `popover.menu modelbutton` rules and before the scrollbar rules. Extend its header provenance paragraph the same way.
+- `tests/test_gtk_theme.py`: import `TOOLTIP_FACE` from `support.platinum_palette`, add it to the expected set in `test_only_palette_hex_literals`, and add `test_tooltip`, `test_menu_separator` and `test_frame` pinning every declaration above for both menu selector forms (`menu separator`, `.menu separator`) and both frame selector forms (`frame > border`, `.frame`).
+- `tests/test_gtk4_theme.py`: import `TOOLTIP_FACE`, add it to `test_only_palette_hex_literals`, and add matching `test_tooltip`, `test_menu_separator` (for `popover separator` and `popover.background separator`) and `test_frame` methods.
+- `docs/invariants.md`: extend both `## gtk` guarantee sentences (GTK 3 and GTK 4) to name the tooltip, menu-separator and frame rules; keep their no-reference-screenshot provenance exception and add that the tooltip face is the classic Platinum `[Colors:Tooltip]` role no screenshot shows.
+
+**Files touched.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Both sheets carry the tooltip, menu-separator and frame rules, and the new test methods fail if any selector or declaration changes.
+- `test_only_palette_hex_literals` in both suites accepts the sheets with `TOOLTIP_FACE` added and rejects any other new hex literal; the GTK 4 `test_stands_alone` still finds no `@import` and no `url(`, and no selector is universal.
+- `tests/invariants.py` accepts the updated `## gtk` rows and `make check` is green.
+
 ### Firefox Platinum chrome: paint the toolbar button states, bookmark items, menu separators and the find bar (planned 2026-10-23 by the plan role; independent of the waiting GTK meters plan) — done 2026-10-23 by the feature role
 
 **Goal.** The Firefox sheet paints the tab strip, navigation bar, bookmarks-bar background, menus and status panel, but it leaves Firefox's own rounded hover and pressed washes on the toolbar buttons, rounded highlights on bookmarks-bar items, the stock grey menu separator, and the default find bar. Paint those surfaces with the pinned Platinum values the sheet already uses: the #EEEEEE trough as the hover wash, the #CCCCFF selection as the pressed/open fill, the raised bevel (`inset 1px 1px #FFFFFF, inset -1px -1px #999999`) on the hovered button, the etched #888888/#FFFFFF rule from `widgets/line.svg`, the #DDDDDD face for the find bar and the white sunken field with its #999999 shadow for its text box. No reference screenshot shows Firefox chrome, so the geometry is this theme's adaptation of the Platinum controls; the new rules introduce no new hex literal.

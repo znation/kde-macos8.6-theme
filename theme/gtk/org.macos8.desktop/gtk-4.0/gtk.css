@@ -5,7 +5,8 @@
    Platinum values pinned by tests/support/platinum_palette.py (#DDDDDD face,
    #FFFFFF white, #999999 grey, #000000 black, #AAAAAA raised-button shadow,
    #EEEEEE trough and #CCCCFF selection), plus the etched separator's #888888
-   dark half pinned by tests/test_desktoptheme_line.py. No reference screenshot
+   dark half pinned by tests/test_desktoptheme_line.py and the #FFFFCC tooltip
+   face pinned by tests/support/platinum_palette.py. No reference screenshot
    shows a GTK widget, so the GTK-specific geometry below is this theme's
    adaptation, not a reference crop. The opaque GTK 4 surface names use those
    same values; status and translucent shade roles keep the toolkit defaults
@@ -167,6 +168,37 @@ popover > contents, popover > arrow {
 
 popover.menu modelbutton:hover, popover.menu modelbutton:selected {
   background-color: #CCCCFF;
+}
+
+tooltip {
+  background-color: #FFFFCC;
+  color: #000000;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 2px 4px;
+}
+
+tooltip.background {
+  background-color: #FFFFCC;
+  background-clip: padding-box;
+}
+
+popover separator, popover.background separator {
+  background-color: #888888;
+  border: 0;
+  border-bottom: 1px solid #FFFFFF;
+  margin: 2px 0;
+  min-height: 1px;
+  padding: 0;
+}
+
+frame > border, .frame {
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  margin: 0;
+  padding: 0;
 }
 
 scrollbar > range > trough {
