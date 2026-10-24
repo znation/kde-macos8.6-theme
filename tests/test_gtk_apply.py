@@ -10,14 +10,13 @@ the suite's timeout to each child process.
 from __future__ import annotations
 
 import os
-import shutil
-import tempfile
 import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support import theme_install
+from support.apply_target_cases import ApplyTargetMakeCases
 from support.cli_fixtures import run_main
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.process_assertions import (
@@ -734,61 +733,11 @@ class TestHomeResolution(unittest.TestCase):
         self.assertIn("XDG_CONFIG_HOME", result.stderr)
 
 
-class TestMakeApplyGtk(unittest.TestCase):
-    def test_dry_run_shows_install_before_the_script(self):
-        result = theme_install.run_make(
-            ["-n", "apply-gtk"],
-            env=theme_install.make_env("XDG_DATA_HOME"),
-        )
-        assert_succeeded(self, result)
-        self.assertIn("INSTALL_PACKAGES=gtk", result.stdout)
-        self.assertIn("tools/apply_gtk.py", result.stdout)
-        self.assertLess(
-            result.stdout.index("INSTALL_PACKAGES=gtk"),
-            result.stdout.index("tools/apply_gtk.py"),
-        )
-
-    def test_non_empty_destdir_is_refused(self):
-        destdir = tempfile.mkdtemp(prefix="apply-gtk-destdir-")
-        self.addCleanup(shutil.rmtree, destdir, ignore_errors=True)
-        result = theme_install.run_make(
-            ["apply-gtk", f"DESTDIR={destdir}"],
-            env=theme_install.make_env(),
-        )
-        assert_failed(self, result)
-        self.assertIn("DESTDIR must be empty", result.stderr)
-        self.assertNotIn("apply_gtk.py", result.stdout + result.stderr)
-
-    def test_python_version_is_refused(self):
-        tmp = make_tmp_dir(self)
-        fake = tmp / "python"
-        fake.write_text("#!/bin/sh\nexit 3\n", encoding="utf-8")
-        fake.chmod(0o755)
-        result = theme_install.run_make(
-            ["apply-gtk", f"PYTHON={fake}"],
-            env=theme_install.make_env("PYTHON"),
-        )
-        assert_failed(self, result)
-        self.assertIn("Python 3.10 or newer", result.stderr)
-        self.assertIn(str(fake), result.stderr)
-
-    def test_dry_run_shows_remove_script(self):
-        result = theme_install.run_make(
-            ["-n", "remove-gtk"], env=theme_install.make_env()
-        )
-        assert_succeeded(self, result)
-        self.assertIn("tools/apply_gtk.py --remove", result.stdout)
-
-    def test_help_lists_both_targets(self):
-        result = theme_install.run_make(["help"], env=theme_install.make_env())
-        assert_succeeded(self, result)
-        lines = result.stdout.splitlines()
-        self.assertTrue(
-            any(line.startswith("  apply-gtk ") for line in lines), result.stdout
-        )
-        self.assertTrue(
-            any(line.startswith("  remove-gtk ") for line in lines), result.stdout
-        )
+class TestMakeApplyGtk(ApplyTargetMakeCases, unittest.TestCase):
+    TARGET = "apply-gtk"
+    REMOVE_TARGET = "remove-gtk"
+    INSTALL_PACKAGES = "gtk"
+    SCRIPT = "tools/apply_gtk.py"
 
 
 if __name__ == "__main__":

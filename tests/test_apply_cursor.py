@@ -11,11 +11,9 @@ Plasma configuration. The Makefile tests drive the public targets through
 from __future__ import annotations
 
 import os
-import shutil
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 import unittest
 from pathlib import Path
@@ -25,6 +23,7 @@ from support import process_runner
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support import theme_install
+from support.apply_target_cases import ApplyTargetMakeCases
 from support.cli_fixtures import run_main
 from support.process_assertions import (
     assert_exit_2_without_traceback,
@@ -447,63 +446,11 @@ class TestCursorThemeSetting(unittest.TestCase):
         self.assertIsNone(apply_cursor._cursor_theme_setting(self.config))
 
 
-class TestMakeApplyCursor(unittest.TestCase):
-    def test_dry_run_shows_install_before_the_script(self):
-        result = theme_install.run_make(
-            ["-n", "apply-cursor"],
-            env=theme_install.make_env("XDG_DATA_HOME"),
-        )
-        assert_succeeded(self, result)
-        self.assertIn("INSTALL_PACKAGES=icon-theme", result.stdout)
-        self.assertIn("tools/apply_cursor.py", result.stdout)
-        self.assertLess(
-            result.stdout.index("INSTALL_PACKAGES=icon-theme"),
-            result.stdout.index("tools/apply_cursor.py"),
-        )
-
-    def test_non_empty_destdir_is_refused(self):
-        destdir = tempfile.mkdtemp(prefix="apply-cursor-destdir-")
-        self.addCleanup(shutil.rmtree, destdir, ignore_errors=True)
-        result = theme_install.run_make(
-            ["apply-cursor", f"DESTDIR={destdir}"],
-            env=theme_install.make_env(),
-        )
-        assert_failed(self, result)
-        self.assertIn("DESTDIR must be empty", result.stderr)
-        self.assertNotIn("apply_cursor.py", result.stdout + result.stderr)
-
-    def test_python_version_is_refused(self):
-        tmp = make_tmp_dir(self)
-        fake = tmp / "python"
-        fake.write_text("#!/bin/sh\nexit 3\n", encoding="utf-8")
-        fake.chmod(0o755)
-        result = theme_install.run_make(
-            ["apply-cursor", f"PYTHON={fake}"],
-            env=theme_install.make_env("PYTHON"),
-        )
-        assert_failed(self, result)
-        self.assertIn("Python 3.10 or newer", result.stderr)
-        self.assertIn(str(fake), result.stderr)
-
-    def test_dry_run_shows_remove_script(self):
-        result = theme_install.run_make(
-            ["-n", "remove-cursor"], env=theme_install.make_env()
-        )
-        assert_succeeded(self, result)
-        self.assertIn("tools/apply_cursor.py --remove", result.stdout)
-
-    def test_help_lists_both_targets(self):
-        result = theme_install.run_make(["help"], env=theme_install.make_env())
-        assert_succeeded(self, result)
-        lines = result.stdout.splitlines()
-        self.assertTrue(
-            any(line.startswith("  apply-cursor ") for line in lines),
-            result.stdout,
-        )
-        self.assertTrue(
-            any(line.startswith("  remove-cursor ") for line in lines),
-            result.stdout,
-        )
+class TestMakeApplyCursor(ApplyTargetMakeCases, unittest.TestCase):
+    TARGET = "apply-cursor"
+    REMOVE_TARGET = "remove-cursor"
+    INSTALL_PACKAGES = "icon-theme"
+    SCRIPT = "tools/apply_cursor.py"
 
 
 if __name__ == "__main__":
