@@ -80,6 +80,14 @@ class TestAbsoluteUrlWellFormedness(unittest.TestCase):
             self.assertFalse(self.is_absolute(url), repr(url))
         self.assertTrue(self.is_absolute("file:///x.png"))
 
+    def test_the_empty_host_exemption_ignores_scheme_case(self):
+        # Schemes are case insensitive (RFC 3986), so ``FILE:///x`` is as
+        # valid as ``file:///x``, while an uppercase non-file scheme with an
+        # empty host is still rejected.
+        for url in ("FILE:///x.png", "File:///x.png"):
+            self.assertTrue(self.is_absolute(url), repr(url))
+        self.assertFalse(self.is_absolute("HTTPS:///x.png"))
+
     def test_urls_with_an_authority_but_no_host_are_rejected(self):
         # A non-empty authority can still name no host: ``user@`` is userinfo
         # and ``:8080`` is a port, each leaving the host empty, so the
