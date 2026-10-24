@@ -112,4 +112,25 @@ _None yet._
 - Both sheets' `headerbar, .titlebar` rule carries `padding: 0 4px` and `min-height: 22px`; `headerbar` keeps its bottom-only 1px border; both `headerbar:backdrop` and `.titlebar:backdrop` carry the `#DDDDDD` face, `#555555` border, `#999999` text, no background image and no box shadow.
 - The shared `GtkSheetRuleCases.test_headerbar` passes for both suites, `test_only_palette_hex_literals` in both suites accepts `#555555`, the updated GTK 3 and GTK 4 invariant rows are accepted by `tests/invariants.py`, and `make check` is green.
 
+### Retire the `no-repro` validation gap with a deterministic-reproduction ledger (planned 2026-10-24 by the steward role; promotes the recurring `gap: no-repro` tag, 3 Fixed entries)
+
+**Goal.** Three Fixed entries in BUGS-FIXED.md carry `gap: no-repro` — confirming the failure was not deterministic when the bug was filed. Each fix now has a test that reproduces the failure deterministically: the cursor write-failure test patches the imported `write_bytes_atomically` helper the generator actually calls, the `CHECK_PATTERN` whitespace test pins the stripped glob the recipe now runs, and the desktop-theme test plants a session-theme `plasmarc` in an isolated `XDG_CONFIG_DIRS`. Add the fifth validation-gap ledger, mirroring the `no-observability`, `unclear-invariant`, `no-fake` and `real-run-needed` ones, so every record names the test that now confirms it deterministically and the suite refuses a new uncovered `no-repro` record instead of letting the tag grow.
+
+**Cited entries.** The three `gap: no-repro` records in BUGS-FIXED.md:
+- `` `The cursor generator test patches a removed `_write_atomic` symbol` `` (line 411) — `tests/test_cursors_theme.py::TestMainErrors::test_reports_a_failed_write_and_stops_at_that_cursor` patches the shared atomic-write helper the cursor generator imports and calls.
+- `` `make check`'s `CHECK_PATTERN` guard accepts a pattern with surrounding whitespace that then matches no test module `` (line 1260) — `tests/test_make_check.py::TestCheckPattern::test_surrounding_whitespace_pattern_is_stripped` runs the trimmed glob through the project's own check.
+- `` `tests/test_desktoptheme.py::TestApplyDesktopTheme` fails when `XDG_CONFIG_DIRS` already names a session theme `` (line 1335) — `tests/test_desktoptheme.py::TestApplyDesktopTheme::test_apply_ignores_a_session_theme_in_the_config_search_path` plants the session-theme `plasmarc` so the failure no longer depends on the developer's ambient config.
+
+**Approach.**
+- `tests/support/validation_gaps.py`: add `NO_REPRO_BASELINE = 3` and `NO_REPRO_REPRODUCTIONS` with one `Reproduction` per cited entry (markers that match the record subject and the test reference above); add `no_repro(records)` and `no_repro_reproduction(record)`; dispatch `no-repro` in `reproduction_for` and name the five ledgers in its docstring. Update the module docstring from four ledgers to five and describe the tag: a failure that was not deterministic when filed and now names the test that makes it deterministic.
+- `tests/test_validation_gaps.py`: add `TestNoReproLedger` mirroring `TestRealRunNeededLedger`, with `test_every_record_names_a_reproduction`, `test_every_entry_names_a_real_test`, `test_every_ledger_entry_covers_a_shipped_record`, `test_the_record_count_does_not_grow` and `test_an_unmatched_mechanism_has_no_reproduction`; update the module docstring to five ledgers.
+- `docs/invariants.md`: extend the tooling row that names the four existing ledgers to name the `no-repro` ledger and `tests/test_validation_gaps.py::TestNoReproLedger`.
+
+**Files touched.** `tests/support/validation_gaps.py`, `tests/test_validation_gaps.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The task's gap query over BUGS.md and BUGS-FIXED.md returns the 3 `no-repro` records; each maps to a `NO_REPRO_REPRODUCTIONS` entry and each entry covers a shipped record.
+- Every cited test resolves through `check_reference`; a new `no-repro` record without an entry, or a count above 3, fails the suite.
+- The updated tooling row is accepted by `tests/invariants.py`, and `make check` is green.
+
 ## Done
