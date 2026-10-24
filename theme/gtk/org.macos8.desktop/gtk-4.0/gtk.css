@@ -52,7 +52,11 @@
    GTK splits the track between the two states, so the thumb's drawn width is
    GTK's layout rather than the 12px floor. No reference screenshot shows a
    switch, so its shape is KDE-required provenance, and the node names and the
-   hidden I/O glyphs are GTK-required. */
+   hidden I/O glyphs are GTK-required.
+   Selected text in entries, spin buttons, labels and text views reuses the
+   reference-grounded #CCCCFF selection fill with black text; no reference
+   screenshot shows selected text in a field, so applying the fill there is
+   this theme's adaptation, and the node names are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -411,6 +415,11 @@ listview > row.activatable:selected, listview > row.activatable:selected:hover {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;
+}
+
+text > selection, label > selection {
+  background-color: #CCCCFF;
+  color: #000000;
 }
 
 scrollbar > range > trough {

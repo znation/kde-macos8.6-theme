@@ -73,23 +73,4 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Platinum GTK text selection: paint selected text in entries, labels and text views with the Platinum highlight (planned 2026-10-24 by the plan role; independent of the waiting GTK switch plan)
-
-**Goal.** Both opt-in GTK sheets are standalone (they import nothing), and neither names a `selection` node, so selected text in a `GtkEntry`, `GtkSpinButton`, selectable `GtkLabel` or `GtkTextView` gets no fill: the `@define-color theme_selected_bg_color #CCCCFF` role is defined but no rule reads it. Stock GTK paints that node in its own sheets, which we never load: GTK 3 Adwaita's `gtk-contained.css` (the `libgtk-3.so.0` gresource) has `entry selection`, `spinbutton:not(.vertical) selection`, `label selection` and `textview text selection`, and GTK 4's `Default/Default-light.css` has `entry > text > selection`, `spinbutton:not(.vertical) > text > selection`, `textview > text > selection`, `label > selection` and `editablelabel > stack > text > selection`. Paint selected text with the reference-grounded flat `#CCCCFF` selection fill (the `[Colors:Selection] BackgroundNormal` anchor `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background` re-derives from `firstboot_betawiki.png`, already `SELECTION` in `tests/support/platinum_palette.py`) and black text. No new colours are needed.
-
-**Approach.**
-- `tests/support/gtk_theme_spec.py`: after `ROW_SELECTED` add `TEXT_SELECTION = {"background-color": SELECTION, "color": BLACK}`, with a comment that it reuses the row selection fill. The `color` must be `#000000`, not GTK 4's stock `transparent`: GTK draws the selected range's text a second time in the selection node's colour over its fill, so an opaque fill with a transparent colour would hide the selected glyphs. Add `GtkSheetRuleCases.assert_text_selection(self, selectors)`, modelled on `assert_frame`, that asserts `TEXT_SELECTION` for each selector, and name the text selection in the class docstring's list of suite-selector assertions.
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: after the `list row.activatable:selected, list row.activatable:selected:hover` rule add one rule `entry selection, spinbutton selection, label selection, textview text selection { background-color: #CCCCFF; color: #000000; }` (GTK 3's spin button is itself the entry node, hence its own selector). In the header comment, say the text selection reuses the reference-grounded #CCCCFF selection fill with black text, that no reference screenshot shows selected text in a field, so applying the fill there is this theme's adaptation, and that the node names are GTK-required.
-- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: after the row selection rule add `text > selection, label > selection { background-color: #CCCCFF; color: #000000; }` — GTK 4's entry, spin button, password entry, search entry, editable label and text view all draw their text in a `text` node, so the one child selector reaches them. Add the same header-comment sentence.
-- `tests/test_gtk_theme.py`: `TestGtkTheme.test_text_selection` calls `self.assert_text_selection(("entry selection", "spinbutton selection", "label selection", "textview text selection"))`.
-- `tests/test_gtk4_theme.py`: `TestGtk4Theme.test_text_selection` calls it with `("text > selection", "label > selection")`.
-- `docs/invariants.md`: add one `## gtk` row after the title-button row: "Both GTK sheets paint selected text in entries, spin buttons, labels and text views with the flat `#CCCCFF` selection fill and black text", tested by both `test_text_selection` cases, with the provenance exception that the fill is the reference-grounded `[Colors:Selection]` anchor, no reference screenshot shows selected text in a field, and the node names are GTK-required.
-
-**Files touched.** `tests/support/gtk_theme_spec.py`, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- The GTK 3 sheet carries the four GTK 3 selection selectors and the GTK 4 sheet the two GTK 4 selectors, each with exactly `background-color: #CCCCFF; color: #000000;`, and `test_text_selection` in each suite asserts them through `assert_text_selection`. Removing either declaration, or any one selector, fails that suite.
-- `test_only_palette_hex_literals` in both suites passes with its expected set unchanged: the text selection adds no hex literal outside the existing palette.
-- The new `## gtk` invariant row is accepted by `tests/invariants.py`, and `make check` is green.
-
 ## Done

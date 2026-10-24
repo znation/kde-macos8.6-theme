@@ -246,6 +246,11 @@ ROW_SELECTED = {
     "border-radius": "0",
 }
 
+# Selected text in entries, labels and text views reuses the row selection
+# fill. The colour stays black: GTK draws the selected glyphs again in this
+# node's colour, so a transparent colour would hide them.
+TEXT_SELECTION = {"background-color": SELECTION, "color": BLACK}
+
 # The check box and radio faces both sheets paint. The box reuses the
 # reference-grounded Kvantum check face; the radio's flat white face matches
 # widgets/radiobutton.svg.
@@ -371,8 +376,8 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     Both suites inherit these cases and run them against their own parsed
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
-    that owns them. The progress-bar, scale, switch, menu-separator and frame
-    assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
+    that owns them. The progress-bar, scale, switch, menu-separator, frame and
+    text-selection assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
     same nodes differently.
     """
 
@@ -488,6 +493,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the sunken frame bevel against *selectors*."""
         for selector in selectors:
             self.assert_rule(selector, FRAME)
+
+    def assert_text_selection(self, selectors):
+        """Assert the selected-text fill against *selectors*."""
+        for selector in selectors:
+            self.assert_rule(selector, TEXT_SELECTION)
 
     def assert_scale(
         self, trough, fill, slider, horizontal, vertical, disabled

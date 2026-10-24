@@ -165,6 +165,11 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                 {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'},
             )
 
+    def test_text_selection(self):
+        self.assert_text_selection(
+            ("text > selection", "label > selection")
+        )
+
     def test_title_buttons(self):
         for scope in ("headerbar", ".titlebar"):
             for control, asset in (

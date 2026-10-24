@@ -165,6 +165,11 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_tree_header(self):
         self.assert_tree_header(("treeview.view header button",))
 
+    def test_text_selection(self):
+        self.assert_text_selection(
+            ("entry selection", "spinbutton selection", "label selection", "textview text selection")
+        )
+
     def test_title_buttons(self):
         for scope in ("headerbar", ".titlebar"):
             for control, asset in (
