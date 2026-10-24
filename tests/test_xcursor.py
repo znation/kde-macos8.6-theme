@@ -145,6 +145,51 @@ class TestRgbaWriter(unittest.TestCase):
             needles=("images[0]", "15 bytes", "16"),
         )
 
+    def test_rejects_a_non_bytes_pixel_buffer(self):
+        # The shared payload check must name the RGBA field, not the PNG one.
+        for rgba in ("not bytes", None, [0, 0, 0, 0]):
+            with self.subTest(rgba=rgba):
+                assert_error_names(
+                    self,
+                    ValueError,
+                    xcursor.write_rgba_cursor,
+                    [(2, 2, 2, 1, 1, rgba)],
+                    needles=("images[0]", "rgba", type(rgba).__name__),
+                )
+
+    def test_rejects_a_record_with_the_wrong_number_of_fields(self):
+        rgba = opaque_frame(2, 2)
+        for record in ((2, 2, 2, 1, rgba), (2, 2, 2, 1, 1, rgba, None), 42):
+            with self.subTest(record=record):
+                assert_error_names(
+                    self,
+                    ValueError,
+                    xcursor.write_rgba_cursor,
+                    [record],
+                    needles=("images[0]", "6-item", "rgba"),
+                )
+
+    def test_rejects_an_invalid_dimension_and_hotspot(self):
+        rgba = opaque_frame(2, 2)
+        fields = ("nominal_size", "width", "height", "hotspot_x", "hotspot_y")
+        for name, value in (
+            ("nominal_size", 0),
+            ("width", True),
+            ("height", xcursor.MAX_IMAGE_SIZE + 1),
+            ("hotspot_x", 2),
+            ("hotspot_y", -1),
+        ):
+            record = [2, 2, 2, 1, 1, rgba]
+            record[fields.index(name)] = value
+            with self.subTest(field=name, value=value):
+                assert_error_names(
+                    self,
+                    ValueError,
+                    xcursor.write_rgba_cursor,
+                    [tuple(record)],
+                    needles=("images[0]", name),
+                )
+
     def test_accepts_a_bytearray_pixel_buffer(self):
         rgba = opaque_frame(2, 2)
         self.assertEqual(
