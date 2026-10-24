@@ -318,6 +318,23 @@ class TestProfileResolution(ProfileCase):
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
 
+    def test_a_duplicate_section_or_option_is_reported_by_name(self):
+        # configparser is strict, so a repeated section or option is an error
+        # rather than a silent last-one-wins pick of the profile to modify.
+        self.firefox_root.mkdir(parents=True)
+        for name, text in (
+            ("profiles.ini", "[Profile0]\nPath=a\n[Profile0]\nPath=b\n"),
+            ("profiles.ini", "[Profile0]\nPath=a\nPath=b\n"),
+            ("installs.ini", "[ABC]\nDefault=a\n[ABC]\nDefault=b\n"),
+        ):
+            with self.subTest(name=name, text=text):
+                path = self.firefox_root / name
+                path.write_text(text, encoding="utf-8")
+                with self.assertRaises(firefox_user_files.ConfigError) as caught:
+                    self.resolve()
+                self.assertIn(f"cannot read {path}", str(caught.exception))
+                path.unlink()
+
     def test_a_non_utf8_profiles_ini_is_reported_by_name(self):
         # Firefox's own ini files are UTF-8, but a stray byte must still name
         # the file rather than raise UnicodeDecodeError out of the tool.
