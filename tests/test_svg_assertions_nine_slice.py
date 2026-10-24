@@ -15,6 +15,7 @@ from svg_assertions import (
     nine_slice_margins,
     nine_slice_rect_hint_geometry,
     nine_slice_tile_sizes,
+    solid_tile,
     tile_origins,
 )
 
@@ -188,6 +189,21 @@ class TestNineSliceTileSizes(unittest.TestCase):
                 "bottomright": (4, 5),
             },
         )
+
+
+class TestSolidTile(unittest.TestCase):
+    def test_paints_the_named_tile_with_its_own_size(self):
+        sizes = nine_slice_tile_sizes(16, 10, 2, 4, 3, 5)
+        # The top edge is 10x3 here, not the corner or centre size.
+        self.assertEqual(
+            solid_tile(sizes, "top", "#123456"),
+            {(x, y): "#123456" for x in range(10) for y in range(3)},
+        )
+
+    def test_unknown_tile_name_raises(self):
+        sizes = nine_slice_tile_sizes(12, 12, 4, 4, 4, 4)
+        with self.assertRaises(KeyError):
+            solid_tile(sizes, "middle", "#000000")
 
 
 if __name__ == "__main__":
