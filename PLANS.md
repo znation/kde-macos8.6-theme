@@ -73,4 +73,25 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
+### Platinum GTK rubberbands: draw the drag-selection marquee as a dotted outline with no fill (planned 2026-10-24 by the plan role; independent of the waiting GTK 4 scroll-bar plan)
+
+**Goal.** Neither standalone GTK sheet styles the rubberband, the rectangle a view draws while the pointer drag-selects items (file choosers, icon views, tree views). Measured live with PyGObject under `GTK_THEME=org.macos8.desktop` (with `XDG_DATA_HOME` pointing at a temp dir that holds a `themes/org.macos8.desktop` symlink to `theme/gtk/org.macos8.desktop`): a GTK 3 `Gtk.TreeView` or `Gtk.IconView` style context with the `rubberband` class added resolves `background-color` to opaque `rgb(255,255,255)` (the `.view` rule's white) and `border-top-style` to `none`. So the marquee paints an opaque white block over the items it covers, with no outline. Stock Adwaita gives it a 1px solid border and a 20% alpha fill. The GTK 4 sheet has no rule that matches the `rubberband` child node, so a GTK 4 marquee is invisible. The Mac OS Finder drew its selection marquee as a 1px dotted outline with no fill. With `.rubberband, rubberband { background-color: transparent; border: 1px dotted #000000; }` appended to a scratch copy of the GTK 3 sheet, the same live check gives `rgba(0,0,0,0)`, a 1px border, `rgb(0,0,0)` and `GTK_BORDER_STYLE_DOTTED` for both views. So the rule beats the `.view` white because it comes later at equal specificity.
+
+**Design (decided; do not widen).**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: add `.rubberband, rubberband { background-color: transparent; border: 1px dotted #000000; }` after the `.view, textview text, list` rule. It must come after that rule: GTK 3 tree and icon views draw the marquee with the `.rubberband` class on the view's own `.view` context, and flow boxes and list boxes draw it as a `rubberband` node.
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: add `rubberband { background-color: transparent; border: 1px dotted #000000; }` after the `.view, list` rule. GTK 4 views draw the marquee only as a `rubberband` child node.
+- No new colour: black is already in both sheets' palette. Out of scope: `:backdrop`, the GTK 4 text-view selection, and any square-dot pattern art.
+
+**Files touched.**
+- Both sheets: the rule above. Add one sentence to each header comment: the drag-selection rubberband is a 1px dotted black outline with no fill, after the Mac OS Finder marquee; no reference screenshot shows a marquee, so its shape is this theme's adaptation, and the `rubberband` node and class names are GTK-required.
+- `tests/support/gtk_theme_spec.py`: add a `RUBBERBAND = {"background-color": "transparent", "border": f"1px dotted {BLACK}"}` constant with a short comment (as `TEXT_SELECTION` has), and a `SheetRuleAssertions`-style `assert_rubberband(self, selectors)` method in `GtkSheetRuleCases` next to `assert_view_background`.
+- `tests/test_gtk_theme.py`: `TestGtkTheme.test_rubberband` calls `self.assert_rubberband((".rubberband", "rubberband"))`. It also asserts that the rule comes after the `.view` rule in `self.css`: `self.css.index(".rubberband, rubberband {")` is greater than `self.css.index(".view, textview text, list {")`. A later `.view` would win the cascade again.
+- `tests/test_gtk4_theme.py`: `TestGtk4Theme.test_rubberband` calls `self.assert_rubberband(("rubberband",))`.
+- `docs/invariants.md`: add a new `## gtk` row at the end of the gtk section. Guarantee: both GTK sheets draw the drag-selection rubberband as a 1px dotted `#000000` outline with a transparent fill, and GTK 3's rule follows the white `.view` rule. Tests: the two `test_rubberband` tests. Provenance exception: no reference screenshot shows a selection marquee; the dotted outline with no fill follows the Mac OS Finder marquee, the black reuses the palette's reference-grounded outline, and the `rubberband` node and class names are GTK-required.
+
+**Acceptance criteria.**
+- The GTK 3 sheet has the `.rubberband, rubberband` rule after the `.view` rule, and the GTK 4 sheet has the `rubberband` rule, each with exactly the two declarations above.
+- Removing either sheet's rule, changing its border style or colour, or giving it a fill fails that sheet's `test_rubberband`. Moving the GTK 3 rule above the `.view` rule also fails it.
+- `test_only_palette_hex_literals` still passes in both suites, `tests/invariants.py` accepts the new row, and `make check` is green.
+
 ## Done
