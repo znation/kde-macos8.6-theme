@@ -17,8 +17,9 @@ Usage::
         [--height H] [--settle SECONDS] [--timeout SECONDS]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
-2 for a usage error, a missing external tool, or a command this tool starts
-directly (``make`` or ``dbus-run-session``) that cannot be started.
+2 for a usage error, an unwritable OUTPUT, a missing external tool, or a
+command this tool starts directly (``make`` or ``dbus-run-session``) that
+cannot be started.
 """
 
 from __future__ import annotations

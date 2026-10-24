@@ -251,9 +251,9 @@ def main(argv: list[str] | None = None) -> int:
             "Xcursor path and select it."
         ),
         epilog=(
-            "exit status: 0 when the selection ran, 1 when the selector "
-            "failed, 2 for a usage error, an unusable HOME, a missing "
-            "installed theme, a foreign path at the link target, or a "
+            "exit status: 0 when the selection or removal ran, 1 when the "
+            "selector failed, 2 for a usage error, an unusable HOME, a "
+            "missing installed theme, a foreign path at the link target, or a "
             "selector that cannot be started"
         ),
     )

@@ -293,10 +293,10 @@ def main(argv: list[str] | None = None) -> int:
             "Select or clear the Mac OS 8.6 GTK 3 and GTK 4 Platinum themes."
         ),
         epilog=(
-            "exit status: 0 when the selection ran, 1 when an installed GTK 3 "
-            "or GTK 4 sheet is missing, 2 for a usage error, an unresolvable "
-            "config home (or data home when applying), or a settings file that "
-            "cannot be read or written"
+            "exit status: 0 when the selection or removal ran, 1 when an "
+            "installed GTK 3 or GTK 4 sheet is missing, 2 for a usage error, "
+            "an unresolvable config home (or data home when applying), or a "
+            "settings or user-CSS file that cannot be read or written"
         ),
     )
     parser.add_argument(
