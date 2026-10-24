@@ -188,6 +188,28 @@ class TestUninstall(unittest.TestCase):
             again = uninstall(tmp)
             assert_succeeded(self, again)
 
+    def test_make_uninstall_leaves_foreign_files_in_the_gtk_directories(self):
+        with installed_destdir(self, packages="gtk") as tmp:
+            installed = _installed_dir(tmp)
+            foreign = b"keep me"
+            for directory in ("assets", "gtk-3.0", "gtk-4.0"):
+                path = os.path.join(installed, directory, "foreign.txt")
+                with open(path, "wb") as handle:
+                    handle.write(foreign)
+            assert_succeeded(self, uninstall(tmp))
+            for name in SHIPPED_FILES:
+                self.assertFalse(
+                    os.path.exists(os.path.join(installed, name)), name
+                )
+            # Each directory holds a file the theme did not install, so it is
+            # not empty: uninstall removes our files but must not remove the
+            # directory or its foreign content.
+            for directory in ("assets", "gtk-3.0", "gtk-4.0"):
+                path = os.path.join(installed, directory, "foreign.txt")
+                self.assertTrue(os.path.isdir(os.path.dirname(path)), directory)
+                with open(path, "rb") as handle:
+                    self.assertEqual(handle.read(), foreign, directory)
+
     def test_make_uninstall_on_tree_with_no_gtk_install(self):
         with installed_destdir(self) as tmp:
             assert_succeeded(self, uninstall(tmp))
