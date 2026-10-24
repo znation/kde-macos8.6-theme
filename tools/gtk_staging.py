@@ -22,10 +22,10 @@ else:  # imported from a directly run tool
     from gtk_user_files import ConfigError
 
 
-def discard(staging: Path) -> None:
-    """Remove a staging file, ignoring a path that never became one."""
+def discard(path: Path) -> None:
+    """Remove a staging or backup file, ignoring one that does not exist."""
     try:
-        staging.unlink()
+        path.unlink()
     except OSError:
         pass
 
@@ -61,6 +61,8 @@ def stage_all(writes: list[tuple[Path, str]]) -> list[tuple[Path, Path]]:
 
 def _backup(path: Path) -> Path | None:
     """Hard-link *path* to an unused ``.backup`` sibling, or return None.
+
+    A missing target returns ``None`` because there is nothing to keep.
 
     The sibling name carries a random token, so a file the user already keeps
     at ``.gtk.css.backup`` (or any other name) is never removed or
@@ -126,11 +128,12 @@ def commit(
 ) -> None:
     """Replace every staged file and delete every removal as a transaction.
 
-    Each target is linked to a uniquely named ``.backup`` sibling before its
-    staged file takes its place or its removal deletes it. If any step fails,
-    every target changed so far is restored from its backup and a path that did not
-    exist before is removed again, so a failure on the second settings file
-    cannot leave the first one rewritten or the user CSS already deleted.
+    Each existing target is linked to a uniquely named ``.backup`` sibling
+    before its staged file takes its place or its removal deletes it. If any
+    step fails, every target changed so far is restored from its backup and a
+    path that did not exist before is removed again, so a failure on the
+    second settings file cannot leave the first one rewritten or the user CSS
+    already deleted.
     Backups and leftover staging files are removed when the commit succeeds.
     A signal that ends the process before the rollback can still leave the
     targets half-published and a hidden backup behind.
