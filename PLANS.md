@@ -73,27 +73,4 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Retire the `real-run-needed` validation gap with a bounded-run ledger (planned 2026-10-23 by the steward role; promotes the recurring `gap: real-run-needed` tag, 5 Fixed entries)
-
-**Goal.** Five Fixed entries in BUGS-FIXED.md carry `gap: real-run-needed` — confirming the failure needed a real bounded run because no offline test covered it. Three are prose records from 2026-10-23: each MemoryError on an oversize Firefox INI, GTK config or Firefox profile file now has a sparse-file cap test pinning the same bound offline. Two are older one-line bullets whose fixes now have offline install tests: the still-selected color-scheme warning and the scheme filename that KDE must be able to resolve on restart. Add the fourth validation-gap ledger, mirroring the `no-observability`, `unclear-invariant` and `no-fake` ones, so every record names the test that now confirms it offline and the suite refuses a new uncovered `real-run-needed` record instead of letting the tag grow.
-
-**Cited entries.** The five `gap: real-run-needed` records in BUGS-FIXED.md:
-- "An oversize Firefox profile-discovery INI file crashes with a MemoryError", reproduced by `tests/test_firefox_install.py::TestProfileResolution::test_an_oversize_ini_file_is_refused_by_name`.
-- "An oversize GTK settings or user-CSS file crashes the GTK selection with a MemoryError", reproduced by `tests/test_gtk_apply.py::TestUnreadableConfig::test_apply_refuses_an_oversize_settings_file_before_writing_anything` and `tests/test_gtk_apply.py::TestUnreadableConfig::test_remove_refuses_an_oversize_user_css_before_clearing_anything`.
-- "An oversize Firefox profile file crashes the installer with a MemoryError", reproduced by `tests/test_firefox_install.py::TestInstall::test_an_oversize_user_chrome_is_refused_by_name` and `tests/test_firefox_install.py::TestInstall::test_an_oversize_user_js_is_refused_by_name`.
-- "Uninstalling the scheme while it is selected leaves KDE warning `Could not find color scheme \"MacOS8\"`", reproduced by `tests/test_colorscheme_install.py::TestInstall::test_make_uninstall_warns_when_the_removed_scheme_is_still_selected`.
-- "`plasma-apply-colorscheme` writes a scheme ID that does not survive a restart", reproduced offline by `tests/test_colorscheme_install.py::TestInstall::test_make_install_names_the_scheme_after_its_source_basename` (the basename is what KDE resolves on restart); the live `TestRestartRoundTrip` test stays skipped when the Plasma CLI is absent.
-
-**Approach.**
-- `tests/support/validation_gaps.py`: add `REAL_RUN_NEEDED_BASELINE = 5`, a `REAL_RUN_NEEDED_REPRODUCTIONS` tuple reusing `Reproduction` with one entry per cited record (markers match the prose heading or the older bullet), a `real_run_needed(records)` filter and a `real_run_needed_reproduction(record)` lookup, and extend `reproduction_for` to dispatch the tag; update the module docstring to four ledgers.
-- `tests/test_validation_gaps.py`: update the module docstring to four ledgers; add `TestRealRunNeededLedger` mirroring `TestNoFakeLedger`, with `test_every_record_names_a_reproduction`, `test_every_entry_names_a_real_test`, `test_every_ledger_entry_covers_a_shipped_record`, `test_the_record_count_does_not_grow` and `test_an_unmatched_mechanism_has_no_reproduction`.
-- `docs/invariants.md`: extend the tooling row that names the three existing ledgers to name the `real-run-needed` ledger and `tests/test_validation_gaps.py::TestRealRunNeededLedger`.
-
-**Files touched.** `tests/support/validation_gaps.py`, `tests/test_validation_gaps.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- The task's gap query over BUGS.md and BUGS-FIXED.md returns the 5 `real-run-needed` records; each maps to a `REAL_RUN_NEEDED_REPRODUCTIONS` entry and each entry covers a shipped record.
-- Every cited test resolves through `check_reference`; a new `real-run-needed` record without an entry, or a count above 5, fails the suite.
-- `tests/invariants.py` accepts the extended tooling row and `make check` is green.
-
 ## Done

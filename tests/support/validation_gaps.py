@@ -8,9 +8,12 @@ reproductions. The ``unclear-invariant`` tag marked a guarantee the code or
 register left unstated or unpinned; its records now name the test and register
 row that state it. The ``no-fake`` tag marked a failure whose confirmation
 needed a fake, shim or manufactured fixture the suite did not have; its records
-now name the fixture and the test that builds it. This module turns all three
-into a structured ledger that maps each mechanism to the test that confirms it
-offline, and refuses a record that names no reproduction.
+now name the fixture and the test that builds it. The ``real-run-needed``
+tag marked a failure the suite could only confirm with a bounded real run
+(a memory limit, a live KDE session); its records now name the offline test
+that pins the same bound. This module turns all four into a structured ledger
+that maps each mechanism to the test that confirms it offline, and refuses a
+record that names no reproduction.
 ``tests/test_validation_gaps.py`` drives the ledgers and caps each tag's count
 at its baseline, so a new unrecorded tag fails the suite instead of silently
 growing the gap.
@@ -447,6 +450,45 @@ NO_FAKE_REPRODUCTIONS = (
 )
 
 
+# The five ``real-run-needed`` records the archive held when the ledger landed.
+# Each once needed a bounded real run to confirm; its offline test now pins the
+# same bound. A new record must name an offline test instead of raising this.
+REAL_RUN_NEEDED_BASELINE = 5
+
+REAL_RUN_NEEDED_REPRODUCTIONS = (
+    Reproduction(
+        "firefox-profile-discovery-ini-cap",
+        ("Firefox profile-discovery INI",),
+        "tests/test_firefox_install.py::TestProfileResolution"
+        "::test_an_oversize_ini_file_is_refused_by_name",
+    ),
+    Reproduction(
+        "gtk-config-cap",
+        ("An oversize GTK settings or user-CSS file",),
+        "tests/test_gtk_apply.py::TestUnreadableConfig"
+        "::test_apply_refuses_an_oversize_settings_file_before_writing_anything",
+    ),
+    Reproduction(
+        "firefox-profile-file-cap",
+        ("An oversize Firefox profile file",),
+        "tests/test_firefox_install.py::TestInstall"
+        "::test_an_oversize_user_chrome_is_refused_by_name",
+    ),
+    Reproduction(
+        "colorscheme-uninstall-still-selected",
+        ("Uninstalling the scheme while it is selected",),
+        "tests/test_colorscheme_install.py::TestInstall"
+        "::test_make_uninstall_warns_when_the_removed_scheme_is_still_selected",
+    ),
+    Reproduction(
+        "colorscheme-restart-id",
+        ("`plasma-apply-colorscheme` writes a scheme ID",),
+        "tests/test_colorscheme_install.py::TestInstall"
+        "::test_make_install_names_the_scheme_after_its_source_basename",
+    ),
+)
+
+
 def read_gaps(path, root=ROOT):
     """Return every validation-gap record in *path* as a list of :class:`Gap`.
 
@@ -492,6 +534,11 @@ def no_fake(records):
     return [record for record in records if record.tag == "no-fake"]
 
 
+def real_run_needed(records):
+    """Return the subset of *records* tagged ``real-run-needed``."""
+    return [record for record in records if record.tag == "real-run-needed"]
+
+
 def _lookup(record, entries):
     """Return the entry whose markers match *record*, or ``None``."""
     for entry in entries:
@@ -515,13 +562,18 @@ def no_fake_reproduction(record):
     return _lookup(record, NO_FAKE_REPRODUCTIONS)
 
 
+def real_run_needed_reproduction(record):
+    """Return the real-run-needed entry matching *record*, or ``None``."""
+    return _lookup(record, REAL_RUN_NEEDED_REPRODUCTIONS)
+
+
 def reproduction_for(record):
     """Return the ledger entry for *record*'s tag, or ``None``.
 
     A record carrying a tag this module does not ledger (or one whose subject
     matches no entry) has no reproduction, so a new tag cannot borrow another
-    ledger's entries. The three ledgers are ``no-observability``,
-    ``unclear-invariant`` and ``no-fake``.
+    ledger's entries. The four ledgers are ``no-observability``,
+    ``unclear-invariant``, ``no-fake`` and ``real-run-needed``.
     """
     if record.tag == "no-observability":
         return reproduction(record)
@@ -529,4 +581,6 @@ def reproduction_for(record):
         return unclear_invariant_reproduction(record)
     if record.tag == "no-fake":
         return no_fake_reproduction(record)
+    if record.tag == "real-run-needed":
+        return real_run_needed_reproduction(record)
     return None
