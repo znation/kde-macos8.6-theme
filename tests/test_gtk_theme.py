@@ -129,52 +129,11 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         for selector in ("menuitem:hover", ".menuitem:hover"):
             self.assert_rule(selector, {"background-color": SELECTION})
 
-    def test_tooltip(self):
-        self.assert_rule(
-            "tooltip",
-            {
-                "background-color": TOOLTIP_FACE,
-                "color": BLACK,
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-                "box-shadow": "none",
-                "padding": "2px 4px",
-            },
-        )
-        self.assert_rule(
-            "tooltip.background",
-            {
-                "background-color": TOOLTIP_FACE,
-                "background-clip": "padding-box",
-            },
-        )
-
     def test_menu_separator(self):
-        for selector in ("menu separator", ".menu separator"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-color": ETCH_DARK,
-                    "border": "0",
-                    "border-bottom": f"1px solid {WHITE}",
-                    "margin": "2px 0",
-                    "min-height": "1px",
-                    "padding": "0",
-                },
-            )
+        self.assert_menu_separator(("menu separator", ".menu separator"))
 
     def test_frame(self):
-        for selector in ("frame > border", ".frame"):
-            self.assert_rule(
-                selector,
-                {
-                    "border": f"1px solid {BLACK}",
-                    "border-radius": "0",
-                    "box-shadow": f"inset 1px 1px {GREY}",
-                    "margin": "0",
-                    "padding": "0",
-                },
-            )
+        self.assert_frame(("frame > border", ".frame"))
 
     def test_scrollbar(self):
         self.assert_rule(

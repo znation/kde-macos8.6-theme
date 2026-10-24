@@ -8,7 +8,8 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the progress-bar and scale assertions they name with their own selectors.
+plus the progress-bar, scale, menu-separator and frame assertions they name
+with their own selectors.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from support.platinum_palette import (
     FACE,
     GREY,
     SELECTION,
+    TOOLTIP_FACE,
     TROUGH,
     WHITE,
 )
@@ -77,6 +79,37 @@ SCALE_THUMB = {
     "border": f"1px solid {BLACK}",
     "border-radius": "0",
     "box-shadow": RAISED_BEVEL,
+}
+
+# Both sheets spell the tooltip selectors the same way.
+TOOLTIP = {
+    "background-color": TOOLTIP_FACE,
+    "color": BLACK,
+    "border": f"1px solid {BLACK}",
+    "border-radius": "0",
+    "box-shadow": "none",
+    "padding": "2px 4px",
+}
+TOOLTIP_BACKGROUND = {
+    "background-color": TOOLTIP_FACE,
+    "background-clip": "padding-box",
+}
+
+MENU_SEPARATOR = {
+    "background-color": ETCH_DARK,
+    "border": "0",
+    "border-bottom": f"1px solid {WHITE}",
+    "margin": "2px 0",
+    "min-height": "1px",
+    "padding": "0",
+}
+
+FRAME = {
+    "border": f"1px solid {BLACK}",
+    "border-radius": "0",
+    "box-shadow": f"inset 1px 1px {GREY}",
+    "margin": "0",
+    "padding": "0",
 }
 
 # Every tab state covers both the plain and the notebook-scoped selectors, in
@@ -166,8 +199,9 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     Both suites inherit these cases and run them against their own parsed
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
-    that owns them. The progress-bar and scale assertions take the suite's own
-    selectors, since GTK 3 and GTK 4 spell the same nodes differently.
+    that owns them. The progress-bar, scale, menu-separator and frame
+    assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
+    same nodes differently.
     """
 
     def test_headerbar(self):
@@ -211,6 +245,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             },
         )
 
+    def test_tooltip(self):
+        self.assert_rule("tooltip", TOOLTIP)
+        self.assert_rule("tooltip.background", TOOLTIP_BACKGROUND)
+
     def test_tab_states(self):
         for state, selectors, checked in TAB_STATES:
             expected = {
@@ -233,6 +271,16 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         self.assert_rule(trough, PROGRESSBAR_TROUGH)
         self.assert_rule(progress, PROGRESSBAR_PROGRESS)
         self.assert_rule(disabled, {"background-color": GREY})
+
+    def assert_menu_separator(self, selectors):
+        """Assert the Platinum etched menu separator against *selectors*."""
+        for selector in selectors:
+            self.assert_rule(selector, MENU_SEPARATOR)
+
+    def assert_frame(self, selectors):
+        """Assert the sunken frame bevel against *selectors*."""
+        for selector in selectors:
+            self.assert_rule(selector, FRAME)
 
     def assert_scale(
         self, trough, fill, slider, horizontal, vertical, disabled
