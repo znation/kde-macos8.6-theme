@@ -73,25 +73,4 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Platinum GTK spin buttons: give a `GtkSpinButton` the Platinum entry field (planned 2026-10-24 by the plan role; independent of the waiting GTK paned-handle plan)
-
-**Goal.** Both sheets paint text fields with one rule, `entry { background-color: #FFFFFF; border: 1px solid #000000; border-radius: 0; box-shadow: inset 1px 1px #999999; color: #000000; }`, pinned by `GtkSheetRuleCases.test_entry` in `tests/support/gtk_theme_spec.py`. A horizontal spin button never matches it. In GTK 3, `GtkSpinButton` is a `GtkEntry` subclass whose own CSS node is renamed `spinbutton`. In GTK 4 the node is `spinbutton` with `text`, `button.down` and `button.up` children. Neither has an `entry` node, which is why stock styles the field as `spinbutton:not(.vertical), entry` in both GTK 3 Adwaita `gtk-contained.css` and GTK 4 `Default-light.css` (extract them with `gresource extract`; see the separator plan in PLANS-DONE.md). We never load those sheets, so a spin button's number sits on the window's `#DDDDDD` face with no white field or black outline, unlike the entry next to it. That comes from reading the sheets and was not checked in a running app. A vertical spin button behaves differently in each version. GTK 3 gives it a real `entry` descendant (stock `spinbutton.vertical entry`), which our `entry` rule already reaches. GTK 4 uses `spinbutton.vertical > text` (stock spells it that way), which nothing in our GTK 4 sheet names. `grep -n spinbutton theme/gtk` finds only the text-selection selectors. This plan reuses the entry's declarations and adds no new colour or value.
-
-**Design (decided; do not widen).**
-- GTK 3 sheet: extend the existing `entry {` rule's selector list to `entry, spinbutton:not(.vertical) {`. GTK 4 sheet: extend it to `entry, spinbutton:not(.vertical), spinbutton.vertical > text {`. The declarations do not change. Keeping one rule means the field cannot drift between the two.
-- The spin button's `button.up`/`button.down` keep the existing `button` rule. Their arrow icons still come from the icon theme, as the `## gtk` invariant rows already say. `:disabled`, `:focus`, `.flat`, `.error`/`.warning`, `:backdrop` and padding are out of scope. Stock's `spinbutton:not(.vertical) { padding: 0 }` is not copied, because our `entry` sets no padding either.
-
-**Approach.**
-- `tests/support/gtk_theme_spec.py`: next to `TEXT_SELECTION`, add `ENTRY_FIELD` with the five declarations `test_entry` asserts now, and make `test_entry` assert `self.assert_rule("entry", ENTRY_FIELD)`. After `assert_text_selection`, add `GtkSheetRuleCases.assert_spin_button_field(self, selectors)`, which asserts `ENTRY_FIELD` on each selector. Add "spin-button field" to the module docstring's list of named assertions.
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`: change the selector lists as above. In each header comment, add one sentence: spin buttons reuse the entry field because their field node is `spinbutton` (GTK 4 vertical: `spinbutton.vertical > text`), not `entry`, and those node names are GTK-required.
-- `tests/test_gtk_theme.py` (`TestGtkTheme`): after `test_text_selection`, add `test_spin_button_field`, which calls `self.assert_spin_button_field(("spinbutton:not(.vertical)",))` and also asserts `"spinbutton.vertical > text"` is not in `self.rules`, since GTK 3 reaches it through `entry`. `tests/test_gtk4_theme.py` (`TestGtk4Theme`): add `test_spin_button_field`, which calls `self.assert_spin_button_field(("spinbutton:not(.vertical)", "spinbutton.vertical > text"))`.
-- `docs/invariants.md`: add one `## gtk` row as the last row of the section: "Both GTK sheets paint a spin button's field with the Platinum entry field: white, a 1px `#000000` outline and a 1px `#999999` inner top-left shadow". It is tested by `tests/test_gtk_theme.py::TestGtkTheme::test_spin_button_field` and `tests/test_gtk4_theme.py::TestGtk4Theme::test_spin_button_field`. Exception: the field copies the sheets' existing `entry` rule, no reference screenshot shows a GTK spin button, and the `spinbutton` node, its `.vertical` class and GTK 4's `text` child are GTK-required.
-
-**Files touched.** `tests/support/gtk_theme_spec.py`, `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- `test_spin_button_field` runs in `TestGtkTheme` and `TestGtk4Theme`. Removing a spin-button selector from either sheet's entry rule, or moving it to a rule that lacks any `ENTRY_FIELD` declaration, makes that test fail.
-- `test_entry` (now on `ENTRY_FIELD`), `test_text_selection` and `test_only_palette_hex_literals` pass, with the palette set left as it is.
-- The new invariant row is accepted by `tests/invariants.py`, and `make check` is green.
-
 ## Done

@@ -8,7 +8,7 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the progress-bar, level-bar, scale, switch, paned-handle, menu-separator and frame assertions they name
+plus the progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator and frame assertions they name
 with their own selectors.
 """
 
@@ -279,6 +279,15 @@ ROW_SELECTED = {
 # node's colour, so a transparent colour would hide them.
 TEXT_SELECTION = {"background-color": SELECTION, "color": BLACK}
 
+# The text field both sheets paint on ``entry`` and on a spin button's field.
+ENTRY_FIELD = {
+    "background-color": WHITE,
+    "border": f"1px solid {BLACK}",
+    "border-radius": "0",
+    "box-shadow": f"inset 1px 1px {GREY}",
+    "color": BLACK,
+}
+
 # The check box and radio faces both sheets paint. The box reuses the
 # reference-grounded Kvantum check face; the radio's flat white face matches
 # widgets/radiobutton.svg.
@@ -453,16 +462,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             self.assert_rule(selector, {"box-shadow": INVERTED_BUTTON_BEVEL})
 
     def test_entry(self):
-        self.assert_rule(
-            "entry",
-            {
-                "background-color": WHITE,
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-                "box-shadow": f"inset 1px 1px {GREY}",
-                "color": BLACK,
-            },
-        )
+        self.assert_rule("entry", ENTRY_FIELD)
 
     def test_check_and_radio(self):
         self.assert_rule("check", CHECK)
@@ -552,6 +552,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the selected-text fill against *selectors*."""
         for selector in selectors:
             self.assert_rule(selector, TEXT_SELECTION)
+
+    def assert_spin_button_field(self, selectors):
+        """Assert the entry field against the spin-button *selectors*."""
+        for selector in selectors:
+            self.assert_rule(selector, ENTRY_FIELD)
 
     def assert_scale(
         self, trough, fill, slider, horizontal, vertical, disabled
