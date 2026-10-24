@@ -35,6 +35,7 @@ if __package__:
         is_plain_ascii_number,
         plain_number,
     )
+    from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.fidelity_metrics import (
         FidelityError,
@@ -43,6 +44,7 @@ if __package__:
         crop_rect_problem,
     )
     from tools.png import PngError, read_png
+    from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
     from argument_parsing import (
@@ -50,9 +52,11 @@ else:  # run directly: python3 tools/fidelity.py
         is_plain_ascii_number,
         plain_number,
     )
+    from containment import require_within_repo
     from diagnostics import report_error
     from fidelity_metrics import FidelityError, compare, crop, crop_rect_problem
     from png import PngError, read_png
+    from repo_root import ROOT
     from terminal import escape_controls
 
 
@@ -69,7 +73,13 @@ def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
     already read whole because the decoder clamps the bound to the height.
     The alpha plane is decoded too, so a transparent candidate cannot compare
     equal to an opaque reference.
+
+    A repository path that resolves outside the repository (a checked-in
+    symlink) is refused before it is read: the report's worst-delta values and
+    the pass/fail status would otherwise let a private image be probed against
+    a known candidate.
     """
+    require_within_repo(path, ROOT)
     if crop_rect is None:
         return read_png(path, alpha=True)
     x, y, width, height = crop_rect
@@ -229,7 +239,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.crop is not None:
             reference = crop(reference, *args.crop)
         metrics = compare(candidate, reference, tolerance=args.tolerance)
-    except (PngError, FidelityError) as exc:
+    except (PngError, FidelityError, ValueError) as exc:
         return report_error("fidelity", str(exc))
 
     # Every threshold the caller set is a budget that must be met. With no

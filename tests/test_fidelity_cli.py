@@ -12,6 +12,7 @@ the terminal escaping.
 from __future__ import annotations
 
 import unittest
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.error_assertions import assert_escapes_escape_character  # noqa: E402
@@ -25,6 +26,8 @@ from support.png_fixtures import (  # noqa: E402
     rgb_image,
     solid_rgb,
 )
+from support.symlink_fixtures import symlinked_repo  # noqa: E402
+from tools import fidelity  # noqa: E402
 
 
 class TestCli(FidelityCliTestCase):
@@ -369,6 +372,19 @@ class TestCli(FidelityCliTestCase):
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
         self.assertIn("unrecognized arguments", result.stderr)
         assert_escapes_escape_character(self, result.stderr)
+
+    def test_rejects_a_reference_that_symlinks_outside_the_repository(self):
+        # A checked-in symlink at a reference name can point at a private
+        # image; comparing against it would leak its pixels through the
+        # worst-delta report and the verdict. It is refused before the read.
+        _, data = solid_rgb(1, 1)
+        root, link = symlinked_repo(self._tmp_dir(), "reference.png", data)
+        candidate = self._write(self._tmp_dir(), "candidate.png", data)
+        with mock.patch.object(fidelity, "ROOT", str(root)):
+            result = self._run(candidate, str(link))
+        self._assert_usage_error(result, "resolves outside", str(root))
+        self.assertNotIn("max channel delta", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()
