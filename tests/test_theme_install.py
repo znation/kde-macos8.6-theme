@@ -682,5 +682,45 @@ class TestAssertFilesIdentical(unittest.TestCase):
                 theme_install.assert_files_identical(self, source, target)
 
 
+class TestCopyShippedFile(unittest.TestCase):
+    """A copy of a package file must not follow a symlink out of the repository.
+
+    The install tests copy a checked-in file such as the color scheme to a
+    throwaway directory before installing it. ``shutil.copy`` follows a
+    checked-in symlink at the source, so it would copy a private file's bytes
+    into the test tree or stream a device without bound; the helper reads
+    through the shared containment guard instead and writes nothing on a
+    refusal.
+    """
+
+    def test_rejects_a_source_symlink_that_escapes_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root, source = symlinked_repo(
+                tmp, "theme/color-schemes/MacOS8.colors", b"PRIVATE-SECRET-BYTES"
+            )
+            dest = tmp / "copied.colors"
+            with unittest.mock.patch.object(repo_root, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    theme_install.copy_shipped_file(source, dest)
+            self.assertIn(str(source), str(caught.exception))
+            self.assertNotIn("PRIVATE-SECRET-BYTES", str(caught.exception))
+            self.assertFalse(dest.exists())
+
+    def test_copies_a_source_symlink_that_stays_within_the_repository(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root, source = symlinked_repo(
+                tmp,
+                "alias.colors",
+                b"same bytes",
+                target="theme/color-schemes/MacOS8.colors",
+            )
+            dest = tmp / "copied.colors"
+            with unittest.mock.patch.object(repo_root, "ROOT", root):
+                theme_install.copy_shipped_file(source, dest)
+            self.assertEqual(dest.read_bytes(), b"same bytes")
+
+
 if __name__ == "__main__":
     unittest.main()

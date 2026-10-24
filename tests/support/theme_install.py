@@ -195,6 +195,22 @@ def installed_destdir(case, **kwargs):
         yield destdir
 
 
+def copy_shipped_file(source, dest):
+    """Copy a contributor-supplied repository file to *dest* through the guard.
+
+    *source* is a checked-in theme file, so a symlink at it can resolve outside
+    the repository: ``shutil.copy`` would follow the link, pulling a private
+    file's bytes into the test tree or streaming a device such as ``/dev/zero``
+    without bound. The shared containment reader refuses an escaping symlink, a
+    non-regular file and an oversize file before anything is written, and its
+    size bound keeps a hostile source from exhausting memory. *dest* is the
+    test's throwaway path and is written as a plain file.
+    """
+    data = containment.read_bytes(source, repo_root.ROOT)
+    with open(dest, "wb") as handle:
+        handle.write(data)
+
+
 def assert_files_identical(case, source, target, msg=None):
     """Assert *target* exists and is byte-identical to *source*.
 

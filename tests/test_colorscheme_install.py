@@ -21,6 +21,7 @@ from support.installed_paths import (
 )
 from support.theme_install import (
     assert_files_identical,
+    copy_shipped_file,
     install,
     installed_destdir,
     make_env,
@@ -70,7 +71,7 @@ def install_renamed_scheme(case, tmp, filename):
     target the same basename.
     """
     source = os.path.join(tmp, filename)
-    shutil.copy(SCHEME, source)
+    copy_shipped_file(SCHEME, source)
     extra = [f"COLOR_SCHEME={source}"]
     assert_succeeded(case, install(tmp, extra=extra, packages="color-scheme"))
     return source, extra
@@ -397,7 +398,9 @@ class TestRestartRoundTrip(unittest.TestCase):
         schemes = os.path.join(data, "color-schemes")
         os.makedirs(schemes)
         config = write_selected_scheme(tmp, "BreezeLight")
-        shutil.copy(SCHEME, os.path.join(schemes, os.path.basename(SCHEME)))
+        copy_shipped_file(
+            SCHEME, os.path.join(schemes, os.path.basename(SCHEME))
+        )
         kdeglobals = os.path.join(config, "kdeglobals")
         env = dict(
             os.environ,
