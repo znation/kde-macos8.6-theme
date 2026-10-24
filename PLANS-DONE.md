@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Retire the `no-repro` validation gap with a deterministic-reproduction ledger (planned 2026-10-24 by the steward role; promotes the recurring `gap: no-repro` tag, 3 Fixed entries) — done 2026-10-24 by the feature role
+
+**Goal.** Three Fixed entries in BUGS-FIXED.md carry `gap: no-repro` — confirming the failure was not deterministic when the bug was filed. Each fix now has a test that reproduces the failure deterministically: the cursor write-failure test patches the imported `write_bytes_atomically` helper the generator actually calls, the `CHECK_PATTERN` whitespace test pins the stripped glob the recipe now runs, and the desktop-theme test plants a session-theme `plasmarc` in an isolated `XDG_CONFIG_DIRS`. Add the fifth validation-gap ledger, mirroring the `no-observability`, `unclear-invariant`, `no-fake` and `real-run-needed` ones, so every record names the test that now confirms it deterministically and the suite refuses a new uncovered `no-repro` record instead of letting the tag grow.
+
+**Cited entries.** The three `gap: no-repro` records in BUGS-FIXED.md:
+- `` `The cursor generator test patches a removed `_write_atomic` symbol` `` (line 411) — `tests/test_cursors_theme.py::TestMainErrors::test_reports_a_failed_write_and_stops_at_that_cursor` patches the shared atomic-write helper the cursor generator imports and calls.
+- `` `make check`'s `CHECK_PATTERN` guard accepts a pattern with surrounding whitespace that then matches no test module `` (line 1260) — `tests/test_make_check.py::TestCheckPattern::test_surrounding_whitespace_pattern_is_stripped` runs the trimmed glob through the project's own check.
+- `` `tests/test_desktoptheme.py::TestApplyDesktopTheme` fails when `XDG_CONFIG_DIRS` already names a session theme `` (line 1335) — `tests/test_desktoptheme.py::TestApplyDesktopTheme::test_apply_ignores_a_session_theme_in_the_config_search_path` plants the session-theme `plasmarc` so the failure no longer depends on the developer's ambient config.
+
+**Approach.**
+- `tests/support/validation_gaps.py`: add `NO_REPRO_BASELINE = 3` and `NO_REPRO_REPRODUCTIONS` with one `Reproduction` per cited entry (markers that match the record subject and the test reference above); add `no_repro(records)` and `no_repro_reproduction(record)`; dispatch `no-repro` in `reproduction_for` and name the five ledgers in its docstring. Update the module docstring from four ledgers to five and describe the tag: a failure that was not deterministic when filed and now names the test that makes it deterministic.
+- `tests/test_validation_gaps.py`: add `TestNoReproLedger` mirroring `TestRealRunNeededLedger`, with `test_every_record_names_a_reproduction`, `test_every_entry_names_a_real_test`, `test_every_ledger_entry_covers_a_shipped_record`, `test_the_record_count_does_not_grow` and `test_an_unmatched_mechanism_has_no_reproduction`; update the module docstring to five ledgers.
+- `docs/invariants.md`: extend the tooling row that names the four existing ledgers to name the `no-repro` ledger and `tests/test_validation_gaps.py::TestNoReproLedger`.
+
+**Files touched.** `tests/support/validation_gaps.py`, `tests/test_validation_gaps.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The task's gap query over BUGS.md and BUGS-FIXED.md returns the 3 `no-repro` records; each maps to a `NO_REPRO_REPRODUCTIONS` entry and each entry covers a shipped record.
+- Every cited test resolves through `check_reference`; a new `no-repro` record without an entry, or a count above 3, fails the suite.
+- The updated tooling row is accepted by `tests/invariants.py`, and `make check` is green.
+
 ### Platinum GTK headerbars: floor the title bar at the reference's 22px and paint the inactive frame (planned 2026-10-24 by the plan role; independent of the waiting GTK scroll-bar stepper plan) — done 2026-10-24 by the feature role
 
 **Goal.** Both GTK sheets paint the headerbar face and border but leave its height and backdrop state to the toolkit. The installed Adwaita GTK 3 sheet floors every `headerbar` at `min-height: 46px`, and its `headerbar:backdrop` rule paints a `#f6f5f4` face with a white inset shadow, so a GTK 3 client-side title bar is more than twice the reference's 22px `TitleHeight` and its unfocused state is Adwaita's, not Platinum. The reference derives a 22px title bar from `aboutsystem_betawiki.png` (`tests/test_aurorae_rc.py::test_layout_metrics_match_reference`) and a flat inactive frame from the four unfocused windows in `desktop_fandom.png` (`tests/test_aurorae_frame.py`, a `#DDDDDD` field with a `#555555` outer outline), while the Aurorae rc keeps `InactiveTextColor=153,153,153`. Floor both sheets' `headerbar`/`.titlebar` at that 22px title height with the reference's 4px title edge, and give the inactive state the reference's grey field, outline and title text. No reference screenshot shows a GTK widget, so this is the same adaptation the shipped GTK rules already make from the reference-grounded Aurorae art.

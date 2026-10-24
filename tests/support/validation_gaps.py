@@ -11,7 +11,9 @@ needed a fake, shim or manufactured fixture the suite did not have; its records
 now name the fixture and the test that builds it. The ``real-run-needed``
 tag marked a failure the suite could only confirm with a bounded real run
 (a memory limit, a live KDE session); its records now name the offline test
-that pins the same bound. This module turns all four into a structured ledger
+that pins the same bound. The ``no-repro`` tag marked a failure that was not
+deterministic when filed; its records now name the test that makes it
+deterministic. This module turns all five into a structured ledger
 that maps each mechanism to the test that confirms it offline, and refuses a
 record that names no reproduction.
 ``tests/test_validation_gaps.py`` drives the ledgers and caps each tag's count
@@ -579,6 +581,33 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
 )
 
 
+# The three ``no-repro`` records the archive held when the ledger landed. Each
+# failure was not deterministic when filed; its test now reproduces it every run.
+# A new record must name such a test instead of raising this.
+NO_REPRO_BASELINE = 3
+
+NO_REPRO_REPRODUCTIONS = (
+    Reproduction(
+        "cursor-write-helper-patch",
+        ("The cursor generator test patches a removed `_write_atomic` symbol",),
+        "tests/test_cursors_theme.py::TestMainErrors"
+        "::test_reports_a_failed_write_and_stops_at_that_cursor",
+    ),
+    Reproduction(
+        "check-pattern-whitespace",
+        ("`CHECK_PATTERN` guard accepts a pattern with surrounding whitespace",),
+        "tests/test_make_check.py::TestCheckPattern"
+        "::test_surrounding_whitespace_pattern_is_stripped",
+    ),
+    Reproduction(
+        "desktoptheme-session-theme",
+        ("fails when `XDG_CONFIG_DIRS` already names a session theme",),
+        "tests/test_desktoptheme.py::TestApplyDesktopTheme"
+        "::test_apply_ignores_a_session_theme_in_the_config_search_path",
+    ),
+)
+
+
 def read_gaps(path, root=ROOT):
     """Return every validation-gap record in *path* as a list of :class:`Gap`.
 
@@ -629,6 +658,11 @@ def real_run_needed(records):
     return [record for record in records if record.tag == "real-run-needed"]
 
 
+def no_repro(records):
+    """Return the subset of *records* tagged ``no-repro``."""
+    return [record for record in records if record.tag == "no-repro"]
+
+
 def _lookup(record, entries):
     """Return the entry whose markers match *record*, or ``None``."""
     for entry in entries:
@@ -657,13 +691,18 @@ def real_run_needed_reproduction(record):
     return _lookup(record, REAL_RUN_NEEDED_REPRODUCTIONS)
 
 
+def no_repro_reproduction(record):
+    """Return the no-repro entry matching *record*, or ``None``."""
+    return _lookup(record, NO_REPRO_REPRODUCTIONS)
+
+
 def reproduction_for(record):
     """Return the ledger entry for *record*'s tag, or ``None``.
 
     A record carrying a tag this module does not ledger (or one whose subject
     matches no entry) has no reproduction, so a new tag cannot borrow another
-    ledger's entries. The four ledgers are ``no-observability``,
-    ``unclear-invariant``, ``no-fake`` and ``real-run-needed``.
+    ledger's entries. The five ledgers are ``no-observability``,
+    ``unclear-invariant``, ``no-fake``, ``real-run-needed`` and ``no-repro``.
     """
     if record.tag == "no-observability":
         return reproduction(record)
@@ -673,4 +712,6 @@ def reproduction_for(record):
         return no_fake_reproduction(record)
     if record.tag == "real-run-needed":
         return real_run_needed_reproduction(record)
+    if record.tag == "no-repro":
+        return no_repro_reproduction(record)
     return None
