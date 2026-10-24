@@ -121,6 +121,19 @@ class TestProfileResolution(ProfileCase):
         )
         self.assertEqual(profile, self.resolve())
 
+    def test_installs_ini_default_with_a_percent_sign_is_read_literally(self):
+        # configparser interpolates %(...) and rejects a lone % by default, and
+        # that error is raised by section.get() inside _candidate, outside the
+        # reader's ConfigError wrap. A profile directory named "100% work"
+        # must resolve, not escape discovery as a traceback.
+        profile = self.firefox_root / "Profiles" / "100% work"
+        profile.mkdir(parents=True)
+        _write(
+            self.firefox_root / "installs.ini",
+            "[Install4F96]\nDefault=Profiles/100% work\n",
+        )
+        self.assertEqual(profile, self.resolve())
+
     def test_stale_installs_default_falls_through_to_profiles_ini(self):
         # installs.ini can outlive the profile directory it names after a
         # profile is deleted; resolution must keep trying profiles.ini
@@ -179,6 +192,18 @@ class TestProfileResolution(ProfileCase):
             self.firefox_root / "installs.ini",
             "[InstallOld]\nName=old\nDefault=\n"
             "[InstallNew]\nDefault=Profiles/live.default\n",
+        )
+        self.assertEqual(profile, self.resolve())
+
+    def test_profiles_ini_path_with_a_percent_sign_is_read_literally(self):
+        # profiles.ini values are read through the same non-interpolating
+        # parser as installs.ini, so a percent sign in a profile directory
+        # name is literal there too instead of raising out of discovery.
+        profile = self.firefox_root / "10% off"
+        profile.mkdir(parents=True)
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nName=discount\nPath=10% off\n",
         )
         self.assertEqual(profile, self.resolve())
 
