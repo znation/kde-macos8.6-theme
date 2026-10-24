@@ -6,6 +6,7 @@ names that expectation once::
 
     assert_succeeded(self, result)   # result.returncode == 0
     assert_failed(self, result)      # result.returncode != 0
+    assert_exit_2_without_traceback(self, result)  # refusal, not a crash
 
 *result* is a ``subprocess.CompletedProcess`` with decoded-text
 ``stdout``/``stderr``: the suites get one from ``theme_install.run_captured``,
@@ -25,3 +26,16 @@ def assert_succeeded(case, result):
 def assert_failed(case, result):
     """Assert *result* exited non-zero, attaching its output to a failure."""
     case.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
+def assert_exit_2_without_traceback(case, result):
+    """Assert *result* is a refusal: exit 2 with no escaped traceback.
+
+    A tool reports refused input with its own diagnostic and status 2; a
+    ``Traceback`` on stderr means an unexpected exception escaped instead.
+    The local-hook suite uses this for its install and uninstall refusal
+    paths, which each append the diagnostic or path they expect.
+    """
+    assert_failed(case, result)
+    case.assertEqual(result.returncode, 2, result.stderr)
+    case.assertNotIn("Traceback", result.stderr)

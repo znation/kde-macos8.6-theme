@@ -28,7 +28,11 @@ from support import tmp_dir
 from support.atomic_write_failures import crashing_fdopen, swapping_mkstemp
 from support.cli_fixtures import run_main
 from support.close_tracking import failing_fdopen
-from support.process_assertions import assert_failed, assert_succeeded
+from support.process_assertions import (
+    assert_exit_2_without_traceback,
+    assert_failed,
+    assert_succeeded,
+)
 from tools import atomic_write, local_hook
 
 
@@ -272,9 +276,7 @@ class TestInstall(unittest.TestCase):
         oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
         hook.write_bytes(oversize)
         result = run_tool(repo, "install")
-        assert_failed(self, result)
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(hook), result.stderr)
         self.assertIn("larger than", result.stderr)
         self.assertEqual(oversize, hook.read_bytes())
@@ -284,9 +286,7 @@ class TestInstall(unittest.TestCase):
         target = Path(repo) / "outside"
         hook.symlink_to(target)
         result = run_tool(repo, "install")
-        assert_failed(self, result)
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(hook), result.stderr)
         self.assertTrue(hook.is_symlink())
         self.assertFalse(target.exists(), "install wrote through the symlink")
@@ -300,9 +300,7 @@ class TestInstall(unittest.TestCase):
         hook.chmod(0o000)
         self.addCleanup(hook.chmod, 0o644)
         result = run_tool(repo, "install")
-        assert_failed(self, result)
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(hook), result.stderr)
         hook.chmod(0o644)
         self.assertEqual(foreign, hook.read_bytes())
@@ -311,9 +309,7 @@ class TestInstall(unittest.TestCase):
         repo, hook = make_repo_with_hook(self)
         hook.mkdir()
         result = run_tool(repo, "install")
-        assert_failed(self, result)
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn(str(hook), result.stderr)
         self.assertIn("non-regular", result.stderr)
         self.assertTrue(hook.is_dir(), "install replaced the directory")
@@ -327,9 +323,7 @@ class TestInstall(unittest.TestCase):
         shutil.rmtree(hooks)
         hooks.write_bytes(b"not a directory\n")
         result = run_tool(repo, "install")
-        assert_failed(self, result)
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn("cannot inspect", result.stderr)
         self.assertEqual(hooks.read_bytes(), b"not a directory\n")
 
@@ -444,9 +438,7 @@ class TestUninstall(unittest.TestCase):
         oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
         hook.write_bytes(oversize)
         result = run_tool(repo, "uninstall")
-        assert_failed(self, result)
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn("larger than", result.stderr)
         self.assertEqual(oversize, hook.read_bytes())
 
@@ -477,9 +469,7 @@ class TestUninstall(unittest.TestCase):
         with mock.patch.object(Path, "unlink", failing_unlink):
             result = run_tool(repo, "uninstall")
 
-        assert_failed(self, result)
-        self.assertEqual(result.returncode, 2, result.stderr)
-        self.assertNotIn("Traceback", result.stderr)
+        assert_exit_2_without_traceback(self, result)
         self.assertIn("cannot remove", result.stderr)
         self.assertIn(str(hook), result.stderr)
         self.assertEqual(hook.read_bytes(), complete)
