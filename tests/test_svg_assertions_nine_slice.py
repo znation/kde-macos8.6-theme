@@ -11,6 +11,7 @@ import unittest
 from support.svg_fixtures import _svg_tree
 from svg_assertions import (
     nine_slice_hint_geometry,
+    nine_slice_id_set,
     nine_slice_inset_hints,
     nine_slice_margins,
     nine_slice_rect_hint_geometry,
@@ -204,6 +205,22 @@ class TestSolidTile(unittest.TestCase):
         sizes = nine_slice_tile_sizes(12, 12, 4, 4, 4, 4)
         with self.assertRaises(KeyError):
             solid_tile(sizes, "middle", "#000000")
+
+
+class TestNineSliceIdSet(unittest.TestCase):
+    def test_lists_the_shared_centre_hint_and_each_prefix_s_margins_and_slices(self):
+        slices = {
+            "center", "top", "bottom", "left", "right",
+            "topleft", "topright", "bottomleft", "bottomright",
+        }
+        expected = {"hint-tile-center"}
+        for prefix in ("normal", "hover"):
+            expected |= {f"{prefix}-hint-{side}-margin" for side in ("top", "bottom", "left", "right")}
+            expected |= {f"{prefix}-{name}" for name in slices}
+        self.assertEqual(nine_slice_id_set(("normal", "hover")), expected)
+
+    def test_adds_extra_ids_and_no_prefixes_leaves_only_the_centre_hint(self):
+        self.assertEqual(nine_slice_id_set((), ["arrow"]), {"hint-tile-center", "arrow"})
 
 
 if __name__ == "__main__":
