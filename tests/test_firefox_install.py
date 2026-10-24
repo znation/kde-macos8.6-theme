@@ -603,6 +603,51 @@ class TestInstall(ProfileCase):
         self.assertEqual(foreign, _read(self.sheet_path()))
         self.assertFalse(self.user_js_path().exists())
 
+    def test_install_refuses_a_symlinked_user_chrome_before_writing_anything(self):
+        # A dotfile manager commonly makes userChrome.css a symlink to a file
+        # it manages. Replacing that link with a regular file would detach the
+        # profile from the file the user meant to edit.
+        target = self.root / "dotfiles" / "userChrome.css"
+        target.parent.mkdir(parents=True)
+        target.write_bytes(b"")
+        link = self.sheet_path()
+        link.parent.mkdir(parents=True)
+        try:
+            link.symlink_to(target)
+        except OSError:
+            self.skipTest("cannot create a symlink on this platform")
+
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {link}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        # The refused link and the file it names are untouched, and the
+        # preference file was not written either.
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(b"", target.read_bytes())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_install_refuses_a_symlinked_user_js_before_writing_anything(self):
+        target = self.root / "dotfiles" / "user.js"
+        target.parent.mkdir(parents=True)
+        original = 'user_pref("keep.me", true);\n'
+        target.write_text(original, encoding="utf-8")
+        link = self.user_js_path()
+        try:
+            link.symlink_to(target)
+        except OSError:
+            self.skipTest("cannot create a symlink on this platform")
+
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {link}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        # The link and its target are untouched, and the sheet was not
+        # written before the second path was refused.
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(original, target.read_text(encoding="utf-8"))
+        self.assertFalse(self.sheet_path().exists())
+
     def test_an_uncreatable_chrome_directory_is_reported_by_path(self):
         # _apply promises a by-name "cannot create" error when the chrome
         # directory cannot be made, rather than a traceback. The directory
@@ -798,6 +843,53 @@ class TestRemove(ProfileCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(foreign_sheet, _read(self.sheet_path()))
         self.assertEqual(foreign_js, _read(self.user_js_path()))
+
+    def test_remove_refuses_a_symlinked_sheet_before_deleting_anything(self):
+        target = self.root / "dotfiles" / "userChrome.css"
+        target.parent.mkdir(parents=True)
+        css_text = f"{install_firefox.CSS_MARKER}\nbody {{}}\n"
+        target.write_text(css_text, encoding="utf-8")
+        link = self.sheet_path()
+        link.parent.mkdir(parents=True)
+        try:
+            link.symlink_to(target)
+        except OSError:
+            self.skipTest("cannot create a symlink on this platform")
+        js_text = firefox_user_js.USER_JS_MARKER + "\n" + firefox_user_js.PREF_LINE + "\n"
+        _write(self.user_js_path(), js_text)
+
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {link}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        # The link and its target survive, and the preference block was not
+        # cleared before the sheet was refused.
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(css_text, target.read_text(encoding="utf-8"))
+        self.assertEqual(js_text, _read(self.user_js_path()))
+
+    def test_remove_refuses_a_symlinked_user_js_before_clearing_the_sheet(self):
+        sheet_text = f"{install_firefox.CSS_MARKER}\nbody {{}}\n"
+        _write(self.sheet_path(), sheet_text)
+        target = self.root / "dotfiles" / "user.js"
+        target.parent.mkdir(parents=True)
+        js_text = firefox_user_js.USER_JS_MARKER + "\n" + firefox_user_js.PREF_LINE + "\n"
+        target.write_text(js_text, encoding="utf-8")
+        link = self.user_js_path()
+        try:
+            link.symlink_to(target)
+        except OSError:
+            self.skipTest("cannot create a symlink on this platform")
+
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {link}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        # The sheet was not deleted before the preference path was refused,
+        # and the link's target keeps its marker block.
+        self.assertEqual(sheet_text, _read(self.sheet_path()))
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(js_text, target.read_text(encoding="utf-8"))
 
     def test_install_and_remove_preserve_foreign_lines_and_crlf(self):
         foreign = (

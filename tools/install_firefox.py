@@ -69,6 +69,23 @@ def _note(message: str) -> None:
     report_note(TOOL, message)
 
 
+def _refuse_symlink(path: Path, action: str) -> None:
+    """Refuse to *action* a profile file that is a symbolic link.
+
+    A dotfile manager commonly makes ``userChrome.css`` or ``user.js`` a
+    symlink to a file it manages. Replacing or deleting that link would
+    silently detach the profile from the file the user meant to edit, so the
+    link is refused by name before anything is written or removed; the link
+    and its target are left untouched. A symlinked profile directory is not a
+    link at *path* and stays supported.
+    """
+    if path.is_symlink():
+        raise ConfigError(
+            f"cannot {action} {path}: it is a symbolic link; refusing to "
+            "replace or delete the link instead of the file it names"
+        )
+
+
 def _apply(profile: Path) -> int:
     """Install the sheet and preference into *profile*.
 
@@ -93,6 +110,11 @@ def _apply(profile: Path) -> int:
             f"{js_path} would grow past the {MAX_PROFILE_FILE_BYTES}-byte "
             "limit this installer reads; refusing to write it"
         )
+    # Both files are written, so a symlinked path is refused before the
+    # chrome directory or either file is touched. The reads above still run
+    # first, so an unreadable link is reported by its own read error.
+    _refuse_symlink(sheet_path, "write")
+    _refuse_symlink(js_path, "write")
     try:
         sheet_path.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
@@ -108,15 +130,23 @@ def _remove(profile: Path) -> int:
     sheet_path, js_path = user_chrome_path(profile), user_js_path(profile)
     existing_sheet = read_profile_text(sheet_path)
     existing_js = read_profile_text(js_path)
-    if existing_sheet is not None and first_line(existing_sheet) == CSS_MARKER:
+    remove_sheet = (
+        existing_sheet is not None and first_line(existing_sheet) == CSS_MARKER
+    )
+    updated = None if existing_js is None else remove_user_js(existing_js)
+    # Check every planned change before making any: a symlinked path is the
+    # user's link, so refuse it instead of deleting or replacing it.
+    if remove_sheet:
+        _refuse_symlink(sheet_path, "remove")
+    if updated is not None and updated != existing_js:
+        _refuse_symlink(js_path, "remove")
+    if remove_sheet:
         try:
             sheet_path.unlink()
         except OSError as exc:
             raise ConfigError(f"cannot remove {sheet_path}: {exc}") from exc
-    if existing_js is not None:
-        updated = remove_user_js(existing_js)
-        if updated != existing_js:
-            write_profile_text(js_path, updated)
+    if updated is not None and updated != existing_js:
+        write_profile_text(js_path, updated)
     return 0
 
 

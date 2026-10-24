@@ -5,6 +5,30 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A Firefox install replaces or removes a symlinked profile file (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`make install-firefox` and `make remove-firefox` reached
+`chrome/userChrome.css` and `user.js` through `write_atomically` and
+`Path.unlink`, which operate on the path itself. When either file was a
+symbolic link (a common dotfile-manager setup), the install replaced the
+link with a regular file and left the target stale; a removal unlinked the
+link. The profile silently detached from the file the user meant to edit.
+
+**Reproduce:** point `chrome/userChrome.css` at a dotfile target holding an
+empty file and `user.js` at a target holding
+`user_pref("keep.me", true);`, then run `install_firefox.main`; before the
+fix it exited 0 and both paths were regular files while the targets kept
+their old bytes.
+
+**Fix:** `_apply` and `_remove` now refuse a planned write or removal whose
+final path component is a symbolic link with a `ConfigError` naming the path,
+so the installer exits 2 with `install_firefox: error: cannot write/remove
+<path>: it is a symbolic link; ...` and neither the link nor its target
+changes. A symlinked profile directory is not a link at the profile file
+path and stays supported.
+
+**Validation gap:** unclear-invariant — neither the Firefox row nor the suite said what an install or removal should do with a symlinked profile file, so the invariant was reconstructed first (never replace or delete the user's link; refuse by name), is now recorded in `docs/invariants.md`, and the new tests failed with exit 0 and regular files where the links were before the fix.
+
 ### A GTK selection replaces a symlinked settings or user-CSS file (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `make apply-gtk` and `make remove-gtk` reached their config paths through

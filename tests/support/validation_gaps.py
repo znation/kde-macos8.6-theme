@@ -106,7 +106,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 29
+UNCLEAR_INVARIANT_BASELINE = 30
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -158,6 +158,13 @@ GTK_SYMLINK_GUARANTEE = (
     "before staging any write or removal, so the user's link and the file "
     "it names are left untouched instead of the link being replaced or "
     "deleted."
+)
+
+FIREFOX_SYMLINK_GUARANTEE = (
+    "a `userChrome.css` or `user.js` path that is a symbolic link is refused "
+    "by name before the install writes or the removal deletes anything, so "
+    "the user's link and the file it names are left untouched instead of the "
+    "link being replaced or deleted"
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
@@ -377,6 +384,13 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         ("A GTK selection replaces a symlinked",),
         "tests/test_gtk_apply.py::TestSettingsErrors",
         GTK_SYMLINK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "firefox-symlinked-profile-file",
+        ("A Firefox install replaces or removes a symlinked",),
+        "tests/test_firefox_install.py::TestInstall"
+        "::test_install_refuses_a_symlinked_user_chrome_before_writing_anything",
+        FIREFOX_SYMLINK_GUARANTEE,
     ),
 )
 
