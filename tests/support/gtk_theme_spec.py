@@ -8,7 +8,7 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the progress-bar, scale, menu-separator and frame assertions they name
+plus the progress-bar, scale, switch, menu-separator and frame assertions they name
 with their own selectors.
 """
 
@@ -81,6 +81,33 @@ SCALE_THUMB = {
     "border-radius": "0",
     "box-shadow": RAISED_BEVEL,
 }
+
+# The switch reuses the desktop theme's widgets/switch.svg faces (pinned by
+# tests/test_desktoptheme_switch.py): a flat #EEEEEE trough, a flat white
+# active field and the raised thumb, with the I/O glyphs hidden.
+SWITCH_TRACK = {
+    "background-color": TROUGH,
+    "background-image": "none",
+    "border": f"1px solid {BLACK}",
+    "border-radius": "0",
+    "box-shadow": "none",
+    "min-width": "30px",
+    "min-height": "16px",
+}
+SWITCH_TRACK_CHECKED = {"background-color": WHITE, "background-image": "none"}
+SWITCH_TRACK_DISABLED = {"border-color": GREY}
+SWITCH_THUMB = {
+    **SCALE_THUMB,
+    "margin": "-1px",
+    "min-width": "12px",
+    "min-height": "16px",
+}
+SWITCH_THUMB_DISABLED = {
+    "background-color": FACE,
+    "border": f"1px solid {GREY}",
+    "box-shadow": "none",
+}
+SWITCH_GLYPH = {"color": "transparent"}
 
 # Both sheets spell the tooltip selectors the same way.
 TOOLTIP = {
@@ -344,7 +371,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     Both suites inherit these cases and run them against their own parsed
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
-    that owns them. The progress-bar, scale, menu-separator and frame
+    that owns them. The progress-bar, scale, switch, menu-separator and frame
     assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
     same nodes differently.
     """
@@ -486,6 +513,15 @@ class GtkSheetRuleCases(SheetRuleAssertions):
                 "box-shadow": "none",
             },
         )
+
+    def assert_switch(self, slider, disabled_slider, glyph):
+        """Assert the shared switch spec against this sheet's selectors."""
+        self.assert_rule("switch", SWITCH_TRACK)
+        self.assert_rule("switch:checked", SWITCH_TRACK_CHECKED)
+        self.assert_rule("switch:disabled", SWITCH_TRACK_DISABLED)
+        self.assert_rule(slider, SWITCH_THUMB)
+        self.assert_rule(disabled_slider, SWITCH_THUMB_DISABLED)
+        self.assert_rule(glyph, SWITCH_GLYPH)
 
     def assert_title_button(self, selector, asset):
         """Assert the Aurorae box in a 16px hit area with *asset* behind it."""

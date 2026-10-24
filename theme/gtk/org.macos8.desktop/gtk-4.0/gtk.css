@@ -46,7 +46,13 @@
    the #555555 outline and the rc's #999999 inactive title text. The floor is
    not a cap, so a headerbar with a taller child still grows. No reference
    screenshot shows a GTK widget, so the headerbar and backdrop node names
-   are GTK-required and the geometry is this theme's adaptation. */
+   are GTK-required and the geometry is this theme's adaptation.
+   The switch reuses the desktop theme's widgets/switch.svg faces (the #EEEEEE
+   trough, the #FFFFFF active field and the raised #DDDDDD thumb with no glyph);
+   GTK splits the track between the two states, so the thumb's drawn width is
+   GTK's layout rather than the 12px floor. No reference screenshot shows a
+   switch, so its shape is KDE-required provenance, and the node names and the
+   hidden I/O glyphs are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -495,6 +501,46 @@ scale > trough > slider:disabled {
   background-color: #DDDDDD;
   border: 1px solid #999999;
   box-shadow: none;
+}
+
+switch {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+  min-width: 30px;
+  min-height: 16px;
+}
+
+switch:checked {
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
+switch:disabled {
+  border-color: #999999;
+}
+
+switch > slider {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  margin: -1px;
+  min-width: 12px;
+  min-height: 16px;
+}
+
+switch:disabled > slider {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+}
+
+switch > image {
+  color: transparent;
 }
 
 .toolbar {

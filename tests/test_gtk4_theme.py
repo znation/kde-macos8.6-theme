@@ -269,6 +269,13 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             disabled="progressbar > trough > progress:disabled",
         )
 
+    def test_switch(self):
+        self.assert_switch(
+            slider="switch > slider",
+            disabled_slider="switch:disabled > slider",
+            glyph="switch > image",
+        )
+
     def test_scale(self):
         self.assert_scale(
             trough="scale > trough",
