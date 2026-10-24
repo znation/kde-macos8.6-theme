@@ -121,4 +121,22 @@ _None yet._
 - The opt-in install copies the seven package files byte-for-byte (index, two sheets, four assets), a failed install leaves the previous files intact with no staging sibling, and uninstall removes only those files and the emptied `assets`, `gtk-3.0` and `gtk-4.0` directories, leaving `Kvantum/`.
 - The GTK 3 and GTK 4 suites pass (including the narrowed `test_stands_alone`), `tests/invariants.py` accepts the updated `## gtk` rows, and `make check` is green.
 
+### Platinum icon theme: draw the Home and Desktop places as the Platinum folder (planned 2026-10-23 by the plan role; independent of the waiting GTK glyph series)
+
+**Goal.** The icon theme inherits Breeze and ships `places/folder.svg`, `places/inode-directory.svg`, `places/user-trash.svg` and `places/user-trash-full.svg` at 32x32 with 16x16 and 22x22 renditions. KDE's standard Places list names three special items by icon: `user-home` (Home), `user-desktop` (Desktop) and `user-trash` (Trash), as the standard `user-places.xbel` entries write them. The theme draws `user-trash`, but no `user-home` or `user-desktop`, so Dolphin's Places sidebar and any place menu that shows Home or Desktop inherits Breeze's blue artwork while every generic folder is Platinum. Ship the two missing names at 32x32, 22x22 and 16x16 as the Platinum folder shape, exactly as `inode-directory` already aliases `folder`, so every place and directory draws one Platinum folder. No reference screenshot shows a Home or Desktop place; the art is the existing folder drawing rather than new art and introduces no palette value.
+
+**Approach.**
+- Add `theme/icons/org.macos8.desktop/32x32/places/user-home.svg`, `22x22/places/user-home.svg` and `16x16/places/user-home.svg`, and the same three files for `user-desktop`, each drawing the matching `folder.svg`'s root children in the same document order with the same `d`, geometry and `fill` attributes. Each comment names the place it draws and says it shares the folder geometry because Mac OS 8.6 draws one folder shape for a directory; only the comment differs from `folder.svg`.
+- `theme/icons/org.macos8.desktop/index.theme`: no change; `32x32/places`, `22x22/places` and `16x16/places` are already declared with their `Size`, `Context=Places` and `Type=Fixed` sections.
+- `tests/test_icon_theme.py`: add the six new paths to `SHIPPED_ICONS`; add each path to `ICON_SHAPES` with the same `_shape` tuples as the matching `folder.svg` (either repeat the six tuples or map the alias paths to the folder tuple after the literal dictionary); extend `test_the_folder_alias_shares_the_folder_art` so `inode-directory`, `user-home` and `user-desktop` each equal `folder`'s drawing at 16x16, 22x22 and 32x32.
+- `README.md`: in the icon-theme sentence that names the hard-disk, folder, document, Trash and full-Trash icons, name the Home and Desktop places as the same Platinum folder.
+- `docs/invariants.md`: extend the `## icons` geometry row ("the `inode-directory` alias shares the folder art") to name the `user-home` and `user-desktop` places and cite the same test; keep the provenance exception that the art is our own and the reference set has no pixel ground truth, adding that the three place names are KDE-required values read from the standard `user-places.xbel` entries and the shared folder shape is this theme's own choice.
+
+**Files touched.** Six new SVGs under `theme/icons/org.macos8.desktop/{32x32,22x22,16x16}/places/` (`user-home.svg`, `user-desktop.svg`), `tests/test_icon_theme.py`, `README.md`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Each of the six new icons is a square SVG of its declared size whose drawing elements equal the matching `folder.svg`'s in document order, and the alias test compares all three aliases at all three sizes.
+- The shipped-icon inventory and the `ICON_SHAPES` registry both include the six paths and remain equal; the palette, structure and index-directory tests pass with no new hex literal and no `index.theme` edit.
+- The README and the `## icons` row name Home and Desktop as the Platinum folder, `tests/invariants.py` accepts the row, and `make check` is green.
+
 ## Done
