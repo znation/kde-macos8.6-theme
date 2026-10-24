@@ -106,7 +106,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 28
+UNCLEAR_INVARIANT_BASELINE = 29
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -151,6 +151,13 @@ GTK_COMMIT_ROLLBACK_GUARANTEE = (
     "a rename or removal that fails during it is reported by name after "
     "every file already changed is restored from its same-directory "
     "hard-link backup"
+)
+
+GTK_SYMLINK_GUARANTEE = (
+    "a settings or user-CSS path that is a symbolic link is refused by name "
+    "before staging any write or removal, so the user's link and the file "
+    "it names are left untouched instead of the link being replaced or "
+    "deleted."
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (
@@ -364,6 +371,12 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "tests/test_gtk_staging.py::TestCommit"
         "::test_a_failed_rename_is_reported_by_name_and_restores_the_earlier_target",
         GTK_COMMIT_ROLLBACK_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "gtk-symlinked-config",
+        ("A GTK selection replaces a symlinked",),
+        "tests/test_gtk_apply.py::TestSettingsErrors",
+        GTK_SYMLINK_GUARANTEE,
     ),
 )
 

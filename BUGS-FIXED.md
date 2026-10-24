@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A GTK selection replaces a symlinked settings or user-CSS file (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
+
+`make apply-gtk` and `make remove-gtk` reached their config paths through
+`tools/gtk_staging.commit`, whose `os.replace`/`unlink` operates on the path
+itself. When `$XDG_CONFIG_HOME/gtk-3.0/settings.ini`, `gtk-4.0/settings.ini`
+or `gtk-4.0/gtk.css` was a symbolic link (a common dotfile-manager setup),
+the selection replaced or deleted the link with a regular file instead of
+editing the file the link named: the dotfile copy stayed stale while the
+live config path silently detached from it.
+
+**Reproduce:** point `gtk-3.0/settings.ini` at a dotfile target holding
+`[Settings]\ngtk-theme-name=Adwaita`, then run `apply_gtk.main`; before the
+fix it exited 0, `settings.ini` was no longer a symlink, and the target still
+held `Adwaita`. Removing with a symlinked marker `gtk.css` likewise deleted
+the link and cleared the settings.
+
+**Fix:** before staging any write or removal, `_apply` and `_remove` refuse a
+config path whose final component is a symbolic link with a `ConfigError`
+naming the path, so `apply_gtk` exits 2 with `apply_gtk: error: cannot
+write/remove <path>: it is a symbolic link; ...` and neither the link nor its
+target changes. A symlinked parent directory (a symlinked config home) is not
+a link at the config path and stays supported.
+
+**Validation gap:** unclear-invariant — neither the GTK row nor the suite said what a write or removal should do with a symlinked config path, so the invariant was reconstructed first (never replace or delete the user's link; refuse by name), is now recorded in `docs/invariants.md`, and a scratch `_apply` with a symlinked `settings.ini` showed exit 0 and a regular file where the link was.
+
 ### A cursor generator nominal size above the Xcursor frame limit allocates an unbounded pixel buffer (found by the bugfix role 2026-10-23) — fixed 2026-10-23 by the bugfix role
 
 `tools/make_cursors.py` accepted every positive nominal size and

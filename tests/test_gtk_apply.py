@@ -255,6 +255,89 @@ class TestSettingsErrors(GtkApplyCase):
         self.assertIn(f"cannot write {path}", result.stderr)
         self.assertFalse(self.settings("gtk-3.0").exists())
 
+    def test_apply_refuses_a_symlinked_settings_file_before_writing_anything(self):
+        self.install_sheet()
+        target = self.root / "dotfiles" / "gtk-3.0-settings.ini"
+        target.parent.mkdir(parents=True)
+        original = "[Settings]\ngtk-theme-name=Adwaita\n"
+        target.write_text(original, encoding="utf-8")
+        link = self.settings("gtk-3.0")
+        link.parent.mkdir(parents=True)
+        link.symlink_to(target)
+
+        result = self.run_tool()
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot write {link}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        # The refused link and the file it names are untouched, and no other
+        # settings file or user CSS was staged or written.
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(original, target.read_text(encoding="utf-8"))
+        self.assertFalse(self.settings("gtk-4.0").exists())
+        self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
+
+    def test_a_symlinked_config_home_is_still_supported(self):
+        self.install_sheet()
+        real_config = self.root / "dotfiles" / "config"
+        real_config.mkdir(parents=True)
+        self.config.symlink_to(real_config)
+
+        result = self.run_tool()
+        assert_succeeded(self, result)
+        # The refusal is about a link at the config file itself; a config home
+        # that is a symlink is the user's normal layout and still gets written.
+        self.assertTrue((real_config / "gtk-3.0" / "settings.ini").is_file())
+        self.assertTrue((real_config / "gtk-4.0" / "gtk.css").is_file())
+
+    def test_remove_refuses_a_symlinked_settings_file_before_clearing_anything(self):
+        target = self.root / "dotfiles" / "gtk-3.0-settings.ini"
+        target.parent.mkdir(parents=True)
+        original = "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+        target.write_text(original, encoding="utf-8")
+        link = self.settings("gtk-3.0")
+        link.parent.mkdir(parents=True)
+        link.symlink_to(target)
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write(
+            css,
+            f'{gtk_user_files.GTK4_CSS_MARKER}\n@import url("file:///sheet.css");\n',
+        )
+
+        result = self.run_tool("--remove")
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot remove {link}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        # The settings link was checked before the commit, so the user CSS is
+        # still installed and the selection was not cleared through the link.
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(original, target.read_text(encoding="utf-8"))
+        self.assertTrue(css.is_file())
+
+    def test_remove_refuses_a_symlinked_user_css_before_clearing_anything(self):
+        settings = self.settings("gtk-3.0")
+        original = "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+        self.write(settings, original)
+        target = self.root / "dotfiles" / "gtk.css"
+        target.parent.mkdir(parents=True)
+        css_text = (
+            f'{gtk_user_files.GTK4_CSS_MARKER}\n'
+            '@import url("file:///sheet.css");\n'
+        )
+        target.write_text(css_text, encoding="utf-8")
+        link = self.config / "gtk-4.0" / "gtk.css"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(target)
+
+        result = self.run_tool("--remove")
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot remove {link}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        # The refused link and the file it names are untouched, and the
+        # settings selection was not cleared before the refusal.
+        self.assertTrue(link.is_symlink())
+        self.assertEqual(css_text, target.read_text(encoding="utf-8"))
+        self.assertEqual(original, settings.read_text(encoding="utf-8"))
+
     def test_remove_reports_an_unreadable_settings_file(self):
         path = self.settings("gtk-3.0")
         path.parent.mkdir(parents=True, exist_ok=True)
