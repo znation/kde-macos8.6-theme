@@ -7,7 +7,6 @@ import unittest
 from support.desktoptheme_paths import TASKS_SVG
 from support.nine_slice_case import NineSliceCase
 from svg_assertions import (
-    SLICE_IDS,
     assert_slice_pixels,
     assert_slices_have_no_fill,
     assert_slices_uniform,
@@ -15,6 +14,7 @@ from svg_assertions import (
     children_named,
     elements_by_id,
     local_name,
+    nine_slice_id_set,
     nine_slice_rect_hint_geometry,
     nine_slice_tile_sizes,
     pixel_map,
@@ -47,18 +47,6 @@ TRANSPARENT_TILES = (
 RULE_TILES = ("bottom", "bottomleft", "bottomright")
 
 
-def expected_id_set():
-    """Return the exact id set the Task Manager's KSvg lookups require."""
-    ids = {"hint-tile-center"} | set(EXPANDER_IDS)
-    for prefix in PREFIXES:
-        ids.update(
-            f"{prefix}-hint-{side}-margin"
-            for side in ("top", "bottom", "left", "right")
-        )
-        ids.update(f"{prefix}-{name}" for name in SLICE_IDS)
-    return ids
-
-
 def bottom_rule_tile(name, colour):
     """Return tile *name* with its bottom two rows *colour* and the top row empty."""
     width, height = SIZES[name]
@@ -78,7 +66,7 @@ class TestTasks(NineSliceCase, unittest.TestCase):
         # Task.qml, TaskProgressOverlay.qml and GroupExpanderOverlay.qml
         # resolve these ids directly, so a missing one leaves a task face or
         # arrow undrawn and an extra one is art nothing reads.
-        self.assertEqual(attribute_values(self.tree, "id"), expected_id_set())
+        self.assertEqual(attribute_values(self.tree, "id"), nine_slice_id_set(PREFIXES, EXPANDER_IDS))
 
     def test_tasks_hint_geometry(self):
         # Every state shares the menubaritem nine-slice: a 7px left/right and

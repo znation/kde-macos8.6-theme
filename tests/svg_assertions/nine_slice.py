@@ -11,7 +11,7 @@ import re
 
 from .elements import rect_geometry
 from .render import pixel_map
-from .tree import groups_with_id
+from .tree import SLICE_IDS, groups_with_id
 
 
 def nine_slice_margins(prefix, border, size):
@@ -148,6 +148,20 @@ def solid_tile(sizes, name, colour):
     """
     width, height = sizes[name]
     return pixel_map((colour,) * (width * height), width, height)
+
+
+def nine_slice_id_set(prefixes, extra=()):
+    """Return the ids a state-prefixed nine-slice SVG declares: ``hint-tile-center``,
+    each prefix's four ``hint-*-margin`` ids and nine slices, plus *extra*.
+    """
+    ids = {"hint-tile-center"} | set(extra)
+    for prefix in prefixes:
+        ids.update(
+            f"{prefix}-hint-{side}-margin"
+            for side in ("top", "bottom", "left", "right")
+        )
+        ids.update(f"{prefix}-{name}" for name in SLICE_IDS)
+    return ids
 
 
 _TRANSLATE = re.compile(r"translate\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)")

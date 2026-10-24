@@ -7,11 +7,11 @@ import unittest
 from support.desktoptheme_paths import PAGER_SVG
 from support.nine_slice_case import NineSliceCase
 from svg_assertions import (
-    SLICE_IDS,
     assert_slice_pixels,
     attribute_values,
     children_named,
     elements_by_id,
+    nine_slice_id_set,
     nine_slice_rect_hint_geometry,
     nine_slice_tile_sizes,
     rect_geometry,
@@ -26,18 +26,6 @@ PREFIXES = ("normal", "hover", "active")
 BORDER_TILES = tuple(name for name in SIZES if name != "center")
 
 
-def expected_id_set():
-    """Return the exact id set the Pager's KSvg lookups require."""
-    ids = {"hint-tile-center"}
-    for prefix in PREFIXES:
-        ids.update(
-            f"{prefix}-hint-{side}-margin"
-            for side in ("top", "bottom", "left", "right")
-        )
-        ids.update(f"{prefix}-{name}" for name in SLICE_IDS)
-    return ids
-
-
 class TestPager(NineSliceCase, unittest.TestCase):
     SVG_PATH = PAGER_SVG
     PREFIXES = PREFIXES
@@ -46,7 +34,7 @@ class TestPager(NineSliceCase, unittest.TestCase):
         # The Pager's main.qml resolves these ids directly, so a missing one
         # leaves a desktop cell or its margins undrawn and an extra one is art
         # nothing reads.
-        self.assertEqual(attribute_values(self.tree, "id"), expected_id_set())
+        self.assertEqual(attribute_values(self.tree, "id"), nine_slice_id_set(PREFIXES))
 
     def test_pager_hint_geometry(self):
         # Every state shares the same cell: a 1px border around a 10x7 centre
