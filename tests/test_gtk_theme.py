@@ -138,6 +138,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {"background-color": FACE, "border": f"1px solid {BLACK}"},
         )
 
+    def test_tree_header(self):
+        self.assert_tree_header(("treeview.view header button",))
+
     def test_menu(self):
         for selector in ("menu", ".menu", "popover", ".popover"):
             self.assert_rule(

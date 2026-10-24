@@ -24,7 +24,15 @@
    row in widgets/listitem.svg: a hovered row stays the view background and a
    selected row is its flat #CCCCFF fill with square corners and black text.
    No reference screenshot shows a GTK widget, so the row geometry is this
-   theme's adaptation and the node and class names are GTK-required. */
+   theme's adaptation and the node and class names are GTK-required. The
+   tree-view and column header rules adapt the same reference-grounded
+   Platinum push button: a #DDDDDD face with the raised bevel and one black
+   line between columns and under the header row, and no right line after the
+   last column. Their ascending and descending sort indicators load from the
+   shared assets/arrow-up.svg and assets/arrow-down.svg, whose triangles
+   reuse the desktop theme's pinned widgets/arrows.svg shapes. No reference
+   screenshot shows a GTK widget, so the header geometry is this theme's
+   adaptation. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -205,6 +213,49 @@ notebook > header > tabs > tab.reorderable-page:backdrop:checked {
   border-bottom-color: #DDDDDD;
   border-radius: 0;
   box-shadow: none;
+}
+
+columnview.view > header > button,
+treeview.view > header > button {
+  background-color: #DDDDDD;
+  background-image: none;
+  color: #000000;
+  text-shadow: none;
+  border-width: 0 1px 1px 0;
+  border-style: solid;
+  border-color: #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+}
+
+columnview.view > header > button:hover,
+treeview.view > header > button:hover {
+  background-color: #DDDDDD;
+  color: #000000;
+  text-shadow: none;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+}
+
+columnview.view > header > button:active,
+treeview.view > header > button:active {
+  color: #000000;
+  text-shadow: none;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+columnview.view > header > button:last-child,
+treeview.view > header > button:last-child {
+  border-right-width: 0;
+}
+
+columnview.view > header > button sort-indicator.ascending,
+treeview.view > header > button sort-indicator.ascending {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+}
+
+columnview.view > header > button sort-indicator.descending,
+treeview.view > header > button sort-indicator.descending {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
 }
 
 popover > contents, popover > arrow {

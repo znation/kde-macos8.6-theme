@@ -90,6 +90,7 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                 '"../assets/checkmark.svg"',
                 '"../assets/bullet.svg"',
                 '"../assets/arrow-down.svg"',
+                '"../assets/arrow-up.svg"',
             },
         )
         self.assertNotIn("adwaita", self.css.lower())
@@ -139,6 +140,22 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                     "color": BLACK,
                     "border-radius": "0",
                 },
+            )
+
+    def test_tree_and_column_headers(self):
+        selectors = (
+            "columnview.view > header > button",
+            "treeview.view > header > button",
+        )
+        self.assert_tree_header(selectors)
+        for selector in selectors:
+            self.assert_rule(
+                f"{selector} sort-indicator.ascending",
+                {"-gtk-icon-source": 'url("../assets/arrow-up.svg")'},
+            )
+            self.assert_rule(
+                f"{selector} sort-indicator.descending",
+                {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'},
             )
 
     def test_notebook_header(self):

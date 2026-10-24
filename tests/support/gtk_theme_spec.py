@@ -112,6 +112,33 @@ FRAME = {
     "padding": "0",
 }
 
+# The tree-view and column-view header faces both sheets paint as the raised
+# Platinum push button, with one black line between columns and under the row.
+TREE_HEADER = {
+    "background-color": FACE,
+    "background-image": "none",
+    "color": BLACK,
+    "text-shadow": "none",
+    "border-width": "0 1px 1px 0",
+    "border-style": "solid",
+    "border-color": BLACK,
+    "border-radius": "0",
+    "box-shadow": BUTTON_BEVEL,
+}
+TREE_HEADER_HOVER = {
+    "background-color": FACE,
+    "color": BLACK,
+    "text-shadow": "none",
+    "box-shadow": BUTTON_BEVEL,
+}
+TREE_HEADER_ACTIVE = {
+    "color": BLACK,
+    "text-shadow": "none",
+    "box-shadow": INVERTED_BUTTON_BEVEL,
+}
+# The last column shares the header's bottom line but ends the row's grid.
+TREE_HEADER_LAST = {"border-right-width": "0"}
+
 # The list and tree rows both sheets paint, adapted from the reference-grounded
 # widgets/listitem.svg row: a hovered row stays the view background and a
 # selected row is the flat selection fill with square corners and black text.
@@ -376,3 +403,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
                 "box-shadow": "none",
             },
         )
+
+    def assert_tree_header(self, selectors):
+        """Assert the raised header face, its states and the last-column grid."""
+        for selector in selectors:
+            self.assert_rule(selector, TREE_HEADER)
+            self.assert_rule(f"{selector}:hover", TREE_HEADER_HOVER)
+            self.assert_rule(f"{selector}:active", TREE_HEADER_ACTIVE)
+            self.assert_rule(f"{selector}:last-child", TREE_HEADER_LAST)
