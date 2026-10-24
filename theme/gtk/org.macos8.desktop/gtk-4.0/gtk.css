@@ -59,7 +59,8 @@
    this theme's adaptation, and the node names are GTK-required.
 
    The standalone separators reuse the reference-grounded etched pair in both
-   orientations; the orientation classes are GTK-required. The level bar
+   orientations, and the paned split handles reuse the same etch; the
+   orientation classes and the paned orientation classes are GTK-required. The level bar
    reuses the reference-grounded progress-bar trough and selection fill, and
    its node and class names are GTK-required. */
 
@@ -414,6 +415,26 @@ separator.vertical {
   border-right: 1px solid #FFFFFF;
   min-width: 1px;
   padding: 0;
+}
+
+paned.horizontal > separator {
+  background-color: #888888;
+  border: 0;
+  border-right: 1px solid #FFFFFF;
+  min-width: 1px;
+  padding: 0;
+  -gtk-icon-source: none;
+  margin: 0;
+}
+
+paned.vertical > separator {
+  background-color: #888888;
+  border: 0;
+  border-bottom: 1px solid #FFFFFF;
+  min-height: 1px;
+  padding: 0;
+  -gtk-icon-source: none;
+  margin: 0;
 }
 
 frame > border, .frame {

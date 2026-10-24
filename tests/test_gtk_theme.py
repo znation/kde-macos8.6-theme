@@ -241,6 +241,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_separator(self):
         self.assert_separators()
 
+    def test_paned_handle(self):
+        self.assert_paned_handles()
+
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 

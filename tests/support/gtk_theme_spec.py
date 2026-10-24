@@ -8,7 +8,7 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the progress-bar, level-bar, scale, switch, menu-separator and frame assertions they name
+plus the progress-bar, level-bar, scale, switch, paned-handle, menu-separator and frame assertions they name
 with their own selectors.
 """
 
@@ -153,6 +153,12 @@ SEPARATOR_VERTICAL = {
     "min-width": "1px",
     "padding": "0",
 }
+
+# A horizontal paned (side-by-side panes) has a vertical handle, so it takes the
+# vertical rule; a vertical paned takes the horizontal one. Both reuse the
+# reference etch, and drop stock's builtin handle image.
+PANED_HANDLE_HORIZONTAL = {**SEPARATOR_VERTICAL, "-gtk-icon-source": "none", "margin": "0"}
+PANED_HANDLE_VERTICAL = {**SEPARATOR_HORIZONTAL, "-gtk-icon-source": "none", "margin": "0"}
 
 FRAME = {
     "border": f"1px solid {BLACK}",
@@ -526,6 +532,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         ):
             self.assert_rule(selector, spec)
             self.assertNotIn("margin", self.rules[selector])
+
+    def assert_paned_handles(self):
+        """Assert the etched paned split handles in both orientations."""
+        self.assert_rule("paned.horizontal > separator", PANED_HANDLE_HORIZONTAL)
+        self.assert_rule("paned.vertical > separator", PANED_HANDLE_VERTICAL)
 
     def assert_menu_separator(self, selectors):
         """Assert the Platinum etched menu separator against *selectors*."""
