@@ -5,8 +5,9 @@
 through this module, but their own tests reach the helpers only through a
 tool's diagnostic. These tests pin the helpers' contracts directly: the
 ``<tool>: error:`` line, the 2-for-input / 1-for-command exit statuses, the
-control-character escaping, the non-str type guards, and the bounded log
-tail. The log-tail cases pin
+control-character escaping, the non-str type guards, the ``<tool>: note:``
+line and the stream it is written to, and the bounded log tail. The log-tail
+cases pin
 the CR/LF line-boundary rules that several BUGS-FIXED.md entries fixed.
 
 Argument parsing lives in the sibling ``tools/argument_parsing.py`` and is pinned by
@@ -280,6 +281,54 @@ class TestReportFailure(unittest.TestCase):
         self.assertIn("  line 1a\\u000bline 1b\n", err)
         self.assertNotIn("  line 0\n", err)
         self.assertIn("  line 12\n", err)
+
+
+class TestReportNote(unittest.TestCase):
+    def _note(self, message, *, err=False):
+        """Call report_note and return its stdout and stderr text."""
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+            diagnostics.report_note("apply_gtk", message, err=err)
+        return stdout.getvalue(), stderr.getvalue()
+
+    def test_prefixes_the_tool_name_and_goes_to_stdout(self):
+        # A note is operator output for a run that succeeded, so it belongs
+        # on stdout unless the caller asks for stderr.
+        out, err = self._note("restart running GTK applications")
+        self.assertEqual(
+            out, "apply_gtk: note: restart running GTK applications\n"
+        )
+        self.assertEqual(err, "")
+
+    def test_err_sends_the_note_to_stderr_instead(self):
+        # apply_theme's notes describe failed optional steps and sit beside
+        # its error diagnostics on stderr; nothing may reach stdout.
+        out, err = self._note("kvantummanager is absent", err=True)
+        self.assertEqual(out, "")
+        self.assertEqual(err, "apply_gtk: note: kvantummanager is absent\n")
+
+    def test_escapes_control_characters_in_the_message(self):
+        # Notes carry contributor-supplied paths too; an ESC or newline must
+        # not reach the terminal raw or forge a second line.
+        out, _ = self._note("bad \x1b[31m path\nname")
+        self.assertNotIn("\x1b", out)
+        self.assertIn("\\u001b", out)
+        self.assertIn("\\u000a", out)
+
+    def test_non_str_tool_or_message_raises_naming_type(self):
+        # Same type contract as the error reporters.
+        for kwargs, name, parameter in (
+            ({"tool": 42, "message": "m"}, "int", "tool"),
+            ({"tool": "t", "message": b"nope"}, "bytes", "message"),
+        ):
+            with self.subTest(parameter=parameter, value=kwargs[parameter]):
+                with self.assertRaisesRegex(
+                    ValueError,
+                    rf"^report_note\(\) requires str: {parameter} must be str, "
+                    rf"not {name}$",
+                ):
+                    diagnostics.report_note(**kwargs)
 
 
 if __name__ == "__main__":

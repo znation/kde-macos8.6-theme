@@ -5,8 +5,10 @@ A tool reports a failure the same way everywhere: one control-character-escaped
 input error (:func:`report_error`) and 1 for a failed external command
 (:func:`report_failure`, which appends a bounded tail of the command's log). A
 tool that needs external commands refuses to run when one is absent from PATH
-through :func:`report_missing_tool`. Keeping the format and the exit statuses
-here means they cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
+through :func:`report_missing_tool`. A successful run with something to tell
+the operator prints one ``<tool>: note: <message>`` line through
+:func:`report_note`. Keeping the formats and the exit statuses here means they
+cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
 ``tools/apply_theme.py``, ``tools/apply_gtk.py``, ``tools/local_hook.py``,
 ``tools/make_wallpaper.py``, ``tools/render_surface.py``,
 ``tools/make_cursors.py``, ``tools/install_firefox.py`` and
@@ -31,6 +33,15 @@ else:  # imported from a directly run tool
     from terminal import escape_controls
 
 
+def _require_str(helper: str, parameter: str, value: object) -> None:
+    """Reject a non-str *value*, naming *helper* and *parameter* by type."""
+    if not isinstance(value, str):
+        raise ValueError(
+            f"{helper}() requires str: {parameter} must be str, "
+            f"not {type(value).__name__}"
+        )
+
+
 def report_error(tool: str, message: str) -> int:
     """Print ``tool: error: <escaped message>`` to stderr and return 2.
 
@@ -41,16 +52,8 @@ def report_error(tool: str, message: str) -> int:
     is the unescaped text; a caller passes an exception's ``str()`` or a
     diagnostic it built itself.
     """
-    if not isinstance(tool, str):
-        raise ValueError(
-            f"report_error() requires str: tool must be str, "
-            f"not {type(tool).__name__}"
-        )
-    if not isinstance(message, str):
-        raise ValueError(
-            f"report_error() requires str: message must be str, "
-            f"not {type(message).__name__}"
-        )
+    _require_str("report_error", "tool", tool)
+    _require_str("report_error", "message", message)
     print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
     return 2
 
@@ -120,16 +123,8 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
     ``tools/render_surface.py`` return this result directly as the process exit
     status.
     """
-    if not isinstance(tool, str):
-        raise ValueError(
-            f"report_failure() requires str: tool must be str, "
-            f"not {type(tool).__name__}"
-        )
-    if not isinstance(message, str):
-        raise ValueError(
-            f"report_failure() requires str: message must be str, "
-            f"not {type(message).__name__}"
-        )
+    _require_str("report_failure", "tool", tool)
+    _require_str("report_failure", "message", message)
     if log is not None and not isinstance(log, Path):
         raise ValueError(
             f"report_failure() requires pathlib.Path or None: log must be "
@@ -155,3 +150,20 @@ def report_missing_tool(tool: str, required: Iterable[str]) -> int | None:
         if shutil.which(name) is None:
             return report_error(tool, f"required tool not found on PATH: {name}")
     return None
+
+
+def report_note(tool: str, message: str, *, err: bool = False) -> None:
+    """Print ``tool: note: <escaped message>`` on stdout, or stderr with *err*.
+
+    A run that succeeds but leaves something for the operator to know -- a
+    foreign file it left untouched, a restart it recommends, an optional
+    command that is absent -- says so the same way: one control-character-
+    escaped ``<tool>: note: <message>`` line. Most notes go to stdout; the
+    tools whose notes describe failed optional steps write them to stderr, so
+    those stay beside their error diagnostics. *message* is the unescaped
+    text; the formatting and escaping live here so the prefix cannot drift.
+    """
+    _require_str("report_note", "tool", tool)
+    _require_str("report_note", "message", message)
+    stream = sys.stderr if err else sys.stdout
+    print(f"{tool}: note: {escape_controls(message)}", file=stream)

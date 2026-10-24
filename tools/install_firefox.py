@@ -29,20 +29,18 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_atomically
     from tools.containment import open_regular_binary, read_bytes
-    from tools.diagnostics import report_error, report_failure
+    from tools.diagnostics import report_error, report_failure, report_note
     from tools.firefox_profile import ConfigError, resolve_profile
     from tools.firefox_user_js import first_line, remove_user_js, set_user_js
     from tools.repo_root import ROOT
-    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/install_firefox.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_atomically
     from containment import open_regular_binary, read_bytes
-    from diagnostics import report_error, report_failure
+    from diagnostics import report_error, report_failure, report_note
     from firefox_profile import ConfigError, resolve_profile
     from firefox_user_js import first_line, remove_user_js, set_user_js
     from repo_root import ROOT
-    from terminal import escape_controls
 
 TOOL = "install_firefox"
 SHEET = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
@@ -59,7 +57,7 @@ _MAX_PROFILE_FILE_BYTES = 1 << 20
 
 def _note(message: str) -> None:
     """Print ``install_firefox: note: <message>`` on stdout."""
-    print(f"{TOOL}: note: {escape_controls(message)}")
+    report_note(TOOL, message)
 
 
 def _read_text(path: Path) -> str | None:

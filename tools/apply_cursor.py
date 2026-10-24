@@ -29,17 +29,25 @@ from pathlib import Path
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import read_text
-    from tools.diagnostics import report_error, report_failure, report_missing_tool
+    from tools.diagnostics import (
+        report_error,
+        report_failure,
+        report_missing_tool,
+        report_note,
+    )
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
-    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_cursor.py
     from argument_parsing import EscapingArgumentParser
     from containment import read_text
-    from diagnostics import report_error, report_failure, report_missing_tool
+    from diagnostics import (
+        report_error,
+        report_failure,
+        report_missing_tool,
+        report_note,
+    )
     from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
-    from terminal import escape_controls
 
 TOOL = "apply_cursor"
 CURSOR_THEME = "org.macos8.desktop"
@@ -53,7 +61,7 @@ class CursorError(Exception):
 
 def _note(message: str) -> None:
     """Print ``apply_cursor: note: <message>`` on stdout."""
-    print(f"{TOOL}: note: {escape_controls(message)}")
+    report_note(TOOL, message)
 
 
 def _absolute(env: dict[str, str], name: str) -> Path | None:

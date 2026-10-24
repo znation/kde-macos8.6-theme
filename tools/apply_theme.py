@@ -35,16 +35,20 @@ if __package__:
         report_error,
         report_failure,
         report_missing_tool,
+        report_note,
     )
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
-    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
-    from diagnostics import report_error, report_failure, report_missing_tool
+    from diagnostics import (
+        report_error,
+        report_failure,
+        report_missing_tool,
+        report_note,
+    )
     from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
-    from terminal import escape_controls
 
 TOOL = "apply_theme"
 LNF_ID = "org.macos8.desktop"
@@ -74,7 +78,7 @@ COMMAND_TIMEOUT = 60.0
 
 def _note(message: str) -> None:
     """Print ``apply_theme: note: <message>`` to stderr."""
-    print(f"{TOOL}: note: {escape_controls(message)}", file=sys.stderr)
+    report_note(TOOL, message, err=True)
 
 
 def _session_env() -> dict[str, str]:

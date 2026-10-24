@@ -29,16 +29,14 @@ from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.diagnostics import report_error, report_failure
+    from tools.diagnostics import report_error, report_failure, report_note
     from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
     from tools.gtk_staging import ConfigError, commit, discard, stage_all
-    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/apply_gtk.py
     from argument_parsing import EscapingArgumentParser
-    from diagnostics import report_error, report_failure
+    from diagnostics import report_error, report_failure, report_note
     from gtk_settings import GTK_ID, remove_theme_name, set_theme_name
     from gtk_staging import ConfigError, commit, discard, stage_all
-    from terminal import escape_controls
 
 TOOL = "apply_gtk"
 GTK4_CSS_MARKER = "/* org.macos8.desktop GTK 4 user CSS */"
@@ -49,7 +47,7 @@ _MAX_CONFIG_FILE_BYTES = 1 << 20
 
 def _note(message: str) -> None:
     """Print ``apply_gtk: note: <message>`` on stdout."""
-    print(f"{TOOL}: note: {escape_controls(message)}")
+    report_note(TOOL, message)
 
 
 def _absolute(env: dict[str, str], name: str) -> Path | None:
