@@ -92,14 +92,21 @@ def _premultiplied_payload(width: int, height: int, rgba: bytes) -> bytes:
     return bytes(payload)
 
 
-def _build_payload(index: int, record: object) -> tuple[int, int, int, int, int, bytes]:
-    """Validate one PNG frame record and return its fields plus the ARGB payload."""
+def _frame_fields(
+    index: int, record: object, payload_name: str
+) -> tuple[int, int, int, int, int, object]:
+    """Unpack a frame record and validate its five numeric fields.
+
+    *payload_name* names the sixth item (``"png"`` or ``"rgba"``) in the
+    wrong-length diagnostic. The payload is returned unvalidated, because the
+    two writers accept a different pixel representation.
+    """
     try:
-        nominal_size, width, height, hotspot_x, hotspot_y, png = record
+        nominal_size, width, height, hotspot_x, hotspot_y, payload = record
     except (TypeError, ValueError) as exc:
         raise ValueError(
             f"images[{index}] must be a 6-item (nominal_size, width, height, "
-            f"hotspot_x, hotspot_y, png) record: {record!r}"
+            f"hotspot_x, hotspot_y, {payload_name}) record: {record!r}"
         ) from exc
 
     _require_dimension(f"images[{index}] nominal_size", nominal_size)
@@ -107,12 +114,24 @@ def _build_payload(index: int, record: object) -> tuple[int, int, int, int, int,
     _require_dimension(f"images[{index}] height", height)
     _require_hotspot(f"images[{index}] hotspot_x", hotspot_x, width)
     _require_hotspot(f"images[{index}] hotspot_y", hotspot_y, height)
+    return nominal_size, width, height, hotspot_x, hotspot_y, payload
 
-    if not isinstance(png, (bytes, bytearray)):
+
+def _require_bytes(index: int, name: str, value: object) -> None:
+    """Reject a frame payload that is not ``bytes`` or ``bytearray``."""
+    if not isinstance(value, (bytes, bytearray)):
         raise ValueError(
-            f"images[{index}] png must be bytes or bytearray, not "
-            f"{type(png).__name__}"
+            f"images[{index}] {name} must be bytes or bytearray, not "
+            f"{type(value).__name__}"
         )
+
+
+def _build_payload(index: int, record: object) -> tuple[int, int, int, int, int, bytes]:
+    """Validate one PNG frame record and return its fields plus the ARGB payload."""
+    nominal_size, width, height, hotspot_x, hotspot_y, png = _frame_fields(
+        index, record, "png"
+    )
+    _require_bytes(index, "png", png)
     try:
         png_width, png_height, rgba = decode_rgba(png)
     except PngError as exc:
@@ -137,25 +156,10 @@ def _build_payload(index: int, record: object) -> tuple[int, int, int, int, int,
 
 def _rgba_frame(index: int, record: object) -> tuple[int, int, int, int, int, bytes]:
     """Validate one raw-RGBA frame record and return its fields plus the ARGB payload."""
-    try:
-        nominal_size, width, height, hotspot_x, hotspot_y, rgba = record
-    except (TypeError, ValueError) as exc:
-        raise ValueError(
-            f"images[{index}] must be a 6-item (nominal_size, width, height, "
-            f"hotspot_x, hotspot_y, rgba) record: {record!r}"
-        ) from exc
-
-    _require_dimension(f"images[{index}] nominal_size", nominal_size)
-    _require_dimension(f"images[{index}] width", width)
-    _require_dimension(f"images[{index}] height", height)
-    _require_hotspot(f"images[{index}] hotspot_x", hotspot_x, width)
-    _require_hotspot(f"images[{index}] hotspot_y", hotspot_y, height)
-
-    if not isinstance(rgba, (bytes, bytearray)):
-        raise ValueError(
-            f"images[{index}] rgba must be bytes or bytearray, not "
-            f"{type(rgba).__name__}"
-        )
+    nominal_size, width, height, hotspot_x, hotspot_y, rgba = _frame_fields(
+        index, record, "rgba"
+    )
+    _require_bytes(index, "rgba", rgba)
     expected = width * height * 4
     if len(rgba) != expected:
         raise ValueError(
