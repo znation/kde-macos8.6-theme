@@ -45,7 +45,8 @@ Platinum button, line-edit and arrow art. Kvantum searches
 when `${XDG_DATA_HOME}` is the default `$HOME/.local/share`.
 
 GTK applications use the separate opt-in install: `make install-gtk` copies the GTK 3 and GTK 4
-Platinum stylesheets and the four shared check, radio, combo box and menu arrow glyph assets into
+Platinum stylesheets, their `index.theme` theme descriptor and the four shared check, radio,
+combo box and menu arrow glyph assets into
 `$XDG_DATA_HOME/themes/org.macos8.desktop/`, the same directory that
 holds the shared `Kvantum/` widget style, so the two artifacts share one theme directory. The
 default `make install` copies no GTK files. `make apply-gtk` installs them the same way and then
