@@ -35,7 +35,25 @@
    hit area with the toolkit glyph hidden. GTK's restore state keeps the
    maximize class, so it uses the zoom art and needs no fourth asset. No
    reference screenshot shows a GTK widget, so the 16px hit area is this
-   theme's adaptation. */
+   theme's adaptation. The scroll-bar stepper rules paint the reference's
+   arrow box at each end of a normal scroll bar: the installer CD window's
+   bar (setup_emaculation.png, y=462..477) shows a 16px box whose 14px
+   #EEEEEE face sits inside the bar's 1px #000000 border, with a 1px
+   #555555 divider on the edge facing the trough. A stepper therefore draws
+   the 14px face and one #555555 edge; the bar's own border supplies the
+   black outline, so no second inset ring is added. The sheet zeroes the
+   scroll bar's own padding so the toolkit's end padding cannot leave a
+   trough strip before the box. The shared assets/arrow-up.svg and
+   assets/arrow-down.svg triangles rotate a quarter turn on a horizontal
+   bar; their provenance comments sit inside the SVG root because GTK 3's
+   CSS icon loader rejects a comment before it. GTK shows the steppers only
+   on a normal scroll bar, so this sheet turns both stepper properties on
+   there and off on an overlay scroll bar, whose slider stays alone. The
+   triangles reuse the desktop theme's pinned widgets/arrows.svg shapes, the
+   box geometry is sampled from the reference screenshot, and the property
+   names are GTK-required. The reference's grey disabled glyph is not
+   reproduced: a URL icon's fill is fixed, so the shipped triangle stays
+   black when disabled. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -343,6 +361,7 @@ list row.activatable:selected, list row.activatable:selected:hover {
 scrollbar {
   background-color: #EEEEEE;
   border: 1px solid #000000;
+  padding: 0;
 }
 
 scrollbar slider {
@@ -351,6 +370,58 @@ scrollbar slider {
   border: 1px solid #000000;
   border-radius: 0;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+scrollbar:not(.overlay-indicator) {
+  -GtkScrollbar-has-backward-stepper: true;
+  -GtkScrollbar-has-forward-stepper: true;
+}
+
+scrollbar.overlay-indicator {
+  -GtkScrollbar-has-backward-stepper: false;
+  -GtkScrollbar-has-forward-stepper: false;
+}
+
+scrollbar button {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 14px;
+  min-width: 14px;
+  padding: 0;
+}
+
+scrollbar button:hover {
+  background-color: #EEEEEE;
+}
+
+scrollbar button:active {
+  background-color: #EEEEEE;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+}
+
+scrollbar.vertical button.up {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+  border-bottom: 1px solid #555555;
+}
+
+scrollbar.vertical button.down {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  border-top: 1px solid #555555;
+}
+
+scrollbar.horizontal button.up {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
+  -gtk-icon-transform: rotate(-0.25turn);
+  border-right: 1px solid #555555;
+}
+
+scrollbar.horizontal button.down {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+  -gtk-icon-transform: rotate(-0.25turn);
+  border-left: 1px solid #555555;
 }
 
 progressbar trough {

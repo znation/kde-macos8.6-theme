@@ -1,7 +1,7 @@
-<!-- The Platinum down triangle GTK loads as a combo box dropdown or menu
-     scroll arrow. The path is the desktop theme's `widgets/arrows.svg`
-     `down-arrow` shape; tests/test_gtk_theme.py::TestArrowGlyphs pins the
-     16x16 canvas, the path and the #000000 fill. -->
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- The Platinum down triangle GTK loads as a combo box dropdown or menu
+       scroll arrow. The path is the desktop theme's `widgets/arrows.svg`
+       `down-arrow` shape; tests/test_gtk_theme.py::TestArrowGlyphs pins the
+       16x16 canvas, the path and the #000000 fill. -->
   <path d="M 4,5 L 12,5 L 8,11 Z" fill="#000000"/>
 </svg>

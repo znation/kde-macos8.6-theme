@@ -14,6 +14,7 @@ with their own selectors.
 
 from __future__ import annotations
 
+from support.aurorae_fixtures import INACTIVE_OUTLINE
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -110,6 +111,48 @@ FRAME = {
     "box-shadow": f"inset 1px 1px {GREY}",
     "margin": "0",
     "padding": "0",
+}
+
+# The GTK 3 scroll-bar steppers paint the reference's arrow box: the
+# installer CD window's horizontal bar shows a 14px trough face inside the
+# bar's 1px black border, with a 1px #555555 divider on the edge facing the
+# trough, so the visible box is 16x16. The shipped up/down triangles rotate a
+# quarter turn on a horizontal bar.
+SCROLLBAR_STEPPER = {
+    "background-color": TROUGH,
+    "background-image": "none",
+    "border": "0",
+    "border-radius": "0",
+    "box-shadow": "none",
+    "min-height": "14px",
+    "min-width": "14px",
+    "padding": "0",
+}
+SCROLLBAR_STEPPER_ACTIVE = {
+    "background-color": TROUGH,
+    "box-shadow": (
+        f"inset 1px 1px {BUTTON_SHADOW}, inset -1px -1px {WHITE}"
+    ),
+}
+SCROLLBAR_STEPPER_ARROWS = {
+    "scrollbar.vertical button.up": {
+        "-gtk-icon-source": 'url("../assets/arrow-up.svg")',
+        "border-bottom": f"1px solid {INACTIVE_OUTLINE}",
+    },
+    "scrollbar.vertical button.down": {
+        "-gtk-icon-source": 'url("../assets/arrow-down.svg")',
+        "border-top": f"1px solid {INACTIVE_OUTLINE}",
+    },
+    "scrollbar.horizontal button.up": {
+        "-gtk-icon-source": 'url("../assets/arrow-up.svg")',
+        "-gtk-icon-transform": "rotate(-0.25turn)",
+        "border-right": f"1px solid {INACTIVE_OUTLINE}",
+    },
+    "scrollbar.horizontal button.down": {
+        "-gtk-icon-source": 'url("../assets/arrow-down.svg")',
+        "-gtk-icon-transform": "rotate(-0.25turn)",
+        "border-left": f"1px solid {INACTIVE_OUTLINE}",
+    },
 }
 
 # Both sheets paint the title-bar controls as the reference-grounded Aurorae

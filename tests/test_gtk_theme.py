@@ -2,8 +2,9 @@
 
 The theme is one ``index.theme`` descriptor and one standalone ``gtk.css``.
 The palette is reference-grounded through ``support.platinum_palette``; no
-reference screenshot shows a GTK widget, so the GTK geometry is this theme's
-adaptation rather than a reference crop.
+reference screenshot shows a GTK widget, so most GTK geometry is this theme's
+adaptation, while the scroll-bar stepper box copies the reference's own scroll
+bar.
 """
 
 from __future__ import annotations
@@ -16,6 +17,8 @@ from pathlib import Path
 from unittest import mock
 
 from support import gtk_css
+from support.aurorae_fixtures import INACTIVE_OUTLINE
+from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.gtk_css import HEX, parse_css
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
@@ -23,6 +26,9 @@ from support.gtk_theme_spec import (
     GtkSheetRuleCases,
     MENU_CHECK,
     RAISED_BEVEL,
+    SCROLLBAR_STEPPER,
+    SCROLLBAR_STEPPER_ACTIVE,
+    SCROLLBAR_STEPPER_ARROWS,
     TITLE_BUTTON_IMAGE,
 )
 from support.platinum_palette import (
@@ -34,7 +40,9 @@ from support.platinum_palette import (
     TOOLTIP_FACE,
     TROUGH,
     WHITE,
+    hex_colour,
 )
+from support.reference_image import ReferenceScreenshotMixin
 from support.repo_root import ROOT
 from support.svg_case import parse_svg
 from support.symlink_fixtures import symlinked_repo
@@ -119,6 +127,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             SELECTION,
             ETCH_DARK,
             TOOLTIP_FACE,
+            INACTIVE_OUTLINE,
         }
         self.assertEqual(set(HEX.findall(self.css)), palette)
 
@@ -209,7 +218,11 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_scrollbar(self):
         self.assert_rule(
             "scrollbar",
-            {"background-color": TROUGH, "border": f"1px solid {BLACK}"},
+            {
+                "background-color": TROUGH,
+                "border": f"1px solid {BLACK}",
+                "padding": "0",
+            },
         )
         self.assert_rule(
             "scrollbar slider",
@@ -221,6 +234,28 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 "box-shadow": RAISED_BEVEL,
             },
         )
+
+    def test_scrollbar_steppers(self):
+        self.assert_rule(
+            "scrollbar:not(.overlay-indicator)",
+            {
+                "-GtkScrollbar-has-backward-stepper": "true",
+                "-GtkScrollbar-has-forward-stepper": "true",
+            },
+        )
+        self.assert_rule(
+            "scrollbar.overlay-indicator",
+            {
+                "-GtkScrollbar-has-backward-stepper": "false",
+                "-GtkScrollbar-has-forward-stepper": "false",
+            },
+        )
+        self.assert_rule("scrollbar button", SCROLLBAR_STEPPER)
+        self.assert_rule("scrollbar button:hover", {"background-color": TROUGH})
+        self.assert_rule("scrollbar button:active", SCROLLBAR_STEPPER_ACTIVE)
+        for selector, expected in SCROLLBAR_STEPPER_ARROWS.items():
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, expected)
 
     def test_progressbar(self):
         self.assert_progressbar(
@@ -249,6 +284,43 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     "box-shadow": f"inset 0 -1px {WHITE}",
                 },
             )
+
+
+class TestScrollbarStepperReference(ReferenceScreenshotMixin, unittest.TestCase):
+    """The stepper box face and divider must match the reference screenshot.
+
+    The installer CD window's left stepper is a 14x14 #EEEEEE face between the
+    bar's 1px #000000 border (x=23, y=462 and y=477) and a 1px #555555
+    divider at x=38, so the visible box is 16x16. ``TestGtkTheme`` pins the
+    sheet to ``SCROLLBAR_STEPPER`` and its direction rules, so this ties that
+    14px face and divider to a screenshot.
+    """
+
+    REFERENCE = SETUP_REFERENCE
+    MAX_ROWS = SETUP_MAX_ROWS
+
+    def test_stepper_box_matches_reference(self):
+        face_left, face_right = 24, 37
+        face_top, face_bottom = 463, 476
+        for x, y in ((face_left, face_top), (face_right, face_bottom)):
+            with self.subTest(x=x, y=y):
+                self.assertEqual(hex_colour(self.pixel(x, y)), TROUGH)
+        for x, y in ((23, 468), (30, 462), (30, 477)):
+            with self.subTest(x=x, y=y):
+                self.assertEqual(hex_colour(self.pixel(x, y)), BLACK)
+        self.assertEqual(hex_colour(self.pixel(38, 468)), INACTIVE_OUTLINE)
+        face_width = face_right - face_left + 1
+        face_height = face_bottom - face_top + 1
+        self.assertEqual(face_width, 14)
+        self.assertEqual(face_height, 14)
+        self.assertEqual(SCROLLBAR_STEPPER["min-width"], f"{face_width}px")
+        self.assertEqual(SCROLLBAR_STEPPER["min-height"], f"{face_height}px")
+        self.assertEqual(
+            SCROLLBAR_STEPPER_ARROWS["scrollbar.horizontal button.up"][
+                "border-right"
+            ],
+            f"1px solid {INACTIVE_OUTLINE}",
+        )
 
 
 class TestCheckGlyphs(unittest.TestCase):
@@ -307,6 +379,16 @@ class TestArrowGlyphs(unittest.TestCase):
         for tree in (self.down, self.up):
             assert_no_script_elements(self, tree)
             assert_no_style_elements(self, tree)
+
+    def test_assets_put_the_root_first(self):
+        # GTK 3's CSS icon loader rejects a file whose first markup is a
+        # comment, so the provenance comment sits inside the root element.
+        for path in (ARROW_DOWN, ARROW_UP):
+            with self.subTest(asset=path.name):
+                self.assertRegex(
+                    path.read_text(encoding="utf-8"),
+                    r"^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b",
+                )
 
     def test_assets_span_a_16px_canvas(self):
         for tree in (self.down, self.up):
