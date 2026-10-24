@@ -1,6 +1,6 @@
 """The Mac OS 8.6 Platinum cursor pixel art: grids, hotspots and aliases.
 
-The theme ships nineteen cursors inside the ``org.macos8.desktop`` icon theme
+The theme ships twenty cursors inside the ``org.macos8.desktop`` icon theme
 package, under ``cursors/``: ``left_ptr`` (the arrow), ``xterm`` (the text
 I-beam), ``hand2`` (the pointing hand), ``watch`` (the busy hourglass),
 ``fleur`` (the move cross), ``size_hor`` and ``size_ver`` (the horizontal and
@@ -14,10 +14,15 @@ Breeze hash names ``5c6cd98b3f3ebcb1f9c7f1c204630408`` and
 hourglass, aliases ``half-busy``, ``left_ptr_watch`` and the Breeze hash names
 ``00000000000000020006000e7e9ffc3f``, ``08e8e1c95fe2fc01f976f1e063a24ccd`` and
 ``3ecb610c1bf2410f44200f48c40d3599``), ``pencil`` (a diagonal pencil), ``zoom-in`` and
-``zoom-out`` (magnifiers with a plus or minus), each with the X-name aliases
-listed in ``CURSORS``. The help, progress and zoom names are X/KDE-required
-and follow the installed Breeze cursor set; ``pencil``, ``zoom-in`` and
-``zoom-out`` have no aliases there.
+``zoom-out`` (magnifiers with a plus or minus), and ``context-menu`` (the arrow
+beside a small white menu panel), each with the X-name aliases listed in
+``CURSORS``. The role-equivalent X names reuse the landed resize, copy and
+hand glyphs (``col-resize``/``split_h`` on ``size_hor``,
+``row-resize``/``split_v`` on ``size_ver``, ``cell``/``plus`` on ``dnd-copy``,
+``openhand`` on ``grab`` and ``closedhand`` on ``grabbing``). The help,
+progress, zoom and context-menu names are X/KDE-required and follow the
+installed Breeze cursor set; ``pencil``, ``zoom-in``, ``zoom-out`` and
+``context-menu`` have no aliases there.
 Each file holds the same art at nominal sizes 16, 24 and 32. No reference
 screenshot in ``macos8.6-screenshots/`` shows the mouse pointer, so the art is
 our own Platinum-style drawing on the pinned #000000 face and #FFFFFF outline,
@@ -446,6 +451,28 @@ ZOOM_OUT_GRID = (
     "                ",
 )
 
+# The context-menu pointer adds a white-faced, black-bordered menu panel to
+# the arrow's right, with two black text bars; its hotspot is the arrow tip.
+CONTEXT_MENU_HOTSPOT = (1, 1)
+CONTEXT_MENU_GRID = (
+    "...             ",
+    ".#..            ",
+    ".##..           ",
+    ".###..          ",
+    ".####..         ",
+    ".#####..        ",
+    ".######..       ",
+    ".#######..      ",
+    ".########.      ",
+    "....##..#######.",
+    "   .##..#.....#.",
+    "   .##..#.###.#.",
+    "   .##..#.....#.",
+    "   .##..#.##..#.",
+    "   .##..#######.",
+    "   ....         ",
+)
+
 # The canonical cursor name, its grid, its hotspot and the X-name aliases that
 # must carry byte-identical copies. ``main`` writes them in this order.
 CURSORS = (
@@ -474,6 +501,8 @@ CURSORS = (
             "w-resize",
             "h_double_arrow",
             "sb_h_double_arrow",
+            "col-resize",
+            "split_h",
         ),
     ),
     (
@@ -487,6 +516,8 @@ CURSORS = (
             "sb_v_double_arrow",
             "v_double_arrow",
             "00008160000006810000408080010102",
+            "row-resize",
+            "split_v",
         ),
     ),
     (
@@ -515,9 +546,9 @@ CURSORS = (
             "dnd-no-drop",
         ),
     ),
-    ("dnd-copy", DND_COPY_GRID, DND_COPY_HOTSPOT, ()),
-    ("grab", GRAB_GRID, GRAB_HOTSPOT, ()),
-    ("grabbing", GRABBING_GRID, GRABBING_HOTSPOT, ()),
+    ("dnd-copy", DND_COPY_GRID, DND_COPY_HOTSPOT, ("cell", "plus")),
+    ("grab", GRAB_GRID, GRAB_HOTSPOT, ("openhand",)),
+    ("grabbing", GRABBING_GRID, GRABBING_HOTSPOT, ("closedhand",)),
     (
         "help",
         HELP_GRID,
@@ -545,6 +576,7 @@ CURSORS = (
     ("pencil", PENCIL_GRID, PENCIL_HOTSPOT, ()),
     ("zoom-in", ZOOM_IN_GRID, ZOOM_IN_HOTSPOT, ()),
     ("zoom-out", ZOOM_OUT_GRID, ZOOM_OUT_HOTSPOT, ()),
+    ("context-menu", CONTEXT_MENU_GRID, CONTEXT_MENU_HOTSPOT, ()),
 )
 
 PIXELS = {

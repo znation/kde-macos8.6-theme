@@ -45,6 +45,7 @@ CANONICAL = (
     "pencil",
     "zoom-in",
     "zoom-out",
+    "context-menu",
 )
 ALIASES = {
     "left_ptr": ("arrow", "default", "top_left_arrow", "dnd-none"),
@@ -58,6 +59,8 @@ ALIASES = {
         "w-resize",
         "h_double_arrow",
         "sb_h_double_arrow",
+        "col-resize",
+        "split_h",
     ),
     "size_ver": (
         "n-resize",
@@ -66,6 +69,8 @@ ALIASES = {
         "sb_v_double_arrow",
         "v_double_arrow",
         "00008160000006810000408080010102",
+        "row-resize",
+        "split_v",
     ),
     "size_fdiag": ("nw-resize", "se-resize", "nwse-resize"),
     "size_bdiag": ("ne-resize", "sw-resize", "nesw-resize"),
@@ -78,9 +83,9 @@ ALIASES = {
         "no-drop",
         "dnd-no-drop",
     ),
-    "dnd-copy": (),
-    "grab": (),
-    "grabbing": (),
+    "dnd-copy": ("cell", "plus"),
+    "grab": ("openhand",),
+    "grabbing": ("closedhand",),
     "help": (
         "left_ptr_help",
         "question_arrow",
@@ -98,6 +103,7 @@ ALIASES = {
     "pencil": (),
     "zoom-in": (),
     "zoom-out": (),
+    "context-menu": (),
 }
 CURSOR_FILES = tuple(
     name for canonical in CANONICAL for name in (canonical, *ALIASES[canonical])
@@ -122,6 +128,7 @@ HOTSPOTS = {
     "pencil": {16: (2, 14), 24: (3, 21), 32: (4, 28)},
     "zoom-in": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
     "zoom-out": {16: (7, 7), 24: (11, 11), 32: (14, 14)},
+    "context-menu": {16: (1, 1), 24: (2, 2), 32: (2, 2)},
 }
 # A grid pixel that must be black (the face) and one that must be white (the
 # outline) at the same place in every nominal size.
@@ -145,6 +152,7 @@ PINNED_PIXELS = {
     "pencil": {"face": (2, 14), "outline": (1, 14)},
     "zoom-in": {"face": (7, 7), "outline": (7, 2)},
     "zoom-out": {"face": (7, 7), "outline": (7, 2)},
+    "context-menu": {"face": (1, 1), "outline": (0, 0)},
 }
 # The arrow's top-left corner is its white outline pixel; the other cursors
 # leave all four corners transparent.
@@ -519,6 +527,14 @@ class TestCursorSet(unittest.TestCase):
             ("forbidden", "not-allowed"),
             ("no-drop", "not-allowed"),
             ("dnd-no-drop", "not-allowed"),
+            ("cell", "dnd-copy"),
+            ("plus", "dnd-copy"),
+            ("col-resize", "size_hor"),
+            ("split_h", "size_hor"),
+            ("row-resize", "size_ver"),
+            ("split_v", "size_ver"),
+            ("openhand", "grab"),
+            ("closedhand", "grabbing"),
         ):
             with self.subTest(alias=alias):
                 self.assertEqual(
@@ -526,6 +542,19 @@ class TestCursorSet(unittest.TestCase):
                     (CURSORS / canonical).read_bytes(),
                 )
 
+
+    def test_context_menu_pins_the_menu_panel(self):
+        cursor = _read_cursor(CURSORS / "context-menu")
+        image = next(
+            image for image in cursor.images if image.nominal_size == 16
+        )
+        width, _, rgba = decode_rgba(image.png)
+        for x, y in ((1, 1), (8, 9), (8, 10), (14, 10), (10, 11), (10, 13), (11, 13), (8, 14)):
+            with self.subTest(black=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), BLACK)
+        for x, y in ((0, 0), (1, 9), (2, 9), (3, 9), (7, 10), (9, 10), (15, 10)):
+            with self.subTest(white=(x, y)):
+                self.assertEqual(_pixel(rgba, width, x, y), WHITE)
 
     def test_help_pins_the_arrow_and_question_mark(self):
         cursor = _read_cursor(CURSORS / "help")

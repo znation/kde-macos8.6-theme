@@ -100,6 +100,8 @@ SHIPPED_CURSORS = tuple(
         "w-resize",
         "h_double_arrow",
         "sb_h_double_arrow",
+        "col-resize",
+        "split_h",
         "size_ver",
         "n-resize",
         "ns-resize",
@@ -107,6 +109,8 @@ SHIPPED_CURSORS = tuple(
         "sb_v_double_arrow",
         "v_double_arrow",
         "00008160000006810000408080010102",
+        "row-resize",
+        "split_v",
         "size_fdiag",
         "nw-resize",
         "se-resize",
@@ -126,8 +130,12 @@ SHIPPED_CURSORS = tuple(
         "no-drop",
         "dnd-no-drop",
         "dnd-copy",
+        "cell",
+        "plus",
         "grab",
+        "openhand",
         "grabbing",
+        "closedhand",
         "help",
         "left_ptr_help",
         "question_arrow",
@@ -143,6 +151,7 @@ SHIPPED_CURSORS = tuple(
         "pencil",
         "zoom-in",
         "zoom-out",
+        "context-menu",
     )
 )
 
