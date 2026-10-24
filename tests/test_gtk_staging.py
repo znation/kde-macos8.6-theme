@@ -19,7 +19,8 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.tmp_dir import make_tmp_dir
-from tools.gtk_staging import ConfigError, _stage, commit, discard, stage_all
+from tools.gtk_staging import _stage, commit, discard, stage_all
+from tools.gtk_user_files import ConfigError
 
 
 class StagingCase(unittest.TestCase):

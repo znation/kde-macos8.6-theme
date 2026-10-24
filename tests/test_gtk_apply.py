@@ -26,7 +26,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.tmp_dir import make_tmp_dir
-from tools import apply_gtk
+from tools import apply_gtk, gtk_user_files
 
 
 class GtkApplyCase(unittest.TestCase):
@@ -111,7 +111,7 @@ class TestApply(GtkApplyCase):
 
         css = (self.config / "gtk-4.0" / "gtk.css").read_text(encoding="utf-8")
         lines = css.splitlines()
-        self.assertEqual(apply_gtk.GTK4_CSS_MARKER, lines[0])
+        self.assertEqual(gtk_user_files.GTK4_CSS_MARKER, lines[0])
         self.assertEqual(f'@import url("{self.sheet.as_uri()}");', lines[1])
         self.assertIn("restart", result.stdout)
 
@@ -186,7 +186,7 @@ class TestApply(GtkApplyCase):
         result = self.run_tool()
         assert_succeeded(self, result)
         self.assertEqual(
-            f'{apply_gtk.GTK4_CSS_MARKER}\n@import url("{self.sheet.as_uri()}");\n',
+            f'{gtk_user_files.GTK4_CSS_MARKER}\n@import url("{self.sheet.as_uri()}");\n',
             css.read_text(encoding="utf-8"),
         )
         self.assertNotIn("not our user CSS", result.stdout)
@@ -335,7 +335,7 @@ class TestSettingsErrors(GtkApplyCase):
         css = self.config / "gtk-4.0" / "gtk.css"
         css.parent.mkdir(parents=True, exist_ok=True)
         css.write_text(
-            f"{apply_gtk.GTK4_CSS_MARKER}\n@import url(\"file:///sheet.css\");\n",
+            f"{gtk_user_files.GTK4_CSS_MARKER}\n@import url(\"file:///sheet.css\");\n",
             encoding="utf-8",
         )
         css.parent.chmod(0o500)
@@ -426,7 +426,7 @@ class TestRemove(GtkApplyCase):
             "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
         )
         css = self.config / "gtk-4.0" / "gtk.css"
-        self.write(css, apply_gtk.GTK4_CSS_MARKER + "\n")
+        self.write(css, gtk_user_files.GTK4_CSS_MARKER + "\n")
 
         with mock.patch.dict(
             os.environ, {"XDG_CONFIG_HOME": str(self.config)}, clear=True
@@ -567,9 +567,9 @@ class TestUnreadableConfig(GtkApplyCase):
             # test, so a missing O_NONBLOCK fails the assertion, not the run.
             return real_open(fifo, os.O_RDWR | os.O_NONBLOCK)
 
-        with mock.patch.object(apply_gtk.os, "open", side_effect=open_the_fifo):
-            with self.assertRaises(apply_gtk.ConfigError) as caught:
-                apply_gtk._read_config_text(gtk4)
+        with mock.patch.object(gtk_user_files.os, "open", side_effect=open_the_fifo):
+            with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                gtk_user_files.read_config_text(gtk4)
         self.assertIn(f"cannot read {gtk4}", str(caught.exception))
         self.assertIn("not a regular file", str(caught.exception))
 
@@ -594,7 +594,7 @@ class TestUnreadableConfig(GtkApplyCase):
         gtk4 = self.settings("gtk-4.0")
         make_fifo(self, gtk4)
         css = self.config / "gtk-4.0" / "gtk.css"
-        self.write(css, f"{apply_gtk.GTK4_CSS_MARKER}\n")
+        self.write(css, f"{gtk_user_files.GTK4_CSS_MARKER}\n")
 
         result = self.run_tool_in_child("--remove")
 
@@ -627,7 +627,7 @@ class TestUnreadableConfig(GtkApplyCase):
         gtk4 = self.settings("gtk-4.0")
         gtk4.parent.mkdir(parents=True, exist_ok=True)
         with gtk4.open("wb") as handle:
-            handle.truncate(apply_gtk._MAX_CONFIG_FILE_BYTES + 1)
+            handle.truncate(gtk_user_files.MAX_CONFIG_FILE_BYTES + 1)
 
         result = self.run_tool()
 
@@ -648,7 +648,7 @@ class TestUnreadableConfig(GtkApplyCase):
         gtk4_before = gtk4.read_bytes()
         css = self.config / "gtk-4.0" / "gtk.css"
         with css.open("wb") as handle:
-            handle.truncate(apply_gtk._MAX_CONFIG_FILE_BYTES + 1)
+            handle.truncate(gtk_user_files.MAX_CONFIG_FILE_BYTES + 1)
 
         result = self.run_tool("--remove")
 
@@ -658,7 +658,7 @@ class TestUnreadableConfig(GtkApplyCase):
         self.assertEqual(gtk3_before, gtk3.read_bytes())
         self.assertEqual(gtk4_before, gtk4.read_bytes())
         self.assertEqual(
-            apply_gtk._MAX_CONFIG_FILE_BYTES + 1, css.stat().st_size
+            gtk_user_files.MAX_CONFIG_FILE_BYTES + 1, css.stat().st_size
         )
 
     def test_a_settings_file_at_the_1_mib_cap_is_accepted(self):

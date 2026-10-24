@@ -12,18 +12,10 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_atomically
+    from tools.gtk_user_files import ConfigError
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
-
-
-class ConfigError(Exception):
-    """A GTK settings or user-CSS file could not be read or written.
-
-    The message names the offending path and the underlying error, so
-    ``main`` can report it as the one-line diagnostic instead of letting a
-    bare ``OSError`` or ``UnicodeDecodeError`` traceback escape. A decoder's
-    own error names the byte that failed but not the file it came from.
-    """
+    from gtk_user_files import ConfigError
 
 
 def discard(staging: Path) -> None:
