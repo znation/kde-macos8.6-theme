@@ -5,6 +5,35 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK meters and sliders: paint the progress-bar track and fill and the scale trough and thumb (planned 2026-10-23 by the plan role; independent of the waiting pointer plan) — done 2026-10-23 by the feature role
+
+**Goal.** Both opt-in GTK sheets cover windows, buttons, entries, tabs, menus, scroll bars and toolbars, but they leave `GtkProgressBar` and `GtkScale` to the Adwaita fallback, so a file-copy meter or a volume slider still draws Adwaita's rounded blue track and thumb. Paint them from the Platinum art the theme already ships: the flat #EEEEEE trough with its 1px #000000 outline that `widgets/scrollbar.svg` and `widgets/slider.svg` ship, the #999999 sunken shadow `widgets/lineedit.svg` uses, the flat #CCCCFF selection for the progress fill (the reference progress gradient's middle row is `#CBCCFF`), and the desktop theme's raised #DDDDDD slider thumb from `widgets/slider.svg`. No reference screenshot shows a GTK widget, so the geometry stays this theme's adaptation, but every colour is an existing pinned Platinum palette value and the sheets stay standalone (no `@import`, no `url()`).
+
+**Approach.**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: after the scrollbar rules, add these rules. Do not introduce a new hex literal anywhere in the file, including the header comment: `test_only_palette_hex_literals` scans the raw GTK 3 sheet text.
+  - `progressbar trough`: `background-color: #EEEEEE; background-image: none; border: 1px solid #000000; border-radius: 0; box-shadow: inset 1px 1px #999999; min-height: 10px; min-width: 10px;`
+  - `progressbar progress`: `background-color: #CCCCFF; background-image: none; border: 0; border-radius: 0; box-shadow: none; margin: 0;`
+  - `progressbar progress:disabled`: `background-color: #999999;`
+  - `scale trough`: the same declaration block as `progressbar trough` but `min-height: 6px; min-width: 6px;` (the desktop slider's 6px track).
+  - `scale fill, scale highlight`: `background-color: transparent; background-image: none; border: 0; border-radius: 0; box-shadow: none; margin: 0;` (the desktop slider deliberately omits its `groove-highlight`, so the trough stays one uniform Platinum bar and the thumb marks the value).
+  - `scale slider`: `background-color: #DDDDDD; background-image: none; border: 1px solid #000000; border-radius: 0; box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999; margin: -5px;`
+  - `scale.horizontal slider`: `min-width: 12px; min-height: 16px;` and `scale.vertical slider`: `min-width: 16px; min-height: 12px;` (the desktop theme's two handle shapes).
+  - `scale slider:hover, scale slider:active`: the same face, outline, square corners and bevel as the base `scale slider`, so no fallback hover colour shows through.
+  - `scale slider:disabled`: `background-color: #DDDDDD; border: 1px solid #999999; box-shadow: none;`
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: add the same declarations with the GTK 4 node paths, immediately after the scrollbar rules:
+  - `progressbar > trough` and `progressbar > trough > progress` (plus `progressbar > trough > progress:disabled`).
+  - `scale > trough`, `scale > trough > fill, scale > trough > highlight`, `scale > trough > slider` (with `margin: -5px`), `scale.horizontal > trough > slider`, `scale.vertical > trough > slider`, `scale > trough > slider:hover, scale > trough > slider:active`, and `scale > trough > slider:disabled`, with the same values as the GTK 3 rules.
+- `tests/test_gtk_theme.py`: add `test_progressbar` pinning the trough, fill and disabled-fill rules, and `test_scale` pinning the trough, the transparent fill/highlight, the base/hover/active/disabled thumb, and the 12x16 and 16x12 orientation sizes. Reuse the already-imported `BLACK`, `FACE`, `GREY`, `SELECTION`, `TROUGH` and `WHITE` values and `RAISED_BEVEL` from `support.gtk_theme_spec`.
+- `tests/test_gtk4_theme.py`: add the matching `test_progressbar` and `test_scale` against the GTK 4 selectors and the same values; `DEFINED_COLOURS` is unchanged.
+- `docs/invariants.md`: in the `## gtk` section, extend the GTK 3 and GTK 4 guarantee sentences to name the progress-bar and scale rules (and keep their existing no-reference-screenshot provenance exception).
+
+**Files touched.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Both sheets carry the pinned progress-bar and scale rules, and `test_only_palette_hex_literals` still passes unchanged in both suites (every hex in either sheet remains a value that test already accepts; the new declarations use only `#000000`, `#999999`, `#DDDDDD`, `#EEEEEE`, `#FFFFFF` and `#CCCCFF`).
+- The new tests fail if a track, fill, thumb face, outline, bevel, square corner, orientation size or state rule changes, and the GTK 4 sheet still passes `test_stands_alone` (no `@import`, no `url()`).
+- `tests/invariants.py` accepts the updated `## gtk` rows and `make check` is green.
+
 ### Platinum pointer roles: ship the context-menu pointer and alias the resize, hand and cell roles (planned 2026-10-23 by the plan role; independent of the landed pager plan) — done 2026-10-23 by the feature role
 
 **Goal.** The icon theme's `cursors/` names the Platinum pointers for the arrow, text, hand, busy, move, resize, crosshair, forbidden, drag-and-drop, help, progress, pencil and zoom roles, but several common Xcursor names still come from the fallback Breeze set: right-click uses `context-menu`, table and splitter borders use `col-resize`/`split_h` and `row-resize`/`split_v`, panning uses `openhand`/`closedhand`, and cell selection uses `cell`/`plus`. Add one new Platinum pointer for `context-menu` (the arrow beside a small menu panel) and alias the role-equivalent names to the already-shipped resize, grab and copy-plus art, so those roles stop changing shape when the Platinum cursor theme is selected. No reference screenshot shows a pointer, so the art stays our own `#000000`-face/`#FFFFFF`-outline drawing; the names and their Breeze byte groups are X/KDE-required values read from `/usr/share/icons/breeze_cursors/cursors` (`alias` and `link` share one file there, as do `cell` and `plus`, `col-resize` and `split_h`, `row-resize` and `split_v`, `openhand` and `grab`, and `closedhand` and `grabbing`).

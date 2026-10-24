@@ -143,6 +143,86 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             },
         )
 
+    def test_progressbar(self):
+        self.assert_rule(
+            "progressbar trough",
+            {
+                "background-color": TROUGH,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": f"inset 1px 1px {GREY}",
+                "min-height": "10px",
+                "min-width": "10px",
+            },
+        )
+        self.assert_rule(
+            "progressbar progress",
+            {
+                "background-color": SELECTION,
+                "background-image": "none",
+                "border": "0",
+                "border-radius": "0",
+                "box-shadow": "none",
+                "margin": "0",
+            },
+        )
+        self.assert_rule(
+            "progressbar progress:disabled", {"background-color": GREY}
+        )
+
+    def test_scale(self):
+        self.assert_rule(
+            "scale trough",
+            {
+                "background-color": TROUGH,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": f"inset 1px 1px {GREY}",
+                "min-height": "6px",
+                "min-width": "6px",
+            },
+        )
+        for selector in ("scale fill", "scale highlight"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": "transparent",
+                    "background-image": "none",
+                    "border": "0",
+                    "border-radius": "0",
+                    "box-shadow": "none",
+                    "margin": "0",
+                },
+            )
+        thumb = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": RAISED_BEVEL,
+        }
+        self.assert_rule("scale slider", {**thumb, "margin": "-5px"})
+        self.assert_rule(
+            "scale.horizontal slider",
+            {"min-width": "12px", "min-height": "16px"},
+        )
+        self.assert_rule(
+            "scale.vertical slider",
+            {"min-width": "16px", "min-height": "12px"},
+        )
+        for selector in ("scale slider:hover", "scale slider:active"):
+            self.assert_rule(selector, thumb)
+        self.assert_rule(
+            "scale slider:disabled",
+            {
+                "background-color": FACE,
+                "border": f"1px solid {GREY}",
+                "box-shadow": "none",
+            },
+        )
+
     def test_toolbar_and_menubar(self):
         for selector in ("toolbar", "menubar"):
             self.assert_rule(
