@@ -30,13 +30,12 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error, report_failure, report_note
     from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
-    from tools.gtk_staging import commit, discard, stage_all
+    from tools.gtk_staging import commit, stage_all
     from tools.gtk_user_files import (
         ConfigError,
         MAX_CONFIG_FILE_BYTES,
         read_config_text,
         settings_path,
-        unlink,
         user_css_remove,
         user_css_write,
     )
@@ -45,13 +44,12 @@ else:  # run directly: python3 tools/apply_gtk.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error, report_failure, report_note
     from gtk_settings import GTK_ID, remove_theme_name, set_theme_name
-    from gtk_staging import commit, discard, stage_all
+    from gtk_staging import commit, stage_all
     from gtk_user_files import (
         ConfigError,
         MAX_CONFIG_FILE_BYTES,
         read_config_text,
         settings_path,
-        unlink,
         user_css_remove,
         user_css_write,
     )
@@ -142,17 +140,9 @@ def _remove(config_home: Path) -> int:
         if removed:
             writes.append((path, updated))
     css = user_css_remove(config_home)
-    # Stage the settings, then delete the user CSS, then replace the settings:
-    # a failure in either step leaves every settings file unmodified.
-    staged = stage_all(writes)
-    if css is not None:
-        try:
-            unlink(css)
-        except ConfigError:
-            for _, staging in staged:
-                discard(staging)
-            raise
-    commit(staged)
+    # Replace the settings and delete the user CSS in one commit: a failure in
+    # either step restores every file changed so far, including the CSS.
+    commit(staged=stage_all(writes), removals=[css] if css is not None else [])
     return 0
 
 

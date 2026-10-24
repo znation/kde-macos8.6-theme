@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import os
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -325,8 +326,6 @@ class TestSettingsErrors(GtkApplyCase):
         )
 
     def test_remove_reports_a_failed_user_css_unlink(self):
-        if os.geteuid() == 0:
-            self.skipTest("root ignores a read-only directory")
         self.write(
             self.settings("gtk-3.0"),
             "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
@@ -337,14 +336,22 @@ class TestSettingsErrors(GtkApplyCase):
             f"{gtk_user_files.GTK4_CSS_MARKER}\n@import url(\"file:///sheet.css\");\n",
             encoding="utf-8",
         )
-        css.parent.chmod(0o500)
-        self.addCleanup(css.parent.chmod, 0o700)
+        real_unlink = Path.unlink
 
-        result = self.run_tool("--remove")
+        def fail_the_user_css_unlink(path, *args, **kwargs):
+            # The backup link and the settings replacement succeed, so this
+            # reaches the unlink itself, after the settings were changed.
+            if path == css:
+                raise OSError("injected unlink failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", fail_the_user_css_unlink):
+            result = self.run_tool("--remove")
+
         assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot remove {css}", result.stderr)
-        # The settings write is only staged when the unlink fails, so the
-        # gtk-3.0 selection is left untouched.
+        # The failed removal rolls the whole commit back, so the gtk-3.0
+        # selection and the user CSS are both left as they were.
         self.assertEqual(
             "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
             self.settings("gtk-3.0").read_text(encoding="utf-8"),
@@ -353,6 +360,37 @@ class TestSettingsErrors(GtkApplyCase):
 
 
 class TestRemove(GtkApplyCase):
+    def test_a_failed_settings_commit_restores_the_selection_and_user_css(self):
+        self.install_sheet()
+        gtk3 = self.settings("gtk-3.0")
+        gtk3_before = "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+        self.write(gtk3, gtk3_before)
+        gtk4 = self.settings("gtk-4.0")
+        gtk4_before = "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+        self.write(gtk4, gtk4_before)
+        css = self.config / "gtk-4.0" / "gtk.css"
+        self.write(css, f"{gtk_user_files.GTK4_CSS_MARKER}\n")
+        real_replace = os.replace
+
+        def fail_the_gtk4_staged_rename(source, destination, *args, **kwargs):
+            # The gtk3 replacement has already happened and the user CSS is
+            # part of the same commit, so the failure must roll both back.
+            if Path(destination) == gtk4 and str(source).endswith(".staging"):
+                raise OSError("injected rename failure")
+            return real_replace(source, destination, *args, **kwargs)
+
+        with mock.patch.object(
+            os, "replace", side_effect=fail_the_gtk4_staged_rename
+        ):
+            result = self.run_tool("--remove")
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {gtk4}", result.stderr)
+        self.assertEqual(gtk3_before, gtk3.read_text(encoding="utf-8"))
+        self.assertEqual(gtk4_before, gtk4.read_text(encoding="utf-8"))
+        self.assertTrue(css.is_file())
+
     def test_remove_deletes_our_key_and_marker_but_keeps_other_lines(self):
         self.install_sheet()
         self.write(
