@@ -766,5 +766,60 @@ class TestMainErrors(unittest.TestCase):
         )
 
 
+class TestCursorBytesCache(unittest.TestCase):
+    """An unchanged generator request reuses its build; different input does not."""
+
+    def setUp(self):
+        make_cursors._cached_cursor_bytes.cache_clear()
+        self.addCleanup(make_cursors._cached_cursor_bytes.cache_clear)
+
+    def test_an_unchanged_request_is_built_once(self):
+        with mock.patch.object(
+            make_cursors, "render_rgba", wraps=make_cursors.render_rgba
+        ) as render:
+            first = make_cursors.cursor_bytes()
+            second = make_cursors.cursor_bytes()
+        self.assertEqual(first, second)
+        self.assertEqual(render.call_count, len(SIZES))
+
+    def test_a_different_generation_request_is_built_separately(self):
+        with mock.patch.object(
+            make_cursors, "render_rgba", wraps=make_cursors.render_rgba
+        ) as render:
+            default = make_cursors.cursor_bytes()
+            moved = make_cursors.cursor_bytes(hotspot=(2, 2))
+        self.assertNotEqual(default, moved)
+        self.assertEqual(render.call_count, 2 * len(SIZES))
+
+    def test_a_malformed_grid_is_refused_on_every_call(self):
+        rows = list(cursor_art.ARROW_GRID)
+        rows[3] = "x" + rows[3][1:]
+        for _ in range(2):
+            with self.assertRaises(ValueError) as caught:
+                make_cursors.cursor_bytes(rows=tuple(rows))
+            self.assertIn("(0, 3)", str(caught.exception))
+
+    def test_a_bad_size_is_refused_after_a_cached_build(self):
+        make_cursors.cursor_bytes()
+        for sizes in ((16.0, 24.0, 32.0), (True,), ([16], 24, 32)):
+            with self.subTest(sizes=sizes):
+                with self.assertRaises(ValueError) as caught:
+                    make_cursors.cursor_bytes(sizes=sizes)
+                self.assertIn(
+                    "nominal size must be a positive integer",
+                    str(caught.exception),
+                )
+
+    def test_a_bad_hotspot_is_refused_after_a_cached_build(self):
+        make_cursors.cursor_bytes()
+        for hotspot in ((1.0, 1.0), (True, True), ([1], 1)):
+            with self.subTest(hotspot=hotspot):
+                with self.assertRaises(ValueError) as caught:
+                    make_cursors.cursor_bytes(hotspot=hotspot)
+                self.assertIn(
+                    "hotspot must be two integers", str(caught.exception)
+                )
+
+
 if __name__ == "__main__":
     unittest.main()

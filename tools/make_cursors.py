@@ -13,6 +13,7 @@ before anything is written, so the artifact stays in the icon theme package.
 
 from __future__ import annotations
 
+import functools
 import sys
 from pathlib import Path
 
@@ -82,8 +83,8 @@ def render_rgba(rows, size, name="arrow"):
     return bytes(rgba)
 
 
-def _scaled_hotspot(size, hotspot):
-    """Return the grid *hotspot* at the first destination pixel it covers."""
+def _checked_hotspot(hotspot):
+    """Return *hotspot* as a tuple after checking it names a grid cell."""
     if (
         not isinstance(hotspot, (tuple, list))
         or len(hotspot) != 2
@@ -97,6 +98,26 @@ def _scaled_hotspot(size, hotspot):
         raise ValueError(
             f"hotspot ({x}, {y}) lies outside the {GRID_SIZE}x{GRID_SIZE} grid"
         )
+    return x, y
+
+
+def _checked_sizes(sizes):
+    """Return *sizes* as a tuple after checking every nominal size."""
+    checked = []
+    for size in sizes:
+        if not is_plain_int(size) or size < 1:
+            raise ValueError(
+                f"nominal size must be a positive integer: size={size!r}"
+            )
+        checked.append(size)
+    if not checked:
+        raise ValueError("at least one nominal size is required")
+    return tuple(checked)
+
+
+def _scaled_hotspot(size, hotspot):
+    """Return the grid *hotspot* at the first destination pixel it covers."""
+    x, y = _checked_hotspot(hotspot)
     # The nearest-neighbour mapping sends destination pixel ``d`` to source
     # pixel ``d * 16 // size``, so a source pixel's first destination pixel is
     # the ceiling of its scaled start.
@@ -106,26 +127,54 @@ def _scaled_hotspot(size, hotspot):
     )
 
 
-def cursor_bytes(
-    rows=ARROW_GRID, sizes=NOMINAL_SIZES, hotspot=HOTSPOT, name="arrow"
-):
-    """Return the Xcursor bytes for *rows* at every nominal *size*."""
-    checked = _checked_rows(rows, name)
+def _build_cursor_bytes(checked, sizes, hotspot, name):
+    """Build the Xcursor bytes for already-checked *rows* and *sizes*."""
     frames = []
-    for size in sizes:
-        if not is_plain_int(size) or size < 1:
-            raise ValueError(
-                f"nominal size must be a positive integer: size={size!r}"
-            )
+    for size in _checked_sizes(sizes):
         hotspot_x, hotspot_y = _scaled_hotspot(size, hotspot)
         rgba = render_rgba(checked, size, name)
         frames.append((size, size, size, hotspot_x, hotspot_y, rgba))
-    if not frames:
-        raise ValueError("at least one nominal size is required")
     # The frames are already RGBA, so write them directly: encoding each one
     # to PNG for ``write_cursor`` to decode again would redo the pixel work
     # twice for no change in the written bytes.
     return write_rgba_cursor(frames)
+
+
+# Built cursors, keyed by their validated inputs. A build is pure: the same
+# grid, sizes, hotspot and name always produce the same bytes. The committed
+# manifest's checks regenerate the whole set from ``cursor_art.CURSORS``
+# several times in one ``make check`` (fresh-output, variants and determinism
+# cases), which measured 84 distinct builds of 125 requests; the cache turns
+# the repeated ones into a lookup. The entry-count bound keeps a caller
+# generating many variants from growing it without limit; with the shipped
+# nominal sizes one entry is under 7 KiB. Rows, sizes and the hotspot are
+# checked before this cache is consulted, so a malformed request is refused on
+# every call rather than being hidden by a cached result.
+_MAX_CACHED_CURSORS = 128
+
+
+@functools.lru_cache(maxsize=_MAX_CACHED_CURSORS)
+def _cached_cursor_bytes(checked, sizes, hotspot, name):
+    """Return :func:`_build_cursor_bytes`'s result, reusing an unchanged one."""
+    return _build_cursor_bytes(checked, sizes, hotspot, name)
+
+
+def cursor_bytes(
+    rows=ARROW_GRID, sizes=NOMINAL_SIZES, hotspot=HOTSPOT, name="arrow"
+):
+    """Return the Xcursor bytes for *rows* at every nominal *size*.
+
+    The result is cached by the validated rows, sizes, hotspot and name, so a
+    caller that regenerates an unchanged cursor (the manifest checks do) does
+    not redo its pixel and container work. Sizes and the hotspot are checked
+    before the lookup, so a malformed request is refused on every call rather
+    than being answered by an earlier build whose arguments compare equal
+    (``16``, ``16.0`` and ``True`` all compare equal in a cache key).
+    """
+    checked = _checked_rows(rows, name)
+    sizes_key = _checked_sizes(sizes)
+    hotspot_key = _checked_hotspot(hotspot)
+    return _cached_cursor_bytes(checked, sizes_key, hotspot_key, name)
 
 
 def main(argv: list[str] | None = None) -> int:
