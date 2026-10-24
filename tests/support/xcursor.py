@@ -12,6 +12,8 @@ alpha, so only an opaque frame reproduces its original PNG bytes). Errors are
 
 from __future__ import annotations
 
+import functools
+import os
 import struct
 from pathlib import Path
 from typing import NamedTuple
@@ -63,9 +65,21 @@ def _rgba_from_words(data: bytes, offset: int, count: int) -> bytes:
     return bytes(rgba)
 
 
-def read_cursor(path) -> CursorFile:
-    """Read and validate the Xcursor file at *path* into a :class:`CursorFile`."""
-    path = Path(path)
+def _fingerprint(path):
+    """Return *path*'s stat fingerprint, or None when it cannot be read.
+
+    A failed stat is not cached, so the caller's read still reports the missing
+    or unreadable path the way it did before.
+    """
+    try:
+        stat = os.stat(path)
+    except OSError:
+        return None
+    return (stat.st_ino, stat.st_size, stat.st_mtime_ns, stat.st_ctime_ns)
+
+
+def _read_cursor_file(path: Path) -> CursorFile:
+    """Read and validate the Xcursor file at *path*."""
     data = path.read_bytes()
     if len(data) < FILE_HEADER_SIZE:
         _fail(
@@ -216,3 +230,25 @@ def read_cursor(path) -> CursorFile:
             )
         )
     return CursorFile(tuple(images))
+
+
+@functools.lru_cache(maxsize=128)
+def _parse_cached(path_text, fingerprint):
+    """Parse *path_text*; the stat fingerprint is the cache's change key."""
+    return _read_cursor_file(Path(path_text))
+
+
+def read_cursor(path) -> CursorFile:
+    """Read and validate the Xcursor file at *path* into a :class:`CursorFile`.
+
+    A cursor suite reads the same file from many test methods, so a successful
+    parse is reused instead of re-reading and re-encoding every PNG frame. The
+    key carries the file's stat fingerprint, so a rewritten or replaced file is
+    parsed again; a failed read is never cached, and the cache is bounded to
+    128 entries. Callers treat the returned immutable frames as read-only.
+    """
+    path = Path(path)
+    fingerprint = _fingerprint(path)
+    if fingerprint is None:
+        return _read_cursor_file(path)
+    return _parse_cached(str(path), fingerprint)

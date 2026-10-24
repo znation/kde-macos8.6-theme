@@ -465,5 +465,38 @@ class TestUnknownChunk(unittest.TestCase):
         self.assertEqual(parsed.images[0].png, record[5])
 
 
+class TestReadCache(unittest.TestCase):
+    """Pin the reader's parse cache and its invalidation."""
+
+    def setUp(self):
+        self.tmp = make_tmp_dir(self)
+
+    def write(self, records, name="cursor.xcursor"):
+        path = self.tmp / name
+        path.write_bytes(xcursor.write_cursor(records))
+        return path
+
+    def test_an_unchanged_file_reuses_one_parsed_result(self):
+        path = self.write([frame_record(2)])
+        first = xcursor_reader.read_cursor(path)
+        self.assertIs(xcursor_reader.read_cursor(path), first)
+
+    def test_a_rewritten_file_is_parsed_again(self):
+        path = self.write([frame_record(2)])
+        first = xcursor_reader.read_cursor(path)
+        path.write_bytes(xcursor.write_cursor([frame_record(3), frame_record(4)]))
+        second = xcursor_reader.read_cursor(path)
+        self.assertIsNot(second, first)
+        self.assertEqual([image.nominal_size for image in second.images], [3, 4])
+
+    def test_a_failed_read_is_not_cached(self):
+        path = self.tmp / "missing.xcursor"
+        with self.assertRaises(FileNotFoundError):
+            xcursor_reader.read_cursor(path)
+        path.write_bytes(xcursor.write_cursor([frame_record(2)]))
+        parsed = xcursor_reader.read_cursor(path)
+        self.assertEqual([image.nominal_size for image in parsed.images], [2])
+
+
 if __name__ == "__main__":
     unittest.main()
