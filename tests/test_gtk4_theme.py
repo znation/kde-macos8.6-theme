@@ -21,6 +21,8 @@ from support.gtk_theme_spec import (
     GtkSheetRuleCases,
     MENU_CHECK,
     RAISED_BEVEL,
+    ROW_HOVER,
+    ROW_SELECTED,
 )
 from support.platinum_palette import (
     BLACK,
@@ -185,6 +187,16 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
+
+    def test_columnview_and_listview_rows(self):
+        self.assert_rule("listview > row.activatable:hover", ROW_HOVER)
+        for selector in (
+            "columnview.view:selected",
+            "columnview.view:selected:hover",
+            "listview > row.activatable:selected",
+            "listview > row.activatable:selected:hover",
+        ):
+            self.assert_rule(selector, ROW_SELECTED)
 
     def test_scrollbar(self):
         self.assert_rule(

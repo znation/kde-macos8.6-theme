@@ -16,7 +16,12 @@
    assets/arrow-down.svg and assets/arrow-up.svg, whose triangles reuse the
    desktop theme's pinned widgets/arrows.svg shapes. Spin-button arrows stay
    from the icon theme because GTK draws them there, not from a CSS
-   -gtk-icon-source this sheet can redirect. */
+   -gtk-icon-source this sheet can redirect. The tree-view and list-box row
+   rules adapt the reference-grounded row in widgets/listitem.svg: a hovered
+   row stays the view background and a selected row is its flat #CCCCFF fill
+   with square corners and black text. No reference screenshot shows a GTK
+   widget, so the row geometry is this theme's adaptation and the node and
+   class names are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -224,6 +229,17 @@ frame > border, .frame {
   box-shadow: inset 1px 1px #999999;
   margin: 0;
   padding: 0;
+}
+
+treeview.view:hover, list row.activatable:hover {
+  background-color: transparent;
+}
+
+treeview.view:selected, treeview.view:selected:hover,
+list row.activatable:selected, list row.activatable:selected:hover {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
 }
 
 scrollbar {

@@ -112,6 +112,16 @@ FRAME = {
     "padding": "0",
 }
 
+# The list and tree rows both sheets paint, adapted from the reference-grounded
+# widgets/listitem.svg row: a hovered row stays the view background and a
+# selected row is the flat selection fill with square corners and black text.
+ROW_HOVER = {"background-color": "transparent"}
+ROW_SELECTED = {
+    "background-color": SELECTION,
+    "color": BLACK,
+    "border-radius": "0",
+}
+
 # The check box and radio faces both sheets paint. The box reuses the
 # reference-grounded Kvantum check face; the radio's flat white face matches
 # widgets/radiobutton.svg.
@@ -295,6 +305,19 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     def test_tooltip(self):
         self.assert_rule("tooltip", TOOLTIP)
         self.assert_rule("tooltip.background", TOOLTIP_BACKGROUND)
+
+    def test_row_hover(self):
+        for selector in ("treeview.view:hover", "list row.activatable:hover"):
+            self.assert_rule(selector, ROW_HOVER)
+
+    def test_row_selection(self):
+        for selector in (
+            "treeview.view:selected",
+            "treeview.view:selected:hover",
+            "list row.activatable:selected",
+            "list row.activatable:selected:hover",
+        ):
+            self.assert_rule(selector, ROW_SELECTED)
 
     def test_tab_states(self):
         for state, selectors, checked in TAB_STATES:
