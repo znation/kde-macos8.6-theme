@@ -83,7 +83,9 @@ def _candidate(
 def _candidates(root: Path) -> list[Path]:
     """Return profile candidates in Firefox's own preference order.
 
-    The installs.ini default comes first, then a ``profiles.ini`` section marked
+    Every installs.ini section's default comes first, in file order (the
+    running binary's install hash is unknown, so a stale first section must
+    not hide a later live one), then a ``profiles.ini`` section marked
     ``Default=1``, then every ``profiles.ini`` section that names a ``Path`` in
     file order. Every section is listed, not just the first, so a stale marked
     default (or a stale first section) falls through to a later live profile
@@ -102,10 +104,7 @@ def _candidates(root: Path) -> list[Path]:
             # Firefox names these sections by install hash (and older releases
             # by ``Install`` plus a suffix), so any section can hold Default.
             candidate = _candidate(root, installs[name], "Default")
-            if candidate is None:
-                continue
             remember(candidate)
-            break
     profiles = _read_ini(root / "profiles.ini")
     if profiles is not None:
         sections = [

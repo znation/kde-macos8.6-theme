@@ -150,6 +150,16 @@ class TestProfileResolution(ProfileCase):
         )
         self.assertEqual(profile, self.resolve())
 
+    def test_a_stale_first_installs_section_falls_through_a_later_install(self):
+        live = self.firefox_root / "Profiles" / "live.default"
+        live.mkdir(parents=True)
+        _write(
+            self.firefox_root / "installs.ini",
+            "[InstallAAAA]\nDefault=Profiles/deleted.default\n"
+            "[InstallBBBB]\nDefault=Profiles/live.default\n",
+        )
+        self.assertEqual(live, self.resolve())
+
     def test_stale_installs_default_falls_through_to_profiles_ini(self):
         # installs.ini can outlive the profile directory it names after a
         # profile is deleted; resolution must keep trying profiles.ini
