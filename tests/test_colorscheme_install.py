@@ -10,6 +10,7 @@ import os
 import shutil
 import unittest
 
+from support import kde_config
 from support.colorscheme_fixtures import SCHEME
 from support.process_assertions import assert_failed, assert_succeeded
 from support.installed_paths import (
@@ -39,11 +40,7 @@ def write_selected_scheme(tmp, scheme_id):
     (and for reading the file back to prove a command did not edit it).
     """
     config = os.path.join(tmp, "config")
-    os.makedirs(config, exist_ok=True)
-    with open(
-        os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
-    ) as handle:
-        handle.write(f"[General]\nColorScheme={scheme_id}\n")
+    kde_config.write(config, f"[General]\nColorScheme={scheme_id}\n")
     return config
 
 
@@ -61,11 +58,7 @@ def write_home_config(home, text):
     leaves `XDG_CONFIG_HOME` unset puts the user's `kdeglobals` here.
     """
     config = os.path.join(home, ".config")
-    os.makedirs(config, exist_ok=True)
-    with open(
-        os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
-    ) as handle:
-        handle.write(text)
+    kde_config.write(config, text)
     return config
 
 
@@ -244,11 +237,7 @@ class TestInstall(unittest.TestCase):
     def _uninstall_with_kdeglobals(self, tmp, text):
         """Run `make uninstall` with *text* as the user's `kdeglobals`."""
         config = os.path.join(tmp, "config")
-        os.makedirs(config, exist_ok=True)
-        with open(
-            os.path.join(config, "kdeglobals"), "w", encoding="utf-8"
-        ) as handle:
-            handle.write(text)
+        kde_config.write(config, text)
         return uninstall_with_config(tmp, config)
 
     def test_make_uninstall_warns_for_the_last_duplicate_selection(self):

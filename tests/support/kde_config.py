@@ -1,4 +1,4 @@
-"""Read KDE INI files the way Plasma itself reads them.
+"""Read and seed KDE INI files the way Plasma itself reads them.
 
 Plasma's config format is INI-like but differs from configparser's defaults in
 six ways that matter: `%` is not an interpolation character (colour and path
@@ -8,10 +8,15 @@ before parsing, `=` is the only key/value delimiter (a colon-delimited line is
 an invalid entry KDE skips, not a key), and a later duplicate key overrides an
 earlier one. Reading a scheme or `defaults` file without these settings
 mangles values or makes configparser reject a file KDE accepts.
+
+`write` seeds a test's `kdeglobals` with the exact bytes the test supplies, so
+keystroke-level cases (BOMs, duplicate keys, malformed headings) reach the
+reader unchanged.
 """
 
 import configparser
 import io
+from pathlib import Path
 
 from support import containment
 from support.repo_root import ROOT
@@ -63,6 +68,20 @@ def _parseable_lines(handle):
                 yield "[<default>]\n"
                 root_open = True
             yield line
+
+
+def write(config_home, text):
+    """Write *text* to the ``kdeglobals`` below *config_home*.
+
+    KDE reads the user's selection from ``$XDG_CONFIG_HOME/kdeglobals`` and
+    from ``$HOME/.config/kdeglobals``, so a test that seeds a selection writes
+    this one file. The parent directory is created when missing, and the text
+    is written verbatim as UTF-8. Returns the written path.
+    """
+    path = Path(config_home) / "kdeglobals"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
 
 
 def read(path):

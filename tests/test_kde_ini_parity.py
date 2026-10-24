@@ -50,9 +50,7 @@ class TestReadersAgree(unittest.TestCase):
                     )
                     self._assert_defaults_agrees(case, defaults)
 
-                    (config / "kdeglobals").write_text(
-                        case.text, encoding="utf-8"
-                    )
+                    kde_config.write(config, case.text)
                     self._assert_uninstall_warns(case, destdir, config)
 
     def _assert_kde_config_agrees(self, case, ini):
