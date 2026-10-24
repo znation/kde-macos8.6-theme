@@ -9,6 +9,10 @@ Run ``python3 tools/make_cursors.py`` from anywhere; the output is
 deterministic, so re-running rewrites identical bytes. A cursors directory that
 resolves outside the repository (a checked-in symlink) is refused by name
 before anything is written, so the artifact stays in the icon theme package.
+
+Exit status: 0 when every cursor file was written (and for ``--help``/``-h``),
+2 for a usage error, a cursors directory that resolves outside the repository,
+or a directory or file that cannot be created or written.
 """
 
 from __future__ import annotations

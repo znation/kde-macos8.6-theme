@@ -14,6 +14,9 @@ pixel. The header is read first and the requested pixel or region is validated
 against the declared size, so an out-of-bounds request never reaches the row
 decoder; only the rows through a valid rectangle are decoded, and the full
 height printed in the header comes from ``read_png_size``.
+
+Exit status: 0 on success (and for ``--help``/``-h``), 2 for a usage error, a
+missing or unreadable PNG, or a coordinate or region outside the image.
 """
 
 from __future__ import annotations
