@@ -12,14 +12,18 @@ from __future__ import annotations
 
 import os
 import shutil
+import signal
 import stat
+import subprocess
+import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from support import theme_install
+from support import process_runner, theme_install
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
 from tools import apply_theme
@@ -245,6 +249,63 @@ class TestUnrunnableTools(StubTools):
         self.assertIn("KWin reconfigure could not be started", stderr)
         self.assertIn("KWin reloads the decoration on its next start", stderr)
         self.assertNotIn("Traceback", stderr)
+
+
+class TestTermination(StubTools):
+    """A SIGTERM while a required step runs unwinds through the cleanup.
+
+    ``run_logged`` starts each step in its own session. Without
+    ``exit_on_termination``, SIGTERM would kill ``apply_theme`` before its
+    ``finally`` blocks ran: the step would keep running and its scratch
+    directory would be left behind. This runs the CLI as a child and signals
+    it mid-step, so the handler, the group kill and the scratch removal are
+    all exercised together rather than mocked.
+    """
+
+    def test_sigterm_kills_the_step_group_and_removes_scratch(self):
+        scratch_parent = self.root / "tmp"
+        scratch_parent.mkdir()
+        pidfile = self.root / "step.pid"
+        self.stub(
+            "lookandfeeltool",
+            f'echo $$ > "{pidfile}"; exec /bin/sleep 60',
+        )
+        env = dict(os.environ, TMPDIR=str(scratch_parent))
+        step_pid = None
+
+        def kill_step():
+            if step_pid is not None:
+                try:
+                    os.kill(step_pid, signal.SIGKILL)
+                except OSError:
+                    pass
+
+        self.addCleanup(kill_step)
+        with process_runner.running(
+            [sys.executable, apply_theme.__file__],
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        ) as process:
+            deadline = time.monotonic() + 30
+            while not (
+                pidfile.is_file()
+                and pidfile.read_text(encoding="utf-8").strip()
+            ):
+                self.assertIsNone(
+                    process.poll(),
+                    "apply_theme exited before the step started",
+                )
+                self.assertLess(time.monotonic(), deadline, "step never started")
+                time.sleep(0.05)
+            step_pid = int(pidfile.read_text(encoding="utf-8").strip())
+            process.send_signal(signal.SIGTERM)
+            process_runner.finish(process)
+
+        self.assertEqual(128 + signal.SIGTERM, process.returncode)
+        self.assertEqual([], os.listdir(scratch_parent))
+        with self.assertRaises(ProcessLookupError):
+            os.kill(step_pid, 0)
 
 
 class TestMissingTool(unittest.TestCase):
