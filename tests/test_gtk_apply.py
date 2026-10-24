@@ -13,7 +13,6 @@ import os
 import shutil
 import tempfile
 import unittest
-from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -716,47 +715,6 @@ class TestUnreadableConfig(GtkApplyCase):
 
 
 class TestHomeResolution(unittest.TestCase):
-    def test_absolute_data_home_is_used_even_without_home(self):
-        self.assertEqual(
-            Path("/data"),
-            apply_gtk._data_home(
-                {"XDG_DATA_HOME": "/data", "XDG_CONFIG_HOME": "/config"}
-            ),
-        )
-
-    def test_empty_data_home_falls_back_to_home(self):
-        self.assertEqual(
-            Path("/home/u/.local/share"),
-            apply_gtk._data_home({"XDG_DATA_HOME": "", "HOME": "/home/u"}),
-        )
-
-    def test_relative_data_home_falls_back_to_home(self):
-        self.assertEqual(
-            Path("/home/u/.local/share"),
-            apply_gtk._data_home(
-                {"XDG_DATA_HOME": "relative", "HOME": "/home/u"}
-            ),
-        )
-
-    def test_absolute_config_home_is_used_even_without_home(self):
-        self.assertEqual(
-            Path("/config"), apply_gtk._config_home({"XDG_CONFIG_HOME": "/config"})
-        )
-
-    def test_empty_config_home_falls_back_to_home(self):
-        self.assertEqual(
-            Path("/home/u/.config"),
-            apply_gtk._config_home({"XDG_CONFIG_HOME": "", "HOME": "/home/u"}),
-        )
-
-    def test_relative_config_home_falls_back_to_home(self):
-        self.assertEqual(
-            Path("/home/u/.config"),
-            apply_gtk._config_home(
-                {"XDG_CONFIG_HOME": "relative", "HOME": "/home/u"}
-            ),
-        )
-
     def _run_with(self, env):
         with mock.patch.dict(os.environ, env, clear=True):
             return run_main(apply_gtk.main, "apply_gtk", ())

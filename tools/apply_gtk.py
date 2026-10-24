@@ -28,11 +28,13 @@ import sys
 from pathlib import Path
 
 if __package__:
+    from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error, report_failure, report_note
     from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
     from tools.gtk_staging import ConfigError, commit, discard, stage_all
 else:  # run directly: python3 tools/apply_gtk.py
+    import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error, report_failure, report_note
     from gtk_settings import GTK_ID, remove_theme_name, set_theme_name
@@ -50,41 +52,6 @@ def _note(message: str) -> None:
     report_note(TOOL, message)
 
 
-def _absolute(env: dict[str, str], name: str) -> Path | None:
-    """Return *name* from *env* when it is an absolute path, else ``None``."""
-    value = env.get(name, "")
-    return Path(value) if os.path.isabs(value) else None
-
-
-def _home_child(env: dict[str, str], *parts: str) -> Path | None:
-    """Return an absolute ``$HOME`` joined with *parts*, else ``None``."""
-    home = env.get("HOME", "")
-    if not os.path.isabs(home):
-        return None
-    return Path(home).joinpath(*parts)
-
-
-def _config_home(env: dict[str, str]) -> Path | None:
-    """Resolve the GTK config home: absolute XDG, else ``$HOME/.config``.
-
-    The XDG Base Directory spec treats an empty or relative
-    ``XDG_CONFIG_HOME`` as invalid and falls back to ``$HOME/.config``; with
-    an unusable ``HOME`` there is no absolute path to write, so the result is
-    ``None`` and the caller refuses instead of guessing.
-    """
-    return _absolute(env, "XDG_CONFIG_HOME") or _home_child(env, ".config")
-
-
-def _data_home(env: dict[str, str]) -> Path | None:
-    """Resolve the data home: absolute XDG, else ``$HOME/.local/share``.
-
-    This is the same resolution ``make install`` uses for the installed theme
-    files; a relative ``XDG_DATA_HOME`` is invalid and falls back to
-    ``$HOME/.local/share``, and an unusable ``HOME`` returns ``None``.
-    """
-    return _absolute(env, "XDG_DATA_HOME") or _home_child(env, ".local", "share")
-
-
 def _installed_sheet(data_home: Path, version: str) -> Path:
     """Return the installed GTK *version* sheet below *data_home*."""
     return data_home / "themes" / GTK_ID / version / "gtk.css"
@@ -95,8 +62,9 @@ def _require_home(path: Path | None, variable: str, fallback: str) -> Path:
 
     *fallback* is the ``$HOME``-relative path the XDG spec falls back to,
     included in the diagnostic so the user can see which directory could not
-    be resolved. Every caller resolves its path the same way and must refuse
-    rather than guess where to write, so the diagnostic lives here once.
+    be resolved. Every caller resolves its path through
+    :mod:`tools.xdg_homes` and must refuse rather than guess where to write,
+    so the diagnostic lives here once.
     """
     if path is None:
         raise ConfigError(
@@ -312,7 +280,7 @@ def main(argv: list[str] | None = None) -> int:
             # selection that is already installed.
             status = _remove(
                 _require_home(
-                    _config_home(env),
+                    xdg_homes.config_home(env),
                     "XDG_CONFIG_HOME",
                     "$HOME/.config",
                 )
@@ -320,12 +288,12 @@ def main(argv: list[str] | None = None) -> int:
         else:
             status = _apply(
                 _require_home(
-                    _data_home(env),
+                    xdg_homes.data_home(env),
                     "XDG_DATA_HOME",
                     "$HOME/.local/share",
                 ),
                 _require_home(
-                    _config_home(env),
+                    xdg_homes.config_home(env),
                     "XDG_CONFIG_HOME",
                     "$HOME/.config",
                 ),

@@ -27,6 +27,7 @@ import tempfile
 from pathlib import Path
 
 if __package__:
+    from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import read_text
     from tools.diagnostics import (
@@ -38,6 +39,7 @@ if __package__:
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
 else:  # run directly: python3 tools/apply_cursor.py
+    import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from containment import read_text
     from diagnostics import (
@@ -64,12 +66,6 @@ def _note(message: str) -> None:
     report_note(TOOL, message)
 
 
-def _absolute(env: dict[str, str], name: str) -> Path | None:
-    """Return *name* from *env* when it is an absolute path, else ``None``."""
-    value = env.get(name, "")
-    return Path(value) if os.path.isabs(value) else None
-
-
 def resolve_homes(env: dict[str, str]) -> tuple[Path, Path, Path]:
     """Return ``(home, data_home, config_home)`` from *env*.
 
@@ -84,9 +80,8 @@ def resolve_homes(env: dict[str, str]) -> tuple[Path, Path, Path]:
             "HOME is unset or not absolute; export an absolute HOME"
         )
     home_path = Path(home)
-    data_home = _absolute(env, "XDG_DATA_HOME") or home_path / ".local" / "share"
-    config_home = _absolute(env, "XDG_CONFIG_HOME") or home_path / ".config"
-    return home_path, data_home, config_home
+    # ``HOME`` is absolute, so both XDG fallbacks resolve to a path.
+    return home_path, xdg_homes.data_home(env), xdg_homes.config_home(env)
 
 
 def installed_theme(data_home: Path) -> Path:
