@@ -63,6 +63,29 @@ class TestPublishMode(unittest.TestCase):
             self.assertEqual(0o640, stat.S_IMODE(output.stat().st_mode))
 
 
+class TestPublishSourceFailure(unittest.TestCase):
+    """A source that cannot be opened leaves the previous output untouched.
+
+    ``publish`` copies inside the atomic writer, so a source open that fails
+    must land in the writer's cleanup: the temporary sibling is removed and the
+    old output survives, exactly as for a copy that fails midway through.
+    """
+
+    def test_a_missing_source_keeps_the_previous_output_and_leaves_no_partial_file(self):
+        with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
+            root = Path(directory)
+            output = root / "render.png"
+            output.write_bytes(b"previous good render")
+
+            with self.assertRaises(FileNotFoundError):
+                render_output.publish(root / "missing.png", output)
+
+            self.assertEqual(b"previous good render", output.read_bytes())
+            self.assertEqual(
+                ["render.png"], sorted(path.name for path in root.iterdir())
+            )
+
+
 class TestPublishFdopen(unittest.TestCase):
     def test_failed_fdopen_closes_descriptor(self):
         import tempfile
