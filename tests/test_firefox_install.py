@@ -57,6 +57,22 @@ class ProfileCase(unittest.TestCase):
     def user_js_path(self):
         return self.profile / "user.js"
 
+    def fail_write_to(self, target):
+        """Return a ``write_atomically`` stand-in that fails on *target*.
+
+        Other paths still reach the real writer, so a test can pin which of
+        the two profile files a failed publication names and what the other
+        one holds.
+        """
+        real_write = firefox_user_files.write_atomically
+
+        def flaky_write(path, writer):
+            if Path(path) == target:
+                raise OSError("simulated failure")
+            return real_write(path, writer)
+
+        return flaky_write
+
     @property
     def firefox_root(self):
         return self.home / ".mozilla" / "firefox"
@@ -726,14 +742,11 @@ class TestInstall(ProfileCase):
     def test_a_failed_user_js_write_is_reported_by_path(self):
         # A write failure must name the file that failed and stop the install:
         # the sheet is published first, but user.js is left absent.
-        real_write = firefox_user_files.write_atomically
-
-        def flaky_write(path, writer):
-            if Path(path) == self.user_js_path():
-                raise OSError("simulated failure")
-            return real_write(path, writer)
-
-        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
+        with mock.patch.object(
+            firefox_user_files,
+            "write_atomically",
+            self.fail_write_to(self.user_js_path()),
+        ):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
@@ -748,14 +761,11 @@ class TestInstall(ProfileCase):
         # first write must name the sheet and leave no user.js behind instead
         # of escaping as a traceback. The existing user.js write-failure test
         # pins the second publication; this pins the first.
-        real_write = firefox_user_files.write_atomically
-
-        def flaky_write(path, writer):
-            if Path(path) == self.sheet_path():
-                raise OSError("simulated failure")
-            return real_write(path, writer)
-
-        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
+        with mock.patch.object(
+            firefox_user_files,
+            "write_atomically",
+            self.fail_write_to(self.sheet_path()),
+        ):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
@@ -1065,14 +1075,11 @@ class TestRemove(ProfileCase):
         # its content unchanged instead of escaping as a traceback.
         self.install()
         before = _read(self.user_js_path())
-        real_write = firefox_user_files.write_atomically
-
-        def flaky_write(path, writer):
-            if Path(path) == self.user_js_path():
-                raise OSError("simulated failure")
-            return real_write(path, writer)
-
-        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
+        with mock.patch.object(
+            firefox_user_files,
+            "write_atomically",
+            self.fail_write_to(self.user_js_path()),
+        ):
             result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
