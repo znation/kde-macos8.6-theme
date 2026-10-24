@@ -338,6 +338,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             disabled="scale slider:disabled",
         )
 
+    def test_menubar_titles(self):
+        self.assert_menubar_titles("menubar > menuitem")
+
     def test_toolbar_and_menubar(self):
         for selector in ("toolbar", "menubar"):
             self.assert_rule(

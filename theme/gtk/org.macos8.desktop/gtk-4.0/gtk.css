@@ -24,6 +24,9 @@
    the reference-grounded white content field, the colour scheme's View
    background, with black text; no reference screenshot shows a GTK widget, and
    the view class and node names are GTK-required.
+   Menu-bar titles take widgets/menubaritem.svg's 3px/7px margins, re-derived
+   from the reference title gaps, and an open title takes the #CCCCFF
+   selection; the menubar > item node and :selected state are GTK-required.
    The tree-view,
    list-box, column-view and list-view row rules adapt the reference-grounded
    row in widgets/listitem.svg: a hovered row stays the view background and a
@@ -661,8 +664,14 @@ switch > image {
   color: transparent;
 }
 
-.toolbar {
+.toolbar, menubar {
   background-color: #DDDDDD;
   border-bottom: 1px solid #888888;
   box-shadow: inset 0 -1px #FFFFFF;
+}
+menubar > item {
+  padding: 3px 7px;
+}
+menubar > item:selected {
+  background-color: #CCCCFF;
 }

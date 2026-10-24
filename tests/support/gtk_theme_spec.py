@@ -14,6 +14,9 @@ with their own selectors.
 
 from __future__ import annotations
 
+from support.desktoptheme_paths import MENUBARITEM_SVG
+from support.svg_case import parse_svg
+from svg_assertions import rect_geometry
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -629,3 +632,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             self.assert_rule(selector, EXPANDER_COLLAPSED)
         for selector in expanded:
             self.assert_rule(selector, EXPANDER_EXPANDED)
+
+    def assert_menubar_titles(self, selector):
+        """Assert *selector* pads a title with the menubaritem SVG's margins."""
+        geometry = rect_geometry(parse_svg(MENUBARITEM_SVG))
+        top = geometry["normal-hint-top-margin"][3]
+        left = geometry["normal-hint-left-margin"][2]
+        self.assert_rule(selector, {"padding": f"{top}px {left}px"})

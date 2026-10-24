@@ -322,14 +322,21 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             disabled="scale > trough > slider:disabled",
         )
 
-    def test_toolbar(self):
+    def test_toolbar_and_menubar(self):
+        for selector in (".toolbar", "menubar"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "border-bottom": f"1px solid {ETCH_DARK}",
+                    "box-shadow": f"inset 0 -1px {WHITE}",
+                },
+            )
+
+    def test_menubar_titles(self):
+        self.assert_menubar_titles("menubar > item")
         self.assert_rule(
-            ".toolbar",
-            {
-                "background-color": FACE,
-                "border-bottom": f"1px solid {ETCH_DARK}",
-                "box-shadow": f"inset 0 -1px {WHITE}",
-            },
+            "menubar > item:selected", {"background-color": SELECTION}
         )
 
 
