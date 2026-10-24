@@ -17,4 +17,7 @@ SHIPPED_FILES = (
     "assets/bullet.svg",
     "assets/arrow-down.svg",
     "assets/arrow-up.svg",
+    "assets/window-close.svg",
+    "assets/window-maximize.svg",
+    "assets/window-minimize.svg",
 )

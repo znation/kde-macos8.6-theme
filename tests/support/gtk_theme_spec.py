@@ -112,6 +112,33 @@ FRAME = {
     "padding": "0",
 }
 
+# Both sheets paint the title-bar controls as the reference-grounded Aurorae
+# box in a 16px hit area, with the toolkit glyph hidden. assert_title_button
+# adds the control's own asset URL.
+TITLE_BUTTON = {
+    "background-color": "transparent",
+    "background-position": "center",
+    "background-repeat": "no-repeat",
+    "background-size": "13px 13px",
+    "border": "0",
+    "border-radius": "0",
+    "box-shadow": "none",
+    "margin": "0",
+    "min-height": "16px",
+    "min-width": "16px",
+    "padding": "0",
+    "-gtk-icon-source": "none",
+}
+TITLE_BUTTON_IMAGE = {
+    "background-color": "transparent",
+    "color": "transparent",
+    "min-height": "16px",
+    "min-width": "16px",
+}
+# GTK 4's default sheet gives the image a circular background on these states,
+# so each needs its own transparent rule to outrank that default.
+TITLE_BUTTON_IMAGE_STATE = {"background-color": "transparent"}
+
 # The tree-view and column-view header faces both sheets paint as the raised
 # Platinum push button, with one black line between columns and under the row.
 TREE_HEADER = {
@@ -402,6 +429,13 @@ class GtkSheetRuleCases(SheetRuleAssertions):
                 "border": f"1px solid {GREY}",
                 "box-shadow": "none",
             },
+        )
+
+    def assert_title_button(self, selector, asset):
+        """Assert the Aurorae box in a 16px hit area with *asset* behind it."""
+        self.assert_rule(selector, TITLE_BUTTON)
+        self.assert_rule(
+            selector, {"background-image": f'url("../assets/{asset}")'}
         )
 
     def assert_tree_header(self, selectors):

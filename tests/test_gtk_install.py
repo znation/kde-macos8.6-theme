@@ -55,6 +55,9 @@ STAGING_PATHS = {
     "assets/bullet.svg": "assets/.bullet.svg.staging",
     "assets/arrow-down.svg": "assets/.arrow-down.svg.staging",
     "assets/arrow-up.svg": "assets/.arrow-up.svg.staging",
+    "assets/window-close.svg": "assets/.window-close.svg.staging",
+    "assets/window-maximize.svg": "assets/.window-maximize.svg.staging",
+    "assets/window-minimize.svg": "assets/.window-minimize.svg.staging",
 }
 
 
@@ -107,7 +110,7 @@ class TestInstall(unittest.TestCase):
                 "install",
                 "#!/bin/sh\n"
                 'case "$3" in\n'
-                "  */assets/.arrow-up.svg.staging)\n"
+                "  */assets/.window-minimize.svg.staging)\n"
                 '    dest="$3"\n'
                 '    mkdir -p "$(dirname "$dest")"\n'
                 '    printf partial > "$dest"\n'

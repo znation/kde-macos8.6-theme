@@ -28,7 +28,14 @@
    reaches a header button because this sheet is standalone, so the header
    rule narrows its outline to that shared grid. GTK 3's default sheet exposes
    no sort-indicator node, so this sheet paints none. No reference screenshot
-   shows a GTK widget, so the header geometry is this theme's adaptation. */
+   shows a GTK widget, so the header geometry is this theme's adaptation. The
+   title-bar close, zoom (maximize) and collapse (minimize) buttons paint the
+   reference-grounded Aurorae box art from the shared assets/window-close.svg,
+   assets/window-maximize.svg and assets/window-minimize.svg, centred in a 16px
+   hit area with the toolkit glyph hidden. GTK's restore state keeps the
+   maximize class, so it uses the zoom art and needs no fourth asset. No
+   reference screenshot shows a GTK widget, so the 16px hit area is this
+   theme's adaptation. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -54,6 +61,61 @@ headerbar, .titlebar {
 
 headerbar {
   border-width: 0 0 1px 0;
+}
+
+headerbar button.titlebutton.close, .titlebar button.titlebutton.close {
+  background-color: transparent;
+  background-image: url("../assets/window-close.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar button.titlebutton.maximize, .titlebar button.titlebutton.maximize {
+  background-color: transparent;
+  background-image: url("../assets/window-maximize.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar button.titlebutton.minimize, .titlebar button.titlebutton.minimize {
+  background-color: transparent;
+  background-image: url("../assets/window-minimize.svg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 13px 13px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 16px;
+  min-width: 16px;
+  padding: 0;
+  -gtk-icon-source: none;
+}
+
+headerbar button.titlebutton image, .titlebar button.titlebutton image {
+  background-color: transparent;
+  color: transparent;
+  min-height: 16px;
+  min-width: 16px;
 }
 
 button {

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" zoom (maximize) button for the GTK title bar.
+
+     The Aurorae zoom widget's active box cropped from
+     theme/aurorae/themes/org.macos8.desktop/maximize.svg: that canvas's
+     x=5..17 columns (the box plus its #FFFFFF highlight) shifted by -5 onto
+     this 13x13 canvas, dropping its pinstripe, gap and spacing columns.
+     Every pixel is sampled from macos8.6-screenshots/systemprofiler_betawiki.png
+     at x=781..793, y=26..38 (the 13x13 box including its highlight column
+     and row).
+
+     Only the `active-center` group is copied: a plain SVG renderer draws
+     every group in the file, so the Aurorae inactive art would cover this
+     box. Re-derived by tests/test_gtk_title_buttons.py. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 13 13">
+  <g id="active-center" transform="translate(0,0)">
+    <rect x="0" y="0" width="12" height="1" fill="#888888"/>
+    <rect x="0" y="1" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="1" width="11" height="1" fill="#222222"/>
+    <rect x="0" y="2" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="2" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="3" y="2" width="4" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="2" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="2" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="11" y="2" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="3" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="3" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="3" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="3" width="2" height="1" fill="#999999"/>
+    <rect x="5" y="3" width="2" height="1" fill="#AAAAAA"/>
+    <rect x="7" y="3" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="3" width="1" height="1" fill="#BBBBBB"/>
+    <rect x="9" y="3" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="3" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="3" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="4" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="4" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="4" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="4" width="1" height="1" fill="#999999"/>
+    <rect x="4" y="4" width="2" height="1" fill="#AAAAAA"/>
+    <rect x="6" y="4" width="1" height="1" fill="#BBBBBB"/>
+    <rect x="7" y="4" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="4" width="2" height="1" fill="#CCCCCC"/>
+    <rect x="10" y="4" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="4" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="5" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="5" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="5" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="5" width="2" height="1" fill="#AAAAAA"/>
+    <rect x="5" y="5" width="2" height="1" fill="#BBBBBB"/>
+    <rect x="7" y="5" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="5" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="9" y="5" width="1" height="1" fill="#DDDDDD"/>
+    <rect x="10" y="5" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="5" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="6" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="6" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="6" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="6" width="1" height="1" fill="#AAAAAA"/>
+    <rect x="4" y="6" width="2" height="1" fill="#BBBBBB"/>
+    <rect x="6" y="6" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="7" y="6" width="1" height="1" fill="#222222"/>
+    <rect x="8" y="6" width="2" height="1" fill="#DDDDDD"/>
+    <rect x="10" y="6" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="6" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="7" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="7" width="7" height="1" fill="#222222"/>
+    <rect x="8" y="7" width="1" height="1" fill="#DDDDDD"/>
+    <rect x="9" y="7" width="1" height="1" fill="#EEEEEE"/>
+    <rect x="10" y="7" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="7" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="8" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="8" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="8" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="8" width="1" height="1" fill="#BBBBBB"/>
+    <rect x="4" y="8" width="2" height="1" fill="#CCCCCC"/>
+    <rect x="6" y="8" width="2" height="1" fill="#DDDDDD"/>
+    <rect x="8" y="8" width="2" height="1" fill="#EEEEEE"/>
+    <rect x="10" y="8" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="8" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="9" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="9" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="9" width="3" height="1" fill="#CCCCCC"/>
+    <rect x="5" y="9" width="2" height="1" fill="#DDDDDD"/>
+    <rect x="7" y="9" width="2" height="1" fill="#EEEEEE"/>
+    <rect x="9" y="9" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="10" y="9" width="1" height="1" fill="#888888"/>
+    <rect x="11" y="9" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="10" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="10" width="1" height="1" fill="#222222"/>
+    <rect x="2" y="10" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="3" y="10" width="8" height="1" fill="#888888"/>
+    <rect x="11" y="10" width="1" height="1" fill="#222222"/>
+    <rect x="0" y="11" width="1" height="1" fill="#888888"/>
+    <rect x="1" y="11" width="11" height="1" fill="#222222"/>
+    <rect x="12" y="0" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="12" y="1" width="1" height="12" fill="#FFFFFF"/>
+    <rect x="0" y="12" width="1" height="1" fill="#CCCCCC"/>
+    <rect x="1" y="12" width="11" height="1" fill="#FFFFFF"/>
+  </g>
+</svg>

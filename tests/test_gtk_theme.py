@@ -23,6 +23,7 @@ from support.gtk_theme_spec import (
     GtkSheetRuleCases,
     MENU_CHECK,
     RAISED_BEVEL,
+    TITLE_BUTTON_IMAGE,
 )
 from support.platinum_palette import (
     BLACK,
@@ -141,6 +142,20 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_tree_header(self):
         self.assert_tree_header(("treeview.view header button",))
 
+    def test_title_buttons(self):
+        for scope in ("headerbar", ".titlebar"):
+            for control, asset in (
+                ("close", "window-close.svg"),
+                ("maximize", "window-maximize.svg"),
+                ("minimize", "window-minimize.svg"),
+            ):
+                self.assert_title_button(
+                    f"{scope} button.titlebutton.{control}", asset
+                )
+            self.assert_rule(
+                f"{scope} button.titlebutton image", TITLE_BUTTON_IMAGE
+            )
+
     def test_menu(self):
         for selector in ("menu", ".menu", "popover", ".popover"):
             self.assert_rule(
@@ -172,6 +187,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 '"../assets/bullet.svg"',
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
+                '"../assets/window-close.svg"',
+                '"../assets/window-maximize.svg"',
+                '"../assets/window-minimize.svg"',
             },
         )
 

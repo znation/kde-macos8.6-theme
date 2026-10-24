@@ -23,6 +23,8 @@ from support.gtk_theme_spec import (
     RAISED_BEVEL,
     ROW_HOVER,
     ROW_SELECTED,
+    TITLE_BUTTON_IMAGE,
+    TITLE_BUTTON_IMAGE_STATE,
 )
 from support.platinum_palette import (
     BLACK,
@@ -91,6 +93,9 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                 '"../assets/bullet.svg"',
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
+                '"../assets/window-close.svg"',
+                '"../assets/window-maximize.svg"',
+                '"../assets/window-minimize.svg"',
             },
         )
         self.assertNotIn("adwaita", self.css.lower())
@@ -157,6 +162,25 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                 f"{selector} sort-indicator.descending",
                 {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'},
             )
+
+    def test_title_buttons(self):
+        for scope in ("headerbar", ".titlebar"):
+            for control, asset in (
+                ("close", "window-close.svg"),
+                ("maximize", "window-maximize.svg"),
+                ("minimize", "window-minimize.svg"),
+            ):
+                self.assert_title_button(
+                    f"{scope} windowcontrols button.{control}", asset
+                )
+            self.assert_rule(
+                f"{scope} windowcontrols button image", TITLE_BUTTON_IMAGE
+            )
+            for state in ("hover", "active", "checked"):
+                self.assert_rule(
+                    f"{scope} windowcontrols button:{state} > image",
+                    TITLE_BUTTON_IMAGE_STATE,
+                )
 
     def test_notebook_header(self):
         self.assert_rule(
