@@ -73,4 +73,26 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
+### Platinum GTK 4 scroll bars: give the GTK 4 scroll bar the reference's 16px breadth (planned 2026-10-24 by the plan role; independent of the waiting GTK menu-bar plan)
+
+**Goal.** The GTK 4 sheet is standalone: it loads no stock rules. Its `scrollbar > range > trough` rule (1px black border, no padding) and `scrollbar > range > trough > slider` rule (1px black border, `margin: 0`) set no minimum size. GTK 4 also has no stepper buttons, so nothing else gives the bar any breadth. Measured live with PyGObject (`Gtk.Scrollbar().measure(...)` under `GTK_THEME=org.macos8.desktop` with `XDG_DATA_HOME` pointing at a temp dir that holds a `themes/org.macos8.desktop` symlink to `theme/gtk/org.macos8.desktop`), a GTK 4 scroll bar is 4px across and 4px long in both orientations. That is only the four border pixels, so the thumb is a sliver. The GTK 3 bar measures 16px across, and stock Adwaita GTK 4 measures 14px. The reference installer CD window (`setup_emaculation.png`) shows a 16px horizontal bar: black rules at y=462 and y=477 around a flat `#EEEEEE` band, which `tests/test_desktoptheme_scrollbar.py::TestScrollbarReference` already samples. The fix is to give the GTK 4 slider a 12px minimum in both axes: 16px = 1px trough border + 1px slider border + 12px + 1px slider border + 1px trough border. Measured live with that rule added through a display CSS provider, the bar is 16px across in both orientations.
+
+**Design (decided; do not widen).**
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: in `scrollbar > range > trough > slider`, add `min-width: 12px;` and `min-height: 12px;`. The equal minimum length makes the smallest thumb square. Change no other rule.
+- Out of scope: overlay-scrolling behaviour (`.overlay-indicator`/`.hovering`, and the `gtk-overlay-scrolling` setting), GTK 3 (already 16px), the thumb's grip, and `:disabled`.
+
+**Files touched.**
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: the two declarations. Add one sentence to the header comment: the scroll-bar thumb's 12px minimum fills the reference's 16px bar inside the trough's and thumb's 1px borders, because GTK 4 has no steppers to size the bar.
+- `tests/test_gtk4_theme.py`:
+  - Extend `TestGtk4Theme.test_scrollbar`'s slider expectation with `"min-width": "12px"` and `"min-height": "12px"`.
+  - Add `TestScrollbarBreadthReference(ReferenceScreenshotMixin, unittest.TestCase)` with `REFERENCE = SETUP_REFERENCE` and `MAX_ROWS = SETUP_MAX_ROWS`. Import these from `support.desktoptheme_paths` and `support.reference_image`, as `tests/test_gtk_theme.py::TestScrollbarStepperReference` does.
+  - Its test asserts that pixels (200, 462) and (200, 477) are `BLACK` and that every row in between at x=200 is `TROUGH`. It derives `band = 477 - 462 + 1` and asserts `band == 16`.
+  - It then parses `CSS` with `parse_css` and asserts the slider's `min-width` and `min-height` both equal `f"{band - 4}px"`. The 4 is the trough's and slider's 1px borders, so the test should also assert that both rules' `border` is `1px solid #000000` (spelled through `BLACK`).
+- `docs/invariants.md`: add a new `## gtk` row at the end of the gtk section. Guarantee: the GTK 4 sheet gives the scroll-bar thumb a 12px minimum in both axes, so a GTK 4 scroll bar is the reference's 16px across. Tests: `tests/test_gtk4_theme.py::TestGtk4Theme::test_scrollbar` and `tests/test_gtk4_theme.py::TestScrollbarBreadthReference`. Provenance: none (the 16px is re-derived from `setup_emaculation.png`).
+
+**Acceptance criteria.**
+- The GTK 4 sheet's `scrollbar > range > trough > slider` carries `min-width: 12px` and `min-height: 12px`, and no other rule changes.
+- Removing either declaration, or changing it to a value other than the reference band minus the two 1px borders, fails `TestScrollbarBreadthReference`. Removing either one also fails `test_scrollbar`.
+- The sheet's hex-literal allow-list tests still pass, since no colour is added. The new invariant row is accepted by `tests/invariants.py`, and `make check` is green.
+
 ## Done
