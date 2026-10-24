@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" Desktop place icon, 16x16 rendition.
+
+     The folder KDE draws for the `user-desktop` place. Our own 16x16 redraw
+     in the Platinum palette: a #DDDDDD folder with a tab on the top left, a
+     1px #000000 outline and the Platinum bevel (#FFFFFF top/left, #999999
+     bottom/right). It shares `places/folder.svg`'s geometry because Mac OS
+     8.6 draws one folder shape for a directory. Drawn for this theme, not
+     traced from Apple's artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- Outline: a tab on the top left and a taller front panel. -->
+  <path d="M1 4 h5 l2 2 h6 v7 H1 Z" fill="#000000"/>
+  <!-- #DDDDDD face, inset one pixel. -->
+  <path d="M2 5 h4 l2 2 h5 v4 H2 Z" fill="#DDDDDD"/>
+  <!-- Platinum bevel: white along the top and left, grey along the bottom
+       and right. -->
+  <path d="M2 5 h4 l2 2 h5 v1 h-5 l-2 -2 h-4 Z" fill="#FFFFFF"/>
+  <rect x="2" y="5" width="1" height="6" fill="#FFFFFF"/>
+  <rect x="2" y="11" width="11" height="1" fill="#999999"/>
+  <rect x="12" y="8" width="1" height="3" fill="#999999"/>
+</svg>

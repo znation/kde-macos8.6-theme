@@ -39,8 +39,9 @@ PLACEHOLDERS = os.path.join(ROOT, "PLACEHOLDERS.md")
 
 # The icons the package ships: the desktop's hard disk, folder, document,
 # Trash and full Trash (32x32), the `inode-directory` alias KDE resolves a
-# directory to, 16x16 and 22x22 renditions of the folder, alias, Trash and
-# full Trash (part 1/2 of the Platinum icon theme), 16x16 and 22x22
+# directory to plus the `user-home` and `user-desktop` places, all drawing
+# the folder art, 16x16 and 22x22 renditions of the folder, aliases, Trash
+# and full Trash (part 1/2 of the Platinum icon theme), 16x16 and 22x22
 # renditions of the hard disk and document (part 2/2), the kicker logo the
 # menu bar's top-left button shows at the two panel sizes, and the
 # `go-next-symbolic` submenu arrow the reference's open Apple menu draws.
@@ -53,14 +54,20 @@ SHIPPED_ICONS = (
     os.path.join("22x22", "mimetypes", "text-x-generic.svg"),
     os.path.join("32x32", "places", "folder.svg"),
     os.path.join("32x32", "places", "inode-directory.svg"),
+    os.path.join("32x32", "places", "user-home.svg"),
+    os.path.join("32x32", "places", "user-desktop.svg"),
     os.path.join("32x32", "places", "user-trash.svg"),
     os.path.join("32x32", "places", "user-trash-full.svg"),
     os.path.join("16x16", "places", "folder.svg"),
     os.path.join("16x16", "places", "inode-directory.svg"),
+    os.path.join("16x16", "places", "user-home.svg"),
+    os.path.join("16x16", "places", "user-desktop.svg"),
     os.path.join("16x16", "places", "user-trash.svg"),
     os.path.join("16x16", "places", "user-trash-full.svg"),
     os.path.join("22x22", "places", "folder.svg"),
     os.path.join("22x22", "places", "inode-directory.svg"),
+    os.path.join("22x22", "places", "user-home.svg"),
+    os.path.join("22x22", "places", "user-desktop.svg"),
     os.path.join("22x22", "places", "user-trash.svg"),
     os.path.join("22x22", "places", "user-trash-full.svg"),
     os.path.join("16x16", "places", "start-here-kde-symbolic.svg"),
@@ -319,9 +326,11 @@ def _drawing_elements(tree):
 # is our own, so nothing else re-derives it; the size, palette and structural
 # tests above would all pass if a path's `d`, a rect's geometry, an element's
 # order or an element's fill changed -- an icon could silently lose its
-# outline, bevel, plate or ribs -- so pin each element exactly. The 32x32
-# folder and its `inode-directory` alias share one shape (Mac OS 8.6 draws one
-# folder for both names); they are pinned separately and cross-checked below.
+# outline, bevel, plate or ribs -- so pin each element exactly. The `folder`
+# name owns the pinned folder tuple, and the `inode-directory`, `user-home`
+# and `user-desktop` aliases share it at every size (Mac OS 8.6 draws one
+# folder for a directory); the mapping below and the alias test cross-check
+# the files themselves.
 ICON_SHAPES = {
     os.path.join("32x32", "devices", "drive-harddisk.svg"): (
         _shape("rect", x="3", y="8", width="26", height="17", fill="#000000"),
@@ -388,14 +397,6 @@ ICON_SHAPES = {
         _shape("rect", x="4", y="23", width="21", height="1", fill="#999999"),
         _shape("rect", x="27", y="12", width="1", height="12", fill="#999999"),
     ),
-    os.path.join("32x32", "places", "inode-directory.svg"): (
-        _shape("path", d="M3 8 h10 l3 3 h13 v14 H3 Z", fill="#000000"),
-        _shape("path", d="M4 9 h9 l3 3 h12 v12 H4 Z", fill="#DDDDDD"),
-        _shape("path", d="M4 9 h9 l3 3 h12 v1 h-12 l-3 -3 h-9 Z", fill="#FFFFFF"),
-        _shape("rect", x="4", y="9", width="1", height="15", fill="#FFFFFF"),
-        _shape("rect", x="4", y="23", width="21", height="1", fill="#999999"),
-        _shape("rect", x="27", y="12", width="1", height="12", fill="#999999"),
-    ),
     os.path.join("32x32", "places", "user-trash.svg"): (
         _shape("rect", x="12", y="4", width="8", height="4", fill="#000000"),
         _shape("rect", x="13", y="5", width="6", height="3", fill="#DDDDDD"),
@@ -432,14 +433,6 @@ ICON_SHAPES = {
         _shape("rect", x="2", y="11", width="11", height="1", fill="#999999"),
         _shape("rect", x="12", y="8", width="1", height="3", fill="#999999"),
     ),
-    os.path.join("16x16", "places", "inode-directory.svg"): (
-        _shape("path", d="M1 4 h5 l2 2 h6 v7 H1 Z", fill="#000000"),
-        _shape("path", d="M2 5 h4 l2 2 h5 v4 H2 Z", fill="#DDDDDD"),
-        _shape("path", d="M2 5 h4 l2 2 h5 v1 h-5 l-2 -2 h-4 Z", fill="#FFFFFF"),
-        _shape("rect", x="2", y="5", width="1", height="6", fill="#FFFFFF"),
-        _shape("rect", x="2", y="11", width="11", height="1", fill="#999999"),
-        _shape("rect", x="12", y="8", width="1", height="3", fill="#999999"),
-    ),
     os.path.join("16x16", "places", "user-trash.svg"): (
         _shape("rect", x="6", y="1", width="4", height="2", fill="#000000"),
         _shape("rect", x="7", y="2", width="2", height="1", fill="#DDDDDD"),
@@ -465,14 +458,6 @@ ICON_SHAPES = {
         _shape("rect", x="8", y="8", width="1", height="5", fill="#FFFFFF"),
     ),
     os.path.join("22x22", "places", "folder.svg"): (
-        _shape("path", d="M2 6 h7 l3 3 h8 v8 H2 Z", fill="#000000"),
-        _shape("path", d="M3 7 h6 l3 3 h7 v6 H3 Z", fill="#DDDDDD"),
-        _shape("path", d="M3 7 h6 l3 3 h7 v1 h-7 l-3 -3 h-6 Z", fill="#FFFFFF"),
-        _shape("rect", x="3", y="7", width="1", height="8", fill="#FFFFFF"),
-        _shape("rect", x="3", y="15", width="16", height="1", fill="#999999"),
-        _shape("rect", x="18", y="10", width="1", height="5", fill="#999999"),
-    ),
-    os.path.join("22x22", "places", "inode-directory.svg"): (
         _shape("path", d="M2 6 h7 l3 3 h8 v8 H2 Z", fill="#000000"),
         _shape("path", d="M3 7 h6 l3 3 h7 v6 H3 Z", fill="#DDDDDD"),
         _shape("path", d="M3 7 h6 l3 3 h7 v1 h-7 l-3 -3 h-6 Z", fill="#FFFFFF"),
@@ -536,6 +521,14 @@ ICON_SHAPES = {
     ),
 }
 
+# KDE resolves a directory to `inode-directory` and names the Home and Desktop
+# places `user-home` and `user-desktop`; Mac OS 8.6 draws one folder shape for
+# all of them, so each alias shares its size's folder tuple.
+for _size in ("16x16", "22x22", "32x32"):
+    _folder = ICON_SHAPES[os.path.join(_size, "places", "folder.svg")]
+    for _alias in ("inode-directory", "user-home", "user-desktop"):
+        ICON_SHAPES[os.path.join(_size, "places", _alias + ".svg")] = _folder
+
 
 class TestIconGeometry(unittest.TestCase):
     """Pin every shipped icon's drawing elements, in document order."""
@@ -554,23 +547,25 @@ class TestIconGeometry(unittest.TestCase):
                 self.assertEqual(_drawing_elements(tree), expected)
 
     def test_the_folder_alias_shares_the_folder_art(self):
-        # Mac OS 8.6 draws one folder shape for both the `folder` and
-        # `inode-directory` names, so the alias must stay the same drawing
-        # at every shipped size; pinning only each one's own elements would
-        # let them drift apart.
+        # Mac OS 8.6 draws one folder shape for the `folder`,
+        # `inode-directory`, `user-home` and `user-desktop` names, so each
+        # alias must stay the same drawing at every shipped size; pinning
+        # only each one's own elements would let them drift apart.
         for size in ("16x16", "22x22", "32x32"):
             with self.subTest(size=size):
                 folder = _drawing_elements(
                     parse_svg(os.path.join(PACKAGE, size, "places", "folder.svg"))
                 )
-                alias = _drawing_elements(
-                    parse_svg(
-                        os.path.join(
-                            PACKAGE, size, "places", "inode-directory.svg"
+                for alias in ("inode-directory", "user-home", "user-desktop"):
+                    with self.subTest(size=size, alias=alias):
+                        drawing = _drawing_elements(
+                            parse_svg(
+                                os.path.join(
+                                    PACKAGE, size, "places", alias + ".svg"
+                                )
+                            )
                         )
-                    )
-                )
-                self.assertEqual(alias, folder)
+                        self.assertEqual(drawing, folder)
 
 
 class TestInstall(InstallLifecycleCases, unittest.TestCase):
