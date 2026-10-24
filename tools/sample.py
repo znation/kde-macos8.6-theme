@@ -13,13 +13,20 @@ title bar's column or a widget's box takes one command instead of one per
 pixel. The header is read first and the requested pixel or region is validated
 against the declared size, so an out-of-bounds request never reaches the row
 decoder; only the rows through a valid rectangle are decoded, and the full
-height printed in the header comes from ``read_png_size``.
+height printed in the header comes from ``read_png_size``. An image path
+inside the repository is checked through the shared containment guard, so a
+checked-in symlink that escapes the repository is refused instead of sampling
+a private image's pixels.
 
 Exit status: 0 on success (and for ``--help``/``-h``), 2 for a usage error, a
-missing or unreadable PNG, or a coordinate or region outside the image.
+missing or unreadable PNG, a repository image path that resolves outside the
+repository, or a coordinate or region outside the image.
 """
 
 from __future__ import annotations
+
+import os
+from pathlib import Path
 
 import sys
 
@@ -29,8 +36,10 @@ if __package__:
         plain_number,
         positive_int,
     )
+    from tools.containment import resolves_within
     from tools.diagnostics import report_error
     from tools.png import PngError, pixel_at, read_png, read_png_size
+    from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/sample.py
     from argument_parsing import (
@@ -38,8 +47,10 @@ else:  # run directly: python3 tools/sample.py
         plain_number,
         positive_int,
     )
+    from containment import resolves_within
     from diagnostics import report_error
     from png import PngError, pixel_at, read_png, read_png_size
+    from repo_root import ROOT
     from terminal import escape_controls
 
 
@@ -85,6 +96,29 @@ def main(argv: list[str] | None = None) -> int:
         help="pixels to sample below y (default 1)",
     )
     args = parser.parse_args(argv)
+
+    # The documented workflow samples a name in the contributor-supplied
+    # reference directory, and git stores symlinks. Opening a checked-in link
+    # that resolves outside the repository would read a private image and
+    # print its pixels, so refuse such a path before either read. The path is
+    # deliberately not normalized (``..`` is kept, as the OS follows it after
+    # resolving the links before it), and any ancestor that is the checkout
+    # itself, through an alias or not, marks it a repository path. A path
+    # outside the repository (a test's temporary image) is left alone.
+    image = Path(os.path.join(os.getcwd(), args.image))
+    for ancestor in (image, *image.parents):
+        try:
+            in_repo = os.path.samefile(ancestor, ROOT)
+        except OSError:
+            continue
+        if in_repo:
+            if not resolves_within(ROOT, image):
+                return report_error(
+                    "sample",
+                    f"{args.image} resolves outside {ROOT} (a symlink "
+                    "escape); refusing to read it",
+                )
+            break
 
     try:
         width, height = read_png_size(args.image)

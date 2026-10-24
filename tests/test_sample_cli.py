@@ -20,6 +20,7 @@ from support.png_fixtures import (  # noqa: E402
     rgb_image,
     solid_rgb,
 )
+from support.symlink_fixtures import symlinked_repo  # noqa: E402
 from tools import sample  # noqa: E402
 
 
@@ -229,6 +230,89 @@ class TestSampleCli(CliTestCase):
         missing = str(tmp / "absent.png")
         result = self._run(missing, "0", "0")
         self._assert_usage_error(result, "cannot read", missing)
+
+    def test_rejects_an_image_that_symlinks_outside_the_repository(self):
+        # A checked-in symlink at a reference image can point at a private
+        # image; sampling it would print that image's pixels. The path is
+        # refused before either the header or the rows are read.
+        _, data = solid_rgb(1, 1)
+        root, link = symlinked_repo(
+            self._tmp_dir(), "reference.png", data
+        )
+        with mock.patch.object(sample, "ROOT", str(root)):
+            result = self._run(str(link), "0", "0")
+        self._assert_usage_error(result, "resolves outside", str(root))
+        self.assertNotIn("pixel (", result.stdout)
+
+    def test_rejects_an_escaping_symlink_reached_through_a_checkout_alias(self):
+        _, data = solid_rgb(1, 1)
+        root, link = symlinked_repo(
+            self._tmp_dir(), "reference.png", data
+        )
+        alias = root.parent / "alias"
+        alias.symlink_to(root)
+        with mock.patch.object(sample, "ROOT", str(root.resolve())):
+            result = self._run(str(alias / link.name), "0", "0")
+        self._assert_usage_error(result, "resolves outside", "reference.png")
+        self.assertNotIn("pixel (", result.stdout)
+
+    def test_rejects_an_image_under_a_symlinked_folder_that_escapes(self):
+        _, data = solid_rgb(1, 1)
+        tmp = self._tmp_dir()
+        root = tmp / "repo"
+        root.mkdir()
+        private = tmp / "private"
+        private.mkdir()
+        (private / "secret.png").write_bytes(data)
+        (root / "refs").symlink_to(private)
+        with mock.patch.object(sample, "ROOT", str(root)):
+            result = self._run(str(root / "refs" / "secret.png"), "0", "0")
+        self._assert_usage_error(result, "resolves outside", str(root))
+        self.assertNotIn("pixel (", result.stdout)
+
+    def test_rejects_a_symlinked_folder_that_escapes_via_a_checkout_alias(self):
+        _, data = solid_rgb(1, 1)
+        tmp = self._tmp_dir()
+        root = tmp / "repo"
+        root.mkdir()
+        private = tmp / "private"
+        private.mkdir()
+        (private / "secret.png").write_bytes(data)
+        (root / "refs").symlink_to(private)
+        alias = tmp / "alias"
+        alias.symlink_to(root)
+        with mock.patch.object(sample, "ROOT", str(root.resolve())):
+            result = self._run(str(alias / "refs" / "secret.png"), "0", "0")
+        self._assert_usage_error(result, "resolves outside", "secret.png")
+        self.assertNotIn("pixel (", result.stdout)
+
+    def test_rejects_a_dotdot_path_that_climbs_out_of_an_escaping_folder(self):
+        # ``refs/../secret.png`` is ``repo/secret.png`` lexically, but the OS
+        # resolves ``refs`` first and opens ``private/../secret.png``.
+        _, data = solid_rgb(1, 1)
+        tmp = self._tmp_dir()
+        root = tmp / "repo"
+        root.mkdir()
+        private = tmp / "private"
+        (private / "sub").mkdir(parents=True)
+        (private / "secret.png").write_bytes(data)
+        (root / "refs").symlink_to(private / "sub")
+        with mock.patch.object(sample, "ROOT", str(root)):
+            result = self._run(
+                f"{root}/refs/../secret.png", "0", "0"
+            )
+        self._assert_usage_error(result, "resolves outside", "secret.png")
+        self.assertNotIn("pixel (", result.stdout)
+
+    def test_reads_a_symlink_that_stays_within_the_repository(self):
+        _, data = solid_rgb(1, 1)
+        root, link = symlinked_repo(
+            self._tmp_dir(), "reference.png", data, target="real.png"
+        )
+        with mock.patch.object(sample, "ROOT", str(root)):
+            result = self._run(str(link), "0", "0")
+        self._assert_success(result)
+        self.assertIn("pixel (0, 0): 0,0,0  #000000", result.stdout)
 
     def test_non_integer_coordinate_is_usage_error(self):
         path = self._image()
