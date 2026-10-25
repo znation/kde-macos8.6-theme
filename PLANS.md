@@ -73,4 +73,35 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
+### Platinum GTK 4 menu-button arrows: draw the shipped down and up triangles on GTK 4 menu buttons (planned 2026-10-24 by the plan role; independent of the waiting GTK submenu-arrow plan)
+
+**Goal.** The GTK 4 sheet does not style a `Gtk.MenuButton`'s arrow. The stock rules that give it an icon are in `Default-light.css`, which our standalone sheet never loads, so a menu button with no icon or label of its own shows an empty face. Measured live with PyGObject under `GTK_THEME=org.macos8.desktop` (with `XDG_DATA_HOME` pointing at a temp dir holding a `themes/org.macos8.desktop` symlink to `theme/gtk/org.macos8.desktop`): a bare `Gtk.MenuButton()` parented in a presented `Gtk.Window` maps `menubutton > button > arrow.down` at 16x16, but snapshotting that arrow through `Gtk.WidgetPaintable` gives no render node, so nothing is drawn. Under `GTK_THEME=Adwaita` the same arrow renders a dark triangle. Stock `Default-light.css` (`gresource extract /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 /org/gtk/libgtk/theme/Default/Default-light.css`) has `menubutton arrow { min-height: 16px; min-width: 16px; }` and one `-gtk-icon-source: -gtk-icontheme(...)` rule per direction class: `.none` uses `open-menu-symbolic`, `.down` `pan-down-symbolic`, `.up` `pan-up-symbolic`, `.left` `pan-start-symbolic` and `.right` `pan-end-symbolic`.
+
+I appended the two rules below to a `cp -rL` copy of the theme and re-ran the snapshot. The arrow then renders a 16x16 texture, with dark opaque pixels (every channel below 170) filling the shipped triangles. For the default direction (down), they fill x=4..11, y=5..9, widest at the top. After `set_direction(Gtk.ArrowType.UP)` they fill x=4..11, y=6..10, widest at the bottom. The arrow stayed 16x16 without a `min-width`/`min-height` rule, so the plan adds none.
+
+**Design (decided; do not widen).**
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: directly after the `combobox arrow, dropdown arrow` rule, add
+  - `menubutton arrow.down { -gtk-icon-source: url("../assets/arrow-down.svg"); }`
+  - `menubutton arrow.up { -gtk-icon-source: url("../assets/arrow-up.svg"); }`
+- Both assets already ship, and their triangles reuse the desktop theme's pinned `widgets/arrows.svg` shapes, as the combo box arrow's does. So this plan adds no asset, Makefile, fixture or README-count change.
+- Out of scope:
+  - `arrow.none` (the hamburger `open-menu-symbolic` glyph) and `arrow.left`/`arrow.right`: no shipped asset fits, and the down direction is GTK's default.
+  - The GTK 3 menu button: GTK 3 builds its arrow as a `GtkImage` from the icon theme, not a CSS `arrow` node.
+  - Hover and disabled glyph colours, and the menu button's face.
+- No reference screenshot shows a GTK menu button. The reference's pop-up menus show a double arrow (`TestComboBoxReference`). So the single triangle is the same KDE-required shape the combo box and dropdown arrows already use. Say so in the provenance.
+
+**Files touched.**
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: the two rules above. The header comment's sentence "The combo box and dropdown arrows load from the shared assets/arrow-down.svg ..." also names the menu button's down arrow, plus its up arrow from `assets/arrow-up.svg`.
+- `tests/support/gtk_theme_spec.py`: next to `COMBO_ARROW`, add `MENUBUTTON_ARROWS = {"menubutton arrow.down": {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'}, "menubutton arrow.up": {"-gtk-icon-source": 'url("../assets/arrow-up.svg")'}}`, with a one-line comment.
+- `tests/test_gtk4_theme.py`: add `TestGtk4Theme.test_menubutton_arrows`, which imports `MENUBUTTON_ARROWS` and calls `self.assert_rule(selector, expected)` for each entry. Both URLs are already in the `test_stands_alone` URL set, so that set stays unchanged.
+- `docs/invariants.md`: add a new `## gtk` row at the end of the gtk section.
+  - Guarantee: the GTK 4 sheet draws a menu button's down and up arrows from the shipped `arrow-down.svg` and `arrow-up.svg` triangles.
+  - Test: `tests/test_gtk4_theme.py::TestGtk4Theme::test_menubutton_arrows`.
+  - Provenance: no reference screenshot shows a GTK menu button. The triangles reuse the desktop theme's pinned `widgets/arrows.svg` shapes, as the combo box arrow does. The node and direction-class names are GTK-required.
+
+**Acceptance criteria.**
+- Both rules exist exactly as described, and the GTK 3 sheet is unchanged.
+- Each of these fails `test_menubutton_arrows`: removing either rule, renaming either selector, or swapping either URL.
+- `test_only_palette_hex_literals`, `test_no_universal_selector` and `test_stands_alone` still pass in the GTK 4 suite, `tests/invariants.py` accepts the new row, and `make check` is green.
+
 ## Done
