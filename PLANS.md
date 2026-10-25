@@ -73,4 +73,39 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
+### Platinum GTK calendars: fill the selected day with the selection lavender and grey the other months' days (planned 2026-10-24 by the plan role; independent of the waiting GTK links plan)
+
+**Goal.** Neither standalone GTK sheet styles `calendar`. So a `Gtk.Calendar` draws its selected day with no fill, and days from the previous and next months look the same as the current month's. Measured live with PyGObject under `GTK_THEME=org.macos8.desktop` (with `XDG_DATA_HOME` pointing at a temp dir holding a `themes/org.macos8.desktop` symlink to `theme/gtk/org.macos8.desktop`), with the calendar inside a `Gtk.Window`:
+- GTK 3: the calendar's style context resolves `background-color` to `rgba(0,0,0,0)` and colour to `rgb(0,0,0)` for `SELECTED` (and for `SELECTED|FOCUSED`). The colour for `INCONSISTENT` is also `rgb(0,0,0)`. GTK 3 draws other-month days in the inconsistent state, which is `calendar:indeterminate` in CSS.
+- GTK 4: the selected `label.day-number` resolves to `rgb(0,0,0)`, and a texture rendered from it has a transparent `(0,0,0,0)` corner pixel. An `other-month` day label resolves to `rgb(0,0,0)`.
+- Stock Adwaita, for comparison: a blue fill with white text, and other-month days at 30% alpha.
+
+With the rules below appended to scratch copies of both sheets (`cp -rL`), the same checks give this:
+- GTK 3: `SELECTED` is `rgb(204,204,255)` behind `rgb(0,0,0)` text, and `INCONSISTENT` is `rgb(136,136,136)`.
+- GTK 4: the selected day's rendered corner pixel is `(204,204,255,255)` and its text is `rgb(0,0,0)`. The other-month label is `rgb(136,136,136)`.
+- A plain `Gtk.Label` stays `rgb(0,0,0)`.
+
+**Design (decided; do not widen).**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: append at the end of the sheet `calendar:selected { background-color: #CCCCFF; color: #000000; }` and `calendar:indeterminate { color: #888888; }`. Both outrank the sheet's `.view` rule by specificity, so their order relative to it does not matter.
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: append at the end of the sheet `calendar > grid > label.day-number:selected { background-color: #CCCCFF; color: #000000; }` and `calendar > grid > label.day-number.other-month { color: #888888; }`.
+- If the links plan has landed by then, still append these rules after its rules. Out of scope: the calendar border, the header and arrow buttons, the day-name and week-number `.highlight` colour, the GTK 4 today marker, day padding, `:backdrop`, and a disabled calendar. No new hex literals are needed: `#CCCCFF`, `#000000` and `#888888` are already in both palette sets.
+
+**Files touched.**
+- Both sheets get the rules above. Add one sentence to each header comment: a calendar's selected day reuses the row selection fill `#CCCCFF` with black text, and other months' days use the disabled-text `ForegroundInactive` grey `#888888`; no reference screenshot shows a calendar, and the node names and states are GTK-required.
+- `tests/support/gtk_theme_spec.py`:
+  - Next to `TEXT_SELECTION`, add `CALENDAR_SELECTED_DAY = {"background-color": SELECTION, "color": BLACK}`, with a one-line comment that it reuses the row selection fill.
+  - Add `assert_calendar(self, selected, other_month)` to `GtkSheetRuleCases`, next to `assert_rubberband`. Each `selected` selector must match `CALENDAR_SELECTED_DAY`. Each `other_month` selector must match `DISABLED_TEXT`. Like `assert_disabled_text`, it re-derives `DISABLED_TEXT["color"]` from `load_scheme().get("Colors:Button", "ForegroundInactive")` with `hex_colour`. Move that re-derivation into one private helper that both methods call, rather than copying it.
+  - Add calendar to the list of assertions that take the suites' own selectors, in the module docstring and in the `GtkSheetRuleCases` docstring.
+- `tests/test_gtk_theme.py`: add `TestGtkTheme.test_calendar`, calling `self.assert_calendar(("calendar:selected",), ("calendar:indeterminate",))`.
+- `tests/test_gtk4_theme.py`: add `TestGtk4Theme.test_calendar`, calling `self.assert_calendar(("calendar > grid > label.day-number:selected",), ("calendar > grid > label.day-number.other-month",))`.
+- `docs/invariants.md`: add a new `## gtk` row at the end of the gtk section.
+  - Guarantee: both GTK sheets fill a calendar's selected day with `#CCCCFF` behind black text, and colour other months' days with the colour scheme's `ForegroundInactive` grey `#888888`.
+  - Tests: the two `test_calendar` tests.
+  - Provenance exception: no reference screenshot shows a calendar. The fill reuses the reference-grounded row selection, the grey copies the disabled-text `ForegroundInactive` role, and the node names and states are GTK-required.
+
+**Acceptance criteria.**
+- Both sheets have the two rules above, with exactly the declarations listed.
+- Each of these fails that sheet's `test_calendar`: removing either rule, renaming its selector, or changing its fill or a colour. Changing `[Colors:Button] ForegroundInactive` in the colour scheme alone fails both suites' `test_calendar`, as well as `test_disabled_text`.
+- `test_only_palette_hex_literals` and `test_no_universal_selector` still pass in both suites, `tests/invariants.py` accepts the new row, and `make check` is green.
+
 ## Done
