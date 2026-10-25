@@ -66,6 +66,16 @@ BULLET = THEME_DIR / "assets" / "bullet.svg"
 ARROW_DOWN = THEME_DIR / "assets" / "arrow-down.svg"
 ARROW_UP = THEME_DIR / "assets" / "arrow-up.svg"
 ARROW_RIGHT = THEME_DIR / "assets" / "arrow-right.svg"
+SUBMENU_ARROW_SVG = THEME_DIR / "assets" / "submenu-arrow.svg"
+ICON_GO_NEXT = (
+    Path(ROOT)
+    / "theme"
+    / "icons"
+    / THEME_ID
+    / "16x16"
+    / "actions"
+    / "go-next-symbolic.svg"
+)
 
 MENU_SCROLL_UP = ("menu > arrow.top", ".menu > arrow.top", ".context-menu > arrow.top")
 MENU_SCROLL_DOWN = (
@@ -176,6 +186,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             ("treeview.view.expander:checked", "expander title > arrow:checked"),
         )
 
+    def test_submenu_arrow(self):
+        self.assert_submenu_arrow(("menu menuitem arrow",), sized=True)
+
     def test_text_selection(self):
         self.assert_text_selection(
             ("entry selection", "spinbutton selection", "label selection", "textview text selection")
@@ -271,6 +284,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
                 '"../assets/arrow-right.svg"',
+                '"../assets/submenu-arrow.svg"',
                 '"../assets/window-close.svg"',
                 '"../assets/window-maximize.svg"',
                 '"../assets/window-minimize.svg"',
@@ -488,26 +502,28 @@ class TestArrowGlyphs(unittest.TestCase):
         cls.down = parse_svg(ARROW_DOWN)
         cls.up = parse_svg(ARROW_UP)
         cls.right = parse_svg(ARROW_RIGHT)
+        cls.submenu = parse_svg(SUBMENU_ARROW_SVG)
 
     def test_assets_stand_alone(self):
-        for tree in (self.down, self.up, self.right):
+        for tree in (self.down, self.up, self.right, self.submenu):
             assert_no_script_elements(self, tree)
             assert_no_style_elements(self, tree)
 
     def test_assets_put_the_root_first(self):
-        for path in (ARROW_DOWN, ARROW_UP, ARROW_RIGHT):
+        for path in (ARROW_DOWN, ARROW_UP, ARROW_RIGHT, SUBMENU_ARROW_SVG):
             with self.subTest(asset=path.name):
                 assert_svg_root_first(self, path)
 
     def test_assets_span_a_16px_canvas(self):
-        for tree in (self.down, self.up, self.right):
+        for tree in (self.down, self.up, self.right, self.submenu):
             assert_root_canvas(self, tree, 16, 16)
 
     def test_assets_use_only_the_black_fill(self):
         self.assertEqual(
             attribute_values(self.down, "fill")
             | attribute_values(self.up, "fill")
-            | attribute_values(self.right, "fill"),
+            | attribute_values(self.right, "fill")
+            | attribute_values(self.submenu, "fill"),
             {BLACK},
         )
 
@@ -523,6 +539,14 @@ class TestArrowGlyphs(unittest.TestCase):
                 self.assertEqual(len(paths), 1)
                 self.assertEqual(paths[0].get("d"), path_d)
                 self.assertEqual(paths[0].get("fill"), BLACK)
+
+    def test_submenu_arrow_copies_the_icon_theme_triangle(self):
+        paths = []
+        for tree in (self.submenu, parse_svg(ICON_GO_NEXT)):
+            found = children_named(tree.getroot(), "path")
+            self.assertEqual(len(found), 1)
+            paths.append((found[0].get("d"), found[0].get("fill")))
+        self.assertEqual(paths[0], paths[1])
 
 
 if __name__ == "__main__":

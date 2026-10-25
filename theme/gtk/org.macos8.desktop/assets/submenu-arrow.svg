@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!-- The Platinum solid black submenu triangle GTK loads on a menu row that
+       opens a submenu. The path copies the icon theme's reference-pinned
+       `16x16/actions/go-next-symbolic.svg` triangle (the open Apple menu's 5x9
+       submenu arrow); tests/test_gtk_theme.py::TestArrowGlyphs pins the copy. -->
+  <path d="M 6,3 L 6,11 L 10,7 Z" fill="#000000"/>
+</svg>

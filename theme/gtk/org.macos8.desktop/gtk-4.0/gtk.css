@@ -77,6 +77,8 @@
    (collapsed) and assets/arrow-down.svg (expanded), whose triangles reuse the
    desktop theme's pinned widgets/arrows.svg shapes; no reference screenshot
    shows a GTK widget, and the node names are GTK-required.
+   A menu row's submenu arrow loads the shared assets/submenu-arrow.svg, the
+   icon theme's reference-grounded submenu triangle.
 
    The standalone separators reuse the reference-grounded etched pair in both
    orientations, and the paned split handles reuse the same etch; the
@@ -410,6 +412,10 @@ popover.background modelbutton check, popover.background modelbutton radio {
   background-color: transparent;
   border-color: transparent;
   box-shadow: none;
+}
+
+popover.menu modelbutton > arrow.right {
+  -gtk-icon-source: url("../assets/submenu-arrow.svg");
 }
 
 tooltip {

@@ -8,8 +8,9 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the link, calendar, progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator, frame and expander-arrow assertions they name
-with their own selectors.
+plus the link, calendar, progress-bar, level-bar, scale, switch, paned-handle,
+spin-button field, menu-separator, frame, expander-arrow and submenu-arrow
+assertions they name with their own selectors.
 """
 
 from __future__ import annotations
@@ -280,6 +281,7 @@ EXPANDER_COLLAPSED = {
     "-gtk-icon-source": 'url("../assets/arrow-right.svg")',
 }
 EXPANDER_EXPANDED = {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'}
+SUBMENU_ARROW = {"-gtk-icon-source": 'url("../assets/submenu-arrow.svg")'}
 
 # The list and tree rows both sheets paint, adapted from the reference-grounded
 # widgets/listitem.svg row: a hovered row stays the view background and a
@@ -712,6 +714,15 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             self.assert_rule(selector, EXPANDER_COLLAPSED)
         for selector in expanded:
             self.assert_rule(selector, EXPANDER_EXPANDED)
+
+    def assert_submenu_arrow(self, selectors, sized):
+        """Assert the submenu arrow icon, and the 16px box when *sized*."""
+        for selector in selectors:
+            self.assert_rule(selector, SUBMENU_ARROW)
+            if sized:
+                self.assert_rule(
+                    selector, {"min-width": "16px", "min-height": "16px"}
+                )
 
     def assert_menubar_titles(self, selector):
         """Assert *selector* pads a title with the menubaritem SVG's margins."""

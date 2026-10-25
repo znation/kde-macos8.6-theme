@@ -100,6 +100,7 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
                 '"../assets/arrow-right.svg"',
+                '"../assets/submenu-arrow.svg"',
                 '"../assets/window-close.svg"',
                 '"../assets/window-maximize.svg"',
                 '"../assets/window-minimize.svg"',
@@ -161,6 +162,11 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
         self.assert_expander_arrows(
             ("treeview.view.expander", "expander"),
             ("treeview.view.expander:checked", "expander:checked"),
+        )
+
+    def test_submenu_arrow(self):
+        self.assert_submenu_arrow(
+            ("popover.menu modelbutton > arrow.right",), sized=False
         )
 
     def test_tree_and_column_headers(self):
