@@ -442,6 +442,21 @@ class TestCursorSet(unittest.TestCase):
             make_cursors.render_rgba(rotated, size),
         )
 
+    def test_move_and_axis_resize_grids_are_mirror_symmetric(self):
+        for name in ("FLEUR", "SIZE_HOR", "SIZE_VER"):
+            grid = getattr(cursor_art, name + "_GRID")
+            with self.subTest(name=name):
+                self.assertEqual(grid, tuple(row[::-1] for row in grid))
+                self.assertEqual(grid, grid[::-1])
+
+    def test_fleur_grid_is_symmetric_about_its_diagonal(self):
+        grid = cursor_art.FLEUR_GRID
+        transposed = tuple(
+            "".join(grid[y][x] for y in range(len(grid)))
+            for x in range(len(grid[0]))
+        )
+        self.assertEqual(grid, transposed)
+
     def test_size_bdiag_is_the_forward_diagonal_mirrored(self):
         size = cursor_art.GRID_SIZE
         mirrored = tuple(row[::-1] for row in cursor_art.SIZE_FDIAG_GRID)
