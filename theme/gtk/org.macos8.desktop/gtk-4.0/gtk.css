@@ -14,8 +14,9 @@
    button's raised #DDDDDD face reuses the reference-grounded Kvantum check
    box, the radio face matches widgets/radiobutton.svg, and the checked glyphs
    load from the shared assets/checkmark.svg and assets/bullet.svg this
-   package installs. The combo box and dropdown arrows load from the shared
-   assets/arrow-down.svg, whose triangle reuses the desktop theme's pinned
+   package installs. The combo box and dropdown arrows, and a menu button's down
+   arrow, load from the shared assets/arrow-down.svg (its up arrow from
+   assets/arrow-up.svg), whose triangle reuses the desktop theme's pinned
    widgets/arrows.svg shape. GTK 4 scrolls menus inside a popover rather than
    through the menu arrow nodes, so this sheet names no menu scroll arrows.
    The scroll-bar thumb's 12px minimum fills the reference's 16px bar inside
@@ -281,6 +282,14 @@ combobox arrow, dropdown arrow {
   -gtk-icon-source: url("../assets/arrow-down.svg");
   min-height: 16px;
   min-width: 16px;
+}
+
+menubutton arrow.down {
+  -gtk-icon-source: url("../assets/arrow-down.svg");
+}
+
+menubutton arrow.up {
+  -gtk-icon-source: url("../assets/arrow-up.svg");
 }
 
 notebook > header {

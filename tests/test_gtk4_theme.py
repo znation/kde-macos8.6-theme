@@ -19,6 +19,7 @@ from support.gtk_theme_spec import (
     COMBO_ARROW,
     ETCH_DARK,
     LINK,
+    MENUBUTTON_ARROWS,
     VISITED_LINK,
     GtkSheetRuleCases,
     MENU_CHECK,
@@ -275,6 +276,10 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_dropdown_arrow(self):
         self.assert_rule("dropdown arrow", COMBO_ARROW)
+
+    def test_menubutton_arrows(self):
+        for selector, expected in MENUBUTTON_ARROWS.items():
+            self.assert_rule(selector, expected)
 
     def test_menu_check_and_radio_are_boxless(self):
         for selector in (

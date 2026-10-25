@@ -365,6 +365,12 @@ COMBO_ARROW = {
     "min-width": "16px",
 }
 
+# A menu button's down and up arrows reuse the shipped combo box triangles.
+MENUBUTTON_ARROWS = {
+    "menubutton arrow.down": {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'},
+    "menubutton arrow.up": {"-gtk-icon-source": 'url("../assets/arrow-up.svg")'},
+}
+
 # A menu item's check box shows the bare glyph, not the raised content face.
 MENU_CHECK = {
     "margin": "0",
