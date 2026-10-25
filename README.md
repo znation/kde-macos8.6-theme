@@ -258,6 +258,10 @@ material only — the theme does not ship them.
 
 ## Validating the reference set
 
+`.github/workflows/ci.yml` runs `make check` and `make check-references` on pushes
+and pull requests, using Python 3.12 and a checkout with Git LFS images materialized.
+Run those same commands locally for parity with the workflow's check steps.
+
 `sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run
 `python3 tools/check_references.py`: it fails if the record and the files on disk disagree (a
 missing file, an unmaterialized Git LFS pointer, a file whose bytes are not a PNG/JPEG/GIF/WebP
