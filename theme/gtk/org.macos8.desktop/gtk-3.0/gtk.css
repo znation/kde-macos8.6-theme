@@ -35,7 +35,7 @@
    margins, re-derived from the reference title gaps; an open title's colour
    comes from the existing menuitem:hover rule. A popover menu row
    (modelbutton) takes the same #CCCCFF highlight as a menu row when hovered
-   or selected.
+   or selected, and its check and radio show the bare glyph, as a menu row's do.
    The tree-view and list-box row
    rules adapt the reference-grounded row in widgets/listitem.svg: a hovered
    row stays the view background and a selected row is its flat #CCCCFF fill
@@ -383,7 +383,8 @@ popover modelbutton:hover, popover modelbutton:selected {
   background-color: #CCCCFF;
 }
 
-menu menuitem check, menu menuitem radio {
+menu menuitem check, menu menuitem radio,
+popover modelbutton check, popover modelbutton radio {
   margin: 0;
   background-color: transparent;
   border-color: transparent;

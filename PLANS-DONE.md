@@ -5,6 +5,39 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 popover menus: draw a popover menu row's check and radio without the box, as GTK 3 menus and GTK 4 popovers do (planned 2026-10-24 by the plan role; independent of the waiting GTK spinner plan) — done 2026-10-24 by the feature role
+
+**Goal.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, the boxless rule (`menu menuitem check, menu menuitem radio`) covers only `GtkMenu` rows. A check or radio row in a GTK 3 popover menu (`GtkModelButton`, CSS node `modelbutton` with a `check` or `radio` child) still matches the generic `check, radio` rule, so it draws the raised button face inside a menu. The GTK 4 sheet already strips that face with `popover modelbutton check, popover modelbutton radio, popover.background modelbutton check, popover.background modelbutton radio`. `docs/invariants.md`'s GTK 3 sheet row already promises faces that are "boxless in menus".
+
+I measured this live with PyGObject and GTK 3 under `GTK_THEME=org.macos8.desktop`, through a `Gtk.StyleContext` set to a `Gtk.WidgetPath` of named nodes:
+- `window > menu > menuitem > check` has a transparent background and a 0 margin.
+- `window > popover > modelbutton > check` has background `rgb(221,221,221)` (the raised face) and a 4px left margin.
+- `window > popover > modelbutton > radio` has background `rgb(255,255,255)` (the radio face) and a 4px left margin.
+
+**Design (decided; do not widen).**
+- In `gtk-3.0/gtk.css`, extend the selector list of the existing `menu menuitem check, menu menuitem radio` rule with `popover modelbutton check, popover modelbutton radio`. Leave its four declarations unchanged (`margin: 0; background-color: transparent; border-color: transparent; box-shadow: none;`).
+- `check:checked` and `radio:checked` keep supplying the shipped `assets/checkmark.svg` and `assets/bullet.svg` glyphs, so a checked row shows the bare glyph. GTK 3's popover node is `popover.background`, which `popover` already matches, so no `.background` selector is needed.
+- In the header comment's popover sentence ("A popover menu row (modelbutton) takes the same #CCCCFF highlight …"), add that a popover row's check and radio show the bare glyph, as a menu row's do.
+- Out of scope:
+  - GTK 3 popover row padding and min-height. The only open-menu reference, `desktop_archiveorg8.6hd.png`, is scaled: its Apple-menu rows are 14px apart and its text is antialiased, so it cannot ground a row metric.
+  - GTK 3 popover submenu arrows (`modelbutton arrow.right`/`.left`).
+  - Any GTK 4 change.
+- No new asset, colour or metric is added, so the Makefile, `SHIPPED_FILES`, `STAGING_PATHS` and the README counts do not change.
+
+**Files touched.**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: the selector list and the header sentence.
+- `tests/test_gtk_theme.py`: in `TestGtkTheme.test_menu_check_and_radio_are_boxless`, add `"popover modelbutton check"` and `"popover modelbutton radio"` to the selector tuple. Each is checked against the existing `MENU_CHECK` from `tests/support/gtk_theme_spec.py`.
+- `docs/invariants.md`: add one row at the end of the `## gtk` section.
+  - Guarantee: the GTK 3 sheet draws a popover menu row's (`popover modelbutton`) check and radio without the raised face, margin or bevel, as it does for a `menu menuitem` row.
+  - Test: `tests/test_gtk_theme.py::TestGtkTheme::test_menu_check_and_radio_are_boxless`.
+  - Provenance: no reference screenshot shows a GTK popover. The rule reuses the existing boxless menu-check declarations and adds no colour or metric.
+
+**Acceptance criteria.**
+- The GTK 3 sheet's boxless rule names both popover selectors with the unchanged `MENU_CHECK` declarations.
+- Removing either popover selector, or changing any of the four declarations, fails `test_menu_check_and_radio_are_boxless`.
+- A live `Gtk.StyleContext` probe of `window > popover > modelbutton > check` reports a transparent background and a 0 margin.
+- `test_icon_sources_point_at_shipped_assets`, `test_only_palette_hex_literals` and the rest of `tests/test_gtk_theme.py` still pass. `tests/invariants.py` accepts the new row, and `make check` is green.
+
 ### Platinum GTK spinners: draw a running `GtkSpinner` and hide a stopped one in GTK 3 and GTK 4 (planned 2026-10-24 by the plan role; independent of the waiting GTK 3 popover-row highlight plan) — done 2026-10-24 by the feature role
 
 **Goal.** Neither GTK sheet names `spinner` (grep finds no `spinner` and no `@keyframes` in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` or `gtk-4.0/gtk.css`). The stock spinner rules live in Adwaita's `gtk-contained.css` (GTK 3) and in GTK 4's `Default-light.css`. Our standalone sheets never load either file, so a `GtkSpinner` loses them.

@@ -300,6 +300,8 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         for selector in (
             "menu menuitem check",
             "menu menuitem radio",
+            "popover modelbutton check",
+            "popover modelbutton radio",
         ):
             self.assert_rule(selector, MENU_CHECK)
 
