@@ -177,6 +177,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             ("entry selection", "spinbutton selection", "label selection", "textview text selection")
         )
 
+    def test_disabled_text(self):
+        self.assert_disabled_text(("label:disabled", "entry:disabled", "spinbutton:disabled"))
+
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))
 

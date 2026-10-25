@@ -180,6 +180,11 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             ("text > selection", "label > selection")
         )
 
+    def test_disabled_text(self):
+        self.assert_disabled_text(
+            ("label:disabled", "text:disabled", "spinbutton.vertical > text:disabled")
+        )
+
     def test_view_background(self):
         self.assert_view_background((".view", "list"))
 

@@ -84,7 +84,11 @@
    reuses the reference-grounded progress-bar trough and selection fill, and
    its node and class names are GTK-required. Spin buttons reuse the entry
    field because their field node is spinbutton (vertical: spinbutton.vertical
-   > text), not entry; those node names are GTK-required. */
+   > text), not entry; those node names are GTK-required.
+   An insensitive widget's label and entry text use the colour scheme's
+   ForegroundInactive grey #888888, which Kvantum's disabled text also uses; no
+   reference screenshot shows a disabled GTK widget, and the node names and
+   :disabled state are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -689,4 +693,9 @@ menubar > item {
 }
 menubar > item:selected {
   background-color: #CCCCFF;
+}
+
+/* Insensitive widgets grey their label and entry text. */
+label:disabled, text:disabled, spinbutton.vertical > text:disabled {
+  color: #888888;
 }

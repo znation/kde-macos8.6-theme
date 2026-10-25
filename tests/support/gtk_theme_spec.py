@@ -14,6 +14,7 @@ with their own selectors.
 
 from __future__ import annotations
 
+from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.svg_case import parse_svg
 from svg_assertions import rect_geometry
@@ -22,6 +23,7 @@ from support.platinum_palette import (
     BUTTON_SHADOW,
     FACE,
     GREY,
+    hex_colour,
     INACTIVE_OUTLINE,
     SELECTION,
     TOOLTIP_FACE,
@@ -283,6 +285,10 @@ ROW_HOVER = {"background-color": "transparent"}
 # re-derives from the reference.
 VIEW_BACKGROUND = {"background-color": WHITE, "color": BLACK}
 
+# An insensitive widget's label and entry text: the colour scheme's
+# ForegroundInactive grey, which assert_disabled_text re-derives.
+DISABLED_TEXT = {"color": ETCH_DARK}
+
 # The drag-selection marquee: a dotted outline with no fill, after the Mac OS
 # Finder marquee.
 RUBBERBAND = {"background-color": "transparent", "border": f"1px dotted {BLACK}"}
@@ -432,7 +438,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
     that owns them. The progress-bar, scale, switch, menu-separator, frame,
-    text-selection and view-background assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
+    text-selection, view-background and disabled-text assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
     same nodes differently. The standalone separators are spelled alike in both,
     so ``assert_separators`` takes no selectors.
     """
@@ -575,6 +581,16 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the white view fill against the view *selectors*."""
         for selector in selectors:
             self.assert_rule(selector, VIEW_BACKGROUND)
+
+    def assert_disabled_text(self, selectors):
+        """Assert the inactive grey against *selectors*, and re-derive it."""
+        for selector in selectors:
+            self.assert_rule(selector, DISABLED_TEXT)
+        rgb = load_scheme().get("Colors:Button", "ForegroundInactive")
+        self.assertEqual(
+            hex_colour([int(part) for part in rgb.split(",")]),
+            DISABLED_TEXT["color"],
+        )
 
     def assert_rubberband(self, selectors):
         """Assert the dotted, unfilled marquee against *selectors*."""
