@@ -11,7 +11,9 @@
    adaptation, not a reference crop. The check button's raised #DDDDDD face
    reuses the reference-grounded Kvantum check box, the radio face matches
    widgets/radiobutton.svg, and the checked glyphs load from the shared
-   assets/checkmark.svg and assets/bullet.svg this package installs. The combo
+   assets/checkmark.svg and assets/bullet.svg this package installs; a mixed
+   (indeterminate) check box or radio loads the shared assets/check-mixed.svg
+   dash. The combo
    box dropdown arrow and the menu scroll arrows load from the shared
    assets/arrow-down.svg and assets/arrow-up.svg, whose triangles reuse the
    desktop theme's pinned widgets/arrows.svg shapes. Spin-button arrows stay
@@ -259,6 +261,10 @@ check:checked {
 
 radio:checked {
   -gtk-icon-source: url("../assets/bullet.svg");
+}
+
+check:indeterminate, radio:indeterminate {
+  -gtk-icon-source: url("../assets/check-mixed.svg");
 }
 
 combobox arrow {

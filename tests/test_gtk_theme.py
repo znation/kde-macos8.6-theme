@@ -64,6 +64,7 @@ INDEX = THEME_DIR / "index.theme"
 CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 CHECKMARK = THEME_DIR / "assets" / "checkmark.svg"
 BULLET = THEME_DIR / "assets" / "bullet.svg"
+CHECK_MIXED = THEME_DIR / "assets" / "check-mixed.svg"
 ARROW_DOWN = THEME_DIR / "assets" / "arrow-down.svg"
 ARROW_UP = THEME_DIR / "assets" / "arrow-up.svg"
 ARROW_RIGHT = THEME_DIR / "assets" / "arrow-right.svg"
@@ -292,6 +293,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {
                 '"../assets/checkmark.svg"',
                 '"../assets/bullet.svg"',
+                '"../assets/check-mixed.svg"',
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
                 '"../assets/arrow-right.svg"',
@@ -420,6 +422,64 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         self.assertEqual(at(30, bottom - 3), "#FFFFFF")
         self.assertEqual(at(90, bottom - 1), "#FFFFFF")
 
+    def test_mixed_check_draws_a_black_dash(self):
+        try:
+            import gi
+
+            gi.require_version("Gtk", "3.0")
+            gi.require_version("Gdk", "3.0")
+            from gi.repository import Gdk, Gtk
+        except (ImportError, ValueError):
+            self.skipTest("GTK 3 introspection is not installed")
+        if Gdk.Screen.get_default() is None:
+            self.skipTest("no display for GTK 3")
+        assets = str(THEME_DIR / "assets")
+        css = CSS.read_bytes().replace(b'url("../assets/', b'url("' + assets.encode() + b"/")
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider, 800
+        )
+        window = Gtk.OffscreenWindow()
+        button = Gtk.CheckButton()
+        button.set_can_focus(False)
+        button.set_inconsistent(True)
+        window.add(button)
+        window.show_all()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        pixbuf = window.get_pixbuf()
+        pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+
+        def at(x, y):
+            return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+
+        black = [
+            (x, y)
+            for y in range(pixbuf.get_height())
+            for x in range(pixbuf.get_width())
+            if at(x, y) == "#000000"
+        ]
+        xs = sorted({x for x, _ in black})
+        ys = sorted({y for _, y in black})
+        # The dash is 8px wide and 2px tall; the face's own border is not
+        # inside the dash's columns and rows.
+        dash = [(x, y) for x, y in black if 0 < x - xs[0] < 12]
+        dash_xs = sorted({x for x, _ in dash})
+        dash_ys = sorted({y for _, y in dash})
+        inner = [p for p in dash if p[1] not in (ys[0], ys[-1])]
+        inner_xs = sorted({x for x, _ in inner})
+        inner_ys = sorted({y for _, y in inner})
+        self.assertEqual(len(inner_ys), 2, inner_ys)
+        self.assertEqual(inner_ys[1] - inner_ys[0], 1)
+        row = inner_ys[0]
+        run = [x for x in inner_xs if at(x, row) == "#000000" and at(x, row + 1) == "#000000"]
+        self.assertEqual(len(run), 8, run)
+        self.assertEqual(run[-1] - run[0], 7)
+        self.assertEqual(at(run[3], row - 1), "#DDDDDD")
+        self.assertEqual(at(run[3], row + 2), "#DDDDDD")
+        self.assertEqual(at(run[0] - 1, row), "#DDDDDD")
+
     def test_spinner(self):
         self.assert_spinner("-gtk-icon-transform")
 
@@ -509,25 +569,27 @@ class TestCheckGlyphs(unittest.TestCase):
     def setUpClass(cls):
         cls.checkmark = parse_svg(CHECKMARK)
         cls.bullet = parse_svg(BULLET)
+        cls.mixed = parse_svg(CHECK_MIXED)
 
     def test_assets_stand_alone(self):
-        for tree in (self.checkmark, self.bullet):
+        for tree in (self.checkmark, self.bullet, self.mixed):
             assert_no_script_elements(self, tree)
             assert_no_style_elements(self, tree)
 
     def test_assets_put_the_root_first(self):
-        for path in (CHECKMARK, BULLET):
+        for path in (CHECKMARK, BULLET, CHECK_MIXED):
             with self.subTest(asset=path.name):
                 assert_svg_root_first(self, path)
 
     def test_assets_span_a_14px_canvas(self):
-        for tree in (self.checkmark, self.bullet):
+        for tree in (self.checkmark, self.bullet, self.mixed):
             assert_root_canvas(self, tree, 14, 14)
 
     def test_assets_use_only_the_two_glyph_fills(self):
         self.assertEqual(
             attribute_values(self.checkmark, "fill")
-            | attribute_values(self.bullet, "fill"),
+            | attribute_values(self.bullet, "fill")
+            | attribute_values(self.mixed, "fill"),
             {"none", BLACK},
         )
 
@@ -541,6 +603,16 @@ class TestCheckGlyphs(unittest.TestCase):
         self.assertEqual(path.get("stroke-width"), "2")
         self.assertEqual(path.get("stroke-linecap"), "square")
         self.assertEqual(path.get("stroke-linejoin"), "miter")
+
+    def test_mixed_geometry(self):
+        paths = children_named(self.mixed.getroot(), "path")
+        self.assertEqual(len(paths), 1)
+        path = paths[0]
+        self.assertEqual(path.get("d"), "M 4,7 L 10,7")
+        self.assertEqual(path.get("fill"), "none")
+        self.assertEqual(path.get("stroke"), BLACK)
+        self.assertEqual(path.get("stroke-width"), "2")
+        self.assertEqual(path.get("stroke-linecap"), "square")
 
     def test_bullet_geometry(self):
         circles = children_named(self.bullet.getroot(), "circle")

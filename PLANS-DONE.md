@@ -5,6 +5,54 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK mixed check boxes: draw an inconsistent check box or radio as a 2px black dash in GTK 3 and GTK 4 (planned 2026-10-24 by the plan role; independent of the waiting GTK 3 popover submenu-arrow plan) — done 2026-10-24 by the feature role
+
+**Goal.** Both GTK sheets give `check:checked` and `radio:checked` a shipped glyph, but neither names `:indeterminate`. So a check button in the mixed state (`set_inconsistent(True)`, for example a "select all" box over a partial selection) draws GTK's builtin dash, not a Platinum one. I measured this live under `GDK_BACKEND=x11` (DISPLAY=:1), loading each sheet with its asset URLs rewritten to absolute paths:
+- GTK 3 (`Gtk.OffscreenWindow.get_pixbuf` of a `Gtk.CheckButton` with `set_inconsistent(True)`): the 14px `#DDDDDD` face shows a broken builtin dash of three separate 2x2 black squares.
+- GTK 4 (`Gtk.WidgetPaintable` of the `check` indicator node rendered to a texture): the builtin dash is drawn near-white (`#FFFFFF`/`#FBFBFB`) on rows 6–7 of the 16px indicator texture. So it is faint on the grey check face and invisible on the white radio face.
+- With the candidate asset and rule below appended to a copy of each sheet, the check and the radio both show a solid `#000000` dash 8px wide and 2px tall, centred in the 14px glyph area (canvas columns 3–10, rows 6–7). In GTK 3 the dash also wins over `check:checked` when the button is both active and inconsistent, because the rule comes later in the sheet at equal specificity.
+
+**Design (decided; do not widen).**
+- New asset `theme/gtk/org.macos8.desktop/assets/check-mixed.svg`. It is a 14x14 canvas like `checkmark.svg`, with the root element first and a comment after it (see the earlier BUGS-FIXED entry about an SVG comment before the root). It holds a single path: `<path d="M 4,7 L 10,7" fill="none" stroke="#000000" stroke-width="2" stroke-linecap="square"/>`. The comment names its provenance: the 2px square-capped black stroke reuses `checkmark.svg`'s stroke, which is adapted from the desktop theme's `widgets/checkmarks.svg`. No reference screenshot shows a mixed-state control, and GTK requires the `:indeterminate` state.
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`: directly after the `radio:checked` rule, add `check:indeterminate, radio:indeterminate { -gtk-icon-source: url("../assets/check-mixed.svg"); }`. It must come after both `:checked` rules. In each header comment, extend the sentence about the checked glyphs: a mixed (indeterminate) check box or radio loads the shared `assets/check-mixed.svg` dash.
+- Out of scope:
+  - Menu and popover-row indeterminate checks: their rules stay unchanged, and the new rule applies wherever it matches.
+  - The Kvantum (Qt) tristate check box: no Qt bindings are installed to measure it.
+  - `:disabled` or `:backdrop` variants.
+- Install plumbing for the new tenth asset. Mirror every place `bullet.svg` appears:
+  - `Makefile`: the `install-gtk` staging trap, the `install -Dm644`, the `mv`, and the uninstall `rm -f`. That is the four `bullet.svg` occurrences, each with its `.check-mixed.svg.staging` counterpart.
+  - `tests/support/gtk_fixtures.py` `SHIPPED_FILES`.
+  - `tests/test_gtk_install.py` `STAGING_PATHS`.
+  - README: "the nine shared check, radio, …" becomes ten and names the mixed-state dash; both "twelve GTK files" / "twelve opt-in GTK files" become thirteen.
+  - `docs/invariants.md`: the GTK install row's "twelve GTK theme files" becomes thirteen.
+
+**Files touched.**
+- `theme/gtk/org.macos8.desktop/assets/check-mixed.svg` (new).
+- Both GTK sheets: the rule and the header sentence.
+- `tests/support/gtk_theme_spec.py`: add `MIXED_GLYPH = {"-gtk-icon-source": 'url("../assets/check-mixed.svg")'}` beside `RADIO_GLYPH`. In `GtkSheetRuleCases.test_check_and_radio`, add `self.assert_rule("check:indeterminate, radio:indeterminate", MIXED_GLYPH)`. First check how `parse_css` keys a selector list (by the full list or by each selector) and use that key form.
+- `tests/test_gtk_theme.py`:
+  - Add `CHECK_MIXED` beside `BULLET`.
+  - Add `'"../assets/check-mixed.svg"'` to `test_icon_sources_point_at_shipped_assets`.
+  - In `TestCheckGlyphs`, include the new tree in `test_assets_stand_alone`, `test_assets_put_the_root_first`, `test_assets_span_a_14px_canvas` and `test_assets_use_only_the_two_glyph_fills`, and add `test_mixed_geometry`. It pins the single path's `d`, fill `none`, stroke `#000000`, stroke-width `2` and square linecap.
+  - Add `test_mixed_check_draws_a_black_dash`, modelled on `test_entry_progress_draws_a_two_pixel_strip`. It renders a `Gtk.CheckButton` with `set_can_focus(False)` and `set_inconsistent(True)` offscreen, with the `../assets/` URLs rewritten to the absolute assets directory instead of `none`, and asserts three things:
+    - `#000000` at the dash centre;
+    - the `#DDDDDD` face one row above and one row below the dash;
+    - `#DDDDDD` at the face column just left of the dash.
+    It skips when GTK 3 introspection or a display is missing.
+- `tests/test_gtk4_theme.py`: add `'"../assets/check-mixed.svg"'` to its `test_icon_sources_point_at_shipped_assets`.
+- `Makefile`, `tests/support/gtk_fixtures.py`, `tests/test_gtk_install.py`, `README.md`: the plumbing above.
+- `docs/invariants.md`:
+  - The count edit above.
+  - A new row at the end of `## gtk`.
+    - Guarantee: both GTK sheets draw an indeterminate check box or radio with the shipped `check-mixed.svg` 2px black dash.
+    - Tests: `test_check_and_radio` in both suites, `TestCheckGlyphs::test_mixed_geometry`, and the GTK 3 pixel test.
+    - Provenance: no reference screenshot shows a mixed-state control. The stroke reuses the reference-grounded check glyph's 2px black stroke. The 8px dash length is this theme's choice, centred on the 14px glyph canvas.
+
+**Acceptance criteria.**
+- In either sheet, removing the rule, renaming its selector, or changing its URL fails `test_check_and_radio`. Changing the asset's path data fails `test_mixed_geometry`.
+- The GTK 3 pixel test passes against the edited sheet. Repeat the GTK 4 live capture above against the edited sheet: it shows `#000000` on columns 4–11 of rows 7–8 of the 16px check and radio indicator textures.
+- `make install-gtk DESTDIR=…`-style tests in `tests/test_gtk_install.py` install, stage and uninstall the new asset. `test_only_palette_hex_literals`, `TestArrowGlyphs` and the rest of both GTK suites still pass. `tests/invariants.py` accepts the edited rows, and `make check` is green.
+
 ### Platinum GTK 3 popover submenu arrows: draw the reference's solid black submenu triangle on a GTK 3 popover menu row that opens a submenu (planned 2026-10-24 by the plan role; independent of the waiting GTK entry progress plan) — done 2026-10-24 by the feature role
 
 **Goal.** The GTK 3 sheet gives `menu menuitem arrow` the shipped `assets/submenu-arrow.svg`, and the GTK 4 sheet gives `popover.menu modelbutton > arrow.right` the same asset. But no GTK 3 rule names a popover menu row's arrow, so in a GTK 3 popover built from a `Gio.Menu` (`Gtk.MenuButton` with `set_use_popover(True)`, as in GNOME-style app menus), a row from `append_submenu` draws GTK's builtin chevron, not the Platinum triangle. A live dump of that popover's style tree shows the node path `popover.background.menu … modelbutton.flat > arrow.right`. Stock Adwaita covers it with `modelbutton.flat arrow.right { -gtk-icon-source: -gtk-icontheme("pan-end-symbolic"); }`.

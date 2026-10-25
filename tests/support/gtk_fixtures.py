@@ -15,6 +15,7 @@ SHIPPED_FILES = (
     "gtk-4.0/gtk.css",
     "assets/checkmark.svg",
     "assets/bullet.svg",
+    "assets/check-mixed.svg",
     "assets/arrow-down.svg",
     "assets/arrow-up.svg",
     "assets/arrow-right.svg",

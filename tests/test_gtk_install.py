@@ -53,6 +53,7 @@ STAGING_PATHS = {
     "gtk-4.0/gtk.css": "gtk-4.0/.gtk.css.staging",
     "assets/checkmark.svg": "assets/.checkmark.svg.staging",
     "assets/bullet.svg": "assets/.bullet.svg.staging",
+    "assets/check-mixed.svg": "assets/.check-mixed.svg.staging",
     "assets/arrow-down.svg": "assets/.arrow-down.svg.staging",
     "assets/arrow-up.svg": "assets/.arrow-up.svg.staging",
     "assets/arrow-right.svg": "assets/.arrow-right.svg.staging",

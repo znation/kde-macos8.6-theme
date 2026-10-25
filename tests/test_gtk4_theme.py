@@ -9,6 +9,9 @@ rather than a reference crop.
 from __future__ import annotations
 
 import re
+import os
+import subprocess
+import sys
 import unittest
 from pathlib import Path
 
@@ -82,6 +85,75 @@ DEFINED_COLOURS = {
 }
 
 class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
+    def test_mixed_indicators_draw_black_dashes(self):
+        # Isolate GTK 4 from the GTK 3 introspection used by the other suite.
+        result = subprocess.run(
+            [sys.executable, "-c", '''
+import sys, time
+from pathlib import Path
+try:
+    import gi
+    gi.require_version("Gtk", "4.0")
+    from gi.repository import Gtk, Gdk, GLib, Graphene
+except (ImportError, ValueError):
+    sys.exit(77)
+Gtk.init()
+if Gdk.Display.get_default() is None:
+    sys.exit(77)
+Gtk.Settings.get_default().set_property("gtk-theme-name", "Adwaita")
+root = Path(sys.argv[1])
+provider = Gtk.CssProvider()
+provider.load_from_data((root / "gtk-4.0/gtk.css").read_bytes().replace(
+    b"../assets/", (root / "assets").as_uri().encode() + b"/"))
+Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), provider, 801)
+for radio in (False, True):
+    window = Gtk.Window()
+    button = Gtk.CheckButton()
+    peer = Gtk.CheckButton()
+    if radio:
+        button.set_group(peer)
+    button.set_inconsistent(True)
+    button.set_focusable(False)
+    window.set_child(button)
+    window.present()
+    try:
+        deadline = time.monotonic() + 0.2
+        while time.monotonic() < deadline:
+            while GLib.MainContext.default().pending():
+                GLib.MainContext.default().iteration(False)
+            time.sleep(0.005)
+        indicator = button.get_first_child()
+        name = "radio" if radio else "check"
+        assert indicator.get_css_name() == name
+        snapshot = Gtk.Snapshot()
+        Gtk.WidgetPaintable.new(indicator).snapshot(snapshot, 16, 16)
+        viewport = Graphene.Rect()
+        viewport.init(0, 0, 16, 16)
+        node = snapshot.to_node()
+        texture = window.get_renderer().render_texture(node, viewport)
+        pixbuf = Gdk.pixbuf_get_from_texture(texture)
+        pixels = pixbuf.get_pixels()
+        stride, channels = pixbuf.get_rowstride(), pixbuf.get_n_channels()
+        def at(x, y):
+            start = y * stride + x * channels
+            return tuple(pixels[start:start + 3])
+        face = (255, 255, 255) if radio else (221, 221, 221)
+        for y in (7, 8):
+            for x in range(4, 12):
+                assert at(x, y) == (0, 0, 0), (name, x, y, at(x, y))
+        for x, y in [(x, y) for x in range(4, 12) for y in (6, 9)] + [(3, 7), (12, 7)]:
+            assert at(x, y) == face, (name, x, y, at(x, y))
+        print(name + ": black dash at columns 4–11, rows 7–8; face surrounds it")
+    finally:
+        window.destroy()
+''', str(THEME_DIR)],
+            env={**os.environ, "GDK_BACKEND": "x11", "GSK_RENDERER": "cairo"},
+            capture_output=True, text=True, timeout=15,
+        )
+        if result.returncode == 77:
+            self.skipTest("GTK 4 introspection or an X11 display is missing")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     @classmethod
     def setUpClass(cls):
         cls.css = gtk_css.read_theme_text(CSS)
@@ -103,6 +175,7 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             {
                 '"../assets/checkmark.svg"',
                 '"../assets/bullet.svg"',
+                '"../assets/check-mixed.svg"',
                 '"../assets/arrow-down.svg"',
                 '"../assets/arrow-up.svg"',
                 '"../assets/arrow-right.svg"',

@@ -374,6 +374,7 @@ RADIO = {
 }
 CHECK_GLYPH = {"-gtk-icon-source": 'url("../assets/checkmark.svg")'}
 RADIO_GLYPH = {"-gtk-icon-source": 'url("../assets/bullet.svg")'}
+MIXED_GLYPH = {"-gtk-icon-source": 'url("../assets/check-mixed.svg")'}
 
 # The combo box dropdown arrow both sheets paint from the desktop theme's
 # pinned down-arrow triangle, sized to the installed default sheet's 16px.
@@ -553,6 +554,8 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         self.assert_rule("radio", RADIO)
         self.assert_rule("check:checked", CHECK_GLYPH)
         self.assert_rule("radio:checked", RADIO_GLYPH)
+        self.assert_rule("check:indeterminate", MIXED_GLYPH)
+        self.assert_rule("radio:indeterminate", MIXED_GLYPH)
 
     def test_combobox_arrow(self):
         self.assert_rule("combobox arrow", COMBO_ARROW)
