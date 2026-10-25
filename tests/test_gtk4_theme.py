@@ -344,6 +344,9 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             disabled="progressbar > trough > progress:disabled",
         )
 
+    def test_spinner(self):
+        self.assert_spinner("transform")
+
     def test_levelbar(self):
         self.assert_levelbar(
             trough="levelbar > trough",

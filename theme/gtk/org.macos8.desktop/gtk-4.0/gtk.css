@@ -99,7 +99,9 @@
    A calendar's selected day reuses the row selection fill #CCCCFF with black
    text, and other months' days use the disabled-text ForegroundInactive grey
    #888888; no reference screenshot shows a calendar, and the node names and
-   states are GTK-required. */
+   states are GTK-required. A spinner shows the icon theme's
+   process-working-symbolic while it runs and is hidden while stopped; it adds no
+   colour or metric, and no reference screenshot shows a GTK spinner. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -612,6 +614,27 @@ levelbar.horizontal > trough > block {
 
 levelbar.vertical > trough > block {
   min-width: 10px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+spinner {
+  background: none;
+  opacity: 0;
+  -gtk-icon-source: -gtk-icontheme("process-working-symbolic");
+}
+
+spinner:checked {
+  opacity: 1;
+  animation: spin 1s linear infinite;
+}
+
+spinner:checked:disabled {
+  opacity: 0.5;
 }
 
 scale > trough {

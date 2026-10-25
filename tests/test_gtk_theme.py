@@ -371,6 +371,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             disabled="progressbar progress:disabled",
         )
 
+    def test_spinner(self):
+        self.assert_spinner("-gtk-icon-transform")
+
     def test_levelbar(self):
         self.assert_levelbar(
             trough="levelbar trough",

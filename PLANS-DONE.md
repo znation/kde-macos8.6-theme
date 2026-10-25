@@ -5,6 +5,52 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK spinners: draw a running `GtkSpinner` and hide a stopped one in GTK 3 and GTK 4 (planned 2026-10-24 by the plan role; independent of the waiting GTK 3 popover-row highlight plan) — done 2026-10-24 by the feature role
+
+**Goal.** Neither GTK sheet names `spinner` (grep finds no `spinner` and no `@keyframes` in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` or `gtk-4.0/gtk.css`). The stock spinner rules live in Adwaita's `gtk-contained.css` (GTK 3) and in GTK 4's `Default-light.css`. Our standalone sheets never load either file, so a `GtkSpinner` loses them.
+
+I measured this live with PyGObject under `GTK_THEME=org.macos8.desktop`, with `XDG_DATA_HOME` pointing at a temp dir that holds a `themes/org.macos8.desktop` symlink to the absolute `theme/gtk/org.macos8.desktop` path.
+- GTK 4: a started 16x16 `Gtk.Spinner` in a presented `Gtk.Window` renders nothing. Its `Gtk.WidgetPaintable` snapshot `to_node()` is `None`. With the GTK 4 rules below appended to a `cp -rL` copy of the theme, it renders a `GskMaskNode` with 122 non-transparent pixels. Under `GTK_THEME=Adwaita` it renders 112.
+- GTK 3: a stopped spinner's `get_style_context().get_property("opacity", state)` is `1.0` today. With the GTK 3 rules appended it is `0.0`, and a started (`CHECKED`) spinner stays at `1.0`. GTK 3 pixels cannot be measured on this machine, so only the CSS side of GTK 3 is verified.
+
+**Design (decided; do not widen).** Both sheets copy the stock spinner rules. The only difference is the transform property inside the keyframes, which the two toolkits spell differently.
+- `gtk-3.0/gtk.css`: directly after the `levelbar.vertical block` rule, add:
+  ```css
+  @keyframes spin { to { -gtk-icon-transform: rotate(1turn); } }
+  spinner { background: none; opacity: 0; -gtk-icon-source: -gtk-icontheme("process-working-symbolic"); }
+  spinner:checked { opacity: 1; animation: spin 1s linear infinite; }
+  spinner:checked:disabled { opacity: 0.5; }
+  ```
+- `gtk-4.0/gtk.css`: directly after the `levelbar.vertical > trough > block` rule, add the same four rules, except that the keyframe reads `to { transform: rotate(1turn); }`. That is GTK 4's own spelling in `Default-light.css`.
+- Format the rules multi-line, as in the rest of each sheet. Values stay exactly as above.
+- The icon comes from the user's icon theme via the GTK-required `process-working-symbolic` name. Our icon theme does not ship that name, so it resolves through the `Inherits` chain (Breeze on KDE). No new asset is added, so the Makefile, `SHIPPED_FILES`, `STAGING_PATHS` and the README asset counts do not change.
+- Out of scope:
+  - A Platinum spinner asset, such as a GTK copy of the desktop theme's `widgets/busywidget.svg` ring. That would need a new shipped asset plus install and uninstall changes.
+  - A `spinner:backdrop` colour.
+- No reference screenshot shows a GTK spinner or any busy indicator other than the watch cursor. The rules add no colour or metric. Say so in each sheet's header comment, in one sentence: a spinner shows the icon theme's `process-working-symbolic` while it runs and is hidden while stopped.
+
+**Files touched.**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`: the rules and the header sentence.
+- `tests/support/gtk_theme_spec.py`:
+  - Add a `SPINNER_RULES` dict mapping `"spinner"`, `"spinner:checked"` and `"spinner:checked:disabled"` to the declarations above. Values are whitespace-normalised, as `parse_css` stores them, e.g. `"-gtk-icon-source": '-gtk-icontheme("process-working-symbolic")'`.
+  - Add a `GtkSheetRuleCases.assert_spinner(self, transform)` helper. It calls `assert_rule` for each `SPINNER_RULES` entry. It also asserts that `gtk_css.strip_comments(self.css)` matches `@keyframes\s+spin\s*\{\s*to\s*\{\s*<transform>\s*:\s*rotate\(1turn\)\s*;?\s*\}\s*\}`, with the property name passed through `re.escape`.
+  - Check the regex against the raw text, not `self.rules`: `parse_css` files a nested keyframe block under a bare `to` selector.
+  - Add "spinner" to the module docstring's list of shared assertions.
+- `tests/test_gtk_theme.py`: add `TestGtkTheme.test_spinner`, which calls `self.assert_spinner("-gtk-icon-transform")`.
+- `tests/test_gtk4_theme.py`: add `TestGtk4Theme.test_spinner`, which calls `self.assert_spinner("transform")`.
+- `docs/invariants.md`: add one row at the end of the `## gtk` section.
+  - Guarantee: the GTK 3 and GTK 4 sheets show a running spinner as the icon theme's `process-working-symbolic`, rotating once per second, and hide a stopped one.
+  - Tests: both `test_spinner` methods.
+  - Provenance: no reference screenshot shows a GTK spinner. The icon name, states and animation are GTK-required, copied from the toolkits' stock sheets, and add no colour or metric.
+
+**Acceptance criteria.**
+- Both sheets carry the four rules exactly as described, with each toolkit's own keyframe property.
+- Each of these fails the matching `test_spinner`:
+  - deleting any of the four rules;
+  - changing `opacity: 0` or the `-gtk-icon-source` value;
+  - spelling the GTK 3 keyframe with `transform`, or the GTK 4 keyframe with `-gtk-icon-transform`.
+- `test_stands_alone` (GTK 4), `test_icon_sources_point_at_shipped_assets` (GTK 3), `test_only_palette_hex_literals` and the rest of both GTK suites still pass. `tests/invariants.py` accepts the new row, and `make check` is green.
+
 ### Platinum GTK 3 popover menus: paint the hovered and selected popover menu row with the Platinum highlight (planned 2026-10-24 by the plan role; independent of the waiting GTK 4 menu-button arrow plan) — done 2026-10-24 by the feature role
 
 **Goal.** A GTK 3 popover menu, such as the hamburger menu of a `Gtk.MenuButton` built with `Gtk.Popover.new_from_model`, gives no feedback when the pointer moves over a row. The GTK 3 sheet styles `menuitem:hover` but names no `modelbutton`, and those rows are `GtkModelButton` widgets (CSS node `modelbutton.flat`). The stock `modelbutton.flat:hover` rule is in Adwaita's `gtk-contained.css`, which our standalone sheet never loads. The GTK 4 sheet already has `popover.menu modelbutton:hover, popover.menu modelbutton:selected` with `#CCCCFF`.

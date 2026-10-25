@@ -9,12 +9,15 @@ sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
 plus the link, calendar, progress-bar, level-bar, scale, switch, paned-handle,
-spin-button field, menu-separator, frame, expander-arrow and submenu-arrow
+spin-button field, menu-separator, frame, expander-arrow, submenu-arrow and spinner
 assertions they name with their own selectors.
 """
 
 from __future__ import annotations
 
+import re
+
+from support import gtk_css
 from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.svg_case import parse_svg
@@ -445,6 +448,19 @@ TAB_STATES = (
     ),
 )
 
+SPINNER_RULES = {
+    "spinner": {
+        "background": "none",
+        "opacity": "0",
+        "-gtk-icon-source": '-gtk-icontheme("process-working-symbolic")',
+    },
+    "spinner:checked": {
+        "opacity": "1",
+        "animation": "spin 1s linear infinite",
+    },
+    "spinner:checked:disabled": {"opacity": "0.5"},
+}
+
 
 class SheetRuleAssertions:
     """Rule assertion for suites that store the parsed sheet in ``self.rules``."""
@@ -576,6 +592,19 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         self.assert_rule(disabled, {"background-color": GREY})
         self.assert_rule(horizontal, {"min-height": "10px"})
         self.assert_rule(vertical, {"min-width": "10px"})
+
+    def assert_spinner(self, transform):
+        """Assert a running spinner rotates the icon theme's icon, a stopped one hides."""
+        for selector, spec in SPINNER_RULES.items():
+            self.assert_rule(selector, spec)
+        # parse_css files a nested keyframe block under a bare ``to`` selector,
+        # so the keyframe is checked against the raw text.
+        self.assertRegex(
+            gtk_css.strip_comments(self.css),
+            r"@keyframes\s+spin\s*\{\s*to\s*\{\s*"
+            + re.escape(transform)
+            + r"\s*:\s*rotate\(1turn\)\s*;?\s*\}\s*\}",
+        )
 
     def assert_separators(self):
         """Assert the etched standalone separators in both orientations."""
