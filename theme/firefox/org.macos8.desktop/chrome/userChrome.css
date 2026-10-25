@@ -6,7 +6,7 @@
    white, #999999 grey, #000000 black, #EEEEEE trough, #CCCCFF selection and
    the etched separator's #888888 dark half); its geometry adapts the
    desktop theme's Platinum tabs, toolbars, toolbar button states, bookmark
-   items, fields, menu separators and find bar.
+   items, fields, address-bar results, menu separators and find bar.
 
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
@@ -64,6 +64,24 @@
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
+}
+
+.urlbarView-row {
+  border-radius: 0 !important;
+}
+
+/* Direct paints keep shared tokens available to realtime items and one-offs. */
+.urlbarView-row[row-selectable]:not([selected]):hover {
+  background-color: #EEEEEE !important;
+}
+
+.urlbarView-row[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+}
+
+.urlbarView-body-inner {
+  border-top-color: #888888 !important;
 }
 
 #statuspanel-label {

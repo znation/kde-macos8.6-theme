@@ -73,44 +73,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Firefox Platinum chrome: paint the address-bar results dropdown's selected and hovered rows, separator and square corners (planned 2026-10-24 by the plan role; independent of the waiting GTK mixed check box plan)
-
-**Goal.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css` paints the urlbar field white with a black outline (`#urlbar-background`), but the results dropdown that opens under it still uses Firefox's own colours. The selected row is `SelectedItem` blue, or `rgb(0, 99, 255)` under a lightweight theme. The hover wash is `rgb(240, 240, 244)`, the separator above the results is a translucent grey, and each row has rounded corners. Paint these with the Platinum values the sheet already uses for its menus: the #CCCCFF selection with black text (as `menupopup > menuitem[_moz-menuactive="true"]`), the #EEEEEE trough as the hover wash (as `--toolbarbutton-background-color-hover`), the etched separator's #888888 dark half as the rule, and square corners.
-
-**Grounding (Firefox 153.5.1esr, `/usr/lib/firefox-esr/browser/omni.ja`, read with python `zipfile`).**
-- `chrome/browser/skin/classic/browser/urlbar/urlbarview.tokens.css` defines `--urlbarview-background-color-hover`, `--urlbarview-background-color-selected`, `--urlbarview-text-color-selected` and `--urlbarview-separator-color` on `:root`.
-- `chrome/browser/skin/classic/browser/urlbar/view-proton.css` uses those tokens:
-  - `.urlbarView-row[row-selectable]:not([selected]):hover` paints `var(--urlbarview-background-color-hover)`.
-  - `.urlbarView-row[selected]` paints `var(--urlbarview-background-color-selected)` with `color: var(--urlbarview-text-color-selected)`.
-  - `.urlbarView-body-inner`'s top border is `1px solid var(--urlbarview-separator-color)`.
-  - `.urlbarView-row` sets `border-radius: calc(var(--urlbarView-row-gutter) + var(--urlbar-inner-border-radius))`.
-  - Its `:root[lwtheme]` block overrides the selected colours with the blue values above.
-- A user-sheet `!important` declaration outranks these author declarations, which is the same mechanism the sheet's existing `--toolbarbutton-*` variables rely on.
-
-**Approach.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`:
-  - Add four declarations to the `:root` block, after `--toolbarbutton-background-color-active`:
-    - `--urlbarview-background-color-selected: #CCCCFF !important`
-    - `--urlbarview-text-color-selected: #000000 !important`
-    - `--urlbarview-background-color-hover: #EEEEEE !important`
-    - `--urlbarview-separator-color: #888888 !important`
-  - Add a rule `.urlbarView-row` with `border-radius: 0 !important`, placed directly after the `#urlbar-background` rule.
-  - In the header's provenance paragraph, add "address-bar results" to the list of adapted surfaces, after "fields".
-- `tests/test_firefox_theme.py`:
-  - Add the four variables to `REQUIRED_RULES[":root"]`, using `SELECTION`, `BLACK`, `TROUGH` and `ETCH_DARK`.
-  - Add a `REQUIRED_RULES[".urlbarView-row"]` entry `{"border-radius": "0 !important"}`.
-  - Leave `test_palette_is_exact`'s expected set unchanged, because every new value is already in it.
-- `docs/invariants.md`: in the `## firefox` standalone-sheet guarantee, add "address-bar results rows" to the listed surfaces (after "toolbars"). Keep the row's no-reference-screenshot provenance exception as it is.
-
-**Out of scope.** The `.urlbarView-realtime-item` sub-items (multi-item realtime rows behind a feature gate) and the one-off search buttons. Both keep Firefox's styling.
-
-**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/test_firefox_theme.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- `test_required_rules` fails if any of the four `:root` variables or the `.urlbarView-row` radius is removed or changed.
-- `test_palette_is_exact` passes with the same hex set. `test_sheet_has_no_at_rule_or_import` and `test_selectors_are_not_universal` still pass.
-- `tests/invariants.py` accepts the updated `## firefox` row, and `make check` is green.
-
 ### Firefox Platinum chrome: use Platinum hover and pressed fills for address-bar buttons (planned 2026-10-25 by the plan role; independent of the address-bar results dropdown plan)
 
 **Goal.** Give Firefox's address-bar buttons the same #EEEEEE hover and #CCCCFF pressed/open fills as the sheet's toolbar buttons. The current sheet sets `--toolbarbutton-background-color-hover` and `--toolbarbutton-background-color-active`, but not the separate `--urlbar-box-background-color-hover` and `--urlbar-box-background-color-active` tokens those controls consume. This is one state-palette change, independent of the queued results-row styling.

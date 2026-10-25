@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Platinum chrome: paint the address-bar results dropdown's selected and hovered rows, separator and square corners (planned 2026-10-24 by the plan role; independent of the waiting GTK mixed check box plan) — done 2026-10-25 by the feature role
+
+**Goal.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css` paints the urlbar field white with a black outline (`#urlbar-background`), but the results dropdown that opens under it still uses Firefox's own colours. The selected row is `SelectedItem` blue, or `rgb(0, 99, 255)` under a lightweight theme. The hover wash is `rgb(240, 240, 244)`, the separator above the results is a translucent grey, and each row has rounded corners. Paint these with the Platinum values the sheet already uses for its menus: the #CCCCFF selection with black text (as `menupopup > menuitem[_moz-menuactive="true"]`), the #EEEEEE trough as the hover wash (as `--toolbarbutton-background-color-hover`), the etched separator's #888888 dark half as the rule, and square corners.
+
+**Grounding (Firefox 153.5.1esr, `/usr/lib/firefox-esr/browser/omni.ja`, read with python `zipfile`).**
+- `chrome/browser/skin/classic/browser/urlbar/urlbarview.tokens.css` defines `--urlbarview-background-color-hover`, `--urlbarview-background-color-selected`, `--urlbarview-text-color-selected` and `--urlbarview-separator-color` on `:root`.
+- `chrome/browser/skin/classic/browser/urlbar/view-proton.css` uses those tokens:
+  - `.urlbarView-row[row-selectable]:not([selected]):hover` paints `var(--urlbarview-background-color-hover)`.
+  - `.urlbarView-row[selected]` paints `var(--urlbarview-background-color-selected)` with `color: var(--urlbarview-text-color-selected)`.
+  - `.urlbarView-body-inner`'s top border is `1px solid var(--urlbarview-separator-color)`.
+  - `.urlbarView-row` sets `border-radius: calc(var(--urlbarView-row-gutter) + var(--urlbar-inner-border-radius))`.
+  - Its `:root[lwtheme]` block overrides the selected colours with the blue values above.
+- A user-sheet `!important` declaration outranks these author declarations, which is the same mechanism the sheet's existing `--toolbarbutton-*` variables rely on.
+
+**Approach.**
+- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`:
+  - Paint `.urlbarView-row[selected]` directly with `background-color: #CCCCFF !important` and `color: #000000 !important`.
+  - Paint `.urlbarView-row[row-selectable]:not([selected]):hover` with `background-color: #EEEEEE !important` and `.urlbarView-body-inner` with `border-top-color: #888888 !important`.
+  - Leave shared `--urlbarview-*` tokens to Firefox so these overrides do not propagate to realtime sub-items and one-off buttons.
+  - Add a rule `.urlbarView-row` with `border-radius: 0 !important`, placed directly after the `#urlbar-background` rule.
+  - In the header's provenance paragraph, add "address-bar results" to the list of adapted surfaces, after "fields".
+- `tests/test_firefox_theme.py`:
+  - Add the selected-row, hover-row and body-separator declarations to `REQUIRED_RULES`, using `SELECTION`, `BLACK`, `TROUGH` and `ETCH_DARK`.
+  - Add a `REQUIRED_RULES[".urlbarView-row"]` entry `{"border-radius": "0 !important"}`.
+  - Add `test_results_paint_does_not_override_shared_tokens` to prohibit shared `--urlbarview-*` declarations and constrain urlbarView selectors and declarations to `REQUIRED_RULES`.
+  - Leave `test_palette_is_exact`'s expected set unchanged, because every new value is already in it.
+- `docs/invariants.md`: in the `## firefox` standalone-sheet guarantee, add "address-bar results rows" to the listed surfaces (after "toolbars"). Keep the row's no-reference-screenshot provenance exception as it is.
+
+**Out of scope.** The `.urlbarView-realtime-item` sub-items (multi-item realtime rows behind a feature gate) and the one-off search buttons. Both keep Firefox's styling.
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/test_firefox_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `test_required_rules` fails if a selected-row, hover-row or body-separator declaration or the `.urlbarView-row` radius is removed or changed.
+- `test_results_paint_does_not_override_shared_tokens` rejects shared `--urlbarview-*` declarations and unexpected urlbarView selectors or declarations.
+- `test_palette_is_exact` passes with the same hex set. `test_sheet_has_no_at_rule_or_import` and `test_selectors_are_not_universal` still pass.
+- `tests/invariants.py` accepts the updated `## firefox` row, and `make check` is green.
+
 ### Platinum GTK mixed check boxes: draw an inconsistent check box or radio as a 2px black dash in GTK 3 and GTK 4 (planned 2026-10-24 by the plan role; independent of the waiting GTK 3 popover submenu-arrow plan) — done 2026-10-24 by the feature role
 
 **Goal.** Both GTK sheets give `check:checked` and `radio:checked` a shipped glyph, but neither names `:indeterminate`. So a check button in the mixed state (`set_inconsistent(True)`, for example a "select all" box over a partial selection) draws GTK's builtin dash, not a Platinum one. I measured this live under `GDK_BACKEND=x11` (DISPLAY=:1), loading each sheet with its asset URLs rewritten to absolute paths:

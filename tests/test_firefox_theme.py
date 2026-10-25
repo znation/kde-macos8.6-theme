@@ -92,6 +92,19 @@ REQUIRED_RULES = {
         "border-radius": "0 !important",
         "box-shadow": "none !important",
     },
+    ".urlbarView-row": {
+        "border-radius": "0 !important",
+    },
+    ".urlbarView-row[row-selectable]:not([selected]):hover": {
+        "background-color": f"{TROUGH} !important",
+    },
+    ".urlbarView-row[selected]": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+    },
+    ".urlbarView-body-inner": {
+        "border-top-color": f"{ETCH_DARK} !important",
+    },
     "#statuspanel-label": {
         "background-color": f"{FACE} !important",
         "color": f"{BLACK} !important",
@@ -171,6 +184,17 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             set(HEX.findall(self.text)),
             {BLACK, WHITE, GREY, FACE, TROUGH, SELECTION, ETCH_DARK},
         )
+
+    def test_results_paint_does_not_override_shared_tokens(self):
+        # Firefox also consumes these tokens on realtime sub-items and one-offs.
+        for selector, declarations in self.rules.items():
+            with self.subTest(selector=selector):
+                self.assertFalse(any(
+                    name.startswith("--urlbarview-") for name in declarations
+                ))
+                if "urlbarView" in selector:
+                    self.assertIn(selector, REQUIRED_RULES)
+                    self.assertEqual(declarations, REQUIRED_RULES[selector])
 
     def test_sheet_has_no_at_rule_or_import(self):
         self.assertNotIn("@", self.text)
