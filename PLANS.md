@@ -73,48 +73,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Platinum GTK entry progress: draw an entry's progress fraction as a 2px selection-lavender strip in GTK 3 and GTK 4 (planned 2026-10-24 by the plan role; independent of the waiting GTK 3 popover check/radio plan)
-
-**Goal.** Both GTK sheets are standalone (no `@import` of Adwaita), and neither names an entry's progress node, so `gtk_entry_set_progress_fraction()` / `set_progress_pulse_step()` draw nothing. Download fields, location bars and similar entries show no progress at all. Adwaita draws it as a 2px blue underline: GTK 3 `entry progress`, GTK 4 `entry > progress > trough > progress`. Neither sheet has any rule that matches those nodes: `progressbar progress` and `progressbar > trough > progress` need a `progressbar` ancestor.
-
-I measured this live under `GTK_THEME=org.macos8.desktop`:
-- GTK 3, `Gtk.StyleContext` on the `Gtk.WidgetPath` `window > entry > progress`: background `rgba(0,0,0,0)`, `min-height` 0, border 0, margin 0. The node has no height and no paint.
-- GTK 4, rendering a `Gtk.WidgetPaintable` of a 120px `Gtk.Entry` with `set_progress_fraction(0.5)` (texture 150x19): the rows above the bottom border stay `#FFFFFF` across the field.
-- With the candidate GTK 4 rules below appended to a copy of the sheet, a `#CCCCFF` strip covers about the left half of the field, just above the black bottom border. Without `margin-bottom: 1px` it spills into the border row.
-
-**Design (decided; do not widen).**
-- `tests/support/gtk_theme_spec.py`: add `ENTRY_PROGRESS = {**PROGRESSBAR_PROGRESS, "min-height": "2px"}` beside `PROGRESSBAR_PROGRESS`. Comment: an entry's progress reuses the progress-bar selection fill as a 2px strip, Adwaita's stock thickness.
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: directly after the `progressbar progress:disabled` rule, add `entry progress` with `background-color: #CCCCFF; background-image: none; border: 0; border-radius: 0; box-shadow: none; margin: 0; min-height: 2px;`.
-- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: directly after `progressbar > trough > progress:disabled`, add three rules:
-  - `entry > progress { margin-bottom: 1px; }`
-  - `entry > progress > trough { min-height: 2px; }`
-  - `entry > progress > trough > progress` with the same seven declarations as the GTK 3 rule.
-- In each sheet's header comment, extend the sentence about the level bar reusing the progress-bar trough and selection fill: an entry's progress fraction is a 2px strip of the same selection fill. The 2px thickness is Adwaita's stock value, because no reference screenshot shows an entry progress, and the node names are GTK-required.
-- Out of scope:
-  - Spin-button progress (`spinbutton progress`).
-  - A `:disabled` or `:backdrop` variant.
-  - Any change to the progress bar or level bar rules.
-- No new asset or colour is added (`#CCCCFF` is already in both sheets), so the Makefile, `SHIPPED_FILES`, `STAGING_PATHS` and the README counts do not change.
-
-**Files touched.**
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: the rules and the header sentence.
-- `tests/support/gtk_theme_spec.py`: `ENTRY_PROGRESS`.
-- `tests/test_gtk_theme.py`: add `TestGtkTheme.test_entry_progress`, which calls `self.assert_rule("entry progress", ENTRY_PROGRESS)`.
-- `tests/test_gtk4_theme.py`: add `TestGtk4Theme.test_entry_progress`, which asserts three things:
-  - `self.assert_rule("entry > progress > trough > progress", ENTRY_PROGRESS)`
-  - `{"min-height": "2px"}` on `entry > progress > trough`
-  - `{"margin-bottom": "1px"}` on `entry > progress`
-- `docs/invariants.md`: add one row at the end of the `## gtk` section.
-  - Guarantee: the GTK 3 and GTK 4 sheets draw an entry's progress fraction as a 2px strip of the `#CCCCFF` selection fill.
-  - Tests: both `test_entry_progress` tests.
-  - Provenance: no reference screenshot shows an entry progress. The fill reuses the reference-grounded progress-bar selection. The 2px thickness and the node names come from the toolkits' stock sheets.
-
-**Acceptance criteria.**
-- Removing any of the four new rules, or changing any declaration in them, fails the matching `test_entry_progress`.
-- A live GTK 3 `Gtk.StyleContext` probe of `window > entry > progress` reports background `rgb(204,204,255)` and `min-height` 2.
-- A live GTK 4 render of a `Gtk.Entry` with `set_progress_fraction(0.5)` shows `#CCCCFF` on the strip at a quarter of the field width and `#FFFFFF` at three quarters. Its bottom border row matches the same entry without progress.
-- `test_only_palette_hex_literals`, `test_progressbar`, `test_levelbar` and the rest of `tests/test_gtk_theme.py` and `tests/test_gtk4_theme.py` still pass. `tests/invariants.py` accepts the new row, and `make check` is green.
-
 ### Platinum GTK 3 popover submenu arrows: draw the reference's solid black submenu triangle on a GTK 3 popover menu row that opens a submenu (planned 2026-10-24 by the plan role; independent of the waiting GTK entry progress plan)
 
 **Goal.** The GTK 3 sheet gives `menu menuitem arrow` the shipped `assets/submenu-arrow.svg`, and the GTK 4 sheet gives `popover.menu modelbutton > arrow.right` the same asset. But no GTK 3 rule names a popover menu row's arrow, so in a GTK 3 popover built from a `Gio.Menu` (`Gtk.MenuButton` with `set_use_popover(True)`, as in GNOME-style app menus), a row from `append_submenu` draws GTK's builtin chevron, not the Platinum triangle. A live dump of that popover's style tree shows the node path `popover.background.menu … modelbutton.flat > arrow.right`. Stock Adwaita covers it with `modelbutton.flat arrow.right { -gtk-icon-source: -gtk-icontheme("pan-end-symbolic"); }`.

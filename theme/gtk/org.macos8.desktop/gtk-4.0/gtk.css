@@ -85,7 +85,10 @@
    orientations, and the paned split handles reuse the same etch; the
    orientation classes and the paned orientation classes are GTK-required. The level bar
    reuses the reference-grounded progress-bar trough and selection fill, and
-   its node and class names are GTK-required. Spin buttons reuse the entry
+   its node and class names are GTK-required. An entry's progress fraction is
+   a 2px strip of the same selection fill; the 2px thickness is the stock
+   GTK value, because no reference screenshot shows an entry progress, and
+   the node names are GTK-required. Spin buttons reuse the entry
    field because their field node is spinbutton (vertical: spinbutton.vertical
    > text), not entry; those node names are GTK-required.
    An insensitive widget's label and entry text use the colour scheme's
@@ -575,6 +578,24 @@ progressbar > trough > progress {
 
 progressbar > trough > progress:disabled {
   background-color: #999999;
+}
+
+entry > progress {
+  margin-bottom: 1px;
+}
+
+entry > progress > trough {
+  min-height: 2px;
+}
+
+entry > progress > trough > progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  min-height: 2px;
 }
 
 levelbar > trough {

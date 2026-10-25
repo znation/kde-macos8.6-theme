@@ -80,6 +80,21 @@ PROGRESSBAR_PROGRESS = {
     "box-shadow": "none",
     "margin": "0",
 }
+# GTK 3 paints an entry's progress node over the whole field and ignores its
+# min-height, so the strip is the node's 2px bottom border (Adwaita's stock
+# thickness) in the progress-bar selection fill, over a transparent face.
+ENTRY_PROGRESS = {
+    "background-color": "transparent",
+    "background-image": "none",
+    "border-color": "#CCCCFF",
+    "border-radius": "0",
+    "border-style": "solid",
+    "border-width": "0 0 2px",
+    "box-shadow": "none",
+    "margin": "0",
+}
+# GTK 4 sizes the strip through its trough, so the fill keeps min-height.
+ENTRY_PROGRESS_GTK4 = {**PROGRESSBAR_PROGRESS, "min-height": "2px"}
 SCALE_TROUGH = {**PROGRESSBAR_TROUGH, "min-height": "6px", "min-width": "6px"}
 SCALE_EMPTY_FILL = {
     "background-color": "transparent",

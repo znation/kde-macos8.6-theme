@@ -17,6 +17,7 @@ from support.gtk_css import HEX, parse_css, strip_comments
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     COMBO_ARROW,
+    ENTRY_PROGRESS_GTK4,
     ETCH_DARK,
     LINK,
     MENUBUTTON_ARROWS,
@@ -343,6 +344,11 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             progress="progressbar > trough > progress",
             disabled="progressbar > trough > progress:disabled",
         )
+
+    def test_entry_progress(self):
+        self.assert_rule("entry > progress > trough > progress", ENTRY_PROGRESS_GTK4)
+        self.assert_rule("entry > progress > trough", {"min-height": "2px"})
+        self.assert_rule("entry > progress", {"margin-bottom": "1px"})
 
     def test_spinner(self):
         self.assert_spinner("transform")

@@ -21,6 +21,7 @@ from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.gtk_css import HEX, parse_css
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
+    ENTRY_PROGRESS,
     ETCH_DARK,
     LINK,
     VISITED_LINK,
@@ -372,6 +373,47 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             progress="progressbar progress",
             disabled="progressbar progress:disabled",
         )
+
+    def test_entry_progress(self):
+        self.assert_rule("entry progress", ENTRY_PROGRESS)
+
+    def test_entry_progress_draws_a_two_pixel_strip(self):
+        # GTK 3 ignores min-height on this node, so pin the drawn pixels.
+        try:
+            import gi
+
+            gi.require_version("Gtk", "3.0")
+            gi.require_version("Gdk", "3.0")
+            from gi.repository import Gdk, Gtk
+        except (ImportError, ValueError):
+            self.skipTest("GTK 3 introspection is not installed")
+        if Gdk.Screen.get_default() is None:
+            self.skipTest("no display for GTK 3")
+        css = re.sub(rb"url\([^)]*\)", b"none", CSS.read_bytes())
+        provider = Gtk.CssProvider()
+        provider.load_from_data(css)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider, 800
+        )
+        window = Gtk.OffscreenWindow()
+        entry = Gtk.Entry()
+        entry.set_progress_fraction(0.5)
+        window.add(entry)
+        window.set_default_size(120, 21)
+        window.show_all()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        pixbuf = window.get_pixbuf()
+        pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+
+        def at(x, y):
+            return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+
+        bottom = pixbuf.get_height() - 1
+        self.assertEqual(at(90, bottom), "#000000")
+        self.assertEqual([at(30, bottom - d) for d in (1, 2)], ["#CCCCFF"] * 2)
+        self.assertEqual(at(30, bottom - 3), "#FFFFFF")
+        self.assertEqual(at(90, bottom - 1), "#FFFFFF")
 
     def test_spinner(self):
         self.assert_spinner("-gtk-icon-transform")
