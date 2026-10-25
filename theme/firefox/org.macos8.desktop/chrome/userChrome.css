@@ -9,6 +9,9 @@
    items, fields, address-bar results, menu separators and find bar.
    Address-bar button hover and pressed/open fills reuse the toolbar state
    mapping through Firefox's urlbar-box tokens (adapted 2026-10-25).
+   No reference shows Firefox menus; their zero-radius popup corners follow
+   this sheet's square .tab-background and #urlbar-background convention
+   (platform geometry adaptation 2026-10-25).
 
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
@@ -96,6 +99,7 @@
 }
 
 menupopup {
+  --panel-border-radius: 0 !important;
   --panel-background: #DDDDDD !important;
   --panel-color: #000000 !important;
   --panel-border-color: #000000 !important;
