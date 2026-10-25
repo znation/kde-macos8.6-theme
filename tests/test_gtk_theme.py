@@ -202,6 +202,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
 
+    def test_calendar(self):
+        self.assert_calendar(("calendar:selected",), ("calendar:indeterminate",))
+
     def test_rubberband(self):
         self.assert_rubberband((".rubberband", "rubberband"))
         # A later .view rule would win the cascade again.

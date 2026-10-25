@@ -92,7 +92,11 @@
    Links use the colour scheme's ForegroundLink blue #0000EE and ForegroundVisited
    purple #551A8B (Kvantum's link colours too), and a link button draws no
    button face; no reference screenshot shows a GTK link, and the node names
-   and :link/:visited states are GTK-required. */
+   and :link/:visited states are GTK-required.
+   A calendar's selected day reuses the row selection fill #CCCCFF with black
+   text, and other months' days use the disabled-text ForegroundInactive grey
+   #888888; no reference screenshot shows a calendar, and the node names and
+   states are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -717,4 +721,13 @@ link, button.link > label {
 }
 link:visited, button.link:visited > label {
   color: #551A8B;
+}
+
+/* A calendar's selected day takes the selection fill; other months' days grey. */
+calendar > grid > label.day-number:selected {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+calendar > grid > label.day-number.other-month {
+  color: #888888;
 }

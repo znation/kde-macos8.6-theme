@@ -207,6 +207,12 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
         for rule in ("button {", "button:hover {", "button:active, button:checked {"):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
 
+    def test_calendar(self):
+        self.assert_calendar(
+            ("calendar > grid > label.day-number:selected",),
+            ("calendar > grid > label.day-number.other-month",),
+        )
+
     def test_rubberband(self):
         self.assert_rubberband(("rubberband",))
 

@@ -8,7 +8,7 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the link, progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator, frame and expander-arrow assertions they name
+plus the link, calendar, progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator, frame and expander-arrow assertions they name
 with their own selectors.
 """
 
@@ -321,6 +321,9 @@ ROW_SELECTED = {
 # node's colour, so a transparent colour would hide them.
 TEXT_SELECTION = {"background-color": SELECTION, "color": BLACK}
 
+# A calendar's selected day reuses the row selection fill.
+CALENDAR_SELECTED_DAY = {"background-color": SELECTION, "color": BLACK}
+
 # The text field both sheets paint on ``entry`` and on a spin button's field.
 ENTRY_FIELD = {
     "background-color": WHITE,
@@ -456,7 +459,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
     that owns them. The progress-bar, scale, switch, menu-separator, frame,
-    text-selection, view-background and disabled-text assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
+    text-selection, view-background, disabled-text and calendar assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
     same nodes differently. The standalone separators are spelled alike in both,
     so ``assert_separators`` takes no selectors.
     """
@@ -604,11 +607,22 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the inactive grey against *selectors*, and re-derive it."""
         for selector in selectors:
             self.assert_rule(selector, DISABLED_TEXT)
+        self._assert_inactive_grey_from_scheme()
+
+    def _assert_inactive_grey_from_scheme(self):
         rgb = load_scheme().get("Colors:Button", "ForegroundInactive")
         self.assertEqual(
             hex_colour([int(part) for part in rgb.split(",")]),
             DISABLED_TEXT["color"],
         )
+
+    def assert_calendar(self, selected, other_month):
+        """Assert the calendar's selected-day fill and other-month grey."""
+        for selector in selected:
+            self.assert_rule(selector, CALENDAR_SELECTED_DAY)
+        for selector in other_month:
+            self.assert_rule(selector, DISABLED_TEXT)
+        self._assert_inactive_grey_from_scheme()
 
     def assert_links(self, button, link, visited, underline):
         """Assert faceless link buttons and the coloured link text.
