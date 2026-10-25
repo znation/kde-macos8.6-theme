@@ -93,4 +93,22 @@ No reference screenshot shows Firefox address-bar buttons. This is a platform ad
 - `test_palette_is_exact`, `test_sheet_has_no_at_rule_or_import` and `test_selectors_are_not_universal` pass; the existing reference-anchor tests continue to derive the two reused colours from PNG pixels.
 - `make check` passes, including the invariant register checks. Tests pin declarations and palette evidence, not a live Firefox chrome render; retain that limitation in implementation reporting.
 
+### Firefox Platinum chrome: square menu popup corners (planned 2026-10-25 by the plan role; independent of the address-bar button fills plan)
+
+**Goal.** Give Firefox `menupopup` surfaces square corners consistent with the sheet's existing square fields and tabs. This is one geometry change; it does not extend to arrow panels or menu-item highlight shapes.
+
+**Grounding.** The sheet's `menupopup` rule sets palette variables but no radius. In `/usr/lib/firefox-esr/omni.ja`, `chrome/toolkit/skin/classic/global/popup.css` sets `--panel-border-radius: 6px` on non-arrow popups when Nova is disabled; its `:is(menupopup, panel)` nested `::part(content)` consumes that token as `border-radius`. A root-only override would lose to that local declaration. The Linux fallback without CSD transparency already uses zero. Searches of Planned and the finished Firefox stylesheet, secondary-chrome and results-dropdown plans found no menu-popup radius change.
+
+No reference screenshot shows Firefox menus. Zero radius is an explicit platform adaptation sourced from this sheet's existing `.tab-background` and `#urlbar-background` square-corner convention, not a newly sampled Mac OS metric. Record both the missing surface and this source in the provenance comment; no new palette value is needed.
+
+**Approach and files touched.**
+- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: add `--panel-border-radius: 0 !important` to the existing `menupopup` rule, placing the override on the element where Firefox defines the token. Extend the header provenance with the menu-popup geometry adaptation. Do not put the token on `:root` or `panel`, or change shadows, padding, colours or item states.
+- `tests/test_firefox_theme.py`: extend `REQUIRED_RULES["menupopup"]` with that exact declaration so `TestFirefoxChrome.test_required_rules` pins its value and priority. Add a focused test asserting that the only selector declaring `--panel-border-radius` is `menupopup`, guarding against accidentally squaring unrelated panels such as autoscroll.
+- `docs/invariants.md`: extend the `## firefox` standalone-sheet guarantee to name square menu-popup corners and retain the explicit adaptation provenance exception.
+
+**Acceptance criteria.**
+- The required-rules test rejects a missing radius, a nonzero radius or missing `!important`; the scope test rejects a root or general panel radius override.
+- The exact-palette, no-at-rule/import and non-universal-selector tests continue to pass. Existing palette pixel evidence requires no new anchor because this change introduces no colour.
+- `make check` passes. Report declaration verification separately from live Firefox rendering: these tests do not launch Firefox or prove a rendered menu's corner pixels.
+
 ## Done
