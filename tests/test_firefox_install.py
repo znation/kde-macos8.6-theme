@@ -542,6 +542,23 @@ class TestUserJs(unittest.TestCase):
         self.assertTrue(updated.startswith(foreign))
         self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
 
+    def test_bom_tolerance_is_limited_to_one_bom_on_the_first_line(self):
+        marker = firefox_user_js.USER_JS_MARKER
+        pref = firefox_user_js.PREF_LINE
+        block = marker + "\r\n" + pref + "\r\n"
+        for foreign in (
+            '// foreign header\r\n\ufeff' + block,
+            '\ufeff\ufeff' + block,
+        ):
+            with self.subTest(foreign=foreign):
+                # These are foreign marker lookalikes, so neither their
+                # comments nor the preference following them may be deleted.
+                self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
+                installed = firefox_user_js.set_user_js(foreign)
+                self.assertEqual(foreign + block, installed)
+                self.assertEqual(installed, firefox_user_js.set_user_js(installed))
+                self.assertEqual(foreign, firefox_user_js.remove_user_js(installed))
+
     def test_first_line_stops_at_cr_lf_or_crlf_only(self):
         # The installer decides whether a file is ours from this line, so it
         # must end at the same breaks the block editor uses and keep a BOM.
