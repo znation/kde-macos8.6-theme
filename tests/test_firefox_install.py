@@ -542,6 +542,19 @@ class TestUserJs(unittest.TestCase):
         self.assertTrue(updated.startswith(foreign))
         self.assertEqual(foreign, firefox_user_js.remove_user_js(foreign))
 
+    def test_first_line_stops_at_cr_lf_or_crlf_only(self):
+        # The installer decides whether a file is ours from this line, so it
+        # must end at the same breaks the block editor uses and keep a BOM.
+        first_line = firefox_user_js.first_line
+        self.assertEqual("", first_line(""))
+        self.assertEqual("", first_line("\nrest"))
+        self.assertEqual("a", first_line("a"))
+        self.assertEqual("a", first_line("a\nb"))
+        self.assertEqual("a", first_line("a\r\nb"))
+        self.assertEqual("a", first_line("a\rb"))
+        self.assertEqual("a\x0bb c", first_line("a\x0bb c\nd"))
+        self.assertEqual("\ufeffa", first_line("\ufeffa\nb"))
+
     def test_remove_is_repeatable_and_keeps_crlf(self):
         foreign = 'user_pref("a", 1);\r\n'
         text = (
