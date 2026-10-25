@@ -323,6 +323,50 @@ class TestCommit(StagingCase):
         self.assertEqual([], self.backups_of(target))
         self.assertEqual([], self.backups_of(css))
 
+    def test_a_backup_name_collision_retries_without_touching_the_foreign_file(self):
+        target = self.root / "settings.ini"
+        target.write_bytes(b"old settings\n")
+        foreign = target.with_name(f".{target.name}.occupied.backup")
+        foreign.write_bytes(b"user backup\n")
+        staged = stage_all([(target, "new settings\n")])
+
+        with mock.patch(
+            "tools.gtk_staging.secrets.token_hex",
+            side_effect=["occupied", "available"],
+        ) as token:
+            commit(staged)
+
+        self.assertEqual([mock.call(8), mock.call(8)], token.call_args_list)
+        self.assertEqual(b"new settings\n", target.read_bytes())
+        self.assertEqual(b"user backup\n", foreign.read_bytes())
+        self.assertEqual([foreign], self.backups_of(target))
+        self.assertFalse(self.staging_of(target).exists())
+
+    def test_exhausted_backup_names_restore_an_earlier_write(self):
+        first = self.root / "first.ini"
+        blocked = self.root / "second.ini"
+        first.write_bytes(b"old first\n")
+        blocked.write_bytes(b"old second\n")
+        foreign = blocked.with_name(f".{blocked.name}.occupied.backup")
+        foreign.write_bytes(b"user backup\n")
+        staged = stage_all([(first, "new first\n"), (blocked, "new second\n")])
+
+        with mock.patch(
+            "tools.gtk_staging.secrets.token_hex", return_value="occupied"
+        ):
+            with self.assertRaises(ConfigError) as caught:
+                commit(staged)
+
+        self.assertIn(f"cannot write {blocked}", str(caught.exception))
+        self.assertIn(f"cannot name a backup for {blocked}", str(caught.exception))
+        self.assertEqual(b"old first\n", first.read_bytes())
+        self.assertEqual(b"old second\n", blocked.read_bytes())
+        self.assertEqual(b"user backup\n", foreign.read_bytes())
+        self.assertEqual([], self.backups_of(first))
+        self.assertEqual([foreign], self.backups_of(blocked))
+        for _, staging in staged:
+            self.assertFalse(staging.exists())
+
 
 class TestDiscard(StagingCase):
     def test_removes_a_staged_file(self):
