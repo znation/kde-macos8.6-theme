@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Platinum chrome: use Platinum hover and pressed fills for address-bar buttons (planned 2026-10-25 by the plan role; independent of the address-bar results dropdown plan) — done 2026-10-25 by the feature role
+
+**Goal.** Give Firefox's address-bar buttons the same #EEEEEE hover and #CCCCFF pressed/open fills as the sheet's toolbar buttons. The current sheet sets `--toolbarbutton-background-color-hover` and `--toolbarbutton-background-color-active`, but not the separate `--urlbar-box-background-color-hover` and `--urlbar-box-background-color-active` tokens those controls consume. This is one state-palette change, independent of the queued results-row styling.
+
+**Grounding.** In `/usr/lib/firefox-esr/browser/omni.ja`, `chrome/browser/skin/classic/browser/urlbar/urlbar.tokens.css` defines these two tokens on `:root, :host` using Firefox button colours and dark-mode colour mixing. `identity-block/identity-block.css` under the same browser skin consumes them for `.identity-box-button`, `#trust-icon-container` and `#tracking-protection-icon-container` hover and pressed/open states. `urlbar-searchbar.css` consumes them for `.urlbar-page-action`, the go buttons, search-mode close buttons and `#urlbar-zoom-button`. The theme does not override these tokens; searches of Planned and the finished-plan archive found no plan covering them.
+
+No reference screenshot shows Firefox address-bar buttons. This is a platform adaptation of the existing toolbar state mapping, not a claim of reference-exact Firefox chrome. Its values come from `tests/support/platinum_palette.py`: `TROUGH` is re-derived by `TestReferenceAnchors.test_view_background_alternate` in `tests/test_colorscheme_reference.py` from `setup_emaculation.png` at (200, 470); `SELECTION` is re-derived by `test_selection_background` from the Introduction banner in `firstboot_betawiki.png`. Keep those pixel tests as the palette evidence.
+
+**Approach and files touched.**
+- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: add `--urlbar-box-background-color-hover: #EEEEEE !important` and `--urlbar-box-background-color-active: #CCCCFF !important` to `:root`. Extend the header's adaptation provenance to name address-bar button states and their reuse of the toolbar state mapping. Use the shared tokens so Firefox's existing disabled, hover and open selectors continue deciding when a fill applies.
+- `tests/test_firefox_theme.py`: add both declarations to `REQUIRED_RULES[":root"]`, using `TROUGH` and `SELECTION`. `TestFirefoxChrome.test_required_rules` must pin each value and its `!important`. Retain the existing palette set.
+- `docs/invariants.md`: add address-bar button state fills to the `## firefox` standalone-sheet guarantee and retain its no-reference-screenshot provenance exception.
+
+**Scope.** Change these two background tokens only; idle/focus fills, security glyph colours, outlines, geometry and results-row tokens are outside this plan. The shared tokens also affect Firefox's search go button; this is intentional consistency with the address-bar go button. No new dependency or profile preference is needed.
+
+**Acceptance criteria.**
+- `TestFirefoxChrome.test_required_rules` fails when either token is absent, has the wrong value, or lacks `!important`.
+- `test_palette_is_exact`, `test_sheet_has_no_at_rule_or_import` and `test_selectors_are_not_universal` pass; the existing reference-anchor tests continue to derive the two reused colours from PNG pixels.
+- `make check` passes, including the invariant register checks. Tests pin declarations and palette evidence, not a live Firefox chrome render; retain that limitation in implementation reporting.
+
 ### Firefox Platinum chrome: paint the address-bar results dropdown's selected and hovered rows, separator and square corners (planned 2026-10-24 by the plan role; independent of the waiting GTK mixed check box plan) — done 2026-10-25 by the feature role
 
 **Goal.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css` paints the urlbar field white with a black outline (`#urlbar-background`), but the results dropdown that opens under it still uses Firefox's own colours. The selected row is `SelectedItem` blue, or `rgb(0, 99, 255)` under a lightweight theme. The hover wash is `rgb(240, 240, 244)`, the separator above the results is a translucent grey, and each row has rounded corners. Paint these with the Platinum values the sheet already uses for its menus: the #CCCCFF selection with black text (as `menupopup > menuitem[_moz-menuactive="true"]`), the #EEEEEE trough as the hover wash (as `--toolbarbutton-background-color-hover`), the etched separator's #888888 dark half as the rule, and square corners.

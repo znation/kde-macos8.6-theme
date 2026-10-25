@@ -51,6 +51,8 @@ REQUIRED_RULES = {
         "--toolbarbutton-border-radius": "0 !important",
         "--toolbarbutton-background-color-hover": f"{TROUGH} !important",
         "--toolbarbutton-background-color-active": f"{SELECTION} !important",
+        "--urlbar-box-background-color-hover": f"{TROUGH} !important",
+        "--urlbar-box-background-color-active": f"{SELECTION} !important",
     },
     "#navigator-toolbox": {
         "background-color": f"{FACE} !important",

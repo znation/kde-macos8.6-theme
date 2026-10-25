@@ -7,6 +7,8 @@
    the etched separator's #888888 dark half); its geometry adapts the
    desktop theme's Platinum tabs, toolbars, toolbar button states, bookmark
    items, fields, address-bar results, menu separators and find bar.
+   Address-bar button hover and pressed/open fills reuse the toolbar state
+   mapping through Firefox's urlbar-box tokens (adapted 2026-10-25).
 
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
@@ -28,6 +30,8 @@
   --toolbarbutton-border-radius: 0 !important;
   --toolbarbutton-background-color-hover: #EEEEEE !important;
   --toolbarbutton-background-color-active: #CCCCFF !important;
+  --urlbar-box-background-color-hover: #EEEEEE !important;
+  --urlbar-box-background-color-active: #CCCCFF !important;
 }
 
 #navigator-toolbox {
