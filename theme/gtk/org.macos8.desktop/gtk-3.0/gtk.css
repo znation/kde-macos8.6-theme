@@ -99,7 +99,11 @@
    An insensitive widget's label and entry text use the colour scheme's
    ForegroundInactive grey #888888, which Kvantum's disabled text also uses; no
    reference screenshot shows a disabled GTK widget, and the node names and
-   :disabled state are GTK-required. */
+   :disabled state are GTK-required.
+   Links use the colour scheme's ForegroundLink blue #0000EE and ForegroundVisited
+   purple #551A8B (Kvantum's link colours too), and a link button draws no
+   button face; no reference screenshot shows a GTK link, and the node names
+   and :link/:visited states are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -713,4 +717,19 @@ menubar > menuitem {
 /* Insensitive widgets grey their label and entry text. */
 label:disabled, entry:disabled, spinbutton:disabled {
   color: #888888;
+}
+
+/* Links take the scheme's link blue and visited purple; a link button has no face. */
+button:link, button:visited {
+  background-color: transparent;
+  background-image: none;
+  border-color: transparent;
+  box-shadow: none;
+}
+label:link, button:link > label {
+  color: #0000EE;
+  text-decoration-line: underline;
+}
+label:visited, button:visited > label {
+  color: #551A8B;
 }

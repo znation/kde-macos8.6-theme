@@ -22,6 +22,8 @@ from support.gtk_css import HEX, parse_css
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
     ETCH_DARK,
+    LINK,
+    VISITED_LINK,
     GtkSheetRuleCases,
     MENU_CHECK,
     RAISED_BEVEL,
@@ -141,6 +143,8 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             TROUGH,
             SELECTION,
             ETCH_DARK,
+            LINK,
+            VISITED_LINK,
             TOOLTIP_FACE,
             INACTIVE_OUTLINE,
         }
@@ -182,6 +186,14 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))
+
+    def test_links(self):
+        self.assert_links(
+            ("button:link", "button:visited"),
+            ("label:link", "button:link > label"),
+            ("label:visited", "button:visited > label"),
+            {"text-decoration-line": "underline"},
+        )
 
     def test_rubberband(self):
         self.assert_rubberband((".rubberband", "rubberband"))

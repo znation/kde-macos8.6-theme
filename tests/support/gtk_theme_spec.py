@@ -8,7 +8,7 @@ The Firefox sheet takes :data:`ETCH_DARK` for its etched separators. The GTK 4
 sheet extends :data:`BASE_DEFINED_COLOURS` with its own surface roles.
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator, frame and expander-arrow assertions they name
+plus the link, progress-bar, level-bar, scale, switch, paned-handle, spin-button field, menu-separator, frame and expander-arrow assertions they name
 with their own selectors.
 """
 
@@ -34,6 +34,12 @@ from support.platinum_palette import (
 # The etched separator's dark half, pinned to the reference by
 # tests/test_desktoptheme_line.py's DARK value.
 ETCH_DARK = "#888888"
+
+# Link text: the colour scheme's Window ForegroundLink and ForegroundVisited
+# roles (Kvantum's link.color and link.visited.color too); assert_links
+# re-derives both.
+LINK = "#0000EE"
+VISITED_LINK = "#551A8B"
 
 BASE_DEFINED_COLOURS = {
     "theme_bg_color": FACE,
@@ -288,6 +294,18 @@ VIEW_BACKGROUND = {"background-color": WHITE, "color": BLACK}
 # An insensitive widget's label and entry text: the colour scheme's
 # ForegroundInactive grey, which assert_disabled_text re-derives.
 DISABLED_TEXT = {"color": ETCH_DARK}
+
+# A link button draws no face; link and visited link text take the scheme's
+# link colours. The underline property differs per toolkit, so it is passed
+# to assert_links.
+LINK_BUTTON = {
+    "background-color": "transparent",
+    "background-image": "none",
+    "border-color": "transparent",
+    "box-shadow": "none",
+}
+LINK_TEXT = {"color": LINK}
+VISITED_TEXT = {"color": VISITED_LINK}
 
 # The drag-selection marquee: a dotted outline with no fill, after the Mac OS
 # Finder marquee.
@@ -591,6 +609,29 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             hex_colour([int(part) for part in rgb.split(",")]),
             DISABLED_TEXT["color"],
         )
+
+    def assert_links(self, button, link, visited, underline):
+        """Assert faceless link buttons and the coloured link text.
+
+        *button*, *link* and *visited* are selector tuples; *underline* is the
+        toolkit's underline declaration. Both colours are re-derived from the
+        colour scheme.
+        """
+        for selector in button:
+            self.assert_rule(selector, LINK_BUTTON)
+        for selector in link:
+            self.assert_rule(selector, {**LINK_TEXT, **underline})
+        for selector in visited:
+            self.assert_rule(selector, VISITED_TEXT)
+        scheme = load_scheme()
+        for key, expected in (
+            ("ForegroundLink", LINK),
+            ("ForegroundVisited", VISITED_LINK),
+        ):
+            rgb = scheme.get("Colors:Window", key)
+            self.assertEqual(
+                hex_colour([int(part) for part in rgb.split(",")]), expected
+            )
 
     def assert_rubberband(self, selectors):
         """Assert the dotted, unfilled marquee against *selectors*."""

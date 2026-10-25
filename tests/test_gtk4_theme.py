@@ -18,6 +18,8 @@ from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     COMBO_ARROW,
     ETCH_DARK,
+    LINK,
+    VISITED_LINK,
     GtkSheetRuleCases,
     MENU_CHECK,
     RAISED_BEVEL,
@@ -115,6 +117,8 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             TROUGH,
             SELECTION,
             ETCH_DARK,
+            LINK,
+            VISITED_LINK,
             TOOLTIP_FACE,
             INACTIVE_OUTLINE,
         }
@@ -187,6 +191,14 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_view_background(self):
         self.assert_view_background((".view", "list"))
+
+    def test_links(self):
+        self.assert_links(
+            ("button.link",),
+            ("link", "button.link > label"),
+            ("link:visited", "button.link:visited > label"),
+            {"text-decoration": "underline"},
+        )
 
     def test_rubberband(self):
         self.assert_rubberband(("rubberband",))
