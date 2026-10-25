@@ -1265,6 +1265,45 @@ class TestRemove(ProfileCase):
         self.assertEqual(foreign_sheet, _read(self.sheet_path()))
         self.assertEqual(foreign_js, _read(self.user_js_path()))
 
+    def test_remove_preserves_dangling_links_and_cleans_the_owned_sibling(self):
+        for relative in ("chrome/userChrome.css", "user.js"):
+            with self.subTest(path=relative):
+                profile = self.root / relative.replace("/", "-")
+                profile.mkdir()
+                sheet = profile / "chrome" / "userChrome.css"
+                js = profile / "user.js"
+                sheet.parent.mkdir()
+                link = profile / relative
+                foreign = b'user_pref("keep.me", true);\r\n'
+                if link == sheet:
+                    block = (
+                        firefox_user_js.USER_JS_MARKER + "\r\n"
+                        + firefox_user_js.PREF_LINE + "\r\n"
+                    ).encode("utf-8")
+                    js.write_bytes(foreign + block)
+                else:
+                    _write(sheet, install_firefox.CSS_MARKER + "\n/* owned */\n")
+                target = self.root / (profile.name + "-missing")
+                try:
+                    link.symlink_to(target)
+                except OSError:
+                    self.skipTest("cannot create a symlink on this platform")
+
+                result = self.run_tool("--remove", "--profile", str(profile))
+
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual("", result.stderr)
+                self.assertTrue(link.is_symlink())
+                self.assertEqual(target, link.readlink())
+                self.assertFalse(target.exists())
+                if link == sheet:
+                    self.assertEqual(foreign, js.read_bytes())
+                    expected = {sheet.parent, sheet, js}
+                else:
+                    self.assertFalse(sheet.exists())
+                    expected = {sheet.parent, js}
+                self.assertEqual(expected, set(profile.rglob("*")))
+
     def test_remove_refuses_a_symlinked_sheet_before_deleting_anything(self):
         target = self.root / "dotfiles" / "userChrome.css"
         target.parent.mkdir(parents=True)
