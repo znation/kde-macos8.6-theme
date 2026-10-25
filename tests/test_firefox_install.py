@@ -651,6 +651,36 @@ class TestUserJs(unittest.TestCase):
 
 
 class TestInstall(ProfileCase):
+    def test_install_and_remove_through_a_symlinked_profile_directory(self):
+        profile_link = self.root / "linked-profile"
+        try:
+            profile_link.symlink_to(self.profile, target_is_directory=True)
+        except OSError:
+            self.skipTest("cannot create a symlink on this platform")
+        foreign = 'user_pref("keep.me", "caf\u00e9");\r\n'
+        _write(self.user_js_path(), foreign)
+
+        result = self.run_tool("--profile", str(profile_link))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertTrue(profile_link.is_symlink())
+        self.assertEqual(self.profile, profile_link.readlink())
+        self.assertEqual(
+            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
+            self.sheet_path().read_bytes(),
+        )
+        self.assertEqual(
+            foreign + firefox_user_js.USER_JS_MARKER + "\r\n"
+            + firefox_user_js.PREF_LINE + "\r\n",
+            _read(self.user_js_path()),
+        )
+
+        result = self.run_tool("--remove", "--profile", str(profile_link))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertTrue(profile_link.is_symlink())
+        self.assertEqual(self.profile, profile_link.readlink())
+        self.assertFalse(self.sheet_path().exists())
+        self.assertEqual(foreign.encode("utf-8"), self.user_js_path().read_bytes())
+
     def test_install_copies_the_sheet_byte_for_byte_and_adds_one_block(self):
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
