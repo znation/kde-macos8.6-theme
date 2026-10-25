@@ -293,6 +293,37 @@ class TestSettingsErrors(GtkApplyCase):
         self.assertFalse(self.settings("gtk-4.0").exists())
         self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
+    def test_apply_refuses_a_symlinked_user_css_before_writing_anything(self):
+        self.install_sheet()
+        settings = self.settings("gtk-3.0")
+        original = b"[Settings]\r\ngtk-theme-name=Adwaita\r\n"
+        self.write_bytes(settings, original)
+        target = self.root / "dotfiles" / "gtk.css"
+        target.parent.mkdir(parents=True)
+        link = self.config / "gtk-4.0" / "gtk.css"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(target)
+
+        for css in (
+            b"",
+            (f'{gtk_user_files.GTK4_CSS_MARKER}\n'
+             '@import url("file:///old-sheet.css");\n').encode("utf-8"),
+        ):
+            with self.subTest(css=css):
+                target.write_bytes(css)
+
+                result = self.run_tool()
+
+                assert_exit_2_without_traceback(self, result)
+                self.assertIn(f"cannot write {link}", result.stderr)
+                self.assertIn("symbolic link", result.stderr)
+                self.assertTrue(link.is_symlink())
+                self.assertEqual(target, link.readlink())
+                self.assertEqual(css, target.read_bytes())
+                self.assertEqual(original, settings.read_bytes())
+                self.assertFalse(self.settings("gtk-4.0").exists())
+                self.assertFalse(list(self.config.rglob("*.staging")))
+
     def test_a_symlinked_config_home_is_still_supported(self):
         self.install_sheet()
         real_config = self.root / "dotfiles" / "config"
