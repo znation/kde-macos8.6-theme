@@ -799,6 +799,39 @@ class TestInstall(ProfileCase):
         self.assertEqual(original, target.read_text(encoding="utf-8"))
         self.assertFalse(self.sheet_path().exists())
 
+    def test_install_refuses_dangling_profile_links_before_writing_anything(self):
+        for relative in ("chrome/userChrome.css", "user.js"):
+            with self.subTest(path=relative):
+                profile = self.root / relative.replace("/", "-")
+                profile.mkdir()
+                sheet = profile / "chrome" / "userChrome.css"
+                js = profile / "user.js"
+                sheet.parent.mkdir()
+                link = profile / relative
+                sibling = js if link == sheet else sheet
+                original = (
+                    b'user_pref("keep.me", true);\r\n'
+                    if sibling == js
+                    else (install_firefox.CSS_MARKER + "\r\n/* old sheet */\r\n").encode()
+                )
+                sibling.write_bytes(original)
+                target = self.root / (profile.name + "-missing")
+                try:
+                    link.symlink_to(target)
+                except OSError:
+                    self.skipTest("cannot create a symlink on this platform")
+
+                result = self.run_tool("--profile", str(profile))
+
+                self.assertEqual(2, result.returncode)
+                self.assertIn(f"install_firefox: error: cannot write {link}", result.stderr)
+                self.assertIn("symbolic link", result.stderr)
+                self.assertTrue(link.is_symlink())
+                self.assertEqual(target, link.readlink())
+                self.assertFalse(target.exists())
+                self.assertEqual(original, sibling.read_bytes())
+                self.assertEqual({sheet, js, sheet.parent}, set(profile.rglob("*")))
+
     def test_a_bom_before_our_marker_keeps_the_sheet_ours(self):
         # A UTF-8 BOM is valid in CSS and some editors add one. It must not
         # make our marker-led sheet look foreign: the install replaces it with
