@@ -200,6 +200,13 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
             {"text-decoration": "underline"},
         )
 
+    def test_link_button_follows_the_button_state_rules(self):
+        # button.link ties button:hover and :active on specificity, so only
+        # coming later keeps the link button faceless while hovered or pressed.
+        link = self.css.index("button.link {")
+        for rule in ("button {", "button:hover {", "button:active, button:checked {"):
+            self.assertGreater(link, self.css.index("\n" + rule), rule)
+
     def test_rubberband(self):
         self.assert_rubberband(("rubberband",))
 
