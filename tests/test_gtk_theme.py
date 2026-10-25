@@ -195,6 +195,14 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {"text-decoration-line": "underline"},
         )
 
+    def test_disabled_text_follows_the_entry_text_rule(self):
+        # spinbutton:disabled ties spinbutton:not(.vertical) on specificity, so
+        # only coming later greys a disabled spin button's text.
+        self.assertGreater(
+            self.css.index("label:disabled, entry:disabled, spinbutton:disabled {"),
+            self.css.index("entry, spinbutton:not(.vertical) {"),
+        )
+
     def test_link_button_follows_the_button_state_rules(self):
         # button:link ties button:hover and :active on specificity, so only
         # coming later keeps the link button faceless while hovered or pressed.
