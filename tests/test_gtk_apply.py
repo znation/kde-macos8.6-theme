@@ -324,6 +324,40 @@ class TestSettingsErrors(GtkApplyCase):
                 self.assertFalse(self.settings("gtk-4.0").exists())
                 self.assertFalse(list(self.config.rglob("*.staging")))
 
+    def test_apply_refuses_dangling_config_links_before_writing_anything(self):
+        self.install_sheet()
+        paths = (
+            self.settings("gtk-3.0"),
+            self.settings("gtk-4.0"),
+            self.config / "gtk-4.0" / "gtk.css",
+        )
+        originals = (
+            b"[Settings]\r\ngtk-theme-name=Adwaita\r\n",
+            b"[Settings]\ngtk-theme-name=Adwaita\n",
+            (gtk_user_files.GTK4_CSS_MARKER + "\n").encode("utf-8"),
+        )
+        target = self.root / "missing-dotfile"
+        for link in paths:
+            with self.subTest(path=link):
+                for path, original in zip(paths, originals):
+                    self.write_bytes(path, original)
+                link.unlink()
+                link.symlink_to(target)
+
+                result = self.run_tool()
+
+                assert_exit_2_without_traceback(self, result)
+                self.assertIn(f"cannot write {link}", result.stderr)
+                self.assertIn("symbolic link", result.stderr)
+                self.assertTrue(link.is_symlink())
+                self.assertEqual(target, link.readlink())
+                self.assertFalse(target.exists())
+                for path, original in zip(paths, originals):
+                    if path != link:
+                        self.assertEqual(original, path.read_bytes())
+                self.assertFalse(list(self.config.rglob("*.staging")))
+                link.unlink()
+
     def test_a_symlinked_config_home_is_still_supported(self):
         self.install_sheet()
         real_config = self.root / "dotfiles" / "config"
