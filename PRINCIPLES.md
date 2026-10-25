@@ -12,4 +12,6 @@ and will tune it to this project.
 - Small, complete, and correct beats big and half-done: one focused change per tick.
 - Ground each visual value in the reference screenshots: sample palette and metric values from a
   lossless image, pin each with a test that re-derives that pixel, and record the provenance of
-  any KDE-required value the reference set does not show.
+  any platform-required value the reference set does not show (including KDE, GTK and Firefox).
+  For such adaptations, name the missing reference surface and the source of the chosen value.
+  (Clarified 2026-10-25 by the steward role for the GTK and Firefox scope approved in QUESTIONS.md.)
