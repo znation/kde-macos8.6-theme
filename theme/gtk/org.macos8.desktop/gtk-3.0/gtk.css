@@ -33,7 +33,9 @@
    names are GTK-required.
    Menu-bar titles (menubar > menuitem) take widgets/menubaritem.svg's 3px/7px
    margins, re-derived from the reference title gaps; an open title's colour
-   comes from the existing menuitem:hover rule.
+   comes from the existing menuitem:hover rule. A popover menu row
+   (modelbutton) takes the same #CCCCFF highlight as a menu row when hovered
+   or selected.
    The tree-view and list-box row
    rules adapt the reference-grounded row in widgets/listitem.svg: a hovered
    row stays the view background and a selected row is its flat #CCCCFF fill
@@ -372,6 +374,10 @@ menu, .menu, popover, .popover {
 }
 
 menuitem:hover, .menuitem:hover {
+  background-color: #CCCCFF;
+}
+
+popover modelbutton:hover, popover modelbutton:selected {
   background-color: #CCCCFF;
 }
 

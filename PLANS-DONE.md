@@ -5,6 +5,35 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 popover menus: paint the hovered and selected popover menu row with the Platinum highlight (planned 2026-10-24 by the plan role; independent of the waiting GTK 4 menu-button arrow plan) — done 2026-10-24 by the feature role
+
+**Goal.** A GTK 3 popover menu, such as the hamburger menu of a `Gtk.MenuButton` built with `Gtk.Popover.new_from_model`, gives no feedback when the pointer moves over a row. The GTK 3 sheet styles `menuitem:hover` but names no `modelbutton`, and those rows are `GtkModelButton` widgets (CSS node `modelbutton.flat`). The stock `modelbutton.flat:hover` rule is in Adwaita's `gtk-contained.css`, which our standalone sheet never loads. The GTK 4 sheet already has `popover.menu modelbutton:hover, popover.menu modelbutton:selected` with `#CCCCFF`.
+
+I measured this live with PyGObject under `GTK_THEME=org.macos8.desktop`, with `XDG_DATA_HOME` pointing at a temp dir that holds a `themes/org.macos8.desktop` symlink to `theme/gtk/org.macos8.desktop`. The test popover was built from a `Gio.Menu` with one item and one `append_submenu` row, on a `Gtk.MenuButton` in a shown `Gtk.Window`. Each row's `get_style_context().get_property("background-color", Gtk.StateFlags.PRELIGHT)` returned transparent `(0,0,0,0)`, where Adwaita gives white. Then I appended the rule below to a `cp -rL` copy of the theme and re-ran the script. The same query then returned `(0.8, 0.8, 1.0, 1.0)`, which is `#CCCCFF`, and the row text stayed black.
+
+**Design (decided; do not widen).**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: directly after the `menuitem:hover, .menuitem:hover` rule, add
+  `popover modelbutton:hover, popover modelbutton:selected { background-color: #CCCCFF; }`
+  This is the GTK 4 sheet's state pair, scoped by `popover` instead of `popover.menu`. GTK 3 puts `.menu` on popovers built from a model, but a hand-built `Gtk.Popover` holding model buttons does not have it.
+- Out of scope:
+  - The popover row's submenu `arrow.right`/`arrow.left`. GTK 3 draws it as a gadget, not a widget. `Gdk.pixbuf_get_from_window` returned all-dark garbage under both the Wayland and X11 backends, and `Gtk.Widget.draw` needs `gi-cairo`, which is not installed. So no run could confirm what it draws.
+  - Popover row check/radio glyphs, row padding and min-height. Our rows measure 0px padding and 0 min-height, against Adwaita's 5px and 26px.
+  - Disabled-row text.
+- No reference screenshot shows a GTK popover. The fill is the reference-grounded `#CCCCFF` row highlight that `menuitem:hover` and `widgets/viewitem.svg` already use. Say so in the provenance.
+
+**Files touched.**
+- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: the rule above. The header comment also gets one sentence saying that a popover menu row (`modelbutton`) takes the same `#CCCCFF` highlight as a menu row when hovered or selected.
+- `tests/test_gtk_theme.py`: in `TestGtkTheme.test_menu`, extend the hover loop over `("menuitem:hover", ".menuitem:hover")` with `"popover modelbutton:hover"` and `"popover modelbutton:selected"`. Each still calls `self.assert_rule(selector, {"background-color": SELECTION})`.
+- `docs/invariants.md`: add a new row at the end of the `## gtk` section.
+  - Guarantee: the GTK 3 sheet fills a hovered or selected popover menu row (`popover modelbutton`) with `#CCCCFF`.
+  - Test: `tests/test_gtk_theme.py::TestGtkTheme::test_menu`.
+  - Provenance: no reference screenshot shows a GTK popover. The fill reuses the reference-grounded menu-row highlight, and the node name and states are GTK-required.
+
+**Acceptance criteria.**
+- The rule exists exactly as described, and the GTK 4 sheet is unchanged.
+- Each of these fails `test_menu`: removing the rule, dropping either state from its selector, or changing its colour.
+- `test_icon_sources_point_at_shipped_assets` and the rest of the GTK 3 suite still pass, `tests/invariants.py` accepts the new row, and `make check` is green.
+
 ### Platinum GTK 4 menu-button arrows: draw the shipped down and up triangles on GTK 4 menu buttons (planned 2026-10-24 by the plan role; independent of the waiting GTK submenu-arrow plan) — done 2026-10-24 by the feature role
 
 **Goal.** The GTK 4 sheet does not style a `Gtk.MenuButton`'s arrow. The stock rules that give it an icon are in `Default-light.css`, which our standalone sheet never loads, so a menu button with no icon or label of its own shows an empty face. Measured live with PyGObject under `GTK_THEME=org.macos8.desktop` (with `XDG_DATA_HOME` pointing at a temp dir holding a `themes/org.macos8.desktop` symlink to `theme/gtk/org.macos8.desktop`): a bare `Gtk.MenuButton()` parented in a presented `Gtk.Window` maps `menubutton > button > arrow.down` at 16x16, but snapshotting that arrow through `Gtk.WidgetPaintable` gives no render node, so nothing is drawn. Under `GTK_THEME=Adwaita` the same arrow renders a dark triangle. Stock `Default-light.css` (`gresource extract /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 /org/gtk/libgtk/theme/Default/Default-light.css`) has `menubutton arrow { min-height: 16px; min-width: 16px; }` and one `-gtk-icon-source: -gtk-icontheme(...)` rule per direction class: `.none` uses `open-menu-symbolic`, `.down` `pan-down-symbolic`, `.up` `pan-up-symbolic`, `.left` `pan-start-symbolic` and `.right` `pan-end-symbolic`.

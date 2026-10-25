@@ -262,7 +262,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     "border-radius": "0",
                 },
             )
-        for selector in ("menuitem:hover", ".menuitem:hover"):
+        for selector in (
+            "menuitem:hover",
+            ".menuitem:hover",
+            "popover modelbutton:hover",
+            "popover modelbutton:selected",
+        ):
             self.assert_rule(selector, {"background-color": SELECTION})
 
     def test_menu_scroll_arrows(self):
