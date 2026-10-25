@@ -92,6 +92,10 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
     def test_theme_colours(self):
         self.assertEqual(self.colours, DEFINED_COLOURS)
 
+    def test_icon_sources_resolve_to_shipped_files(self):
+        for ref in re.findall(r'url\("([^"]*)"\)', self.css):
+            self.assertTrue((CSS.parent / ref).resolve().is_file(), ref)
+
     def test_stands_alone(self):
         self.assertNotIn("@import", self.css)
         self.assertEqual(

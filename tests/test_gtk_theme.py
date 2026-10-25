@@ -282,6 +282,10 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 selector, {"-gtk-icon-source": 'url("../assets/arrow-down.svg")'}
             )
 
+    def test_icon_sources_resolve_to_shipped_files(self):
+        for ref in re.findall(r'url\("([^"]*)"\)', self.css):
+            self.assertTrue((CSS.parent / ref).resolve().is_file(), ref)
+
     def test_icon_sources_point_at_shipped_assets(self):
         self.assertEqual(
             set(re.findall(r"url\(([^)]*)\)", self.css)),
