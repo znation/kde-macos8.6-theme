@@ -21,8 +21,8 @@
    (collapsed) and assets/arrow-down.svg (expanded), whose triangles reuse the
    desktop theme's pinned widgets/arrows.svg shapes; no reference screenshot
    shows a GTK widget, and the node names are GTK-required.
-   A menu row's submenu arrow loads the shared assets/submenu-arrow.svg, the
-   icon theme's reference-grounded submenu triangle.
+   A menu row's or popover menu row's submenu arrow loads the shared
+   assets/submenu-arrow.svg, the icon theme's reference-grounded submenu triangle.
    Views (the view class, the list box and GTK 3's text-view text node) paint
    the reference-grounded white content field, the colour scheme's View
    background, with black text; no reference screenshot shows a GTK widget, and
@@ -397,6 +397,10 @@ popover modelbutton check, popover modelbutton radio {
 menu menuitem arrow {
   min-width: 16px;
   min-height: 16px;
+  -gtk-icon-source: url("../assets/submenu-arrow.svg");
+}
+
+popover modelbutton arrow.right {
   -gtk-icon-source: url("../assets/submenu-arrow.svg");
 }
 

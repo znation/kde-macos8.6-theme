@@ -189,6 +189,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_submenu_arrow(self):
         self.assert_submenu_arrow(("menu menuitem arrow",), sized=True)
+        self.assert_submenu_arrow(("popover modelbutton arrow.right",), sized=False)
 
     def test_text_selection(self):
         self.assert_text_selection(

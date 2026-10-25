@@ -73,31 +73,4 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Platinum GTK 3 popover submenu arrows: draw the reference's solid black submenu triangle on a GTK 3 popover menu row that opens a submenu (planned 2026-10-24 by the plan role; independent of the waiting GTK entry progress plan)
-
-**Goal.** The GTK 3 sheet gives `menu menuitem arrow` the shipped `assets/submenu-arrow.svg`, and the GTK 4 sheet gives `popover.menu modelbutton > arrow.right` the same asset. But no GTK 3 rule names a popover menu row's arrow, so in a GTK 3 popover built from a `Gio.Menu` (`Gtk.MenuButton` with `set_use_popover(True)`, as in GNOME-style app menus), a row from `append_submenu` draws GTK's builtin chevron, not the Platinum triangle. A live dump of that popover's style tree shows the node path `popover.background.menu … modelbutton.flat > arrow.right`. Stock Adwaita covers it with `modelbutton.flat arrow.right { -gtk-icon-source: -gtk-icontheme("pan-end-symbolic"); }`.
-
-I measured this live with PyGObject on GTK 3 under `GDK_BACKEND=x11` (Wayland windows cannot be read back), with `XDG_DATA_HOME` pointing at a temp dir whose `themes/` holds the theme. The capture is `Gdk.pixbuf_get_from_window` of the submenu row's allocation in the open popover:
-- `GTK_THEME=org.macos8.desktop`: the right end of the row shows the builtin chevron, an outlined `>` about 4px thick that spans 16 rows.
-- A copy of the sheet with the rule below appended: the chevron is gone, and the row shows a small solid triangle that includes pure `#000000` pixels, matching `submenu-arrow.svg`'s `M 6,3 L 6,11 L 10,7 Z` path. The node already reserves 16x16 (the builtin chevron fills 16 rows), so the rule does not set a size.
-
-**Design (decided; do not widen).**
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: directly after the `menu menuitem arrow` rule, add `popover modelbutton arrow.right { -gtk-icon-source: url("../assets/submenu-arrow.svg"); }`. The `popover modelbutton` prefix matches the sheet's existing popover row rules (`popover modelbutton:hover, popover modelbutton:selected` and `popover modelbutton check, popover modelbutton radio`).
-- In the GTK 3 header comment, extend the sentence "A menu row's submenu arrow loads the shared assets/submenu-arrow.svg, …" so it says a menu row's or popover menu row's submenu arrow loads it.
-- Out of scope:
-  - The sliding-submenu back arrow (`arrow.left`), which the reference never shows. The GTK 4 submenu-arrow plan left out the same arrow.
-  - Right-to-left mirroring, and hover or disabled arrow colours. The arrow stays black on the `#CCCCFF` hover fill, as in the reference.
-  - Any GTK 4 change.
-- No new asset, colour or file is added, so the Makefile, `SHIPPED_FILES`, `STAGING_PATHS` and the README counts do not change.
-
-**Files touched.**
-- `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: the rule and the header sentence.
-- `tests/test_gtk_theme.py`: in `TestGtkTheme.test_submenu_arrow`, keep the existing `self.assert_submenu_arrow(("menu menuitem arrow",), sized=True)` call and add `self.assert_submenu_arrow(("popover modelbutton arrow.right",), sized=False)`. `assert_submenu_arrow` and `SUBMENU_ARROW` in `tests/support/gtk_theme_spec.py` already exist; do not change them.
-- `docs/invariants.md`: update the existing `## gtk` row that begins "Both GTK sheets draw a submenu row's arrow from the shipped `submenu-arrow.svg`" so the guarantee says it covers GTK 3 menu rows, GTK 3 popover menu rows and GTK 4 popover menu rows. Its tests and provenance cells stay as they are.
-
-**Acceptance criteria.**
-- Removing the new rule, renaming its selector, or changing its URL fails `TestGtkTheme.test_submenu_arrow`.
-- Run the live X11 capture above against the edited sheet (a temp `XDG_DATA_HOME` whose `themes/org.macos8.desktop` is a symlink to the absolute `theme/gtk/org.macos8.desktop` path, `GDK_BACKEND=x11`, `timeout 20 python3 -I`). It shows the solid triangle with `#000000` pixels where the builtin chevron was.
-- `TestArrowGlyphs`, `test_only_palette_hex_literals` and the rest of `tests/test_gtk_theme.py` and `tests/test_gtk4_theme.py` still pass. `tests/invariants.py` accepts the edited row, and `make check` is green.
-
 ## Done
