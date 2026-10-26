@@ -11,8 +11,8 @@ the operator prints one ``<tool>: note: <message>`` line through
 cannot drift between ``tools/fidelity.py``, ``tools/sample.py``,
 ``tools/apply_theme.py``, ``tools/apply_gtk.py``, ``tools/local_hook.py``,
 ``tools/make_wallpaper.py``, ``tools/render_surface.py``,
-``tools/make_cursors.py``, ``tools/install_firefox.py`` and
-``tools/apply_cursor.py``.
+``tools/make_cursors.py``, ``tools/install_firefox.py``,
+``tools/apply_cursor.py`` and ``tools/check_references.py``.
 
 Argument parsing lives in the sibling ``tools/argument_parsing.py``; the escaping itself in
 ``tools/terminal.py``.

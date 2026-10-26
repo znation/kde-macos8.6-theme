@@ -221,6 +221,17 @@ class TestUnknownArgumentEscaping(CheckerTestCase):
         self.assertIn("unknown argument", err)
         assert_escapes_escape_character(self, err)
 
+    def test_unknown_argument_uses_the_shared_tool_diagnostic(self):
+        # Every other tool reports through tools.diagnostics, whose contract is
+        # one `<tool>: error: <message>` line. The checker printed its own
+        # unprefixed line instead, so a transcript did not say which tool
+        # rejected the argument. The usage text still follows the diagnostic.
+        module = self.checker
+        code, _, err = _capture(module.main, ["--nope"])
+        self.assertEqual(code, 2)
+        self.assertIn("check_references: error: unknown argument: --nope", err)
+        self.assertIn("usage:", err)
+
     def test_two_unknown_arguments_are_named_in_the_plural(self):
         module = self.checker
         code, _, err = _capture(module.main, ["one", "two"])
