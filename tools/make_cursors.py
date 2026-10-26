@@ -151,12 +151,12 @@ def _scaled_hotspot(size, hotspot):
     )
 
 
-def _build_cursor_bytes(checked, sizes, hotspot, name):
+def _build_cursor_bytes(rows, sizes, hotspot, name):
     """Build the Xcursor bytes for already-checked *rows* and *sizes*."""
     frames = []
     for size in _checked_sizes(sizes):
         hotspot_x, hotspot_y = _scaled_hotspot(size, hotspot)
-        rgba = render_rgba(checked, size, name)
+        rgba = render_rgba(rows, size, name)
         frames.append((size, size, size, hotspot_x, hotspot_y, rgba))
     # The frames are already RGBA, so write them directly: encoding each one
     # to PNG for ``write_cursor`` to decode again would redo the pixel work
@@ -178,9 +178,9 @@ _MAX_CACHED_CURSORS = 128
 
 
 @functools.lru_cache(maxsize=_MAX_CACHED_CURSORS)
-def _cached_cursor_bytes(checked, sizes, hotspot, name):
+def _cached_cursor_bytes(rows, sizes, hotspot, name):
     """Return :func:`_build_cursor_bytes`'s result, reusing an unchanged one."""
-    return _build_cursor_bytes(checked, sizes, hotspot, name)
+    return _build_cursor_bytes(rows, sizes, hotspot, name)
 
 
 def cursor_bytes(
@@ -196,10 +196,10 @@ def cursor_bytes(
     than being answered by an earlier build whose arguments compare equal
     (``16``, ``16.0`` and ``True`` all compare equal in a cache key).
     """
-    checked = _checked_rows(rows, name)
+    checked_rows = _checked_rows(rows, name)
     sizes_key = _checked_sizes(sizes)
     hotspot_key = _checked_hotspot(hotspot)
-    return _cached_cursor_bytes(checked, sizes_key, hotspot_key, name)
+    return _cached_cursor_bytes(checked_rows, sizes_key, hotspot_key, name)
 
 
 def main(argv: list[str] | None = None) -> int:
