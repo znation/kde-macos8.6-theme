@@ -1,0 +1,81 @@
+/* org.macos8.desktop Firefox content, standalone userContent.css
+
+   Provenance exception: no reference screenshot in macos8.6-screenshots/
+   shows Firefox's content-area downloads page (about:downloads), so this
+   sheet samples no reference pixel. Its field and row palette are the shared
+   Platinum palette (#FFFFFF white, #000000 black, #999999 grey and the
+   #CCCCFF selection), and its geometry adapts the desktop theme's line-edit
+   field and list-item row.
+
+   No reference shows Firefox's about:downloads list field; its white face,
+   square 1px black outline and sunken #999999 top-left shadow adapt
+   widgets/lineedit.svg's face, outline and shadow, the same paint this
+   theme's userChrome.css find bar applies to .findbar-textbox
+   (platform colour adaptation 2026-10-26). The white view background is
+   pinned by
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_window_view_background
+   and the line-edit face by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit.test_lineedit_face_is_white
+   and test_lineedit_colours.
+
+   No reference shows Firefox's selected downloads row; the flat #CCCCFF
+   black-text selection adapts widgets/listitem.svg's pressed slices with no
+   hover highlight, pinned by
+   tests/test_desktoptheme_listitem.py::TestListItem.test_listitem_selection_is_flat_selection_colour
+   and test_listitem_normal_has_no_fill; #CCCCFF is the pinned
+   [Colors:Selection] token of
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   Square rows are set directly on richlistitem because the page shares no
+   radius token with the chrome panels.
+
+   In the installed Firefox ESR 153.5.1, browser/omni.ja
+   chrome/browser/content/browser/downloads/contentAreaDownloadsView.xhtml
+   defines <window id="contentAreaDownloadsView"> around
+   <richlistbox id="downloadsListBox" class="allDownloadsListBox">, and
+   chrome/browser/content/browser/downloads/allDownloadsView.js builds each
+   row as a richlistitem with the download and download-state classes.
+   chrome/browser/skin/classic/browser/downloads/allDownloadsView.inc.css
+   sets #downloadsListBox > richlistitem { min-height: 4.5em } and paints no
+   row hover background, leaving the .downloadButton its own hover.
+   chrome/toolkit/skin/classic/global/richlistbox.css paints richlistbox with
+   appearance: auto, background-color: Field, color: FieldText and
+   border: 1px solid ThreeDShadow, and paints richlistitem[selected="true"]
+   with -moz-cellhighlight / SelectedItem;
+   chrome/browser/content/browser/downloads/contentAreaDownloadsView.css
+   hides an empty #downloadsListBox with
+   #downloadsListBox:empty { display: none; }. browser/omni.ja
+   defaults/preferences/firefox.js sets
+   browser.tabs.remote.separatePrivilegedContentProcess true, so
+   about:downloads runs in a content process where userContent.css applies. A
+   headless run of this ESR with a temporary profile whose userContent.css
+   held an @-moz-document url("about:downloads") rule painting the page
+   background red rendered the page red, confirming both the URL match and
+   this sheet's reach; declaration checks do not establish rendered list
+   pixels.
+
+   The :not(:empty) guard leaves Firefox's hidden empty-list state
+   (#downloadsListBox:empty { display: none; }). No
+   rule is added for the page background, .downloadButton, #downloadsHistory,
+   #downloadsListEmptyDescription or the #downloadsContextMenu context menu.
+   This sheet is not installed until part 2/2 adds it to make install-firefox.
+*/
+
+@-moz-document url("about:downloads") {
+  #contentAreaDownloadsView #downloadsListBox:not(:empty) {
+    appearance: none !important;
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #contentAreaDownloadsView #downloadsListBox > richlistitem {
+    border-radius: 0 !important;
+  }
+
+  #contentAreaDownloadsView #downloadsListBox > richlistitem[selected] {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+}
