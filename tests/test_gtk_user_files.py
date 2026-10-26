@@ -8,11 +8,15 @@ write and remove decisions return for each kind of ``gtk.css``.
 
 from __future__ import annotations
 
+import errno
+import os
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
+from support.close_tracking import tracking_closes
 from tools import gtk_user_files
 
 
@@ -48,6 +52,74 @@ class TestReadConfigText(unittest.TestCase):
         with self.assertRaises(gtk_user_files.ConfigError) as caught:
             gtk_user_files.read_config_text(path)
         self.assertIn(str(path), str(caught.exception))
+
+    def test_a_failed_fstat_is_refused_naming_the_file_and_closes_the_descriptor(
+        self,
+    ):
+        # The descriptor is opened before the mode is inspected, so a failed
+        # fstat must still reach the finally: a regression there leaks one
+        # descriptor per unreadable file.
+        path = self.directory / "settings.ini"
+        path.write_text("[Settings]\n", encoding="utf-8")
+        with tracking_closes() as closed:
+            with mock.patch.object(
+                gtk_user_files.os,
+                "fstat",
+                side_effect=OSError(errno.EIO, "simulated fstat failure"),
+            ):
+                with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                    gtk_user_files.read_config_text(path)
+        self.assertIn(f"cannot read {path}", str(caught.exception))
+        self.assertIn("simulated fstat failure", str(caught.exception))
+        self.assertEqual(1, len(closed))
+        with self.assertRaises(OSError):
+            os.fstat(closed[0])
+
+    def test_a_failed_read_is_refused_naming_the_file_and_closes_the_descriptor(
+        self,
+    ):
+        path = self.directory / "settings.ini"
+        path.write_text("[Settings]\n", encoding="utf-8")
+        with tracking_closes() as closed:
+            with mock.patch.object(
+                gtk_user_files.os,
+                "read",
+                side_effect=OSError(errno.EIO, "simulated read failure"),
+            ):
+                with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                    gtk_user_files.read_config_text(path)
+        self.assertIn(f"cannot read {path}", str(caught.exception))
+        self.assertIn("simulated read failure", str(caught.exception))
+        self.assertEqual(1, len(closed))
+        with self.assertRaises(OSError):
+            os.fstat(closed[0])
+
+    def test_an_open_refused_for_another_reason_is_a_config_error(self):
+        path = self.directory / "settings.ini"
+        path.write_text("[Settings]\n", encoding="utf-8")
+        with mock.patch.object(
+            gtk_user_files.os,
+            "open",
+            side_effect=PermissionError(errno.EACCES, "simulated refusal"),
+        ):
+            with self.assertRaises(gtk_user_files.ConfigError) as caught:
+                gtk_user_files.read_config_text(path)
+        self.assertIn(f"cannot read {path}", str(caught.exception))
+        self.assertIn("simulated refusal", str(caught.exception))
+
+    def test_a_platform_that_refuses_to_open_a_directory_reads_as_none(self):
+        # Linux opens a directory read-only, so the fstat check catches it;
+        # the open-time EISDIR arm is the fallback for platforms that refuse.
+        path = self.directory / "gtk-4.0"
+        path.mkdir()
+        with tracking_closes() as closed:
+            with mock.patch.object(
+                gtk_user_files.os,
+                "open",
+                side_effect=OSError(errno.EISDIR, "simulated EISDIR"),
+            ):
+                self.assertIsNone(gtk_user_files.read_config_text(path))
+        self.assertEqual([], closed)
 
 
 class TestUserCssDecisions(unittest.TestCase):
