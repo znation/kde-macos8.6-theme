@@ -15,8 +15,9 @@ Usage::
 
 Exit status: 0 when the selection or removal ran, 1 when the selector failed,
 2 for a usage error, an unusable ``HOME``, a missing installed theme, a
-foreign path at the link target, or a selector that cannot be started, and
-128 plus the signal number when a SIGTERM or SIGHUP ends the run.
+foreign path at the link target, a selector that cannot be started, or a
+scratch directory that cannot be created, and 128 plus the signal number when
+a SIGTERM or SIGHUP ends the run.
 """
 
 from __future__ import annotations
@@ -147,7 +148,10 @@ def _select(env: dict[str, str]) -> int:
     missing = report_missing_tool(TOOL, [SELECT_TOOL])
     if missing is not None:
         return missing
-    scratch = Path(tempfile.mkdtemp(prefix="apply-cursor-"))
+    try:
+        scratch = Path(tempfile.mkdtemp(prefix="apply-cursor-"))
+    except OSError as exc:
+        return report_error(TOOL, f"cannot create a scratch directory: {exc}")
     try:
         status = run_required(
             TOOL,
@@ -238,9 +242,10 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when the selection or removal ran, 1 when the "
             "selector failed, 2 for a usage error, an unusable HOME, a "
-            "missing installed theme, a foreign path at the link target, or a "
-            "selector that cannot be started, and 128 plus the signal number "
-            "when a SIGTERM or SIGHUP ends the run"
+            "missing installed theme, a foreign path at the link target, a "
+            "selector that cannot be started, or a scratch directory that "
+            "cannot be created, and 128 plus the signal number when a SIGTERM "
+            "or SIGHUP ends the run"
         ),
     )
     parser.add_argument(

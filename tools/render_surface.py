@@ -17,10 +17,10 @@ Usage::
         [--height H] [--settle SECONDS] [--timeout SECONDS]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
-2 for a usage error, an unwritable OUTPUT, a missing external tool, or a
-command this tool starts directly (``make`` or ``dbus-run-session``) that
-cannot be started, and 128 plus the signal number when a SIGTERM or SIGHUP
-ends the run.
+2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
+this tool starts directly (``make`` or ``dbus-run-session``) that cannot be
+started, or a scratch session directory that cannot be created, and 128 plus
+the signal number when a SIGTERM or SIGHUP ends the run.
 """
 
 from __future__ import annotations
@@ -98,7 +98,16 @@ def _capture_is_unpainted(rgb: bytes) -> bool:
 
 def _render(args: argparse.Namespace) -> int:
     output = Path(args.output).absolute()
-    with Session.create() as session:
+    try:
+        session = Session.create()
+    except OSError as exc:
+        # Creating the scratch session can fail before it has anything to
+        # clean up (a full or unwritable TMPDIR). Report it as this tool's own
+        # diagnostic instead of letting the OSError escape as a traceback.
+        return report_error(
+            TOOL, f"cannot create a scratch session directory: {exc}"
+        )
+    with session:
         try:
             status, install_log = install_theme(session)
         except OSError as exc:
@@ -202,8 +211,9 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when OUTPUT was written, 1 when the render or "
             "capture failed, 2 usage error, unwritable OUTPUT, missing external "
-            "tool, or an unstartable make or dbus-run-session, and 128 plus the "
-            "signal number when a SIGTERM or SIGHUP ends the run"
+            "tool, an unstartable make or dbus-run-session, or a scratch "
+            "session directory that cannot be created, and 128 plus the signal "
+            "number when a SIGTERM or SIGHUP ends the run"
         ),
     )
     parser.add_argument("output", help="PNG file to write")

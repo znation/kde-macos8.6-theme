@@ -225,6 +225,21 @@ class TestInstall(CursorCase):
 
 
 class TestSelection(CursorCase):
+    def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
+        # The selector runs with a scratch directory for its log. Creating that
+        # directory can fail before the selector starts (a full or unwritable
+        # TMPDIR); it must be this tool's own exit-2 diagnostic, not a
+        # traceback that skips the exit contract.
+        self.install_theme()
+        self.stub_selector()
+        with mock.patch.object(
+            apply_cursor.tempfile, "mkdtemp", side_effect=OSError("no space left")
+        ):
+            result = self.run_tool()
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn("cannot create a scratch directory", result.stderr)
+        self.assertIn("no space left", result.stderr)
+
     def test_selector_is_invoked_with_the_theme_name(self):
         self.install_theme()
         self.stub_selector()

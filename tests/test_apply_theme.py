@@ -122,6 +122,19 @@ class TestCommandOrder(StubTools):
 
 
 class TestFailurePaths(StubTools):
+    def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
+        # Creating the scratch directory can fail before there is anything to
+        # clean up (a full or unwritable TMPDIR). It must be this tool's own
+        # exit-2 diagnostic, not a traceback that skips the exit contract.
+        with mock.patch.object(
+            apply_theme.tempfile, "mkdtemp", side_effect=OSError("no space left")
+        ):
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(2, status)
+        self.assertIn("cannot create a scratch directory", stderr)
+        self.assertIn("no space left", stderr)
+        self.assertNotIn("Traceback", stderr)
+
     def test_failing_required_command_exits_1_with_the_output_tail(self):
         self.stub(
             "plasma-apply-colorscheme",

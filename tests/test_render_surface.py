@@ -137,6 +137,22 @@ class TestFailurePaths(StubTools):
         status, stderr = call_main(render_surface.main, str(output), *extra)
         return status, stderr, output
 
+    def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
+        # The scratch session is created before the install starts. Creating it
+        # can fail (a full or unwritable TMPDIR) before there is anything to
+        # clean up; it must be this tool's own exit-2 diagnostic, not a
+        # traceback that skips the exit contract.
+        with mock.patch.object(
+            tempfile, "mkdtemp", side_effect=OSError("no space left")
+        ):
+            status, stderr, output = self.run_main()
+        self.assertEqual(2, status)
+        self.assertIn("cannot create a scratch session directory", stderr)
+        self.assertIn("no space left", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_failed_install_exits_1_and_removes_scratch(self):
         self.stub("make", "echo install exploded; exit 4")
         status, stderr, output = self.run_main()
