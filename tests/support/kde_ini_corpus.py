@@ -32,8 +32,11 @@ from dataclasses import dataclass
 SCHEME_ID = "MacOS8"
 
 # The first plain ``[group]`` heading in a generic INI text. The leading class
-# keeps any indentation and a UTF-8 BOM in front of the bracket.
-_PLAIN_HEADING = re.compile(r"^([ \t\ufeff]*)\[([^\[\]]+)\]$", re.MULTILINE)
+# keeps any indentation and a UTF-8 BOM in front of the bracket, and the
+# lookahead accepts a CRLF line ending without consuming its carriage return.
+_PLAIN_HEADING = re.compile(
+    r"^([ \t\ufeff]*)\[([^\[\]]+)\](?=\r?$)", re.MULTILINE
+)
 
 
 @dataclass(frozen=True)
@@ -48,6 +51,16 @@ class Case:
 
 CASES = (
     Case("plain value", "[General]\nColorScheme=MacOS8\n", "MacOS8"),
+    Case(
+        "CRLF line endings",
+        "[General]\r\nColorScheme=MacOS8\r\n",
+        "MacOS8",
+    ),
+    Case(
+        "BOM and CRLF line endings",
+        "\ufeff[General]\r\nColorScheme=MacOS8\r\n",
+        "MacOS8",
+    ),
     Case(
         "leading UTF-8 BOM",
         "\ufeff[General]\nColorScheme=MacOS8\n",
