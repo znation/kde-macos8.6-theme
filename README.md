@@ -178,9 +178,10 @@ it after the uninstall and falls back to BreezeLight on the next start, so
 as the reset. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`, or to
-one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Both
-`check` and `check-references` require Python 3.10 or newer (the fidelity tool uses
-`int.bit_count()`) and refuse an older `PYTHON` with a diagnostic naming it.
+one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Every
+target that runs a Python tool requires Python 3.10 or newer (the fidelity tool uses
+`int.bit_count()`) and refuses an older `PYTHON` with a diagnostic naming the target; `make help`
+lists the same `PYTHON` floor.
 `make apply` installs the eight artifacts exactly as `make install` does and then re-applies them to
 the running Plasma session (`make apply` re-applies the global theme, which
 selects Lato; a bare `make install` only copies the family), so the just-built theme becomes current without a logout: it re-selects
