@@ -108,6 +108,57 @@ class TestSelectorMatching(unittest.TestCase):
                 {**target, "parent": disabled_inner},
             )
         )
+    def test_supported_hover_negation_still_matches_and_excludes(self):
+        searchbar = element("searchbar", element_id="searchbar")
+        self.assertTrue(matches("#searchbar:not(:hover)", searchbar))
+        self.assertFalse(
+            matches("#searchbar:not(:hover)", {**searchbar, "hover": True})
+        )
+
+    def test_pseudo_class_name_starting_with_hover_is_unsupported(self):
+        # ``:hover`` is supported only as the complete pseudo-class name; a
+        # longer name must not be shortened to ``:hover`` and accepted.
+        searchbar = element(
+            "searchbar",
+            element_id="searchbar",
+            attrs={"title": "x"},
+            hover=True,
+        )
+        for selector in (
+            "[title]:hover-x",
+            "[title]:hoverx",
+            "#searchbar:not(:hover-x)",
+            "#searchbar:not(:hoverx)",
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, searchbar))
+
+    def test_unsupported_negation_argument_makes_the_whole_selector_match_nothing(self):
+        # Recursing into ``:not(...)`` rejects an argument the matcher cannot
+        # evaluate, such as one with a sibling combinator or an empty one.
+        target = element("box", ("a", "b"))
+        for selector in (".a:not(.b + .c)", ".a:not()"):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, target))
+
+    def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
+        # A pseudo-class outside the supported subset cannot be evaluated, so
+        # it must make its whole selector match nothing. Negating it must not
+        # invert that gap into a selector that matches every element: the
+        # Firefox sheet's ``#searchbar:not(:focus-within)`` used to match a
+        # focused searchbar because ``:focus-within`` was read as false.
+        searchbar = element("searchbar", classes=("a",), element_id="searchbar")
+        for selector in (
+            "#searchbar:not(:focus-within)",
+            ".a:not(:is(.b))",
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, searchbar))
+        # Nested ``:not(...)`` is outside the flat-negation subset too, so a
+        # matching inner selector must not silently make the negation true.
+        self.assertFalse(
+            matches(".a:not(:not(.b))", {**searchbar, "classes": ("a", "b")})
+        )
 
 
 if __name__ == "__main__":

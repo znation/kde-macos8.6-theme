@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher reads an unsupported pseudo-class inside `:not(...)` as false, so the negation matches every element (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/support/selector_matching.py` supports `:hover` and a flat `:not(...)`, but
+`_compound_matches` removed the negated selectors before testing for a leftover `:`. An
+unsupported pseudo-class inside the negation was therefore evaluated as false, and negating that
+gap made the whole selector match every element: the Firefox sheet's
+`#searchbar:not(:focus-within)` matched a focused searchbar, and `.a:not(:is(.b))` matched any
+`.a`. A scope test using one of those selectors could pass vacuously, so a too-broad rule would
+not be caught.
+
+Reproduced by the new
+`tests/test_selector_matching.py::TestSelectorMatching::test_unsupported_pseudo_class_inside_negation_matches_nothing`:
+before the fix it failed with `AssertionError: True is not false` for both `:not(:focus-within)`
+and `:not(:is(.b))`, and for the nested `:not(:not(.b))` case.
+
+Fixed by validating each compound's pseudo-classes against the supported subset and recursing
+into every `:not(...)` argument; a selector that uses anything else matches no element, the same
+rule the matcher already applied to sibling combinators, instead of silently widening through the
+negation. Supported `:not(:hover)` negation still matches an unhovered element and excludes a
+hovered one.
+
+**Validation gap:** none — the new direct matcher test reproduces it deterministically; no reproduction existed before it, but nothing outside the suite was needed to confirm the failure (the closest tag would be no-observability, retired here because this test now covers it).
+
 ### The selector matcher reads a sibling combinator as a universal descendant step (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 A selector using a sibling combinator did not match nothing: `_split_selector`
