@@ -465,8 +465,6 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         # The dash is 8px wide and 2px tall; the face's own border is not
         # inside the dash's columns and rows.
         dash = [(x, y) for x, y in black if 0 < x - xs[0] < 12]
-        dash_xs = sorted({x for x, _ in dash})
-        dash_ys = sorted({y for _, y in dash})
         inner = [p for p in dash if p[1] not in (ys[0], ys[-1])]
         inner_xs = sorted({x for x, _ in inner})
         inner_ys = sorted({y for _, y in inner})

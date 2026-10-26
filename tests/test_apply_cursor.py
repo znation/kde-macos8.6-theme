@@ -22,7 +22,6 @@ from unittest import mock
 from support import process_runner
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
-from support import theme_install
 from support.apply_target_cases import ApplyTargetMakeCases
 from support.cli_fixtures import run_main
 from support.process_assertions import (

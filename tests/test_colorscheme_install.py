@@ -14,7 +14,6 @@ from support import kde_config
 from support.colorscheme_fixtures import SCHEME
 from support.process_assertions import assert_failed, assert_succeeded
 from support.installed_paths import (
-    XDG_DATA_HOME,
     installed_color_scheme,
     installed_color_scheme_dir,
     staging_sibling,
