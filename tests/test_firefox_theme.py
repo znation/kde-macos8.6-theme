@@ -30,6 +30,7 @@ from support.platinum_palette import (
     WHITE,
 )
 from support.repo_root import ROOT
+from support.selector_matching import matches
 
 THEME_ID = "org.macos8.desktop"
 SHEET = (
@@ -225,6 +226,14 @@ REQUIRED_RULES = {
         "#allTabsMenu-allTabsView .all-tabs-item[selected]"
         " > .all-tabs-button"
     ): {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    "#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton)": {
+        "border-radius": "0 !important",
+    },
+    "#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
         "background-color": f"{SELECTION} !important",
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
@@ -479,6 +488,93 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             self.selectors.index(selected),
         )
 
+    def test_app_menu_row_paint_is_scoped_to_the_app_menu(self):
+        radius = "#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton)"
+        hover = radius + ":hover:not([disabled])"
+        self.assertEqual(
+            {name for name in self.rules if "appMenu" in name},
+            {radius, hover},
+        )
+        for selector in (radius, hover):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith(radius))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assertIn(":not([disabled])", hover)
+        self.assertIn(":hover", hover)
+        self.assertIn(":not(.panel-header .subviewbutton)", radius)
+        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--panel-menuitem-border-radius" in declarations},
+            set(),
+        )
+
+        def element(tag, identifier=None, classes=(), attrs=None,
+                    hover=False, parent=None):
+            return {
+                "tag": tag,
+                "id": identifier,
+                "classes": set(classes),
+                "attrs": dict(attrs or {}),
+                "hover": hover,
+                "parent": parent,
+            }
+
+        panel = element("panel", "appMenu-popup")
+        main_view = element(
+            "panelview", "appMenu-mainView", ("PanelUI-subView",),
+            parent=panel,
+        )
+        body = element(
+            "vbox", classes=("panel-subview-body",), parent=main_view
+        )
+        row = element(
+            "toolbarbutton", "appMenu-settings-button", ("subviewbutton",),
+            parent=body,
+        )
+        footer_rows = {
+            "history": element(
+                "toolbarbutton", "PanelUI-historyMore",
+                ("subviewbutton", "panel-subview-footer-button"),
+                parent=element("panelview", "PanelUI-history", parent=panel),
+            ),
+            "bookmarks": element(
+                "toolbarbutton", "panelMenu_showAllBookmarks",
+                ("subviewbutton", "panel-subview-footer-button"),
+                parent=element("panelview", "PanelUI-bookmarks", parent=panel),
+            ),
+        }
+        header = element(
+            "box", "PanelUI-profiles-header", ("panel-header",),
+            parent=element("panelview", "PanelUI-profiles", parent=panel),
+        )
+        header_buttons = {
+            "back": element(
+                "toolbarbutton", "profiles-appmenu-back-button",
+                ("subviewbutton", "subviewbutton-iconic", "subviewbutton-back"),
+                parent=header,
+            ),
+            "edit": element(
+                "toolbarbutton", "profiles-edit-this-profile-button",
+                ("subviewbutton", "subviewbutton-iconic"),
+                parent=header,
+            ),
+        }
+        self.assertTrue(matches(radius, row))
+        self.assertTrue(matches(hover, {**row, "hover": True}))
+        self.assertFalse(matches(hover, row))
+        self.assertFalse(
+            matches(hover, {**row, "hover": True, "attrs": {"disabled": ""}})
+        )
+        for name, button in footer_rows.items():
+            with self.subTest(footer_row=name):
+                self.assertTrue(matches(radius, button))
+                self.assertTrue(matches(hover, {**button, "hover": True}))
+        for name, button in header_buttons.items():
+            with self.subTest(header_button=name):
+                self.assertFalse(matches(radius, button))
+                self.assertFalse(matches(hover, {**button, "hover": True}))
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -584,6 +680,18 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "--button-background-color-ghost-hover",
             "--panel-menuitem-border-radius",
             "--border-radius-small",
+            "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's app menu",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
+            "#appMenu-popup",
+            "panel-subview-body",
+            "panel-subview-footer-button",
+            "panel-header",
+            "toolbarbutton.subviewbutton",
+            "--panel-menuitem-border-radius",
+            "--button-background-color-ghost-hover",
             "platform colour adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):

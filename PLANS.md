@@ -78,48 +78,13 @@ applications keep their own chrome unless the opt-in GTK targets or the Firefox 
 install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
 landed, while its profile install is part 2/2, which has landed). Firefox work since that
 series landed as single-surface chrome plans (the downloads-panel and all-tabs rows, the
-sidebar frame, the menu-bar title box and the tab faces), the app-menu row paint is queued,
-and it now reaches a content page: the queued `userContent.css` plan paints the about:downloads
+sidebar frame, the menu-bar title box, the tab faces and the app-menu rows), and it now
+reaches a content page: the queued `userContent.css` plan paints the about:downloads
 list (part 1/2), with its opt-in profile install as part 2/2. That is an extension of the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Firefox Platinum chrome: paint the app-menu rows like a Platinum menu (planned 2026-10-26 by the plan role)
-
-**Goal.** Make the toolbar app menu (`#appMenu-popup`) read as a Mac OS 8.6 menu: each row is square, and an enabled row under the pointer takes the flat `#CCCCFF` menu-item highlight with black text and no toolbar bevel. The app menu's disabled and focus states, separators, panel headers and check glyphs stay Firefox's, as do the library, history and identity arrow panels.
-
-**Grounding.** No reference screenshot shows Firefox chrome or its app menu. The highlight adapts the reference-grounded `widgets/viewitem.svg`, whose `hover`/`selected`/`selected+hover` slices are each a flat square `#CCCCFF` with no bevel or outline (`tests/test_desktoptheme_viewitem.py::TestViewItem.test_viewitem_highlights_are_flat_selection_colour`), and reuses the sheet's existing `menupopup > menuitem:hover` mapping of that menu-item highlight. `#CCCCFF` is the project's sampled `[Colors:Selection]` token pinned by `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background`; the reference's open Apple menu shows no highlighted item, so the menu-item highlight has no per-pixel sample. Record the missing Firefox app-menu reference and the dated adaptation in the sheet header and the invariants row.
-
-In the installed Firefox ESR 153.5.1, `browser/omni.ja` `chrome/browser/content/browser/browser.xhtml` defines `<panel id="appMenu-popup" type="arrow">` around `<panelmultiview id="appMenu-multiView">`, whose views' `.panel-subview-body` hold `toolbarbutton.subviewbutton` rows (e.g. `#appMenu-new-tab-button2`, `#appMenu-passwords-button`, `#appMenu-settings-button`). `browser/omni.ja` `chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css` gives `.subviewbutton` `border-radius: var(--panel-menuitem-border-radius)` and gives `toolbarbutton.subviewbutton:not([disabled]):hover` the ghost tokens `--button-text-color-ghost-hover` and `--button-background-color-ghost-hover`, with a pressed `box-shadow`; toolkit `chrome/toolkit/skin/classic/global/design-system/tokens-shared.css` defines `--panel-menuitem-border-radius: var(--border-radius-small)` (4px) and maps the ghost hover to the violet `--button-background-color-hover`. The sheet's generic `toolbarbutton:hover:not([disabled="true"])` rule also adds its raised bevel, and the `#appMenu-popup` panel is already a `panel[type="arrow"]`, so the `#DDDDDD` face and black text tokens apply but the rows' radius and hover are still Firefox's.
-
-**Approach.** In `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, immediately after the `toolbarbutton:hover:active:not([disabled="true"])` rule and before the `/* The all-tabs panel rows ... */` comment, add two rules with a short comment:
-
-```css
-#appMenu-popup .subviewbutton {
-  border-radius: 0 !important;
-}
-
-#appMenu-popup .subviewbutton:hover:not([disabled]) {
-  background-color: #CCCCFF !important;
-  color: #000000 !important;
-  box-shadow: none !important;
-}
-```
-
-Square the rows directly rather than overriding `--panel-menuitem-border-radius`, because `panelUI-shared.css` applies that token to every `.subviewbutton` in every panel, including the all-tabs panel's mute and close controls and the library/history panels, which stay Firefox's. The hover rule excludes disabled rows, so a disabled row keeps Firefox's dimmed paint; because it matches while `:active` too and out-specifies Firefox's pressed ghost rule, a pressed row stays `#CCCCFF` with no pressed shadow. Add no margin, padding, border, font, separator or panel-header declaration, and do not touch `:focus-visible`.
-
-In the header, append a provenance paragraph after the all-tabs paragraph (the one beginning `No reference shows Firefox's all-tabs panel;`) and before the closing `*/`: no reference shows Firefox's app menu; the row highlight adapts `widgets/viewitem.svg` and the sheet's menu-item mapping (platform colour adaptation 2026-10-26); Firefox's `chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css` gives `.subviewbutton` its `--panel-menuitem-border-radius` and its `--button-background-color-ghost-hover` violet hover, `chrome/toolkit/skin/classic/global/design-system/tokens-shared.css` defines those tokens, `chrome/browser/content/browser/browser.xhtml` defines `#appMenu-popup`, and the sheet suppresses the ghost hover and toolbar bevel on these rows only; declaration checks do not establish rendered pixels.
-
-**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/test_firefox_theme.py`, `docs/invariants.md`.
-
-**Acceptance criteria.**
-- `REQUIRED_RULES` in `tests/test_firefox_theme.py` gains the two selectors `#appMenu-popup .subviewbutton` (`border-radius: 0 !important`) and `#appMenu-popup .subviewbutton:hover:not([disabled])` (`background-color: #CCCCFF !important`, `color: #000000 !important`, `box-shadow: none !important`), after the all-tabs entries, using `SELECTION` and `BLACK` from `support.platinum_palette`.
-- New `TestFirefoxChrome.test_app_menu_row_paint_is_scoped_to_the_app_menu` asserts the selectors naming `appMenu` are exactly the radius and hover rules, each starts with `#appMenu-popup .subviewbutton`, each equals its `REQUIRED_RULES` entry, the hover selector carries `:not([disabled])` and `:hover`, the radius rule carries no declaration besides `border-radius`, and no rule in the sheet overrides `--panel-menuitem-border-radius`.
-- `test_header_names_provenance_and_preference` gains the new paragraph's strings: `"No reference shows Firefox's app menu"`, `"widgets/viewitem.svg"`, `"tests/test_desktoptheme_viewitem.py::TestViewItem"`, `"chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css"`, `"#appMenu-popup"`, `"toolbarbutton.subviewbutton"`, `"--panel-menuitem-border-radius"`, `"--button-background-color-ghost-hover"` and `"platform colour adaptation 2026-10-26"`.
-- `docs/invariants.md` gains a row in the `## firefox` table after the all-tabs row: the app-menu rows (`#appMenu-popup .subviewbutton`) are square and a hovered enabled row is flat `#CCCCFF` with black text and no bevel, while disabled rows, focus rings, separators, panel headers and check glyphs stay Firefox's; its test column names the new test; its provenance records the missing Firefox app-menu reference, the `widgets/viewitem.svg` adaptation, the installed Firefox ESR 153.5.1 selectors and tokens above, and that declaration checks do not establish rendered pixels.
-- `make check` passes; the generic `toolbarbutton` rules, the menu, tab, downloads-panel, all-tabs, sidebar, address-bar, find-bar and tooltip rules keep their declarations, and no rule is added for a non-`#appMenu-popup` panel.
-
-### Firefox Platinum chrome, part 1/2: ship a `userContent.css` painting the about:downloads list like a Platinum list (planned 2026-10-26 by the plan role; independent of the waiting app-menu row plan; the opt-in profile install is its own later run)
+### Firefox Platinum chrome, part 1/2: ship a `userContent.css` painting the about:downloads list like a Platinum list (planned 2026-10-26 by the plan role; the opt-in profile install is its own later run)
 
 **Goal.** Ship a standalone `userContent.css` that gives Firefox's `about:downloads` page a Mac OS 8.6 item-view field: a non-empty downloads list is white with black text, a square 1px black outline and the sunken `#999999` top-left shadow, every row is square, and a selected row is a flat `#CCCCFF` fill with black text. The empty-list state, the page background and text, each row's `.downloadButton` action button, the `#downloadsContextMenu` context menu and every other page stay Firefox's. This part ships and tests the sheet; the opt-in profile install is part 2/2, planned separately because extending the installer's atomic install/rollback and its tests is its own run.
 

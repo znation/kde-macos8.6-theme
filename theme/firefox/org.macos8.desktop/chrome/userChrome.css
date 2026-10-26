@@ -145,6 +145,26 @@
    subviewbuttons' Firefox radius untouched, and suppresses the violet hover
    wash and its generic toolbarbutton bevel on these rows only. Declaration
    checks do not establish rendered pixels.
+
+   No reference shows Firefox's app menu; its row highlight adapts the
+   reference-grounded widgets/viewitem.svg and the sheet's menu-item mapping
+   (platform colour adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   Firefox's
+   chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css
+   gives toolbarbutton.subviewbutton its --panel-menuitem-border-radius and
+   its --button-background-color-ghost-hover violet hover,
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css defines
+   those tokens, and chrome/browser/content/browser/browser.xhtml defines
+   #appMenu-popup with each view's rows inside a .panel-subview-body and the
+   two .panel-subview-footer-button rows (PanelUI-historyMore in
+   PanelUI-history and panelMenu_showAllBookmarks in PanelUI-bookmarks) that
+   sit directly in their panelview. The sheet squares every .subviewbutton row
+   in the app menu except the .panel-header back and edit buttons, and
+   suppresses the ghost hover and generic toolbar bevel on those rows only,
+   leaving the header buttons (which also carry .subviewbutton) Firefox's.
+   Declaration checks do not establish rendered pixels.
 */
 
 tooltip {
@@ -310,6 +330,19 @@ toolbarbutton:hover:not([disabled="true"]) {
 
 toolbarbutton:hover:active:not([disabled="true"]) {
   box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* The app menu rows adapt the desktop theme's view item: square corners and a
+   flat #CCCCFF hover with black text and no toolbar bevel. The selector covers
+   body and footer rows but not the panel-header back and edit buttons. */
+#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#appMenu-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
 }
 
 /* The all-tabs panel rows adapt the desktop theme's list item: no hover wash,
