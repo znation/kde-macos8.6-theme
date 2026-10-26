@@ -196,6 +196,28 @@ REQUIRED_RULES = {
     "toolbarbutton:hover:active:not([disabled=\"true\"])": {
         "box-shadow": f"inset 1px 1px {GREY} !important",
     },
+    "#allTabsMenu-allTabsView .all-tabs-item": {
+        "border-radius": "0 !important",
+    },
+    "#allTabsMenu-allTabsView .all-tabs-item > .all-tabs-button": {
+        "border-radius": "0 !important",
+    },
+    (
+        "#allTabsMenu-allTabsView .all-tabs-item:not([selected])"
+        " > .all-tabs-button:hover"
+    ): {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    (
+        "#allTabsMenu-allTabsView .all-tabs-item[selected]"
+        " > .all-tabs-button"
+    ): {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
     "menupopup > menuseparator": {
         "padding": "0 !important",
         "margin": "2px 0 !important",
@@ -388,6 +410,41 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
         self.assertEqual(self.rules["#sidebar-header"]["box-shadow"],
                          f"inset 0 -1px {WHITE} !important")
 
+    def test_all_tabs_row_paint_is_scoped_to_the_all_tabs_view(self):
+        row = "#allTabsMenu-allTabsView .all-tabs-item"
+        button = "#allTabsMenu-allTabsView .all-tabs-item > .all-tabs-button"
+        hover = (
+            "#allTabsMenu-allTabsView .all-tabs-item:not([selected])"
+            " > .all-tabs-button:hover"
+        )
+        selected = (
+            "#allTabsMenu-allTabsView .all-tabs-item[selected]"
+            " > .all-tabs-button"
+        )
+        self.assertEqual(
+            {name for name in self.rules
+             if "allTabsMenu" in name or "all-tabs" in name},
+            {row, button, hover, selected},
+        )
+        for selector in (row, button, hover, selected):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--panel-menuitem-border-radius" in declarations},
+            set(),
+        )
+        self.assertIn(":not([selected])", hover)
+        self.assertIn(":hover", hover)
+        self.assertEqual(self.rules[hover]["background-color"],
+                         f"{FACE} !important")
+        self.assertEqual(self.rules[selected]["background-color"],
+                         f"{SELECTION} !important")
+        self.assertLess(
+            self.selectors.index(hover),
+            self.selectors.index(selected),
+        )
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -471,6 +528,19 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "--sidebar-background-color",
             "modules/ThemeVariableMap.sys.mjs",
             "the sidebar's inner document is not userChrome territory",
+            "No reference shows Firefox's all-tabs panel",
+            "widgets/listitem.svg",
+            "tests/test_desktoptheme_listitem.py::TestListItem",
+            "allTabsMenu-allTabsView",
+            "all-tabs-item",
+            "chrome/browser/skin/classic/browser/tabbrowser/tabs.css",
+            "chrome/toolkit/skin/classic/global/design-system/tokens-shared.css",
+            "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
+            "moz-src/browser/components/tabbrowser/TabsList.sys.mjs",
+            "--button-background-color-ghost-hover",
+            "--panel-menuitem-border-radius",
+            "--border-radius-small",
+            "platform colour adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)

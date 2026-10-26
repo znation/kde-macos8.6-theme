@@ -106,6 +106,30 @@
    chrome/browser/content/browser/tabbrowser/tab.js sets the tab's selected
    and multiselected attributes, mirroring selected=visuallyselected onto
    .tab-background. Declaration checks do not establish rendered pixels.
+
+   No reference shows Firefox's all-tabs panel; its rows adapt the
+   reference-grounded widgets/listitem.svg (no hover highlight, flat #CCCCFF
+   selection, square corners), pinned by
+   tests/test_desktoptheme_listitem.py::TestListItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background,
+   and the GTK sheets' row mapping (platform colour adaptation 2026-10-26).
+   In the installed Firefox ESR, chrome/browser/content/browser/browser.xhtml
+   defines #allTabsMenu-allTabsView and
+   moz-src/browser/components/tabbrowser/TabsList.sys.mjs builds each row as
+   an .all-tabs-item around an .all-tabs-button, and _setRowAttributes sets
+   selected on the row, so the current tab matches
+   .all-tabs-item[selected] > .all-tabs-button; Firefox's
+   chrome/browser/skin/classic/browser/tabbrowser/tabs.css gives the button
+   a ghost hover through --button-background-color-ghost-hover (a violet
+   token) and gives the row border-radius: var(--panel-menuitem-border-radius);
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css defines
+   that token as var(--border-radius-small) (4px), and
+   chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css
+   applies it to every .subviewbutton. This sheet squares the row and its main
+   button directly, leaving the mute and close .all-tabs-secondary-button
+   subviewbuttons' Firefox radius untouched, and suppresses the violet hover
+   wash and its generic toolbarbutton bevel on these rows only. Declaration
+   checks do not establish rendered pixels.
 */
 
 tooltip {
@@ -254,6 +278,26 @@ toolbarbutton:hover:not([disabled="true"]) {
 
 toolbarbutton:hover:active:not([disabled="true"]) {
   box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* The all-tabs panel rows adapt the desktop theme's list item: no hover wash,
+   a flat #CCCCFF selection and square corners. The row and its main button are
+   squared directly, leaving the mute and close subviewbuttons' Firefox radius. */
+#allTabsMenu-allTabsView .all-tabs-item,
+#allTabsMenu-allTabsView .all-tabs-item > .all-tabs-button {
+  border-radius: 0 !important;
+}
+
+#allTabsMenu-allTabsView .all-tabs-item:not([selected]) > .all-tabs-button:hover {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+#allTabsMenu-allTabsView .all-tabs-item[selected] > .all-tabs-button {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
 }
 
 menupopup > menuitem:hover,
