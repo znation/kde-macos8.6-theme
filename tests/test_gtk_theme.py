@@ -19,13 +19,13 @@ from unittest import mock
 from support import gtk_css
 from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.gtk_css import HEX, parse_css
+from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
     ENTRY_PROGRESS,
     ETCH_DARK,
     LINK,
     VISITED_LINK,
-    GtkSheetRuleCases,
     MENU_CHECK,
     RAISED_BEVEL,
     SCROLLBAR_STEPPER,

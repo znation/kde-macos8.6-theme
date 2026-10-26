@@ -14,7 +14,8 @@ from pathlib import Path
 
 from support import containment
 from support.gtk_css import HEX, parse_css
-from support.gtk_theme_spec import ETCH_DARK, RAISED_BEVEL, SheetRuleAssertions
+from support.gtk_rule_cases import SheetRuleAssertions
+from support.gtk_theme_spec import ETCH_DARK, RAISED_BEVEL
 from support.platinum_palette import (
     BLACK,
     FACE,

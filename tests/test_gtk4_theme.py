@@ -17,6 +17,7 @@ from pathlib import Path
 
 from support import gtk_css
 from support.gtk_css import HEX, parse_css, strip_comments
+from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     COMBO_ARROW,
@@ -25,7 +26,6 @@ from support.gtk_theme_spec import (
     LINK,
     MENUBUTTON_ARROWS,
     VISITED_LINK,
-    GtkSheetRuleCases,
     MENU_CHECK,
     RAISED_BEVEL,
     ROW_HOVER,
