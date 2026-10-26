@@ -11,6 +11,7 @@ from unittest import mock
 
 from support import splash_fixtures
 from support import snippet_child
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.splash_fixtures import object_source, qml_unit_expression, read_qml
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
@@ -247,9 +248,7 @@ class TestSplashQmlContainment(unittest.TestCase):
                 cwd=os.path.dirname(__file__),
                 timeout=10,
             )
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(fifo), child.stderr)
+        assert_fifo_read_refused(self, child, fifo)
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):
         # Splash.qml is contributor-supplied, and a checked-in symlink can

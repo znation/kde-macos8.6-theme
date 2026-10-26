@@ -21,6 +21,7 @@ from unittest import mock
 from support import containment
 from support import snippet_child
 from support.close_tracking import failing_fdopen, tracking_closes
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as containment_impl
@@ -141,9 +142,7 @@ class TestReadBytes(unittest.TestCase):
             fifo = tmp / "asset.svg"
             os.mkfifo(fifo)
             child = _run_reader_in_child("read_bytes", fifo, tmp)
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(fifo), child.stderr)
+        assert_fifo_read_refused(self, child, fifo)
 
     def test_rejects_a_fifo_opened_in_place_of_a_regular_path(self):
         # A regular file can be swapped for a FIFO between a check of the path
@@ -278,9 +277,7 @@ class TestReadText(unittest.TestCase):
             fifo = tmp / "MacOS8.colors"
             os.mkfifo(fifo)
             child = _run_reader_in_child("read_text", fifo, tmp)
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(fifo), child.stderr)
+        assert_fifo_read_refused(self, child, fifo)
 
     def test_matches_text_mode_newline_and_bom_handling(self):
         # read_text reads bytes to bound the allocation, then decodes through

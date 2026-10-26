@@ -3,19 +3,21 @@
 A FIFO's ``open()`` blocks until a writer appears, so a tool that reads one
 without refusing it would stall ``make check`` with no diagnostic. A suite
 plants a pipe and runs the tool in a child process so a regression is a
-bounded timeout instead of a hung run; these helpers name the two halves of
+bounded timeout instead of a hung run; these helpers name the pieces of
 that::
 
-    make_fifo(self, path)               # skip the test when unsupported
+    make_fifo(self, path)                     # skip the test when unsupported
     assert_fifo_refused(self, result, path)
+    assert_fifo_read_refused(self, result, path)
 
 *result* is a completed child process with decoded-text ``stdout``/``stderr``,
 as ``support.snippet_child.run`` returns. ``assert_fifo_refused`` pins the
 by-name refusal: exit status 2, a ``cannot read <path>`` diagnostic naming the
 pipe, the ``not a regular file`` reason, and the pipe still in place. The GTK
 apply and Firefox install suites use it where the tool's public contract is
-that exit status; suites that only promise a refusal without exit status 2
-assert their own wording.
+that exit status. ``assert_fifo_read_refused`` is the looser check for tools
+whose contract only promises a non-zero exit and a diagnostic naming the pipe
+as not a regular file.
 """
 
 from __future__ import annotations
@@ -47,3 +49,17 @@ def assert_fifo_refused(case, result, path):
     case.assertIn(f"cannot read {path}", result.stderr)
     case.assertIn("not a regular file", result.stderr)
     case.assertTrue(stat.S_ISFIFO(path.stat().st_mode))
+
+
+def assert_fifo_read_refused(case, result, path):
+    """Assert the child refused the FIFO at *path* instead of reading it.
+
+    The looser companion to :func:`assert_fifo_refused` for a tool that must
+    refuse a non-regular file by name but does not promise that function's
+    exit status or ``cannot read`` wording: the child exits non-zero, and its
+    stderr names *path* and says ``not a regular file``. *result* is the
+    completed child process, and its output is attached to a failure.
+    """
+    case.assertNotEqual(0, result.returncode, result.stdout + result.stderr)
+    case.assertIn("not a regular file", result.stderr)
+    case.assertIn(str(path), result.stderr)

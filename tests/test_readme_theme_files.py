@@ -20,6 +20,7 @@ from unittest import mock
 from support import containment
 from support import snippet_child
 from support.desktoptheme_paths import PACKAGE
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.repo_root import ROOT
 from support.symlink_fixtures import symlinked_repo
 from tools import containment as tools_containment
@@ -153,9 +154,7 @@ class TestReadmeTextContainment(unittest.TestCase):
                 cwd=os.path.dirname(__file__),
                 timeout=10,
             )
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(fifo), child.stderr)
+        assert_fifo_read_refused(self, child, fifo)
 
 
 class TestReadmeTokenParsing(unittest.TestCase):

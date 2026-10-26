@@ -16,6 +16,7 @@ from unittest import mock
 
 from support import kde_config
 from support import snippet_child
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 
@@ -140,9 +141,7 @@ class TestReadKdeConfig(unittest.TestCase):
             cwd=Path(__file__).resolve().parent,
             timeout=10,
         )
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(path), child.stderr)
+        assert_fifo_read_refused(self, child, path)
 
 
     def test_rejects_a_symlink_that_escapes_the_repository(self):

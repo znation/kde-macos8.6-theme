@@ -12,6 +12,7 @@ from unittest import mock
 
 from support import containment, repo_root, theme_install
 from support import snippet_child
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.process_assertions import assert_succeeded
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
@@ -80,9 +81,7 @@ class TestReadFileContainment(unittest.TestCase):
             cwd=os.path.dirname(os.path.abspath(__file__)),
             timeout=10,
         )
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(root / "README.md"), child.stderr)
+        assert_fifo_read_refused(self, child, root / "README.md")
 
 
 class TestHelp(unittest.TestCase):

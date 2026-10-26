@@ -10,6 +10,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import snippet_child
 from support.close_tracking import tracking_closes
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
 from tools import theme_defaults  # noqa: E402
@@ -286,9 +287,7 @@ class TestDefaultsGroups(unittest.TestCase):
         path = make_tmp_dir(self) / "defaults"
         os.mkfifo(path)
         child = _run_defaults_groups_in_child(path)
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(path), child.stderr)
+        assert_fifo_read_refused(self, child, path)
 
 
 class TestWriteConfigs(unittest.TestCase):

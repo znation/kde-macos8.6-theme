@@ -29,6 +29,7 @@ from support.aurorae_fixtures import (
     INACTIVE_OUTLINE,
     ReferenceImageCase,
 )
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.nine_slice_case import NineSliceCase
 from support.platinum_palette import hex_colour
 from support.repo_root import ROOT
@@ -321,11 +322,7 @@ class TestReadCappedContainment(unittest.TestCase):
                         cwd=ROOT,
                         timeout=10,
                     )
-                    self.assertNotEqual(
-                        0, child.returncode, child.stdout + child.stderr
-                    )
-                    self.assertIn("not a regular file", child.stderr)
-                    self.assertIn(str(fifo), child.stderr)
+                    assert_fifo_read_refused(self, child, fifo)
 
     def test_allows_a_symlink_that_stays_within_the_repository(self):
         with tempfile.TemporaryDirectory() as tmp:

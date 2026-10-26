@@ -24,6 +24,7 @@ from placeholders import (
 )
 from support import snippet_child
 from support.error_assertions import assert_escapes_escape_character
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 from tools import containment as tools_containment
@@ -171,9 +172,7 @@ class TestHelpers(unittest.TestCase):
         fifo.parent.mkdir(parents=True)
         os.mkfifo(fifo)
         child = _run_reader_in_child("markers", tmp)
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(fifo), child.stderr)
+        assert_fifo_read_refused(self, child, fifo)
 
     def test_register_entries_rejects_a_fifo_instead_of_blocking(self):
         # The register is opened the same way, so a FIFO at PLACEHOLDERS.md
@@ -185,9 +184,7 @@ class TestHelpers(unittest.TestCase):
         register = tmp / "PLACEHOLDERS.md"
         os.mkfifo(register)
         child = _run_reader_in_child("register_entries", register)
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(register), child.stderr)
+        assert_fifo_read_refused(self, child, register)
 
     def test_markers_rejects_an_oversize_asset_instead_of_reading_it_whole(self):
         # A text asset is contributor-supplied and can be arbitrarily large (a

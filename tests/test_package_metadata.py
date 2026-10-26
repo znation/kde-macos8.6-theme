@@ -16,6 +16,7 @@ from unittest import mock
 
 import support.package_metadata as package_metadata
 from support import snippet_child
+from support.fifo_fixtures import assert_fifo_read_refused
 from support.package_metadata import PackageMetadata, kplugin, load_metadata
 from support.symlink_fixtures import symlinked_repo
 from support.tmp_dir import make_tmp_dir
@@ -183,9 +184,7 @@ class TestLoadMetadata(unittest.TestCase):
             cwd=os.path.join(os.path.dirname(__file__)),
             timeout=10,
         )
-        self.assertNotEqual(0, child.returncode, child.stdout + child.stderr)
-        self.assertIn("not a regular file", child.stderr)
-        self.assertIn(str(path), child.stderr)
+        assert_fifo_read_refused(self, child, path)
 
     def test_non_object_json_names_the_type_and_path(self):
         # Valid JSON of the wrong top-level shape reaches the mixin's
