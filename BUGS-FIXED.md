@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A GTK 4 mixed-indicator pixel test samples the indicator before it paints (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/test_gtk4_theme.py::TestGtk4Theme::test_mixed_indicators_draw_black_dashes` renders an
+inconsistent check box and then a radio in one GTK 4 process. It waited a fixed 0.2 s wall-clock
+settle, then snapshotted each indicator and asserted its pixels. On a loaded host the second
+indicator can still have no paintable node by then: `snapshot.to_node()` returns `None` and
+`render_texture` raises `TypeError: Argument 1 does not allow None as a value`; when a frame exists
+but is not the final one, the wrong-pixel assertion fails instead. Either way the failure carries
+the first iteration's success line, `check: black dash at columns 4–11, rows 7–8; face surrounds
+it`, the line the merge gate excused once in the last day.
+
+Reproduced by pinning the test and sixteen CPU hogs to one core: the original 15 s subprocess
+budget expired. With the fixed settle removed, the same load reproduced the readiness failure
+directly, the radio indicator's `to_node()` returning `None`.
+
+Fixed by replacing the fixed settle with a bounded poll (30 s per indicator, pumping the GLib main
+context) that re-renders the indicator until its pixels are the expected dash and face, treats a
+missing paintable node or renderer as not ready, and still fails after the deadline with the
+offending pixel tuple. The subprocess safety timeout rises from 15 s to 120 s so a starved but
+working run is not killed. No sheet rule or expected pixel changed; this test is its own
+regression test, with the loaded host as the reproduction.
+
+**Validation gap:** none — the existing live GTK 4 pixel test is the reproduction (it failed
+under a starved host), so nothing was missing from the suite; a loaded host was required to see
+it, which makes `real-run-needed` the closest other tag.
+
 ### The render publishes an unpainted all-black capture as a success (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 A KWin virtual session presents an all-black screen until the applet window paints. If the
