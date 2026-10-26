@@ -336,6 +336,16 @@ This theme is developed by a tumwater team of AI roles. How many roles run at on
 setting, not a file in this repository: `maxConcurrent` in the primary checkout's `tumwater.json`
 (alongside any `maxConcurrentPerProvider` cap) is the most model runs in flight across all roles
 at once, merges included, with the director's own runs sitting outside it; it defaults to 6. A
-role cannot change it — the director's `.tumwater-config-request.json` applies only its
-`customRoles` array — so the operator sets it from the primary checkout, for example
+role cannot change that concurrency setting, so the operator sets it from the primary checkout, for example
 `tumwater config set maxConcurrent 6` (requested 2026-10-18: run six roles at once).
+
+The project check is `make check`, without `CHECK_PATTERN` or `CHECK_TESTS` overrides.
+The feature role requested this command on 2026-10-25 through
+`.tumwater-config-request.json` with `{"check":{"command":"make check"}}`.
+Tumwater runs the requested check before applying the configuration and removes the request
+file afterward. After merge, confirm the primary project's declaration with
+`tumwater doctor check --json` (the `check` row should read `ok`) and
+`tumwater status --json` (no `noDeclaredCheck`). Before merge these commands still reflect
+the previous configuration. For manual setup, the operator can run
+`tumwater config set check.command 'make check'` from the primary checkout.
+The separate reference-image validation remains `make check-references`.

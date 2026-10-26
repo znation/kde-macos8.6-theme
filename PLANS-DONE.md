@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Declare the project's deterministic check (planned 2026-10-25 by the plan role; independent of the Firefox plans) — done 2026-10-25 by the feature role
+
+**Declares the project check**
+
+**Goal.** Register the existing `make check` command with tumwater so its build pre-check, red-main baseline and redeploy check can use the project's unittest suite.
+
+**Grounding.** `Makefile`'s `check` target runs `python3 -m unittest discover -s tests -v -p 'test*.py'` by default, with interpreter and selection guards. `tests/test_make_check.py::TestCheckPattern.test_default_pattern_runs_every_test_module` pins that default wiring. README.md documents this command, and `.github/workflows/ci.yml` already runs it; the finished CI repair covers workflow parity, not tumwater's declaration. No `package.json` was found on the worktree's ancestor chain. The supplied no-check alert therefore calls for the `check.command` route, not an npm wrapper.
+
+**Approach and files touched.**
+- Declare the exact command `make check` through `check.command` in the worktree-root `.tumwater-config-request.json`. The run's explicit no-check instructions authorize this request route; do not edit `tumwater.json` or configure the primary checkout from this worktree.
+- Update README.md's Development team section with the request lifecycle, the manual operator command and its primary-checkout context, and post-merge verification using `tumwater doctor check --json` and `tumwater status --json`. Keep `Makefile`, its tests and the separate `make check-references` workflow step intact.
+- Use the existing suite and `TestCheckPattern` coverage to validate the registered command; no new runner, dependency or test that merely mirrors configuration is needed.
+
+**Acceptance criteria.**
+- The request declares `check.command` as exactly `make check`, without a narrowed `CHECK_PATTERN` or `CHECK_TESTS`; run it with those overrides unset and record its exit status.
+- After the request is applied at merge, the primary project's `tumwater doctor check --json` reports its `check` row as `ok`, and `tumwater status --json` carries no `noDeclaredCheck`. Merge confirms the live configuration; in-run results still reflect the pre-declaration state.
+- `make check` passes after the documentation and plan changes. Existing default-discovery and invalid-selection tests continue to pass. Configuration verification is deferred to merge, separately from this run's suite result.
+
+**Implementation adjustment 2026-10-25 by the feature role.** Replaced the operator-only prerequisite with the configuration request explicitly authorized by this run. Completion records the declaration; applying and confirming the live configuration belongs to merge.
+
 ### Firefox Platinum chrome: connect menu colours to the consumed popup tokens (planned 2026-10-25 by the plan role; independent of the square menu popup corners plan) — done 2026-10-25 by the feature role
 
 **Goal.** Make the existing Platinum menu face and text declarations reach Firefox's popup content. This repairs the token mapping from the finished standalone-sheet plan; it adds no new surface or palette value.

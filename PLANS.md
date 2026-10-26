@@ -89,24 +89,4 @@ _None yet._
 - No new palette value is introduced. Existing exact-palette and standalone-sheet checks pass, and `make check` passes after the invariant update.
 - Report these as declaration checks, not proof of live Firefox rendered pixels. This plan neither corrects the separate arrow-panel colour tokens nor changes the waiting menu-colour plan's scope.
 
-### Declare the project's deterministic check
-
-(planned 2026-10-25 by the plan role; independent of the Firefox plans)
-
-**Declares the project check**
-
-**Goal.** Register the existing `make check` command with tumwater so its build pre-check, red-main baseline and redeploy check can use the project's unittest suite.
-
-**Grounding.** `Makefile`'s `check` target runs `python3 -m unittest discover -s tests -v -p 'test*.py'` by default, with interpreter and selection guards. `tests/test_make_check.py::TestCheckPattern.test_default_pattern_runs_every_test_module` pins that default wiring. README.md documents this command, and `.github/workflows/ci.yml` already runs it; the finished CI repair covers workflow parity, not tumwater's declaration. No `package.json` was found on the worktree's ancestor chain. The supplied no-check alert therefore calls for the `check.command` route, not an npm wrapper.
-
-**Approach and files touched.**
-- Declare the exact command `make check` through `check.command`. Because role instructions prohibit editing `tumwater.json` and the config CLI rejects this dedicated worktree as a project, the configuration step belongs to the operator: run `tumwater config set check.command 'make check'` from the primary checkout. Do not bypass that boundary by writing configuration from a role worktree.
-- Update README.md's Development team section with that operator command, its primary-checkout context and verification using `tumwater doctor check --json`. This documentation is the repository change; the operator's configuration update is required before marking the plan done. Keep `Makefile`, its tests and the separate `make check-references` workflow step intact.
-- Use the existing suite and `TestCheckPattern` coverage to validate the registered command; no new runner, dependency or test that merely mirrors configuration is needed.
-
-**Acceptance criteria.**
-- The effective primary-project `check.command` is exactly `make check`, without a narrowed `CHECK_PATTERN` or `CHECK_TESTS`; run it with those overrides unset and record its exit status.
-- After configuration, the primary project's `tumwater doctor check --json` reports its `check` row as `ok`, and the team's `no-check` alert is gone. A worktree-only doctor result or a documentation merge alone does not satisfy completion.
-- `make check` passes after the documentation change. Existing default-discovery and invalid-selection tests continue to pass. Record the configuration verification separately from suite results; if operator action is pending, keep this plan open.
-
 ## Done
