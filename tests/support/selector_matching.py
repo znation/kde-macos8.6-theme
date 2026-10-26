@@ -5,10 +5,10 @@ selector can still be too broad for the elements it is meant to paint, so a
 scope test builds a small element tree and asks this module whether the sheet's
 selector would match each representative element.
 
-Only the subset the sheet's scope tests use is supported: descendant
-combinators separating compound selectors made of an element name, ``#id``,
-``.class``, ``[attribute]``/``[attribute="value"]``, ``:hover`` and
-``:not(...)`` (whose argument may itself be a descendant selector). An element
+Only the subset the sheet's scope tests use is supported: descendant and
+child (``>``) combinators separating compound selectors made of an element
+name, ``#id``, ``.class``, ``[attribute]``/``[attribute="value"]``, ``:hover``
+and ``:not(...)`` (whose argument may itself be a selector). An element
 is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true.
@@ -58,10 +58,18 @@ def _compound_matches(compound, element):
     return True
 
 
-def _descendant_compounds(selector):
-    """Split *selector* at whitespace outside parentheses and brackets."""
+def _split_selector(selector):
+    """Split *selector* into compounds and the combinators between them.
+
+    Whitespace outside parentheses and brackets separates compounds with a
+    descendant combinator; ``>`` separates them with a child combinator, and
+    whitespace on either side of it belongs to that combinator rather than
+    adding a descendant step of its own.
+    """
     compounds = []
+    combinators = []
     current = []
+    pending = None
     depth = 0
     quote = None
     for char in selector:
@@ -73,32 +81,54 @@ def _descendant_compounds(selector):
             quote = char
             current.append(char)
         elif char in "([":
+            if not current and compounds and pending is not None:
+                combinators.append(pending)
+                pending = None
             depth += 1
             current.append(char)
         elif char in ")]":
             depth -= 1
             current.append(char)
-        elif char.isspace() and not depth:
+        elif depth == 0 and char == ">":
             if current:
                 compounds.append("".join(current))
                 current = []
+            if compounds:
+                pending = ">"
+        elif depth == 0 and char.isspace():
+            if current:
+                compounds.append("".join(current))
+                current = []
+                if pending is None:
+                    pending = " "
         else:
+            if not current and compounds and pending is not None:
+                combinators.append(pending)
+                pending = None
             current.append(char)
     if current:
         compounds.append("".join(current))
-    return compounds
+    return compounds, combinators
 
 
 def matches(selector, element):
     """Return True when *selector* matches *element* in its fixture tree."""
-    compounds = _descendant_compounds(selector)
-    if not compounds or not _compound_matches(compounds[-1], element):
+    compounds, combinators = _split_selector(selector)
+    if not compounds:
         return False
-    ancestor = element["parent"]
-    for compound in reversed(compounds[:-1]):
-        while ancestor is not None and not _compound_matches(compound, ancestor):
-            ancestor = ancestor["parent"]
-        if ancestor is None:
+
+    def match_from(index, current):
+        if not _compound_matches(compounds[index], current):
             return False
-        ancestor = ancestor["parent"]
-    return True
+        if index == 0:
+            return True
+        parent = current["parent"]
+        if combinators[index - 1] == ">":
+            return parent is not None and match_from(index - 1, parent)
+        while parent is not None:
+            if match_from(index - 1, parent):
+                return True
+            parent = parent["parent"]
+        return False
+
+    return match_from(len(compounds) - 1, element)

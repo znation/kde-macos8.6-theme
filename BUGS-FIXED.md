@@ -5,6 +5,28 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The test-side selector matcher treats a child combinator as an extra element (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/support/selector_matching.py` split a selector at whitespace only, so a `>` child
+combinator became a compound of its own. Because `_compound_matches` treats a compound with no
+tag, id, class or attribute as matching anything, every `>` consumed one ancestor level by
+itself. A selector that uses child combinators, such as
+`.tabbrowser-tab:hover > .tab-stack > .tab-background`, therefore returned false for every
+element, while a selector whose intermediate compound was skipped could still report true. The
+Firefox sheet's scope tests only build descendant selectors today, so nothing failed: a future
+scope test would silently see a too-broad rule as scoped or a correct rule as inapplicable.
+
+Reproduced with a scratch element tree: `matches(".outer > .inner > button", button)` returned
+false for the valid chain, and the new
+`tests/test_selector_matching.py` now pins the child-only relation (a grandchild does not match,
+an intermediate element is not skipped) next to the descendant cases.
+
+Fixed by parsing `>` as a child combinator alongside whitespace's descendant combinator, so each
+compound keeps its own relation to the next, and whitespace around `>` does not add a descendant
+step.
+
+**Validation gap:** none — the closest tag: a scratch element tree reproduced both the false negative on a valid child chain and the skipped-intermediate false positive before the fix, and the new test module pins them; no shim, slow run or missing fixture blocked confirmation.
+
 ### A GTK 4 mixed-indicator pixel test samples the indicator before it paints (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/test_gtk4_theme.py::TestGtk4Theme::test_mixed_indicators_draw_black_dashes` renders an
