@@ -21,10 +21,11 @@ import unittest
 
 from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.kvantum_fixtures import SVG
-from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
-from support.svg_case import parse_svg
-from svg_assertions import assert_sunken_outside_field, render_slices
+from support.sunken_field_reference import (
+    ShippedSunkenFieldMixin,
+    SunkenFieldReferenceMixin,
+)
 
 # The installer CD Finder window's item view in setup_emaculation.png (retail
 # Mac OS 8.6). Its 2px border is a #999999/#FFFFFF bevel outside a 1px #000000
@@ -81,10 +82,13 @@ FIELD_ANCHORS = {
     "highlight": (453, 200),
 }
 
-ITEMVIEW_SIZE = 30
 
-
-class TestItemViewReference(ReferenceScreenshotMixin, unittest.TestCase):
+class TestItemViewReference(
+    ShippedSunkenFieldMixin,
+    SunkenFieldReferenceMixin,
+    ReferenceScreenshotMixin,
+    unittest.TestCase,
+):
     """The item view is the reference field's sunken-outside arrangement.
 
     `TestItemViewBevelPixels` pins the shipped tiles, so an item view whose
@@ -96,39 +100,12 @@ class TestItemViewReference(ReferenceScreenshotMixin, unittest.TestCase):
 
     REFERENCE = REFERENCE
     MAX_ROWS = MAX_ROWS
-
-    def test_borders_are_the_sunken_bevel_outside_the_outline(self):
-        # Re-derive the field's four border runs from the reference rather
-        # than trust the SVG comment: the outer pixel is the bevel, the inner
-        # pixel the #000000 outline, and the face #FFFFFF.
-        for (x, y), colour in FIELD_BORDER_RUNS:
-            self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
-
-    def test_corners_match_the_reference(self):
-        # The top-left corner is the #999999 bevel wrapping the #000000
-        # outline's first pixel. The bottom-left corner leaves its outer
-        # bottom pixel to the window face, with the highlight one pixel in.
-        # Re-derive each pixel.
-        for (x, y), colour in FIELD_CORNER_PIXELS:
-            self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
-
-    def test_shipped_itemview_paints_the_reference_arrangement(self):
-        # Derive the four field colours from one reference pixel each, then
-        # require the shipped `itemview-normal` nine-slice to paint the
-        # arrangement they describe: a white face, the bevel outside the
-        # outline, and the corner blocks the reference's clean corners show.
-        colours = {
-            name: hex_colour(self.pixel(x, y))
-            for name, (x, y) in FIELD_ANCHORS.items()
-        }
-        self.assertEqual(colours["shadow"], "#999999")
-        self.assertEqual(colours["outline"], "#000000")
-        self.assertEqual(colours["face"], "#FFFFFF")
-        self.assertEqual(colours["highlight"], "#FFFFFF")
-        slices = render_slices(parse_svg(SVG))
-        assert_sunken_outside_field(
-            self, slices, "itemview-normal", ITEMVIEW_SIZE, colours
-        )
+    BORDER_RUNS = FIELD_BORDER_RUNS
+    CORNER_PIXELS = FIELD_CORNER_PIXELS
+    ANCHORS = FIELD_ANCHORS
+    SLICE_SVG = SVG
+    SLICE_NAME = "itemview-normal"
+    SLICE_SIZE = 30
 
 
 if __name__ == "__main__":

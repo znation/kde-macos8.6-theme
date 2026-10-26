@@ -11,8 +11,8 @@ from support.desktoptheme_paths import (
 )
 from support.firstboot_lineedit import FIELD_BORDER_RUNS, FIELD_CORNER_PIXELS
 from support.nine_slice_case import NineSliceCase
-from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
+from support.sunken_field_reference import SunkenFieldReferenceMixin
 from svg_assertions import (
     assert_center_tile_is,
     assert_edge_bevels,
@@ -73,24 +73,19 @@ class TestLineEdit(NineSliceCase, unittest.TestCase):
         )
 
 
-class TestLineEditReference(ReferenceScreenshotMixin, unittest.TestCase):
+class TestLineEditReference(
+    SunkenFieldReferenceMixin, ReferenceScreenshotMixin, unittest.TestCase
+):
     REFERENCE = FIRSTBOOT_REFERENCE
     MAX_ROWS = FIRSTBOOT_MAX_ROWS
-
-    def test_borders_are_the_sunken_bevel_outside_the_outline(self):
-        # Re-derive the field's border runs from the reference rather than
-        # trust the SVG comment: the outer ring is the bevel, the inner ring
-        # the #000000 outline, and the face #FFFFFF.
-        for (x, y), colour in FIELD_BORDER_RUNS:
-            self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
+    BORDER_RUNS = FIELD_BORDER_RUNS
+    CORNER_PIXELS = FIELD_CORNER_PIXELS
 
     def test_corners_match_the_reference(self):
-        # The corner tiles are easy to get subtly wrong: the #000000 outline
-        # stops one row short of the bottom row, and the top-right outer pixel
-        # is the window face, not the shadow. Re-derive each from the
-        # reference.
-        for (x, y), colour in FIELD_CORNER_PIXELS:
-            self.assertEqual(hex_colour(self.pixel(x, y)), colour, (x, y))
+        # The invariants register scans a module's class bodies for the test
+        # it names, so this test needs a method in the class itself; the
+        # assertion lives once in the shared mixin.
+        SunkenFieldReferenceMixin.test_corners_match_the_reference(self)
 
 
 if __name__ == "__main__":
