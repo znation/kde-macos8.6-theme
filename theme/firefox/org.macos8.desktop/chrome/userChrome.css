@@ -235,6 +235,38 @@
    button, the .panel-button certificate action, the header, separators and
    the panel body Firefox's; declaration checks do not establish rendered
    pixels.
+
+   No reference shows Firefox's protections panel; its row highlight adapts
+   the reference-grounded widgets/viewitem.svg and the sheet's menu-item
+   mapping (platform colour adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   chrome/browser/skin/classic/browser/controlcenter/panel.css owns the
+   protections panel's layout and its category and footer hover paint;
+   chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css
+   gives .subviewbutton its --panel-menuitem-border-radius and the ghost
+   hover tokens --button-text-color-ghost-hover and
+   --button-background-color-ghost-hover, and
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   defines those tokens. chrome/browser/content/browser/browser.xhtml
+   defines the template-protections-popup with #protections-popup, its
+   protections-popup-mainView-panel-header, the main view's
+   protections-popup-main-body, #protections-popup-category-trackers,
+   #protections-popup-report-broken-site-button,
+   #protections-popup-settings-button,
+   #protections-popup-show-report-stack,
+   #protections-popup-trackers-blocked-counter-box,
+   #protections-popup-milestones-content and
+   #protections-popup-cookie-banner-switch;
+   chrome/browser/content/browser/browser-siteProtections.js builds the
+   .protections-popup-list-item rows and disables undetected categories,
+   and moz-src/browser/components/customizableui/PanelMultiView.sys.mjs
+   creates the .panel-header back button carrying subviewbutton-back. The
+   sheet squares and recolours the .subviewbutton rows only (the show-report
+   row also on its stack's hover, because the blocked-counter box overlays the
+   button), leaving the header, the moz-toggle tracking switch, the tracker
+   list rows, separators and the panel body Firefox's; declaration checks do
+   not establish rendered pixels.
 */
 
 tooltip {
@@ -460,6 +492,23 @@ toolbarbutton:hover:active:not([disabled="true"]) {
 }
 
 #identity-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The protections panel rows adapt the desktop theme's view item: square
+   corners and a flat #CCCCFF hover with black text and no toolbar bevel. The
+   show-report button sits in a stack under the blocked-counter box, so its
+   stack's hover triggers the same fill. The generated back buttons in the
+   panel header, the moz-toggle tracking switch, the tracker list rows, the
+   header, separators and the panel body keep Firefox's own paint. */
+#protections-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#protections-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]),
+#protections-popup-show-report-stack:hover > .protections-popup-footer-button:not([disabled]) {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;

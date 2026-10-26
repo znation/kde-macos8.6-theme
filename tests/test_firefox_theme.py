@@ -279,6 +279,19 @@ REQUIRED_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    "#protections-popup .subviewbutton:not(.panel-header .subviewbutton)": {
+        "border-radius": "0 !important",
+    },
+    "#protections-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    "#protections-popup-show-report-stack:hover > .protections-popup-footer-button:not([disabled])": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
     "menupopup > menuseparator": {
         "padding": "0 !important",
         "margin": "2px 0 !important",
@@ -935,6 +948,172 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
                     matches(hover, {**unthemed, "hover": True})
                 )
 
+    def test_protections_popup_row_paint_is_scoped_to_the_protections_popup(self):
+        radius = (
+            "#protections-popup .subviewbutton"
+            ":not(.panel-header .subviewbutton)"
+        )
+        hover = radius + ":hover:not([disabled])"
+        stack_hover = (
+            "#protections-popup-show-report-stack:hover > "
+            ".protections-popup-footer-button:not([disabled])"
+        )
+        self.assertEqual(
+            {name for name in self.rules if "protections-popup" in name},
+            {radius, hover, stack_hover},
+        )
+        for selector in (radius, hover):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#protections-popup"))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+                self.assertIn(":not(.panel-header .subviewbutton)", selector)
+        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        for selector in (hover, stack_hover):
+            with self.subTest(hover_selector=selector):
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+                self.assertIn(":hover", selector)
+                self.assertIn(":not([disabled])", selector)
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--panel-menuitem-border-radius" in declarations},
+            set(),
+        )
+
+        panel = element("panel", "protections-popup")
+        multi_view = element(
+            "panelmultiview", "protections-popup-multiView", parent=panel
+        )
+        main_view = element(
+            "panelview", "protections-popup-mainView", ("PanelUI-subView",),
+            parent=multi_view,
+        )
+        header = element(
+            "box", "protections-popup-mainView-panel-header",
+            ("panel-header",), parent=main_view,
+        )
+        header_button = element(
+            "toolbarbutton",
+            classes=(
+                "subviewbutton", "subviewbutton-iconic",
+                "subviewbutton-back",
+            ),
+            parent=header,
+        )
+        info_button = element(
+            "toolbarbutton", "protections-popup-info-button",
+            ("panel-info-button",), parent=header,
+        )
+        body = element(
+            "vbox", "protections-popup-main-body",
+            ("panel-subview-body",), parent=main_view,
+        )
+        switch = element(
+            "html:moz-toggle", "protections-popup-tp-switch", parent=body
+        )
+        report_broken = element(
+            "toolbarbutton", "protections-popup-report-broken-site-button",
+            ("subviewbutton", "subviewbutton-nav"), parent=body,
+        )
+        category = element(
+            "toolbarbutton", "protections-popup-category-trackers",
+            (
+                "protections-popup-category", "subviewbutton",
+                "subviewbutton-iconic",
+            ),
+            parent=body,
+        )
+        milestones = element(
+            "toolbarbutton", "protections-popup-milestones-content",
+            ("subviewbutton",), parent=body,
+        )
+        cookie_banner = element(
+            "toolbarbutton", "protections-popup-cookie-banner-switch",
+            ("subviewbutton", "subviewbutton-nav"), parent=body,
+        )
+        footer = element(
+            "vbox", "protections-popup-footer",
+            ("panel-subview-footer-button",), parent=main_view,
+        )
+        settings = element(
+            "toolbarbutton", "protections-popup-settings-button",
+            ("subviewbutton", "protections-popup-footer-button"),
+            parent=footer,
+        )
+        show_report_stack = element(
+            "stack", "protections-popup-show-report-stack", parent=footer
+        )
+        show_report = element(
+            "toolbarbutton", "protections-popup-show-report-button",
+            ("subviewbutton", "protections-popup-footer-button"),
+            parent=show_report_stack,
+        )
+        blocked_counter = element(
+            "hbox", "protections-popup-trackers-blocked-counter-box",
+            parent=show_report_stack,
+        )
+        trackers_view = element(
+            "panelview", "protections-popup-trackersView", ("PanelUI-subView",),
+            parent=multi_view,
+        )
+        trackers_footer = element(
+            "vbox", classes=("panel-subview-footer-button",),
+            parent=trackers_view,
+        )
+        trackers_settings = element(
+            "toolbarbutton", "protections-popup-trackersView-settings-button",
+            ("subviewbutton", "panel-subview-footer-button"),
+            parent=trackers_footer,
+        )
+        list_item = element(
+            "div", classes=("protections-popup-list-item",), parent=body
+        )
+        nav_bar_button = element(
+            "toolbarbutton", "nav-bar-button", ("toolbarbutton-1",),
+            parent=element("toolbar", "nav-bar"),
+        )
+
+        for name, row in (
+            ("category", category),
+            ("report-broken-site", report_broken),
+            ("settings", settings),
+            ("show-report", show_report),
+            ("milestones", milestones),
+            ("cookie-banner", cookie_banner),
+            ("trackers-settings", trackers_settings),
+        ):
+            with self.subTest(row=name):
+                self.assertTrue(matches(radius, row))
+                self.assertTrue(matches(hover, {**row, "hover": True}))
+                self.assertFalse(matches(hover, row))
+
+        disabled = {
+            **category, "attrs": {"disabled": ""}, "hover": True,
+        }
+        self.assertFalse(matches(hover, disabled))
+
+        under_stack_hover = {
+            **show_report,
+            "parent": {**show_report_stack, "hover": True},
+        }
+        self.assertTrue(matches(stack_hover, under_stack_hover))
+        self.assertFalse(matches(stack_hover, show_report))
+        self.assertFalse(matches(hover, under_stack_hover))
+
+        for name, unthemed in (
+            ("header_back", header_button),
+            ("info_button", info_button),
+            ("tracking_switch", switch),
+            ("list_item", list_item),
+            ("blocked_counter", blocked_counter),
+            ("nav_bar", nav_bar_button),
+        ):
+            with self.subTest(unthemed=name):
+                self.assertFalse(matches(radius, unthemed))
+                for selector in (hover, stack_hover):
+                    self.assertFalse(
+                        matches(selector, {**unthemed, "hover": True})
+                    )
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -1096,6 +1275,30 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "identity-popup-security-button",
             "identity-popup-clear-sitedata-button",
             "identity-popup-more-info",
+            "subviewbutton-back",
+            "--panel-menuitem-border-radius",
+            "--button-background-color-ghost-hover",
+            "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's protections panel",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "chrome/browser/skin/classic/browser/controlcenter/panel.css",
+            "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
+            "chrome/browser/content/browser/browser.xhtml",
+            "chrome/browser/content/browser/browser-siteProtections.js",
+            "moz-src/browser/components/customizableui/PanelMultiView.sys.mjs",
+            "#protections-popup",
+            "protections-popup-mainView-panel-header",
+            "protections-popup-main-body",
+            "protections-popup-category-trackers",
+            "protections-popup-report-broken-site-button",
+            "protections-popup-settings-button",
+            "protections-popup-show-report-stack",
+            "protections-popup-trackers-blocked-counter-box",
+            "protections-popup-milestones-content",
+            "protections-popup-cookie-banner-switch",
+            "protections-popup-list-item",
             "subviewbutton-back",
             "--panel-menuitem-border-radius",
             "--button-background-color-ghost-hover",
