@@ -20,6 +20,7 @@ from support.kde_config import read as read_kde_config
 from support.kvantum_fixtures import KVCONFIG, SVG
 from support.platinum_palette import (
     SELECTION,
+    SIZEGRIP_DARK,
     TOOLTIP_FACE,
     TROUGH,
     assert_fill_palette,
@@ -85,6 +86,9 @@ INTERIOR_STATES = {
     "menuitem": ("normal", "pressed", "toggled"),
     "menubaritem": ("normal", "pressed", "toggled"),
 }
+# The window size grip is a single indicator element, not a generic interior:
+# a white/#777777 checker diamond with three #AAAAAA lower-left edge pixels.
+SIZEGRIP_STATES = ("normal", "focused")
 ARROW_DIRECTIONS = ("up", "down", "left", "right")
 ARROW_STATES = ("normal", "focused", "pressed", "disabled")
 
@@ -391,6 +395,39 @@ class TestSvg(unittest.TestCase):
             with self.subTest(element=element):
                 self.assertEqual(_drawing_elements(by_id[element]), expected)
 
+    def test_size_grip_states_draw_one_pixel_rects(self):
+        by_id = elements_by_id(self.tree)
+        bounds = ["0", "0", "12", "11", "none"]
+        for state in SIZEGRIP_STATES:
+            element = f"sizegrip-{state}"
+            with self.subTest(element=element):
+                self.assertIn(element, self.ids)
+                rects = children_named(by_id[element], "rect")
+                self.assertEqual(len(rects), len(list(by_id[element])))
+                # Kvantum scales the element by its bounds, so an invisible
+                # 12x11 rect first keeps the sampled footprint before the
+                # painted 1x1 rects.
+                self.assertEqual(
+                    [
+                        rects[0].get(key)
+                        for key in ("x", "y", "width", "height", "fill")
+                    ],
+                    bounds,
+                )
+                painted = rects[1:]
+                coordinates = []
+                for rect in painted:
+                    self.assertEqual(rect.get("width"), "1")
+                    self.assertEqual(rect.get("height"), "1")
+                    self.assertIn(
+                        rect.get("fill"),
+                        {"#FFFFFF", SIZEGRIP_DARK, BUTTON_SHADOW},
+                    )
+                    coordinates.append((rect.get("x"), rect.get("y")))
+                # 42 non-background pixels in the sampled 12x11 grow box.
+                self.assertEqual(len(painted), 42)
+                self.assertEqual(len(coordinates), len(set(coordinates)))
+
     def test_every_element_the_config_names_has_art(self):
         parser = read_kde_config(KVCONFIG)
         names = set()
@@ -417,6 +454,9 @@ class TestSvg(unittest.TestCase):
                     CHECKBOX_SHADOW,
                     BUTTON_SHADOW,
                     TAB_FACE,
+                    SIZEGRIP_DARK,
+                    # The size-grip groups' invisible bounds rects fill none.
+                    "none",
                 }
             ),
         )

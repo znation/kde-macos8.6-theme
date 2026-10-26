@@ -46,6 +46,12 @@ PLATINUM_FILLS = frozenset({BLACK, WHITE, GREY, FACE})
 # the button test swaps it in for `GREY`.
 BUTTON_SHADOW = "#AAAAAA"
 
+# The size grip's dark checker fill, sampled from the grow box in the retail
+# System Profiler window (`systemprofiler_betawiki.png`, x=796..807,
+# y=748..758); its white squares are WHITE and its three lower-left edge
+# pixels are BUTTON_SHADOW.
+SIZEGRIP_DARK = "#777777"
+
 # The flat trough the scroll bar and slider tracks share, painted from
 # `[Colors:View] BackgroundAlternate`. It is not part of the raised-face fill
 # set above, so a widget test that draws it passes it as `extra`.

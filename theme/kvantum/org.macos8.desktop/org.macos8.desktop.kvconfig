@@ -288,6 +288,13 @@ frame.right=2
 [HeaderSection]
 inherits=PanelButtonCommand
 
+# The window's bottom-right grow box. No reference screenshot shows a
+# KDE/Qt size grip, so this section and its key are Kvantum-required; the
+# art adapts the grow box in systemprofiler_betawiki.png (platform
+# adaptation 2026-10-26) and draws no frame or interior.
+[SizeGrip]
+indicator.element=sizegrip
+
 [Toolbar]
 inherits=PanelButtonCommand
 frame.element=toolbar

@@ -9,7 +9,7 @@
      bar frame and pattern, the spin box and the splitter and its grip,
      and the surface controls: tabs and their frame, menus and the menu
      bar, group boxes, tooltips, item views, toolbars and the menu item
-     interiors.
+     interiors and the window size grip.
      A raised face is a #DDDDDD interior inside a 1px #000000 outline
      with a 1px #FFFFFF top/left and #999999 bottom/right bevel, except
      the push and tool buttons, whose bottom/right bevel is the reference
@@ -40,8 +40,17 @@
      in a 12x12 #DDDDDD cell, sampled from the System Info window's "Show:"
      popup in systeminfo_betawiki.png (x233..244, y106..117); the cell's
      divider and right bevel are frame art, not indicator art, and are not
-     shipped here. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="23620" viewBox="0 0 200 23620">
+     shipped here.
+     The size grip adapts the grow box in the retail System Profiler
+     window's bottom-right corner (systemprofiler_betawiki.png,
+     x=796..807, y=748..758), a platform adaptation because no reference
+     screenshot shows a KDE/Qt size grip. Its 90 #CCCCCC background pixels
+     are the surrounding window frame, not the indicator, so the shipped
+     groups carry an invisible full-canvas 12x11 bounds rect (the footprint
+     Kvantum scales the element by) and paint only the white/#777777 checker
+     diamond and its three #AAAAAA lower-left edge pixels, leaving the
+     surround transparent. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="23740" viewBox="0 0 200 23740">
   <g id="button-normal-top" transform="translate(10,10)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
@@ -1754,5 +1763,95 @@
   </g>
   <g id="arrow-plus-disabled" transform="translate(10,23590)">
     <path d="M0,0 L9,4.5 L0,9 Z" fill="#999999"/>
+  </g>
+  <g id="sizegrip-normal" transform="translate(10,23650)">
+    <rect x="0" y="0" width="12" height="11" fill="none"/>
+    <rect x="6" y="0" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="0" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="5" y="1" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="1" width="1" height="1" fill="#777777"/>
+    <rect x="4" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="6" y="2" width="1" height="1" fill="#777777"/>
+    <rect x="8" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="9" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="3" y="3" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="5" y="3" width="1" height="1" fill="#777777"/>
+    <rect x="7" y="3" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="9" y="3" width="1" height="1" fill="#777777"/>
+    <rect x="2" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="4" y="4" width="1" height="1" fill="#777777"/>
+    <rect x="6" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="8" y="4" width="1" height="1" fill="#777777"/>
+    <rect x="10" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="11" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="5" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="3" y="5" width="1" height="1" fill="#777777"/>
+    <rect x="5" y="5" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="5" width="1" height="1" fill="#777777"/>
+    <rect x="9" y="5" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="11" y="5" width="1" height="1" fill="#777777"/>
+    <rect x="1" y="6" width="1" height="1" fill="#AAAAAA"/>
+    <rect x="2" y="6" width="1" height="1" fill="#777777"/>
+    <rect x="4" y="6" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="6" y="6" width="1" height="1" fill="#777777"/>
+    <rect x="8" y="6" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="10" y="6" width="1" height="1" fill="#777777"/>
+    <rect x="3" y="7" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="5" y="7" width="1" height="1" fill="#777777"/>
+    <rect x="7" y="7" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="9" y="7" width="1" height="1" fill="#777777"/>
+    <rect x="3" y="8" width="1" height="1" fill="#AAAAAA"/>
+    <rect x="4" y="8" width="1" height="1" fill="#777777"/>
+    <rect x="6" y="8" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="8" y="8" width="1" height="1" fill="#777777"/>
+    <rect x="5" y="9" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="9" width="1" height="1" fill="#777777"/>
+    <rect x="5" y="10" width="1" height="1" fill="#AAAAAA"/>
+    <rect x="6" y="10" width="1" height="1" fill="#777777"/>
+  </g>
+  <g id="sizegrip-focused" transform="translate(10,23710)">
+    <rect x="0" y="0" width="12" height="11" fill="none"/>
+    <rect x="6" y="0" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="0" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="5" y="1" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="1" width="1" height="1" fill="#777777"/>
+    <rect x="4" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="6" y="2" width="1" height="1" fill="#777777"/>
+    <rect x="8" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="9" y="2" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="3" y="3" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="5" y="3" width="1" height="1" fill="#777777"/>
+    <rect x="7" y="3" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="9" y="3" width="1" height="1" fill="#777777"/>
+    <rect x="2" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="4" y="4" width="1" height="1" fill="#777777"/>
+    <rect x="6" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="8" y="4" width="1" height="1" fill="#777777"/>
+    <rect x="10" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="11" y="4" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="1" y="5" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="3" y="5" width="1" height="1" fill="#777777"/>
+    <rect x="5" y="5" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="5" width="1" height="1" fill="#777777"/>
+    <rect x="9" y="5" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="11" y="5" width="1" height="1" fill="#777777"/>
+    <rect x="1" y="6" width="1" height="1" fill="#AAAAAA"/>
+    <rect x="2" y="6" width="1" height="1" fill="#777777"/>
+    <rect x="4" y="6" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="6" y="6" width="1" height="1" fill="#777777"/>
+    <rect x="8" y="6" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="10" y="6" width="1" height="1" fill="#777777"/>
+    <rect x="3" y="7" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="5" y="7" width="1" height="1" fill="#777777"/>
+    <rect x="7" y="7" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="9" y="7" width="1" height="1" fill="#777777"/>
+    <rect x="3" y="8" width="1" height="1" fill="#AAAAAA"/>
+    <rect x="4" y="8" width="1" height="1" fill="#777777"/>
+    <rect x="6" y="8" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="8" y="8" width="1" height="1" fill="#777777"/>
+    <rect x="5" y="9" width="1" height="1" fill="#FFFFFF"/>
+    <rect x="7" y="9" width="1" height="1" fill="#777777"/>
+    <rect x="5" y="10" width="1" height="1" fill="#AAAAAA"/>
+    <rect x="6" y="10" width="1" height="1" fill="#777777"/>
   </g>
 </svg>

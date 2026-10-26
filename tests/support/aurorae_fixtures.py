@@ -52,10 +52,13 @@ INACTIVE_REFERENCE_COLS = FANDOM_MAX_COLS
 PROFILER_REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "systemprofiler_betawiki.png"
 )
-# The deepest profiler row any reader samples is the left/right border at
-# y=255 (the reference-equivalence test's chrome regions); the Aurorae boxes
-# read only the title bar. Sharing this bound keeps the single decode
-# independent of discovery order.
+# The deepest row the shared profiler readers sample is the left/right border
+# at y=255 (the reference-equivalence test's chrome regions); the Aurorae
+# boxes stay in the title bar and the tab readers sample rows 54..72, so this
+# bound covers them.
+# `tests/test_kvantum_sizegrip_reference.py` samples the grow box at
+# y=748..758 and decodes its own `MAX_ROWS = 760`, because that region lies
+# below this shared prefix.
 PROFILER_ROWS = 256
 
 # The flat grey every inactive-state box uses in place of the active box's

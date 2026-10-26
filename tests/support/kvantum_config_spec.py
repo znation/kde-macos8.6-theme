@@ -265,8 +265,9 @@ SURFACE_CONTROL_CONFIG = {
 # status bar is a flat window-face bar with no bevel. Their `inherits` targets
 # are pinned here because, unlike the framed sections, their element mappings
 # do not resolve through the inherited section: a wrong target would leave
-# the branch indicator or window face unpinned. A section in neither this
-# table nor the three element tables is unpinned, which
+# the branch indicator or window face unpinned. `[SizeGrip]` also draws no
+# frame or interior: it paints only its indicator element. A section in
+# neither this table nor the three element tables is unpinned, which
 # `test_every_section_is_pinned` rejects.
 FRAMELESS_SECTIONS = {
     "TabBarFrame": {"frame": "false", "interior": "false"},
@@ -280,6 +281,9 @@ FRAMELESS_SECTIONS = {
         "inherits": "GenericFrame",
         "frame": "false",
         "interior": "false",
+    },
+    "SizeGrip": {
+        "indicator.element": "sizegrip",
     },
 }
 
