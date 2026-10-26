@@ -96,7 +96,7 @@ REQUIRED_RULES = {
             f"inset 1px 1px {WHITE}, inset -1px -1px {GREY} !important"
         ),
     },
-    ".tabbrowser-tab[selected] .tab-background": {
+    ".tabbrowser-tab:is([selected], [multiselected]) .tab-background": {
         "background-color": f"{TROUGH} !important",
         "border-bottom-color": f"{TROUGH} !important",
     },
@@ -258,17 +258,18 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             ".tabbrowser-tab:hover > .tab-stack > .tab-background"
             ":not([selected]):not([multiselected])"
         )
+        selected = ".tabbrowser-tab:is([selected], [multiselected]) .tab-background"
         self.assertEqual(
             {name for name in self.rules if "tab-background" in name},
             {
                 ".tab-background",
-                ".tabbrowser-tab[selected] .tab-background",
+                selected,
                 hover,
             },
         )
         for selector in (
             ".tab-background",
-            ".tabbrowser-tab[selected] .tab-background",
+            selected,
             hover,
         ):
             with self.subTest(selector=selector):
@@ -276,6 +277,29 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
         for part in (":hover", ":not([selected])", ":not([multiselected])"):
             with self.subTest(part=part):
                 self.assertIn(part, hover)
+
+    def test_selected_face_covers_multiselected_tabs(self):
+        selected = ".tabbrowser-tab:is([selected], [multiselected]) .tab-background"
+        hover = (
+            ".tabbrowser-tab:hover > .tab-stack > .tab-background"
+            ":not([selected]):not([multiselected])"
+        )
+        self.assertIn("[selected]", selected)
+        self.assertIn("[multiselected]", selected)
+        self.assertEqual(self.rules[selected], REQUIRED_RULES[selected])
+        self.assertEqual(self.rules[selected]["background-color"],
+                         f"{TROUGH} !important")
+        self.assertEqual(self.rules[selected]["border-bottom-color"],
+                         f"{TROUGH} !important")
+        for name in self.rules:
+            if ("tab-background" in name and "[selected]" in name
+                    and "[multiselected]" not in name):
+                with self.subTest(selected_only=name):
+                    self.assertNotIn("background-color", self.rules[name])
+        self.assertEqual(
+            {name for name in self.rules if "multiselected" in name},
+            {selected, hover},
+        )
 
     def test_menubar_open_title_paint_is_scoped_to_the_open_title(self):
         selector = "#toolbar-menubar menubar > menu[open]"
@@ -363,6 +387,8 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "No reference shows Firefox's find field",
             "chrome/toolkit/skin/classic/global/findbar.css",
             "not-found and flash states stay",
+            "No reference shows Firefox multi-selected tabs",
+            "selected=visuallyselected",
             "platform colour adaptation 2026-10-26",
             "No reference shows Firefox's menu bar",
             "TestMenuBarItem.test_menubaritem_pressed_is_flat_selection_colour",

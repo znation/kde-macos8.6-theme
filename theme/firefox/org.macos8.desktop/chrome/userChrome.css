@@ -76,6 +76,16 @@
    toolkit.legacyUserProfileCustomizations.stylesheets=true to its user.js;
    `make remove-firefox` removes both. Setting
    browser.tabs.inTitlebar=0 makes Firefox use the KWin-drawn Aurorae frame.
+
+   No reference shows Firefox multi-selected tabs; the multiselected face
+   reuses the sheet's selected-tab #EEEEEE trough rather than a screenshot
+   sample (platform colour adaptation 2026-10-26). Firefox's
+   chrome/browser/skin/classic/browser/tabbrowser/tabs.css consumes
+   --tab-background-color-selected on
+   .tab-background:is([selected], [multiselected]), and
+   chrome/browser/content/browser/tabbrowser/tab.js sets the tab's selected
+   and multiselected attributes, mirroring selected=visuallyselected onto
+   .tab-background. Declaration checks do not establish rendered pixels.
 */
 
 tooltip {
@@ -132,7 +142,7 @@ tooltip {
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999 !important;
 }
 
-.tabbrowser-tab[selected] .tab-background {
+.tabbrowser-tab:is([selected], [multiselected]) .tab-background {
   background-color: #EEEEEE !important;
   border-bottom-color: #EEEEEE !important;
 }
