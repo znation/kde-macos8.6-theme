@@ -543,12 +543,9 @@ class TestFailurePaths(StubTools):
         with process_runner.running(
             argv, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         ) as process:
-            deadline = time.monotonic() + 30
-            while not (pidfile.is_file() and pidfile.read_text(encoding="utf-8").strip()):
-                self.assertIsNone(process.poll(), "render exited before the session started")
-                self.assertLess(time.monotonic(), deadline, "session never started")
-                time.sleep(0.05)
-            pid = int(pidfile.read_text(encoding="utf-8"))
+            pid = process_runner.wait_for_pidfile(
+                self, process, pidfile, tool="render", child="session"
+            )
             process.send_signal(signal.SIGTERM)
             process_runner.finish(process)
         self.assertEqual(128 + signal.SIGTERM, process.returncode)

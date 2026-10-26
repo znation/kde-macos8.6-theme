@@ -20,6 +20,7 @@ import sys
 import time
 import unittest
 import unittest.mock
+from pathlib import Path
 
 from support import process_runner
 from support import theme_install
@@ -88,6 +89,45 @@ class _UnreapableProcess:
 
     def kill(self):
         raise AssertionError("the stand-in was asked to kill a process")
+
+
+class _StillRunning:
+    """A `Popen` stand-in whose child has not exited while the pidfile is read."""
+
+    def poll(self):
+        return None
+
+
+class _AlreadyExited:
+    """A `Popen` stand-in that exited before it started its child."""
+
+    def poll(self):
+        return 3
+
+
+class TestWaitForPidfile(unittest.TestCase):
+    def test_returns_the_pid_a_running_child_wrote(self):
+        root = Path(make_tmp_dir(self))
+        pidfile = root / "pid"
+        pidfile.write_text("1234\n", encoding="utf-8")
+        self.assertEqual(
+            1234,
+            process_runner.wait_for_pidfile(
+                self, _StillRunning(), pidfile, tool="tool", child="child"
+            ),
+        )
+
+    def test_fails_when_the_tool_exits_before_its_child_starts(self):
+        root = Path(make_tmp_dir(self))
+        with self.assertRaises(AssertionError) as caught:
+            process_runner.wait_for_pidfile(
+                self,
+                _AlreadyExited(),
+                root / "pid",
+                tool="tool",
+                child="child",
+            )
+        self.assertIn("tool exited before the child started", str(caught.exception))
 
 
 class TestSubprocessTimeout(unittest.TestCase):

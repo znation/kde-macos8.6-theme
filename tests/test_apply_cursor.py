@@ -14,7 +14,6 @@ import os
 import signal
 import subprocess
 import sys
-import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -288,16 +287,9 @@ class TestSelection(CursorCase):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         ) as process:
-            deadline = time.monotonic() + 30
-            while not (
-                pidfile.is_file() and pidfile.read_text(encoding="utf-8").strip()
-            ):
-                self.assertIsNone(
-                    process.poll(), "apply_cursor exited before the selector started"
-                )
-                self.assertLess(time.monotonic(), deadline, "selector never started")
-                time.sleep(0.05)
-            selector_pid = int(pidfile.read_text(encoding="utf-8").strip())
+            selector_pid = process_runner.wait_for_pidfile(
+                self, process, pidfile, tool="apply_cursor", child="selector"
+            )
             process.send_signal(signal.SIGTERM)
             process_runner.finish(process)
         self.assertEqual(128 + signal.SIGTERM, process.returncode)

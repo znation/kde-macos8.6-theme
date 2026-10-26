@@ -17,7 +17,6 @@ import stat
 import subprocess
 import sys
 import tempfile
-import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -286,18 +285,9 @@ class TestTermination(StubTools):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         ) as process:
-            deadline = time.monotonic() + 30
-            while not (
-                pidfile.is_file()
-                and pidfile.read_text(encoding="utf-8").strip()
-            ):
-                self.assertIsNone(
-                    process.poll(),
-                    "apply_theme exited before the step started",
-                )
-                self.assertLess(time.monotonic(), deadline, "step never started")
-                time.sleep(0.05)
-            step_pid = int(pidfile.read_text(encoding="utf-8").strip())
+            step_pid = process_runner.wait_for_pidfile(
+                self, process, pidfile, tool="apply_theme", child="step"
+            )
             process.send_signal(signal.SIGTERM)
             process_runner.finish(process)
 

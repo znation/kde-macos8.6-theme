@@ -14,6 +14,7 @@ import os
 import signal
 import subprocess
 import sys
+import time
 
 # Hard limit for every child process the test suite starts, so a `make`,
 # `plasma-apply-*` or `kpackagetool6` that never exits fails the test instead of
@@ -147,6 +148,29 @@ def running(argv, **kwargs):
         for stream in (process.stdin, process.stdout, process.stderr):
             if stream is not None:
                 stream.close()
+
+
+def wait_for_pidfile(case, process, path, *, tool, child, timeout=30):
+    """Wait until *path* holds a pid for the still-running *process*; return it.
+
+    The SIGTERM tests signal a tool only once the child it started has written
+    its pid, since signalling sooner would test a run that had not reached the
+    child yet. The child creates its pidfile before it writes it, so this
+    waits for a non-empty file rather than the file's existence. *case*
+    supplies the assertions: a *process* that exits before its child starts
+    fails with ``<tool> exited before the <child> started``, and one that never
+    produces a pid fails at *timeout* with ``<child> never started``. The poll
+    is bounded by that deadline, so a stuck setup fails instead of hanging the
+    suite.
+    """
+    deadline = time.monotonic() + timeout
+    while not (path.is_file() and path.read_text(encoding="utf-8").strip()):
+        case.assertIsNone(
+            process.poll(), f"{tool} exited before the {child} started"
+        )
+        case.assertLess(time.monotonic(), deadline, f"{child} never started")
+        time.sleep(0.05)
+    return int(path.read_text(encoding="utf-8").strip())
 
 
 def run(argv, **kwargs):
