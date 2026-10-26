@@ -194,7 +194,8 @@ KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor 
 it notes that and leaves KWin to reload on its next start). It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
 `plasma-apply-colorscheme` and `plasma-apply-desktoptheme`, exiting 2 naming the first one that is
-missing or cannot be started. The startup splash is read at login, so a splash change appears only on the next login.
+missing or cannot be started, or reporting the scratch directory it cannot create. The startup
+splash is read at login, so a splash change appears only on the next login.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
 directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every
 commit installs and re-applies the theme from the committing worktree; the hook is uncommitted, so
@@ -206,7 +207,8 @@ is one -- naming the path instead, so `make uninstall-local-hook` removes only i
 (a 320x240 Plasma calculator window by default) to `RENDER_OUTPUT` (`render.png`); it needs
 `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and
 `spectacle` and exits 2 naming the first missing tool; a `make` or `dbus-run-session`
-that exists but cannot be started is reported the same way. It
+that exists but cannot be started is reported the same way, as is a scratch session
+directory that cannot be created. It
 installs into a scratch data home and leaves your own Plasma configuration alone. A wholly
 black capture — the screen before the window has painted — is refused with a diagnostic
 naming the settle wait rather than published as a render. A failed install, render or
