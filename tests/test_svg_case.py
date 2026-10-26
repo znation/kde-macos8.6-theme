@@ -4,6 +4,8 @@ Every desktop-theme widget test parses its shipped SVG through
 ``SvgCase.setUp``. A checked-in symlink at that SVG's path points at a private
 file, and the widget assertions echo attribute values into a failing test's
 diagnostic, so ``setUp`` must refuse the escape before ``ET.parse`` reads it.
+The parse input is contributor-supplied as well, so it is bounded at the
+shared reader's cap and refuses an XML DTD or entity declaration.
 """
 
 from __future__ import annotations
@@ -16,6 +18,7 @@ from unittest import mock
 from support import svg_case
 from support.svg_case import SvgCase
 from support.symlink_fixtures import symlinked_repo
+from tools import containment as containment_impl
 
 
 class _Case(SvgCase):
@@ -54,6 +57,54 @@ class TestSvgCaseContainment(unittest.TestCase):
             with mock.patch.object(svg_case, "ROOT", root):
                 case.setUp()
         self.assertEqual(case.tree.getroot().get("id"), "ok")
+
+
+class TestSvgCaseInputLimits(unittest.TestCase):
+    """A contributor-supplied SVG cannot make the parser use unbounded memory."""
+
+    def test_refuses_an_oversize_svg_instead_of_loading_it_whole(self):
+        # The shared read bounds every other contributor-file reader; the SVG
+        # parser must use the same cap instead of handing expat a file of any
+        # size. Before the fix a multi-gigabyte SVG was loaded whole.
+        body = b"x" * (containment_impl._MAX_READ_BYTES + 1)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "huge.svg"
+            path.write_bytes(
+                b'<svg xmlns="http://www.w3.org/2000/svg">'
+                + body
+                + b"</svg>"
+            )
+            with self.assertRaises(ValueError) as caught:
+                svg_case.parse_svg(path)
+        self.assertIn(str(path), str(caught.exception))
+        self.assertIn("larger than", str(caught.exception))
+
+    def test_refuses_a_dtd_or_entity_before_the_parser_expands_it(self):
+        # Expat expands internal entities, so a sub-megabyte DTD can allocate
+        # many times its size. The declaration must be refused before the
+        # parser sees it, including when a UTF-16 document hides it from an
+        # ASCII byte scan.
+        xml = (
+            '<?xml version="1.0" encoding="{encoding}"?>\n'
+            '<!DOCTYPE svg [<!ENTITY big "' + ("A" * 1000) + '">]>\n'
+            '<svg xmlns="http://www.w3.org/2000/svg"><text>'
+            + ("&big;" * 100)
+            + "</text></svg>"
+        )
+        encoded = {
+            "utf-8": xml.format(encoding="utf-8").encode("utf-8"),
+            "utf-16-le": b"\xff\xfe"
+            + xml.format(encoding="utf-16").encode("utf-16-le"),
+        }
+        for name, data in encoded.items():
+            with self.subTest(encoding=name):
+                with tempfile.TemporaryDirectory() as tmp:
+                    path = Path(tmp) / "entity.svg"
+                    path.write_bytes(data)
+                    with self.assertRaises(ValueError) as caught:
+                        svg_case.parse_svg(path)
+                self.assertIn(str(path), str(caught.exception))
+                self.assertIn("DTD or entity", str(caught.exception))
 
 
 class TestSvgCaseCache(unittest.TestCase):

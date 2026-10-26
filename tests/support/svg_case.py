@@ -9,12 +9,24 @@ unconfigured base.
 
 from __future__ import annotations
 
+import io
 import os
 import xml.etree.ElementTree as ET
 
 from support import containment
 from support.file_identity import fingerprint_or_none
 from support.repo_root import ROOT
+
+# XML's markup declarations are ASCII, but an XML document may be encoded as
+# UTF-16 as well as UTF-8 (and ASCII-compatible encodings such as Latin-1 keep
+# the same bytes). These are the only spellings a document expat can expand:
+# a DTD or entity declaration in any supported encoding matches one of them.
+_DTD_MARKERS = tuple(
+    marker
+    for text in ("<!DOCTYPE", "<!ENTITY")
+    for encoding in ("ascii", "utf-16-le", "utf-16-be")
+    for marker in (text.encode(encoding),)
+)
 
 # Parsed SVG trees, keyed by absolute path. A widget suite parses its SVG in
 # every test method, the desktop-theme registry parses every shipped SVG, and
@@ -43,6 +55,12 @@ def parse_svg(path):
     The containment check runs on every call, before the cache is consulted,
     so a path that is swapped for an escaping symlink after an earlier parse
     is still refused. Only an unchanged file's tree is reused.
+
+    The bytes are read through the shared containment reader, which bounds
+    them at its contributor-file cap, so a multi-gigabyte SVG cannot be loaded
+    whole. A DTD or entity declaration is refused before the parser sees it:
+    expat expands internal entities, so a sub-megabyte document can otherwise
+    allocate many times its size and exhaust memory even below the byte cap.
     """
     containment.require_within_repo(path, ROOT)
     key = os.path.abspath(path)
@@ -50,8 +68,12 @@ def parse_svg(path):
     cached = _TREE_CACHE.get(key)
     if cached is not None and cached[0] == fingerprint:
         return cached[1]
-    with containment.open_regular_binary(path) as handle:
-        tree = ET.parse(handle)
+    data = containment.read_bytes(path, ROOT)
+    if any(marker in data for marker in _DTD_MARKERS):
+        raise ValueError(
+            f"{path!r} declares a DTD or entity; refusing to parse it"
+        )
+    tree = ET.parse(io.BytesIO(data))
     if fingerprint is not None:
         _TREE_CACHE[key] = (fingerprint, tree)
     return tree
