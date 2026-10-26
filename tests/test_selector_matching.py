@@ -247,6 +247,19 @@ class TestSelectorMatching(unittest.TestCase):
         self.assertTrue(matches(':not([title="a,b"])', other))
         self.assertFalse(matches(':not([title="a,b"])', target))
 
+    def test_an_empty_quoted_attribute_value_matches_only_an_empty_value(self):
+        # ``[title=""]`` is an attribute *value* test, not an attribute-presence
+        # test: reading the empty quoted string as absent matched every element
+        # that carried the attribute at all.
+        empty = element("box", attrs={"title": ""})
+        non_empty = element("box", attrs={"title": "x"})
+        missing = element("box")
+        for selector in ('[title=""]', "[title='']"):
+            with self.subTest(selector=selector):
+                self.assertTrue(matches(selector, empty))
+                self.assertFalse(matches(selector, non_empty))
+                self.assertFalse(matches(selector, missing))
+
     def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
         # A pseudo-class outside the supported subset cannot be evaluated, so
         # it must make its whole selector match nothing. Negating it must not

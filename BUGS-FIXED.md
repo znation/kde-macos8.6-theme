@@ -5,6 +5,40 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher reads an empty quoted attribute value as attribute presence (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/selector_matching.py`'s `matches` returns True for
+`[title=""]` against an element whose `title` is `"x"`, and against any element carrying
+a `title` attribute; a browser matches only an empty `title`. A scope test written against
+such a selector would pass its `assertFalse` for a non-empty value and let an over-broad
+sheet rule through. No selector in `theme/firefox/org.macos8.desktop/chrome/userChrome.css`
+uses an empty quoted attribute value (grep), so no shipped assertion is mis-evaluated today;
+the gap is latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.selector_matching import element, matches; print(matches("[title=\"\"]", element("box", attrs={"title": "x"})))'
+```
+
+prints `True`; the expected result is `False`.
+
+**Suspected cause.** `_compound_matches` selected the value with
+`value = double_quoted or single_quoted or unquoted`. For `[title=""]` the quoted group is
+the empty string, which is falsy, so the selection fell through to `None` and the value
+comparison was skipped as if the selector were the presence test `[title]`.
+
+**Fix.** The group is chosen by `is not None` instead of truthiness, so an empty quoted
+value is compared against the element's value. The new
+`test_an_empty_quoted_attribute_value_matches_only_an_empty_value` in
+`tests/test_selector_matching.py` failed for both quote styles before the fix (matching a
+non-empty `title`) and passes after it, while still matching an empty and rejecting a
+missing attribute.
+
+**Validation gap:** none — the closest tag: no existing matcher test used an empty quoted
+attribute value, but a scratch call and the new test reproduced the false match
+deterministically; nothing outside the suite blocked confirmation.
+
 ### The selector matcher reads a comma in `:not(...)` as a descendant step, so the negation matches almost every element (found by the steward role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/selector_matching.py`'s `_selector_is_supported` accepts

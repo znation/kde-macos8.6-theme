@@ -210,7 +210,15 @@ def _compound_matches(compound, element):
             name, double_quoted, single_quoted, unquoted = match.groups()
             if name not in element["attrs"]:
                 return False
-            value = double_quoted or single_quoted or unquoted
+            # An empty quoted value is a value test, not presence: test the
+            # groups against None rather than using ``or``, which made
+            # ``[title=""]`` match any element carrying ``title``.
+            if double_quoted is not None:
+                value = double_quoted
+            elif single_quoted is not None:
+                value = single_quoted
+            else:
+                value = unquoted
             if value is not None and element["attrs"][name] != value:
                 return False
     return True
