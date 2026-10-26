@@ -5,6 +5,25 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A timed-out group-kill test lets its own setup race the timeout (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`TestRunLogged.test_timeout_returns_none_and_kills_the_group` ran
+`sleep 60 & echo $! > pidfile; wait` with a 0.5 s timeout and then read the
+pidfile. When a loaded host delayed the shell past 0.5 s, `run_logged` killed
+it before it wrote the pid, so the read raised `FileNotFoundError` (or
+`ValueError` for an empty file) and the test failed for a host-scheduling
+reason rather than a group-kill regression. Reproduced with a one-shot shell
+shim that slept 0.8 s on its first invocation: the test errored at the
+pidfile read instead of exercising the group kill.
+
+The test keeps the real 0.5 s timeout but retries, with a fresh pidfile per
+attempt, until one attempt's setup wins, bounded at 30 s; each timed-out
+attempt has already had its whole group killed, so retrying leaks nothing.
+With `_kill_group` patched out, the test still fails at its `is_gone`
+assertion, so the retry did not weaken it.
+
+**Validation gap:** none — the closest tag, because the failure is the test's own setup race rather than a missing product-side reproduction: a one-shot slow-shell shim forced the load-dependent `FileNotFoundError` at the pidfile read, and the fixed test passes under the same shim.
+
 ### The grandchild timeout test's setup races its own timeout (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/test_process_runner.py::TestSubprocessTimeout::test_timeout_kills_grandchildren`

@@ -81,17 +81,38 @@ class TestRunLogged(unittest.TestCase):
         self.assertTrue(is_gone(int(pidfile.read_text(encoding="utf-8"))))
 
     def test_timeout_returns_none_and_kills_the_group(self):
-        pidfile = self.root / "pid"
+        # The shell must fork its background sleep and write its pid before
+        # the timeout fires, or the group has no member to check. A loaded
+        # host can delay that setup past the 0.5 s budget -- the same budget
+        # the process_runner timeout tests use for a child that has to finish
+        # setup before it is killed -- leaving no pidfile to read. Retry with
+        # a fresh file per attempt, so a retry cannot read an earlier run's
+        # pid; each timed-out attempt has already had its whole group killed
+        # by run_logged, so none leaks. The deadline bounds the retries, so a
+        # host that never starts the shell fails instead of spinning.
         started = time.monotonic()
-        # The shell must fork its background sleep and write the pidfile
-        # before the timeout fires, so the budget is a little more than the
-        # setup needs -- the same 0.5 s the process_runner timeout tests use
-        # for a child that has to finish setup before it is killed. The child
-        # sleeps for 60 s, so any budget here times out.
-        status = self.run_sh(f'sleep 60 & echo $! > "{pidfile}"; wait', timeout=0.5)
-        self.assertIsNone(status)
-        self.assertLess(time.monotonic() - started, 30)
-        self.assertTrue(is_gone(int(pidfile.read_text(encoding="utf-8"))))
+        deadline = started + 30
+        while True:
+            self.assertLess(
+                time.monotonic(),
+                deadline,
+                "the shell never wrote the background pid before the timeout",
+            )
+            pidfile = self.root / f"pid-{time.monotonic_ns()}"
+            status = self.run_sh(
+                f'sleep 60 & echo $! > "{pidfile}"; wait', timeout=0.5
+            )
+            self.assertIsNone(status)
+            try:
+                pid = int(pidfile.read_text(encoding="utf-8"))
+            except (FileNotFoundError, ValueError):
+                # The timeout fired before the shell finished its setup, so
+                # this attempt proved nothing about the group kill.
+                continue
+            break
+        # One attempt may return just under the deadline; allow for it.
+        self.assertLess(time.monotonic() - started, 31)
+        self.assertTrue(is_gone(pid))
 
     def test_stdin_is_closed(self):
         self.assertEqual(0, self.run_sh("cat; exit 0", timeout=10))
