@@ -88,6 +88,14 @@ REQUIRED_RULES = {
         "background-color": f"{SELECTION} !important",
         "border-bottom-color": f"{SELECTION} !important",
     },
+    "#sidebar-box": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+    },
+    "#sidebar-header": {
+        "border-bottom": f"1px solid {ETCH_DARK} !important",
+        "box-shadow": f"inset 0 -1px {WHITE} !important",
+    },
     ".tab-background": {
         "background-color": f"{FACE} !important",
         "border": f"1px solid {BLACK} !important",
@@ -323,6 +331,23 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             {selector},
         )
 
+    def test_sidebar_frame_is_scoped_to_the_box_and_header(self):
+        self.assertEqual(
+            {name for name in self.rules if "sidebar" in name},
+            {"#sidebar-box", "#sidebar-header"},
+        )
+        for selector in ("#sidebar-box", "#sidebar-header"):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assertEqual(self.rules["#sidebar-box"]["background-color"],
+                         f"{FACE} !important")
+        self.assertEqual(self.rules["#sidebar-box"]["color"],
+                         f"{BLACK} !important")
+        self.assertEqual(self.rules["#sidebar-header"]["border-bottom"],
+                         f"1px solid {ETCH_DARK} !important")
+        self.assertEqual(self.rules["#sidebar-header"]["box-shadow"],
+                         f"inset 0 -1px {WHITE} !important")
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -393,6 +418,11 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "No reference shows Firefox's menu bar",
             "TestMenuBarItem.test_menubaritem_pressed_is_flat_selection_colour",
             "TestReferenceAnchors.test_selection_background",
+            "No reference shows a Firefox sidebar",
+            "chrome/browser/skin/classic/browser/sidebar.css",
+            "--sidebar-background-color",
+            "modules/ThemeVariableMap.sys.mjs",
+            "the sidebar's inner document is not userChrome territory",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)

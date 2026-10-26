@@ -71,6 +71,15 @@
    tests/test_colorscheme_reference.py::TestReferenceAnchors.test_view_background_alternate
    and tests/test_desktoptheme_scrollbar.py::TestScrollbarReference.
 
+   No reference shows a Firefox sidebar; its #DDDDDD face reuses the
+   reference-grounded menu-bar face and its header rule the pinned etched
+   #888888/#FFFFFF pair rather than a screenshot sample (platform colour
+   adaptation 2026-10-26). Firefox's
+   chrome/browser/skin/classic/browser/sidebar.css consumes
+   --sidebar-background-color, --sidebar-text-color and --sidebar-border-color,
+   lightweight-theme sidebar keys mapped in modules/ThemeVariableMap.sys.mjs;
+   the sidebar's inner document is not userChrome territory.
+
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
    toolkit.legacyUserProfileCustomizations.stylesheets=true to its user.js;
@@ -133,6 +142,18 @@ tooltip {
 #toolbar-menubar menubar > menu[open] {
   background-color: #CCCCFF !important;
   border-bottom-color: #CCCCFF !important;
+}
+
+/* The sidebar frame takes the Platinum face and etched rule; its inner
+   panel document stays Firefox's. */
+#sidebar-box {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+}
+
+#sidebar-header {
+  border-bottom: 1px solid #888888 !important;
+  box-shadow: inset 0 -1px #FFFFFF !important;
 }
 
 .tab-background {
