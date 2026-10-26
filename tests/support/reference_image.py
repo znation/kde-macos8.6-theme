@@ -67,18 +67,17 @@ def read_reference(path, **kwargs):
     unmaterialized LFS pointer) comes back as ``(None, error)`` instead of
     raising, ready to hand to `skip_unless_materialized`. The decode is cached
     per absolute path, ``alpha`` mode and ``max_cols`` for the process: a later
-    request
-    reuses it whenever the cached decode already holds the rows it needs (a
-    bound that exceeded the image height holds the whole image), so a
+    request reuses it whenever the cached decode already holds the rows it
+    needs (a bound that exceeded the image height holds the whole image), so a
     screenshot several classes read at different ``max_rows`` bounds is
     unfiltered once, not once per bound. A request that needs more rows
     re-decodes and replaces the entry. The ``alpha`` mode is part of the cache
     key because it changes the returned planes: an RGB-only decode cannot
-    answer a request for transparency. An invalid ``max_rows`` (not a positive
-    plain int) is reported as an error whether or not a decode is cached. A
-    path that resolves outside the repository (a checked-in symlink escape) is
-    refused before the cache is consulted, so a swapped symlink is refused
-    even when an earlier request cached its target.
+    answer a request for transparency. An invalid ``max_rows`` or ``max_cols``
+    (not a positive plain int) is reported as an error whether or not a decode
+    is cached. A path that resolves outside the repository (a checked-in
+    symlink escape) is refused before the cache is consulted, so a swapped
+    symlink is refused even when an earlier request cached its target.
     """
     containment.require_within_repo(path, ROOT)
     max_rows = kwargs.get("max_rows")

@@ -146,7 +146,12 @@ def read_rgba(
     max_rows: int | None = None,
     max_cols: int | None = None,
 ) -> tuple[int, int, bytes]:
-    """Read and decode the PNG at *path* into packed RGBA bytes."""
+    """Read and decode the PNG at *path* into packed RGBA bytes.
+
+    *max_rows* and *max_cols* are forwarded to :func:`decode_rgba`: the
+    returned ``(width, height, rgba)`` holds at most that many top rows and
+    left columns. A :class:`PngError` names *path* in its message.
+    """
     data = _read_png_data(path)
     try:
         return decode_rgba(data, max_rows, max_cols)
@@ -159,9 +164,9 @@ def read_png_size(path: str | Path) -> tuple[int, int]:
 
     Only the header prefix is read, so a caller that samples a few top rows
     can learn the full image size without loading a large file, then bound
-    its decode with ``read_png(path, max_rows=...)``. A file that cannot be
-    read, or whose IHDR chunk is malformed or unsupported, raises
-    :class:`PngError` naming *path*.
+    its decode with ``read_png(path, max_rows=..., max_cols=...)``. A file
+    that cannot be read, or whose IHDR chunk is malformed or unsupported,
+    raises :class:`PngError` naming *path*.
     """
     data = _read_png_data(path, prefix_bytes=_HEADER_PREFIX_BYTES)
     if data.startswith(PNG_MAGIC):

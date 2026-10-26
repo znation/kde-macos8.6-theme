@@ -133,8 +133,8 @@ def decode_error_message(case, data, **kwargs):
 
     The decode test modules read the raised message to pin what it names;
     *case* is the calling ``unittest.TestCase``, so a missing raise fails
-    against the right test. Keyword arguments (``max_rows``) are forwarded to
-    ``decode_png``.
+    against the right test. Keyword arguments (``max_rows`` and ``max_cols``)
+    are forwarded to ``decode_png``.
     """
     return error_message(case, png.PngError, png.decode_png, data, **kwargs)
 
