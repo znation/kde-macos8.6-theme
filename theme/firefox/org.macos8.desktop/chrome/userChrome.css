@@ -30,6 +30,17 @@
    chrome/browser/skin/classic/browser/urlbar-searchbar.css paints #searchbar
    and owns the focused appearance; #searchbar-new stays Firefox's.
 
+   No reference shows Firefox's find field; its white face therefore pairs
+   with the shared Platinum foreground's black text rather than Firefox's
+   theme-dependent input text, pinned by the Platinum view background and
+   foreground samples in
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_window_chrome_foreground
+   and test_window_view_background (platform colour adaptation 2026-10-26).
+   Firefox's installed chrome/toolkit/skin/classic/global/findbar.css assigns
+   .findbar-textbox its input text token (and, under :root[lwtheme], its
+   toolbar-field text token); focused, not-found and flash states stay
+   Firefox's.
+
    No reference shows Firefox tooltips or a Balloon Help balloon. Explicit
    XUL tooltip paint is a platform adaptation 2026-10-25: #FFFFCC comes from
    [Colors:Tooltip] BackgroundNormal and tests/support/platinum_palette.py
@@ -197,6 +208,7 @@ findbar {
    the find bar keeps its red/yellow result feedback and focus ring. */
 findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus) {
   background-color: #FFFFFF !important;
+  color: #000000 !important;
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: inset 1px 1px #999999 !important;

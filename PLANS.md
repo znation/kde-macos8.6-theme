@@ -77,23 +77,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Firefox Platinum chrome: pair the idle find field with black text (planned 2026-10-25 by the plan role; independent of the optional search-field plan)
-
-**Goal.** Pair the existing white find-field face with black text instead of Firefox's theme-dependent foreground, preserving its focused, not-found and flash states.
-
-**Grounding.** The sheet and `REQUIRED_RULES` paint the guarded `.findbar-textbox` background but omit `color`. The finished secondary-chrome plan specifies that same background-only treatment; searches of Planned and the archive found no find-field foreground plan. In the installed `/usr/lib/firefox-esr/omni.ja`, `chrome/toolkit/skin/classic/global/findbar.css` assigns `.findbar-textbox` its input text token and, under `:root[lwtheme]`, its toolbar-field text token; focus and feedback states have separate foreground handling. A white face therefore needs its own paired foreground.
-
-**Approach and files touched.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: add `color: #000000 !important` to the existing `findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus)` rule. Keep its three guards and existing paint declarations. Do not add a foreground to the parent `findbar`, change shared field tokens, or style selection, placeholder text or other field states.
-- Extend the header with provenance dated 2026-10-25: no reference shows Firefox's find field; the black-on-white pairing adapts the shared Platinum foreground and view background, pinned by `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_window_chrome_foreground` and `test_window_view_background`. Name the Firefox consumer above and the excluded states. Introduce no visual value beyond those existing palette anchors.
-- `tests/test_firefox_theme.py`: extend that selector's `REQUIRED_RULES` dictionary with `color` using `BLACK`. Add `TestFirefoxChrome.test_find_field_foreground_is_guarded`: require the parsed selectors containing `findbar-textbox` to be exactly the existing guarded selector, its declarations to equal its required dictionary, and the parent `findbar` dictionary to retain its existing background and border only. Extend `test_header_names_provenance_and_preference` to pin the missing-reference statement, consumer path and state limitation.
-- `docs/invariants.md`: extend the standalone-sheet row under `## firefox` with the guarded black-on-white find-field guarantee, the new scope test and the dated platform adaptation. Describe these as declaration checks, not rendered-pixel evidence.
-
-**Acceptance criteria.**
-- Required-rule validation rejects a missing or non-black foreground or missing `!important`; the scope test rejects an unguarded textbox rule or a parent foreground override. Focus, not-found and flash declarations remain Firefox-owned.
-- `make check` passes without requiring Firefox or adding dependencies. Limit implementation to these three files; keep the palette set unchanged.
-- Report declaration validation separately from live browser rendering.
-
 ### Firefox Platinum chrome: paint the hovered unselected tab face (planned 2026-10-26 by the plan role; independent of the Firefox find-field foreground plan)
 
 **Goal.** Give a hovered, unselected Firefox tab the Platinum hover fill `#EEEEEE`, so the tab strip responds to the pointer again. The sheet's `.tab-background` rule paints every tab face `#DDDDDD` with `!important`, and its greater user-origin weight suppresses Firefox's own `background-color: var(--tab-background-color-hover)` rule in `chrome/browser/skin/classic/browser/tabbrowser/tabs.css` (`.tabbrowser-tab:hover > .tab-stack > .tab-background:not([selected], [multiselected])`), leaving hover with no visible feedback.

@@ -180,6 +180,7 @@ REQUIRED_RULES = {
     },
     "findbar .findbar-textbox:not([status=\"notfound\"]):not([flash=\"true\"]):not(:focus)": {
         "background-color": f"{WHITE} !important",
+        "color": f"{BLACK} !important",
         "border": f"1px solid {BLACK} !important",
         "border-radius": "0 !important",
         "box-shadow": f"inset 1px 1px {GREY} !important",
@@ -240,6 +241,18 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
         )
         self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
 
+    def test_find_field_foreground_is_guarded(self):
+        selector = (
+            'findbar .findbar-textbox:not([status="notfound"])'
+            ':not([flash="true"]):not(:focus)'
+        )
+        self.assertEqual(
+            {name for name in self.rules if "findbar-textbox" in name},
+            {selector},
+        )
+        self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assertEqual(self.rules["findbar"], REQUIRED_RULES["findbar"])
+
     def test_tooltip_face_is_scoped_to_explicit_tooltips(self):
         self.assertEqual(
             {selector for selector, declarations in self.rules.items()
@@ -287,6 +300,10 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "chrome/browser/skin/classic/browser/urlbar-searchbar.css",
             "and owns the focused appearance",
             "#searchbar-new stays Firefox's",
+            "No reference shows Firefox's find field",
+            "chrome/toolkit/skin/classic/global/findbar.css",
+            "not-found and flash states stay",
+            "platform colour adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)
