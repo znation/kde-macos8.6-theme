@@ -9,7 +9,7 @@ A KDE Plasma 6 theme to have the UI of MacOS 8.6, getting as close as possible t
 ## Status
 
 <!-- tumwater:status:start -->
-Pre-alpha: the Mac OS 8.6 "Platinum" look is installable as eight artifacts — color scheme, global theme (with startup splash and desktop layout), desktop theme, Aurorae decoration, wallpaper, icon theme, Kvantum widget style, and Lato font package — plus opt-in GTK 3 and GTK 4 stylesheets, a Firefox userChrome stylesheet, and a cursor theme selection.
+Pre-alpha: the Mac OS 8.6 "Platinum" look is installable as eight artifacts — color scheme, global theme (with startup splash and desktop layout), desktop theme, Aurorae decoration, wallpaper, icon theme, Kvantum widget style, and Lato font package — plus opt-in GTK 3 and GTK 4 stylesheets, Firefox userChrome and userContent stylesheets, and a cursor theme selection.
 
 Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and QUESTIONS.md (decisions needed).
 <!-- tumwater:status:end -->
@@ -209,7 +209,8 @@ is one -- naming the path instead, so `make uninstall-local-hook` removes only i
 that exists but cannot be started is reported the same way. It
 installs into a scratch data home and leaves your own Plasma configuration alone. A wholly
 black capture — the screen before the window has painted — is refused with a diagnostic
-naming the settle wait rather than published as a render.
+naming the settle wait rather than published as a render. A failed install, render or
+capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal number.
 
 ## Generating the wallpaper
 
