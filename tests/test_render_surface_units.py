@@ -15,6 +15,7 @@ import unittest
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support import tmp_dir
 from support.cli_fixtures import call_main  # noqa: E402
 from tools import render_session, render_surface  # noqa: E402
 
@@ -113,6 +114,39 @@ class TestSessionSetup(unittest.TestCase):
         for key in ambient:
             with self.subTest(key=key):
                 self.assertNotIn(key, environment)
+
+    def test_a_setup_failure_removes_the_partial_scratch_root(self):
+        # Session.create promises to remove the scratch root when setup fails.
+        # A file where the runtime directory belongs makes the first mkdir
+        # fail after mkdtemp has created the root, so the except arm is the
+        # only thing that can remove it.
+        prepared = tmp_dir.make_tmp_dir(self) / "render-surface-fixed"
+        prepared.mkdir()
+        (prepared / "rt").write_bytes(b"in the way")
+
+        with mock.patch.object(
+            render_session.tempfile, "mkdtemp", return_value=str(prepared)
+        ):
+            with self.assertRaises(FileExistsError):
+                render_session.Session.create()
+
+        self.assertFalse(prepared.exists())
+
+    def test_a_failure_after_the_layout_is_created_removes_the_scratch_root(self):
+        # The runtime directory's mode is the last setup step; if it fails
+        # after all three directories exist, the whole root must still go.
+        prepared = tmp_dir.make_tmp_dir(self) / "render-surface-fixed"
+        prepared.mkdir()
+
+        with mock.patch.object(
+            render_session.tempfile, "mkdtemp", return_value=str(prepared)
+        ), mock.patch.object(
+            render_session.os, "chmod", side_effect=PermissionError("denied")
+        ):
+            with self.assertRaises(PermissionError):
+                render_session.Session.create()
+
+        self.assertFalse(prepared.exists())
 
 
 class TestSessionScript(unittest.TestCase):
