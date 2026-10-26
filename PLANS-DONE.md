@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Platinum chrome: paint the hovered unselected tab face (planned 2026-10-26 by the plan role; independent of the Firefox find-field foreground plan) — done 2026-10-26 by the feature role
+
+**Goal.** Give a hovered, unselected Firefox tab the Platinum hover fill `#EEEEEE`, so the tab strip responds to the pointer again. The sheet's `.tab-background` rule paints every tab face `#DDDDDD` with `!important`, and its greater user-origin weight suppresses Firefox's own `background-color: var(--tab-background-color-hover)` rule in `chrome/browser/skin/classic/browser/tabbrowser/tabs.css` (`.tabbrowser-tab:hover > .tab-stack > .tab-background:not([selected], [multiselected])`), leaving hover with no visible feedback.
+
+**Grounding.** No reference screenshot shows Firefox chrome or a hovered tab. The fill is the already-pinned flat trough `#EEEEEE` (`TROUGH` in `tests/support/platinum_palette.py`, painted from `[Colors:View] BackgroundAlternate`): `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_view_background_alternate` re-derives it from `setup_emaculation.png`, and `tests/test_desktoptheme_scrollbar.py::TestScrollbarReference` ties it to the desktop theme's artwork. The sheet already uses it for the selected tab face, `--toolbarbutton-background-color-hover` and the results-row hover; this adds no new colour literal. Record the hover state as a platform adaptation dated 2026-10-26, naming Firefox's consumed `--tab-background-color-hover` source and the missing reference.
+
+**Approach and files touched.**
+- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: immediately after the `.tabbrowser-tab[selected] .tab-background` rule, add
+  `.tabbrowser-tab:hover > .tab-stack > .tab-background:not([selected]):not([multiselected]) { background-color: #EEEEEE !important; }`.
+  Keep the base `.tab-background` face, border, bevel and radius unchanged; the hover rule only overrides its fill. Extend the header provenance with the dated missing-surface note, the `#EEEEEE` source and the two tests named above.
+- `tests/test_firefox_theme.py`: add the hover selector to `REQUIRED_RULES` directly after the selected-tab entry, with `background-color: f"{TROUGH} !important"`. Add `TestFirefoxChrome.test_tab_hover_paint_is_scoped_to_unselected_tabs`: the selectors naming `tab-background` are exactly `.tab-background`, `.tabbrowser-tab[selected] .tab-background` and the new hover selector; each declaration set equals its `REQUIRED_RULES` entry; the hover selector contains `:hover`, `:not([selected])` and `:not([multiselected])`. Extend `test_header_names_provenance_and_preference` with `"No reference shows Firefox tab hover"` and `"tests/test_desktoptheme_scrollbar.py::TestScrollbarReference"` at the start of the provenance tuple, ahead of the existing entries.
+- `docs/invariants.md`: extend the standalone-sheet row under `## firefox` with the hovered unselected tab guarantee and the new scope test, and add the dated platform-adaptation provenance; keep the row's statement that declaration checks do not establish rendered pixels.
+
+**Acceptance criteria.**
+- `REQUIRED_RULES` validation fails when the hover fill is removed, made non-#EEEEEE or loses `!important`; the scope test fails for an unguarded `.tab-background:hover` rule, for a rule that omits the selected or multiselected guard, and for any extra selector painting a tab background.
+- Selected and multiselected tabs keep the selected fill and open bottom border; the tab face, border, bevel, radius, tab text, close button, pinned and vertical tabs and find-bar states stay as they are.
+- `make check` passes without Firefox or a new dependency, the palette hex set is unchanged, and implementation stays within these three files. Report declaration validation separately from live browser rendering.
+
 ### Firefox Platinum chrome: pair the idle find field with black text (planned 2026-10-25 by the plan role; independent of the optional search-field plan) — done 2026-10-26 by the feature role
 
 **Goal.** Pair the existing white find-field face with black text instead of Firefox's theme-dependent foreground, preserving its focused, not-found and flash states.

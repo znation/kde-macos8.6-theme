@@ -95,6 +95,12 @@ REQUIRED_RULES = {
         "background-color": f"{TROUGH} !important",
         "border-bottom-color": f"{TROUGH} !important",
     },
+    (
+        ".tabbrowser-tab:hover > .tab-stack > .tab-background"
+        ":not([selected]):not([multiselected])"
+    ): {
+        "background-color": f"{TROUGH} !important",
+    },
     "#urlbar-background": {
         "background-color": f"{WHITE} !important",
         "border": f"1px solid {BLACK} !important",
@@ -242,6 +248,30 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
         )
         self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
 
+    def test_tab_hover_paint_is_scoped_to_unselected_tabs(self):
+        hover = (
+            ".tabbrowser-tab:hover > .tab-stack > .tab-background"
+            ":not([selected]):not([multiselected])"
+        )
+        self.assertEqual(
+            {name for name in self.rules if "tab-background" in name},
+            {
+                ".tab-background",
+                ".tabbrowser-tab[selected] .tab-background",
+                hover,
+            },
+        )
+        for selector in (
+            ".tab-background",
+            ".tabbrowser-tab[selected] .tab-background",
+            hover,
+        ):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        for part in (":hover", ":not([selected])", ":not([multiselected])"):
+            with self.subTest(part=part):
+                self.assertIn(part, hover)
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -288,6 +318,8 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
         self.assertIn("Provenance exception", self.text)
         header = self.text.split("*/", 1)[0]
         for provenance in (
+            "No reference shows Firefox tab hover",
+            "tests/test_desktoptheme_scrollbar.py::TestScrollbarReference",
             "No reference shows Firefox tooltips or a Balloon Help balloon",
             "platform adaptation 2026-10-25",
             "[Colors:Tooltip] BackgroundNormal",

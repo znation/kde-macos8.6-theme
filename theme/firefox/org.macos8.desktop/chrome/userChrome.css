@@ -52,6 +52,17 @@
    selector; default native anonymous tooltips require UA styling and are
    outside this sheet's guarantee.
 
+   No reference shows Firefox tab hover; its hovered unselected tab face
+   reuses the pinned Platinum trough #EEEEEE from the desktop theme rather
+   than a screenshot sample (platform colour adaptation 2026-10-26). It
+   replaces Firefox's consumed --tab-background-color-hover fill in
+   chrome/browser/skin/classic/browser/tabbrowser/tabs.css, which this
+   sheet's greater user-origin .tab-background rule would otherwise
+   suppress. #EEEEEE is the same value as the selected tab face and is
+   pinned by
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_view_background_alternate
+   and tests/test_desktoptheme_scrollbar.py::TestScrollbarReference.
+
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
    toolkit.legacyUserProfileCustomizations.stylesheets=true to its user.js;
@@ -109,6 +120,12 @@ tooltip {
 .tabbrowser-tab[selected] .tab-background {
   background-color: #EEEEEE !important;
   border-bottom-color: #EEEEEE !important;
+}
+
+/* Firefox's own hover fill is suppressed by the base .tab-background rule's
+   greater user-origin weight, so repaint the hovered unselected face. */
+.tabbrowser-tab:hover > .tab-stack > .tab-background:not([selected]):not([multiselected]) {
+  background-color: #EEEEEE !important;
 }
 
 #urlbar-background {
