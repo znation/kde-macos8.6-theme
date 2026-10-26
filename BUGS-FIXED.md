@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A render test's setup wait expires before its crashed applet starts (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`TestFailurePaths.test_a_crashed_applet_is_not_captured_as_a_successful_render` replaced the
+session's `sleep` with a stub that polls for the applet's pidfile and then for the applet to be
+reaped, with each wait capped at 500 iterations of about 0.01 s. On a host that delayed the
+applet's start past that cap, the stub returned while the applet was still running, so the
+session's `kill -0` liveness check found it alive, let `spectacle` capture the empty session, and
+`render_surface` published that PNG and exited 0. The test then failed as a bare `1 != 0` status
+mismatch even though the defect it guards against had just happened.
+
+Reproduced with a scratch subclass that prepends a real `sleep 6` to the applet body: the old
+test returned status 0 and wrote the output PNG, where it expects exit 1 and no PNG.
+
+The two waits now use a larger bound (1500 iterations of a real 0.02 s sleep, about 30 s nominal
+and longer per iteration under load) and record which wait expired in a `setup-timeout` file; the
+test fails first with a message naming the applet start or reap that did not finish, instead of a
+bare status mismatch. A 6 s applet start now passes, and a 45 s start fails with that named
+message.
+
+**Validation gap:** slow-check — confirming the race needed a deliberately slow applet start, and
+the run that exceeded the budget took 33 s to reach the surfaced failure, which shaped the
+larger iteration bound.
+
 ### A timed-out group-kill test lets its own setup race the timeout (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `TestRunLogged.test_timeout_returns_none_and_kills_the_group` ran

@@ -271,21 +271,35 @@ class TestFailurePaths(StubTools):
         # plasmawindowed is backgrounded, so its failure is otherwise invisible;
         # spectacle would capture the empty session and the tool would publish
         # that PNG as a successful render. The settle stub returns only once
-        # the crashed applet has been reaped, so the liveness check cannot race
-        # the background process's exit.
+        # the crashed applet has been started and reaped, so the liveness check
+        # cannot race the background process's exit. A slow host can delay that
+        # setup past the polling budget; the stub then records which wait
+        # expired, so the test names the setup race instead of failing as a
+        # bare status mismatch against a render of a still-starting applet.
         pidfile = self.root / "applet.pid"
+        setup_timeout = self.root / "setup-timeout"
         self.stub_live_session(f"echo $$ > {shlex.quote(str(pidfile))}; exit 1")
         self.stub(
             "sleep",
             f"pidfile={shlex.quote(str(pidfile))}; "
+            f"timeout={shlex.quote(str(setup_timeout))}; "
             f"pause={shlex.quote(self.real_sleep)}; "
             'n=0; while [ ! -s "$pidfile" ]; do n=$((n + 1)); '
-            '[ "$n" -gt 500 ] && exit 1; "$pause" 0.01; done; '
+            '[ "$n" -gt 1500 ] && { echo start > "$timeout"; exit 1; }; '
+            '"$pause" 0.02; done; '
             'pid=$(cat "$pidfile"); n=0; '
             'while kill -0 "$pid" 2>/dev/null; do n=$((n + 1)); '
-            '[ "$n" -gt 500 ] && exit 1; "$pause" 0.01; done',
+            '[ "$n" -gt 1500 ] && { echo reap > "$timeout"; exit 1; }; '
+            '"$pause" 0.02; done',
         )
         status, stderr, output = self.run_main("--settle", "0")
+        if setup_timeout.exists():
+            self.fail(
+                "the crashed applet's setup did not "
+                f"{setup_timeout.read_text().strip()} within the polling "
+                "budget; the settle stub must start and reap it before the "
+                "session's liveness check"
+            )
         self.assertEqual(1, status)
         self.assertIn("render session exited 1", stderr)
         self.assertIn("plasmawindowed exited before the capture", stderr)
