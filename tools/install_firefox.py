@@ -42,6 +42,7 @@ if __package__:
     )
     from tools.firefox_user_js import first_line, remove_user_js, set_user_js
     from tools.repo_root import ROOT
+    from tools.symlink_refusal import refuse_symlink
 else:  # run directly: python3 tools/install_firefox.py
     from argument_parsing import EscapingArgumentParser
     from containment import read_bytes
@@ -58,6 +59,7 @@ else:  # run directly: python3 tools/install_firefox.py
     )
     from firefox_user_js import first_line, remove_user_js, set_user_js
     from repo_root import ROOT
+    from symlink_refusal import refuse_symlink
 
 TOOL = "install_firefox"
 SHEET = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
@@ -67,23 +69,6 @@ CSS_MARKER = "/* org.macos8.desktop Firefox chrome, standalone userChrome.css"
 def _note(message: str) -> None:
     """Print ``install_firefox: note: <message>`` on stdout."""
     report_note(TOOL, message)
-
-
-def _refuse_symlink(path: Path, action: str) -> None:
-    """Refuse to *action* a profile file that is a symbolic link.
-
-    A dotfile manager commonly makes ``userChrome.css`` or ``user.js`` a
-    symlink to a file it manages. Replacing or deleting that link would
-    silently detach the profile from the file the user meant to edit, so the
-    link is refused by name before anything is written or removed; the link
-    and its target are left untouched. A symlinked profile directory is not a
-    link at *path* and stays supported.
-    """
-    if path.is_symlink():
-        raise ConfigError(
-            f"cannot {action} {path}: it is a symbolic link; refusing to "
-            "replace or delete the link instead of the file it names"
-        )
 
 
 def _is_our_sheet(text: str) -> bool:
@@ -157,8 +142,8 @@ def _apply(profile: Path) -> int:
     # Both files are written, so a symlinked path is refused before the
     # chrome directory or either file is touched. The reads above still run
     # first, so an unreadable link is reported by its own read error.
-    _refuse_symlink(sheet_path, "write")
-    _refuse_symlink(js_path, "write")
+    refuse_symlink(sheet_path, "write", ConfigError)
+    refuse_symlink(js_path, "write", ConfigError)
     try:
         sheet_path.parent.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
@@ -210,9 +195,9 @@ def _remove(profile: Path) -> int:
     # Check every planned change before making any: a symlinked path is the
     # user's link, so refuse it instead of deleting or replacing it.
     if remove_sheet:
-        _refuse_symlink(sheet_path, "remove")
+        refuse_symlink(sheet_path, "remove", ConfigError)
     if rewrite_js:
-        _refuse_symlink(js_path, "remove")
+        refuse_symlink(js_path, "remove", ConfigError)
     # Rewrite user.js first, then delete the sheet. Roll the rewrite back on
     # any failure after it, including an interrupt, so a failed removal does
     # not leave a preference block for a sheet that is still present.

@@ -39,6 +39,7 @@ if __package__:
         user_css_remove,
         user_css_write,
     )
+    from tools.symlink_refusal import refuse_symlink
 else:  # run directly: python3 tools/apply_gtk.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
@@ -53,6 +54,7 @@ else:  # run directly: python3 tools/apply_gtk.py
         user_css_remove,
         user_css_write,
     )
+    from symlink_refusal import refuse_symlink
 
 TOOL = "apply_gtk"
 
@@ -83,23 +85,6 @@ def _require_home(path: Path | None, variable: str, fallback: str) -> Path:
             "absolute HOME"
         )
     return path
-
-
-def _refuse_symlink(path: Path, action: str) -> None:
-    """Refuse to *action* a config path that is a symbolic link.
-
-    A dotfile manager commonly makes ``settings.ini`` or ``gtk.css`` a
-    symlink to a file it manages. Replacing or deleting that link would
-    silently detach the config path from the file the user meant to edit, so
-    the link is refused by name before anything is staged; the link and its
-    target are left untouched. A symlinked parent directory is not a symlink
-    at *path* and stays supported.
-    """
-    if path.is_symlink():
-        raise ConfigError(
-            f"cannot {action} {path}: it is a symbolic link; refusing to "
-            "replace or delete the link instead of the file it names"
-        )
 
 
 def _apply(data_home: Path, config_home: Path) -> int:
@@ -134,7 +119,7 @@ def _apply(data_home: Path, config_home: Path) -> int:
     # A symlinked config path is the user's link, not ours: refuse it before
     # staging any write instead of replacing the link with a regular file.
     for path, _text in writes:
-        _refuse_symlink(path, "write")
+        refuse_symlink(path, "write", ConfigError)
     # A settings file at the read cap can grow past it when our longer value
     # replaces a shorter foreign one. Refuse before staging, or a later apply
     # or removal would refuse the file this run wrote.
@@ -166,9 +151,9 @@ def _remove(config_home: Path) -> int:
     # A symlinked config path is the user's link, not ours: refuse it before
     # staging any write or removal instead of replacing or deleting the link.
     for path, _text in writes:
-        _refuse_symlink(path, "remove")
+        refuse_symlink(path, "remove", ConfigError)
     for path in removals:
-        _refuse_symlink(path, "remove")
+        refuse_symlink(path, "remove", ConfigError)
     # Replace the settings and delete the user CSS in one commit: a failure in
     # either step restores every file changed so far, including the CSS.
     commit(staged=stage_all(writes), removals=removals)
