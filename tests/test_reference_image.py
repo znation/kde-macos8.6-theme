@@ -10,7 +10,10 @@ from unittest import mock
 
 from support import reference_image  # noqa: E402
 from support.symlink_fixtures import symlinked_repo
-from tools.png.write import encode_png  # noqa: E402
+from tools.png.write import encode_png, encode_rgba_png  # noqa: E402
+
+
+_RGBA_ALPHAS = bytes((40, 80, 120, 160))
 
 
 def _write_reference(directory):
@@ -18,6 +21,16 @@ def _write_reference(directory):
     path = os.path.join(directory, "reference.png")
     with open(path, "wb") as handle:
         handle.write(encode_png(2, 2, bytes(12)))
+    return path
+
+
+def _write_rgba_reference(directory):
+    """Write a 2x2 RGBA PNG whose alpha plane is :data:`_RGBA_ALPHAS`."""
+    path = os.path.join(directory, "reference-rgba.png")
+    rgba = b"".join(bytes((value, value, value)) + bytes((alpha,))
+                    for value, alpha in zip(range(0, 40, 10), _RGBA_ALPHAS))
+    with open(path, "wb") as handle:
+        handle.write(encode_rgba_png(2, 2, rgba))
     return path
 
 
@@ -41,6 +54,43 @@ class TestReadReferenceCache(unittest.TestCase):
         self.assertIs(first, second)
         self.assertIsNone(first_error)
         self.assertIsNone(second_error)
+
+    def test_alpha_mode_is_part_of_the_cache_key(self):
+        # A plain decode has no alpha plane, so it cannot answer a request
+        # that asks for transparency: the cache must decode the path again
+        # rather than hand back the RGB-only image.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_rgba_reference(tmp)
+            with _spy_on_read_png() as spy:
+                plain, plain_error = reference_image.read_reference(path)
+                with_alpha, alpha_error = reference_image.read_reference(
+                    path, alpha=True
+                )
+        self.assertEqual(2, spy.call_count)
+        self.assertIsNone(plain.alpha)
+        self.assertEqual(with_alpha.alpha, _RGBA_ALPHAS)
+        self.assertIsNone(plain_error)
+        self.assertIsNone(alpha_error)
+
+    def test_a_bounded_alpha_decode_keeps_its_alpha_plane(self):
+        # Reusing a taller alpha decode for a smaller bound copies the top
+        # rows; the alpha plane must be copied to the same bound, or the
+        # caller gets an image with no transparency.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_rgba_reference(tmp)
+            with _spy_on_read_png() as spy:
+                tall, tall_error = reference_image.read_reference(
+                    path, alpha=True, max_rows=2
+                )
+                short, short_error = reference_image.read_reference(
+                    path, alpha=True, max_rows=1
+                )
+        self.assertEqual(1, spy.call_count)
+        self.assertEqual((tall.height, short.height), (2, 1))
+        self.assertEqual(tall.alpha, _RGBA_ALPHAS)
+        self.assertEqual(short.alpha, _RGBA_ALPHAS[:2])
+        self.assertIsNone(tall_error)
+        self.assertIsNone(short_error)
 
     def test_a_different_max_rows_is_decoded_separately(self):
         with tempfile.TemporaryDirectory() as tmp:

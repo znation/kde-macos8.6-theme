@@ -22,12 +22,16 @@ from support.repo_root import ROOT
 from tools import png  # noqa: E402
 from tools.png.stream import validate_max_rows  # noqa: E402
 
-# Decoded references, keyed by absolute path. A reference is a read-only Git
-# LFS asset that cannot change during a run, so a path is unfiltered at most
-# once: each entry remembers the ``max_rows`` bound its decode used, and a
-# later request reuses the decode whenever the decode already holds the rows
-# it needs (a bound that exceeded the image height means the whole image is
-# held). A request needing more rows re-decodes and replaces the entry.
+# Decoded references, keyed by (absolute path, alpha flag). A reference is a
+# read-only Git LFS asset that cannot change during a run, so a path is
+# unfiltered at most once per decode shape: each entry remembers the
+# ``max_rows`` bound its decode used, and a later request reuses the decode
+# whenever the decode already holds the rows it needs (a bound that exceeded
+# the image height means the whole image is held). A request needing more rows
+# re-decodes and replaces the entry. ``alpha`` is part of the key because it
+# changes the returned planes: an RGB decode has no alpha plane, so serving it
+# to an ``alpha=True`` request would silently drop the transparency the caller
+# asked for.
 _DECODED_REFERENCES = {}
 
 
@@ -36,12 +40,22 @@ def _bounded(image, max_rows):
 
     The rows are copied (a ``bytes`` slice), not re-decoded: PNG filtering is
     sequential, so the top *max_rows* rows of a taller decode are exactly what
-    a fresh bounded decode would produce.
+    a fresh bounded decode would produce. An alpha plane, when the decode has
+    one, is truncated to the same rows; dropping it would hand an
+    ``alpha=True`` request an image with no transparency.
     """
     if max_rows is None or image.height <= max_rows:
         return image
+    alpha = (
+        None
+        if image.alpha is None
+        else image.alpha[: max_rows * image.width]
+    )
     return png.Image(
-        image.width, max_rows, image.rgb[: max_rows * image.width * 3]
+        image.width,
+        max_rows,
+        image.rgb[: max_rows * image.width * 3],
+        alpha,
     )
 
 
@@ -51,18 +65,21 @@ def read_reference(path, **kwargs):
     *kwargs* go to ``png.read_png``. A ``PngError`` (the image is absent or an
     unmaterialized LFS pointer) comes back as ``(None, error)`` instead of
     raising, ready to hand to `skip_unless_materialized`. The decode is cached
-    per absolute path for the process: a later request reuses it whenever the
-    cached decode already holds the rows it needs (a bound that exceeded the
-    image height holds the whole image), so a screenshot several classes read
-    at different ``max_rows`` bounds is unfiltered once, not once per bound. A
-    request that needs more rows re-decodes and replaces the entry. An invalid
-    ``max_rows`` (not a positive plain int) is reported as an error whether or
-    not a decode is cached. A path that resolves outside the repository (a
-    checked-in symlink escape) is refused before the cache is consulted, so a
-    swapped symlink is refused even when an earlier request cached its target.
+    per absolute path and ``alpha`` mode for the process: a later request
+    reuses it whenever the cached decode already holds the rows it needs (a
+    bound that exceeded the image height holds the whole image), so a
+    screenshot several classes read at different ``max_rows`` bounds is
+    unfiltered once, not once per bound. A request that needs more rows
+    re-decodes and replaces the entry. The ``alpha`` mode is part of the cache
+    key because it changes the returned planes: an RGB-only decode cannot
+    answer a request for transparency. An invalid ``max_rows`` (not a positive
+    plain int) is reported as an error whether or not a decode is cached. A
+    path that resolves outside the repository (a checked-in symlink escape) is
+    refused before the cache is consulted, so a swapped symlink is refused
+    even when an earlier request cached its target.
     """
     containment.require_within_repo(path, ROOT)
-    key = os.path.abspath(str(path))
+    key = (os.path.abspath(str(path)), bool(kwargs.get("alpha", False)))
     max_rows = kwargs.get("max_rows")
     try:
         validate_max_rows(max_rows)
