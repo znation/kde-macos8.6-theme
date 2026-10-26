@@ -185,6 +185,32 @@
    leaving disabled rows, focus rings, separators, toolbar springs,
    panel-header buttons and the panel body Firefox's; declaration checks do
    not establish rendered pixels.
+
+   No reference shows Firefox's unified extensions panel; its row highlight
+   adapts the reference-grounded widgets/viewitem.svg and the sheet's
+   menu-item mapping (platform colour adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   Firefox's
+   chrome/browser/skin/classic/browser/addons/unified-extensions.css gives the
+   item buttons their --button-background-color-ghost-hover token and paints
+   the gear button's background transparent with its paint on the icon only;
+   chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css gives
+   .subviewbutton its --panel-menuitem-border-radius and its ghost hover, and
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css defines
+   those tokens. chrome/browser/content/browser/browser.xhtml defines
+   #unified-extensions-panel with #unified-extensions-view, a .panel-header,
+   #unified-extensions-area, the .unified-extensions-list rows holding a
+   unified-extensions-item-action-button and a
+   unified-extensions-item-menu-button, and the
+   #unified-extensions-manage-extensions footer.
+   chrome/browser/content/browser/browser-addons.js builds the empty state's
+   #unified-extensions-discover-extensions button as a moz-button carrying
+   .subviewbutton, which the row selectors exclude. The sheet squares and
+   recolours the rows only, and drops its generic toolbar bevel from the gear
+   menu button so Firefox's icon-only hover paint shows, leaving the panel
+   header, separators and empty state Firefox's; declaration checks do not
+   establish rendered pixels.
 */
 
 tooltip {
@@ -377,6 +403,26 @@ toolbarbutton:hover:active:not([disabled="true"]) {
 #widget-overflow .widget-overflow-list .toolbarbutton-1:hover:not([disabled]) {
   background-color: #CCCCFF !important;
   color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The unified extensions panel rows adapt the desktop theme's view item:
+   square corners and a flat #CCCCFF hover with black text and no toolbar
+   bevel. The gear menu button, the panel header and the empty state's
+   discover button keep Firefox's own paint. */
+#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions) {
+  border-radius: 0 !important;
+}
+
+#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The generic toolbar bevel would also paint the gear menu button, so drop it
+   there and leave Firefox's icon-only hover paint in place. */
+#unified-extensions-panel .unified-extensions-item-menu-button:hover {
   box-shadow: none !important;
 }
 

@@ -260,6 +260,17 @@ REQUIRED_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    "#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions)": {
+        "border-radius": "0 !important",
+    },
+    "#unified-extensions-panel .subviewbutton:not(.panel-header .subviewbutton):not(.unified-extensions-item-menu-button):not(#unified-extensions-discover-extensions):hover:not([disabled])": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    "#unified-extensions-panel .unified-extensions-item-menu-button:hover": {
+        "box-shadow": "none !important",
+    },
     "menupopup > menuseparator": {
         "padding": "0 !important",
         "margin": "2px 0 !important",
@@ -701,6 +712,141 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
                     matches(selector, {**nav_bar_button, "hover": True})
                 )
 
+    def test_unified_extensions_panel_row_paint_is_scoped_to_the_panel(self):
+        radius = (
+            "#unified-extensions-panel .subviewbutton"
+            ":not(.panel-header .subviewbutton)"
+            ":not(.unified-extensions-item-menu-button)"
+            ":not(#unified-extensions-discover-extensions)"
+        )
+        hover = radius + ":hover:not([disabled])"
+        gear_hover = (
+            "#unified-extensions-panel "
+            ".unified-extensions-item-menu-button:hover"
+        )
+        selectors = (radius, hover, gear_hover)
+        self.assertEqual(
+            {name for name in self.rules if "unified-extensions" in name},
+            set(selectors),
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#unified-extensions-panel"))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assertEqual(set(self.rules[gear_hover]), {"box-shadow"})
+        self.assertIn(":hover", hover)
+        self.assertIn(":not([disabled])", hover)
+        for selector in (radius, hover):
+            self.assertIn(
+                ":not(.unified-extensions-item-menu-button)", selector
+            )
+            self.assertIn(":not(.panel-header .subviewbutton)", selector)
+            self.assertIn(
+                ":not(#unified-extensions-discover-extensions)", selector
+            )
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--panel-menuitem-border-radius" in declarations},
+            set(),
+        )
+
+        def element(tag, identifier=None, classes=(), attrs=None,
+                    hover=False, parent=None):
+            return {
+                "tag": tag,
+                "id": identifier,
+                "classes": set(classes),
+                "attrs": dict(attrs or {}),
+                "hover": hover,
+                "parent": parent,
+            }
+
+        panel = element("panel", "unified-extensions-panel")
+        view = element(
+            "panelview", "unified-extensions-view",
+            ("cui-widget-panelview",), parent=panel,
+        )
+        body = element(
+            "vbox", classes=("panel-subview-body",), parent=view
+        )
+        extensions_list = element(
+            "vbox", classes=("unified-extensions-list",), parent=body
+        )
+        item = element("unified-extensions-item", parent=extensions_list)
+        row = element(
+            "box", classes=("unified-extensions-item-row-wrapper",),
+            parent=item,
+        )
+        action = element(
+            "toolbarbutton",
+            classes=(
+                "unified-extensions-item-action-button", "subviewbutton",
+            ),
+            parent=row,
+        )
+        gear = element(
+            "toolbarbutton",
+            classes=(
+                "unified-extensions-item-menu-button", "subviewbutton",
+                "subviewbutton-iconic",
+            ),
+            parent=row,
+        )
+        area = element("vbox", "unified-extensions-area", parent=body)
+        extension_btn = element(
+            "toolbarbutton",
+            classes=("webextension-browser-action", "subviewbutton"),
+            parent=area,
+        )
+        footer = element(
+            "toolbarbutton", "unified-extensions-manage-extensions",
+            ("subviewbutton", "panel-subview-footer-button"), parent=body,
+        )
+        discover = element(
+            "moz-button", "unified-extensions-discover-extensions",
+            ("subviewbutton", "panel-subview-footer-button"), parent=body,
+        )
+        header = element("box", classes=("panel-header",), parent=view)
+        header_button = element(
+            "toolbarbutton", "unified-extensions-header-button",
+            ("subviewbutton",), parent=header,
+        )
+        nav_bar_button = element(
+            "toolbarbutton", "nav-bar-button", ("toolbarbutton-1",),
+            parent=element("toolbar", "nav-bar"),
+        )
+
+        for name, row_button in (
+            ("action", action),
+            ("webextension", extension_btn),
+            ("footer", footer),
+        ):
+            with self.subTest(row=name):
+                self.assertTrue(matches(radius, row_button))
+                self.assertTrue(
+                    matches(hover, {**row_button, "hover": True})
+                )
+                self.assertFalse(matches(hover, row_button))
+
+        disabled = {
+            **action, "attrs": {"disabled": ""}, "hover": True,
+        }
+        self.assertFalse(matches(hover, disabled))
+
+        for name, unthemed in (
+            ("gear", gear),
+            ("header", header_button),
+            ("nav_bar", nav_bar_button),
+            ("discover", discover),
+        ):
+            with self.subTest(unthemed=name):
+                self.assertFalse(matches(radius, unthemed))
+                self.assertFalse(
+                    matches(hover, {**unthemed, "hover": True})
+                )
+        self.assertTrue(matches(gear_hover, {**gear, "hover": True}))
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -829,6 +975,23 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "widget-overflow-list",
             "widget-overflow-fixed-list",
             "#overflowMenu-customize-button",
+            "--panel-menuitem-border-radius",
+            "--button-background-color-ghost-hover",
+            "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's unified extensions panel",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "chrome/browser/skin/classic/browser/addons/unified-extensions.css",
+            "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
+            "chrome/browser/content/browser/browser.xhtml",
+            "chrome/browser/content/browser/browser-addons.js",
+            "#unified-extensions-discover-extensions",
+            "#unified-extensions-panel",
+            "#unified-extensions-view",
+            "unified-extensions-item-action-button",
+            "unified-extensions-item-menu-button",
+            "#unified-extensions-manage-extensions",
             "--panel-menuitem-border-radius",
             "--button-background-color-ghost-hover",
             "platform colour adaptation 2026-10-26",
