@@ -100,6 +100,13 @@ REQUIRED_RULES = {
         "border-radius": "0 !important",
         "box-shadow": "none !important",
     },
+    "#searchbar:not(:focus-within)": {
+        "background-color": f"{WHITE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": "none !important",
+    },
     ".urlbarView-row": {
         "border-radius": "0 !important",
     },
@@ -225,6 +232,14 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             {BLACK, WHITE, GREY, FACE, TROUGH, SELECTION, ETCH_DARK, TOOLTIP_FACE},
         )
 
+    def test_search_field_paint_is_scoped_to_the_unfocused_classic_field(self):
+        selector = "#searchbar:not(:focus-within)"
+        self.assertEqual(
+            {name for name in self.rules if "searchbar" in name},
+            {selector},
+        )
+        self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+
     def test_tooltip_face_is_scoped_to_explicit_tooltips(self):
         self.assertEqual(
             {selector for selector, declarations in self.rules.items()
@@ -268,6 +283,10 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "chrome/toolkit/content/global/xul.css",
             "selector; default native anonymous tooltips require UA styling",
             "outside this sheet's guarantee",
+            "No reference shows Firefox's optional classic search field",
+            "chrome/browser/skin/classic/browser/urlbar-searchbar.css",
+            "and owns the focused appearance",
+            "#searchbar-new stays Firefox's",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)

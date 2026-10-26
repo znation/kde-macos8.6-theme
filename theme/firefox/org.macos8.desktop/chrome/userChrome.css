@@ -23,6 +23,12 @@
    border reuse the Platinum menu face and black through that same consumer's
    --panel-background-color, --panel-text-color and --panel-border-color
    tokens (platform colour adaptation 2026-10-25).
+   No reference shows Firefox's optional classic search field; its unfocused
+   white face, square 1px black border and shadow-free paint follow this
+   sheet's #urlbar-background, and its black text follows the shared Platinum
+   foreground (platform adaptation 2026-10-25). Firefox's own
+   chrome/browser/skin/classic/browser/urlbar-searchbar.css paints #searchbar
+   and owns the focused appearance; #searchbar-new stays Firefox's.
 
    No reference shows Firefox tooltips or a Balloon Help balloon. Explicit
    XUL tooltip paint is a platform adaptation 2026-10-25: #FFFFCC comes from
@@ -96,6 +102,16 @@ tooltip {
 
 #urlbar-background {
   background-color: #FFFFFF !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Paint only the unfocused classic search field; Firefox owns its focused
+   appearance and the newer #searchbar-new widget. */
+#searchbar:not(:focus-within) {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: none !important;

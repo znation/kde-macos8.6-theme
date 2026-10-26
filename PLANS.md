@@ -77,23 +77,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Firefox Platinum chrome: paint the unfocused optional search field (planned 2026-10-25 by the plan role; independent of explicit XUL tooltips)
-
-**Goal.** Give Firefox's optional classic search field a white, square Platinum face when unfocused, while leaving its focused appearance to Firefox. This is one field-paint change, independent of the waiting tooltip plan.
-
-**Grounding.** Searches of the sheet, its tests, Planned and the finished plans found no `searchbar` styling. The finished standalone-sheet and secondary-chrome plans cover the address field and find bar instead. In the installed `/usr/lib/firefox-esr/browser/omni.ja`, `chrome/browser/skin/classic/browser/urlbar-searchbar.css` paints `#searchbar` itself; `.searchbar-textbox` is transparent and inherits its text colour. Firefox supplies separate `#searchbar:focus-within` background, outline, border and text rules. The newer `#searchbar-new` widget is a separate surface and is outside this plan.
-
-**Approach and files touched.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: add exactly `#searchbar:not(:focus-within)` with `background-color: #FFFFFF`, `color: #000000`, `border: 1px solid #000000`, `border-radius: 0` and `box-shadow: none`, each `!important`. Do not override shared field tokens, the inner textbox, outlines, dimensions, icons, suggestions or widget visibility. The focus guard must cover the entire paint rule.
-- Extend the header with a platform adaptation dated 2026-10-25: no reference shows Firefox's optional search field; the square 1px border and shadow-free face follow this sheet's `#urlbar-background`, and black text follows the shared Platinum foreground. Name the Firefox consumer above. Retain the white and black reference evidence in `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_window_view_background` and `test_window_chrome_foreground`; do not claim the search-field geometry is screenshot-sampled.
-- `tests/test_firefox_theme.py`: add the guarded selector and five declarations to `REQUIRED_RULES`, reusing `WHITE` and `BLACK`. Add a scope test requiring parsed selectors containing `searchbar` to be exactly this guarded selector and its declaration dictionary to equal the required dictionary. Pin the missing-reference statement, consumer path and focus limitation in the provenance test. Keep the palette set as it stands after any tooltip merge; this change adds no colour.
-- `docs/invariants.md`: extend the standalone-sheet row under `## firefox` with unfocused classic search-field paint, its scope test and dated provenance exception. Explicitly exclude focused paint and `#searchbar-new` from this guarantee.
-
-**Acceptance criteria.**
-- Required-rule checks reject a missing paint, wrong value or missing `!important`; the scope check rejects an unguarded rule or a second searchbar selector, preserving Firefox's focused styling at the declaration level.
-- `make check` passes without requiring an installed Firefox or adding dependencies. Keep the implementation within these three files.
-- Report declaration validation separately from live rendering; do not claim coverage of the newer search widget or rendered reference-pixel fidelity.
-
 ### Firefox Platinum chrome: pair the idle find field with black text (planned 2026-10-25 by the plan role; independent of the optional search-field plan)
 
 **Goal.** Pair the existing white find-field face with black text instead of Firefox's theme-dependent foreground, preserving its focused, not-found and flash states.
