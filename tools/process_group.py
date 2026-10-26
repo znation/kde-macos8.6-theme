@@ -25,6 +25,35 @@ from types import FrameType
 # fired must not turn back into an unbounded wait.
 _REAP_TIMEOUT = 5.0
 
+# The signals exit_on_termination turns into SystemExit. run_logged records
+# them while it starts a child, so the handler's exception cannot arrive before
+# its cleanup try/finally is established.
+_TERMINATION_SIGNALS = (signal.SIGTERM, signal.SIGHUP)
+
+
+def _defer_termination(deferred: list[int]) -> list[tuple[int, object]]:
+    """Record termination signals instead of raising while a child starts.
+
+    Only a callable handler is swapped out: the default action and an ignored
+    signal are left alone, since neither raises past the child's cleanup.
+    Returns the handlers to restore; *deferred* collects the signal numbers.
+    """
+    previous: list[tuple[int, object]] = []
+    for number in _TERMINATION_SIGNALS:
+        old = signal.getsignal(number)
+        if callable(old):
+            previous.append((number, old))
+            signal.signal(
+                number, lambda signum, frame: deferred.append(signum)
+            )
+    return previous
+
+
+def _restore_termination(previous: list[tuple[int, object]]) -> None:
+    for number, old in previous:
+        signal.signal(number, old)
+    previous.clear()
+
 
 def _kill_group(process: subprocess.Popen) -> None:
     try:
@@ -49,16 +78,34 @@ def run_logged(
     timeout result or the in-flight ``SystemExit``/``KeyboardInterrupt``.
     """
     with log.open("wb") as sink:
-        process = subprocess.Popen(
-            argv,
-            cwd=cwd,
-            env=env,
-            stdin=subprocess.DEVNULL,
-            stdout=sink,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
+        # Popen returns only after fork/exec, so a termination signal can arrive
+        # while it is still returning, before the cleanup below exists. The
+        # callable handler exit_on_termination installs raises SystemExit at the
+        # next bytecode, which would skip the group kill and leave the command
+        # running after the caller dies. Swap in a handler that records the
+        # signal instead, restore the real handlers once the try is entered, and
+        # raise the recorded signal's SystemExit there, where the cleanup runs.
+        deferred: list[int] = []
+        previous = _defer_termination(deferred)
         try:
+            process = subprocess.Popen(
+                argv,
+                cwd=cwd,
+                env=env,
+                stdin=subprocess.DEVNULL,
+                stdout=sink,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
+        except BaseException:
+            _restore_termination(previous)
+            if deferred:
+                raise SystemExit(128 + deferred[0]) from None
+            raise
+        try:
+            _restore_termination(previous)
+            if deferred:
+                raise SystemExit(128 + deferred[0])
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             return None
@@ -90,7 +137,7 @@ def exit_on_termination() -> Iterator[None]:
     def handler(signum: int, frame: FrameType | None) -> None:
         raise SystemExit(128 + signum)
 
-    signals = (signal.SIGTERM, signal.SIGHUP)
+    signals = _TERMINATION_SIGNALS
     previous = [signal.signal(number, handler) for number in signals]
     try:
         yield

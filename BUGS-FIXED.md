@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A SIGTERM that arrives while a child starts leaves the command running (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tools/process_group.run_logged` starts each external command with
+`subprocess.Popen` and only then enters the `try`/`finally` that kills the
+command's process group and reaps it. `exit_on_termination` turns SIGTERM into
+`SystemExit` at the next bytecode, so a SIGTERM delivered while `Popen` is still
+returning unwound the caller before that cleanup existed. The command kept
+running after `apply_theme` or `apply_cursor` had exited, and the suite's SIGTERM
+tests saw it still alive: `test_apply_theme.py::TestTermination::test_sigterm_kills_the_step_group_and_removes_scratch`
+intermittently failed with `AssertionError: ProcessLookupError not raised` under
+CPU load (observed once in 60 loaded runs before the fix).
+
+`run_logged` now swaps in a handler that records SIGTERM and SIGHUP while the
+`Popen` call runs, restores the caller's handlers once the cleanup `try` is
+entered, and raises the recorded signal's `SystemExit` there, so the group kill
+and reap still run. The child is untouched: the recording handler is replaced
+before the next command starts, and an executable does not inherit a Python
+handler anyway.
+
+**Validation gap:** no-fake — Confirming the race deterministically needed a patched `Popen` that signals the caller at the exact point the real one returns, a shim the suite did not have; the new test supplies it.
+
 ### CI parity cannot run because the specified workflow is absent (found by the ci role 2026-10-25) — fixed 2026-10-25 by the bugfix role
 
 At main tip `e3a2d88817bdaeb89f595d114d0d18f8fa268a82`, the CI role cannot

@@ -122,6 +122,46 @@ class TestRunLogged(unittest.TestCase):
         for wait_timeout in timeouts:
             self.assertIsNotNone(wait_timeout)
 
+    def test_a_sigterm_while_popen_returns_still_kills_the_child(self):
+        # exit_on_termination's handler raises SystemExit at the next
+        # bytecode. A SIGTERM that arrives while Popen is still returning was
+        # raised before run_logged's try/finally was entered, so the group
+        # kill was skipped and the command kept running after the caller
+        # died. Deliver the signal from inside Popen, at the exact point the
+        # real one returns, so the race is deterministic.
+        real_popen = subprocess.Popen
+        child = {}
+
+        def popen_then_terminate(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            child["pid"] = process.pid
+            os.kill(os.getpid(), signal.SIGTERM)
+            return process
+
+        def kill_child():
+            pid = child.get("pid")
+            if pid is not None:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    pass
+
+        self.addCleanup(kill_child)
+        with mock.patch.object(
+            process_group.subprocess, "Popen", side_effect=popen_then_terminate
+        ):
+            with process_group.exit_on_termination():
+                with self.assertRaises(SystemExit) as caught:
+                    process_group.run_logged(
+                        ["/bin/sleep", "60"],
+                        dict(os.environ),
+                        self.log,
+                        30,
+                        self.root,
+                    )
+        self.assertEqual(128 + signal.SIGTERM, caught.exception.code)
+        self.assertTrue(is_gone(child["pid"]))
+
     def test_a_reap_timeout_does_not_replace_the_signal_that_interrupted_the_wait(self):
         # A SIGTERM or SIGHUP makes exit_on_termination's handler raise
         # SystemExit out of the first wait. If the just-killed child is in
