@@ -57,7 +57,8 @@
    (#downloadsListBox:empty { display: none; }). No
    rule is added for the page background, .downloadButton, #downloadsHistory,
    #downloadsListEmptyDescription or the #downloadsContextMenu context menu.
-   This sheet is not installed until part 2/2 adds it to make install-firefox.
+   Part 2/2 installs it through make install-firefox. It is part 2/2 of the
+   opt-in install.
 */
 
 @-moz-document url("about:downloads") {

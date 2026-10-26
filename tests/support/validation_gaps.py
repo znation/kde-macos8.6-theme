@@ -163,18 +163,18 @@ GTK_SYMLINK_GUARANTEE = (
 )
 
 FIREFOX_SYMLINK_GUARANTEE = (
-    "a `userChrome.css` or `user.js` path that is a symbolic link is refused "
-    "by name before the install writes or the removal deletes anything, so "
-    "the user's link and the file it names are left untouched instead of the "
-    "link being replaced or deleted"
+    "a sheet or `user.js` path that is a symbolic link is refused by name "
+    "before the install writes or the removal deletes anything, so the "
+    "user's link and the file it names are left untouched instead of the link "
+    "being replaced or deleted"
 )
 
 BOM_MARKER_GUARANTEE = (
-    "a leading UTF-8 BOM does not hide our sheet marker"
+    "a leading UTF-8 BOM does not hide either sheet marker"
 )
 
 USER_JS_BOM_MARKER_GUARANTEE = (
-    "a leading UTF-8 BOM does not hide our sheet marker or our `user.js` "
+    "a leading UTF-8 BOM does not hide either sheet marker or our `user.js` "
     "marker block"
 )
 
@@ -375,11 +375,14 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     ),
     UnclearInvariant(
         "firefox-empty-user-chrome",
-        ("empty `userChrome.css`",),
+        (
+            "empty `userChrome.css`",
+            "adopts an empty sheet of either name",
+        ),
         "tests/test_firefox_install.py::TestInstall"
-        "::test_an_empty_user_chrome_is_adopted",
-        "adopts an empty `userChrome.css`, refuses a non-empty foreign "
-        "`userChrome.css`",
+        "::test_an_empty_sheet_is_adopted",
+        "adopts an empty sheet of either name, refuses a non-empty foreign "
+        "sheet of either name",
     ),
     UnclearInvariant(
         "cursor-sub-grid-hotspot",
@@ -403,21 +406,30 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     ),
     UnclearInvariant(
         "firefox-symlinked-profile-file",
-        ("A Firefox install replaces or removes a symlinked",),
+        (
+            "A Firefox install replaces or removes a symlinked",
+            "a sheet or `user.js` path that is a symbolic link is refused",
+        ),
         "tests/test_firefox_install.py::TestInstall"
-        "::test_install_refuses_a_symlinked_user_chrome_before_writing_anything",
+        "::test_install_refuses_symlinked_profile_files_before_writing_anything",
         FIREFOX_SYMLINK_GUARANTEE,
     ),
     UnclearInvariant(
         "bom-before-marker",
-        ("A UTF-8 BOM before our marker",),
+        (
+            "A UTF-8 BOM before our marker",
+            "a leading UTF-8 BOM does not hide either sheet marker",
+        ),
         "tests/test_firefox_install.py::TestInstall"
         "::test_a_bom_before_our_marker_keeps_the_sheet_ours",
         BOM_MARKER_GUARANTEE,
     ),
     UnclearInvariant(
         "user-js-bom-before-marker",
-        ("A UTF-8 BOM before our Firefox `user.js` marker",),
+        (
+            "A UTF-8 BOM before our Firefox `user.js` marker",
+            "a leading UTF-8 BOM does not hide either sheet marker or our `user.js` marker block",
+        ),
         "tests/test_firefox_install.py::TestUserJs"
         "::test_a_bom_before_our_marker_still_matches_the_block",
         USER_JS_BOM_MARKER_GUARANTEE,

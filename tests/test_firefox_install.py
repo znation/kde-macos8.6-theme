@@ -18,9 +18,11 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.cli_fixtures import run_main
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.tmp_dir import make_tmp_dir
+from test_firefox_content_theme import MARKER as CONTENT_MARKER
 from tools import firefox_profile, firefox_user_files, firefox_user_js, install_firefox
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
+CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET
 
 
 def _read(path):
@@ -53,6 +55,9 @@ class ProfileCase(unittest.TestCase):
 
     def sheet_path(self):
         return self.profile / "chrome" / "userChrome.css"
+
+    def content_sheet_path(self):
+        return self.profile / "chrome" / "userContent.css"
 
     def user_js_path(self):
         return self.profile / "user.js"
@@ -449,6 +454,11 @@ class TestUserJs(unittest.TestCase):
             install_firefox.CSS_MARKER,
         )
         self.assertEqual(
+            "/* org.macos8.desktop Firefox content, standalone userContent.css",
+            install_firefox.CONTENT_CSS_MARKER,
+        )
+        self.assertEqual(CONTENT_MARKER, install_firefox.CONTENT_CSS_MARKER)
+        self.assertEqual(
             "// org.macos8.desktop Firefox Platinum userChrome",
             firefox_user_js.USER_JS_MARKER,
         )
@@ -456,10 +466,16 @@ class TestUserJs(unittest.TestCase):
             'user_pref("toolkit.legacyUserProfileCustomizations.stylesheets", true);',
             firefox_user_js.PREF_LINE,
         )
-        first_line = containment.read_bytes(SHEET_PATH, repo_root.ROOT).decode(
-            "utf-8"
-        ).splitlines()[0]
-        self.assertEqual(install_firefox.CSS_MARKER, first_line)
+        for path, marker in (
+            (SHEET_PATH, install_firefox.CSS_MARKER),
+            (CONTENT_SHEET_PATH, install_firefox.CONTENT_CSS_MARKER),
+        ):
+            with self.subTest(sheet=path.name):
+                self.assertTrue(path.is_file())
+                first_line = containment.read_bytes(
+                    path, repo_root.ROOT
+                ).decode("utf-8").splitlines()[0]
+                self.assertEqual(marker, first_line)
 
     def test_new_file_gets_one_marker_and_pref_block(self):
         self.assertEqual(
@@ -687,6 +703,10 @@ class TestInstall(ProfileCase):
             self.sheet_path().read_bytes(),
         )
         self.assertEqual(
+            containment.read_bytes(CONTENT_SHEET_PATH, repo_root.ROOT),
+            self.content_sheet_path().read_bytes(),
+        )
+        self.assertEqual(
             foreign + firefox_user_js.USER_JS_MARKER + "\r\n"
             + firefox_user_js.PREF_LINE + "\r\n",
             _read(self.user_js_path()),
@@ -697,15 +717,21 @@ class TestInstall(ProfileCase):
         self.assertTrue(profile_link.is_symlink())
         self.assertEqual(self.profile, profile_link.readlink())
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertEqual(foreign.encode("utf-8"), self.user_js_path().read_bytes())
 
-    def test_install_copies_the_sheet_byte_for_byte_and_adds_one_block(self):
+    def test_install_copies_the_sheets_byte_for_byte_and_adds_one_block(self):
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(
-            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
-            self.sheet_path().read_bytes(),
-        )
+        for shipped, installed in (
+            (SHEET_PATH, self.sheet_path()),
+            (CONTENT_SHEET_PATH, self.content_sheet_path()),
+        ):
+            with self.subTest(sheet=installed.name):
+                self.assertEqual(
+                    containment.read_bytes(shipped, repo_root.ROOT),
+                    installed.read_bytes(),
+                )
         user_js = _read(self.user_js_path())
         self.assertEqual(
             firefox_user_js.USER_JS_MARKER
@@ -731,71 +757,97 @@ class TestInstall(ProfileCase):
         )
         self.assertEqual(first, _read(self.user_js_path()))
 
-    def test_an_empty_user_chrome_is_adopted(self):
+    def test_an_empty_sheet_is_adopted(self):
         # An empty file holds nothing to preserve, so it is ours to fill
         # instead of being refused as a foreign sheet.
-        self.sheet_path().parent.mkdir(parents=True)
-        self.sheet_path().write_bytes(b"")
-        result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(
-            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
-            self.sheet_path().read_bytes(),
+        for empty in (self.sheet_path(), self.content_sheet_path()):
+            with self.subTest(sheet=empty.name):
+                profile = self.root / ("empty-" + empty.name)
+                profile.mkdir()
+                path = profile / "chrome" / empty.name
+                path.parent.mkdir(parents=True)
+                path.write_bytes(b"")
+                result = self.run_tool("--profile", str(profile))
+                self.assertEqual(0, result.returncode, result.stderr)
+                shipped = (
+                    SHEET_PATH
+                    if empty.name == "userChrome.css"
+                    else CONTENT_SHEET_PATH
+                )
+                self.assertEqual(
+                    containment.read_bytes(shipped, repo_root.ROOT),
+                    path.read_bytes(),
+                )
+                self.assertIn(
+                    firefox_user_js.USER_JS_MARKER,
+                    _read(profile / "user.js"),
+                )
+
+    def test_a_foreign_sheet_is_refused_and_nothing_is_written(self):
+        for relative in ("chrome/userChrome.css", "chrome/userContent.css"):
+            with self.subTest(sheet=relative):
+                profile = self.root / ("foreign-" + relative.replace("/", "-"))
+                profile.mkdir()
+                foreign_path = profile / relative
+                other = (
+                    profile / "chrome" / "userContent.css"
+                    if relative.endswith("userChrome.css")
+                    else profile / "chrome" / "userChrome.css"
+                )
+                foreign = "/* my own sheet */\nbody { color: red; }\n"
+                _write(foreign_path, foreign)
+                result = self.run_tool("--profile", str(profile))
+                self.assertEqual(1, result.returncode)
+                self.assertIn(str(foreign_path), result.stderr)
+                self.assertEqual(foreign, _read(foreign_path))
+                self.assertFalse(other.exists())
+                self.assertFalse((profile / "user.js").exists())
+
+    def test_install_refuses_symlinked_profile_files_before_writing_anything(self):
+        # A dotfile manager commonly makes one of these profile files a symlink
+        # to a file it manages. Replacing that link with a regular file would
+        # detach the profile from the file the user meant to edit, so every
+        # destination is refused before any of the three is written.
+        destinations = (
+            "chrome/userChrome.css",
+            "chrome/userContent.css",
+            "user.js",
         )
-        self.assertIn(
-            firefox_user_js.USER_JS_MARKER, _read(self.user_js_path())
-        )
+        for relative in destinations:
+            with self.subTest(path=relative):
+                profile = self.root / ("linked-" + relative.replace("/", "-"))
+                profile.mkdir()
+                link = profile / relative
+                link.parent.mkdir(parents=True, exist_ok=True)
+                target = self.root / "dotfiles" / profile.name / Path(relative).name
+                target.parent.mkdir(parents=True)
+                original = (
+                    b'user_pref("keep.me", true);\n'
+                    if relative == "user.js"
+                    else b""
+                )
+                target.write_bytes(original)
+                self.create_symlink(link, target)
 
-    def test_foreign_user_chrome_is_refused_and_nothing_is_written(self):
-        foreign = "/* my own chrome */\n.tabbrowser-tab { color: red; }\n"
-        _write(self.sheet_path(), foreign)
-        result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(1, result.returncode)
-        self.assertIn(str(self.sheet_path()), result.stderr)
-        self.assertEqual(foreign, _read(self.sheet_path()))
-        self.assertFalse(self.user_js_path().exists())
+                result = self.run_tool("--profile", str(profile))
 
-    def test_install_refuses_a_symlinked_user_chrome_before_writing_anything(self):
-        # A dotfile manager commonly makes userChrome.css a symlink to a file
-        # it manages. Replacing that link with a regular file would detach the
-        # profile from the file the user meant to edit.
-        target = self.root / "dotfiles" / "userChrome.css"
-        target.parent.mkdir(parents=True)
-        target.write_bytes(b"")
-        link = self.sheet_path()
-        link.parent.mkdir(parents=True)
-        self.create_symlink(link, target)
-
-        result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {link}", result.stderr)
-        self.assertIn("symbolic link", result.stderr)
-        # The refused link and the file it names are untouched, and the
-        # preference file was not written either.
-        self.assertTrue(link.is_symlink())
-        self.assertEqual(b"", target.read_bytes())
-        self.assertFalse(self.user_js_path().exists())
-
-    def test_install_refuses_a_symlinked_user_js_before_writing_anything(self):
-        target = self.root / "dotfiles" / "user.js"
-        target.parent.mkdir(parents=True)
-        original = 'user_pref("keep.me", true);\n'
-        target.write_text(original, encoding="utf-8")
-        link = self.user_js_path()
-        self.create_symlink(link, target)
-
-        result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(2, result.returncode)
-        self.assertIn(f"cannot write {link}", result.stderr)
-        self.assertIn("symbolic link", result.stderr)
-        # The link and its target are untouched, and the sheet was not
-        # written before the second path was refused.
-        self.assertTrue(link.is_symlink())
-        self.assertEqual(original, target.read_text(encoding="utf-8"))
-        self.assertFalse(self.sheet_path().exists())
+                self.assertEqual(2, result.returncode)
+                self.assertIn(f"cannot write {link}", result.stderr)
+                self.assertIn("symbolic link", result.stderr)
+                # The refused link and the file it names are untouched, and
+                # neither sibling destination was written.
+                self.assertTrue(link.is_symlink())
+                self.assertEqual(original, target.read_bytes())
+                for other in destinations:
+                    if other != relative:
+                        self.assertFalse((profile / other).exists())
 
     def test_install_refuses_dangling_profile_links_before_writing_anything(self):
-        for relative in ("chrome/userChrome.css", "user.js"):
+        for relative in (
+            "chrome/userChrome.css",
+            "chrome/userContent.css",
+            "user.js",
+        ):
             with self.subTest(path=relative):
                 profile = self.root / relative.replace("/", "-")
                 profile.mkdir()
@@ -822,22 +874,34 @@ class TestInstall(ProfileCase):
                 self.assertEqual(target, link.readlink())
                 self.assertFalse(target.exists())
                 self.assertEqual(original, sibling.read_bytes())
-                self.assertEqual({sheet, js, sheet.parent}, set(profile.rglob("*")))
+                self.assertEqual(
+                    {sheet.parent, link, sibling},
+                    set(profile.rglob("*")),
+                )
 
     def test_a_bom_before_our_marker_keeps_the_sheet_ours(self):
         # A UTF-8 BOM is valid in CSS and some editors add one. It must not
         # make our marker-led sheet look foreign: the install replaces it with
         # the shipped sheet, and the removal deletes it.
-        _write(
-            self.sheet_path(),
-            f"\ufeff{install_firefox.CSS_MARKER}\nbody {{}}\n",
-        )
-        result = self.run_tool("--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(
-            containment.read_bytes(SHEET_PATH, repo_root.ROOT),
-            self.sheet_path().read_bytes(),
-        )
+        for relative, marker, shipped in (
+            ("chrome/userChrome.css", install_firefox.CSS_MARKER, SHEET_PATH),
+            (
+                "chrome/userContent.css",
+                install_firefox.CONTENT_CSS_MARKER,
+                CONTENT_SHEET_PATH,
+            ),
+        ):
+            with self.subTest(sheet=relative):
+                profile = self.root / ("bom-" + relative.replace("/", "-"))
+                profile.mkdir()
+                path = profile / relative
+                _write(path, f"\ufeff{marker}\nbody {{}}\n")
+                result = self.run_tool("--profile", str(profile))
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertEqual(
+                    containment.read_bytes(shipped, repo_root.ROOT),
+                    path.read_bytes(),
+                )
 
     def test_an_uncreatable_chrome_directory_is_reported_by_path(self):
         # _apply promises a by-name "cannot create" error when the chrome
@@ -849,6 +913,7 @@ class TestInstall(ProfileCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot create {self.sheet_path().parent}", result.stderr)
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertFalse(self.user_js_path().exists())
 
     def test_a_failed_user_js_write_is_reported_by_path(self):
@@ -864,14 +929,19 @@ class TestInstall(ProfileCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertFalse(self.user_js_path().exists())
 
-    def test_a_failed_user_js_write_restores_the_previous_sheet(self):
-        # A repeat install over an earlier sheet of ours must not replace it
-        # when the user.js write fails: the previous sheet is put back, not
+    def test_a_failed_user_js_write_restores_both_previous_sheets(self):
+        # A repeat install over earlier sheets of ours must not replace them
+        # when the user.js write fails: each previous sheet is put back, not
         # deleted and not left as the new one.
         previous = f"{install_firefox.CSS_MARKER}\n/* previous sheet */\n"
+        previous_content = (
+            f"{install_firefox.CONTENT_CSS_MARKER}\n/* previous content */\n"
+        )
         _write(self.sheet_path(), previous)
+        _write(self.content_sheet_path(), previous_content)
         real_write = firefox_user_files.write_atomically
 
         def flaky_write(path, writer):
@@ -884,6 +954,7 @@ class TestInstall(ProfileCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
         self.assertEqual(previous, _read(self.sheet_path()))
+        self.assertEqual(previous_content, _read(self.content_sheet_path()))
         self.assertFalse(self.user_js_path().exists())
 
     def test_a_failed_user_js_write_keeps_a_block_that_was_already_installed(self):
@@ -955,6 +1026,7 @@ class TestInstall(ProfileCase):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
         self.assertEqual(previous, _read(self.sheet_path()))
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertFalse(self.user_js_path().exists())
 
     def test_an_interrupt_after_the_user_js_write_takes_effect_restores_it(self):
@@ -979,6 +1051,7 @@ class TestInstall(ProfileCase):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
         self.assertEqual(previous_sheet, _read(self.sheet_path()))
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertEqual(previous_js, _read(self.user_js_path()))
 
     def test_an_interrupt_after_a_created_user_js_is_published_removes_it(self):
@@ -999,6 +1072,7 @@ class TestInstall(ProfileCase):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertFalse(self.user_js_path().exists())
 
     def test_a_failed_user_js_restore_is_reported_with_the_original_error(self):
@@ -1047,6 +1121,7 @@ class TestInstall(ProfileCase):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--profile", str(self.profile))
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertFalse(self.user_js_path().exists())
 
     def test_a_failed_new_sheet_restore_is_reported_with_the_original_error(self):
@@ -1094,6 +1169,44 @@ class TestInstall(ProfileCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.sheet_path()}", result.stderr)
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_a_failed_user_content_write_removes_the_published_user_chrome(self):
+        # The content sheet is published after userChrome.css; a failure on
+        # that second write must name the content path and roll the already
+        # published chrome sheet back, leaving no user.js behind.
+        with mock.patch.object(
+            firefox_user_files,
+            "write_atomically",
+            self.fail_write_to(self.content_sheet_path()),
+        ):
+            result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {self.content_sheet_path()}", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_an_interrupt_after_the_user_content_write_takes_effect_removes_both(self):
+        # The content-sheet write can publish its file and then raise before
+        # the call returns. The rollback must remove that sheet as well as the
+        # already published chrome sheet, and leave no user.js behind.
+        real_write = firefox_user_files.write_atomically
+
+        def interrupt_after_the_content_write(path, writer):
+            if Path(path) == self.content_sheet_path():
+                real_write(path, writer)
+                raise KeyboardInterrupt
+            return real_write(path, writer)
+
+        with mock.patch.object(
+            firefox_user_files, "write_atomically", interrupt_after_the_content_write
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--profile", str(self.profile))
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertFalse(self.user_js_path().exists())
 
     def test_a_missing_shipped_sheet_is_reported_by_path(self):
@@ -1194,13 +1307,18 @@ class TestRemove(ProfileCase):
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
 
-    def test_remove_deletes_our_sheet_and_block_and_keeps_the_directory(self):
+    def test_remove_deletes_our_sheets_and_block_and_keeps_the_directory(self):
         self.install()
         result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertTrue(self.sheet_path().parent.is_dir())
         self.assertEqual("", _read(self.user_js_path()))
+        self.assertEqual(
+            {self.sheet_path().parent, self.user_js_path()},
+            set(self.profile.rglob("*")),
+        )
 
     def test_remove_is_repeatable(self):
         self.install()
@@ -1231,21 +1349,28 @@ class TestRemove(ProfileCase):
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual(foreign, _read(self.user_js_path()))
 
-    def test_remove_deletes_a_bom_prefixed_our_sheet(self):
-        sheet_text = f"\ufeff{install_firefox.CSS_MARKER}\nbody {{}}\n"
-        _write(self.sheet_path(), sheet_text)
-        block = (
-            firefox_user_js.USER_JS_MARKER
-            + "\n"
-            + firefox_user_js.PREF_LINE
-            + "\n"
-        )
-        _write(self.user_js_path(), block)
+    def test_remove_deletes_bom_prefixed_our_sheets(self):
+        for relative, marker in (
+            ("chrome/userChrome.css", install_firefox.CSS_MARKER),
+            ("chrome/userContent.css", install_firefox.CONTENT_CSS_MARKER),
+        ):
+            with self.subTest(sheet=relative):
+                profile = self.root / ("bom-remove-" + relative.replace("/", "-"))
+                profile.mkdir()
+                path = profile / relative
+                _write(path, f"\ufeff{marker}\nbody {{}}\n")
+                block = (
+                    firefox_user_js.USER_JS_MARKER
+                    + "\n"
+                    + firefox_user_js.PREF_LINE
+                    + "\n"
+                )
+                _write(profile / "user.js", block)
 
-        result = self.run_tool("--remove", "--profile", str(self.profile))
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertFalse(self.sheet_path().exists())
-        self.assertEqual("", _read(self.user_js_path()))
+                result = self.run_tool("--remove", "--profile", str(profile))
+                self.assertEqual(0, result.returncode, result.stderr)
+                self.assertFalse(path.exists())
+                self.assertEqual("", _read(profile / "user.js"))
 
     def test_remove_keeps_a_foreign_sheet_and_foreign_pref(self):
         foreign_sheet = "/* my own chrome */\n"
@@ -1257,12 +1382,54 @@ class TestRemove(ProfileCase):
         self.assertEqual(foreign_sheet, _read(self.sheet_path()))
         self.assertEqual(foreign_js, _read(self.user_js_path()))
 
+    def test_remove_keeps_a_foreign_user_content_and_removes_our_user_chrome(self):
+        foreign_content = "/* my own content */\n"
+        _write(self.content_sheet_path(), foreign_content)
+        _write(self.sheet_path(), f"{install_firefox.CSS_MARKER}\n/* owned */\n")
+        block = (
+            firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.PREF_LINE
+            + "\n"
+        )
+        _write(self.user_js_path(), block)
+
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertEqual(foreign_content, _read(self.content_sheet_path()))
+        self.assertEqual("", _read(self.user_js_path()))
+
+    def test_remove_deletes_our_user_content_when_user_chrome_is_absent(self):
+        _write(
+            self.content_sheet_path(),
+            f"{install_firefox.CONTENT_CSS_MARKER}\n/* owned */\n",
+        )
+        block = (
+            firefox_user_js.USER_JS_MARKER
+            + "\n"
+            + firefox_user_js.PREF_LINE
+            + "\n"
+        )
+        _write(self.user_js_path(), block)
+
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
+        self.assertEqual("", _read(self.user_js_path()))
+
     def test_remove_preserves_dangling_links_and_cleans_the_owned_sibling(self):
-        for relative in ("chrome/userChrome.css", "user.js"):
+        for relative in (
+            "chrome/userChrome.css",
+            "chrome/userContent.css",
+            "user.js",
+        ):
             with self.subTest(path=relative):
                 profile = self.root / relative.replace("/", "-")
                 profile.mkdir()
                 sheet = profile / "chrome" / "userChrome.css"
+                content = profile / "chrome" / "userContent.css"
                 js = profile / "user.js"
                 sheet.parent.mkdir()
                 link = profile / relative
@@ -1290,7 +1457,8 @@ class TestRemove(ProfileCase):
                     expected = {sheet.parent, sheet, js}
                 else:
                     self.assertFalse(sheet.exists())
-                    expected = {sheet.parent, js}
+                    self.assertFalse(content.exists() and content != link)
+                    expected = {sheet.parent, link}
                 self.assertEqual(expected, set(profile.rglob("*")))
 
     def test_remove_refuses_a_symlinked_sheet_before_deleting_anything(self):
@@ -1368,27 +1536,31 @@ class TestRemove(ProfileCase):
         self.assertFalse(self.sheet_path().exists())
 
     def test_an_unreadable_profile_file_is_reported_by_name(self):
-        # read_profile_text opens both profile files through the shared regular-file
-        # reader. A self-referential symlink makes that open fail with ELOOP,
-        # an OSError, deterministically -- no dependence on file permissions
-        # or on the test user. The directory and FIFO fixtures reach the
-        # ValueError arm and the stray-byte fixture the decode arm, so this
-        # pins the OSError arm that becomes a by-name ConfigError.
-        for name in ("userChrome.css", "user.js"):
+        # read_profile_text opens every profile file through the shared
+        # regular-file reader. A self-referential symlink makes that open fail
+        # with ELOOP, an OSError, deterministically -- no dependence on file
+        # permissions or on the test user. The directory and FIFO fixtures
+        # reach the ValueError arm and the stray-byte fixture the decode arm,
+        # so this pins the OSError arm that becomes a by-name ConfigError.
+        for name in ("userChrome.css", "userContent.css", "user.js"):
             with self.subTest(profile_file=name):
                 profile = self.root / f"unreadable-{name}"
                 profile.mkdir()
-                sheet = profile / "chrome" / "userChrome.css"
-                js = profile / "user.js"
-                unreadable = sheet if name == "userChrome.css" else js
-                untouched = js if name == "userChrome.css" else sheet
+                paths = {
+                    "userChrome.css": profile / "chrome" / "userChrome.css",
+                    "userContent.css": profile / "chrome" / "userContent.css",
+                    "user.js": profile / "user.js",
+                }
+                unreadable = paths[name]
+                untouched = [path for label, path in paths.items() if label != name]
                 unreadable.parent.mkdir(parents=True, exist_ok=True)
                 self.create_symlink(unreadable, unreadable)
                 result = self.run_tool("--profile", str(profile))
                 self.assertEqual(2, result.returncode)
                 self.assertIn(f"cannot read {unreadable}", result.stderr)
                 self.assertIn(os.strerror(errno.ELOOP), result.stderr)
-                self.assertFalse(untouched.exists())
+                for path in untouched:
+                    self.assertFalse(path.exists())
 
     def test_a_fifo_at_either_profile_file_is_refused_without_blocking(self):
         # A plain read_bytes on a FIFO waits forever for a writer, so it would
@@ -1400,10 +1572,11 @@ class TestRemove(ProfileCase):
             "sys.exit(main(sys.argv[1:]))"
         )
         files = (
-            ("userChrome.css", Path("chrome") / "userChrome.css", Path("user.js")),
-            ("user.js", Path("user.js"), Path("chrome") / "userChrome.css"),
+            ("userChrome.css", Path("chrome") / "userChrome.css"),
+            ("userContent.css", Path("chrome") / "userContent.css"),
+            ("user.js", Path("user.js")),
         )
-        for name, fifo, untouched in files:
+        for name, fifo in files:
             with self.subTest(profile_file=name):
                 profile = self.root / f"fifo-{name}"
                 profile.mkdir()
@@ -1418,7 +1591,9 @@ class TestRemove(ProfileCase):
                         timeout=10,
                     )
                 assert_fifo_refused(self, child, fifo_path)
-                self.assertFalse((profile / untouched).exists())
+                for other_name, other in files:
+                    if other_name != name:
+                        self.assertFalse((profile / other).exists())
 
     def test_a_failed_user_js_write_during_removal_is_reported_by_path(self):
         # Removal rewrites user.js before it deletes the sheet. A failure on
@@ -1451,6 +1626,49 @@ class TestRemove(ProfileCase):
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot remove {self.sheet_path()}", result.stderr)
         self.assertEqual(sheet, _read(self.sheet_path()))
+        self.assertEqual(before_js, _read(self.user_js_path()))
+
+    def test_a_failed_user_content_unlink_is_reported_by_path(self):
+        # Both owned sheets are deleted in SHEETS order. A failure on the
+        # second unlink must name that sheet, leave it in place, and restore
+        # the user.js rewrite because the content sheet still remains.
+        self.install()
+        before_js = _read(self.user_js_path())
+        before_content = _read(self.content_sheet_path())
+        real_unlink = Path.unlink
+
+        def flaky_unlink(path, *args, **kwargs):
+            if Path(path) == self.content_sheet_path():
+                raise OSError("simulated failure")
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", flaky_unlink):
+            result = self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {self.content_sheet_path()}", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertEqual(before_content, _read(self.content_sheet_path()))
+        self.assertEqual(before_js, _read(self.user_js_path()))
+
+    def test_an_interrupt_after_only_the_first_sheet_unlink_restores_user_js(self):
+        # An interrupt after the first sheet unlink leaves the second sheet
+        # present, so the removal is half-applied and must put the previous
+        # user.js back instead of keeping the rewritten one.
+        self.install()
+        before_js = _read(self.user_js_path())
+        real_unlink = Path.unlink
+
+        def interrupt_after_the_chrome_unlink(path, *args, **kwargs):
+            if Path(path) == self.sheet_path():
+                real_unlink(path, *args, **kwargs)
+                raise KeyboardInterrupt
+            return real_unlink(path, *args, **kwargs)
+
+        with mock.patch.object(Path, "unlink", interrupt_after_the_chrome_unlink):
+            with self.assertRaises(KeyboardInterrupt):
+                self.run_tool("--remove", "--profile", str(self.profile))
+        self.assertFalse(self.sheet_path().exists())
+        self.assertTrue(self.content_sheet_path().exists())
         self.assertEqual(before_js, _read(self.user_js_path()))
 
     def test_a_failed_user_js_restore_during_removal_names_both_errors(self):
@@ -1533,16 +1751,17 @@ class TestRemove(ProfileCase):
         before_js = _read(self.user_js_path())
         real_unlink = Path.unlink
 
-        def interrupt_after_the_sheet_unlink(path, *args, **kwargs):
-            if Path(path) == self.sheet_path():
+        def interrupt_after_the_last_sheet_unlink(path, *args, **kwargs):
+            if Path(path) == self.content_sheet_path():
                 real_unlink(path, *args, **kwargs)
                 raise KeyboardInterrupt
             return real_unlink(path, *args, **kwargs)
 
-        with mock.patch.object(Path, "unlink", interrupt_after_the_sheet_unlink):
+        with mock.patch.object(Path, "unlink", interrupt_after_the_last_sheet_unlink):
             with self.assertRaises(KeyboardInterrupt):
                 self.run_tool("--remove", "--profile", str(self.profile))
         self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
         self.assertEqual(
             firefox_user_js.remove_user_js(before_js), _read(self.user_js_path())
         )

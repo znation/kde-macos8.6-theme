@@ -2,8 +2,8 @@
 
 No reference screenshot shows Firefox's content-area downloads page, so the
 palette is the shared Platinum palette and the geometry adapts this theme's
-line-edit field and list-item row. The sheet is standalone; the opt-in
-profile install that copies it arrives in part 2/2.
+line-edit field and list-item row. The opt-in profile install copies it
+beside userChrome.css through make install-firefox.
 """
 
 from __future__ import annotations

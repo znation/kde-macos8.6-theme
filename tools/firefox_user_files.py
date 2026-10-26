@@ -1,10 +1,10 @@
 """The Firefox profile files the installer reads and writes.
 
-``make install-firefox`` touches two files in one opt-in Firefox profile:
-``chrome/userChrome.css``, the Platinum sheet it copies, and ``user.js``, the
-preference file whose marker block it adds or removes. This module holds where
-those files live, the bounded non-blocking read they share, and the atomic
-write that publishes them.
+``make install-firefox`` touches three files in one opt-in Firefox profile:
+``chrome/userChrome.css`` and ``chrome/userContent.css``, the two Platinum
+sheets it copies, and ``user.js``, the preference file whose marker block it
+adds or removes. This module holds where those files live, the bounded
+non-blocking read they share, and the atomic write that publishes them.
 
 :class:`ConfigError` is the Firefox install's refusal type: every read and
 write below raises it, and so do profile discovery and the install workflow,
@@ -44,6 +44,11 @@ MAX_PROFILE_FILE_BYTES = 1 << 20
 def user_chrome_path(profile: Path) -> Path:
     """Return *profile*'s ``chrome/userChrome.css`` path."""
     return profile / "chrome" / "userChrome.css"
+
+
+def user_content_path(profile: Path) -> Path:
+    """Return *profile*'s ``chrome/userContent.css`` path."""
+    return profile / "chrome" / "userContent.css"
 
 
 def user_js_path(profile: Path) -> Path:

@@ -562,7 +562,7 @@ file. An empty file holds nothing to preserve.
 **Fix:** the marker check now runs only for non-empty content, so an empty
 file is adopted and overwritten with our sheet, exactly like an absent file.
 A non-empty foreign sheet is still refused unchanged.
-`tests/test_firefox_install.py::TestInstall::test_an_empty_user_chrome_is_adopted`
+`tests/test_firefox_install.py::TestInstall::test_an_empty_sheet_is_adopted`
 failed on the old code and passes now.
 
 **Validation gap:** unclear-invariant — the installer said a "foreign"

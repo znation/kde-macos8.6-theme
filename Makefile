@@ -242,8 +242,8 @@ help:
 	@echo "  remove-gtk        clear the GTK 3 and GTK 4 Platinum theme selection"
 	@echo "  apply-cursor      install the icon theme and select its Xcursor pointer set"
 	@echo "  remove-cursor     remove our Xcursor link, leaving a foreign path and kcminputrc alone"
-	@echo "  install-firefox   install the opt-in Firefox Platinum chrome into one profile"
-	@echo "  remove-firefox    remove the Firefox Platinum chrome from one profile"
+	@echo "  install-firefox   install the opt-in Firefox Platinum userChrome.css and userContent.css into one profile"
+	@echo "  remove-firefox    remove the Firefox Platinum userChrome.css and userContent.css from one profile"
 	@echo "  uninstall         remove the installed artifacts"
 	@echo ""
 	@echo "Variables (make VAR=value TARGET):"
@@ -327,17 +327,17 @@ remove-cursor:
 	@$(call require_python_version,remove-cursor)
 	$(PYTHON) tools/apply_cursor.py --remove
 
-# Copy the standalone Firefox sheet into one profile's chrome/ directory and
-# add the marker-delimited preference that makes Firefox read it. This is
-# opt-in and installs nothing under XDG_DATA_HOME, so it needs no DESTDIR
-# guard or data-home lock.
+# Copy the standalone Firefox userChrome.css and userContent.css sheets into
+# one profile's chrome/ directory and add the marker-delimited preference that
+# makes Firefox read them. This is opt-in and installs nothing under
+# XDG_DATA_HOME, so it needs no DESTDIR guard or data-home lock.
 install-firefox:
 	@$(call require_python,install-firefox)
 	@$(call require_python_version,install-firefox)
 	$(PYTHON) tools/install_firefox.py $(if $(FIREFOX_PROFILE),--profile "$(FIREFOX_PROFILE)")
 
-# Remove only the sheet and preference block this theme wrote; a foreign
-# userChrome.css and a foreign user_pref are left untouched.
+# Remove only the sheets and preference block this theme wrote; a foreign
+# userChrome.css or userContent.css and a foreign user_pref are left untouched.
 remove-firefox:
 	@$(call require_python,remove-firefox)
 	@$(call require_python_version,remove-firefox)

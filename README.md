@@ -62,12 +62,14 @@ GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it 
 leftovers and the emptied `assets`/`gtk-3.0`/`gtk-4.0` directories but leaves `Kvantum/` and the
 theme directory itself.
 
-The standalone Firefox Platinum `userChrome.css` ships at
-`theme/firefox/org.macos8.desktop/chrome/userChrome.css` and is installed opt-in into
-one profile: `make install-firefox` copies it to that profile's `chrome/userChrome.css`
-and adds `toolkit.legacyUserProfileCustomizations.stylesheets=true` as a marker-delimited
-block in its `user.js`, and `make remove-firefox` removes only those two changes, leaving
-a foreign sheet or preference untouched. Both targets use the profile named by
+The standalone Firefox Platinum `userChrome.css` and `userContent.css` ship at
+`theme/firefox/org.macos8.desktop/chrome/userChrome.css` and
+`theme/firefox/org.macos8.desktop/chrome/userContent.css` and are installed opt-in into
+one profile: `make install-firefox` copies them to that profile's
+`chrome/userChrome.css` and `chrome/userContent.css` and adds
+`toolkit.legacyUserProfileCustomizations.stylesheets=true` as a marker-delimited
+block in its `user.js`, and `make remove-firefox` removes only those three changes,
+leaving a foreign sheet or preference untouched. Both targets use the profile named by
 `FIREFOX_PROFILE=path` (an absolute profile directory) or, when it is unset, the active
 profile under `$HOME/.mozilla/firefox` (from `installs.ini`, then `profiles.ini`).
 Restart Firefox to pick up the change; setting
