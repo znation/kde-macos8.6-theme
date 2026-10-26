@@ -15,7 +15,7 @@ from pathlib import Path
 from unittest import mock
 
 from support.allocation_fixtures import peak_allocation
-from support.close_tracking import tracking_closes
+from support.close_tracking import failing_fdopen, tracking_closes
 from support.error_assertions import error_message
 from support.process_assertions import assert_failed
 from support.tmp_dir import make_tmp_dir
@@ -252,6 +252,25 @@ class TestReadPng(unittest.TestCase):
 
         # The finally block closed exactly the fd os.open handed out, so it is
         # no longer a valid descriptor.
+        self.assertEqual(len(closed_fds), 1)
+        with self.assertRaises(OSError):
+            os.fstat(closed_fds[0])
+
+    def test_read_png_closes_the_fd_when_fdopen_fails(self):
+        # os.fdopen takes ownership of the descriptor only when it returns;
+        # if it raises, the raw fd from os.open is still open. The finally
+        # block must close it, or every read that cannot be wrapped leaks a
+        # descriptor. Patching fdopen to raise is the only way to reach that
+        # arm -- a valid fd and mode otherwise always succeed.
+        path = self._file("unwrappable.png", b"x")
+
+        with failing_fdopen() as closed_fds:
+            self._assert_png_error_names_path(
+                path, "cannot read", "simulated fdopen failure"
+            )
+
+        # Exactly the fd os.open handed out was closed, so no descriptor
+        # leaked and no unrelated descriptor was disturbed.
         self.assertEqual(len(closed_fds), 1)
         with self.assertRaises(OSError):
             os.fstat(closed_fds[0])
