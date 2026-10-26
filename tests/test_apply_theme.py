@@ -356,6 +356,49 @@ class TestSessionBus(StubTools):
         self.assertIn("qdbus6 DBUS=", self.env_recorded())
         self.assertNotIn("unix:path=relative", self.env_recorded())
 
+    def test_does_not_default_from_an_empty_runtime_dir(self):
+        # An empty XDG_RUNTIME_DIR is not an absolute directory, so it cannot
+        # name a bus socket; the address stays unset instead of becoming a
+        # path relative to the current directory.
+        with mock.patch.dict(
+            os.environ, {"XDG_RUNTIME_DIR": ""}, clear=False
+        ):
+            os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(0, status, stderr)
+        self.assertIn("qdbus6 DBUS=", self.env_recorded())
+
+    def test_does_not_default_without_a_runtime_dir(self):
+        # A non-login shell may carry neither variable. The lookup must treat
+        # the absent XDG_RUNTIME_DIR as "no runtime directory" instead of
+        # raising a KeyError out of the apply.
+        with mock.patch.dict(os.environ, clear=False):
+            os.environ.pop("XDG_RUNTIME_DIR", None)
+            os.environ.pop("DBUS_SESSION_BUS_ADDRESS", None)
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(0, status, stderr)
+        self.assertIn("qdbus6 DBUS=", self.env_recorded())
+
+    def test_an_empty_address_is_defaulted_like_an_unset_one(self):
+        # An exported but empty DBUS_SESSION_BUS_ADDRESS names no bus either,
+        # so the runtime directory's socket must still be used.
+        runtime = self.root / "rt"
+        runtime.mkdir()
+        (runtime / "bus").write_text("", encoding="utf-8")
+        with mock.patch.dict(
+            os.environ,
+            {
+                "XDG_RUNTIME_DIR": str(runtime),
+                "DBUS_SESSION_BUS_ADDRESS": "",
+            },
+            clear=False,
+        ):
+            status, stderr = call_main(apply_theme.main)
+        self.assertEqual(0, status, stderr)
+        self.assertIn(
+            f"qdbus6 DBUS=unix:path={runtime}/bus", self.env_recorded()
+        )
+
     def test_does_not_default_when_the_bus_socket_is_absent(self):
         runtime = self.root / "empty-runtime"
         runtime.mkdir()
