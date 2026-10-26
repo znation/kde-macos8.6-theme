@@ -238,6 +238,28 @@ REQUIRED_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    "#widget-overflow .subviewbutton:not(.panel-header .subviewbutton)": {
+        "border-radius": "0 !important",
+    },
+    "#widget-overflow .widget-overflow-list .toolbarbutton-1": {
+        "border-radius": "0 !important",
+    },
+    (
+        "#widget-overflow .subviewbutton:not(.panel-header .subviewbutton)"
+        ":hover:not([disabled])"
+    ): {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    (
+        "#widget-overflow .widget-overflow-list .toolbarbutton-1"
+        ":hover:not([disabled])"
+    ): {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
     "menupopup > menuseparator": {
         "padding": "0 !important",
         "margin": "2px 0 !important",
@@ -575,6 +597,110 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
                 self.assertFalse(matches(radius, button))
                 self.assertFalse(matches(hover, {**button, "hover": True}))
 
+    def test_overflow_panel_row_paint_is_scoped_to_the_overflow_panel(self):
+        radius_rows = (
+            "#widget-overflow .subviewbutton:not(.panel-header .subviewbutton)",
+            "#widget-overflow .widget-overflow-list .toolbarbutton-1",
+        )
+        hover_rows = (
+            radius_rows[0] + ":hover:not([disabled])",
+            radius_rows[1] + ":hover:not([disabled])",
+        )
+        self.assertEqual(
+            {name for name in self.rules if "widget-overflow" in name},
+            set(radius_rows + hover_rows),
+        )
+        for selector in radius_rows + hover_rows:
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#widget-overflow"))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        for selector in radius_rows:
+            self.assertEqual(set(self.rules[selector]), {"border-radius"})
+        for selector in hover_rows:
+            self.assertIn(":hover", selector)
+            self.assertIn(":not([disabled])", selector)
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--panel-menuitem-border-radius" in declarations},
+            set(),
+        )
+
+        def element(tag, identifier=None, classes=(), attrs=None,
+                    hover=False, parent=None):
+            return {
+                "tag": tag,
+                "id": identifier,
+                "classes": set(classes),
+                "attrs": dict(attrs or {}),
+                "hover": hover,
+                "parent": parent,
+            }
+
+        panel = element("panel", "widget-overflow")
+        main_view = element(
+            "panelmultiview", "widget-overflow-mainView", parent=panel
+        )
+        body = element(
+            "vbox", classes=("panel-subview-body",), parent=main_view
+        )
+        overflow_lists = {
+            "main": element(
+                "vbox", "widget-overflow-list", ("widget-overflow-list",),
+                parent=body,
+            ),
+            "fixed": element(
+                "vbox", "widget-overflow-fixed-list",
+                ("widget-overflow-list",), parent=body,
+            ),
+        }
+        overflowed_rows = {
+            name: element(
+                "toolbarbutton", classes=("toolbarbutton-1",), parent=row_list
+            )
+            for name, row_list in overflow_lists.items()
+        }
+        footer = element(
+            "toolbarbutton", "overflowMenu-customize-button",
+            ("subviewbutton", "panel-subview-footer-button"), parent=body,
+        )
+        header = element("box", classes=("panel-header",), parent=main_view)
+        header_button = element(
+            "toolbarbutton", "overflow-panel-back-button",
+            ("subviewbutton", "subviewbutton-back"), parent=header,
+        )
+        nav_bar_button = element(
+            "toolbarbutton", "nav-bar-button", ("toolbarbutton-1",),
+            parent=element("toolbar", "nav-bar"),
+        )
+
+        for name, row in overflowed_rows.items():
+            with self.subTest(overflowed_row=name):
+                self.assertTrue(matches(radius_rows[1], row))
+                self.assertTrue(matches(hover_rows[1], {**row, "hover": True}))
+                self.assertFalse(matches(hover_rows[1], row))
+
+        self.assertTrue(matches(radius_rows[0], footer))
+        self.assertTrue(matches(hover_rows[0], {**footer, "hover": True}))
+        self.assertFalse(matches(hover_rows[0], footer))
+
+        disabled = {
+            **overflowed_rows["main"], "attrs": {"disabled": ""},
+            "hover": True,
+        }
+        for selector in hover_rows:
+            self.assertFalse(matches(selector, disabled))
+
+        for selector in radius_rows + hover_rows:
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, header_button))
+                self.assertFalse(
+                    matches(selector, {**header_button, "hover": True})
+                )
+                self.assertFalse(matches(selector, nav_bar_button))
+                self.assertFalse(
+                    matches(selector, {**nav_bar_button, "hover": True})
+                )
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -690,6 +816,19 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "panel-subview-footer-button",
             "panel-header",
             "toolbarbutton.subviewbutton",
+            "--panel-menuitem-border-radius",
+            "--button-background-color-ghost-hover",
+            "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's toolbar overflow panel",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
+            "chrome/browser/content/browser/browser.xhtml",
+            "#widget-overflow",
+            "widget-overflow-list",
+            "widget-overflow-fixed-list",
+            "#overflowMenu-customize-button",
             "--panel-menuitem-border-radius",
             "--button-background-color-ghost-hover",
             "platform colour adaptation 2026-10-26",

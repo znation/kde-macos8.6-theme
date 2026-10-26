@@ -165,6 +165,26 @@
    suppresses the ghost hover and generic toolbar bevel on those rows only,
    leaving the header buttons (which also carry .subviewbutton) Firefox's.
    Declaration checks do not establish rendered pixels.
+
+   No reference shows Firefox's toolbar overflow panel; its row highlight
+   adapts the reference-grounded widgets/viewitem.svg and the sheet's
+   menu-item mapping (platform colour adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   Firefox's
+   chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css
+   gives .subviewbutton and .widget-overflow-list .toolbarbutton-1 their
+   --panel-menuitem-border-radius and their
+   --button-background-color-ghost-hover violet hover,
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css defines
+   those tokens, and chrome/browser/content/browser/browser.xhtml defines
+   #widget-overflow, its two .widget-overflow-list lists
+   (#widget-overflow-list and #widget-overflow-fixed-list) and the
+   #overflowMenu-customize-button footer row. The sheet squares only those
+   rows and suppresses the ghost hover and generic toolbar bevel on them,
+   leaving disabled rows, focus rings, separators, toolbar springs,
+   panel-header buttons and the panel body Firefox's; declaration checks do
+   not establish rendered pixels.
 */
 
 tooltip {
@@ -340,6 +360,21 @@ toolbarbutton:hover:active:not([disabled="true"]) {
 }
 
 #appMenu-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The toolbar overflow panel rows adapt the desktop theme's view item: square
+   corners and a flat #CCCCFF hover with black text and no toolbar bevel. Only
+   the overflow panel's rows are scoped; the panel header stays Firefox's. */
+#widget-overflow .subviewbutton:not(.panel-header .subviewbutton),
+#widget-overflow .widget-overflow-list .toolbarbutton-1 {
+  border-radius: 0 !important;
+}
+
+#widget-overflow .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]),
+#widget-overflow .widget-overflow-list .toolbarbutton-1:hover:not([disabled]) {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;
