@@ -19,6 +19,13 @@ else:  # imported from a directly run tool
 
 
 def parse_crop(value: str) -> tuple[int, int, int, int]:
+    """Return ``(x, y, width, height)`` parsed from an ``X,Y,W,H`` value.
+
+    Whitespace around a field is accepted, but the four fields themselves must
+    be plain ASCII integers. The rectangle must keep :func:`crop_rect_problem`'s
+    contract -- a non-negative origin and a positive size -- and any rejected
+    text raises ``argparse.ArgumentTypeError`` with a diagnostic.
+    """
     # Strip each field before the plain-number check: whitespace around a
     # comma-separated field ("0, 0, 10, 10") is the conventional way to write
     # the rectangle, not a stray character that changes the value, so accept
@@ -84,11 +91,13 @@ def _finite_float(value: str, option: str) -> float:
 
 
 def max_mae(value: str) -> float:
+    """Return a finite ``--max-mae`` value, a per-channel mean in 0..255."""
     number = _finite_float(value, "--max-mae")
     return _channel_amount(value, number, "--max-mae", "mean")
 
 
 def max_frac(value: str) -> float:
+    """Return a finite ``--max-frac`` differing-pixel fraction in 0..1."""
     number = _finite_float(value, "--max-frac")
     if not 0.0 <= number <= 1.0:
         raise argparse.ArgumentTypeError(
@@ -98,5 +107,6 @@ def max_frac(value: str) -> float:
 
 
 def tolerance(value: str) -> int:
+    """Return a ``--tolerance`` integer per-channel delta in 0..255."""
     number = plain_number(value, "--tolerance", "integer", "an", int)
     return _channel_amount(value, number, "--tolerance", "delta")
