@@ -129,17 +129,35 @@ def open_regular_binary(path: str | Path) -> BinaryIO:
 _MAX_READ_BYTES = 1 << 20
 
 
-def _read_bounded(handle: BinaryIO, path: str | Path) -> bytes:
-    """Return at most ``_MAX_READ_BYTES`` from *handle*, refusing a longer file.
+def read_capped_bytes(
+    path: str | Path,
+    limit: int,
+    description: str,
+    *,
+    missing_ok: bool = False,
+    error: type[Exception] = ValueError,
+) -> bytes | None:
+    """Read at most *limit* bytes of *path*, refusing a non-regular file.
 
-    One byte past the cap is read, so a file exactly at the limit is accepted
-    while a longer one is refused without loading the rest of it.
+    The path is opened through :func:`open_regular_binary`, so a FIFO or
+    device is refused by name instead of blocking, and one byte past *limit*
+    is read so a file exactly at the limit is accepted while a longer one is
+    refused without loading the rest. *description* completes the oversize
+    diagnostic, which raises *error* so a caller keeps its own refusal type.
+    *missing_ok* returns ``None`` for a path that does not exist instead of
+    letting ``FileNotFoundError`` escape. The repository readers and the
+    Firefox profile and discovery readers share this read.
     """
-    data = handle.read(_MAX_READ_BYTES + 1)
-    if len(data) > _MAX_READ_BYTES:
-        raise ValueError(
-            f"{path} is larger than the {_MAX_READ_BYTES}-byte limit this "
-            "guard reads; refusing to load it whole"
+    try:
+        with open_regular_binary(path) as handle:
+            data = handle.read(limit + 1)
+    except FileNotFoundError:
+        if missing_ok:
+            return None
+        raise
+    if len(data) > limit:
+        raise error(
+            f"{path} is larger than the {limit}-byte limit {description}"
         )
     return data
 
@@ -159,8 +177,11 @@ def read_bytes(path: str | Path, root: str | Path) -> bytes:
     does not apply and it is read as given.
     """
     require_within_repo(path, root)
-    with open_regular_binary(path) as handle:
-        return _read_bounded(handle, path)
+    data = read_capped_bytes(
+        path, _MAX_READ_BYTES, "this guard reads; refusing to load it whole"
+    )
+    assert data is not None
+    return data
 
 
 def read_text(
@@ -180,8 +201,10 @@ def read_text(
     not apply and it is read as given.
     """
     require_within_repo(path, root)
-    with open_regular_binary(path) as handle:
-        data = _read_bounded(handle, path)
+    data = read_capped_bytes(
+        path, _MAX_READ_BYTES, "this guard reads; refusing to load it whole"
+    )
+    assert data is not None
     # Decode through the text layer so the result matches ``open(path,
     # encoding=encoding)``: universal-newline translation and the UTF-8 BOM
     # ``utf-8-sig`` strips, neither of which a bare ``bytes.decode`` does.

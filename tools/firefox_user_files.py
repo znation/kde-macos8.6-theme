@@ -21,10 +21,10 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_atomically
-    from tools.containment import open_regular_binary
+    from tools.containment import read_capped_bytes
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
-    from containment import open_regular_binary
+    from containment import read_capped_bytes
 
 
 class ConfigError(Exception):
@@ -64,17 +64,17 @@ def read_profile_text(path: Path) -> str | None:
     refused by name instead of being loaded whole.
     """
     try:
-        with open_regular_binary(path) as handle:
-            data = handle.read(MAX_PROFILE_FILE_BYTES + 1)
-    except FileNotFoundError:
-        return None
+        data = read_capped_bytes(
+            path,
+            MAX_PROFILE_FILE_BYTES,
+            "this installer reads; refusing to load it whole",
+            missing_ok=True,
+            error=ConfigError,
+        )
     except (OSError, ValueError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
-    if len(data) > MAX_PROFILE_FILE_BYTES:
-        raise ConfigError(
-            f"{path} is larger than the {MAX_PROFILE_FILE_BYTES}-byte limit "
-            "this installer reads; refusing to load it whole"
-        )
+    if data is None:
+        return None
     try:
         return data.decode("utf-8")
     except UnicodeDecodeError as exc:

@@ -17,10 +17,10 @@ import os
 from pathlib import Path
 
 if __package__:
-    from tools.containment import open_regular_binary
+    from tools.containment import read_capped_bytes
     from tools.firefox_user_files import ConfigError
 else:  # imported from a directly run tool
-    from containment import open_regular_binary
+    from containment import read_capped_bytes
     from firefox_user_files import ConfigError
 
 
@@ -42,17 +42,17 @@ def _read_ini(path: Path) -> configparser.ConfigParser | None:
     oversize INI is refused by name instead of being loaded whole.
     """
     try:
-        with open_regular_binary(path) as binary:
-            data = binary.read(_MAX_INI_FILE_BYTES + 1)
-    except FileNotFoundError:
-        return None
+        data = read_capped_bytes(
+            path,
+            _MAX_INI_FILE_BYTES,
+            "this discovery reads; refusing to load it whole",
+            missing_ok=True,
+            error=ConfigError,
+        )
     except (OSError, ValueError) as exc:
         raise ConfigError(f"cannot read {path}: {exc}") from exc
-    if len(data) > _MAX_INI_FILE_BYTES:
-        raise ConfigError(
-            f"{path} is larger than the {_MAX_INI_FILE_BYTES}-byte limit "
-            "this discovery reads; refusing to load it whole"
-        )
+    if data is None:
+        return None
     parser = configparser.ConfigParser(interpolation=None)
     try:
         with io.TextIOWrapper(io.BytesIO(data), encoding="utf-8") as handle:
