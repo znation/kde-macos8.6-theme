@@ -291,9 +291,22 @@ def main(argv: list[str] | None = None) -> int:
         "--timeout",
         type=_seconds("--timeout", 1.0),
         default=90.0,
-        help="seconds before the render session is killed (default 90)",
+        help=(
+            "seconds before the render session is killed (default 90); must "
+            "be longer than --settle"
+        ),
     )
     args = parser.parse_args(argv)
+    if args.timeout <= args.settle:
+        # The session sleeps for --settle before it asks for the capture, so a
+        # timeout at or below it always kills the session first: the run would
+        # wait out the whole timeout and report "render timed out" without
+        # naming the option that cannot work.
+        parser.error(
+            f"--timeout ({args.timeout:g}s) must be longer than --settle "
+            f"({args.settle:g}s): the session must survive the settle before "
+            "it can capture"
+        )
 
     missing = report_missing_tool(TOOL, REQUIRED_TOOLS)
     if missing is not None:

@@ -404,7 +404,7 @@ class TestFailurePaths(StubTools):
     def test_timeout_kills_the_session_group_and_exits_1(self):
         pidfile = self.root / "pid"
         self.stub("dbus-run-session", f'echo $$ > "{pidfile}"; exec sleep 60')
-        status, stderr, output = self.run_main("--timeout", "1")
+        status, stderr, output = self.run_main("--settle", "0", "--timeout", "1")
         self.assertEqual(1, status)
         self.assertIn("render timed out after 1s", stderr)
         self.assertFalse(output.exists())

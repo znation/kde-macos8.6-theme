@@ -42,6 +42,20 @@ class TestArguments(unittest.TestCase):
             with self.subTest(argv=argv):
                 self.assertIn(argv[0], self.assert_usage_error("out.png", *argv))
 
+    def test_rejects_a_timeout_not_longer_than_settle(self):
+        # The session sleeps for --settle before it asks for the capture, so a
+        # timeout at or below it can never capture: refuse rather than wait
+        # out the timeout and report "render timed out" without naming the
+        # option that cannot work.
+        for settle, timeout in (("10", "10"), ("10", "9.5"), ("10", "1")):
+            with self.subTest(settle=settle, timeout=timeout):
+                stderr = self.assert_usage_error(
+                    "out.png", "--settle", settle, "--timeout", timeout
+                )
+                self.assertIn("--timeout", stderr)
+                self.assertIn("--settle", stderr)
+                self.assertIn("must be longer than", stderr)
+
     def test_rejects_option_like_applet(self):
         self.assertIn(
             "--applet", self.assert_usage_error("out.png", "--applet=--help-all")
