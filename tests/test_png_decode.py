@@ -61,6 +61,89 @@ class TestDecode(unittest.TestCase):
                 message = decode_error_message(self, data, max_rows=bad)
                 self.assertIn("max_rows", message)
 
+    def test_max_cols_returns_only_the_left_columns(self):
+        image, data = rgb_image(3, 4, lambda x, y: (x * 10, y * 20, 30))
+        prefix = png.decode_png(data, max_cols=2)
+        expected = b"".join(
+            image.rgb[row * 3 * 3 : row * 3 * 3 + 2 * 3] for row in range(4)
+        )
+        self.assertEqual(prefix, png.Image(2, 4, expected))
+
+    def test_max_cols_at_or_above_width_decodes_every_column(self):
+        image, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        self.assertEqual(png.decode_png(data, max_cols=3), image)
+        self.assertEqual(png.decode_png(data, max_cols=99), image)
+
+    def test_max_cols_prefix_matches_full_decode_for_every_filter_type(self):
+        # A prefix must unfilter against the previous row's prefix exactly as
+        # a full decode does, for every predictor: Sub and Paeth carry the
+        # left neighbour, Up carries the above byte. One row per filter type.
+        width, channels = 5, 3
+        rows = [
+            bytes((row * 37 + i * 11) % 256 for i in range(width * channels))
+            for row in range(5)
+        ]
+        data = make_png(
+            width, len(rows), rows, filter_types=[0, 1, 2, 3, 4]
+        )
+        full = png.decode_png(data)
+        for cols in range(1, width + 1):
+            with self.subTest(cols=cols):
+                prefix = png.decode_png(data, max_cols=cols)
+                expected = b"".join(
+                    full.rgb[row * width * 3 : row * width * 3 + cols * 3]
+                    for row in range(len(rows))
+                )
+                self.assertEqual(prefix, png.Image(cols, len(rows), expected))
+
+    def test_max_cols_still_validates_a_palette_index_past_the_bound(self):
+        # A palette image is expanded in full before cropping, because the
+        # lookup is what validates every index: an out-of-range index in a
+        # skipped column is still a malformed PNG.
+        palette = bytes([0, 0, 0, 255, 255, 255])
+        data = make_png(
+            2, 1, [bytes([0, 9])], color_type=3, palette=palette
+        )
+        message = decode_error_message(self, data, max_cols=1)
+        self.assertIn("palette PNG index 9", message)
+
+    def test_max_cols_rejects_a_non_positive_or_non_integer_bound(self):
+        _, data = rgb_image(2, 1, lambda x, y: (0, 0, 0))
+        for bad in (0, -1, True, 1.5, "2"):
+            with self.subTest(max_cols=bad):
+                message = decode_error_message(self, data, max_cols=bad)
+                self.assertIn("max_cols", message)
+
+    def test_max_rows_and_max_cols_bound_both_axes_together(self):
+        image, data = rgb_image(3, 4, lambda x, y: (x * 10, y * 20, 30))
+        box = png.decode_png(data, max_rows=3, max_cols=2)
+        expected = b"".join(
+            image.rgb[row * 9 : row * 9 + 6] for row in range(3)
+        )
+        self.assertEqual(box, png.Image(2, 3, expected))
+
+    def test_color_type_6_column_prefix_matches_full_decode(self):
+        # The reference screenshots' reader targets colour type 6, whose decode
+        # drops alpha before unfiltering: a column bound must still reproduce
+        # the full decode's RGB prefix for every predictor.
+        width, channels = 5, 4
+        rows = [
+            bytes((row * 41 + i * 13) % 256 for i in range(width * channels))
+            for row in range(5)
+        ]
+        data = make_png(
+            width, len(rows), rows, color_type=6, filter_types=[0, 1, 2, 3, 4]
+        )
+        full = png.decode_png(data)
+        for cols in range(1, width + 1):
+            with self.subTest(cols=cols):
+                prefix = png.decode_png(data, max_cols=cols)
+                expected = b"".join(
+                    full.rgb[row * width * 3 : row * width * 3 + cols * 3]
+                    for row in range(len(rows))
+                )
+                self.assertEqual(prefix, png.Image(cols, len(rows), expected))
+
     def test_all_filter_types(self):
         rows = [
             bytes([1, 2, 3, 4, 5, 6, 7, 8, 9]),

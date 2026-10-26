@@ -65,6 +65,24 @@ def validate_max_rows(max_rows: int | None) -> None:
         raise PngError(f"max_rows must be positive: max_rows={max_rows}")
 
 
+def validate_max_cols(max_cols: int | None) -> None:
+    """Raise :class:`PngError` unless *max_cols* is None or a positive int.
+
+    ``bool`` is rejected even though it is an ``int`` subclass: ``True`` would
+    pass as 1 and silently select a different column bound. Like
+    :func:`validate_max_rows`, this lives apart from the decoder so the test
+    reference cache can reject an invalid bound without decoding.
+    """
+    if max_cols is None:
+        return
+    if not is_plain_int(max_cols):
+        raise PngError(
+            f"max_cols must be an integer or None: max_cols={max_cols!r}"
+        )
+    if max_cols < 1:
+        raise PngError(f"max_cols must be positive: max_cols={max_cols}")
+
+
 def parse_ihdr(header: bytes) -> tuple[int, int, int]:
     """Validate a 13-byte IHDR payload, returning ``(width, height, color_type)``.
 

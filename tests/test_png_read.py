@@ -99,6 +99,16 @@ class TestReadPng(unittest.TestCase):
         top = png.read_png(self._file("image.png", data), max_rows=2)
         self.assertEqual(top, png.Image(3, 2, image.rgb[: 3 * 2 * 3]))
 
+    def test_read_png_forwards_max_cols(self):
+        # The column bound must reach the decoder as the row bound does, or a
+        # reference reader would decode the full width it asked to skip.
+        image, data = rgb_image(3, 4, lambda x, y: (x, y, 0))
+        prefix = png.read_png(self._file("image.png", data), max_cols=2)
+        expected = b"".join(
+            image.rgb[row * 9 : row * 9 + 6] for row in range(4)
+        )
+        self.assertEqual(prefix, png.Image(2, 4, expected))
+
     def test_read_png_size_reports_declared_dimensions_without_decoding(self):
         # The sampler needs the full image size to report and validate a
         # coordinate, but must not pay to unfilter rows it will not read.

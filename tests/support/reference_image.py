@@ -20,18 +20,19 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.repo_root import ROOT
 
 from tools import png  # noqa: E402
-from tools.png.stream import validate_max_rows  # noqa: E402
+from tools.png.stream import validate_max_cols, validate_max_rows  # noqa: E402
 
-# Decoded references, keyed by (absolute path, alpha flag). A reference is a
-# read-only Git LFS asset that cannot change during a run, so a path is
-# unfiltered at most once per decode shape: each entry remembers the
+# Decoded references, keyed by (absolute path, alpha flag, max_cols). A
+# reference is a read-only Git LFS asset that cannot change during a run, so a
+# path is unfiltered at most once per decode shape: each entry remembers the
 # ``max_rows`` bound its decode used, and a later request reuses the decode
 # whenever the decode already holds the rows it needs (a bound that exceeded
 # the image height means the whole image is held). A request needing more rows
 # re-decodes and replaces the entry. ``alpha`` is part of the key because it
 # changes the returned planes: an RGB decode has no alpha plane, so serving it
 # to an ``alpha=True`` request would silently drop the transparency the caller
-# asked for.
+# asked for. ``max_cols`` is part of the key too: the image width is the bound
+# its decode used, so a different column bound cannot reuse a narrower plane.
 _DECODED_REFERENCES = {}
 
 
@@ -65,7 +66,8 @@ def read_reference(path, **kwargs):
     *kwargs* go to ``png.read_png``. A ``PngError`` (the image is absent or an
     unmaterialized LFS pointer) comes back as ``(None, error)`` instead of
     raising, ready to hand to `skip_unless_materialized`. The decode is cached
-    per absolute path and ``alpha`` mode for the process: a later request
+    per absolute path, ``alpha`` mode and ``max_cols`` for the process: a later
+    request
     reuses it whenever the cached decode already holds the rows it needs (a
     bound that exceeded the image height holds the whole image), so a
     screenshot several classes read at different ``max_rows`` bounds is
@@ -79,10 +81,16 @@ def read_reference(path, **kwargs):
     even when an earlier request cached its target.
     """
     containment.require_within_repo(path, ROOT)
-    key = (os.path.abspath(str(path)), bool(kwargs.get("alpha", False)))
     max_rows = kwargs.get("max_rows")
+    max_cols = kwargs.get("max_cols")
+    key = (
+        os.path.abspath(str(path)),
+        bool(kwargs.get("alpha", False)),
+        max_cols,
+    )
     try:
         validate_max_rows(max_rows)
+        validate_max_cols(max_cols)
     except png.PngError as exc:
         # The cold path gets this check from ``read_png``; run it here so a
         # cached decode cannot let an invalid bound reach ``_bounded`` (whose
@@ -123,21 +131,22 @@ def skip_unless_materialized(case, path, error):
 class ReferenceScreenshotMixin:
     """Mix in before ``unittest.TestCase``: load ``REFERENCE`` once, skip without it.
 
-    A class sets ``REFERENCE`` to the PNG path and may set ``MAX_ROWS`` to
-    decode only that many rows (the default ``None`` decodes the whole image).
-    ``setUpClass`` reads it into ``cls.image`` / ``cls.image_error``, ``setUp``
-    skips each test when the image is not materialized, and `pixel` reads one
-    pixel of it. A mixin, not a ``TestCase``, so importing it never makes a
-    test module collect it.
+    A class sets ``REFERENCE`` to the PNG path and may set ``MAX_ROWS`` and
+    ``MAX_COLS`` to decode only that many rows and columns (the default
+    ``None`` decodes the whole image). ``setUpClass`` reads it into
+    ``cls.image`` / ``cls.image_error``, ``setUp`` skips each test when the
+    image is not materialized, and `pixel` reads one pixel of it. A mixin, not
+    a ``TestCase``, so importing it never makes a test module collect it.
     """
 
     REFERENCE = None
     MAX_ROWS = None
+    MAX_COLS = None
 
     @classmethod
     def setUpClass(cls):
         cls.image, cls.image_error = read_reference(
-            cls.REFERENCE, max_rows=cls.MAX_ROWS
+            cls.REFERENCE, max_rows=cls.MAX_ROWS, max_cols=cls.MAX_COLS
         )
 
     def setUp(self):

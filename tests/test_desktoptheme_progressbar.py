@@ -7,6 +7,7 @@ import unittest
 
 from support.desktoptheme_paths import (
     BAR_METER_HORIZONTAL_SVG,
+    FANDOM_MAX_COLS,
     FANDOM_MAX_ROWS,
     FANDOM_REFERENCE,
 )
@@ -218,6 +219,7 @@ class TestProgressBarReference(ReferenceScreenshotMixin, unittest.TestCase):
 class TestFillGradientReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = GRADIENT_REFERENCE
     MAX_ROWS = FANDOM_MAX_ROWS
+    MAX_COLS = FANDOM_MAX_COLS
 
     def test_fill_rows_match_reference(self):
         # The ten gradient rows are the interior column of the About This

@@ -67,6 +67,17 @@ class TestRgbaPng(unittest.TestCase):
         path.write_bytes(make_png(1, 2, rows, color_type=6))
         self.assertEqual(png.read_rgba(path, max_rows=1), (1, 1, rows[0]))
 
+    def test_read_rgba_forwards_max_cols(self):
+        # The column bound must reach decode_rgba too: dropping it would
+        # return the full width a prefix reader asked to skip.
+        tmp = make_tmp_dir(self)
+        rows = [bytes([1, 2, 3, 4, 5, 6, 7, 8])]
+        path = tmp / "rgba.png"
+        path.write_bytes(make_png(2, 1, rows, color_type=6))
+        self.assertEqual(
+            png.read_rgba(path, max_cols=1), (1, 1, bytes([1, 2, 3, 4]))
+        )
+
     def test_read_rgba_names_an_undecodable_file(self):
         # A two-input caller must be able to tell which file failed, so the
         # loader names the path it wraps decode_rgba's error with.
@@ -179,6 +190,38 @@ class TestRgbaPng(unittest.TestCase):
         self.assertEqual(
             png.decode_rgba(blob, max_rows=1),
             (2, 1, bytes([1, 2, 3, 255, 4, 5, 6, 255])),
+        )
+
+    def test_max_cols_returns_only_the_left_columns(self):
+        rows = [bytes([1, 2, 3, 4, 5, 6]), bytes([7, 8, 9, 10, 11, 12])]
+        blob = make_png(2, 2, rows, color_type=2)
+        self.assertEqual(
+            png.decode_rgba(blob, max_cols=1),
+            (1, 2, bytes([1, 2, 3, 255, 7, 8, 9, 255])),
+        )
+
+    def test_palette_max_cols_crops_the_expanded_rows(self):
+        palette = bytes([10, 20, 30, 40, 50, 60])
+        blob = make_png(2, 1, [bytes([0, 1])], color_type=3, palette=palette)
+        self.assertEqual(
+            png.decode_rgba(blob, max_cols=1), (1, 1, bytes([10, 20, 30, 255]))
+        )
+
+    def test_palette_index_past_the_column_bound_is_rejected(self):
+        blob = make_png(
+            2,
+            1,
+            [bytes([0, 5])],
+            color_type=3,
+            palette=bytes([10, 20, 30]),
+        )
+        assert_error_names(
+            self,
+            png.PngError,
+            png.decode_rgba,
+            blob,
+            max_cols=1,
+            needles=("index 5", "1 entry"),
         )
 
     def test_palette_index_past_the_row_bound_is_rejected(self):

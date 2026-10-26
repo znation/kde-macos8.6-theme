@@ -72,6 +72,11 @@ FANDOM_REFERENCE = os.path.join(
 # of them samples, and sharing the bound makes the single decode independent
 # of discovery order.
 FANDOM_MAX_ROWS = 1250
+# The rightmost pixel any reader samples is the fill's right edge at x=1816,
+# so 1817 columns covers them all. The unfilter predictor only references
+# earlier columns, so the prefix decodes exactly and the other 743 columns of
+# this 2560px screenshot are never unfiltered.
+FANDOM_MAX_COLS = 1817
 
 # The open Apple menu's Platinum body and the "Automated Tasks" submenu
 # arrow. Every reader of this screenshot samples at or above row 300 (the

@@ -115,12 +115,17 @@ def _image_with_alpha(width: int, height: int, rgba: bytes) -> Image:
 
 
 def read_png(
-    path: str | Path, max_rows: int | None = None, *, alpha: bool = False
+    path: str | Path,
+    max_rows: int | None = None,
+    max_cols: int | None = None,
+    *,
+    alpha: bool = False,
 ) -> Image:
     """Read and decode the PNG at *path*, naming it in any :class:`PngError`.
 
-    *max_rows* is forwarded to :func:`decode_png`: the returned image holds at
-    most that many top scanlines. With *alpha* true the image is decoded
+    *max_rows* and *max_cols* are forwarded to :func:`decode_png`: the
+    returned image holds at most that many top scanlines and left columns.
+    With *alpha* true the image is decoded
     through :func:`decode_rgba` instead, so the returned image's alpha plane
     holds each pixel's transparency (including a ``tRNS`` chunk's) and its
     RGB plane holds the same colour bytes; the default returns the RGB-only
@@ -129,18 +134,22 @@ def read_png(
     data = _read_png_data(path)
     try:
         if alpha:
-            width, height, rgba = decode_rgba(data, max_rows)
+            width, height, rgba = decode_rgba(data, max_rows, max_cols)
             return _image_with_alpha(width, height, rgba)
-        return decode_png(data, max_rows)
+        return decode_png(data, max_rows, max_cols)
     except PngError as exc:
         raise PngError(f"cannot decode {path}: {exc}") from exc
 
 
-def read_rgba(path: str | Path, max_rows: int | None = None) -> tuple[int, int, bytes]:
+def read_rgba(
+    path: str | Path,
+    max_rows: int | None = None,
+    max_cols: int | None = None,
+) -> tuple[int, int, bytes]:
     """Read and decode the PNG at *path* into packed RGBA bytes."""
     data = _read_png_data(path)
     try:
-        return decode_rgba(data, max_rows)
+        return decode_rgba(data, max_rows, max_cols)
     except PngError as exc:
         raise PngError(f"cannot decode {path}: {exc}") from exc
 

@@ -137,6 +137,50 @@ class TestReadReferenceCache(unittest.TestCase):
         self.assertIsNone(full_error)
         self.assertIsNone(short_error)
 
+    def test_a_column_bound_is_forwarded_and_crops_each_row(self):
+        # The column bound must reach read_png and the returned plane must be
+        # one pixel wide, not the full reference width with dead columns.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                prefix, error = reference_image.read_reference(
+                    path, max_cols=1
+                )
+        self.assertEqual(1, spy.call_count)
+        self.assertEqual((prefix.width, prefix.height), (1, 2))
+        self.assertEqual(prefix.rgb, bytes(6))
+        self.assertIsNone(error)
+
+    def test_a_repeated_column_bound_reuses_the_decode(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                first, first_error = reference_image.read_reference(
+                    path, max_cols=1
+                )
+                second, second_error = reference_image.read_reference(
+                    path, max_cols=1
+                )
+        self.assertEqual(1, spy.call_count)
+        self.assertIs(first, second)
+        self.assertIsNone(first_error)
+        self.assertIsNone(second_error)
+
+    def test_a_different_column_bound_is_decoded_separately(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = _write_reference(tmp)
+            with _spy_on_read_png() as spy:
+                one, one_error = reference_image.read_reference(
+                    path, max_cols=1
+                )
+                two, two_error = reference_image.read_reference(
+                    path, max_cols=2
+                )
+        self.assertEqual(2, spy.call_count)
+        self.assertEqual((one.width, two.width), (1, 2))
+        self.assertIsNone(one_error)
+        self.assertIsNone(two_error)
+
     def test_an_unbounded_request_after_a_bounded_decode_reads_the_whole_image(
         self,
     ):
@@ -184,6 +228,14 @@ class TestReadReferenceCache(unittest.TestCase):
                 reference_image.read_reference(path)
                 for bad in (0, -1, True, 1.5, "2"):
                     self._assert_bound_is_rejected(path, bad)
+                for bad in (0, -1, True, 1.5, "2"):
+                    image, error = reference_image.read_reference(
+                        path, max_cols=bad
+                    )
+                    self.assertIsNone(image)
+                    self.assertIsInstance(
+                        error, reference_image.png.PngError
+                    )
         self.assertEqual(1, spy.call_count)
 
     def _assert_bound_is_rejected(self, path, max_rows):
@@ -255,20 +307,22 @@ class TestReadReferenceContainment(unittest.TestCase):
 
 
 class TestReferenceScreenshotMixin(unittest.TestCase):
-    """The mixin forwards its ``MAX_ROWS`` to the decode.
+    """The mixin forwards its ``MAX_ROWS`` and ``MAX_COLS`` to the decode.
 
-    ``MAX_ROWS`` bounds the decode of a large Git LFS screenshot to the rows a
-    test samples. A class that sets it must get an image no taller than that;
-    if ``setUpClass`` dropped it, every pixel assertion would still pass and
-    only the decode would silently grow back to the whole screenshot.
+    ``MAX_ROWS`` and ``MAX_COLS`` bound the decode of a large Git LFS
+    screenshot to the rows and columns a test samples. A class that sets one
+    must get an image no taller or wider than that; if ``setUpClass`` dropped
+    it, every pixel assertion would still pass and only the decode would
+    silently grow back to the whole screenshot.
     """
 
-    def _case_with(self, path, max_rows):
-        """Run the mixin's ``setUpClass`` for a class with this path and bound."""
+    def _case_with(self, path, max_rows, max_cols=None):
+        """Run the mixin's ``setUpClass`` for a class with these bounds."""
 
         class Case(reference_image.ReferenceScreenshotMixin, unittest.TestCase):
             REFERENCE = path
             MAX_ROWS = max_rows
+            MAX_COLS = max_cols
 
         Case.setUpClass()
         return Case
@@ -278,6 +332,12 @@ class TestReferenceScreenshotMixin(unittest.TestCase):
             case = self._case_with(_write_reference(tmp), 1)
         self.assertIsNone(case.image_error)
         self.assertEqual((case.image.width, case.image.height), (2, 1))
+
+    def test_max_cols_bounds_the_decoded_reference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            case = self._case_with(_write_reference(tmp), None, 1)
+        self.assertIsNone(case.image_error)
+        self.assertEqual((case.image.width, case.image.height), (1, 2))
 
     def test_no_max_rows_decodes_the_whole_reference(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -307,6 +367,10 @@ class TestSharedFandomBound(unittest.TestCase):
         self.assertEqual(
             aurorae_fixtures.INACTIVE_REFERENCE_ROWS,
             desktoptheme_paths.FANDOM_MAX_ROWS,
+        )
+        self.assertEqual(
+            aurorae_fixtures.INACTIVE_REFERENCE_COLS,
+            desktoptheme_paths.FANDOM_MAX_COLS,
         )
 
 

@@ -12,6 +12,7 @@ from support.desktoptheme_paths import (
     ARCHIVEORG_MAX_ROWS,
     ARCHIVEORG_REFERENCE,
     DIALOG_BACKGROUND_SVG,
+    FANDOM_MAX_COLS,
     FANDOM_MAX_ROWS,
     FANDOM_REFERENCE,
 )
@@ -183,6 +184,7 @@ class TestDialogBackgroundFandomReference(
 ):
     REFERENCE = FANDOM_REFERENCE
     MAX_ROWS = FANDOM_MAX_ROWS
+    MAX_COLS = FANDOM_MAX_COLS
 
     def test_cross_check_body_is_the_reference_grey(self):
         # Re-derive the #DDDDDD value at the coordinate the SVG comment

@@ -59,20 +59,22 @@ from .stream import (
     check_trns,
     collect_chunks,
     parse_ihdr,
+    validate_max_cols,
     validate_max_rows,
 )
 
 
 def _decode_image(
-    data: bytes, max_rows: int | None, name: str
-) -> tuple[int, int, int, int, int, bytes, bytes | None, bytes | None]:
+    data: bytes, max_rows: int | None, max_cols: int | None, name: str
+) -> tuple[int, int, int, int, int, int, bytes, bytes | None, bytes | None]:
     """Validate and inflate *data*, returning the pieces both decoders share.
 
-    The result is ``(width, height, color_type, channels, rows, raw, palette,
-    trns)``: the declared image geometry, the number of rows the caller asked
-    for, the unfiltered-declared byte count's inflated stream, and the palette
-    and tRNS payloads (or None). *name* is the public decoder's name, used in
-    the entry-guard error it raises, so each decoder still names itself.
+    The result is ``(width, height, color_type, channels, rows, cols, raw,
+    palette, trns)``: the declared image geometry, the number of rows and
+    columns the caller asked for, the unfiltered-declared byte count's
+    inflated stream, and the palette and tRNS payloads (or None). *name* is
+    the public decoder's name, used in the entry-guard error it raises, so
+    each decoder still names itself.
     """
     if not isinstance(data, (bytes, bytearray)):
         raise PngError(
@@ -93,7 +95,9 @@ def _decode_image(
     check_plte(palette, color_type)
     check_trns(trns, color_type, palette, trns_before_plte)
     validate_max_rows(max_rows)
+    validate_max_cols(max_cols)
     rows = height if max_rows is None else min(max_rows, height)
+    cols = width if max_cols is None else min(max_cols, width)
     channels = CHANNELS[color_type]
     # Bound the work by the header before zlib sees any data: reject an image
     # too large to be a screenshot, then decompress at most the exact unfiltered
@@ -134,42 +138,70 @@ def _decode_image(
             "PNG image data is truncated: the compressed stream ends before "
             "its final block"
         )
-    return width, height, color_type, channels, rows, raw, palette, trns
+    return width, height, color_type, channels, rows, cols, raw, palette, trns
 
 
-def decode_png(data: bytes, max_rows: int | None = None) -> Image:
+def _crop_rows(
+    data: bytes, width: int, cols: int, rows: int, channels: int
+) -> bytes:
+    """Return the top-left *rows* x *cols* pixels of a full-width *data* plane.
+
+    The palette paths unfilter every row so every index is validated, then
+    hand the expanded plane here; a column bound crops each row instead of
+    re-decoding the image. A plane that is already *cols* wide still needs the
+    row bound applied, which the one slice does.
+    """
+    if cols == width:
+        return data[: rows * width * channels]
+    row_bytes = width * channels
+    keep = cols * channels
+    out = bytearray(rows * keep)
+    for row in range(rows):
+        start = row * row_bytes
+        out[row * keep : (row + 1) * keep] = data[start : start + keep]
+    return bytes(out)
+
+
+def decode_png(
+    data: bytes, max_rows: int | None = None, max_cols: int | None = None
+) -> Image:
     """Decode an 8-bit, non-interlaced PNG into an :class:`Image`.
 
     When *max_rows* is given, the returned image is at most that many rows
-    tall and holds only the top rows of the PNG. The whole compressed stream
-    is still inflated and validated (its length, end marker and adler32), and
-    every scanline's filter type is still checked; the bound skips only the
-    per-byte unfilter work for the rows past it. A palette image is the
-    exception: every row is expanded, because that lookup also validates each
-    index and an out-of-range index below the bound is still a malformed PNG.
+    tall and holds only the top rows of the PNG. *max_cols* likewise keeps
+    only each row's first *max_cols* pixels, so the image is at most that many
+    columns wide. The whole compressed stream is still inflated and validated
+    (its length, end marker and adler32), and every scanline's filter type is
+    still checked; the bounds skip only the per-byte unfilter work past them.
+    A palette image is the exception: every row and index is expanded, because
+    that lookup also validates each index and an out-of-range index below the
+    bound is still a malformed PNG; its expanded plane is then cropped.
     """
-    width, height, color_type, channels, rows, raw, palette, _trns = (
-        _decode_image(data, max_rows, "decode_png")
+    width, height, color_type, channels, rows, cols, raw, palette, _trns = (
+        _decode_image(data, max_rows, max_cols, "decode_png")
     )
     if color_type == 6:
         # Alpha is discarded and the result is already RGB, so unfilter the
-        # three colour channels directly instead of all four.
+        # three colour channels directly instead of all four. drop_alpha
+        # emits the column bound as the stream's own row width.
         samples = unfilter(
-            drop_alpha(raw, width, height), width, height, 3, rows
+            drop_alpha(raw, width, height, max_cols), cols, height, 3, rows
         )
-        return Image(width, rows, samples)
+        return Image(cols, rows, samples)
     if color_type == 3:
         # The palette lookup validates each index, so expanding only the rows
         # the caller asked for would let an out-of-range index below the bound
-        # pass as a valid image. Expand every row, then return the top ones.
+        # pass as a valid image. Expand every row and index, then crop.
         samples = unfilter(raw, width, height, channels)
         rgb = to_rgb(color_type, samples, palette)
-        return Image(width, rows, rgb[: rows * width * 3])
-    samples = unfilter(raw, width, height, channels, rows)
-    return Image(width, rows, to_rgb(color_type, samples, palette))
+        return Image(cols, rows, _crop_rows(rgb, width, cols, rows, 3))
+    samples = unfilter(raw, width, height, channels, rows, max_cols)
+    return Image(cols, rows, to_rgb(color_type, samples, palette))
 
 
-def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, bytes]:
+def decode_rgba(
+    data: bytes, max_rows: int | None = None, max_cols: int | None = None
+) -> tuple[int, int, bytes]:
     """Decode an 8-bit, non-interlaced PNG into packed RGBA bytes.
 
     The result is ``(width, height, rgba)`` where *rgba* holds
@@ -179,20 +211,22 @@ def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, byt
     that stores it per pixel; the alpha color types (4 and 6) already carry
     it.
 
-    *max_rows* bounds the returned rows as :func:`decode_png` does: the whole
-    compressed stream is still inflated and validated, every scanline's filter
-    type is still checked, and a palette image's every index is still
-    validated. ``height`` in the result is the number of rows returned.
+    *max_rows* and *max_cols* bound the returned rows and columns as
+    :func:`decode_png` does: the whole compressed stream is still inflated and
+    validated, every scanline's filter type is still checked, and a palette
+    image's every index is still validated. ``width`` and ``height`` in the
+    result are the number of columns and rows returned.
     """
-    width, height, color_type, channels, rows, raw, palette, trns = (
-        _decode_image(data, max_rows, "decode_rgba")
+    width, height, color_type, channels, rows, cols, raw, palette, trns = (
+        _decode_image(data, max_rows, max_cols, "decode_rgba")
     )
     if color_type == 3:
         if palette is None:
             raise PngError("palette PNG has no PLTE chunk")
         samples = unfilter(raw, width, height, channels)
-        return width, rows, palette_rgba(samples, palette, trns, width, rows)
-    samples = unfilter(raw, width, height, channels, rows)
+        rgba = palette_rgba(samples, palette, trns, width, rows)
+        return cols, rows, _crop_rows(rgba, width, cols, rows, 4)
+    samples = unfilter(raw, width, height, channels, rows, max_cols)
     if color_type == 6:
         rgba = samples
     elif color_type == 4:
@@ -209,4 +243,4 @@ def decode_rgba(data: bytes, max_rows: int | None = None) -> tuple[int, int, byt
         rgba = greyscale_rgba(samples, sample_trns_key(trns, color_type))
     else:
         raise PngError(f"unsupported PNG color type {color_type}")
-    return width, rows, rgba
+    return cols, rows, rgba

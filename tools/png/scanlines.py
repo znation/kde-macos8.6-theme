@@ -67,6 +67,7 @@ def unfilter(
     height: int,
     channels: int,
     max_rows: int | None = None,
+    max_cols: int | None = None,
 ) -> bytes:
     """Unfilter scanlines, returning at most *max_rows* rows of samples.
 
@@ -74,14 +75,23 @@ def unfilter(
     the first *max_rows* rows are actually unfiltered: the per-byte predictor
     work is what dominates decoding a large screenshot, so a caller that reads
     only its top rows skips that work for the rest without giving up the
-    filter-type check. The returned bytes are ``max_rows * width * channels``
-    long (or the whole image when no bound is given).
+    filter-type check.
+
+    *max_cols* bounds each kept row to its first *max_cols* pixels. PNG
+    predictors reference only the same row's earlier pixels and the previous
+    row at the same or an earlier column, so a row prefix unfilters to exactly
+    the bytes a full decode would produce there; the rest of each row is
+    skipped unread. The returned bytes are ``rows * cols * channels`` long,
+    where *cols* is *max_cols* clamped to *width* (or *width* when no column
+    bound is given).
     """
     stride = width * channels
     _require_raw_length(raw, width, height, channels)
     rows = height if max_rows is None else min(max_rows, height)
-    out = bytearray(rows * stride)
-    prev = bytearray(stride)
+    cols = width if max_cols is None else min(max_cols, width)
+    out_stride = cols * channels
+    out = bytearray(rows * out_stride)
+    prev = bytearray(out_stride)
     src = 0
     dst = 0
     for row in range(height):
@@ -96,11 +106,11 @@ def unfilter(
             # checked, but the predictor work is skipped.
             src += stride
             continue
-        line = bytearray(raw[src : src + stride])
+        line = bytearray(raw[src : src + out_stride])
         src += stride
         line = _unfilter_line(ftype, line, prev, channels)
-        out[dst : dst + stride] = line
-        dst += stride
+        out[dst : dst + out_stride] = line
+        dst += out_stride
         prev = line
     return bytes(out)
 
@@ -134,7 +144,9 @@ def _unfilter_paeth(line: bytearray, prev: bytearray, channels: int) -> None:
         line[c::channels] = bytes(unfiltered)
 
 
-def drop_alpha(raw: bytes, width: int, height: int) -> bytes:
+def drop_alpha(
+    raw: bytes, width: int, height: int, max_cols: int | None = None
+) -> bytes:
     """Return ``raw`` with the alpha byte of every pixel removed.
 
     PNG filters reference only same-channel neighbours, so an alpha byte never
@@ -143,19 +155,25 @@ def drop_alpha(raw: bytes, width: int, height: int) -> bytes:
     of four and leaves the result already RGB, so ``expand.py``'s ``to_rgb``
     has no colour-type-6 case.  The filter-type byte at the start of each
     scanline is kept.
+
+    *max_cols* keeps only each row's first *max_cols* pixels, so a caller that
+    reads only a prefix does not copy the rest of every row. The returned rows
+    are ``cols * 3`` samples after their filter byte, where *cols* is
+    *max_cols* clamped to *width*.
     """
     _require_raw_length(raw, width, height, 4)
+    cols = width if max_cols is None else min(max_cols, width)
     stride = width * 4
-    out = bytearray(height * (width * 3 + 1))
+    out = bytearray(height * (cols * 3 + 1))
     src = 0
     dst = 0
     for _ in range(height):
         out[dst] = raw[src]
         src += 1
         dst += 1
-        line = bytearray(raw[src : src + stride])
+        line = bytearray(raw[src : src + cols * 4])
         del line[3::4]
-        out[dst : dst + width * 3] = line
+        out[dst : dst + cols * 3] = line
         src += stride
-        dst += width * 3
+        dst += cols * 3
     return bytes(out)

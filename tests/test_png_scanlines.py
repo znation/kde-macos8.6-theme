@@ -109,6 +109,41 @@ class TestUnfilterRowBound(unittest.TestCase):
         )
 
 
+class TestUnfilterColumnBound(unittest.TestCase):
+    def test_bound_returns_the_unbounded_prefix_for_every_filter_type(self):
+        # As with the row bound, every predictor must reproduce the full
+        # decode's row prefix: Sub and Paeth carry the left neighbour, Up
+        # carries the above byte, and Average both. A column bound that read
+        # only the prefix's payload without skipping the rest of the source
+        # row would misalign the next row's filter byte and fail here.
+        width, channels = 4, 3
+        rows = [
+            bytes((row * 37 + i * 11) % 256 for i in range(width * channels))
+            for row in range(5)
+        ]
+        raw = _inflated_raw(
+            width, len(rows), rows, color_type=2, filter_types=[0, 1, 2, 3, 4]
+        )
+        full = unfilter(raw, width, len(rows), channels)
+        self.assertEqual(full, b"".join(rows))
+        for cols in range(1, width + 1):
+            with self.subTest(cols=cols):
+                expected = b"".join(
+                    full[row * width * channels : row * width * channels + cols * channels]
+                    for row in range(len(rows))
+                )
+                self.assertEqual(
+                    unfilter(
+                        raw, width, len(rows), channels, max_cols=cols
+                    ),
+                    expected,
+                )
+
+    def test_a_column_bound_above_the_width_decodes_every_column(self):
+        raw = bytes([0, 1, 2, 3, 4])
+        self.assertEqual(unfilter(raw, 2, 1, 2, max_cols=9), raw[1:])
+
+
 class TestDropAlpha(unittest.TestCase):
     def test_keeps_each_rows_filter_byte_and_removes_every_alpha_byte(self):
         # Four distinct pixels across two rows, each row with its own filter
@@ -121,6 +156,15 @@ class TestDropAlpha(unittest.TestCase):
         self.assertEqual(
             drop_alpha(raw, 2, 2),
             bytes([3, 1, 2, 3, 5, 6, 7, 1, 9, 10, 11, 13, 14, 15]),
+        )
+
+    def test_a_column_bound_keeps_only_each_rows_prefix(self):
+        # One pixel per row after the filter byte, so a bound that forgot the
+        # alpha byte's position or the source stride would return the wrong
+        # pixel (or the second row's filter byte) here.
+        raw = bytes([3, 1, 2, 3, 4, 5, 6, 7, 8, 1, 9, 10, 11, 12, 13, 14, 15, 16])
+        self.assertEqual(
+            drop_alpha(raw, 2, 2, max_cols=1), bytes([3, 1, 2, 3, 1, 9, 10, 11])
         )
 
 

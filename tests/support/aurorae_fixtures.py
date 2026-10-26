@@ -14,7 +14,11 @@ from __future__ import annotations
 
 import os
 
-from support.desktoptheme_paths import FANDOM_MAX_ROWS, FANDOM_REFERENCE
+from support.desktoptheme_paths import (
+    FANDOM_MAX_COLS,
+    FANDOM_MAX_ROWS,
+    FANDOM_REFERENCE,
+)
 from support.platinum_palette import INACTIVE_OUTLINE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
 from support.repo_root import ROOT
@@ -40,6 +44,9 @@ INACTIVE_REFERENCE = FANDOM_REFERENCE
 # window's title field at y=880; it shares the fandom bound so that whichever
 # desktop_fandom.png reader runs first decodes the screenshot once.
 INACTIVE_REFERENCE_ROWS = FANDOM_MAX_ROWS
+# The inactive reader samples no pixel past x=1500; it shares the fandom
+# column bound so the shared decode is the same prefix decode.
+INACTIVE_REFERENCE_COLS = FANDOM_MAX_COLS
 # The retail Japanese 8.6 System Profiler window shows the close, zoom and
 # collapse boxes in one title bar (aboutsystem's window cannot be zoomed).
 PROFILER_REFERENCE = os.path.join(
@@ -106,7 +113,9 @@ class ReferenceImageCase:
     def load_inactive_reference(cls):
         """Load the inactive reference into ``inactive_image``/``error``."""
         cls.inactive_image, cls.inactive_error = read_reference(
-            INACTIVE_REFERENCE, max_rows=INACTIVE_REFERENCE_ROWS
+            INACTIVE_REFERENCE,
+            max_rows=INACTIVE_REFERENCE_ROWS,
+            max_cols=INACTIVE_REFERENCE_COLS,
         )
 
     def inactive_pixel(self, x, y):
