@@ -14,6 +14,7 @@ from pathlib import Path
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.close_tracking import failing_fdopen  # noqa: E402
+from support.tmp_dir import make_tmp_dir  # noqa: E402
 from tools import render_output  # noqa: E402
 
 
@@ -88,9 +89,7 @@ class TestPublishSourceFailure(unittest.TestCase):
 
 class TestPublishFdopen(unittest.TestCase):
     def test_failed_fdopen_closes_descriptor(self):
-        import tempfile
-        directory = tempfile.mkdtemp(prefix="render-output-fdopen-")
-        root = Path(directory)
+        root = make_tmp_dir(self)
         source = root / "src.png"
         source.write_bytes(b"source")
         output = root / "out.png"

@@ -365,9 +365,7 @@ class TestWriteAtomic(unittest.TestCase):
 
 class TestWriteAtomicFdopen(unittest.TestCase):
     def test_failed_fdopen_closes_descriptor(self):
-        import tempfile
-        directory = tempfile.mkdtemp(prefix="make-wallpaper-fdopen-")
-        root = Path(directory)
+        root = make_tmp_dir(self)
         target = root / "out.png"
         with failing_fdopen() as closed:
             with self.assertRaises(OSError):
