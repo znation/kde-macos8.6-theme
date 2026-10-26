@@ -141,7 +141,7 @@ def _decode_image(
     return width, height, color_type, channels, rows, cols, raw, palette, trns
 
 
-def _crop_rows(
+def _crop_plane(
     data: bytes, width: int, cols: int, rows: int, channels: int
 ) -> bytes:
     """Return the top-left *rows* x *cols* pixels of a full-width *data* plane.
@@ -194,7 +194,7 @@ def decode_png(
         # pass as a valid image. Expand every row and index, then crop.
         samples = unfilter(raw, width, height, channels)
         rgb = to_rgb(color_type, samples, palette)
-        return Image(cols, rows, _crop_rows(rgb, width, cols, rows, 3))
+        return Image(cols, rows, _crop_plane(rgb, width, cols, rows, 3))
     samples = unfilter(raw, width, height, channels, rows, max_cols)
     return Image(cols, rows, to_rgb(color_type, samples, palette))
 
@@ -225,7 +225,7 @@ def decode_rgba(
             raise PngError("palette PNG has no PLTE chunk")
         samples = unfilter(raw, width, height, channels)
         rgba = palette_rgba(samples, palette, trns, width, rows)
-        return cols, rows, _crop_rows(rgba, width, cols, rows, 4)
+        return cols, rows, _crop_plane(rgba, width, cols, rows, 4)
     samples = unfilter(raw, width, height, channels, rows, max_cols)
     if color_type == 6:
         rgba = samples
