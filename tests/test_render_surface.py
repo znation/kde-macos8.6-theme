@@ -470,14 +470,39 @@ class TestFailurePaths(StubTools):
         self.assertEqual("[]", record.read_text(encoding="utf-8").strip())
 
     def test_timeout_kills_the_session_group_and_exits_1(self):
-        pidfile = self.root / "pid"
-        self.stub("dbus-run-session", f'echo $$ > "{pidfile}"; exec sleep 60')
-        status, stderr, output = self.run_main("--settle", "0", "--timeout", "1")
-        self.assertEqual(1, status)
-        self.assertIn("render timed out after 1s", stderr)
-        self.assertFalse(output.exists())
-        self.assert_scratch_removed()
-        pid = int(pidfile.read_text(encoding="utf-8"))
+        # The session must write its pid before the one-second timeout fires,
+        # or the timeout kills it first and the read below has nothing to
+        # check. A loaded host can lose that race, so retry with a fresh
+        # pidfile per attempt; each timed-out attempt has already had its
+        # whole group killed by run_logged, so retrying leaks nothing. The
+        # deadline bounds the retries, so a host that never starts the session
+        # fails instead of spinning.
+        started = time.monotonic()
+        deadline = started + 30
+        while True:
+            self.assertLess(
+                time.monotonic(),
+                deadline,
+                "the session never wrote its pid before the timeout",
+            )
+            pidfile = self.root / f"pid-{time.monotonic_ns()}"
+            self.stub(
+                "dbus-run-session", f'echo $$ > "{pidfile}"; exec sleep 60'
+            )
+            status, stderr, output = self.run_main(
+                "--settle", "0", "--timeout", "1"
+            )
+            self.assertEqual(1, status)
+            self.assertIn("render timed out after 1s", stderr)
+            self.assertFalse(output.exists())
+            self.assert_scratch_removed()
+            try:
+                pid = int(pidfile.read_text(encoding="utf-8"))
+            except (FileNotFoundError, ValueError):
+                # The timeout fired before the session finished its setup, so
+                # this attempt proved nothing about the group kill.
+                continue
+            break
         with self.assertRaises(ProcessLookupError):
             os.kill(pid, 0)
 

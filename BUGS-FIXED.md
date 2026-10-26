@@ -5,6 +5,22 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A render timeout test's setup races its own one-second timeout (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`TestFailurePaths.test_timeout_kills_the_session_group_and_exits_1` gave the stubbed
+`dbus-run-session` a one-second timeout and then read the pidfile that stub writes before it
+`exec sleep 60`. On a loaded host the session could be killed by the timeout before the shell
+wrote the pid, so the read raised `FileNotFoundError` even though the group-kill path worked; the
+merge gate then excused the run as flaky without naming the test. Reproduced with a scratch
+subclass whose first session stub slept two seconds before writing the pid: the old test errored
+at the pidfile read.
+
+The test now retries with a fresh pidfile per attempt, bounded at 30 seconds, so an attempt whose
+setup loses the race is skipped while each timed-out attempt has already had its whole group
+killed; the successful attempt still checks that the recorded pid is gone.
+
+**Validation gap:** none — the closest tag, because the failure is the test's own setup race rather than a missing product-side reproduction: a one-shot slow-session stub forced the load-dependent `FileNotFoundError` at the pidfile read, and the fixed test passes under the same shim.
+
 ### A render test's setup wait expires before its crashed applet starts (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `TestFailurePaths.test_a_crashed_applet_is_not_captured_as_a_successful_render` replaced the
