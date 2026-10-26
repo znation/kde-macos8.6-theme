@@ -1,4 +1,9 @@
-"""Tests for tools/render_surface.py, the headless Plasma render-and-capture script."""
+"""Tests for the headless Plasma render CLI and its throwaway session.
+
+``tools/render_surface.py`` parses, launches and publishes, while
+``tools/render_session.py`` owns the scratch session and its command; this
+module drives both through the CLI's success and failure paths.
+"""
 
 from __future__ import annotations
 
@@ -22,7 +27,7 @@ from support.aurorae_fixtures import PROFILER_ROWS, REFERENCE_ROWS
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
-from tools import render_surface  # noqa: E402
+from tools import render_session, render_surface  # noqa: E402
 from tools.fidelity_metrics import compare, crop  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
@@ -202,7 +207,7 @@ class TestFailurePaths(StubTools):
             ),
         ):
             with self.subTest(label):
-                with mock.patch.object(render_surface, "write_configs", die):
+                with mock.patch.object(render_session, "write_configs", die):
                     status, stderr, output = self.run_main()
                 self.assertEqual(1, status)
                 self.assertIn("render_surface: error:", stderr)
@@ -218,7 +223,7 @@ class TestFailurePaths(StubTools):
         # long, so run_logged is stubbed instead of waited out; the render
         # session's own timeout is covered by
         # test_timeout_kills_the_session_group_and_exits_1.
-        with mock.patch.object(render_surface, "run_logged", return_value=None):
+        with mock.patch.object(render_session, "run_logged", return_value=None):
             status, stderr, output = self.run_main()
         self.assertEqual(1, status)
         self.assertIn("make install timed out", stderr)

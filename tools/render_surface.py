@@ -26,11 +26,7 @@ ends the run.
 from __future__ import annotations
 
 import argparse
-import os
-import shlex
-import shutil
 import sys
-import tempfile
 from collections.abc import Callable
 from pathlib import Path
 
@@ -48,8 +44,13 @@ if __package__:
     from tools.png import PngError, read_png
     from tools.process_group import exit_on_termination, run_logged
     from tools.render_output import output_problem, publish
+    from tools.render_session import (
+        Session,
+        install_theme,
+        session_command,
+        write_session_configs,
+    )
     from tools.repo_root import ROOT
-    from tools.theme_defaults import write_configs
 else:  # run directly: python3 tools/render_surface.py
     from argument_parsing import (
         EscapingArgumentParser,
@@ -64,8 +65,13 @@ else:  # run directly: python3 tools/render_surface.py
     from png import PngError, read_png
     from process_group import exit_on_termination, run_logged
     from render_output import output_problem, publish
+    from render_session import (
+        Session,
+        install_theme,
+        session_command,
+        write_session_configs,
+    )
     from repo_root import ROOT
-    from theme_defaults import write_configs
 
 TOOL = "render_surface"
 REQUIRED_TOOLS = (
@@ -76,81 +82,13 @@ REQUIRED_TOOLS = (
     "plasmawindowed",
     "spectacle",
 )
-# The config files the global theme's defaults feed that `plasma-apply-colorscheme`
-# does not write. The render applies the colour scheme in the session and leaves the
-# `[kdeglobals][KDE] widgetStyle` default unapplied.
-CONFIG_FILES = ("kwinrc", "plasmarc")
-COLOR_SCHEME = "MacOS8"
-SOCKET = "render-surface"
-INSTALL_TIMEOUT = 60.0
-
-
-def _session_script() -> str:
-    # Positional parameters carry the applet, settle time and output path, so
-    # none of them is ever parsed as shell syntax. `plasmawindowed` runs in the
-    # background, so its exit status would otherwise be lost: if it cannot
-    # start or crashes during the settle wait, `spectacle` still captures the
-    # empty session and reports success, publishing a render of no window. The
-    # liveness check therefore runs before the capture and fails the session
-    # with a log line naming the applet instead.
-    return (
-        f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
-        'plasmawindowed "$1" & applet=$!; '
-        'sleep "$2"; '
-        'if ! kill -0 "$applet" 2>/dev/null; then '
-        'echo "plasmawindowed exited before the capture" >&2; exit 1; fi; '
-        'spectacle -b -n -f -o "$3"; status=$?; '
-        'kill "$applet" 2>/dev/null; '
-        "exit $status"
-    )
 
 
 def _render(args: argparse.Namespace) -> int:
     output = Path(args.output).absolute()
-    scratch = Path(tempfile.mkdtemp(prefix="render-surface-"))
-    try:
-        runtime = scratch / "rt"
-        config = scratch / "cfg"
-        data = scratch / "data"
-        for directory in (runtime, config, data):
-            directory.mkdir()
-        runtime.chmod(0o700)
-        surface = scratch / "surface.png"
-
-        # DESTDIR must not reach the install: the theme has to land in the
-        # scratch data home. It arrives both as an environment variable and,
-        # when the caller ran `make DESTDIR=... render`, through MAKEFLAGS,
-        # which the child make imports as a command-line override. The
-        # display variables and XDG_CONFIG_DIRS are dropped so the session
-        # starts its own display and reads config only from the scratch
-        # XDG_CONFIG_HOME, not the caller's session.
-        env = {
-            key: value
-            for key, value in os.environ.items()
-            if key
-            not in (
-                "WAYLAND_DISPLAY",
-                "DISPLAY",
-                "DESTDIR",
-                "MAKEFLAGS",
-                "XDG_CONFIG_DIRS",
-            )
-        }
-        env.update(
-            XDG_RUNTIME_DIR=str(runtime),
-            XDG_CONFIG_HOME=str(config),
-            XDG_DATA_HOME=str(data),
-        )
-
-        install_log = scratch / "install.log"
+    with Session.create() as session:
         try:
-            status = run_logged(
-                ["make", "install", f"XDG_DATA_HOME={data}"],
-                env,
-                install_log,
-                INSTALL_TIMEOUT,
-                ROOT,
-            )
+            status, install_log = install_theme(session)
         except OSError as exc:
             # `make` was found on PATH but cannot be started (a corrupt or
             # unexecutable binary); report it as this tool's own diagnostic
@@ -161,75 +99,55 @@ def _render(args: argparse.Namespace) -> int:
             return report_failure(TOOL, f"make install {reason}", install_log)
 
         try:
-            write_configs(config, CONFIG_FILES)
+            write_session_configs(session)
         except (OSError, UnicodeDecodeError, ValueError) as exc:
             return report_failure(
                 TOOL, f"cannot write the session config: {exc}"
             )
 
-        session = shlex.join(
-            [
-                "sh",
-                "-c",
-                _session_script(),
-                "sh",
-                args.applet,
-                str(args.settle),
-                str(surface),
-            ]
+        command = session_command(
+            session,
+            args.applet,
+            args.settle,
+            args.width,
+            args.height,
+            args.timeout,
         )
-        render_log = scratch / "render.log"
         try:
             status = run_logged(
-                [
-                    "dbus-run-session",
-                    "--",
-                    "kwin_wayland",
-                    "--virtual",
-                    "--no-lockscreen",
-                    "--width",
-                    str(args.width),
-                    "--height",
-                    str(args.height),
-                    "--socket",
-                    SOCKET,
-                    "--exit-with-session",
-                    session,
-                ],
-                env,
-                render_log,
-                args.timeout,
+                command.argv,
+                session.environment,
+                command.log,
+                command.timeout,
                 ROOT,
             )
         except OSError as exc:
             return report_error(TOOL, f"cannot run dbus-run-session: {exc}")
         if status is None:
             return report_failure(
-                TOOL, f"render timed out after {args.timeout:g}s", render_log
+                TOOL, f"render timed out after {args.timeout:g}s", command.log
             )
         if status != 0:
-            return report_failure(TOOL, f"render session exited {status}", render_log)
+            return report_failure(TOOL, f"render session exited {status}", command.log)
 
         try:
-            image = read_png(str(surface))
+            image = read_png(str(session.surface))
         except (PngError, OSError) as exc:
             return report_failure(
-                TOOL, f"capture is not a readable PNG: {exc}", render_log
+                TOOL, f"capture is not a readable PNG: {exc}", command.log
             )
         if (image.width, image.height) != (args.width, args.height):
             return report_failure(
                 TOOL,
                 f"capture is {image.width}x{image.height}, "
                 f"expected {args.width}x{args.height}",
-                render_log,
+                command.log,
             )
         try:
-            publish(surface, output)
+            publish(session.surface, output)
         except OSError as exc:
             return report_failure(TOOL, f"cannot write {output}: {exc}")
         return 0
-    finally:
-        shutil.rmtree(scratch, ignore_errors=True)
 
 
 def _seconds(option: str, minimum: float) -> Callable[[str], float]:

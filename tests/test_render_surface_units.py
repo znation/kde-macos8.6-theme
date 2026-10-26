@@ -1,19 +1,22 @@
-"""Tests for tools/render_surface.py's argument parsing and session script.
+"""Tests for the render CLI's arguments and its throwaway session units.
 
 The render's end-to-end capture and its failure orchestration live in
 ``tests/test_render_surface.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
-from: ``main``'s argument validation and ``_session_script``'s in-session
-commands.
+from: ``render_surface.main``'s argument validation and the session setup,
+environment and in-session commands in ``tools/render_session.py``.
 """
 
 from __future__ import annotations
 
+import os
+import stat
 import unittest
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import call_main  # noqa: E402
-from tools import render_surface  # noqa: E402
+from tools import render_session, render_surface  # noqa: E402
 
 
 class TestArguments(unittest.TestCase):
@@ -71,6 +74,47 @@ class TestArguments(unittest.TestCase):
         self.assert_usage_error()
 
 
+class TestSessionSetup(unittest.TestCase):
+    def test_creates_the_scratch_layout_and_removes_it(self):
+        with render_session.Session.create() as session:
+            root = session.root
+            self.assertTrue(root.name.startswith("render-surface-"))
+            for directory in (session.runtime, session.config, session.data):
+                with self.subTest(directory=directory.name):
+                    self.assertTrue(directory.is_dir())
+                    self.assertEqual(root, directory.parent)
+            self.assertEqual(0o700, stat.S_IMODE(session.runtime.stat().st_mode))
+            self.assertEqual(session.root / "surface.png", session.surface)
+            self.assertEqual(session.root / "install.log", session.install_log)
+            self.assertEqual(session.root / "render.log", session.render_log)
+        self.assertFalse(root.exists())
+
+    def test_environment_points_at_the_scratch_homes(self):
+        with render_session.Session.create() as session:
+            self.assertEqual(
+                str(session.runtime), session.environment["XDG_RUNTIME_DIR"]
+            )
+            self.assertEqual(
+                str(session.config), session.environment["XDG_CONFIG_HOME"]
+            )
+            self.assertEqual(str(session.data), session.environment["XDG_DATA_HOME"])
+
+    def test_environment_drops_the_callers_session(self):
+        ambient = {
+            "WAYLAND_DISPLAY": "wl",
+            "DISPLAY": ":9",
+            "DESTDIR": "/stage",
+            "MAKEFLAGS": "-- DESTDIR=/stage",
+            "XDG_CONFIG_DIRS": "/ambient",
+        }
+        with mock.patch.dict(os.environ, ambient):
+            with render_session.Session.create() as session:
+                environment = session.environment
+        for key in ambient:
+            with self.subTest(key=key):
+                self.assertNotIn(key, environment)
+
+
 class TestSessionScript(unittest.TestCase):
     """The in-session shell script applies the scheme and captures the applet.
 
@@ -82,25 +126,27 @@ class TestSessionScript(unittest.TestCase):
     """
 
     def test_applies_the_scheme_before_opening_the_applet(self):
-        script = render_surface._session_script()
+        script = render_session.session_script()
         # The installed scheme id, applied inside the session; `|| exit 1`
         # aborts the session on a failed apply instead of capturing an
         # unthemed window. The applet opens before the settle sleep, so the
         # sleep is the wait for it to paint.
         self.assertIn(
-            f"plasma-apply-colorscheme {render_surface.COLOR_SCHEME} || exit 1",
+            f"plasma-apply-colorscheme {render_session.COLOR_SCHEME} || exit 1",
             script,
         )
         self.assertLess(script.index("plasmawindowed"), script.index("sleep"))
 
     def test_captures_to_the_third_positional_argument_with_spectacle(self):
         # `-b` runs without a GUI, `-n` suppresses the notification, `-f`
-        # captures the full screen, and `-o` writes the surface path that
-        # `_render` passes as the third positional parameter.
-        self.assertIn('spectacle -b -n -f -o "$3"', render_surface._session_script())
+        # captures the full screen, and `-o` writes the surface path that the
+        # session command passes as the third positional parameter.
+        self.assertIn(
+            'spectacle -b -n -f -o "$3"', render_session.session_script()
+        )
 
     def test_stops_the_applet_and_exits_with_the_capture_status(self):
-        script = render_surface._session_script()
+        script = render_session.session_script()
         self.assertIn('kill "$applet"', script)
         self.assertIn("exit $status", script)
         # The applet is stopped before the session exits, so no applet
@@ -109,6 +155,38 @@ class TestSessionScript(unittest.TestCase):
         self.assertLess(
             script.index('kill "$applet"'), script.index("exit $status")
         )
+
+
+class TestSessionCommand(unittest.TestCase):
+    def test_carries_the_geometry_the_script_and_the_surface_path(self):
+        with render_session.Session.create() as session:
+            command = render_session.session_command(
+                session, "a b", 2.5, 64, 48, 9.5
+            )
+            self.assertEqual(session.render_log, command.log)
+            self.assertEqual(9.5, command.timeout)
+            self.assertEqual(
+                [
+                    "dbus-run-session",
+                    "--",
+                    "kwin_wayland",
+                    "--virtual",
+                    "--no-lockscreen",
+                    "--width",
+                    "64",
+                    "--height",
+                    "48",
+                    "--socket",
+                    render_session.SOCKET,
+                    "--exit-with-session",
+                ],
+                command.argv[:-1],
+            )
+            self.assertIn(str(session.surface), command.argv[-1])
+            self.assertIn(render_session.session_script(), command.argv[-1])
+            # The applet is a positional parameter, so its space cannot become
+            # shell syntax.
+            self.assertIn("'a b' 2.5", command.argv[-1])
 
 
 if __name__ == "__main__":
