@@ -57,6 +57,13 @@ class ProfileCase(unittest.TestCase):
     def user_js_path(self):
         return self.profile / "user.js"
 
+    def create_symlink(self, link, target, *, target_is_directory=False):
+        """Create a fixture link, skipping the test if symlink creation fails."""
+        try:
+            link.symlink_to(target, target_is_directory=target_is_directory)
+        except OSError:
+            self.skipTest("cannot create a symlink on this platform")
+
     def fail_write_to(self, target):
         """Return a ``write_atomically`` stand-in that fails on *target*.
 
@@ -353,10 +360,7 @@ class TestProfileResolution(ProfileCase):
         # non-UTF-8, the missing and the FIFO fixtures each miss.
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"
-        try:
-            profiles.symlink_to(profiles)
-        except OSError:
-            self.skipTest("cannot create a symlink on this platform")
+        self.create_symlink(profiles, profiles)
         with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve()
         self.assertIn(f"cannot read {profiles}", str(caught.exception))
@@ -670,10 +674,7 @@ class TestUserJs(unittest.TestCase):
 class TestInstall(ProfileCase):
     def test_install_and_remove_through_a_symlinked_profile_directory(self):
         profile_link = self.root / "linked-profile"
-        try:
-            profile_link.symlink_to(self.profile, target_is_directory=True)
-        except OSError:
-            self.skipTest("cannot create a symlink on this platform")
+        self.create_symlink(profile_link, self.profile, target_is_directory=True)
         foreign = 'user_pref("keep.me", "caf\u00e9");\r\n'
         _write(self.user_js_path(), foreign)
 
@@ -763,10 +764,7 @@ class TestInstall(ProfileCase):
         target.write_bytes(b"")
         link = self.sheet_path()
         link.parent.mkdir(parents=True)
-        try:
-            link.symlink_to(target)
-        except OSError:
-            self.skipTest("cannot create a symlink on this platform")
+        self.create_symlink(link, target)
 
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
@@ -784,10 +782,7 @@ class TestInstall(ProfileCase):
         original = 'user_pref("keep.me", true);\n'
         target.write_text(original, encoding="utf-8")
         link = self.user_js_path()
-        try:
-            link.symlink_to(target)
-        except OSError:
-            self.skipTest("cannot create a symlink on this platform")
+        self.create_symlink(link, target)
 
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
@@ -816,10 +811,7 @@ class TestInstall(ProfileCase):
                 )
                 sibling.write_bytes(original)
                 target = self.root / (profile.name + "-missing")
-                try:
-                    link.symlink_to(target)
-                except OSError:
-                    self.skipTest("cannot create a symlink on this platform")
+                self.create_symlink(link, target)
 
                 result = self.run_tool("--profile", str(profile))
 
@@ -1284,10 +1276,7 @@ class TestRemove(ProfileCase):
                 else:
                     _write(sheet, install_firefox.CSS_MARKER + "\n/* owned */\n")
                 target = self.root / (profile.name + "-missing")
-                try:
-                    link.symlink_to(target)
-                except OSError:
-                    self.skipTest("cannot create a symlink on this platform")
+                self.create_symlink(link, target)
 
                 result = self.run_tool("--remove", "--profile", str(profile))
 
@@ -1311,10 +1300,7 @@ class TestRemove(ProfileCase):
         target.write_text(css_text, encoding="utf-8")
         link = self.sheet_path()
         link.parent.mkdir(parents=True)
-        try:
-            link.symlink_to(target)
-        except OSError:
-            self.skipTest("cannot create a symlink on this platform")
+        self.create_symlink(link, target)
         js_text = firefox_user_js.USER_JS_MARKER + "\n" + firefox_user_js.PREF_LINE + "\n"
         _write(self.user_js_path(), js_text)
 
@@ -1336,10 +1322,7 @@ class TestRemove(ProfileCase):
         js_text = firefox_user_js.USER_JS_MARKER + "\n" + firefox_user_js.PREF_LINE + "\n"
         target.write_text(js_text, encoding="utf-8")
         link = self.user_js_path()
-        try:
-            link.symlink_to(target)
-        except OSError:
-            self.skipTest("cannot create a symlink on this platform")
+        self.create_symlink(link, target)
 
         result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
@@ -1400,10 +1383,7 @@ class TestRemove(ProfileCase):
                 unreadable = sheet if name == "userChrome.css" else js
                 untouched = js if name == "userChrome.css" else sheet
                 unreadable.parent.mkdir(parents=True, exist_ok=True)
-                try:
-                    unreadable.symlink_to(unreadable)
-                except OSError:
-                    self.skipTest("cannot create a symlink on this platform")
+                self.create_symlink(unreadable, unreadable)
                 result = self.run_tool("--profile", str(profile))
                 self.assertEqual(2, result.returncode)
                 self.assertIn(f"cannot read {unreadable}", result.stderr)
