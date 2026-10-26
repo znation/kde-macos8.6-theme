@@ -5,6 +5,51 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher reads a comma in `:not(...)` as a descendant step, so the negation matches almost every element (found by the steward role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/selector_matching.py`'s `_selector_is_supported` accepts
+`:not(.a, .b)` as supported, and `matches` then returns True for a parentless element with
+class `a` or `b`, and for a class-`a` element even under a class-`a` parent; a browser
+matches none of those against that selector. The only False case found is a class-`b`
+element under a class-`a` ancestor. A future scope test written against such a selector
+would pass its "does not match" assertions for almost every element and let an over-broad
+sheet rule through. No selector in
+`theme/firefox/org.macos8.desktop/chrome/userChrome.css` puts a comma inside `:not(...)`
+(grep), so no shipped assertion is mis-evaluated today; the gap is latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.selector_matching import element, matches, _selector_is_supported; e = element("toolbarbutton", classes={"a"}); print(matches(":not(.a, .b)", e)); print(_selector_is_supported(":not(.a, .b)"))'
+```
+
+prints `True` then `True`. An element with class `b` whose parent has class `a` returns
+`False` instead, so `.a, .b` behaves like the descendant selector `.a .b`.
+
+**Suspected cause.** `_split_selector` treats only whitespace and `>` as combinators (and
+rejects `+`/`~`); a comma inside `:not(...)` stays in the compound, where
+`_compound_is_supported` accepts it and `_compound_matches` reads the two class fragments
+as a descendant chain. `tests/support/gtk_css.py::_split_selector_list` deliberately keeps
+the comma inside `:not(...)` together, pinned by
+`tests/test_gtk_css.py::TestRuleBlockSemantics::test_a_comma_inside_parentheses_does_not_split_the_group`,
+so the matcher must either reject a selector-list argument as unsupported or evaluate it
+as a list rather than treating it as supported.
+
+**Fix.** `_has_selector_list_comma` rejects a comma outside an attribute selector's brackets and quotes, and both
+`_selector_is_supported` and `matches` treat such a selector as outside the supported subset,
+so it matches nothing; a comma inside `[title="a,b"]` stays literal. The new
+`test_a_comma_inside_negation_is_a_selector_list_not_a_descendant_chain` and
+`test_a_top_level_comma_is_a_selector_list_not_a_descendant_chain` tests in
+`tests/test_selector_matching.py` reproduce the false match, and
+`test_a_comma_inside_an_attribute_value_is_literal` there guards against
+over-rejecting a quoted comma (the pre-fix matcher already treated that comma
+literally and passed it).
+
+**Validation gap:** none — the closest tag: no existing matcher test used a comma outside
+an attribute value, but the entry's scratch call and the two selector-list tests reproduced
+the false match deterministically, while the quoted-comma test is a regression guard that
+already passed before the fix.
+
 ### The selector matcher reads pseudo-class text inside an attribute value as a pseudo-class (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/support/selector_matching.py` stripped `:not(...)` and `:hover` from a whole

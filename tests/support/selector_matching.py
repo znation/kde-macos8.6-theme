@@ -8,11 +8,13 @@ selector would match each representative element.
 Only the subset the sheet's scope tests use is supported: descendant and
 child (``>``) combinators separating compound selectors made of an element
 name, ``#id``, ``.class``, ``[attribute]``/``[attribute="value"]``, ``:hover``
-and ``:not(...)`` (whose argument may itself be a selector). A sibling
-combinator (``+`` or ``~``) or any other pseudo-class or pseudo-element is
-outside that subset and makes its selector match no element -- including a
-pseudo-class inside ``:not(...)``, which must not be read as false and invert
-the negation into a match for every element. An element
+and ``:not(...)`` (whose argument may itself be a single selector). A sibling
+combinator (``+`` or ``~``), a selector list (a comma outside an attribute
+selector, as in ``:not(.a, .b)`` or the top-level ``.a, .b``) or any other
+pseudo-class or pseudo-element is outside that subset and makes its selector
+match no element -- including a pseudo-class inside ``:not(...)``, which must
+not be read as false and invert the negation into a match for every element.
+An element
 is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
@@ -269,6 +271,34 @@ def _split_selector(selector):
     return compounds, combinators
 
 
+def _has_selector_list_comma(selector):
+    """Return whether *selector* holds a comma outside attribute brackets.
+
+    A comma outside attribute brackets separates a selector list, so
+    ``:not(.a, .b)`` negates either class rather than naming the descendant
+    chain ``.a .b``. :func:`_split_selector` has no list combinator, so such a
+    selector is outside the supported subset and must match nothing. A comma
+    inside ``[title="a,b"]`` is inside the brackets (and quotes) and stays
+    supported.
+    """
+    quote = None
+    bracket_depth = 0
+    for char in selector:
+        if quote is not None:
+            if char == quote:
+                quote = None
+            continue
+        if char in "\"'":
+            quote = char
+        elif char == "[":
+            bracket_depth += 1
+        elif char == "]":
+            bracket_depth = max(0, bracket_depth - 1)
+        elif char == "," and not bracket_depth:
+            return True
+    return False
+
+
 def _compound_is_supported(compound):
     """Return whether *compound* uses only the matcher's supported subset.
 
@@ -302,6 +332,8 @@ def _compound_is_supported(compound):
 
 def _selector_is_supported(selector):
     """Return whether *selector* stays inside the matcher's supported subset."""
+    if _has_selector_list_comma(selector):
+        return False
     compounds, combinators = _split_selector(selector)
     return (
         bool(compounds)
@@ -313,13 +345,13 @@ def _selector_is_supported(selector):
 def matches(selector, element):
     """Return True when *selector* matches *element* in its fixture tree.
 
-    A selector using a sibling combinator (``+``/``~``) or an unsupported
-    pseudo-class (even inside ``:not(...)``) is outside the supported subset
-    and matches nothing, so its over-broad reading cannot pass a scope
-    assertion.
+    A selector using a sibling combinator (``+``/``~``), a selector list (a
+    comma outside an attribute selector) or an unsupported pseudo-class (even
+    inside ``:not(...)``) is outside the supported subset and matches nothing,
+    so its over-broad reading cannot pass a scope assertion.
     """
     compounds, combinators = _split_selector(selector)
-    if not compounds:
+    if not compounds or _has_selector_list_comma(selector):
         return False
     if any(combinator not in (" ", ">") for combinator in combinators):
         return False

@@ -14,7 +14,11 @@ from __future__ import annotations
 
 import unittest
 
-from support.selector_matching import element as build_element, matches
+from support.selector_matching import (
+    _selector_is_supported,
+    element as build_element,
+    matches,
+)
 
 
 def element(tag, classes=(), parent=None, element_id="", attrs=None, hover=False):
@@ -208,6 +212,40 @@ class TestSelectorMatching(unittest.TestCase):
         for selector in (".a:not(.b + .c)", ".a:not()"):
             with self.subTest(selector=selector):
                 self.assertFalse(matches(selector, target))
+
+    def test_a_comma_inside_negation_is_a_selector_list_not_a_descendant_chain(self):
+        # ``:not(.a, .b)`` negates either class; reading the comma as a
+        # descendant step (``.a .b``) made the negation true for a class-``a``
+        # element and for one under a class-``a`` parent. A selector list is
+        # outside the supported subset, so it must match nothing rather than
+        # be read as a descendant chain.
+        target = element("toolbarbutton", ("a",))
+        parent = element("box", ("a",))
+        under_parent = element("toolbarbutton", ("a",), parent=parent)
+        for selector in (":not(.a, .b)", ":not(.a,.b)", ".a:not(.b, .c)"):
+            with self.subTest(selector=selector):
+                self.assertFalse(_selector_is_supported(selector))
+                self.assertFalse(matches(selector, target))
+                self.assertFalse(matches(selector, under_parent))
+
+    def test_a_top_level_comma_is_a_selector_list_not_a_descendant_chain(self):
+        # The matcher does not evaluate selector lists; ``.a, .b`` used to be
+        # read as ``.a .b``.
+        target = element("toolbarbutton", ("b",))
+        parent = element("box", ("a",))
+        under_parent = element("toolbarbutton", ("b",), parent=parent)
+        self.assertFalse(matches(".a, .b", under_parent))
+        self.assertFalse(matches(".a, .b", target))
+
+    def test_a_comma_inside_an_attribute_value_is_literal(self):
+        # A quoted value's comma is text, not a selector-list separator, so
+        # the rejection above must not drop a supported attribute test.
+        target = element("box", attrs={"title": "a,b"})
+        other = element("box", attrs={"title": "a"})
+        self.assertTrue(matches('[title="a,b"]', target))
+        self.assertFalse(matches('[title="a,b"]', other))
+        self.assertTrue(matches(':not([title="a,b"])', other))
+        self.assertFalse(matches(':not([title="a,b"])', target))
 
     def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
         # A pseudo-class outside the supported subset cannot be evaluated, so
