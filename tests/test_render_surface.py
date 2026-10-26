@@ -549,8 +549,15 @@ class TestRender(unittest.TestCase):
         cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
         cls.output = os.path.join(cls.directory, "render.png")
         cls._candidate = None
+        # Run the CLI the way `make render` does, with the tool's documented
+        # settle default (8s), not a tighter one. The session sleeps for that
+        # paint budget and then captures: a loaded host that has not painted
+        # the window within 3s captures an all-black screen at the right size,
+        # which the CLI accepts and the pixel comparisons below then report as
+        # eight unexplained failures. The tool's default is the paint budget
+        # it promises; the gate must not render below it.
         process = process_runner.start(
-            [sys.executable, SCRIPT, "--settle", "3", cls.output],
+            [sys.executable, SCRIPT, cls.output],
             capture_output=True,
             text=True,
         )

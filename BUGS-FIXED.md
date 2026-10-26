@@ -5,6 +5,26 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The render gate captures an unpainted frame on a loaded host (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/test_render_surface.py::TestRender` started `tools/render_surface.py` with `--settle 3`,
+below the CLI's documented default of 8 seconds for the window to paint. The session sleeps for
+the settle and then captures whatever is on screen; on a host loaded enough that the window has
+not painted in 3 seconds, `spectacle` still writes a correctly sized 320x240 all-black PNG, the
+CLI accepts it, and the class reports eight pixel failures (the body pixel at (300, 200) is
+`#000000` instead of `#DDDDDD`) with no hint that the capture was simply too early.
+
+Reproduced by running the render with four CPU hogs pinned to the same core: `--settle 3` wrote
+an all-black capture (pixel (300, 200) `#000000`), while `--settle 8` wrote the Platinum face
+(`#DDDDDD`). Under the same load, the whole `TestRender` class failed 8 subtests before the fix
+and passed after it.
+
+Fixed by removing the `--settle 3` override, so the gate renders the way `make render` does with
+the tool's documented default paint budget instead of a tighter one; the tool's default is the
+budget it promises, and a loaded host is exactly when it matters.
+
+**Validation gap:** slow-check — the only reproduction is a slow headless render under CPU load, and the time the window needs to paint is what shaped the fix.
+
 ### A render timeout test's setup races its own one-second timeout (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `TestFailurePaths.test_timeout_kills_the_session_group_and_exits_1` gave the stubbed
