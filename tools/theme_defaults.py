@@ -206,7 +206,11 @@ def write_configs(config_home: Path, names: Iterable[str]) -> None:
     Each name must be a bare filename, so the writes stay inside *config_home*;
     a list of names is validated before any of them is written, and a single
     string is refused rather than iterated character by character into one
-    file per letter.
+    file per letter. Every name must have at least one ``[name][group]``
+    section in the defaults file: a truncated or empty defaults file would
+    otherwise write an empty config, silently dropping the theme's settings
+    for that file. All names are checked before the first one is written, so
+    a missing section leaves every config unchanged.
     """
     if not isinstance(config_home, Path):
         raise ValueError(
@@ -219,11 +223,21 @@ def write_configs(config_home: Path, names: Iterable[str]) -> None:
             f"not a single {type(names).__name__}: {names!r}"
         )
     wanted = [_config_name(name) for name in names]
-    groups = defaults_groups()
+    groups = defaults_groups(DEFAULTS)
+    missing = [
+        name
+        for name in wanted
+        if not any(section_file == name for section_file, _ in groups)
+    ]
+    if missing:
+        raise ValueError(
+            f"{DEFAULTS}: no [<file>][<group>] section defines "
+            f"{', '.join(missing)}; refusing to write an empty config"
+        )
     for name in wanted:
         lines: list[str] = []
-        for (file, group), values in groups.items():
-            if file != name:
+        for (section_file, group), values in groups.items():
+            if section_file != name:
                 continue
             lines.append(f"[{group}]")
             lines.extend(f"{key}={value}" for key, value in values.items())
