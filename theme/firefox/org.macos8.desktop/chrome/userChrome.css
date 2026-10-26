@@ -12,6 +12,9 @@
    No reference shows Firefox menus; their zero-radius popup corners follow
    this sheet's square .tab-background and #urlbar-background convention
    (platform geometry adaptation 2026-10-25).
+   No reference shows Firefox arrow panels; their zero-radius bodies follow
+   this sheet's square menus, .tab-background and #urlbar-background
+   (platform geometry adaptation 2026-10-25).
    No reference shows Firefox menu colours; the shared face and black map
    to --panel-background-color and --panel-text-color consumed by
    :is(menupopup, panel)::part(content) in Firefox toolkit's
@@ -100,6 +103,10 @@
   color: #000000 !important;
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
+}
+
+panel[type="arrow"] {
+  --panel-border-radius: 0 !important;
 }
 
 menupopup {

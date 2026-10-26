@@ -113,6 +113,9 @@ REQUIRED_RULES = {
         "border": f"1px solid {BLACK} !important",
         "border-radius": "0 !important",
     },
+    'panel[type="arrow"]': {
+        "--panel-border-radius": "0 !important",
+    },
     "menupopup": {
         "--panel-border-radius": "0 !important",
         "--panel-background-color": f"{FACE} !important",
@@ -182,11 +185,11 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, expected)
 
-    def test_panel_radius_override_is_scoped_to_menu_popups(self):
+    def test_panel_radius_override_is_scoped_to_menus_and_arrow_panels(self):
         self.assertEqual(
             {selector for selector, declarations in self.rules.items()
              if "--panel-border-radius" in declarations},
-            {"menupopup"},
+            {"menupopup", 'panel[type="arrow"]'},
         )
 
     def test_consumed_popup_colour_tokens_are_scoped_to_menu_popups(self):

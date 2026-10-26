@@ -73,22 +73,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Firefox Platinum chrome: square arrow-panel corners (planned 2026-10-25 by the plan role; independent of the waiting menu colour token correction)
-
-**Goal.** Give Firefox `panel[type="arrow"]` popup bodies the square corners already used for this sheet's menus, tabs and address field. This is one geometry change, separate from the waiting menu palette correction.
-
-**Grounding.** The sheet currently declares `--panel-border-radius` only on `menupopup`. The installed `/usr/lib/firefox-esr/omni.ja` member `chrome/toolkit/skin/classic/global/popup.css` consumes it in `:is(menupopup, panel)::part(content)` as `border-radius` and separately identifies arrow panels with `panel:where([type="arrow"])`. The completed menu-corners plan explicitly excluded arrow panels; searches of Planned and the finished Firefox entries found no arrow-panel radius override. No reference screenshot shows Firefox arrow panels: zero radius is a platform adaptation sourced from the sheet's existing square menu, `.tab-background` and `#urlbar-background` convention, not a sampled Mac OS metric. Record that missing surface and source with the adaptation date.
-
-**Approach and files touched.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: add `panel[type="arrow"] { --panel-border-radius: 0 !important; }` and extend the header provenance. Keep the existing `menupopup` radius. Leave palette tokens, padding, shadows and panel contents outside this change; do not broaden the override to `panel` or `:root`.
-- `tests/test_firefox_theme.py`: add that exact selector and declaration to `REQUIRED_RULES`. Rename `TestFirefoxChrome.test_panel_radius_override_is_scoped_to_menu_popups` to reflect menus and arrow panels, and require the set of selectors declaring the radius token to equal `{"menupopup", 'panel[type="arrow"]'}`. This deliberately extends the previous menu-only guarantee while continuing to exclude general panels. Tests must run without Firefox or host archives.
-- `docs/invariants.md`: update the `## firefox` standalone-sheet row to name square menu and arrow-panel bodies, their restricted selectors and the dated platform geometry provenance.
-
-**Acceptance criteria.**
-- `TestFirefoxChrome.test_required_rules` rejects a missing arrow-panel radius, a nonzero value or missing `!important`; the scope test rejects moving it to `:root` or general `panel`, and still requires the menu override.
-- No new palette value is introduced. Existing exact-palette and standalone-sheet checks pass, and `make check` passes after the invariant update.
-- Report these as declaration checks, not proof of live Firefox rendered pixels. This plan neither corrects the separate arrow-panel colour tokens nor changes the waiting menu-colour plan's scope.
-
 ### Firefox Platinum chrome: connect arrow-panel colours to consumed popup tokens (planned 2026-10-25 by the plan role; independent of square arrow-panel corners)
 
 **Goal.** Make arrow-panel bodies use the intended Platinum face, text and border through Firefox's current popup colour tokens. This is one consumer-mapping correction, independently mergeable from the queued square-corners plan.
