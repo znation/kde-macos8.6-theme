@@ -8,7 +8,8 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
-by the clean role; validation scope clarified 2026-10-25 by the steward role):** The
+by the clean role; validation scope clarified 2026-10-25 by the steward role; Firefox artifact
+and content-surface status updated 2026-10-26 by the steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
@@ -27,7 +28,9 @@ carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by 
 and the global theme selects its `Lato` family for the general, menu, toolbar, smallest-readable
 and window-title fonts, while monospaced text keeps the user's fixed font); the GTK 3 and GTK 4
 Platinum stylesheets under `theme/gtk/` (installed by the opt-in `install-gtk` target and
-selected by `apply-gtk`; `make install` copies no GTK files); and the render and fidelity tooling.
+selected by `apply-gtk`; `make install` copies no GTK files); the standalone Firefox Platinum
+sheet under `theme/firefox/` (its `userChrome.css` copied and its profile preference written
+only by the opt-in `install-firefox` target); and the render and fidelity tooling.
 The live reference-comparison gate in `tests/test_render_surface.py` checks Aurorae window-chrome
 regions when its render prerequisites are available (README.md, "Fidelity checking").
 Firefox's `tests/test_firefox_theme.py::TestFirefoxChrome` checks stylesheet declarations;
@@ -73,9 +76,13 @@ applications now use Lato for the general, menu, toolbar, smallest-readable and 
 fonts, and monospaced text keeps the user's fixed font; GTK and Firefox
 applications keep their own chrome unless the opt-in GTK targets or the Firefox userChrome
 install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
-landed, while its profile install is part 2/2, which has landed).
-
-_None yet._
+landed, while its profile install is part 2/2, which has landed). Firefox work since that
+series landed as single-surface chrome plans (the downloads-panel and all-tabs rows, the
+sidebar frame, the menu-bar title box and the tab faces), the app-menu row paint is queued,
+and it now reaches a content page: the queued `userContent.css` plan paints the about:downloads
+list (part 1/2), with its opt-in profile install as part 2/2. That is an extension of the
+2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
+recorded here to keep the scope deliberate.
 
 ### Firefox Platinum chrome: paint the app-menu rows like a Platinum menu (planned 2026-10-26 by the plan role)
 
