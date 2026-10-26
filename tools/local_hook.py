@@ -24,7 +24,6 @@ unreadable file), a git invocation fails, or the arguments are a usage error.
 from __future__ import annotations
 
 import stat
-import subprocess
 import sys
 from pathlib import Path
 
@@ -32,18 +31,21 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_atomically
     from tools.diagnostics import report_error
+    from tools import local_hook_git
+    from tools.local_hook_git import LocalHookError
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/local_hook.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_atomically
     from diagnostics import report_error
+    import local_hook_git
+    from local_hook_git import LocalHookError
     from terminal import escape_controls
 
 TOOL = "local_hook"
 HOOK_NAME = "post-commit"
 # The line that marks a hook as this tool's; a hook without it is foreign.
 MARKER = "# installed by kde-macos8.6-theme: make install-local-hook"
-COMMAND_TIMEOUT = 30.0
 # The hook this tool writes is a few hundred bytes. An existing hook is read
 # only to look for MARKER, and the path holds whatever another tool or the
 # user put there, at any size, so a huge file must not be loaded whole: a
@@ -65,67 +67,6 @@ HOOK_SCRIPT = f"""\
 cd "$(git rev-parse --show-toplevel)" && make apply 1>&2
 exit 0
 """
-
-
-class LocalHookError(Exception):
-    """A git invocation or filesystem condition the tool reports and refuses."""
-
-
-def _git(*args: str) -> str:
-    """Run ``git *args*`` in the current directory; return its stripped stdout.
-
-    A missing git, a timeout, an unrunnable git, or a non-zero exit becomes a
-    `LocalHookError` whose message is git's own diagnostic where there is one.
-    Git prints a path raw, and a repository path may hold bytes that are not
-    UTF-8 (Linux allows that), so the output is decoded with
-    ``surrogateescape`` instead of strictly: the bytes round-trip through
-    ``os.fsencode`` for the filesystem calls, and a strict decode would
-    otherwise raise an uncaught ``UnicodeDecodeError`` naming neither the tool
-    nor the command.
-    """
-    try:
-        result = subprocess.run(
-            ["git", *args],
-            capture_output=True,
-            text=True,
-            errors="surrogateescape",
-            timeout=COMMAND_TIMEOUT,
-        )
-    except FileNotFoundError as exc:
-        raise LocalHookError("git not found on PATH") from exc
-    except subprocess.TimeoutExpired as exc:
-        raise LocalHookError(
-            f"git {' '.join(args)} timed out after {COMMAND_TIMEOUT:g}s"
-        ) from exc
-    except OSError as exc:
-        # Git exists but cannot be launched (a permission error, a directory
-        # on PATH, a deleted working directory). Report it as this tool's own
-        # error so the caller prints a diagnostic and exits 2, instead of a
-        # traceback naming neither the tool nor the command.
-        raise LocalHookError(f"cannot run git: {exc}") from exc
-    if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip()
-        raise LocalHookError(
-            detail
-            or f"git {' '.join(args)} exited {result.returncode}"
-        )
-    return result.stdout.strip()
-
-
-def hooks_dir() -> Path:
-    """Return the absolute hooks directory of the current repository.
-
-    ``git rev-parse --git-path hooks`` honours ``core.hooksPath`` and, in a
-    linked worktree, names the common hooks directory shared with the main
-    checkout. Its output may be relative to the current directory, so it is
-    resolved to an absolute path here.
-    """
-    return Path(_git("rev-parse", "--git-path", "hooks")).resolve()
-
-
-def top_level() -> Path:
-    """Return the absolute root of the current work tree."""
-    return Path(_git("rev-parse", "--show-toplevel")).resolve()
 
 
 def _existing_hook(path: Path) -> bytes | None:
@@ -182,8 +123,8 @@ def _write_hook(path: Path, content: str) -> None:
 def install() -> int:
     """Write the local post-commit hook; return the process exit status."""
     try:
-        hooks = hooks_dir()
-        top = top_level()
+        hooks = local_hook_git.hooks_dir()
+        top = local_hook_git.top_level()
         path = hooks / HOOK_NAME
         existing = _existing_hook(path)
     except LocalHookError as exc:
@@ -207,7 +148,7 @@ def install() -> int:
 def uninstall() -> int:
     """Remove the local post-commit hook; return the process exit status."""
     try:
-        hooks = hooks_dir()
+        hooks = local_hook_git.hooks_dir()
         path = hooks / HOOK_NAME
         existing = _existing_hook(path)
     except LocalHookError as exc:

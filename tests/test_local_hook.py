@@ -34,7 +34,7 @@ from support.process_assertions import (
     assert_succeeded,
 )
 from support.unlink_failure import unlink_failing_for
-from tools import atomic_write, local_hook
+from tools import atomic_write, local_hook, local_hook_git
 
 
 def make_repo(case):
@@ -148,9 +148,9 @@ class TestGitFailures(unittest.TestCase):
 
     def _failure(self, **run):
         """Call ``_git`` with ``subprocess.run`` patched by *run*; return its message."""
-        with mock.patch.object(local_hook.subprocess, "run", **run):
-            with self.assertRaises(local_hook.LocalHookError) as caught:
-                local_hook._git("rev-parse", "--git-path", "hooks")
+        with mock.patch.object(local_hook_git.subprocess, "run", **run):
+            with self.assertRaises(local_hook_git.LocalHookError) as caught:
+                local_hook_git._git("rev-parse", "--git-path", "hooks")
         return str(caught.exception)
 
     def test_missing_git_is_reported(self):
@@ -171,13 +171,13 @@ class TestGitFailures(unittest.TestCase):
     def test_timeout_names_the_command_and_duration(self):
         message = self._failure(
             side_effect=subprocess.TimeoutExpired(
-                "git", local_hook.COMMAND_TIMEOUT
+                "git", local_hook_git.COMMAND_TIMEOUT
             )
         )
         self.assertEqual(
             message,
             "git rev-parse --git-path hooks timed out after "
-            f"{local_hook.COMMAND_TIMEOUT:g}s",
+            f"{local_hook_git.COMMAND_TIMEOUT:g}s",
         )
 
     def test_nonzero_exit_reports_gits_own_diagnostic(self):
@@ -213,20 +213,20 @@ class TestGitFailures(unittest.TestCase):
         fake.chmod(0o755)
         with mock.patch.dict(os.environ, {"PATH": str(bindir)}):
             self.assertEqual(
-                local_hook._git("rev-parse", "--show-toplevel"),
+                local_hook_git._git("rev-parse", "--show-toplevel"),
                 "\udcff\udcfe",
             )
 
     def test_success_returns_the_stripped_stdout(self):
         with mock.patch.object(
-            local_hook.subprocess,
+            local_hook_git.subprocess,
             "run",
             return_value=mock.Mock(
                 returncode=0, stderr="", stdout=" /hooks \n"
             ),
         ):
             self.assertEqual(
-                local_hook._git("rev-parse", "--git-path", "hooks"),
+                local_hook_git._git("rev-parse", "--git-path", "hooks"),
                 "/hooks",
             )
 
@@ -337,8 +337,8 @@ class TestInstall(unittest.TestCase):
         # Simulate a process death after a partial write: the temporary
         # file is left truncated, then the write raises.
         crash = crashing_fdopen(OSError("simulated crash mid-write"))
-        with mock.patch.object(local_hook, "hooks_dir", lambda: hook.parent), \
-                mock.patch.object(local_hook, "top_level", lambda: Path(repo)), \
+        with mock.patch.object(local_hook_git, "hooks_dir", lambda: hook.parent), \
+                mock.patch.object(local_hook_git, "top_level", lambda: Path(repo)), \
                 mock.patch.object(os, "fdopen", crash):
             status = local_hook.install()
 
