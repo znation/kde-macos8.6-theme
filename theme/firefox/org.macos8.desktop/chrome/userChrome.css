@@ -38,6 +38,17 @@
    The menubar > menu[open] selector and its [open] state are Firefox's, from
    chrome/toolkit/skin/classic/global/menu.css on Linux.
 
+   No reference shows Firefox's menu bar titles; their 3px/7px title box
+   takes widgets/menubaritem.svg's pinned normal-hint margins, re-derived
+   from the reference title gaps by
+   tests/test_desktoptheme_menubaritem.py::TestMenuBarItem.test_menubaritem_hint_geometry
+   and TestMenuTitleSpacingMatchesReference (platform geometry adaptation 2026-10-26).
+   Firefox's stock Linux rule in chrome/toolkit/skin/classic/global/menu.css
+   is font-relative and bottom-heavy (padding: 0.25em 0.5em, a 1px bottom
+   pad and a 3px transparent bottom border); only the padding is overridden,
+   with a zero bottom pad, so the retained stock border completes the 3px
+   bottom margin and stays the open title's #CCCCFF underline.
+
    No reference shows Firefox's find field; its white face therefore pairs
    with the shared Platinum foreground's black text rather than Firefox's
    theme-dependent input text, pinned by the Platinum view background and
@@ -135,6 +146,13 @@ tooltip {
   background-color: #DDDDDD !important;
   border-bottom: 1px solid #888888 !important;
   box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+/* A menu-bar title takes the Platinum title box's 3px/7px margins; the zero
+   bottom pad leaves Firefox's stock 3px transparent bottom border to complete
+   the bottom margin, so an idle title stays transparent. */
+#toolbar-menubar menubar > menu {
+  padding: 3px 7px 0 !important;
 }
 
 /* An open menu-bar title takes the Platinum selection fill instead of

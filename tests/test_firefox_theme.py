@@ -14,9 +14,12 @@ import unittest
 from pathlib import Path
 
 from support import containment
+from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.gtk_css import HEX, parse_css
 from support.gtk_rule_cases import SheetRuleAssertions
 from support.gtk_theme_spec import ETCH_DARK, RAISED_BEVEL
+from support.svg_case import parse_svg
+from svg_assertions import rect_geometry
 from support.platinum_palette import (
     BLACK,
     FACE,
@@ -39,6 +42,10 @@ SHEET = (
 )
 README = Path(ROOT) / "README.md"
 SHEET_PATH = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
+
+# Firefox's stock Linux menubar > menu rule keeps a 3px transparent bottom
+# border; the sheet leaves it in place and the open-title rule recolours it.
+MENU_STOCK_BOTTOM_BORDER = 3
 
 REQUIRED_RULES = {
     "tooltip": {
@@ -83,6 +90,9 @@ REQUIRED_RULES = {
         "background-color": f"{FACE} !important",
         "border-bottom": f"1px solid {ETCH_DARK} !important",
         "box-shadow": f"inset 0 -1px {WHITE} !important",
+    },
+    "#toolbar-menubar menubar > menu": {
+        "padding": "3px 7px 0 !important",
     },
     "#toolbar-menubar menubar > menu[open]": {
         "background-color": f"{SELECTION} !important",
@@ -309,8 +319,37 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             {selected, hover},
         )
 
+    def test_menubar_title_geometry_matches_the_menubaritem_margins(self):
+        selector = "#toolbar-menubar menubar > menu"
+        geometry = rect_geometry(parse_svg(MENUBARITEM_SVG))
+        top = int(geometry["normal-hint-top-margin"][3])
+        bottom = int(geometry["normal-hint-bottom-margin"][3])
+        left = int(geometry["normal-hint-left-margin"][2])
+        right = int(geometry["normal-hint-right-margin"][2])
+        self.assertEqual((top, bottom), (3, 3))
+        self.assertEqual((left, right), (7, 7))
+        # The retained stock bottom border completes the bottom margin, so
+        # the sheet's bottom pad is the margin minus that border.
+        bottom_pad = bottom - MENU_STOCK_BOTTOM_BORDER
+        bottom_value = f"{bottom_pad}px" if bottom_pad else "0"
+        self.assertEqual(
+            self.rules[selector],
+            {"padding": f"{top}px {left}px {bottom_value} !important"},
+        )
+        pad_top, pad_right, pad_bottom = (
+            int(value.removesuffix("px"))
+            for value in self.rules[selector]["padding"]
+            .removesuffix(" !important").split()
+        )
+        self.assertEqual(
+            (pad_top, pad_right, pad_bottom),
+            (top, left, bottom_pad),
+        )
+        self.assertEqual(pad_bottom + MENU_STOCK_BOTTOM_BORDER, bottom)
+
     def test_menubar_open_title_paint_is_scoped_to_the_open_title(self):
         selector = "#toolbar-menubar menubar > menu[open]"
+        base = "#toolbar-menubar menubar > menu"
         # A menu-bar title is a ``menu`` element outside a popup, so catch a
         # rule that targets one without naming #toolbar-menubar, such as a
         # bare ``menu[open]:hover``, rather than only selectors spelled
@@ -321,10 +360,11 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             or ("menu" in re.findall(r"[-\w]+", name)
                 and "menupopup" not in name)
         }
-        self.assertEqual(title_rules, {"#toolbar-menubar", selector})
-        for name in ("#toolbar-menubar", selector):
+        self.assertEqual(title_rules, {"#toolbar-menubar", base, selector})
+        for name in ("#toolbar-menubar", base, selector):
             with self.subTest(selector=name):
                 self.assertEqual(self.rules[name], REQUIRED_RULES[name])
+        self.assertEqual(set(self.rules[base]), {"padding"})
         self.assertEqual(
             {name for name, declarations in self.rules.items()
              if declarations == REQUIRED_RULES[selector]},
@@ -412,6 +452,14 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "No reference shows Firefox's find field",
             "chrome/toolkit/skin/classic/global/findbar.css",
             "not-found and flash states stay",
+            "No reference shows Firefox's menu bar titles",
+            "TestMenuBarItem.test_menubaritem_hint_geometry",
+            "TestMenuTitleSpacingMatchesReference",
+            "padding: 0.25em 0.5em",
+            "zero bottom pad",
+            "retained stock border",
+            "chrome/toolkit/skin/classic/global/menu.css",
+            "platform geometry adaptation 2026-10-26",
             "No reference shows Firefox multi-selected tabs",
             "selected=visuallyselected",
             "platform colour adaptation 2026-10-26",
