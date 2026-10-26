@@ -30,6 +30,14 @@
    chrome/browser/skin/classic/browser/urlbar-searchbar.css paints #searchbar
    and owns the focused appearance; #searchbar-new stays Firefox's.
 
+   No reference shows Firefox's menu bar; the open title's flat #CCCCFF fill
+   comes from widgets/menubaritem.svg's pressed slices with no hover
+   highlight (platform colour adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_menubaritem.py::TestMenuBarItem.test_menubaritem_pressed_is_flat_selection_colour
+   and tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   The menubar > menu[open] selector and its [open] state are Firefox's, from
+   chrome/toolkit/skin/classic/global/menu.css on Linux.
+
    No reference shows Firefox's find field; its white face therefore pairs
    with the shared Platinum foreground's black text rather than Firefox's
    theme-dependent input text, pinned by the Platinum view background and
@@ -108,6 +116,13 @@ tooltip {
   background-color: #DDDDDD !important;
   border-bottom: 1px solid #888888 !important;
   box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+/* An open menu-bar title takes the Platinum selection fill instead of
+   Firefox's accent underline; closed and hovered titles stay transparent. */
+#toolbar-menubar menubar > menu[open] {
+  background-color: #CCCCFF !important;
+  border-bottom-color: #CCCCFF !important;
 }
 
 .tab-background {

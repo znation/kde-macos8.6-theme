@@ -9,6 +9,7 @@ its removal.
 
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
 
@@ -82,6 +83,10 @@ REQUIRED_RULES = {
         "background-color": f"{FACE} !important",
         "border-bottom": f"1px solid {ETCH_DARK} !important",
         "box-shadow": f"inset 0 -1px {WHITE} !important",
+    },
+    "#toolbar-menubar menubar > menu[open]": {
+        "background-color": f"{SELECTION} !important",
+        "border-bottom-color": f"{SELECTION} !important",
     },
     ".tab-background": {
         "background-color": f"{FACE} !important",
@@ -272,6 +277,28 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             with self.subTest(part=part):
                 self.assertIn(part, hover)
 
+    def test_menubar_open_title_paint_is_scoped_to_the_open_title(self):
+        selector = "#toolbar-menubar menubar > menu[open]"
+        # A menu-bar title is a ``menu`` element outside a popup, so catch a
+        # rule that targets one without naming #toolbar-menubar, such as a
+        # bare ``menu[open]:hover``, rather than only selectors spelled
+        # ``menubar``.
+        title_rules = {
+            name for name in self.rules
+            if "menubar" in name
+            or ("menu" in re.findall(r"[-\w]+", name)
+                and "menupopup" not in name)
+        }
+        self.assertEqual(title_rules, {"#toolbar-menubar", selector})
+        for name in ("#toolbar-menubar", selector):
+            with self.subTest(selector=name):
+                self.assertEqual(self.rules[name], REQUIRED_RULES[name])
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if declarations == REQUIRED_RULES[selector]},
+            {selector},
+        )
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -337,6 +364,9 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "chrome/toolkit/skin/classic/global/findbar.css",
             "not-found and flash states stay",
             "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's menu bar",
+            "TestMenuBarItem.test_menubaritem_pressed_is_flat_selection_colour",
+            "TestReferenceAnchors.test_selection_background",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)
