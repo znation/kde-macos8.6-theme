@@ -8,7 +8,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
-by the clean role):** The
+by the clean role; validation scope clarified 2026-10-25 by the steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
@@ -27,8 +27,12 @@ carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by 
 and the global theme selects its `Lato` family for the general, menu, toolbar, smallest-readable
 and window-title fonts, while monospaced text keeps the user's fixed font); the GTK 3 and GTK 4
 Platinum stylesheets under `theme/gtk/` (installed by the opt-in `install-gtk` target and
-selected by `apply-gtk`; `make install` copies no GTK files); and the render and fidelity tooling
-that checks them against `macos8.6-screenshots/`. README.md describes the reference set as the
+selected by `apply-gtk`; `make install` copies no GTK files); and the render and fidelity tooling.
+The live reference-comparison gate in `tests/test_render_surface.py` checks Aurorae window-chrome
+regions when its render prerequisites are available (README.md, "Fidelity checking").
+Firefox's `tests/test_firefox_theme.py::TestFirefoxChrome` checks stylesheet declarations;
+those checks do not establish rendered Firefox pixels. Keep this distinction when assessing
+progress toward pixel-perfect application chrome. README.md describes the reference set as the
 source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
 prompt's surfaces and their status are each tracked here (updated 2026-10-21 by the
 steward role): a **Qt widget style** for KDE applications (the desktop theme styles only
