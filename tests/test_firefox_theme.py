@@ -106,6 +106,17 @@ REQUIRED_RULES = {
         "border-bottom": f"1px solid {ETCH_DARK} !important",
         "box-shadow": f"inset 0 -1px {WHITE} !important",
     },
+    "#downloadsPanel #downloadsListBox > richlistitem": {
+        "border-radius": "0 !important",
+    },
+    "#downloadsPanel #downloadsListBox > richlistitem:not([selected]):hover": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+    },
+    "#downloadsPanel #downloadsListBox > richlistitem[selected]": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+    },
     ".tab-background": {
         "background-color": f"{FACE} !important",
         "border": f"1px solid {BLACK} !important",
@@ -410,6 +421,29 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
         self.assertEqual(self.rules["#sidebar-header"]["box-shadow"],
                          f"inset 0 -1px {WHITE} !important")
 
+    def test_downloads_panel_row_paint_is_scoped_to_the_panel_list(self):
+        row = "#downloadsPanel #downloadsListBox > richlistitem"
+        hover = row + ":not([selected]):hover"
+        selected = row + "[selected]"
+        self.assertEqual(
+            {name for name in self.rules if "downloadsListBox" in name},
+            {row, hover, selected},
+        )
+        for selector in (row, hover, selected):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith(row))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assertIn(":not([selected])", hover)
+        self.assertIn(":hover", hover)
+        self.assertEqual(self.rules[hover]["background-color"],
+                         f"{FACE} !important")
+        self.assertEqual(self.rules[selected]["background-color"],
+                         f"{SELECTION} !important")
+        self.assertLess(
+            self.selectors.index(hover),
+            self.selectors.index(selected),
+        )
+
     def test_all_tabs_row_paint_is_scoped_to_the_all_tabs_view(self):
         row = "#allTabsMenu-allTabsView .all-tabs-item"
         button = "#allTabsMenu-allTabsView .all-tabs-item > .all-tabs-button"
@@ -527,6 +561,16 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "chrome/browser/skin/classic/browser/sidebar.css",
             "--sidebar-background-color",
             "modules/ThemeVariableMap.sys.mjs",
+            "No reference shows Firefox's downloads panel",
+            "widgets/listitem.svg",
+            "tests/test_desktoptheme_listitem.py::TestListItem",
+            "chrome/browser/skin/classic/browser/downloads/downloads.inc.css",
+            "chrome/toolkit/skin/classic/global/richlistbox.css",
+            "chrome/browser/content/browser/browser.xhtml",
+            "moz-src/browser/components/downloads/DownloadsViewUI.sys.mjs",
+            "--button-background-color-ghost-hover",
+            "richlistitem[selected=\"true\"]",
+            "platform colour adaptation 2026-10-26",
             "the sidebar's inner document is not userChrome territory",
             "No reference shows Firefox's all-tabs panel",
             "widgets/listitem.svg",

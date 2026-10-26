@@ -91,6 +91,21 @@
    lightweight-theme sidebar keys mapped in modules/ThemeVariableMap.sys.mjs;
    the sidebar's inner document is not userChrome territory.
 
+   No reference shows Firefox's downloads panel; its row face, black text and
+   flat #CCCCFF selection adapt the reference-grounded widgets/listitem.svg,
+   pinned by tests/test_desktoptheme_listitem.py::TestListItem, and the GTK
+   row mapping (platform colour adaptation 2026-10-26). Firefox's
+   chrome/browser/skin/classic/browser/downloads/downloads.inc.css gives the
+   rows their radius through --border-radius-small and paints
+   --button-background-color-ghost-hover on hover,
+   chrome/toolkit/skin/classic/global/richlistbox.css paints
+   richlistitem[selected="true"], chrome/browser/content/browser/browser.xhtml
+   defines the panel and
+   moz-src/browser/components/downloads/DownloadsViewUI.sys.mjs builds each
+   row, and Firefox's own violet ghost hover and the toolkit's system-colour
+   selection are suppressed on these panel rows only; declaration checks do
+   not establish rendered pixels.
+
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
    toolkit.legacyUserProfileCustomizations.stylesheets=true to its user.js;
@@ -256,6 +271,23 @@ tooltip {
   color: #000000 !important;
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
+}
+
+/* The downloads panel rows adapt the desktop theme's list item: square, no
+   violet hover wash, and a flat #CCCCFF selected row. Only the panel's own
+   list is scoped; the content-area downloads view keeps Firefox's rows. */
+#downloadsPanel #downloadsListBox > richlistitem {
+  border-radius: 0 !important;
+}
+
+#downloadsPanel #downloadsListBox > richlistitem:not([selected]):hover {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+}
+
+#downloadsPanel #downloadsListBox > richlistitem[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
 }
 
 panel[type="arrow"] {
