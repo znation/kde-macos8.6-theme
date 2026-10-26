@@ -5090,7 +5090,8 @@ pixels of 1760, max channel delta 0); the same render compared to `y=24..45` or 
 so the one-row alignment is pinned by the test.
 
 **Approach.**
-- `tools/fidelity.py`: add `--candidate-crop X,Y,W,H` (`type=_parse_crop`,
+- `tools/fidelity.py`: add `--candidate-crop X,Y,W,H` (`type=parse_crop` from
+  `tools/fidelity_arguments.py`, extracted 2026-10-25 by the organize role;
   `metavar="X,Y,W,H"`, help "crop the candidate to this region before comparing"), apply it as
   `candidate = crop(candidate, *args.candidate_crop)` before `compare` (beside the existing
   `reference = crop(reference, *args.crop)`), and print `candidate crop: X,Y,W,H` when set,

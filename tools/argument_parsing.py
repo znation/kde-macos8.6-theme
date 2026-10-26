@@ -5,7 +5,7 @@ its command line. Two concerns recur across them: argparse's own diagnostics
 are formatted from raw argv and must not print control characters, and a
 numeric option must reject Python-only spellings (underscore separators,
 non-ASCII digits, surrounding whitespace) that would silently name a
-different value. Both live here so ``tools/fidelity.py``, ``tools/sample.py``,
+different value. Both live here so ``tools/fidelity_arguments.py``, ``tools/sample.py``,
 ``tools/render_surface.py``, ``tools/apply_theme.py``, ``tools/apply_gtk.py``,
 ``tools/make_wallpaper.py``, ``tools/local_hook.py``,
 ``tools/make_cursors.py``, ``tools/install_firefox.py`` and

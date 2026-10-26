@@ -24,37 +24,27 @@ read error.
 
 from __future__ import annotations
 
-import argparse
-import math
 import sys
-from typing import TypeVar
 
 if __package__:
-    from tools.argument_parsing import (
-        EscapingArgumentParser,
-        is_plain_ascii_number,
-        plain_number,
-    )
+    from tools.argument_parsing import EscapingArgumentParser
+    from tools.fidelity_arguments import parse_crop, max_mae, max_frac, tolerance
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
     from tools.fidelity_metrics import (
         FidelityError,
         compare,
         crop,
-        crop_rect_problem,
     )
     from tools.png import PngError, read_png
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/fidelity.py
-    from argument_parsing import (
-        EscapingArgumentParser,
-        is_plain_ascii_number,
-        plain_number,
-    )
+    from argument_parsing import EscapingArgumentParser
+    from fidelity_arguments import parse_crop, max_mae, max_frac, tolerance
     from containment import require_within_repo
     from diagnostics import report_error
-    from fidelity_metrics import FidelityError, compare, crop, crop_rect_problem
+    from fidelity_metrics import FidelityError, compare, crop
     from png import PngError, read_png
     from repo_root import ROOT
     from terminal import escape_controls
@@ -91,90 +81,6 @@ def _read_source(path: str, crop_rect: tuple[int, int, int, int] | None):
     return image
 
 
-def _parse_crop(value: str) -> tuple[int, int, int, int]:
-    # Strip each field before the plain-number check: whitespace around a
-    # comma-separated field ("0, 0, 10, 10") is the conventional way to write
-    # the rectangle, not a stray character that changes the value, so accept
-    # it here. The scalar options still reject surrounding whitespace through
-    # is_plain_ascii_number, where it signals a quoting mistake.
-    parts = [part.strip() for part in value.split(",")]
-    if len(parts) != 4:
-        raise argparse.ArgumentTypeError(f"crop must be X,Y,W,H: {value!r}")
-    numbers: list[int] = []
-    for position, part in enumerate(parts, 1):
-        if not part:
-            # A blank field ("1,,3,4") is the common typo; without this it
-            # falls through to int('') and is reported as "must be integers:
-            # ''", which names the empty string but not the missing field.
-            raise argparse.ArgumentTypeError(
-                f"crop field {position} is empty: {value!r}"
-            )
-        if not is_plain_ascii_number(part):
-            raise argparse.ArgumentTypeError(
-                f"crop values must be plain ASCII integers: {part!r}"
-            )
-        try:
-            numbers.append(int(part))
-        except ValueError as exc:
-            raise argparse.ArgumentTypeError(
-                f"crop values must be integers: {part!r}"
-            ) from exc
-    x, y, width, height = numbers
-    problem = crop_rect_problem(x, y, width, height)
-    if problem is not None:
-        raise argparse.ArgumentTypeError(problem)
-    return x, y, width, height
-
-
-_Number = TypeVar("_Number", int, float)
-
-
-def _channel_amount(
-    value: str, number: _Number, option: str, noun: str
-) -> _Number:
-    """Return *number* once it is a valid 0-255 per-channel *noun*.
-
-    A per-channel delta or mean can never be negative or exceed 255, so a
-    value outside that range would silently disable the metric; both bounds
-    are rejected with an option-named diagnostic.
-    """
-    if number < 0:
-        raise argparse.ArgumentTypeError(
-            f"{option} must not be negative: {value!r}"
-        )
-    if number > 255:
-        raise argparse.ArgumentTypeError(
-            f"{option} must be at most 255 (a per-channel {noun}): {value!r}"
-        )
-    return number
-
-
-def _finite_float(value: str, option: str) -> float:
-    number = plain_number(value, option, "number", "a", float)
-    if not math.isfinite(number):
-        raise argparse.ArgumentTypeError(f"{option} must be finite: {value!r}")
-    return number
-
-
-def _max_mae(value: str) -> float:
-    number = _finite_float(value, "--max-mae")
-    return _channel_amount(value, number, "--max-mae", "mean")
-
-
-def _max_frac(value: str) -> float:
-    number = _finite_float(value, "--max-frac")
-    if not 0.0 <= number <= 1.0:
-        raise argparse.ArgumentTypeError(
-            f"--max-frac must be between 0 and 1: {value!r}"
-        )
-    return number
-
-
-def _tolerance(value: str) -> int:
-    number = plain_number(value, "--tolerance", "integer", "an", int)
-    return _channel_amount(value, number, "--tolerance", "delta")
-
-
 def main(argv: list[str] | None = None) -> int:
     """Run the comparison CLI; *argv* is the argument list without a program name.
 
@@ -195,25 +101,25 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("reference", help="reference image (PNG)")
     parser.add_argument(
         "--candidate-crop",
-        type=_parse_crop,
+        type=parse_crop,
         metavar="X,Y,W,H",
         help="crop the candidate to this region before comparing",
     )
     parser.add_argument(
         "--crop",
-        type=_parse_crop,
+        type=parse_crop,
         metavar="X,Y,W,H",
         help="crop the reference to this region before comparing",
     )
     parser.add_argument(
         "--tolerance",
-        type=_tolerance,
+        type=tolerance,
         default=0,
         help="per-channel delta (0-255) at or below which a pixel is not 'differing'",
     )
     parser.add_argument(
         "--max-mae",
-        type=_max_mae,
+        type=max_mae,
         default=None,
         help=(
             "fail when mean absolute error exceeds this (0-255); when set, "
@@ -222,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--max-frac",
-        type=_max_frac,
+        type=max_frac,
         default=None,
         help=(
             "fail when the differing-pixel fraction exceeds this (0-1); when "
@@ -265,14 +171,14 @@ def main(argv: list[str] | None = None) -> int:
         # The candidate line names the cropped size but not the rectangle it
         # came from, so a transcript could not be replayed without the
         # original --candidate-crop argument. Echo it; the fields are plain
-        # ints from _parse_crop, so no escaping is needed.
+        # ints from parse_crop, so no escaping is needed.
         x, y, width, height = args.candidate_crop
         print(f"candidate crop: {x},{y},{width},{height}")
     if args.crop is not None:
         # The reference line names the cropped size but not the rectangle it
         # came from, so a transcript could not be replayed without the
         # original --crop argument. Echo it; the fields are plain ints from
-        # _parse_crop, so no escaping is needed.
+        # parse_crop, so no escaping is needed.
         x, y, width, height = args.crop
         print(f"reference crop: {x},{y},{width},{height}")
     print(f"pixels compared: {metrics.pixels}")
@@ -298,10 +204,10 @@ def main(argv: list[str] | None = None) -> int:
         f"({metrics.frac_differing:.6f})"
     )
     verdict = "PASS" if ok else "FAIL"
-    max_mae = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
-    max_frac = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"
+    mae_budget = "unset" if args.max_mae is None else f"{args.max_mae:.4f}"
+    fraction_budget = "unset" if args.max_frac is None else f"{args.max_frac:.6f}"
     print(
-        f"{verdict}: max-mae={max_mae} max-frac={max_frac} "
+        f"{verdict}: max-mae={mae_budget} max-frac={fraction_budget} "
         f"tolerance={args.tolerance}"
     )
     return 0 if ok else 1
