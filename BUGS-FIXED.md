@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The grandchild timeout test's setup races its own timeout (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/test_process_runner.py::TestSubprocessTimeout::test_timeout_kills_grandchildren`
+gave the fake make a 0.5-second timeout and then opened the pidfile the fake
+make writes after backgrounding its sleep. On a loaded host the shell can be
+scheduled late enough that the timeout kills it before it writes the file, so
+the test fails with `FileNotFoundError: .../grandchild.pid` even though the
+process-group cleanup worked. The suite then reports an error instead of
+checking the descendant, and the merge gate can excuse it as flaky.
+
+Reproduce by pinning the test to one CPU under 200 busy processes: two of ten
+runs failed with that `FileNotFoundError`. The test now starts the fake make
+with `process_runner.running`, waits for the pidfile to hold the written pid
+(not merely to exist, bounded at 30 seconds) before applying the 0.5-second
+`finish` timeout, and then checks -- still inside the context manager, before
+its own cleanup kills the group -- that the recorded grandchild is gone. The
+fake make's sleeps outlast that setup deadline, so the timeout no longer races
+the setup it is supposed to interrupt.
+
+**Validation gap:** none — the existing test reproduced the intermittent failure under artificial CPU load, so no fixture or instrumentation was missing, and the rewritten test now confirms the timeout and descendant cleanup every run.
+
 ### A Ctrl-C that arrives while a child starts leaves the command running (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tools/process_group.run_logged` enters the `try`/`finally` that kills the

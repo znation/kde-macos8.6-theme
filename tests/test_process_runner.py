@@ -5,8 +5,10 @@
 that never exits raises `subprocess.TimeoutExpired` instead of stalling `make
 check` forever. (One lock test starts `make install` itself to poll it, then
 finishes it through `process_runner.running`, which kills the child if the poll
-raises.) The two make-timeout tests drive a real `make install` through
-`theme_install`, so the runner is proven against the child chain it protects.
+raises.) The install-timeout test drives a real `make install` through
+`theme_install`, and the grandchild test starts the fake make through
+`process_runner.running` so its setup can finish before the timeout; both prove
+the runner against the child chain it protects.
 """
 
 import contextlib
@@ -43,9 +45,9 @@ def _short_subprocess_timeout(seconds=0.25):
     for the tests whose child is a `sleep` that cannot exit on its own -- they
     only need it still running when the timeout fires -- and one of them times
     out twice (`finish` waits again for the escaped descendant's pipes), so
-    the default bounds the whole class to about a second and a half. Only a
-    test that needs the child to finish some setup *before* the timeout passes
-    a longer *seconds*.
+    the default bounds the whole class to about a second and a half. The
+    grandchild test passes a longer *seconds* so the group kill's second wait
+    has room on a loaded host; its setup finishes before that timeout starts.
     """
     original = process_runner.SUBPROCESS_TIMEOUT
     process_runner.SUBPROCESS_TIMEOUT = seconds
@@ -118,7 +120,12 @@ class TestSubprocessTimeout(unittest.TestCase):
         killed -- still running against the throwaway DESTDIR and still
         holding the data-home lock. The fake make backgrounds a long sleep and
         records its pid, so the test can tell whether that descendant outlived
-        the timeout.
+        the timeout. The child is started and allowed to finish that setup --
+        waiting for the pidfile to hold the written pid, not merely to exist,
+        since the shell creates it before it writes -- before `finish` applies
+        the timeout. The stronger check runs before the `running` context
+        exits: its own cleanup would kill the group, hiding a `finish` that
+        did not.
         """
         tmp = str(make_tmp_dir(self))
         pidfile = os.path.join(tmp, "grandchild.pid")
@@ -126,25 +133,42 @@ class TestSubprocessTimeout(unittest.TestCase):
             tmp,
             "make",
             "#!/bin/sh\n"
-            "sleep 5 &\n"
+            "sleep 60 &\n"
             'echo "$!" > "$GRANDCHILD_PIDFILE"\n'
-            "exec sleep 5\n",
+            "exec sleep 60\n",
         )
         env["GRANDCHILD_PIDFILE"] = pidfile
-        # The fake make must background its sleep and write the pidfile
-        # before the timeout kills it, so this test alone keeps the
-        # longer bound; the others have no such setup to finish.
-        with _short_subprocess_timeout(seconds=0.5):
-            with self.assertRaises(subprocess.TimeoutExpired):
-                theme_install.install(tmp, env=env)
-
-        with open(pidfile, encoding="utf-8") as handle:
-            grandchild = int(handle.read())
-        # The grandchild sleeps for five seconds, so it is still alive at
-        # the deadline exactly when the timeout failed to kill it.
-        self._assert_process_dies(
-            grandchild, "grandchild survived the timeout"
-        )
+        with process_runner.running(
+            [os.path.join(tmp, "fakebin", "make")], cwd=tmp, env=env
+        ) as process:
+            deadline = time.monotonic() + 30
+            grandchild = None
+            while (
+                grandchild is None
+                and process.poll() is None
+                and time.monotonic() < deadline
+            ):
+                try:
+                    with open(pidfile, encoding="utf-8") as handle:
+                        grandchild = int(handle.read())
+                except (FileNotFoundError, ValueError):
+                    # The shell creates the file before it writes the pid, so
+                    # an empty read is a setup race, not a failure.
+                    time.sleep(0.01)
+            self.assertIsNotNone(
+                grandchild, "the fake make never recorded its grandchild"
+            )
+            with _short_subprocess_timeout(seconds=0.5):
+                with self.assertRaises(subprocess.TimeoutExpired):
+                    process_runner.finish(process)
+            # Checked inside the block: `running` kills the group on exit, so
+            # checking after it would pass even if `finish` never did.
+            # The grandchild sleeps for a minute, far longer than the setup
+            # deadline and the timeout, so it is still alive if the timeout
+            # failed to kill it.
+            self._assert_process_dies(
+                grandchild, "grandchild survived the timeout"
+            )
 
     def test_finish_kills_a_hung_child(self):
         """A caller-started child that times out must be killed, not leaked.
