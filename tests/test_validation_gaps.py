@@ -66,46 +66,57 @@ class TestGapParser(unittest.TestCase):
         self.assertEqual([record.tag for record in records], ["no-fake", "unclear-invariant"])
 
 
-class TestNoObservabilityLedger(unittest.TestCase):
+class _LedgerMixin:
+    """Drive one validation-gap tag's ledger against the shipped archives.
+
+    Subclasses set ``tag`` and the advice their diagnostics give; the inherited
+    tests pin every record to an entry, every entry to a real test and a
+    shipped record, and the tag's record count to its baseline.
+    """
+
+    tag = ""
+    missing_advice = ""
+    growth_advice = ""
+
     @classmethod
     def setUpClass(cls):
-        cls.records = validation_gaps.no_observability(
+        records = (
             validation_gaps.read_gaps(ROOT / "BUGS.md")
             + validation_gaps.read_gaps(ROOT / "BUGS-FIXED.md")
         )
+        cls.records = validation_gaps.tagged(records, cls.tag)
 
-    def test_every_record_names_an_offline_reproduction(self):
+    def test_every_record_names_a_reproduction(self):
         for record in self.records:
             with self.subTest(source=record.source, line=record.line):
                 self.assertIsNotNone(
-                    validation_gaps.reproduction(record),
-                    f"{record.source}:{record.line} is tagged no-observability "
-                    "but names no test-side reproduction; add one to "
-                    "tests/support/validation_gaps.py instead of growing the "
-                    "ledger",
+                    validation_gaps.reproduction_for(record),
+                    f"{record.source}:{record.line} is tagged {self.tag} "
+                    f"but names no reproduction; {self.missing_advice} "
+                    "instead of growing the ledger",
                 )
 
-    def test_every_reproduction_names_a_real_test(self):
-        for reproduction in validation_gaps.NO_OBSERVABILITY_REPRODUCTIONS:
-            with self.subTest(reproduction=reproduction.name):
+    def test_every_entry_names_a_real_test(self):
+        for entry in validation_gaps.LEDGERS[self.tag].entries:
+            with self.subTest(entry=entry.name):
                 check_reference(
                     ROOT,
-                    reproduction.reference,
-                    f"no-observability:{reproduction.name}",
+                    entry.reference,
+                    f"{self.tag}:{entry.name}",
                 )
 
     def test_every_ledger_entry_covers_a_shipped_record(self):
         # A stale entry would make the ledger read as coverage for a mechanism
         # no archived record names; the reproduction tests above would still
         # pass, so pin the other direction too.
-        for reproduction in validation_gaps.NO_OBSERVABILITY_REPRODUCTIONS:
-            with self.subTest(reproduction=reproduction.name):
+        for entry in validation_gaps.LEDGERS[self.tag].entries:
+            with self.subTest(entry=entry.name):
                 self.assertTrue(
                     any(
-                        validation_gaps.reproduction(record) is reproduction
+                        validation_gaps.reproduction_for(record) is entry
                         for record in self.records
                     ),
-                    f"{reproduction.name} matches no no-observability record",
+                    f"{entry.name} matches no {self.tag} record",
                 )
 
     def test_the_record_count_does_not_grow(self):
@@ -114,50 +125,43 @@ class TestNoObservabilityLedger(unittest.TestCase):
         )
         self.assertLessEqual(
             len(self.records),
-            validation_gaps.NO_OBSERVABILITY_BASELINE,
-            "the no-observability tag grew past its baseline (records at "
-            f"BUGS-FIXED.md lines {lines}); add a test-side reproduction for "
-            "the new failure and retire its tag instead of raising "
-            "NO_OBSERVABILITY_BASELINE",
+            validation_gaps.LEDGERS[self.tag].baseline,
+            f"the {self.tag} tag grew past its baseline (records at "
+            f"BUGS-FIXED.md lines {lines}); {self.growth_advice}",
         )
 
     def test_an_unmatched_mechanism_has_no_reproduction(self):
         record = validation_gaps.Gap(
-            "no-observability", "bugs.md", 1, "A brand-new failure mode"
+            self.tag, "bugs.md", 1, "A brand-new failure mode"
         )
-        self.assertIsNone(validation_gaps.reproduction(record))
+        self.assertIsNone(validation_gaps.reproduction_for(record))
 
 
-class TestUnclearInvariantLedger(unittest.TestCase):
+class TestNoObservabilityLedger(_LedgerMixin, unittest.TestCase):
+    tag = "no-observability"
+    missing_advice = "add a test-side reproduction for the new failure"
+    growth_advice = (
+        "add a test-side reproduction for the new failure and retire its tag "
+        "instead of raising NO_OBSERVABILITY_BASELINE"
+    )
+
+
+class TestUnclearInvariantLedger(_LedgerMixin, unittest.TestCase):
+    tag = "unclear-invariant"
+    missing_advice = (
+        "add the register guarantee, test and ledger entry for the new failure"
+    )
+    growth_advice = (
+        "record its ledger entry, register row and test, and raise "
+        "UNCLEAR_INVARIANT_BASELINE by one"
+    )
+
     @classmethod
     def setUpClass(cls):
-        cls.records = validation_gaps.unclear_invariant(
-            validation_gaps.read_gaps(ROOT / "BUGS.md")
-            + validation_gaps.read_gaps(ROOT / "BUGS-FIXED.md")
-        )
+        super().setUpClass()
         cls.rows = parse_rows(
             containment.read_text(ROOT / "docs" / "invariants.md", ROOT)
         )
-
-    def test_every_record_names_a_register_guarantee_and_test(self):
-        for record in self.records:
-            with self.subTest(source=record.source, line=record.line):
-                self.assertIsNotNone(
-                    validation_gaps.reproduction_for(record),
-                    f"{record.source}:{record.line} is tagged unclear-invariant "
-                    "but names no register guarantee or test; add one to "
-                    "tests/support/validation_gaps.py instead of growing the "
-                    "ledger",
-                )
-
-    def test_every_entry_names_a_real_test(self):
-        for entry in validation_gaps.UNCLEAR_INVARIANT_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                check_reference(
-                    ROOT,
-                    entry.reference,
-                    f"unclear-invariant:{entry.name}",
-                )
 
     def test_every_entry_names_a_register_guarantee(self):
         guarantees = [
@@ -175,230 +179,34 @@ class TestUnclearInvariantLedger(unittest.TestCase):
                     "row states",
                 )
 
-    def test_every_ledger_entry_covers_a_shipped_record(self):
-        # A stale entry would make the ledger read as coverage for a mechanism
-        # no archived record names; the reproduction tests above would still
-        # pass, so pin the other direction too.
-        for entry in validation_gaps.UNCLEAR_INVARIANT_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                self.assertTrue(
-                    any(
-                        validation_gaps.reproduction_for(record) is entry
-                        for record in self.records
-                    ),
-                    f"{entry.name} matches no unclear-invariant record",
-                )
 
-    def test_the_record_count_does_not_grow(self):
-        lines = ", ".join(
-            f"{record.source}:{record.line}" for record in self.records
-        )
-        self.assertLessEqual(
-            len(self.records),
-            validation_gaps.UNCLEAR_INVARIANT_BASELINE,
-            "the unclear-invariant tag grew past its baseline (records at "
-            f"BUGS-FIXED.md lines {lines}); record its ledger entry, register "
-            "row and test, and raise UNCLEAR_INVARIANT_BASELINE by one",
-        )
-
-    def test_an_unmatched_mechanism_has_no_reproduction(self):
-        record = validation_gaps.Gap(
-            "unclear-invariant", "bugs.md", 1, "A brand-new failure mode"
-        )
-        self.assertIsNone(validation_gaps.reproduction_for(record))
+class TestNoFakeLedger(_LedgerMixin, unittest.TestCase):
+    tag = "no-fake"
+    missing_advice = "add its fixture and reproducing test"
+    growth_advice = (
+        "add the fixture, reproducing test and ledger entry for the new "
+        "failure, then raise NO_FAKE_BASELINE by one"
+    )
 
 
-class TestNoFakeLedger(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.records = validation_gaps.no_fake(
-            validation_gaps.read_gaps(ROOT / "BUGS.md")
-            + validation_gaps.read_gaps(ROOT / "BUGS-FIXED.md")
-        )
-
-    def test_every_record_names_a_reproduction(self):
-        for record in self.records:
-            with self.subTest(source=record.source, line=record.line):
-                self.assertIsNotNone(
-                    validation_gaps.reproduction_for(record),
-                    f"{record.source}:{record.line} is tagged no-fake but "
-                    "names no fixture and reproducing test; add one to "
-                    "tests/support/validation_gaps.py instead of growing "
-                    "the ledger",
-                )
-
-    def test_every_entry_names_a_real_test(self):
-        for entry in validation_gaps.NO_FAKE_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                check_reference(
-                    ROOT,
-                    entry.reference,
-                    f"no-fake:{entry.name}",
-                )
-
-    def test_every_ledger_entry_covers_a_shipped_record(self):
-        # A stale entry would make the ledger read as coverage for a mechanism
-        # no archived record names; the reproduction tests above would still
-        # pass, so pin the other direction too.
-        for entry in validation_gaps.NO_FAKE_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                self.assertTrue(
-                    any(
-                        validation_gaps.reproduction_for(record) is entry
-                        for record in self.records
-                    ),
-                    f"{entry.name} matches no no-fake record",
-                )
-
-    def test_the_record_count_does_not_grow(self):
-        lines = ", ".join(
-            f"{record.source}:{record.line}" for record in self.records
-        )
-        self.assertLessEqual(
-            len(self.records),
-            validation_gaps.NO_FAKE_BASELINE,
-            "the no-fake tag grew past its baseline (records at "
-            f"BUGS-FIXED.md lines {lines}); add the fixture, reproducing test "
-            "and ledger entry for the new failure, then raise "
-            "NO_FAKE_BASELINE by one",
-        )
-
-    def test_an_unmatched_mechanism_has_no_reproduction(self):
-        record = validation_gaps.Gap(
-            "no-fake", "bugs.md", 1, "A brand-new failure mode"
-        )
-        self.assertIsNone(validation_gaps.no_fake_reproduction(record))
+class TestRealRunNeededLedger(_LedgerMixin, unittest.TestCase):
+    tag = "real-run-needed"
+    missing_advice = "pin the same bound in a test and add its ledger entry"
+    growth_advice = (
+        "pin the failure's bound in an offline test and add its ledger entry "
+        "instead of raising REAL_RUN_NEEDED_BASELINE"
+    )
 
 
-class TestRealRunNeededLedger(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.records = validation_gaps.real_run_needed(
-            validation_gaps.read_gaps(ROOT / "BUGS.md")
-            + validation_gaps.read_gaps(ROOT / "BUGS-FIXED.md")
-        )
-
-    def test_every_record_names_a_reproduction(self):
-        for record in self.records:
-            with self.subTest(source=record.source, line=record.line):
-                self.assertIsNotNone(
-                    validation_gaps.reproduction_for(record),
-                    f"{record.source}:{record.line} is tagged real-run-needed "
-                    "but names no offline test; pin the same bound in a test "
-                    "and add its ledger entry to "
-                    "tests/support/validation_gaps.py instead of growing "
-                    "the ledger",
-                )
-
-    def test_every_entry_names_a_real_test(self):
-        for entry in validation_gaps.REAL_RUN_NEEDED_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                check_reference(
-                    ROOT,
-                    entry.reference,
-                    f"real-run-needed:{entry.name}",
-                )
-
-    def test_every_ledger_entry_covers_a_shipped_record(self):
-        # A stale entry would make the ledger read as coverage for a mechanism
-        # no archived record names; the reproduction tests above would still
-        # pass, so pin the other direction too.
-        for entry in validation_gaps.REAL_RUN_NEEDED_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                self.assertTrue(
-                    any(
-                        validation_gaps.reproduction_for(record) is entry
-                        for record in self.records
-                    ),
-                    f"{entry.name} matches no real-run-needed record",
-                )
-
-    def test_the_record_count_does_not_grow(self):
-        lines = ", ".join(
-            f"{record.source}:{record.line}" for record in self.records
-        )
-        self.assertLessEqual(
-            len(self.records),
-            validation_gaps.REAL_RUN_NEEDED_BASELINE,
-            "the real-run-needed tag grew past its baseline (records at "
-            f"BUGS-FIXED.md lines {lines}); pin the failure's bound in an "
-            "offline test and add its ledger entry instead of raising "
-            "REAL_RUN_NEEDED_BASELINE",
-        )
-
-    def test_an_unmatched_mechanism_has_no_reproduction(self):
-        record = validation_gaps.Gap(
-            "real-run-needed", "bugs.md", 1, "A brand-new failure mode"
-        )
-        self.assertIsNone(
-            validation_gaps.real_run_needed_reproduction(record)
-        )
-
-
-class TestNoReproLedger(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.records = validation_gaps.no_repro(
-            validation_gaps.read_gaps(ROOT / "BUGS.md")
-            + validation_gaps.read_gaps(ROOT / "BUGS-FIXED.md")
-        )
-
-    def test_every_record_names_a_reproduction(self):
-        for record in self.records:
-            with self.subTest(source=record.source, line=record.line):
-                self.assertIsNotNone(
-                    validation_gaps.reproduction_for(record),
-                    f"{record.source}:{record.line} is tagged no-repro "
-                    "but names no offline test; make the failure deterministic in a test "
-                    "and add its ledger entry to "
-                    "tests/support/validation_gaps.py instead of growing "
-                    "the ledger",
-                )
-
-    def test_every_entry_names_a_real_test(self):
-        for entry in validation_gaps.NO_REPRO_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                check_reference(
-                    ROOT,
-                    entry.reference,
-                    f"no-repro:{entry.name}",
-                )
-
-    def test_every_ledger_entry_covers_a_shipped_record(self):
-        # A stale entry would make the ledger read as coverage for a mechanism
-        # no archived record names; the reproduction tests above would still
-        # pass, so pin the other direction too.
-        for entry in validation_gaps.NO_REPRO_REPRODUCTIONS:
-            with self.subTest(entry=entry.name):
-                self.assertTrue(
-                    any(
-                        validation_gaps.reproduction_for(record) is entry
-                        for record in self.records
-                    ),
-                    f"{entry.name} matches no no-repro record",
-                )
-
-    def test_the_record_count_does_not_grow(self):
-        lines = ", ".join(
-            f"{record.source}:{record.line}" for record in self.records
-        )
-        self.assertLessEqual(
-            len(self.records),
-            validation_gaps.NO_REPRO_BASELINE,
-            "the no-repro tag grew past its baseline (records at "
-            f"BUGS-FIXED.md lines {lines}); make the failure "
-            "deterministic in a test "
-            "and add its ledger entry instead of raising "
-            "NO_REPRO_BASELINE",
-        )
-
-    def test_an_unmatched_mechanism_has_no_reproduction(self):
-        record = validation_gaps.Gap(
-            "no-repro", "bugs.md", 1, "A brand-new failure mode"
-        )
-        self.assertIsNone(
-            validation_gaps.no_repro_reproduction(record)
-        )
+class TestNoReproLedger(_LedgerMixin, unittest.TestCase):
+    tag = "no-repro"
+    missing_advice = (
+        "make the failure deterministic in a test and add its ledger entry"
+    )
+    growth_advice = (
+        "make the failure deterministic in a test and add its ledger entry "
+        "instead of raising NO_REPRO_BASELINE"
+    )
 
 
 if __name__ == "__main__":

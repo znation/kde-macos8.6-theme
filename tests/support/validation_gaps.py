@@ -608,6 +608,26 @@ NO_REPRO_REPRODUCTIONS = (
 )
 
 
+# Each tag's ledger: its reproduction entries and the baseline its record count
+# must not exceed. Keeping both in one table means the lookup and the suites
+# cannot disagree about which entries belong to a tag.
+Ledger = namedtuple("Ledger", "entries baseline")
+
+LEDGERS = {
+    "no-observability": Ledger(
+        NO_OBSERVABILITY_REPRODUCTIONS, NO_OBSERVABILITY_BASELINE
+    ),
+    "unclear-invariant": Ledger(
+        UNCLEAR_INVARIANT_REPRODUCTIONS, UNCLEAR_INVARIANT_BASELINE
+    ),
+    "no-fake": Ledger(NO_FAKE_REPRODUCTIONS, NO_FAKE_BASELINE),
+    "real-run-needed": Ledger(
+        REAL_RUN_NEEDED_REPRODUCTIONS, REAL_RUN_NEEDED_BASELINE
+    ),
+    "no-repro": Ledger(NO_REPRO_REPRODUCTIONS, NO_REPRO_BASELINE),
+}
+
+
 def read_gaps(path, root=ROOT):
     """Return every validation-gap record in *path* as a list of :class:`Gap`.
 
@@ -638,29 +658,9 @@ def read_gaps(path, root=ROOT):
     return records
 
 
-def no_observability(records):
-    """Return the subset of *records* tagged ``no-observability``."""
-    return [record for record in records if record.tag == "no-observability"]
-
-
-def unclear_invariant(records):
-    """Return the subset of *records* tagged ``unclear-invariant``."""
-    return [record for record in records if record.tag == "unclear-invariant"]
-
-
-def no_fake(records):
-    """Return the subset of *records* tagged ``no-fake``."""
-    return [record for record in records if record.tag == "no-fake"]
-
-
-def real_run_needed(records):
-    """Return the subset of *records* tagged ``real-run-needed``."""
-    return [record for record in records if record.tag == "real-run-needed"]
-
-
-def no_repro(records):
-    """Return the subset of *records* tagged ``no-repro``."""
-    return [record for record in records if record.tag == "no-repro"]
+def tagged(records, tag):
+    """Return the subset of *records* tagged *tag*."""
+    return [record for record in records if record.tag == tag]
 
 
 def _lookup(record, entries):
@@ -671,47 +671,16 @@ def _lookup(record, entries):
     return None
 
 
-def reproduction(record):
-    """Return the no-observability entry matching *record*, or ``None``."""
-    return _lookup(record, NO_OBSERVABILITY_REPRODUCTIONS)
-
-
-def unclear_invariant_reproduction(record):
-    """Return the unclear-invariant entry matching *record*, or ``None``."""
-    return _lookup(record, UNCLEAR_INVARIANT_REPRODUCTIONS)
-
-
-def no_fake_reproduction(record):
-    """Return the no-fake entry matching *record*, or ``None``."""
-    return _lookup(record, NO_FAKE_REPRODUCTIONS)
-
-
-def real_run_needed_reproduction(record):
-    """Return the real-run-needed entry matching *record*, or ``None``."""
-    return _lookup(record, REAL_RUN_NEEDED_REPRODUCTIONS)
-
-
-def no_repro_reproduction(record):
-    """Return the no-repro entry matching *record*, or ``None``."""
-    return _lookup(record, NO_REPRO_REPRODUCTIONS)
-
-
 def reproduction_for(record):
     """Return the ledger entry for *record*'s tag, or ``None``.
 
     A record carrying a tag this module does not ledger (or one whose subject
     matches no entry) has no reproduction, so a new tag cannot borrow another
-    ledger's entries. The five ledgers are ``no-observability``,
-    ``unclear-invariant``, ``no-fake``, ``real-run-needed`` and ``no-repro``.
+    ledger's entries. :data:`LEDGERS` names the five ledgers:
+    ``no-observability``, ``unclear-invariant``, ``no-fake``,
+    ``real-run-needed`` and ``no-repro``.
     """
-    if record.tag == "no-observability":
-        return reproduction(record)
-    if record.tag == "unclear-invariant":
-        return unclear_invariant_reproduction(record)
-    if record.tag == "no-fake":
-        return no_fake_reproduction(record)
-    if record.tag == "real-run-needed":
-        return real_run_needed_reproduction(record)
-    if record.tag == "no-repro":
-        return no_repro_reproduction(record)
-    return None
+    ledger = LEDGERS.get(record.tag)
+    if ledger is None:
+        return None
+    return _lookup(record, ledger.entries)
