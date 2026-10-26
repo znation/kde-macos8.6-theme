@@ -8,7 +8,9 @@ selector would match each representative element.
 Only the subset the sheet's scope tests use is supported: descendant and
 child (``>``) combinators separating compound selectors made of an element
 name, ``#id``, ``.class``, ``[attribute]``/``[attribute="value"]``, ``:hover``
-and ``:not(...)`` (whose argument may itself be a selector). An element
+and ``:not(...)`` (whose argument may itself be a selector). A sibling
+combinator (``+`` or ``~``) is outside that subset and matches no element, so
+it cannot be misread as a descendant step. An element
 is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true.
@@ -63,8 +65,10 @@ def _split_selector(selector):
 
     Whitespace outside parentheses and brackets separates compounds with a
     descendant combinator; ``>`` separates them with a child combinator, and
-    whitespace on either side of it belongs to that combinator rather than
-    adding a descendant step of its own.
+    ``+`` and ``~`` are kept as their own (unsupported) combinators so a
+    sibling selector cannot be read as a chain of compounds. Whitespace on
+    either side of a combinator belongs to it rather than adding a descendant
+    step of its own.
     """
     compounds = []
     combinators = []
@@ -89,12 +93,12 @@ def _split_selector(selector):
         elif char in ")]":
             depth -= 1
             current.append(char)
-        elif depth == 0 and char == ">":
+        elif depth == 0 and char in ">+~":
             if current:
                 compounds.append("".join(current))
                 current = []
             if compounds:
-                pending = ">"
+                pending = char
         elif depth == 0 and char.isspace():
             if current:
                 compounds.append("".join(current))
@@ -112,9 +116,16 @@ def _split_selector(selector):
 
 
 def matches(selector, element):
-    """Return True when *selector* matches *element* in its fixture tree."""
+    """Return True when *selector* matches *element* in its fixture tree.
+
+    A selector using a sibling combinator (``+``/``~``) is outside the
+    supported subset and matches nothing, so its over-broad reading as a
+    descendant step cannot pass a scope assertion.
+    """
     compounds, combinators = _split_selector(selector)
     if not compounds:
+        return False
+    if any(combinator not in (" ", ">") for combinator in combinators):
         return False
 
     def match_from(index, current):

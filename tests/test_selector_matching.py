@@ -85,6 +85,17 @@ class TestSelectorMatching(unittest.TestCase):
         self.assertFalse(matches(".a > .b > .c", target))
         self.assertTrue(matches(".a > .b .c", target))
 
+    def test_sibling_combinators_are_not_treated_as_descendant_steps(self):
+        # The fixture model has no sibling order, so a sibling combinator is
+        # outside the supported subset. It must not be read as a descendant
+        # step: ``.a + .b`` used to match a ``.b`` grandchild of ``.a``.
+        outer = element("box", ("a",))
+        middle = element("box", ("middle",), parent=outer)
+        target = element("box", ("b",), parent=middle)
+        for selector in (".a + .b", ".a ~ .b", ".a+.b", ".a~.b"):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, target))
+
     def test_negation_still_applies_in_a_child_chain(self):
         outer = element("box", ("outer",))
         inner = element("box", ("inner",), parent=outer)

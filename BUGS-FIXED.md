@@ -5,6 +5,31 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher reads a sibling combinator as a universal descendant step (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+A selector using a sibling combinator did not match nothing: `_split_selector`
+kept a spaced `+` or `~` as its own compound, and `_compound_matches` accepted
+that bare-punctuation compound as matching any element. The matcher therefore
+read `.a + .b` and `.a ~ .b` as `.a <any> .b`, so a `.b` grandchild of `.a`
+matched a sibling selector, and a scope test could accept a rule that paints
+elements it must not.
+
+**Reproduce:** a three-level fixture `a > middle > b` returned `True` from
+`matches(".a + .b", b)` and `matches(".a ~ .b", b)` (and the same for a bare
+`+`/`~` compound) before the fix; it returns `False` after.
+
+**Fix:** `_split_selector` now treats `+` and `~` as combinators in their own
+right (so they are no longer parsed as universal compounds), and `matches`
+returns `False` for any combinator outside the supported descendant and child
+subset. `tests/test_selector_matching.py` pins both spaced forms on the
+three-level fixture.
+
+**Validation gap:** none — the closest tag is no-observability because the
+unsupported selector returned a bare `True` with no trace; the existing suite
+used no sibling combinator, so a scratch three-level fixture reproduced the
+over-match, and the new regression test in `tests/test_selector_matching.py`
+fails without the fix and passes with it.
+
 ### The test-side selector matcher treats a child combinator as an extra element (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/support/selector_matching.py` split a selector at whitespace only, so a `>` child
