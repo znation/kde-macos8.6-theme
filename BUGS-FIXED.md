@@ -5,6 +5,37 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher reads pseudo-class text inside an attribute value as a pseudo-class (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/support/selector_matching.py` stripped `:not(...)` and `:hover` from a whole
+compound before matching its attribute selectors, so text inside a quoted
+attribute value was read as syntax. `[title=":hover"]` required the tested
+element's `hover` flag and then ignored the title value (the emptied quoted
+value was treated as absent), `[title="a:b"]` matched nothing because the
+remaining colon looked like an unsupported pseudo-class, and
+`[title=":not(.a)"]` evaluated the value as a negation of the element under
+test.
+
+Reproduced with scratch calls: with an element whose only attribute is
+`title=":hover"`, `matches('[title=":hover"]', element)` returned False;
+`matches('[title="a:b"]', element)` returned False for the same value; and
+`matches('[title=":not(.a)"]', element)` returned False even when the title
+held that exact text. The new tests in `tests/test_selector_matching.py` fail
+against the old matcher and pass now.
+
+Fixed by finding the compound's own top-level `[...]` spans (ignoring brackets
+inside a `:not(...)` argument or a quoted value), blanking those spans before
+the negation and hover scans, and matching the attribute selectors from the
+original spans. Each span must parse whole as an `_ATTRIBUTE`, so an operator
+or syntax the matcher cannot read matches nothing instead of slipping through
+as an empty test. `:not(...)` arguments come from a quote-aware balanced scan,
+so a quoted `)` no longer truncates the negation. `_compound_matches` now uses
+the same `_HOVER` regex as the support validation, so `:hover` is recognized
+only as a complete name, and a quoted value with class-like text
+(`[title="a.b"]`) stays literal and needs no such class.
+
+**Validation gap:** none — the existing suite never placed pseudo-class text in a quoted attribute value or used an unparsed attribute operator; scratch calls and the new tests reproduced each failure, so nothing outside the suite was needed to confirm them.
+
 ### The selector matcher reads an unsupported pseudo-class inside `:not(...)` as false, so the negation matches every element (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/support/selector_matching.py` supports `:hover` and a flat `:not(...)`, but

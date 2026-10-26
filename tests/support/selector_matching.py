@@ -15,7 +15,8 @@ pseudo-class inside ``:not(...)``, which must not be read as false and invert
 the negation into a match for every element. An element
 is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
-only when the element's ``hover`` flag is true.
+only when the element's ``hover`` flag is true. Text inside a quoted attribute
+value is literal: ``[title=":hover"]`` is an attribute test, not a hover test.
 """
 
 from __future__ import annotations
@@ -26,22 +27,158 @@ import re
 _ID = re.compile(r"#([-\w]+)")
 _CLASS = re.compile(r"\.([-\w]+)")
 _TAG = re.compile(r"^([-\w]+|\*)")
-_NOT = re.compile(r":not\(([^)]*)\)")
 _HOVER = re.compile(r":hover(?![-\w])")
 _ATTRIBUTE = re.compile(
     r"\[([-\w]+)(?:=(?:\"([^\"]*)\"|'([^']*)'|([^\]]+)))?\]"
 )
 
 
+def _attribute_spans(compound):
+    """Return the spans of *compound*'s own ``[...]`` selectors.
+
+    A bracket inside a ``:not(...)`` argument belongs to the negated selector
+    and a bracket inside a quoted value belongs to the value, so neither is
+    the compound's own attribute. Later callers blank these spans before
+    looking for pseudo-classes: ``[title=":hover"]`` must not require the
+    hover flag, and ``[title="a:b"]`` must not look unsupported.
+    """
+    spans = []
+    depth = 0
+    parentheses = 0
+    quote = None
+    start = None
+    for index, char in enumerate(compound):
+        if quote is not None:
+            if char == quote:
+                quote = None
+            continue
+        if char in "\"'":
+            quote = char
+            continue
+        if char == "(":
+            parentheses += 1
+            continue
+        if char == ")":
+            parentheses = max(0, parentheses - 1)
+            continue
+        if parentheses:
+            continue
+        if char == "[":
+            if depth == 0:
+                start = index
+            depth += 1
+        elif char == "]":
+            if depth:
+                depth -= 1
+                if depth == 0 and start is not None:
+                    spans.append((start, index + 1))
+                    start = None
+    return spans
+
+
+def _mask_attributes(compound, spans):
+    """Return *compound* with each attribute span replaced by ``[]``."""
+    if not spans:
+        return compound
+    parts = []
+    position = 0
+    for start, end in spans:
+        parts.append(compound[position:start])
+        parts.append("[]")
+        position = end
+    parts.append(compound[position:])
+    return "".join(parts)
+
+
+def _blank_spans(compound, spans):
+    """Return *compound* with each ``(start, end, ...)`` span removed."""
+    if not spans:
+        return compound
+    parts = []
+    position = 0
+    for start, end, *_ in spans:
+        parts.append(compound[position:start])
+        position = end
+    parts.append(compound[position:])
+    return "".join(parts)
+
+
+def _not_spans(compound):
+    """Return ``(start, end, argument)`` for each ``:not(...)`` in *compound*.
+
+    Quoted text and attribute selectors are skipped, so a ``:not(`` inside
+    ``[title=":not(.a)"]`` is part of the value, not a negation. Parentheses
+    are balanced, so a quoted ``)`` inside the argument does not end it early.
+    """
+    spans = []
+    index = 0
+    bracket_depth = 0
+    quote = None
+    while index < len(compound):
+        char = compound[index]
+        if quote is not None:
+            if char == quote:
+                quote = None
+            index += 1
+            continue
+        if char in "\"'":
+            quote = char
+            index += 1
+            continue
+        if char == "[":
+            bracket_depth += 1
+            index += 1
+            continue
+        if char == "]":
+            bracket_depth = max(0, bracket_depth - 1)
+            index += 1
+            continue
+        if bracket_depth or not compound.startswith(":not(", index):
+            index += 1
+            continue
+        start = index
+        depth = 1
+        end = index + len(":not(")
+        inner_quote = None
+        inner_bracket = 0
+        while end < len(compound) and depth:
+            char = compound[end]
+            if inner_quote is not None:
+                if char == inner_quote:
+                    inner_quote = None
+            elif char in "\"'":
+                inner_quote = char
+            elif char == "[":
+                inner_bracket += 1
+            elif char == "]":
+                inner_bracket = max(0, inner_bracket - 1)
+            elif not inner_bracket:
+                if char == "(":
+                    depth += 1
+                elif char == ")":
+                    depth -= 1
+            end += 1
+        if depth:
+            index += len(":not(")
+            continue
+        spans.append((start, end, compound[start + len(":not("):end - 1]))
+        index = end
+    return spans
+
+
 def _compound_matches(compound, element):
-    for negated in _NOT.findall(compound):
+    spans = _attribute_spans(compound)
+    attributes = [compound[start:end] for start, end in spans]
+    compound = _mask_attributes(compound, spans)
+    negations = _not_spans(compound)
+    for _, _, negated in negations:
         if matches(negated, element):
             return False
-    compound = _NOT.sub("", compound)
-    if ":hover" in compound:
+    compound = _blank_spans(compound, negations)
+    if _HOVER.search(compound):
         if not element["hover"]:
             return False
-        compound = compound.replace(":hover", "")
+        compound = _HOVER.sub("", compound)
     if ":" in compound:
         return False
     tag = _TAG.match(compound)
@@ -53,13 +190,14 @@ def _compound_matches(compound, element):
     for class_name in _CLASS.findall(compound):
         if class_name not in element["classes"]:
             return False
-    for match in _ATTRIBUTE.finditer(compound):
-        name, double_quoted, single_quoted, unquoted = match.groups()
-        if name not in element["attrs"]:
-            return False
-        value = double_quoted or single_quoted or unquoted
-        if value is not None and element["attrs"][name] != value:
-            return False
+    for attribute in attributes:
+        for match in _ATTRIBUTE.finditer(attribute):
+            name, double_quoted, single_quoted, unquoted = match.groups()
+            if name not in element["attrs"]:
+                return False
+            value = double_quoted or single_quoted or unquoted
+            if value is not None and element["attrs"][name] != value:
+                return False
     return True
 
 
@@ -127,15 +265,25 @@ def _compound_is_supported(compound):
     them before testing for a leftover ``:``: an unsupported pseudo-class
     inside ``:not(...)`` would otherwise be read as false, and negating a gap
     would silently turn the selector into one that matches every element.
+    A bracket or quote left outside the attribute spans is malformed and is
+    rejected rather than dropped, which would leave a universal match.
     """
-    negated_selectors = _NOT.findall(compound)
-    remainder = _NOT.sub("", compound)
-    remainder = _HOVER.sub("", remainder)
-    if ":" in remainder:
+    negations = _not_spans(compound)
+    remainder = _blank_spans(compound, negations)
+    spans = _attribute_spans(remainder)
+    if any(char in "[]\"'" for char in _blank_spans(remainder, spans)):
+        return False
+    for start, end in spans:
+        if not _ATTRIBUTE.fullmatch(remainder[start:end]):
+            return False
+    compound = _mask_attributes(remainder, spans)
+    compound = _HOVER.sub("", compound)
+    if ":" in compound:
         return False
     return all(
-        _selector_is_supported(negated_selector)
-        for negated_selector in negated_selectors
+        not _not_spans(negated_selector)
+        and _selector_is_supported(negated_selector)
+        for _, _, negated_selector in negations
     )
 
 

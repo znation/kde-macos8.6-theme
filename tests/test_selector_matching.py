@@ -115,6 +115,78 @@ class TestSelectorMatching(unittest.TestCase):
             matches("#searchbar:not(:hover)", {**searchbar, "hover": True})
         )
 
+    def test_attribute_value_containing_a_colon_is_matched_literally(self):
+        # A colon and the attribute selector's brackets are part of the value,
+        # not a pseudo-class the matcher has to reject as unsupported.
+        target = element("box", attrs={"title": "a:b"})
+        self.assertTrue(matches('[title="a:b"]', target))
+        self.assertFalse(matches('[title="a:c"]', target))
+
+    def test_attribute_value_containing_hover_does_not_require_the_hover_flag(self):
+        # ``:hover`` inside an attribute value is text, not the pseudo-class;
+        # only a real trailing ``:hover`` makes the selector need the flag.
+        target = element("box", attrs={"title": ":hover"})
+        self.assertTrue(matches('[title=":hover"]', target))
+        self.assertTrue(
+            matches('[title=":hover"]:hover', {**target, "hover": True})
+        )
+        self.assertFalse(matches('[title=":hover"]:hover', target))
+
+    def test_unsupported_attribute_syntax_matches_nothing(self):
+        # An attribute selector the matcher cannot parse must not become
+        # supported just because a masked value hid its unsupported syntax.
+        target = element("box", attrs={"title": "a:b"})
+        for selector in ('[title^="a:b"]', '[title:has(.x)]'):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, target))
+        self.assertFalse(matches(':not([title^="a:b"])', target))
+
+    def test_malformed_attribute_selectors_match_nothing(self):
+        # An unmatched bracket or quote is not an attribute test the matcher
+        # can read; leaving it out must not turn the compound into a universal
+        # match.
+        target = element("box", attrs={"title": "ab"})
+        for selector in (
+            "[title",
+            "[title]]",
+            '[title="ab]',
+            '[title="ab"',
+            '[title="ab"]"',
+            "[title][",
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, target))
+
+    def test_attribute_value_containing_a_class_is_matched_literally(self):
+        # The dot is part of the quoted value, not a class the element needs.
+        target = element("box", attrs={"title": "a.b"})
+        self.assertTrue(matches('[title="a.b"]', target))
+        other = {**target, "attrs": {"title": "a.c"}}
+        self.assertFalse(matches('[title="a.b"]', other))
+
+    def test_attribute_value_containing_a_negation_is_matched_literally(self):
+        # ``:not(...)`` inside the quoted value must not be evaluated as a
+        # negation of the element the selector is tested against.
+        target = element("box", classes=("a",), attrs={"title": ":not(.a)"})
+        self.assertTrue(matches('[title=":not(.a)"]', target))
+        self.assertFalse(matches('[title=":not(.b)"]', target))
+
+    def test_negated_attribute_value_with_a_parenthesis_is_literal(self):
+        # The quoted ``)`` must not end the ``:not(...)`` argument early; the
+        # negation applies to the whole attribute test, not a truncated one.
+        self.assertTrue(
+            matches(
+                ':not([title=":not(.a)"])',
+                element("box", attrs={"title": ":not(.b)"}),
+            )
+        )
+        self.assertFalse(
+            matches(
+                ':not([title=":not(.a)"])',
+                element("box", attrs={"title": ":not(.a)"}),
+            )
+        )
+
     def test_pseudo_class_name_starting_with_hover_is_unsupported(self):
         # ``:hover`` is supported only as the complete pseudo-class name; a
         # longer name must not be shortened to ``:hover`` and accepted.
