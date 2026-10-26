@@ -20,6 +20,7 @@ from support.platinum_palette import (
     FACE,
     GREY,
     SELECTION,
+    TOOLTIP_FACE,
     TROUGH,
     WHITE,
 )
@@ -38,6 +39,14 @@ README = Path(ROOT) / "README.md"
 SHEET_PATH = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
 
 REQUIRED_RULES = {
+    "tooltip": {
+        "appearance": "none !important",
+        "background-color": f"{TOOLTIP_FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": "none !important",
+    },
     ":root": {
         "--lwt-accent-color": f"{FACE} !important",
         "--lwt-text-color": f"{BLACK} !important",
@@ -213,8 +222,17 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
     def test_palette_is_exact(self):
         self.assertEqual(
             set(HEX.findall(self.text)),
-            {BLACK, WHITE, GREY, FACE, TROUGH, SELECTION, ETCH_DARK},
+            {BLACK, WHITE, GREY, FACE, TROUGH, SELECTION, ETCH_DARK, TOOLTIP_FACE},
         )
+
+    def test_tooltip_face_is_scoped_to_explicit_tooltips(self):
+        self.assertEqual(
+            {selector for selector, declarations in self.rules.items()
+             if any(TOOLTIP_FACE in value.upper()
+                    for value in declarations.values())},
+            {"tooltip"},
+        )
+        self.assertEqual(self.rules["tooltip"], REQUIRED_RULES["tooltip"])
 
     def test_results_paint_does_not_override_shared_tokens(self):
         # Firefox also consumes these tokens on realtime sub-items and one-offs.
@@ -239,6 +257,20 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
 
     def test_header_names_provenance_and_preference(self):
         self.assertIn("Provenance exception", self.text)
+        header = self.text.split("*/", 1)[0]
+        for provenance in (
+            "No reference shows Firefox tooltips or a Balloon Help balloon",
+            "platform adaptation 2026-10-25",
+            "[Colors:Tooltip] BackgroundNormal",
+            "TOOLTIP_FACE", "classic-palette exception accepted in QUESTIONS.md",
+            "not a screenshot sample", "widgets/tooltip.svg",
+            "tests/test_desktoptheme_tooltip.py::TestTooltip.test_tooltip_pixels",
+            "chrome/toolkit/content/global/xul.css",
+            "selector; default native anonymous tooltips require UA styling",
+            "outside this sheet's guarantee",
+        ):
+            with self.subTest(provenance=provenance):
+                self.assertIn(provenance, header)
         self.assertIn(
             "toolkit.legacyUserProfileCustomizations.stylesheets",
             self.text,

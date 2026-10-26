@@ -24,12 +24,32 @@
    --panel-background-color, --panel-text-color and --panel-border-color
    tokens (platform colour adaptation 2026-10-25).
 
+   No reference shows Firefox tooltips or a Balloon Help balloon. Explicit
+   XUL tooltip paint is a platform adaptation 2026-10-25: #FFFFCC comes from
+   [Colors:Tooltip] BackgroundNormal and tests/support/platinum_palette.py
+   TOOLTIP_FACE, the classic-palette exception accepted in QUESTIONS.md,
+   not a screenshot sample. The flat square face and black outline follow
+   theme/desktoptheme/org.macos8.desktop/widgets/tooltip.svg, pinned by
+   tests/test_desktoptheme_tooltip.py::TestTooltip.test_tooltip_pixels.
+   Firefox toolkit chrome/toolkit/content/global/xul.css uses the tooltip
+   selector; default native anonymous tooltips require UA styling and are
+   outside this sheet's guarantee.
+
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
    toolkit.legacyUserProfileCustomizations.stylesheets=true to its user.js;
    `make remove-firefox` removes both. Setting
    browser.tabs.inTitlebar=0 makes Firefox use the KWin-drawn Aurorae frame.
 */
+
+tooltip {
+  appearance: none !important;
+  background-color: #FFFFCC !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
 
 :root {
   --lwt-accent-color: #DDDDDD !important;

@@ -77,23 +77,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Firefox Platinum chrome: style explicit XUL tooltips (planned 2026-10-25 by the plan role; independent of arrow-panel colour tokens)
-
-**Goal.** Give stylesheet-addressable Firefox XUL tooltips the flat pale-yellow Platinum face and black outline already used by the desktop theme. Keep this to tooltip paint; native anonymous tooltips and page content are outside the guarantee.
-
-**Grounding.** The current Firefox sheet and `REQUIRED_RULES` in `tests/test_firefox_theme.py` contain no tooltip selector. The finished Firefox stylesheet and secondary-chrome plans cover other surfaces. The installed `/usr/lib/firefox-esr/omni.ja` member `chrome/toolkit/content/global/xul.css` sets `tooltip` appearance, InfoBackground/InfoText colours and platform-dependent borders/radii; it also warns that default tooltips are native anonymous content requiring UA styling. This plan therefore makes no claim to restyle those default tooltips.
-
-**Approach and files touched.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: add one `tooltip` rule with `appearance: none`, `background-color: #FFFFCC`, `color: #000000`, `border: 1px solid #000000`, `border-radius: 0` and `box-shadow: none`, each `!important`. Preserve Firefox's padding, font, wrapping, positioning and visibility. Do not add panel tokens or profile preferences.
-- Extend the provenance comment with a dated 2026-10-25 platform adaptation: no reference image shows Firefox tooltips or a Balloon Help balloon. Source yellow from `[Colors:Tooltip] BackgroundNormal` and `tests/support/platinum_palette.py::TOOLTIP_FACE`, the explicitly accepted classic-palette exception in QUESTIONS.md; source the flat square face and black outline from `theme/desktoptheme/org.macos8.desktop/widgets/tooltip.svg`, pinned by `tests/test_desktoptheme_tooltip.py::TestTooltip.test_tooltip_pixels`. Name the toolkit `xul.css` selector and native-anonymous limitation. Do not describe yellow as screenshot-sampled.
-- `tests/test_firefox_theme.py`: import `TOOLTIP_FACE`, add the six declarations to `REQUIRED_RULES`, and extend `TestFirefoxChrome.test_palette_is_exact` with that constant. Add a scope test requiring declarations whose value contains `TOOLTIP_FACE` to belong to exactly the `tooltip` selector, so the new face cannot accidentally spread to menus or panels. Pin the provenance exception and native-anonymous limitation in the header test. Retain the existing standalone-sheet checks.
-- `docs/invariants.md`: extend the standalone-sheet row under `## firefox` with explicit XUL tooltip paint, its test and the dated palette/geometry exception; distinguish stylesheet declarations from rendered coverage and exclude native anonymous tooltips.
-
-**Acceptance criteria.**
-- Required-rule checks fail for a missing paint declaration, incorrect value or missing `!important`; the scope check fails if the yellow face is assigned outside `tooltip`.
-- The desktop tooltip palette/geometry tests and `make check` pass. Tests require no installed Firefox or new dependency.
-- Report declaration validation separately from a live rendering check; no claim of default-tooltip coverage or screenshot-derived yellow. The change is confined to these three files and is independently mergeable from arrow-panel colours.
-
 ### Firefox Platinum chrome: paint the unfocused optional search field (planned 2026-10-25 by the plan role; independent of explicit XUL tooltips)
 
 **Goal.** Give Firefox's optional classic search field a white, square Platinum face when unfocused, while leaving its focused appearance to Firefox. This is one field-paint change, independent of the waiting tooltip plan.
