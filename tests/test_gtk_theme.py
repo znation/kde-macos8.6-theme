@@ -93,10 +93,14 @@ def assert_svg_root_first(test, path):
     GTK loads a ``-gtk-icon-source`` SVG through gdk-pixbuf, whose sniffer
     only recognizes a file whose ``<svg`` root sits near the start; a comment
     before the root leaves the glyph blank. An XML declaration is optional
-    and accepted, but the provenance comment belongs inside the root.
+    and accepted, but the provenance comment belongs inside the root. The
+    asset is contributor-supplied, and ``assertRegex`` echoes the text it was
+    given when it fails, so the file is read through the shared guarded
+    reader: a checked-in symlink that escapes the repository is refused
+    before its private target's text reaches the diagnostic.
     """
     test.assertRegex(
-        path.read_text(encoding="utf-8"),
+        gtk_css.read_theme_text(path),
         r"^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b",
     )
 
@@ -119,6 +123,18 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             with mock.patch.object(gtk_css, "ROOT", root):
                 with self.assertRaisesRegex(ValueError, "symlink escape"):
                     gtk_css.read_theme_text(link)
+
+    def test_svg_root_assertion_refuses_a_symlink_escape(self):
+        """The root-first assertion must not echo a private file's text."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root, link = symlinked_repo(
+                tmp, "checkmark.svg", "PRIVATE-SECRET\n"
+            )
+            with mock.patch.object(gtk_css, "ROOT", root):
+                with self.assertRaises(ValueError) as caught:
+                    assert_svg_root_first(self, link)
+        self.assertIn(str(link), str(caught.exception))
+        self.assertNotIn("PRIVATE-SECRET", str(caught.exception))
 
     def test_index_theme(self):
         parser = configparser.ConfigParser(interpolation=None)
