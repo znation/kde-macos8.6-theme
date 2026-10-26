@@ -11,12 +11,19 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # The Makefile refuses a Python older than 3.10; check that floor and
+        # the version the project is developed on, so a newer-only API cannot
+        # pass CI and then fail on a supported interpreter.
+        python-version: ['3.10', '3.12']
     steps:
       - uses: actions/checkout@v4
         with:
           lfs: true
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
       - run: make check
       - run: make check-references
