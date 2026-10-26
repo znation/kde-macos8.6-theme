@@ -430,7 +430,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
             "A UTF-8 BOM before our Firefox `user.js` marker",
             "a leading UTF-8 BOM does not hide either sheet marker or our `user.js` marker block",
         ),
-        "tests/test_firefox_install.py::TestUserJs"
+        "tests/test_firefox_user_js.py::TestUserJs"
         "::test_a_bom_before_our_marker_still_matches_the_block",
         USER_JS_BOM_MARKER_GUARANTEE,
     ),
@@ -452,7 +452,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "firefox-ini-fifo",
         ("Firefox profile-discovery INI",),
-        "tests/test_firefox_install.py::TestProfileResolution"
+        "tests/test_firefox_profile.py::TestProfileResolution"
         "::test_a_fifo_at_either_ini_file_is_refused_without_blocking",
     ),
     Reproduction(
@@ -575,7 +575,7 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "firefox-profile-discovery-ini-cap",
         ("Firefox profile-discovery INI",),
-        "tests/test_firefox_install.py::TestProfileResolution"
+        "tests/test_firefox_profile.py::TestProfileResolution"
         "::test_an_oversize_ini_file_is_refused_by_name",
     ),
     Reproduction(
