@@ -91,12 +91,36 @@ class TestReadBytes(unittest.TestCase):
                 containment.read_bytes(path, tmp / "repo"), b"temp"
             )
 
+    def test_a_missing_file_raises_file_not_found(self):
+        # The shared capped reader returns None for a missing path only when a
+        # caller asks for that (the Firefox discovery readers do). A repository
+        # reader must still raise FileNotFoundError naming the path instead of
+        # turning an absent contributor file into a later None failure.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            path = tmp / "missing.svg"
+            with self.assertRaises(FileNotFoundError) as caught:
+                containment.read_bytes(path, tmp)
+        self.assertIn(str(path), str(caught.exception))
+
+    def test_a_file_exactly_at_the_read_limit_is_read(self):
+        # The reader takes one byte past the cap so the boundary is inclusive:
+        # a file of exactly _MAX_READ_BYTES is accepted, while the next test
+        # shows one byte more is refused. A ``>=`` comparison here would refuse
+        # a legitimate source file that happens to reach the cap.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            path = tmp / "at-limit.svg"
+            payload = b"x" * containment_impl._MAX_READ_BYTES
+            path.write_bytes(payload)
+            self.assertEqual(containment.read_bytes(path, tmp / "repo"), payload)
+
     def test_refuses_a_file_larger_than_the_read_limit(self):
         # The path is contributor-supplied and can name something arbitrarily
         # large; a plain read would allocate the whole file and could raise a
         # MemoryError that no caller catches, so the guard must refuse it by
-        # name. A file exactly at the limit is still read (pinned separately by
-        # the ordinary reads above).
+        # name. A file exactly at the limit is still read (pinned by the
+        # exact-limit test above).
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             path = tmp / "huge.svg"
@@ -146,6 +170,25 @@ class TestReadBytes(unittest.TestCase):
                     containment.read_bytes(path, tmp / "repo")
         self.assertIn(str(path), str(caught.exception))
         self.assertIn("not a regular file", str(caught.exception))
+
+
+class TestReadCappedBytes(unittest.TestCase):
+    """The shared capped read keeps the missing-file choice to its caller.
+
+    The repository readers need a missing file to raise, while the Firefox
+    profile and discovery readers treat one as absent. Both sides go through
+    this helper, so its ``missing_ok`` arm is pinned directly rather than only
+    through those callers.
+    """
+
+    def test_missing_ok_returns_none_for_an_absent_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "missing.ini"
+            self.assertIsNone(
+                containment_impl.read_capped_bytes(
+                    path, 16, "this test reads", missing_ok=True
+                )
+            )
 
 
 class TestOpenRegularBinaryCleanup(unittest.TestCase):
