@@ -255,7 +255,9 @@ class TestFailurePaths(StubTools):
         reaches it, which is what makes a silently crashed applet observable.
         """
         fixture = self.root / "session-capture.png"
-        fixture.write_bytes(encode_png(320, 240, bytes(320 * 240 * 3)))
+        fixture.write_bytes(
+            encode_png(320, 240, bytes([0xDD]) * (320 * 240 * 3))
+        )
         self.stub("plasmawindowed", plasmawindowed_body)
         self.stub(
             "spectacle",
@@ -322,6 +324,21 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_an_unpainted_capture_exits_1_and_writes_nothing(self):
+        # A virtual session that has not painted presents an all-black screen.
+        # The render used to publish that correctly sized PNG as a success,
+        # which surfaced later as unexplained pixel mismatches. It must fail
+        # here, naming the paint budget, instead of publishing a render of
+        # nothing.
+        self.stub_capture(fill=0x00)
+        status, stderr, output = self.run_main()
+        self.assertEqual(1, status)
+        self.assertIn("capture is entirely black", stderr)
+        self.assertIn("did not paint", stderr)
+        self.assertIn("8s settle", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_unwritable_output_is_refused_before_installing(self):
         marker = self.root / "make-ran"
         self.stub("make", f"touch {marker}")
@@ -363,10 +380,17 @@ class TestFailurePaths(StubTools):
         """Return the dot-prefixed entries left in the scratch root."""
         return [name for name in os.listdir(self.root) if name.startswith(".")]
 
-    def stub_capture(self):
-        """Make the stubbed session write a valid 320x240 PNG where spectacle would."""
+    def stub_capture(self, fill=0xDD):
+        """Make the stubbed session write a valid 320x240 PNG where spectacle would.
+
+        *fill* is the byte every colour channel holds; the default is the
+        theme's painted window face, while 0 gives the all-black surface of a
+        session that has not painted yet.
+        """
         fixture = self.root / "capture.png"
-        fixture.write_bytes(encode_png(320, 240, bytes(320 * 240 * 3)))
+        fixture.write_bytes(
+            encode_png(320, 240, bytes([fill]) * (320 * 240 * 3))
+        )
         self.stub("dbus-run-session", f'for a; do :; done; cp "{fixture}" "${{a##* }}"')
         return fixture
 
@@ -552,10 +576,10 @@ class TestRender(unittest.TestCase):
         # Run the CLI the way `make render` does, with the tool's documented
         # settle default (8s), not a tighter one. The session sleeps for that
         # paint budget and then captures: a loaded host that has not painted
-        # the window within 3s captures an all-black screen at the right size,
-        # which the CLI accepts and the pixel comparisons below then report as
-        # eight unexplained failures. The tool's default is the paint budget
-        # it promises; the gate must not render below it.
+        # the window within the budget has its all-black capture refused by
+        # the CLI, which names the settle wait instead of leaving the pixel
+        # comparisons below to report unexplained failures. The tool's default
+        # is the paint budget it promises; the gate must not render below it.
         process = process_runner.start(
             [sys.executable, SCRIPT, cls.output],
             capture_output=True,

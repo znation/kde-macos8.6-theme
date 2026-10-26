@@ -204,7 +204,9 @@ is one -- naming the path instead, so `make uninstall-local-hook` removes only i
 `dbus-run-session`, `kwin_wayland`, `plasma-apply-colorscheme`, `plasmawindowed` and
 `spectacle` and exits 2 naming the first missing tool; a `make` or `dbus-run-session`
 that exists but cannot be started is reported the same way. It
-installs into a scratch data home and leaves your own Plasma configuration alone.
+installs into a scratch data home and leaves your own Plasma configuration alone. A wholly
+black capture — the screen before the window has painted — is refused with a diagnostic
+naming the settle wait rather than published as a render.
 
 ## Generating the wallpaper
 

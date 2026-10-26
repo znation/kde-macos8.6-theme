@@ -84,6 +84,18 @@ REQUIRED_TOOLS = (
 )
 
 
+def _capture_is_unpainted(rgb: bytes) -> bool:
+    """Return whether a capture's RGB plane is entirely black.
+
+    A KWin virtual session that has not painted yet presents an all-black
+    screen, so spectacle captures a correctly sized but empty surface. Such a
+    capture is a render of nothing; refusing it here turns an early capture
+    into one diagnostic naming the settle wait instead of a published PNG that
+    later fails pixel comparisons for no visible reason.
+    """
+    return not any(rgb)
+
+
 def _render(args: argparse.Namespace) -> int:
     output = Path(args.output).absolute()
     with Session.create() as session:
@@ -141,6 +153,13 @@ def _render(args: argparse.Namespace) -> int:
                 TOOL,
                 f"capture is {image.width}x{image.height}, "
                 f"expected {args.width}x{args.height}",
+                command.log,
+            )
+        if _capture_is_unpainted(image.rgb):
+            return report_failure(
+                TOOL,
+                "capture is entirely black: the window did not paint before "
+                f"the {args.settle:g}s settle; retry with a longer --settle",
                 command.log,
             )
         try:

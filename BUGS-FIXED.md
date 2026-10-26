@@ -5,6 +5,27 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The render publishes an unpainted all-black capture as a success (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+A KWin virtual session presents an all-black screen until the applet window paints. If the
+`--settle` paint budget expires first, `spectacle` writes a correctly sized all-black PNG; the
+render checked only that the capture decoded and matched `--width`/`--height`, so it published
+that PNG and exited 0. The render gate then failed eight pixel comparisons with no hint that the
+capture was empty, and the merge gate excused the run as flaky without naming a test.
+
+Reproduce with the stubbed session in
+`tests/test_render_surface.py::TestFailurePaths::test_an_unpainted_capture_exits_1_and_writes_nothing`:
+before this fix that test failed with `AssertionError: 1 != 0` because `main` published the
+all-black fixture.
+
+Fixed by refusing a capture whose RGB plane is entirely black, before publishing, with a
+diagnostic that names the settle wait and suggests a longer `--settle`. The stub fixtures for the
+successful-capture tests now paint the Platinum window face instead of black.
+
+**Validation gap:** none — the closest tag is no-observability because the original flake left
+only a merge-gate separator with no test name, but the stubbed all-black capture now reproduces
+the acceptance deterministically, so the ledger needs no new entry.
+
 ### The render gate captures an unpainted frame on a loaded host (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/test_render_surface.py::TestRender` started `tools/render_surface.py` with `--settle 3`,
