@@ -73,23 +73,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Firefox Platinum chrome: connect arrow-panel colours to consumed popup tokens (planned 2026-10-25 by the plan role; independent of square arrow-panel corners)
-
-**Goal.** Make arrow-panel bodies use the intended Platinum face, text and border through Firefox's current popup colour tokens. This is one consumer-mapping correction, independently mergeable from the queued square-corners plan.
-
-**Grounding.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css` sets three `--arrowpanel-*` colour properties on `:root`. Searching CSS in the installed `/usr/lib/firefox-esr/omni.ja` and `browser/omni.ja` found no occurrences of those three names. Toolkit `chrome/toolkit/skin/classic/global/popup.css` instead consumes `--panel-background-color`, `--panel-text-color` and `--panel-border-color` in `:is(menupopup, panel)::part(content)`. The sheet supplies these on `menupopup` but not arrow panels. The finished menu-colour plan explicitly left root arrow-panel tokens alone; the waiting arrow-panel plan changes radius only.
-
-**Approach and files touched.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: remove `--arrowpanel-background`, `--arrowpanel-color` and `--arrowpanel-border-color` from `:root`. Set `--panel-background-color: #DDDDDD !important`, `--panel-text-color: #000000 !important` and `--panel-border-color: #000000 !important` on `panel[type="arrow"]`. Extend that rule if the corners plan has merged; otherwise create it. Preserve its radius if present and the existing menu declarations. Leave panel contents, shadows, padding and general non-arrow panels outside this change.
-- Extend the sheet's provenance comment: no reference screenshot shows Firefox arrow panels; this is a platform adaptation dated 2026-10-25, sourcing the face and black from the existing Platinum menu mapping and naming the toolkit popup.css consumer. Retain the palette evidence in `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_menu_bar_face` and `test_window_chrome_foreground`; introduce no colour or metric.
-- `tests/test_firefox_theme.py`: replace the three root expectations in `REQUIRED_RULES` with the consumed tokens on `panel[type="arrow"]`, using `FACE` and `BLACK`. Update `TestFirefoxChrome.test_consumed_popup_colour_tokens_are_scoped_to_menu_popups` and its name to require each of the three consumed colour tokens on exactly `menupopup` and `panel[type="arrow"]`. Keep its obsolete menu-token assertions, and add assertions that the three old arrow-panel properties occur in no parsed rule. Do not change the radius scope test or require host Firefox files.
-- `docs/invariants.md`: update the standalone-sheet row under `## firefox` to include arrow-panel body colours, the two permitted selectors, the removed arrow-panel token names and the dated consumer/provenance exception. Preserve the independent radius guarantee as it stands when implementing.
-
-**Acceptance criteria.**
-- Required-rule checks reject a missing consumed arrow-panel token, incorrect palette value or missing `!important`; scope checks reject moving these overrides to `:root` or general `panel`, dropping the menu mapping or retaining old arrow-panel properties.
-- Existing palette and standalone-sheet checks, reference palette tests and `make check` pass. The correction works as a declaration change whether or not the square-corners plan has merged.
-- Report declaration validation separately from live rendering; these tests do not establish rendered Firefox pixels. The face/text/border mapping is one cohesive change, with no new panel-content styling.
-
 ### Firefox Platinum chrome: style explicit XUL tooltips (planned 2026-10-25 by the plan role; independent of arrow-panel colour tokens)
 
 **Goal.** Give stylesheet-addressable Firefox XUL tooltips the flat pale-yellow Platinum face and black outline already used by the desktop theme. Keep this to tooltip paint; native anonymous tooltips and page content are outside the guarantee.

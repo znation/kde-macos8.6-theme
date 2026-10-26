@@ -19,6 +19,10 @@
    to --panel-background-color and --panel-text-color consumed by
    :is(menupopup, panel)::part(content) in Firefox toolkit's
    chrome/toolkit/skin/classic/global/popup.css (adapted 2026-10-25).
+   No reference shows Firefox arrow-panel colours; their face, text and
+   border reuse the Platinum menu face and black through that same consumer's
+   --panel-background-color, --panel-text-color and --panel-border-color
+   tokens (platform colour adaptation 2026-10-25).
 
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
@@ -34,9 +38,6 @@
   --toolbar-color: #000000 !important;
   --tab-selected-bgcolor: #EEEEEE !important;
   --tab-selected-textcolor: #000000 !important;
-  --arrowpanel-background: #DDDDDD !important;
-  --arrowpanel-color: #000000 !important;
-  --arrowpanel-border-color: #000000 !important;
   --toolbarbutton-border-radius: 0 !important;
   --toolbarbutton-background-color-hover: #EEEEEE !important;
   --toolbarbutton-background-color-active: #CCCCFF !important;
@@ -107,6 +108,9 @@
 
 panel[type="arrow"] {
   --panel-border-radius: 0 !important;
+  --panel-background-color: #DDDDDD !important;
+  --panel-text-color: #000000 !important;
+  --panel-border-color: #000000 !important;
 }
 
 menupopup {

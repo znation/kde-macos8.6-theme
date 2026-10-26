@@ -45,9 +45,6 @@ REQUIRED_RULES = {
         "--toolbar-color": f"{BLACK} !important",
         "--tab-selected-bgcolor": f"{TROUGH} !important",
         "--tab-selected-textcolor": f"{BLACK} !important",
-        "--arrowpanel-background": f"{FACE} !important",
-        "--arrowpanel-color": f"{BLACK} !important",
-        "--arrowpanel-border-color": f"{BLACK} !important",
         "--toolbarbutton-border-radius": "0 !important",
         "--toolbarbutton-background-color-hover": f"{TROUGH} !important",
         "--toolbarbutton-background-color-active": f"{SELECTION} !important",
@@ -115,6 +112,9 @@ REQUIRED_RULES = {
     },
     'panel[type="arrow"]': {
         "--panel-border-radius": "0 !important",
+        "--panel-background-color": f"{FACE} !important",
+        "--panel-text-color": f"{BLACK} !important",
+        "--panel-border-color": f"{BLACK} !important",
     },
     "menupopup": {
         "--panel-border-radius": "0 !important",
@@ -192,17 +192,23 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             {"menupopup", 'panel[type="arrow"]'},
         )
 
-    def test_consumed_popup_colour_tokens_are_scoped_to_menu_popups(self):
-        for token in ("--panel-background-color", "--panel-text-color"):
+    def test_consumed_popup_colour_tokens_are_scoped_to_menus_and_arrow_panels(self):
+        for token in ("--panel-background-color", "--panel-text-color",
+                      "--panel-border-color"):
             with self.subTest(token=token):
                 self.assertEqual(
                     {selector for selector, declarations in self.rules.items()
                      if token in declarations},
-                    {"menupopup"},
+                    {"menupopup", 'panel[type="arrow"]'},
                 )
         for token in ("--panel-background", "--panel-color"):
             with self.subTest(obsolete_token=token):
                 self.assertNotIn(token, self.rules["menupopup"])
+        for selector, declarations in self.rules.items():
+            for token in ("--arrowpanel-background", "--arrowpanel-color",
+                          "--arrowpanel-border-color"):
+                with self.subTest(selector=selector, obsolete_token=token):
+                    self.assertNotIn(token, declarations)
 
     def test_palette_is_exact(self):
         self.assertEqual(
