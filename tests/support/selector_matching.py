@@ -33,6 +33,19 @@ _ATTRIBUTE = re.compile(
 )
 
 
+def element(tag, identifier=None, classes=(), attrs=None, hover=False,
+            parent=None):
+    """Build one fixture element with the keys :func:`matches` reads."""
+    return {
+        "tag": tag,
+        "id": identifier,
+        "classes": set(classes),
+        "attrs": dict(attrs or {}),
+        "hover": hover,
+        "parent": parent,
+    }
+
+
 def _attribute_spans(compound):
     """Return the spans of *compound*'s own ``[...]`` selectors.
 

@@ -14,19 +14,15 @@ from __future__ import annotations
 
 import unittest
 
-from support.selector_matching import matches
+from support.selector_matching import element as build_element, matches
 
 
 def element(tag, classes=(), parent=None, element_id="", attrs=None, hover=False):
-    """Build one fixture element with the keys the matcher reads."""
-    return {
-        "tag": tag,
-        "id": element_id,
-        "classes": classes,
-        "attrs": {} if attrs is None else attrs,
-        "hover": hover,
-        "parent": parent,
-    }
+    """Build one fixture element, adapting this module's positional order."""
+    return build_element(
+        tag, identifier=element_id, classes=classes, attrs=attrs,
+        hover=hover, parent=parent,
+    )
 
 
 class TestSelectorMatching(unittest.TestCase):

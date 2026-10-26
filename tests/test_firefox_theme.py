@@ -30,7 +30,7 @@ from support.platinum_palette import (
     WHITE,
 )
 from support.repo_root import ROOT
-from support.selector_matching import matches
+from support.selector_matching import element, matches
 
 THEME_ID = "org.macos8.desktop"
 SHEET = (
@@ -550,17 +550,6 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             set(),
         )
 
-        def element(tag, identifier=None, classes=(), attrs=None,
-                    hover=False, parent=None):
-            return {
-                "tag": tag,
-                "id": identifier,
-                "classes": set(classes),
-                "attrs": dict(attrs or {}),
-                "hover": hover,
-                "parent": parent,
-            }
-
         panel = element("panel", "appMenu-popup")
         main_view = element(
             "panelview", "appMenu-mainView", ("PanelUI-subView",),
@@ -643,17 +632,6 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
              if "--panel-menuitem-border-radius" in declarations},
             set(),
         )
-
-        def element(tag, identifier=None, classes=(), attrs=None,
-                    hover=False, parent=None):
-            return {
-                "tag": tag,
-                "id": identifier,
-                "classes": set(classes),
-                "attrs": dict(attrs or {}),
-                "hover": hover,
-                "parent": parent,
-            }
 
         panel = element("panel", "widget-overflow")
         main_view = element(
@@ -758,17 +736,6 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
              if "--panel-menuitem-border-radius" in declarations},
             set(),
         )
-
-        def element(tag, identifier=None, classes=(), attrs=None,
-                    hover=False, parent=None):
-            return {
-                "tag": tag,
-                "id": identifier,
-                "classes": set(classes),
-                "attrs": dict(attrs or {}),
-                "hover": hover,
-                "parent": parent,
-            }
 
         panel = element("panel", "unified-extensions-panel")
         view = element(
@@ -878,17 +845,6 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
              if "--panel-menuitem-border-radius" in declarations},
             set(),
         )
-
-        def element(tag, identifier=None, classes=(), attrs=None,
-                    hover=False, parent=None):
-            return {
-                "tag": tag,
-                "id": identifier,
-                "classes": set(classes),
-                "attrs": dict(attrs or {}),
-                "hover": hover,
-                "parent": parent,
-            }
 
         panel = element("panel", "identity-popup")
         multi_view = element(
