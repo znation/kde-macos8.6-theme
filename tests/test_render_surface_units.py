@@ -104,8 +104,11 @@ class TestSessionScript(unittest.TestCase):
         self.assertIn('kill "$applet"', script)
         self.assertIn("exit $status", script)
         # The applet is stopped before the session exits, so no applet
-        # outlives the capture.
-        self.assertLess(script.index("kill"), script.index("exit $status"))
+        # outlives the capture. Match the applet kill exactly: the earlier
+        # liveness check also spells `kill`.
+        self.assertLess(
+            script.index('kill "$applet"'), script.index("exit $status")
+        )
 
 
 if __name__ == "__main__":

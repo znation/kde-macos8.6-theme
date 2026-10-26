@@ -87,11 +87,18 @@ INSTALL_TIMEOUT = 60.0
 
 def _session_script() -> str:
     # Positional parameters carry the applet, settle time and output path, so
-    # none of them is ever parsed as shell syntax.
+    # none of them is ever parsed as shell syntax. `plasmawindowed` runs in the
+    # background, so its exit status would otherwise be lost: if it cannot
+    # start or crashes during the settle wait, `spectacle` still captures the
+    # empty session and reports success, publishing a render of no window. The
+    # liveness check therefore runs before the capture and fails the session
+    # with a log line naming the applet instead.
     return (
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'plasmawindowed "$1" & applet=$!; '
         'sleep "$2"; '
+        'if ! kill -0 "$applet" 2>/dev/null; then '
+        'echo "plasmawindowed exited before the capture" >&2; exit 1; fi; '
         'spectacle -b -n -f -o "$3"; status=$?; '
         'kill "$applet" 2>/dev/null; '
         "exit $status"

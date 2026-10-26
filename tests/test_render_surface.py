@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import errno
 import os
+import shlex
 import shutil
 import signal
 import stat
@@ -77,8 +78,10 @@ class StubTools(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp(prefix="render-surface-test-"))
         self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
-        # Capture the real make before the stub directory goes on PATH.
+        # Capture the real make and sleep before the stub directory goes on
+        # PATH.
         self.real_make = shutil.which("make")
+        self.real_sleep = shutil.which("sleep")
         self.bin = self.root / "bin"
         self.bin.mkdir()
         self.scratch_parent = self.root / "tmp"
@@ -235,6 +238,57 @@ class TestFailurePaths(StubTools):
         status, stderr, output = self.run_main()
         self.assertEqual(1, status)
         self.assertIn("not a readable PNG", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
+    def stub_live_session(self, plasmawindowed_body):
+        """Run the real session script under stubs of the tools it starts.
+
+        The fake launcher evaluates the script ``render_surface`` hands the
+        session, so the applet liveness check is the tool's own script and not
+        a test double. ``spectacle`` writes a valid capture whenever the script
+        reaches it, which is what makes a silently crashed applet observable.
+        """
+        fixture = self.root / "session-capture.png"
+        fixture.write_bytes(encode_png(320, 240, bytes(320 * 240 * 3)))
+        self.stub("plasmawindowed", plasmawindowed_body)
+        self.stub(
+            "spectacle",
+            'out=; while [ "$#" -gt 0 ]; do '
+            'if [ "$1" = -o ]; then shift; out=$1; fi; shift; done; '
+            f'cp "{fixture}" "$out"',
+        )
+        self.stub("dbus-run-session", 'for script; do :; done; eval "$script"')
+
+    def test_a_running_applet_is_still_captured(self):
+        self.stub_live_session("exec sleep 60")
+        status, stderr, output = self.run_main("--settle", "0")
+        self.assertEqual((0, ""), (status, stderr))
+        self.assertTrue(output.exists())
+        self.assert_scratch_removed()
+
+    def test_a_crashed_applet_is_not_captured_as_a_successful_render(self):
+        # plasmawindowed is backgrounded, so its failure is otherwise invisible;
+        # spectacle would capture the empty session and the tool would publish
+        # that PNG as a successful render. The settle stub returns only once
+        # the crashed applet has been reaped, so the liveness check cannot race
+        # the background process's exit.
+        pidfile = self.root / "applet.pid"
+        self.stub_live_session(f"echo $$ > {shlex.quote(str(pidfile))}; exit 1")
+        self.stub(
+            "sleep",
+            f"pidfile={shlex.quote(str(pidfile))}; "
+            f"pause={shlex.quote(self.real_sleep)}; "
+            'n=0; while [ ! -s "$pidfile" ]; do n=$((n + 1)); '
+            '[ "$n" -gt 500 ] && exit 1; "$pause" 0.01; done; '
+            'pid=$(cat "$pidfile"); n=0; '
+            'while kill -0 "$pid" 2>/dev/null; do n=$((n + 1)); '
+            '[ "$n" -gt 500 ] && exit 1; "$pause" 0.01; done',
+        )
+        status, stderr, output = self.run_main("--settle", "0")
+        self.assertEqual(1, status)
+        self.assertIn("render session exited 1", stderr)
+        self.assertIn("plasmawindowed exited before the capture", stderr)
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
