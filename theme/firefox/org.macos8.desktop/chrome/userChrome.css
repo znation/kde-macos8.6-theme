@@ -12,6 +12,10 @@
    No reference shows Firefox menus; their zero-radius popup corners follow
    this sheet's square .tab-background and #urlbar-background convention
    (platform geometry adaptation 2026-10-25).
+   No reference shows Firefox menu colours; the shared face and black map
+   to --panel-background-color and --panel-text-color consumed by
+   :is(menupopup, panel)::part(content) in Firefox toolkit's
+   chrome/toolkit/skin/classic/global/popup.css (adapted 2026-10-25).
 
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
@@ -100,8 +104,8 @@
 
 menupopup {
   --panel-border-radius: 0 !important;
-  --panel-background: #DDDDDD !important;
-  --panel-color: #000000 !important;
+  --panel-background-color: #DDDDDD !important;
+  --panel-text-color: #000000 !important;
   --panel-border-color: #000000 !important;
 }
 

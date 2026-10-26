@@ -73,24 +73,6 @@ landed, while its profile install is part 2/2, which has landed).
 
 _None yet._
 
-### Firefox Platinum chrome: connect menu colours to the consumed popup tokens (planned 2026-10-25 by the plan role; independent of the square menu popup corners plan)
-
-**Goal.** Make the existing Platinum menu face and text declarations reach Firefox's popup content. This repairs the token mapping from the finished standalone-sheet plan; it adds no new surface or palette value.
-
-**Grounding.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css` and `tests/test_firefox_theme.py::REQUIRED_RULES` currently use `--panel-background` and `--panel-color` on `menupopup`. The installed `/usr/lib/firefox-esr/omni.ja` member `chrome/toolkit/skin/classic/global/popup.css` instead defines `--panel-background-color` and `--panel-text-color` locally on non-arrow popups and consumes them in `:is(menupopup, panel)::part(content)` as background and text colour. Searching CSS in both installed omni.ja archives found no alias connecting the old pair to these consumed tokens. Searches of Planned and the finished Firefox plans found no correction of these names; the original stylesheet plan specified the old pair.
-
-No reference screenshot shows Firefox menu chrome. This is a Firefox-required token adaptation using the sheet's existing `FACE` (#DDDDDD) and `BLACK` (#000000) mapping. Preserve the shared palette evidence in `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_menu_bar_face` and `test_window_chrome_foreground`; record the missing Firefox surface and the toolkit popup.css consumer as provenance, without claiming a Firefox reference-pixel match.
-
-**Approach and files touched.**
-- `theme/firefox/org.macos8.desktop/chrome/userChrome.css`: replace the two old declarations in `menupopup` with `--panel-background-color: #DDDDDD !important` and `--panel-text-color: #000000 !important`. Keep them on `menupopup` to override Firefox's element-local defaults. Extend the provenance comment with the consumer and adaptation date. Preserve the border declaration and any radius declaration added by the independent corners plan; leave root arrow-panel tokens and menu-item states alone.
-- `tests/test_firefox_theme.py`: replace the two keys in `REQUIRED_RULES["menupopup"]`, reusing `FACE` and `BLACK`. Add a focused `TestFirefoxChrome` test asserting that declarations of the new pair occur only on `menupopup` and that its old pair is absent. Do not require Firefox or a host omni.ja archive to run the tests.
-- `docs/invariants.md`: clarify the `## firefox` standalone-sheet guarantee to name menu background/text through the consumed popup tokens and retain the platform-adaptation provenance exception.
-
-**Acceptance criteria.**
-- `TestFirefoxChrome.test_required_rules` rejects either missing consumed token, a wrong value or missing `!important`; the focused test rejects putting the overrides on `:root` or general `panel`, and rejects retaining the obsolete pair on `menupopup`.
-- Existing exact-palette and standalone-sheet checks pass, as do the reference palette tests and `make check`. No geometry or menu-item state change is part of this correction.
-- Report declaration checks separately from live Firefox rendering: these tests do not establish rendered menu pixels. The background and foreground replacements are one paired consumer-mapping correction and should ship together.
-
 ### Firefox Platinum chrome: square arrow-panel corners (planned 2026-10-25 by the plan role; independent of the waiting menu colour token correction)
 
 **Goal.** Give Firefox `panel[type="arrow"]` popup bodies the square corners already used for this sheet's menus, tabs and address field. This is one geometry change, separate from the waiting menu palette correction.

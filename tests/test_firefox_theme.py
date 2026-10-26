@@ -115,8 +115,8 @@ REQUIRED_RULES = {
     },
     "menupopup": {
         "--panel-border-radius": "0 !important",
-        "--panel-background": f"{FACE} !important",
-        "--panel-color": f"{BLACK} !important",
+        "--panel-background-color": f"{FACE} !important",
+        "--panel-text-color": f"{BLACK} !important",
         "--panel-border-color": f"{BLACK} !important",
     },
     "menupopup > menuitem:hover": {
@@ -188,6 +188,18 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
              if "--panel-border-radius" in declarations},
             {"menupopup"},
         )
+
+    def test_consumed_popup_colour_tokens_are_scoped_to_menu_popups(self):
+        for token in ("--panel-background-color", "--panel-text-color"):
+            with self.subTest(token=token):
+                self.assertEqual(
+                    {selector for selector, declarations in self.rules.items()
+                     if token in declarations},
+                    {"menupopup"},
+                )
+        for token in ("--panel-background", "--panel-color"):
+            with self.subTest(obsolete_token=token):
+                self.assertNotIn(token, self.rules["menupopup"])
 
     def test_palette_is_exact(self):
         self.assertEqual(
