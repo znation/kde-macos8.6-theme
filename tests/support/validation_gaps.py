@@ -434,7 +434,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 18
+NO_FAKE_BASELINE = 19
 
 NO_FAKE_REPRODUCTIONS = (
     Reproduction(
@@ -544,6 +544,12 @@ NO_FAKE_REPRODUCTIONS = (
         ("A SIGTERM that arrives while a child starts",),
         "tests/test_process_group.py::TestRunLogged"
         "::test_a_sigterm_while_popen_returns_still_kills_the_child",
+    ),
+    Reproduction(
+        "run-logged-start-sigint",
+        ("A Ctrl-C that arrives while a child starts",),
+        "tests/test_process_group.py::TestRunLogged"
+        "::test_a_sigint_while_popen_returns_still_kills_the_child",
     ),
 )
 

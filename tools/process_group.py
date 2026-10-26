@@ -6,6 +6,10 @@
 use both around the external commands they run; ``tools/required_command.py``
 wraps :func:`run_logged` with the shared required-command diagnostic for
 ``tools/apply_theme.py`` and ``tools/apply_cursor.py``.
+
+A Ctrl-C (SIGINT) is not one of ``exit_on_termination``'s signals, but its
+default handler raises ``KeyboardInterrupt`` at the next bytecode just the
+same, so :func:`run_logged` defers it around the child's start too.
 """
 
 from __future__ import annotations
@@ -30,16 +34,24 @@ _REAP_TIMEOUT = 5.0
 # its cleanup try/finally is established.
 _TERMINATION_SIGNALS = (signal.SIGTERM, signal.SIGHUP)
 
+# Ctrl-C is not exit_on_termination's concern, but its default handler also
+# raises at the next bytecode. run_logged defers it around the start for the
+# same reason, then re-raises KeyboardInterrupt inside the cleanup try.
+_INTERRUPT_SIGNALS = (signal.SIGINT,)
 
-def _defer_termination(deferred: list[int]) -> list[tuple[int, object]]:
-    """Record termination signals instead of raising while a child starts.
+
+def _defer_signals(
+    signals: tuple[int, ...], deferred: list[int]
+) -> list[tuple[int, object]]:
+    """Record delivery of *signals* instead of raising while a child starts.
 
     Only a callable handler is swapped out: the default action and an ignored
     signal are left alone, since neither raises past the child's cleanup.
-    Returns the handlers to restore; *deferred* collects the signal numbers.
+    Returns the handlers to restore; *deferred* collects the signal numbers in
+    the order they arrive.
     """
     previous: list[tuple[int, object]] = []
-    for number in _TERMINATION_SIGNALS:
+    for number in signals:
         old = signal.getsignal(number)
         if callable(old):
             previous.append((number, old))
@@ -47,6 +59,16 @@ def _defer_termination(deferred: list[int]) -> list[tuple[int, object]]:
                 number, lambda signum, frame: deferred.append(signum)
             )
     return previous
+
+
+def _replay_deferred(deferred: list[int]) -> None:
+    """Raise the recorded signal's ordinary exception inside the cleanup try."""
+    if not deferred:
+        return
+    number = deferred[0]
+    if number == signal.SIGINT:
+        raise KeyboardInterrupt
+    raise SystemExit(128 + number)
 
 
 def _restore_termination(previous: list[tuple[int, object]]) -> None:
@@ -78,15 +100,18 @@ def run_logged(
     timeout result or the in-flight ``SystemExit``/``KeyboardInterrupt``.
     """
     with log.open("wb") as sink:
-        # Popen returns only after fork/exec, so a termination signal can arrive
-        # while it is still returning, before the cleanup below exists. The
-        # callable handler exit_on_termination installs raises SystemExit at the
-        # next bytecode, which would skip the group kill and leave the command
-        # running after the caller dies. Swap in a handler that records the
-        # signal instead, restore the real handlers once the try is entered, and
-        # raise the recorded signal's SystemExit there, where the cleanup runs.
+        # Popen returns only after fork/exec, so a termination signal or
+        # Ctrl-C can arrive while it is still returning, before the cleanup
+        # below exists. exit_on_termination's SIGHUP/SIGTERM handler raises
+        # SystemExit at the next bytecode and SIGINT's default handler raises
+        # KeyboardInterrupt, so either would skip the group kill and leave the
+        # command running after the caller dies. Swap in handlers that record
+        # the signal instead, restore the real handlers once the try is
+        # entered, and raise the recorded signal's exception there, where the
+        # cleanup runs.
         deferred: list[int] = []
-        previous = _defer_termination(deferred)
+        previous = _defer_signals(_TERMINATION_SIGNALS, deferred)
+        previous_interrupts = _defer_signals(_INTERRUPT_SIGNALS, deferred)
         try:
             process = subprocess.Popen(
                 argv,
@@ -99,13 +124,13 @@ def run_logged(
             )
         except BaseException:
             _restore_termination(previous)
-            if deferred:
-                raise SystemExit(128 + deferred[0]) from None
+            _restore_termination(previous_interrupts)
+            _replay_deferred(deferred)
             raise
         try:
             _restore_termination(previous)
-            if deferred:
-                raise SystemExit(128 + deferred[0])
+            _restore_termination(previous_interrupts)
+            _replay_deferred(deferred)
             return process.wait(timeout=timeout)
         except subprocess.TimeoutExpired:
             return None

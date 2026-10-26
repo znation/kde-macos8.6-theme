@@ -162,6 +162,44 @@ class TestRunLogged(unittest.TestCase):
         self.assertEqual(128 + signal.SIGTERM, caught.exception.code)
         self.assertTrue(is_gone(child["pid"]))
 
+    def test_a_sigint_while_popen_returns_still_kills_the_child(self):
+        # Ctrl-C's default handler raises KeyboardInterrupt at the next
+        # bytecode, so an interrupt that arrives while Popen is still
+        # returning unwinds the caller before run_logged's try/finally is
+        # entered: the group kill is skipped and the command keeps running.
+        # Deliver the signal from inside Popen, at the exact point the real
+        # one returns, so the race is deterministic.
+        real_popen = subprocess.Popen
+        child = {}
+
+        def popen_then_interrupt(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            child["pid"] = process.pid
+            os.kill(os.getpid(), signal.SIGINT)
+            return process
+
+        def kill_child():
+            pid = child.get("pid")
+            if pid is not None:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    pass
+
+        self.addCleanup(kill_child)
+        with mock.patch.object(
+            process_group.subprocess, "Popen", side_effect=popen_then_interrupt
+        ):
+            with self.assertRaises(KeyboardInterrupt):
+                process_group.run_logged(
+                    ["/bin/sleep", "60"],
+                    dict(os.environ),
+                    self.log,
+                    30,
+                    self.root,
+                )
+        self.assertTrue(is_gone(child["pid"]))
+
     def test_a_reap_timeout_does_not_replace_the_signal_that_interrupted_the_wait(self):
         # A SIGTERM or SIGHUP makes exit_on_termination's handler raise
         # SystemExit out of the first wait. If the just-killed child is in

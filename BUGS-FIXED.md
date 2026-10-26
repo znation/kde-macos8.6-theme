@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### A Ctrl-C that arrives while a child starts leaves the command running (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tools/process_group.run_logged` enters the `try`/`finally` that kills the
+command's process group only after `subprocess.Popen` returns. Python's default
+SIGINT handler raises `KeyboardInterrupt` at the next bytecode, so a Ctrl-C
+delivered while `Popen` is still returning unwound the caller before that
+cleanup existed. The command, started in its own session, kept running after
+the caller died — even though `run_logged` promises the whole group is killed
+on the way out. The SIGTERM form of this race was fixed earlier; SIGINT was not
+deferred, so it took the same path.
+
+Reproduce with a patched `Popen` that delivers SIGINT to this process right
+after the real `Popen` returns: `run_logged` raised `KeyboardInterrupt` and
+`/bin/sleep 60` was still alive when polled five seconds later (the new test
+`tests/test_process_group.py::TestRunLogged::test_a_sigint_while_popen_returns_still_kills_the_child`
+failed on the old code). `run_logged` now records SIGINT with SIGTERM and
+SIGHUP while the child starts, restores the handlers once the cleanup `try` is
+entered, and re-raises `KeyboardInterrupt` there, so the group kill and reap
+still run. A deferred termination signal keeps its `SystemExit(128 + signal)`
+form; only the first signal to arrive is replayed.
+
+**Validation gap:** no-fake — Confirming the race deterministically needed a patched `Popen` that signals the caller at the exact point the real one returns, a shim the suite did not have for SIGINT; the new test supplies it.
+
 ### A SIGTERM that arrives while a child starts leaves the command running (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tools/process_group.run_logged` starts each external command with
