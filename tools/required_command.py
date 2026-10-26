@@ -14,6 +14,7 @@ not use this: its failure is a note and must not change the exit status.
 
 from __future__ import annotations
 
+import signal
 from pathlib import Path
 
 if __package__:
@@ -51,6 +52,13 @@ def run_required(
         return report_failure(
             tool, f"{command[0]} timed out after {timeout:g}s", log
         )
+    if status < 0:
+        number = -status
+        try:
+            name = signal.Signals(number).name
+        except ValueError:
+            name = str(number)
+        return report_failure(tool, f"{command[0]} killed by signal {name}", log)
     if status != 0:
         return report_failure(tool, f"{command[0]} exited {status}", log)
     return None

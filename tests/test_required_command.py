@@ -21,6 +21,7 @@ from __future__ import annotations
 import contextlib
 import io
 import os
+import sys
 import unittest
 from unittest import mock
 
@@ -105,6 +106,23 @@ class TestRunRequired(RequiredCommandCase):
         self.assertEqual(2, status)
         self.assertIn("a_tool: error: cannot run slowcmd:", stderr)
         self.assertIn(str(error), stderr)
+        self.assertNotIn("Traceback", stderr)
+
+    def test_signal_death_names_the_signal_and_keeps_the_log_tail(self):
+        status, stderr = self.run_required([
+            sys.executable, "-c",
+            "import os, signal; print('before termination', flush=True); "
+            "os.kill(os.getpid(), signal.SIGTERM)",
+        ])
+        self.assertEqual(1, status)
+        self.assertIn(f"{sys.executable} killed by signal SIGTERM", stderr)
+        self.assertIn("\n  before termination\n", stderr)
+
+    def test_unknown_signal_number_is_reported_without_a_traceback(self):
+        with mock.patch.object(required_command, "run_logged", return_value=-99999):
+            status, stderr = self.run_required()
+        self.assertEqual(1, status)
+        self.assertIn("slowcmd killed by signal 99999", stderr)
         self.assertNotIn("Traceback", stderr)
 
 
