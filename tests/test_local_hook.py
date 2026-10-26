@@ -231,6 +231,99 @@ class TestGitFailures(unittest.TestCase):
             )
 
 
+class TestGitDiscovery(unittest.TestCase):
+    """Pin the Git path discovery ``local_hook_git`` documents.
+
+    One install test replaces ``hooks_dir`` and ``top_level`` with lambdas,
+    and every other real-git case is a plain fresh checkout, so no existing
+    test reaches a configured ``core.hooksPath``, a linked worktree or a
+    relative Git path. Each of those selects where Git actually runs the
+    hook; getting it wrong writes a hook Git never runs.
+    """
+
+    def _git(self, cwd, *args):
+        result = theme_install.run_captured(
+            ["git", *args], cwd=cwd, env=dict(os.environ)
+        )
+        assert_succeeded(self, result)
+        return result.stdout.strip()
+
+    def test_default_hooks_dir_is_the_resolved_dot_git_hook_dir(self):
+        repo = make_repo(self)
+        with _in_directory(repo):
+            hooks = local_hook_git.hooks_dir()
+        self.assertTrue(hooks.is_absolute())
+        self.assertEqual((repo / ".git" / "hooks").resolve(), hooks)
+
+    def test_a_subdirectory_still_names_the_repository_hooks_dir(self):
+        repo = make_repo(self)
+        sub = repo / "sub"
+        sub.mkdir()
+        # Git prints a path relative to the current directory here
+        # (``../.git/hooks``); resolving it from the wrong base would point
+        # outside the repository.
+        with _in_directory(sub):
+            hooks = local_hook_git.hooks_dir()
+        self.assertTrue(hooks.is_absolute())
+        self.assertEqual((repo / ".git" / "hooks").resolve(), hooks)
+
+    def test_a_relative_core_hooks_path_is_honoured(self):
+        repo = make_repo(self)
+        self._git(repo, "config", "core.hooksPath", "team-hooks")
+        sub = repo / "sub"
+        sub.mkdir()
+        with _in_directory(sub):
+            hooks = local_hook_git.hooks_dir()
+        self.assertTrue(hooks.is_absolute())
+        self.assertEqual((repo / "team-hooks").resolve(), hooks)
+
+    def test_an_absolute_core_hooks_path_is_used_as_given(self):
+        repo = make_repo(self)
+        shared = tmp_dir.make_tmp_dir(self) / "shared-hooks"
+        shared.mkdir()
+        self._git(repo, "config", "core.hooksPath", str(shared))
+        with _in_directory(repo):
+            hooks = local_hook_git.hooks_dir()
+        self.assertEqual(shared.resolve(), hooks)
+
+    def test_a_linked_worktree_uses_the_common_hooks_directory(self):
+        repo = make_repo(self)
+        self._git(
+            repo,
+            "-c",
+            "user.email=local-hook@example.invalid",
+            "-c",
+            "user.name=Local Hook",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-q",
+            "--allow-empty",
+            "-m",
+            "base",
+        )
+        linked = repo.with_name(repo.name + "-linked")
+        self.addCleanup(shutil.rmtree, linked, ignore_errors=True)
+        self._git(repo, "worktree", "add", "-q", "--detach", str(linked))
+        with _in_directory(linked):
+            hooks = local_hook_git.hooks_dir()
+            top = local_hook_git.top_level()
+        # A linked worktree's own git directory holds no hooks/ directory;
+        # Git runs the common checkout's hooks, which is where the tool must
+        # write.
+        self.assertEqual((repo / ".git" / "hooks").resolve(), hooks)
+        self.assertEqual(linked.resolve(), top)
+
+    def test_top_level_is_the_work_tree_root_from_a_subdirectory(self):
+        repo = make_repo(self)
+        sub = repo / "sub"
+        sub.mkdir()
+        with _in_directory(sub):
+            top = local_hook_git.top_level()
+        self.assertTrue(top.is_absolute())
+        self.assertEqual(repo.resolve(), top)
+
+
 class TestInstall(unittest.TestCase):
     def test_writes_an_executable_marked_hook(self):
         repo = make_repo(self)
