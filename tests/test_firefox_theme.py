@@ -271,6 +271,14 @@ REQUIRED_RULES = {
     "#unified-extensions-panel .unified-extensions-item-menu-button:hover": {
         "box-shadow": "none !important",
     },
+    "#identity-popup .subviewbutton:not(.panel-header .subviewbutton)": {
+        "border-radius": "0 !important",
+    },
+    "#identity-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
     "menupopup > menuseparator": {
         "padding": "0 !important",
         "margin": "2px 0 !important",
@@ -847,6 +855,130 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
                 )
         self.assertTrue(matches(gear_hover, {**gear, "hover": True}))
 
+    def test_identity_popup_row_paint_is_scoped_to_the_identity_popup(self):
+        radius = (
+            "#identity-popup .subviewbutton"
+            ":not(.panel-header .subviewbutton)"
+        )
+        hover = radius + ":hover:not([disabled])"
+        self.assertEqual(
+            {name for name in self.rules if "identity-popup" in name},
+            {radius, hover},
+        )
+        for selector in (radius, hover):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#identity-popup"))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+                self.assertIn(":not(.panel-header .subviewbutton)", selector)
+        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assertIn(":hover", hover)
+        self.assertIn(":not([disabled])", hover)
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--panel-menuitem-border-radius" in declarations},
+            set(),
+        )
+
+        def element(tag, identifier=None, classes=(), attrs=None,
+                    hover=False, parent=None):
+            return {
+                "tag": tag,
+                "id": identifier,
+                "classes": set(classes),
+                "attrs": dict(attrs or {}),
+                "hover": hover,
+                "parent": parent,
+            }
+
+        panel = element("panel", "identity-popup")
+        multi_view = element(
+            "panelmultiview", "identity-popup-multiView", parent=panel
+        )
+        main_view = element(
+            "panelview", "identity-popup-mainView", ("PanelUI-subView",),
+            parent=multi_view,
+        )
+        header = element(
+            "box", "identity-popup-mainView-panel-header",
+            ("panel-header",), parent=main_view,
+        )
+        header_button = element(
+            "toolbarbutton",
+            classes=(
+                "subviewbutton", "subviewbutton-iconic",
+                "subviewbutton-back",
+            ),
+            parent=header,
+        )
+        body = element(
+            "vbox", classes=("panel-subview-body",), parent=main_view
+        )
+        connection = element(
+            "toolbarbutton", "identity-popup-security-button",
+            (
+                "identity-popup-security-connection", "subviewbutton",
+                "subviewbutton-iconic",
+            ),
+            parent=body,
+        )
+        clear_footer = element(
+            "vbox", "identity-popup-clear-sitedata-footer",
+            ("panel-subview-footer-button",), parent=main_view,
+        )
+        clear_sitedata = element(
+            "toolbarbutton", "identity-popup-clear-sitedata-button",
+            ("subviewbutton",), parent=clear_footer,
+        )
+        security_view = element(
+            "panelview", "identity-popup-securityView", ("PanelUI-subView",),
+            parent=multi_view,
+        )
+        security_body = element(
+            "vbox", classes=("panel-subview-body",), parent=security_view
+        )
+        cert_action = element(
+            "button", "identity-popup-remove-cert-exception",
+            ("panel-button",), parent=security_body,
+        )
+        more_info_footer = element(
+            "vbox", "identity-popup-more-info-footer", parent=security_view
+        )
+        more_info = element(
+            "toolbarbutton", "identity-popup-more-info",
+            ("subviewbutton", "panel-subview-footer-button"),
+            parent=more_info_footer,
+        )
+        nav_bar_button = element(
+            "toolbarbutton", "nav-bar-button", ("toolbarbutton-1",),
+            parent=element("toolbar", "nav-bar"),
+        )
+
+        for name, row in (
+            ("connection", connection),
+            ("clear-sitedata", clear_sitedata),
+            ("more-info", more_info),
+        ):
+            with self.subTest(row=name):
+                self.assertTrue(matches(radius, row))
+                self.assertTrue(matches(hover, {**row, "hover": True}))
+                self.assertFalse(matches(hover, row))
+
+        disabled = {
+            **connection, "attrs": {"disabled": ""}, "hover": True,
+        }
+        self.assertFalse(matches(hover, disabled))
+
+        for name, unthemed in (
+            ("header_back", header_button),
+            ("cert_action", cert_action),
+            ("nav_bar", nav_bar_button),
+        ):
+            with self.subTest(unthemed=name):
+                self.assertFalse(matches(radius, unthemed))
+                self.assertFalse(
+                    matches(hover, {**unthemed, "hover": True})
+                )
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -992,6 +1124,23 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "unified-extensions-item-action-button",
             "unified-extensions-item-menu-button",
             "#unified-extensions-manage-extensions",
+            "--panel-menuitem-border-radius",
+            "--button-background-color-ghost-hover",
+            "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's site-information panel",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "chrome/browser/skin/classic/browser/controlcenter/panel.css",
+            "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
+            "chrome/browser/content/browser/browser.xhtml",
+            "moz-src/browser/components/customizableui/PanelMultiView.sys.mjs",
+            "#identity-popup",
+            "identity-popup-mainView-panel-header",
+            "identity-popup-security-button",
+            "identity-popup-clear-sitedata-button",
+            "identity-popup-more-info",
+            "subviewbutton-back",
             "--panel-menuitem-border-radius",
             "--button-background-color-ghost-hover",
             "platform colour adaptation 2026-10-26",

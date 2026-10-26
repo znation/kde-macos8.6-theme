@@ -211,6 +211,30 @@
    menu button so Firefox's icon-only hover paint shows, leaving the panel
    header, separators and empty state Firefox's; declaration checks do not
    establish rendered pixels.
+
+   No reference shows Firefox's site-information panel; its row highlight
+   adapts the reference-grounded widgets/viewitem.svg and the sheet's
+   menu-item mapping (platform colour adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   Firefox's
+   chrome/browser/skin/classic/browser/controlcenter/panel.css owns the
+   identity panel's layout and consumes the
+   --button-background-color-ghost-hover token;
+   chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css gives
+   .subviewbutton its --panel-menuitem-border-radius and ghost hover, and
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css defines
+   those tokens. chrome/browser/content/browser/browser.xhtml defines the
+   template-identity-popup with #identity-popup, its
+   #identity-popup-multiView, the main view's
+   #identity-popup-mainView-panel-header (.panel-header),
+   #identity-popup-security-button, #identity-popup-clear-sitedata-button and
+   #identity-popup-more-info; moz-src/browser/components/customizableui/PanelMultiView.sys.mjs
+   creates the .panel-header back button carrying subviewbutton-back. The
+   sheet squares and recolours the .subviewbutton rows only, leaving the back
+   button, the .panel-button certificate action, the header, separators and
+   the panel body Firefox's; declaration checks do not establish rendered
+   pixels.
 */
 
 tooltip {
@@ -423,6 +447,21 @@ toolbarbutton:hover:active:not([disabled="true"]) {
 /* The generic toolbar bevel would also paint the gear menu button, so drop it
    there and leave Firefox's icon-only hover paint in place. */
 #unified-extensions-panel .unified-extensions-item-menu-button:hover {
+  box-shadow: none !important;
+}
+
+/* The site-information panel rows adapt the desktop theme's view item:
+   square corners and a flat #CCCCFF hover with black text and no toolbar
+   bevel. The generated back button in the panel header, the .panel-button
+   certificate action, the header, separators and the panel body keep
+   Firefox's own paint. */
+#identity-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#identity-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
   box-shadow: none !important;
 }
 
