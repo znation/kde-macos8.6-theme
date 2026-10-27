@@ -139,6 +139,74 @@ class TestSvgCaseCache(unittest.TestCase):
         self.assertIsNot(first, second)
         self.assertEqual(second.getroot().get("id"), "second")
 
+    def test_a_failed_read_is_not_cached(self):
+        # The cache stores only a successfully parsed tree. A path whose read
+        # is refused (here: past the shared contributor-file cap) must retry
+        # on the next call instead of serving a stale entry, and the first
+        # valid parse after the failure is cached like any other.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "viewitem.svg"
+            # One byte past the shared contributor-file cap, the same shape
+            # the input-limit test uses, so the read fails before the parser
+            # runs.
+            path.write_text(
+                "<svg id='oversize'>" + "x" * (containment_impl._MAX_READ_BYTES)
+                + "</svg>",
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                svg_case.ET, "parse", wraps=svg_case.ET.parse
+            ) as parse:
+                with self.assertRaises(ValueError):
+                    svg_case.parse_svg(path)
+                self.assertEqual(parse.call_count, 0)
+                path.write_text("<svg id='fixed'/>", encoding="utf-8")
+                first = svg_case.parse_svg(path)
+                second = svg_case.parse_svg(path)
+        self.assertIs(first, second)
+        self.assertEqual(parse.call_count, 1)
+
+    def test_a_refused_dtd_parse_is_not_cached(self):
+        # Same promise on the parse arm: the DTD refusal happens before the
+        # parser is involved, and nothing about the failed call is kept, so
+        # reparsing after the file is fixed produces a cached tree.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "viewitem.svg"
+            path.write_text(
+                "<!DOCTYPE svg [<!ENTITY big 'x'>]><svg id='dtd'/>\n",
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                svg_case.ET, "parse", wraps=svg_case.ET.parse
+            ) as parse:
+                with self.assertRaises(ValueError) as caught:
+                    svg_case.parse_svg(path)
+                self.assertEqual(parse.call_count, 0)
+                path.write_text("<svg id='fixed'/>", encoding="utf-8")
+                first = svg_case.parse_svg(path)
+                second = svg_case.parse_svg(path)
+        self.assertIn("DTD or entity", str(caught.exception))
+        self.assertIs(first, second)
+        self.assertEqual(parse.call_count, 1)
+
+    def test_a_file_that_cannot_be_statted_is_never_cached(self):
+        # A fingerprint of None means the file cannot be statted, so the cache
+        # must not key an entry on it: every call reparses, and once the file
+        # can be statted again the next parse caches it normally.
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "viewitem.svg"
+            path.write_text("<svg id='nostat'/>", encoding="utf-8")
+            with mock.patch.object(
+                svg_case, "fingerprint_or_none", return_value=None
+            ), mock.patch.object(
+                svg_case.ET, "parse", wraps=svg_case.ET.parse
+            ) as parse:
+                first = svg_case.parse_svg(path)
+                second = svg_case.parse_svg(path)
+        self.assertIsNot(first, second)
+        self.assertEqual(first.getroot().get("id"), "nostat")
+        self.assertEqual(parse.call_count, 2)
+
     def test_a_cached_path_is_rechecked_before_its_tree_is_reused(self):
         # The containment guard runs before the cache lookup, so swapping a
         # parsed in-repo link for one that escapes the repository cannot serve
