@@ -290,14 +290,11 @@ class TestInstall(FirefoxProfileTestCase):
         )
         _write(self.sheet_path(), previous)
         _write(self.content_sheet_path(), previous_content)
-        real_write = firefox_user_files.write_atomically
-
-        def flaky_write(path, writer):
-            if Path(path) == self.user_js_path():
-                raise OSError("simulated failure")
-            return real_write(path, writer)
-
-        with mock.patch.object(firefox_user_files, "write_atomically", flaky_write):
+        with mock.patch.object(
+            firefox_user_files,
+            "write_atomically",
+            self.fail_write_to(self.user_js_path()),
+        ):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
@@ -477,22 +474,13 @@ class TestInstall(FirefoxProfileTestCase):
         # shipped sheet it published. If that unlink also fails, the error
         # must name both failures and the sheet that could not be removed
         # stays visible instead of the rollback failure being swallowed.
-        real_write = firefox_user_files.write_atomically
-        real_unlink = Path.unlink
-
-        def flaky_write(path, writer):
-            if Path(path) == self.user_js_path():
-                raise OSError("simulated user.js failure")
-            return real_write(path, writer)
-
-        def flaky_unlink(path, *args, **kwargs):
-            if Path(path) == self.sheet_path():
-                raise OSError("simulated restore failure")
-            return real_unlink(path, *args, **kwargs)
-
         with mock.patch.object(
-            firefox_user_files, "write_atomically", flaky_write
-        ), mock.patch.object(Path, "unlink", flaky_unlink):
+            firefox_user_files,
+            "write_atomically",
+            self.fail_write_to(self.user_js_path()),
+        ), mock.patch.object(
+            Path, "unlink", self.fail_unlink_to(self.sheet_path())
+        ):
             result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot write {self.user_js_path()}", result.stderr)
@@ -1067,14 +1055,9 @@ class TestRemove(FirefoxProfileTestCase):
         self.install()
         before_js = _read(self.user_js_path())
         before_content = _read(self.content_sheet_path())
-        real_unlink = Path.unlink
-
-        def flaky_unlink(path, *args, **kwargs):
-            if Path(path) == self.content_sheet_path():
-                raise OSError("simulated failure")
-            return real_unlink(path, *args, **kwargs)
-
-        with mock.patch.object(Path, "unlink", flaky_unlink):
+        with mock.patch.object(
+            Path, "unlink", self.fail_unlink_to(self.content_sheet_path())
+        ):
             result = self.run_tool("--remove", "--profile", str(self.profile))
         self.assertEqual(2, result.returncode)
         self.assertIn(f"cannot remove {self.content_sheet_path()}", result.stderr)

@@ -77,6 +77,22 @@ class FirefoxProfileTestCase(unittest.TestCase):
 
         return flaky_write
 
+    def fail_unlink_to(self, target):
+        """Return a ``Path.unlink`` stand-in that fails on *target*.
+
+        Other paths still unlink really, so a test can pin which of the
+        profile files a failed removal names and what the others hold.
+        The write-failure twin is :meth:`fail_write_to`.
+        """
+        real_unlink = Path.unlink
+
+        def flaky_unlink(path, *args, **kwargs):
+            if Path(path) == target:
+                raise OSError("simulated failure")
+            return real_unlink(path, *args, **kwargs)
+
+        return flaky_unlink
+
     @property
     def firefox_root(self):
         """Return the ``~/.mozilla/firefox`` root under :attr:`home`."""
