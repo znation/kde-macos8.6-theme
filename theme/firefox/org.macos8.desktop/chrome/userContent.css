@@ -175,6 +175,42 @@
    #FFFFFF, #000000, #DDDDDD, #AAAAAA and #CCCCFF appear, every one already
    a member of the pinned palette (test_palette_is_exact); declaration
    checks do not establish rendered pane-button pixels.
+
+   The panes' enabled XUL check boxes follow: preferences.xhtml authors
+   many checkbox elements inside vbox#mainPrefPane's groupboxes, and
+   chrome/toolkit/content/global/elements/checkbox.js appends a real
+   light-DOM image.checkbox-check fragment, so the sheet matches
+   .checkbox-check directly. chrome/toolkit/skin/classic/global/checkbox.css
+   paints the stock box (appearance: auto, -moz-default-appearance:
+   checkbox, and :not([native]) adding -moz-theme: non-native), and
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css sizes
+   the square xul|*.checkbox-check from --checkbox-size, resolving through
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   --size-item-small to 16px, with
+   chrome/browser/skin/classic/browser/preferences/preferences.css owning
+   the panes' checkbox margins (all read 2026-10-27 from the installed
+   Firefox ESR 153.5.1). Every enabled checkbox's .checkbox-check inside
+   #mainPrefPane is the Platinum square box: the #DDDDDD face with a 1px
+   black outline and the inner #FFFFFF top-left / #888888 bottom-right
+   bevel adapt the Kvantum checkbox-normal interior element of
+   theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg (the checked
+   box's checkbox-checked-normal element shares that arrangement, its
+   glyph replaced by the data-URI check below), pinned by
+   tests/test_kvantum_checkbox_reference.py; the checked glyph overlays
+   theme/desktoptheme/org.macos8.desktop/widgets/checkmarks.svg's checkbox
+   path, the 2px black check, pinned by
+   tests/test_desktoptheme_checkmarks.py::TestCheckmarks, inlined as a
+   data-URI SVG whose black is written rgb(0, 0, 0) so the sheet gains no
+   new hex literal and test_palette_is_exact stays exact untouched
+   (platform colour adaptation 2026-10-27). No hover rule: the reference's
+   check box face does not change on hover and the Kvantum art ships no
+   hover state. :not([disabled]) keeps a disabled check box's whole
+   Firefox disabled paint (the push buttons' choice); the shadow-DOM
+   html:moz-checkbox elements, the XUL radio groups and the dialog check
+   boxes (under #dialogTemplate) match neither selector and stay Firefox's;
+   geometry (--checkbox-size), the label anatomy and the
+   checkbox:focus-visible focus outline stay Firefox's. Declaration checks
+   do not establish rendered checkbox pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -302,5 +338,19 @@
     background-color: #CCCCFF !important;
     color: #000000 !important;
     box-shadow: none !important;
+  }
+
+  #mainPrefPane checkbox:not([disabled]) .checkbox-check {
+    appearance: none !important;
+    background-color: #DDDDDD !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888 !important;
+  }
+
+  #mainPrefPane checkbox:not([disabled])[checked] .checkbox-check {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
   }
 }

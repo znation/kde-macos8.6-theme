@@ -11,7 +11,9 @@ from __future__ import annotations
 
 import re
 import unittest
+import xml.etree.ElementTree
 from pathlib import Path
+from urllib.parse import unquote
 
 from support import containment
 from support.css_header import CommentHeaderAssertions
@@ -170,6 +172,34 @@ HEADING = ".subcategory"
 SEARCH = "moz-input-search#searchInput"
 PANE_BUTTON = "#mainPrefPane button:not(.arrowhead):not([disabled])"
 PANE_BUTTON_HOVER = PANE_BUTTON + ":hover"
+CHECKBOX_FACE = "#mainPrefPane checkbox:not([disabled]) .checkbox-check"
+CHECKBOX_GLYPH = "#mainPrefPane checkbox:not([disabled])[checked] .checkbox-check"
+
+# The checkbox glyph, inlined as a data-URI SVG (single quotes inside the
+# quoted url(), %3C/%3E for the angle brackets, space-separated path
+# coordinates, and rgb(0, 0, 0) for the black so the sheet gains no new hex
+# literal). The URI is byte-pinned by test_checked_glyph_uri_pins_the_checkmarks_glyph.
+CHECKBOX_GLYPH_URI = (
+    'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' '
+    "width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 "
+    "L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' "
+    "stroke-width='2' stroke-linecap='square' "
+    "stroke-linejoin='miter'/%3E%3C/svg%3E\") !important"
+)
+
+CHECKBOX_FACE_RULE = {
+    "appearance": "none !important",
+    "background-color": f"{FACE} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK} !important",
+}
+
+CHECKBOX_GLYPH_RULE = {
+    "background-image": CHECKBOX_GLYPH_URI,
+    "background-repeat": "no-repeat !important",
+    "background-position": "center !important",
+}
 
 REQUIRED_PREFERENCES_RULES = {
     NAV: {
@@ -223,6 +253,8 @@ REQUIRED_PREFERENCES_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    CHECKBOX_FACE: CHECKBOX_FACE_RULE,
+    CHECKBOX_GLYPH: CHECKBOX_GLYPH_RULE,
 }
 
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
@@ -531,6 +563,90 @@ class TestFirefoxPreferencesPushButtonsTheme(SheetCase):
                 "widgets/viewitem.svg",
                 "platform colour adaptation 2026-10-27",
                 "2026-10-27",
+            )
+        )
+
+
+class TestFirefoxPreferencesCheckboxTheme(SheetCase):
+    AT_RULE_URL = "about:preferences"
+
+    def test_checkbox_rules_are_the_sheet_recipe(self):
+        """Both checkbox rules equal the pinned face and glyph recipes."""
+        self.assertEqual(self.rules[CHECKBOX_FACE], CHECKBOX_FACE_RULE)
+        self.assertEqual(self.rules[CHECKBOX_FACE], REQUIRED_PREFERENCES_RULES[CHECKBOX_FACE])
+        self.assertEqual(self.rules[CHECKBOX_GLYPH], CHECKBOX_GLYPH_RULE)
+        self.assertEqual(
+            self.rules[CHECKBOX_GLYPH], REQUIRED_PREFERENCES_RULES[CHECKBOX_GLYPH]
+        )
+
+    def test_checkbox_rules_scope_to_the_pane(self):
+        for selector in (CHECKBOX_FACE, CHECKBOX_GLYPH):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#mainPrefPane checkbox"))
+                self.assertIn(":not([disabled])", selector)
+        self.assertNotIn("[checked]", CHECKBOX_FACE)
+        self.assertIn("[checked]", CHECKBOX_GLYPH)
+        for token in ("moz-checkbox", "radio", "#dialogTemplate"):
+            with self.subTest(token=token):
+                self.assertNotIn(token, CHECKBOX_FACE)
+                self.assertNotIn(token, CHECKBOX_GLYPH)
+
+    def test_checkbox_rules_use_the_pinned_palette(self):
+        for selector in (CHECKBOX_FACE, CHECKBOX_GLYPH):
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertTrue(declarations)
+            for name, value in declarations.items():
+                with self.subTest(property=name):
+                    if name in ("background-color", "border", "box-shadow"):
+                        self.assertIn("!important", value)
+                    for token in HEX.findall(value):
+                        self.assertIn(token, {WHITE, BLACK, FACE, ETCH_DARK})
+
+    def test_checked_glyph_uri_pins_the_checkmarks_glyph(self):
+        """Decoding the data URI yields the shipped checkmarks.svg glyph."""
+        value = self.rules[CHECKBOX_GLYPH]["background-image"]
+        match = re.search(r'url\("([^"]+)"\)', value)
+        self.assertIsNotNone(match)
+        payload = match.group(1)
+        prefix = "data:image/svg+xml,"
+        self.assertTrue(payload.startswith(prefix))
+        svg = unquote(payload[len(prefix):])
+        root = xml.etree.ElementTree.fromstring(svg)
+        self.assertEqual(root.get("width"), "16")
+        self.assertEqual(root.get("height"), "16")
+        paths = list(root)
+        self.assertEqual(len(paths), 1)
+        self.assertEqual(
+            paths[0].get("d"),
+            "M 3.5 8.5 L 6.5 11.5 L 12.5 5.5",
+        )
+        self.assertEqual(paths[0].get("fill"), "none")
+        self.assertEqual(paths[0].get("stroke"), "rgb(0, 0, 0)")
+        self.assertEqual(paths[0].get("stroke-width"), "2")
+        self.assertEqual(paths[0].get("stroke-linecap"), "square")
+        self.assertEqual(paths[0].get("stroke-linejoin"), "miter")
+        self.assertNotIn("#", svg)
+
+    def test_header_names_checkbox_provenance(self):
+        self.assert_header_names(
+            (
+                "checkbox.css",
+                "checkbox.js",
+                "common-shared.css",
+                "--checkbox-size",
+                "tokens-shared.css",
+                "preferences.css",
+                "checkbox-normal",
+                "checkbox-checked-normal",
+                "org.macos8.desktop.svg",
+                "widgets/checkmarks.svg",
+                "tests/test_desktoptheme_checkmarks.py::TestCheckmarks",
+                "rgb(0, 0, 0)",
+                ":not([disabled])",
+                "moz-checkbox",
+                "radio",
+                "platform colour adaptation 2026-10-27",
             )
         )
 
