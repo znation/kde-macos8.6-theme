@@ -20,6 +20,8 @@ from tools import firefox_profile, firefox_user_files, install_firefox
 
 
 class FirefoxProfileTestCase(unittest.TestCase):
+    """Create the temp HOME and profile shared by the installer suites."""
+
     def setUp(self):
         self.root = make_tmp_dir(self)
         self.home = self.root / "home"
@@ -28,23 +30,28 @@ class FirefoxProfileTestCase(unittest.TestCase):
         self.profile.mkdir()
 
     def resolve(self, explicit=None, env=None):
+        """Resolve *explicit* against *env*, defaulting to :attr:`home`."""
         if env is None:
             env = {"HOME": str(self.home)}
         return firefox_profile.resolve_profile(explicit, env)
 
     def run_tool(self, *args, env=None):
+        """Run the installer with *args* under *env*; return the captured process."""
         if env is None:
             env = {"HOME": str(self.home)}
         with mock.patch.dict(os.environ, env, clear=True):
             return run_main(install_firefox.main, install_firefox.TOOL, args)
 
     def sheet_path(self):
+        """Return the ``userChrome.css`` path inside :attr:`profile`."""
         return self.profile / "chrome" / "userChrome.css"
 
     def content_sheet_path(self):
+        """Return the ``userContent.css`` path inside :attr:`profile`."""
         return self.profile / "chrome" / "userContent.css"
 
     def user_js_path(self):
+        """Return the ``user.js`` path inside :attr:`profile`."""
         return self.profile / "user.js"
 
     def create_symlink(self, link, target, *, target_is_directory=False):
@@ -72,4 +79,5 @@ class FirefoxProfileTestCase(unittest.TestCase):
 
     @property
     def firefox_root(self):
+        """Return the ``~/.mozilla/firefox`` root under :attr:`home`."""
         return self.home / ".mozilla" / "firefox"

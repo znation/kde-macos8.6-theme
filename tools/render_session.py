@@ -124,13 +124,20 @@ class SessionCommand:
 
 
 def session_script() -> str:
-    # Positional parameters carry the applet, settle time and output path, so
-    # none of them is ever parsed as shell syntax. `plasmawindowed` runs in the
-    # background, so its exit status would otherwise be lost: if it cannot
-    # start or crashes during the settle wait, `spectacle` still captures the
-    # empty session and reports success, publishing a render of no window. The
-    # liveness check therefore runs before the capture and fails the session
-    # with a log line naming the applet instead.
+    """Return the ``sh -c`` script that opens the applet, settles and captures.
+
+    The positional parameters are the applet id, the settle seconds and the
+    output path, so ``sh`` receives them after the script and never parses
+    them as shell syntax. The script fails the session if the backgrounded
+    applet is no longer running after the settle; without that check
+    ``spectacle`` would still publish a capture of an empty session.
+    """
+    # `plasmawindowed` runs in the background, so its exit status would
+    # otherwise be lost: if it cannot start or crashes during the settle wait,
+    # `spectacle` still captures the empty session and reports success,
+    # publishing a render of no window. The liveness check therefore runs
+    # before the capture and fails the session with a log line naming
+    # `plasmawindowed` instead.
     return (
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
         'plasmawindowed "$1" & applet=$!; '
