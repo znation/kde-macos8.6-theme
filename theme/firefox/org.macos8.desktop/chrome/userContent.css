@@ -118,7 +118,31 @@
    over the band's own padding, no geometry changed; the panes' controls
    stay Firefox's for a later part; declaration checks do not establish
    rendered pane pixels; declaration checks do not establish rendered
-   separator pixels.
+   separator pixels. The panes' search field follows: preferences.xhtml
+   builds it as html:moz-input-search#searchInput (in the installed Firefox
+   ESR 153.5.1, chrome/browser/content/browser/preferences/preferences.xhtml
+   line ~237), a shadow-DOM custom element whose inner #input is styled by
+   chrome/toolkit/content/global/elements/moz-input-text.css exclusively
+   through tokens — border: var(--input-text-border),
+   border-radius: var(--input-text-border-radius),
+   background-color: var(--input-text-background-color),
+   color: var(--input-text-color) — with the magnifier icon filled by
+   var(--icon-color) through -moz-context-properties and no ::part()
+   exposed; token defaults come from
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   (all three read 2026-10-27). The field adapts this theme's white-face
+   1px-black-outline line edit only through #FFFFFF and #000000
+   (widgets/lineedit.svg, platform colour adaptation 2026-10-27): the five
+   tokens --input-text-border, --input-text-border-radius,
+   --input-text-background-color, --input-text-color and --icon-color are
+   overridden on the host element, the token route reusing part 1's
+   headless verification that outer-sheet custom properties override the
+   shadow :host defaults; moz-input-text.css reads no shadow token, so the
+   line edit's sunken bevel (inset 1px 1px #999999, this sheet's own
+   FIELD_RULE recipe) is not delivered and the field ships as the outline,
+   face, text and icon only, with geometry, the disabled state and any
+   focus indicator Firefox's; declaration checks do not establish rendered
+   field pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -224,5 +248,13 @@
     border-top-color: #888888 !important;
     box-shadow: inset 0 1px 0 #FFFFFF !important;
     color: #000000 !important;
+  }
+
+  moz-input-search#searchInput {
+    --input-text-border: 1px solid #000000 !important;
+    --input-text-border-radius: 0 !important;
+    --input-text-background-color: #FFFFFF !important;
+    --input-text-color: #000000 !important;
+    --icon-color: #000000 !important;
   }
 }

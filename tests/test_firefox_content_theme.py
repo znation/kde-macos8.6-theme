@@ -167,7 +167,9 @@ SEPARATOR = "#nav-separator"
 ROOT = ":root"
 HEADING = ".subcategory"
 
-REQUIRED_PREFERENCES_NAV_RULES = {
+SEARCH = "moz-input-search#searchInput"
+
+REQUIRED_PREFERENCES_RULES = {
     NAV: {
         "--page-nav-button-background-color": "transparent !important",
         "--page-nav-button-background-color-hover": f"{SELECTION} !important",
@@ -197,6 +199,13 @@ REQUIRED_PREFERENCES_NAV_RULES = {
         "border-top-color": f"{ETCH_DARK} !important",
         "box-shadow": f"inset 0 1px 0 {WHITE} !important",
         "color": f"{BLACK} !important",
+    },
+    SEARCH: {
+        "--input-text-border": f"1px solid {BLACK} !important",
+        "--input-text-border-radius": "0 !important",
+        "--input-text-background-color": f"{WHITE} !important",
+        "--input-text-color": f"{BLACK} !important",
+        "--icon-color": f"{BLACK} !important",
     },
 }
 
@@ -326,13 +335,13 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
     HEADING = ".subcategory"
 
     def test_required_rules(self):
-        for selector, expected in REQUIRED_PREFERENCES_NAV_RULES.items():
+        for selector, expected in REQUIRED_PREFERENCES_RULES.items():
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], expected)
 
     def test_parsed_rules_are_exactly_the_nav_rules(self):
-        self.assertEqual(set(self.rules), set(REQUIRED_PREFERENCES_NAV_RULES))
-        self.assertEqual(self.selectors, list(REQUIRED_PREFERENCES_NAV_RULES))
+        self.assertEqual(set(self.rules), set(REQUIRED_PREFERENCES_RULES))
+        self.assertEqual(self.selectors, list(REQUIRED_PREFERENCES_RULES))
 
     def test_nav_rule_sets_only_custom_properties(self):
         declarations = self.rules[NAV]
@@ -354,7 +363,7 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
     def test_nav_separator_rule_is_the_etched_pair(self):
         self.assertEqual(
             self.rules[SEPARATOR],
-            REQUIRED_PREFERENCES_NAV_RULES[SEPARATOR],
+            REQUIRED_PREFERENCES_RULES[SEPARATOR],
         )
         for name, value in self.rules[SEPARATOR].items():
             with self.subTest(property=name):
@@ -362,7 +371,7 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
                     self.assertIn(token, {ETCH_DARK, WHITE})
 
     def test_root_rule_is_the_white_page(self):
-        self.assertEqual(self.rules[ROOT], REQUIRED_PREFERENCES_NAV_RULES[ROOT])
+        self.assertEqual(self.rules[ROOT], REQUIRED_PREFERENCES_RULES[ROOT])
         self.assertEqual(
             self.rules[ROOT]["background-color"],
             REQUIRED_RULES[LIST]["background-color"],
@@ -375,7 +384,7 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
     def test_heading_band_is_the_etched_rule_with_black_text(self):
         self.assertEqual(
             self.rules[HEADING],
-            REQUIRED_PREFERENCES_NAV_RULES[HEADING],
+            REQUIRED_PREFERENCES_RULES[HEADING],
         )
         for name, value in self.rules[HEADING].items():
             with self.subTest(property=name):
@@ -409,6 +418,47 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
                 "preferences.css",
                 "test_window_view_background",
                 "#mainPrefPane",
+            )
+        )
+
+
+class TestFirefoxPreferencesSearchTheme(SheetCase):
+    AT_RULE_URL = "about:preferences"
+
+    def test_search_field_rule_sets_only_custom_properties(self):
+        declarations = self.rules[SEARCH]
+        self.assertTrue(declarations)
+        for name in declarations:
+            with self.subTest(property=name):
+                self.assertTrue(
+                    name.startswith("--input-text-") or name == "--icon-color"
+                )
+
+    def test_search_field_is_the_line_edit(self):
+        self.assertEqual(self.rules[SEARCH], REQUIRED_PREFERENCES_RULES[SEARCH])
+        for name, value in self.rules[SEARCH].items():
+            with self.subTest(property=name):
+                for token in HEX.findall(value):
+                    self.assertIn(token, {WHITE, BLACK})
+
+    def test_search_field_selector_avoids_page_chrome(self):
+        for token in FORBIDDEN_PAGE_CHROME:
+            self.assertNotIn(token, SEARCH)
+        self.assertIn("moz-input-search", SEARCH)
+        self.assertIn("#searchInput", SEARCH)
+
+    def test_header_names_search_provenance(self):
+        self.assert_header_names(
+            (
+                "html:moz-input-search#searchInput",
+                "preferences.xhtml",
+                "moz-input-text.css",
+                "tokens-shared.css",
+                "--icon-color",
+                "::part",
+                "sunken bevel",
+                "2026-10-27",
+                "platform colour adaptation 2026-10-27",
             )
         )
 
