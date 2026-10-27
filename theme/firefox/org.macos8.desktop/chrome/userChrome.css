@@ -106,6 +106,21 @@
    selection are suppressed on these panel rows only; declaration checks do
    not establish rendered pixels.
 
+   No reference shows Firefox's downloads panel buttons; the #DDDDDD and
+   #CCCCFF faces, black outline and white/#AAAAAA bevel adapt the
+   reference-grounded widgets/button.svg and widgets/viewitem.svg, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, and by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors::test_selection_background
+   (platform colour adaptation 2026-10-26). Firefox's
+   chrome/browser/content/browser/browser.xhtml defines
+   #downloadsHistory.downloadsPanelFooterButton and the subview .footer-button
+   elements, moz-src/browser/components/downloads/DownloadsViewUI.sys.mjs
+   builds the row .downloadButton, and downloads.inc.css, panelUI-shared.css
+   and global-shared.css own the stock paint; disabled buttons keep Firefox's paint,
+   and declaration checks do not establish rendered pixels.
+
    No reference shows Firefox's bookmark editor; its four text fields
    (#editBMPanel_namePicker, #editBMPanel_locationField, #editBMPanel_tagsField
    and #editBMPanel_keywordField) adapt the reference-grounded
@@ -531,6 +546,26 @@ tooltip {
 #downloadsPanel #downloadsListBox > richlistitem[selected] {
   background-color: #CCCCFF !important;
   color: #000000 !important;
+}
+
+/* The downloads panel's footer, subview and per-row action buttons adapt the
+   desktop theme's push button; disabled ones keep Firefox's paint. */
+#downloadsPanel .downloadsPanelFooterButton:not([disabled]),
+#downloadsPanel .downloadButton:not([disabled]),
+#downloadsPanel .footer-button:not([disabled]) {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#downloadsPanel .downloadsPanelFooterButton:not([disabled]):hover,
+#downloadsPanel .downloadButton:not([disabled]):hover,
+#downloadsPanel .footer-button:not([disabled]):hover {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
 }
 
 panel[type="arrow"] {

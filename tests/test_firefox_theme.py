@@ -119,6 +119,42 @@ REQUIRED_RULES = {
         "background-color": f"{SELECTION} !important",
         "color": f"{BLACK} !important",
     },
+    "#downloadsPanel .downloadsPanelFooterButton:not([disabled])": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"{BUTTON_BEVEL} !important",
+    },
+    "#downloadsPanel .downloadButton:not([disabled])": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"{BUTTON_BEVEL} !important",
+    },
+    "#downloadsPanel .footer-button:not([disabled])": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"{BUTTON_BEVEL} !important",
+    },
+    "#downloadsPanel .downloadsPanelFooterButton:not([disabled]):hover": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    "#downloadsPanel .downloadButton:not([disabled]):hover": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    "#downloadsPanel .footer-button:not([disabled]):hover": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
     ".tab-background": {
         "background-color": f"{FACE} !important",
         "border": f"1px solid {BLACK} !important",
@@ -622,6 +658,152 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             self.selectors.index(hover),
             self.selectors.index(selected),
         )
+
+    def test_downloads_panel_button_paint_is_scoped_to_the_panel(self):
+        normal = (
+            "#downloadsPanel .downloadsPanelFooterButton:not([disabled])",
+            "#downloadsPanel .downloadButton:not([disabled])",
+            "#downloadsPanel .footer-button:not([disabled])",
+        )
+        hover = tuple(selector + ":hover" for selector in normal)
+        selectors = normal + hover
+        self.assertEqual(
+            {name for name in self.rules
+             if name.startswith("#downloadsPanel ")
+             and ("downloadButton" in name
+                  or "downloadsPanelFooterButton" in name
+                  or "footer-button" in name)},
+            set(selectors),
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#downloadsPanel "))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        for selector in normal:
+            self.assertNotIn(":hover", selector)
+            self.assertIn(":not([disabled])", selector)
+        for selector in hover:
+            self.assertIn(":not([disabled]):hover", selector)
+
+        panel = element(
+            "panel", "downloadsPanel", attrs={"type": "arrow"}
+        )
+        main_view = element(
+            "panelview", "downloadsPanel-mainView", parent=panel
+        )
+        listbox = element(
+            "richlistbox", "downloadsListBox", parent=main_view
+        )
+        row = element("richlistitem", parent=listbox)
+        main_area = element(
+            "hbox", classes=("downloadMainArea",), parent=row
+        )
+        download_button = element(
+            "button", classes=("downloadButton",), parent=row
+        )
+        footer = element("vbox", "downloadsFooter", parent=panel)
+        history = element(
+            "button", "downloadsHistory",
+            ("downloadsPanelFooterButton", "subviewbutton",
+             "panel-subview-footer-button", "toolbarbutton-1"),
+            parent=footer,
+        )
+        blocked = element(
+            "panelview", "downloadsPanel-blockedSubview", parent=panel
+        )
+        blocked_buttons = element(
+            "moz-button-group", "downloadsPanel-blockedSubview-buttons",
+            ("panel-footer",), parent=blocked,
+        )
+        unblock = element(
+            "button", "downloadsPanel-blockedSubview-unblockButton",
+            ("footer-button",), parent=blocked_buttons,
+        )
+        delete = element(
+            "button", "downloadsPanel-blockedSubview-deleteButton",
+            ("footer-button",), attrs={"default": ""},
+            parent=blocked_buttons,
+        )
+        private = element(
+            "panelview", "downloadsPanel-privateBrowsing", parent=panel
+        )
+        secondary = element(
+            "button", classes=("footer-button", "secondary"), parent=private
+        )
+        primary = element(
+            "button", classes=("footer-button", "primary"), parent=private
+        )
+
+        for name, control, normal_selector, hover_selector in (
+            ("downloads_history", history, normal[0], hover[0]),
+            ("download_button", download_button, normal[1], hover[1]),
+            ("blocked_unblock", unblock, normal[2], hover[2]),
+            ("blocked_delete", delete, normal[2], hover[2]),
+            ("private_secondary", secondary, normal[2], hover[2]),
+            ("private_primary", primary, normal[2], hover[2]),
+        ):
+            with self.subTest(control=name):
+                self.assertTrue(matches(normal_selector, control))
+                self.assertTrue(
+                    matches(normal_selector, {**control, "hover": True})
+                )
+                self.assertTrue(
+                    matches(hover_selector, {**control, "hover": True})
+                )
+                self.assertFalse(matches(hover_selector, control))
+                disabled = {
+                    **control,
+                    "attrs": {**control["attrs"], "disabled": ""},
+                    "hover": True,
+                }
+                self.assertFalse(matches(normal_selector, disabled))
+                self.assertFalse(matches(hover_selector, disabled))
+
+        summary = element("label", "downloadsSummary", parent=footer)
+        progress = element(
+            "progress", "downloadsSummaryProgress", parent=footer
+        )
+        blocked_title = element(
+            "span", "downloadsPanel-blockedSubview-title", parent=blocked
+        )
+        header = element(
+            "box", "downloadsPanelHeader", ("panel-header",), parent=panel
+        )
+        for name, control in (
+            ("summary", summary),
+            ("progress", progress),
+            ("main_area", main_area),
+            ("blocked_title", blocked_title),
+            ("header", header),
+        ):
+            with self.subTest(unthemed=name):
+                for selector in selectors:
+                    self.assertFalse(matches(selector, control))
+                    self.assertFalse(
+                        matches(selector, {**control, "hover": True})
+                    )
+
+        external_listbox = element("richlistbox", "downloadsListBox")
+        external_row = element("richlistitem", parent=external_listbox)
+        external_button = element(
+            "button", classes=("downloadButton",), parent=external_row
+        )
+        for selector in selectors:
+            self.assertFalse(matches(selector, external_button))
+            self.assertFalse(
+                matches(selector, {**external_button, "hover": True})
+            )
+
+        bookmark_panel = element("panel", "editBookmarkPanel")
+        bookmark_done = element(
+            "button", "editBookmarkPanelDoneButton", ("footer-button",),
+            parent=bookmark_panel,
+        )
+        for selector in selectors:
+            self.assertFalse(matches(selector, bookmark_done))
+            self.assertFalse(
+                matches(selector, {**bookmark_done, "hover": True})
+            )
 
     def test_all_tabs_row_paint_is_scoped_to_the_all_tabs_view(self):
         row = "#allTabsMenu-allTabsView .all-tabs-item"
@@ -1673,6 +1855,21 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "richlistitem[selected=\"true\"]",
             "platform colour adaptation 2026-10-26",
             "the sidebar's inner document is not userChrome territory",
+            "No reference shows Firefox's downloads panel buttons",
+            "widgets/button.svg",
+            "tests/test_desktoptheme_button.py::TestButton",
+            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "downloadsPanelFooterButton",
+            "downloadButton",
+            "footer-button",
+            "DownloadsViewUI.sys.mjs",
+            "panelUI-shared.css",
+            "global-shared.css",
+            "disabled buttons keep Firefox's paint",
+            "platform colour adaptation 2026-10-26",
             "No reference shows Firefox's all-tabs panel",
             "widgets/listitem.svg",
             "tests/test_desktoptheme_listitem.py::TestListItem",
