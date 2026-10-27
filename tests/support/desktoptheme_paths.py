@@ -28,6 +28,7 @@ LISTITEM_SVG = os.path.join(PACKAGE, "widgets", "listitem.svg")
 VIEWITEM_SVG = os.path.join(PACKAGE, "widgets", "viewitem.svg")
 MENUBARITEM_SVG = os.path.join(PACKAGE, "widgets", "menubaritem.svg")
 PAGER_SVG = os.path.join(PACKAGE, "widgets", "pager.svg")
+TIMER_SVG = os.path.join(PACKAGE, "widgets", "timer.svg")
 NOTES_SVG = os.path.join(PACKAGE, "widgets", "notes.svg")
 TASKS_SVG = os.path.join(PACKAGE, "widgets", "tasks.svg")
 MARGINS_HIGHLIGHT_SVG = os.path.join(

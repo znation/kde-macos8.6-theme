@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Timer plasmoid LCD digits for the Mac OS 8.6 "Platinum" theme.
+
+     Consumer: org.kde.plasma.timer, whose TimerEdit.qml draws every
+     edit digit as a KSvg.SvgItem with imagePath "widgets/timer" and
+     elementId num + digitSuffix or "separator" + digitSuffix, where
+     digitSuffix is empty normally and "_1" in alert mode (a running
+     countdown with under a minute left). That suffix split makes the
+     twenty-two KDE-required ids below: the ten digits 0 to 9, their
+     ten "_1" alert variants, and separator, separator_1. The default
+     theme's extra separatorB and separatorC ids are legacy this
+     plasmoid never requests, so they are not shipped.
+
+     Provenance: no reference screenshot shows a KDE timer (nor Mac OS
+     8.6's countdown equivalent), so this artwork is a
+     platform-required adaptation. The seven-segment geometry is this
+     theme's own choice: each digit is a stroke-only path in a 16x32
+     cell with a 2px square-capped stroke, drawn per the flat
+     black-glyph recipe of widgets/checkmarks.svg. The two colours
+     reuse the colour scheme's semantic tokens: the normal digits
+     stroke #000000 from [Colors:Tooltip] ForegroundNormal=0,0,0 and
+     the alert digits stroke #CC0000 from ForegroundNegative=204,0,0
+     (theme/color-schemes/MacOS8.colors).
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="168" height="64" viewBox="0 0 168 64">
+  <!-- Digit 0, normal state: 16x32 cell at (0, 0). -->
+  <g id="0">
+    <rect x="0" y="0" width="16" height="32" fill="none"/>
+    <path d="M 3,5 L 13,5 M 13,5 L 13,15 M 13,17 L 13,27 M 3,27 L 13,27 M 3,17 L 3,27 M 3,5 L 3,15" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 1, normal state: 16x32 cell at (16, 0). -->
+  <g id="1">
+    <rect x="16" y="0" width="16" height="32" fill="none"/>
+    <path d="M 29,5 L 29,15 M 29,17 L 29,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 2, normal state: 16x32 cell at (32, 0). -->
+  <g id="2">
+    <rect x="32" y="0" width="16" height="32" fill="none"/>
+    <path d="M 35,5 L 45,5 M 45,5 L 45,15 M 35,16 L 45,16 M 35,17 L 35,27 M 35,27 L 45,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 3, normal state: 16x32 cell at (48, 0). -->
+  <g id="3">
+    <rect x="48" y="0" width="16" height="32" fill="none"/>
+    <path d="M 51,5 L 61,5 M 61,5 L 61,15 M 51,16 L 61,16 M 61,17 L 61,27 M 51,27 L 61,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 4, normal state: 16x32 cell at (64, 0). -->
+  <g id="4">
+    <rect x="64" y="0" width="16" height="32" fill="none"/>
+    <path d="M 67,5 L 67,15 M 67,16 L 77,16 M 77,5 L 77,15 M 77,17 L 77,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 5, normal state: 16x32 cell at (80, 0). -->
+  <g id="5">
+    <rect x="80" y="0" width="16" height="32" fill="none"/>
+    <path d="M 83,5 L 93,5 M 83,5 L 83,15 M 83,16 L 93,16 M 93,17 L 93,27 M 83,27 L 93,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 6, normal state: 16x32 cell at (96, 0). -->
+  <g id="6">
+    <rect x="96" y="0" width="16" height="32" fill="none"/>
+    <path d="M 99,5 L 109,5 M 99,5 L 99,15 M 99,16 L 109,16 M 99,17 L 99,27 M 99,27 L 109,27 M 109,17 L 109,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 7, normal state: 16x32 cell at (112, 0). -->
+  <g id="7">
+    <rect x="112" y="0" width="16" height="32" fill="none"/>
+    <path d="M 115,5 L 125,5 M 125,5 L 125,15 M 125,17 L 125,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 8, normal state: 16x32 cell at (128, 0). -->
+  <g id="8">
+    <rect x="128" y="0" width="16" height="32" fill="none"/>
+    <path d="M 131,5 L 141,5 M 141,5 L 141,15 M 141,17 L 141,27 M 131,27 L 141,27 M 131,17 L 131,27 M 131,5 L 131,15 M 131,16 L 141,16" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 9, normal state: 16x32 cell at (144, 0). -->
+  <g id="9">
+    <rect x="144" y="0" width="16" height="32" fill="none"/>
+    <path d="M 147,5 L 157,5 M 157,5 L 157,15 M 147,5 L 147,15 M 147,16 L 157,16 M 157,17 L 157,27 M 147,27 L 157,27" fill="none" stroke="#000000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <g id="0_1">
+    <rect x="0" y="32" width="16" height="32" fill="none"/>
+    <path d="M 3,37 L 13,37 M 13,37 L 13,47 M 13,49 L 13,59 M 3,59 L 13,59 M 3,49 L 3,59 M 3,37 L 3,47" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 1, alert state (the "_1" suffix): 16x32 cell at (16, 32). -->
+  <g id="1_1">
+    <rect x="16" y="32" width="16" height="32" fill="none"/>
+    <path d="M 29,37 L 29,47 M 29,49 L 29,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 2, alert state (the "_1" suffix): 16x32 cell at (32, 32). -->
+  <g id="2_1">
+    <rect x="32" y="32" width="16" height="32" fill="none"/>
+    <path d="M 35,37 L 45,37 M 45,37 L 45,47 M 35,48 L 45,48 M 35,49 L 35,59 M 35,59 L 45,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 3, alert state (the "_1" suffix): 16x32 cell at (48, 32). -->
+  <g id="3_1">
+    <rect x="48" y="32" width="16" height="32" fill="none"/>
+    <path d="M 51,37 L 61,37 M 61,37 L 61,47 M 51,48 L 61,48 M 61,49 L 61,59 M 51,59 L 61,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 4, alert state (the "_1" suffix): 16x32 cell at (64, 32). -->
+  <g id="4_1">
+    <rect x="64" y="32" width="16" height="32" fill="none"/>
+    <path d="M 67,37 L 67,47 M 67,48 L 77,48 M 77,37 L 77,47 M 77,49 L 77,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 5, alert state (the "_1" suffix): 16x32 cell at (80, 32). -->
+  <g id="5_1">
+    <rect x="80" y="32" width="16" height="32" fill="none"/>
+    <path d="M 83,37 L 93,37 M 83,37 L 83,47 M 83,48 L 93,48 M 93,49 L 93,59 M 83,59 L 93,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 6, alert state (the "_1" suffix): 16x32 cell at (96, 32). -->
+  <g id="6_1">
+    <rect x="96" y="32" width="16" height="32" fill="none"/>
+    <path d="M 99,37 L 109,37 M 99,37 L 99,47 M 99,48 L 109,48 M 99,49 L 99,59 M 99,59 L 109,59 M 109,49 L 109,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 7, alert state (the "_1" suffix): 16x32 cell at (112, 32). -->
+  <g id="7_1">
+    <rect x="112" y="32" width="16" height="32" fill="none"/>
+    <path d="M 115,37 L 125,37 M 125,37 L 125,47 M 125,49 L 125,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 8, alert state (the "_1" suffix): 16x32 cell at (128, 32). -->
+  <g id="8_1">
+    <rect x="128" y="32" width="16" height="32" fill="none"/>
+    <path d="M 131,37 L 141,37 M 141,37 L 141,47 M 141,49 L 141,59 M 131,59 L 141,59 M 131,49 L 131,59 M 131,37 L 131,47 M 131,48 L 141,48" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Digit 9, alert state (the "_1" suffix): 16x32 cell at (144, 32). -->
+  <g id="9_1">
+    <rect x="144" y="32" width="16" height="32" fill="none"/>
+    <path d="M 147,37 L 157,37 M 157,37 L 157,47 M 147,37 L 147,47 M 147,48 L 157,48 M 157,49 L 157,59 M 147,59 L 157,59" fill="none" stroke="#CC0000"
+          stroke-width="2" stroke-linecap="square"/>
+  </g>
+  <!-- Colon separator, normal state: 8x32 cell at (160, 0). -->
+  <g id="separator">
+    <rect x="160" y="0" width="8" height="32" fill="none"/>
+    <circle cx="164" cy="10" r="1.5" fill="#000000"/>
+    <circle cx="164" cy="22" r="1.5" fill="#000000"/>
+  </g>
+  <!-- Digit 0, alert state (the "_1" suffix): 16x32 cell at (0, 32). -->
+  <!-- Colon separator, alert state: 8x32 cell at (160, 32). -->
+  <g id="separator_1">
+    <rect x="160" y="32" width="8" height="32" fill="none"/>
+    <circle cx="164" cy="42" r="1.5" fill="#CC0000"/>
+    <circle cx="164" cy="54" r="1.5" fill="#CC0000"/>
+  </g>
+</svg>
