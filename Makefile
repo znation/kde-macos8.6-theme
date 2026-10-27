@@ -39,9 +39,11 @@ require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(fil
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 
-# DESTDIR, XDG_DATA_HOME and HOME reach recipe shells pasted into double-quoted
-# recipe words (`install -d "$(DATA_HOME)"`, the staging paths, the lock
-# path). Inside double quotes exactly four characters are shell syntax: a
+# DESTDIR, XDG_DATA_HOME, HOME and FIREFOX_PROFILE reach recipe shells pasted
+# into double-quoted recipe words (`install -d "$(DATA_HOME)"`, the staging
+# paths, the lock path, install-firefox/remove-firefox's `--profile
+# "$(FIREFOX_PROFILE)"`). Inside double quotes exactly four characters are
+# shell syntax: a
 # double quote closes the recipe's own quoting, and `$`, a backtick and a
 # backslash open an expansion or an escape, so the words after any of them run
 # as shell commands instead of naming a path. Refuse a value carrying one at
@@ -53,7 +55,7 @@ DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 # behaviour, outside the shell route this guard closes.
 shell_unsafe_chars = \ " $$ `
 shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$(1))))
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
 
 # The theme tree `make install` copies from. A test overrides it on the command
 # line to point the symlink guard below at a scratch package tree.

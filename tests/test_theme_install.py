@@ -4,7 +4,9 @@
 `process_runner`, so a `make` that never exits raises
 `subprocess.TimeoutExpired` instead of stalling `make check`. These tests pin
 that the Makefile survives a `DESTDIR` or `XDG_DATA_HOME` that contains
-whitespace (its recipe words are quoted), that an empty or relative data home
+whitespace (its recipe words are quoted), refuses a `FIREFOX_PROFILE` that
+reaches a recipe shell as shell syntax (`TestShellUnsafeFirefoxProfile`),
+that an empty or relative data home
 falls back to the XDG default, and that an invalid `FLOCK_TIMEOUT` is refused
 before the lock is taken. `make check`'s variables live in
 ``test_make_check.py`` and `make help` in ``test_make_help.py``.
@@ -532,6 +534,73 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
                         shown_value,
                     ),
                 )
+
+
+class TestShellUnsafeFirefoxProfile(unittest.TestCase):
+    """A `FIREFOX_PROFILE` carrying a recipe-shell metacharacter is refused.
+
+    install-firefox and remove-firefox pass the profile as a double-quoted
+    recipe word (`--profile "$(FIREFOX_PROFILE)"`), so a value carrying a
+    double quote, `$`, a backtick or a backslash would run the words after
+    it as shell commands instead of naming a profile: before the refusal,
+    `make install-firefox FIREFOX_PROFILE='p"; touch "canary"; echo "'`
+    created the canary file, and because the last injected word was `echo`,
+    the run exited 0 while the tool's refusal appeared as stray output. The
+    refused value hits the same make-level guard
+    `TestShellUnsafeInstallPaths` pins for the install paths, so the
+    diagnostic must fire before any recipe of either target.
+    """
+
+    def _assert_refused(self, target, make_value, shown_value):
+        """Run *target* with *make_value* and assert the make-level refusal.
+
+        *shown_value* is the text the diagnostic must echo back verbatim.
+        `install-firefox` and `remove-firefox` share the guard, so both are
+        driven once per metacharacter case.
+        """
+        result = theme_install.run_make(
+            [target, f"FIREFOX_PROFILE={make_value}"],
+            env=theme_install.make_env("FIREFOX_PROFILE"),
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "FIREFOX_PROFILE contains a shell metacharacter", result.stderr
+        )
+        self.assertIn(shown_value, result.stderr)
+
+    def _assert_both_targets_refused(self, make_value, shown_value):
+        for target in ("install-firefox", "remove-firefox"):
+            with self.subTest(target=target):
+                self._assert_refused(target, make_value, shown_value)
+
+    def test_a_hostile_FIREFOX_PROFILE_is_refused_without_running_its_shell(self):
+        tmp = make_tmp_dir(self)
+        canary = tmp / "injected"
+        hostile = f'{tmp}/p"; touch "{canary}"; echo "'
+        self._assert_both_targets_refused(hostile, hostile)
+        self.assertFalse(canary.exists(), hostile)
+
+    def test_each_metacharacter_is_refused_in_FIREFOX_PROFILE(self):
+        # The guard reads the value after make's own expansion, so the same
+        # HOSTILES pairs `TestShellUnsafeInstallPaths` documents apply: a
+        # `$` arrives doubled in the make argument.
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_both_targets_refused(make_value, shown_value)
+
+    def test_a_profile_path_with_a_space_is_still_legal(self):
+        # As for the install paths, a space (and an apostrophe) is inert
+        # inside the double-quoted recipe word: it must reach the tool
+        # verbatim instead of being refused.
+        tmp = make_tmp_dir(self)
+        profile = tmp / "spaced profile"
+        result = theme_install.run_make(
+            ["-n", "install-firefox", f"FIREFOX_PROFILE={profile}"],
+            env=theme_install.make_env("FIREFOX_PROFILE"),
+        )
+        assert_succeeded(self, result)
+        self.assertIn("install_firefox.py --profile ", result.stdout)
+        self.assertIn(f'--profile "{profile}"', result.stdout)
 
 
 class TestXdgDataHomeDefault(unittest.TestCase):
