@@ -48,13 +48,12 @@ class ApplyTargetMakeCases:
         )
 
     def test_a_hostile_DESTDIR_value_is_refused_without_running_its_shell(self):
-        """Print a DESTDIR carrying shell quoting without executing it.
+        """Refuse a DESTDIR carrying shell quoting without executing it.
 
-        The refusal recipe reads the value from the recipe shell's
-        environment (the Makefile's `export DESTDIR`), so a value whose
-        quotes would close the diagnostic's own quotes if it arrived as make
-        expansion cannot inject command words; this test's canary file must
-        not be created.
+        A DESTDIR pasted into a double-quoted recipe word would close the
+        recipe's own quotes, so the Makefile refuses any value carrying a
+        recipe-shell metacharacter at make level, before any recipe runs;
+        this test's canary file must not be created.
         """
         tmp = make_tmp_dir(self)
         canary = tmp / "injected"
@@ -63,7 +62,7 @@ class ApplyTargetMakeCases:
             [self.TARGET, f"DESTDIR={hostile}"], env=make_env()
         )
         assert_failed(self, result)
-        self.assertIn("DESTDIR must be empty", result.stderr)
+        self.assertIn("DESTDIR contains a shell metacharacter", result.stderr)
         self.assertIn(hostile, result.stderr)
         self.assertFalse(canary.exists(), hostile)
 

@@ -446,6 +446,94 @@ class TestWhitespaceInInstallPaths(unittest.TestCase):
         self._assert_round_trip(os.path.join(tmp, "O'Brien's root"))
 
 
+class TestShellUnsafeInstallPaths(unittest.TestCase):
+    """A path variable carrying a recipe-shell metacharacter must be refused.
+
+    DESTDIR, XDG_DATA_HOME and HOME reach recipe shells pasted into
+    double-quoted recipe words, where a double quote, `$`, a backtick or a
+    backslash is shell syntax: the words after it run as shell commands
+    instead of naming a path. The Makefile refuses such a value at make
+    level, before any recipe of any target runs, so a refused run must not
+    create the data home -- or this test's canary file -- and its diagnostic
+    must name the variable and the value. A space or an apostrophe is inert
+    there and stays legal (`TestWhitespaceInInstallPaths`).
+    """
+
+    # The guard reads each value after make's own expansion, so a `$` arrives
+    # doubled: the make argument `x$$y` expands to `x$y`, the text the guard
+    # and the diagnostic see. The other three characters pass through make
+    # verbatim.
+    HOSTILES = (
+        ('"', 'x"; y"', 'x"; y"'),
+        ("$", "x$$y", "x$y"),
+        ("`", "x`y`", "x`y`"),
+        ("\\", "x\\y", "x\\y"),
+    )
+
+    def _assert_refused(self, variable, make_value, shown_value, args=()):
+        """Run `install`/`uninstall` with *variable* set and assert refusal.
+
+        *make_value* is the assignment each target receives, *shown_value* the
+        text the diagnostic must echo back verbatim. Both targets are driven
+        because they share the guard.
+        """
+        _assert_both_targets_refused(
+            self,
+            None,
+            (*args, f"{variable}={make_value}"),
+            (
+                f"{variable} contains a shell metacharacter",
+                shown_value,
+            ),
+        )
+
+    def test_a_hostile_DESTDIR_is_refused_without_running_its_shell(self):
+        tmp = make_tmp_dir(self)
+        canary = tmp / "injected"
+        hostile = f'/tmp/x"; touch "{canary}"; echo "'
+        self._assert_refused("DESTDIR", hostile, hostile)
+        self.assertFalse(canary.exists(), hostile)
+        data_home = os.path.join(
+            tmp, installed_paths.XDG_DATA_HOME.lstrip("/")
+        )
+        self.assertFalse(os.path.exists(data_home), data_home)
+
+    def test_each_metacharacter_is_refused_in_DESTDIR(self):
+        for char, make_value, shown_value in self.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused("DESTDIR", make_value, shown_value)
+
+    def test_each_metacharacter_is_refused_in_XDG_DATA_HOME(self):
+        for char, make_value, shown_value in self.HOSTILES:
+            with self.subTest(char=char):
+                tmp = make_tmp_dir(self)
+                self._assert_refused(
+                    "XDG_DATA_HOME",
+                    make_value,
+                    shown_value,
+                    args=(f"DESTDIR={tmp}",),
+                )
+
+    def test_each_metacharacter_is_refused_in_HOME(self):
+        # The guard is unconditional, so a hostile HOME is refused even when
+        # an absolute XDG_DATA_HOME resolves without it.
+        for char, make_value, shown_value in self.HOSTILES:
+            with self.subTest(char=char):
+                tmp = make_tmp_dir(self)
+                env = theme_install.make_env()
+                env["HOME"] = make_value
+                env.pop("XDG_DATA_HOME", None)
+                _assert_both_targets_refused(
+                    self,
+                    env,
+                    (f"DESTDIR={tmp}", f"XDG_DATA_HOME={installed_paths.XDG_DATA_HOME}"),
+                    (
+                        "HOME contains a shell metacharacter",
+                        shown_value,
+                    ),
+                )
+
+
 class TestXdgDataHomeDefault(unittest.TestCase):
     """An empty or relative $XDG_DATA_HOME must fall back to the XDG default.
 
