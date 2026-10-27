@@ -595,8 +595,8 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    -moz-cellhighlight/SelectedItem selection) with
    chrome/browser/skin/classic/browser/places/tree-icons.css
    supplying the row icons.
-   The toolbar's back and forward buttons and the details pane stay Firefox's for the later
-   parts of this series (the content-tree column headers, the
+   The toolbar's back and forward buttons stay Firefox's
+   (the content-tree column headers, the
    toolbar's search filter and the toolbar's menu titles have their
    own paragraphs below).
    Declaration checks do not establish rendered pixels
@@ -618,8 +618,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    chrome://global/skin/icons/search-textbox.svg filled by
    --icon-color; the sunken bevel is absent because
    moz-input-text.css reads no shadow token (this theme's own choice).
-   The toolbar's back and forward buttons and the details pane stay Firefox's for the
-   later parts of this series.
+   The toolbar's back and forward buttons stay Firefox's.
    Declaration checks do not establish rendered pixels
    (platform colour adaptation 2026-10-27).
 
@@ -690,8 +689,8 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    Firefox's), organizer.css's --button-min-height and native
    appearance on the menus, the ::after dropmarker, the three
    --menuitem-icon icons, the popup lists
-   (the landed menupopup token rule), the window body and the details
-   pane. Only the padding is overridden on the titles, with a zero
+   (the landed menupopup token rule), the window body.
+   Only the padding is overridden on the titles, with a zero
    bottom pad, so the retained stock border completes the 3px bottom
    margin and stays the open title's #CCCCFF underline. Declaration
    checks do not establish rendered pixels.
@@ -739,6 +738,58 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    multiple-selection focus-ring states Firefox paints beyond the
    flat #CCCCFF, #libraryToolbarSpacer, and the #downloadsPanel and
    content-area copies (their own scoped rules). Declaration checks
+   do not establish rendered pixels.
+
+   No reference screenshot shows the Firefox Library window; the
+   details pane's bookmark fields reuse this sheet's landed
+   #editBookmarkPanel line-edit recipe (#FFFFFF face, black text,
+   square 1px solid #000000 outline, inset 1px 1px #999999 shadow)
+   and the folder menulist its landed push-button menulist recipe
+   (#DDDDDD face, black outline, the
+   inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA raised bevel,
+   flat #CCCCFF hover), grounded in widgets/lineedit.svg and
+   widgets/button.svg and pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference,
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference;
+   the tag selector reuses the landed #placesList sunken list-field
+   recipe with the selected row's widgets/viewitem.svg highlight,
+   pinned by tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors
+   .test_selection_background; no hover rule exists on the fields or
+   the tag selector's rows because the landed recipes have none (the
+   menulist's hover arm is the landed menulist recipe's own); the
+   rules scope through #detailsPane because the same editBMPanel ids
+   live in browser.xhtml's #editBookmarkPanel (whose landed
+   #editBookmarkPanel-prefixed rules paint its copies) and in
+   #bookmarkpropertiesdialog, and a grep of the omni's chrome markup
+   finds a detailsPane element only in places.xhtml; the anatomy is
+   read 2026-10-27 from the installed Firefox ESR 153.5.1 --
+   places.xhtml's vbox#detailsPane holding #itemsCountBox and
+   #infoBox with the embedded #editBookmarkPanelContent markup
+   (html:input#editBMPanel_namePicker,
+   html:input#editBMPanel_locationField, the folder
+   hbox.editBMPanel_folderRow holding
+   menulist#editBMPanel_folderMenuList.folder-icon and
+   button#editBMPanel_foldersExpander.expander-down.panel-button,
+   vbox#editBMPanel_folderTreeRow holding
+   button#editBMPanel_newFolderButton,
+   html:input#editBMPanel_tagsField with #editBMPanel_tagsAutocomplete
+   and button#editBMPanel_tagsSelectorExpander,
+   div#editBMPanel_tagsSelectorRow holding
+   richlistbox#editBMPanel_tagsSelector and
+   html:input#editBMPanel_keywordField), organizer-shared.css owning
+   the pane's min-height: 16em and padding: 5px, the
+   #editBookmarkPanelContent grid and the #editBMPanel_tagsSelector
+   margin: 4px, editBookmarkPanel.css's expander and focus paints
+   being #editBookmarkPanel-scoped, and the toolkit's
+   global-shared.css, button.css, menulist.css and richlistbox.css
+   supplying the stock faces. The intentionally unchanged paint: the
+   two expander buttons, the New Folder button, the folder tree, the
+   labels and caption labels, #itemsCountBox and
+   #editBMPanel_itemsCountText, the tags autocomplete panel, the
+   menulist's popup list and the stock margins. Declaration checks
    do not establish rendered pixels.
 */
 
@@ -1435,4 +1486,55 @@ toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]):hover {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;
+}
+
+/* The Library details pane's bookmark fields, folder dropdown and tag
+   selector adapt the sheet's landed line-edit, push-button and sunken
+   list-field recipes. The same editBMPanel ids live in browser.xhtml's
+   #editBookmarkPanel, whose landed rules paint its copies, and a
+   detailsPane element exists only in places.xhtml, so these rules scope
+   through #detailsPane. The expander buttons, the New Folder button,
+   the folder tree, the labels and the popup lists stay Firefox's, as
+   the landed bookmark editor's section does. */
+#detailsPane #editBMPanel_namePicker,
+#detailsPane #editBMPanel_locationField,
+#detailsPane #editBMPanel_tagsField,
+#detailsPane #editBMPanel_keywordField {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#detailsPane #editBMPanel_folderMenuList {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#detailsPane #editBMPanel_folderMenuList:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+#detailsPane richlistbox#editBMPanel_tagsSelector {
+  appearance: none !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#detailsPane richlistbox#editBMPanel_tagsSelector > richlistitem {
+  border-radius: 0 !important;
+}
+
+#detailsPane richlistbox#editBMPanel_tagsSelector > richlistitem[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
 }

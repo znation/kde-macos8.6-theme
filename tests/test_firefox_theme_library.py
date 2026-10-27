@@ -75,6 +75,31 @@ CLEAR_BUTTON_RULES = (
     ":not([disabled]):hover",
 )
 
+# The Library details pane's four bookmark fields, in sheet order.
+DETAILS_FIELD_RULES = (
+    "#detailsPane #editBMPanel_namePicker",
+    "#detailsPane #editBMPanel_locationField",
+    "#detailsPane #editBMPanel_tagsField",
+    "#detailsPane #editBMPanel_keywordField",
+)
+
+# The details pane's folder dropdown arms, in sheet order.
+DETAILS_MENULIST_RULES = (
+    "#detailsPane #editBMPanel_folderMenuList",
+    "#detailsPane #editBMPanel_folderMenuList:hover:not([disabled])",
+)
+
+# The details pane's tag selector arms, in sheet order.
+DETAILS_TAGS_RULES = (
+    "#detailsPane richlistbox#editBMPanel_tagsSelector",
+    "#detailsPane richlistbox#editBMPanel_tagsSelector > richlistitem",
+    "#detailsPane richlistbox#editBMPanel_tagsSelector"
+    " > richlistitem[selected]",
+)
+
+# All nine details-pane arms, in sheet order.
+DETAILS_RULES = DETAILS_FIELD_RULES + DETAILS_MENULIST_RULES + DETAILS_TAGS_RULES
+
 
 class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
     """Section of the Firefox chrome sheet under test."""
@@ -200,8 +225,7 @@ class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
             "-moz-cellhighlight",
             "SelectedItem",
             "tree-icons.css",
-            "The toolbar's back and forward buttons",
-            "and the details pane stay Firefox's for the later",
+            "The toolbar's back and forward buttons stay Firefox's",
             "the toolbar's menu titles have their",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
@@ -259,8 +283,7 @@ class TestFirefoxLibrarySearchChrome(FirefoxChromeTestCase):
             "search-textbox.svg",
             "no ::part()",
             "the sunken bevel is absent",
-            "The toolbar's back and forward buttons",
-            "and the details pane stay Firefox's for the",
+            "The toolbar's back and forward buttons stay Firefox's.",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
             "2026-10-27",
@@ -454,7 +477,7 @@ class TestFirefoxLibraryToolbarChrome(FirefoxChromeTestCase):
             "toolbarbutton:hover/:hover:active bevel",
             "--menuitem-icon",
             "the landed menupopup token rule",
-            "the window body and the details",
+            "the window body",
             "Only the padding is overridden",
             "Declaration checks do not establish rendered pixels",
         ))
@@ -610,6 +633,250 @@ class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
             "The intentionally unchanged",
             "progress",
             "Declaration checks do not establish rendered pixels",
+        ))
+
+class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
+    """Section of the Firefox chrome sheet under test."""
+
+    def test_details_pane_rules_match_the_required_rules(self):
+        # Each of the nine arms equals its REQUIRED_RULES entry
+        # byte-for-byte, and every declaration ends !important.
+        for arm in DETAILS_RULES:
+            with self.subTest(selector=arm):
+                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
+                for value in self.rules[arm].values():
+                    self.assertTrue(value.endswith("!important"))
+
+    def test_details_pane_rules_scoped_to_the_details_pane(self):
+        # The places.xhtml details pane: window#places > vbox#detailsPane
+        # > vbox#infoBox > div#editBookmarkPanelContent, holding the
+        # four fields, the folder and tags rows and the tag selector.
+        details_pane = element(
+            "vbox", "detailsPane",
+            parent=element("window", "places"),
+        )
+        info_box = element("vbox", "infoBox", parent=details_pane)
+        content = element(
+            "div", "editBookmarkPanelContent", parent=info_box,
+        )
+        fields = tuple(
+            element("input", field_id, parent=content)
+            for field_id in (
+                "editBMPanel_namePicker",
+                "editBMPanel_locationField",
+                "editBMPanel_tagsField",
+                "editBMPanel_keywordField",
+            )
+        )
+        folder_row = element(
+            "hbox", classes=("editBMPanel_folderRow",), parent=content,
+        )
+        menulist = element(
+            "menulist", "editBMPanel_folderMenuList", ("folder-icon",),
+            parent=folder_row,
+        )
+        folders_expander = element(
+            "button", "editBMPanel_foldersExpander",
+            ("expander-down", "panel-button"), parent=folder_row,
+        )
+        tags_selector_expander = element(
+            "button", "editBMPanel_tagsSelectorExpander",
+            ("expander-down", "panel-button"), parent=content,
+        )
+        new_folder = element(
+            "button", "editBMPanel_newFolderButton", parent=content,
+        )
+        tags_selector = element(
+            "richlistbox", "editBMPanel_tagsSelector", parent=content,
+        )
+        row = element("richlistitem", None, parent=tags_selector)
+        selected_row = element(
+            "richlistitem", None, attrs={"selected": "true"},
+            parent=tags_selector,
+        )
+
+        # Beside the pane in the same window: browser.xhtml's
+        # #editBookmarkPanel with copies of the themed widgets, plus a
+        # stray id-less input and richlistbox.
+        panel = element(
+            "panel", "editBookmarkPanel", attrs={"type": "arrow"},
+            parent=element("window", "places"),
+        )
+        panel_content = element(
+            "div", "editBookmarkPanelContent", parent=panel,
+        )
+        panel_fields = tuple(
+            element("input", field_id, parent=panel_content)
+            for field_id in (
+                "editBMPanel_namePicker",
+                "editBMPanel_locationField",
+                "editBMPanel_tagsField",
+                "editBMPanel_keywordField",
+            )
+        )
+        panel_menulist = element(
+            "menulist", "editBMPanel_folderMenuList", parent=panel_content,
+        )
+        panel_tags_selector = element(
+            "richlistbox", "editBMPanel_tagsSelector", parent=panel_content,
+        )
+        stray_input = element("input", None, parent=details_pane)
+        stray_list = element("richlistbox", None, parent=details_pane)
+
+        # The four fields match their selectors hovered or not; the
+        # menulist matches its normal arm idle and hovered but its
+        # hover arm only with hover=True and never when disabled; the
+        # tags selector matches its face arm, its rows the row arm and
+        # only a selected row the selected arm.
+        for index, field in enumerate(fields):
+            with self.subTest(field=field.get("id")):
+                self.assertTrue(matches(DETAILS_FIELD_RULES[index], field))
+                self.assertTrue(
+                    matches(DETAILS_FIELD_RULES[index], {**field, "hover": True})
+                )
+        self.assertTrue(matches(DETAILS_MENULIST_RULES[0], menulist))
+        self.assertTrue(
+            matches(DETAILS_MENULIST_RULES[0], {**menulist, "hover": True})
+        )
+        self.assertFalse(matches(DETAILS_MENULIST_RULES[1], menulist))
+        self.assertTrue(
+            matches(DETAILS_MENULIST_RULES[1], {**menulist, "hover": True})
+        )
+        disabled = {
+            **menulist,
+            "attrs": {"disabled": "true"},
+            "hover": True,
+        }
+        self.assertFalse(matches(DETAILS_MENULIST_RULES[1], disabled))
+        self.assertTrue(matches(DETAILS_TAGS_RULES[0], tags_selector))
+        self.assertTrue(matches(DETAILS_TAGS_RULES[1], row))
+        self.assertTrue(matches(DETAILS_TAGS_RULES[2], selected_row))
+        self.assertFalse(matches(DETAILS_TAGS_RULES[2], row))
+
+        # The #editBookmarkPanel copies, the two expander buttons, the
+        # New Folder button, the stray input and the stray richlistbox
+        # match none of the nine selectors: the details-pane scoping
+        # keeps the panel's own landed paint intact.
+        for name, control in (
+            ("panel name field", panel_fields[0]),
+            ("panel location field", panel_fields[1]),
+            ("panel tags field", panel_fields[2]),
+            ("panel keyword field", panel_fields[3]),
+            ("panel menulist", panel_menulist),
+            ("panel tags selector", panel_tags_selector),
+            ("folders expander", folders_expander),
+            ("tags selector expander", tags_selector_expander),
+            ("new folder button", new_folder),
+            ("stray input", stray_input),
+            ("stray richlistbox", stray_list),
+        ):
+            with self.subTest(unthemed=name):
+                for selector in DETAILS_RULES:
+                    self.assertFalse(matches(selector, control))
+                    self.assertFalse(
+                        matches(selector, {**control, "hover": True})
+                    )
+
+    def test_details_pane_selector_set_is_exact(self):
+        # The sheet's whole set of detailsPane-naming rules is exactly
+        # this section's nine arms, and the whole set of editBMPanel-
+        # naming rules is exactly them plus the landed ten
+        # #editBookmarkPanel-prefixed bookmark editor's arms.
+        self.assertEqual(
+            {name for name in self.rules if "detailsPane" in name},
+            set(DETAILS_RULES),
+        )
+        # The sheet's whole set of editBMPanel-naming rules is exactly
+        # this section's nine arms plus the landed six that name the
+        # bookmark editor's field ids and folder menulist; the Done/
+        # Remove buttons' names carry editBookmarkPanel but not
+        # editBMPanel, and the panels suite pins their ten-rule set.
+        self.assertEqual(
+            {name for name in self.rules if "editBMPanel" in name},
+            {
+                "#editBookmarkPanel #editBMPanel_namePicker",
+                "#editBookmarkPanel #editBMPanel_locationField",
+                "#editBookmarkPanel #editBMPanel_tagsField",
+                "#editBookmarkPanel #editBMPanel_keywordField",
+                "#editBookmarkPanel #editBMPanel_folderMenuList",
+                "#editBookmarkPanel #editBMPanel_folderMenuList"
+                ":hover:not([disabled])",
+                *DETAILS_RULES,
+            },
+        )
+        self.assertEqual(
+            {name for name in self.rules if "editBookmark" in name},
+            {
+                "#editBookmarkPanel #editBookmarkPanelDoneButton",
+                "#editBookmarkPanel #editBookmarkPanelRemoveButton",
+                "#editBookmarkPanel #editBookmarkPanelDoneButton"
+                ":hover:not([disabled])",
+                "#editBookmarkPanel #editBookmarkPanelRemoveButton"
+                ":hover:not([disabled])",
+                *[
+                    name for name in self.rules
+                    if "editBMPanel" in name
+                    and name.startswith("#editBookmarkPanel")
+                ],
+            },
+        )
+
+    def test_header_names_details_pane_provenance(self):
+        self.assert_header_names((
+            "No reference screenshot shows the Firefox Library window",
+            "details pane's bookmark fields reuse this sheet's landed",
+            "#editBookmarkPanel line-edit recipe",
+            "#FFFFFF face, black text,",
+            "square 1px solid #000000 outline, inset 1px 1px #999999 shadow)",
+            "push-button menulist recipe",
+            "inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA raised bevel,",
+            "flat #CCCCFF hover)",
+            "grounded in widgets/lineedit.svg and",
+            "widgets/button.svg and pinned by",
+            "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+            "TestLineEditReference,",
+            "tests/test_desktoptheme_button.py::TestButton",
+            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+            "tag selector reuses the landed #placesList sunken list-field",
+            "selected row's widgets/viewitem.svg highlight",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "tests/test_colorscheme_reference.py::TestReferenceAnchors",
+            ".test_selection_background",
+            "no hover rule exists on the fields or",
+            "the tag selector's rows because the landed recipes have none",
+            "menulist's hover arm is the landed menulist recipe's own",
+            "rules scope through #detailsPane because the same editBMPanel ids",
+            "browser.xhtml's #editBookmarkPanel",
+            "#bookmarkpropertiesdialog",
+            "finds a detailsPane element only in places.xhtml",
+            "read 2026-10-27 from the installed Firefox ESR 153.5.1",
+            "vbox#detailsPane holding #itemsCountBox and",
+            "#infoBox with the embedded #editBookmarkPanelContent markup",
+            "html:input#editBMPanel_namePicker,",
+            "hbox.editBMPanel_folderRow",
+            "menulist#editBMPanel_folderMenuList.folder-icon and",
+            "button#editBMPanel_foldersExpander.expander-down.panel-button,",
+            "vbox#editBMPanel_folderTreeRow",
+            "button#editBMPanel_newFolderButton,",
+            "html:input#editBMPanel_tagsField with #editBMPanel_tagsAutocomplete",
+            "button#editBMPanel_tagsSelectorExpander,",
+            "div#editBMPanel_tagsSelectorRow",
+            "richlistbox#editBMPanel_tagsSelector and",
+            "html:input#editBMPanel_keywordField)",
+            "organizer-shared.css owning",
+            "min-height: 16em and padding: 5px",
+            "#editBookmarkPanelContent grid and the #editBMPanel_tagsSelector",
+            "margin: 4px",
+            "editBookmarkPanel.css's expander and focus paints",
+            "being #editBookmarkPanel-scoped",
+            "global-shared.css, button.css, menulist.css and richlistbox.css",
+            "The intentionally unchanged paint: the",
+            "two expander buttons, the New Folder button, the folder tree, the",
+            "labels and caption labels, #itemsCountBox and",
+            "#editBMPanel_itemsCountText",
+            "the tags autocomplete panel, the",
+            "menulist's popup list and the stock margins",
+            "Declaration checks",
         ))
 
 

@@ -760,6 +760,79 @@ REQUIRED_RULES[
     "box-shadow": "none !important",
 }
 
+# The Library details pane's four bookmark fields: the byte-recipes of
+# the landed #editBookmarkPanel field entries (see the header's
+# provenance paragraph), spelled explicitly with the shared palette
+# constants rather than aliased.
+REQUIRED_RULES["#detailsPane #editBMPanel_namePicker"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES["#detailsPane #editBMPanel_locationField"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES["#detailsPane #editBMPanel_tagsField"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES["#detailsPane #editBMPanel_keywordField"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+
+# The details pane's folder dropdown: the byte-recipes of the landed
+# #editBookmarkPanel folder menulist entries; disabled ones keep
+# Firefox's paint.
+REQUIRED_RULES["#detailsPane #editBMPanel_folderMenuList"] = {
+    "background-color": f"{FACE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"{BUTTON_BEVEL} !important",
+}
+REQUIRED_RULES["#detailsPane #editBMPanel_folderMenuList:hover:not([disabled])"] = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+    "box-shadow": "none !important",
+}
+
+# The details pane's tag selector: the landed #placesList mapping plus
+# the appearance: none the browser skin needs, with square rows and the
+# landed downloads selected-row byte-recipe.
+REQUIRED_RULES["#detailsPane richlistbox#editBMPanel_tagsSelector"] = {
+    "appearance": "none !important",
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES[
+    "#detailsPane richlistbox#editBMPanel_tagsSelector > richlistitem"
+] = {
+    "border-radius": "0 !important",
+}
+REQUIRED_RULES[
+    "#detailsPane richlistbox#editBMPanel_tagsSelector"
+    " > richlistitem[selected]"
+] = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+}
+
 
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase
