@@ -5,6 +5,49 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher ignores unrecognized text in a compound and over-matches it (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/selector_matching.py`'s `matches` treats text it
+does not recognize as if it were absent: `&` alone matches every element,
+`a&b` and `a!` match an `<a>`, and `*&` matches any element. A tag or class
+fragment after an attribute or a `:not(...)` was ignored in the same way:
+`[title]a` matched a `box` carrying `title`, `.a[title]b` matched a `box` with
+class `a` and `title`, and `:not(.b)*` matched every element. A scope test
+could therefore pass a malformed selector as an over-broad match instead of
+rejecting it. No selector in the shipped Firefox sheets carries such text, so
+the gap is latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.selector_matching import element, matches; print(matches("&", element("box")), matches("a&b", element("a")), matches("[title]a", element("box", attrs={"title": "t"})), matches(":not(.b)*", element("box", classes=("a",))))'
+```
+
+prints `True True True True`; the expected result is `False` for each.
+
+**Suspected cause.** `_compound_matches` only tested the tag, id, class,
+attribute, `:hover` and `:not(...)` parts of a compound and ignored whatever
+text remained. `_compound_is_supported` likewise never checked that the
+text left after those parts was empty, so unrecognized text was accepted as a
+supported compound. It also blanked each attribute or `:not(...)` span before
+stripping the tag, so a tag or class fragment after either looked like a
+leading one while `_compound_matches` ignored it.
+
+**Fix.** `_compound_is_supported` keeps each attribute span as a `[]`
+placeholder and each `:not(...)` span as a marker while it strips the optional
+tag and every `#id`/`.class`, then rejects any text left after the placeholders
+are removed. Unrecognized text, including a tag or class fragment after an
+attribute or a negation such as `[title]a`, `[title]a.a`, `.a[title]b` or
+`:not(.b)*`, is therefore rejected instead of read as absent. The supported
+compound forms still pass. The new
+`test_unrecognized_text_in_a_compound_matches_nothing` covers eleven malformed
+selectors and the supported forms; the focused run failed those malformed
+subtests before the fix and passes after.
+
+**Validation gap:** none — the closest tag: no existing matcher test carried
+unrecognized text in a compound, but a scratch call reproduced the false
+matches deterministically, and the new test pins them.
+
 ### The selector matcher drops a leading or dangling combinator and over-matches a malformed selector (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/selector_matching.py`'s `matches` reads a selector

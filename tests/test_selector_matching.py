@@ -195,6 +195,29 @@ class TestSelectorMatching(unittest.TestCase):
         self.assertTrue(_selector_is_supported(".a > .b "))
         self.assertTrue(matches(".a > .b ", inner))
 
+    def test_unrecognized_text_in_a_compound_matches_nothing(self):
+        # Only a tag, id, class, attribute, ``:hover`` and ``:not(...)`` may
+        # appear in a compound. Any other text used to be ignored, so ``&``
+        # alone matched every element and ``a&b`` matched an ``a``. A tag or
+        # class fragment after an attribute or a ``:not(...)`` was ignored too,
+        # so ``[title]a`` and ``.a[title]b`` matched a ``box`` carrying
+        # ``title`` and ``:not(.b)*`` matched every element.
+        target = element("a", ("a",), element_id="x",
+                         attrs={"title": "t"}, hover=True)
+        for selector in ("&", "a&b", "*&", ".a&", "a!", "a&.b",
+                         "[title]a", "[title]a.a", ".a[title]b",
+                         ":not(.b)*", ":not(.b)a"):
+            with self.subTest(selector=selector):
+                self.assertFalse(_selector_is_supported(selector))
+                self.assertFalse(matches(selector, target))
+        # The supported compound forms are still recognized after the check.
+        for selector in ("a", "*", ".a", "#x", "[title]", "a:hover",
+                         "a.a#x[title]:hover", ":not(.b)", "*:not(.b)",
+                         "a:not(.b)", ":not(.b)#x", "[title]:not(.b)"):
+            with self.subTest(selector=selector):
+                self.assertTrue(_selector_is_supported(selector))
+                self.assertTrue(matches(selector, target))
+
     def test_attribute_value_containing_a_class_is_matched_literally(self):
         # The dot is part of the quoted value, not a class the element needs.
         target = element("box", attrs={"title": "a.b"})

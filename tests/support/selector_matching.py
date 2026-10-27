@@ -18,7 +18,9 @@ An unbalanced parenthesis is malformed, outside the subset, and matches no
 element: it cannot be paired with a combinator step, so it must not crash the
 matcher or be read as part of a compound. A combinator with no compound on one
 side (leading, trailing or doubled) is malformed in the same way and matches
-nothing. An element
+nothing, as is unrecognized text inside a compound (text left after its tag,
+id, class, attribute and supported pseudo-class parts), which must not be
+ignored into a universal match. An element
 is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
@@ -37,6 +39,7 @@ _HOVER = re.compile(r":hover(?![-\w])")
 _ATTRIBUTE = re.compile(
     r"\[([-\w]+)(?:=(?:\"([^\"]*)\"|'([^']*)'|([^\]]+)))?\]"
 )
+_NEGATION_PLACEHOLDER = "\x00"
 
 
 def element(tag, identifier=None, classes=(), attrs=None, hover=False,
@@ -104,6 +107,25 @@ def _mask_attributes(compound, spans):
     for start, end in spans:
         parts.append(compound[position:start])
         parts.append("[]")
+        position = end
+    parts.append(compound[position:])
+    return "".join(parts)
+
+
+def _mask_negations(compound, spans):
+    """Return *compound* with each ``:not(...)`` span replaced by a marker.
+
+    The marker keeps the negation's position so a tag or class fragment after
+    it cannot look like a leading part, while staying inert to the tag, id and
+    class patterns.
+    """
+    if not spans:
+        return compound
+    parts = []
+    position = 0
+    for start, end, *_ in spans:
+        parts.append(compound[position:start])
+        parts.append(_NEGATION_PLACEHOLDER)
         position = end
     parts.append(compound[position:])
     return "".join(parts)
@@ -362,10 +384,18 @@ def _compound_is_supported(compound):
     inside ``:not(...)`` would otherwise be read as false, and negating a gap
     would silently turn the selector into one that matches every element.
     A bracket or quote left outside the attribute spans is malformed and is
-    rejected rather than dropped, which would leave a universal match.
+    rejected rather than dropped, which would leave a universal match. Text
+    left after removing the tag, id, class, attribute, ``:hover`` and
+    ``:not(...)`` parts is malformed in the same way: ignoring it made ``&``
+    alone match every element and ``a&b`` match an ``a``. The negations and
+    attributes are kept as placeholders while the tag is stripped, so a tag or
+    class fragment after either one is left over and rejected instead of being
+    read as a leading part (``:not(.b)*`` must not match every element).
     """
     negations = _not_spans(compound)
-    remainder = _blank_spans(compound, negations)
+    if _NEGATION_PLACEHOLDER in compound:
+        return False
+    remainder = _mask_negations(compound, negations)
     spans = _attribute_spans(remainder)
     if any(char in "[]\"'" for char in _blank_spans(remainder, spans)):
         return False
@@ -375,6 +405,15 @@ def _compound_is_supported(compound):
     compound = _mask_attributes(remainder, spans)
     compound = _HOVER.sub("", compound)
     if ":" in compound:
+        return False
+    tag = _TAG.match(compound)
+    if tag:
+        compound = compound[tag.end():]
+    compound = _ID.sub("", compound)
+    compound = _CLASS.sub("", compound)
+    compound = compound.replace("[]", "")
+    compound = compound.replace(_NEGATION_PLACEHOLDER, "")
+    if compound:
         return False
     return all(
         not _not_spans(negated_selector)
