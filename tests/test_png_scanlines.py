@@ -168,5 +168,24 @@ class TestDropAlpha(unittest.TestCase):
         )
 
 
+class TestPaethEqualNeighbours(unittest.TestCase):
+    def test_equal_above_and_above_left_predict_the_left_byte(self):
+        # When a Paeth row's above and above-left bytes are equal, pa=|b-c|=0
+        # wins outright and the predictor is always the left byte -- even when
+        # the left byte differs from both. Pin that branch directly: a fast
+        # path predicting the above byte (or the above-left one) instead would
+        # reconstruct 9 at positions 2 and 3 here rather than 200 and 99.
+        raw = bytes([0, 5, 9, 9, 9, 4, 95, 100, 155, 164])
+        self.assertEqual(unfilter(raw, 4, 2, 1), bytes([5, 9, 9, 9, 100, 200, 99, 7]))
+
+    def test_equal_neighbours_beside_unequal_ones_decode_both_ways(self):
+        # The same real row against an above row whose last byte differs:
+        # positions 0, 1 and 3 have b != c and must still take the delta-table
+        # branch (predicting 5, 100 and 99), so a fast path that ate every
+        # byte would misdecode them.
+        raw = bytes([0, 5, 9, 9, 5, 4, 95, 100, 155, 164])
+        self.assertEqual(unfilter(raw, 4, 2, 1), bytes([5, 9, 9, 5, 100, 200, 99, 7]))
+
+
 if __name__ == "__main__":
     unittest.main()
