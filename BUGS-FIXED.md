@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The shared GTK sheet parser invents a colour from a @define-color inside a quoted value (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/support/gtk_css.py` scanned the whole sheet for `@define-color` with one
+regular expression, so a declaration such as
+`a { content: "@define-color decoy #123456;"; }` both added a `decoy`
+definition and removed the matched text from inside the string, leaving
+`content: ""`. Before the fix, `parse_css('a { content: "@define-color decoy
+#123456;"; }')` returned a `decoy` definition and the truncated value.
+
+The scan now walks the sheet once and treats a quoted string (including a
+backslash-escaped quote) as a token, mirroring the comment and block
+scanners, so only a definition outside a string is returned or removed.
+
+**Validation gap:** unclear-invariant — no test or invariant row said whether
+a quoted value's `@define-color` text was a definition, so the quoted-string
+rule had to be extended to the definition scanner and pinned in
+docs/invariants.md.
+
 ### The test-side selector matcher rejects CSS escapes in attribute values (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 The matcher's attribute scanners tracked quotes but not backslashes, and its `_ATTRIBUTE` pattern had no escaped-character branch. A valid selector such as `[title="a\"b"]` therefore had its escaped quote read as the closing quote: `_attribute_spans` found no span, `_compound_is_supported` rejected the leftover brackets, and `matches` returned false for every element, including one whose `title` is `a"b`.

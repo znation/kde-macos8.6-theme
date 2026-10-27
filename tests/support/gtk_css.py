@@ -20,6 +20,42 @@ DEFINE_COLOR = re.compile(
 HEX = re.compile(r"#[0-9A-Fa-f]{6}\b")
 
 
+def _define_color_matches(text):
+    """Yield each ``@define-color`` rule outside a quoted string.
+
+    ``DEFINE_COLOR`` scans the whole sheet, so on its own it read a
+    declaration value such as ``content: "@define-color x #123456;"`` as a
+    definition: the colour was invented and its text was then removed from
+    inside the string. A quoted string is a token here, as it is for the
+    comment and block scanners, and a backslash keeps the character after it
+    inside the string.
+    """
+    index = 0
+    quote = None
+    while index < len(text):
+        char = text[index]
+        if char == "\\":
+            index += 2
+            continue
+        if quote is not None:
+            if char == quote:
+                quote = None
+            index += 1
+            continue
+        if char in "\"'":
+            quote = char
+            index += 1
+            continue
+        if char == "@":
+            match = DEFINE_COLOR.match(text, index)
+            if match is not None:
+                yield match
+                index = match.end()
+                continue
+        index += 1
+
+
+
 def strip_comments(text):
     """Return *text* with each ``/* ... */`` comment removed.
 
@@ -244,7 +280,9 @@ def parse_css(text, source=None):
     A selector that appears in more than one block keeps every declaration,
     with a later block's declaration replacing an earlier one, which is how the
     cascade resolves the same declaration. Comments are removed first so a
-    colour named in the header cannot stand in for a rule's value.
+    colour named in the header cannot stand in for a rule's value, and a
+    ``@define-color`` inside a quoted value is text rather than a definition
+    (and is left in the value), as it is for the other scanners.
 
     A malformed declaration -- no ``:``, or an empty property name or value --
     raises ``ValueError`` instead of being dropped silently, so a typo in a
@@ -254,13 +292,17 @@ def parse_css(text, source=None):
     ``;`` inside a quoted string or parentheses is part of the value.
     """
     text = strip_comments(text)
-    definitions = {
-        match.group("name"): match.group("value")
-        for match in DEFINE_COLOR.finditer(text)
-    }
+    definitions = {}
+    without_definitions = []
+    position = 0
+    for match in _define_color_matches(text):
+        definitions[match.group("name")] = match.group("value")
+        without_definitions.append(text[position:match.start()])
+        position = match.end()
+    without_definitions.append(text[position:])
+    without_definitions = "".join(without_definitions)
     rules = {}
     selectors = []
-    without_definitions = DEFINE_COLOR.sub("", text)
     for selector_text, body in _rule_blocks(without_definitions):
         label = _collapse_whitespace(selector_text)
         declarations = {}

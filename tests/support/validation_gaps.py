@@ -108,7 +108,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
 # The number of ``unclear-invariant`` records the archive holds with ledger
 # coverage. A new record must add its ledger entry, register row and test, and
 # raise this by one in the same change instead of landing uncovered.
-UNCLEAR_INVARIANT_BASELINE = 34
+UNCLEAR_INVARIANT_BASELINE = 35
 
 # One archived ``unclear-invariant`` mechanism: the record markers that
 # identify it, the test that now pins it, and the guarantee text stated by its
@@ -454,6 +454,16 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         "tests/test_selector_matching.py::TestSelectorMatching"
         "::test_an_escaped_quote_inside_an_attribute_value_is_literal",
         SELECTOR_MATCHER_ESCAPE_GUARANTEE,
+    ),
+    UnclearInvariant(
+        "gtk-define-color-in-quoted-value",
+        ("invents a colour from a @define-color inside a quoted value",),
+        "tests/test_gtk_css.py::TestRuleBlockSemantics"
+        "::test_a_define_color_inside_a_quoted_value_is_text",
+        "A quoted string is literal to the comment, block and "
+        "`@define-color` scanners too, so a comment marker, a brace or a "
+        "colour definition inside one is text rather than a delimiter or a "
+        "definition",
     ),
 )
 
