@@ -11,6 +11,7 @@ Firefox profile. Profile resolution has its own suite in
 from __future__ import annotations
 
 import errno
+import fcntl
 import os
 import unittest
 from pathlib import Path
@@ -646,6 +647,90 @@ class TestInstall(FirefoxProfileTestCase):
         self.assertIn(str(path), result.stderr)
         self.assertIn("1048576-byte limit", result.stderr)
         self.assertEqual(original, path.read_bytes())
+        self.assertFalse(self.sheet_path().exists())
+
+
+class TestProfileLock(FirefoxProfileTestCase):
+    """Concurrent installs and removals serialize on the profile directory."""
+
+    def hold_profile_lock(self):
+        """Take the lock a concurrent run would hold, and release it after."""
+        descriptor = os.open(
+            self.profile, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        self.addCleanup(os.close, descriptor)
+
+    def test_install_times_out_without_writing_while_another_run_holds_the_lock(
+        self,
+    ):
+        self.hold_profile_lock()
+
+        with mock.patch.object(install_firefox, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool("--profile", str(self.profile))
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(
+            "waiting for another install-firefox/remove-firefox", result.stderr
+        )
+        self.assertIn(str(self.profile), result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+        self.assertFalse(self.content_sheet_path().exists())
+        self.assertFalse(self.user_js_path().exists())
+
+    def test_remove_times_out_without_clearing_the_install(self):
+        installed = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(0, installed.returncode, installed.stderr)
+        before_sheet = self.sheet_path().read_bytes()
+        before_js = self.user_js_path().read_bytes()
+        self.hold_profile_lock()
+
+        with mock.patch.object(install_firefox, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool("--remove", "--profile", str(self.profile))
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(
+            "waiting for another install-firefox/remove-firefox", result.stderr
+        )
+        self.assertEqual(before_sheet, self.sheet_path().read_bytes())
+        self.assertEqual(before_js, self.user_js_path().read_bytes())
+
+    def test_install_releases_the_lock_for_the_next_run(self):
+        result = self.run_tool("--profile", str(self.profile))
+        self.assertEqual(0, result.returncode, result.stderr)
+
+        descriptor = os.open(
+            self.profile, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        finally:
+            os.close(descriptor)
+
+    def test_install_refuses_when_the_profile_lock_cannot_be_opened(self):
+        def refuse_open(*args, **kwargs):
+            raise PermissionError(errno.EACCES, "simulated refusal")
+
+        with mock.patch.object(install_firefox.os, "open", side_effect=refuse_open):
+            result = self.run_tool("--profile", str(self.profile))
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot lock {self.profile}", result.stderr)
+        self.assertIn("simulated refusal", result.stderr)
+        self.assertFalse(self.sheet_path().exists())
+
+    def test_install_refuses_a_lock_that_fails_for_another_reason(self):
+        def refuse_lock(*args, **kwargs):
+            raise OSError(errno.EIO, "simulated failure")
+
+        with mock.patch.object(
+            install_firefox.fcntl, "flock", side_effect=refuse_lock
+        ):
+            result = self.run_tool("--profile", str(self.profile))
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot lock {self.profile}", result.stderr)
+        self.assertIn("simulated failure", result.stderr)
         self.assertFalse(self.sheet_path().exists())
 
 

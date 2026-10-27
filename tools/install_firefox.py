@@ -17,14 +17,23 @@ Usage::
 
 Exit status: 0 when the install or removal ran, 1 when a foreign
 ``userChrome.css`` or ``userContent.css`` is left untouched, 2 for a usage
-error, an unresolvable profile, or a file that cannot be read or written.
+error, an unresolvable profile, another run holding the profile lock past
+the timeout, a profile directory that cannot be locked, or a file that
+cannot be read or written. Install and removal serialize on a lock over the
+profile directory, so a concurrent pair cannot publish a preference block
+without the sheets it selects (or delete the sheets while the block stays).
 """
 
 from __future__ import annotations
 
+import contextlib
+import errno
+import fcntl
 import os
 import sys
+import time
 from pathlib import Path
+from typing import Iterator
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
@@ -78,10 +87,70 @@ SHEETS = (
     (CONTENT_SHEET, CONTENT_CSS_MARKER, user_content_path),
 )
 
+# A whole install or removal is short (a few small files), so a second run
+# normally waits well under a second for the first to finish. The bound only
+# exists so a holder stopped with SIGSTOP cannot block every later run
+# forever; it matches the GTK selection lock's default.
+LOCK_TIMEOUT = 60.0
+_LOCK_POLL = 0.05
+
 
 def _note(message: str) -> None:
     """Print ``install_firefox: note: <message>`` on stdout."""
     report_note(TOOL, message)
+
+
+@contextlib.contextmanager
+def _profile_lock(profile: Path) -> Iterator[None]:
+    """Serialize install and removal on a lock over *profile*'s directory.
+
+    Both runs read the sheets and ``user.js``, edit that text, and write the
+    result; without a lock an install can publish its sheets after a removal
+    cleared them, or a removal can clear ``user.js`` after an install added
+    the block, leaving the preference beside no sheet or a sheet with no
+    preference. Locking the profile directory itself means both runs contend
+    on one inode (resolved through a symlinked profile), and the lock adds no
+    lock file to the profile and is released by the kernel when the process
+    dies, SIGKILL included.
+
+    The profile is required to exist before this lock is taken, so there is
+    no containing directory to create. A lock held for longer than
+    ``LOCK_TIMEOUT`` raises :class:`ConfigError` naming the profile, rather
+    than waiting forever on a stopped holder or racing it.
+    """
+    try:
+        descriptor = os.open(
+            profile, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+    except OSError as exc:
+        raise ConfigError(
+            f"cannot lock {profile} for the Firefox install: {exc}"
+        ) from exc
+    try:
+        deadline = time.monotonic() + LOCK_TIMEOUT
+        while True:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError as exc:
+                if exc.errno == errno.EINTR:
+                    continue
+                if exc.errno not in (errno.EACCES, errno.EAGAIN):
+                    raise ConfigError(
+                        f"cannot lock {profile} for the Firefox install: "
+                        f"{exc}"
+                    ) from exc
+                if time.monotonic() >= deadline:
+                    raise ConfigError(
+                        f"gave up after {LOCK_TIMEOUT:g}s waiting for another "
+                        f"install-firefox/remove-firefox to finish with "
+                        f"{profile}; nothing was changed"
+                    )
+                time.sleep(_LOCK_POLL)
+        yield
+    finally:
+        # Closing the descriptor releases the lock even when the body raised.
+        os.close(descriptor)
 
 
 def _is_our_sheet(text: str, marker: str) -> bool:
@@ -264,8 +333,9 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when the install or removal ran, 1 when a foreign "
             "userChrome.css or userContent.css is left untouched, 2 for a "
-            "usage error, an unresolvable profile, or a file that cannot be "
-            "read or written"
+            "usage error, an unresolvable profile, another run holding the "
+            "profile lock past the timeout, a profile directory that cannot "
+            "be locked, or a file that cannot be read or written"
         ),
     )
     parser.add_argument(
@@ -283,9 +353,10 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         profile = resolve_profile(args.profile, os.environ)
-        if args.remove:
-            return _remove(profile)
-        return _apply(profile)
+        with _profile_lock(profile):
+            if args.remove:
+                return _remove(profile)
+            return _apply(profile)
     except ConfigError as exc:
         return report_error(TOOL, str(exc))
 

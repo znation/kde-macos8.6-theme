@@ -75,7 +75,10 @@ block in its `user.js`, and `make remove-firefox` removes only those three chang
 leaving a foreign sheet or preference untouched. Both targets use the profile named by
 `FIREFOX_PROFILE=path` (an absolute profile directory) or, when it is unset, the active
 profile under `$HOME/.mozilla/firefox` (from `installs.ini`, then `profiles.ini`).
-Restart Firefox to pick up the change; setting
+The two targets serialize on a lock over the profile directory, so a concurrent
+install and removal cannot leave a preference block without its sheets (or the
+sheets without the block); a run that cannot take that lock within its bounded
+wait exits 2 with a diagnostic. Restart Firefox to pick up the change; setting
 `browser.tabs.inTitlebar=0` makes Firefox use the KWin-drawn Aurorae frame.
 
 Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
