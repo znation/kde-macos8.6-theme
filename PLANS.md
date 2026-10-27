@@ -129,4 +129,43 @@ In `tests/test_firefox_content_theme.py`, add a `TestFirefoxPreferencesNavTheme(
 - `docs/invariants.md` gains a row in the `## firefox` table inserted after the about:config row: the sidebar's category rows are transparent-faced with black text, a flat `#CCCCFF` hover and the same flat `#CCCCFF` selection, square and without the accent bar, while the sidebar separator, heading band, page background and panes' controls stay Firefox's. Its test column cites the new class; its provenance records the missing reference surface, the `listitem.svg`/`viewitem.svg` anchors, `test_selection_background`, the shadow-DOM token mechanism with no `::part()`, the ESR 153.5.1 files, the 2026-10-27 headless reach run and that declaration checks do not establish rendered row pixels. `tests/invariants.py` stays green.
 - `make check` passes.
 
+### Platinum Kvantum MDI title band: paint QMdiSubWindow's interior title bar as the flat window face with a black label (planned 2026-10-27 by the plan role; independent of the waiting about:preferences navigation plan — the two touch disjoint files (`theme/kvantum/org.macos8.desktop/*` and its suites versus `theme/firefox/…/userContent.css` and its suite), so either order merges; it is part 1 of an MDI title-bar series — the min/max/close/restore button glyphs (Kvantum's `mdi` indicator element) are a later part that waits behind it)
+
+**Goal.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` defines no `[TitleBar]` section, so a `QMdiSubWindow`'s interior title bar — the band Qt draws for child windows inside a `QMdiArea` — resolves wholly through the engine's compiled-in default config (`interior.element=titlebar`, `indicator.element=mdi`, its own label colours), leaving the band's paint the engine's, not the theme's. Write the section so the band is this theme's own: the bare `#DDDDDD` window face with a plain black label in both the normal and the focused state, no frame and no rule.
+
+**Grounding.** No reference screenshot shows a `QMdiSubWindow`, so this is a Kvantum-required adaptation recorded as such: the section and key names are Kvantum's, read 2026-10-27 from the four installed themes (`KvantumAlt`, `KvAdapta`, `KvAmbiance`, `KvAmbience`), whose `[TitleBar]` sections all share one shape — `inherits=PanelButtonCommand`, `frame=false`, `interior.element=titlebar`, text margins and light focused-label colours. That shape is the plan's; the dock band's `frame.element` route was rejected because none of the four themes sets `frame.element` in `[TitleBar]`. The `#DDDDDD` face and `#000000` label reuse the `[GeneralColors]` `window.color`/`text.color` roles pinned by `tests/test_kvantum_config.py::TestGeneralColors`, themselves grounded; every installed theme paints a light focused label (`KvantumAlt`'s white, `KvAmbiance`'s `#4C4C4C`), so the black focused label is this theme's own choice consistent with Platinum's always-black text. The 2/2/3/3 text margins reuse `KvantumAlt`'s and the landed `[DockTitle]`'s horizontal 3. The band is flat, with no etched bottom rule: interior nine-slice margins are not configurable keys, so a rule inside the `titlebar` element could not be pinned to the band's bottom edge the way `[DockTitle]`'s `frame.bottom=2` pins its own, and no reference surface shows an MDI band to ground one against — recorded as this theme's own choice; the band is distinguished from the window face by its label and window buttons alone. The `mdi` window-button glyphs are deliberately left unpinned: omitting `indicator.element` keeps the engine's internal default art (which all four installed themes also rely on — none ships `mdi` art) and keeps `tests/test_kvantum_svg.py`'s art-existence checks meaningful; pinning Platinum button glyphs is the series' later part.
+
+**Approach.** In `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`, after the `[DockTitle]` section, append a comment naming the section and recording the provenance sentences above (no reference screenshot shows a `QMdiSubWindow`; the section shape read from the four installed themes; the face and label reuse the grounded `[GeneralColors]` window/text roles; the black focused label, the flat no-rule band and the 2/2/3/3 margins are this theme's own choices; the `mdi` buttons stay at the engine's default art for a later part), then:
+
+```
+[TitleBar]
+inherits=PanelButtonCommand
+frame=false
+interior.element=titlebar
+text.normal.color=#000000
+text.focus.color=#000000
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=3
+text.margin.right=3
+```
+
+In `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, after the `dock` element groups, append the `titlebar` interior element groups for the two states (`titlebar-normal`, `titlebar-focused`, centre ids only — pure interior elements like `checkbox` ship no slices): each a single flat `#DDDDDD` rect (20x18) in the file's 60px cell grid. Extend the SVG header comment's surface-controls enumeration with the MDI title band. No fill outside the existing set appears (`#DDDDDD` is in `PLATINUM_FILLS`).
+
+Pin the section in `tests/support/kvantum_config_spec.py`: add `"TitleBar": {"frame": "false", "interior.element": "titlebar"}` to `SURFACE_CONTROL_CONFIG` (the `frame=false`-with-interior shape `[MenuItem]` uses) and `"TitleBar": {"text.normal.color": "#000000", "text.focus.color": "#000000", "text.margin.top": "2", "text.margin.bottom": "2", "text.margin.left": "3", "text.margin.right": "3"}` to `VALUE_KEYS`, so `TestSectionCoverage`, `TestValueKeys` and `test_every_key_is_pinned` stay exhaustive over the new section.
+
+In `tests/test_kvantum_config_elements.py`, add a `TestTitleBarSurface` class beside `TestDockSurface` pinning: `[TitleBar]`'s `frame` is `"false"`; its `interior.element` resolves to `"titlebar"`; its `text.normal.color` and `text.focus.color` are both `"#000000"` — the focused colour differs from every installed theme's light focused label; and its text margins are 2/2/3/3.
+
+In `tests/test_kvantum_svg.py`: add `"titlebar": ("normal", "focused")` to `INTERIOR_STATES`; add a `test_titlebar_band_is_the_bare_window_face` method beside `TestSvg::test_dock_band_draws_the_window_face_and_the_etched_rule` asserting, for both states, that the `titlebar-normal`/`titlebar-focused` centre groups equal `(_rect("0", "0", "20", "18", "#DDDDDD"),)` via `_drawing_elements` — so a stray bevel, rule or repaint (its colours are palette members the fill-set test cannot see) fails.
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`, `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`, `tests/support/kvantum_config_spec.py`, `tests/test_kvantum_config_elements.py`, `tests/test_kvantum_svg.py`, `docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- The `.kvconfig` ends with the `[TitleBar]` section above, preceded by the provenance comment; no existing section changes.
+- The SVG ships `titlebar-normal` and `titlebar-focused`; `TestSvg::test_interior_elements_ship_every_state`, `test_every_element_the_config_names_has_art` and `test_uses_exactly_the_platinum_palette` stay green, and the new bare-window-face test holds for both states.
+- `TestTitleBarSurface` pins the mapping and label colours; `tests/test_kvantum_config.py`'s exhaustiveness tests stay green.
+- `docs/invariants.md` gains a row at the end of the `## kvantum` table: a `QMdiSubWindow`'s interior title band is the bare `#DDDDDD` window face with a plain black label in both the normal and focused state, with no frame, rule, hover or pressed state, and the `mdi` window buttons stay at the engine's default art. Its test column cites `TestTitleBarSurface` and the new `TestSvg` band test; its provenance exception records the missing reference surface, the Kvantum-required names read from the four installed themes, the grounding reuse of `TestGeneralColors`, the theme's own choices and that config and SVG checks do not establish rendered Qt pixels. `tests/invariants.py` stays green.
+- `README.md`'s Kvantum sentence that names the dock header band also names the MDI subwindow title band among the surfaces the style maps to the Platinum art.
+- `make check` passes.
+
 ## Done
