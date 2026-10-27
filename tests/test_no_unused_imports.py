@@ -170,6 +170,45 @@ class TestNoUnusedImports(unittest.TestCase):
         self.assertEqual(len(findings), 1, findings)
         self.assertIn("pkg/mod.py:1: unused import os", findings[0])
 
+    def test_a_package_facade_re_export_keeps_the_submodule_import(self):
+        # The facade ``__init__.py`` is skipped as a scan subject, but its
+        # ``from .mod import thing`` is the import-from-elsewhere that keeps
+        # mod.py's own import of ``thing`` alive: a consumer reads the name
+        # through the package, so mod.py's re-export is not dead even though
+        # no scanned module names mod.py directly and mod.py never reads it.
+        findings = self._findings(
+            self,
+            {
+                "pkg/__init__.py": "from .mod import thing\n",
+                "pkg/mod.py": "from .thing import thing\n",
+                "pkg/thing.py": "thing = 1\n",
+                "pkg/user.py": "from pkg import thing\n\nvalue = thing\n",
+            },
+        )
+        self.assertEqual(findings, [])
+
+    def test_a_bare_relative_import_does_not_bless_the_submodules_import(self):
+        # ``from . import thing`` imports the submodule pkg.thing, not a
+        # name from it, so it must register only ("pkg", "thing") -- never
+        # ("pkg.thing", "thing"), which would keep pkg/thing.py's own dead
+        # import of the name ``thing`` alive under its dotted candidate.
+        findings = self._findings(
+            self,
+            {
+                "pkg/__init__.py": "",
+                "pkg/other.py": "thing = 1\n",
+                "pkg/thing.py": "from .other import thing\n",
+                "pkg/mod.py": "from . import thing\n",
+            },
+        )
+        self.assertEqual(
+            findings,
+            [
+                "pkg/mod.py:1: unused import thing",
+                "pkg/thing.py:1: unused import thing",
+            ],
+        )
+
     def test_a_package_facade_is_not_scanned(self):
         findings = self._findings(
             self,

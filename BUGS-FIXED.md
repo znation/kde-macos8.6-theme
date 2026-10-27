@@ -5,6 +5,36 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The unused-import scanner flags a submodule import that only feeds a package facade's re-export (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+Symptom: with `pkg/__init__.py` holding `from .mod import thing`,
+`pkg/mod.py` holding the source re-export `from .thing import thing`, and a
+consumer reading `from pkg import thing`, the scanner reported
+`pkg/mod.py:1: unused import thing` even though the facade's import is
+exactly the import-from-elsewhere the re-export allowance keeps: the
+consumer reaches mod.py's binding only through the package, which no
+scanned module names directly.
+Reproduce with
+`tests/test_no_unused_imports.py::TestNoUnusedImports::test_a_package_facade_re_export_keeps_the_submodule_import`;
+no scanned module in the tree imports a name solely to feed a package
+facade today, so `make check` never fired.
+Suspected cause: the scan skipped `__init__.py` facades entirely, so their
+`ImportFrom` statements never entered `imported_from`, and a relative
+statement's module string was recorded as written (`thing` from
+`from .thing import thing`) so it matched no module's dotted candidates.
+Fix: walk the facades too and register every `ImportFrom` statement with a
+new `_resolved_module()` that resolves `level` against the file's package
+(`from .thing import thing` in `pkg/mod.py` sources `pkg.thing`).
+Facades stay out of the flagged scan as before.
+
+**Validation gap:** no-fake — confirming the false positive needed a
+synthetic tree whose package facade re-exports a name no scanned module
+names directly (closer match than `none`: no in-tree module imports
+solely to feed a facade, so no real-tree scan could exercise the chain);
+the new fixture
+`test_a_package_facade_re_export_keeps_the_submodule_import` pins the
+facade-fed re-export.
+
 ### The unused-import scanner counts a re-assignment of an imported name as a read of it (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 Symptom: with `pkg/mod.py` holding `import os` and its only occurrence of

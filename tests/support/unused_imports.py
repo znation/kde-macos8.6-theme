@@ -9,7 +9,10 @@ imports exist to re-export) with :mod:`ast` and names each imported alias that
 - no ``__all__`` entry of its module re-exports, and
 - no other module imports from this one, so a shared-constant re-export hub
   (``aurorae_fixtures`` hands ``INACTIVE_OUTLINE`` to the aurorae suites)
-  is not flagged, and
+  is not flagged -- a package facade's ``__init__.py`` counts as that other
+  module too: it is skipped as a scan subject, but its ``from .x import y``
+  statements are resolved to ``pkg.x`` and recorded, so a submodule import
+  that exists only to feed the facade is kept, and
 - its import statement does not carry a ``# noqa`` comment, which marks the
   side-effect imports the suite deliberately keeps (the ``from support import
   repo_root`` sys.path bootstrap), and
@@ -25,6 +28,25 @@ import ast
 from pathlib import Path
 
 _SCANNED_DIRS = ("tools", "tests")
+
+
+def _resolved_module(package: tuple[str, ...], node: ast.ImportFrom) -> str:
+    """Return the dotted module string *node* imports from, dots resolved.
+
+    An absolute statement (``level == 0``) imports from ``node.module`` as
+    written. A relative one climbs ``level - 1`` packages above the file's
+    own package -- ``from .x import y`` in ``pkg/mod.py`` sources ``pkg.x``,
+    ``from ..x import y`` sources ``x`` -- and a package ``__init__.py``
+    sits in its package, so the directory holding the file is the package
+    either way and one formula serves both.
+    """
+    if node.level == 0:
+        return node.module or ""
+    base = package[: len(package) - (node.level - 1)]
+    parts = list(base)
+    if node.module:
+        parts += node.module.split(".")
+    return ".".join(parts)
 
 
 def _dotted_candidates(path: Path, root: Path) -> set[str]:
@@ -107,22 +129,28 @@ def unused_imports(
     """Return one finding per import no statement in its module reads.
 
     *root* is the repository (or synthetic-tree) root; the scan covers the
-    package directories in *directories* and skips ``__pycache__`` and package
-    ``__init__.py`` facades. Findings are sorted by path, then line, because
+    package directories in *directories*, skipping ``__pycache__`` and
+    treating package ``__init__.py`` facades as re-export sources only --
+    their imports are never flagged but do register what they re-export.
+    Findings are sorted by path, then line, because
     the file walk is sorted.
     """
     files = sorted(
         path
         for directory in directories
         for path in (root / directory).rglob("*.py")
-        if "__pycache__" not in path.parts and path.name != "__init__.py"
+        if "__pycache__" not in path.parts
     )
 
     # One walk per module: the collected record carries the import
     # statements with their bound names, the read names and the ``__all__``
     # entries, and folding every (module string, name) pair any file imports
     # into ``imported_from`` here keeps a name another module imports from
-    # this one a re-export, not a dead one.
+    # this one a re-export, not a dead one. The package facades --
+    # ``__init__.py`` files -- are skipped as scan subjects but still
+    # register their ``from .x import y`` statements (resolved to the
+    # submodule's dotted name), because a facade re-export is exactly the
+    # import-from-elsewhere that keeps a submodule's own import alive.
     imported_from: set[tuple[str, str]] = set()
     scanned: list[
         tuple[Path, list[tuple[ast.stmt, list[str]]], list[str], set[str], set[str]]
@@ -131,18 +159,23 @@ def unused_imports(
         source = path.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(path))
         imports, read_names, dunder_all = _scan_module(tree)
-        scanned.append(
-            (path, imports, source.splitlines(), read_names, dunder_all)
-        )
+        package = path.relative_to(root).with_suffix("").parts[:-1]
         for node, names in imports:
-            if isinstance(node, ast.ImportFrom) and node.module:
-                for alias in node.names:
-                    # Record the name as this file imported it (never the
-                    # ``as`` alias a consuming module rebinds it to), so an
-                    # aliased re-export keeps the source module's own import
-                    # without masking a dead one under another name.
-                    if alias.name != "*":
-                        imported_from.add((node.module, alias.name))
+            if not isinstance(node, ast.ImportFrom):
+                continue
+            resolved = _resolved_module(package, node)
+            for alias in node.names:
+                # Record the name as this file imported it (never the
+                # ``as`` alias a consuming module rebinds it to), so an
+                # aliased re-export keeps the source module's own import
+                # without masking a dead one under another name.
+                if alias.name == "*":
+                    continue
+                imported_from.add((resolved, alias.name))
+        if path.name != "__init__.py":
+            scanned.append(
+                (path, imports, source.splitlines(), read_names, dunder_all)
+            )
 
     findings: list[str] = []
     for path, imports, lines, read_names, dunder_all in scanned:

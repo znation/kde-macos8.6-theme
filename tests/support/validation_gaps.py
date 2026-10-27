@@ -471,9 +471,15 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 22
+NO_FAKE_BASELINE = 23
 
 NO_FAKE_REPRODUCTIONS = (
+    Reproduction(
+        "unused-imports-facade-reexport",
+        ("only feeds a package facade's re-export",),
+        "tests/test_no_unused_imports.py::TestNoUnusedImports"
+        "::test_a_package_facade_re_export_keeps_the_submodule_import",
+    ),
     Reproduction(
         "unused-imports-reassignment-as-read",
         ("counts a re-assignment of an imported name as a read",),
