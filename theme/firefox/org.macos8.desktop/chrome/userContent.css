@@ -244,11 +244,63 @@
    hover state. :not([disabled]) keeps a disabled radio's whole Firefox
    disabled paint (the push-button and checkbox choice); the shadow-DOM
    html:moz-radio elements and the #dialogTemplate dialog radios match
-   neither selector and stay Firefox's, as do the panes' entry fields and
-   menulists (later parts); geometry (the --checkbox-size/1.3em box), the
-   label anatomy, the disabled GrayText colour and the
-   radiogroup:focus-visible focus outline stay Firefox's. Declaration
-   checks do not establish rendered radio pixels.
+   neither selector and stay Firefox's (the panes' entry fields and
+   menulists have their own paragraph below); geometry (the
+   --checkbox-size/1.3em box), the label anatomy, the disabled GrayText
+   colour and the radiogroup:focus-visible focus outline stay Firefox's.
+   Declaration checks do not establish rendered radio pixels.
+
+   The panes' enabled entry fields and menulists follow: preferences.xhtml
+   authors four html:input[type="text"] fields (#homePageUrl,
+   #dohEnabledInputField, #dohStrictInputField and the disabled
+   #fxaSyncComputerName) and eight XUL menulist elements
+   (#primaryBrowserLocale, #homeMode, #newTabMode, #blockCookiesMenu,
+   #trackingProtectionMenu, #fingerprintingProtectionMenu,
+   #dohEnabledResolverChoices and #dohStrictResolverChoices) as ordinary
+   light-DOM elements inside #mainPrefPane (all read 2026-10-27 from the
+   installed Firefox ESR 153.5.1, the pane document from browser/omni.ja
+   and the skin files from the root omni.ja).
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css paints
+   the fields border: 1px solid var(--border-color), border-radius:
+   var(--border-radius-medium), background-color:
+   var(--background-color-box) and color: inherit — rounded grey boxes
+   reading as nothing Platinum on the white page — and paints the
+   menulists with the buttons through the --button-* token recipe from
+   tokens-shared.css/tokens-brand.css, recolouring :hover and
+   [open="true"] and dimming the disabled; the field's focus outline and
+   :user-invalid error ring live in the same file.
+   chrome/toolkit/skin/classic/global/menulist.css gives the menulist's
+   shadow-tree dropmarker its arrow-down-12.svg content drawn
+   currentColor, so the arrow already follows the black text. Each
+   enabled field is the Platinum sunken line edit — the #FFFFFF face,
+   black text, square 1px black outline and the inset 1px 1px #999999
+   top-left shadow, the byte-recipe of the landed about:config
+   #about-config-search rule in this same sheet — adapting
+   theme/desktoptheme/org.macos8.desktop/widgets/lineedit.svg, pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference. Each enabled menulist is the landed
+   #mainPrefPane button push-button recipe — the #DDDDDD face with the
+   1px black outline and the #FFFFFF/#AAAAAA raised bevel — adapting
+   theme/desktoptheme/org.macos8.desktop/widgets/button.svg, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, and
+   a hovered or [open="true"] menulist takes the landed
+   #mainPrefPane button:hover flat #CCCCFF no-bevel recipe, the
+   reference-grounded widgets/viewitem.svg selection fill pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.
+   test_selection_background (platform colour adaptation 2026-10-27).
+   The disabled #fxaSyncComputerName keeps Firefox's whole disabled
+   paint (the push buttons', checkboxes' and radios' :not([disabled])
+   choice), and the field rule's [type="text"] step keeps it from
+   widening past the authored population. Intentionally unscoped: the
+   dropdown menupopup lists and their stock styling, the field focus
+   outline and :user-invalid error ring, the dropmarker geometry and the
+   panes' sub-dialogs (separate documents this sheet does not reach) stay
+   Firefox's, and there is no field hover rule because lineedit.svg
+   ships no hover state. Geometry (min-height, padding, margin, font)
+   stays Firefox's. Declaration checks do not establish rendered field
+   or menulist pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -403,5 +455,31 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='rgb(0, 0, 0)'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: center !important;
+  }
+
+  /* The panes' entry fields and menulists: the Platinum sunken line
+     edit and raised push button (see the header's provenance
+     paragraph). */
+  #mainPrefPane input[type="text"]:not([disabled]) {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #mainPrefPane menulist:not([disabled]) {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #mainPrefPane menulist:not([disabled]):hover,
+  #mainPrefPane menulist[open="true"]:not([disabled]) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
   }
 }

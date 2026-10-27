@@ -29,6 +29,7 @@ from support.platinum_palette import (
     WHITE,
 )
 from support.repo_root import ROOT
+from support.selector_matching import element, matches
 
 THEME_ID = "org.macos8.desktop"
 SHEET = (
@@ -176,6 +177,10 @@ CHECKBOX_FACE = "#mainPrefPane checkbox:not([disabled]) .checkbox-check"
 CHECKBOX_GLYPH = "#mainPrefPane checkbox:not([disabled])[checked] .checkbox-check"
 RADIO_FACE = "#mainPrefPane radio:not([disabled]) .radio-check"
 RADIO_DOT = "#mainPrefPane radio:not([disabled])[selected] .radio-check"
+PANEFIELD = '#mainPrefPane input[type="text"]:not([disabled])'
+PANE_MENULIST = "#mainPrefPane menulist:not([disabled])"
+PANE_MENULIST_HOVER = "#mainPrefPane menulist:not([disabled]):hover"
+PANE_MENULIST_OPEN = '#mainPrefPane menulist[open="true"]:not([disabled])'
 
 # The checkbox glyph, inlined as a data-URI SVG (single quotes inside the
 # quoted url(), %3C/%3E for the angle brackets, space-separated path
@@ -224,6 +229,35 @@ RADIO_DOT_RULE = {
     "background-image": RADIO_DOT_URI,
     "background-repeat": "no-repeat !important",
     "background-position": "center !important",
+}
+
+# The enabled pane entry fields and menulists: the field rule is the
+# byte-recipe of this module's FIELD_RULE (the landed about:config search
+# field), and the menulist rules the byte-recipes of BUTTON_RULE and
+# BUTTON_HOVER_RULE (the landed pane push buttons), spelled explicitly so a
+# change to the config or button recipes cannot silently retarget the panes.
+PANEFIELD_RULE = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+
+PANE_MENULIST_RULE = {
+    "background-color": f"{FACE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": (
+        f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW} !important"
+    ),
+}
+
+PANE_MENULIST_HOVER_RULE = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+    "box-shadow": "none !important",
 }
 
 REQUIRED_PREFERENCES_RULES = {
@@ -282,6 +316,10 @@ REQUIRED_PREFERENCES_RULES = {
     CHECKBOX_GLYPH: CHECKBOX_GLYPH_RULE,
     RADIO_FACE: RADIO_FACE_RULE,
     RADIO_DOT: RADIO_DOT_RULE,
+    PANEFIELD: PANEFIELD_RULE,
+    PANE_MENULIST: PANE_MENULIST_RULE,
+    PANE_MENULIST_HOVER: PANE_MENULIST_HOVER_RULE,
+    PANE_MENULIST_OPEN: PANE_MENULIST_HOVER_RULE,
 }
 
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
@@ -751,6 +789,167 @@ class TestFirefoxPreferencesRadioTheme(SheetCase):
                 ":not([disabled])",
                 "[selected]",
                 "moz-radio",
+                "platform colour adaptation 2026-10-27",
+            )
+        )
+
+
+class TestFirefoxPreferencesFieldsTheme(SheetCase):
+    AT_RULE_URL = "about:preferences"
+
+    def test_field_and_menulist_rules_are_the_sheet_recipe(self):
+        """All five arms equal the pinned field and menulist recipes."""
+        self.assertEqual(self.rules[PANEFIELD], PANEFIELD_RULE)
+        self.assertEqual(
+            self.rules[PANEFIELD], REQUIRED_PREFERENCES_RULES[PANEFIELD]
+        )
+        self.assertEqual(self.rules[PANE_MENULIST], PANE_MENULIST_RULE)
+        self.assertEqual(
+            self.rules[PANE_MENULIST], REQUIRED_PREFERENCES_RULES[PANE_MENULIST]
+        )
+        for selector in (PANE_MENULIST_HOVER, PANE_MENULIST_OPEN):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], PANE_MENULIST_HOVER_RULE)
+                self.assertEqual(
+                    self.rules[selector], REQUIRED_PREFERENCES_RULES[selector]
+                )
+
+    def test_field_and_menulist_rules_extend_the_ordered_rule_register(self):
+        """The four new arms close the about:preferences register in order.
+
+        The two assertions mirror TestFirefoxPreferencesNavTheme's
+        register checks, which read the same extended dict; the tail
+        assertion pins the new arms as the block's last, so no earlier
+        rule moved.
+        """
+        self.assertEqual(set(self.rules), set(REQUIRED_PREFERENCES_RULES))
+        self.assertEqual(self.selectors, list(REQUIRED_PREFERENCES_RULES))
+        self.assertEqual(
+            self.selectors[-4:],
+            [PANEFIELD, PANE_MENULIST, PANE_MENULIST_HOVER, PANE_MENULIST_OPEN],
+        )
+
+    def test_field_and_menulist_rules_scope_to_the_pane(self):
+        for selector in (PANEFIELD, PANE_MENULIST, PANE_MENULIST_HOVER,
+                         PANE_MENULIST_OPEN):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#mainPrefPane"))
+                for token in ("menupopup", "#dialogTemplate", "subdialog"):
+                    self.assertNotIn(token, selector)
+        self.assertIn('[type="text"]', PANEFIELD)
+        self.assertIn(":not([disabled])", PANEFIELD)
+        self.assertNotIn("moz-input-search", PANEFIELD)
+        self.assertIn(":not([disabled])", PANE_MENULIST)
+        self.assertTrue(PANE_MENULIST_HOVER.endswith(":hover"))
+        self.assertIn('[open="true"]', PANE_MENULIST_OPEN)
+        # The field arm matches the authored light-DOM text inputs and
+        # never a disabled or non-text input; the menulist arms match the
+        # pane's menulists and never one under #dialogTemplate.
+        pane = element("vbox", "mainPrefPane")
+        dialog = element("vbox", "dialogTemplate")
+        self.assertTrue(
+            matches(PANEFIELD, element(
+                "input", "homePageUrl", attrs={"type": "text"}, parent=pane,
+            ))
+        )
+        self.assertFalse(
+            matches(PANEFIELD, element(
+                "input", "homePageUrl",
+                attrs={"type": "text", "disabled": "true"}, parent=pane,
+            ))
+        )
+        self.assertFalse(
+            matches(PANEFIELD, element(
+                "input", "homePageUrl", attrs={"type": "range"}, parent=pane,
+            ))
+        )
+        self.assertTrue(
+            matches(PANE_MENULIST, element("menulist", "homeMode", parent=pane))
+        )
+        self.assertFalse(
+            matches(
+                PANE_MENULIST,
+                element("menulist", "homeMode", parent=dialog),
+            )
+        )
+        self.assertTrue(
+            matches(
+                PANE_MENULIST_HOVER,
+                element("menulist", "homeMode", hover=True, parent=pane),
+            )
+        )
+        self.assertFalse(
+            matches(PANE_MENULIST_HOVER, element("menulist", "homeMode", parent=pane))
+        )
+        self.assertTrue(
+            matches(
+                PANE_MENULIST_OPEN,
+                element("menulist", "homeMode", attrs={"open": "true"}, parent=pane),
+            )
+        )
+        self.assertFalse(
+            matches(PANE_MENULIST_OPEN, element("menulist", "homeMode", parent=pane))
+        )
+
+    def test_field_and_menulist_rules_use_the_pinned_palette(self):
+        for selector, allowed in (
+            (PANEFIELD, {WHITE, BLACK, GREY}),
+            (PANE_MENULIST, {WHITE, BLACK, FACE, BUTTON_SHADOW}),
+            (PANE_MENULIST_HOVER, {SELECTION, BLACK}),
+            (PANE_MENULIST_OPEN, {SELECTION, BLACK}),
+        ):
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertTrue(declarations)
+            for name, value in declarations.items():
+                with self.subTest(property=name):
+                    self.assertIn("!important", value)
+                    for token in HEX.findall(value):
+                        self.assertIn(token, allowed)
+
+    def test_header_names_field_provenance(self):
+        self.assert_header_names(
+            (
+                "preferences.xhtml",
+                "html:input[type=\"text\"]",
+                "#homePageUrl",
+                "#dohEnabledInputField",
+                "#dohStrictInputField",
+                "#fxaSyncComputerName",
+                "#primaryBrowserLocale",
+                "#homeMode",
+                "#newTabMode",
+                "#blockCookiesMenu",
+                "#trackingProtectionMenu",
+                "#fingerprintingProtectionMenu",
+                "#dohEnabledResolverChoices",
+                "#dohStrictResolverChoices",
+                "menulist",
+                "common-shared.css",
+                "--border-radius-medium",
+                "--background-color-box",
+                "tokens-shared.css",
+                "tokens-brand.css",
+                "menulist.css",
+                "dropmarker",
+                "arrow-down-12.svg",
+                "currentColor",
+                "browser/omni.ja",
+                "#about-config-search",
+                "widgets/lineedit.svg",
+                "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+                "TestLineEditReference",
+                "widgets/button.svg",
+                "tests/test_desktoptheme_button.py::TestButton",
+                "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+                "widgets/viewitem.svg",
+                "tests/test_desktoptheme_viewitem.py::TestViewItem",
+                "test_selection_background",
+                "[open=\"true\"]",
+                "menupopup",
+                ":not([disabled])",
+                ":user-invalid",
+                "sub-dialog",
                 "platform colour adaptation 2026-10-27",
             )
         )
