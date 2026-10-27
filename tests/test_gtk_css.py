@@ -171,6 +171,25 @@ class TestRuleBlockSemantics(unittest.TestCase):
             ),
         )
 
+    def test_a_comma_inside_an_attribute_selector_does_not_split_the_group(self):
+        # A comma inside an attribute selector's quoted value, or inside its
+        # brackets, is part of that value, not a selector-list separator. The
+        # splitter used to track only parentheses, so it cut these selectors
+        # into fragments that match no rule.
+        for selector in ('[title="a,b"]', "[title='a,b']", "[title=a,b]"):
+            with self.subTest(selector=selector):
+                self.assertEqual(
+                    parse_css(f"{selector}, b {{ color: #111111; }}"),
+                    (
+                        {},
+                        {
+                            selector: {"color": "#111111"},
+                            "b": {"color": "#111111"},
+                        },
+                        [selector, "b"],
+                    ),
+                )
+
     def test_a_nested_block_replaces_the_pending_selector(self):
         # The expression's selector body could not cross a brace, so the inner
         # block's text became its match: only `a` is a rule here, not `x`.

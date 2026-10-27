@@ -111,19 +111,42 @@ def _split_declarations(body):
 
 
 def _split_selector_list(selector_text):
-    """Split *selector_text* at commas outside parentheses.
+    """Split *selector_text* at commas outside parentheses, brackets and quotes.
 
     A comma inside ``:not(.a, .b)`` separates that pseudo-class's arguments,
-    not two selectors of the group.
+    not two selectors of the group. A comma inside an attribute selector's
+    brackets -- quoted or not -- is part of its value, as is one inside a
+    quoted string, so splitting there is wrong: ``[title="a,b"]`` used to
+    become the two fragments ``[title="a`` and ``b"]``, neither of which named
+    a rule. A backslash-escaped quote stays inside the value.
     """
     depth = 0
+    bracket_depth = 0
+    quote = None
+    escaped = False
     start = 0
     for index, char in enumerate(selector_text):
-        if char == "(":
+        if escaped:
+            escaped = False
+            continue
+        if char == "\\":
+            escaped = True
+            continue
+        if quote is not None:
+            if char == quote:
+                quote = None
+            continue
+        if char in "\"'":
+            quote = char
+        elif char == "[":
+            bracket_depth += 1
+        elif char == "]" and bracket_depth:
+            bracket_depth -= 1
+        elif char == "(" and not bracket_depth:
             depth += 1
-        elif char == ")" and depth:
+        elif char == ")" and not bracket_depth and depth:
             depth -= 1
-        elif char == "," and not depth:
+        elif char == "," and not depth and not bracket_depth:
             yield selector_text[start:index]
             start = index + 1
     yield selector_text[start:]

@@ -5,6 +5,43 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The sheet parser splits a selector at a comma inside an attribute selector (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/gtk_css.py`'s `parse_css` splits a
+selector group at every comma outside parentheses. A comma inside an
+attribute selector's brackets is part of its value, so a valid selector such
+as `[title="a,b"]` is cut into the fragments `[title="a` and `b"]`, neither
+of which names a rule. A sheet test that expects the valid selector then sees
+no such rule, and the parsed selector list differs from the sheet. No shipped
+sheet carries such a value, so the gap is latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.gtk_css import parse_css; print(parse_css("[title=\"a,b\"], b { color: #111111; }")[2])'
+```
+
+printed `['[title="a', 'b"]', 'b']`; the expected result is
+`['[title="a,b"]', 'b']`.
+
+**Suspected cause.** `_split_selector_list` counted only parenthesis depth,
+so it treated a comma in `[title="a,b"]`, `[title='a,b']` or `[title=a,b]`
+as a selector-list separator and never noticed the square brackets or the
+quoted value around it.
+
+**Fix.** `_split_selector_list` now tracks quoted strings (including a
+backslash-escaped quote), square-bracket depth and parenthesis depth, and
+yields a comma as a separator only outside all three. Two nested selectors
+such as `a:not(.x, .y)` still stay one selector, and a comma after a closed
+attribute selector still splits the group. The new
+`test_a_comma_inside_an_attribute_selector_does_not_split_the_group` covers a
+double-quoted, a single-quoted and an unquoted value; the focused run failed
+all three subtests before the fix and passes after.
+
+**Validation gap:** none — no existing test carried a comma inside an
+attribute selector, but a scratch `parse_css` call reproduced the split
+deterministically and the new test pins it.
+
 ### The selector matcher ignores unrecognized text in a compound and over-matches it (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/selector_matching.py`'s `matches` treats text it
