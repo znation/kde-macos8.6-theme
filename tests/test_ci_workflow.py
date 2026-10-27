@@ -22,13 +22,40 @@ class TestCiWorkflow(unittest.TestCase):
             r"uses: actions/setup-python@v5\s+with:\s+"
             r"python-version: \$\{\{ matrix\.python-version \}\}",
         )
+        runs = re.findall(r"^\s+- run: (.+)$", workflow, re.MULTILINE)
+        # Every one-line run step is a public check; a multiline run step
+        # (the render-tool install) is pinned separately below.
         self.assertEqual(
-            re.findall(r"^\s+- run: (.+)$", workflow, re.MULTILINE),
+            [run for run in runs if run != "|"],
             ["make check", "make check-references"],
         )
         self.assertIn("  push:", workflow)
         self.assertIn("  pull_request:", workflow)
-        self.assertIn("    timeout-minutes: 15", workflow)
+        self.assertIn("    timeout-minutes: 30", workflow)
+
+    def test_workflow_installs_and_verifies_the_plasma_render_tools(self):
+        workflow = self.read_workflow()
+        # The render gate (tests/test_render_surface.py::TestRender) silently
+        # skips wherever its five Plasma tools are absent; the workflow must
+        # install and, by name, verify all five, so a skipped render gate can
+        # no longer ride a green job.
+        for tool in (
+            "dbus-run-session",
+            "kwin_wayland",
+            "plasmawindowed",
+            "plasma-apply-colorscheme",
+            "spectacle",
+        ):
+            self.assertIn(tool, workflow)
+        # (?s) lets the pattern cross the shell line continuations.
+        self.assertRegex(workflow, r"(?s)apt-get install.*kwin-wayland")
+        self.assertRegex(workflow, r"(?s)apt-get install.*plasma-workspace")
+        self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
+        self.assertRegex(
+            workflow,
+            r"render tool missing after install: \$tool",
+            "no step catches a tool that survives the install unpackaged",
+        )
 
     def test_workflow_checks_the_python_floor_and_development_version(self):
         workflow = self.read_workflow()

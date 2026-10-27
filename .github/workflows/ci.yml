@@ -10,7 +10,7 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -25,5 +25,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install the Plasma render tools
+        run: |
+          set -e
+          sudo apt-get update
+          # The names below are grounded on the Ubuntu runners' release (all
+          # four packages record 200 on launchpad.net/ubuntu/noble/amd64/):
+          # `dbus` provides dbus-run-session, `kwin-wayland` kwin_wayland,
+          # and `plasma-workspace` both plasmawindowed and
+          # plasma-apply-colorscheme; `spectacle` is the screenshot tool.
+          sudo apt-get install -y --no-install-recommends \
+            dbus kwin-wayland plasma-workspace spectacle
+          # Newer Debian-family releases split dbus-run-session out of the
+          # 'dbus' package; cover that layout too.
+          command -v dbus-run-session >/dev/null || \
+            sudo apt-get install -y --no-install-recommends dbus-daemon
+          for tool in dbus-run-session kwin_wayland plasmawindowed \
+                      plasma-apply-colorscheme spectacle; do
+            command -v "$tool" >/dev/null \
+              || { echo "render tool missing after install: $tool" >&2; exit 1; }
+          done
       - run: make check
       - run: make check-references

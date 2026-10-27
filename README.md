@@ -274,8 +274,11 @@ material only — the theme does not ship them.
 
 `.github/workflows/ci.yml` runs `make check` and `make check-references` on pushes
 and pull requests, on Python 3.10 (the project's floor) and 3.12 with a checkout
-with Git LFS images materialized. Run those same commands locally for parity
-with the workflow's check steps.
+with Git LFS images materialized; its check job also installs the render gate's
+five Plasma tools (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`,
+`spectacle`, `plasma-apply-colorscheme`), so `make check` runs the rendered-pixel
+gate there too. Run those same commands locally for parity with the workflow's
+check steps.
 
 `sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run
 `python3 tools/check_references.py`: it fails if the record and the files on disk disagree (a
