@@ -347,20 +347,18 @@ class TestResolveFailureIsFailClosed(CheckerTestCase):
     """A path that cannot be resolved must be treated as escaping the directory.
 
     The shared containment guard, ``tools.containment.resolves_within``, calls
-    ``Path.resolve()`` to keep every read inside the reference directory, and
-    resolving can raise ``OSError`` on a filesystem failure or ``RuntimeError``
-    on the symlink loop Python before 3.13 reports. The containment check must
-    fail closed: an unresolvable path is not assumed to be inside the
-    directory, so the checker reports it instead of letting the exception
-    escape and abort the run with a traceback. ``Path.resolve()`` does not
-    raise for a real symlink loop on this runtime, so each branch is driven by
-    making the resolution itself raise.
+    ``os.path.realpath`` to keep every read inside the reference directory and
+    stats the result so a symlink loop is recognised. Resolving can raise
+    ``OSError`` on a filesystem failure, and a loop leaves a path that never
+    resolves. The containment check must fail closed: an unresolvable path is
+    not assumed to be inside the directory, so the checker reports it instead
+    of letting the exception escape and abort the run with a traceback.
     """
 
     def test_unresolvable_sources_path_is_reported_not_raised(self):
         assert_sources_failure(
             self,
-            "resolve",
+            "realpath",
             OSError,
             40,
             "Too many levels of symbolic links",
@@ -368,14 +366,13 @@ class TestResolveFailureIsFailClosed(CheckerTestCase):
         )
 
     def test_symlink_loop_sources_path_is_reported_not_raised(self):
-        assert_sources_failure(
-            self,
-            "resolve",
-            RuntimeError,
-            40,
-            "Symlink loop from sources.txt",
-            "outside",
-        )
+        module = self.checker
+        with reference_set(module, "") as root:
+            sources = root / module.SOURCES_NAME
+            sources.unlink()
+            sources.symlink_to(sources)
+            problems = module.check_references(root)
+        assert_problem(self, problems, str(sources), "outside")
 
 
 if __name__ == "__main__":

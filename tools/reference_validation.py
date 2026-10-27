@@ -130,7 +130,7 @@ def _check_entries(
             problems.append(f"{sources}:{lineno}: empty field in entry: {line!r}")
             continue
         if "\x00" in filename:
-            # A NUL byte cannot appear in a POSIX path, and Path.resolve()
+            # A NUL byte cannot appear in a POSIX path, and os.path.realpath()
             # raises ValueError on one; reject it here so a malformed entry
             # becomes a diagnostic instead of aborting the whole check.
             problems.append(

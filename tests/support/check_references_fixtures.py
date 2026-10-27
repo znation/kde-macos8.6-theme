@@ -141,14 +141,34 @@ def os_open_raises(path, error_type, errno, message):
 
 
 @contextlib.contextmanager
+def realpath_raises(path, error_type, errno, message):
+    """Patch ``os.path.realpath`` to fail for *path* and delegate otherwise.
+
+    The shared containment guard resolves every contributor path with
+    ``os.path.realpath``, so a test that drives an unresolvable path fails that
+    call for the one path it names. Every other path still resolves normally,
+    leaving the rest of the check working.
+    """
+    real = os.path.realpath
+    target = os.fspath(path)
+
+    def raises_for(candidate, *args, **kwargs):
+        if os.fspath(candidate) == target:
+            raise error_type(errno, message, target)
+        return real(candidate, *args, **kwargs)
+
+    with unittest.mock.patch.object(os.path, "realpath", raises_for):
+        yield
+
+
+@contextlib.contextmanager
 def path_method_raises(method, path, error_type, errno, message):
     """Patch ``Path.<method>`` to fail for ``path`` and delegate otherwise.
 
-    The checker reads, lists, and resolves paths throughout a run, so a test
-    drives a single filesystem failure -- an unreadable file, an unlistable
-    directory, an unresolvable path -- by making only that path raise. Every
-    other path still reaches the real ``Path`` method, leaving the rest of
-    the check working.
+    The checker reads and lists paths throughout a run, so a test drives a
+    single filesystem failure on a path by making only that path raise. Every
+    other path still reaches the real ``Path`` method, leaving the rest of the
+    check working.
     """
     real = getattr(Path, method)
 
@@ -180,14 +200,17 @@ def assert_sources_failure(case, method, error_type, errno, message, needle):
     The checker reads and resolves ``sources.txt`` during a run, so a test
     drives one filesystem failure on that path and asserts the checker returns
     a problem line naming the path and *needle* rather than letting the
-    exception escape. ``method`` is a ``Path`` method the checker calls, or
-    ``"open"`` for the descriptor open the regular-file guard performs.
+    exception escape. ``method`` is ``"realpath"`` for the containment
+    guard's resolution, a ``Path`` method the checker calls, or ``"open"`` for
+    the descriptor open the regular-file guard performs.
     """
     module = case.checker
     with good_reference(module) as root:
         sources = root / module.SOURCES_NAME
         if method == "open":
             failure = os_open_raises(sources, error_type, errno, message)
+        elif method == "realpath":
+            failure = realpath_raises(sources, error_type, errno, message)
         else:
             failure = path_method_raises(
                 method, sources, error_type, errno, message

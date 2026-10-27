@@ -267,7 +267,7 @@ class TestControlCharactersInFilenames(CheckerTestCase):
 class TestNullByteFilename(CheckerTestCase):
     """A NUL byte in a source entry must be a diagnostic, not a crash.
 
-    A NUL cannot appear in a POSIX path and makes ``Path.resolve()`` raise
+    A NUL cannot appear in a POSIX path and makes ``os.path.realpath()`` raise
     ValueError, so the symlink containment check must not let a malformed
     sources.txt line abort the whole run with an unhandled exception.
     """

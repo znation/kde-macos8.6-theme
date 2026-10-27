@@ -20,6 +20,7 @@ Every read still passes the regular-file and size guards below.
 
 from __future__ import annotations
 
+import errno
 import io
 import os
 import stat
@@ -30,18 +31,46 @@ from typing import BinaryIO
 def resolves_within(directory: str | Path, path: str | Path) -> bool:
     """Return True when *path* resolves to a location inside *directory*.
 
+    Both paths go through ``os.path.realpath``, which resolves symlinks and is
+    what ``Path.resolve()`` calls underneath its object construction. The
+    guard runs on every contributor-file read (thousands of times in
+    ``make check``), so skipping the ``Path`` wrappers keeps the check without
+    changing which paths it resolves. The compared boundary is a whole path
+    component: a sibling directory whose name merely shares the root's prefix
+    is outside, not inside.
+
     A resolution that fails is not assumed to be contained: an ``OSError`` (a
-    filesystem failure), a ``RuntimeError`` (the symlink loop ``Path.resolve()``
-    raised before Python 3.13) and a ``ValueError`` (an embedded NUL byte, which
-    POSIX ``Path.resolve()`` rejects) all make this return False, so the caller
+    filesystem failure) or a ``ValueError`` (an embedded NUL byte) makes this
+    return False. ``Path.resolve(strict=False)`` on Python 3.10-3.12 also
+    stats its result and treats a symlink loop as a failure, while
+    ``os.path.realpath`` returns the loop path unresolved; the same stat here
+    keeps a loop fail-closed on every supported runtime. The caller then
     refuses the path instead of the exception aborting the read.
     """
     try:
-        resolved = Path(path).resolve()
-        base = Path(directory).resolve()
-    except (OSError, RuntimeError, ValueError):
+        resolved = os.path.realpath(path)
+        base = os.path.realpath(directory)
+    except (OSError, ValueError):
         return False
-    return resolved.is_relative_to(base)
+    # Python 3.10-3.12's ``Path.resolve(strict=False)`` stats the resolved
+    # path and turns a symlink loop into ``RuntimeError``; ``realpath`` alone
+    # returns the loop path unresolved. Stat both results here so a loop still
+    # fails closed. Only ``ELOOP`` is a resolution failure: a path that does
+    # not exist yet is merely absent, which ``strict=False`` allows.
+    for candidate in (resolved, base):
+        try:
+            os.stat(candidate)
+        except OSError as exc:
+            if exc.errno == errno.ELOOP:
+                return False
+    # ``normcase`` keeps Windows' case-insensitive comparison (it is the
+    # identity on POSIX), matching ``Path.is_relative_to``.
+    resolved = os.path.normcase(resolved)
+    base = os.path.normcase(base)
+    if resolved == base:
+        return True
+    boundary = base if base.endswith(os.sep) else base + os.sep
+    return resolved.startswith(boundary)
 
 
 def _absolute_lexical(path: str | Path) -> str:

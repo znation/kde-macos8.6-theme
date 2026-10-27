@@ -300,7 +300,7 @@ class TestReadText(unittest.TestCase):
 
 class TestResolutionFailureFailsClosed(unittest.TestCase):
     def test_an_embedded_nul_is_refused_not_raised(self):
-        # POSIX ``Path.resolve()`` raises ``ValueError`` for an embedded NUL;
+        # POSIX ``os.path.realpath()`` raises ``ValueError`` for an embedded NUL;
         # the guard must treat that resolution failure like any other and
         # refuse the path, not let the bare error abort the caller's read.
         with tempfile.TemporaryDirectory() as tmp:
@@ -413,6 +413,28 @@ class TestIsWithin(unittest.TestCase):
             path = sibling / "asset.svg"
             path.write_bytes(b"sibling")
             self.assertEqual(containment.read_bytes(path, root), b"sibling")
+
+
+class TestResolvedBoundary(unittest.TestCase):
+    """The resolved comparison must respect the path-component boundary.
+
+    ``resolves_within`` compares the resolved path with the resolved root, so
+    a sibling directory whose name merely shares the root's prefix is outside.
+    ``require_within_repo`` never reaches this comparison for such a path
+    because its lexical ``is_within`` skips it first, so the boundary is
+    pinned here directly.
+    """
+
+    def test_rejects_a_sibling_directory_that_shares_the_root_prefix(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            root = tmp / "repo"
+            root.mkdir()
+            sibling = tmp / "repo-other"
+            sibling.mkdir()
+            path = sibling / "asset.svg"
+            path.write_bytes(b"sibling")
+            self.assertFalse(containment.resolves_within(root, path))
 
 
 class TestGuardIsShared(unittest.TestCase):
