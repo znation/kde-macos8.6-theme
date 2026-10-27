@@ -362,9 +362,13 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
         self.assertIn("::-moz-tree-row(hover)", " ".join(tree_rules))
         self.assertIn("::-moz-tree-row(selected)", " ".join(tree_rules))
         self.assertIn("::-moz-tree-cell-text", " ".join(tree_rules))
-        # The column headers keep Firefox's paint: no treecol or
-        # column-picker rule exists anywhere in the sheet.
+        # The page-info trees' column headers keep Firefox's paint:
+        # the sheet's only treecol and column-picker rules are the
+        # Library window's six header arms under
+        # TestFirefoxLibraryHeaderChrome.
         for name in self.rules:
+            if name.startswith("treecols#placeContentColumns"):
+                continue
             with self.subTest(rule=name):
                 self.assertNotIn("treecol", name)
                 self.assertNotIn("tree-columnpicker", name)

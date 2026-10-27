@@ -23,6 +23,7 @@ from support.gtk_rule_cases import SheetRuleAssertions
 from support.gtk_theme_spec import BUTTON_BEVEL, ETCH_DARK, RAISED_BEVEL
 from support.platinum_palette import (
     BLACK,
+    BUTTON_SHADOW,
     FACE,
     GREY,
     SELECTION,
@@ -663,6 +664,35 @@ REQUIRED_RULES["moz-input-search#searchFilter"] = {
     "--input-text-color": f"{BLACK} !important",
     "--icon-color": f"{BLACK} !important",
 }
+
+# The Library content tree's column headers: the Platinum raised
+# header buttons, the byte-recipe of the landed edit-bookmark footer
+# buttons, with the flat #CCCCFF hover/pressed fill and no bevel (see
+# the header's provenance paragraph).
+HEADER_FACE = {
+    "background-color": f"{FACE} !important",
+    "color": f"{BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow":
+        f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW} !important",
+}
+HEADER_HOVER = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+    "box-shadow": "none !important",
+}
+for _header_arm in (
+    "treecols#placeContentColumns > treecol",
+    "treecols#placeContentColumns .tree-columnpicker-button",
+):
+    REQUIRED_RULES[_header_arm] = HEADER_FACE
+for _header_arm in (
+    "treecols#placeContentColumns > treecol:hover",
+    "treecols#placeContentColumns > treecol:hover:active",
+    "treecols#placeContentColumns .tree-columnpicker-button:hover",
+    "treecols#placeContentColumns .tree-columnpicker-button:hover:active",
+):
+    REQUIRED_RULES[_header_arm] = HEADER_HOVER
 
 
 class FirefoxChromeTestCase(

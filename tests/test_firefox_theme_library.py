@@ -10,6 +10,13 @@ from support.firefox_chrome_cases import (
     REQUIRED_RULES,
     FirefoxChromeTestCase,
 )
+from support.platinum_palette import (
+    BLACK,
+    BUTTON_SHADOW,
+    FACE,
+    SELECTION,
+    WHITE,
+)
 from support.selector_matching import element, matches
 
 # The nine required selectors naming the two places trees, in sheet
@@ -32,6 +39,19 @@ TREE_RULES = (
 # through the moz-input-search tokens.
 SEARCH_RULE = ("moz-input-search#searchFilter",)
 
+# The content tree's column-header arms, in sheet order: the two
+# face arms then the four hover arms.
+HEADER_FACE_ARMS = (
+    "treecols#placeContentColumns > treecol",
+    "treecols#placeContentColumns .tree-columnpicker-button",
+)
+HEADER_HOVER_ARMS = (
+    "treecols#placeContentColumns > treecol:hover",
+    "treecols#placeContentColumns > treecol:hover:active",
+    "treecols#placeContentColumns .tree-columnpicker-button:hover",
+    "treecols#placeContentColumns .tree-columnpicker-button:hover:active",
+)
+
 
 class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
     """Section of the Firefox chrome sheet under test."""
@@ -39,10 +59,13 @@ class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
     def test_library_tree_paint_is_scoped_to_the_places_trees(self):
         # The rule names naming either places tree are exactly the nine
         # selector names; each equals its REQUIRED_RULES entry (the
-        # declarations test pins the values).
+        # declarations test pins the values). The column-header arms
+        # under treecols#placeContentColumns name the header row, not
+        # the trees, and are pinned further down.
         named = [
             name for name in self.rules
-            if "placesList" in name or "placeContent" in name
+            if ("placesList" in name or "placeContent" in name)
+            and not name.startswith("treecols#placeContentColumns")
         ]
         self.assertEqual(sorted(named), sorted(TREE_RULES))
         self.assertEqual(len(named), len(TREE_RULES))
@@ -87,14 +110,19 @@ class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
                     any(matches(rule, stray) for rule in TREE_RULES)
                 )
 
-        # The twisties, cell icons, column headers and between-column
-        # grippies stay Firefox's: no rule in the sheet names a
-        # twisty, splitter, treecol or column picker.
+        # The twisties, cell icons and between-column grippies stay
+        # Firefox's: no rule in the sheet names a twisty or splitter
+        # (the column headers now carry their own rules under
+        # TestFirefoxLibraryHeaderChrome, whose six arms are exactly
+        # the sheet's treecols-prefixed names).
         for name in self.rules:
             with self.subTest(rule=name):
-                for stock in ("twisty", "splitter", "treecol",
-                              "columnpicker"):
+                for stock in ("twisty", "splitter"):
                     self.assertNotIn(stock, name)
+        self.assertEqual(
+            [name for name in self.rules if name.startswith("treecols")],
+            list(HEADER_FACE_ARMS + HEADER_HOVER_ARMS),
+        )
 
 
 
@@ -210,6 +238,113 @@ class TestFirefoxLibrarySearchChrome(FirefoxChromeTestCase):
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
             "2026-10-27",
+        ))
+
+
+class TestFirefoxLibraryHeaderChrome(FirefoxChromeTestCase):
+    """Section of the Firefox chrome sheet under test."""
+
+    def test_header_rules_are_the_sheet_recipe(self):
+        # Each arm equals its REQUIRED_RULES entry byte-for-byte, and
+        # every declaration is !important-pinned.
+        for arm in HEADER_FACE_ARMS + HEADER_HOVER_ARMS:
+            with self.subTest(selector=arm):
+                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
+                for value in self.rules[arm].values():
+                    self.assertTrue(value.endswith("!important"))
+
+    def test_header_face_is_the_raised_button(self):
+        # The face arms re-derive the landed raised push button's
+        # byte-recipe from the shared palette constants; the hover
+        # arms re-derive the flat no-bevel selection fill.
+        face = {
+            "background-color": f"{FACE} !important",
+            "color": f"{BLACK} !important",
+            "border-radius": "0 !important",
+            "box-shadow":
+                f"inset 1px 1px {WHITE}, "
+                f"inset -1px -1px {BUTTON_SHADOW} !important",
+        }
+        hover = {
+            "background-color": f"{SELECTION} !important",
+            "color": f"{BLACK} !important",
+            "box-shadow": "none !important",
+        }
+        for arm in HEADER_FACE_ARMS:
+            with self.subTest(selector=arm):
+                self.assertEqual(self.rules[arm], face)
+        for arm in HEADER_HOVER_ARMS:
+            with self.subTest(selector=arm):
+                self.assertEqual(self.rules[arm], hover)
+
+    def test_header_rules_scope_to_the_content_tree(self):
+        columns = element(
+            "treecols", "placeContentColumns",
+            parent=element("tree", "placeContent", ("placesTree",)),
+        )
+        sidebar = element(
+            "treecols", None,
+            parent=element("tree", "placesList", ("placesTree",)),
+        )
+        column = element("treecol", "placesContentTitle", parent=columns)
+        sidebar_column = element("treecol", None, parent=sidebar)
+        picker = element(
+            "button", None, ("tree-columnpicker-button",),
+            parent=element("treecolpicker", None, parent=columns),
+        )
+        sidebar_picker = element(
+            "button", None, ("tree-columnpicker-button",),
+            parent=element("treecolpicker", None, parent=sidebar),
+        )
+
+        # The face arms match the content tree's columns and its
+        # column-picker button, and never the placesList sidebar's
+        # (its id-less treecols, hideheader="true", carries the one
+        # column).
+        self.assertTrue(matches(HEADER_FACE_ARMS[0], column))
+        self.assertFalse(matches(HEADER_FACE_ARMS[0], sidebar_column))
+        self.assertTrue(matches(HEADER_FACE_ARMS[1], picker))
+        self.assertFalse(matches(HEADER_FACE_ARMS[1], sidebar_picker))
+
+        # The hover arms match their fixtures with hover=True fixed
+        # and nothing else; the matcher reads no :active, so the
+        # hover:active arms stay pinned by the selector text alone.
+        hovered_column = element(
+            "treecol", "placesContentTitle", parent=columns, hover=True,
+        )
+        hovered_picker = element(
+            "button", None, ("tree-columnpicker-button",), hover=True,
+            parent=element("treecolpicker", None, parent=columns),
+        )
+        self.assertTrue(matches(HEADER_HOVER_ARMS[0], hovered_column))
+        self.assertFalse(matches(HEADER_HOVER_ARMS[0], column))
+        self.assertTrue(matches(HEADER_HOVER_ARMS[2], hovered_picker))
+        self.assertFalse(matches(HEADER_HOVER_ARMS[2], picker))
+        for arm in HEADER_HOVER_ARMS:
+            with self.subTest(selector=arm):
+                self.assertFalse(matches(arm, sidebar_column))
+                self.assertFalse(matches(arm, sidebar_picker))
+
+    def test_header_provenance(self):
+        self.assert_header_names((
+            "No reference screenshot shows the Firefox Library window",
+            "widgets/button.svg",
+            "tests/test_desktoptheme_button.py::TestButton",
+            "TestButtonReference",
+            "widgets/viewitem.svg",
+            "test_selection_background",
+            "treecols#placeContentColumns",
+            "tree.js",
+            "tree.css",
+            "-moz-ColHeader",
+            "ThreeDLightShadow",
+            "-moz-ColHeaderHover",
+            "sort-asc.svg",
+            "columnpicker.svg",
+            "Graytext",
+            "hideheader",
+            "Declaration checks do not establish rendered pixels",
+            "platform colour adaptation 2026-10-27",
         ))
 
 
