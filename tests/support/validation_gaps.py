@@ -186,8 +186,9 @@ GTK_GLYPH_ROOT_GUARANTEE = (
 SELECTOR_MATCHER_ESCAPE_GUARANTEE = (
     "The test-side selector matcher decodes a backslash escape in an "
     "attribute selector's quoted or unquoted value, so an escaped quote or "
-    "backslash, and a quoted hex escape, tests the character it denotes "
-    "instead of being read as the string's end."
+    "backslash, and a hex escape — whose one-whitespace terminator belongs to "
+    "the escape, not the value — tests the character it denotes instead of "
+    "being read as the string's end."
 )
 
 UNCLEAR_INVARIANT_REPRODUCTIONS = (

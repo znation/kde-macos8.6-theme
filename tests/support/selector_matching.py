@@ -29,7 +29,8 @@ is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
 value is literal: ``[title=":hover"]`` is an attribute test, not a hover test.
 A backslash escape in a supported attribute value is decoded as CSS does, so ``[title="a\\"b"]`` tests the value ``a"b``
-instead of being read as a malformed selector.
+instead of being read as a malformed selector. A hex escape's digits may end with one whitespace that only terminates the
+escape: ``[title=a\22 b]`` tests ``a"b``, in quoted and unquoted values alike.
 """
 
 from __future__ import annotations
@@ -45,7 +46,10 @@ _ATTRIBUTE = re.compile(
     r"\[\s*([-\w]+)\s*"
     r"(?:=\s*(?:\"((?:[^\"\\]|\\.)*)\""
     r"|'((?:[^'\\]|\\.)*)'"
-    r"|((?:[^\]\s\"'\\]|\\.)+))\s*)?\]"
+    # In an unquoted value a hex escape may be terminated by one whitespace,
+    # which the value group owns; the hex form must stand before ``\\.`` so a
+    # run of hex digits after the backslash is read as one escape.
+    r"|((?:\\[0-9A-Fa-f]{1,6}(?:\r\n|[ \t\r\n\f])?|[^\]\s\"'\\]|\\.)+))\s*)?\]"
 )
 _HEX_ESCAPE = re.compile(r"\\([0-9A-Fa-f]{1,6})(?:\r\n|[ \t\r\n\f])?")
 _NEGATION_PLACEHOLDER = "\x00"

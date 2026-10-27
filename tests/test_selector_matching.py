@@ -388,6 +388,24 @@ class TestSelectorMatching(unittest.TestCase):
         child = element("button", parent=parent)
         self.assertTrue(matches('[title="a\\" b"] > button', child))
 
+    def test_a_hex_escape_with_its_whitespace_lives_in_an_unquoted_value(self):
+        # CSS decodes ``\22 `` inside an unquoted value too: ``[title=a\22 b]``
+        # tests the value ``a"b``, the hex digits followed by one whitespace
+        # terminator. The unquoted group rejected whitespace, so the
+        # terminator ended the value and the selector looked malformed and
+        # matched nothing, while the quoted form one test above matched.
+        double = element("button", attrs={"title": 'a"b'})
+        spaced = element("button", attrs={"title": 'a" b'})
+        plain = element("button", attrs={"title": "ab"})
+        with self.subTest(selector='[title=a\\22 b]'):
+            self.assertTrue(_selector_is_supported('[title=a\\22 b]'))
+            self.assertTrue(matches('[title=a\\22 b]', double))
+            self.assertFalse(matches('[title=a\\22 b]', plain))
+            # The terminator is part of the escape; it does not reach the value.
+            self.assertFalse(matches('[title=a\\22 b]', spaced))
+            # A hex escape without a terminator ends at the first non-hex digit.
+            self.assertTrue(matches('[title=x\\22y]', element("x", attrs={"title": 'x"y'})))
+
     def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
         # A pseudo-class outside the supported subset cannot be evaluated, so
         # it must make its whole selector match nothing. Negating it must not

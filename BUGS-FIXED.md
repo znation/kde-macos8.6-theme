@@ -5,6 +5,34 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher rejects a hex escape's whitespace terminator in an unquoted attribute value (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/support/selector_matching.py`'s `_ATTRIBUTE` regex matched an unquoted
+attribute value with ``(?:[^\]\s\"'\\]|\\.)+``: each whitespace ended the
+value, so a hex escape's one-whitespace terminator (`CSS` requires it after
+more than one escape digit when a non-hex digit follows) sat between the value
+group and the trailing `\]`, the attribute syntax no longer parsed and the
+selector matched no element — while the quoted form of the same escape
+(`[title="a\22 b"]`) already matched. Before the fix,
+`matches('[title=a\22 b]', element with title a"b)` was wrongly `False`. The
+fix adds a hex-escape alternative (backslash, one to six hex digits, one
+optional `CSS`-1 whitespace terminator) before the `\\.` pairing inside the
+unquoted group, so the terminator belongs to the escape and the value continues
+after it; a hex escape without a terminator still ends at the first non-hex
+digit, and escape decoding is unchanged.
+
+Regression test:
+`tests/test_selector_matching.py::TestSelectorMatching::test_a_hex_escape_with_its_whitespace_lives_in_an_unquoted_value`
+(failed before the fix; also pins that the terminator does not reach the value
+and that a terminator-free hex escape keeps its minimal parse).
+
+**Validation gap:** none — the failure was silent fail-closed (a sheet with
+such a selector simply matched nothing, a genuine no-observability gap, but
+this record is retired instead of growing the capped no-observability ledger):
+nothing failed until the case was derived by hand and given a repro test;
+before the fix a scratch `matches` call showed the wrong lower end and the new
+test failed, the same call passes after.
+
 ### The GTK sheet scanner treats a brace inside an unquoted url() value as a block delimiter (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/support/gtk_css.py`'s `_rule_blocks` tracked quoted strings and
