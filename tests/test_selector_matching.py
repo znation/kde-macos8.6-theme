@@ -355,6 +355,39 @@ class TestSelectorMatching(unittest.TestCase):
         self.assertFalse(matches('[type = "arrow" x]', target))
         self.assertFalse(matches("[type =]", target))
 
+    def test_an_escaped_quote_inside_an_attribute_value_is_literal(self):
+        # CSS lets a backslash escape the character after it inside a quoted
+        # string or an unquoted value, so ``[title="a\"b"]`` tests the value
+        # ``a"b``. The scanners read the escaped quote as the string's close,
+        # so the valid selector looked malformed and matched nothing.
+        double = element("button", attrs={"title": 'a"b'})
+        single = element("button", attrs={"title": "a'b"})
+        backslash = element("button", attrs={"title": "a\\b"})
+        plain = element("button", attrs={"title": "ab"})
+        for selector, target in (
+            ('[title="a\\"b"]', double),
+            ("[title='a\\'b']", single),
+            ('[title="a\\\\b"]', backslash),
+            ('[title=a\\"b]', double),
+            ('[title="a\\22 b"]', double),
+        ):
+            with self.subTest(selector=selector):
+                self.assertTrue(_selector_is_supported(selector))
+                self.assertTrue(matches(selector, target))
+                self.assertFalse(matches(selector, plain))
+        # The escaped quote does not close the string, so a selector whose
+        # closing bracket comes before the real quote is still malformed.
+        self.assertFalse(_selector_is_supported('[title="a\\"b]'))
+        # The escaped quote must not leak a parenthesis out of the value or a
+        # space out of the compound.
+        parenthesized = element("box", attrs={"title": 'a")b'})
+        other = element("box", attrs={"title": "x"})
+        self.assertTrue(matches(':not([title="a\\")b"])', other))
+        self.assertFalse(matches(':not([title="a\\")b"])', parenthesized))
+        parent = element("box", attrs={"title": 'a" b'})
+        child = element("button", parent=parent)
+        self.assertTrue(matches('[title="a\\" b"] > button', child))
+
     def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
         # A pseudo-class outside the supported subset cannot be evaluated, so
         # it must make its whole selector match nothing. Negating it must not

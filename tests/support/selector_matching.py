@@ -28,6 +28,8 @@ is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
 value is literal: ``[title=":hover"]`` is an attribute test, not a hover test.
+A backslash escape in a supported attribute value is decoded as CSS does, so ``[title="a\\"b"]`` tests the value ``a"b``
+instead of being read as a malformed selector.
 """
 
 from __future__ import annotations
@@ -41,8 +43,11 @@ _TAG = re.compile(r"^([-\w]+|\*)")
 _HOVER = re.compile(r":hover(?![-\w])")
 _ATTRIBUTE = re.compile(
     r"\[\s*([-\w]+)\s*"
-    r"(?:=\s*(?:\"([^\"]*)\"|'([^']*)'|([^\]\s\"']+))\s*)?\]"
+    r"(?:=\s*(?:\"((?:[^\"\\]|\\.)*)\""
+    r"|'((?:[^'\\]|\\.)*)'"
+    r"|((?:[^\]\s\"'\\]|\\.)+))\s*)?\]"
 )
+_HEX_ESCAPE = re.compile(r"\\([0-9A-Fa-f]{1,6})(?:\r\n|[ \t\r\n\f])?")
 _NEGATION_PLACEHOLDER = "\x00"
 
 
@@ -57,6 +62,56 @@ def element(tag, identifier=None, classes=(), attrs=None, hover=False,
         "hover": hover,
         "parent": parent,
     }
+
+
+def _is_escaped(text, index):
+    """Return whether *text*'s character at *index* follows a backslash.
+
+    An odd run of backslashes escapes the character after it, so a scanner
+    must not read ``\"`` as the end of a quoted value (or ``\\"`` as an
+    escaped backslash followed by a real closing quote).
+    """
+    backslashes = 0
+    index -= 1
+    while index >= 0 and text[index] == "\\":
+        backslashes += 1
+        index -= 1
+    return backslashes % 2 == 1
+
+
+def _css_unescape(value):
+    """Return *value* with CSS backslash escapes decoded.
+
+    A hex escape denotes the code point it names (and consumes one optional
+    following whitespace), and any other backslash escape denotes the
+    character after it. A NULL or surrogate code point is replaced with
+    U+FFFD, as CSS does.
+    """
+    result = []
+    index = 0
+    while index < len(value):
+        char = value[index]
+        if char != "\\":
+            result.append(char)
+            index += 1
+            continue
+        if index + 1 == len(value):
+            result.append(char)
+            index += 1
+            continue
+        hexadecimal = _HEX_ESCAPE.match(value, index)
+        if hexadecimal:
+            code = int(hexadecimal.group(1), 16)
+            if 0 < code <= 0x10FFFF and not 0xD800 <= code <= 0xDFFF:
+                result.append(chr(code))
+            else:
+                result.append("\ufffd")
+            index = hexadecimal.end()
+            continue
+        escaped = value[index + 1]
+        result.append(escaped)
+        index += 2
+    return "".join(result)
 
 
 def _attribute_spans(compound):
@@ -74,6 +129,8 @@ def _attribute_spans(compound):
     quote = None
     start = None
     for index, char in enumerate(compound):
+        if _is_escaped(compound, index):
+            continue
         if quote is not None:
             if char == quote:
                 quote = None
@@ -161,6 +218,9 @@ def _not_spans(compound):
     quote = None
     while index < len(compound):
         char = compound[index]
+        if _is_escaped(compound, index):
+            index += 1
+            continue
         if quote is not None:
             if char == quote:
                 quote = None
@@ -188,6 +248,9 @@ def _not_spans(compound):
         inner_bracket = 0
         while end < len(compound) and depth:
             char = compound[end]
+            if _is_escaped(compound, end):
+                end += 1
+                continue
             if inner_quote is not None:
                 if char == inner_quote:
                     inner_quote = None
@@ -249,6 +312,8 @@ def _compound_matches(compound, element):
                 value = single_quoted
             else:
                 value = unquoted
+            if value is not None:
+                value = _css_unescape(value)
             if value is not None and element["attrs"][name] != value:
                 return False
     return True
@@ -275,7 +340,10 @@ def _split_selector(selector):
     pending = None
     depth = 0
     quote = None
-    for char in selector:
+    for index, char in enumerate(selector):
+        if _is_escaped(selector, index):
+            current.append(char)
+            continue
         if quote:
             current.append(char)
             if char == quote:
@@ -330,7 +398,9 @@ def _has_selector_list_comma(selector):
     """
     quote = None
     bracket_depth = 0
-    for char in selector:
+    for index, char in enumerate(selector):
+        if _is_escaped(selector, index):
+            continue
         if quote is not None:
             if char == quote:
                 quote = None
@@ -357,7 +427,9 @@ def _parentheses_are_balanced(selector):
     quote = None
     bracket_depth = 0
     depth = 0
-    for char in selector:
+    for index, char in enumerate(selector):
+        if _is_escaped(selector, index):
+            continue
         if quote is not None:
             if char == quote:
                 quote = None

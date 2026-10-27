@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The test-side selector matcher rejects CSS escapes in attribute values (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+The matcher's attribute scanners tracked quotes but not backslashes, and its `_ATTRIBUTE` pattern had no escaped-character branch. A valid selector such as `[title="a\"b"]` therefore had its escaped quote read as the closing quote: `_attribute_spans` found no span, `_compound_is_supported` rejected the leftover brackets, and `matches` returned false for every element, including one whose `title` is `a"b`.
+
+Reproduce with `element("button", attrs={"title": 'a"b'})` and `matches('[title="a\\"b"]', target)`; it returned false. `_is_escaped` now makes every scanner skip an escaped character, `_ATTRIBUTE` accepts `\\.` in quoted and unquoted values, and `_css_unescape` decodes the captured value (hex escapes and escaped characters).
+
+**Validation gap:** unclear-invariant — the module docstring did not state whether CSS escapes were part of its subset, so the guarantee was reconstructed and added to `docs/invariants.md` and the unclear-invariant ledger.
+
 ### The selector matcher rejects CSS whitespace around an attribute selector (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/selector_matching.py`'s `_ATTRIBUTE` pattern
