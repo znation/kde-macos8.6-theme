@@ -102,6 +102,34 @@ class TestNoUnusedImports(unittest.TestCase):
         )
         self.assertEqual(findings, [])
 
+    def test_an_all_augassign_entry_re_exports_the_import(self):
+        # `__all__ += ["os"]` is the extend form a re-export hub uses: the
+        # augmented assignment must collect its strings like the plain one,
+        # or a hub that grows __all__ flags its own dead imports.
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": (
+                    'import os\n\n__all__ = []\n__all__ += ["os"]\n'
+                )
+            },
+        )
+        self.assertEqual(findings, [])
+
+    def test_an_augassign_to_another_name_keeps_the_flag(self):
+        # Only an augmented assignment whose target is `__all__` re-exports:
+        # growing a plain list honours no import, so the flag stays.
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": (
+                    'import os\n\nexports = []\nexports += ["os"]\n'
+                )
+            },
+        )
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("pkg/mod.py:1: unused import os", findings[0])
+
     def test_a_reassignment_of_the_imported_name_keeps_the_flag(self):
         # A Store context is not a read: `os = None` uses neither the
         # binding nor the value, so the import it shadows stays a finding.
