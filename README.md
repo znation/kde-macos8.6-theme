@@ -61,7 +61,10 @@ GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it 
 `gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file untouched. The
 two targets serialize on a lock over the config home's parent directory, so a concurrent apply
 and removal cannot publish a stale selection; a run that cannot take that lock within its bounded
-wait exits 2 with a diagnostic. `make uninstall` removes the thirteen GTK files, their `.staging`
+wait exits 2 with a diagnostic. An apply also holds the data-home lock that `make install` and
+`make uninstall` hold for their whole run, re-checks the installed sheets under it and keeps it
+through the selection, so a concurrent uninstall cannot remove the sheets between the apply's
+check and the selection that names them. `make uninstall` removes the thirteen GTK files, their `.staging`
 leftovers and the emptied `assets`/`gtk-3.0`/`gtk-4.0` directories but leaves `Kvantum/` and the
 theme directory itself.
 

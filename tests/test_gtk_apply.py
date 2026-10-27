@@ -12,6 +12,7 @@ from __future__ import annotations
 import errno
 import fcntl
 import os
+import shutil
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -763,6 +764,79 @@ class TestConfigLock(GtkApplyCase):
         assert_exit_2_without_traceback(self, result)
         self.assertIn(f"cannot lock {self.config.parent}", result.stderr)
         self.assertIn("simulated refusal", result.stderr)
+
+
+class TestDataHomeLock(GtkApplyCase):
+    """An apply serializes on the data-home lock make install/uninstall hold."""
+
+    def hold_data_lock(self):
+        """Take the data-home lock a concurrent install or uninstall holds."""
+        descriptor = os.open(
+            self.data, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        self.addCleanup(os.close, descriptor)
+
+    def test_apply_times_out_without_writing_while_an_install_or_uninstall_holds_the_data_home_lock(self):
+        self.install_sheet()
+        before = "[Settings]\ngtk-theme-name=Adwaita\n"
+        self.write(self.settings("gtk-3.0"), before)
+        self.hold_data_lock()
+
+        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool()
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("waiting for another install or uninstall", result.stderr)
+        self.assertIn(str(self.data), result.stderr)
+        self.assertFalse(self.settings("gtk-4.0").exists())
+        self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
+        self.assertEqual(before, self.settings("gtk-3.0").read_text(encoding="utf-8"))
+
+    def test_apply_releases_the_data_home_lock_for_the_next_run(self):
+        self.install_sheet()
+        assert_succeeded(self, self.run_tool())
+
+        descriptor = os.open(
+            self.data, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        finally:
+            os.close(descriptor)
+
+    def test_apply_rechecks_the_sheets_under_the_data_home_lock(self):
+        """Sheets removed before the lock is taken refuse the apply.
+
+        A concurrent uninstall that removes the installed sheets while this
+        run waits for the data-home lock must not leave a published selection
+        naming sheets that no longer exist: the re-check under the lock
+        refuses with the missing-sheet diagnostic instead.
+        """
+        self.install_sheet()
+        real = apply_gtk._installed_sheets
+        calls = []
+
+        def sheets_vanish_before_the_next_check(data_home):
+            if calls:
+                # A concurrent uninstall removed the sheets while this run
+                # waited for the data-home lock.
+                shutil.rmtree(self.data / "themes")
+            calls.append(data_home)
+            return real(data_home)
+
+        with mock.patch.object(
+            apply_gtk, "_installed_sheets", side_effect=sheets_vanish_before_the_next_check
+        ):
+            result = self.run_tool()
+
+        assert_failed(self, result)
+        self.assertEqual(1, result.returncode)
+        self.assertIn("installed gtk-4.0 sheet is missing", result.stderr)
+        self.assertIn("make install-gtk", result.stderr)
+        self.assertFalse(self.settings("gtk-4.0").exists())
+        self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
 
 
 class TestLineEndings(GtkApplyCase):

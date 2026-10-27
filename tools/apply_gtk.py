@@ -9,7 +9,10 @@ same script with ``--remove``: it deletes only our ``gtk-theme-name`` lines and
 the marker user stylesheet, leaving foreign values and files alone. An apply
 and a removal serialize on a lock over the directory containing the config
 home, so two concurrent runs cannot publish a stale edit over the other's
-result.
+result. An apply also holds the data-home lock that ``make install`` and
+``make uninstall`` hold for their whole run, so an uninstall cannot remove
+the installed sheets between the apply's sheet check and the selection that
+names them.
 
 Usage::
 
@@ -18,10 +21,11 @@ Usage::
 
 Exit status: 0 when the selection or removal ran, 1 when an installed GTK 3
 or GTK 4 sheet is missing, 2 for a usage error, an unresolvable config home
-(or data home when applying), another run holding the config-home lock past
-the timeout, a config-home directory that cannot be created or locked, a
-settings or user-CSS path that is a symbolic link, or a settings or user-CSS
-file that cannot be read or written.
+(or data home when applying), another run holding the config-home or data-home
+lock past the timeout, a config-home directory that cannot be created or
+locked, a data home that cannot be locked, a settings or user-CSS path that
+is a symbolic link, or a settings or user-CSS file that cannot be read or
+written.
 """
 
 from __future__ import annotations
@@ -81,32 +85,18 @@ def _note(message: str) -> None:
 
 
 @contextlib.contextmanager
-def _config_lock(config_home: Path) -> Iterator[None]:
-    """Serialize apply and removal on a lock over *config_home*'s directory.
+def _exclusive_flock(lock_dir: Path, holder: str) -> Iterator[None]:
+    """Hold an exclusive flock on *lock_dir* for the body's duration.
 
-    Both runs read the settings and user CSS, edit that text, and stage the
-    result; without a lock two of them can read the same original and one
-    can publish a stale result after the other finished. The write from the
-    process that finishes last then leaves a mixed selection (our user CSS
-    beside a settings file with no theme name, or the reverse), which neither
-    an apply nor a remove intends. Locking the directory that contains the
-    config home, rather than the config home itself, means a removal still
-    serializes when the config home does not exist yet: an apply that is
-    about to create it takes the same lock first. The lock adds no lock file
-    to the user's configuration and is released by the kernel when the
-    process dies, SIGKILL included.
-
-    The containing directory is created if needed, so both runs have an inode
-    to lock; the config home itself is left for an apply to create. A lock
-    held for longer than ``LOCK_TIMEOUT`` raises :class:`ConfigError` naming
-    the config home, rather than waiting forever on a stopped holder or
-    racing it.
+    The directory must already exist; an open that fails (a vanished or
+    unopenable directory) raises :class:`ConfigError` naming it. The wait for
+    a holder is bounded: another run that keeps the lock past ``LOCK_TIMEOUT``
+    -- stopped with SIGSTOP, say -- raises :class:`ConfigError` naming *holder*
+    instead of blocking every later run forever. A non-contention flock error
+    (a directory the caller may not open, for example) is a :class:`ConfigError`
+    too; closing the descriptor releases the lock even when the body raised,
+    and the kernel releases it when the process dies, SIGKILL included.
     """
-    lock_dir = config_home.parent
-    try:
-        lock_dir.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        raise ConfigError(f"cannot create {lock_dir}: {exc}") from exc
     try:
         descriptor = os.open(
             lock_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
@@ -132,14 +122,68 @@ def _config_lock(config_home: Path) -> Iterator[None]:
                 if time.monotonic() >= deadline:
                     raise ConfigError(
                         f"gave up after {LOCK_TIMEOUT:g}s waiting for "
-                        f"another apply-gtk/remove-gtk to finish with "
-                        f"{config_home}; nothing was changed"
+                        f"{holder}; nothing was changed"
                     )
                 time.sleep(_LOCK_POLL)
         yield
     finally:
         # Closing the descriptor releases the lock even when the body raised.
         os.close(descriptor)
+
+
+@contextlib.contextmanager
+def _config_lock(config_home: Path) -> Iterator[None]:
+    """Serialize apply and removal on a lock over *config_home*'s directory.
+
+    Both runs read the settings and user CSS, edit that text, and stage the
+    result; without a lock two of them can read the same original and one
+    can publish a stale result after the other finished. The write from the
+    process that finishes last then leaves a mixed selection (our user CSS
+    beside a settings file with no theme name, or the reverse), which neither
+    an apply nor a remove intends. Locking the directory that contains the
+    config home, rather than the config home itself, means a removal still
+    serializes when the config home does not exist yet: an apply that is
+    about to create it takes the same lock first. The lock adds no lock file
+    to the user's configuration and is released by the kernel when the
+    process dies, SIGKILL included.
+
+    The containing directory is created if needed, so both runs have an inode
+    to lock; the config home itself is left for an apply to create.
+    """
+    lock_dir = config_home.parent
+    try:
+        lock_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise ConfigError(f"cannot create {lock_dir}: {exc}") from exc
+    with _exclusive_flock(
+        lock_dir,
+        f"another apply-gtk/remove-gtk to finish with {config_home}",
+    ):
+        yield
+
+
+@contextlib.contextmanager
+def _data_lock(data_home: Path) -> Iterator[None]:
+    """Serialize an apply's sheet check and selection with make install/uninstall.
+
+    ``make install`` and ``make uninstall`` hold an exclusive flock on the
+    data home for their whole run (the Makefile's ``run_locked``). An apply
+    checks that both installed sheets exist and then publishes a selection
+    naming them; without this lock an uninstall running concurrently could
+    remove the sheets between the check and the write, and the apply would
+    still report success while the selection named sheets that no longer
+    exist. Locking the data home itself -- the same inode the Makefile locks
+    -- makes an install or uninstall wait for the whole apply, and the
+    re-check under the lock catches sheets an uninstall removed before this
+    run took the lock. The data home already exists here (the sheet check
+    found both sheets under it); a data home that vanishes anyway refuses the
+    lock rather than being created. The timeout and error behavior are the
+    config lock's.
+    """
+    with _exclusive_flock(
+        data_home, f"another install or uninstall to finish with {data_home}"
+    ):
+        yield
 
 
 def _installed_sheet(data_home: Path, version: str) -> Path:
@@ -258,8 +302,9 @@ def main(argv: list[str] | None = None) -> int:
             "exit status: 0 when the selection or removal ran, 1 when an "
             "installed GTK 3 or GTK 4 sheet is missing, 2 for a usage error, "
             "an unresolvable config home (or data home when applying), another "
-            "run holding the config-home lock past the timeout, a config-home "
-            "directory that cannot be created or locked, a settings or "
+            "run holding the config-home or data-home lock past the timeout, "
+            "a config-home directory that cannot be created or locked, a data "
+            "home that cannot be locked, a settings or "
             "user-CSS path that is a symbolic link, or a settings or user-CSS "
             "file that cannot be read or written"
         ),
@@ -301,8 +346,16 @@ def main(argv: list[str] | None = None) -> int:
             sheets = _installed_sheets(data_home)
             if sheets is None:
                 return 1
-            with _config_lock(config_home):
-                status = _apply(sheets, config_home)
+            # Hold the data-home lock make install/uninstall hold, so an
+            # uninstall cannot remove the sheets between this check and the
+            # selection that names them; the re-check under the lock catches
+            # sheets removed before this run took the lock.
+            with _data_lock(data_home):
+                sheets = _installed_sheets(data_home)
+                if sheets is None:
+                    return 1
+                with _config_lock(config_home):
+                    status = _apply(sheets, config_home)
     except ConfigError as exc:
         return report_error(TOOL, str(exc))
     if status == 0:
