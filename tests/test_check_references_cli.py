@@ -7,10 +7,12 @@ exit-status and output contract.
 
 import contextlib
 import io
+import os
 import sys
 import unittest
 import unittest.mock
 
+from support import snippet_child
 from support.check_references_fixtures import (
     CHECKER,
     ROOT,
@@ -237,6 +239,55 @@ class TestUnknownArgumentEscaping(CheckerTestCase):
         code, _, err = _capture(module.main, ["one", "two"])
         self.assertEqual(code, 2)
         self.assertIn("unknown arguments: one two", err)
+
+
+class TestProblemListEscaping(CheckerTestCase):
+    """The problem list the CLI prints must escape control characters.
+
+    A contributor-supplied reference-set name can carry a terminal escape,
+    and the regular-file guard's swap refusal names that path raw through its
+    ``str(exc)`` (``tools.reference_validation`` escapes the path in its other
+    path-bearing problem lines). ``main`` prints each problem directly, so a
+    raw ESC byte would drive the operator's terminal -- the same gap the
+    unknown-argument escaping test closes on the argv side of this tool. The
+    race the refusal covers is simulated the way ``TestFifoSwapAfterCheck``
+    does it: a real FIFO behind an ``is_file`` that reports True, driven in a
+    child so a regression that opens the FIFO stalls only the child.
+    """
+
+    def test_a_swap_refusal_names_the_file_escaped(self):
+        module = self.checker
+        # Built from chr() so the hostile name carries real U+001B and U+0007
+        # control characters regardless of source-file escaping.
+        hostile = "evil" + chr(27) + "]2;pwned" + chr(7) + ".png"
+        with reference_set(
+            module,
+            f"{hostile} | https://example.test/e.png | label\n",
+        ) as root:
+            if not hasattr(os, "mkfifo"):
+                self.skipTest("os.mkfifo is not available on this platform")
+            os.mkfifo(root / hostile)
+            child = snippet_child.run(
+                [
+                    "import sys\n"
+                    "from pathlib import Path\n"
+                    "from tools import check_references as cli\n"
+                    "real = Path.is_file\n"
+                    "hostile = sys.argv[2]\n"
+                    "Path.is_file = (lambda self: True if self.name == hostile "
+                    "else real(self))\n"
+                    "cli.REFERENCE_DIR = sys.argv[1]\n"
+                    "status = cli.main([])\n"
+                    "sys.exit(0 if status == 1 else 1)\n",
+                    str(root),
+                    hostile,
+                ],
+                cwd=ROOT,
+                timeout=10,
+            )
+        self.assertEqual(0, child.returncode, child.stdout + child.stderr)
+        self.assertIn("could not be read", child.stderr)
+        assert_escapes_escape_character(self, child.stderr)
 
 
 class TestScriptEntryPoint(unittest.TestCase):

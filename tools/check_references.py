@@ -30,11 +30,13 @@ try:
     from tools.diagnostics import report_error
     from tools.reference_validation import SOURCES_NAME, check_references
     from tools.repo_root import ROOT
+    from tools.terminal import escape_controls
 except ImportError:  # run directly: python3 tools/check_references.py
     from check_references_selftest import run_self_test
     from diagnostics import report_error
     from reference_validation import SOURCES_NAME, check_references
     from repo_root import ROOT
+    from terminal import escape_controls
 
 TOOL = "check_references"
 REFERENCE_DIR = "macos8.6-screenshots"
@@ -91,7 +93,12 @@ def main(argv: list[str] | None = None) -> int:
     problems = check_references(directory)
     if problems:
         for problem in problems:
-            print(problem, file=sys.stderr)
+            # A problem line names contributor-supplied text -- a reference-set
+            # filename, or the ``str(exc)`` of the read that failed -- so it is
+            # escaped here, the way ``report_error`` escapes the tool's other
+            # diagnostics, instead of driving the operator's terminal with a
+            # raw ESC byte when it is printed.
+            print(escape_controls(problem), file=sys.stderr)
         print(
             f"{len(problems)} {_plural(len(problems), 'problem')} "
             "in the reference set",
