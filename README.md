@@ -58,8 +58,10 @@ selects them: it sets `gtk-theme-name=org.macos8.desktop` in `[Settings]` of
 sheet, so libadwaita applications use it too. Restart running GTK applications to pick up the
 selection; KDE users can also choose the theme in System Settings -> Application Style ->
 GNOME/GTK Application Style. `make remove-gtk` is what clears the selection: it removes only our
-`gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file untouched.
-`make uninstall` removes the thirteen GTK files, their `.staging`
+`gtk-theme-name` lines and the marker `gtk.css`, leaving a foreign value or file untouched. The
+two targets serialize on a lock over the config home's parent directory, so a concurrent apply
+and removal cannot publish a stale selection; a run that cannot take that lock within its bounded
+wait exits 2 with a diagnostic. `make uninstall` removes the thirteen GTK files, their `.staging`
 leftovers and the emptied `assets`/`gtk-3.0`/`gtk-4.0` directories but leaves `Kvantum/` and the
 theme directory itself.
 
