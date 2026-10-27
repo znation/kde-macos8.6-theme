@@ -328,6 +328,11 @@ for radio in (False, True):
             ("calendar > grid > label.day-number.other-month",),
         )
 
+    def test_infobar(self):
+        self.assert_infobar(("infobar > revealer > box",))
+        for message_type in (".info", ".question", ".warning", ".error"):
+            self.assertNotIn(message_type, self.css, message_type)
+
     def test_rubberband(self):
         self.assert_rubberband(("rubberband",))
 

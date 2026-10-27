@@ -321,6 +321,16 @@ VISITED_TEXT = {"color": VISITED_LINK}
 # The drag-selection marquee: a dotted outline with no fill, after the Mac OS
 # Finder marquee.
 RUBBERBAND = {"background-color": "transparent", "border": f"1px dotted {BLACK}"}
+
+# An infobar draws the menu-bar band's face and etched bottom rule. No
+# reference screenshot shows a GTK infobar; the GTK-required type class names
+# take no per-type colour, so all four message types use this one band.
+INFOBAR = {
+    "background-color": FACE,
+    "color": BLACK,
+    "border-bottom": f"1px solid {ETCH_DARK}",
+    "box-shadow": f"inset 0 -1px {WHITE}",
+}
 ROW_SELECTED = {
     "background-color": SELECTION,
     "color": BLACK,

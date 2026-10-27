@@ -5,6 +5,51 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK infobar: paint `Gtk.InfoBar` as the menu-bar band with the etched bottom rule (planned 2026-10-27 by the plan role; independent of the waiting Firefox Page Info groupbox plan — the two touch disjoint files (`theme/firefox/…/userChrome.css` and its suite versus `theme/gtk/…/gtk.css` and its suites), so either order merges) — done 2026-10-27 by the feature role
+
+**Goal.** Under both standalone GTK sheets a `Gtk.InfoBar` draws nothing of its own: the bar's content box keeps its transparent background over the window face, its labels take the toolkit's default black, and the `info`, `question`, `warning` and `error` message-type classes distinguish nothing — GTK 3 replaces the toolkit's compiled-in Adwaita rules entirely when `GTK_THEME` names this theme, and GTK 4's embedded `Default` theme defines no infobar rule at all. Give the bar the menu-bar band's recipe — the reference-grounded `#DDDDDD` face, black text and the bottom edge's `#888888`/`#FFFFFF` etch (`border-bottom: 1px solid #888888` with `box-shadow: inset 0 -1px #FFFFFF`, the exact declarations the GTK 4 sheet's `.toolbar, menubar` rule and the GTK 3 sheet's `toolbar, menubar` rule already draw) — so a message band reads as a Platinum band separated from the pane below it. All four message types take the same band: Platinum has no per-type message colour, and the type class names are GTK-required. The bar's close and action buttons keep the sheets' existing `button` paint, `:backdrop` stays out of scope as in the calendar plan, and GTK CSS needs no `appearance` reset — the paint is plain declarations.
+
+**Grounding.** No reference screenshot shows a GTK infobar, so this is a platform-required adaptation; the recipe reuses only values the reference set already pins — the menu-bar face `#DDDDDD` (`tests/test_colorscheme_reference.py::TestReferenceAnchors::test_menu_bar_face`) and the etched pair (`tests/test_desktoptheme_line.py::TestLineReference`) — through the sheets' own menubar band rules, adding no new colour or metric. Measured live with PyGObject (GTK 3.24.49 and GTK 4.18.6, `GTK_THEME=org.macos8.desktop` with the sheet symlinked under a temp `XDG_DATA_HOME/themes`, on the session display): both toolkits build `infobar > revealer > box` — the infobar node carries the message-type style class (GTK 3 showed `horizontal, error`; GTK 4 showed `warning` with the node tree `infobar > revealer > box > [box, box, button.close > image]`; GTK 3's adds the message box holding the label and an action-area box beside it) — and the infobar node resolves `background-color` transparent with black text under this theme, so today the band is invisible and the type classes change nothing; the one `infobar > revealer > box` selector reaches both toolkits' band box, its `color` inherits to the message label, and the close and action buttons keep their own paint.
+
+**Approach.** Append at the very end of `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, after each sheet's calendar rules, one comment and one rule (the same text in both sheets):
+
+```css
+/* An infobar draws the menu-bar band: the #DDDDDD face, black text and the
+   etched bottom rule. The info, question, warning and error type classes all
+   take this band; no reference screenshot shows a GTK infobar, and the type
+   class names are GTK-required. */
+infobar > revealer > box {
+  background-color: #DDDDDD;
+  color: #000000;
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
+```
+
+Add one sentence to each sheet's header comment block, before its closing `*/` (after the spinner sentence): "An infobar band reuses the menu-bar band's face and etched bottom rule with black text; no reference screenshot shows a GTK infobar, and the four message-type class names are GTK-required, so all types take the same band." In `tests/support/gtk_theme_spec.py`, add beside `RUBBERBAND`:
+
+```python
+# An infobar draws the menu-bar band's face and etched bottom rule. No
+# reference screenshot shows a GTK infobar; the GTK-required type class names
+# take no per-type colour, so all four message types use this one band.
+INFOBAR = {
+    "background-color": FACE,
+    "color": BLACK,
+    "border-bottom": f"1px solid {ETCH_DARK}",
+    "box-shadow": f"inset 0 -1px {WHITE}",
+}
+```
+
+In `tests/support/gtk_rule_cases.py`, add `assert_infobar(self, selectors)` to `GtkSheetRuleCases` next to `assert_rubberband`, asserting each of the suite's own selectors against `INFOBAR`, and add infobar to the two docstring lists of assertions that take the suites' own selectors.
+
+**Files touched.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/support/gtk_theme_spec.py`, `tests/support/gtk_rule_cases.py`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Each sheet ends with exactly the rule above (the same selector and the same four declarations, after its calendar rules), and each header comment gains the infobar sentence. Both sheets' `test_only_palette_hex_literals` tests stay green: the rule adds no hex literal outside each suite's pinned palette (`#DDDDDD`, `#000000`, `#888888` and `#FFFFFF` are already in it).
+- `tests/test_gtk_theme.py::TestGtkTheme` gains `test_infobar` calling `self.assert_infobar(("infobar > revealer > box",))`, and `tests/test_gtk4_theme.py::TestGtk4Theme` gains the same test, both placed immediately after their `test_calendar`; each also asserts the sheets name no message type — no rule selector contains `.info`, `.question`, `.warning` or `.error` — and `assert_rule` pins each of the four declarations against `INFOBAR`.
+- `docs/invariants.md` gains a row appended at the end of the `## gtk` table: both GTK sheets draw an infobar (`infobar > revealer > box`) as the menu-bar band — the `#DDDDDD` face, black text and the `#888888`/`#FFFFFF` etched bottom rule — with all four message types (`info`, `question`, `warning`, `error`) taking the same band, the close and action buttons keeping the `button` paint and `:backdrop` out of scope. Its test column names the two new `test_infobar` tests; its provenance records the missing reference surface (no screenshot shows a GTK infobar), the live-measured node tree and current transparent background (GTK 3.24.49 / GTK 4.18.6, 2026-10-27), the re-used reference-grounded values (`TestReferenceAnchors::test_menu_bar_face`, `TestLineReference`, the sheets' own menubar band rules), and the GTK-required class names. `tests/invariants.py` stays green.
+- `make check` passes, and every existing rule in both sheets keeps its declarations and selector, including the menubar bands the infobar reuses.
+
 ### Firefox Platinum chrome: paint the Page Info security panel's groupbox frames and headers as the Platinum group frame (planned 2026-10-27 by the plan role; independent of the waiting Page Info meta/image-trees plan — both append at the very end of `userChrome.css`, insert their provenance paragraphs before the header's closing `*/` and trim only their own words from the shared stay-Firefox sentences, so either order merges) — done 2026-10-27 by the feature role
 
 **Goal.** Make the security panel's three group frames read as Platinum group boxes: each `groupbox` child of `vbox#securityPanel` gets the reference's etched group frame — a 1px `#888888` rectangle carrying the same `#888888`/`#FFFFFF` etched pair the sheet's rules already pin, drawn as the 1px highlight copy offset one pixel right and down (the light half running inside the dark top and left, outside the dark bottom and right) — over a transparent interior that keeps the dialog body face, square corners, `2px 8px` interior padding, and a `1em` face gap between stacked frames; each frame's `label.header` keeps Firefox's heading weight but takes the black Platinum text colour. The frames' contents — the identity table's readonly inputs (still the `#mainDeck input` paint), the `#securityTable` rows, the `#security-technical-*` labels and descriptions — and the security panel's already-painted buttons keep their own paints, as do the General and Media panels' `.header` labels (`#metaTagsCaption`, `html:input#hostText`) which sit outside `#securityPanel`.

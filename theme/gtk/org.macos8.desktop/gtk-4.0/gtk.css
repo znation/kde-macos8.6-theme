@@ -105,7 +105,11 @@
    #888888; no reference screenshot shows a calendar, and the node names and
    states are GTK-required. A spinner shows the icon theme's
    process-working-symbolic while it runs and is hidden while stopped; it adds no
-   colour or metric, and no reference screenshot shows a GTK spinner. */
+   colour or metric, and no reference screenshot shows a GTK spinner. An
+   infobar band reuses the menu-bar band's face and etched bottom rule with
+   black text; no reference screenshot shows a GTK infobar, and the four
+   message-type class names are GTK-required, so all types take the same
+   band. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -794,4 +798,15 @@ calendar > grid > label.day-number:selected {
 }
 calendar > grid > label.day-number.other-month {
   color: #888888;
+}
+
+/* An infobar draws the menu-bar band: the #DDDDDD face, black text and the
+   etched bottom rule. The info, question, warning and error type classes all
+   take this band; no reference screenshot shows a GTK infobar, and the type
+   class names are GTK-required. */
+infobar > revealer > box {
+  background-color: #DDDDDD;
+  color: #000000;
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
 }

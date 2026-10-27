@@ -7,7 +7,7 @@ assert live in the sibling ``tests/support/gtk_theme_spec.py``.
 
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the link, calendar, progress-bar, level-bar, scale, switch, paned-handle,
+plus the link, calendar, infobar, progress-bar, level-bar, scale, switch, paned-handle,
 spin-button field, menu-separator, frame, expander-arrow, submenu-arrow and
 spinner assertions they name with their own selectors.
 """
@@ -30,6 +30,7 @@ from support.gtk_theme_spec import (
     EXPANDER_COLLAPSED,
     EXPANDER_EXPANDED,
     FRAME,
+    INFOBAR,
     INVERTED_BUTTON_BEVEL,
     LEVELBAR_TROUGH,
     LINK,
@@ -105,7 +106,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
     that owns them. The progress-bar, scale, switch, menu-separator, frame,
-    text-selection, view-background, disabled-text and calendar assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
+    text-selection, view-background, disabled-text, calendar and infobar assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
     same nodes differently. The standalone separators are spelled alike in both,
     so ``assert_separators`` takes no selectors.
     """
@@ -312,6 +313,11 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         """Assert the dotted, unfilled marquee against *selectors*."""
         for selector in selectors:
             self.assert_rule(selector, RUBBERBAND)
+
+    def assert_infobar(self, selectors):
+        """Assert the menu-bar band's infobar paint against *selectors*."""
+        for selector in selectors:
+            self.assert_rule(selector, INFOBAR)
 
     def assert_spin_button_field(self, selectors):
         """Assert the entry field against the spin-button *selectors*."""
