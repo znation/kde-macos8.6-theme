@@ -1,7 +1,8 @@
 """Validate the Firefox Platinum sheet's Page Info dialog paints.
 
-The Page Info view tabs and action buttons, the readonly display fields and
-the permission list for the standalone ``userChrome.css``.
+The Page Info view tabs and action buttons, the readonly display fields,
+the permission list, the meta and image trees, the media preview and the
+security groupboxes for the standalone ``userChrome.css``.
 """
 
 from __future__ import annotations

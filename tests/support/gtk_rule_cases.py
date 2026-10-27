@@ -6,10 +6,14 @@ control rules the two GTK suites both satisfy. The Platinum spec values they
 assert live in the sibling ``tests/support/gtk_theme_spec.py``.
 
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
-:class:`GtkSheetRuleCases` holds the control rules the two GTK suites share,
-plus the link, calendar, infobar, progress-bar, level-bar, scale, switch, paned-handle,
-spin-button field, menu-separator, frame, expander-arrow, submenu-arrow and
-spinner assertions they name with their own selectors.
+:class:`GtkSheetRuleCases` holds the control rules the two GTK suites share.
+GTK 3 and GTK 4 spell the same nodes differently, so the link, calendar,
+infobar, progress-bar, level-bar, scale, switch, spin-button field,
+menu-separator, frame, expander-arrow, submenu-arrow, text-selection,
+view-background, disabled-text, rubberband and title-button assertions take
+the suite's own selectors; the spinner assertion takes the rotation
+transform instead, and the standalone separators and paned handles are
+spelled alike in both, so their assertions take none.
 """
 
 from __future__ import annotations
@@ -105,10 +109,14 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     Both suites inherit these cases and run them against their own parsed
     ``self.rules``. Selectors and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
-    that owns them. The progress-bar, scale, switch, menu-separator, frame,
-    text-selection, view-background, disabled-text, calendar and infobar assertions take the suite's own selectors, since GTK 3 and GTK 4 spell the
-    same nodes differently. The standalone separators are spelled alike in both,
-    so ``assert_separators`` takes no selectors.
+    that owns them. GTK 3 and GTK 4 spell the same nodes differently, so the
+    link, calendar, infobar, progress-bar, level-bar, scale, switch,
+    spin-button field, menu-separator, frame, expander-arrow, submenu-arrow,
+    text-selection, view-background, disabled-text, rubberband and
+    title-button assertions take the suite's own selectors;
+    :meth:`assert_spinner` takes the rotation transform instead, and the
+    standalone separators and paned handles are spelled alike in both, so
+    ``assert_separators`` and ``assert_paned_handles`` take none.
     """
 
     def test_headerbar(self):
