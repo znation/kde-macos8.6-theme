@@ -298,6 +298,39 @@
    the permission menulist, leaving the rows, labels, icons, header,
    separator and panel body Firefox's; declaration checks do not establish
    rendered pixels.
+
+   No reference shows Firefox's trust panel; its row highlight adapts the
+   reference-grounded widgets/viewitem.svg and the sheet's menu-row mapping
+   (platform colour adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/navigator-toolbox.js routes a click on the
+   site-information buttons to the trust panel when
+   browser.urlbar.trustPanel.featureGate is set;
+   defaults/preferences/firefox.js enables that pref, and
+   chrome/browser/content/browser/browser-siteProtections.js
+   showProtectionsPopup returns early, so the site-information button opens
+   the trust panel. chrome/browser/content/browser/browser.xhtml defines
+   template-trustpanel-popup with #trustpanel-popup, its
+   #trustpanel-popup-multiView and #trustpanel-popup-mainView, the
+   #trustpanel-popup-connection, #trustpanel-clear-cookies-button and
+   #trustpanel-privacy-link rows, the trustpanel-toggle moz-toggle and the
+   #trustpanel-siteinformation-morelink footer link;
+   chrome/browser/content/browser/browser-trustPanel.js #addButtons
+   builds the tracker rows as moz-button.moz-button-subviewbutton-nav, and
+   moz-src/browser/components/customizableui/PanelMultiView.sys.mjs creates
+   the trust panel's .panel-header back button carrying subviewbutton-back.
+   chrome/browser/skin/classic/browser/controlcenter/panel.css owns the trust
+   panel layout, chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css
+   gives .subviewbutton its --panel-menuitem-border-radius and ghost hover
+   tokens, and
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   declares those tokens. The sheet paints only the plain .subviewbutton rows,
+   leaving the cards, graphics, moz-button rows and actions, tracking toggle,
+   https-only menulist, generated back buttons, the .panel-button certificate
+   action, footer link, separators and panel body Firefox's; declaration
+   checks do not establish rendered pixels.
 */
 
 tooltip {
@@ -540,6 +573,21 @@ toolbarbutton:hover:active:not([disabled="true"]) {
 
 #protections-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]),
 #protections-popup-show-report-stack:hover > .protections-popup-footer-button:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The trust panel rows adapt the desktop theme's view item: square corners and
+   a flat #CCCCFF hover with black text and no toolbar bevel. The generated
+   back buttons in the panel header, the moz-button rows and actions, the
+   moz-toggle tracking switch, the https-only menulist, the cards, graphics,
+   labels, separators and the panel body keep Firefox's own paint. */
+#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton) {
+  border-radius: 0 !important;
+}
+
+#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled]) {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;

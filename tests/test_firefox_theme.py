@@ -293,6 +293,14 @@ REQUIRED_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    "#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton)": {
+        "border-radius": "0 !important",
+    },
+    "#trustpanel-popup .subviewbutton:not(.panel-header .subviewbutton):hover:not([disabled])": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
     "#permission-popup .permission-popup-permission-remove-button": {
         "background-color": f"{FACE} !important",
         "color": f"{BLACK} !important",
@@ -1142,6 +1150,126 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
                         matches(selector, {**unthemed, "hover": True})
                     )
 
+    def test_trust_panel_row_paint_is_scoped_to_the_trust_panel(self):
+        radius = (
+            "#trustpanel-popup .subviewbutton"
+            ":not(.panel-header .subviewbutton)"
+        )
+        hover = radius + ":hover:not([disabled])"
+        self.assertEqual(
+            {name for name in self.rules if "trustpanel-popup" in name},
+            {radius, hover},
+        )
+        for selector in (radius, hover):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#trustpanel-popup"))
+                self.assertIn(":not(.panel-header .subviewbutton)", selector)
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        self.assertEqual(set(self.rules[radius]), {"border-radius"})
+        self.assertIn(":hover", hover)
+        self.assertIn(":not([disabled])", hover)
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--panel-menuitem-border-radius" in declarations},
+            set(),
+        )
+
+        panel = element("panel", "trustpanel-popup")
+        multi_view = element(
+            "panelmultiview", "trustpanel-popup-multiView", parent=panel
+        )
+        main_view = element(
+            "panelview", "trustpanel-popup-mainView", ("PanelUI-subView",),
+            parent=multi_view,
+        )
+        header = element(
+            "box", "trustpanel-popup-mainView-panel-header",
+            ("panel-header",), parent=main_view,
+        )
+        header_button = element(
+            "toolbarbutton",
+            classes=(
+                "subviewbutton", "subviewbutton-iconic",
+                "subviewbutton-back",
+            ),
+            parent=header,
+        )
+        connection = element(
+            "toolbarbutton", "trustpanel-popup-connection",
+            ("subviewbutton", "subviewbutton-nav"), parent=main_view,
+        )
+        clear_cookies = element(
+            "toolbarbutton", "trustpanel-clear-cookies-button",
+            ("subviewbutton", "subviewbutton-nav"), parent=main_view,
+        )
+        privacy_link = element(
+            "toolbarbutton", "trustpanel-privacy-link",
+            ("subviewbutton",), parent=main_view,
+        )
+        toggle = element(
+            "html:moz-toggle", "trustpanel-toggle", parent=main_view
+        )
+        https_only = element(
+            "menulist", "trustpanel-popup-security-httpsonlymode-menulist",
+            parent=main_view,
+        )
+        blocker_see_all = element(
+            "html:moz-button", "trustpanel-blocker-see-all", parent=main_view
+        )
+        blocker_row = element(
+            "html:moz-button", classes=("moz-button-subviewbutton-nav",),
+            parent=main_view,
+        )
+        morelink = element(
+            "html:a", "trustpanel-siteinformation-morelink",
+            ("trustpanel-section", "panel-subview-footer-button"),
+            parent=main_view,
+        )
+        cert_action = element(
+            "button", "identity-popup-remove-cert-exception",
+            ("panel-button",), parent=main_view,
+        )
+        graphic = element(
+            "vbox", "trustpanel-graphic-section", parent=main_view
+        )
+        nav_bar_button = element(
+            "toolbarbutton", "nav-bar-button", ("subviewbutton",),
+            parent=element("toolbar", "nav-bar"),
+        )
+
+        for name, row in (
+            ("connection", connection),
+            ("clear-cookies", clear_cookies),
+            ("privacy-link", privacy_link),
+        ):
+            with self.subTest(row=name):
+                self.assertTrue(matches(radius, row))
+                self.assertTrue(matches(hover, {**row, "hover": True}))
+                self.assertFalse(matches(hover, row))
+
+        disabled = {
+            **connection, "attrs": {"disabled": ""}, "hover": True,
+        }
+        self.assertTrue(matches(radius, disabled))
+        self.assertFalse(matches(hover, disabled))
+
+        for name, unthemed in (
+            ("header_back", header_button),
+            ("toggle", toggle),
+            ("https_only", https_only),
+            ("blocker_see_all", blocker_see_all),
+            ("blocker_row", blocker_row),
+            ("morelink", morelink),
+            ("cert_action", cert_action),
+            ("graphic", graphic),
+            ("nav_bar", nav_bar_button),
+        ):
+            with self.subTest(unthemed=name):
+                self.assertFalse(matches(radius, unthemed))
+                self.assertFalse(
+                    matches(hover, {**unthemed, "hover": True})
+                )
+
     def test_permission_popup_control_paint_is_scoped_to_the_permission_popup(self):
         button = (
             "#permission-popup .permission-popup-permission-remove-button"
@@ -1481,9 +1609,39 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "--button-background-color",
             "--button-border-radius",
             "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's trust panel",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "chrome/browser/content/browser/navigator-toolbox.js",
+            "browser.urlbar.trustPanel.featureGate",
+            "defaults/preferences/firefox.js",
+            "chrome/browser/content/browser/browser-siteProtections.js",
+            "showProtectionsPopup",
+            "chrome/browser/content/browser/browser.xhtml",
+            "template-trustpanel-popup",
+            "trustpanel-popup-connection",
+            "trustpanel-clear-cookies-button",
+            "trustpanel-privacy-link",
+            "trustpanel-siteinformation-morelink",
+            "trustpanel-toggle",
+            "chrome/browser/content/browser/browser-trustPanel.js",
+            "moz-button-subviewbutton-nav",
+            "chrome/browser/skin/classic/browser/controlcenter/panel.css",
+            "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
+            "chrome/toolkit/skin/classic/global/design-system/tokens-shared.css",
+            "platform colour adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)
+        trust_provenance = header.split(
+            "No reference shows Firefox's trust panel", 1
+        )[1]
+        self.assertIn(
+            "moz-src/browser/components/customizableui/PanelMultiView.sys.mjs"
+            " creates the trust panel's .panel-header back button",
+            " ".join(trust_provenance.split()),
+        )
         self.assertIn(
             "toolkit.legacyUserProfileCustomizations.stylesheets",
             self.text,
