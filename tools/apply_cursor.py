@@ -15,17 +15,20 @@ Usage::
 
 Exit status: 0 when the selection or removal ran, 1 when the selector failed,
 2 for a usage error, an unusable ``HOME``, a missing installed theme, a
-foreign path at the link target, a selector that cannot be started, or a
-scratch directory that cannot be created, and 128 plus the signal number when
-a SIGTERM or SIGHUP ends the run.
+foreign path at the link target, a selector that cannot be started, a scratch
+directory that cannot be created, or another install/uninstall holding the
+data-home lock past the timeout, and 128 plus the signal number when a
+SIGTERM or SIGHUP ends the run.
 """
 
 from __future__ import annotations
 
+import contextlib
 import os
 import shutil
 import sys
 import tempfile
+from collections.abc import Iterator
 from pathlib import Path
 
 if __package__:
@@ -33,6 +36,7 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import read_text
     from tools.diagnostics import report_error, report_missing_tool, report_note
+    from tools.file_lock import exclusive_flock
     from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
     from tools.required_command import run_required
@@ -41,6 +45,7 @@ else:  # run directly: python3 tools/apply_cursor.py
     from argument_parsing import EscapingArgumentParser
     from containment import read_text
     from diagnostics import report_error, report_missing_tool, report_note
+    from file_lock import exclusive_flock
     from process_group import exit_on_termination
     from repo_root import ROOT
     from required_command import run_required
@@ -49,6 +54,10 @@ TOOL = "apply_cursor"
 CURSOR_THEME = "org.macos8.desktop"
 SELECT_TOOL = "plasma-apply-cursortheme"
 COMMAND_TIMEOUT = 60.0
+# The wait for the data-home lock matches make install/uninstall's own
+# FLOCK_TIMEOUT default, so a holder stopped with SIGSTOP cannot block this
+# run forever either.
+LOCK_TIMEOUT = 60.0
 
 
 class CursorError(Exception):
@@ -135,6 +144,34 @@ def _install_link(home: Path, theme: Path) -> None:
         raise CursorError(f"cannot create {target}: {exc}") from exc
 
 
+@contextlib.contextmanager
+def _data_lock(data_home: Path) -> Iterator[None]:
+    """Serialize an apply's installed-theme check and selection with install.
+
+    ``make install`` and ``make uninstall`` hold an exclusive flock on the
+    data home for their whole run (the Makefile's ``run_locked``). An apply
+    checks that the installed theme exists and then links and selects it;
+    without this lock an uninstall running concurrently could remove the
+    theme between the check and the selection, leaving a dangling
+    ``~/.icons`` symlink and a failed selection. Locking the data home
+    itself -- the same inode the Makefile locks -- makes an install or
+    uninstall wait for the whole apply, and the re-check under the lock
+    catches a theme an uninstall removed before this run took the lock. The
+    data home already exists here (the pre-lock check found the theme under
+    it); a data home that vanishes anyway refuses the lock rather than being
+    created. The wait is bounded like the config-home lock's, so a stopped
+    holder cannot stall the run.
+    """
+    with exclusive_flock(
+        data_home,
+        "for the cursor selection",
+        f"another install or uninstall to finish with {data_home}",
+        timeout=LOCK_TIMEOUT,
+        error=CursorError,
+    ):
+        yield
+
+
 def _select(env: dict[str, str]) -> int:
     """Select our cursor theme with ``plasma-apply-cursortheme``.
 
@@ -169,8 +206,14 @@ def _select(env: dict[str, str]) -> int:
 def _apply(home: Path, data_home: Path, env: dict[str, str]) -> int:
     """Link the installed theme into the Xcursor path, then select it."""
     theme = _require_installed(data_home)
-    _install_link(home, theme)
-    status = _select(env)
+    # Hold the data-home lock make install/uninstall hold across the link and
+    # the selection, and re-check the theme under it: a concurrent uninstall
+    # can otherwise remove the theme after the pre-lock check but before the
+    # symlink it dangles.
+    with _data_lock(data_home):
+        theme = _require_installed(data_home)
+        _install_link(home, theme)
+        status = _select(env)
     if status == 0:
         _note(
             "restart running applications for the new pointer to display "
