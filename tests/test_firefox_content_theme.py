@@ -168,6 +168,8 @@ ROOT = ":root"
 HEADING = ".subcategory"
 
 SEARCH = "moz-input-search#searchInput"
+PANE_BUTTON = "#mainPrefPane button:not(.arrowhead):not([disabled])"
+PANE_BUTTON_HOVER = PANE_BUTTON + ":hover"
 
 REQUIRED_PREFERENCES_RULES = {
     NAV: {
@@ -206,6 +208,20 @@ REQUIRED_PREFERENCES_RULES = {
         "--input-text-background-color": f"{WHITE} !important",
         "--input-text-color": f"{BLACK} !important",
         "--icon-color": f"{BLACK} !important",
+    },
+    PANE_BUTTON: {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": (
+            f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW} !important"
+        ),
+    },
+    PANE_BUTTON_HOVER: {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
     },
 }
 
@@ -459,6 +475,62 @@ class TestFirefoxPreferencesSearchTheme(SheetCase):
                 "sunken bevel",
                 "2026-10-27",
                 "platform colour adaptation 2026-10-27",
+            )
+        )
+
+
+class TestFirefoxPreferencesPushButtonsTheme(SheetCase):
+    AT_RULE_URL = "about:preferences"
+
+    def test_push_button_rules_are_the_sheet_recipe(self):
+        """Both pane-button rules equal the userChrome push-button recipe."""
+        self.assertEqual(self.rules[PANE_BUTTON], REQUIRED_PREFERENCES_RULES[PANE_BUTTON])
+        self.assertEqual(self.rules[PANE_BUTTON], BUTTON_RULE)
+        self.assertEqual(
+            self.rules[PANE_BUTTON_HOVER],
+            REQUIRED_PREFERENCES_RULES[PANE_BUTTON_HOVER],
+        )
+        self.assertEqual(self.rules[PANE_BUTTON_HOVER], BUTTON_HOVER_RULE)
+
+    def test_push_button_rules_scope_to_the_pane(self):
+        for selector in (PANE_BUTTON, PANE_BUTTON_HOVER):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#mainPrefPane button"))
+                self.assertIn(":not(.arrowhead)", selector)
+        self.assertIn(":not([disabled])", PANE_BUTTON)
+        self.assertIn(":not([disabled])", PANE_BUTTON_HOVER)
+        for token in ("#dialogTemplate", "dialogClose", "sidebar-", "categories"):
+            with self.subTest(token=token):
+                self.assertNotIn(token, PANE_BUTTON)
+                self.assertNotIn(token, PANE_BUTTON_HOVER)
+
+    def test_push_button_rules_use_the_pinned_palette(self):
+        for selector in (PANE_BUTTON, PANE_BUTTON_HOVER):
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertTrue(declarations)
+            for name, value in declarations.items():
+                with self.subTest(property=name):
+                    if name in ("background-color", "color", "border", "box-shadow"):
+                        self.assertIn("!important", value)
+                    for token in HEX.findall(value):
+                        self.assertIn(token, {WHITE, BLACK, FACE, BUTTON_SHADOW, SELECTION})
+
+    def test_header_names_buttons_provenance(self):
+        self.assert_header_names(
+            (
+                "#mainPrefPane",
+                ".arrowhead",
+                "#dialogTemplate",
+                "in-content/common-shared.css",
+                "tokens-shared.css",
+                "tokens-brand.css",
+                "preferences.css",
+                "widgets/button.svg",
+                "tests/test_desktoptheme_button.py",
+                "widgets/viewitem.svg",
+                "platform colour adaptation 2026-10-27",
+                "2026-10-27",
             )
         )
 

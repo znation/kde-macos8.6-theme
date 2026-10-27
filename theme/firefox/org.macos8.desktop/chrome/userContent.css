@@ -143,6 +143,38 @@
    face, text and icon only, with geometry, the disabled state and any
    focus indicator Firefox's; declaration checks do not establish rendered
    field pixels.
+
+   The panes' push buttons follow: preferences.xhtml authors every pane's
+   buttons inside vbox#mainPrefPane's html:templates (42 button elements,
+   enumerated by a full walk of preferences.xhtml 2026-10-27), and in the
+   installed Firefox ESR 153.5.1
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css paints
+   each one from tokens defined in
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css and
+   tokens-brand.css, with
+   chrome/browser/skin/classic/browser/preferences/preferences.css owning
+   the page's own button classes (all read 2026-10-27). Every button inside
+   #mainPrefPane except the six class-.arrowhead disclosure arrows is the
+   sheet's square Platinum push button: the #DDDDDD face with a 1px black
+   outline and the reference's white/#AAAAAA raised bevel adapt
+   widgets/button.svg, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, the
+   #AAAAAA shadow being the pinned tests/support/platinum_palette.py
+   BUTTON_SHADOW sampled from the Get Info window's popup buttons in
+   aboutsystem_betawiki.png; an enabled hovered button is flat #CCCCFF with
+   black text and no bevel, the hover fill of widgets/viewitem.svg pinned
+   by tests/test_desktoptheme_viewitem.py and test_selection_background
+   (platform colour adaptation 2026-10-27). :not([disabled]) on the face
+   rule keeps a disabled button's Firefox disabled paint, and no pressed
+   rule is added, so a pressed enabled button keeps the flat #CCCCFF face
+   as on every other push button. Class .arrowhead and everything under
+   #dialogTemplate (the sub-dialog overlay) stay Firefox's, as do button
+   geometry (min-height, padding, margins and the .accessory-button
+   min-width), the inner hbox/label anatomy and the focus outline. Only
+   #FFFFFF, #000000, #DDDDDD, #AAAAAA and #CCCCFF appear, every one already
+   a member of the pinned palette (test_palette_is_exact); declaration
+   checks do not establish rendered pane-button pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -256,5 +288,19 @@
     --input-text-background-color: #FFFFFF !important;
     --input-text-color: #000000 !important;
     --icon-color: #000000 !important;
+  }
+
+  #mainPrefPane button:not(.arrowhead):not([disabled]) {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #mainPrefPane button:not(.arrowhead):not([disabled]):hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
   }
 }
