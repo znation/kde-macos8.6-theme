@@ -143,20 +143,26 @@ class TestRunLogged(unittest.TestCase):
         for wait_timeout in timeouts:
             self.assertIsNotNone(wait_timeout)
 
-    def test_a_sigterm_while_popen_returns_still_kills_the_child(self):
-        # exit_on_termination's handler raises SystemExit at the next
-        # bytecode. A SIGTERM that arrives while Popen is still returning was
-        # raised before run_logged's try/finally was entered, so the group
-        # kill was skipped and the command kept running after the caller
-        # died. Deliver the signal from inside Popen, at the exact point the
-        # real one returns, so the race is deterministic.
+    def _run_while_popen_returns(self, number, raises):
+        """Run the logged runner while *number* arrives inside Popen.
+
+        Popen is the exact point where a real signal races the supervisor's
+        try/finally: the signal is delivered before ``run_logged`` enters it,
+        so this reproduces the startup race deterministically. The caller runs
+        under ``exit_on_termination`` so SIGTERM and SIGHUP become
+        ``SystemExit``; SIGINT keeps its default ``KeyboardInterrupt``.
+        *raises* is the exception the caller expects that signal to raise.
+        The child is killed in a cleanup so a regression does not leave it
+        running, and this fails unless it is gone by the time the exception
+        escapes.
+        """
         real_popen = subprocess.Popen
         child = {}
 
-        def popen_then_terminate(*args, **kwargs):
+        def popen_then_signal(*args, **kwargs):
             process = real_popen(*args, **kwargs)
             child["pid"] = process.pid
-            os.kill(os.getpid(), signal.SIGTERM)
+            os.kill(os.getpid(), number)
             return process
 
         def kill_child():
@@ -169,10 +175,10 @@ class TestRunLogged(unittest.TestCase):
 
         self.addCleanup(kill_child)
         with mock.patch.object(
-            process_group.subprocess, "Popen", side_effect=popen_then_terminate
+            process_group.subprocess, "Popen", side_effect=popen_then_signal
         ):
-            with process_group.exit_on_termination():
-                with self.assertRaises(SystemExit) as caught:
+            with self.assertRaises(raises) as caught:
+                with process_group.exit_on_termination():
                     process_group.run_logged(
                         ["/bin/sleep", "60"],
                         dict(os.environ),
@@ -180,85 +186,32 @@ class TestRunLogged(unittest.TestCase):
                         30,
                         self.root,
                     )
-        self.assertEqual(128 + signal.SIGTERM, caught.exception.code)
         self.assertTrue(is_gone(child["pid"]))
+        return caught.exception
+
+    def test_a_sigterm_while_popen_returns_still_kills_the_child(self):
+        # exit_on_termination's handler raises SystemExit at the next
+        # bytecode. A SIGTERM that arrives while Popen is still returning was
+        # raised before run_logged's try/finally was entered, so the group
+        # kill was skipped and the command kept running after the caller
+        # died.
+        caught = self._run_while_popen_returns(signal.SIGTERM, SystemExit)
+        self.assertEqual(128 + signal.SIGTERM, caught.code)
 
     def test_a_sigint_while_popen_returns_still_kills_the_child(self):
         # Ctrl-C's default handler raises KeyboardInterrupt at the next
         # bytecode, so an interrupt that arrives while Popen is still
         # returning unwinds the caller before run_logged's try/finally is
         # entered: the group kill is skipped and the command keeps running.
-        # Deliver the signal from inside Popen, at the exact point the real
-        # one returns, so the race is deterministic.
-        real_popen = subprocess.Popen
-        child = {}
-
-        def popen_then_interrupt(*args, **kwargs):
-            process = real_popen(*args, **kwargs)
-            child["pid"] = process.pid
-            os.kill(os.getpid(), signal.SIGINT)
-            return process
-
-        def kill_child():
-            pid = child.get("pid")
-            if pid is not None:
-                try:
-                    os.kill(pid, signal.SIGKILL)
-                except OSError:
-                    pass
-
-        self.addCleanup(kill_child)
-        with mock.patch.object(
-            process_group.subprocess, "Popen", side_effect=popen_then_interrupt
-        ):
-            with self.assertRaises(KeyboardInterrupt):
-                process_group.run_logged(
-                    ["/bin/sleep", "60"],
-                    dict(os.environ),
-                    self.log,
-                    30,
-                    self.root,
-                )
-        self.assertTrue(is_gone(child["pid"]))
+        self._run_while_popen_returns(signal.SIGINT, KeyboardInterrupt)
 
     def test_a_sighup_while_popen_returns_still_kills_the_child(self):
         # exit_on_termination handles SIGHUP as well as SIGTERM: a terminal
         # hangup must not leave the command running either. The SIGTERM race
         # test above would keep passing if SIGHUP were dropped from the
-        # deferral, so deliver SIGHUP from inside Popen, at the exact point
-        # the real one returns, and pin the same cleanup.
-        real_popen = subprocess.Popen
-        child = {}
-
-        def popen_then_hangup(*args, **kwargs):
-            process = real_popen(*args, **kwargs)
-            child["pid"] = process.pid
-            os.kill(os.getpid(), signal.SIGHUP)
-            return process
-
-        def kill_child():
-            pid = child.get("pid")
-            if pid is not None:
-                try:
-                    os.kill(pid, signal.SIGKILL)
-                except OSError:
-                    pass
-
-        self.addCleanup(kill_child)
-        with mock.patch.object(
-            process_group.subprocess, "Popen", side_effect=popen_then_hangup
-        ):
-            with process_group.exit_on_termination():
-                with self.assertRaises(SystemExit) as caught:
-                    process_group.run_logged(
-                        ["/bin/sleep", "60"],
-                        dict(os.environ),
-                        self.log,
-                        30,
-                        self.root,
-                    )
-        self.assertEqual(128 + signal.SIGHUP, caught.exception.code)
-        self.assertTrue(is_gone(child["pid"]))
+        # deferral, so this pins the same cleanup for SIGHUP.
+        caught = self._run_while_popen_returns(signal.SIGHUP, SystemExit)
+        self.assertEqual(128 + signal.SIGHUP, caught.code)
 
     def test_a_reap_timeout_does_not_replace_the_signal_that_interrupted_the_wait(self):
         # A SIGTERM or SIGHUP makes exit_on_termination's handler raise
