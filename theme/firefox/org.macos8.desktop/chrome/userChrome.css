@@ -439,7 +439,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    #viewGroup > radio with SelectedItem, so the sheet overrides those paints
    through the page-info-only #topBar, #viewGroup and #mainDeck ids. Disabled
    buttons keep Firefox's paint, and the dialog body,
-   security tables, description labels and focus rings stay
+   security-table rows, description labels and focus rings stay
    Firefox's (the permission list, the Media panel's preview pane and the
    meta and image trees have their own provenance paragraphs below);
    declaration checks do not establish rendered pixels.
@@ -533,6 +533,37 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    rows' italic graytext; the column headers stay Firefox's.
    Declaration checks do not establish rendered pixels
    (platform colour adaptation 2026-10-27).
+
+   The Page Info security panel's group frames (#securityPanel > groupbox)
+   are the reference's etched group box: a 1px #888888 rectangle with the
+   #FFFFFF highlight copy offset one pixel right and down (the light half
+   running inside the dark top and left, outside the dark bottom and
+   right), re-derived edge for edge and corner by
+   tests/test_desktoptheme_line.py::TestLineReference's three extension
+   tests; the box is macos8.6-screenshots/systemprofiler_betawiki.png's
+   framed Software-overview section at x=241..679, y=103..154, whose
+   bottom rule and left edge the existing pair assertions already pin.
+   In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/pageinfo/pageInfo.xhtml opens
+   #securityPanel with three groupbox elements each headed by a
+   label.header l10n label, and
+   chrome/toolkit/content/global/xul.css gives groupbox only
+   flex-direction: column with no -moz-default-appearance while neither
+   the toolkit skin nor the pageinfo skin's pageInfo.css paints a
+   groupbox border, so the sheet adds the whole frame. The headers stay
+   inside the frame in Firefox's markup order, taking only black
+   (#000000, the shared Platinum foreground that the reference's header
+   glyphs sample) at the stock bold .header weight; the reference draws
+   its header above the frame with a disclosure triangle, which the Page
+   Info groupboxes carry none of, so no triangle is reproduced. 1em
+   between stacked frames is pageInfo.css's own spacing unit because the
+   lossless reference shows a single framed box (lossy
+   apps_macrumors8.6.jpg is not pixel ground) and no pad value the set
+   could ground as a literal, and the 2px 8px interior padding keeps the
+   contents clear of the light half.
+   Declaration checks pin the sheet's declarations; the reference test
+   re-derives the frame's pixels, not Firefox's rendered dialog
+   (reference grounding 2026-10-27).
 */
 
 tooltip {
@@ -971,7 +1002,7 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
    buttons take the push-button face, square 1px black outline and the
    white/#AAAAAA raised bevel, and an enabled hovered one is flat #CCCCFF with
    black text and no bevel. Disabled buttons, the stock tab width and padding,
-   the focus ring, the dialog body, fields, security tables and
+   the focus ring, the dialog body, fields, security-table rows and
    labels keep Firefox's own paint (the permission list is painted
    in its own rule below); the paint is scoped through the page-info-only
    ids. */
@@ -1092,4 +1123,22 @@ tree#imagetree treechildren::-moz-tree-cell-text {
 
 tree#imagetree treechildren::-moz-tree-cell-text(broken) {
   color: graytext !important;
+}
+
+/* Page Info security panel: the reference's etched group box (see the
+   header's provenance paragraph). The frames' contents and the deck's
+   other painted surfaces keep their own paints. */
+#securityPanel > groupbox {
+  border: 1px solid #888888 !important;
+  border-radius: 0 !important;
+  padding: 2px 8px !important;
+  box-shadow: 1px 1px #FFFFFF, inset 1px 1px #FFFFFF !important;
+}
+
+#securityPanel > groupbox + groupbox {
+  margin-top: 1em !important;
+}
+
+#securityPanel > groupbox > label.header {
+  color: #000000 !important;
 }

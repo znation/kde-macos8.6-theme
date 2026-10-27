@@ -578,6 +578,26 @@ REQUIRED_RULES["tree#imagetree treechildren::-moz-tree-cell-text(broken)"] = {
     "color": "graytext !important",
 }
 
+# The Page Info security panel's group frames: the reference's etched
+# group box (see the header's provenance paragraph) — the dark border
+# carrying the offset highlight copy while the interiors stay transparent
+# over the dialog body face, stacked frames separated by a 1em margin, and
+# each frame's header taking the shared black text. A groupbox and its
+# header are static, so there is no hover, focus, active or disabled
+# variant.
+REQUIRED_RULES["#securityPanel > groupbox"] = {
+    "border": f"1px solid {ETCH_DARK} !important",
+    "border-radius": "0 !important",
+    "padding": "2px 8px !important",
+    "box-shadow": f"1px 1px {WHITE}, inset 1px 1px {WHITE} !important",
+}
+REQUIRED_RULES["#securityPanel > groupbox + groupbox"] = {
+    "margin-top": "1em !important",
+}
+REQUIRED_RULES["#securityPanel > groupbox > label.header"] = {
+    "color": f"{BLACK} !important",
+}
+
 
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase

@@ -72,6 +72,38 @@ class TestLineReference(ReferenceScreenshotMixin, unittest.TestCase):
     def test_vertical_rule_matches_reference(self):
         self.assert_rule((241, 128), (242, 128), (240, 128), (243, 128))
 
+    def test_group_box_top_rule_matches_reference(self):
+        self.assert_rule((400, 103), (400, 104), (400, 102), (400, 105))
+
+    def test_group_box_right_rule_matches_reference(self):
+        self.assert_rule((678, 110), (679, 110), (677, 110), (680, 110))
+
+    def test_group_box_corners_match_reference(self):
+        DARK_PIXEL = (0x88, 0x88, 0x88)
+        LIGHT_PIXEL = (0xFF, 0xFF, 0xFF)
+        cases = (
+            # Top-left corner: dark rectangle pixels plus the light copy
+            # inside the top row and left column.
+            ((241, 103), DARK_PIXEL), ((242, 103), DARK_PIXEL),
+            ((241, 104), DARK_PIXEL), ((242, 104), LIGHT_PIXEL),
+            # Top-right corner, with the body outside the light right
+            # column.
+            ((678, 103), DARK_PIXEL), ((678, 104), DARK_PIXEL),
+            ((679, 104), LIGHT_PIXEL), ((677, 104), LIGHT_PIXEL),
+            ((679, 103), BODY),
+            # Bottom-left corner, with the body outside the light bottom
+            # row.
+            ((241, 153), DARK_PIXEL), ((242, 153), DARK_PIXEL),
+            ((242, 154), LIGHT_PIXEL), ((241, 154), BODY),
+            # Bottom-right corner: the light copies fill both the bottom
+            # row and the right column.
+            ((678, 153), DARK_PIXEL), ((679, 153), LIGHT_PIXEL),
+            ((678, 154), LIGHT_PIXEL), ((679, 154), LIGHT_PIXEL),
+        )
+        for coordinates, expected in cases:
+            with self.subTest(coordinates=coordinates):
+                self.assertEqual(self.pixel(*coordinates), expected)
+
 
 if __name__ == "__main__":
     unittest.main()
