@@ -16,6 +16,17 @@ XDG_DATA_HOME_ENV := $(XDG_DATA_HOME)
 export XDG_DATA_HOME_ENV
 XDG_DATA_HOME := $(if $(filter /%,$(XDG_DATA_HOME_ENV)),$(XDG_DATA_HOME_ENV),$(HOME)/.local/share)
 
+# DESTDIR takes the same route: the three apply targets below refuse a
+# non-empty staging value and name it in their diagnostics. `$(DESTDIR)`
+# expansion would paste the caller-chosen text into those recipes, where a
+# quote inside it closes the recipe's own quotes and any following words run
+# as shell commands instead of being refused. An environment-origin DESTDIR
+# already reaches the recipe shells that way; exporting it here gives a
+# command-line `make apply DESTDIR=...` the same safe route. Particularly,
+# the unset case still leaves the variable unset in the recipe shell, so
+# `[ -n "$$DESTDIR" ]` rejects empty-or-unset exactly as `$(DESTDIR)` did.
+export DESTDIR
+
 # The fallback needs an absolute $HOME: with XDG_DATA_HOME unset or relative
 # and HOME also unset, $(HOME)/.local/share is /.local/share, so `make install`
 # would write into the filesystem root (and `make uninstall` delete from it);
@@ -297,7 +308,7 @@ render:
 # the Kvantum widget theme when kvantummanager is available, then asks KWin to
 # reconfigure. The startup splash changes only on the next login.
 apply:
-	@if [ -n "$(DESTDIR)" ]; then echo "apply: DESTDIR must be empty (applying a staged tree to the running Plasma session is wrong): '$(DESTDIR)'" >&2; exit 2; fi
+	@if [ -n "$$DESTDIR" ]; then echo "apply: DESTDIR must be empty (applying a staged tree to the running Plasma session is wrong): '$$DESTDIR'" >&2; exit 2; fi
 	@$(call require_python,apply)
 	@$(call require_python_version,apply)
 	$(MAKE) --no-print-directory install
@@ -307,7 +318,7 @@ apply:
 # them in the user's GTK 3 and GTK 4 settings and libadwaita user CSS. A
 # non-empty DESTDIR is refused first for the same reason as `apply`.
 apply-gtk:
-	@if [ -n "$(DESTDIR)" ]; then echo "apply-gtk: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$(DESTDIR)'" >&2; exit 2; fi
+	@if [ -n "$$DESTDIR" ]; then echo "apply-gtk: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$$DESTDIR'" >&2; exit 2; fi
 	@$(call require_python,apply-gtk)
 	@$(call require_python_version,apply-gtk)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk
@@ -326,7 +337,7 @@ remove-gtk:
 # plasma-apply-cursortheme. A non-empty DESTDIR is refused for the same reason
 # as `apply`: the selection is for the running session, not a staged tree.
 apply-cursor:
-	@if [ -n "$(DESTDIR)" ]; then echo "apply-cursor: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$(DESTDIR)'" >&2; exit 2; fi
+	@if [ -n "$$DESTDIR" ]; then echo "apply-cursor: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$$DESTDIR'" >&2; exit 2; fi
 	@$(call require_python,apply-cursor)
 	@$(call require_python_version,apply-cursor)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=icon-theme
