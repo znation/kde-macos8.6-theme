@@ -131,4 +131,32 @@ Use `:not([disabled])` on both rules so a disabled button keeps Firefox's disabl
 - `docs/invariants.md`: in the existing downloads-panel row under `## firefox`, drop the clause that the row's action button and footer button stay Firefox's from its guarantee, and end its provenance at "on the panel rows only" instead of leaving those buttons to Firefox. Add a row immediately after it whose guarantee is: the downloads panel's footer button (`#downloadsPanel .downloadsPanelFooterButton`), row action buttons (`#downloadsPanel .downloadButton`) and blocked/private subview footer buttons (`#downloadsPanel .footer-button`) are square `#DDDDDD` faces with a 1px black outline and the reference's white/`#AAAAAA` raised bevel, an enabled hovered one being flat `#CCCCFF` with black text and no bevel, while disabled buttons and the panel rows, summary, header, subview copy and content-area list stay Firefox's. Its test column names the new scope test, and its provenance records the missing downloads-panel-buttons reference, the `widgets/button.svg` and `widgets/viewitem.svg` anchors, the installed Firefox ESR 153.5.1 files named above, the disabled-button guard, and that declaration checks do not establish rendered pixels. `tests/invariants.py` stays green.
 - `make check` passes, and the existing sheet rules, the downloads panel rows, the Firefox install and their tests keep their declarations and scope.
 
+### Kvantum Platinum toolbox tabs: paint a QToolBox's tabs with the reference-grounded Platinum tab face (planned 2026-10-26 by the plan role; independent of the waiting downloads-panel-buttons chrome plan)
+
+**Goal.** Make a Qt toolbox's tabs read as Platinum. `org.macos8.desktop.kvconfig` defines no `[ToolboxTab]` section, so a `QToolBox` falls back to Kvantum's compiled-in tab paint instead of the reference-grounded tab face the config already draws for `[Tab]`. Add the section and point it at the existing `[Tab]` surface, so a toolbox's selected and unselected tabs use the same Platinum `#CCCCCC`/`#EEEEEE` tab art, 2px frame margin and 8px side text margins as the theme's tab bars.
+
+**Grounding.** No reference screenshot shows a Qt `QToolBox`, so the `[ToolboxTab]` section name is Kvantum-required: the installed KvantumAlt theme defines `[ToolboxTab]` with `inherits=PanelButtonCommand` in `/usr/share/Kvantum/KvantumAlt/KvantumAlt.kvconfig`. Drawing it from the existing tab surface adapts the reference-grounded System Profiler tab face (`tests/test_kvantum_tab_reference.py::TestTabReference`) rather than introducing new art or a new palette value.
+
+**Approach.** In `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`, insert the section immediately after `[Tab]` and before `[TabFrame]`, with `inherits=Tab` as its only key, and extend the container/text-surface comment paragraph to say tabs (including Qt toolbox tabs) draw the same raised Platinum face. In `tests/support/kvantum_config_spec.py`, add `"ToolboxTab": 2` to `CORE_FRAME_MARGINS` immediately after `"Tab"`, and add this entry to `SURFACE_CONTROL_CONFIG` immediately after `"Tab"`:
+
+```python
+"ToolboxTab": {
+    "frame.element": "tab",
+    "interior.element": "tab",
+    "indicator.element": "tab",
+},
+```
+
+No SVG, palette or value-key change: every mapping and margin resolves through `inherits=Tab` to the existing pinned values.
+
+**Files touched.** `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig`, `tests/support/kvantum_config_spec.py`, `tests/test_kvantum_config_elements.py`, `docs/invariants.md`, `README.md`.
+
+**Acceptance criteria.**
+- The `.kvconfig` has exactly one `[ToolboxTab]` section, positioned between `[Tab]` and `[TabFrame]`, whose options are exactly `{"inherits": "Tab"}`; the container/text-surface comment names toolbox tabs.
+- `CORE_FRAME_MARGINS` contains `"ToolboxTab": 2` and `SURFACE_CONTROL_CONFIG` contains the `"ToolboxTab"` mapping above. The existing `TestSectionCoverage.test_every_section_is_pinned`, `TestCoreControlElements.test_every_core_section_mapping_is_pinned`, `TestSurfaceElements.test_every_surface_section_maps_to_its_element`, `TestFrameMargins.test_every_core_section_resolves_to_the_expected_frame_margin` and `TestValueKeys.test_every_key_is_pinned` pass unchanged, because the new section adds no non-`inherits` key.
+- New `TestToolboxTabSurface.test_toolbox_tab_inherits_the_tab_surface` in `tests/test_kvantum_config_elements.py`, placed after `TestSurfaceElements`, reads `KVCONFIG` through `support.kde_config.read` and asserts `parser.get("ToolboxTab", "inherits") == "Tab"`, `set(parser.options("ToolboxTab")) == {"inherits"}`, and that for `frame.element`, `interior.element`, `indicator.element`, the four `frame.*` margins and `text.margin.left`/`text.margin.right`, `_resolved(parser, "ToolboxTab", key)` equals `_resolved(parser, "Tab", key)`.
+- `docs/invariants.md` gains a row in `## kvantum` immediately after the row beginning "The tab face is the reference System Profiler tabs'": the Qt toolbox tab (`[ToolboxTab]`) draws the same reference-grounded Platinum tab face as `[Tab]`, inheriting its frame, interior and indicator art, 2px frame margin and 8px side text margins. Its test column names `tests/test_kvantum_config_elements.py::TestToolboxTabSurface`, `tests/test_kvantum_config_elements.py::TestSurfaceElements`, `tests/test_kvantum_config.py::TestSectionCoverage` and `tests/test_kvantum_config.py::TestFrameMargins`; its provenance records that no reference screenshot shows a Qt QToolBox, that `[ToolboxTab]` is Kvantum-required (the installed KvantumAlt theme defines it), that the mapping adapts the reference-grounded tab face pinned by `tests/test_kvantum_tab_reference.py::TestTabReference`, and that config checks do not establish rendered Qt pixels. `tests/invariants.py` stays green.
+- `README.md`: in the Kvantum paragraph's control list, add toolbox tabs alongside the toolbar buttons, toolbar combo boxes and line edits, split-button dropdowns, tree-view expanders and status bar that map onto the shipped Platinum art.
+- `make check` passes, and every existing Kvantum section, element, frame-margin and palette assertion keeps its expected value.
+
 ## Done
