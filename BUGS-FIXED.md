@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher drops a leading or dangling combinator and over-matches a malformed selector (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/selector_matching.py`'s `matches` reads a selector
+with a leading, trailing or doubled combinator as if the combinator were absent:
+`.a >`, `> .a` and `.a +` all match an element with class `a`, and `.a > > .b`
+matches when `.a` is `.b`'s parent. A malformed selector in a scope test could
+therefore pass an over-broad assertion -- including a sibling selector, which the
+matcher documents as matching nothing -- instead of matching no element. No
+selector in the shipped Firefox sheets is malformed (grep for a combinator before
+`{`, after `,`/`{` or alone at the start of a line finds none), so the gap is
+latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.selector_matching import element, matches; a = element("box", classes=("a",)); b = element("box", classes=("b",), parent=a); print(matches(".a >", a), matches("> .a", a), matches(".a +", a), matches(".a > > .b", b))'
+```
+
+prints `True True True True`; the expected result is `False` for each.
+
+**Suspected cause.** `_split_selector` only recorded a combinator when at least
+one compound had been seen (`if compounds`), so a leading combinator was dropped
+and a trailing one stayed pending without becoming a step. A second combinator
+overwrote the pending one, so `.a > > .b` collapsed to a single child step.
+Neither `_selector_is_supported` nor `matches` rejected the result.
+
+**Fix.** `_split_selector` now returns a third value, `misplaced`, which is true
+for a combinator with no compound on one side (leading, trailing or doubled), and
+both `_selector_is_supported` and `matches` reject a selector with it. A trailing
+space is still not a combinator, so `.a > .b ` stays supported and matching. The
+new `test_a_combinator_without_a_compound_on_both_sides_matches_nothing` covers
+the five malformed selectors and keeps the whitespace case; pre-fix the focused
+run failed all five subtests, and it passes after the fix.
+
+**Validation gap:** none — the closest tag: no existing matcher test used a
+leading, trailing or doubled combinator, but scratch calls reproduced the false
+matches deterministically, and the new test pins them.
+
 ### The selector matcher crashes or over-matches on an unbalanced parenthesis (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/selector_matching.py`'s `matches` raises `IndexError`

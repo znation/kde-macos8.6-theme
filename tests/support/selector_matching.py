@@ -16,7 +16,9 @@ match no element -- including a pseudo-class inside ``:not(...)``, which must
 not be read as false and invert the negation into a match for every element.
 An unbalanced parenthesis is malformed, outside the subset, and matches no
 element: it cannot be paired with a combinator step, so it must not crash the
-matcher or be read as part of a compound. An element
+matcher or be read as part of a compound. A combinator with no compound on one
+side (leading, trailing or doubled) is malformed in the same way and matches
+nothing. An element
 is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
@@ -235,9 +237,14 @@ def _split_selector(selector):
     sibling selector cannot be read as a chain of compounds. Whitespace on
     either side of a combinator belongs to it rather than adding a descendant
     step of its own.
+
+    Return ``(compounds, combinators, misplaced)``. *misplaced* is true when a
+    combinator has no compound on one side (leading, trailing or doubled), so
+    the selector cannot be paired into combinator steps.
     """
     compounds = []
     combinators = []
+    misplaced = False
     current = []
     pending = None
     depth = 0
@@ -263,8 +270,10 @@ def _split_selector(selector):
             if current:
                 compounds.append("".join(current))
                 current = []
-            if compounds:
+            if compounds and pending not in (">", "+", "~"):
                 pending = char
+            else:
+                misplaced = True
         elif depth == 0 and char.isspace():
             if current:
                 compounds.append("".join(current))
@@ -278,7 +287,9 @@ def _split_selector(selector):
             current.append(char)
     if current:
         compounds.append("".join(current))
-    return compounds, combinators
+    if pending in (">", "+", "~"):
+        misplaced = True
+    return compounds, combinators, misplaced
 
 
 def _has_selector_list_comma(selector):
@@ -378,9 +389,10 @@ def _selector_is_supported(selector):
         selector
     ):
         return False
-    compounds, combinators = _split_selector(selector)
+    compounds, combinators, misplaced = _split_selector(selector)
     return (
         bool(compounds)
+        and not misplaced
         and all(combinator in (" ", ">") for combinator in combinators)
         and all(_compound_is_supported(compound) for compound in compounds)
     )
@@ -390,13 +402,15 @@ def matches(selector, element):
     """Return True when *selector* matches *element* in its fixture tree.
 
     A selector using a sibling combinator (``+``/``~``), a selector list (a
-    comma outside an attribute selector) or an unsupported pseudo-class (even
-    inside ``:not(...)``) is outside the supported subset and matches nothing,
-    so its over-broad reading cannot pass a scope assertion.
+    comma outside an attribute selector), an unsupported pseudo-class (even
+    inside ``:not(...)``) or a malformed combinator or parenthesis is outside
+    the supported subset and matches nothing, so its over-broad reading cannot
+    pass a scope assertion.
     """
-    compounds, combinators = _split_selector(selector)
+    compounds, combinators, misplaced = _split_selector(selector)
     if (
         not compounds
+        or misplaced
         or _has_selector_list_comma(selector)
         or not _parentheses_are_balanced(selector)
     ):

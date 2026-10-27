@@ -179,6 +179,22 @@ class TestSelectorMatching(unittest.TestCase):
                     matches(selector, element("box", attrs={"title": value}))
                 )
 
+    def test_a_combinator_without_a_compound_on_both_sides_matches_nothing(self):
+        # A combinator needs a compound on each side. A leading or dangling
+        # one used to be dropped, so ``.a >`` was read as ``.a`` and matched
+        # an element the malformed selector cannot mean; a doubled ``>`` was
+        # collapsed to one step.
+        outer = element("box", classes=("a",))
+        inner = element("box", classes=("b",), parent=outer)
+        for selector in (".a >", "> .a", ".a +", ".a ~", ".a > > .b"):
+            with self.subTest(selector=selector):
+                self.assertFalse(_selector_is_supported(selector))
+                self.assertFalse(matches(selector, outer))
+                self.assertFalse(matches(selector, inner))
+        # Whitespace after a complete selector is not a dangling combinator.
+        self.assertTrue(_selector_is_supported(".a > .b "))
+        self.assertTrue(matches(".a > .b ", inner))
+
     def test_attribute_value_containing_a_class_is_matched_literally(self):
         # The dot is part of the quoted value, not a class the element needs.
         target = element("box", attrs={"title": "a.b"})
