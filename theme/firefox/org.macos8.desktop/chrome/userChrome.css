@@ -439,7 +439,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    #viewGroup > radio with SelectedItem, so the sheet overrides those paints
    through the page-info-only #topBar, #viewGroup and #mainDeck ids. Disabled
    buttons keep Firefox's paint, and the dialog body, meta and image trees,
-   media preview, security tables, description labels and focus rings stay
+   security tables, description labels and focus rings stay
    Firefox's (the permission list has its own provenance paragraph below);
    declaration checks do not establish rendered pixels.
 
@@ -486,6 +486,25 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    colours, the ThreeDShadow border and the -moz-dialog `.permission:hover`
    wash the sheet overrides; declaration checks do not establish rendered
    pixels (platform colour adaptation 2026-10-26).
+
+   The Page Info media panel's preview pane (vbox#imagecontainerbox) is the
+   Platinum sunken field: an opaque #FFFFFF face, black text, a square 1px
+   #000000 outline and the #999999 sunken top-left inner shadow.
+   No reference shows Firefox's Page Info media preview; the field adapts
+   widgets/lineedit.svg, grounded in
+   macos8.6-screenshots/firstboot_betawiki.png and pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference, and reuses the landed #mainDeck input recipe. In
+   the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/pageinfo/pageInfo.xhtml defines the
+   preview pane that holds browser#mediaBrowser and the
+   hbox#brokenimagecontainer placeholder, and it is a static preview
+   surface, so it has no hover, focus or selected variant.
+   chrome/browser/skin/classic/browser/pageInfo.css owns the stock Field
+   background, ThreeDLightShadow border, 0.5em margin and auto overflow,
+   so the rule overrides only the stock paint.
+   Declaration checks do not establish rendered pixels
+   (platform colour adaptation 2026-10-26).
 */
 
 tooltip {
@@ -924,8 +943,8 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
    buttons take the push-button face, square 1px black outline and the
    white/#AAAAAA raised bevel, and an enabled hovered one is flat #CCCCFF with
    black text and no bevel. Disabled buttons, the stock tab width and padding,
-   the focus ring, the dialog body, fields, trees, media preview, security
-   tables and labels keep Firefox's own paint (the permission list is painted
+   the focus ring, the dialog body, fields, trees, security tables and
+   labels keep Firefox's own paint (the permission list is painted
    in its own rule below); the paint is scoped through the page-info-only
    ids. */
 #topBar {
@@ -1004,4 +1023,14 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
 #permList .permission:hover {
   background-color: transparent !important;
   color: #000000 !important;
+}
+
+/* Page Info media preview: the Platinum sunken field (see the header's
+   provenance paragraph). */
+#imagecontainerbox {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
 }

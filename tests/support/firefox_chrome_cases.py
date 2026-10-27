@@ -523,6 +523,17 @@ REQUIRED_RULES["#mainDeck input"] = {
     "box-shadow": f"inset 1px 1px {GREY} !important",
 }
 
+# The Page Info media panel's preview pane: the Platinum sunken field
+# (see the header's provenance paragraph), a static preview surface with
+# no hover or focus variant.
+REQUIRED_RULES["#imagecontainerbox"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+
 # The Page Info permissions panel's permission list: the Platinum sunken
 # list field (see the header's provenance paragraph), with the native
 # listbox frame dropped and a hovered row keeping the field's face.

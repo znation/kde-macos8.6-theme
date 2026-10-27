@@ -269,6 +269,79 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             ["#mainDeck input"],
         )
 
+    def test_page_info_media_preview_paint_is_scoped_to_page_info(self):
+        self.assertIn("#imagecontainerbox", self.rules)
+        self.assertEqual(
+            self.rules["#imagecontainerbox"],
+            REQUIRED_RULES["#imagecontainerbox"],
+        )
+        selector = "#imagecontainerbox"
+
+        window = element("window", "pageInfoWindow")
+        main_deck = element("deck", "mainDeck", parent=window)
+        media_preview_box = element(
+            "vbox", "mediaPreviewBox", parent=main_deck
+        )
+        container = element(
+            "vbox", "imagecontainerbox", parent=media_preview_box
+        )
+        theimagecontainer = element(
+            "hbox", "theimagecontainer", parent=container
+        )
+        media_browser = element(
+            "browser", "mediaBrowser", parent=theimagecontainer
+        )
+        broken_container = element(
+            "hbox", "brokenimagecontainer", parent=theimagecontainer
+        )
+        broken_image = element(
+            "image", "brokenimage", parent=broken_container
+        )
+        # The pane is a static preview surface: with and without hover it
+        # keeps the same paint, and no hover or focus variant exists.
+        for hover in (False, True):
+            candidate = {**container, "hover": hover}
+            with self.subTest(hover=hover):
+                self.assertTrue(matches(selector, candidate))
+
+        # The preview's children keep Firefox's own paint: they match no
+        # selector whose name contains imagecontainerbox.
+        preview_rules = [
+            name for name in self.rules if "imagecontainerbox" in name
+        ]
+        for name, child in (
+            ("#mediaBrowser", media_browser),
+            ("#brokenimage", broken_image),
+            ("brokenimagecontainer", broken_container),
+            ("theimagecontainer", theimagecontainer),
+        ):
+            with self.subTest(unthemed=child["id"] or name):
+                self.assertFalse(
+                    any(matches(rule, child) for rule in preview_rules)
+                )
+
+        other_sheets = (
+            element("textbox", None, ("findbar-textbox",),
+                    parent=element("toolbar", "findbar")),
+            element("input", "editBMPanel_locationField",
+                    parent=element("vbox", "editBookmarkPanel")),
+            element("input", "searchbar-textbox",
+                    classes=("searchbar-textbox",),
+                    parent=element("toolbar", "searchbar")),
+            element("input", "urltext",
+                    parent=element("toolbar", "navigator-toolbox")),
+        )
+        for stray in other_sheets:
+            with self.subTest(unthemed=stray["id"] or stray["classes"]):
+                self.assertFalse(
+                    any(matches(rule, stray) for rule in preview_rules)
+                )
+
+        self.assertEqual(preview_rules, ["#imagecontainerbox"])
+        self.assertNotIn("#imagecontainerbox:hover", self.rules)
+        self.assertNotIn("#imagecontainerbox:focus", self.rules)
+        self.assertNotIn("#mediaPreviewBox", self.rules)
+
     def test_page_info_field_provenance(self):
         header = self.text.split("*/", 1)[0]
         for provenance in (
@@ -288,6 +361,29 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "#999999 sunken",
             "no hover or focus variant",
             "platform adaptation 2026-10-26",
+        ):
+            with self.subTest(provenance=provenance):
+                self.assertIn(provenance, header)
+
+    def test_page_info_media_preview_provenance(self):
+        header = self.text.split("*/", 1)[0]
+        for provenance in (
+            "No reference shows Firefox's Page Info media preview",
+            "#imagecontainerbox",
+            "widgets/lineedit.svg",
+            "firstboot_betawiki.png",
+            "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+            "TestLineEditReference",
+            "#mainDeck input",
+            "pageInfo.xhtml",
+            "#mediaBrowser",
+            "#brokenimagecontainer",
+            "pageInfo.css",
+            "Field",
+            "ThreeDLightShadow",
+            "no hover, focus or selected variant",
+            "platform colour adaptation 2026-10-26",
+            "Declaration checks do not establish rendered pixels",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)
