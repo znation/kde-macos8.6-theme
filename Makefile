@@ -55,22 +55,28 @@ DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 # behaviour, outside the shell route this guard closes.
 shell_unsafe_chars = \ " $$ `
 shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$(1))))
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE COLOR_SCHEME COLOR_SCHEME_ID,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
 
 # The theme tree `make install` copies from. A test overrides it on the command
 # line to point the symlink guard below at a scratch package tree.
 THEME_ROOT := theme
 
+# The scheme source. A command-line override renames what `install` reads, so
+# `COLOR_SCHEME` reaches double-quoted recipe words below and must carry no
+# recipe-shell metacharacter.
 COLOR_SCHEME := theme/color-schemes/MacOS8.colors
 # KDE derives the scheme id from the installed filename, so install under the
 # source's own basename: renaming the scheme then moves the id with it instead
 # of leaving a stale hardcoded name behind.
-COLOR_SCHEME_NAME := $(notdir $(COLOR_SCHEME))
+export COLOR_SCHEME_NAME := $(notdir $(COLOR_SCHEME))
 # The id KDE resolves a `[General] ColorScheme` value to: the installed
 # basename up to the first dot (README's Installing section documents the same
 # rule). `uninstall` uses it to detect a stored selection that still points at
-# the scheme it just removed.
-COLOR_SCHEME_ID := $(shell name='$(COLOR_SCHEME_NAME)'; printf '%s' "$${name%%.*}")
+# the scheme it just removed. The derivation runs a shell, so the name travels
+# through the environment -- make exports the variable to `$(shell)`, too --
+# instead of being interpolated into a quoted shell word the value itself
+# could escape with a stray apostrophe; the shell word stays a constant.
+COLOR_SCHEME_ID := $(shell name="$$COLOR_SCHEME_NAME"; printf '%s' "$${name%%.*}")
 INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/color-schemes
 
 LNF_ID := org.macos8.desktop

@@ -603,6 +603,107 @@ class TestShellUnsafeFirefoxProfile(unittest.TestCase):
         self.assertIn(f'--profile "{profile}"', result.stdout)
 
 
+class TestShellUnsafeColorScheme(unittest.TestCase):
+    """A `COLOR_SCHEME` carrying a recipe-shell metacharacter is refused.
+
+    `COLOR_SCHEME` is a command-line overridable source path that reaches
+    double-quoted recipe words (the install's staging copy and the uninstall's
+    removal), so a double quote, `$`, a backtick or a backslash would run the
+    words after it as shell commands instead of naming a path. The same
+    make-level guard `TestShellUnsafeInstallPaths` pins for the install paths
+    refuses such a value before any recipe of either target.
+    """
+
+    def _assert_refused(self, make_value, shown_value):
+        """Run `install`/`uninstall` with *make_value*; both must refuse.
+
+        *shown_value* is the text the diagnostic must echo back verbatim.
+        """
+        _assert_both_targets_refused(
+            self,
+            None,
+            (f"COLOR_SCHEME={make_value}",),
+            (
+                "COLOR_SCHEME contains a shell metacharacter",
+                shown_value,
+            ),
+        )
+
+    def test_each_metacharacter_is_refused_in_COLOR_SCHEME(self):
+        # The guard reads each value after make's own expansion, so the same
+        # HOSTILES pairs `TestShellUnsafeInstallPaths` documents apply: a `$`
+        # arrives doubled in the make argument.
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_an_apostrophe_cannot_reach_the_id_derivation_shell(self):
+        """An apostrophe in `COLOR_SCHEME` cannot breach a quoted shell word.
+
+        The id derivation once interpolated the name into a single-quoted
+        `$(shell)` word, where an apostrophe ended the quote and every word
+        after it ran as shell commands: `make` with
+        `COLOR_SCHEME=zzz/x'; touch <canary>; echo '.colors` created the
+        canary at make-parse time, before any target ran. The name now
+        travels through the exported environment instead of the shell text,
+        and an apostrophe stays legal: a `touch` carried in the value must
+        not run.
+        """
+        tmp = make_tmp_dir(self)
+        makefile = repo_root.ROOT / "Makefile"
+        canary = "color_scheme_id_derivation_canary"
+        # The dry run needs a cwd where the relative payload cannot reach a
+        # file outside the scratch tree, and `THEME_ROOT`'s default is
+        # relative to that cwd, which a dry run never reads.
+        result = theme_install.run_captured(
+            [
+                "make",
+                "-f",
+                str(makefile),
+                "-n",
+                "uninstall",
+                f"COLOR_SCHEME=zzz/x'; touch {canary}; echo '.colors",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={tmp}",
+            ],
+            cwd=str(tmp),
+            env=theme_install.make_env(),
+        )
+        assert_succeeded(self, result)
+        self.assertFalse((tmp / canary).exists(), tmp)
+
+    def test_a_rename_with_an_apostrophe_derives_the_id(self):
+        """A renamed scheme source keeps the documented first-dot id rule.
+
+        Renaming is the documented reason a command-line `COLOR_SCHEME`
+        exists: install under the source's own basename, and derive the id
+        from the basename up to the first dot, with an apostrophe inert
+        throughout.
+        """
+        tmp = make_tmp_dir(self)
+        result = theme_install.run_captured(
+            [
+                "make",
+                "-f",
+                str(repo_root.ROOT / "Makefile"),
+                "-p",
+                "-n",
+                "uninstall",
+                f"COLOR_SCHEME={tmp}/my scheme'.colors",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={tmp}",
+            ],
+            cwd=str(tmp),
+            env=theme_install.make_env(),
+        )
+        assert_succeeded(self, result)
+        # The `-p` database's destination (stdout or stderr) is make's own
+        # choice, so the assertions read both.
+        output = result.stdout + result.stderr
+        self.assertIn("COLOR_SCHEME_NAME := my scheme'.colors", output)
+        self.assertIn("COLOR_SCHEME_ID := my scheme'", output)
+
+
 class TestXdgDataHomeDefault(unittest.TestCase):
     """An empty or relative $XDG_DATA_HOME must fall back to the XDG default.
 
