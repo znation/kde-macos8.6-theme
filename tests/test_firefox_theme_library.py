@@ -53,6 +53,14 @@ HEADER_HOVER_ARMS = (
     "treecols#placeContentColumns .tree-columnpicker-button:hover:active",
 )
 
+# The Library toolbar's band and the three menu titles it carries, in
+# sheet order: the band, then the title padding and the open title.
+TOOLBAR_RULES = (
+    "toolbar#placesToolbar",
+    "menubar#placesMenu > menu",
+    "menubar#placesMenu > menu[open]",
+)
+
 
 class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
     """Section of the Firefox chrome sheet under test."""
@@ -178,8 +186,9 @@ class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
             "-moz-cellhighlight",
             "SelectedItem",
             "tree-icons.css",
-            "The toolbar buttons and the Organize, View",
+            "The toolbar's back and forward buttons",
             "downloads rich list and details pane stay Firefox's",
+            "the toolbar's menu titles have their",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
         ))
@@ -236,6 +245,8 @@ class TestFirefoxLibrarySearchChrome(FirefoxChromeTestCase):
             "search-textbox.svg",
             "no ::part()",
             "the sunken bevel is absent",
+            "The toolbar's back and forward buttons",
+            "downloads rich list and the details pane stay Firefox's",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
             "2026-10-27",
@@ -346,6 +357,92 @@ class TestFirefoxLibraryHeaderChrome(FirefoxChromeTestCase):
             "hideheader",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
+        ))
+
+class TestFirefoxLibraryToolbarChrome(FirefoxChromeTestCase):
+    """Section of the Firefox chrome sheet under test."""
+
+    def test_toolbar_and_menubar_rules_match_the_required_rules(self):
+        # Each of the three arms equals its REQUIRED_RULES entry
+        # byte-for-byte, and every declaration ends !important.
+        for arm in TOOLBAR_RULES:
+            with self.subTest(selector=arm):
+                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
+                for value in self.rules[arm].values():
+                    self.assertTrue(value.endswith("!important"))
+
+    def test_toolbar_band_is_scoped_to_the_library_toolbar(self):
+        band = element("toolbar", "placesToolbar")
+        other = element("toolbar", "nav-bar")
+
+        self.assertTrue(matches(TOOLBAR_RULES[0], band))
+        self.assertFalse(matches(TOOLBAR_RULES[0], other))
+
+        menubar = element("menubar", "placesMenu", parent=band)
+        title = element("menu", "organizeButton", parent=menubar)
+        view = element("menu", "viewMenu", parent=menubar)
+        maintenance = element("menu", "maintenanceButton", parent=menubar)
+        open_title = element(
+            "menu", "organizeButton", attrs={"open": "true"},
+            parent=menubar,
+        )
+        strays = (
+            element("menu", "organizeButton",
+                    parent=element("menubar", None, parent=band)),
+            element("menu", None, parent=element("menubar", "toolbar-menubar",
+                    parent=element("toolbox", "navigator-toolbox"))),
+        )
+
+        # The padding arm matches every Library title; the open arm
+        # matches only a title carrying the open attribute; and no
+        # selector reaches a menu whose parent menubar lacks the
+        # placesMenu id (the #toolbar-menubar menubar's titles
+        # included) or a placesMenu outside the Library toolbar.
+        for menu in (title, view, maintenance):
+            with self.subTest(menu=menu.get("id") or menu["tag"]):
+                self.assertTrue(matches(TOOLBAR_RULES[1], menu))
+                self.assertFalse(matches(TOOLBAR_RULES[2], menu))
+        self.assertTrue(matches(TOOLBAR_RULES[2], open_title))
+        for stray in strays:
+            with self.subTest(unthemed=stray.get("id") or stray["tag"]):
+                self.assertFalse(matches(TOOLBAR_RULES[1], stray))
+                self.assertFalse(matches(TOOLBAR_RULES[2], stray))
+
+    def test_header_names_toolbar_provenance(self):
+        self.assert_header_names((
+            "No reference screenshot shows the Firefox Library window",
+            "#toolbar-menubar recipe",
+            "#DDDDDD face, black text",
+            "test_required_rules",
+            "widgets/menubaritem.svg's pressed slices with no hover",
+            "tests/test_desktoptheme_menubaritem.py::TestMenuBarItem"
+            ".test_menubaritem_pressed_is_flat_selection_colour",
+            "tests/test_colorscheme_reference.py::TestReferenceAnchors",
+            "test_selection_background",
+            "toolbox#placesToolbox holds",
+            "toolbar#placesToolbar.chromeclass-toolbar",
+            "toolbarbutton#back-button",
+            "toolbarbutton#forward-button",
+            "disabled=\"true\"",
+            "menubar#placesMenu",
+            "#organizeButton, #viewMenu and #maintenanceButton",
+            "toolbar.css",
+            "-moz-headerbarinactive",
+            "organizer.css",
+            "-moz-default-appearance: toolbarbutton",
+            "--button-min-height",
+            "-moz-buttonhovertext",
+            "arrow-down-12.svg",
+            "currentColor",
+            "menu.css",
+            "0.25em 0.5em",
+            "[open] AccentColor",
+            "toolbarbutton:hover/:hover:active bevel",
+            "--menuitem-icon",
+            "the landed menupopup token rule",
+            "downloads rich list and the details",
+            "Only the padding is overridden",
+            "Declaration checks do not establish rendered pixels",
         ))
 
 

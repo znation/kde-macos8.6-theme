@@ -694,6 +694,25 @@ for _header_arm in (
 ):
     REQUIRED_RULES[_header_arm] = HEADER_HOVER
 
+# The Library window's toolbar band and menu titles: the byte-recipes of
+# the landed #toolbar-menubar band, its menu-title padding and its open
+# title, spelled explicitly with the shared palette constants rather
+# than aliased (the band entry adds the black text #toolbar-menubar
+# inherits, see the header's provenance paragraph).
+REQUIRED_RULES["toolbar#placesToolbar"] = {
+    "background-color": f"{FACE} !important",
+    "color": f"{BLACK} !important",
+    "border-bottom": f"1px solid {ETCH_DARK} !important",
+    "box-shadow": f"inset 0 -1px {WHITE} !important",
+}
+REQUIRED_RULES["menubar#placesMenu > menu"] = {
+    "padding": "3px 7px 0 !important",
+}
+REQUIRED_RULES["menubar#placesMenu > menu[open]"] = {
+    "background-color": f"{SELECTION} !important",
+    "border-bottom-color": f"{SELECTION} !important",
+}
+
 
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase

@@ -170,12 +170,16 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
         # A menu-bar title is a ``menu`` element outside a popup, so catch a
         # rule that targets one without naming #toolbar-menubar, such as a
         # bare ``menu[open]:hover``, rather than only selectors spelled
-        # ``menubar``.
+        # ``menubar``. The Library window's menubar#placesMenu title rules
+        # are scoped to their own menubar by id and have their own suite,
+        # so they stay out of this main-window set; an unscoped bare rule
+        # would still land here.
         title_rules = {
             name for name in self.rules
-            if "menubar" in name
-            or ("menu" in re.findall(r"[-\w]+", name)
-                and "menupopup" not in name)
+            if "placesMenu" not in name
+            and ("menubar" in name
+                 or ("menu" in re.findall(r"[-\w]+", name)
+                     and "menupopup" not in name))
         }
         self.assertEqual(title_rules, {"#toolbar-menubar", base, selector})
         for name in ("#toolbar-menubar", base, selector):
@@ -184,7 +188,8 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
         self.assertEqual(set(self.rules[base]), {"padding"})
         self.assertEqual(
             {name for name, declarations in self.rules.items()
-             if declarations == REQUIRED_RULES[selector]},
+             if "placesMenu" not in name
+             and declarations == REQUIRED_RULES[selector]},
             {selector},
         )
 

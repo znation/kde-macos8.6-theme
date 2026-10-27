@@ -594,11 +594,11 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    hsla(0, 0%, 50%, 0.15) hover wash and the
    -moz-cellhighlight/SelectedItem selection) with
    chrome/browser/skin/classic/browser/places/tree-icons.css
-   supplying the row icons. The toolbar buttons and the Organize, View
-   and Maintenance menus,
+   supplying the row icons. The toolbar's back and forward buttons,
    downloads rich list and details pane stay Firefox's for the later
-   parts of this series (the content-tree column headers and the
-   toolbar's search filter have their own paragraphs below).
+   parts of this series (the content-tree column headers, the
+   toolbar's search filter and the toolbar's menu titles have their
+   own paragraphs below).
    Declaration checks do not establish rendered pixels
    (platform colour adaptation 2026-10-27).
 
@@ -618,7 +618,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    chrome://global/skin/icons/search-textbox.svg filled by
    --icon-color; the sunken bevel is absent because
    moz-input-text.css reads no shadow token (this theme's own choice).
-   The toolbar buttons and the Organize, View and Maintenance menus, the
+   The toolbar's back and forward buttons, the
    downloads rich list and the details pane stay Firefox's for the
    later parts of this series.
    Declaration checks do not establish rendered pixels
@@ -656,6 +656,46 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    grippies and the tree.css dotted-outline block behind its macos
    media query; the sheet gains only these six selector
    arms. Declaration checks do not establish rendered pixels.
+
+   No reference screenshot shows the Firefox Library window; the
+   toolbar band reuses this sheet's landed #toolbar-menubar recipe
+   (#DDDDDD face, black text, the #888888 bottom rule and the
+   inset 0 -1px #FFFFFF etched highlight), grounded in the reference
+   toolbars and pinned by
+   tests/test_firefox_theme_shell.py::TestFirefoxChromeShell::test_required_rules;
+   the open menu title's flat #CCCCFF fill comes from
+   widgets/menubaritem.svg's pressed slices with no hover highlight
+   (platform colour adaptation 2026-10-27), pinned by
+   tests/test_desktoptheme_menubaritem.py::TestMenuBarItem.test_menubaritem_pressed_is_flat_selection_colour
+   and tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   In the installed Firefox ESR 153.5.1, places.xhtml's
+   toolbox#placesToolbox holds toolbar#placesToolbar.chromeclass-toolbar
+   with toolbarbutton#back-button and toolbarbutton#forward-button
+   (both starting disabled="true") and menubar#placesMenu
+   nonnative="true" with the three menu.menu-iconic titles
+   #organizeButton, #viewMenu and #maintenanceButton;
+   chrome/toolkit/skin/classic/global/toolbar.css paints the Linux
+   toolbar band -moz-headerbar/-moz-headerbartext with the
+   -moz-headerbarinactive inactive pair; organizer.css gives
+   #placesMenu > menu appearance: auto with
+   -moz-default-appearance: toolbarbutton, min-height
+   var(--button-min-height), the -moz-buttonhovertext and
+   -moz-buttonactivetext hover/open colour changes and the ::after
+   arrow-down-12.svg dropmarker drawn currentColor; and menu.css's
+   Linux menubar > menu block owns the transparent rest paint, the
+   0.25em 0.5em/1px bottom padding the rules override and the 3px
+   transparent bottom border they keep, with the [open] AccentColor
+   underline they replace. Intentionally unscoped: the two
+   back/forward toolbarbuttons (already shaped by the sheet's generic
+   toolbarbutton:hover/:hover:active bevel rules, rest state
+   Firefox's), organizer.css's --button-min-height and native
+   appearance on the menus, the ::after dropmarker, the three
+   --menuitem-icon icons, the popup lists
+   (the landed menupopup token rule), the window body, the downloads
+   rich list and the details pane. Only the padding is overridden on
+   the titles, with a zero bottom pad, so the retained stock border
+   completes the 3px bottom margin and stays the open title's #CCCCFF
+   underline. Declaration checks do not establish rendered pixels.
 */
 
 tooltip {
@@ -1294,4 +1334,23 @@ treecols#placeContentColumns .tree-columnpicker-button:hover:active {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;
+}
+
+/* The Library window's toolbar band and menu titles adapt the sheet's
+   toolbar and menubar-title recipes (see the header's provenance
+   paragraph). */
+toolbar#placesToolbar {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border-bottom: 1px solid #888888 !important;
+  box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+menubar#placesMenu > menu {
+  padding: 3px 7px 0 !important;
+}
+
+menubar#placesMenu > menu[open] {
+  background-color: #CCCCFF !important;
+  border-bottom-color: #CCCCFF !important;
 }
