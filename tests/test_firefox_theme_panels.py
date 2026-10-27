@@ -565,7 +565,12 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
                  "--input-border-color",
                  "--input-text-background-color",
                  "--border-radius-medium",
-             ))},
+             ))
+             # The Library window's search box sets the shadow
+             # moz-input-text tokens on its own host element; the
+             # custom properties inherit into that host's shadow tree
+             # only, so they cannot reach the bookmark panel's fields.
+             and name != "moz-input-search#searchFilter"},
             set(),
         )
 

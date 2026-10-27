@@ -594,9 +594,33 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    hsla(0, 0%, 50%, 0.15) hover wash and the
    -moz-cellhighlight/SelectedItem selection) with
    chrome/browser/skin/classic/browser/places/tree-icons.css
-   supplying the row icons. The toolbar, search filter, content-tree
-   column headers, downloads rich list and details pane stay Firefox's
-   for the later parts of this series.
+   supplying the row icons. The toolbar buttons and the Organize, View
+   and Maintenance menus, content-tree column headers, and
+   downloads rich list and details pane stay Firefox's for the later
+   parts of this series (one of them, the toolbar's search filter, has
+   its own paragraph below).
+   Declaration checks do not establish rendered pixels
+   (platform colour adaptation 2026-10-27).
+
+   No reference screenshot shows the Firefox Library window's search
+   box; the field adapts widgets/lineedit.svg, grounded in
+   macos8.6-screenshots/firstboot_betawiki.png and pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference, reusing the landed moz-input-search#searchInput
+   token route. In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/places/places.xhtml defines
+   html:moz-input-search#searchFilter in the window's toolbox toolbar
+   with aria-controls="placeContent"; moz-input-text.css paints the
+   shadow #input only through the --input-text-border,
+   --input-text-border-radius, --input-text-background-color,
+   --input-text-color and --icon-color tokens with no ::part()
+   exposed, and the magnifier is
+   chrome://global/skin/icons/search-textbox.svg filled by
+   --icon-color; the sunken bevel is absent because
+   moz-input-text.css reads no shadow token (this theme's own choice).
+   The toolbar buttons and the Organize, View and Maintenance menus, the
+   content tree's column headers, the downloads rich list and the
+   details pane stay Firefox's for the later parts of this series.
    Declaration checks do not establish rendered pixels
    (platform colour adaptation 2026-10-27).
 */
@@ -1208,4 +1232,14 @@ tree#placeContent treechildren::-moz-tree-cell-text {
 
 tree#placeContent treechildren::-moz-tree-row(multicol, odd) {
   background-color: transparent !important;
+}
+
+/* Library window search box: the Platinum line edit through the
+   moz-input-search tokens (see the header's provenance paragraph). */
+moz-input-search#searchFilter {
+  --input-text-border: 1px solid #000000 !important;
+  --input-text-border-radius: 0 !important;
+  --input-text-background-color: #FFFFFF !important;
+  --input-text-color: #000000 !important;
+  --icon-color: #000000 !important;
 }

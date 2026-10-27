@@ -651,6 +651,19 @@ REQUIRED_RULES[
     "tree#placeContent treechildren::-moz-tree-row(multicol, odd)"
 ] = {"background-color": "transparent !important"}
 
+# The Library window's search box: the Platinum line edit through the
+# moz-input-search tokens, the byte-twin of the landed
+# moz-input-search#searchInput recipe (see the header's provenance
+# paragraph). A static line edit from the token route's point of view,
+# so there is no hover, focus or disabled variant here.
+REQUIRED_RULES["moz-input-search#searchFilter"] = {
+    "--input-text-border": f"1px solid {BLACK} !important",
+    "--input-text-border-radius": "0 !important",
+    "--input-text-background-color": f"{WHITE} !important",
+    "--input-text-color": f"{BLACK} !important",
+    "--icon-color": f"{BLACK} !important",
+}
+
 
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase

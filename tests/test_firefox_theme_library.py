@@ -28,6 +28,10 @@ TREE_RULES = (
     "tree#placeContent treechildren::-moz-tree-row(multicol, odd)",
 )
 
+# The Library toolbar's search box, painted as the Platinum line edit
+# through the moz-input-search tokens.
+SEARCH_RULE = ("moz-input-search#searchFilter",)
+
 
 class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
     """Section of the Firefox chrome sheet under test."""
@@ -145,10 +149,67 @@ class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
             "-moz-cellhighlight",
             "SelectedItem",
             "tree-icons.css",
-            "The toolbar, search filter, content-tree",
+            "The toolbar buttons and the Organize, View",
             "downloads rich list and details pane stay Firefox's",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
+        ))
+
+
+class TestFirefoxLibrarySearchChrome(FirefoxChromeTestCase):
+    """Section of the Firefox chrome sheet under test."""
+
+    def test_search_field_rule_sets_only_custom_properties(self):
+        # The host rule reaches the shadow #input only through the
+        # tokens, so every property is a custom property.
+        declarations = self.rules[SEARCH_RULE[0]]
+        self.assertTrue(declarations)
+        for name in declarations:
+            with self.subTest(property=name):
+                self.assertTrue(
+                    name.startswith("--input-text-")
+                    or name == "--icon-color"
+                )
+
+    def test_search_field_is_the_line_edit(self):
+        self.assertEqual(
+            self.rules[SEARCH_RULE[0]],
+            REQUIRED_RULES[SEARCH_RULE[0]],
+        )
+        for name, value in self.rules[SEARCH_RULE[0]].items():
+            with self.subTest(property=name):
+                self.assertTrue(value.endswith("!important"))
+
+    def test_search_field_selector_scopes_to_the_library_box(self):
+        search = element("moz-input-search", "searchFilter")
+        strain = element("moz-input-search", "someOtherSearchField")
+        plain = element("moz-input-search", None)
+
+        self.assertTrue(matches(SEARCH_RULE[0], search))
+        self.assertFalse(matches(SEARCH_RULE[0], strain))
+        self.assertFalse(matches(SEARCH_RULE[0], plain))
+
+        # No rule in the sheet names a chrome moz-input-search host
+        # other than the Library's, so other chrome windows' search
+        # boxes keep Firefox's paint.
+        named = [
+            name for name in self.rules if "moz-input-search" in name
+        ]
+        self.assertEqual(named, list(SEARCH_RULE))
+
+    def test_header_names_search_provenance(self):
+        self.assert_header_names((
+            "moz-input-search#searchFilter",
+            "places.xhtml",
+            "moz-input-text.css",
+            "tokens-shared.css",
+            "--icon-color",
+            "search-textbox.svg",
+            "no ::part()",
+            "the sunken bevel is absent",
+            "Declaration checks do not establish rendered pixels",
+            "platform colour adaptation 2026-10-27",
+            "2026-10-27",
         ))
 
 

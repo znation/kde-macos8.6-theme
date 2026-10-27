@@ -89,52 +89,6 @@ extension of the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Firefox Platinum chrome, part 2 of a Library window series: paint the Library toolbar's search box `moz-input-search#searchFilter` as the Platinum line edit through the `moz-input-search` tokens (planned 2026-10-27 by the plan role; independent of every other entry — it builds on the landed part 1 of the Library series, the two places trees as the Platinum sunken list field (2026-10-27), reusing the same files and base recipe without touching its rules; the toolbar's chrome buttons and the three Organize/View/Maintenance menus, the content tree's column headers, the `richlistbox#downloadsListBox` downloads view and the `#detailsPane` bookmark-details fields are later parts that wait behind this one)
-
-**Goal.** The landed part 1 left the Library toolbar Firefox's, and its most visible control is the search box. `chrome/browser/content/browser/places/places.xhtml` (read 2026-10-27 from the installed Firefox ESR 153.5.1's `browser/omni.ja`, ~line 553) builds it as `html:moz-input-search id="searchFilter"` inside the window's toolbox `toolbar` (after `#libraryToolbarSpacer`, `aria-controls="placeContent"`), a shadow-DOM custom element whose inner `#input` is styled by `chrome/toolkit/content/global/elements/moz-input-text.css` exclusively through tokens — `border: var(--input-text-border)`, `border-radius: var(--input-text-border-radius)`, `background-color: var(--input-text-background-color)`, `color: var(--input-text-color)` — with the magnifier icon `&[type="search"]`'s `url(chrome://global/skin/icons/search-textbox.svg)` filled by `var(--icon-color)` through `-moz-context-properties`, and no `::part()` exposed. Token defaults come from `chrome/toolkit/skin/classic/global/design-system/tokens-shared.css`: a 1px rounded grey border, a white box face, a grey icon — on the Library's white window face (part 1's `organizer.css` `#placesView` reading) the box reads as a rounded Adwaita pill. Paint it as the Platinum line edit — white face, square 1px black outline, black text, black magnifier — by overriding the five tokens on the host element, the byte-recipe the landed about:preferences part 4 shipped for `moz-input-search#searchInput` in `theme/firefox/org.macos8.desktop/chrome/userContent.css` (custom properties inherit into the shadow tree from the host; that part's headless run verified the sheet's reach). No reference screenshot shows the Firefox Library window; the field adapts this theme's `widgets/lineedit.svg` — a platform colour adaptation. One deliberate limitation, the same one part 4 records: the line edit's sunken bevel (`inset 1px 1px #999999`) cannot be delivered, because `moz-input-text.css` reads no shadow token — the provenance records that as this theme's own choice. Geometry (`min-height`, `padding-inline`, `--input-text-icon-size`), the placeholder ellipsis, the disabled state and any focus indicator stay Firefox's.
-
-**Approach.** In `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, after the landed Library places-trees block (the `tree#placeContent treechildren::-moz-tree-row(multicol, odd)` rule, currently the sheet's last rule), append one rule and nothing else:
-
-```css
-/* Library window search box: the Platinum line edit through the
-   moz-input-search tokens (see the header's provenance paragraph). */
-moz-input-search#searchFilter {
-  --input-text-border: 1px solid #000000 !important;
-  --input-text-border-radius: 0 !important;
-  --input-text-background-color: #FFFFFF !important;
-  --input-text-color: #000000 !important;
-  --icon-color: #000000 !important;
-}
-```
-
-the byte-twin of the landed `moz-input-search#searchInput` rule in userContent.css with the Library host's id. Naming element and id keeps the rule from leaking to other chrome `moz-input-search` hosts; `#searchFilter` is an id the Library window alone carries in chrome. The rule introduces no hex literal outside the already-pinned `{WHITE, BLACK}`, so `TestFirefoxChromeShell::test_palette_is_exact` passes untouched.
-
-Extend the header comment's provenance block with a Library-search paragraph immediately after the Library-trees paragraph and before the header's closing `*/`: no reference screenshot shows the Firefox Library window; the field adapts `widgets/lineedit.svg`, grounded in `macos8.6-screenshots/firstboot_betawiki.png` and pinned by `tests/test_desktoptheme_lineedit.py::TestLineEdit` and `TestLineEditReference`, reusing the landed `moz-input-search#searchInput` token route; the token names and defaults are read 2026-10-27 from `moz-input-text.css` and `tokens-shared.css` in the installed Firefox ESR 153.5.1, `chrome/browser/content/browser/places/places.xhtml` defines `html:moz-input-search#searchFilter` in the window's toolbox toolbar with `aria-controls="placeContent"`, the shadow `#input` paints only through the `--input-text-*`/`--icon-color` tokens with no `::part()`, the magnifier is `search-textbox.svg` filled by `--icon-color`, the sunken bevel is absent because the shadow stylesheet reads no shadow token (this theme's own choice), and the toolbar buttons and Organize/View/Maintenance menus, column headers, downloads rich list and details pane stay Firefox's for the later parts; declaration checks do not establish rendered pixels (platform colour adaptation 2026-10-27).
-
-In `tests/support/firefox_chrome_cases.py`, after the Library-trees block (after the `tree#placeContent treechildren::-moz-tree-row(multicol, odd)` entry), append:
-
-```python
-# The Library window's search box: the Platinum line edit through the
-# moz-input-search tokens, the byte-twin of the landed
-# moz-input-search#searchInput recipe (see the header's provenance
-# paragraph).
-REQUIRED_RULES["moz-input-search#searchFilter"] = {
-    "--input-text-border": f"1px solid {BLACK} !important",
-    "--input-text-border-radius": "0 !important",
-    "--input-text-background-color": f"{WHITE} !important",
-    "--input-text-color": f"{BLACK} !important",
-    "--icon-color": f"{BLACK} !important",
-}
-```
-
-In `tests/test_firefox_theme_library.py`, add `SEARCH_RULE = ("moz-input-search#searchFilter",)` beside `TREE_RULES` and a new `class TestFirefoxLibrarySearchChrome(FirefoxChromeTestCase)` holding: `test_search_field_rule_sets_only_custom_properties` — the rule's every property starts `--input-text-` or equals `--icon-color`, and every value ends `!important`; `test_search_field_is_the_line_edit` — `self.rules["moz-input-search#searchFilter"]` equals the pinned dict above byte-for-byte; `test_search_field_selector_scopes_to_the_library_box` — `support.selector_matching.matches` matches an element named `moz-input-search` with id `searchFilter` and never matches one without that id (pattern: `test_library_tree_paint_is_scoped_to_the_places_trees`); and `test_header_names_search_provenance` — the header names `moz-input-search#searchFilter`, `places.xhtml`, `moz-input-text.css`, `tokens-shared.css`, `--icon-color`, `search-textbox.svg`, the no-`::part()` route, the absent sunken bevel, `2026-10-27` and `platform colour adaptation 2026-10-27` (pattern: `test_library_tree_provenance`).
-
-In `docs/invariants.md`, append a row at the end of the `## firefox` table (after the Library places-trees row, before `## gtk`): the Library window's search box (`moz-input-search#searchFilter`) is a white face with a square 1px black outline, black text and a black magnifier icon, delivered through the five `--input-text-*`/`--icon-color` tokens on the host element, with the sunken bevel, geometry, placeholder, disabled and focus states Firefox's. Test column: `tests/test_firefox_theme_library.py::TestFirefoxLibrarySearchChrome` plus `tests/test_firefox_theme_shell.py::TestFirefoxChromeShell::test_palette_is_exact`. Provenance: no reference screenshot shows the window; the field adapts `widgets/lineedit.svg` (a platform colour adaptation), pinned by `tests/test_desktoptheme_lineedit.py::TestLineEdit`; the token names and defaults are read 2026-10-27 from `moz-input-text.css` and `tokens-shared.css` in the installed Firefox ESR 153.5.1, and declaration checks do not establish rendered pixels. `tests/invariants.py` stays green.
-
-**Acceptance criteria.**
-- The rules body gains exactly the one rule above, appended after the Library-trees block; the header gains exactly one paragraph and still closes with `*/`; nothing already in the sheet changes.
-- `TestFirefoxLibrarySearchChrome`'s four tests pass; `TestFirefoxLibraryChrome`'s tests and `TestFirefoxChromeShell::test_required_rules` keep green against the extended `REQUIRED_RULES`; `test_palette_is_exact` keeps green (no hex outside `{#FFFFFF, #000000}` in the new rule).
-- `docs/invariants.md` gains one row and `tests/invariants.py` stays green.
-- `make check` passes.
+_None yet._
 
 ## Done
