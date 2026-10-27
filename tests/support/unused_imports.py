@@ -177,8 +177,9 @@ def unused_imports(
                 (path, imports, source.splitlines(), read_names, dunder_all)
             )
 
-    findings: list[str] = []
+    findings: list[tuple[str, int, str]] = []
     for path, imports, lines, read_names, dunder_all in scanned:
+        relative = str(path.relative_to(root))
         candidates = _dotted_candidates(path, root)
         for node, names in imports:
             if (
@@ -197,8 +198,11 @@ def unused_imports(
                     for module, imported in imported_from
                 ):
                     continue
-                findings.append(
-                    f"{path.relative_to(root)}:{node.lineno}: "
-                    f"unused import {name}"
-                )
-    return findings
+                findings.append((relative, node.lineno, name))
+    # ast.walk collects a module's imports breadth-first, so a nested or
+    # block-nested import would trail its later top-level imports; sort by
+    # path, then line, then name to keep the promise the docstring states.
+    return [
+        f"{found_path}:{line}: unused import {name}"
+        for found_path, line, name in sorted(findings)
+    ]

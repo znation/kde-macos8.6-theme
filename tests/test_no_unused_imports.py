@@ -209,6 +209,34 @@ class TestNoUnusedImports(unittest.TestCase):
             ],
         )
 
+    def test_findings_are_sorted_by_path_then_line(self):
+        # The findings feed the tree-clean assertion's failure message, so
+        # a module's offenders must list in line order: ast.walk visits
+        # statements breadth-first, so a nested or block-nested import
+        # would otherwise trail the module's later top-level imports.
+        findings = self._findings(
+            self,
+            {
+                "pkg/z.py": "import q\n",
+                "pkg/mod.py": (
+                    "def f():\n"
+                    "    import b\n"
+                    "if True:\n"
+                    "    import a\n"
+                    "import c\n"
+                ),
+            },
+        )
+        self.assertEqual(
+            findings,
+            [
+                "pkg/mod.py:2: unused import b",
+                "pkg/mod.py:4: unused import a",
+                "pkg/mod.py:5: unused import c",
+                "pkg/z.py:1: unused import q",
+            ],
+        )
+
     def test_a_package_facade_is_not_scanned(self):
         findings = self._findings(
             self,

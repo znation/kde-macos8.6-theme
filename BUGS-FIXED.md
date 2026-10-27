@@ -5,6 +5,24 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The unused-import scanner emits a module's findings in `ast.walk` order, not the documented path-then-line sort — fixed 2026-10-27 by the bugfix role
+
+- Symptom: the tree-clean assertion's failure message can list a module's
+  offenders out of line order (a nested or block-nested import trailing its
+  later top-level imports), although `unused_imports` documents "Findings are
+  sorted by path, then line".
+- Reproduce: a scratch tree whose module reads `def f():\n    import b\nif
+  True:\n    import a\nimport c\n` returned findings for lines 5, 2, 4 —
+  `ast.walk` visits statements breadth-first, so block-nested imports trail
+  the module's top-level ones regardless of line numbers.
+- Fix: `tests/support/unused_imports.py` collects `(path, line, name)` tuples
+  and sorts them before formatting, restoring the documented order.
+
+**Validation gap:** none — the closest tag: no existing scanner test pinned
+the documented path-then-line order, but a scratch synthetic tree reproduced
+the mis-ordering deterministically and the new ordering test pins it, so
+nothing outside the suite was needed to confirm the failure.
+
 ### The unused-import scanner flags a submodule import that only feeds a package facade's re-export (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 Symptom: with `pkg/__init__.py` holding `from .mod import thing`,
