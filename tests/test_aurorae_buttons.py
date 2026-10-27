@@ -17,9 +17,9 @@ import unittest
 
 from support.aurorae_fixtures import (
     AURORAE_DIR,
-    INACTIVE_GREY,
     ReferenceImageCase,
     ZOOM_BOX_X,
+    inactive_fill,
 )
 from support.platinum_palette import hex_colour
 from support.svg_case import parse_svg
@@ -50,13 +50,6 @@ def _parsed_svgs(paths):
     that parse-and-label step in one place.
     """
     return [(os.path.basename(path), parse_svg(path)) for path in paths]
-
-
-def _inactive_fill(active_fill):
-    """The inactive box keeps the #888888/#222222 outlines, flattens the rest."""
-    if active_fill in ("#888888", "#222222"):
-        return active_fill
-    return INACTIVE_GREY
 
 
 class TestButtons(ReferenceImageCase, unittest.TestCase):
@@ -159,7 +152,7 @@ class TestButtons(ReferenceImageCase, unittest.TestCase):
                 self.assertEqual(set(inactive), set(active))
                 for point, fill in active.items():
                     self.assertEqual(
-                        inactive[point], _inactive_fill(fill), point
+                        inactive[point], inactive_fill(fill), point
                     )
 
     def test_inactive_glyphs_survive(self):

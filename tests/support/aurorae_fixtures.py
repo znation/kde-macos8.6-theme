@@ -19,7 +19,12 @@ from support.desktoptheme_paths import (
     FANDOM_MAX_ROWS,
     FANDOM_REFERENCE,
 )
-from support.platinum_palette import INACTIVE_OUTLINE, hex_colour
+from support.platinum_palette import (
+    BOX_INNER_OUTLINE,
+    ETCH_DARK,
+    INACTIVE_OUTLINE,
+    hex_colour,
+)
 from support.reference_image import read_reference, skip_unless_materialized
 from support.repo_root import ROOT
 
@@ -66,6 +71,22 @@ PROFILER_ROWS = 256
 # value is the button boxes' KDE-required grey (the reference's inactive
 # windows draw no close/collapse boxes in their title bars).
 INACTIVE_GREY = "#CCCCCC"
+
+
+def inactive_fill(active_fill):
+    """Map one active box fill onto the inactive/disabled box's fill.
+
+    The flattening rule both consumers pin: the box keeps its #888888
+    (``ETCH_DARK``) and #222222 (``BOX_INNER_OUTLINE``) outline fills and
+    every other fill — the gradient face and its mid band, the white
+    highlight — flattens to ``INACTIVE_GREY``. The Aurorae decoration's
+    own inactive groups (tests/test_aurorae_buttons.py) and the Kvantum
+    `mdi` window buttons' disabled state, which copies that art
+    (tests/test_kvantum_svg.py), are the only appliers.
+    """
+    if active_fill in (ETCH_DARK, BOX_INNER_OUTLINE):
+        return active_fill
+    return INACTIVE_GREY
 # The inactive frame's field, sampled from the four unfocused windows' title
 # fields in `INACTIVE_REFERENCE`.
 INACTIVE_FRAME_GREY = "#DDDDDD"

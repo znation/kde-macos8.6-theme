@@ -18,7 +18,7 @@ from unittest import mock
 
 from support import svg_case
 from support.kde_config import read as read_kde_config
-from support.aurorae_fixtures import AURORAE_DIR
+from support.aurorae_fixtures import AURORAE_DIR, inactive_fill
 from support.kvantum_fixtures import KVCONFIG, SVG
 from support.platinum_palette import (
     BOX_INNER_OUTLINE,
@@ -595,10 +595,11 @@ class TestMdiButtons(unittest.TestCase):
                 # The source's 13th-pixel highlight column/row.
                 continue
             fill = attributes["fill"]
-            if disabled and fill not in ("#888888", BOX_INNER_OUTLINE):
-                # The gradient face flattens to #CCCCCC, already a named
-                # extra in the palette test (CHECKBOX_SHADOW/TAB_FACE).
-                fill = "#CCCCCC"
+            if disabled:
+                # The disabled state flattens every non-outline fill the
+                # way the reference-less Aurorae inactive groups are drawn
+                # (the shared `inactive_fill` rule).
+                fill = inactive_fill(fill)
             expected.append(
                 _rect(str(x), str(y), attributes["width"], attributes["height"], fill)
             )
