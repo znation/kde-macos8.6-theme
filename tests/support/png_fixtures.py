@@ -57,18 +57,32 @@ def png_stream(*chunks: bytes) -> bytes:
     return _PNG_SIGNATURE + b"".join(chunks)
 
 
+def _ihdr_payload_span(data: bytes) -> tuple[int, int]:
+    """Return the (start, length) byte span of *data*'s IHDR payload.
+
+    The layout is the 8-byte signature, then the 4-byte length, 4-byte
+    "IHDR" type, the payload and the 4-byte CRC, so the payload starts at
+    ``len(_PNG_SIGNATURE) + 8`` and its length is the chunk's own length
+    field. :func:`ihdr_end` and :func:`with_ihdr_byte` both derive their
+    boundary arithmetic from this instead of unpacking the length field
+    separately.
+    """
+    start = len(_PNG_SIGNATURE) + 8
+    length = struct.unpack(">I", data[start - 8 : start - 4])[0]
+    return start, length
+
+
 def ihdr_end(data: bytes) -> int:
     """Return the offset just past the IHDR chunk in *data*.
 
     IHDR's payload is fixed at 13 bytes, but reading the chunk's own length
-    field keeps this correct for any framing: the 8-byte signature, then the
-    4-byte length, 4-byte type, payload and 4-byte CRC. The decode tests
-    splice deliberately malformed chunks in after IHDR and so need this
-    boundary rather than re-deriving it at each site.
+    field keeps this correct for any framing (see
+    :func:`_ihdr_payload_span`). The decode tests splice deliberately
+    malformed chunks in after IHDR and so need this boundary rather than
+    re-deriving it at each site.
     """
-    start = len(_PNG_SIGNATURE)
-    length = struct.unpack(">I", data[start : start + 4])[0]
-    return start + 8 + length + 4
+    start, length = _ihdr_payload_span(data)
+    return start + length + 4
 
 
 def splice_after_ihdr(data: bytes, inserted: bytes) -> bytes:
@@ -270,10 +284,7 @@ def with_ihdr_byte(data: bytes, offset: int, value: int) -> bytes:
     and the other out-of-range cases used to escape as a bare ``IndexError``
     or ``ValueError`` naming neither the argument nor the valid range.
     """
-    start = len(_PNG_SIGNATURE) + 8  # skip signature, length, and "IHDR"
-    length = struct.unpack(
-        ">I", data[len(_PNG_SIGNATURE) : len(_PNG_SIGNATURE) + 4]
-    )[0]
+    start, length = _ihdr_payload_span(data)  # skip signature, length, "IHDR"
     if not 0 <= offset < length:
         raise ValueError(
             f"with_ihdr_byte: offset {offset} is outside the IHDR payload "
