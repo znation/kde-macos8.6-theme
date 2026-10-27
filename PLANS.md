@@ -10,7 +10,8 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
 by the clean role; validation scope clarified 2026-10-25 by the steward role; Firefox artifact
-and content-surface status updated 2026-10-26 by the steward role):** The
+and content-surface status updated 2026-10-26 by the steward role; install-firefox
+file list corrected 2026-10-27 by the steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
@@ -30,8 +31,9 @@ and the global theme selects its `Lato` family for the general, menu, toolbar, s
 and window-title fonts, while monospaced text keeps the user's fixed font); the GTK 3 and GTK 4
 Platinum stylesheets under `theme/gtk/` (installed by the opt-in `install-gtk` target and
 selected by `apply-gtk`; `make install` copies no GTK files); the standalone Firefox Platinum
-sheet under `theme/firefox/` (its `userChrome.css` copied and its profile preference written
-only by the opt-in `install-firefox` target); and the render and fidelity tooling.
+sheets under `theme/firefox/` (its `userChrome.css` and `userContent.css` copied, and its
+profile preference written, only by the opt-in `install-firefox` target); and the render and
+fidelity tooling.
 The live reference-comparison gate in `tests/test_render_surface.py` checks Aurorae window-chrome
 regions when its render prerequisites are available (README.md, "Fidelity checking").
 Firefox's `tests/test_firefox_theme_*.py` modules check stylesheet declarations;
