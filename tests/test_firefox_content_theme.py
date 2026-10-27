@@ -160,14 +160,34 @@ PAGE_CHROME = (
 )
 
 
-class TestFirefoxContentTheme(unittest.TestCase):
+class SheetCase(unittest.TestCase):
+    """Shared fixture for the two classes testing ``userContent.css``.
+
+    Both read the shipped sheet, split it into ``@-moz-document`` bodies and
+    parse exactly one of them; the class attribute ``AT_RULE_URL`` names which.
+    :meth:`assert_header_names` serves the two provenance tests.
+    """
+
+    AT_RULE_URL: str
+
     @classmethod
     def setUpClass(cls):
         cls.text = containment.read_text(SHEET, ROOT, encoding="utf-8")
         cls.bodies = at_rule_bodies(cls.text)
         cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.bodies.get("about:downloads", ""), source=SHEET_PATH
+            cls.bodies.get(cls.AT_RULE_URL, ""), source=SHEET_PATH
         )
+
+    def assert_header_names(self, provenances):
+        """Assert the comment header before the first ``*/`` names each entry."""
+        header = self.text.split("*/", 1)[0]
+        for provenance in provenances:
+            with self.subTest(provenance=provenance):
+                self.assertIn(provenance, header)
+
+
+class TestFirefoxContentTheme(SheetCase):
+    AT_RULE_URL = "about:downloads"
 
     def test_first_line_is_the_marker(self):
         first_line = self.text.removeprefix("\ufeff").splitlines()[0]
@@ -222,36 +242,29 @@ class TestFirefoxContentTheme(unittest.TestCase):
             self.assertNotIn("*", selector)
 
     def test_header_names_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
-            "No reference shows Firefox's",
-            "widgets/lineedit.svg",
-            "tests/test_desktoptheme_lineedit.py::TestLineEdit",
-            "widgets/listitem.svg",
-            "tests/test_desktoptheme_listitem.py::TestListItem",
-            "test_selection_background",
-            "chrome/browser/content/browser/downloads/contentAreaDownloadsView.xhtml",
-            "contentAreaDownloadsView",
-            "contentAreaDownloadsView.css",
-            "richlistbox.css",
-            "browser.tabs.remote.separatePrivilegedContentProcess",
-            "@-moz-document",
-            "platform colour adaptation 2026-10-26",
-            "make install-firefox",
-            "make remove-firefox",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
-
-
-class TestFirefoxConfigTheme(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.text = containment.read_text(SHEET, ROOT, encoding="utf-8")
-        cls.body = at_rule_bodies(cls.text).get("about:config", "")
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.body, source=SHEET_PATH
+        self.assert_header_names(
+            (
+                "No reference shows Firefox's",
+                "widgets/lineedit.svg",
+                "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+                "widgets/listitem.svg",
+                "tests/test_desktoptheme_listitem.py::TestListItem",
+                "test_selection_background",
+                "chrome/browser/content/browser/downloads/contentAreaDownloadsView.xhtml",
+                "contentAreaDownloadsView",
+                "contentAreaDownloadsView.css",
+                "richlistbox.css",
+                "browser.tabs.remote.separatePrivilegedContentProcess",
+                "@-moz-document",
+                "platform colour adaptation 2026-10-26",
+                "make install-firefox",
+                "make remove-firefox",
+            )
         )
+
+
+class TestFirefoxConfigTheme(SheetCase):
+    AT_RULE_URL = "about:config"
 
     def test_required_rules(self):
         for selector, expected in REQUIRED_CONFIG_RULES.items():
@@ -275,27 +288,26 @@ class TestFirefoxConfigTheme(unittest.TestCase):
         self.assertEqual(self.rules[CONFIG_PREFS], FIELD_RULE)
 
     def test_header_names_config_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
-            "No reference shows Firefox's about:config",
-            "widgets/lineedit.svg",
-            "widgets/listitem.svg",
-            "widgets/button.svg",
-            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
-            "test_view_background_alternate",
-            "test_selection_background",
-            "aboutconfig.html",
-            "aboutconfig.js",
-            "aboutconfig.css",
-            "common-shared.css",
-            "#prefs",
-            "#about-config-search",
-            "#show-all",
-            "#warningButton",
-            "platform colour adaptation 2026-10-26",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        self.assert_header_names(
+            (
+                "No reference shows Firefox's about:config",
+                "widgets/lineedit.svg",
+                "widgets/listitem.svg",
+                "widgets/button.svg",
+                "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+                "test_view_background_alternate",
+                "test_selection_background",
+                "aboutconfig.html",
+                "aboutconfig.js",
+                "aboutconfig.css",
+                "common-shared.css",
+                "#prefs",
+                "#about-config-search",
+                "#show-all",
+                "#warningButton",
+                "platform colour adaptation 2026-10-26",
+            )
+        )
 
 
 if __name__ == "__main__":
