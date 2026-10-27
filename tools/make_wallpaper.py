@@ -29,18 +29,18 @@ import sys
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.atomic_write import write_bytes_atomically
     from tools.containment import require_within_repo
     from tools.diagnostics import report_error
+    from tools.generated_files import write_generated_files
     from tools.png import Image, PngError, read_png
     from tools.png.write import encode_png
     from tools.ints import is_plain_int
     from tools.repo_root import ROOT
 else:  # run directly: python3 tools/make_wallpaper.py
     from argument_parsing import EscapingArgumentParser
-    from atomic_write import write_bytes_atomically
     from containment import require_within_repo
     from diagnostics import report_error
+    from generated_files import write_generated_files
     from png import Image, PngError, read_png
     from png.write import encode_png
     from ints import is_plain_int
@@ -151,28 +151,20 @@ def main(argv: list[str] | None = None) -> int:
     except (PngError, ValueError) as exc:
         return report_error(TOOL, str(exc))
     images = ROOT / PACKAGE_DIR / "contents" / "images"
-    try:
-        # The images directory is a repository path too, and a checked-in
-        # symlink can point anywhere on the machine: writing through it would
-        # put the wallpaper images outside the wallpaper package, into a
-        # directory a contributor names, and overwrite same-named files
-        # there. The shared guard refuses a repository path that resolves
-        # outside the repository before anything is written.
-        require_within_repo(images, ROOT, action="write")
-    except ValueError as exc:
-        return report_error(TOOL, str(exc))
-    try:
-        images.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        return report_error(TOOL, f"cannot create {images}: {exc}")
-    for width, height in RESOLUTIONS:
-        data = encode_png(width, height, tiled_rgb(tile, width, height))
-        target = images / f"{width}x{height}.png"
-        try:
-            write_bytes_atomically(target, data)
-        except OSError as exc:
-            return report_error(TOOL, f"cannot write {target}: {exc}")
-    return 0
+    # The images directory is a repository path, and a checked-in symlink
+    # can point anywhere on the machine: writing through it would put the
+    # wallpaper images outside the wallpaper package, into a directory a
+    # contributor names, and overwrite same-named files there. The shared
+    # publisher refuses a repository path that resolves outside the
+    # repository before anything is written.
+    files = [
+        (
+            images / f"{width}x{height}.png",
+            encode_png(width, height, tiled_rgb(tile, width, height)),
+        )
+        for width, height in RESOLUTIONS
+    ]
+    return write_generated_files(TOOL, ROOT, images, files)
 
 
 if __name__ == "__main__":

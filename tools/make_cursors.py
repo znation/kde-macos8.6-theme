@@ -26,18 +26,16 @@ from pathlib import Path
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.atomic_write import write_bytes_atomically
-    from tools.containment import require_within_repo
     from tools.cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
-    from tools.diagnostics import report_error
+    from tools.generated_files import write_generated_files
     from tools.ints import is_plain_int
     from tools.repo_root import ROOT
     from tools.xcursor import MAX_IMAGE_SIZE, write_rgba_cursor
 else:  # run directly: python3 tools/make_cursors.py
     from argument_parsing import EscapingArgumentParser
     from atomic_write import write_bytes_atomically
-    from containment import require_within_repo
     from cursor_art import ARROW_GRID, CURSORS, GRID_SIZE, HOTSPOT, PIXELS
-    from diagnostics import report_error
+    from generated_files import write_generated_files
     from ints import is_plain_int
     from repo_root import ROOT
     from xcursor import MAX_IMAGE_SIZE, write_rgba_cursor
@@ -216,23 +214,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.parse_args(argv)
     directory = ROOT / PACKAGE_DIR / CURSORS_DIR
-    try:
-        require_within_repo(directory, ROOT, action="write")
-    except ValueError as exc:
-        return report_error(TOOL, str(exc))
-    try:
-        directory.mkdir(parents=True, exist_ok=True)
-    except OSError as exc:
-        return report_error(TOOL, f"cannot create {directory}: {exc}")
+    files = []
     for canonical, rows, hotspot, aliases in CURSORS:
         data = cursor_bytes(rows, NOMINAL_SIZES, hotspot, name=canonical)
         for name in (canonical, *aliases):
-            target = directory / name
-            try:
-                write_bytes_atomically(target, data)
-            except OSError as exc:
-                return report_error(TOOL, f"cannot write {target}: {exc}")
-    return 0
+            files.append((directory / name, data))
+    # The publisher's write comes from this module's name so a test patching
+    # make_cursors.write_bytes_atomically still intercepts the writes.
+    return write_generated_files(
+        TOOL, ROOT, directory, files, write=write_bytes_atomically
+    )
 
 
 if __name__ == "__main__":
