@@ -5,8 +5,7 @@ the 2px/1px frame margins, and the checks that every `.kvconfig` section and
 setting is pinned by a table in `support.kvantum_config_spec`. The element
 each core control, track/value and container/text surface section draws is
 pinned in `test_kvantum_config_elements.py`. The global theme selects this
-style (`widgetStyle=kvantum`) as of part 4/4, but nothing here asserts that
-selection.
+style (`widgetStyle=kvantum`), but nothing here asserts that selection.
 """
 
 from __future__ import annotations

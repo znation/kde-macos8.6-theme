@@ -143,7 +143,8 @@ class TestFirefoxContentTheme(unittest.TestCase):
             "browser.tabs.remote.separatePrivilegedContentProcess",
             "@-moz-document",
             "platform colour adaptation 2026-10-26",
-            "part 2/2",
+            "make install-firefox",
+            "make remove-firefox",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)

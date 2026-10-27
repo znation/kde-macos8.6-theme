@@ -45,7 +45,7 @@ PALETTE_ROLES = {
     "dark.color": GREY,
 }
 
-# The core sections the plan names and the frame margin each resolves to
+# The core sections and the frame margin each resolves to
 # (following `inherits`), in pixels. Kvantum's default uses 2px frames and a
 # 1px focus ring.
 CORE_FRAME_MARGINS = {
@@ -77,9 +77,8 @@ CORE_FRAME_MARGINS = {
     "DropDownButton": 2,
 }
 
-# The core controls added in part 1/4: the SVG element Kvantum draws for each
-# core section's frame, interior and indicator, following `inherits`. The
-# generic art-existence check cannot see these: a wrong element name that
+# The core controls: the SVG element Kvantum draws for each core section's
+# frame, interior and indicator, following `inherits`. The generic art-existence check cannot see these: a wrong element name that
 # happens to exist elsewhere in the SVG still passes it, while Kvantum renders
 # the wrong control (a check box drawn from the radio art, say). The
 # track/value and surface sections have their own tables below, and
@@ -143,16 +142,16 @@ CORE_CONTROL_CONFIG = {
     },
 }
 
-# The sections the plan slices differently from the 2px raised face: the
+# The sections sliced differently from the 2px raised face: the
 # splitter is a thin line (0/1) and the scrollbar groove is the trough (0/4).
 SPECIAL_FRAME_MARGINS = {
     "Splitter": {"top": 0, "bottom": 0, "left": 1, "right": 1},
     "ScrollbarGroove": {"top": 0, "bottom": 0, "left": 4, "right": 4},
 }
 
-# The track and value controls added in part 2/4: the SVG element Kvantum
-# draws for each section's frame, interior and indicator, the two sections
-# that ship no frame, and the progress bar's label styling. The generic
+# The track and value controls: the SVG element Kvantum draws for each
+# section's frame, interior and indicator, the two sections that ship no
+# frame, and the progress bar's label styling. The generic
 # art-existence check cannot see these: a wrong element name that happens to
 # exist elsewhere in the SVG still passes it, while Kvantum renders the wrong
 # control.
@@ -201,7 +200,7 @@ TRACK_CONTROL_CONFIG = {
     },
 }
 
-# Part 3's container and text surface sections: the SVG element Kvantum draws
+# The container and text surface sections: the SVG element Kvantum draws
 # for each section's frame, interior and indicator. A wrong element name that
 # happens to exist elsewhere still passes the generic art-existence check
 # while Kvantum renders the wrong control, so these pin the mapping -- in

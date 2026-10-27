@@ -1,10 +1,10 @@
 """Pin the SVG element each Kvantum `.kvconfig` section draws.
 
-Part 1 of the Kvantum series ships the core controls, part 2 the track and
-value controls, and part 3 the container and text surfaces; these tests pin
-each section's element mapping so a wrong element name that happens to exist
-elsewhere in the SVG fails here rather than rendering the wrong control. The
-palette, metrics and config-wide pin checks live in `test_kvantum_config.py`.
+The core controls, track and value controls, and container and text surfaces
+each have a table; these tests pin every section's element mapping so a wrong
+element name that happens to exist elsewhere in the SVG fails here rather than
+rendering the wrong control. The palette, metrics and config-wide pin checks
+live in `test_kvantum_config.py`.
 """
 
 from __future__ import annotations

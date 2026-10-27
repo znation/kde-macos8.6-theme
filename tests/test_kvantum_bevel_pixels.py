@@ -70,7 +70,7 @@ def _button_corners(bevel, shadow, highlight=SURFACE_HIGHLIGHT):
     """
     return bevel_corner_maps(bevel, "#000000", highlight, shadow)
 
-# Part 3's frame elements, the bevel each state paints and the colour of its
+# The frame elements, the bevel each state paints and the colour of its
 # centre. `raised` and `sunken` paint the eight bevel slices and four corners
 # `_button_edge_maps`/`_button_corners` describe; `flat` paints every slice as
 # a solid fill with no outline or bevel, the project's flat-selection art for

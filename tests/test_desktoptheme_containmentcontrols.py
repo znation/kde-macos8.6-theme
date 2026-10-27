@@ -93,7 +93,7 @@ class TestContainmentControls(SvgCase, unittest.TestCase):
         # render_slices composites each group slice-locally and ignores its
         # transform, so a translated group would draw from the wrong canvas
         # region and still pass every pixel check. Pin every id-bearing group
-        # at the origin the plan's 0-based coordinates promise.
+        # at the origin the reference grid's 0-based coordinates promise.
         origins = tile_origins(self.tree)
         self.assertEqual(
             set(origins),

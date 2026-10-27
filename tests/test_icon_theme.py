@@ -41,10 +41,10 @@ PLACEHOLDERS = os.path.join(ROOT, "PLACEHOLDERS.md")
 # Trash and full Trash (32x32), the `inode-directory` alias KDE resolves a
 # directory to plus the `user-home` and `user-desktop` places, all drawing
 # the folder art, 16x16 and 22x22 renditions of the folder, aliases, Trash
-# and full Trash (part 1/2 of the Platinum icon theme), 16x16 and 22x22
-# renditions of the hard disk and document (part 2/2), the kicker logo the
-# menu bar's top-left button shows at the two panel sizes, and the
-# `go-next-symbolic` submenu arrow the reference's open Apple menu draws.
+# and full Trash, 16x16 and 22x22 renditions of the hard disk and document,
+# the kicker logo the menu bar's top-left button shows at the two panel sizes,
+# and the `go-next-symbolic` submenu arrow the reference's open Apple menu
+# draws.
 SHIPPED_ICONS = (
     os.path.join("32x32", "devices", "drive-harddisk.svg"),
     os.path.join("16x16", "devices", "drive-harddisk.svg"),
