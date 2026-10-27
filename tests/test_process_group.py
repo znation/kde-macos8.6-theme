@@ -221,6 +221,45 @@ class TestRunLogged(unittest.TestCase):
                 )
         self.assertTrue(is_gone(child["pid"]))
 
+    def test_a_sighup_while_popen_returns_still_kills_the_child(self):
+        # exit_on_termination handles SIGHUP as well as SIGTERM: a terminal
+        # hangup must not leave the command running either. The SIGTERM race
+        # test above would keep passing if SIGHUP were dropped from the
+        # deferral, so deliver SIGHUP from inside Popen, at the exact point
+        # the real one returns, and pin the same cleanup.
+        real_popen = subprocess.Popen
+        child = {}
+
+        def popen_then_hangup(*args, **kwargs):
+            process = real_popen(*args, **kwargs)
+            child["pid"] = process.pid
+            os.kill(os.getpid(), signal.SIGHUP)
+            return process
+
+        def kill_child():
+            pid = child.get("pid")
+            if pid is not None:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError:
+                    pass
+
+        self.addCleanup(kill_child)
+        with mock.patch.object(
+            process_group.subprocess, "Popen", side_effect=popen_then_hangup
+        ):
+            with process_group.exit_on_termination():
+                with self.assertRaises(SystemExit) as caught:
+                    process_group.run_logged(
+                        ["/bin/sleep", "60"],
+                        dict(os.environ),
+                        self.log,
+                        30,
+                        self.root,
+                    )
+        self.assertEqual(128 + signal.SIGHUP, caught.exception.code)
+        self.assertTrue(is_gone(child["pid"]))
+
     def test_a_reap_timeout_does_not_replace_the_signal_that_interrupted_the_wait(self):
         # A SIGTERM or SIGHUP makes exit_on_termination's handler raise
         # SystemExit out of the first wait. If the just-killed child is in
