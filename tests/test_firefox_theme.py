@@ -325,6 +325,22 @@ REQUIRED_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    "#notification-popup .popup-notification-primary-button": {
+        "--button-background-color-primary": f"{FACE} !important",
+        "--button-background-color-primary-hover": f"{SELECTION} !important",
+        "--button-background-color-primary-active": f"{SELECTION} !important",
+        "--button-border": "1px solid !important",
+        "--button-border-color-primary": f"{BLACK} !important",
+        "--button-border-color-primary-hover": f"{BLACK} !important",
+        "--button-border-color-primary-active": f"{BLACK} !important",
+        "--button-text-color-primary": f"{BLACK} !important",
+        "--button-text-color-primary-hover": f"{BLACK} !important",
+        "--button-text-color-primary-active": f"{BLACK} !important",
+        "--button-border-radius": "0 !important",
+        "background-color": "transparent !important",
+        "color": f"{BLACK} !important",
+        "border-radius": "0 !important",
+    },
     "menupopup > menuseparator": {
         "padding": "0 !important",
         "margin": "2px 0 !important",
@@ -1356,8 +1372,8 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             self.assertIn(":hover", hover)
             self.assertIn(":not([disabled])", hover)
         self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if any(token in declarations for token in (
+            {name for name in selectors
+             if any(token in self.rules[name] for token in (
                  "--button-background-color",
                  "--button-border-color",
                  "--button-border-radius",
@@ -1462,6 +1478,107 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
                     self.assertFalse(
                         matches(selector, {**control, "hover": True})
                     )
+
+    def test_notification_popup_primary_button_paint_is_scoped_to_the_notification_popup(self):
+        primary = "#notification-popup .popup-notification-primary-button"
+        self.assertEqual(
+            {name for name in self.rules if "notification-popup" in name},
+            {primary},
+        )
+        self.assertEqual(self.rules[primary], REQUIRED_RULES[primary])
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if any(token in declarations for token in (
+                 "--button-background-color",
+                 "--button-border-color",
+             ))},
+            set(),
+        )
+        for token in (
+            "--button-border-color-primary-hover",
+            "--button-border-color-primary-active",
+            "--button-text-color-primary-hover",
+            "--button-text-color-primary-active",
+        ):
+            with self.subTest(token=token):
+                self.assertIn(token, self.rules[primary])
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--button-border-radius" in declarations},
+            {primary},
+        )
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if "--border-radius-medium" in declarations},
+            set(),
+        )
+
+        panel = element(
+            "panel", "notification-popup", attrs={"type": "arrow"}
+        )
+        footer = element(
+            "moz-button-group", classes=("panel-footer",), parent=panel
+        )
+        primary_button = element(
+            "moz-button",
+            classes=("popup-notification-primary-button",),
+            attrs={"type": "primary"},
+            parent=footer,
+        )
+        secondary = element(
+            "moz-button",
+            classes=("popup-notification-secondary-button",),
+            attrs={"type": "split"},
+            parent=footer,
+        )
+        plain_button = element(
+            "button",
+            classes=("popup-notification-primary-button",),
+            parent=element("panel", "identity-popup"),
+        )
+        other_primary = element(
+            "moz-button",
+            classes=("popup-notification-primary-button",),
+            attrs={"type": "primary"},
+            parent=element("panel", "trustpanel-popup"),
+        )
+
+        self.assertTrue(matches(primary, primary_button))
+        self.assertTrue(matches(primary, {**primary_button, "hover": True}))
+        for name, unthemed in (
+            ("secondary", secondary),
+            ("footer", footer),
+            ("plain_button", plain_button),
+            ("other_primary", other_primary),
+        ):
+            with self.subTest(unthemed=name):
+                self.assertFalse(matches(primary, unthemed))
+                self.assertFalse(
+                    matches(primary, {**unthemed, "hover": True})
+                )
+
+    def test_notification_popup_provenance(self):
+        header = self.text.split("*/", 1)[0]
+        for provenance in (
+            "No reference shows Firefox's notification doorhanger",
+            "widgets/button.svg",
+            "tests/test_desktoptheme_button.py::TestButton",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "#notification-popup",
+            "popup-notification-primary-button",
+            "popup-notification-secondary-button",
+            "popupnotification.js",
+            "browser.xhtml",
+            "browser-shared.css",
+            "moz-button.css",
+            "tokens-shared.css",
+            "--button-border",
+            "platform adaptation 2026-10-26",
+        ):
+            with self.subTest(provenance=provenance):
+                self.assertIn(provenance, header)
 
     def test_find_field_foreground_is_guarded(self):
         selector = (
@@ -1747,9 +1864,13 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             self.assertIn(":hover", selector)
             self.assertIn(":not([disabled])", selector)
         self.assertEqual(
+            {name for name in selectors
+             if "--button-border-radius" in self.rules[name]},
+            set(),
+        )
+        self.assertEqual(
             {name for name, declarations in self.rules.items()
              if any(token in declarations for token in (
-                 "--button-border-radius",
                  "--input-border-color",
                  "--input-text-background-color",
                  "--border-radius-medium",

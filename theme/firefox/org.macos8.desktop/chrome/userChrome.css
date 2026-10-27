@@ -327,6 +327,35 @@
    separator and panel body Firefox's; declaration checks do not establish
    rendered pixels.
 
+   No reference shows Firefox's notification doorhanger; its primary button
+   adapts the reference-grounded widgets/button.svg push button's #DDDDDD
+   face and black outline and the flat #CCCCFF row mapping
+   (platform adaptation 2026-10-26), pinned by
+   tests/test_desktoptheme_button.py::TestButton and the row fill by
+   widgets/viewitem.svg, tests/test_desktoptheme_viewitem.py::TestViewItem
+   and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/browser.xhtml defines the
+   #notification-popup arrow panel; popupnotification.js renders its
+   moz-button-group.panel-footer holding the
+   popup-notification-secondary-button and popup-notification-primary-button
+   moz-buttons, and chrome/browser/skin/classic/browser/browser-shared.css
+   gives the primary host a translucent grey face, white text and a small
+   radius. chrome/toolkit/content/global/elements/moz-button.css paints the
+   shadow-DOM face from the --button-background-color-primary*,
+   --button-border, --button-border-color-primary*, --button-text-color-primary*
+   and --button-border-radius tokens, which
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   declares and resolves at :root (the radius from --border-radius-medium and
+   the hover and active border and text tokens from the base ones), so the
+   sheet sets --button-border-radius and the hover and active border and text
+   tokens on the host; there is no inner-shadow or bevel token, so a flat
+   face stands in. The sheet paints only the primary button, leaving the secondary
+   split/close button, the moz-button-group footer, header, icon,
+   description, checkbox, learn-more link and panel body Firefox's;
+   declaration checks do not establish rendered pixels.
+
    No reference shows Firefox's trust panel; its row highlight adapts the
    reference-grounded widgets/viewitem.svg and the sheet's menu-row mapping
    (platform colour adaptation 2026-10-26), pinned by
@@ -673,6 +702,29 @@ toolbarbutton:hover:active:not([disabled="true"]) {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;
+}
+
+/* The notification doorhanger's primary button adapts the desktop theme's
+   push button: a flat #DDDDDD face with a black outline and black label; an
+   enabled hovered or active one is a flat #CCCCFF face with black text and
+   the same outline. Only the primary button is scoped, leaving the secondary
+   split/close button, the footer group, header, icon, description, checkbox,
+   learn-more link and panel body Firefox's. */
+#notification-popup .popup-notification-primary-button {
+  --button-background-color-primary: #DDDDDD !important;
+  --button-background-color-primary-hover: #CCCCFF !important;
+  --button-background-color-primary-active: #CCCCFF !important;
+  --button-border: 1px solid !important;
+  --button-border-color-primary: #000000 !important;
+  --button-border-color-primary-hover: #000000 !important;
+  --button-border-color-primary-active: #000000 !important;
+  --button-text-color-primary: #000000 !important;
+  --button-text-color-primary-hover: #000000 !important;
+  --button-text-color-primary-active: #000000 !important;
+  --button-border-radius: 0 !important;
+  background-color: transparent !important;
+  color: #000000 !important;
+  border-radius: 0 !important;
 }
 
 menupopup > menuitem:hover,
