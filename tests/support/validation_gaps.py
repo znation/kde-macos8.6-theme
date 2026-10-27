@@ -409,7 +409,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "gtk-symlinked-config",
         ("A GTK selection replaces a symlinked",),
-        "tests/test_gtk_apply.py::TestSettingsErrors",
+        "tests/test_gtk_apply_errors.py::TestSettingsErrors",
         GTK_SYMLINK_GUARANTEE,
     ),
     UnclearInvariant(
@@ -612,7 +612,7 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "gtk-config-cap",
         ("An oversize GTK settings or user-CSS file",),
-        "tests/test_gtk_apply.py::TestUnreadableConfig"
+        "tests/test_gtk_apply_errors.py::TestUnreadableConfig"
         "::test_apply_refuses_an_oversize_settings_file_before_writing_anything",
     ),
     Reproduction(
