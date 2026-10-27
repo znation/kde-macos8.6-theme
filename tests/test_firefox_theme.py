@@ -526,6 +526,22 @@ REQUIRED_RULES["#mainDeck input"] = {
     "box-shadow": f"inset 1px 1px {GREY} !important",
 }
 
+# The Page Info permissions panel's permission list: the Platinum sunken
+# list field (see the header's provenance paragraph), with the native
+# listbox frame dropped and a hovered row keeping the field's face.
+REQUIRED_RULES["#permList"] = {
+    "appearance": "none !important",
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES["#permList .permission:hover"] = {
+    "background-color": "transparent !important",
+    "color": f"{BLACK} !important",
+}
+
 
 class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
     @classmethod
@@ -2609,6 +2625,90 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "#999999 sunken",
             "no hover or focus variant",
             "platform adaptation 2026-10-26",
+        ):
+            with self.subTest(provenance=provenance):
+                self.assertIn(provenance, header)
+
+    def test_page_info_permission_list_paint_is_scoped_to_page_info(self):
+        perm_rules = [
+            name for name in self.rules
+            if "permList" in name
+            or (".permission" in name and "permission-popup" not in name)
+        ]
+        self.assertEqual(
+            sorted(perm_rules),
+            ["#permList", "#permList .permission:hover"],
+        )
+        for name in perm_rules:
+            with self.subTest(rule=name):
+                self.assertEqual(self.rules[name], REQUIRED_RULES[name])
+        # #permList paints the container, not its rows: the hover rule is the
+        # only row rule, and it carries no bevel.
+        self.assertEqual(
+            [name for name in self.rules if ".permission" in name
+             and "permission-popup" not in name],
+            ["#permList .permission:hover"],
+        )
+
+        window = element("window", "pageInfoWindow")
+        main_deck = element("deck", "mainDeck", parent=window)
+        perm_panel = element("vbox", "permPanel", parent=main_deck)
+        perm_list = element("vbox", "permList", parent=perm_panel)
+        row = element("vbox", None, ("permission",), parent=perm_list)
+        child_panel = element("vbox", "permPanel", parent=main_deck)
+        container = element("vbox", "permList", parent=child_panel)
+        for hover in (False, True):
+            candidate = {**row, "hover": hover}
+            with self.subTest(hover=hover):
+                self.assertEqual(
+                    matches("#permList .permission:hover", candidate), hover
+                )
+                # #permList is a container selector: a row is never the
+                # list itself.
+                self.assertFalse(matches("#permList", row))
+        self.assertTrue(matches("#permList", container))
+
+        security_panel = element("vbox", "securityPanel", parent=main_deck)
+        host_text = element(
+            "input", "hostText", attrs={"readonly": "readonly"},
+            parent=security_panel,
+        )
+        self.assertTrue(matches("#mainDeck input", host_text))
+        self.assertFalse(matches("#permList", host_text))
+        self.assertFalse(
+            matches("#permList .permission:hover", {**host_text, "hover": True})
+        )
+
+        other_list = element("vbox", "otherList")
+        stray_row = element(
+            "vbox", None, ("permission",), parent=other_list
+        )
+        self.assertFalse(matches("#permList", stray_row))
+        self.assertFalse(
+            matches("#permList .permission:hover", {**stray_row, "hover": True})
+        )
+
+    def test_page_info_permission_list_provenance(self):
+        header = self.text.split("*/", 1)[0]
+        for provenance in (
+            "No reference shows Firefox's Page Info permission list",
+            "widgets/lineedit.svg",
+            "firstboot_betawiki.png",
+            "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+            "TestLineEditReference",
+            "#mainDeck input",
+            "widgets/listitem.svg",
+            "tests/test_desktoptheme_listitem.py::TestListItem",
+            "no hover highlight",
+            "#prefs > tr:hover",
+            "permissions.js",
+            "createRow",
+            "pageInfo.css",
+            "-moz-default-appearance: listbox",
+            "-moz-dialog",
+            "#permList",
+            ".permission",
+            "platform colour adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):
                 self.assertIn(provenance, header)

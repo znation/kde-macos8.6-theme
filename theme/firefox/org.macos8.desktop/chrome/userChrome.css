@@ -439,9 +439,9 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    #viewGroup > radio with SelectedItem, so the sheet overrides those paints
    through the page-info-only #topBar, #viewGroup and #mainDeck ids. Disabled
    buttons keep Firefox's paint, and the dialog body, meta and image trees,
-   permission list, media preview, security tables, description labels and
-   focus rings stay Firefox's; declaration checks do not establish rendered
-   pixels.
+   media preview, security tables, description labels and focus rings stay
+   Firefox's (the permission list has its own provenance paragraph below);
+   declaration checks do not establish rendered pixels.
 
    The Page Info panels' display fields (#mainDeck input, including
    #titletext, #imagetypetext and html:input#hostText) take this sheet's
@@ -461,6 +461,31 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    in the deck is a readonly display field and a focused one keeps Firefox's
    focus ring. Declaration checks do not establish rendered pixels
    (platform adaptation 2026-10-26).
+
+   The Page Info permissions panel's permission list (vbox#permList) is the
+   Platinum sunken list field: an opaque #FFFFFF face, black text, a square
+   1px #000000 outline and the #999999 sunken top-left inner shadow, with the
+   native listbox frame dropped, and a hovered .permission row keeps the
+   field's face with a transparent background and black text.
+   No reference shows Firefox's Page Info permission list; the white face
+   and sunken shadow adapt widgets/lineedit.svg, grounded in
+   macos8.6-screenshots/firstboot_betawiki.png and pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference, and reuse the landed #mainDeck input recipe, while
+   the flat rows follow widgets/listitem.svg, pinned by
+   tests/test_desktoptheme_listitem.py::TestListItem, whose comment records
+   no hover highlight for Mac OS 8.6 lists — the same reading the
+   userContent.css about:config #prefs > tr:hover rule already paints. In
+   the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/pageinfo/pageInfo.xhtml defines
+   vbox#permPanel holding the empty vbox#permList, permissions.js's
+   createRow appends each row as a vbox.permission holding a
+   label.permissionLabel, a native checkbox and a horizontal radiogroup,
+   and chrome/browser/skin/classic/browser/pageInfo.css owns the stock
+   -moz-default-appearance: listbox paint, its Field face and Text text
+   colours, the ThreeDShadow border and the -moz-dialog `.permission:hover`
+   wash the sheet overrides; declaration checks do not establish rendered
+   pixels (platform colour adaptation 2026-10-26).
 */
 
 tooltip {
@@ -899,9 +924,10 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
    buttons take the push-button face, square 1px black outline and the
    white/#AAAAAA raised bevel, and an enabled hovered one is flat #CCCCFF with
    black text and no bevel. Disabled buttons, the stock tab width and padding,
-   the focus ring, the dialog body, fields, trees, permission list, media
-   preview, security tables and labels keep Firefox's own paint; the paint is
-   scoped through the page-info-only ids. */
+   the focus ring, the dialog body, fields, trees, media preview, security
+   tables and labels keep Firefox's own paint (the permission list is painted
+   in its own rule below); the paint is scoped through the page-info-only
+   ids. */
 #topBar {
   background-color: #DDDDDD !important;
   border-bottom: 1px solid #888888 !important;
@@ -962,4 +988,20 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* Page Info permission list: the Platinum sunken list field, and a hovered
+   row that keeps the field's face; see the header's provenance paragraph. */
+#permList {
+  appearance: none !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#permList .permission:hover {
+  background-color: transparent !important;
+  color: #000000 !important;
 }
