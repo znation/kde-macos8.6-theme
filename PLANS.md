@@ -129,4 +129,40 @@ In `tests/test_kvantum_svg.py`: add `"titlebar": ("normal", "focused")` to `INTE
 - `README.md`'s Kvantum sentence that names the dock header band also names the MDI subwindow title band among the surfaces the style maps to the Platinum art.
 - `make check` passes.
 
+### Firefox Platinum preferences sidebar separators: paint the sidebar's category rule, group rule and sidebar/content border as the Platinum etched separator (planned 2026-10-27 by the plan role; independent of the waiting Platinum Kvantum MDI title band plan — the two touch disjoint files (`theme/firefox/org.macos8.desktop/chrome/userContent.css` and its suite versus `theme/kvantum/org.macos8.desktop/*` and its suites), so either order merges; it is part 2 of the about:preferences series, whose part 1 (the category navigation rows) landed 2026-10-27 — the heading band, the page background and the panes' controls are later parts that share this sheet and wait behind it)
+
+**Goal.** The landed part 1 painted the sidebar's category rows but left three separator surfaces Firefox's. In the installed Firefox ESR 153.5.1 the sidebar carries: (a) the light-DOM rule between the category groups — `chrome/browser/content/browser/preferences/preferences.xhtml` authors `html:hr class="nav-separator" id="nav-separator"` as a `moz-page-nav` child, slotted into the primary nav group, which `chrome/toolkit/content/global/elements/moz-page-nav.css`'s `hr { … background-color: var(--page-nav-hr-background-color) }` rule does not reach (shadow styles cannot match slotted content and the file ships no `::slotted(hr)`), so it paints the UA sheet's inset-border default; (b) the shadow-rendered `hr` between the primary and secondary nav groups, painted from `--page-nav-hr-background-color`; and (c) the sidebar/content border, `:host { border-inline-end: var(--border-width) solid var(--page-nav-border-color) }`. Paint all three Platinum: the etched `#888888`-over-`#FFFFFF` pair on (a), the dark half alone on (b) and (c), where a single custom property takes a single colour.
+
+**Grounding.** No reference screenshot shows Firefox's about:preferences; the etched pair — 1px `#888888` over 1px `#FFFFFF` — is the reference-grounded separator artwork (`widgets/line.svg`, pinned by `tests/test_desktoptheme_line.py::TestLine` and its reference test, the same pair `userChrome.css`'s menu separators use). Surface (a) is document light DOM — `moz-page-nav.mjs` slots it and styles `hr` only in its own shadow tree — so the outer sheet paints the full etched pair on it directly. Surfaces (b) and (c) each take one colour through one custom property (`--page-nav-hr-background-color` defaulting to `var(--border-color)`, `--page-nav-border-color` defaulting to `var(--border-color-transparent)`, read 2026-10-27 from `moz-page-nav.css` and `chrome/toolkit/content/global/elements/moz-page-nav.tokens.css`), so a two-tone etch is impossible there; the flat `#888888` dark half is this theme's own choice, recorded as such, with the border width left at Firefox's `--border-width` and the rule's margins left at Firefox's. The token-override route — outer-sheet custom properties on a custom element beating its shadow `:host` defaults — is the one the landed part 1 verified headless on 2026-10-27, so no new reach run is required.
+
+**Approach.** In `theme/firefox/org.macos8.desktop/chrome/userContent.css`, append inside the existing `about:preferences` block, after the `moz-page-nav-button` rule (which stays byte-unchanged):
+
+```
+  moz-page-nav {
+    --page-nav-border-color: #888888 !important;
+    --page-nav-hr-background-color: #888888 !important;
+  }
+
+  #nav-separator {
+    border: 0 !important;
+    border-top: 1px solid #888888 !important;
+    border-bottom: 1px solid #FFFFFF !important;
+  }
+```
+
+Extend the header comment's about:preferences provenance paragraph, before its closing sentence: the sidebar's separators follow — the mid-list `#nav-separator` is document light DOM and gets the full etched `widgets/line.svg` pair pinned by `tests/test_desktoptheme_line.py`, while the shadow `hr` and the `:host` inline-end border each take one colour through one custom property, so they carry the dark half alone as this theme's own choice; the token names come from `chrome/toolkit/content/global/elements/moz-page-nav.css` and `moz-page-nav.tokens.css` (2026-10-27) and the token route reuses the headless verification the rows' adaptation recorded; declaration checks do not establish rendered separator pixels.
+
+In `tests/support/platinum_palette.py`, add `ETCH_DARK = "#888888"` beside `GREY`, with a comment naming it the etched separator's dark half from `widgets/line.svg` (its light half is the existing `WHITE`). In `tests/test_firefox_content_theme.py`: import `ETCH_DARK`; add to `REQUIRED_PREFERENCES_NAV_RULES` a `"moz-page-nav"` rule pinning the two custom properties and a `"#nav-separator"` rule pinning `border: 0 !important`, `border-top: 1px solid #888888 !important` and `border-bottom: 1px solid #FFFFFF !important`; scope `test_nav_rule_sets_only_custom_properties` to the `moz-page-nav-button` rule only; add `test_host_rule_sets_only_custom_properties` (the `moz-page-nav` rule's declarations are all custom properties, so the rule changes no geometry or font) and `test_nav_separator_rule_is_the_etched_pair` (the `#nav-separator` rule's declaration set is exactly the three above, and no colour outside `#888888`/`#FFFFFF` appears in the block); `test_parsed_rules_are_exactly_the_nav_rules` already compares against `REQUIRED_PREFERENCES_NAV_RULES`, so it pins the three-selector set and order (`moz-page-nav-button`, `moz-page-nav`, `#nav-separator`); extend `test_header_names_preferences_provenance`'s required strings with `"nav-separator"`, `"moz-page-nav.css"`, `"widgets/line.svg"` and `"test_desktoptheme_line.py"`.
+
+In `docs/invariants.md`, amend the about:preferences row in the `## firefox` table: the painted clause becomes that the sidebar's category rows keep their part 1 paint and the sidebar's three separators — the mid-list `#nav-separator` rule, the shadow group rule and the `:host` inline-end border — are the etched `#888888`-over-`#FFFFFF` pair on the first and the flat `#888888` dark half on the other two, while the heading band, page background and panes' controls stay Firefox's; extend the row's provenance with the separator sentences above. `tests/invariants.py` is structural and stays green.
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userContent.css`, `tests/support/platinum_palette.py`, `tests/test_firefox_content_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The `about:preferences` block holds exactly three rules — the byte-unchanged `moz-page-nav-button` rule, the new `moz-page-nav` token rule and the new `#nav-separator` etched rule — and the two new rules introduce no colour outside `#888888` and the pinned `#FFFFFF`.
+- `TestFirefoxPreferencesNavTheme`'s updated and new tests pass: the exact-rule, only-custom-property, etched-pair and provenance tests; the shared `TestFirefoxContentTheme` tests (palette, no-`@import`/Adwaita, no-universal-selector, no-page-chrome) stay green.
+- `tests/support/platinum_palette.py` exports `ETCH_DARK`; no existing palette constant changes.
+- `docs/invariants.md`'s amended row keeps its test column citing `TestFirefoxPreferencesNavTheme`'s tests and `tests/invariants.py` stays green.
+- `make check` passes.
+
 ## Done
