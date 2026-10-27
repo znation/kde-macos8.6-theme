@@ -58,25 +58,41 @@ def _noqa_marked(lines: list[str], node: ast.stmt) -> bool:
     return any("noqa" in line for line in span)
 
 
-def _all_entries(tree: ast.Module) -> set[str]:
-    """Return every string named in a module-level ``__all__`` assignment."""
+def _scan_module(
+    tree: ast.Module,
+) -> tuple[list[tuple[ast.stmt, list[str]]], set[str], set[str]]:
+    """Collect in one walk what the scan needs from a module.
+
+    Returns the import statements each with the names it binds, every
+    ``ast.Name`` the module reads, and every string named in an ``__all__``
+    assignment. One walk gathers all three; re-walking the tree once per
+    need costs several times the parse itself on the real tree.
+    """
+    imports: list[tuple[ast.stmt, list[str]]] = []
+    read_names: set[str] = set()
     entries: set[str] = set()
     for node in ast.walk(tree):
-        targets: list[ast.expr] = []
-        if isinstance(node, ast.Assign):
-            targets = node.targets
-        elif isinstance(node, ast.AugAssign):
-            targets = [node.target]
-        if not any(
-            isinstance(t, ast.Name) and t.id == "__all__" for t in targets
-        ):
-            continue
-        for value in ast.walk(node):
-            if isinstance(value, ast.Constant) and isinstance(
-                value.value, str
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            imports.append((node, _alias_names(node)))
+        elif isinstance(node, ast.Name):
+            read_names.add(node.id)
+        else:
+            targets: list[ast.expr] = []
+            if isinstance(node, ast.Assign):
+                targets = node.targets
+            elif isinstance(node, ast.AugAssign):
+                targets = [node.target]
+            if not any(
+                isinstance(t, ast.Name) and t.id == "__all__"
+                for t in targets
             ):
-                entries.add(value.value)
-    return entries
+                continue
+            for value in ast.walk(node):
+                if isinstance(value, ast.Constant) and isinstance(
+                    value.value, str
+                ):
+                    entries.add(value.value)
+    return imports, read_names, entries
 
 
 def unused_imports(
@@ -96,29 +112,31 @@ def unused_imports(
         if "__pycache__" not in path.parts and path.name != "__init__.py"
     )
 
-    # One pass first: every (module string, name) pair any file imports, so a
-    # name another module imports from this one is a re-export, not a dead one.
+    # One walk per module: the collected record carries the import
+    # statements with their bound names, the read names and the ``__all__``
+    # entries, and folding every (module string, name) pair any file imports
+    # into ``imported_from`` here keeps a name another module imports from
+    # this one a re-export, not a dead one.
     imported_from: set[tuple[str, str]] = set()
-    parsed: list[tuple[Path, ast.Module, list[str]]] = []
+    scanned: list[
+        tuple[Path, list[tuple[ast.stmt, list[str]]], list[str], set[str], set[str]]
+    ] = []
     for path in files:
         source = path.read_text(encoding="utf-8")
         tree = ast.parse(source, filename=str(path))
-        parsed.append((path, tree, source.splitlines()))
-        for node in ast.walk(tree):
+        imports, read_names, dunder_all = _scan_module(tree)
+        scanned.append(
+            (path, imports, source.splitlines(), read_names, dunder_all)
+        )
+        for node, names in imports:
             if isinstance(node, ast.ImportFrom) and node.module:
-                for name in _alias_names(node):
+                for name in names:
                     imported_from.add((node.module, name))
 
     findings: list[str] = []
-    for path, tree, lines in parsed:
+    for path, imports, lines, read_names, dunder_all in scanned:
         candidates = _dotted_candidates(path, root)
-        dunder_all = _all_entries(tree)
-        read_names = {
-            node.id for node in ast.walk(tree) if isinstance(node, ast.Name)
-        }
-        for node in ast.walk(tree):
-            if not isinstance(node, (ast.Import, ast.ImportFrom)):
-                continue
+        for node, names in imports:
             if (
                 isinstance(node, ast.ImportFrom)
                 and node.level == 0
@@ -127,7 +145,7 @@ def unused_imports(
                 continue
             if _noqa_marked(lines, node):
                 continue
-            for name in _alias_names(node):
+            for name in names:
                 if name in read_names or name in dunder_all:
                     continue
                 if any(
