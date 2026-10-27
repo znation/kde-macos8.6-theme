@@ -211,6 +211,44 @@
    geometry (--checkbox-size), the label anatomy and the
    checkbox:focus-visible focus outline stay Firefox's. Declaration checks
    do not establish rendered checkbox pixels.
+
+   The panes' enabled XUL radio buttons follow: preferences.xhtml authors
+   11 XUL radio elements in 4 radiogroups inside #mainPrefPane and 0
+   shadow-DOM html:moz-radio elements, and
+   chrome/toolkit/content/global/elements/radio.js appends a real
+   light-DOM image.radio-check fragment, so the sheet matches
+   .radio-check directly. chrome/toolkit/skin/classic/global/radio.css
+   paints the stock disc (appearance: auto, -moz-default-appearance:
+   radio, its linux media rule setting width/height to 1.3em), and
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css sizes
+   the xul|*.radio-check disc from --checkbox-size alongside
+   .checkbox-check, so the box geometry stays Firefox's whichever sizer
+   wins (all read 2026-10-27 from the installed Firefox ESR 153.5.1).
+   Every enabled radio's .radio-check inside #mainPrefPane is the
+   Platinum circle face: the #FFFFFF face with a 1px black circular ring
+   and no bevel adapt the Kvantum radio-normal interior element of
+   theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg (the checked
+   radio-checked-normal element shares the arrangement with its dot
+   replaced by the data-URI dot below), and the selected dot overlays
+   theme/desktoptheme/org.macos8.desktop/widgets/checkmarks.svg's
+   radiobutton circle, the black r=3 circle centred in its 16x16 cell,
+   pinned by tests/test_desktoptheme_checkmarks.py::TestCheckmarks,
+   inlined as a data-URI SVG whose black is written rgb(0, 0, 0) so the
+   sheet gains no new hex literal and test_palette_is_exact stays exact
+   untouched (platform colour adaptation 2026-10-27: the 14x14 Kvantum
+   cell scaled onto the 16px box and the dot taken 1:1 from the
+   desktoptheme element). The selected predicate is [selected], the
+   attribute radio.js's inheritedAttributes maps onto .radio-check and
+   the radiogroup sets on the chosen item. No hover rule: the reference's
+   radio face does not change on hover and the Kvantum art ships no radio
+   hover state. :not([disabled]) keeps a disabled radio's whole Firefox
+   disabled paint (the push-button and checkbox choice); the shadow-DOM
+   html:moz-radio elements and the #dialogTemplate dialog radios match
+   neither selector and stay Firefox's, as do the panes' entry fields and
+   menulists (later parts); geometry (the --checkbox-size/1.3em box), the
+   label anatomy, the disabled GrayText colour and the
+   radiogroup:focus-visible focus outline stay Firefox's. Declaration
+   checks do not establish rendered radio pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -350,6 +388,19 @@
 
   #mainPrefPane checkbox:not([disabled])[checked] .checkbox-check {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+  }
+
+  #mainPrefPane radio:not([disabled]) .radio-check {
+    appearance: none !important;
+    background-color: #FFFFFF !important;
+    border: 1px solid #000000 !important;
+    border-radius: 50% !important;
+  }
+
+  #mainPrefPane radio:not([disabled])[selected] .radio-check {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='3' fill='rgb(0, 0, 0)'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: center !important;
   }

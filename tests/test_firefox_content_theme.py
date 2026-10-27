@@ -174,6 +174,8 @@ PANE_BUTTON = "#mainPrefPane button:not(.arrowhead):not([disabled])"
 PANE_BUTTON_HOVER = PANE_BUTTON + ":hover"
 CHECKBOX_FACE = "#mainPrefPane checkbox:not([disabled]) .checkbox-check"
 CHECKBOX_GLYPH = "#mainPrefPane checkbox:not([disabled])[checked] .checkbox-check"
+RADIO_FACE = "#mainPrefPane radio:not([disabled]) .radio-check"
+RADIO_DOT = "#mainPrefPane radio:not([disabled])[selected] .radio-check"
 
 # The checkbox glyph, inlined as a data-URI SVG (single quotes inside the
 # quoted url(), %3C/%3E for the angle brackets, space-separated path
@@ -197,6 +199,29 @@ CHECKBOX_FACE_RULE = {
 
 CHECKBOX_GLYPH_RULE = {
     "background-image": CHECKBOX_GLYPH_URI,
+    "background-repeat": "no-repeat !important",
+    "background-position": "center !important",
+}
+
+# The selected radio's dot, inlined as a data-URI SVG (single quotes inside
+# the quoted url(), %3C/%3E for the angle brackets, and rgb(0, 0, 0) for the
+# black so the sheet gains no new hex literal). The URI is byte-pinned by
+# test_selected_dot_uri_pins_the_radiobutton_dot.
+RADIO_DOT_URI = (
+    'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' '
+    "width='16' height='16' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' "
+    "r='3' fill='rgb(0, 0, 0)'/%3E%3C/svg%3E\") !important"
+)
+
+RADIO_FACE_RULE = {
+    "appearance": "none !important",
+    "background-color": f"{WHITE} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "50% !important",
+}
+
+RADIO_DOT_RULE = {
+    "background-image": RADIO_DOT_URI,
     "background-repeat": "no-repeat !important",
     "background-position": "center !important",
 }
@@ -255,6 +280,8 @@ REQUIRED_PREFERENCES_RULES = {
     },
     CHECKBOX_FACE: CHECKBOX_FACE_RULE,
     CHECKBOX_GLYPH: CHECKBOX_GLYPH_RULE,
+    RADIO_FACE: RADIO_FACE_RULE,
+    RADIO_DOT: RADIO_DOT_RULE,
 }
 
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
@@ -646,6 +673,84 @@ class TestFirefoxPreferencesCheckboxTheme(SheetCase):
                 ":not([disabled])",
                 "moz-checkbox",
                 "radio",
+                "platform colour adaptation 2026-10-27",
+            )
+        )
+
+
+class TestFirefoxPreferencesRadioTheme(SheetCase):
+    AT_RULE_URL = "about:preferences"
+
+    def test_radio_rules_are_the_sheet_recipe(self):
+        """Both radio rules equal the pinned face and dot recipes."""
+        self.assertEqual(self.rules[RADIO_FACE], RADIO_FACE_RULE)
+        self.assertEqual(
+            self.rules[RADIO_FACE], REQUIRED_PREFERENCES_RULES[RADIO_FACE]
+        )
+        self.assertEqual(self.rules[RADIO_DOT], RADIO_DOT_RULE)
+        self.assertEqual(
+            self.rules[RADIO_DOT], REQUIRED_PREFERENCES_RULES[RADIO_DOT]
+        )
+
+    def test_radio_rules_scope_to_the_pane(self):
+        for selector in (RADIO_FACE, RADIO_DOT):
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#mainPrefPane radio"))
+                self.assertIn(":not([disabled])", selector)
+        self.assertNotIn("[selected]", RADIO_FACE)
+        self.assertIn("[selected]", RADIO_DOT)
+        for token in ("checkbox", "moz-radio", "#dialogTemplate"):
+            with self.subTest(token=token):
+                self.assertNotIn(token, RADIO_FACE)
+                self.assertNotIn(token, RADIO_DOT)
+
+    def test_radio_rules_use_the_pinned_palette(self):
+        for selector in (RADIO_FACE, RADIO_DOT):
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertTrue(declarations)
+            for name, value in declarations.items():
+                with self.subTest(property=name):
+                    self.assertIn("!important", value)
+                    for token in HEX.findall(value):
+                        self.assertIn(token, {WHITE, BLACK})
+
+    def test_selected_dot_uri_pins_the_radiobutton_dot(self):
+        """Decoding the data URI yields the shipped checkmarks.svg dot."""
+        value = self.rules[RADIO_DOT]["background-image"]
+        match = re.search(r'url\("([^"]+)"\)', value)
+        self.assertIsNotNone(match)
+        payload = match.group(1)
+        prefix = "data:image/svg+xml,"
+        self.assertTrue(payload.startswith(prefix))
+        svg = unquote(payload[len(prefix):])
+        root = xml.etree.ElementTree.fromstring(svg)
+        self.assertEqual(root.get("width"), "16")
+        self.assertEqual(root.get("height"), "16")
+        circles = list(root)
+        self.assertEqual(len(circles), 1)
+        self.assertEqual(circles[0].get("cx"), "8")
+        self.assertEqual(circles[0].get("cy"), "8")
+        self.assertEqual(circles[0].get("r"), "3")
+        self.assertEqual(circles[0].get("fill"), "rgb(0, 0, 0)")
+        self.assertNotIn("#", svg)
+
+    def test_header_names_radio_provenance(self):
+        self.assert_header_names(
+            (
+                "radio.css",
+                "radio.js",
+                "common-shared.css",
+                "--checkbox-size",
+                "radio-normal",
+                "radio-checked-normal",
+                "org.macos8.desktop.svg",
+                "widgets/checkmarks.svg",
+                "tests/test_desktoptheme_checkmarks.py::TestCheckmarks",
+                "rgb(0, 0, 0)",
+                ":not([disabled])",
+                "[selected]",
+                "moz-radio",
                 "platform colour adaptation 2026-10-27",
             )
         )
