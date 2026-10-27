@@ -13,7 +13,7 @@ import re
 import unittest
 
 from support.desktoptheme_paths import MENUBARITEM_SVG
-from support.css_header import CommentHeaderAssertions, comment_header
+from support.css_header import comment_header
 from support.firefox_chrome_cases import (
     MENU_STOCK_BOTTOM_BORDER,
     REQUIRED_RULES,

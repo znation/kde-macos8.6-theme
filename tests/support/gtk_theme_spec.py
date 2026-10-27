@@ -17,7 +17,6 @@ from support.platinum_palette import (
     BUTTON_SHADOW,
     FACE,
     GREY,
-    hex_colour,
     INACTIVE_OUTLINE,
     SELECTION,
     TOOLTIP_FACE,
