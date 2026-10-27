@@ -29,6 +29,17 @@ class TestStripComments(unittest.TestCase):
         self.assertEqual(strip_comments("a/*x"), "a/*x")
         self.assertEqual(strip_comments("/*a/*b*/c"), "c")
 
+    def test_a_comment_marker_inside_a_quoted_string_is_text(self):
+        # A CSS string is a token: ``/*`` and ``*/`` inside one are literal
+        # text, not comment delimiters. Removing them rewrote the value.
+        cases = (
+            'a { content: "/* keep */"; }',
+            'a { content: "a\\"/* keep */"; }',
+        )
+        for text in cases:
+            with self.subTest(text=text):
+                self.assertEqual(strip_comments(text), text)
+
 
 class TestParseCss(unittest.TestCase):
     def test_a_colour_named_in_a_comment_is_not_a_definition(self):
@@ -231,6 +242,32 @@ class TestRuleBlockSemantics(unittest.TestCase):
         self.assertEqual(
             parse_css("x{a{color:#111111}}"),
             ({}, {"a": {"color": "#111111"}}, ["a"]),
+        )
+
+    def test_a_brace_inside_a_quoted_string_does_not_pair_a_block(self):
+        # A quoted value or selector may hold a brace. Treating it as a block
+        # delimiter cut the declaration in two and reported the quoted text as
+        # a selector, so the rule lost its declarations.
+        self.assertEqual(
+            parse_css(
+                'a { content: "}"; color: #111111; } b { color: #222222; }'
+            ),
+            (
+                {},
+                {
+                    "a": {"content": '"}"', "color": "#111111"},
+                    "b": {"color": "#222222"},
+                },
+                ["a", "b"],
+            ),
+        )
+        self.assertEqual(
+            parse_css('a { content: "{"; color: #111111; }')[1],
+            {"a": {"content": '"{"', "color": "#111111"}},
+        )
+        self.assertEqual(
+            parse_css('[title="{"] { color: #111111; }')[1],
+            {'[title="{"]': {"color": "#111111"}},
         )
 
     def test_a_stray_closing_brace_is_skipped(self):

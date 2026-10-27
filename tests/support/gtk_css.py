@@ -30,20 +30,42 @@ def strip_comments(text):
     scanner consumes each comment and scans the text between comments once,
     and keeps an unterminated ``/*`` (with the rest of the text) in place, as
     the regular expression did.
+
+    A quoted string is a token, so ``/*`` and ``*/`` inside one are literal
+    text; a backslash keeps the character after it inside the string, so an
+    escaped quote does not end it early. Comment markers in a string were
+    removed along with the text they surround, which rewrote the value.
     """
     parts = []
     position = 0
-    while True:
-        start = text.find("/*", position)
-        if start == -1:
-            parts.append(text[position:])
-            return "".join(parts)
-        end = text.find("*/", start + 2)
-        if end == -1:
-            parts.append(text[position:])
-            return "".join(parts)
-        parts.append(text[position:start])
-        position = end + 2
+    index = 0
+    quote = None
+    while index < len(text):
+        char = text[index]
+        if char == "\\":
+            index += 2
+            continue
+        if quote is not None:
+            if char == quote:
+                quote = None
+            index += 1
+            continue
+        if char in "\"'":
+            quote = char
+            index += 1
+            continue
+        if text.startswith("/*", index):
+            parts.append(text[position:index])
+            end = text.find("*/", index + 2)
+            if end == -1:
+                parts.append(text[index:])
+                return "".join(parts)
+            index = end + 2
+            position = index
+            continue
+        index += 1
+    parts.append(text[position:])
+    return "".join(parts)
 
 
 def _rule_blocks(text):
@@ -58,22 +80,37 @@ def _rule_blocks(text):
     walks the text once. A nested ``{`` replaces the pending selector, which
     is the inner-block match the expression made (``a{b{c}d}`` yields ``b`` /
     ``c``), and a ``}`` that closes no block is skipped, as the expression's
-    search would also skip it.
+    search would also skip it. A brace inside a quoted string is text, not a
+    block delimiter: treating it as one cut a declaration in two and reported
+    the quoted text as a selector. A backslash keeps the character after it
+    inside the string.
     """
     selectors = None
     buffer = []
+    quote = None
+    escaped = False
     for char in text:
-        if char == "{":
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif quote is not None:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char == "{":
             candidate = "".join(buffer)
             buffer = []
             selectors = candidate or None
+            continue
         elif char == "}":
             if selectors is not None:
                 yield selectors, "".join(buffer)
             selectors = None
             buffer = []
-        else:
-            buffer.append(char)
+            continue
+        buffer.append(char)
 
 
 def _split_declarations(body):

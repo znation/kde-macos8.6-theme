@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The sheet parser treats a brace or comment marker inside a quoted string as structure (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/gtk_css.py`'s scanners did not know about quoted
+strings. `_rule_blocks` counted a `{` or `}` inside a quoted value or selector
+as a block delimiter, so `a { content: "}"; color: #111111; }` ended the rule at
+the quoted brace and lost its later declarations, and `a { content: "{"; ... }
+reported the quoted text as a selector. `strip_comments` removed a `/* ... */`
+inside a quoted value, rewriting `content: "/* keep */"` to `content: ""`.
+CSS strings are tokens, so those characters are literal. The shipped sheets
+carry no such value, so the gap was latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.gtk_css import parse_css, strip_comments; print(parse_css("a { content: \"}\"; color: #111111; }")[1]); print(strip_comments("a { content: \"/* keep */\"; }"))'
+```
+
+printed `{'a': {'content': '"'}}` (the `color` declaration was lost) and
+`a { content: ""; }`; the expected results keep the closing brace and the
+comment marker in the value.
+
+**Suspected cause.** `_rule_blocks` and `strip_comments` scanned characters
+without tracking a quoted string (or a backslash escape), unlike
+`_split_declarations`, `_split_selector_list` and `_collapse_whitespace`.
+
+**Fix.** Both scanners now skip the contents of a quoted string, respecting a
+backslash escape, so only a brace or `/*` outside a string opens or closes a
+block or a comment. New tests
+`test_a_brace_inside_a_quoted_string_does_not_pair_a_block` and
+`test_a_comment_marker_inside_a_quoted_string_is_text` failed in the focused
+run before the fix and pass after; the timing tests still bound both scanners
+to well under a second on a hostile sheet.
+
+**Validation gap:** none — no existing test carried a quoted brace or comment
+marker, but a scratch `parse_css`/`strip_comments` call reproduced both
+rewrites deterministically (so no tag beyond the closest one fits) and the new
+tests pin them.
+
 ### The stylesheet parser collapses whitespace inside a quoted selector or value (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/gtk_css.py`'s `parse_css` normalized every
