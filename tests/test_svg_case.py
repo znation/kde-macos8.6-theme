@@ -95,6 +95,8 @@ class TestSvgCaseInputLimits(unittest.TestCase):
             "utf-8": xml.format(encoding="utf-8").encode("utf-8"),
             "utf-16-le": b"\xff\xfe"
             + xml.format(encoding="utf-16").encode("utf-16-le"),
+            "utf-16-be": b"\xfe\xff"
+            + xml.format(encoding="utf-16").encode("utf-16-be"),
         }
         for name, data in encoded.items():
             with self.subTest(encoding=name):
