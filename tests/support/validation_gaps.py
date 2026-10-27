@@ -387,7 +387,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "cursor-sub-grid-hotspot",
         ("cursor hotspot outside its frame",),
-        "tests/test_cursors_theme.py::TestGeneratorValidation"
+        "tests/test_make_cursors.py::TestGeneratorValidation"
         "::test_a_size_below_the_grid_keeps_its_hotspot_inside_the_frame",
         CURSOR_HOTSPOT_GUARANTEE,
     ),
@@ -614,7 +614,7 @@ NO_REPRO_REPRODUCTIONS = (
     Reproduction(
         "cursor-write-helper-patch",
         ("The cursor generator test patches a removed `_write_atomic` symbol",),
-        "tests/test_cursors_theme.py::TestMainErrors"
+        "tests/test_make_cursors.py::TestMainErrors"
         "::test_reports_a_failed_write_and_stops_at_that_cursor",
     ),
     Reproduction(
