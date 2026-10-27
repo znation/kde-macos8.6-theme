@@ -182,8 +182,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
                     )
 
     def test_page_info_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
+        self.assert_header_names((
             "No reference shows Firefox's Page Info window",
             "widgets/tabbar.svg",
             "tests/test_desktoptheme_tabbar.py::TestTabBar",
@@ -206,9 +205,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "#selectallbutton",
             "#security-view-qwac",
             "platform adaptation 2026-10-26",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        ))
 
     def test_page_info_field_paint_is_scoped_to_page_info(self):
         self.assertIn("#mainDeck input", self.rules)
@@ -343,8 +340,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
         self.assertNotIn("#mediaPreviewBox", self.rules)
 
     def test_page_info_field_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
+        self.assert_header_names((
             "No reference shows Firefox's Page Info window",
             "#mainDeck input",
             "#titletext",
@@ -361,9 +357,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "#999999 sunken",
             "no hover or focus variant",
             "platform adaptation 2026-10-26",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        ))
 
     def test_page_info_media_preview_provenance(self):
         header = self.text.split("*/", 1)[0]
@@ -448,8 +442,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
         )
 
     def test_page_info_permission_list_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
+        self.assert_header_names((
             "No reference shows Firefox's Page Info permission list",
             "widgets/lineedit.svg",
             "firstboot_betawiki.png",
@@ -468,9 +461,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "#permList",
             ".permission",
             "platform colour adaptation 2026-10-26",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        ))
 
 
 

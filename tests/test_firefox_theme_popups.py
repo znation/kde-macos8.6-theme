@@ -625,8 +625,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
                 )
 
     def test_notification_popup_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
+        self.assert_header_names((
             "No reference shows Firefox's notification doorhanger",
             "widgets/button.svg",
             "tests/test_desktoptheme_button.py::TestButton",
@@ -643,9 +642,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
             "tokens-shared.css",
             "--button-border",
             "platform adaptation 2026-10-26",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        ))
 
 
 

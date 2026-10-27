@@ -735,8 +735,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             )
 
     def test_bookmark_panel_provenance(self):
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
+        self.assert_header_names((
             "No reference shows Firefox's bookmark editor",
             "widgets/lineedit.svg",
             "tests/test_desktoptheme_lineedit.py::TestLineEdit",
@@ -764,9 +763,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             "chrome/toolkit/skin/classic/global/menulist.css",
             "#bookmarkpropertiesdialog",
             "platform adaptation 2026-10-26",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        ))
 
 
 

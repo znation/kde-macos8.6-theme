@@ -14,6 +14,7 @@ import unittest
 from pathlib import Path
 
 from support import containment
+from support.css_header import CommentHeaderAssertions
 from support.gtk_css import HEX, parse_css, strip_comments
 from support.platinum_palette import (
     BLACK,
@@ -160,12 +161,13 @@ PAGE_CHROME = (
 )
 
 
-class SheetCase(unittest.TestCase):
+class SheetCase(CommentHeaderAssertions, unittest.TestCase):
     """Shared fixture for the two classes testing ``userContent.css``.
 
     Both read the shipped sheet, split it into ``@-moz-document`` bodies and
     parse exactly one of them; the class attribute ``AT_RULE_URL`` names which.
-    :meth:`assert_header_names` serves the two provenance tests.
+    The inherited :meth:`CommentHeaderAssertions.assert_header_names` serves
+    the two provenance tests.
     """
 
     AT_RULE_URL: str
@@ -177,13 +179,6 @@ class SheetCase(unittest.TestCase):
         cls.colours, cls.rules, cls.selectors = parse_css(
             cls.bodies.get(cls.AT_RULE_URL, ""), source=SHEET_PATH
         )
-
-    def assert_header_names(self, provenances):
-        """Assert the comment header before the first ``*/`` names each entry."""
-        header = self.text.split("*/", 1)[0]
-        for provenance in provenances:
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
 
 
 class TestFirefoxContentTheme(SheetCase):

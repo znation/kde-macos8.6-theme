@@ -13,6 +13,7 @@ import re
 import unittest
 
 from support.desktoptheme_paths import MENUBARITEM_SVG
+from support.css_header import CommentHeaderAssertions, comment_header
 from support.firefox_chrome_cases import (
     MENU_STOCK_BOTTOM_BORDER,
     REQUIRED_RULES,
@@ -246,8 +247,8 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
 
     def test_header_names_provenance_and_preference(self):
         self.assertIn("Provenance exception", self.text)
-        header = self.text.split("*/", 1)[0]
-        for provenance in (
+        header = comment_header(self.text)
+        self.assert_header_names((
             "No reference shows Firefox tab hover",
             "tests/test_desktoptheme_scrollbar.py::TestScrollbarReference",
             "No reference shows Firefox tooltips or a Balloon Help balloon",
@@ -449,9 +450,7 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             "chrome/browser/skin/classic/browser/customizableui/panelUI-shared.css",
             "chrome/toolkit/skin/classic/global/design-system/tokens-shared.css",
             "platform colour adaptation 2026-10-26",
-        ):
-            with self.subTest(provenance=provenance):
-                self.assertIn(provenance, header)
+        ))
         trust_provenance = header.split(
             "No reference shows Firefox's trust panel", 1
         )[1]

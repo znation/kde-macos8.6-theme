@@ -16,6 +16,7 @@ import unittest
 from pathlib import Path
 
 from support import containment
+from support.css_header import CommentHeaderAssertions
 from support.gtk_css import parse_css
 from support.gtk_rule_cases import SheetRuleAssertions
 from support.gtk_theme_spec import BUTTON_BEVEL, ETCH_DARK, RAISED_BEVEL
@@ -551,8 +552,14 @@ REQUIRED_RULES["#permList .permission:hover"] = {
 }
 
 
-class FirefoxChromeTestCase(SheetRuleAssertions, unittest.TestCase):
-    """Base case loading the sheet text, README and parsed rules once."""
+class FirefoxChromeTestCase(
+    CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase
+):
+    """Base case loading the sheet text, README and parsed rules once.
+
+    The ``CommentHeaderAssertions`` mixin serves the section modules'
+    header-provenance tests.
+    """
 
     @classmethod
     def setUpClass(cls):
