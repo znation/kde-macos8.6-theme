@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The unused-import scanner counts a re-assignment of an imported name as a read of it (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+Symptom: with `pkg/mod.py` holding `import os` and its only occurrence of
+the name being the re-assignment `os = None`, the scanner reported
+nothing even though nothing reads the import. The same masking held for
+`del os` — a write context is not a use either — so a Store-only or
+del-only name hid a genuinely dead import from the tree-clean assertion,
+while `os = os.sep` (a Load in the value) correctly kept it.
+Reproduce with the two synthetic-tree cases in
+`tests/test_no_unused_imports.py::TestNoUnusedImports`
+(`test_a_reassignment_of_the_imported_name_keeps_the_flag`,
+`test_a_del_of_the_imported_name_keeps_the_flag`); no module in the tree
+re-binds an imported name without ever reading it, so `make check`
+never fired.
+Suspected cause: `_scan_module()` added every `ast.Name` id to the
+read set regardless of `ctx`, so an `ast.Store` (or `ast.Del`) context
+counted as a read.
+Fix: collect only `ast.Load` contexts in `_scan_module()`; a write context
+does not consume the imported value, so the finding resurfaces.
+
+**Validation gap:** no-fake — confirming the mask needed a synthetic
+tree whose module re-binds an imported name without reading it (closer
+match than `none`: the real tree has no such module, so no in-tree scan
+could exercise the write-context path); the two new fixtures pin the
+re-assignment and the `del` forms.
+
 ### The unused-import scanner misses an annotated `__all__` assignment when deciding the re-export allowance (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 Symptom: with `pkg/mod.py` holding `import os` and re-exporting it through the

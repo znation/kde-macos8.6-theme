@@ -102,6 +102,24 @@ class TestNoUnusedImports(unittest.TestCase):
         )
         self.assertEqual(findings, [])
 
+    def test_a_reassignment_of_the_imported_name_keeps_the_flag(self):
+        # A Store context is not a read: `os = None` uses neither the
+        # binding nor the value, so the import it shadows stays a finding.
+        findings = self._findings(
+            self, {"pkg/mod.py": "import os\n\nos = None\n"}
+        )
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("pkg/mod.py:1: unused import os", findings[0])
+
+    def test_a_del_of_the_imported_name_keeps_the_flag(self):
+        # `del os` detaches the binding without reading it, so the import
+        # it clears stays a finding too.
+        findings = self._findings(
+            self, {"pkg/mod.py": "import os\n\ndel os\n"}
+        )
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("pkg/mod.py:1: unused import os", findings[0])
+
     def test_an_annotated_all_declaration_without_a_value_keeps_the_flag(self):
         # A bare `__all__: list[str]` names no strings, so it re-exports
         # nothing and the dead import stays a finding.

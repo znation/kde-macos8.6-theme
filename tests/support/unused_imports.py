@@ -74,7 +74,11 @@ def _scan_module(
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             imports.append((node, _alias_names(node)))
-        elif isinstance(node, ast.Name):
+        elif isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load):
+            # Only a Load context reads the name. A re-assignment (`os =
+            # None`, a loop or walrus target) is a write, not a read, so
+            # counting it would hide a genuinely dead import; a `del` then
+            # flags aloud rather than being taken as a use.
             read_names.add(node.id)
         else:
             targets: list[ast.expr] = []
