@@ -164,6 +164,8 @@ PAGE_CHROME = (
 NAV = "moz-page-nav-button"
 HOST = "moz-page-nav"
 SEPARATOR = "#nav-separator"
+ROOT = ":root"
+HEADING = ".subcategory"
 
 REQUIRED_PREFERENCES_NAV_RULES = {
     NAV: {
@@ -187,6 +189,14 @@ REQUIRED_PREFERENCES_NAV_RULES = {
         "border": "0 !important",
         "border-top": f"1px solid {ETCH_DARK} !important",
         "border-bottom": f"1px solid {WHITE} !important",
+    },
+    ROOT: {
+        "background-color": f"{WHITE} !important",
+    },
+    HEADING: {
+        "border-top-color": f"{ETCH_DARK} !important",
+        "box-shadow": f"inset 0 1px 0 {WHITE} !important",
+        "color": f"{BLACK} !important",
     },
 }
 
@@ -312,6 +322,9 @@ class TestFirefoxContentTheme(SheetCase):
 class TestFirefoxPreferencesNavTheme(SheetCase):
     AT_RULE_URL = "about:preferences"
 
+    ROOT = ":root"
+    HEADING = ".subcategory"
+
     def test_required_rules(self):
         for selector, expected in REQUIRED_PREFERENCES_NAV_RULES.items():
             with self.subTest(selector=selector):
@@ -348,6 +361,33 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
                 for token in HEX.findall(value):
                     self.assertIn(token, {ETCH_DARK, WHITE})
 
+    def test_root_rule_is_the_white_page(self):
+        self.assertEqual(self.rules[ROOT], REQUIRED_PREFERENCES_NAV_RULES[ROOT])
+        self.assertEqual(
+            self.rules[ROOT]["background-color"],
+            REQUIRED_RULES[LIST]["background-color"],
+        )
+        self.assertEqual(
+            self.rules[ROOT]["background-color"],
+            REQUIRED_CONFIG_RULES[CONFIG_PREFS]["background-color"],
+        )
+
+    def test_heading_band_is_the_etched_rule_with_black_text(self):
+        self.assertEqual(
+            self.rules[HEADING],
+            REQUIRED_PREFERENCES_NAV_RULES[HEADING],
+        )
+        for name, value in self.rules[HEADING].items():
+            with self.subTest(property=name):
+                for token in HEX.findall(value):
+                    self.assertIn(token, {ETCH_DARK, WHITE, BLACK})
+
+    def test_heading_selector_avoids_page_chrome(self):
+        for selector in (self.ROOT, self.HEADING):
+            with self.subTest(selector=selector):
+                for token in FORBIDDEN_PAGE_CHROME:
+                    self.assertNotIn(token, selector)
+
     def test_header_names_preferences_provenance(self):
         self.assert_header_names(
             (
@@ -365,6 +405,10 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
                 "moz-page-nav.css",
                 "widgets/line.svg",
                 "test_desktoptheme_line.py",
+                "common-shared.css",
+                "preferences.css",
+                "test_window_view_background",
+                "#mainPrefPane",
             )
         )
 

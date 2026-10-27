@@ -106,8 +106,19 @@
    theme's own choice. The token names come from
    chrome/toolkit/content/global/elements/moz-page-nav.css and
    moz-page-nav.tokens.css (2026-10-27) and the token route reuses the
-   headless verification the rows' adaptation recorded; declaration checks
-   do not establish rendered separator pixels.
+   headless verification the rows' adaptation recorded. The pane follows:
+   Firefox paints the page from :root's background-color-canvas in
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css and each
+   heading band from .subcategory's border-top in
+   chrome/browser/skin/classic/browser/preferences/preferences.css (both
+   read 2026-10-27), the hbox.subcategory rows of #mainPrefPane that hold
+   each pane's html:h1 and the search-results html:h2; the page takes the
+   reference-grounded white view background (test_window_view_background)
+   and each band the part 2 etch with black text and an inset white half
+   over the band's own padding, no geometry changed; the panes' controls
+   stay Firefox's for a later part; declaration checks do not establish
+   rendered pane pixels; declaration checks do not establish rendered
+   separator pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -203,5 +214,15 @@
     border: 0 !important;
     border-top: 1px solid #888888 !important;
     border-bottom: 1px solid #FFFFFF !important;
+  }
+
+  :root {
+    background-color: #FFFFFF !important;
+  }
+
+  .subcategory {
+    border-top-color: #888888 !important;
+    box-shadow: inset 0 1px 0 #FFFFFF !important;
+    color: #000000 !important;
   }
 }
