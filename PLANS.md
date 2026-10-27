@@ -141,4 +141,43 @@ In `tests/test_kvantum_config_elements.py`, add a `TestDockSurface` class beside
 - `README.md`'s Kvantum sentence that names the toolbar buttons, toolbar combo boxes and line edits, split-button dropdowns, tree-view expanders, toolbox tabs and the status bar names the dock header band among the surfaces the style maps to the Platinum art.
 - `make check` passes.
 
+### Firefox Platinum content: paint about:preferences' category navigation rows as Platinum list rows (planned 2026-10-27 by the plan role; independent of the waiting Kvantum dock-titles plan — the two touch disjoint files (`theme/firefox/…/userContent.css` and its suite versus `theme/kvantum/org.macos8.desktop/*` and its suites), so either order merges; it is part 1 of an about:preferences series — the sidebar's own separator rule and heading band, the page background and the panes' controls are later parts that share this sheet and wait behind it)
+
+**Goal.** The redesigned about:preferences in the installed Firefox ESR 153.5.1 (`chrome/browser/content/browser/preferences/preferences.xhtml`) builds its navigation sidebar as `html:moz-page-nav id="categories"` holding `html:moz-page-nav-button` children (`#category-general` through `#category-experimental`), each a custom element whose shadow root paints an inner `a[href]`/`button` from `chrome/toolkit/content/global/elements/moz-page-nav-button.css`. That sheet paints the rows with ghost-token colour washes (`--button-background-color-ghost` and its hover/active variants), rounded corners (`--button-border-radius`, `--border-radius-small`), a violet-accent selected row (`color-mix(in srgb, currentColor 8%, transparent)` over `--color-accent-primary` text) and a `::before` accent bar at `--page-nav-button-indicator-width` — nothing Platinum. The inner button lives in a shadow root with no `::part()` exposed, but its whole paint reads CSS custom properties the `:host` declares, so the content sheet can retheme every row by overriding those tokens on the `moz-page-nav-button` host element: black text, transparent face, flat `#CCCCFF` hover and selection, square corners, no accent bar.
+
+**Grounding.** No reference screenshot shows a settings navigation sidebar, so this is a platform-required adaptation; the rows adapt the reference-grounded `widgets/listitem.svg` (flat `#CCCCFF` selection, black text, no separate selected affordance) and `widgets/viewitem.svg` (flat `#CCCCFF` hover) — the same pair the landed about:config row rules already use — with `#CCCCFF` the pinned selection token of `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background`. Reach and the token route are verified: a headless run of this ESR on 2026-10-27 with a temporary profile whose `userContent.css` held `@-moz-document url-prefix("about:preferences") { body { background-color: #FF0000 !important } moz-page-nav-button { --page-nav-button-background-color: #00FF00 !important } }` rendered the page body red and the category rows green (sampled from the screenshot), confirming the URL match, this sheet's reach and that outer-sheet custom properties override the shadow `:host` defaults. Values with no reference ground, recorded as this theme's own choices: the transparent unselected row face (the sidebar keeps Firefox's page background behind it) and the accent bar's removal (width 0) — Platinum selection is the `#CCCCFF` fill itself. Row padding, icon size, gap and collapsed-width stay Firefox's; `--page-nav-border-color` (the sidebar's 1px inline-end separator, a `moz-page-nav` token) stays Firefox's for a later part.
+
+**Approach.** In `theme/firefox/org.macos8.desktop/chrome/userContent.css`, after the about:config block, append:
+
+```
+/* about:preferences category navigation adaptation 2026-10-27 */
+@-moz-document url("about:preferences") {
+  moz-page-nav-button {
+    --page-nav-button-background-color: transparent !important;
+    --page-nav-button-background-color-hover: #CCCCFF !important;
+    --page-nav-button-background-color-active: #CCCCFF !important;
+    --page-nav-button-background-color-selected: #CCCCFF !important;
+    --page-nav-button-text-color: #000000 !important;
+    --page-nav-button-text-color-hover: #000000 !important;
+    --page-nav-button-text-color-active: #000000 !important;
+    --page-nav-button-border-radius: 0 !important;
+    --page-nav-button-indicator-color: #000000 !important;
+    --page-nav-button-indicator-width: 0 !important;
+    --border-radius-small: 0 !important;
+  }
+}
+```
+
+`--page-nav-button-indicator-color` drives both the selected label colour and the `::before` bar; with the width 0 the bar disappears and the selected row is the flat `#CCCCFF` fill with black text. `--border-radius-small: 0` squares the host element's own radius. Add one provenance paragraph to the header comment block, before its closing `*/` (after the about:config paragraph): no reference shows Firefox's about:preferences; the rows adapt `widgets/listitem.svg` and `widgets/viewitem.svg` with the pinned `#CCCCFF` selection; `preferences.xhtml` builds the sidebar as `moz-page-nav#categories` of `moz-page-nav-button` hosts whose `moz-page-nav-button.css` paints the inner `a[href]`/`button` from the `:host` tokens with no `::part()`, so the sheet overrides the tokens on the host element; the headless run of 2026-10-27 confirmed the reach and the token route; declaration checks do not establish rendered row pixels.
+
+In `tests/test_firefox_content_theme.py`, add a `TestFirefoxPreferencesNavTheme(SheetCase)` class with `AT_RULE_URL = "about:preferences"` beside `TestFirefoxConfigTheme`, asserting: `test_required_rules` pins the single rule's exact custom-property declarations; `test_parsed_rules_are_exactly_the_nav_rules` pins the selector set (`moz-page-nav-button`, once); `test_nav_rule_sets_only_custom_properties` requires every declaration to be a `--page-nav-*` or `--border-radius-small` custom property, so the rule changes no geometry, layout or font; `test_header_names_preferences_provenance` requires the strings `"No reference shows Firefox's about:preferences"`, `"widgets/listitem.svg"`, `"widgets/viewitem.svg"`, `"test_selection_background"`, `"moz-page-nav#categories"`, `"moz-page-nav-button.css"`, `"::part"`, `"preferences.xhtml"`, `"2026-10-27"` and `"platform colour adaptation 2026-10-27"`. Update the shared tests for the third block: rename `TestFirefoxContentTheme.test_sheet_has_the_downloads_and_config_at_rules` to `test_sheet_has_the_downloads_config_and_preferences_at_rules`, and let `test_no_rule_paints_page_chrome` accept the `moz-page-nav-button` host selector while still forbidding `body`, `h1`, the heading-wrapper and page-background selectors. The shared `test_palette_is_exact` already admits `#CCCCFF` and `#000000`.
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userContent.css`, `tests/test_firefox_content_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `userContent.css` contains exactly three `@-moz-document` blocks: the existing two byte-unchanged and the new `about:preferences` block with the single rule above; no existing declaration changes and no colour outside the pinned palette appears.
+- `tests/test_firefox_content_theme.py` gains `TestFirefoxPreferencesNavTheme` with the four new tests, the shared renames land, and the existing downloads, config, palette, no-`@import`/Adwaita, no-universal-selector and provenance tests stay green.
+- `docs/invariants.md` gains a row in the `## firefox` table inserted after the about:config row: the sidebar's category rows are transparent-faced with black text, a flat `#CCCCFF` hover and the same flat `#CCCCFF` selection, square and without the accent bar, while the sidebar separator, heading band, page background and panes' controls stay Firefox's. Its test column cites the new class; its provenance records the missing reference surface, the `listitem.svg`/`viewitem.svg` anchors, `test_selection_background`, the shadow-DOM token mechanism with no `::part()`, the ESR 153.5.1 files, the 2026-10-27 headless reach run and that declaration checks do not establish rendered row pixels. `tests/invariants.py` stays green.
+- `make check` passes.
+
 ## Done
