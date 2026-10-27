@@ -62,7 +62,13 @@ def _defer_signals(
 
 
 def _replay_deferred(deferred: list[int]) -> None:
-    """Raise the recorded signal's ordinary exception inside the cleanup try."""
+    """Raise the first recorded signal's ordinary exception inside the cleanup try.
+
+    More than one signal can be recorded while the child starts (a terminal
+    hangup followed by a kill, or a second Ctrl-C). The process is already
+    exiting, so only the first is replayed: a later signal must not replace
+    the shell-convention exit status or the exception type.
+    """
     if not deferred:
         return
     number = deferred[0]

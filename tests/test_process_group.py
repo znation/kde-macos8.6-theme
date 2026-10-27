@@ -43,6 +43,28 @@ class TestKillGroup(unittest.TestCase):
         killpg.assert_called_once_with(4242, signal.SIGKILL)
 
 
+class TestReplayDeferred(unittest.TestCase):
+    def test_replays_only_the_first_signal_recorded_while_the_child_starts(self):
+        # A start can be interrupted by more than one signal: a terminal
+        # hangup followed by a kill, or a second Ctrl-C. _defer_signals
+        # records each one; _replay_deferred must re-raise the first, so the
+        # shell convention reports the signal that ended the run. Replaying a
+        # later one would change the exit status, or turn a termination into
+        # a Ctrl-C, even though the earlier signal is what stopped it.
+        cases = (
+            ([signal.SIGHUP, signal.SIGTERM], SystemExit, 128 + signal.SIGHUP),
+            ([signal.SIGINT, signal.SIGTERM], KeyboardInterrupt, None),
+        )
+        for deferred, expected, code in cases:
+            with self.subTest(
+                deferred=[number.name for number in deferred]
+            ):
+                with self.assertRaises(expected) as caught:
+                    process_group._replay_deferred(deferred)
+                if code is not None:
+                    self.assertEqual(code, caught.exception.code)
+
+
 class TestRunLogged(unittest.TestCase):
     def setUp(self):
         directory = tempfile.TemporaryDirectory()
