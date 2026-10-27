@@ -438,9 +438,10 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    #topBar the Field background and ThreeDShadow bottom border and paints
    #viewGroup > radio with SelectedItem, so the sheet overrides those paints
    through the page-info-only #topBar, #viewGroup and #mainDeck ids. Disabled
-   buttons keep Firefox's paint, and the dialog body, meta and image trees,
+   buttons keep Firefox's paint, and the dialog body,
    security tables, description labels and focus rings stay
-   Firefox's (the permission list has its own provenance paragraph below);
+   Firefox's (the permission list, the Media panel's preview pane and the
+   meta and image trees have their own provenance paragraphs below);
    declaration checks do not establish rendered pixels.
 
    The Page Info panels' display fields (#mainDeck input, including
@@ -505,6 +506,33 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    so the rule overrides only the stock paint.
    Declaration checks do not establish rendered pixels
    (platform colour adaptation 2026-10-26).
+
+   The Page Info General panel's meta table (tree#metatree) and Media
+   panel's image list (tree#imagetree) are the Platinum sunken list field:
+   an opaque #FFFFFF face, black text, a square 1px #000000 outline and the
+   #999999 sunken top-left inner shadow, with the rows transparent over the
+   field so no skin hover wash paints, a selected row flat #CCCCFF with
+   black text and the broken image rows keeping their italic graytext.
+   No reference shows Firefox's Page Info trees; the #FFFFFF face and
+   #999999 sunken shadow adapt widgets/lineedit.svg, grounded in
+   macos8.6-screenshots/firstboot_betawiki.png and pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference, reusing the landed #mainDeck input and #permList
+   recipes, the transparent rows honour widgets/listitem.svg's
+   no-hover-highlight list reading, pinned by
+   tests/test_desktoptheme_listitem.py::TestListItem, and the flat #CCCCFF
+   black-text selected row adapts widgets/viewitem.svg, pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   test_selection_background. In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/pageinfo/pageInfo.xhtml defines
+   tree#metatree and tree#imagetree with no multicol attribute and
+   chrome/toolkit/skin/classic/global/tree/tree.css plus the pageinfo
+   skin's pageInfo.css own the stock Field/ThreeDShadow paint, the row
+   hover wash, the -moz-cellhighlight/SelectedItem selection, the
+   -moz-cellhighlighttext/SelectedItemText selected text and the broken
+   rows' italic graytext; the column headers stay Firefox's.
+   Declaration checks do not establish rendered pixels
+   (platform colour adaptation 2026-10-27).
 */
 
 tooltip {
@@ -943,7 +971,7 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
    buttons take the push-button face, square 1px black outline and the
    white/#AAAAAA raised bevel, and an enabled hovered one is flat #CCCCFF with
    black text and no bevel. Disabled buttons, the stock tab width and padding,
-   the focus ring, the dialog body, fields, trees, security tables and
+   the focus ring, the dialog body, fields, security tables and
    labels keep Firefox's own paint (the permission list is painted
    in its own rule below); the paint is scoped through the page-info-only
    ids. */
@@ -1033,4 +1061,35 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* Page Info meta and image trees: the Platinum sunken list field with
+   transparent rows, a flat #CCCCFF selected row and the broken image
+   rows' italic graytext (see the header's provenance paragraph). */
+#metatree,
+#imagetree {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+tree#metatree treechildren::-moz-tree-row(hover),
+tree#imagetree treechildren::-moz-tree-row(hover) {
+  background-color: transparent !important;
+}
+
+tree#metatree treechildren::-moz-tree-row(selected),
+tree#imagetree treechildren::-moz-tree-row(selected) {
+  background-color: #CCCCFF !important;
+}
+
+tree#metatree treechildren::-moz-tree-cell-text,
+tree#imagetree treechildren::-moz-tree-cell-text {
+  color: #000000 !important;
+}
+
+tree#imagetree treechildren::-moz-tree-cell-text(broken) {
+  color: graytext !important;
 }

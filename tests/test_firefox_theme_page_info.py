@@ -339,6 +339,90 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
         self.assertNotIn("#imagecontainerbox:focus", self.rules)
         self.assertNotIn("#mediaPreviewBox", self.rules)
 
+    def test_page_info_tree_paint_is_scoped_to_page_info(self):
+        tree_rules = [
+            name for name in self.rules
+            if "metatree" in name or "imagetree" in name
+        ]
+        self.assertEqual(sorted(tree_rules), sorted([
+            "#metatree",
+            "#imagetree",
+            "tree#metatree treechildren::-moz-tree-row(hover)",
+            "tree#imagetree treechildren::-moz-tree-row(hover)",
+            "tree#metatree treechildren::-moz-tree-row(selected)",
+            "tree#imagetree treechildren::-moz-tree-row(selected)",
+            "tree#metatree treechildren::-moz-tree-cell-text",
+            "tree#imagetree treechildren::-moz-tree-cell-text",
+            "tree#imagetree treechildren::-moz-tree-cell-text(broken)",
+        ]))
+        self.assertEqual(len(tree_rules), 9)
+        for name in tree_rules:
+            with self.subTest(rule=name):
+                self.assertEqual(self.rules[name], REQUIRED_RULES[name])
+        self.assertIn("::-moz-tree-row(hover)", " ".join(tree_rules))
+        self.assertIn("::-moz-tree-row(selected)", " ".join(tree_rules))
+        self.assertIn("::-moz-tree-cell-text", " ".join(tree_rules))
+        # The column headers keep Firefox's paint: no treecol or
+        # column-picker rule exists anywhere in the sheet.
+        for name in self.rules:
+            with self.subTest(rule=name):
+                self.assertNotIn("treecol", name)
+                self.assertNotIn("tree-columnpicker", name)
+
+        window = element("window", "pageInfoWindow")
+        main_deck = element("deck", "mainDeck", parent=window)
+        meta_tags = element("vbox", "metaTags", parent=main_deck)
+        metatree = element("tree", "metatree", parent=meta_tags)
+        media_panel = element("vbox", "mediaPanel", parent=main_deck)
+        imagetree = element("tree", "imagetree", parent=media_panel)
+        # The containers match their own id selector and not the other's.
+        self.assertTrue(matches("#metatree", metatree))
+        self.assertFalse(matches("#imagetree", metatree))
+        self.assertTrue(matches("#imagetree", imagetree))
+        self.assertFalse(matches("#metatree", imagetree))
+
+        other_panel = element("vbox", "otherPanel", parent=main_deck)
+        stray_tree = element("tree", None, parent=other_panel)
+        bookmark_tree = element(
+            "tree", "editBMPanel_folderTree",
+            parent=element("vbox", "editBookmarkPanel"),
+        )
+        for stray in (stray_tree, bookmark_tree):
+            with self.subTest(unthemed=stray["id"]):
+                for name in tree_rules:
+                    self.assertFalse(matches(name, stray))
+
+    def test_page_info_tree_provenance(self):
+        self.assert_header_names((
+            "No reference shows Firefox's Page Info trees",
+            "widgets/lineedit.svg",
+            "firstboot_betawiki.png",
+            "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+            "TestLineEditReference",
+            "#mainDeck input",
+            "#permList",
+            "widgets/listitem.svg",
+            "tests/test_desktoptheme_listitem.py::TestListItem",
+            "no hover highlight",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "pageInfo.xhtml",
+            "multicol",
+            "chrome/toolkit/skin/classic/global/tree/tree.css",
+            "pageInfo.css",
+            "Field",
+            "ThreeDShadow",
+            "-moz-cellhighlight",
+            "SelectedItem",
+            "-moz-cellhighlighttext",
+            "SelectedItemText",
+            "graytext",
+            "column headers stay Firefox's",
+            "Declaration checks do not establish rendered pixels",
+            "platform colour adaptation 2026-10-27",
+        ))
+
     def test_page_info_field_provenance(self):
         self.assert_header_names((
             "No reference shows Firefox's Page Info window",

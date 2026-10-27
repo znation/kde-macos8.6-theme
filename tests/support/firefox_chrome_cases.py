@@ -551,6 +551,33 @@ REQUIRED_RULES["#permList .permission:hover"] = {
     "color": f"{BLACK} !important",
 }
 
+# The Page Info dialog's meta and image trees: the Platinum sunken list
+# field (see the header's provenance paragraph), with the rows transparent
+# over the field, a flat #CCCCFF selected row and the broken image rows
+# keeping their italic graytext. No appearance declaration: the trees are
+# painted with plain declarations.
+REQUIRED_RULES["#metatree"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES["#imagetree"] = REQUIRED_RULES["#metatree"]
+for _tree in ("metatree", "imagetree"):
+    REQUIRED_RULES[
+        f"tree#{_tree} treechildren::-moz-tree-row(hover)"
+    ] = {"background-color": "transparent !important"}
+    REQUIRED_RULES[
+        f"tree#{_tree} treechildren::-moz-tree-row(selected)"
+    ] = {"background-color": f"{SELECTION} !important"}
+    REQUIRED_RULES[
+        f"tree#{_tree} treechildren::-moz-tree-cell-text"
+    ] = {"color": f"{BLACK} !important"}
+REQUIRED_RULES["tree#imagetree treechildren::-moz-tree-cell-text(broken)"] = {
+    "color": "graytext !important",
+}
+
 
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase
