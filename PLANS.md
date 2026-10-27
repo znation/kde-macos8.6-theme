@@ -128,4 +128,60 @@ In `docs/invariants.md`, append a row to the `## firefox` table: about:preferenc
 - `docs/invariants.md` gains exactly one `## firefox` row citing the new test class and recording the two exceptions and the platform adaptation; `tests/invariants.py` stays green.
 - `make check` passes.
 
+### Firefox Platinum chrome, part 1 of a Library window series: paint the two places trees as the Platinum sunken list field (planned 2026-10-27 by the plan role; independent of the waiting about:preferences pane push-buttons plan — the two touch disjoint files (`theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/support/firefox_chrome_cases.py` and the new `tests/test_firefox_theme_library.py` versus `theme/firefox/org.macos8.desktop/chrome/userContent.css`, `tests/test_firefox_content_theme.py` and its support) so either order merges, `docs/invariants.md` gaining only append-only rows in both; it is part 1 of a Firefox Library window series — the toolbar's chrome buttons and three Organize/View/Maintenance menus, the `moz-input-search#searchFilter` box, the content tree's column headers, the `richlistbox#downloadsListBox` downloads view and the `#detailsPane` bookmark-details fields are later parts that wait behind this one, which establishes the window's base recipe) 
+
+**Goal.** The Library window (`chrome/browser/content/browser/places/places.xhtml`, `window#places`, `windowtype="Places:Organizer"`) keeps Firefox's paint everywhere: its two XUL trees — the left sidebar folder tree `tree#placesList.placesTree` (one `treecol`, `hideheader="true"`, `seltype="single"`) and the content list `tree#placeContent.placesTree` (seven sortable `treecol` columns and its `treecols#placeContentColumns`) — draw from `chrome/toolkit/skin/classic/global/tree/tree.css` (read from the installed `/usr/lib/firefox-esr/omni.ja` 2026-10-27): `tree { background-color: Field; color: FieldText; border: 1px solid ThreeDShadow; }`, the rows `1px solid transparent` with `treechildren::-moz-tree-row(multicol, odd)` striped `-moz-oddtreerow`, a hovered row washed `hsla(0, 0%, 50%, 0.15)`, and a selected row `-moz-cellhighlight` (or `SelectedItem` focused); the browser-side `chrome/browser/content/browser/places/places.css` strips the stock frame itself (`.placesTree { appearance: none; margin: 0; border: 0; }`) and the browser skin's `places/organizer.css` paints `#placesView { background-color: Window; }` — so on the white window face the trees read as grey-field bordered boxes. Paint both trees as the sheet's established Platinum sunken list field — the byte-recipe `#metatree`/`#imagetree` already carry (opaque `#FFFFFF` face, square 1px `#000000` outline, the `#999999` sunken top-left inner shadow, rows transparent over the field so no skin hover wash paints, a selected row flat `#CCCCFF` with black text) plus the odd-row stripe floated back onto the field face — the same field every tree and list in this theme reads as. No reference screenshot shows the Firefox Library window; the faces adapt this theme's `widgets/lineedit.svg` and `widgets/viewitem.svg` (a platform colour adaptation).
+
+**Approach.** In `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, append at the very end, after the security-groupbox block, one scope comment plus the metatree/imagetree recipe applying to both trees:
+
+    /* Library window places trees: the Platinum sunken list field with
+       transparent rows, a flat #CCCCFF selected row and the odd-row
+       stripe floated back onto the field (see the header's provenance
+       paragraph). */
+    #placesList,
+    #placeContent {
+      background-color: #FFFFFF !important;
+      color: #000000 !important;
+      border: 1px solid #000000 !important;
+      border-radius: 0 !important;
+      box-shadow: inset 1px 1px #999999 !important;
+    }
+
+    tree#placesList treechildren::-moz-tree-row(hover),
+    tree#placeContent treechildren::-moz-tree-row(hover) {
+      background-color: transparent !important;
+    }
+
+    tree#placesList treechildren::-moz-tree-row(selected),
+    tree#placeContent treechildren::-moz-tree-row(selected) {
+      background-color: #CCCCFF !important;
+    }
+
+    tree#placesList treechildren::-moz-tree-cell-text,
+    tree#placeContent treechildren::-moz-tree-cell-text {
+      color: #000000 !important;
+    }
+
+    tree#placeContent treechildren::-moz-tree-row(multicol, odd) {
+      background-color: transparent !important;
+    }
+
+Nothing else in the sheet changes: no `window#places` prefix is needed because `placesList` and `placeContent` are IDs unique to the Library window in chrome (the `#metatree`/`#imagetree` prefixing precedent), the `(selected)` row pseudo matches the selected,focus case (`#metatree` recipe), rows, twisties, expander triangles, cell icons, the column headers and the content tree between-column `tree-splitter` grippies stay Firefox's, and the last rule is written only against `tree#placeContent` because a single-column tree (`#placesList`) draws no multicol odd stripe. The rules introduce no hex literal outside `{WHITE, BLACK, GREY, SELECTION }`, which `TestFirefoxChromeShell::test_palette_is_exact` already pins.
+
+Extend the header comment's provenance block with a Library-trees paragraph immediately after the security-panel group-frame paragraph and before the header's closing `*/`: no reference screenshot shows the Firefox Library window; the field face/outlines adapt `widgets/lineedit.svg`, grounded in `macos8.6-screenshots/firstboot_betawiki.png` and pinned by `tests/test_desktoptheme_lineedit.py::TestLineEdit` and `TestLineEditReference`, reusing the landed `#metatree`/`#imagetree` recipes; the transparent rows honour `widgets/listitem.svg`'s no-hover-highlight list reading, pinned by `tests/test_desktoptheme_listitem.py::TestListItem`, and the flat `#CCCCFF` black-text selected row adapts `widgets/viewitem.svg`, pinned by `tests/test_desktoptheme_viewitem.py::TestViewItem` and `tests/test_colorscheme_reference.py::TestReferenceAnchors::test_selection_background`; in the installed Firefox ESR 153.5.1, `chrome/browser/content/browser/places/places.xhtml` defines `tree#placesList` and `tree#placeContent` inside `hbox#placesView`, `chrome/browser/content/browser/places/places.css` strips the stock `.placesTree` appearance, margin and border, `chrome/browser/skin/classic/browser/places/organizer.css` paints `#placesView` `Window`-background and sizes `#placesList`, `chrome/browser/skin/classic/browser/places/organizer-shared.css` floors the pane min-sizes, and `chrome/toolkit/skin/classic/global/tree/tree.css` owns the stock tree paint (the `Field` ground, `ThreeDShadow` border, `-moz-oddtreerow` odd stripes on multicol rows, the `hsla(0, 0%, 50%, 0.15)` hover wash and the `-moz-cellhighlight`/`SelectedItem` selection) with `chrome/browser/skin/classic/browser/places/tree-icons.css` supplying the row icons; the toolbar, search filter, content-tree column headers, downloads rich list and details pane stay Firefox's for the later parts of this series; declaration checks do not establish rendered pixels (platform colour adaptation 2026-10-27).
+
+In `tests/support/firefox_chrome_cases.py`, append after the `#securityPanel > groupbox > label.header` entry a Library comment block adding to `REQUIRED_RULES`: `"#placesList"` and `"#placeContent"` mapping to the five field declarations above (the parser splits the sheet's selector list, the `#metatree`/`#imagetree` precedent), the four row/cell-text selectors (hover transparent, selected `SELECTION`, cell text `BLACK`) built from both `tree#placesList treechildren::…` and `tree#placeContent treechildren::…` forms, and `"tree#placeContent treechildren::-moz-tree-row(multicol, odd)"` mapping to `"background-color: transparent !important"` — reusing `WHITE`, `BLACK`, `GREY` and `SELECTION` beside the existing entries; no entry carries `appearance`, `font`, `margin`, `border-right` or `outline` declarations, and the pseudo-element selectors are assertion-only in `support.selector_matching` exactly as the trees plan's page-info selectors are.
+
+In a new `tests/test_firefox_theme_library.py` module (pattern: `tests/test_firefox_theme_page_info.py`), add `class TestFirefoxLibraryChrome(FirefoxChromeTestCase)` with: `test_library_tree_paint_is_scoped_to_the_places_trees` — using `support.selector_matching.matches`, the `tree#placesList …` selectors match a tree element with id `placesList` (element named `tree`) and never match any tree without that id, the required selector set naming `placesList`/`placeContent` is exactly the ten rules above and every other rule key naming either tree is none; `test_library_tree_provenance` — the comment header names `"No reference screenshot shows the Firefox Library window"`, `"widgets/lineedit.svg"`, `"tests/test_desktoptheme_lineedit.py::TestLineEdit"`, `"TestLineEditReference"`, `"widgets/listitem.svg"`, `"tests/test_desktoptheme_listitem.py::TestListItem"`, `"widgets/viewitem.svg"`, `"tests/test_desktoptheme_viewitem.py::TestViewItem"`, `"test_selection_background"`, `"places.xhtml"`, `"tree#placesList"`, `"tree#placeContent"`, `"places.css"`, `"organizer.css"`, `"organizer-shared.css"`, `"chrome/toolkit/skin/classic/global/tree/tree.css"`, `"tree-icons.css"`, `-moz-oddtreerow`, `-moz-cellhighlight`, `SelectedItem`, and `"platform colour adaptation 2026-10-27"` (pattern: `TestFirefoxPageInfo::test_page_info_tree_provenance`); plus one exact-declaration test looping the required selectors against `REQUIRED_RULES` (the shell module's `test_required_rules` iterates the whole dict and needs no edit).
+
+In `docs/invariants.md`, append one row at the end of the `## firefox` table (after the security-panel row, before `## gtk`): the Library window's two places trees (`tree#placesList`, `tree#placeContent`) are the opaque `#FFFFFF` sunken list field — square 1px `#000000` outline, `#999999` top-left inner shadow, black cell text, rows transparent over the field so no hover wash paints, a selected row flat `#CCCCFF` — with the multicol odd-row stripe floated back onto the field, while the row icons, twisties, column headers, toolbar, search filter, downloads rich list and details pane stay Firefox's. Test column: `tests/test_firefox_theme_library.py::TestFirefoxLibraryChrome` plus `TestFirefoxChromeShell::test_palette_is_exact`. Provenance: no reference screenshot shows the page — the field adapts `widgets/lineedit.svg`/`widgets/viewitem.svg` (a platform colour adaptation), the paint chain facts are read 2026-10-27 from the named installed files, and declaration checks do not establish rendered pixels. `tests/invariants.py` stays green.
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/support/firefox_chrome_cases.py`, `tests/test_firefox_theme_library.py` (new), `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `userChrome.css` gains exactly the six rule blocks above after the security-groupbox block; every existing selector, declaration and comment is byte-unchanged and no new hex literal appears anywhere in the sheet (`TestFirefoxChromeShell::test_palette_is_exact` passes untouched).
+- `TestFirefoxLibraryChrome`'s three tests pass; `TestFirefoxChromeShell::test_required_rules` holds against the extended `REQUIRED_RULES`; `TestFirefoxChromeShell`'s hygiene tests keep green over the extended sheet.
+- `docs/invariants.md` gains exactly one `## firefox` row citing the new test class and recording the stay-Firefox surfaces and the platform adaptation; `tests/invariants.py` stays green.
+- `make check` passes.
+
 ## Done
