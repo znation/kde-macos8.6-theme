@@ -106,6 +106,34 @@
    selection are suppressed on these panel rows only; declaration checks do
    not establish rendered pixels.
 
+   No reference shows Firefox's bookmark editor; its four text fields
+   (#editBMPanel_namePicker, #editBMPanel_locationField, #editBMPanel_tagsField
+   and #editBMPanel_keywordField) adapt the reference-grounded
+   widgets/lineedit.svg, pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit, its folder dropdown
+   (#editBMPanel_folderMenuList) and Done/Remove footer buttons
+   (#editBookmarkPanelDoneButton and #editBookmarkPanelRemoveButton) adapt the
+   reference-grounded widgets/button.svg, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, and their
+   flat #CCCCFF hover adapts widgets/viewitem.svg, pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background
+   (platform adaptation 2026-10-26). In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/browser.xhtml defines
+   editBookmarkPanelTemplate with #editBookmarkPanel and its controls;
+   chrome/browser/content/browser/browser-places.js instantiates the template
+   and chrome/browser/content/browser/places/editBookmark.js fills the rows;
+   chrome/browser/skin/classic/browser/places/editBookmarkPanel.css and
+   chrome/browser/skin/classic/browser/places/editBookmark.css own the stock
+   control paint; and
+   chrome/toolkit/skin/classic/global/global-shared.css,
+   chrome/toolkit/skin/classic/global/button.css and
+   chrome/toolkit/skin/classic/global/menulist.css supply the input, button
+   and menulist faces. The sheet scopes the paint through #editBookmarkPanel,
+   so the #bookmarkpropertiesdialog copies of the same controls stay
+   Firefox's; declaration checks do not establish rendered pixels.
+
    Install it opt-in with `make install-firefox`, which copies this sheet
    into one Firefox profile's chrome/ directory and adds
    toolkit.legacyUserProfileCustomizations.stylesheets=true to its user.js;
@@ -684,4 +712,36 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: inset 1px 1px #999999 !important;
+}
+
+/* The bookmark editor's fields, folder dropdown and Done/Remove footer
+   buttons adapt this sheet's Platinum line-edit and push-button paint; no
+   reference shows Firefox's bookmark editor (platform adaptation 2026-10-26). */
+#editBookmarkPanel #editBMPanel_namePicker,
+#editBookmarkPanel #editBMPanel_locationField,
+#editBookmarkPanel #editBMPanel_tagsField,
+#editBookmarkPanel #editBMPanel_keywordField {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#editBookmarkPanel #editBMPanel_folderMenuList,
+#editBookmarkPanel #editBookmarkPanelDoneButton,
+#editBookmarkPanel #editBookmarkPanelRemoveButton {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#editBookmarkPanel #editBMPanel_folderMenuList:hover:not([disabled]),
+#editBookmarkPanel #editBookmarkPanelDoneButton:hover:not([disabled]),
+#editBookmarkPanel #editBookmarkPanelRemoveButton:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
 }
