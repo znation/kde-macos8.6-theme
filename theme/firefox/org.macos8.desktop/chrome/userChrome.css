@@ -403,6 +403,45 @@
    https-only menulist, generated back buttons, the .panel-button certificate
    action, footer link, separators and panel body Firefox's; declaration
    checks do not establish rendered pixels.
+
+   No reference shows Firefox's Page Info window; its top band (#topBar) and
+   view tabs (#viewGroup > radio) follow this sheet's toolbar and tab-face
+   recipes: the raised tab face takes the reference-grounded
+   widgets/tabbar.svg, pinned by
+   tests/test_desktoptheme_tabbar.py::TestTabBar and
+   tests/test_desktoptheme_tabbar.py::TestTabBarReference, the flat #EEEEEE
+   selected and unselected-hovered faces reuse the pinned [Colors:View]
+   BackgroundAlternate trough,
+   tests/test_colorscheme_reference.py::TestReferenceAnchors:
+test_view_background_alternate, and the etched #topBar bottom rule takes the
+   pinned etched pair re-derived by
+   tests/test_desktoptheme_line.py::TestLineReference (platform adaptation
+   2026-10-26). Its action buttons (each panel's .help-button plus the media
+   panel's #selectallbutton, #imagesaveasbutton and #mediasaveasbutton and the
+   security panel's #security-view-qwac, #security-view-cert,
+   #security-clear-sitedata and #security-view-password) take the
+   reference-grounded widgets/button.svg face, square 1px black outline and
+   white/#AAAAAA bevel, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, and the
+   flat #CCCCFF enabled hover takes widgets/viewitem.svg, pinned by
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::test_selection_background. In the
+   installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/pageinfo/pageInfo.xhtml defines vbox#topBar
+   holding radiogroup#viewGroup.chromeclass-toolbar with the radio tabs
+   #generalTab, #mediaTab, #permTab and #securityTab and deck#mainDeck holding
+   the panels whose control ids these are;
+   chrome/browser/content/browser/pageinfo/pageInfo.js selects a view by
+   setting selected on its tab and swapping the deck, and
+   chrome/browser/skin/classic/browser/pageInfo.css gives the Linux build's
+   #topBar the Field background and ThreeDShadow bottom border and paints
+   #viewGroup > radio with SelectedItem, so the sheet overrides those paints
+   through the page-info-only #topBar, #viewGroup and #mainDeck ids. Disabled
+   buttons keep Firefox's paint, and the dialog body, readonly input fields,
+   meta and image trees, permission list, media preview, security tables,
+   description labels and focus rings stay Firefox's; declaration checks do
+   not establish rendered pixels.
 */
 
 tooltip {
@@ -828,6 +867,69 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
 #editBookmarkPanel #editBMPanel_folderMenuList:hover:not([disabled]),
 #editBookmarkPanel #editBookmarkPanelDoneButton:hover:not([disabled]),
 #editBookmarkPanel #editBookmarkPanelRemoveButton:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The Page Info window's top band and view tabs adapt the sheet's Platinum
+   toolbar and tab faces: the top band is the grey face with the etched pair,
+   the unselected tab is the raised face with a square 1px black outline and
+   the white/grey bevel, and the selected and unselected-hovered tab is the
+   flat trough with the selected tab's merged bottom border. Its action
+   buttons take the push-button face, square 1px black outline and the
+   white/#AAAAAA raised bevel, and an enabled hovered one is flat #CCCCFF with
+   black text and no bevel. Disabled buttons, the stock tab width and padding,
+   the focus ring, the dialog body, fields, trees, permission list, media
+   preview, security tables and labels keep Firefox's own paint; the paint is
+   scoped through the page-info-only ids. */
+#topBar {
+  background-color: #DDDDDD !important;
+  border-bottom: 1px solid #888888 !important;
+  box-shadow: inset 0 -1px #FFFFFF !important;
+}
+
+#viewGroup > radio {
+  appearance: none !important;
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999 !important;
+}
+
+#viewGroup > radio[selected] {
+  background-color: #EEEEEE !important;
+  border-bottom-color: #EEEEEE !important;
+}
+
+#viewGroup > radio:not([selected]):hover {
+  background-color: #EEEEEE !important;
+}
+
+#mainDeck .help-button:not([disabled]),
+#mainDeck #selectallbutton:not([disabled]),
+#mainDeck #imagesaveasbutton:not([disabled]),
+#mainDeck #mediasaveasbutton:not([disabled]),
+#mainDeck #security-view-qwac:not([disabled]),
+#mainDeck #security-view-cert:not([disabled]),
+#mainDeck #security-clear-sitedata:not([disabled]),
+#mainDeck #security-view-password:not([disabled]) {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#mainDeck .help-button:not([disabled]):hover,
+#mainDeck #selectallbutton:not([disabled]):hover,
+#mainDeck #imagesaveasbutton:not([disabled]):hover,
+#mainDeck #mediasaveasbutton:not([disabled]):hover,
+#mainDeck #security-view-qwac:not([disabled]):hover,
+#mainDeck #security-view-cert:not([disabled]):hover,
+#mainDeck #security-clear-sitedata:not([disabled]):hover,
+#mainDeck #security-view-password:not([disabled]):hover {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;

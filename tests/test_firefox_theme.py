@@ -460,7 +460,60 @@ REQUIRED_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    "#topBar": {
+        "background-color": f"{FACE} !important",
+        "border-bottom": f"1px solid {ETCH_DARK} !important",
+        "box-shadow": f"inset 0 -1px {WHITE} !important",
+    },
+    "#viewGroup > radio": {
+        "appearance": "none !important",
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"{RAISED_BEVEL} !important",
+    },
+    "#viewGroup > radio[selected]": {
+        "background-color": f"{TROUGH} !important",
+        "border-bottom-color": f"{TROUGH} !important",
+    },
+    "#viewGroup > radio:not([selected]):hover": {
+        "background-color": f"{TROUGH} !important",
+    },
 }
+
+# The Page Info window's action buttons: each panel's help button plus the
+# media panel's select-all and save buttons and the security panel's
+# certificate and site-data buttons.
+_PAGE_INFO_CONTROL_IDS = (
+    ".help-button",
+    "#selectallbutton",
+    "#imagesaveasbutton",
+    "#mediasaveasbutton",
+    "#security-view-qwac",
+    "#security-view-cert",
+    "#security-clear-sitedata",
+    "#security-view-password",
+)
+
+REQUIRED_RULES.update({
+    f"#mainDeck {control}:not([disabled])": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"{BUTTON_BEVEL} !important",
+    }
+    for control in _PAGE_INFO_CONTROL_IDS
+})
+REQUIRED_RULES.update({
+    f"#mainDeck {control}:not([disabled]):hover": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    }
+    for control in _PAGE_INFO_CONTROL_IDS
+})
 
 
 class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
@@ -2271,6 +2324,196 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "chrome/toolkit/skin/classic/global/button.css",
             "chrome/toolkit/skin/classic/global/menulist.css",
             "#bookmarkpropertiesdialog",
+            "platform adaptation 2026-10-26",
+        ):
+            with self.subTest(provenance=provenance):
+                self.assertIn(provenance, header)
+
+    def test_page_info_control_paint_is_scoped_to_page_info(self):
+        tab_selectors = (
+            "#viewGroup > radio",
+            "#viewGroup > radio[selected]",
+            "#viewGroup > radio:not([selected]):hover",
+        )
+        button_selectors = tuple(
+            f"#mainDeck {control}:not([disabled])"
+            for control in _PAGE_INFO_CONTROL_IDS
+        )
+        hover_selectors = tuple(
+            selector + ":hover" for selector in button_selectors
+        )
+        selectors = ("#topBar",) + tab_selectors + button_selectors \
+            + hover_selectors
+        self.assertEqual(
+            {name for name in self.rules
+             if "#topBar" in name or "#viewGroup" in name
+             or "#mainDeck" in name},
+            set(selectors),
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+
+        window = element("window", "pageInfoWindow")
+        top_bar = element("vbox", "topBar", parent=window)
+        view_group = element(
+            "radiogroup", "viewGroup", ("chromeclass-toolbar",),
+            parent=top_bar,
+        )
+        tabs = {
+            "generalTab": element("radio", "generalTab", parent=view_group),
+            "mediaTab": element(
+                "radio", "mediaTab", attrs={"hidden": "true"},
+                parent=view_group,
+            ),
+            "permTab": element("radio", "permTab", parent=view_group),
+            "securityTab": element(
+                "radio", "securityTab", parent=view_group
+            ),
+        }
+        selected_tab = element(
+            "radio", "generalTab", attrs={"selected": "true"},
+            parent=view_group,
+        )
+        main_deck = element("deck", "mainDeck", parent=window)
+        general_panel = element("vbox", "generalPanel", parent=main_deck)
+        media_panel = element("vbox", "mediaPanel", parent=main_deck)
+        perm_panel = element("vbox", "permPanel", parent=main_deck)
+        security_panel = element("vbox", "securityPanel", parent=main_deck)
+        buttons = {
+            "general help-button": element(
+                "button", "helpButton", ("help-button",),
+                attrs={"command": "cmd_help"}, parent=general_panel,
+            ),
+            "media help-button": element(
+                "button", "helpButton", ("help-button",),
+                attrs={"command": "cmd_help"}, parent=media_panel,
+            ),
+            "perm help-button": element(
+                "button", "helpButton", ("help-button",),
+                attrs={"command": "cmd_help"}, parent=perm_panel,
+            ),
+            "security help-button": element(
+                "button", "helpButton", ("help-button",),
+                attrs={"command": "cmd_help"}, parent=security_panel,
+            ),
+            "selectallbutton": element(
+                "button", "selectallbutton", ("small-button",),
+                parent=media_panel,
+            ),
+            "imagesaveasbutton": element(
+                "button", "imagesaveasbutton", parent=media_panel,
+            ),
+            "mediasaveasbutton": element(
+                "button", "mediasaveasbutton", parent=media_panel,
+            ),
+            "security-view-qwac": element(
+                "button", "security-view-qwac", parent=security_panel,
+            ),
+            "security-view-cert": element(
+                "button", "security-view-cert", parent=security_panel,
+            ),
+            "security-clear-sitedata": element(
+                "button", "security-clear-sitedata", parent=security_panel,
+            ),
+            "security-view-password": element(
+                "button", "security-view-password", parent=security_panel,
+            ),
+        }
+
+        unscoped = (
+            element("input", "titletext", parent=general_panel),
+            element("input", "urltext", parent=general_panel),
+            element("tree", "metatree", parent=general_panel),
+            element("tree", "imagetree", parent=media_panel),
+            element("label", classes=("tooltip-label",),
+                    parent=general_panel),
+            element("listitem", "permList", ("perm-item",),
+                    parent=perm_panel),
+            element("row", "perm-row", parent=perm_panel),
+            element("table", "security-technical", parent=security_panel),
+            element("description", "security-technical-label",
+                    parent=security_panel),
+            element("preview", "mediaPreview", parent=media_panel),
+            element("button", "selectallbutton", parent=top_bar),
+            element("button", "helpButton", ("help-button",),
+                    parent=view_group),
+            element("toolbar", "navigator-toolbox", parent=top_bar),
+        )
+
+        for name, tab in tabs.items(): 
+            with self.subTest(tab=name):
+                self.assertTrue(matches(tab_selectors[0], tab))
+                self.assertFalse(matches(tab_selectors[1], tab))
+                self.assertFalse(matches(tab_selectors[2], tab))
+                self.assertFalse(
+                    matches(tab_selectors[1], {**tab, "hover": True})
+                )
+        with self.subTest(selected="selected_tab"):
+            self.assertTrue(matches(tab_selectors[0], selected_tab))
+            self.assertTrue(matches(tab_selectors[1], selected_tab))
+            self.assertFalse(
+                matches(tab_selectors[2], {**selected_tab, "hover": True})
+            )
+        with self.subTest(state="hovered_unselected_tab"):
+            hovered = {**tabs["permTab"], "hover": True}
+            self.assertTrue(matches(tab_selectors[2], hovered))
+
+        for name, button in buttons.items():
+            selector = (
+                "#mainDeck #selectallbutton:not([disabled])"
+                if name == "selectallbutton"
+                else "#mainDeck .help-button:not([disabled])"
+                if name.endswith("help-button")
+                else f"#mainDeck #{name}:not([disabled])"
+            )
+            with self.subTest(button=name):
+                self.assertTrue(matches(selector, button))
+                self.assertTrue(matches(selector, {**button, "hover": True}))
+                self.assertFalse(matches(selector + ":hover", button))
+                self.assertTrue(
+                    matches(selector + ":hover", {**button, "hover": True})
+                )
+                disabled = {
+                    **button,
+                    "attrs": {**button["attrs"], "disabled": ""},
+                    "hover": True,
+                }
+                self.assertFalse(matches(selector, disabled))
+                self.assertFalse(matches(selector + ":hover", disabled))
+
+        for control in unscoped:
+            with self.subTest(unthemed=control["id"] or control["tag"]):
+                for selector in selectors:
+                    self.assertFalse(matches(selector, control))
+                    self.assertFalse(
+                        matches(selector, {**control, "hover": True})
+                    )
+
+    def test_page_info_provenance(self):
+        header = self.text.split("*/", 1)[0]
+        for provenance in (
+            "No reference shows Firefox's Page Info window",
+            "widgets/tabbar.svg",
+            "tests/test_desktoptheme_tabbar.py::TestTabBar",
+            "tests/test_desktoptheme_tabbar.py::TestTabBarReference",
+            "tests/test_desktoptheme_line.py::TestLineReference",
+            "test_view_background_alternate",
+            "widgets/button.svg",
+            "tests/test_desktoptheme_button.py::TestButton",
+            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "pageInfo.xhtml",
+            "pageInfo.js",
+            "pageInfo.css",
+            "#topBar",
+            "#viewGroup",
+            "#mainDeck",
+            "#generalTab",
+            "#selectallbutton",
+            "#security-view-qwac",
             "platform adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):
