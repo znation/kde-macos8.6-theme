@@ -51,6 +51,16 @@ PLATINUM_FILLS = frozenset({BLACK, WHITE, GREY, FACE})
 # the button test swaps it in for `GREY`.
 BUTTON_SHADOW = "#AAAAAA"
 
+# The window box's 1px inner outline and the diagonal face's mid gradient
+# band, run rects of the Aurorae close/shade/maximize widgets' active-center
+# groups (sampled by tests/test_aurorae_buttons.py from
+# aboutsystem_betawiki.png and systemprofiler_betawiki.png) that the Kvantum
+# SVG's `mdi` window-button groups copy. The outline is darker and the band
+# mid-way between the #999999 and #AAAAAA bevel greys, so both are named
+# extras rather than part of PLATINUM_FILLS.
+BOX_INNER_OUTLINE = "#222222"
+BOX_FACE_MID = "#BBBBBB"
+
 # The size grip's dark checker fill, sampled from the grow box in the retail
 # System Profiler window (`systemprofiler_betawiki.png`, x=796..807,
 # y=748..758); its white squares are WHITE and its three lower-left edge

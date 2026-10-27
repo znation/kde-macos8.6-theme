@@ -10,6 +10,7 @@ bevels are pinned separately in `test_kvantum_bevel_pixels`.
 
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 import unittest
@@ -17,8 +18,11 @@ from unittest import mock
 
 from support import svg_case
 from support.kde_config import read as read_kde_config
+from support.aurorae_fixtures import AURORAE_DIR
 from support.kvantum_fixtures import KVCONFIG, SVG
 from support.platinum_palette import (
+    BOX_INNER_OUTLINE,
+    BOX_FACE_MID,
     SELECTION,
     SIZEGRIP_DARK,
     TOOLTIP_FACE,
@@ -35,6 +39,7 @@ from svg_assertions import (
     attribute_values,
     children_named,
     elements_by_id,
+    groups_with_id,
     local_name,
 )
 
@@ -94,6 +99,22 @@ INTERIOR_STATES = {
 # The window size grip is a single indicator element, not a generic interior:
 # a white/#777777 checker diamond with three #AAAAAA lower-left edge pixels.
 SIZEGRIP_STATES = ("normal", "focused")
+# The QMdiSubWindow title band's window buttons are one indicator element
+# the [TitleBar] section resolves onto: one 12x12 `mdi` box per role and
+# state, the Aurorae decoration's own reference-grounded box art.
+MDI_STATES = ("normal", "disabled")
+MDI_ROLES = ("close", "minimize", "maximize", "restore")
+# The Aurorae widget each role's art is defined as: the zoom box is the
+# same in both zoom roles (Mac OS does not change the zoom box when a
+# window is zoomed), and each zoom source draws its box five pixels right
+# of the group-local origin.
+MDI_SOURCES = {
+    "close": "close.svg",
+    "minimize": "shade.svg",
+    "maximize": "maximize.svg",
+    "restore": "maximize.svg",
+}
+SOURCES_ZOOM = ("maximize", "restore")
 ARROW_DIRECTIONS = ("up", "down", "left", "right")
 ARROW_STATES = ("normal", "focused", "pressed", "disabled")
 
@@ -498,6 +519,8 @@ class TestSvg(unittest.TestCase):
                     BUTTON_SHADOW,
                     TAB_FACE,
                     SIZEGRIP_DARK,
+                    BOX_INNER_OUTLINE,
+                    BOX_FACE_MID,
                     # The size-grip groups' invisible bounds rects fill none.
                     "none",
                 }
@@ -509,6 +532,129 @@ class TestSvg(unittest.TestCase):
         assert_no_style_elements(self, self.tree)
         assert_no_external_references(self, self.tree)
         assert_unique_ids(self, self.tree)
+
+
+# The zoom glyph: the inner square's left side (the #222222 rects at x=7,
+# y=2..6) and bottom edge (the #222222 run spanning x=1..7 at y=7). The
+# collapse glyph: the two bars' #222222 runs spanning the full box width at
+# y=5 and y=7 (the run merges the bars with the box outline at its
+# endpoints, which is why the span reaches x=1..11 rather than the bars'
+# own x=2..10). The disabled flattening repaints the gradient face only,
+# so these rects must survive it in every state.
+MDI_ZOOM_GLYPH = (
+    _rect("7", "2", "1", "1", BOX_INNER_OUTLINE),
+    _rect("7", "3", "1", "1", BOX_INNER_OUTLINE),
+    _rect("7", "4", "1", "1", BOX_INNER_OUTLINE),
+    _rect("7", "5", "1", "1", BOX_INNER_OUTLINE),
+    _rect("7", "6", "1", "1", BOX_INNER_OUTLINE),
+    _rect("1", "7", "7", "1", BOX_INNER_OUTLINE),
+)
+MDI_MINIMIZE_GLYPH = (
+    _rect("1", "5", "11", "1", BOX_INNER_OUTLINE),
+    _rect("1", "7", "11", "1", BOX_INNER_OUTLINE),
+)
+
+
+class TestMdiButtons(unittest.TestCase):
+    """Pin the QMdiSubWindow title band's four window buttons.
+
+    The [TitleBar] section resolves the buttons onto the `mdi` indicator
+    element; the art is defined as the Aurorae decoration's own
+    reference-grounded box art (tests/test_aurorae_buttons.py pins the
+    boxes against the reference screenshots), so each state's child rects
+    must equal the source widget's active-center group -- not merely exist
+    with palette-member fills. The flattening cannot lose a glyph: the
+    #888888/#222222 rects are the same tuples in both states.
+    """
+
+    def setUp(self):
+        self.tree = parse_svg(SVG)
+
+    def _expectation(self, role, disabled=False):
+        """Return the source Aurorae box's rect-dict tuple for one role.
+
+        The highlight column and row drop (the shift lands the zoom box's
+        own on x=12 along with its spacing runs), and the disabled state
+        flattens every non-outline fill to #CCCCCC, the way the reference
+        less Aurorae inactive groups are drawn.
+        """
+        source = parse_svg(os.path.join(AURORAE_DIR, MDI_SOURCES[role]))
+        expected = []
+        for element in elements_by_id(source)["active-center"]:
+            if local_name(element) != "rect":
+                continue
+            attributes = dict(element.attrib)
+            x, y = int(attributes["x"]), int(attributes["y"])
+            if role in SOURCES_ZOOM:
+                # The zoom box sits five pixels into its source canvas:
+                # the five gap columns and the spacing run stay behind.
+                if x < 5:
+                    continue
+                x -= 5
+            if x >= 12 or y >= 12:
+                # The source's 13th-pixel highlight column/row.
+                continue
+            fill = attributes["fill"]
+            if disabled and fill not in ("#888888", BOX_INNER_OUTLINE):
+                # The gradient face flattens to #CCCCCC, already a named
+                # extra in the palette test (CHECKBOX_SHADOW/TAB_FACE).
+                fill = "#CCCCCC"
+            expected.append(
+                _rect(str(x), str(y), attributes["width"], attributes["height"], fill)
+            )
+        return tuple(expected)
+
+    def test_mdi_buttons_ship_normal_and_disabled(self):
+        # Exactly the eight roles-and-states ids: a later state sneaking in
+        # (say `-focused`, which the engine resolves down to `-normal`) or
+        # a fallback-relevant state going missing fails here.
+        ids = {i for i in attribute_values(self.tree, "id") if i.startswith("mdi-")}
+        self.assertEqual(
+            ids,
+            {
+                "mdi-%s-%s" % (role, state)
+                for role in MDI_ROLES
+                for state in MDI_STATES
+            },
+        )
+        # The eight groups follow `titlebar-focused`, role-major: the id-set
+        # comparison above cannot see placement, position or duplication.
+        order = [group.get("id") for group in groups_with_id(self.tree)]
+        self.assertEqual(
+            order[order.index("titlebar-focused") + 1 :],
+            [
+                "mdi-%s-%s" % (role, state)
+                for role in MDI_ROLES
+                for state in MDI_STATES
+            ],
+        )
+
+    def test_mdi_buttons_are_the_aurorae_box_art(self):
+        by_id = elements_by_id(self.tree)
+        for role in MDI_ROLES:
+            for state in MDI_STATES:
+                with self.subTest(role=role, state=state):
+                    self.assertEqual(
+                        _drawing_elements(by_id["mdi-%s-%s" % (role, state)]),
+                        self._expectation(role, disabled=(state == "disabled")),
+                    )
+
+    def test_mdi_glyphs_survive_the_flattening(self):
+        by_id = elements_by_id(self.tree)
+        for role in MDI_ROLES:
+            if role in SOURCES_ZOOM:
+                glyph = MDI_ZOOM_GLYPH
+            elif role == "minimize":
+                glyph = MDI_MINIMIZE_GLYPH
+            else:
+                # The close box has no glyph; only the exact-art test above
+                # pins its art.
+                continue
+            for state in MDI_STATES:
+                shipped = _drawing_elements(by_id["mdi-%s-%s" % (role, state)])
+                with self.subTest(role=role, state=state):
+                    for pixel in glyph:
+                        self.assertIn(pixel, shipped)
 
 
 class TestSvgContainment(unittest.TestCase):

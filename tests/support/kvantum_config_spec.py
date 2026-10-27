@@ -405,6 +405,8 @@ VALUE_KEYS = {
         "text.margin.right": "3",
     },
     "TitleBar": {
+        "indicator.element": "mdi",
+        "indicator.size": "12",
         "text.normal.color": "#000000",
         "text.focus.color": "#000000",
         "text.margin.top": "2",

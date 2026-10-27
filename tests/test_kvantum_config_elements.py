@@ -142,6 +142,16 @@ class TestTitleBarSurface(unittest.TestCase):
             _resolved(parser, "TitleBar", "interior.element"), "titlebar"
         )
 
+    def test_titlebar_names_the_mdi_indicator(self):
+        parser = read(KVCONFIG)
+        # The window-button element and size match the engine's compiled-in
+        # default [TitleBar] (Kvantum/style/themeconfig/default.kvconfig,
+        # read 2026-10-27; KvantumAlt's section carries the same pair), so the
+        # keys pin what the engine already resolves onto the theme's own eight
+        # `mdi` SVG groups.
+        self.assertEqual(parser.get("TitleBar", "indicator.element"), "mdi")
+        self.assertEqual(parser.get("TitleBar", "indicator.size"), "12")
+
     def test_titlebar_label_is_black_in_both_states(self):
         parser = read(KVCONFIG)
         for key in ("text.normal.color", "text.focus.color"):

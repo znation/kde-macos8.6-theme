@@ -387,13 +387,22 @@ text.margin.right=3
 # margins are not configurable keys, so a rule could not be pinned to the
 # band's bottom edge the way [DockTitle]'s frame.bottom=2 pins its own)
 # and the 2/2/3/3 text margins (KvantumAlt's, and [DockTitle]'s
-# horizontal 3) are this theme's own choice. The `mdi` window-button
-# glyphs stay at the engine's default art (no installed theme ships `mdi`
-# art either) for a later part of this series.
+# horizontal 3) are this theme's own choice. The window buttons resolve to
+# the `mdi` indicator element, painted by our own eight `mdi` SVG groups.
+# The two keys match the engine's compiled-in default [TitleBar] (read
+# 2026-10-27 from upstream's default.kvconfig) and the installed KvantumAlt
+# theme's, so they pin what the engine already resolves; the art is the
+# Aurorae decoration's own reference-grounded box art, and the minimize
+# mapping to the collapse box (no reference shows a minimize box), the
+# dropped 13th-pixel highlight and the disabled greys are recorded choices
+# beside the SVG groups. Declaration and SVG checks do not establish
+# rendered Qt pixels.
 [TitleBar]
 inherits=PanelButtonCommand
 frame=false
 interior.element=titlebar
+indicator.element=mdi
+indicator.size=12
 text.normal.color=#000000
 text.focus.color=#000000
 text.margin.top=2
