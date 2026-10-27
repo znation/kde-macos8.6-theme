@@ -5,6 +5,29 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The unused-import scanner's re-export allowance matches an aliased import by its binding name instead of the name imported (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+Symptom: with `pkg/mod.py` holding `import os` and `pkg/user.py` holding
+`from pkg.mod import os as platform` plus a read of `platform`, the scanner
+reported `pkg/mod.py:1: unused import os` even though `user.py` reads it
+through the alias — and the mirror case (`from pkg.mod import sys as os`)
+wrongly kept a dead import. Reproduce with the two synthetic-tree cases in
+`tests/test_no_unused_imports.py::TestNoUnusedImports`
+(`test_an_aliased_import_from_here_keeps_the_imported_name`,
+`test_an_aliased_import_keeps_only_the_name_actually_imported`); the real
+tree stays clean either way, so `make check` never fired.
+Suspected cause: the re-export pass in `unused_imports()` built its
+`(module, name)` pairs with `_alias_names()`, which returns the *binding*
+(`alias.asname or alias.name`) the flagging loop needs — not the name the
+import statement actually pulls from the source module.
+Fix: record `alias.name` (skipping `import *`) in the re-export pass; the
+flagging loop keeps `_alias_names()` for its own module's reads.
+
+**Validation gap:** no-fake — the synthetic-tree fixtures in the scanner's
+suite had no aliased cross-module re-export case, so the tree-clean assertion
+could not exercise the broken matching; a scratch two-module tree reproduced
+it, and the two new fixtures now pin both directions.
+
 ### CI's `make check` runs no rendered-pixel comparison: the whole `TestRender` class skips because the workflow installs none of the five Plasma render tools (found by the steward role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom.** `.github/workflows/ci.yml` runs exactly `make check` and

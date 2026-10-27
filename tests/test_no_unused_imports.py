@@ -105,6 +105,33 @@ class TestNoUnusedImports(unittest.TestCase):
         )
         self.assertEqual(findings, [])
 
+    def test_an_aliased_import_from_here_keeps_the_imported_name(self):
+        # `from pkg.mod import os as platform` reads mod.py's `import os`;
+        # the re-export allowance follows the name imported, not the alias.
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": "import os\n",
+                "pkg/user.py": (
+                    "from pkg.mod import os as platform\n\nvalue = platform\n"
+                ),
+            },
+        )
+        self.assertEqual(findings, [])
+
+    def test_an_aliased_import_keeps_only_the_name_actually_imported(self):
+        # The alias must not bless a different name: user.py imports `sys`
+        # (as `os`), so mod.py's `import os` stays dead.
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": "import os\n",
+                "pkg/user.py": "from pkg.mod import sys as os\n\nvalue = os\n",
+            },
+        )
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("pkg/mod.py:1: unused import os", findings[0])
+
     def test_a_package_facade_is_not_scanned(self):
         findings = self._findings(
             self,

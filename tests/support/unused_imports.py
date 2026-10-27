@@ -130,8 +130,13 @@ def unused_imports(
         )
         for node, names in imports:
             if isinstance(node, ast.ImportFrom) and node.module:
-                for name in names:
-                    imported_from.add((node.module, name))
+                for alias in node.names:
+                    # Record the name as this file imported it (never the
+                    # ``as`` alias a consuming module rebinds it to), so an
+                    # aliased re-export keeps the source module's own import
+                    # without masking a dead one under another name.
+                    if alias.name != "*":
+                        imported_from.add((node.module, alias.name))
 
     findings: list[str] = []
     for path, imports, lines, read_names, dunder_all in scanned:
