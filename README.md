@@ -186,7 +186,9 @@ user's configuration: if the removed scheme is still
 the selected one (`[General] ColorScheme` in `kdeglobals`), KDE may not be able to resolve
 it after the uninstall and falls back to BreezeLight on the next start, so
 `make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
-as the reset. `make check` runs the test suite, and `make help`
+as the reset; if the opt-in GTK selection `make apply-gtk` published still names
+`org.macos8.desktop` after the uninstall, it likewise prints a warning naming
+`make remove-gtk` as the reset. Neither warning edits the user's configuration. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`, or to
 one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Every

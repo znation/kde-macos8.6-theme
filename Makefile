@@ -82,6 +82,11 @@ GTK_ID := org.macos8.desktop
 GTK_PACKAGE := theme/gtk/$(GTK_ID)
 GTK_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(GTK_ID)
 
+# The marker comment `tools/apply_gtk.py` writes as the first line of
+# `$XDG_CONFIG_HOME/gtk-4.0/gtk.css`; uninstall's dangling-selection diagnostic
+# recognizes a published GTK user CSS by that literal comment.
+GTK_USER_CSS_MARKER := /* org.macos8.desktop GTK 4 user CSS */
+
 # The artifacts `_install` copies, as families. A caller can narrow the install
 # to the families it needs (`make install INSTALL_PACKAGES=look-and-feel`), so a
 # test of one artifact does not copy all eight; the default installs the families
@@ -515,6 +520,28 @@ _uninstall:
 # the file. The awk brackets the value it found, so a present but empty
 # `ColorScheme=` (`[]`) is distinguishable from a missing key (no output);
 # otherwise an empty id would match either.
+#
+# The opt-in `apply-gtk` publishes the same kind of selection for GTK: a
+# `gtk-theme-name=org.macos8.desktop` line in `[Settings]`, as
+# `tools/gtk_settings.py` writes it, in both `$XDG_CONFIG_HOME/gtk-3.0/settings.ini`
+# and `.../gtk-4.0/settings.ini`, plus a marker-delimited
+# `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` whose `@import` names the installed GTK 4
+# sheet. `make uninstall` removes those sheets and must not clear the selection
+# it cannot own, so a published selection left behind names files that no
+# longer exist: GTK applications fail to load the theme and silently keep
+# their default style, exactly as the color scheme's unresolved id falls back
+# to BreezeLight with no diagnostic. The reset is `make remove-gtk`, which
+# clears only the two ini lines and the marked gtk.css. The ini files are read
+# the way `tools/gtk_settings.py` (the scanner the selection was written with)
+# reads them: the first line's UTF-8 BOM is stripped, each line is trimmed
+# before parsing, a header is a trimmed line opening with `[` and closing with
+# `]` and switches the section to its bracketed name, a line whose first
+# character is `#` or `;` is a comment and never a key, a key line carries a
+# `=` whose left side trimmed is the key name, and a `gtk-theme-name` in
+# `[Settings]` whose value trims to exactly the theme id still names our
+# theme. The marked gtk.css is recognized by its literal marker comment
+# anywhere in the file. As with kdeglobals, this is a diagnostic only -- it
+# must not edit the user's config files.
 	@config_home="$${XDG_CONFIG_HOME:-}"; \
 	case "$$config_home" in /*) ;; *) config_home="";; esac; \
 	if [ -z "$$config_home" ]; then case "$${HOME:-}" in /*) config_home="$$HOME/.config";; esac; fi; \
@@ -524,7 +551,18 @@ _uninstall:
 	  if [ "$$selected" = "[$(COLOR_SCHEME_ID)]" ]; then \
 	    echo "uninstall: color scheme $(COLOR_SCHEME_ID) is still selected in $$kdeglobals after removal; if KDE cannot resolve it, it falls back to BreezeLight on the next start. Reset it with: plasma-apply-colorscheme BreezeLight" >&2; \
 	  fi; \
-	fi
+	fi; \
+	if [ -n "$$config_home" ]; then \
+	  chosen=""; \
+	  for ini in "$$config_home/gtk-3.0/settings.ini" "$$config_home/gtk-4.0/settings.ini"; do \
+	    if [ -f "$$ini" ] && awk 'NR==1 { sub(/^\357\273\277/, "") } { line=$$0; sub(/^[[:space:]]+/, "", line); sub(/[[:space:]]+$$/, "", line); if (length(line) >= 2 && substr(line, 1, 1) == "[" && substr(line, length(line), 1) == "]") { section=substr(line, 2, length(line) - 2); sub(/^[[:space:]]+/, "", section); sub(/[[:space:]]+$$/, "", section); next } if (section == "Settings" && substr(line, 1, 1) != "#" && substr(line, 1, 1) != ";" && index(line, "=") > 1) { pos=index(line, "="); key=substr(line, 1, pos-1); sub(/[[:space:]]+$$/, "", key); if (key == "gtk-theme-name") { value=substr(line, pos+1); sub(/^[[:space:]]+/, "", value); sub(/[[:space:]]+$$/, "", value); if (value == "$(GTK_ID)") found=1 } } } END { exit found ? 0 : 1 }' "$$ini" 2>/dev/null; then chosen="$$chosen $$ini"; fi; \
+	  done; \
+	  css="$$config_home/gtk-4.0/gtk.css"; \
+	  if [ -f "$$css" ] && grep -q -F -e "$(GTK_USER_CSS_MARKER)" "$$css" 2>/dev/null; then chosen="$$chosen $$css"; fi; \
+	  if [ -n "$$chosen" ]; then \
+	    echo "uninstall: a GTK selection still names $(GTK_ID) after removal in$$chosen; GTK applications cannot load the removed theme and keep their default style. Clear it with: make remove-gtk" >&2; \
+	  fi; \
+fi
 
 install-gtk:
 	@$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk

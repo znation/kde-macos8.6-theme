@@ -15,13 +15,16 @@ from support.process_assertions import assert_failed, assert_succeeded
 from support.shipped_files import shipped_files
 from support.symlink_fixtures import symlinked_repo
 from support.installed_paths import installed_gtk_theme
+from support.tmp_dir import make_tmp_dir
 from support.theme_install import (
     assert_files_identical,
     install,
     installed_destdir,
     shadow_command_env,
     uninstall,
+    uninstall_recipe,
 )
+from tools.gtk_user_files import GTK4_CSS_MARKER  # noqa: E402
 
 
 def _installed_dir(destdir):
@@ -250,6 +253,207 @@ class TestUninstall(unittest.TestCase):
     def test_make_uninstall_on_tree_with_no_gtk_install(self):
         with installed_destdir(self) as tmp:
             assert_succeeded(self, uninstall(tmp))
+
+
+class TestUninstallWarnsForTheDanglingGtkSelection(unittest.TestCase):
+    """`make uninstall` must name a still-published GTK selection.
+
+    The opt-in `apply-gtk` sets `gtk-theme-name=org.macos8.desktop` in the
+    `[Settings]` of `<config>/gtk-3.0/settings.ini` and
+    `<config>/gtk-4.0/settings.ini`, and writes `<config>/gtk-4.0/gtk.css`,
+    whose first line is `GTK4_CSS_MARKER` and whose `@import` names the
+    installed GTK 4 sheet. `make uninstall` removes those installed sheets,
+    so a selection still naming them points at files that no longer exist
+    and GTK applications silently keep their default style. The recipe warns
+    and names `make remove-gtk`, reads the ini files the way
+    ``tools.gtk_settings`` reads them, and must not edit the user's config.
+    """
+
+    def _uninstall(self, tmp, config=None, home=None):
+        """Run the `_uninstall` recipe with a controlled config resolution.
+
+        When *config* is given it becomes `XDG_CONFIG_HOME`; otherwise the
+        variable is dropped and *home* (which must be absolute) becomes
+        `HOME`, so the recipe resolves the XDG default `<home>/.config`.
+        """
+        env = dict(os.environ)
+        env.pop("XDG_CONFIG_HOME", None)
+        if config is None:
+            env["HOME"] = home
+        else:
+            env["XDG_CONFIG_HOME"] = config
+        return uninstall_recipe(tmp, env=env)
+
+    @staticmethod
+    def _config_home(tmp):
+        """Return `<tmp>/config` after creating it."""
+        config = os.path.join(str(tmp), "config")
+        os.makedirs(config, exist_ok=True)
+        return config
+
+    @staticmethod
+    def _write(path, text):
+        """Create *path*'s directory and write *text* as UTF-8."""
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        return text
+
+    @staticmethod
+    def _read(path):
+        with open(path, encoding="utf-8") as handle:
+            return handle.read()
+
+    def test_warns_for_a_still_selected_gtk3_settings_ini(self):
+        # The install put the theme's sheets in place; uninstall removes
+        # them, and the ini line that names the removed package must then be
+        # reported, together with the reset that clears it.
+        with installed_destdir(self, packages="gtk") as destdir:
+            config = self._config_home(destdir)
+            ini = os.path.join(config, "gtk-3.0", "settings.ini")
+            original = self._write(
+                ini, "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+            )
+            installed = _installed_dir(destdir)
+
+            removed = self._uninstall(destdir, config=config)
+
+            assert_succeeded(self, removed)
+            self.assertFalse(
+                os.path.exists(os.path.join(installed, "index.theme")),
+                "the theme the ini names must have been removed",
+            )
+            self.assertIn("a GTK selection still names", removed.stderr)
+            self.assertIn(
+                os.path.join(config, "gtk-3.0", "settings.ini"), removed.stderr
+            )
+            self.assertIn("make remove-gtk", removed.stderr)
+            self.assertEqual(
+                original, self._read(ini), "uninstall must not edit the ini"
+            )
+
+    def test_warns_for_a_still_selected_gtk4_settings_ini(self):
+        tmp = make_tmp_dir(self)
+        config = self._config_home(tmp)
+        ini = os.path.join(config, "gtk-4.0", "settings.ini")
+        original = self._write(
+            ini, "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+        )
+
+        removed = self._uninstall(tmp, config=config)
+
+        assert_succeeded(self, removed)
+        self.assertIn("a GTK selection still names", removed.stderr)
+        self.assertIn(
+            os.path.join(config, "gtk-4.0", "settings.ini"), removed.stderr
+        )
+        self.assertIn("make remove-gtk", removed.stderr)
+        self.assertEqual(
+            original, self._read(ini), "uninstall must not edit the ini"
+        )
+
+    def test_warns_for_the_marked_gtk4_user_css(self):
+        tmp = make_tmp_dir(self)
+        config = self._config_home(tmp)
+        css = os.path.join(config, "gtk-4.0", "gtk.css")
+        original = self._write(
+            css, f'{GTK4_CSS_MARKER}\n@import url("file:///gone/gtk.css");\n'
+        )
+
+        removed = self._uninstall(tmp, config=config)
+
+        assert_succeeded(self, removed)
+        self.assertIn("a GTK selection still names", removed.stderr)
+        self.assertIn(os.path.join(config, "gtk-4.0", "gtk.css"), removed.stderr)
+        self.assertIn("make remove-gtk", removed.stderr)
+        self.assertEqual(
+            original, self._read(css), "uninstall must not edit the user CSS"
+        )
+
+    def test_warns_for_a_bom_prefixed_indented_selection(self):
+        # tools.gtk_settings strips the first line's BOM and trims each line,
+        # and apply-gtk preserves both; the recipe's awk must read the file
+        # the same way or it silently misses the dangling selection.
+        tmp = make_tmp_dir(self)
+        config = self._config_home(tmp)
+        ini = os.path.join(config, "gtk-3.0", "settings.ini")
+        original = self._write(
+            ini, "\ufeff[Settings]\n  gtk-theme-name = org.macos8.desktop  \n"
+        )
+
+        removed = self._uninstall(tmp, config=config)
+
+        assert_succeeded(self, removed)
+        self.assertIn("a GTK selection still names", removed.stderr)
+        self.assertEqual(original, self._read(ini))
+
+    def test_does_not_warn_for_a_foreign_theme_name(self):
+        tmp = make_tmp_dir(self)
+        config = self._config_home(tmp)
+        ini = os.path.join(config, "gtk-3.0", "settings.ini")
+        original = self._write(ini, "[Settings]\ngtk-theme-name=Adwaita\n")
+        css = os.path.join(config, "gtk-4.0", "gtk.css")
+        foreign_css = self._write(css, "/* the user's own CSS */\nbody {}\n")
+
+        removed = self._uninstall(tmp, config=config)
+
+        assert_succeeded(self, removed)
+        self.assertNotIn("still names", removed.stderr)
+        self.assertEqual(original, self._read(ini))
+        self.assertEqual(foreign_css, self._read(css))
+
+    def test_the_ini_peek_agrees_with_the_settings_scanner(self):
+        # tools.gtk_settings selects keys only under `[Settings]`: a key in
+        # another section, before any section, or a comment line names no
+        # live selection, and a section switch stops a later key from
+        # counting. A later duplicate inside the same section still names
+        # our theme because remove_theme_name would delete it too.
+        tmp = make_tmp_dir(self)
+        config = self._config_home(tmp)
+        ini = os.path.join(config, "gtk-3.0", "settings.ini")
+        cases = (
+            ("[Other]\ngtk-theme-name=org.macos8.desktop\n", False),
+            ("gtk-theme-name=org.macos8.desktop\n[Settings]\n", False),
+            ("[Settings]\n# gtk-theme-name=org.macos8.desktop\n", False),
+            ("[Settings]\n;gtk-theme-name=org.macos8.desktop\n", False),
+            ("[Settings]\n[Other]\ngtk-theme-name=org.macos8.desktop\n", False),
+            ("[Settings]\ngtk-theme-name=org.macos8.desktop\n", True),
+            (
+                "[Settings]\ngtk-theme-name=Adwaita\n"
+                "gtk-theme-name=org.macos8.desktop\n",
+                True,
+            ),
+        )
+        for text, warns in cases:
+            with self.subTest(text=text):
+                self._write(ini, text)
+                removed = self._uninstall(tmp, config=config)
+                assert_succeeded(self, removed)
+                self.assertNotIn("is still selected", removed.stderr)
+                self.assertEqual(
+                    warns,
+                    "a GTK selection still names" in removed.stderr,
+                    f"the uninstall recipe disagreed with the ini: {text!r}",
+                )
+
+    def test_warns_at_the_xdg_default_when_config_home_is_unset(self):
+        # The apply path resolves `$XDG_CONFIG_HOME` the XDG way: an empty or
+        # relative value falls back to `<HOME>/.config`. The recipe must warn
+        # about the selection published at that same default, not only when
+        # the variable names the directory.
+        tmp = make_tmp_dir(self)
+        home = os.path.join(str(tmp), "home")
+        ini = os.path.join(home, ".config", "gtk-4.0", "settings.ini")
+        original = self._write(
+            ini, "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+        )
+
+        removed = self._uninstall(tmp, config=None, home=home)
+
+        assert_succeeded(self, removed)
+        self.assertIn("a GTK selection still names", removed.stderr)
+        self.assertIn(ini, removed.stderr)
+        self.assertEqual(original, self._read(ini))
 
 
 if __name__ == "__main__":
