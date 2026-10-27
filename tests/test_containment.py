@@ -449,8 +449,8 @@ class TestGuardIsShared(unittest.TestCase):
     """
 
     READERS = (
-        "tests/placeholders.py",
-        "tests/invariants.py",
+        "tests/support/placeholders.py",
+        "tests/support/invariants.py",
         "tools/theme_defaults.py",
         "tools/reference_validation.py",
     )

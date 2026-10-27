@@ -23,7 +23,7 @@ from __future__ import annotations
 import pathlib
 import unittest
 
-from invariants import check_reference, parse_rows
+from support.invariants import check_reference, parse_rows
 from support import containment, validation_gaps
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir

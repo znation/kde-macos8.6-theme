@@ -1,8 +1,8 @@
-"""Drive ``tests/placeholders.py``'s marker and register cross-check.
+"""Drive ``tests/support/placeholders.py``'s marker and register cross-check.
 
 A placeholder asset carries the literal token ``PLACEHOLDER:`` in a comment in
 its own file format, and the register ``PLACEHOLDERS.md`` holds one table row
-per asset. ``tests/placeholders.py`` reads the markers under ``theme/`` and the
+per asset. ``tests/support/placeholders.py`` reads the markers under ``theme/`` and the
 register rows and cross-checks the two sets; this module drives those checks,
 first against a synthetic theme root (``TestHelpers``) and then against the
 shipped register (``TestRepositoryRegister``), so a new placeholder added
@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import unittest
 
-from placeholders import (
+from support.placeholders import (
     REGISTER,
     TOKEN,
     cross_check,
@@ -39,7 +39,7 @@ def _run_reader_in_child(call, path):
     timeout expires.
     """
     return snippet_child.run(
-        [f"import sys; from placeholders import {call}; "
+        [f"import sys; from support.placeholders import {call}; "
          f"{call}(sys.argv[1])", str(path)],
         cwd=ROOT / "tests",
         timeout=10,

@@ -105,7 +105,8 @@ class TestCheckPattern(unittest.TestCase):
         self.assertIn("test_no_such_module*.py", result.stderr)
 
     def test_pattern_matching_only_a_helper_module_is_refused(self):
-        # `tests/invariants.py` matches `invar*.py` but defines no test case:
+        # `tests/support/invariants.py` matches `invar*.py` but defines no test
+        # case:
         # discovery would import it and run an empty suite, another green run
         # that ran nothing. Requiring a `test*.py` match refuses it.
         env = theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS")

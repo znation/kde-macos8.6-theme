@@ -199,7 +199,7 @@ require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$
 # `$(strip ...)`, so the value checked is the value handed to `unittest`
 # (surrounding whitespace would otherwise make it match no file). The pattern
 # must match a `tests/test*.py` module, not merely a helper such as
-# `tests/invariants.py`: discovery would import the helper and still run no
+# `tests/support/invariants.py`: discovery would import the helper and still run no
 # tests. A leading dash is not rejected as an option-like value -- `-p`
 # receives it as that option's argument -- but it matches no test module and
 # so fails the same check. $(1) names the target.

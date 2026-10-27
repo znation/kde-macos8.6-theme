@@ -20,7 +20,7 @@ from __future__ import annotations
 import ast
 import unittest
 
-from invariants import parsed_module
+from support.invariants import parsed_module
 from support import repo_root
 
 TESTS_DIR = repo_root.ROOT / "tests"

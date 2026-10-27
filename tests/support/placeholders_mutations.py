@@ -1,6 +1,6 @@
 """The placeholder register checker's mutation table.
 
-``tests/placeholders.py``'s marker scanner enforces a boundary the shipped
+``tests/support/placeholders.py``'s marker scanner enforces a boundary the shipped
 data happens not to cross. Each mutation here derives one named boundary from
 a copy of the real register (and a scratch theme root), so
 ``tests/test_checker_mutations.py`` can apply it and observe the checker's
@@ -10,7 +10,7 @@ record.
 
 A mutation's ``diagnostic`` is the substring the checker's ``AssertionError``
 must contain; a mutation with a diagnostic is a rejection boundary and must be
-named in ``tests/placeholders.py``'s ``REJECTION_SHAPES``. ``None`` marks an
+named in ``tests/support/placeholders.py``'s ``REJECTION_SHAPES``. ``None`` marks an
 acceptance boundary, where the checker must find the input and ``observe``
 pins what it must produce -- the placeholder formats are accepted, not
 rejected, so no diagnostic exists to match.
@@ -60,7 +60,7 @@ def _observe_placeholder(asset):
     """Return an ``observe`` that the marker scanner found the marked file *asset*."""
 
     def observe(scratch):
-        from placeholders import markers
+        from support.placeholders import markers
 
         if asset not in markers(scratch.root):
             raise AssertionError(

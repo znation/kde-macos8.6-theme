@@ -1,6 +1,6 @@
 """The invariant register checker's mutation table.
 
-``tests/invariants.py``'s register parser and reference resolver enforces a
+``tests/support/invariants.py``'s register parser and reference resolver enforces a
 boundary the shipped data happens not to cross. Each mutation here derives one
 named boundary from a copy of the real register, so
 ``tests/test_checker_mutations.py`` can apply it and observe the checker's
@@ -10,7 +10,7 @@ record.
 
 A mutation's ``diagnostic`` is the substring the checker's ``AssertionError``
 must contain; a mutation with a diagnostic is a rejection boundary and must be
-named in ``tests/invariants.py``'s ``REJECTION_SHAPES``. ``None`` marks an
+named in ``tests/support/invariants.py``'s ``REJECTION_SHAPES``. ``None`` marks an
 acceptance boundary, where the checker must keep the input and ``observe``
 pins what it must produce -- the escaped pipe is accepted, not rejected, so no
 diagnostic exists to match.
@@ -115,7 +115,7 @@ def _apply_escaped_pipe(scratch):
 
 
 def _observe_escaped_pipe(scratch):
-    from invariants import parse_rows
+    from support.invariants import parse_rows
 
     sections = parse_rows(scratch.read_invariants())
     guarantees = [row.guarantee for rows in sections.values() for row in rows]

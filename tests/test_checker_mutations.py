@@ -17,10 +17,10 @@ import tempfile
 import unittest
 from unittest import mock
 
-from invariants import REJECTION_SHAPES as INVARIANTS_REJECTION_SHAPES
-from invariants import cross_check as invariants_cross_check
-from placeholders import REJECTION_SHAPES as PLACEHOLDER_REJECTION_SHAPES
-from placeholders import cross_check as placeholders_cross_check
+from support.invariants import REJECTION_SHAPES as INVARIANTS_REJECTION_SHAPES
+from support.invariants import cross_check as invariants_cross_check
+from support.placeholders import REJECTION_SHAPES as PLACEHOLDER_REJECTION_SHAPES
+from support.placeholders import cross_check as placeholders_cross_check
 from support import checker_scratch
 from support.checker_scratch import Scratch
 from support.symlink_fixtures import symlinked_repo

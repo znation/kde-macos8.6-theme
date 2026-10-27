@@ -1,7 +1,7 @@
-"""Drive ``tests/invariants.py``'s register parser and cross-check.
+"""Drive ``tests/support/invariants.py``'s register parser and cross-check.
 
 The register states, per ``theme/`` subsystem and for the fidelity gate, the
-guarantee a surface must keep and the test that pins it. ``tests/invariants.py``
+guarantee a surface must keep and the test that pins it. ``tests/support/invariants.py``
 parses the register and cross-checks it against the repository; this module
 drives those checks, first against a synthetic repository (``TestHelpers``) and
 then against the shipped register (``TestRepositoryRegister``).
@@ -13,8 +13,8 @@ import traceback
 import unittest
 from unittest import mock
 
-import invariants
-from invariants import REGISTER, Row, cross_check, parse_rows
+from support import invariants
+from support.invariants import REGISTER, Row, cross_check, parse_rows
 from support.error_assertions import assert_escapes_escape_character
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir

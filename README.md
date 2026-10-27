@@ -357,7 +357,7 @@ region with the same `crop`/`compare` the fidelity tool uses.
 
 `docs/invariants.md` states, per `theme/` subsystem and for the fidelity gate, the guarantee a
 surface must keep and the test that pins it. Read the matching row before changing a surface, and
-update it in the same change when a guarantee moves. `tests/invariants.py` keeps the register
+update it in the same change when a guarantee moves. `tests/support/invariants.py` keeps the register
 and the repository in step.
 
 ## Development team

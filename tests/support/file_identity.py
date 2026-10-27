@@ -17,7 +17,7 @@ def fingerprint_or_none(path):
 
     The tuple is ``(st_ino, st_size, st_mtime_ns, st_ctime_ns)``. A failed stat
     is not cached, so the caller's read still reports the missing or unreadable
-    path the way it did before. ``tests/invariants.py`` keeps its own
+    path the way it did before. ``tests/support/invariants.py`` keeps its own
     fingerprint that lets ``os.stat`` raise: its register checker reports a
     missing module rather than re-reading it, so it is not this helper's
     caller.

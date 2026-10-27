@@ -20,7 +20,7 @@ decode it again.
 
 The cursor artifact's provenance is recorded in the existing ``## icons``
 row of ``docs/invariants.md``; no ``## cursors`` section exists, because
-``tests/invariants.py`` accepts only ``theme/`` subsystem sections plus
+``tests/support/invariants.py`` accepts only ``theme/`` subsystem sections plus
 ``tooling``.
 """
 
