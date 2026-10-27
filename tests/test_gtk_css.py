@@ -190,6 +190,41 @@ class TestRuleBlockSemantics(unittest.TestCase):
                     ),
                 )
 
+    def test_whitespace_inside_a_quoted_selector_value_is_preserved(self):
+        # Normalizing a selector collapses a run of whitespace between its
+        # tokens, but whitespace inside a quoted attribute value is part of
+        # that value: collapsing it renamed the selector and merged two
+        # distinct rules into one.
+        self.assertEqual(
+            parse_css('[title="a  b"] { color: #111111; }')[1:],
+            (
+                {'[title="a  b"]': {"color": "#111111"}},
+                ['[title="a  b"]'],
+            ),
+        )
+        self.assertEqual(
+            parse_css(
+                '[title="a  b"] { color: #111111; }'
+                '[title="a b"] { margin: 1px; }'
+            )[1],
+            {
+                '[title="a  b"]': {"color": "#111111"},
+                '[title="a b"]': {"margin": "1px"},
+            },
+        )
+
+    def test_whitespace_inside_a_quoted_declaration_value_is_preserved(self):
+        # The same normalization applies to a declaration's value, where a
+        # quoted string may hold significant spaces (``content`` or a URL).
+        self.assertEqual(
+            parse_css('a { content: "a  b"; }')[1],
+            {"a": {"content": '"a  b"'}},
+        )
+        self.assertEqual(
+            parse_css('a { background-image: url("a  b.png"); }')[1],
+            {"a": {"background-image": 'url("a  b.png")'}},
+        )
+
     def test_a_nested_block_replaces_the_pending_selector(self):
         # The expression's selector body could not cross a brace, so the inner
         # block's text became its match: only `a` is a rule here, not `x`.

@@ -166,6 +166,41 @@ def read_theme_text(path):
     return containment.read_text(path, ROOT, encoding="utf-8")
 
 
+def _collapse_whitespace(text):
+    """Return *text* with each whitespace run outside quotes collapsed to one space.
+
+    Whitespace between a selector's tokens is insignificant -- a run of spaces
+    is one descendant combinator -- and a declaration's value is normalized
+    the same way. Whitespace inside a quoted string is part of its value, so
+    ``[title="a  b"]`` must not become ``[title="a b"]`` (a different
+    selector) and ``content: "a  b"`` must not lose a space. A backslash
+    keeps the character after it inside the string, including a quote.
+    """
+    parts = []
+    quote = None
+    escaped = False
+    pending_space = False
+    for char in text:
+        if escaped:
+            escaped = False
+        elif char == "\\":
+            escaped = True
+        elif quote is not None:
+            if char == quote:
+                quote = None
+        elif char in "\"'":
+            quote = char
+        elif char.isspace():
+            pending_space = True
+            continue
+        if pending_space:
+            if parts:
+                parts.append(" ")
+            pending_space = False
+        parts.append(char)
+    return "".join(parts)
+
+
 def parse_css(text, source=None):
     """Return the ``@define-color`` map, selector declarations and selector list.
 
@@ -190,7 +225,7 @@ def parse_css(text, source=None):
     selectors = []
     without_definitions = DEFINE_COLOR.sub("", text)
     for selector_text, body in _rule_blocks(without_definitions):
-        label = " ".join(selector_text.split())
+        label = _collapse_whitespace(selector_text)
         declarations = {}
         for chunk in _split_declarations(body):
             declaration = chunk.strip()
@@ -198,8 +233,8 @@ def parse_css(text, source=None):
                 continue
             if ":" in declaration:
                 name, value = declaration.split(":", 1)
-                name = " ".join(name.split())
-                value = " ".join(value.split())
+                name = _collapse_whitespace(name)
+                value = _collapse_whitespace(value)
             else:
                 name = value = ""
             if not name or not value:
@@ -210,7 +245,7 @@ def parse_css(text, source=None):
                 )
             declarations[name] = value
         group = [
-            " ".join(selector.split())
+            _collapse_whitespace(selector)
             for selector in _split_selector_list(selector_text)
         ]
         for selector in group:

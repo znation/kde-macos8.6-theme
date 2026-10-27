@@ -5,6 +5,42 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The stylesheet parser collapses whitespace inside a quoted selector or value (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/gtk_css.py`'s `parse_css` normalized every
+selector, declaration name and declaration value with
+`" ".join(text.split())`. That is right between tokens, but it also rewrote a
+quoted string: `[title="a  b"]` came back as `[title="a b"]`, a different
+selector, and a block listing both came back as one rule whose declarations
+merged; `content: "a  b"` lost a space from its value. A sheet test comparing
+the parsed selector or value to the sheet then saw text the sheet does not
+contain. The shipped sheets carry no such value, so the gap was latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.gtk_css import parse_css; print(parse_css("[title=\"a  b\"] { color: #111111; }")[1])'
+```
+
+printed `{'[title="a b"]': {'color': '#111111'}}`; the expected key is
+`[title="a  b"]`.
+
+**Suspected cause.** All three normalization sites used `str.split()`, which
+treats whitespace inside a quoted attribute value or string as separators.
+
+**Fix.** `_collapse_whitespace` scans quoted strings (honouring a
+backslash-escaped character) and collapses only whitespace outside them;
+`parse_css` uses it for the diagnostic selector label, declaration names,
+declaration values and each selector of a group. New tests
+`test_whitespace_inside_a_quoted_selector_value_is_preserved` and
+`test_whitespace_inside_a_quoted_declaration_value_is_preserved` cover the
+doubled spaces in a selector, in `content` and in a `url(...)`; the focused
+run failed both tests before the fix and passes after.
+
+**Validation gap:** none — no existing test carried a quoted doubled space,
+but a scratch `parse_css` call reproduced the rewrite deterministically (so no
+tag beyond the closest one fits) and the new tests pin it.
+
 ### The sheet parser splits a selector at a comma inside an attribute selector (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/gtk_css.py`'s `parse_css` splits a
