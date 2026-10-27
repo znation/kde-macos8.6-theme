@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import configparser
 import re
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -405,99 +407,151 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_entry_progress(self):
         self.assert_rule("entry progress", ENTRY_PROGRESS)
 
+    def _run_gtk_child(self, program, *paths):
+        """Run the GTK 3 pixel *program* in a fresh child interpreter.
+
+        *paths* are the child's ``sys.argv[1:]``. The child does the GTK
+        introspection work and asserts on the pixels it draws; the parent
+        only judges its exit status, attaching the child's output to the
+        failure. Exit 77 is the skip marker tests/test_gtk4_theme.py
+        established: introspection or a display is missing, so the child
+        prints its own skip reason first.
+
+        The child process is not only a sandbox: an in-process ``import gi``
+        leaves GLib's C worker threads in the suite process, which
+        ``threading.active_count()`` cannot see, so every later
+        ``tests/support/snippet_child.py`` ``os.fork`` FIFO guard would run
+        from a multi-threaded parent -- Python 3.12+ warns about that as a
+        deadlock hazard in the child, and a future Python may refuse it
+        outright. The suite therefore never imports ``gi`` in-process
+        (``tests/test_no_gtk_introspection.py`` pins that).
+        """
+        result = subprocess.run(
+            [sys.executable, "-c", program, *paths],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        if result.returncode == 77:
+            self.skipTest(result.stdout.strip() or "GTK 3 is not available")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_entry_progress_draws_a_two_pixel_strip(self):
         # GTK 3 ignores min-height on this node, so pin the drawn pixels.
-        try:
-            import gi
+        # The GTK work runs in a child interpreter; see _run_gtk_child for
+        # why it never runs in this one.
+        program = r'''
+import re
+import sys
+from pathlib import Path
 
-            gi.require_version("Gtk", "3.0")
-            gi.require_version("Gdk", "3.0")
-            from gi.repository import Gdk, Gtk
-        except (ImportError, ValueError):
-            self.skipTest("GTK 3 introspection is not installed")
-        if Gdk.Screen.get_default() is None:
-            self.skipTest("no display for GTK 3")
-        css = re.sub(rb"url\([^)]*\)", b"none", CSS.read_bytes())
-        provider = Gtk.CssProvider()
-        provider.load_from_data(css)
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(), provider, 800
-        )
-        window = Gtk.OffscreenWindow()
-        entry = Gtk.Entry()
-        entry.set_progress_fraction(0.5)
-        window.add(entry)
-        window.set_default_size(120, 21)
-        window.show_all()
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        pixbuf = window.get_pixbuf()
-        pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+try:
+    import gi
+    gi.require_version("Gtk", "3.0")
+    gi.require_version("Gdk", "3.0")
+    from gi.repository import Gdk, Gtk
+except (ImportError, ValueError):
+    print("GTK 3 introspection is not installed")
+    sys.exit(77)
+if Gdk.Screen.get_default() is None:
+    print("no display for GTK 3")
+    sys.exit(77)
+css = re.sub(rb"url\([^)]*\)", b"none", Path(sys.argv[1]).read_bytes())
+provider = Gtk.CssProvider()
+provider.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(), provider, 800
+)
+window = Gtk.OffscreenWindow()
+entry = Gtk.Entry()
+entry.set_progress_fraction(0.5)
+window.add(entry)
+window.set_default_size(120, 21)
+window.show_all()
+while Gtk.events_pending():
+    Gtk.main_iteration()
+pixbuf = window.get_pixbuf()
+pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
 
-        def at(x, y):
-            return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+def at(x, y):
+    return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
 
-        bottom = pixbuf.get_height() - 1
-        self.assertEqual(at(90, bottom), "#000000")
-        self.assertEqual([at(30, bottom - d) for d in (1, 2)], ["#CCCCFF"] * 2)
-        self.assertEqual(at(30, bottom - 3), "#FFFFFF")
-        self.assertEqual(at(90, bottom - 1), "#FFFFFF")
+bottom = pixbuf.get_height() - 1
+assert at(90, bottom) == "#000000", at(90, bottom)
+strip = [at(30, bottom - d) for d in (1, 2)]
+assert strip == ["#CCCCFF"] * 2, strip
+assert at(30, bottom - 3) == "#FFFFFF", at(30, bottom - 3)
+assert at(90, bottom - 1) == "#FFFFFF", at(90, bottom - 1)
+print("entry progress: the 0.5 fraction leaves the #CCCCFF strip one and two pixels above the bottom border, #FFFFFF below it")
+'''
+        self._run_gtk_child(program, str(CSS))
 
     def test_mixed_check_draws_a_black_dash(self):
-        try:
-            import gi
+        # The GTK work runs in a child interpreter; see _run_gtk_child for
+        # why it never runs in this one.
+        program = r'''
+import sys
+from pathlib import Path
 
-            gi.require_version("Gtk", "3.0")
-            gi.require_version("Gdk", "3.0")
-            from gi.repository import Gdk, Gtk
-        except (ImportError, ValueError):
-            self.skipTest("GTK 3 introspection is not installed")
-        if Gdk.Screen.get_default() is None:
-            self.skipTest("no display for GTK 3")
-        assets = str(THEME_DIR / "assets")
-        css = CSS.read_bytes().replace(b'url("../assets/', b'url("' + assets.encode() + b"/")
-        provider = Gtk.CssProvider()
-        provider.load_from_data(css)
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(), provider, 800
-        )
-        window = Gtk.OffscreenWindow()
-        button = Gtk.CheckButton()
-        button.set_can_focus(False)
-        button.set_inconsistent(True)
-        window.add(button)
-        window.show_all()
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        pixbuf = window.get_pixbuf()
-        pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
+try:
+    import gi
+    gi.require_version("Gtk", "3.0")
+    gi.require_version("Gdk", "3.0")
+    from gi.repository import Gdk, Gtk
+except (ImportError, ValueError):
+    print("GTK 3 introspection is not installed")
+    sys.exit(77)
+if Gdk.Screen.get_default() is None:
+    print("no display for GTK 3")
+    sys.exit(77)
+assets = sys.argv[2]
+css = Path(sys.argv[1]).read_bytes().replace(
+    b'url("../assets/', b'url("' + assets.encode() + b"/")
+provider = Gtk.CssProvider()
+provider.load_from_data(css)
+Gtk.StyleContext.add_provider_for_screen(
+    Gdk.Screen.get_default(), provider, 800
+)
+window = Gtk.OffscreenWindow()
+button = Gtk.CheckButton()
+button.set_can_focus(False)
+button.set_inconsistent(True)
+window.add(button)
+window.show_all()
+while Gtk.events_pending():
+    Gtk.main_iteration()
+pixbuf = window.get_pixbuf()
+pixels, stride, n = pixbuf.get_pixels(), pixbuf.get_rowstride(), pixbuf.get_n_channels()
 
-        def at(x, y):
-            return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
+def at(x, y):
+    return "#%02X%02X%02X" % tuple(pixels[y * stride + x * n:][:3])
 
-        black = [
-            (x, y)
-            for y in range(pixbuf.get_height())
-            for x in range(pixbuf.get_width())
-            if at(x, y) == "#000000"
-        ]
-        xs = sorted({x for x, _ in black})
-        ys = sorted({y for _, y in black})
-        # The dash is 8px wide and 2px tall; the face's own border is not
-        # inside the dash's columns and rows.
-        dash = [(x, y) for x, y in black if 0 < x - xs[0] < 12]
-        inner = [p for p in dash if p[1] not in (ys[0], ys[-1])]
-        inner_xs = sorted({x for x, _ in inner})
-        inner_ys = sorted({y for _, y in inner})
-        self.assertEqual(len(inner_ys), 2, inner_ys)
-        self.assertEqual(inner_ys[1] - inner_ys[0], 1)
-        row = inner_ys[0]
-        run = [x for x in inner_xs if at(x, row) == "#000000" and at(x, row + 1) == "#000000"]
-        self.assertEqual(len(run), 8, run)
-        self.assertEqual(run[-1] - run[0], 7)
-        self.assertEqual(at(run[3], row - 1), "#DDDDDD")
-        self.assertEqual(at(run[3], row + 2), "#DDDDDD")
-        self.assertEqual(at(run[0] - 1, row), "#DDDDDD")
+black = [
+    (x, y)
+    for y in range(pixbuf.get_height())
+    for x in range(pixbuf.get_width())
+    if at(x, y) == "#000000"
+]
+xs = sorted({x for x, _ in black})
+ys = sorted({y for _, y in black})
+# The dash is 8px wide and 2px tall; the face's own border is not
+# inside the dash's columns and rows.
+dash = [(x, y) for x, y in black if 0 < x - xs[0] < 12]
+inner = [p for p in dash if p[1] not in (ys[0], ys[-1])]
+inner_xs = sorted({x for x, _ in inner})
+inner_ys = sorted({y for _, y in inner})
+assert len(inner_ys) == 2, inner_ys
+assert inner_ys[1] - inner_ys[0] == 1, inner_ys
+row = inner_ys[0]
+run = [x for x in inner_xs if at(x, row) == "#000000" and at(x, row + 1) == "#000000"]
+assert len(run) == 8, run
+assert run[-1] - run[0] == 7, run
+assert at(run[3], row - 1) == "#DDDDDD", at(run[3], row - 1)
+assert at(run[3], row + 2) == "#DDDDDD", at(run[3], row + 2)
+assert at(run[0] - 1, row) == "#DDDDDD", at(run[0] - 1, row)
+print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
+'''
+        self._run_gtk_child(program, str(CSS), str(THEME_DIR / "assets"))
 
     def test_spinner(self):
         self.assert_spinner("-gtk-icon-transform")
