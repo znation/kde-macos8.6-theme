@@ -471,9 +471,15 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 24
+NO_FAKE_BASELINE = 25
 
 NO_FAKE_REPRODUCTIONS = (
+    Reproduction(
+        "firefox-content-at-rule-escaped-quote",
+        ("escaped quote in a body value",),
+        "tests/test_firefox_content_theme.py::TestAtRuleBodies"
+        "::test_escaped_quote_in_a_body_value_ends_at_the_at_rule_brace",
+    ),
     Reproduction(
         "unused-imports-facade-reexport",
         ("only feeds a package facade's re-export",),

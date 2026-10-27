@@ -140,10 +140,18 @@ def at_rule_bodies(text):
     for match in AT_RULE.finditer(stripped):
         depth = 1
         quote = None
+        escaped = False
         index = start = match.end()
         while index < len(stripped) and depth:
             char = stripped[index]
-            if quote is not None:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                # A backslash keeps the character after it inside the string,
+                # so an escaped quote does not end it early and a quoted
+                # ``\"`` or ``\\`` cannot swallow the block's closing brace.
+                escaped = True
+            elif quote is not None:
                 if char == quote:
                     quote = None
             elif char in "\"'":
@@ -155,6 +163,35 @@ def at_rule_bodies(text):
             index += 1
         bodies[match.group("url")] = stripped[start : index - 1]
     return bodies
+
+
+class TestAtRuleBodies(unittest.TestCase):
+    """Pin the ``@-moz-document`` body scanner's token handling."""
+
+    def test_escaped_quote_in_a_body_value_ends_at_the_at_rule_brace(self):
+        # ``content: "\""`` holds an escaped quote: it must not end the
+        # string, or the run-away string swallows every later brace and the
+        # scanner merges the following rules into the first body and reports
+        # the at-rule's own closing brace as part of it.
+        text = (
+            '@-moz-document url("about:downloads") {\n'
+            '  #a::before { content: "\\""; color: red; }\n'
+            "  #b { color: green; }\n"
+            "}\n"
+        )
+        bodies = at_rule_bodies(text)
+        self.assertEqual(set(bodies), {"about:downloads"})
+        self.assertEqual(
+            bodies["about:downloads"],
+            '\n  #a::before { content: "\\""; color: red; }\n'
+            "  #b { color: green; }\n",
+        )
+
+    def test_body_ends_at_the_at_rules_own_closing_brace(self):
+        text = '@-moz-document url("about:config") {\n  #a { color: red; }\n}\n'
+        self.assertEqual(
+            at_rule_bodies(text)["about:config"], "\n  #a { color: red; }\n"
+        )
 
 PAGE_CHROME = (
     "downloadButton",

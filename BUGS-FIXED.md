@@ -5,6 +5,37 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The `@-moz-document` body scanner treats a backslash as an ordinary character, so an escaped quote in a body value merges every later rule into that body (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+**Symptom:** in `tests/test_firefox_content_theme.py`, `at_rule_bodies` scanned a
+`@-moz-document` body without the backslash handling the sibling scanners in
+`tests/support/gtk_css.py` document. A body value holding an escaped quote
+(such as `content: "\""`) ended its string at the escaped quote, reopened a
+string at the closing quote, and then swallowed every later brace as quoted
+text: the scanner merged the at-rule's remaining rules into one body and
+reported the at-rule's own closing brace as part of it, so the sheet tests
+would under-validate any future sheet line carrying an escaped quote. The
+shipped `userContent.css` contains no backslash, so today's suite still
+passed either way — the bug was latent in the validator, not in the theme.
+
+**Reproduce:** run `tests.test_firefox_content_theme.at_rule_bodies` over a
+sheet whose `about:downloads` body opens with `content: "\""` and is followed
+by a second rule; before the fix the body contains the at-rule's own closing
+`}` and the second rule is unreachable as a separate rule, after the fix the
+body ends exactly at the at-rule's closing brace. Pinned by the new
+`TestAtRuleBodies` cases, which fail against the unfixed scanner.
+
+**Cause:** the scan loop matched quotes and braces but never a backslash, so
+an escaped quote closed the open string one character early. It now tracks an
+`escaped` token like `strip_comments`, `_rule_blocks`, `_split_declarations`
+and `_split_selector_list` already do: a backslash keeps the character after
+it inside the string.
+
+**Validation gap:** no-fake — no shipped sheet line carries a backslash, so
+no existing fixture could exercise the scanner's escaped-quote path; a
+synthetic sheet with a `content: "\""` value reproduced it, and that fixture
+now pins the handling.
+
 ### The unused-import scanner flags a re-export grown by `__all__.extend` or `__all__.append` as a dead import (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom:** a module whose `__all__` grows by method call (`__all__ = []` then `__all__.extend(["os"])` or `__all__.append("os")` — the call form of the re-export hub) gets `path:line: unused import os` from the tree-clean assertion, although `__all__` names the import.
