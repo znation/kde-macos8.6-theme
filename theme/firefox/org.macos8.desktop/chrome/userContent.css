@@ -97,6 +97,17 @@
    headless run of this ESR on 2026-10-27 confirmed the URL match, this
    sheet's reach and that outer-sheet custom properties override the shadow
    :host defaults; declaration checks do not establish rendered row pixels.
+   The sidebar's separators follow: the mid-list #nav-separator is document
+   light DOM (moz-page-nav.mjs slots it and styles hr only in its own shadow
+   tree, whose rules cannot match slotted content) and gets the full etched
+   widgets/line.svg pair pinned by tests/test_desktoptheme_line.py, while
+   the shadow hr and the :host inline-end border each take one colour
+   through one custom property, so they carry the dark half alone as this
+   theme's own choice. The token names come from
+   chrome/toolkit/content/global/elements/moz-page-nav.css and
+   moz-page-nav.tokens.css (2026-10-27) and the token route reuses the
+   headless verification the rows' adaptation recorded; declaration checks
+   do not establish rendered separator pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -181,5 +192,16 @@
     --page-nav-button-indicator-color: #000000 !important;
     --page-nav-button-indicator-width: 0 !important;
     --border-radius-small: 0 !important;
+  }
+
+  moz-page-nav {
+    --page-nav-border-color: #888888 !important;
+    --page-nav-hr-background-color: #888888 !important;
+  }
+
+  #nav-separator {
+    border: 0 !important;
+    border-top: 1px solid #888888 !important;
+    border-bottom: 1px solid #FFFFFF !important;
   }
 }

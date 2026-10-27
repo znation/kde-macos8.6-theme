@@ -19,6 +19,7 @@ from support.gtk_css import HEX, parse_css, strip_comments
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
+    ETCH_DARK,
     FACE,
     GREY,
     SELECTION,
@@ -161,6 +162,8 @@ PAGE_CHROME = (
 )
 
 NAV = "moz-page-nav-button"
+HOST = "moz-page-nav"
+SEPARATOR = "#nav-separator"
 
 REQUIRED_PREFERENCES_NAV_RULES = {
     NAV: {
@@ -175,6 +178,15 @@ REQUIRED_PREFERENCES_NAV_RULES = {
         "--page-nav-button-indicator-color": f"{BLACK} !important",
         "--page-nav-button-indicator-width": "0 !important",
         "--border-radius-small": "0 !important",
+    },
+    HOST: {
+        "--page-nav-border-color": f"{ETCH_DARK} !important",
+        "--page-nav-hr-background-color": f"{ETCH_DARK} !important",
+    },
+    SEPARATOR: {
+        "border": "0 !important",
+        "border-top": f"1px solid {ETCH_DARK} !important",
+        "border-bottom": f"1px solid {WHITE} !important",
     },
 }
 
@@ -255,7 +267,16 @@ class TestFirefoxContentTheme(SheetCase):
     def test_palette_is_exact(self):
         self.assertEqual(
             set(HEX.findall(self.text)),
-            {WHITE, BLACK, GREY, SELECTION, FACE, TROUGH, BUTTON_SHADOW},
+            {
+                WHITE,
+                BLACK,
+                GREY,
+                ETCH_DARK,
+                SELECTION,
+                FACE,
+                TROUGH,
+                BUTTON_SHADOW,
+            },
         )
 
     def test_sheet_does_not_import_or_name_adwaita(self):
@@ -301,15 +322,31 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
         self.assertEqual(self.selectors, list(REQUIRED_PREFERENCES_NAV_RULES))
 
     def test_nav_rule_sets_only_custom_properties(self):
-        for selector, declarations in self.rules.items():
-            with self.subTest(selector=selector):
-                self.assertEqual(selector, NAV)
-                for name in declarations:
-                    with self.subTest(property=name):
-                        self.assertTrue(
-                            name.startswith("--page-nav-")
-                            or name == "--border-radius-small"
-                        )
+        declarations = self.rules[NAV]
+        self.assertTrue(declarations)
+        for name in declarations:
+            with self.subTest(property=name):
+                self.assertTrue(
+                    name.startswith("--page-nav-")
+                    or name == "--border-radius-small"
+                )
+
+    def test_host_rule_sets_only_custom_properties(self):
+        declarations = self.rules[HOST]
+        self.assertTrue(declarations)
+        for name in declarations:
+            with self.subTest(property=name):
+                self.assertTrue(name.startswith("--page-nav-"))
+
+    def test_nav_separator_rule_is_the_etched_pair(self):
+        self.assertEqual(
+            self.rules[SEPARATOR],
+            REQUIRED_PREFERENCES_NAV_RULES[SEPARATOR],
+        )
+        for name, value in self.rules[SEPARATOR].items():
+            with self.subTest(property=name):
+                for token in HEX.findall(value):
+                    self.assertIn(token, {ETCH_DARK, WHITE})
 
     def test_header_names_preferences_provenance(self):
         self.assert_header_names(
@@ -324,6 +361,10 @@ class TestFirefoxPreferencesNavTheme(SheetCase):
                 "preferences.xhtml",
                 "2026-10-27",
                 "platform colour adaptation 2026-10-27",
+                "nav-separator",
+                "moz-page-nav.css",
+                "widgets/line.svg",
+                "test_desktoptheme_line.py",
             )
         )
 

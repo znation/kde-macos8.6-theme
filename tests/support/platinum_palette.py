@@ -30,6 +30,11 @@ WHITE = "#FFFFFF"
 GREY = "#999999"
 FACE = "#DDDDDD"
 
+# The etched separator's dark half from widgets/line.svg (its light half is
+# the existing WHITE); userChrome.css's menu separators and the Firefox
+# preferences sidebar's separators paint the pair.
+ETCH_DARK = "#888888"
+
 # The inactive frame's 1px outline, sampled from the unfocused windows' outer
 # frame edge in `desktop_fandom.png` (x=25 and y=57) by
 # `tests/test_aurorae_frame.py`; both GTK sheets reuse it for a backdrop
