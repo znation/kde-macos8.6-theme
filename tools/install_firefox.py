@@ -8,7 +8,9 @@ exactly those three changes. The profile is named with
 ``installs.ini`` and ``profiles.ini`` under ``$HOME/.mozilla/firefox``.
 Profile discovery lives in ``tools/firefox_profile.py``, the profile files'
 bounded read and atomic write in ``tools/firefox_user_files.py``, and the
-``user.js`` marker-block transform in ``tools/firefox_user_js.py``.
+``user.js`` marker-block transform in ``tools/firefox_user_js.py``. The
+bounded-wait profile lock shared with the GTK tools lives in
+``tools/file_lock.py``.
 
 Usage::
 
@@ -27,13 +29,10 @@ without the sheets it selects (or delete the sheets while the block stays).
 from __future__ import annotations
 
 import contextlib
-import errno
-import fcntl
 import os
 import sys
-import time
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
@@ -50,6 +49,7 @@ if __package__:
         write_profile_bytes,
         write_profile_text,
     )
+    from tools.file_lock import exclusive_flock
     from tools.firefox_user_js import first_line, remove_user_js, set_user_js
     from tools.repo_root import ROOT
     from tools.symlink_refusal import refuse_symlink
@@ -68,6 +68,7 @@ else:  # run directly: python3 tools/install_firefox.py
         write_profile_bytes,
         write_profile_text,
     )
+    from file_lock import exclusive_flock
     from firefox_user_js import first_line, remove_user_js, set_user_js
     from repo_root import ROOT
     from symlink_refusal import refuse_symlink
@@ -92,7 +93,6 @@ SHEETS = (
 # exists so a holder stopped with SIGSTOP cannot block every later run
 # forever; it matches the GTK selection lock's default.
 LOCK_TIMEOUT = 60.0
-_LOCK_POLL = 0.05
 
 
 def _note(message: str) -> None:
@@ -118,39 +118,14 @@ def _profile_lock(profile: Path) -> Iterator[None]:
     ``LOCK_TIMEOUT`` raises :class:`ConfigError` naming the profile, rather
     than waiting forever on a stopped holder or racing it.
     """
-    try:
-        descriptor = os.open(
-            profile, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-    except OSError as exc:
-        raise ConfigError(
-            f"cannot lock {profile} for the Firefox install: {exc}"
-        ) from exc
-    try:
-        deadline = time.monotonic() + LOCK_TIMEOUT
-        while True:
-            try:
-                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError as exc:
-                if exc.errno == errno.EINTR:
-                    continue
-                if exc.errno not in (errno.EACCES, errno.EAGAIN):
-                    raise ConfigError(
-                        f"cannot lock {profile} for the Firefox install: "
-                        f"{exc}"
-                    ) from exc
-                if time.monotonic() >= deadline:
-                    raise ConfigError(
-                        f"gave up after {LOCK_TIMEOUT:g}s waiting for another "
-                        f"install-firefox/remove-firefox to finish with "
-                        f"{profile}; nothing was changed"
-                    )
-                time.sleep(_LOCK_POLL)
+    with exclusive_flock(
+        profile,
+        "for the Firefox install",
+        f"another install-firefox/remove-firefox to finish with {profile}",
+        timeout=LOCK_TIMEOUT,
+        error=ConfigError,
+    ):
         yield
-    finally:
-        # Closing the descriptor releases the lock even when the body raised.
-        os.close(descriptor)
 
 
 def _is_our_sheet(text: str, marker: str) -> bool:

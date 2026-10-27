@@ -21,7 +21,7 @@ from support import containment, snippet_child
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
 from support.firefox_profile_case import FirefoxProfileTestCase
-from tools import firefox_user_files, firefox_user_js, install_firefox
+from tools import file_lock, firefox_user_files, firefox_user_js, install_firefox
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
 CONTENT_SHEET_PATH = Path(repo_root.ROOT) / install_firefox.CONTENT_SHEET
@@ -724,7 +724,7 @@ class TestProfileLock(FirefoxProfileTestCase):
             raise OSError(errno.EIO, "simulated failure")
 
         with mock.patch.object(
-            install_firefox.fcntl, "flock", side_effect=refuse_lock
+            file_lock.fcntl, "flock", side_effect=refuse_lock
         ):
             result = self.run_tool("--profile", str(self.profile))
 

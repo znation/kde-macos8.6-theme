@@ -12,7 +12,8 @@ home, so two concurrent runs cannot publish a stale edit over the other's
 result. An apply also holds the data-home lock that ``make install`` and
 ``make uninstall`` hold for their whole run, so an uninstall cannot remove
 the installed sheets between the apply's sheet check and the selection that
-names them.
+names them. Both the config-home and the data-home lock are the bounded-wait
+exclusive flock in ``tools/file_lock.py``.
 
 Usage::
 
@@ -31,11 +32,8 @@ written.
 from __future__ import annotations
 
 import contextlib
-import errno
-import fcntl
 import os
 import sys
-import time
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -43,6 +41,7 @@ if __package__:
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error, report_failure, report_note
+    from tools.file_lock import exclusive_flock
     from tools.gtk_settings import GTK_ID, remove_theme_name, set_theme_name
     from tools.gtk_staging import commit, stage_all
     from tools.gtk_user_files import (
@@ -58,6 +57,7 @@ else:  # run directly: python3 tools/apply_gtk.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error, report_failure, report_note
+    from file_lock import exclusive_flock
     from gtk_settings import GTK_ID, remove_theme_name, set_theme_name
     from gtk_staging import commit, stage_all
     from gtk_user_files import (
@@ -76,59 +76,11 @@ TOOL = "apply_gtk"
 # only exists so a holder stopped with SIGSTOP cannot block every later run
 # forever; it matches the install lock's default.
 LOCK_TIMEOUT = 60.0
-_LOCK_POLL = 0.05
 
 
 def _note(message: str) -> None:
     """Print ``apply_gtk: note: <message>`` on stdout."""
     report_note(TOOL, message)
-
-
-@contextlib.contextmanager
-def _exclusive_flock(lock_dir: Path, holder: str) -> Iterator[None]:
-    """Hold an exclusive flock on *lock_dir* for the body's duration.
-
-    The directory must already exist; an open that fails (a vanished or
-    unopenable directory) raises :class:`ConfigError` naming it. The wait for
-    a holder is bounded: another run that keeps the lock past ``LOCK_TIMEOUT``
-    -- stopped with SIGSTOP, say -- raises :class:`ConfigError` naming *holder*
-    instead of blocking every later run forever. A non-contention flock error
-    (a directory the caller may not open, for example) is a :class:`ConfigError`
-    too; closing the descriptor releases the lock even when the body raised,
-    and the kernel releases it when the process dies, SIGKILL included.
-    """
-    try:
-        descriptor = os.open(
-            lock_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
-        )
-    except OSError as exc:
-        raise ConfigError(
-            f"cannot lock {lock_dir} for the GTK selection: {exc}"
-        ) from exc
-    try:
-        deadline = time.monotonic() + LOCK_TIMEOUT
-        while True:
-            try:
-                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError as exc:
-                if exc.errno == errno.EINTR:
-                    continue
-                if exc.errno not in (errno.EACCES, errno.EAGAIN):
-                    raise ConfigError(
-                        f"cannot lock {lock_dir} for the GTK selection: "
-                        f"{exc}"
-                    ) from exc
-                if time.monotonic() >= deadline:
-                    raise ConfigError(
-                        f"gave up after {LOCK_TIMEOUT:g}s waiting for "
-                        f"{holder}; nothing was changed"
-                    )
-                time.sleep(_LOCK_POLL)
-        yield
-    finally:
-        # Closing the descriptor releases the lock even when the body raised.
-        os.close(descriptor)
 
 
 @contextlib.contextmanager
@@ -155,9 +107,12 @@ def _config_lock(config_home: Path) -> Iterator[None]:
         lock_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise ConfigError(f"cannot create {lock_dir}: {exc}") from exc
-    with _exclusive_flock(
+    with exclusive_flock(
         lock_dir,
+        "for the GTK selection",
         f"another apply-gtk/remove-gtk to finish with {config_home}",
+        timeout=LOCK_TIMEOUT,
+        error=ConfigError,
     ):
         yield
 
@@ -180,8 +135,12 @@ def _data_lock(data_home: Path) -> Iterator[None]:
     lock rather than being created. The timeout and error behavior are the
     config lock's.
     """
-    with _exclusive_flock(
-        data_home, f"another install or uninstall to finish with {data_home}"
+    with exclusive_flock(
+        data_home,
+        "for the GTK selection",
+        f"another install or uninstall to finish with {data_home}",
+        timeout=LOCK_TIMEOUT,
+        error=ConfigError,
     ):
         yield
 
