@@ -60,6 +60,28 @@
    make install-firefox copies this sheet into the profile's
    chrome/userContent.css and adds the stylesheet preference to its user.js;
    make remove-firefox removes both.
+
+   No reference shows Firefox's about:config page; its preference table
+   (#prefs), search field (#about-config-search), Show All button (#show-all)
+   and warning-page primary button (#warningButton) adapt this theme's
+   Platinum controls (platform colour adaptation 2026-10-26). The white square
+   sunken field adapts widgets/lineedit.svg, the rows adapt
+   widgets/listitem.svg (which paints no hover highlight; the flat #CCCCFF
+   hover adapts widgets/viewitem.svg, pinned by test_selection_background),
+   the alternate #EEEEEE row is the pinned [Colors:View] BackgroundAlternate
+   trough (test_view_background_alternate), and the #DDDDDD push buttons with
+   their white/#AAAAAA bevel adapt widgets/button.svg, pinned by
+   tests/test_desktoptheme_button_reference.py::TestButtonReference.
+
+   In the installed Firefox ESR 153.5.1,
+   chrome/toolkit/content/global/aboutconfig/aboutconfig.html defines the ids,
+   aboutconfig.js builds each row and disables the info-pages.css ("infop")
+   sheet for the main page, and aboutconfig.css with
+   chrome/toolkit/skin/classic/global/in-content/common-shared.css owns the
+   stock table and control paint. A headless run of this ESR with
+   browser.aboutConfig.showWarning=false reached the page and rendered the
+   search field's square black border and the Show All button's #DDDDDD face;
+   declaration checks do not establish rendered row pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -79,5 +101,53 @@
   #contentAreaDownloadsView #downloadsListBox > richlistitem[selected] {
     background-color: #CCCCFF !important;
     color: #000000 !important;
+  }
+}
+
+/* about:config control adaptation 2026-10-26 */
+@-moz-document url("about:config") {
+  #prefs:not(:empty) {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #prefs > tr.odd {
+    background-color: #EEEEEE !important;
+  }
+
+  #prefs > tr:hover {
+    background-color: transparent !important;
+    color: #000000 !important;
+  }
+
+  #prefs > tr.odd:hover {
+    background-color: #EEEEEE !important;
+  }
+
+  #about-config-search {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #show-all,
+  #warningButton {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #show-all:hover:not(:disabled),
+  #warningButton:hover:not(:disabled) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
   }
 }
