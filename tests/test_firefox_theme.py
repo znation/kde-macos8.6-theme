@@ -515,6 +515,17 @@ REQUIRED_RULES.update({
     for control in _PAGE_INFO_CONTROL_IDS
 })
 
+# The Page Info window's display fields: one rule recolours every input in
+# the deck, which pageInfo.xhtml defines readonly, with no hover or focus
+# variant (a focused readonly field keeps Firefox's focus ring).
+REQUIRED_RULES["#mainDeck input"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+
 
 class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
     @classmethod
@@ -2344,13 +2355,14 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
         )
         selectors = ("#topBar",) + tab_selectors + button_selectors \
             + hover_selectors
+        field_selectors = ("#mainDeck input",)
         self.assertEqual(
             {name for name in self.rules
              if "#topBar" in name or "#viewGroup" in name
              or "#mainDeck" in name},
-            set(selectors),
+            set(selectors) | set(field_selectors),
         )
-        for selector in selectors:
+        for selector in selectors + field_selectors:
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
 
@@ -2514,6 +2526,88 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "#generalTab",
             "#selectallbutton",
             "#security-view-qwac",
+            "platform adaptation 2026-10-26",
+        ):
+            with self.subTest(provenance=provenance):
+                self.assertIn(provenance, header)
+
+    def test_page_info_field_paint_is_scoped_to_page_info(self):
+        self.assertIn("#mainDeck input", self.rules)
+        self.assertEqual(
+            self.rules["#mainDeck input"], REQUIRED_RULES["#mainDeck input"]
+        )
+        selector = "#mainDeck input"
+
+        window = element("window", "pageInfoWindow")
+        main_deck = element("deck", "mainDeck", parent=window)
+        general_panel = element("vbox", "generalPanel", parent=main_deck)
+        security_panel = element(
+            "vbox", "securityPanel", parent=main_deck
+        )
+        fields = {
+            "titletext": element(
+                "input", "titletext", attrs={"readonly": "readonly"},
+                parent=general_panel,
+            ),
+            "imagetypetext": element(
+                "input", "imagetypetext", parent=general_panel
+            ),
+            "hostText": element(
+                "input", "hostText", attrs={"readonly": "readonly"},
+                parent=security_panel,
+            ),
+        }
+        for name, field in fields.items():
+            with self.subTest(field=name):
+                self.assertTrue(matches(selector, field))
+                # No hover or focus variant exists: a focused readonly
+                # display field keeps the same paint (Firefox draws the
+                # focus ring).
+                self.assertTrue(matches(selector, {**field, "hover": True}))
+
+        other_sheets = (
+            element("textbox", None, ("findbar-textbox",),
+                    parent=element("toolbar", "findbar")),
+            element("input", "editBMPanel_locationField",
+                    parent=element("vbox", "editBookmarkPanel")),
+            element("input", "searchbar-textbox", classes=("searchbar-textbox",),
+                    parent=element("toolbar", "searchbar")),
+            element("input", "urltext",
+                    parent=element("toolbar", "navigator-toolbox")),
+        )
+        for stray in other_sheets:
+            with self.subTest(unthemed=stray["id"] or stray["classes"]):
+                self.assertFalse(matches(selector, stray))
+                self.assertFalse(matches(selector, {**stray, "hover": True}))
+
+        self.assertNotIn(
+            "#mainDeck input:not([readonly])", self.rules
+        )
+        self.assertNotIn("#mainDeck input:hover", self.rules)
+        self.assertNotIn("#mainDeck input:focus", self.rules)
+        self.assertEqual(
+            [name for name in self.rules if "#mainDeck input" in name],
+            ["#mainDeck input"],
+        )
+
+    def test_page_info_field_provenance(self):
+        header = self.text.split("*/", 1)[0]
+        for provenance in (
+            "No reference shows Firefox's Page Info window",
+            "#mainDeck input",
+            "#titletext",
+            "#imagetypetext",
+            "html:input#hostText",
+            "widgets/lineedit.svg",
+            "firstboot_betawiki.png",
+            "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+            "TestLineEditReference",
+            "pageInfo.xhtml",
+            "pageInfo.css",
+            "#FFFFFF face",
+            "1px #000000 outline",
+            "#999999 sunken",
+            "no hover or focus variant",
             "platform adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):

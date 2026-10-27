@@ -438,10 +438,29 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    #topBar the Field background and ThreeDShadow bottom border and paints
    #viewGroup > radio with SelectedItem, so the sheet overrides those paints
    through the page-info-only #topBar, #viewGroup and #mainDeck ids. Disabled
-   buttons keep Firefox's paint, and the dialog body, readonly input fields,
-   meta and image trees, permission list, media preview, security tables,
-   description labels and focus rings stay Firefox's; declaration checks do
-   not establish rendered pixels.
+   buttons keep Firefox's paint, and the dialog body, meta and image trees,
+   permission list, media preview, security tables, description labels and
+   focus rings stay Firefox's; declaration checks do not establish rendered
+   pixels.
+
+   The Page Info panels' display fields (#mainDeck input, including
+   #titletext, #imagetypetext and html:input#hostText) take this sheet's
+   Platinum line-edit recipe: an opaque #FFFFFF face, black text, a square
+   1px #000000 outline and the #999999 sunken top-left inner shadow. No
+   reference shows Firefox's Page Info window; the field recipe adapts
+   widgets/lineedit.svg, grounded in macos8.6-screenshots/firstboot_betawiki.png
+   and pinned by tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference, and black text takes the shared Platinum
+   foreground. In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/pageinfo/pageInfo.xhtml defines every
+   display field as an HTML input inside deck#mainDeck's four panels and
+   chrome/browser/skin/classic/browser/pageInfo.css owns only the fields'
+   widths and block margins, so one #mainDeck input rule recolours them all
+   with no geometry change; #mainDeck is page-info-only, so the rule cannot
+   leak into browser chrome. There is no hover or focus variant: every input
+   in the deck is a readonly display field and a focused one keeps Firefox's
+   focus ring. Declaration checks do not establish rendered pixels
+   (platform adaptation 2026-10-26).
 */
 
 tooltip {
@@ -933,4 +952,14 @@ findbar .findbar-textbox:not([status="notfound"]):not([flash="true"]):not(:focus
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;
+}
+
+/* Page Info display fields: the Platinum line edit (see the header's
+   provenance paragraph). */
+#mainDeck input {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
 }
