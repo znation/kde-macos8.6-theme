@@ -9,6 +9,8 @@ the suite's timeout to each child process.
 
 from __future__ import annotations
 
+import errno
+import fcntl
 import os
 import unittest
 from pathlib import Path
@@ -648,6 +650,119 @@ class TestRemove(GtkApplyCase):
             self.settings("gtk-3.0").read_text(encoding="utf-8"),
         )
         self.assertFalse(css.exists())
+
+
+class TestConfigLock(GtkApplyCase):
+    """Concurrent applies and removals serialize on the config home."""
+
+    def hold_config_lock(self):
+        """Take the lock a concurrent run would hold, and release it after."""
+        lock_dir = self.config.parent
+        lock_dir.mkdir(parents=True, exist_ok=True)
+        descriptor = os.open(
+            lock_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        self.addCleanup(os.close, descriptor)
+
+    def test_apply_times_out_without_writing_while_another_run_holds_the_lock(self):
+        self.install_sheet()
+        before = "[Settings]\ngtk-theme-name=Adwaita\n"
+        self.write(self.settings("gtk-3.0"), before)
+        self.hold_config_lock()
+
+        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool()
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("waiting for another apply-gtk/remove-gtk", result.stderr)
+        self.assertIn(str(self.config), result.stderr)
+        self.assertFalse(self.settings("gtk-4.0").exists())
+        self.assertFalse((self.config / "gtk-4.0" / "gtk.css").exists())
+        self.assertEqual(before, self.settings("gtk-3.0").read_text(encoding="utf-8"))
+
+    def test_apply_releases_the_lock_for_the_next_run(self):
+        self.install_sheet()
+        assert_succeeded(self, self.run_tool())
+
+        descriptor = os.open(
+            self.config.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        finally:
+            os.close(descriptor)
+
+    def test_apply_with_a_missing_sheet_does_not_create_the_config_home(self):
+        result = self.run_tool()
+
+        self.assertEqual(1, result.returncode)
+        self.assertIn("make install-gtk", result.stderr)
+        self.assertFalse(self.config.exists())
+
+    def test_remove_times_out_without_clearing_the_selection(self):
+        before = "[Settings]\ngtk-theme-name=org.macos8.desktop\n"
+        self.write(self.settings("gtk-3.0"), before)
+        self.hold_config_lock()
+
+        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool("--remove")
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("waiting for another apply-gtk/remove-gtk", result.stderr)
+        self.assertIn(str(self.config), result.stderr)
+        self.assertEqual(
+            before, self.settings("gtk-3.0").read_text(encoding="utf-8")
+        )
+
+    def test_remove_waits_for_the_lock_even_without_a_config_home(self):
+        self.hold_config_lock()
+
+        with mock.patch.object(apply_gtk, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool("--remove")
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("waiting for another apply-gtk/remove-gtk", result.stderr)
+        self.assertIn(str(self.config), result.stderr)
+        self.assertFalse(self.config.exists())
+
+    def test_remove_creates_only_the_containing_directory_it_locks(self):
+        nested_config = self.root / "nested" / "config"
+
+        with mock.patch.dict(
+            os.environ, {"XDG_CONFIG_HOME": str(nested_config)}, clear=True
+        ):
+            result = run_main(apply_gtk.main, "apply_gtk", ("--remove",))
+
+        assert_succeeded(self, result)
+        self.assertTrue(nested_config.parent.is_dir())
+        self.assertFalse(nested_config.exists())
+
+    def test_remove_refuses_when_the_lock_directory_cannot_be_created(self):
+        blocked = self.root / "blocked"
+        blocked.write_text("not a directory", encoding="utf-8")
+        env = {**self.env, "XDG_CONFIG_HOME": str(blocked / "config")}
+
+        with mock.patch.dict(os.environ, env, clear=True):
+            result = run_main(apply_gtk.main, "apply_gtk", ("--remove",))
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot create {blocked}", result.stderr)
+        self.assertFalse((blocked / "config").exists())
+
+    def test_remove_refuses_when_the_lock_directory_cannot_be_opened(self):
+        def refuse_open(*args, **kwargs):
+            raise PermissionError(errno.EACCES, "simulated refusal")
+
+        with mock.patch.object(apply_gtk.os, "open", side_effect=refuse_open):
+            result = self.run_tool("--remove")
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(f"cannot lock {self.config.parent}", result.stderr)
+        self.assertIn("simulated refusal", result.stderr)
 
 
 class TestLineEndings(GtkApplyCase):

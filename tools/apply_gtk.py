@@ -6,7 +6,10 @@ It sets ``gtk-theme-name=org.macos8.desktop`` in the GTK 3 and GTK 4
 imports the installed GTK 4 sheet, because libadwaita applications read user
 CSS instead of the ``gtk-theme-name`` setting. ``make remove-gtk`` runs the
 same script with ``--remove``: it deletes only our ``gtk-theme-name`` lines and
-the marker user stylesheet, leaving foreign values and files alone.
+the marker user stylesheet, leaving foreign values and files alone. An apply
+and a removal serialize on a lock over the directory containing the config
+home, so two concurrent runs cannot publish a stale edit over the other's
+result.
 
 Usage::
 
@@ -15,14 +18,21 @@ Usage::
 
 Exit status: 0 when the selection or removal ran, 1 when an installed GTK 3
 or GTK 4 sheet is missing, 2 for a usage error, an unresolvable config home
-(or data home when applying), a settings or user-CSS path that is a symbolic
-link, or a settings or user-CSS file that cannot be read or written.
+(or data home when applying), another run holding the config-home lock past
+the timeout, a config-home directory that cannot be created or locked, a
+settings or user-CSS path that is a symbolic link, or a settings or user-CSS
+file that cannot be read or written.
 """
 
 from __future__ import annotations
 
+import contextlib
+import errno
+import fcntl
 import os
 import sys
+import time
+from collections.abc import Iterator
 from pathlib import Path
 
 if __package__:
@@ -57,11 +67,79 @@ else:  # run directly: python3 tools/apply_gtk.py
     from symlink_refusal import refuse_symlink
 
 TOOL = "apply_gtk"
+# A whole apply or removal is short (a few small config files), so a second
+# run normally waits well under a second for the first to finish. The bound
+# only exists so a holder stopped with SIGSTOP cannot block every later run
+# forever; it matches the install lock's default.
+LOCK_TIMEOUT = 60.0
+_LOCK_POLL = 0.05
 
 
 def _note(message: str) -> None:
     """Print ``apply_gtk: note: <message>`` on stdout."""
     report_note(TOOL, message)
+
+
+@contextlib.contextmanager
+def _config_lock(config_home: Path) -> Iterator[None]:
+    """Serialize apply and removal on a lock over *config_home*'s directory.
+
+    Both runs read the settings and user CSS, edit that text, and stage the
+    result; without a lock two of them can read the same original and one
+    can publish a stale result after the other finished. The write from the
+    process that finishes last then leaves a mixed selection (our user CSS
+    beside a settings file with no theme name, or the reverse), which neither
+    an apply nor a remove intends. Locking the directory that contains the
+    config home, rather than the config home itself, means a removal still
+    serializes when the config home does not exist yet: an apply that is
+    about to create it takes the same lock first. The lock adds no lock file
+    to the user's configuration and is released by the kernel when the
+    process dies, SIGKILL included.
+
+    The containing directory is created if needed, so both runs have an inode
+    to lock; the config home itself is left for an apply to create. A lock
+    held for longer than ``LOCK_TIMEOUT`` raises :class:`ConfigError` naming
+    the config home, rather than waiting forever on a stopped holder or
+    racing it.
+    """
+    lock_dir = config_home.parent
+    try:
+        lock_dir.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise ConfigError(f"cannot create {lock_dir}: {exc}") from exc
+    try:
+        descriptor = os.open(
+            lock_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+    except OSError as exc:
+        raise ConfigError(
+            f"cannot lock {lock_dir} for the GTK selection: {exc}"
+        ) from exc
+    try:
+        deadline = time.monotonic() + LOCK_TIMEOUT
+        while True:
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError as exc:
+                if exc.errno == errno.EINTR:
+                    continue
+                if exc.errno not in (errno.EACCES, errno.EAGAIN):
+                    raise ConfigError(
+                        f"cannot lock {lock_dir} for the GTK selection: "
+                        f"{exc}"
+                    ) from exc
+                if time.monotonic() >= deadline:
+                    raise ConfigError(
+                        f"gave up after {LOCK_TIMEOUT:g}s waiting for "
+                        f"another apply-gtk/remove-gtk to finish with "
+                        f"{config_home}; nothing was changed"
+                    )
+                time.sleep(_LOCK_POLL)
+        yield
+    finally:
+        # Closing the descriptor releases the lock even when the body raised.
+        os.close(descriptor)
 
 
 def _installed_sheet(data_home: Path, version: str) -> Path:
@@ -87,21 +165,30 @@ def _require_home(path: Path | None, variable: str, fallback: str) -> Path:
     return path
 
 
-def _apply(data_home: Path, config_home: Path) -> int:
-    """Select our GTK themes in both settings files and the user CSS."""
+def _installed_sheets(data_home: Path) -> dict[str, Path] | None:
+    """Return both installed sheets, or report the first one missing.
 
-    # Both settings files name our theme, so both sheets must exist: selecting
-    # a GTK 3 theme whose sheet is absent would silently leave GTK 3 unstyled.
+    Both settings files name our theme, so both sheets must exist: selecting
+    a GTK 3 theme whose sheet is absent would silently leave GTK 3 unstyled.
+    A missing sheet is reported here, before any lock or directory is taken,
+    so a failed apply leaves no config home behind.
+    """
     sheets = {}
     for version in ("gtk-4.0", "gtk-3.0"):
         sheet = _installed_sheet(data_home, version)
         if not sheet.is_file():
-            return report_failure(
+            report_failure(
                 TOOL,
                 f"installed {version} sheet is missing: {sheet}; "
                 "run make install-gtk",
             )
+            return None
         sheets[version] = sheet
+    return sheets
+
+
+def _apply(sheets: dict[str, Path], config_home: Path) -> int:
+    """Select our GTK themes in both settings files and the user CSS."""
     sheet = sheets["gtk-4.0"]
     # Read every settings and user-CSS file before writing any, so an
     # unreadable file leaves every file unmodified instead of applying half
@@ -170,9 +257,11 @@ def main(argv: list[str] | None = None) -> int:
         epilog=(
             "exit status: 0 when the selection or removal ran, 1 when an "
             "installed GTK 3 or GTK 4 sheet is missing, 2 for a usage error, "
-            "an unresolvable config home (or data home when applying), a "
-            "settings or user-CSS path that is a symbolic link, or a settings "
-            "or user-CSS file that cannot be read or written"
+            "an unresolvable config home (or data home when applying), another "
+            "run holding the config-home lock past the timeout, a config-home "
+            "directory that cannot be created or locked, a settings or "
+            "user-CSS path that is a symbolic link, or a settings or user-CSS "
+            "file that cannot be read or written"
         ),
     )
     parser.add_argument(
@@ -188,26 +277,32 @@ def main(argv: list[str] | None = None) -> int:
             # Removal touches only the config home, so it must work when no
             # data home resolves: refusing it would block clearing a
             # selection that is already installed.
-            status = _remove(
-                _require_home(
-                    xdg_homes.config_home(env),
-                    "XDG_CONFIG_HOME",
-                    "$HOME/.config",
-                )
+            config_home = _require_home(
+                xdg_homes.config_home(env),
+                "XDG_CONFIG_HOME",
+                "$HOME/.config",
             )
+            with _config_lock(config_home):
+                status = _remove(config_home)
         else:
-            status = _apply(
-                _require_home(
-                    xdg_homes.data_home(env),
-                    "XDG_DATA_HOME",
-                    "$HOME/.local/share",
-                ),
-                _require_home(
-                    xdg_homes.config_home(env),
-                    "XDG_CONFIG_HOME",
-                    "$HOME/.config",
-                ),
+            config_home = _require_home(
+                xdg_homes.config_home(env),
+                "XDG_CONFIG_HOME",
+                "$HOME/.config",
             )
+            data_home = _require_home(
+                xdg_homes.data_home(env),
+                "XDG_DATA_HOME",
+                "$HOME/.local/share",
+            )
+            # Check the installed sheets before creating or locking any
+            # directory, so an apply that refuses a missing sheet leaves the
+            # config home absent as it found it.
+            sheets = _installed_sheets(data_home)
+            if sheets is None:
+                return 1
+            with _config_lock(config_home):
+                status = _apply(sheets, config_home)
     except ConfigError as exc:
         return report_error(TOOL, str(exc))
     if status == 0:
