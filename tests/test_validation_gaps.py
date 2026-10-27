@@ -65,6 +65,27 @@ class TestGapParser(unittest.TestCase):
         )
         self.assertEqual([record.tag for record in records], ["no-fake", "unclear-invariant"])
 
+    def test_a_prose_line_with_a_trailing_bullet_tag_is_read_once_as_prose(self):
+        # A prose record that happens to end with the older bullet's
+        # ``; gap: <tag>)`` spelling must be read once, with the prose tag and
+        # the nearest heading as its subject: read_gaps' prose match comes
+        # first and then skips the line. Counting both a bullet record under
+        # the second tag would attribute the prose record to a ledger it
+        # does not belong to, and double-counting the line would push the
+        # tag's record count past each ledger's non-growth baseline.
+        records = self._read(
+            "### A hybrid record\n\n"
+            "**Validation gap:** no-fake - needed a fixture "
+            "(fixed 2026-10-27; gap: no-repro)\n"
+        )
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0].tag, "no-fake")
+        self.assertEqual(records[0].subject, "A hybrid record")
+        self.assertEqual(
+            [record.tag for record in validation_gaps.tagged(records, "no-repro")],
+            [],
+        )
+
 
 class _LedgerMixin:
     """Drive one validation-gap tag's ledger against the shipped archives.
