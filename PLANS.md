@@ -121,4 +121,38 @@ No SVG, palette or value-key change: every mapping and margin resolves through `
 
 
 
+### Firefox Platinum chrome: paint the Page Info dialog's readonly display fields as Platinum line edits (planned 2026-10-26 by the plan role; independent of every other plan — `## Planned` holds nothing else)
+
+**Goal.** Finish the Page Info window's fields: the landed top-bar plan (PLANS-DONE.md, "paint the Page Info dialog's view tabs and action buttons") deliberately left the panels' readonly `input` display fields Firefox's, so the General, Media, Permissions and Security panels show stock form-field chrome inside the Platinum top band. Give every display field in the dialog body the reference-grounded Platinum line-edit paint — an opaque `#FFFFFF` face, black text, a square 1px `#000000` outline and the `#999999` sunken top-left inner shadow — as the sheet already does for the find field and the bookmark editor's fields.
+
+**Grounding.** The field recipe adapts `theme/desktoptheme/org.macos8.desktop/widgets/lineedit.svg`, which is grounded in `macos8.6-screenshots/firstboot_betawiki.png` (the Setup Assistant body text field: 1px `#000000` outline, `#999999` top/left shadow, `#FFFFFF` bottom/right highlight) and pinned by `tests/test_desktoptheme_lineedit.py::TestLineEdit` and `TestLineEditReference`. No reference screenshot shows Firefox's Page Info window, so the paint is a platform adaptation; the same `inset 1px 1px #999999` recipe is already shipped by this sheet's `findbar .findbar-textbox` and `#editBookmarkPanel` field rules.
+
+In the installed Firefox ESR 153.5.1, `chrome/browser/content/browser/pageinfo/pageInfo.xhtml` defines every display field as an HTML `input` (most `readonly="readonly"`; `#imagetypetext` is JS-managed without the attribute) inside `deck#mainDeck`'s four panels — `#titletext`, `#urltext`, `#typetext`, `#modetext`, `#encodingtext`, `#sizetext`, `#refertext`, `#modifiedtext`, `#imageurltext`, `#imagetypetext`, `#imagesizetext`, `#imagedimensiontext`, `#imagetext`, `#imagelongdesctext`, the `html:input#hostText` permission header, and the security panel's `#security-identity-domain-value`, `#security-identity-owner-value`, `#security-identity-verifier-value` and `#security-identity-validity-value`. `chrome/browser/skin/classic/browser/pageInfo.css` only sets the fields' widths and block margins (`th > label, td > input { width: -moz-available; margin-block: 1px 4px; }`); their face, border and corners come from the HTML form UA styles, so one `#mainDeck input` rule recolours them all without touching geometry. `#mainDeck` is page-info-only, so the rule cannot leak into browser chrome.
+
+**Approach.** Append at the very end of `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, after the Page Info button-hover rules, one short comment naming the adaptation and this rule:
+
+```css
+#mainDeck input {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+```
+
+No hover, focus or `:not([readonly])` variant: every `input` in the deck is a display field, and a focused readonly field keeps Firefox's focus ring. Add no rule for the panels' labels, trees (`#metatree`, `#imagetree`), the permission list, the media preview, the security tables, `#mainDeck`'s padding or any other element, and do not change the `:root` block or any existing selector. In the leading comment block, append a Page Info fields provenance paragraph before the closing `*/`: no reference shows Firefox's Page Info window; the display fields adapt `widgets/lineedit.svg` grounded in `firstboot_betawiki.png` and pinned by `tests/test_desktoptheme_lineedit.py::TestLineEdit` and `TestLineEditReference`, with black text from the shared Platinum foreground; `pageInfo.xhtml` defines the inputs and `pageInfo.css` owns their widths and margins; declaration checks do not establish rendered pixels.
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/test_firefox_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- `userChrome.css` gains exactly one new selector, `#mainDeck input`, with exactly the five declarations above; every existing selector keeps its declarations.
+- `REQUIRED_RULES` in `tests/test_firefox_theme.py` gains the `"#mainDeck input"` entry appended after the Page Info hover rules (beside the `_PAGE_INFO_CONTROL_IDS` loops), mapping to `background-color: {WHITE} !important`, `color: {BLACK} !important`, `border: 1px solid {BLACK} !important`, `border-radius: 0 !important` and `box-shadow: inset 1px 1px {GREY} !important` (the constants `support.platinum_palette` already exports). `test_palette_is_exact` keeps its expected hex set unchanged because the rule introduces no new hex literal.
+- New `TestFirefoxChrome.test_page_info_field_paint_is_scoped_to_page_info`, placed immediately after `test_page_info_provenance`: using `support.selector_matching.element`/`matches`, build a page-info tree — `deck#mainDeck` holding a panel with `input#titletext`, `input#imagetypetext` (no `readonly` attribute) and `html:input#hostText` — and assert each matches the `#mainDeck input` rule and that a focused one still matches (no state variants exist). Build the sheet's other fields — a `findbar .findbar-textbox`, `#editBookmarkPanel #editBMPanel_locationField`, `#searchbar` — and an `input` under `#navigator-toolbox`, and assert none matches the new rule. Assert `REQUIRED_RULES` contains no other `#mainDeck input` selector (no hover or focus variant).
+- New `TestFirefoxChrome.test_page_info_field_provenance`, placed immediately after the scope test, asserts the leading comment names `"widgets/lineedit.svg"`, `"firstboot_betawiki.png"`, `"tests/test_desktoptheme_lineedit.py::TestLineEdit"`, `"TestLineEditReference"`, `"pageInfo.xhtml"`, `"pageInfo.css"`, `"#mainDeck input"`, `"#titletext"` and `"platform adaptation 2026-10-26"`. Leave `test_page_info_provenance` and `test_header_names_provenance_and_preference` untouched.
+- `docs/invariants.md` gains a row appended at the end of the `## firefox` table, after the Page Info top-bar row and before `## gtk`: the Page Info panels' display fields (`#mainDeck input`, including `#titletext` and `#hostText`) are Platinum line edits — an opaque `#FFFFFF` face, black text, a square 1px `#000000` outline and the `#999999` sunken top-left inner shadow, with no hover or focus variant — while a focused field keeps Firefox's focus ring and the trees, permission list, media preview, security tables and labels stay Firefox's. Its test column names the new scope test; its provenance records the missing Page Info reference, the `widgets/lineedit.svg` anchor grounded in `firstboot_betawiki.png` and pinned by `tests/test_desktoptheme_lineedit.py`, the installed Firefox ESR 153.5.1 `pageInfo.xhtml`/`pageInfo.css` files, and that declaration checks do not establish rendered pixels. `tests/invariants.py` stays green.
+- `make check` passes, and the existing `userChrome.css` rules, the Firefox install and their tests keep their declarations and scope.
+
+
+
 ## Done
