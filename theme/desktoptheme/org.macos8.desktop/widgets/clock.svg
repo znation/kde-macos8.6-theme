@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" analog clock face.
+
+     Consumer: the optional analog clock plasmoid
+     (org.kde.plasma.analogclock), whose main.qml draws the face and
+     every hand as KSvg.SvgItem with imagePath "widgets/clock". That
+     makes nine KDE-required element ids, in canvas order below:
+     ClockFace, HandCenterScrew, HourHandShadow, HourHand,
+     MinuteHandShadow, MinuteHand, SecondHandShadow, SecondHand and
+     Glass. Hand.qml also queries rotation-center hint ids
+     (hint-<hand>[shadow]-rotation-center-offset, six) and main.qml
+     probes hint-hands-shadow-offset-to-west/north/south and
+     hint-hands-shadows-offset-to-east; this file ships none of those
+     ten hint ids, so the plasmoid's harmless
+     fallbacks apply: both shadow offsets are 0 and every rotation
+     centre is its hand rect's centre.
+
+     Provenance: no reference screenshot shows an analog clock (Mac OS
+     8.6's Clock applet is absent from the set), so this artwork is a
+     platform-required adaptation. The point-down neutral orientation
+     (every hand tip at its rect's lower edge) is also KDE-required:
+     Hand.qml rotates each hand by 180 + <angle>, so a hand standing
+     at rotation 0 must point toward 6 o'clock to stand up at 12.
+     The face geometry, ticks and hand shafts are this theme's own
+     flat black-glyph recipe (widgets/checkmarks.svg). The colours
+     reuse pinned tokens: hands and ticks stroke #000000 from
+     [Colors:Tooltip] ForegroundNormal=0,0,0 and the second hand
+     #CC0000 from ForegroundNegative=204,0,0
+     (theme/color-schemes/MacOS8.colors); the face is the white field
+     #FFFFFF over the etched ring #888888 (tests/test_desktoptheme_line.py
+     and tests/test_desktoptheme_lineedit.py anchors), whose light
+     half is left off: 1px light on a curve is noise. The shadow and
+     glass items draw nothing, keeping the flat look.
+
+     Canvas: one 528x96 root canvas, nine element columns side by
+     side, each a group with one invisible full-bounds rect pinning
+     it, so no element rect overlaps another and every elementRect
+     KSvg derives is exact. Every hand rect is square, so Hand.qml's
+     vertical rotation-center fallback (width/2) keeps the hand
+     centred like the horizontal one.
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="528" height="96" viewBox="0 0 528 96">
+  <g id="ClockFace">
+    <rect x="0" y="0" width="96" height="96" fill="none"/>
+    <circle cx="48" cy="48" r="47" fill="#FFFFFF" stroke="#888888" stroke-width="1"/>
+    <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    <g transform="rotate(30 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(60 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(90 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(120 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(150 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(180 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(210 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(240 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(270 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(300 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+    <g transform="rotate(330 48 48)">
+      <path d="M 48,5 L 48,12" fill="none" stroke="#000000" stroke-width="2"/>
+    </g>
+  </g>
+
+  <g id="HandCenterScrew">
+    <rect x="104" y="0" width="12" height="12" fill="none"/>
+    <circle cx="110" cy="6" r="5" fill="#000000"/>
+  </g>
+
+  <g id="HourHandShadow">
+    <rect x="124" y="0" width="8" height="8" fill="none"/>
+  </g>
+
+  <g id="HourHand">
+    <rect x="140" y="0" width="56" height="56" fill="none"/>
+    <path d="M 168,54 L 168,16" fill="none" stroke="#000000" stroke-width="4" stroke-linecap="square"/>
+  </g>
+
+  <g id="MinuteHandShadow">
+    <rect x="204" y="0" width="8" height="8" fill="none"/>
+  </g>
+
+  <g id="MinuteHand">
+    <rect x="220" y="0" width="88" height="88" fill="none"/>
+    <path d="M 264,86.5 L 264,32" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="square"/>
+  </g>
+
+  <g id="SecondHandShadow">
+    <rect x="316" y="0" width="8" height="8" fill="none"/>
+  </g>
+
+  <g id="SecondHand">
+    <rect x="332" y="0" width="88" height="88" fill="none"/>
+    <path d="M 376,87 L 376,32" fill="none" stroke="#CC0000" stroke-width="2" stroke-linecap="square"/>
+  </g>
+
+  <g id="Glass">
+    <rect x="432" y="0" width="96" height="96" fill="none"/>
+  </g>
+</svg>

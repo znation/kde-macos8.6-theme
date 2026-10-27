@@ -135,7 +135,10 @@ no hover highlight; its 7px side padding spaces the titles as the reference menu
 optional Notes plasmoid's ten sticky-note papers — one flat fill inside a 1px black outline
 per 32x32 cell, one cell per config colour), `widgets/timer.svg` (the optional Timer
 plasmoid's 22 LCD edit digits — ten black seven-segment numerals and their red-alert `_1`
-variants plus the two colon separators, each a stroke-only glyph in a 16x32 cell),
+variants plus the two colon separators, each a stroke-only glyph in a 16x32 cell), `widgets/clock.svg` (the
+optional analog clock plasmoid's flat white ringed face with twelve 2px black hour ticks, the black centre screw,
+the point-down black hour and minute shafts and red second shaft, and the invisible shadow and glass overlays, as
+nine side-by-side element columns on one 528x96 canvas),
 `widgets/tasks.svg` (the optional Task Manager's task faces — idle (transparent), hover/focus (#CCCCFF), attention (#FFFFCC), minimized (#999999 rule) and progress (#CCCCFF rule) — as one 7px/3px nine-slice shared by every panel edge, plus the four group-expander arrows), `widgets/tabbar.svg` (the raised Platinum tab highlights for
 Plasma TabBar, TabButton, kickoff footer, and panel applets), `widgets/toolbar.svg` (the
 raised grey Platinum toolbar background for `PlasmaComponents.ToolBar` and its
