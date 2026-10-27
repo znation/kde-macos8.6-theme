@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher crashes or over-matches on an unbalanced parenthesis (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/selector_matching.py`'s `matches` raises `IndexError`
+for `.a ) .b` and `div )+` against an element with class `a` and `b`, and it reads an
+unbalanced opening parenthesis as part of a compound: `.a(` and `.a)` are reported
+supported and match an element with class `a`, though no browser matches either. A
+malformed selector in a scope test could therefore crash the suite or pass an
+over-broad assertion instead of matching no element. No selector in the shipped
+Firefox sheet is malformed (grep), so the gap is latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.selector_matching import element, matches; print(matches(".a ) .b", element("box", classes=("a", "b"))))'
+```
+
+raises `IndexError: list index out of range`; the expected result is `False`.
+
+**Suspected cause.** `_split_selector` left an unmatched `(` or `)` in a compound,
+and neither `_selector_is_supported` nor `matches` rejected the unbalanced selector.
+An unmatched `)` also merged the text after it into the preceding compound without
+adding a combinator, so `match_from` indexed `combinators[index - 1]` past the end of
+a shorter list; an unmatched `(` stayed in the compound and its class/tag tests still
+matched.
+
+**Fix.** A new `_parentheses_are_balanced` helper scans the selector, skipping
+parentheses inside quoted values and attribute selectors, and both
+`_selector_is_supported` and `matches` reject a selector whose parentheses do not
+balance. The new `test_unbalanced_parentheses_match_nothing` in
+`tests/test_selector_matching.py` covers the crashing and over-matching cases and
+also keeps `[title="("]` and `:not([title=")"])` supported, so a quoted parenthesis
+is still text. Pre-fix scratch calls printed `IndexError` for the first two selectors
+and `matches=True` for `.a(` and `.a)`; the new test passes after the fix.
+
+**Validation gap:** none — the closest tag: no existing matcher test used an
+unbalanced parenthesis, but scratch calls reproduced both the crash and the false
+match deterministically, and the new test pins them.
+
 ### The selector matcher reads an empty quoted attribute value as attribute presence (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/selector_matching.py`'s `matches` returns True for

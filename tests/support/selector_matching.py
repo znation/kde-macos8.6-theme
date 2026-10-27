@@ -14,7 +14,9 @@ selector, as in ``:not(.a, .b)`` or the top-level ``.a, .b``) or any other
 pseudo-class or pseudo-element is outside that subset and makes its selector
 match no element -- including a pseudo-class inside ``:not(...)``, which must
 not be read as false and invert the negation into a match for every element.
-An element
+An unbalanced parenthesis is malformed, outside the subset, and matches no
+element: it cannot be paired with a combinator step, so it must not crash the
+matcher or be read as part of a compound. An element
 is a mapping with ``tag``, ``id``, ``classes``, ``attrs``, ``hover`` and
 ``parent`` keys; ``parent`` is another element or ``None``. ``:hover`` is true
 only when the element's ``hover`` flag is true. Text inside a quoted attribute
@@ -307,6 +309,38 @@ def _has_selector_list_comma(selector):
     return False
 
 
+def _parentheses_are_balanced(selector):
+    """Return whether *selector*'s parentheses all close in order.
+
+    Parentheses inside a quoted value or an attribute selector are text, not
+    grouping, so ``[title="("]`` is balanced. An unmatched ``(`` or ``)``
+    makes the selector malformed; :func:`_split_selector` cannot pair it with
+    a combinator step, which used to crash or read the text as a compound.
+    """
+    quote = None
+    bracket_depth = 0
+    depth = 0
+    for char in selector:
+        if quote is not None:
+            if char == quote:
+                quote = None
+            continue
+        if char in "\"'":
+            quote = char
+        elif char == "[":
+            bracket_depth += 1
+        elif char == "]":
+            bracket_depth = max(0, bracket_depth - 1)
+        elif not bracket_depth:
+            if char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth < 0:
+                    return False
+    return depth == 0
+
+
 def _compound_is_supported(compound):
     """Return whether *compound* uses only the matcher's supported subset.
 
@@ -340,7 +374,9 @@ def _compound_is_supported(compound):
 
 def _selector_is_supported(selector):
     """Return whether *selector* stays inside the matcher's supported subset."""
-    if _has_selector_list_comma(selector):
+    if _has_selector_list_comma(selector) or not _parentheses_are_balanced(
+        selector
+    ):
         return False
     compounds, combinators = _split_selector(selector)
     return (
@@ -359,7 +395,11 @@ def matches(selector, element):
     so its over-broad reading cannot pass a scope assertion.
     """
     compounds, combinators = _split_selector(selector)
-    if not compounds or _has_selector_list_comma(selector):
+    if (
+        not compounds
+        or _has_selector_list_comma(selector)
+        or not _parentheses_are_balanced(selector)
+    ):
         return False
     if any(combinator not in (" ", ">") for combinator in combinators):
         return False

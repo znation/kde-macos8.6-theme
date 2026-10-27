@@ -157,6 +157,28 @@ class TestSelectorMatching(unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assertFalse(matches(selector, target))
 
+    def test_unbalanced_parentheses_match_nothing(self):
+        # An unmatched parenthesis is malformed, not a grouping the matcher can
+        # pair with its combinator steps. A closing one used to leave fewer
+        # combinators than compounds and raise IndexError; an opening one was
+        # read as part of the compound, matching a selector it cannot mean.
+        target = element("box", classes=("a", "b"))
+        for selector in ("div(", ".a(", ".a)", ".a ) .b", "div )+"):
+            with self.subTest(selector=selector):
+                self.assertFalse(_selector_is_supported(selector))
+                self.assertFalse(matches(selector, target))
+        # A parenthesis inside a quoted attribute value is text, not grouping,
+        # so a supported selector that carries one still matches.
+        for selector, value in (
+            ('[title="("]', "("),
+            (':not([title=")"])', "("),
+        ):
+            with self.subTest(selector=selector):
+                self.assertTrue(_selector_is_supported(selector))
+                self.assertTrue(
+                    matches(selector, element("box", attrs={"title": value}))
+                )
+
     def test_attribute_value_containing_a_class_is_matched_literally(self):
         # The dot is part of the quoted value, not a class the element needs.
         target = element("box", attrs={"title": "a.b"})
