@@ -1,10 +1,10 @@
 """Validate the standalone Firefox Platinum ``userContent.css`` sheet.
 
-No reference screenshot shows Firefox's content-area downloads page or its
-about:config page, so the palette is the shared Platinum palette and the
-geometry adapts this theme's line-edit field, list-item row and push button.
-The opt-in profile install copies the sheet beside userChrome.css through
-make install-firefox.
+No reference screenshot shows Firefox's content-area downloads page, its
+about:config page or its about:preferences navigation, so the palette is the
+shared Platinum palette and the geometry adapts this theme's line-edit field,
+list-item row and push button. The opt-in profile install copies the sheet
+beside userChrome.css through make install-firefox.
 """
 
 from __future__ import annotations
@@ -160,14 +160,35 @@ PAGE_CHROME = (
     "hover",
 )
 
+NAV = "moz-page-nav-button"
+
+REQUIRED_PREFERENCES_NAV_RULES = {
+    NAV: {
+        "--page-nav-button-background-color": "transparent !important",
+        "--page-nav-button-background-color-hover": f"{SELECTION} !important",
+        "--page-nav-button-background-color-active": f"{SELECTION} !important",
+        "--page-nav-button-background-color-selected": f"{SELECTION} !important",
+        "--page-nav-button-text-color": f"{BLACK} !important",
+        "--page-nav-button-text-color-hover": f"{BLACK} !important",
+        "--page-nav-button-text-color-active": f"{BLACK} !important",
+        "--page-nav-button-border-radius": "0 !important",
+        "--page-nav-button-indicator-color": f"{BLACK} !important",
+        "--page-nav-button-indicator-width": "0 !important",
+        "--border-radius-small": "0 !important",
+    },
+}
+
+FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
+
 
 class SheetCase(CommentHeaderAssertions, unittest.TestCase):
-    """Shared fixture for the two classes testing ``userContent.css``.
+    """Shared fixture for the three classes testing ``userContent.css``.
 
-    Both read the shipped sheet, split it into ``@-moz-document`` bodies and
-    parse exactly one of them; the class attribute ``AT_RULE_URL`` names which.
+    Each reads the shipped sheet, splits it into ``@-moz-document`` bodies and
+    parses exactly one of them; the class attribute ``AT_RULE_URL`` names
+    which.
     The inherited :meth:`CommentHeaderAssertions.assert_header_names` serves
-    the two provenance tests.
+    the provenance tests.
     """
 
     AT_RULE_URL: str
@@ -188,10 +209,13 @@ class TestFirefoxContentTheme(SheetCase):
         first_line = self.text.removeprefix("\ufeff").splitlines()[0]
         self.assertEqual(first_line, MARKER)
 
-    def test_sheet_has_the_downloads_and_config_at_rules(self):
+    def test_sheet_has_the_downloads_config_and_preferences_at_rules(self):
         stripped = strip_comments(self.text).strip()
-        self.assertEqual(set(self.bodies), {"about:downloads", "about:config"})
-        self.assertEqual(stripped.count("@"), 2)
+        self.assertEqual(
+            set(self.bodies),
+            {"about:downloads", "about:config", "about:preferences"},
+        )
+        self.assertEqual(stripped.count("@"), 3)
         for selector in REQUIRED_RULES:
             with self.subTest(selector=selector):
                 self.assertIn(selector, self.bodies["about:downloads"])
@@ -221,6 +245,12 @@ class TestFirefoxContentTheme(SheetCase):
                 )
                 for token in PAGE_CHROME:
                     self.assertNotIn(token, selector)
+        for url, body in self.bodies.items():
+            _, _, selectors = parse_css(body, source=SHEET_PATH)
+            for selector in selectors:
+                with self.subTest(url=url, selector=selector):
+                    for token in FORBIDDEN_PAGE_CHROME:
+                        self.assertNotIn(token, selector)
 
     def test_palette_is_exact(self):
         self.assertEqual(
@@ -254,6 +284,46 @@ class TestFirefoxContentTheme(SheetCase):
                 "platform colour adaptation 2026-10-26",
                 "make install-firefox",
                 "make remove-firefox",
+            )
+        )
+
+
+class TestFirefoxPreferencesNavTheme(SheetCase):
+    AT_RULE_URL = "about:preferences"
+
+    def test_required_rules(self):
+        for selector, expected in REQUIRED_PREFERENCES_NAV_RULES.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+
+    def test_parsed_rules_are_exactly_the_nav_rules(self):
+        self.assertEqual(set(self.rules), set(REQUIRED_PREFERENCES_NAV_RULES))
+        self.assertEqual(self.selectors, list(REQUIRED_PREFERENCES_NAV_RULES))
+
+    def test_nav_rule_sets_only_custom_properties(self):
+        for selector, declarations in self.rules.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(selector, NAV)
+                for name in declarations:
+                    with self.subTest(property=name):
+                        self.assertTrue(
+                            name.startswith("--page-nav-")
+                            or name == "--border-radius-small"
+                        )
+
+    def test_header_names_preferences_provenance(self):
+        self.assert_header_names(
+            (
+                "No reference shows Firefox's about:preferences",
+                "widgets/listitem.svg",
+                "widgets/viewitem.svg",
+                "test_selection_background",
+                "moz-page-nav#categories",
+                "moz-page-nav-button.css",
+                "::part",
+                "preferences.xhtml",
+                "2026-10-27",
+                "platform colour adaptation 2026-10-27",
             )
         )
 

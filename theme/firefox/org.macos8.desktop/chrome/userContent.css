@@ -82,6 +82,21 @@
    browser.aboutConfig.showWarning=false reached the page and rendered the
    search field's square black border and the Show All button's #DDDDDD face;
    declaration checks do not establish rendered row pixels.
+
+   No reference shows Firefox's about:preferences; its category navigation
+   adapts this theme's Platinum list rows. The rows adapt
+   widgets/listitem.svg (flat #CCCCFF selection with black text and no
+   separate selected affordance) and widgets/viewitem.svg (flat #CCCCFF
+   hover), with #CCCCFF the pinned selection token
+   (test_selection_background): a platform colour adaptation 2026-10-27.
+   In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/preferences/preferences.xhtml builds the sidebar as moz-page-nav#categories of moz-page-nav-button
+   hosts whose chrome/toolkit/content/global/elements/moz-page-nav-button.css
+   paints the inner a[href]/button from the :host tokens with no ::part
+   exposed, so this sheet overrides those tokens on the host element. A
+   headless run of this ESR on 2026-10-27 confirmed the URL match, this
+   sheet's reach and that outer-sheet custom properties override the shadow
+   :host defaults; declaration checks do not establish rendered row pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -149,5 +164,22 @@
     background-color: #CCCCFF !important;
     color: #000000 !important;
     box-shadow: none !important;
+  }
+}
+
+/* about:preferences category navigation adaptation 2026-10-27 */
+@-moz-document url("about:preferences") {
+  moz-page-nav-button {
+    --page-nav-button-background-color: transparent !important;
+    --page-nav-button-background-color-hover: #CCCCFF !important;
+    --page-nav-button-background-color-active: #CCCCFF !important;
+    --page-nav-button-background-color-selected: #CCCCFF !important;
+    --page-nav-button-text-color: #000000 !important;
+    --page-nav-button-text-color-hover: #000000 !important;
+    --page-nav-button-text-color-active: #000000 !important;
+    --page-nav-button-border-radius: 0 !important;
+    --page-nav-button-indicator-color: #000000 !important;
+    --page-nav-button-indicator-width: 0 !important;
+    --border-radius-small: 0 !important;
   }
 }
