@@ -26,8 +26,14 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
         row = "#downloadsPanel #downloadsListBox > richlistitem"
         hover = row + ":not([selected]):hover"
         selected = row + "[selected]"
+        # The panel-scoped rules are the only downloadsListBox rules
+        # under #downloadsPanel; the Library window's own #downloads-
+        # ListBox rules live under #placesViewsBox and have their own
+        # suite in tests/test_firefox_theme_library.py.
         self.assertEqual(
-            {name for name in self.rules if "downloadsListBox" in name},
+            {name for name in self.rules
+             if name.startswith("#downloadsPanel ")
+             and "downloadsListBox" in name},
             {row, hover, selected},
         )
         for selector in (row, hover, selected):

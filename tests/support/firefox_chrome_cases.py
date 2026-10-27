@@ -713,6 +713,53 @@ REQUIRED_RULES["menubar#placesMenu > menu[open]"] = {
     "border-bottom-color": f"{SELECTION} !important",
 }
 
+# The Library window's downloads view: the Platinum sunken list field
+# and its square rows, the byte-recipes of the landed #placesList
+# field (plus the appearance: none the browser skin needs) and of the
+# landed #downloadsPanel row entries (see the header's provenance
+# paragraph), spelled explicitly with the shared palette constants
+# rather than aliased.
+REQUIRED_RULES["#placesViewsBox richlistbox#downloadsListBox"] = {
+    "appearance": "none !important",
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES[
+    "#placesViewsBox richlistbox#downloadsListBox > richlistitem"
+] = {
+    "border-radius": "0 !important",
+}
+REQUIRED_RULES[
+    "#placesViewsBox richlistbox#downloadsListBox > richlistitem[selected]"
+] = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+}
+
+# The Library's Clear Downloads button: the byte-recipes of the landed
+# #downloadsPanel push button and its hover arm; disabled ones keep
+# Firefox's paint (see the header's provenance paragraph).
+REQUIRED_RULES[
+    "toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled])"
+] = {
+    "background-color": f"{FACE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"{BUTTON_BEVEL} !important",
+}
+REQUIRED_RULES[
+    "toolbar#placesToolbar toolbarbutton#clearDownloadsButton"
+    ":not([disabled]):hover"
+] = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+    "box-shadow": "none !important",
+}
+
 
 class FirefoxChromeTestCase(
     CommentHeaderAssertions, SheetRuleAssertions, unittest.TestCase

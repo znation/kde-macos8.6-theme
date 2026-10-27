@@ -61,6 +61,20 @@ TOOLBAR_RULES = (
     "menubar#placesMenu > menu[open]",
 )
 
+# The Library downloads view's list-field and row arms, in sheet order.
+DOWNLOADS_RULES = (
+    "#placesViewsBox richlistbox#downloadsListBox",
+    "#placesViewsBox richlistbox#downloadsListBox > richlistitem",
+    "#placesViewsBox richlistbox#downloadsListBox > richlistitem[selected]",
+)
+
+# The Library toolbar's Clear Downloads button arms, in sheet order.
+CLEAR_BUTTON_RULES = (
+    "toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled])",
+    "toolbar#placesToolbar toolbarbutton#clearDownloadsButton"
+    ":not([disabled]):hover",
+)
+
 
 class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
     """Section of the Firefox chrome sheet under test."""
@@ -187,7 +201,7 @@ class TestFirefoxLibraryChrome(FirefoxChromeTestCase):
             "SelectedItem",
             "tree-icons.css",
             "The toolbar's back and forward buttons",
-            "downloads rich list and details pane stay Firefox's",
+            "and the details pane stay Firefox's for the later",
             "the toolbar's menu titles have their",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
@@ -246,7 +260,7 @@ class TestFirefoxLibrarySearchChrome(FirefoxChromeTestCase):
             "no ::part()",
             "the sunken bevel is absent",
             "The toolbar's back and forward buttons",
-            "downloads rich list and the details pane stay Firefox's",
+            "and the details pane stay Firefox's for the",
             "Declaration checks do not establish rendered pixels",
             "platform colour adaptation 2026-10-27",
             "2026-10-27",
@@ -440,8 +454,161 @@ class TestFirefoxLibraryToolbarChrome(FirefoxChromeTestCase):
             "toolbarbutton:hover/:hover:active bevel",
             "--menuitem-icon",
             "the landed menupopup token rule",
-            "downloads rich list and the details",
+            "the window body and the details",
             "Only the padding is overridden",
+            "Declaration checks do not establish rendered pixels",
+        ))
+
+
+class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
+    """Section of the Firefox chrome sheet under test."""
+
+    def test_downloads_rules_match_the_required_rules(self):
+        # Each of the five arms equals its REQUIRED_RULES entry
+        # byte-for-byte, and every declaration ends !important.
+        for arm in DOWNLOADS_RULES + CLEAR_BUTTON_RULES:
+            with self.subTest(selector=arm):
+                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
+                for value in self.rules[arm].values():
+                    self.assertTrue(value.endswith("!important"))
+
+    def test_downloads_list_rules_scoped_to_the_places_views_box(self):
+        views_box = element(
+            "vbox", "placesViewsBox",
+            parent=element("vbox", None,
+                           parent=element("vbox", "contentView")),
+        )
+        downloads = element("richlistbox", "downloadsListBox",
+                            parent=views_box)
+        panel_list = element(
+            "richlistbox", "downloadsListBox",
+            parent=element("vbox", None,
+                           parent=element("panelview",
+                                          "downloadsPanel-mainView")),
+        )
+        content_area_list = element(
+            "richlistbox", "downloadsListBox",
+            parent=element("vbox", None,
+                           parent=element("hbox",
+                                          "contentAreaDownloadsView")),
+        )
+        row = element("richlistitem", None, parent=downloads)
+        selected_row = element(
+            "richlistitem", None, attrs={"selected": "true"},
+            parent=downloads,
+        )
+
+        # The face arm matches the Library's list and never the
+        # #downloadsPanel or content-area copies; the row arm matches a
+        # plain richlistitem child and the selected arm only with the
+        # selected attribute.
+        self.assertTrue(matches(DOWNLOADS_RULES[0], downloads))
+        self.assertFalse(matches(DOWNLOADS_RULES[0], panel_list))
+        self.assertFalse(matches(DOWNLOADS_RULES[0], content_area_list))
+        self.assertTrue(matches(DOWNLOADS_RULES[1], row))
+        self.assertTrue(matches(DOWNLOADS_RULES[2], selected_row))
+        self.assertFalse(matches(DOWNLOADS_RULES[2], row))
+
+        # The sheet's whole set of downloadsListBox-naming rules is
+        # exactly the landed #downloadsPanel arms plus this section's.
+        self.assertEqual(
+            {name for name in self.rules if "downloadsListBox" in name},
+            {
+                "#downloadsPanel #downloadsListBox > richlistitem",
+                "#downloadsPanel #downloadsListBox > richlistitem"
+                ":not([selected]):hover",
+                "#downloadsPanel #downloadsListBox > richlistitem[selected]",
+                *DOWNLOADS_RULES,
+            },
+        )
+
+    def test_clear_button_rules_scoped_to_the_library_toolbar(self):
+        toolbar = element("toolbar", "placesToolbar")
+        button = element("toolbarbutton", "clearDownloadsButton",
+                         parent=toolbar)
+        hovered = element("toolbarbutton", "clearDownloadsButton",
+                          hover=True, parent=toolbar)
+        other_button = element("toolbarbutton", "back-button",
+                               parent=toolbar)
+        other_toolbar = element(
+            "toolbarbutton", "clearDownloadsButton",
+            parent=element("toolbar", "nav-bar"),
+        )
+
+        # The base arm matches the Library's button wherever it is
+        # hovered or not; the hover arm only with hover=True; and
+        # neither arm reaches another toolbarbutton in the toolbar,
+        # the same button under another toolbar included.
+        self.assertTrue(matches(CLEAR_BUTTON_RULES[0], button))
+        self.assertTrue(matches(CLEAR_BUTTON_RULES[0], hovered))
+        self.assertFalse(matches(CLEAR_BUTTON_RULES[1], button))
+        self.assertTrue(matches(CLEAR_BUTTON_RULES[1], hovered))
+        for arm in CLEAR_BUTTON_RULES:
+            with self.subTest(selector=arm):
+                self.assertFalse(matches(arm, other_button))
+                self.assertFalse(matches(arm, other_toolbar))
+
+        # The sheet's whole set of clearDownloadsButton-naming rules is
+        # exactly this section's, and the whole set of placesToolbar-
+        # naming rules is exactly the landed band rule plus them.
+        self.assertEqual(
+            {name for name in self.rules
+             if "clearDownloadsButton" in name},
+            set(CLEAR_BUTTON_RULES),
+        )
+        self.assertEqual(
+            {name for name in self.rules if "placesToolbar" in name},
+            {"toolbar#placesToolbar", *CLEAR_BUTTON_RULES},
+        )
+
+    def test_header_names_downloads_provenance(self):
+        self.assert_header_names((
+            "No reference screenshot shows the Firefox Library window",
+            "sunken list-field recipe",
+            "square 1px",
+            "inset 1px 1px #999999",
+            "#contentAreaDownloadsView #downloadsListBox:not(:empty)",
+            "widgets/lineedit.svg",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "tests/test_colorscheme_reference.py::TestReferenceAnchors",
+            "test_selection_background",
+            "landed #downloadsPanel push-button recipe",
+            "widgets/button.svg",
+            "tests/test_desktoptheme_button.py::TestButton",
+            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+            "platform colour adaptation 2026-10-27",
+            "no row hover rule exists",
+            "widgets/listitem.svg",
+            "ships no hover state",
+            "#downloadsListBox id also occurring on",
+            "scope through #placesViewsBox and toolbar#placesToolbar",
+            "anatomy is read 2026-10-27",
+            "vbox#placesViewsBox holding",
+            "richlistbox#downloadsListBox.allDownloadsListBox",
+            "seltype=\"multiple\"",
+            "hidden=\"true\"",
+            "#downloadsContextMenu",
+            "toolbarbutton#clearDownloadsButton.tabbable",
+            "downloadsCmd_clearDownloads",
+            "#libraryToolbarSpacer",
+            "richlistbox.css",
+            "appearance: auto",
+            "ThreeDShadow",
+            "margin: 2px 4px",
+            "richlistitem[selected=\"true\"]",
+            "-moz-cellhighlight",
+            "--default-focusring",
+            "allDownloadsView.css",
+            "allDownloadsView.inc.css",
+            "min-height: 4.5em",
+            ".downloadTypeIcon",
+            ".downloadTarget",
+            ".downloadDetails",
+            ".downloadButton",
+            "The intentionally unchanged",
+            "progress",
             "Declaration checks do not establish rendered pixels",
         ))
 

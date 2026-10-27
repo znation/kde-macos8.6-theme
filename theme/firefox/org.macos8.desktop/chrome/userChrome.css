@@ -594,8 +594,8 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    hsla(0, 0%, 50%, 0.15) hover wash and the
    -moz-cellhighlight/SelectedItem selection) with
    chrome/browser/skin/classic/browser/places/tree-icons.css
-   supplying the row icons. The toolbar's back and forward buttons,
-   downloads rich list and details pane stay Firefox's for the later
+   supplying the row icons.
+   The toolbar's back and forward buttons and the details pane stay Firefox's for the later
    parts of this series (the content-tree column headers, the
    toolbar's search filter and the toolbar's menu titles have their
    own paragraphs below).
@@ -618,8 +618,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    chrome://global/skin/icons/search-textbox.svg filled by
    --icon-color; the sunken bevel is absent because
    moz-input-text.css reads no shadow token (this theme's own choice).
-   The toolbar's back and forward buttons, the
-   downloads rich list and the details pane stay Firefox's for the
+   The toolbar's back and forward buttons and the details pane stay Firefox's for the
    later parts of this series.
    Declaration checks do not establish rendered pixels
    (platform colour adaptation 2026-10-27).
@@ -691,11 +690,56 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    Firefox's), organizer.css's --button-min-height and native
    appearance on the menus, the ::after dropmarker, the three
    --menuitem-icon icons, the popup lists
-   (the landed menupopup token rule), the window body, the downloads
-   rich list and the details pane. Only the padding is overridden on
-   the titles, with a zero bottom pad, so the retained stock border
-   completes the 3px bottom margin and stays the open title's #CCCCFF
-   underline. Declaration checks do not establish rendered pixels.
+   (the landed menupopup token rule), the window body and the details
+   pane. Only the padding is overridden on the titles, with a zero
+   bottom pad, so the retained stock border completes the 3px bottom
+   margin and stays the open title's #CCCCFF underline. Declaration
+   checks do not establish rendered pixels.
+
+   No reference screenshot shows the Firefox Library window; the
+   downloads list reuses this sheet's landed #placesList/#placeContent
+   sunken list-field recipe (#FFFFFF face, black text, square 1px
+   solid #000000 outline, inset 1px 1px #999999 shadow) and the
+   landed #contentAreaDownloadsView #downloadsListBox:not(:empty)
+   userContent rule for the same widget class, grounded in
+   widgets/lineedit.svg and widgets/viewitem.svg and pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit,
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors
+   .test_selection_background; the Clear Downloads button reuses the
+   landed #downloadsPanel push-button recipe grounded in
+   widgets/button.svg, pinned by
+   tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference
+   (platform colour adaptation 2026-10-27); no row hover rule exists
+   because the browser skin paints none and widgets/listitem.svg
+   ships no hover state; the #downloadsListBox id also occurring on
+   #downloadsPanel and on the content-area view is why the rules
+   scope through #placesViewsBox and toolbar#placesToolbar; the
+   anatomy is read 2026-10-27 from the installed Firefox ESR 153.5.1
+   -- places.xhtml's vbox#placesViewsBox holding
+   richlistbox#downloadsListBox.allDownloadsListBox
+   (seltype="multiple", starting hidden="true", rows built by the
+   downloads commands context #downloadsContextMenu) and
+   toolbar#placesToolbar holding
+   toolbarbutton#clearDownloadsButton.tabbable bound to
+   downloadsCmd_clearDownloads beside #libraryToolbarSpacer;
+   chrome/toolkit/skin/classic/global/richlistbox.css paints the
+   listbox appearance: auto/Field/FieldText/1px solid ThreeDShadow
+   with margin: 2px 4px and richlistitem[selected="true"]
+   -moz-cellhighlight/SelectedItem and the --default-focusring
+   multiple-selection outline; and
+   chrome/browser/skin/classic/browser/downloads/allDownloadsView.css
+   with allDownloadsView.inc.css owns the rows' min-height: 4.5em,
+   the .downloadTypeIcon/.downloadTarget/.downloadDetails layout and
+   the .downloadButton action buttons. The intentionally unchanged
+   paint: the rows' geometry and per-row action buttons plus progress
+   meters (the landed about:downloads rule's same choice), the
+   richlistbox margin: 2px 4px, the selected-row and
+   multiple-selection focus-ring states Firefox paints beyond the
+   flat #CCCCFF, #libraryToolbarSpacer, and the #downloadsPanel and
+   content-area copies (their own scoped rules). Declaration checks
+   do not establish rendered pixels.
 */
 
 tooltip {
@@ -1353,4 +1397,42 @@ menubar#placesMenu > menu {
 menubar#placesMenu > menu[open] {
   background-color: #CCCCFF !important;
   border-bottom-color: #CCCCFF !important;
+}
+
+/* The Library window's downloads list adapts the sheet's sunken
+   list-field and row recipes (see the header's provenance
+   paragraph); the browser skin paints no row hover, so there is
+   no hover rule. */
+#placesViewsBox richlistbox#downloadsListBox {
+  appearance: none !important;
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+#placesViewsBox richlistbox#downloadsListBox > richlistitem {
+  border-radius: 0 !important;
+}
+
+#placesViewsBox richlistbox#downloadsListBox > richlistitem[selected] {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+}
+
+/* The Library's Clear Downloads button adapts the sheet's push
+   button; disabled ones keep Firefox's paint. */
+toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]) {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+toolbar#placesToolbar toolbarbutton#clearDownloadsButton:not([disabled]):hover {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
 }
