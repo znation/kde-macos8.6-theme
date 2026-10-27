@@ -82,6 +82,8 @@ def _scan_module(
                 targets = node.targets
             elif isinstance(node, ast.AugAssign):
                 targets = [node.target]
+            elif isinstance(node, ast.AnnAssign) and node.value is not None:
+                targets = [node.target]
             if not any(
                 isinstance(t, ast.Name) and t.id == "__all__"
                 for t in targets

@@ -471,9 +471,15 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 20
+NO_FAKE_BASELINE = 21
 
 NO_FAKE_REPRODUCTIONS = (
+    Reproduction(
+        "unused-imports-annotated-all",
+        ("misses an annotated `__all__` assignment",),
+        "tests/test_no_unused_imports.py::TestNoUnusedImports"
+        "::test_an_annotated_all_entry_re_exports_the_import",
+    ),
     Reproduction(
         "unused-imports-aliased-reexport",
         ("matches an aliased import by its binding name",),

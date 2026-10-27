@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The unused-import scanner misses an annotated `__all__` assignment when deciding the re-export allowance (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+Symptom: with `pkg/mod.py` holding `import os` and re-exporting it through the
+annotated form `__all__: list[str] = ["os"]`, the scanner reported
+`pkg/mod.py:1: unused import os` even though the `__all__` entry names it —
+while the plain form `__all__ = ["os"]` kept the import. A bare
+`__all__: list[str]` declaration without a value names no strings, so it
+still flags.
+Reproduce with the two synthetic-tree cases in
+`tests/test_no_unused_imports.py::TestNoUnusedImports`
+(`test_an_annotated_all_entry_re_exports_the_import`,
+`test_an_annotated_all_declaration_without_a_value_keeps_the_flag`); the
+real tree stays clean either way, so `make check` never fired.
+Suspected cause: `_scan_module()` matched only `ast.Assign` and
+`ast.AugAssign` when hunting statements that assign `__all__`, dropping
+`ast.AnnAssign` — so the annotated form's strings never reached the
+`dunder_all` set the allowance checks.
+Fix: accept an `ast.AnnAssign` targeting `__all__` that carries a value; a
+declaration without a value contributes no strings, as before.
+
+**Validation gap:** no-fake — the synthetic-tree fixtures in the scanner's
+suite had no annotated-`__all__` case, so the tree-clean assertion could not
+exercise the missed assignment; a scratch one-module tree reproduced it, and
+the two new fixtures now pin the annotated assignment and the bare
+declaration.
+
 ### The unused-import scanner's re-export allowance matches an aliased import by its binding name instead of the name imported (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 Symptom: with `pkg/mod.py` holding `import os` and `pkg/user.py` holding

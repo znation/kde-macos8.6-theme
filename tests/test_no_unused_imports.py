@@ -92,6 +92,26 @@ class TestNoUnusedImports(unittest.TestCase):
         )
         self.assertEqual(findings, [])
 
+    def test_an_annotated_all_entry_re_exports_the_import(self):
+        # `__all__: list[str] = ["os"]` is an assignment too: the annotated
+        # form must collect its strings like the plain one, or a typed
+        # re-export hub flags its own dead imports.
+        findings = self._findings(
+            self,
+            {"pkg/mod.py": 'import os\n\n__all__: list[str] = ["os"]\n'},
+        )
+        self.assertEqual(findings, [])
+
+    def test_an_annotated_all_declaration_without_a_value_keeps_the_flag(self):
+        # A bare `__all__: list[str]` names no strings, so it re-exports
+        # nothing and the dead import stays a finding.
+        findings = self._findings(
+            self,
+            {"pkg/mod.py": "import os\n\n__all__: list[str]\n"},
+        )
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("pkg/mod.py:1: unused import os", findings[0])
+
     def test_a_name_another_module_imports_from_here_is_kept(self):
         # `consts.X` feeds `mod.py`, whose re-export feeds `user.py`: the
         # shared-constant hub pattern (aurorae_fixtures' palette re-exports).
