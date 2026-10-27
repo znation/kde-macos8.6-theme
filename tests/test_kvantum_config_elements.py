@@ -11,12 +11,15 @@ from __future__ import annotations
 
 import unittest
 
+from support.kde_config import read
+from support.kvantum_fixtures import KVCONFIG
 from support.kvantum_config_spec import (
     CORE_CONTROL_CONFIG,
     CORE_FRAME_MARGINS,
     SURFACE_CONTROL_CONFIG,
     TRACK_CONTROL_CONFIG,
     _assert_pins_resolve,
+    _resolved,
 )
 
 
@@ -58,6 +61,39 @@ class TestSurfaceElements(unittest.TestCase):
 
     def test_every_surface_section_maps_to_its_element(self):
         _assert_pins_resolve(self, SURFACE_CONTROL_CONFIG)
+
+
+class TestToolboxTabSurface(unittest.TestCase):
+    """Pin the Qt toolbox tab's mapping onto the reference tab surface.
+
+    `[ToolboxTab]` is Kvantum-required (no reference screenshot shows a Qt
+    `QToolBox`; the installed KvantumAlt theme defines the section), and it
+    must stay a bare `inherits=Tab` so a toolbox tab draws the same
+    reference-grounded System Profiler tab face as `[Tab]` rather than a
+    drifting copy of it.
+    """
+
+    def test_toolbox_tab_inherits_the_tab_surface(self):
+        parser = read(KVCONFIG)
+        self.assertEqual(parser.get("ToolboxTab", "inherits"), "Tab")
+        self.assertEqual(set(parser.options("ToolboxTab")), {"inherits"})
+        keys = (
+            "frame.element",
+            "interior.element",
+            "indicator.element",
+            "frame.top",
+            "frame.bottom",
+            "frame.left",
+            "frame.right",
+            "text.margin.left",
+            "text.margin.right",
+        )
+        for key in keys:
+            with self.subTest(key=key):
+                self.assertEqual(
+                    _resolved(parser, "ToolboxTab", key),
+                    _resolved(parser, "Tab", key),
+                )
 
 
 if __name__ == "__main__":

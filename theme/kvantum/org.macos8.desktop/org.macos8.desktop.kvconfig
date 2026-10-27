@@ -194,8 +194,9 @@ interior.element=splitter
 indicator.element=splitter-grip
 indicator.size=16
 
-# The container and text surfaces. Tabs, menus, the menu bar, group boxes,
-# tooltips and toolbars are 2px raised Platinum faces; the item view is the
+# The container and text surfaces. Tabs (including Qt toolbox tabs), menus,
+# the menu bar, group boxes, tooltips and toolbars are 2px raised Platinum
+# faces; the item view is the
 # white sunken field, and the menu and item-view selection is the flat
 # #CCCCFF `[Colors:Selection] BackgroundNormal` the desktop theme's
 # listitem.svg and viewitem.svg draw. The tooltip face is the #FFFFCC
@@ -207,6 +208,9 @@ interior.element=tab
 indicator.element=tab
 text.margin.left=8
 text.margin.right=8
+
+[ToolboxTab]
+inherits=Tab
 
 [TabFrame]
 inherits=PanelButtonCommand

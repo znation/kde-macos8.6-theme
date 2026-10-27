@@ -63,6 +63,7 @@ CORE_FRAME_MARGINS = {
     "Progressbar": 2,
     "IndicatorSpinBox": 2,
     "Tab": 2,
+    "ToolboxTab": 2,
     "TabFrame": 2,
     "MenuBarItem": 2,
     "Menu": 2,
@@ -208,6 +209,11 @@ TRACK_CONTROL_CONFIG = {
 # from `PanelButtonCommand` and frame menu-bar titles with the button art.
 SURFACE_CONTROL_CONFIG = {
     "Tab": {
+        "frame.element": "tab",
+        "interior.element": "tab",
+        "indicator.element": "tab",
+    },
+    "ToolboxTab": {
         "frame.element": "tab",
         "interior.element": "tab",
         "indicator.element": "tab",
