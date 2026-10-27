@@ -112,7 +112,7 @@
    tests/test_desktoptheme_button.py::TestButton and
    tests/test_desktoptheme_button_reference.py::TestButtonReference, and by
    tests/test_desktoptheme_viewitem.py::TestViewItem and
-   tests/test_colorscheme_reference.py::TestReferenceAnchors::test_selection_background
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background
    (platform colour adaptation 2026-10-26). Firefox's
    chrome/browser/content/browser/browser.xhtml defines
    #downloadsHistory.downloadsPanelFooterButton and the subview .footer-button
@@ -426,7 +426,7 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    tests/test_desktoptheme_button_reference.py::TestButtonReference, and the
    flat #CCCCFF enabled hover takes widgets/viewitem.svg, pinned by
    tests/test_desktoptheme_viewitem.py::TestViewItem and
-   tests/test_colorscheme_reference.py::test_selection_background. In the
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background. In the
    installed Firefox ESR 153.5.1,
    chrome/browser/content/browser/pageinfo/pageInfo.xhtml defines vbox#topBar
    holding radiogroup#viewGroup.chromeclass-toolbar with the radio tabs
