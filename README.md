@@ -39,8 +39,8 @@ runs that selection when `kvantummanager` is on `PATH`. Its Platinum palette and
 live in
 `theme/kvantum/org.macos8.desktop/org.macos8.desktop.kvconfig` and
 `theme/kvantum/org.macos8.desktop/org.macos8.desktop.svg`; toolbar buttons, toolbar combo boxes
-and line edits, split-button dropdowns, tree-view expanders, toolbox tabs, the status bar and
-the dock header band map to the same
+and line edits, split-button dropdowns, tree-view expanders, toolbox tabs, the status bar, the
+dock header band and the MDI subwindow title band map to the same
 Platinum button, line-edit and arrow art; a window's bottom-right size grip draws the reference
 grow box's white and `#777777` checker diamond. Kvantum searches
 `$HOME/.local/share/themes/<name>/Kvantum/` with that literal path, so it finds the theme only

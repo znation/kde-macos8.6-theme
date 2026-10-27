@@ -123,5 +123,43 @@ class TestDockSurface(unittest.TestCase):
                 self.assertEqual(parser.get("DockTitle", key), "0")
 
 
+class TestTitleBarSurface(unittest.TestCase):
+    """Pin the QMdiSubWindow's interior title band.
+
+    `[TitleBar]` is Kvantum-required (no reference screenshot shows a
+    `QMdiSubWindow`; the four installed Kvantum themes define the
+    section), so the pin holds the theme's own adaptation: the band is
+    the bare #DDDDDD window face with a plain black label in both the
+    normal and the focused state, no frame and no rule. Every installed
+    theme paints a light focused label, so the black focused label is
+    this theme's own choice consistent with Platinum's always-black text.
+    """
+
+    def test_titlebar_resolves_the_bare_window_face(self):
+        parser = read(KVCONFIG)
+        self.assertEqual(parser.get("TitleBar", "frame"), "false")
+        self.assertEqual(
+            _resolved(parser, "TitleBar", "interior.element"), "titlebar"
+        )
+
+    def test_titlebar_label_is_black_in_both_states(self):
+        parser = read(KVCONFIG)
+        for key in ("text.normal.color", "text.focus.color"):
+            with self.subTest(key=key):
+                self.assertEqual(parser.get("TitleBar", key), "#000000")
+
+    def test_titlebar_text_margins_are_2_2_3_3(self):
+        parser = read(KVCONFIG)
+        margins = {
+            "text.margin.top": "2",
+            "text.margin.bottom": "2",
+            "text.margin.left": "3",
+            "text.margin.right": "3",
+        }
+        for key, value in margins.items():
+            with self.subTest(key=key):
+                self.assertEqual(parser.get("TitleBar", key), value)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -373,3 +373,30 @@ text.margin.top=2
 text.margin.bottom=2
 text.margin.left=3
 text.margin.right=3
+
+# The QMdiSubWindow interior title bar (Qt's title band for child windows
+# inside a QMdiArea). No reference screenshot shows a QMdiSubWindow, so
+# this section is Kvantum-required (read 2026-10-27 from the four
+# installed Kvantum themes -- KvantumAlt, KvAdapta, KvAmbiance and
+# KvAmbience -- whose [TitleBar] sections all share this shape); the band
+# is the bare #DDDDDD window face with a plain black label in both the
+# normal and the focused state, with no frame and no rule. The face and
+# label reuse the grounded [GeneralColors] window/text roles pinned by
+# TestGeneralColors; the black focused label (every installed theme paints
+# a light focused label), the flat no-rule band (interior nine-slice
+# margins are not configurable keys, so a rule could not be pinned to the
+# band's bottom edge the way [DockTitle]'s frame.bottom=2 pins its own)
+# and the 2/2/3/3 text margins (KvantumAlt's, and [DockTitle]'s
+# horizontal 3) are this theme's own choice. The `mdi` window-button
+# glyphs stay at the engine's default art (no installed theme ships `mdi`
+# art either) for a later part of this series.
+[TitleBar]
+inherits=PanelButtonCommand
+frame=false
+interior.element=titlebar
+text.normal.color=#000000
+text.focus.color=#000000
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=3
+text.margin.right=3

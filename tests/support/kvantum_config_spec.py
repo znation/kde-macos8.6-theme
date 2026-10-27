@@ -263,6 +263,13 @@ SURFACE_CONTROL_CONFIG = {
     "DockTitle": {
         "frame.element": "dock",
     },
+    # `[TitleBar]` is the same `frame=false`-with-interior shape
+    # `[MenuItem]` uses: the MDI subwindow's title band draws no frame
+    # art, only the `titlebar` interior under its label.
+    "TitleBar": {
+        "frame": "false",
+        "interior.element": "titlebar",
+    },
 }
 
 # Sections that explicitly draw no frame or interior. `[TabBarFrame]` inherits
@@ -390,6 +397,14 @@ VALUE_KEYS = {
         "frame.left": "0",
         "frame.right": "0",
         "interior": "false",
+        "text.normal.color": "#000000",
+        "text.focus.color": "#000000",
+        "text.margin.top": "2",
+        "text.margin.bottom": "2",
+        "text.margin.left": "3",
+        "text.margin.right": "3",
+    },
+    "TitleBar": {
         "text.normal.color": "#000000",
         "text.focus.color": "#000000",
         "text.margin.top": "2",

@@ -86,6 +86,10 @@ INTERIOR_STATES = {
     "comboarrow": ("normal", "focused", "pressed", "toggled", "disabled"),
     "menuitem": ("normal", "pressed", "toggled"),
     "menubaritem": ("normal", "pressed", "toggled"),
+    # The QMdiSubWindow title band is a pure interior element ([TitleBar]
+    # sets frame=false and interior.element=titlebar), so it ships centre
+    # ids only.
+    "titlebar": ("normal", "focused"),
 }
 # The window size grip is a single indicator element, not a generic interior:
 # a white/#777777 checker diamond with three #AAAAAA lower-left edge pixels.
@@ -347,6 +351,20 @@ class TestSvg(unittest.TestCase):
                         _rect("0", "0", "20", "1", "#FFFFFF"),
                         _rect("0", "1", "20", "1", CHECKBOX_SHADOW),
                     ),
+                )
+
+    def test_titlebar_band_is_the_bare_window_face(self):
+        by_id = elements_by_id(self.tree)
+        for state in ("normal", "focused"):
+            with self.subTest(state=state):
+                # The MDI subwindow's title band is the bare #DDDDDD window
+                # face in both states: no bevel, no etched rule, no repaint
+                # of the focused state (its colours are palette members the
+                # fill-set test cannot see). The band is distinguished from
+                # the window face by its label and window buttons alone.
+                self.assertEqual(
+                    _drawing_elements(by_id[f"titlebar-{state}"]),
+                    (_rect("0", "0", "20", "18", "#DDDDDD"),),
                 )
 
     def test_interior_elements_ship_every_state(self):

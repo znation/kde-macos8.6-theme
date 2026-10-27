@@ -9,7 +9,8 @@
      bar frame and pattern, the spin box and the splitter and its grip,
      and the surface controls: tabs and their frame, menus and the menu
      bar, group boxes, tooltips, item views, toolbars and the menu item
-     interiors, the dock title band and the window size grip.
+     interiors, the dock title band, the MDI subwindow title band and the
+     window size grip.
      A raised face is a #DDDDDD interior inside a 1px #000000 outline
      with a 1px #FFFFFF top/left and #999999 bottom/right bevel, except
      the push and tool buttons, whose bottom/right bevel is the reference
@@ -1915,5 +1916,16 @@
   </g>
   <g id="dock-focused-bottomright" transform="translate(10,24790)">
     <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <!-- The QMdiSubWindow interior title band: the bare #DDDDDD window
+       face in both states, with no bevel, rule or repaint. The band is
+       distinguished from the window face by its label and window buttons
+       alone ([TitleBar] sets frame=false and interior.element=titlebar,
+       so this pure interior element ships centre ids only). -->
+  <g id="titlebar-normal" transform="translate(10,24850)">
+    <rect x="0" y="0" width="20" height="18" fill="#DDDDDD"/>
+  </g>
+  <g id="titlebar-focused" transform="translate(10,24910)">
+    <rect x="0" y="0" width="20" height="18" fill="#DDDDDD"/>
   </g>
 </svg>
