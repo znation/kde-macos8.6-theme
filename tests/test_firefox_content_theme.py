@@ -1,10 +1,10 @@
 """Validate the standalone Firefox Platinum ``userContent.css`` sheet.
 
 No reference screenshot shows Firefox's content-area downloads page, its
-about:config page or its about:preferences navigation, so the palette is the
+about:config page or its about:preferences panes, so the palette is the
 shared Platinum palette and the geometry adapts this theme's line-edit field,
-list-item row and push button. The opt-in profile install copies the sheet
-beside userChrome.css through make install-firefox.
+list-item row, push button, check box and radio circle. The opt-in profile
+install copies the sheet beside userChrome.css through make install-firefox.
 """
 
 from __future__ import annotations
