@@ -10,6 +10,7 @@ import unittest
 
 from support.firefox_chrome_cases import (
     REQUIRED_RULES,
+    VIEWITEM_REFERENCES,
     FirefoxChromeTestCase,
 )
 from support.selector_matching import element, matches
@@ -629,8 +630,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
             "No reference shows Firefox's notification doorhanger",
             "widgets/button.svg",
             "tests/test_desktoptheme_button.py::TestButton",
-            "widgets/viewitem.svg",
-            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            *VIEWITEM_REFERENCES,
             "test_selection_background",
             "#notification-popup",
             "popup-notification-primary-button",

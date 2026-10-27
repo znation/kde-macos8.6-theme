@@ -47,6 +47,27 @@ SHEET_PATH = "theme/firefox/org.macos8.desktop/chrome/userChrome.css"
 # border; the sheet leaves it in place and the open-title rule recolours it.
 MENU_STOCK_BOTTOM_BORDER = 3
 
+# Provenance names repeated across the section suites' comment headers: a
+# themed section that borrows the viewitem artwork names both the artwork
+# and the desktoptheme tests pinning it, and the same two entries recur in
+# every such header. Twelve call sites, one in each of the two shell button
+# headers and one per other viewitem-derived section.
+VIEWITEM_REFERENCES = (
+    "widgets/viewitem.svg",
+    "tests/test_desktoptheme_viewitem.py::TestViewItem",
+)
+
+# The same bundle for a section that draws a real button artwork: three
+# header entries name the button artwork, its implementing test and its
+# reference-screenshot test together. Four call sites, one per button-derived
+# section header (the page-info window, the bookmark editor panel, the
+# downloads panel and the permission popup in the shell suite).
+BUTTON_REFERENCES = (
+    "widgets/button.svg",
+    "tests/test_desktoptheme_button.py::TestButton",
+    "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+)
+
 REQUIRED_RULES = {
     "tooltip": {
         "appearance": "none !important",

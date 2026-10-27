@@ -10,8 +10,10 @@ from __future__ import annotations
 import unittest
 
 from support.firefox_chrome_cases import (
+    BUTTON_REFERENCES,
     PAGE_INFO_CONTROL_IDS,
     REQUIRED_RULES,
+    VIEWITEM_REFERENCES,
     FirefoxChromeTestCase,
 )
 from support.selector_matching import element, matches
@@ -190,11 +192,8 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "tests/test_desktoptheme_tabbar.py::TestTabBarReference",
             "tests/test_desktoptheme_line.py::TestLineReference",
             "test_view_background_alternate",
-            "widgets/button.svg",
-            "tests/test_desktoptheme_button.py::TestButton",
-            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
-            "widgets/viewitem.svg",
-            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            *BUTTON_REFERENCES,
+            *VIEWITEM_REFERENCES,
             "test_selection_background",
             "pageInfo.xhtml",
             "pageInfo.js",
@@ -405,8 +404,7 @@ class TestFirefoxPageInfo(FirefoxChromeTestCase):
             "widgets/listitem.svg",
             "tests/test_desktoptheme_listitem.py::TestListItem",
             "no hover highlight",
-            "widgets/viewitem.svg",
-            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            *VIEWITEM_REFERENCES,
             "test_selection_background",
             "pageInfo.xhtml",
             "multicol",

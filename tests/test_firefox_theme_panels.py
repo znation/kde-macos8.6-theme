@@ -10,7 +10,9 @@ from __future__ import annotations
 import unittest
 
 from support.firefox_chrome_cases import (
+    BUTTON_REFERENCES,
     REQUIRED_RULES,
+    VIEWITEM_REFERENCES,
     FirefoxChromeTestCase,
 )
 from support.platinum_palette import FACE, SELECTION
@@ -739,11 +741,8 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             "No reference shows Firefox's bookmark editor",
             "widgets/lineedit.svg",
             "tests/test_desktoptheme_lineedit.py::TestLineEdit",
-            "widgets/button.svg",
-            "tests/test_desktoptheme_button.py::TestButton",
-            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
-            "widgets/viewitem.svg",
-            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            *BUTTON_REFERENCES,
+            *VIEWITEM_REFERENCES,
             "test_selection_background",
             "#editBookmarkPanel",
             "editBookmarkPanelTemplate",
