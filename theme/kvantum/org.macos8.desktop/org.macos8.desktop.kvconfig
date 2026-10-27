@@ -338,3 +338,38 @@ interior=false
 inherits=GenericFrame
 frame=false
 interior=false
+
+# The QDockWidget docking area. No reference screenshot shows a Qt dock
+# panel, so this section is Kvantum-required (read 2026-10-27 from the
+# installed KvantumAlt and KvAdapta themes, which define it); like
+# [StatusBar] it draws nothing, so a dock panel's body keeps the flat
+# #DDDDDD window face.
+[Dock]
+inherits=PanelButtonCommand
+frame=false
+interior=false
+
+# The QDockWidget header band (Qt's CE_DockWidgetTitle). No reference
+# screenshot shows a Qt dock panel, so this section is Kvantum-required
+# (read 2026-10-27 from the installed KvantumAlt and KvAdapta themes, which
+# define it); the band is the menu-bar band read in Kvantum terms -- the
+# #DDDDDD window face with a plain black label and the bottom edge's etched
+# #FFFFFF-over-#888888 rule (widgets/line.svg, the GTK sheets' menubar
+# bands, pinned by TestLineReference). The 0/2/0/0 frame margins, the 2/3
+# text margins and the plain (non-bold) label are this theme's own choice:
+# the reference set shows no dock header to sample them from.
+[DockTitle]
+inherits=PanelButtonCommand
+frame=true
+frame.element=dock
+frame.top=0
+frame.bottom=2
+frame.left=0
+frame.right=0
+interior=false
+text.normal.color=#000000
+text.focus.color=#000000
+text.margin.top=2
+text.margin.bottom=2
+text.margin.left=3
+text.margin.right=3

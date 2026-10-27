@@ -96,5 +96,32 @@ class TestToolboxTabSurface(unittest.TestCase):
                 )
 
 
+class TestDockSurface(unittest.TestCase):
+    """Pin the Qt dock's docking area and title band.
+
+    `[Dock]` and `[DockTitle]` are Kvantum-required (no reference screenshot
+    shows a Qt `QDockWidget`; the installed KvantumAlt and KvAdapta themes
+    define both sections), so the pin holds the theme's own adaptation: the
+    docking area draws nothing, leaving the dock panel's body the bare
+    #DDDDDD window face, and the title band resolves to the `dock` element
+    whose bottom 2px hold the etched rule, while its 0 top, left and right
+    margins leave the band's face and label unpainted by the frame.
+    """
+
+    def test_dock_draws_nothing(self):
+        parser = read(KVCONFIG)
+        self.assertEqual(parser.get("Dock", "inherits"), "PanelButtonCommand")
+        self.assertEqual(parser.get("Dock", "frame"), "false")
+        self.assertEqual(parser.get("Dock", "interior"), "false")
+
+    def test_dock_title_resolves_the_dock_band(self):
+        parser = read(KVCONFIG)
+        self.assertEqual(_resolved(parser, "DockTitle", "frame.element"), "dock")
+        self.assertEqual(parser.get("DockTitle", "frame.bottom"), "2")
+        for key in ("frame.top", "frame.left", "frame.right"):
+            with self.subTest(key=key):
+                self.assertEqual(parser.get("DockTitle", key), "0")
+
+
 if __name__ == "__main__":
     unittest.main()

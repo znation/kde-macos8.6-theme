@@ -9,7 +9,7 @@
      bar frame and pattern, the spin box and the splitter and its grip,
      and the surface controls: tabs and their frame, menus and the menu
      bar, group boxes, tooltips, item views, toolbars and the menu item
-     interiors and the window size grip.
+     interiors, the dock title band and the window size grip.
      A raised face is a #DDDDDD interior inside a 1px #000000 outline
      with a 1px #FFFFFF top/left and #999999 bottom/right bevel, except
      the push and tool buttons, whose bottom/right bevel is the reference
@@ -50,7 +50,7 @@
      Kvantum scales the element by) and paint only the white/#777777 checker
      diamond and its three #AAAAAA lower-left edge pixels, leaving the
      surround transparent. -->
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="23740" viewBox="0 0 200 23740">
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="24820" viewBox="0 0 200 24820">
   <g id="button-normal-top" transform="translate(10,10)">
     <rect x="0" y="0" width="30" height="1" fill="#000000"/>
     <rect x="0" y="1" width="30" height="1" fill="#FFFFFF"/>
@@ -1853,5 +1853,67 @@
     <rect x="7" y="9" width="1" height="1" fill="#777777"/>
     <rect x="5" y="10" width="1" height="1" fill="#AAAAAA"/>
     <rect x="6" y="10" width="1" height="1" fill="#777777"/>
+  </g>
+  <!-- The QDockWidget title band: the flat #DDDDDD window face with the
+       bottom edge's etched rule (#FFFFFF over #888888, the same pair
+       widgets/line.svg and the GTK sheets' menubar bands draw). The top,
+       left, right and four corner slices are degenerate under the band's
+       0/2/0/0 frame margins, so they are invisible one-px fill="none"
+       rects, the way the size-grip bounds rects read. -->
+  <g id="dock-normal" transform="translate(10,23770)">
+    <rect x="0" y="0" width="20" height="18" fill="#DDDDDD"/>
+  </g>
+  <g id="dock-normal-top" transform="translate(10,23830)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-normal-bottom" transform="translate(10,23890)">
+    <rect x="0" y="0" width="20" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="20" height="1" fill="#888888"/>
+  </g>
+  <g id="dock-normal-left" transform="translate(10,23950)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-normal-right" transform="translate(10,24010)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-normal-topleft" transform="translate(10,24070)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-normal-topright" transform="translate(10,24130)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-normal-bottomleft" transform="translate(10,24190)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-normal-bottomright" transform="translate(10,24250)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-focused" transform="translate(10,24310)">
+    <rect x="0" y="0" width="20" height="18" fill="#DDDDDD"/>
+  </g>
+  <g id="dock-focused-top" transform="translate(10,24370)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-focused-bottom" transform="translate(10,24430)">
+    <rect x="0" y="0" width="20" height="1" fill="#FFFFFF"/>
+    <rect x="0" y="1" width="20" height="1" fill="#888888"/>
+  </g>
+  <g id="dock-focused-left" transform="translate(10,24490)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-focused-right" transform="translate(10,24550)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-focused-topleft" transform="translate(10,24610)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-focused-topright" transform="translate(10,24670)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-focused-bottomleft" transform="translate(10,24730)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
+  </g>
+  <g id="dock-focused-bottomright" transform="translate(10,24790)">
+    <rect x="0" y="0" width="1" height="1" fill="none"/>
   </g>
 </svg>

@@ -260,6 +260,9 @@ SURFACE_CONTROL_CONFIG = {
         "indicator.element": "toolbar",
         "indicator.size": "5",
     },
+    "DockTitle": {
+        "frame.element": "dock",
+    },
 }
 
 # Sections that explicitly draw no frame or interior. `[TabBarFrame]` inherits
@@ -267,11 +270,13 @@ SURFACE_CONTROL_CONFIG = {
 # `frame=false`/`interior=false` suppress that, so removing either silently
 # gives the tab bar a border. `[TreeExpander]` and `[StatusBar]` inherit
 # framed sections too: the expander must draw only its branch arrow, and the
-# status bar is a flat window-face bar with no bevel. Their `inherits` targets
-# are pinned here because, unlike the framed sections, their element mappings
-# do not resolve through the inherited section: a wrong target would leave
-# the branch indicator or window face unpinned. `[SizeGrip]` also draws no
-# frame or interior: it paints only its indicator element. A section in
+# status bar is a flat window-face bar with no bevel. `[SizeGrip]` also
+# draws no frame or interior: it paints only its indicator element.
+# `[Dock]` is the same flat window face: the docking area draws nothing so a
+# dock panel's body keeps the bare window background. Their `inherits`
+# targets are pinned here because, unlike the framed sections, their element
+# mappings do not resolve through the inherited section: a wrong target
+# would leave the branch indicator or window face unpinned. A section in
 # neither this table nor the three element tables is unpinned, which
 # `test_every_section_is_pinned` rejects.
 FRAMELESS_SECTIONS = {
@@ -284,6 +289,11 @@ FRAMELESS_SECTIONS = {
     },
     "StatusBar": {
         "inherits": "GenericFrame",
+        "frame": "false",
+        "interior": "false",
+    },
+    "Dock": {
+        "inherits": "PanelButtonCommand",
         "frame": "false",
         "interior": "false",
     },
@@ -372,6 +382,20 @@ VALUE_KEYS = {
         "interior": "true",
         "text.shadow": "false",
         "text.margin": "0",
+    },
+    "DockTitle": {
+        "frame": "true",
+        "frame.top": "0",
+        "frame.bottom": "2",
+        "frame.left": "0",
+        "frame.right": "0",
+        "interior": "false",
+        "text.normal.color": "#000000",
+        "text.focus.color": "#000000",
+        "text.margin.top": "2",
+        "text.margin.bottom": "2",
+        "text.margin.left": "3",
+        "text.margin.right": "3",
     },
 }
 

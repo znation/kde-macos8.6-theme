@@ -61,6 +61,7 @@ FRAME_STATES = {
     "tooltip": ("normal",),
     "itemview": ("normal", "focused", "pressed", "toggled"),
     "toolbar": ("normal",),
+    "dock": ("normal", "focused"),
     "menuitem": ("normal", "pressed", "toggled"),
     "menubaritem": ("pressed", "toggled"),
 }
@@ -323,6 +324,30 @@ class TestSvg(unittest.TestCase):
         self.assertIn("focus", self.ids)
         for slice_name in SLICE_NAMES:
             self.assertIn(f"focus-{slice_name}", self.ids)
+
+    def test_dock_band_draws_the_window_face_and_the_etched_rule(self):
+        by_id = elements_by_id(self.tree)
+        for state in ("normal", "focused"):
+            with self.subTest(state=state):
+                # The band's centre is the bare #DDDDDD window face: the
+                # label sits on it with interior=false, so no bevel art
+                # underlies the text.
+                self.assertEqual(
+                    _drawing_elements(by_id[f"dock-{state}"]),
+                    (_rect("0", "0", "20", "18", "#DDDDDD"),),
+                )
+                # The band's only art is the bottom edge's etched rule: a
+                # #FFFFFF row over a #888888 row, the pair widgets/line.svg
+                # and the GTK menubar bands draw. A row deleted, reordered,
+                # rescaled or repainted (all its colours are palette
+                # members the fill-set test cannot see) fails here.
+                self.assertEqual(
+                    _drawing_elements(by_id[f"dock-{state}-bottom"]),
+                    (
+                        _rect("0", "0", "20", "1", "#FFFFFF"),
+                        _rect("0", "1", "20", "1", CHECKBOX_SHADOW),
+                    ),
+                )
 
     def test_interior_elements_ship_every_state(self):
         for element, states in INTERIOR_STATES.items():
