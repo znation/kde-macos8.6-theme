@@ -5,6 +5,35 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The GTK sheet scanner treats a brace inside an unquoted url() value as a block delimiter (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+`tests/support/gtk_css.py`'s `_rule_blocks` tracked quoted strings and
+backslash escapes but not parentheses, so a brace inside an unquoted
+`url(...)` token (its `{`/`}` are CSS url code points, and quotes inside the
+token do not open a string) paired the pending selector with half the
+declaration and reported the rest as a malformed declaration of a bogus
+selector. Before the fix, `parse_css('a { background-image:
+url(data:image/svg+xml,<g {x}>); color: red; }')` raised `ValueError ... in
+selector 'background-image: url(data:image/svg+xml,<g': 'x'`. The fix follows
+`_split_declarations`, which already treated parentheses as value grouping at
+the declaration level: the block scanner now counts parentheses (an unmatched
+`)` is not tracked, mirroring the stray-parenthesis rule there), so a brace
+inside any `(...)` is text, while quotes stay literal inside parentheses.
+`url(...)` appears in real GTK/Firefox sheets, and the declaration scanner
+already pinned the quoted-url `;` case, so the block-level gap was the
+remaining discrepancy between the two scanners.
+
+Regression tests:
+`tests/test_gtk_css.py::TestRuleBlockSemantics::test_a_brace_inside_an_unquoted_url_value_is_text`
+(failed before the fix; also pins that a brace in an attribute selector's
+quoted value stays a selector) and
+`...::test_a_stray_closing_parenthesis_does_not_hide_a_brace_either` (an
+unmatched `)` must not swallow later block delimiters).
+
+**Validation gap:** none — the rebuilt generator reproduced the failure with
+a scratch `parse_css` call before the fix, and the new test failed before and
+passed after.
+
 ### The shared GTK sheet parser invents a colour from a @define-color inside a quoted value (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 `tests/support/gtk_css.py` scanned the whole sheet for `@define-color` with one

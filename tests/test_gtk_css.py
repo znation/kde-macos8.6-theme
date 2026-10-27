@@ -270,6 +270,61 @@ class TestRuleBlockSemantics(unittest.TestCase):
             {'[title="{"]': {"color": "#111111"}},
         )
 
+    def test_a_brace_inside_an_unquoted_url_value_is_text(self):
+        # An unquoted url() token may hold braces (CSS url code points), and
+        # quotes inside it do not open a string. A brace there paired the
+        # pending selector with half the declaration and reported the rest as
+        # a malformed declaration of a bogus selector. The declaration scanner
+        # already treats parentheses this way; the block scanner does the
+        # same, and a quote inside parentheses stays literal either way.
+        self.assertEqual(
+            parse_css(
+                "a { background-image: url(data:image/svg+xml,<g {x}>);"
+                " color: #111111; } b { color: #222222; }"
+            ),
+            (
+                {},
+                {
+                    "a": {
+                        "background-image":
+                            "url(data:image/svg+xml,<g {x}>)",
+                        "color": "#111111",
+                    },
+                    "b": {"color": "#222222"},
+                },
+                ["a", "b"],
+            ),
+        )
+        self.assertEqual(
+            parse_css(
+                "a { background-image: url(data:image/svg+xml,<g {x}>) }"
+            )[1],
+            {"a": {"background-image": "url(data:image/svg+xml,<g {x}>)"}},
+        )
+        self.assertEqual(
+            parse_css(
+                "a[href=\"}\"] { content: url(data:x{y}); margin: 1px; }"
+            )[1],
+            {
+                'a[href="}"]': {
+                    "content": "url(data:x{y})",
+                    "margin": "1px",
+                },
+            },
+        )
+
+    def test_a_stray_closing_parenthesis_does_not_hide_a_brace_either(self):
+        # Mirrors the declaration scanner: an unmatched ')' must not drive the
+        # depth negative and make the following block delimiters disappear.
+        self.assertEqual(
+            parse_css("a { color: red) } b { color: #222222; }"),
+            (
+                {},
+                {"a": {"color": "red)"}, "b": {"color": "#222222"}},
+                ["a", "b"],
+            ),
+        )
+
     def test_a_stray_closing_brace_is_skipped(self):
         # A `}` that closes no pending block must neither start a rule nor
         # swallow the selector after it.
