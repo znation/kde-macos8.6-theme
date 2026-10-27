@@ -87,6 +87,14 @@ def _apply_row_without_marker(scratch):
     )
 
 
+def _apply_duplicate_register_row(scratch):
+    text = _append_row(scratch.placeholders_text, FOLDER_ICON, "a duplicated icon")
+    scratch.write_repo_file(FOLDER_ICON, "<!-- PLACEHOLDER: a duplicated icon -->\n")
+    scratch.write_placeholders(
+        _append_row(text, FOLDER_ICON, "a duplicated icon, again")
+    )
+
+
 def _apply_unreadable_register(scratch):
     scratch.write_directory(PLACEHOLDERS_REGISTER)
 
@@ -99,6 +107,12 @@ PLACEHOLDER_MUTATIONS = (
     Mutation("marker-without-row", _apply_marker_without_row, "has no row", None),
     Mutation("row-without-file", _apply_row_without_file, "does not exist", None),
     Mutation("row-without-marker", _apply_row_without_marker, "carries no", None),
+    Mutation(
+        "duplicate-register-row",
+        _apply_duplicate_register_row,
+        "duplicate row",
+        None,
+    ),
     Mutation(
         "unreadable-register",
         _apply_unreadable_register,

@@ -12,6 +12,9 @@ carries no marker, a file or the register that is not valid UTF-8 text, or a
 text asset whose symlink resolves outside ``theme/``.
 
 ``tests/test_placeholders.py`` drives these checks.
+
+A register that lists one asset twice is refused by name with both rows'
+descriptions, instead of the last row silently replacing the first.
 """
 
 from __future__ import annotations
@@ -51,6 +54,7 @@ REJECTION_SHAPES = (
     "row-without-marker",
     "unreadable-register",
     "dangling-symlink-inside-theme",
+    "duplicate-register-row",
 )
 
 # One register table row: ``| `path` | what it stands in for |``.
@@ -152,7 +156,10 @@ def register_entries(path):
     permission error, a non-regular file (a FIFO or device) or one past the
     guard's 1 MiB cap -- raises the same :class:`AssertionError` naming
     *path*, instead of a bare ``OSError``, a block, or an unbounded read
-    aborting the check.
+    aborting the check. A register that lists one asset twice raises the same
+    :class:`AssertionError` naming *path*, the asset and both rows'
+    descriptions, instead of the last row silently replacing the first in the
+    returned dict.
     """
     # The register's own directory is the containment root, so a symlink at
     # *path* that resolves elsewhere is refused before it is read.
@@ -161,7 +168,16 @@ def register_entries(path):
     for line in _read_text(path, root).split("\n"):
         match = ROW.match(line)
         if match:
-            entries[match.group(1)] = match.group(2)
+            asset, description = match.group(1), match.group(2)
+            if asset in entries:
+                raise AssertionError(
+                    escape_controls(
+                        f"{path} has a duplicate row for {asset}: the first "
+                        f"row says {entries[asset]!r}, this one says "
+                        f"{description!r}; one asset gets one row"
+                    )
+                )
+            entries[asset] = description
     return entries
 
 
@@ -170,7 +186,8 @@ def cross_check(root, register):
 
     Returns ``(markers, entries)`` so a caller can assert more; raises
     :class:`AssertionError` naming the first disagreement: a marked file with
-    no row, a row whose path is missing, or a row whose file carries no marker.
+    no row, a row whose path is missing, a row whose file carries no marker,
+    or a register that lists one asset twice.
     A checked-in symlink at *register* that resolves outside *root* raises
     ``ValueError`` before it is read, so its rows are never echoed in the
     diagnostic.

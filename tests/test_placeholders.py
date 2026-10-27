@@ -217,6 +217,21 @@ class TestHelpers(unittest.TestCase):
         register = self._write_register(tmp, {os.path.join("theme", "a.svg"): "an a"})
         self.assertEqual(register_entries(register), {os.path.join("theme", "a.svg"): "an a"})
 
+    def test_register_entries_rejects_a_duplicate_row(self):
+        # A dict would silently keep the last of two rows for one asset, so a
+        # register whose table lists an asset twice would cross-check green
+        # while showing two rows. The reader must refuse it, naming both
+        # descriptions so the contributor can resolve the merge mistake.
+        tmp = make_tmp_dir(self)
+        asset = os.path.join("theme", "a.svg")
+        register = tmp / "PLACEHOLDERS.md"
+        register.write_text(
+            f"| `{asset}` | the first row |\n| `{asset}` | the second row |\n",
+            encoding="utf-8",
+        )
+        with self.assertRaisesRegex(AssertionError, "duplicate row for"):
+            register_entries(str(register))
+
     def test_register_entries_rejects_a_non_utf8_register(self):
         tmp = make_tmp_dir(self)
         asset = os.path.join("theme", "a.svg")
