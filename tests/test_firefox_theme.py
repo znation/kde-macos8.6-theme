@@ -17,11 +17,12 @@ from support import containment
 from support.desktoptheme_paths import MENUBARITEM_SVG
 from support.gtk_css import HEX, parse_css
 from support.gtk_rule_cases import SheetRuleAssertions
-from support.gtk_theme_spec import ETCH_DARK, RAISED_BEVEL
+from support.gtk_theme_spec import BUTTON_BEVEL, ETCH_DARK, RAISED_BEVEL
 from support.svg_case import parse_svg
 from svg_assertions import rect_geometry
 from support.platinum_palette import (
     BLACK,
+    BUTTON_SHADOW,
     FACE,
     GREY,
     SELECTION,
@@ -292,6 +293,30 @@ REQUIRED_RULES = {
         "color": f"{BLACK} !important",
         "box-shadow": "none !important",
     },
+    "#permission-popup .permission-popup-permission-remove-button": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"{BUTTON_BEVEL} !important",
+    },
+    "#permission-popup .permission-popup-permission-remove-button:hover:not([disabled])": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
+    "#permission-popup-menulist": {
+        "background-color": f"{FACE} !important",
+        "color": f"{BLACK} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": f"{BUTTON_BEVEL} !important",
+    },
+    "#permission-popup-menulist:hover:not([disabled])": {
+        "background-color": f"{SELECTION} !important",
+        "color": f"{BLACK} !important",
+        "box-shadow": "none !important",
+    },
     "menupopup > menuseparator": {
         "padding": "0 !important",
         "margin": "2px 0 !important",
@@ -356,7 +381,10 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
     def test_palette_is_exact(self):
         self.assertEqual(
             set(HEX.findall(self.text)),
-            {BLACK, WHITE, GREY, FACE, TROUGH, SELECTION, ETCH_DARK, TOOLTIP_FACE},
+            {
+                BLACK, WHITE, GREY, FACE, TROUGH, SELECTION, ETCH_DARK,
+                TOOLTIP_FACE, BUTTON_SHADOW,
+            },
         )
 
     def test_search_field_paint_is_scoped_to_the_unfocused_classic_field(self):
@@ -1114,6 +1142,135 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
                         matches(selector, {**unthemed, "hover": True})
                     )
 
+    def test_permission_popup_control_paint_is_scoped_to_the_permission_popup(self):
+        button = (
+            "#permission-popup .permission-popup-permission-remove-button"
+        )
+        button_hover = button + ":hover:not([disabled])"
+        menulist = "#permission-popup-menulist"
+        menulist_hover = menulist + ":hover:not([disabled])"
+        selectors = (button, button_hover, menulist, menulist_hover)
+        self.assertEqual(
+            {name for name in self.rules if "permission-popup" in name},
+            set(selectors),
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertTrue(selector.startswith("#permission-popup"))
+                self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        for normal in (button, menulist):
+            self.assertNotIn(":hover", normal)
+        for hover in (button_hover, menulist_hover):
+            self.assertIn(":hover", hover)
+            self.assertIn(":not([disabled])", hover)
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if any(token in declarations for token in (
+                 "--button-background-color",
+                 "--button-border-color",
+                 "--button-border-radius",
+             ))},
+            set(),
+        )
+
+        panel = element("panel", "permission-popup", ("panel-no-padding",))
+        multi_view = element(
+            "panelmultiview", "permission-popup-multiView", parent=panel
+        )
+        main_view = element(
+            "panelview", "permission-popup-mainView", ("PanelUI-subView",),
+            parent=multi_view,
+        )
+        header = element(
+            "box", "permission-popup-mainView-panel-header",
+            ("panel-header",), parent=main_view,
+        )
+        header_span = element(
+            "span", classes=("panel-header-label",), parent=header
+        )
+        separator = element("toolbarseparator", parent=main_view)
+        body = element(
+            "vbox", "permission-popup-main-body", ("panel-subview-body",),
+            parent=main_view,
+        )
+        permission_list = element(
+            "vbox", "permission-popup-permission-list", parent=body
+        )
+        row = element(
+            "hbox", classes=("permission-popup-permission-item",),
+            parent=permission_list,
+        )
+        icon = element(
+            "image", classes=("permission-popup-permission-icon",), parent=row
+        )
+        label = element(
+            "label", classes=("permission-popup-permission-label",), parent=row
+        )
+        state = element(
+            "label", classes=("permission-popup-permission-state-label",),
+            parent=row,
+        )
+        remove_button = element(
+            "button", classes=("permission-popup-permission-remove-button",),
+            parent=row,
+        )
+        permission_menulist = element(
+            "menulist", "permission-popup-menulist", parent=row
+        )
+        learn_more = element(
+            "moz-support-link",
+            "permission-popup-storage-access-permission-learn-more",
+            parent=permission_list,
+        )
+        outside_button = element(
+            "button", classes=("permission-popup-permission-remove-button",),
+            parent=element("panel", "identity-popup"),
+        )
+        other_menulist = element("menulist", "other-menulist", parent=row)
+
+        for name, control, normal, hover in (
+            ("remove_button", remove_button, button, button_hover),
+            ("menulist", permission_menulist, menulist, menulist_hover),
+        ):
+            with self.subTest(control=name):
+                self.assertTrue(matches(normal, control))
+                self.assertTrue(matches(hover, {**control, "hover": True}))
+                self.assertFalse(matches(hover, control))
+                disabled = {
+                    **control, "attrs": {"disabled": ""}, "hover": True,
+                }
+                self.assertTrue(matches(normal, disabled))
+                self.assertFalse(matches(hover, disabled))
+
+        for name, unthemed in (
+            ("row", row),
+            ("icon", icon),
+            ("label", label),
+            ("state_label", state),
+            ("header", header),
+            ("header_span", header_span),
+            ("separator", separator),
+            ("learn_more", learn_more),
+        ):
+            with self.subTest(unthemed=name):
+                for selector in (button, menulist):
+                    self.assertFalse(matches(selector, unthemed))
+                for selector in (button_hover, menulist_hover):
+                    self.assertFalse(
+                        matches(selector, {**unthemed, "hover": True})
+                    )
+
+        for name, control in (
+            ("outside_button", outside_button),
+            ("other_menulist", other_menulist),
+        ):
+            with self.subTest(outside=name):
+                for selector in selectors:
+                    self.assertFalse(matches(selector, control))
+                    self.assertFalse(
+                        matches(selector, {**control, "hover": True})
+                    )
+
     def test_find_field_foreground_is_guarded(self):
         selector = (
             'findbar .findbar-textbox:not([status="notfound"])'
@@ -1302,6 +1459,27 @@ class TestFirefoxChrome(SheetRuleAssertions, unittest.TestCase):
             "subviewbutton-back",
             "--panel-menuitem-border-radius",
             "--button-background-color-ghost-hover",
+            "platform colour adaptation 2026-10-26",
+            "No reference shows Firefox's permission popup",
+            "widgets/button.svg",
+            "tests/test_desktoptheme_button.py::TestButton",
+            "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+            "widgets/viewitem.svg",
+            "tests/test_desktoptheme_viewitem.py::TestViewItem",
+            "test_selection_background",
+            "chrome/browser/content/browser/browser.xhtml",
+            "template-permission-popup",
+            "chrome/browser/content/browser/browser-sitePermissionPanel.js",
+            "_createPermissionItem",
+            "_createPermissionClearButton",
+            "chrome/browser/skin/classic/browser/controlcenter/panel.css",
+            "permission-popup-permission-remove-button",
+            "permission-popup-menulist",
+            "chrome/toolkit/skin/classic/global/button.css",
+            "chrome/toolkit/skin/classic/global/menulist.css",
+            "chrome/toolkit/skin/classic/global/design-system/tokens-shared.css",
+            "--button-background-color",
+            "--button-border-radius",
             "platform colour adaptation 2026-10-26",
         ):
             with self.subTest(provenance=provenance):

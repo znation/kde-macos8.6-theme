@@ -267,6 +267,37 @@
    button), leaving the header, the moz-toggle tracking switch, the tracker
    list rows, separators and the panel body Firefox's; declaration checks do
    not establish rendered pixels.
+
+   No reference shows Firefox's permission popup; its clear button and
+   permission dropdown adapt the reference-grounded widgets/button.svg push
+   button's #DDDDDD face, black outline and white/#AAAAAA raised bevel with
+   the flat #CCCCFF row mapping (platform colour adaptation 2026-10-26),
+   pinned by tests/test_desktoptheme_button.py::TestButton and
+   tests/test_desktoptheme_button_reference.py::TestButtonReference, and the
+   row fill by widgets/viewitem.svg,
+   tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background.
+   In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/browser.xhtml defines
+   template-permission-popup with #permission-popup, its
+   #permission-popup-multiView and #permission-popup-mainView; its
+   #permission-popup-mainView-panel-header is a plain .panel-header. The
+   #permission-popup-permission-list holds the
+   permission-popup-permission-remove-button and the
+   permission-popup-menulist;
+   chrome/browser/content/browser/browser-sitePermissionPanel.js builds the
+   rows and buttons via _createPermissionItem and
+   _createPermissionClearButton. chrome/browser/skin/classic/browser/controlcenter/panel.css
+   owns the permission-popup layout and control paint;
+   chrome/toolkit/skin/classic/global/button.css and
+   chrome/toolkit/skin/classic/global/menulist.css supply the stock button
+   and menulist paint, and
+   chrome/toolkit/skin/classic/global/design-system/tokens-shared.css
+   declares the --button-background-color, --button-border-color and
+   --button-border-radius tokens. The sheet paints only the remove button and
+   the permission menulist, leaving the rows, labels, icons, header,
+   separator and panel body Firefox's; declaration checks do not establish
+   rendered pixels.
 */
 
 tooltip {
@@ -529,6 +560,40 @@ toolbarbutton:hover:active:not([disabled="true"]) {
 }
 
 #allTabsMenu-allTabsView .all-tabs-item[selected] > .all-tabs-button {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+/* The permission popup's clear button and permission dropdown adapt the
+   desktop theme's push button: a #DDDDDD face, black outline and the
+   reference's white/#AAAAAA raised bevel; an enabled hovered one is flat
+   #CCCCFF with black text and no bevel. Only these two controls are scoped,
+   leaving the permission rows, labels, icons, header, separator and panel
+   body Firefox's. */
+#permission-popup .permission-popup-permission-remove-button {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#permission-popup .permission-popup-permission-remove-button:hover:not([disabled]) {
+  background-color: #CCCCFF !important;
+  color: #000000 !important;
+  box-shadow: none !important;
+}
+
+#permission-popup-menulist {
+  background-color: #DDDDDD !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+}
+
+#permission-popup-menulist:hover:not([disabled]) {
   background-color: #CCCCFF !important;
   color: #000000 !important;
   box-shadow: none !important;
