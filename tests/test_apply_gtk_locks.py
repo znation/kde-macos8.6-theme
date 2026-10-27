@@ -4,8 +4,8 @@ An apply and a removal serialize on an exclusive flock over the directory
 containing the config home, and an apply also holds the data-home flock
 ``make install``/``make uninstall`` hold, so concurrent runs cannot publish
 stale edits or race an uninstall. The workflow and fault arms live in
-``tests/test_gtk_apply.py`` and ``tests/test_gtk_apply_errors.py``; the
-shared temp-root case is ``support.gtk_apply_case``.
+``tests/test_apply_gtk.py`` and ``tests/test_apply_gtk_errors.py``; the
+shared temp-root case is ``support.apply_gtk_case``.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.cli_fixtures import run_main
-from support.gtk_apply_case import GtkApplyTestCase
+from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_failed,
@@ -28,7 +28,7 @@ from support.process_assertions import (
 from tools import apply_gtk
 
 
-class TestConfigLock(GtkApplyTestCase):
+class TestConfigLock(ApplyGtkTestCase):
     """Concurrent applies and removals serialize on the config home."""
 
     def hold_config_lock(self):
@@ -141,7 +141,7 @@ class TestConfigLock(GtkApplyTestCase):
         self.assertIn("simulated refusal", result.stderr)
 
 
-class TestDataHomeLock(GtkApplyTestCase):
+class TestDataHomeLock(ApplyGtkTestCase):
     """An apply serializes on the data-home lock make install/uninstall hold."""
 
     def hold_data_lock(self):

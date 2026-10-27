@@ -2,7 +2,7 @@
 
 The transform is pure text in and out, so these cases need no profile
 directory. The install that writes the block into a real ``user.js`` is pinned
-in ``tests/test_firefox_install.py``.
+in ``tests/test_install_firefox.py``.
 """
 
 from __future__ import annotations

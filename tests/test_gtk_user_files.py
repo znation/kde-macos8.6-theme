@@ -1,6 +1,6 @@
 """Direct tests for tools/gtk_user_files.py.
 
-``tests/test_gtk_apply.py`` drives these helpers through the whole tool; these
+``tests/test_apply_gtk.py`` drives these helpers through the whole tool; these
 pin the read and user-CSS decisions on their own: which occupants read as
 "nothing there", that line endings survive the read untouched, and what the
 write and remove decisions return for each kind of ``gtk.css``.

@@ -1,7 +1,7 @@
 """The temp-home Firefox profile case shared by the Firefox installer suites.
 
 ``tests/test_firefox_profile.py`` resolves profiles against a temp ``HOME``
-and ``tests/test_firefox_install.py`` installs into a temp profile; both need
+and ``tests/test_install_firefox.py`` installs into a temp profile; both need
 the same scratch root, home, profile and symlink/write-failure fixtures. They
 live here once so each suite states only the behaviour it pins. The module
 name does not match ``test*.py``, so ``unittest discover`` never collects it.

@@ -4,8 +4,8 @@ A settings or user-CSS file that cannot be read or written must be one
 ``apply_gtk: error:`` line naming the path, and every read and write is
 staged before any is committed, so a fault leaves the user's files byte for
 byte. The workflow, lock and Makefile arms live in
-``tests/test_gtk_apply.py`` and ``tests/test_gtk_apply_locks.py``; the
-shared temp-root case is ``support.gtk_apply_case``.
+``tests/test_apply_gtk.py`` and ``tests/test_apply_gtk_locks.py``; the
+shared temp-root case is ``support.apply_gtk_case``.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.fifo_fixtures import assert_fifo_refused, make_fifo
-from support.gtk_apply_case import GtkApplyTestCase
+from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import (
     assert_exit_2_without_traceback,
     assert_succeeded,
@@ -25,7 +25,7 @@ from support.unlink_failure import unlink_failing_for
 from tools import gtk_user_files
 
 
-class TestSettingsErrors(GtkApplyTestCase):
+class TestSettingsErrors(ApplyGtkTestCase):
     """A config file that cannot be read or written is a diagnostic by name."""
 
     def test_unreadable_settings_file_is_reported_by_name(self):
@@ -325,7 +325,7 @@ class TestSettingsErrors(GtkApplyTestCase):
         self.assertTrue(css.is_file())
 
 
-class TestUnreadableConfig(GtkApplyTestCase):
+class TestUnreadableConfig(ApplyGtkTestCase):
     """A config file that cannot be read stops the run before anything is written.
 
     The fault is planted in the *second* file the tool would touch, so a fix

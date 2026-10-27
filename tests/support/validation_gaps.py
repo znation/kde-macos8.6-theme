@@ -49,7 +49,7 @@ NO_OBSERVABILITY_REPRODUCTIONS = (
     Reproduction(
         "gtk-remove-data-home",
         ("apply_gtk --remove",),
-        "tests/test_gtk_apply.py::TestRemove"
+        "tests/test_apply_gtk.py::TestRemove"
         "::test_remove_clears_the_selection_without_a_resolvable_data_home",
     ),
     Reproduction(
@@ -376,7 +376,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "gtk-empty-user-css",
         ("empty `gtk-4.0/gtk.css`",),
-        "tests/test_gtk_apply.py::TestApply"
+        "tests/test_apply_gtk.py::TestApply"
         "::test_empty_user_css_is_adopted",
         "an existing but empty `gtk.css` is adopted rather than treated as "
         "foreign, because it has no content to preserve",
@@ -387,7 +387,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
             "empty `userChrome.css`",
             "adopts an empty sheet of either name",
         ),
-        "tests/test_firefox_install.py::TestInstall"
+        "tests/test_install_firefox.py::TestInstall"
         "::test_an_empty_sheet_is_adopted",
         "adopts an empty sheet of either name, refuses a non-empty foreign "
         "sheet of either name",
@@ -409,7 +409,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     UnclearInvariant(
         "gtk-symlinked-config",
         ("A GTK selection replaces a symlinked",),
-        "tests/test_gtk_apply_errors.py::TestSettingsErrors",
+        "tests/test_apply_gtk_errors.py::TestSettingsErrors",
         GTK_SYMLINK_GUARANTEE,
     ),
     UnclearInvariant(
@@ -418,7 +418,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
             "A Firefox install replaces or removes a symlinked",
             "a sheet or `user.js` path that is a symbolic link is refused",
         ),
-        "tests/test_firefox_install.py::TestInstall"
+        "tests/test_install_firefox.py::TestInstall"
         "::test_install_refuses_symlinked_profile_files_before_writing_anything",
         FIREFOX_SYMLINK_GUARANTEE,
     ),
@@ -428,7 +428,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
             "A UTF-8 BOM before our marker",
             "a leading UTF-8 BOM does not hide either sheet marker",
         ),
-        "tests/test_firefox_install.py::TestInstall"
+        "tests/test_install_firefox.py::TestInstall"
         "::test_a_bom_before_our_marker_keeps_the_sheet_ours",
         BOM_MARKER_GUARANTEE,
     ),
@@ -507,7 +507,7 @@ NO_FAKE_REPRODUCTIONS = (
     Reproduction(
         "firefox-profile-file-fifo",
         ("Firefox profile file blocks the install",),
-        "tests/test_firefox_install.py::TestRemove"
+        "tests/test_install_firefox.py::TestRemove"
         "::test_a_fifo_at_either_profile_file_is_refused_without_blocking",
     ),
     Reproduction(
@@ -630,13 +630,13 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
         "gtk-config-cap",
         ("An oversize GTK settings or user-CSS file",),
-        "tests/test_gtk_apply_errors.py::TestUnreadableConfig"
+        "tests/test_apply_gtk_errors.py::TestUnreadableConfig"
         "::test_apply_refuses_an_oversize_settings_file_before_writing_anything",
     ),
     Reproduction(
         "firefox-profile-file-cap",
         ("An oversize Firefox profile file",),
-        "tests/test_firefox_install.py::TestInstall"
+        "tests/test_install_firefox.py::TestInstall"
         "::test_an_oversize_user_chrome_is_refused_by_name",
     ),
     Reproduction(

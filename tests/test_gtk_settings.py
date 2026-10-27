@@ -1,7 +1,7 @@
 """Tests for tools/gtk_settings.py's pure ``settings.ini`` text transforms.
 
 ``tools/apply_gtk.py`` drives ``set_theme_name`` and ``remove_theme_name``
-through the CLI, so ``tests/test_gtk_apply.py`` covers the choose/replace,
+through the CLI, so ``tests/test_apply_gtk.py`` covers the choose/replace,
 insert, append and removal shapes end to end, including a CRLF file read and
 written back as bytes. These tests pin the transforms directly and add the
 file shapes that suite does not write: spaces around ``=``, a commented-out

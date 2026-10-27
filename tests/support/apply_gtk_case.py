@@ -1,8 +1,8 @@
 """The temp-root GTK apply case shared by the ``apply_gtk`` suites.
 
-``tests/test_gtk_apply.py`` drives the apply and removal workflow,
-``tests/test_gtk_apply_errors.py`` plants unreadable and unwritable config
-faults and ``tests/test_gtk_apply_locks.py`` holds the serialization locks;
+``tests/test_apply_gtk.py`` drives the apply and removal workflow,
+``tests/test_apply_gtk_errors.py`` plants unreadable and unwritable config
+faults and ``tests/test_apply_gtk_locks.py`` holds the serialization locks;
 all three need the same scratch root, temp ``XDG_DATA_HOME``/
 ``XDG_CONFIG_HOME``/``HOME`` and installed-sheet fixtures. They live here
 once so each suite states only the behaviour it pins. The module name does
@@ -22,7 +22,7 @@ from support.tmp_dir import make_tmp_dir
 from tools import apply_gtk
 
 
-class GtkApplyTestCase(unittest.TestCase):
+class ApplyGtkTestCase(unittest.TestCase):
     """Base with a temp data/config/home root and an installed GTK 4 sheet."""
 
     def setUp(self):

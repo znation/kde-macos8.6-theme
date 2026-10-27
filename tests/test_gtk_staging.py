@@ -1,6 +1,6 @@
 """Direct tests for tools/gtk_staging.py's staging and commit helpers.
 
-``tools/apply_gtk.py`` drives these helpers, so ``tests/test_gtk_apply.py``
+``tools/apply_gtk.py`` drives these helpers, so ``tests/test_apply_gtk.py``
 covers the shapes the apply and remove paths produce end to end. These tests
 pin the helpers on their own and add the branch that suite cannot reach: a
 rename that fails during :func:`commit`, the step that actually replaces the

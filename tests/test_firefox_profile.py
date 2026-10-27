@@ -2,7 +2,7 @@
 
 Each case runs against a temp ``HOME`` so a real Firefox profile is never read
 or written. The installer suites that use the resolved profile live in
-``tests/test_firefox_install.py``; the shared temp-home case is
+``tests/test_install_firefox.py``; the shared temp-home case is
 ``support.firefox_profile_case``.
 """
 

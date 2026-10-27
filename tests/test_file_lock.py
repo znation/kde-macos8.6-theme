@@ -1,7 +1,7 @@
 """Tests for tools/file_lock.py -- the shared bounded-wait exclusive flock.
 
-The installers' integration suites (``test_gtk_apply_locks.py`` and
-``test_firefox_install.py``) exercise the lock's refusal arms: a directory
+The installers' integration suites (``test_apply_gtk_locks.py`` and
+``test_install_firefox.py``) exercise the lock's refusal arms: a directory
 that cannot be opened, a flock that fails for another reason, and a holder
 that outlasts the timeout. They never reach the retry loop's recovery arms --
 an ``EINTR`` interrupt that must be retried rather than refused, and a holder

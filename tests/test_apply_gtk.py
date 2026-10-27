@@ -4,9 +4,9 @@ The tool runs in-process with ``XDG_DATA_HOME``, ``XDG_CONFIG_HOME`` and
 ``HOME`` pointed at a temp root, so the settings edit, the libadwaita user
 CSS and the removal are pinned without touching the user's configuration.
 The unreadable and unwritable config-file arms live in
-``tests/test_gtk_apply_errors.py`` and the serialization locks in
-``tests/test_gtk_apply_locks.py``; the shared temp-root case is
-``support.gtk_apply_case``. The Makefile pins drive the public targets
+``tests/test_apply_gtk_errors.py`` and the serialization locks in
+``tests/test_apply_gtk_locks.py``; the shared temp-root case is
+``support.apply_gtk_case``. The Makefile pins drive the public targets
 through ``theme_install``, which applies the suite's timeout to each child
 process.
 """
@@ -21,12 +21,12 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support.apply_target_cases import ApplyTargetMakeCases
 from support.cli_fixtures import run_main
-from support.gtk_apply_case import GtkApplyTestCase
+from support.apply_gtk_case import ApplyGtkTestCase
 from support.process_assertions import assert_failed, assert_succeeded
 from tools import apply_gtk, gtk_user_files
 
 
-class TestApply(GtkApplyTestCase):
+class TestApply(ApplyGtkTestCase):
     def test_apply_writes_both_settings_and_user_css(self):
         self.install_sheet()
         self.write(
@@ -158,7 +158,7 @@ class TestApply(GtkApplyTestCase):
         self.assertIn("gtk.css", result.stdout)
 
 
-class TestRemove(GtkApplyTestCase):
+class TestRemove(ApplyGtkTestCase):
     def test_a_failed_settings_commit_restores_the_selection_and_user_css(self):
         self.install_sheet()
         gtk3 = self.settings("gtk-3.0")
@@ -290,7 +290,7 @@ class TestRemove(GtkApplyTestCase):
         self.assertFalse(css.exists())
 
 
-class TestLineEndings(GtkApplyTestCase):
+class TestLineEndings(ApplyGtkTestCase):
     """A CRLF or mixed-ending settings file keeps its endings end to end."""
 
     def test_apply_keeps_crlf_endings_in_both_settings_files(self):
