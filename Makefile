@@ -182,8 +182,16 @@ require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.ver
 # (after leading whitespace) with `-` would reach `unittest` as an option --
 # `-x` aborts on the first failure and `-k` filters by pattern -- silently
 # changing the run instead of naming a test. Refuse it with a diagnostic that
-# names CHECK_TESTS. $(1) names the target.
-require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac
+# names CHECK_TESTS. Each spec's module component -- the text before its
+# first `.` -- must name a tests/<module>.py file, since unittest imports
+# that module before it resolves the class and method parts: a typo'd module
+# name (`CHECK_TESTS=test_byteop.TestX`) would otherwise fail deep inside
+# unittest with a ModuleNotFoundError traceback that names neither CHECK_TESTS
+# nor the typo'd value, while CHECK_PATTERN's equally typo'd glob is already
+# refused by require_check_pattern. List every unknown spec, quoting none of
+# the known ones, so the diagnostic names exactly what is wrong. $(1) names
+# the target.
+require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac; unknown=; for spec in $$value; do module=$${spec%%.*}; if [ ! -f "tests/$$module.py" ]; then unknown="$$unknown $$spec"; fi; done; if [ -n "$$unknown" ]; then echo "$(1): CHECK_TESTS must name test modules in tests/, but these specs name no tests/<module>.py file:$$unknown" >&2; exit 2; fi
 
 # CHECK_PATTERN is the filename glob `check` hands to `unittest discover -p`,
 # so an empty value (`?=` keeps one from the environment), a whitespace-only

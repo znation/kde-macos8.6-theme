@@ -214,6 +214,59 @@ class TestCheckPattern(unittest.TestCase):
         assert_failed(self, result)
         self.assertIn("CHECK_TESTS must name", result.stderr)
 
+    def _assert_unknown_spec_refused(self, value):
+        env = theme_install.make_env("CHECK_TESTS")
+        env["CHECK_TESTS"] = value
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        return result.stderr
+
+    def test_unknown_module_spec_is_refused(self):
+        # CHECK_PATTERN refuses a typo'd glob before the suite runs, but a
+        # CHECK_TESTS spec whose module component names no tests/<module>.py
+        # would reach unittest and fail deep inside it with a
+        # ModuleNotFoundError traceback naming neither CHECK_TESTS nor the
+        # typo'd value. The guard refuses the same class of mistake the same
+        # way: before the suite, naming the variable and the spec.
+        stderr = self._assert_unknown_spec_refused("test_no_such_module")
+        self.assertIn("CHECK_TESTS must name test modules", stderr)
+        self.assertIn("test_no_such_module", stderr)
+
+    def test_unknown_module_inside_class_spec_is_refused(self):
+        # The spec format CHECK_TESTS documents is module, module.Class and
+        # module.Class.method, whose class and method parts only resolve
+        # after unittest imports the module part, so the guard checks the
+        # module component -- the text before the first dot -- whichever
+        # deeper parts a spec carries.
+        stderr = self._assert_unknown_spec_refused(
+            "test_no_such_module.Class.method"
+        )
+        self.assertIn("CHECK_TESTS must name test modules", stderr)
+        self.assertIn("test_no_such_module.Class.method", stderr)
+
+    def test_a_valid_spec_beside_an_unknown_one_is_refused(self):
+        # Every unknown spec is named, and only the unknown ones, so a
+        # multi-spec value shows exactly which names to fix. Nothing runs:
+        # the refusal happens before the interpreter starts.
+        stderr = self._assert_unknown_spec_refused(
+            "test_byteops test_no_such_module"
+        )
+        self.assertIn("test_no_such_module", stderr)
+        self.assertNotIn("test_byteops", stderr)
+
+    def test_a_valid_spec_still_runs(self):
+        # The existence check compares each spec's module component against
+        # the real tests/ directory, so a guard that regressed into
+        # rejecting valid names would silently check nothing. Run one real
+        # module.Class spec through it to pin that valid values still reach
+        # the interpreter.
+        env = theme_install.make_env("CHECK_TESTS")
+        result = theme_install.run_make(
+            ["check", "CHECK_TESTS=test_byteops.TestRequireEqualLengths"],
+            env=env,
+        )
+        assert_succeeded(self, result)
+
 
 class TestPythonInterpreter(unittest.TestCase):
     """`make check` must refuse a PYTHON that make would read as a flag.
