@@ -471,7 +471,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 23
+NO_FAKE_BASELINE = 24
 
 NO_FAKE_REPRODUCTIONS = (
     Reproduction(
@@ -497,6 +497,12 @@ NO_FAKE_REPRODUCTIONS = (
         ("matches an aliased import by its binding name",),
         "tests/test_no_unused_imports.py::TestNoUnusedImports"
         "::test_an_aliased_import_from_here_keeps_the_imported_name",
+    ),
+    Reproduction(
+        "unused-imports-all-extend-call",
+        ("re-export grown by `__all__.extend`",),
+        "tests/test_no_unused_imports.py::TestNoUnusedImports"
+        "::test_an_all_extend_call_re_exports_the_import",
     ),
     Reproduction(
         "firefox-ini-fifo",

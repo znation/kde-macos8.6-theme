@@ -5,6 +5,20 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The unused-import scanner flags a re-export grown by `__all__.extend` or `__all__.append` as a dead import (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+**Symptom:** a module whose `__all__` grows by method call (`__all__ = []` then `__all__.extend(["os"])` or `__all__.append("os")` — the call form of the re-export hub) gets `path:line: unused import os` from the tree-clean assertion, although `__all__` names the import.
+
+**Reproduce:** write `import os\n\n__all__ = []\n__all__.extend(["os"])` into a synthetic tree and run `support.unused_imports.unused_imports`; the finding appears before the fix and not after.
+
+**Cause:** `_scan_module` collected the `__all__` strings only from `ast.Assign`, `ast.AugAssign` and `ast.AnnAssign` statements; a method call is an `ast.Expr(ast.Call)` and fell through, so its strings were never added to the allowance. Now a call whose receiver is the bare name `__all__` through `append`, `extend` or `insert` (the list methods that add entries; `remove` and `sort` add nothing) contributes its string constants too.
+
+**Validation gap:** no-fake — the synthetic-tree fixtures in the scanner's
+suite had no `__all__`-grown-by-method-call case, so the tree-clean assertion
+could not exercise the missed call form; a scratch one-module tree reproduced
+it, and the two new fixtures now pin the add-call allowance and the
+remove-call non-allowance.
+
 ### The unused-import scanner emits a module's findings in `ast.walk` order, not the documented path-then-line sort — fixed 2026-10-27 by the bugfix role
 
 - Symptom: the tree-clean assertion's failure message can list a module's

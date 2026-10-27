@@ -116,6 +116,47 @@ class TestNoUnusedImports(unittest.TestCase):
         )
         self.assertEqual(findings, [])
 
+    def test_an_all_extend_call_re_exports_the_import(self):
+        # `__all__.extend(["os"])` (and its append/insert siblings) is the
+        # call form of the augmented-assignment re-export: a hub that grows
+        # `__all__` by method call must keep the names it adds, or it flags
+        # its own dead imports.
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": (
+                    'import os\n\n__all__ = []\n__all__.extend(["os"])\n'
+                )
+            },
+        )
+        self.assertEqual(findings, [])
+
+    def test_an_all_append_call_re_exports_the_import(self):
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": (
+                    'import os\n\n__all__ = []\n__all__.append("os")\n'
+                )
+            },
+        )
+        self.assertEqual(findings, [])
+
+    def test_an_all_remove_call_keeps_the_flag(self):
+        # A call that only shrinks `__all__` adds no entry, so the dead
+        # import it names stays a finding; `extend` and friends are the
+        # only call forms that count.
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": (
+                    'import os\n\n__all__ = []\n__all__.remove("os")\n'
+                )
+            },
+        )
+        self.assertEqual(len(findings), 1, findings)
+        self.assertIn("pkg/mod.py:1: unused import os", findings[0])
+
     def test_an_augassign_to_another_name_keeps_the_flag(self):
         # Only an augmented assignment whose target is `__all__` re-exports:
         # growing a plain list honours no import, so the flag stays.

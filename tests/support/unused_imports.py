@@ -87,7 +87,8 @@ def _scan_module(
 
     Returns the import statements each with the names it binds, every
     ``ast.Name`` the module reads, and every string named in an ``__all__``
-    assignment. One walk gathers all three; re-walking the tree once per
+    assignment or in a call that grows ``__all__`` (``append``, ``extend``,
+    ``insert``). One walk gathers all three; re-walking the tree once per
     need costs several times the parse itself on the real tree.
     """
     imports: list[tuple[ast.stmt, list[str]]] = []
@@ -110,7 +111,19 @@ def _scan_module(
                 targets = [node.target]
             elif isinstance(node, ast.AnnAssign) and node.value is not None:
                 targets = [node.target]
-            if not any(
+            # The call form `__all__.extend(["os"])` (and its append and
+            # insert siblings) adds entries exactly like an assignment, so
+            # a re-export hub that grows `__all__` by method call keeps the
+            # names it adds. A call that only shrinks or reorders (`remove`,
+            # `sort`) adds nothing and is no allowance.
+            grows_all = (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr in ("append", "extend", "insert")
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "__all__"
+            )
+            if not grows_all and not any(
                 isinstance(t, ast.Name) and t.id == "__all__"
                 for t in targets
             ):
