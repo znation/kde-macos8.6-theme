@@ -5,8 +5,9 @@ screenshot: its palette is the shared Platinum palette and its geometry
 adapts this theme's Platinum controls, so every section module pins the
 same ``REQUIRED_RULES`` table against the sheet text. The sections live in
 ``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
-``tests/test_firefox_theme_popups.py`` and
-``tests/test_firefox_theme_page_info.py``; the sheet ships as a standalone
+``tests/test_firefox_theme_popups.py``,
+``tests/test_firefox_theme_page_info.py`` and
+``tests/test_firefox_theme_library.py``; the sheet ships as a standalone
 file, and ``tests/test_firefox_install.py`` pins its install and removal.
 """
 
@@ -618,6 +619,37 @@ REQUIRED_RULES["#securityPanel > groupbox + groupbox"] = {
 REQUIRED_RULES["#securityPanel > groupbox > label.header"] = {
     "color": f"{BLACK} !important",
 }
+
+# The Library window's two places trees: the Platinum sunken list field
+# (see the header's provenance paragraph), reusing the Page Info tree
+# recipes' field declarations and going through the plain tree
+# selectors the Page Info trees already establish. The rows are
+# transparent over the field so no skin hover wash paints, the
+# selected row is flat #CCCCFF and the multicol odd-row stripe is
+# floated back onto the field face; a single-column tree (#placesList)
+# draws no multicol odd stripe, so the stripe rule is written only
+# against tree#placeContent.
+REQUIRED_RULES["#placesList"] = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {GREY} !important",
+}
+REQUIRED_RULES["#placeContent"] = REQUIRED_RULES["#placesList"]
+for _tree in ("placesList", "placeContent"):
+    REQUIRED_RULES[
+        f"tree#{_tree} treechildren::-moz-tree-row(hover)"
+    ] = {"background-color": "transparent !important"}
+    REQUIRED_RULES[
+        f"tree#{_tree} treechildren::-moz-tree-row(selected)"
+    ] = {"background-color": f"{SELECTION} !important"}
+    REQUIRED_RULES[
+        f"tree#{_tree} treechildren::-moz-tree-cell-text"
+    ] = {"color": f"{BLACK} !important"}
+REQUIRED_RULES[
+    "tree#placeContent treechildren::-moz-tree-row(multicol, odd)"
+] = {"background-color": "transparent !important"}
 
 
 class FirefoxChromeTestCase(

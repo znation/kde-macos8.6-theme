@@ -564,6 +564,41 @@ test_view_background_alternate, and the etched #topBar bottom rule takes the
    Declaration checks pin the sheet's declarations; the reference test
    re-derives the frame's pixels, not Firefox's rendered dialog
    (reference grounding 2026-10-27).
+
+   The Library window's two places trees (#placesList and
+   #placeContent) are the sheet's Platinum sunken list field, reusing
+   the Page Info tree recipes' #FFFFFF face, square 1px #000000
+   outline and #999999 sunken shadow.
+   No reference screenshot shows the Firefox Library window; the
+   field face adapts widgets/lineedit.svg, grounded in
+   macos8.6-screenshots/firstboot_betawiki.png and pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference; the transparent rows honour
+   widgets/listitem.svg's no-hover-highlight list reading, pinned by
+   tests/test_desktoptheme_listitem.py::TestListItem, and the flat
+   #CCCCFF black-text selected row adapts widgets/viewitem.svg, pinned
+   by tests/test_desktoptheme_viewitem.py::TestViewItem and
+   tests/test_colorscheme_reference.py::TestReferenceAnchors'
+   test_selection_background. In the installed Firefox ESR 153.5.1,
+   chrome/browser/content/browser/places/places.xhtml defines
+   tree#placesList and tree#placeContent inside hbox #placesView,
+   chrome/browser/content/browser/places/places.css strips the stock
+   .placesTree appearance, margin and border,
+   chrome/browser/skin/classic/browser/places/organizer.css paints
+   #placesView Window-background and sizes #placesList,
+   chrome/browser/skin/classic/browser/places/organizer-shared.css
+   floors the pane min-sizes, and
+   chrome/toolkit/skin/classic/global/tree/tree.css owns the stock
+   tree paint (the Field ground, the ThreeDShadow border, the
+   -moz-oddtreerow odd stripes on multicol rows, the
+   hsla(0, 0%, 50%, 0.15) hover wash and the
+   -moz-cellhighlight/SelectedItem selection) with
+   chrome/browser/skin/classic/browser/places/tree-icons.css
+   supplying the row icons. The toolbar, search filter, content-tree
+   column headers, downloads rich list and details pane stay Firefox's
+   for the later parts of this series.
+   Declaration checks do not establish rendered pixels
+   (platform colour adaptation 2026-10-27).
 */
 
 tooltip {
@@ -1141,4 +1176,36 @@ tree#imagetree treechildren::-moz-tree-cell-text(broken) {
 
 #securityPanel > groupbox > label.header {
   color: #000000 !important;
+}
+
+/* Library window places trees: the Platinum sunken list field with
+   transparent rows, a flat #CCCCFF selected row and the odd-row
+   stripe floated back onto the field (see the header's provenance
+   paragraph). */
+#placesList,
+#placeContent {
+  background-color: #FFFFFF !important;
+  color: #000000 !important;
+  border: 1px solid #000000 !important;
+  border-radius: 0 !important;
+  box-shadow: inset 1px 1px #999999 !important;
+}
+
+tree#placesList treechildren::-moz-tree-row(hover),
+tree#placeContent treechildren::-moz-tree-row(hover) {
+  background-color: transparent !important;
+}
+
+tree#placesList treechildren::-moz-tree-row(selected),
+tree#placeContent treechildren::-moz-tree-row(selected) {
+  background-color: #CCCCFF !important;
+}
+
+tree#placesList treechildren::-moz-tree-cell-text,
+tree#placeContent treechildren::-moz-tree-cell-text {
+  color: #000000 !important;
+}
+
+tree#placeContent treechildren::-moz-tree-row(multicol, odd) {
+  background-color: transparent !important;
 }

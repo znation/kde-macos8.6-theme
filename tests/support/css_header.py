@@ -7,8 +7,9 @@ section derives from. The suites testing them keep the sheet text in
 the first ``*/``; this mixin holds that one assertion. Its only call
 sites are ``FirefoxChromeTestCase`` (serving the provenance tests of
 ``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
-``tests/test_firefox_theme_popups.py`` and
-``tests/test_firefox_theme_page_info.py``) and ``SheetCase`` in
+``tests/test_firefox_theme_popups.py``,
+``tests/test_firefox_theme_page_info.py`` and
+``tests/test_firefox_theme_library.py``) and ``SheetCase`` in
 ``tests/test_firefox_content_theme.py``.
 """
 
