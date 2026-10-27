@@ -7,7 +7,36 @@ each tick.
 
 ## Open
 
-_None yet._
+### Should `make check` run independent test modules concurrently?
+
+**Context.** (posted 2026-10-27 by the perf role) The suite's wall time is ~42s for 2463 tests,
+and every large component in it is measured real work, not waste: ~14s is `TestRender`'s single
+`make render` (the documented 8s paint-budget settle plus real kwin/spectacle children), ~20s is
+~253 real `make`/tool children the install, GTK, cursor and Firefox suites wait on serially,
+and the pure-Python rest (~5s) is at measured floors — the unused-import scanner's one-walk-per-
+module scan (~1.5s), the invariants checker's cached parses, and the PNG Paeth unfilter, where a
+bytearray-store rewrite and a two-byte unroll both measured no better than the current loop
+(~1.94s per decode of the largest reference, 11.1M samples). The one lever above ~10% is
+concurrency: most test modules are independent of each other, and running several in parallel
+would cut the wall roughly by the module count. It cannot be done with threads: tests patch
+module globals, `os.environ` and the working directory per test, so isolation needs processes.
+`unittest discover` has no worker support, so this means a small custom coordinator (fork a
+worker per module, or a bounded process pool that runs whole modules as units, plus a result
+aggregator). That is new architecture in the test runner, not a change to any tested behavior.
+
+**Options.**
+1. Keep `make check` serial. The wall stays ~42s; no new runner code and no isolation risk.
+2. Add a custom coordinator that runs whole test modules in parallel worker processes (a bounded
+   pool, one module per worker task, aggregated in module order so output stays diffable),
+   keeping serial discovery as the fallback (`CHECK_PARALLEL=0` or a make variable), with the
+   subprocess timeout and group-kill guarantees re-stated per worker.
+3. Parallelize only the subprocess-heavy modules first (the install/GTK/cursor suites) behind a
+   flag — a smaller step with most of the win, but a special case the runner carries forever.
+
+**Recommendation.** Option 2 if the wall time matters to the project's iteration speed: it is
+the general form of option 3, the isolation story is the same (one module per worker), and the
+serial path stays available as the fallback. Option 1 is perfectly fine if the 42s is not felt — everything else I measured is below ~1% of the wall.
+
 
 ## Answered
 
