@@ -36,6 +36,7 @@ from support.desktoptheme_paths import (
     METADATA,
     PACKAGE,
     PAGER_SVG,
+    NOTES_SVG,
     PANEL_SVG,
     PLASMOIDHEADING_SVG,
     RADIOBUTTON_SVG,
@@ -87,7 +88,8 @@ PLASMA_SECTION = "plasmarc][Theme"
 # 30x18 canvas grown from a 16x16 track to hold its 12x18 thumb, the busy
 # indicator a 36x36 square for its 32px ring, and the round action button a
 # 36x36 square for its 34px outline. The desktop icon action overlays are a
-# 16x16 canvas holding nine 14px action buttons.
+# 16x16 canvas holding nine 14px action buttons, and notes.svg a 320x32
+# canvas holding ten side-by-side 32x32 note cells.
 SVG_CANVASES = (
     ("panel-background.svg", PANEL_SVG, 12, 22),
     ("solid/widgets/panel-background.svg", SOLID_PANEL_SVG, 12, 22),
@@ -98,6 +100,7 @@ SVG_CANVASES = (
     ("viewitem.svg", VIEWITEM_SVG, 12, 12),
     ("menubaritem.svg", MENUBARITEM_SVG, 20, 12),
     ("pager.svg", PAGER_SVG, 12, 9),
+    ("notes.svg", NOTES_SVG, 320, 32),
     ("tasks.svg", TASKS_SVG, 20, 12),
     ("margins-highlight.svg", MARGINS_HIGHLIGHT_SVG, 4, 4),
     ("containment-controls.svg", CONTAINMENT_CONTROLS_SVG, 42, 42),
@@ -250,6 +253,7 @@ class TestInstall(
         os.path.join("widgets", "viewitem.svg"),
         os.path.join("widgets", "menubaritem.svg"),
         os.path.join("widgets", "pager.svg"),
+        os.path.join("widgets", "notes.svg"),
         os.path.join("widgets", "tasks.svg"),
         os.path.join("widgets", "margins-highlight.svg"),
         os.path.join("widgets", "containment-controls.svg"),

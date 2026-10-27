@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mac OS 8.6 "Platinum" sticky-note papers.
+
+     The optional Notes plasmoid (org.kde.plasma.notes, KDE's Stickies
+     analog) draws its full representation and config thumbnails as
+     KSvg.SvgItem with `imagePath: "widgets/notes"` and element id
+     `<color>-notes` for each of the ten colours its config offers
+     (read 2026-10-27 from the installed plasmoid's contents/ui/main.qml,
+     contents/ui/configAppearance.qml and contents/config/main.xml, which
+     also fix the ten ids as KDE-required).
+
+     No reference screenshot shows a sticky note (nor Mac OS 8.6's
+     Stickies), so these papers are platform-required adaptations: each is
+     the theme's flat, black-outlined art, a flat fill inside a 1px
+     #000000 outline, the same black the checkmarks and arrows glyphs pin.
+     white #FFFFFF and black #000000 reuse the grounded view/label anchors;
+     yellow #FFFFCC reuses the colour scheme's [Colors:Tooltip] role,
+     255,255,204, the classic Platinum pale-yellow the scheme already
+     ships as a KDE-required semantic role (recorded as not sampled: no
+     retail balloon reference exists); the remaining chromatic fills (red
+     #FF6666, orange #FFCC99, green #99FF99, blue #99CCFF, pink #FF99CC)
+     and the two translucent opacities (#FFFFFF at 0.5 and 0.35) are this
+     theme's own choices, pinned by tests/test_desktoptheme_notes.py.
+
+     Each element is a group holding an invisible full-cell bounding rect
+     plus the paper rect: the plasmoid's SvgItem scales the element by its
+     bounds (it reads no nine-slice margins), and the rect pins those
+     bounds to the 32x32 cell. The installed default theme spells its
+     element `transluscent-notes` and ships no `translucent-light-notes`,
+     so those two colours would draw nothing there.
+
+     Canvas: ten 32x32 cells side by side, one per config colour, in the
+     order contents/ui/configAppearance.qml's view.model lists them.
+     -->
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="32" viewBox="0 0 320 32">
+  <g id="white-notes">
+    <rect x="0" y="0" width="32" height="32" fill="none"/>
+    <rect x="0.5" y="0.5" width="31" height="31" fill="#FFFFFF" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="black-notes">
+    <rect x="32" y="0" width="32" height="32" fill="none"/>
+    <rect x="32.5" y="0.5" width="31" height="31" fill="#000000" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="red-notes">
+    <rect x="64" y="0" width="32" height="32" fill="none"/>
+    <rect x="64.5" y="0.5" width="31" height="31" fill="#FF6666" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="orange-notes">
+    <rect x="96" y="0" width="32" height="32" fill="none"/>
+    <rect x="96.5" y="0.5" width="31" height="31" fill="#FFCC99" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="yellow-notes">
+    <rect x="128" y="0" width="32" height="32" fill="none"/>
+    <rect x="128.5" y="0.5" width="31" height="31" fill="#FFFFCC" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="green-notes">
+    <rect x="160" y="0" width="32" height="32" fill="none"/>
+    <rect x="160.5" y="0.5" width="31" height="31" fill="#99FF99" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="blue-notes">
+    <rect x="192" y="0" width="32" height="32" fill="none"/>
+    <rect x="192.5" y="0.5" width="31" height="31" fill="#99CCFF" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="pink-notes">
+    <rect x="224" y="0" width="32" height="32" fill="none"/>
+    <rect x="224.5" y="0.5" width="31" height="31" fill="#FF99CC" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="translucent-notes">
+    <rect x="256" y="0" width="32" height="32" fill="none"/>
+    <rect x="256.5" y="0.5" width="31" height="31" fill="#FFFFFF" fill-opacity="0.5" stroke="#000000" stroke-width="1"/>
+  </g>
+
+  <g id="translucent-light-notes">
+    <rect x="288" y="0" width="32" height="32" fill="none"/>
+    <rect x="288.5" y="0.5" width="31" height="31" fill="#FFFFFF" fill-opacity="0.35" stroke="#000000" stroke-width="1"/>
+  </g>
+</svg>
