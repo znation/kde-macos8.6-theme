@@ -137,6 +137,45 @@ class _LedgerMixin:
         self.assertIsNone(validation_gaps.reproduction_for(record))
 
 
+class TestReproductionLookup(unittest.TestCase):
+    """Pin reproduction_for's branches the real-archive suites do not reach.
+
+    The prose matcher accepts any lowercase tag, so a sixth tag can reach
+    read_gaps; its lookup must refuse that record rather than lend another
+    ledger's entry, and a record must match an entry through any one of its
+    markers, not all of them.
+    """
+
+    def test_a_foreign_tag_borrows_no_ledger_entry(self):
+        # build the subject from a shipped entry's first marker, so a lookup
+        # that ignores the tag would find that entry; the refusal is what we
+        # pin.
+        subject = validation_gaps.NO_OBSERVABILITY_REPRODUCTIONS[0].markers[0]
+        record = validation_gaps.Gap("slow-check", "bugs.md", 1, subject)
+        self.assertIsNone(validation_gaps.reproduction_for(record))
+
+    def test_any_single_marker_of_an_entry_identifies_its_record(self):
+        entry = validation_gaps.Reproduction(
+            "synthetic",
+            ("marker one", "marker two"),
+            "tests/test_validation_gaps.py"
+            "::TestReproductionLookup"
+            "::test_any_single_marker_of_an_entry_identifies_its_record",
+        )
+        ledger = validation_gaps.Ledger((entry,), 0)
+        original = validation_gaps.LEDGERS["no-observability"]
+        validation_gaps.LEDGERS["no-observability"] = ledger
+        self.addCleanup(
+            validation_gaps.LEDGERS.__setitem__,
+            "no-observability",
+            original,
+        )
+        record = validation_gaps.Gap(
+            "no-observability", "bugs.md", 1, "the record cites marker two"
+        )
+        self.assertIs(validation_gaps.reproduction_for(record), entry)
+
+
 class TestNoObservabilityLedger(_LedgerMixin, unittest.TestCase):
     tag = "no-observability"
     missing_advice = "add a test-side reproduction for the new failure"
