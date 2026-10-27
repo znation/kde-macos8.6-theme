@@ -8,7 +8,10 @@ selector would match each representative element.
 Only the subset the sheet's scope tests use is supported: descendant and
 child (``>``) combinators separating compound selectors made of an element
 name, ``#id``, ``.class``, ``[attribute]``/``[attribute="value"]``, ``:hover``
-and ``:not(...)`` (whose argument may itself be a single selector). A sibling
+and ``:not(...)`` (whose argument may itself be a single selector). CSS
+whitespace around an attribute selector's name, ``=`` and value is
+insignificant, as it is between compounds, so ``[type = "arrow"]`` and
+``[ type ]`` are the same tests as their unspaced forms. A sibling
 combinator (``+`` or ``~``), a selector list (a comma outside an attribute
 selector, as in ``:not(.a, .b)`` or the top-level ``.a, .b``) or any other
 pseudo-class or pseudo-element is outside that subset and makes its selector
@@ -37,7 +40,8 @@ _CLASS = re.compile(r"\.([-\w]+)")
 _TAG = re.compile(r"^([-\w]+|\*)")
 _HOVER = re.compile(r":hover(?![-\w])")
 _ATTRIBUTE = re.compile(
-    r"\[([-\w]+)(?:=(?:\"([^\"]*)\"|'([^']*)'|([^\]]+)))?\]"
+    r"\[\s*([-\w]+)\s*"
+    r"(?:=\s*(?:\"([^\"]*)\"|'([^']*)'|([^\]\s\"']+))\s*)?\]"
 )
 _NEGATION_PLACEHOLDER = "\x00"
 

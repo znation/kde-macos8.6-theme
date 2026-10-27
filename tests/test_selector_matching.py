@@ -321,6 +321,40 @@ class TestSelectorMatching(unittest.TestCase):
                 self.assertFalse(matches(selector, non_empty))
                 self.assertFalse(matches(selector, missing))
 
+    def test_attribute_selector_ignores_css_whitespace_around_its_parts(self):
+        # CSS treats whitespace around an attribute selector's name, ``=`` and
+        # value as insignificant. Requiring its absence made a valid selector
+        # match nothing, and the unquoted fallback swallowed the quotes in
+        # ``[type="arrow" ]`` so its value became ``"arrow" `` and again matched
+        # no element.
+        target = element("button", attrs={"type": "arrow"})
+        other = element("button", attrs={"type": "crossbow"})
+        missing = element("button")
+        for selector in (
+            '[type="arrow"]', '[type = "arrow"]', "[ type = 'arrow' ]",
+            '[type="arrow" ]', "[type=arrow]", "[type = arrow ]",
+        ):
+            with self.subTest(selector=selector):
+                self.assertTrue(_selector_is_supported(selector))
+                self.assertTrue(matches(selector, target))
+                self.assertFalse(matches(selector, other))
+                self.assertFalse(matches(selector, missing))
+        for selector in ("[ type ]",):
+            with self.subTest(selector=selector):
+                self.assertTrue(_selector_is_supported(selector))
+                self.assertTrue(matches(selector, target))
+                self.assertTrue(matches(selector, other))
+                self.assertFalse(matches(selector, missing))
+        # An unquoted value cannot contain a quote: it must be rejected rather
+        # than read whole, which accepted these and compared no value that could
+        # match.
+        for malformed in ('[type="arrow"x]', '[type="ar"row]'):
+            with self.subTest(selector=malformed):
+                self.assertFalse(_selector_is_supported(malformed))
+                self.assertFalse(matches(malformed, target))
+        self.assertFalse(matches('[type = "arrow" x]', target))
+        self.assertFalse(matches("[type =]", target))
+
     def test_unsupported_pseudo_class_inside_negation_matches_nothing(self):
         # A pseudo-class outside the supported subset cannot be evaluated, so
         # it must make its whole selector match nothing. Negating it must not

@@ -5,6 +5,43 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The selector matcher rejects CSS whitespace around an attribute selector (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
+
+**Symptom.** `tests/support/selector_matching.py`'s `_ATTRIBUTE` pattern
+required the attribute name, `=`, value and `]` to touch. CSS treats that
+whitespace as insignificant, so valid selectors such as `[type = "arrow"]`
+and `[ type ]` were judged outside the supported subset and matched no
+element. The unquoted fallback also swallowed quotes: `[type="arrow" ]` was
+reported as supported, but its value was compared as `"arrow" ` (quotes
+included) and it too matched no element. The shipped Firefox sheet uses no
+spaced attribute selector, so the gap was latent.
+
+**Reproduce.** From the repository root:
+
+```
+PYTHONPATH=tests python3 -c 'from support.selector_matching import matches, element; print(matches("[type = \"arrow\"]", element("button", attrs={"type": "arrow"})), matches("[type=\"arrow\" ]", element("button", attrs={"type": "arrow"})))'
+```
+
+printed `False False`; both selectors name the same attribute test as
+`[type="arrow"]` and should match the element.
+
+**Suspected cause.** `_ATTRIBUTE` had no `\s*` between the selector's parts and
+its unquoted-value branch used `[^\]]+`, which could swallow a closing quote
+and following whitespace instead of failing the match.
+
+**Fix.** `_ATTRIBUTE` now allows CSS whitespace around the name, `=`, value and
+closing bracket, and its unquoted branch excludes whitespace and quotes. New
+test `test_attribute_selector_ignores_css_whitespace_around_its_parts` failed
+on the spaced selectors and on the quoted unquoted values before the change
+and passes after; it also checks each
+spaced form against an element with a different value and one without the
+attribute, and pins that an unquoted value carrying a quote is rejected. The
+`test_selector_matching` module as a whole still passes.
+
+**Validation gap:** none — no existing test carried a spaced or quoted
+unquoted attribute selector (so no closer tag than `none` fits); a scratch
+call and the new test reproduced the false rejection deterministically.
+
 ### The sheet parser treats a brace or comment marker inside a quoted string as structure (found by the bugfix role 2026-10-26) — fixed 2026-10-26 by the bugfix role
 
 **Symptom.** `tests/support/gtk_css.py`'s scanners did not know about quoted
