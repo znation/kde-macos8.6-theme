@@ -59,7 +59,35 @@ shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$(
 # FLOCK_TIMEOUT is in the list before `FLOCK_TIMEOUT ?= 60` is read: the
 # guard evaluates its default as still undefined (empty, harmless), while an
 # environment or command-line value is already expanded and checked here.
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT COLOR_SCHEME COLOR_SCHEME_ID,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
+# RENDER_OUTPUT ?= render.png sits further down with the `render` target for
+# the same reason: its default is empty here, and `render` pastes the value
+# into the double-quoted word `-- "$(RENDER_OUTPUT)"`.
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
+
+# PYTHON is expanded into recipe words unquoted -- a value may carry
+# arguments (`/usr/bin/python3 -X dev`), so the words cannot be
+# double-quoted -- and at an unquoted position a wider set of characters is
+# shell syntax than inside double quotes: an apostrophe, a semicolon, a
+# pipe, an ampersand, a parenthesis, a redirection character or a newline
+# would run the words after it as shell syntax instead of naming an
+# interpreter. Refuse such a value at make level like the path variables
+# above, naming the variable, the offending character and the value. A
+# space stays legal because the multi-word form is the documented one
+# (`PYTHON_RUN` below). `PYTHON ?= python3` sits at the top of the file, so
+# the guard here sees the default, an environment value and a command-line
+# value alike. A lone parenthesis cannot sit in the character list of a
+# `$(foreach ...)` call unescaped, so the two come from variables; the
+# newline cannot be written literally in an assignment, so it comes from
+# `define` and is reported as the word `newline`.
+open_paren := (
+close_paren := )
+define newline
+
+
+endef
+py_extra_unsafe_chars = ' ; | & < > $(open_paren) $(close_paren)
+py_unsafe_in = $(strip $(call shell_unsafe_in,$(1)) $(foreach c,$(py_extra_unsafe_chars),$(findstring $(c),$(1))) $(if $(findstring $(newline),$(1)),newline))
+$(if $(call py_unsafe_in,$(PYTHON)),$(error PYTHON contains a shell metacharacter ('$(call py_unsafe_in,$(PYTHON))' in '<$(PYTHON)>'); the value is expanded unquoted into recipe words, where it would run as shell syntax instead of naming an interpreter; pass an interpreter command without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
 
 # The theme tree `make install` copies from. A test overrides it on the command
 # line to point the symlink guard below at a scratch package tree.

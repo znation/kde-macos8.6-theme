@@ -716,6 +716,153 @@ class TestShellUnsafeColorScheme(unittest.TestCase):
         self.assertIn("COLOR_SCHEME_ID := my scheme'", output)
 
 
+class TestShellUnsafePython(unittest.TestCase):
+    """A `PYTHON` carrying recipe-shell syntax at an unquoted spot is refused.
+
+    Recipes expand `$(PYTHON)` unquoted -- a value may carry arguments
+    (`/usr/bin/python3 -X dev`), so the words cannot be double-quoted -- and
+    at an unquoted position a wider character set is shell syntax than
+    inside double quotes: beyond the four the double-quoted guard refuses,
+    an apostrophe, a semicolon, a pipe, an ampersand, a parenthesis, a
+    redirection character or a newline would run the words after it as
+    shell commands instead of naming an interpreter. The make-level guard
+    refuses such a value before any recipe of any target runs; a space
+    stays legal because the multi-word form is the documented one.
+    """
+
+    # The unquoted hostiles beyond the double-quoted four
+    # (`TestShellUnsafeInstallPaths.HOSTILES`): the make-argument form and
+    # the text the diagnostic must echo back. A `$` arrives doubled in the
+    # make argument, as HOSTILES there documents; the double-quoted four are
+    # driven in test_the_double_quoted_hostiles_are_refused too.
+    EXTRA_HOSTILES = (
+        ("'", "x'; y'", "x'; y'"),
+        (";", "x; y", "x; y"),
+        ("|", "x|y", "x|y"),
+        ("&", "x&y", "x&y"),
+        ("(", "x(y", "x(y"),
+        (")", "x)y", "x)y"),
+        ("<", "x<y", "x<y"),
+        (">", "x>y", "x>y"),
+    )
+
+    def _assert_refused(self, make_value, shown_value):
+        """Dry-run `render` with *make_value*; make must refuse at parse time.
+
+        A dry run is enough because the guard is a make-level `$(error)`: if
+        it ever stops firing, make exits 0 here and the assertion fails.
+        """
+        result = theme_install.run_make(
+            ["-n", "render", f"PYTHON={make_value}"]
+        )
+        assert_failed(self, result)
+        self.assertIn("PYTHON contains a shell metacharacter", result.stderr)
+        self.assertIn(shown_value, result.stderr)
+
+    def test_the_double_quoted_hostiles_are_refused(self):
+        # A value pasted into `set -- "$(PYTHON)"` (require_python) and into
+        # the double-quoted echo of require_python_version needs the same
+        # four refusals as the path variables.
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_each_unquoted_metacharacter_is_refused(self):
+        for char, make_value, shown_value in self.EXTRA_HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_a_newline_is_refused(self):
+        # An unquoted newline is a command separator, and make carries a
+        # command-line assignment's newline into the value verbatim.
+        self._assert_refused("py\nx; touch CANARY", "py\nx; touch CANARY")
+
+    def test_a_hostile_value_runs_no_shell(self):
+        """A refused PYTHON must not run any of its injected words.
+
+        Without the guard, `make render PYTHON='python3; touch <canary>; :'`
+        created the canary from the version probe line itself, before the
+        main recipe line even ran. The refusal must come first and leave no
+        canary.
+        """
+        tmp = make_tmp_dir(self)
+        canary = tmp / "injected"
+        result = theme_install.run_make(
+            [
+                "render",
+                f"PYTHON=python3; touch '{canary}'; :",
+            ]
+        )
+        assert_failed(self, result)
+        self.assertIn("PYTHON contains a shell metacharacter", result.stderr)
+        self.assertFalse(canary.exists(), tmp)
+
+    def test_a_multi_word_interpreter_stays_legal(self):
+        # The documented form: an interpreter command with arguments. A dry
+        # run must succeed and hand both words to the recipe unquoted.
+        result = theme_install.run_make(
+            ["-n", "render", "PYTHON=/usr/bin/python3 -X dev"]
+        )
+        assert_succeeded(self, result)
+        self.assertIn(
+            "/usr/bin/python3 -X dev tools/render_surface.py", result.stdout
+        )
+
+
+class TestShellUnsafeRenderOutput(unittest.TestCase):
+    """A `RENDER_OUTPUT` carrying a recipe-shell metacharacter is refused.
+
+    `render` pastes the value into the double-quoted word
+    `-- "$(RENDER_OUTPUT)"`, so a double quote, `$`, a backtick or a
+    backslash would run the words after it as shell commands instead of
+    naming a PNG file. The same make-level guard the install paths pin
+    refuses such a value before any recipe of any target runs; the variable's
+    `?=` default sits further down in the Makefile, so the guard sees it as
+    still undefined there and only environment or command-line values are
+    checked.
+    """
+
+    def _assert_refused(self, make_value, shown_value):
+        result = theme_install.run_make(
+            ["-n", "render", f"RENDER_OUTPUT={make_value}"]
+        )
+        assert_failed(self, result)
+        self.assertIn("RENDER_OUTPUT contains a shell metacharacter", result.stderr)
+        self.assertIn(shown_value, result.stderr)
+
+    def test_each_metacharacter_is_refused_in_RENDER_OUTPUT(self):
+        # The value reaches a double-quoted word, so the same HOSTILES pairs
+        # `TestShellUnsafeInstallPaths` documents apply.
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_a_hostile_value_runs_no_shell(self):
+        """A refused RENDER_OUTPUT must not run any of its injected words.
+
+        Without the guard, `make render RENDER_OUTPUT='x"; touch <canary>;
+        echo "'` created the canary after the render tool's word closed. The
+        refusal must come first and leave no canary.
+        """
+        tmp = make_tmp_dir(self)
+        canary = tmp / "injected"
+        result = theme_install.run_make(
+            ["render", f"RENDER_OUTPUT=x\"; touch '{canary}'; echo \""]
+        )
+        assert_failed(self, result)
+        self.assertIn("RENDER_OUTPUT contains a shell metacharacter", result.stderr)
+        self.assertFalse(canary.exists(), tmp)
+
+    def test_a_name_with_a_space_stays_legal(self):
+        # Inside the double-quoted word a space is inert, so a file name with
+        # one keeps working.
+        result = theme_install.run_make(
+            ["-n", "render", "RENDER_OUTPUT=my render.png"]
+        )
+        assert_succeeded(self, result)
+        self.assertIn('-- "my render.png"', result.stdout)
+
+
 class TestXdgDataHomeDefault(unittest.TestCase):
     """An empty or relative $XDG_DATA_HOME must fall back to the XDG default.
 
