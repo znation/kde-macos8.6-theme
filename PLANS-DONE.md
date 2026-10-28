@@ -5,6 +5,50 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK search bar and action bar: paint `GtkSearchBar` and `GtkActionBar` as the menu-bar band in GTK 3 and GTK 4 (planned 2026-10-27 by the plan role; independent of the waiting Firefox about:support content plan — the two touch disjoint files (`theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py` versus `theme/firefox/org.macos8.desktop/chrome/userContent.css` and `tests/test_firefox_content_theme.py`), and their `docs/invariants.md` edits only append one new row each, so either order merges; no other GTK plan waits behind it) — done 2026-10-27 by the feature role
+
+**Goal.** The landed GTK sheets paint the menu bar, toolbar and infobar as the Platinum band (`#DDDDDD` face, black text, `#888888`/`#FFFFFF` etched bottom rule) but a `GtkSearchBar` and a `GtkActionBar` keep stock paint: a plain background under the sheet's `window` colours with no etched rule, so a window's bottom action bar and top search bar read as unbounded strips. This plan paints both bands as the landed menu-bar band — the same recipe byte-for-byte, in both toolkits.
+
+**Verified facts (checked 2026-10-27).** `grep -c 'actionbar\|searchbar\|search-bar'` returns 0 for both `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `gtk-4.0/gtk.css` — no landed rule covers either surface, and no PLANS.md `## Planned` entry nor PLANS-DONE.md finished plan names a GTK search bar or action bar (the landed GTK infobar plan's heading names only `Gtk.InfoBar`). Live-measured with PyGObject (GTK 3.24.49 and GTK 4.18.6, the toolkits the landed infobar row also names): GTK 3 builds `searchbar > revealer > box` (the search entry under it has the `entry` node with the `.search` class) and `actionbar > revealer > box` (the buttons under it are plain `button` nodes); GTK 4's widget probes report the identical css names `searchbar > revealer > box` (a `box`-named `GtkCenterBox` under the revealer) and `actionbar > revealer > box` — so the two landed toolkits share the one selector pair, exactly as the landed infobar rule shares `infobar > revealer > box`.
+
+**Grounding (platform adaptation, steward clarification 2026-10-25).** No reference screenshot in `macos8.6-screenshots/` shows a GTK search bar or action bar, so the bands sample no reference pixel: they reuse only reference-grounded values the sheets already pin — the `#DDDDDD` face and black text from the menu-bar band (`tests/test_colorscheme_reference.py::TestReferenceAnchors::test_menu_bar_face`) and the etched pair from `tests/test_desktoptheme_line.py::TestLineReference`, through the sheets' own `toolbar, menubar` and landed infobar rules. The band geometry, the revealer/box node names and the `:disabled`-free scope are GTK-required. `:backdrop` stays out of scope, as the landed infobar and headerbar backdrop decisions scoped it out. Both surfaces take the one band recipe — the action bar's etched rule stays the menu-bar band's bottom rule rather than a mirrored top rule, because the sheets ship exactly one band recipe (menu bar, toolbar and infobar all use it) and a second mirrored variant would add an unpinned orientation choice; this is decided here so no design question is left open.
+
+**Approach.** In both `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` and `gtk-4.0/gtk.css`, directly after the landed `infobar > revealer > box` rule (the last rule of the GTK 3 sheet; the GTK 4 sheet ends the same way), add:
+
+```css
+/* A search bar and an action bar draw the menu-bar band: the #DDDDDD face,
+   black text and the etched bottom rule. The search entry keeps the entry
+   field and the close and action buttons keep the button paint; :backdrop
+   stays out of scope. */
+searchbar > revealer > box,
+actionbar > revealer > box {
+  background-color: #DDDDDD;
+  color: #000000;
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
+```
+
+In both sheets' provenance header comment, append one sentence after the infobar sentence and before the closing `*/`: "A search bar and an action bar band reuse the same menu-bar band with the same etched bottom rule; no reference screenshot shows a GTK search bar or action bar, and the revealer and box node names are GTK-required."
+
+In `tests/test_gtk_theme.py::TestGtkTheme`, after the landed `test_infobar`, add:
+- `test_search_bar` and `test_action_bar`, each calling `self.assert_infobar((selector,))` with `"searchbar > revealer > box"` and `"actionbar > revealer > box"` respectively — reusing the shared `INFOBAR` spec in `tests/support/gtk_rule_cases.py` so both bands stay byte-identical to the infobar band, with no new constant and no edit to any landed rule.
+
+In `tests/test_gtk4_theme.py::TestGtk4Theme`, after the landed `test_infobar`, add the same two tests with the same selectors calling `self.assert_infobar`.
+
+Extend no landed assertion: the shared `assert_rule` machinery already parses both sheets, so the only change is the two tests per sheet.
+
+In `docs/invariants.md`, in the `## gtk` table: append exactly one row after the last gtk row (the landed infobar row) with the guarantee in one sentence (both sheets paint `searchbar > revealer > box` and `actionbar > revealer > box` as the menu-bar band — the `#DDDDDD` face, black text and the `#888888`/`#FFFFFF` etched bottom rule — while the search entry keeps the entry field and the close and action buttons keep the `button` paint, and `:backdrop` stays out of scope) and the test column naming `tests/test_gtk_theme.py::TestGtkTheme::test_search_bar`/`test_action_bar` and `tests/test_gtk4_theme.py::TestGtk4Theme::test_search_bar`/`test_action_bar`; trim no landed row.
+
+**Files touched.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk_theme.py`, `tests/test_gtk4_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- Both sheets gain exactly the one rule block above after the infobar rule, introducing no hex outside `{#DDDDDD, #888888, #FFFFFF, #000000}` and changing no landed rule's text.
+- Both sheets' headers gain exactly the one sentence after the infobar sentence and before `*/`.
+- The four new tests pass with the shared `assert_infobar`/`INFOBAR` path, and no landed test or support constant changes.
+- `docs/invariants.md` gains exactly one appended row after the last `## gtk` row naming the four new tests, with no landed row's wording changed; `tests/support/invariants.py`'s register stays in step.
+- `make check` passes.
+
 ### Firefox Platinum content: paint about:support's tables, column-header cells and buttons as the Platinum sunken list field, raised headers and push buttons (planned 2026-10-27 by the plan role; independent of the waiting Library parts 5/6 and 6/6 — those touch `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/support/firefox_chrome_cases.py`, `tests/test_firefox_theme_library.py` and only trim/append in `docs/invariants.md`, while this plan touches `theme/firefox/org.macos8.desktop/chrome/userContent.css` and `tests/test_firefox_content_theme.py` and only appends its own new row in `docs/invariants.md`, so either order merges; no other content surface or page waits behind it) — done 2026-10-27 by the feature role
 
 **Amendment 2026-10-27 by the feature role:** the planned

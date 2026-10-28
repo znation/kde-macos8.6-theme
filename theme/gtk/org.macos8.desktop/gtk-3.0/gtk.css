@@ -122,7 +122,10 @@
    infobar band reuses the menu-bar band's face and etched bottom rule with
    black text; no reference screenshot shows a GTK infobar, and the four
    message-type class names are GTK-required, so all types take the same
-   band. */
+   band. A search bar and an action bar band reuse the same menu-bar band
+   with the same etched bottom rule; no reference screenshot shows a GTK
+   search bar or action bar, and the revealer and box node names are
+   GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -818,6 +821,18 @@ calendar:indeterminate {
    take this band; no reference screenshot shows a GTK infobar, and the type
    class names are GTK-required. */
 infobar > revealer > box {
+  background-color: #DDDDDD;
+  color: #000000;
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
+
+/* A search bar and an action bar draw the menu-bar band: the #DDDDDD face,
+   black text and the etched bottom rule. The search entry keeps the entry
+   field and the close and action buttons keep the button paint; :backdrop
+   stays out of scope. */
+searchbar > revealer > box,
+actionbar > revealer > box {
   background-color: #DDDDDD;
   color: #000000;
   border-bottom: 1px solid #888888;

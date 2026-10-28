@@ -252,6 +252,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         for message_type in (".info", ".question", ".warning", ".error"):
             self.assertNotIn(message_type, self.css, message_type)
 
+    def test_search_bar(self):
+        self.assert_infobar(("searchbar > revealer > box",))
+
+    def test_action_bar(self):
+        self.assert_infobar(("actionbar > revealer > box",))
+
     def test_rubberband(self):
         self.assert_rubberband((".rubberband", "rubberband"))
         # A later .view rule would win the cascade again.
