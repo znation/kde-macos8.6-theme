@@ -471,7 +471,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 29
+NO_FAKE_BASELINE = 30
 
 NO_FAKE_REPRODUCTIONS = (
     Reproduction(
@@ -497,6 +497,12 @@ NO_FAKE_REPRODUCTIONS = (
         ("a pattern-matched module that collects no tests",),
         "tests/test_check_parallel.py::TestCoordinator"
         "::test_a_module_with_no_tests_does_not_fail_the_run",
+    ),
+    Reproduction(
+        "check-parallel-forged-exit-5",
+        ("a module that dies of its own os._exit(5) skips its tests silently",),
+        "tests/test_check_parallel.py::TestCoordinator"
+        "::test_an_exit_5_without_the_no_tests_ran_summary_fails_the_run",
     ),
     Reproduction(
         "firefox-content-at-rule-escaped-quote",

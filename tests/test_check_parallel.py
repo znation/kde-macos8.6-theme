@@ -156,6 +156,35 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("===== test_ok: exit 0 =====", result.stdout)
         self.assertIn("Ran 1 test in", result.stdout)
 
+    def test_an_exit_5_without_the_no_tests_ran_summary_fails_the_run(self):
+        # The exit-5 status alone is not evidence of an empty run: a
+        # module whose test dies of its own `os._exit(5)` leaves a log
+        # with no unittest result block. Serial `unittest discover` fails
+        # such a run (the whole process exits 5); the parallel run must
+        # fail too, not pass on a fake `ran no tests` verdict.
+        tests_dir = self._project(
+            {
+                "test_boom.py": (
+                    "import os, unittest\n"
+                    "\n"
+                    "\n"
+                    "class TestBoom(unittest.TestCase):\n"
+                    "    def test_boom(self):\n"
+                    "        os._exit(5)\n"
+                ),
+                "test_ok.py": OK_MODULE,
+            }
+        )
+        result = self._run("--tests-dir", tests_dir, "--workers", "2")
+        assert_failed(self, result)
+        self.assertIn(
+            "===== test_boom: exit 5 but the log shows no unittest "
+            "NO TESTS RAN summary =====",
+            result.stdout,
+        )
+        self.assertIn("===== test_ok: exit 0 =====", result.stdout)
+        self.assertIn("1 module failed", result.stdout)
+
     def test_a_failing_module_fails_the_run_with_its_output(self):
         tests_dir = self._project(
             {"test_ok_one.py": OK_MODULE, "test_bad_two.py": FAILING_MODULE}

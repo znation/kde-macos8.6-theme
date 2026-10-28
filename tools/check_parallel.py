@@ -23,11 +23,14 @@ The guarantees the serial run gave each worker are restated here:
   ``KeyboardInterrupt`` (the machinery of ``tools/process_group.py``), so the
   cleanup below runs and kills every still-running group: an interrupted
   coordinator leaves no workers behind;
-- the exit status is 0 when every module passed, or exited 5 -- unittest's
-  NO TESTS RAN -- because a pattern-matched module that collects no tests
-  contributes nothing to the serial ``unittest discover`` run either, so it
-  does not fail this one; 1 when a module failed or timed out, and 2 for
-  usage errors.
+- the exit status is 0 when every module passed, or exited 5 *and its log
+  carries unittest's ``NO TESTS RAN`` summary* -- a pattern-matched module
+  that collects no tests contributes nothing to the serial ``unittest
+  discover`` run either, so it does not fail this one; an exit 5 without
+  that printed summary (a module that died of its own ``os._exit(5)``) is
+  a skipped run, not an empty one, and fails the run like any other
+  nonzero status; 1 when a module failed or timed out, and 2 for usage
+  errors.
 
 `make check` runs this tool by default; `make check CHECK_PARALLEL=0` keeps
 the serial `unittest discover` path, and `CHECK_PARALLEL=n` bounds the worker
@@ -97,6 +100,11 @@ _KILL_SIGNAL = 9
 # unittest's exit status for a worker whose run collected no tests
 # (NO TESTS RAN; Python 3.12 and later).
 _NO_TESTS_RAN = 5
+# The printed proof that an exit 5 really was an empty run: unittest
+# writes both lines on stderr's result block. A status alone is not
+# evidence -- a module could die with its own ``os._exit(5)`` and skip its
+# tests -- so the log must carry this summary before the run passes.
+_NO_TESTS_RAN_MARKERS = ("Ran 0 tests", "NO TESTS RAN")
 
 # unittest discovery loads a file as a test module only when its basename is
 # a valid Python identifier ending in .py (TestLoader's VALID_MODULE_NAME),
@@ -354,6 +362,15 @@ def _print_results(
     not_finished = 0
     no_tests = 0
     for module in modules:
+        log_text = ""
+        if module in log_paths:
+            try:
+                with open(
+                    log_paths[module], encoding="utf-8", errors="replace"
+                ) as log:
+                    log_text = log.read()
+            except OSError:
+                log_text = ""
         if module not in statuses:
             verdict = "did not finish"
             not_finished += 1
@@ -362,19 +379,27 @@ def _print_results(
                 f"timed out after {timeout:.0f}s (process group killed)"
             )
             timed_out += 1
-        elif statuses[module] == _NO_TESTS_RAN:
+        elif statuses[module] == _NO_TESTS_RAN and all(
+            marker in log_text for marker in _NO_TESTS_RAN_MARKERS
+        ):
             # unittest exits 5 (NO TESTS RAN) for a module whose run
             # collected no tests. The serial discover run gets nothing from
             # such a module and still passes, so the parallel run passes
             # too; the section says so instead of a bare `exit 5`.
             verdict = "ran no tests (unittest's NO TESTS RAN, exit 5)"
             no_tests += 1
+        elif statuses[module] == _NO_TESTS_RAN:
+            # The status alone is not evidence: a module can die of its
+            # own exit 5 (a test calling ``os._exit(5)``) with its tests
+            # never finished, while the serial discover run fails. Only
+            # unittest's printed summary proves the run was empty.
+            verdict = "exit 5 but the log shows no unittest NO TESTS RAN summary"
+            failed += 1
         else:
             verdict = f"exit {statuses[module]}"
             failed += statuses[module] != 0
         print(f"===== {module}: {verdict} =====")
-        with open(log_paths[module], encoding="utf-8", errors="replace") as log:
-            shutil.copyfileobj(log, sys.stdout)
+        sys.stdout.write(log_text)
     if failed or timed_out or not_finished:
         summary = [f"{_plural(len(modules), 'module')}"]
         if failed:

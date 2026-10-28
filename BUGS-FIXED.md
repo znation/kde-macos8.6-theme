@@ -5,6 +5,37 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The parallel coordinator trusts a worker's bare exit 5 as `ran no tests`, so a module that dies of its own os._exit(5) skips its tests silently while the same tree fails `unittest discover` (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+**Symptom:** an earlier fix today taught `tools/check_parallel.py` to pass a
+worker whose exit status was 5 (unittest's NO TESTS RAN) as a
+pattern-matched module that collects no tests. The status alone is not
+evidence: a module whose test dies of its own `os._exit(5)` (intended
+exit or not) also exits 5 with its tests never finished, so the
+coordinator printed a fake `ran no tests` verdict and passed the whole
+run while silently skipping that module — while the serial
+`unittest discover` path that `make check CHECK_PARALLEL=0` keeps fails
+on the same tree (its whole process exits 5).
+
+**Reproduce:** a scratch tests directory holding `test_boom.py` (a test
+whose body calls `os._exit(5)`) and `test_ok.py` (one passing test):
+the parallel coordinator exited 0 and printed `===== test_boom: ran no
+tests (unittest's NO TESTS RAN, exit 5) =====`, while
+`python -m unittest discover -s <that dir>` exited 5 on the same tree.
+
+**Fix:** `_print_results` now requires exit 5 to carry unittest's printed
+proof — the worker log must contain both `Ran 0 tests` and
+`NO TESTS RAN` — before the run passes the module as test-less. An
+exit 5 without that summary is reported verbatim
+(`exit 5 but the log shows no unittest NO TESTS RAN summary`) and fails
+the run like any other failed module.
+
+**Validation gap:** no-fake — the repo's `tests/` holds no module that
+dies of its own `os._exit(5)`, so the real suite could not surface the
+forged-pass; a scratch directory with such an exit-5 fixture module
+reproduced it (parallel exit 0, serial exit 5), and that fixture now
+pins the verdict.
+
 ### The parallel coordinator fails a pattern-matched module that collects no tests as `exit 5`, so the same tree passes `make check CHECK_PARALLEL=0` and fails the default run (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom:** `tools/check_parallel.py` reported a worker with a bare
