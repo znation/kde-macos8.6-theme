@@ -125,7 +125,10 @@
    band. A search bar and an action bar band reuse the same menu-bar band
    with the same etched bottom rule; no reference screenshot shows a GTK
    search bar or action bar, and the revealer and box node names are
-   GTK-required. */
+   GTK-required. A status bar band reuses the same menu-bar band with the
+   same etched bottom rule, and on GTK 3 its shadowless internal frame
+   border stays flat; no reference screenshot shows a GTK status bar, and
+   the statusbar node name is GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -837,4 +840,20 @@ actionbar > revealer > box {
   color: #000000;
   border-bottom: 1px solid #888888;
   box-shadow: inset 0 -1px #FFFFFF;
+}
+
+/* A status bar draws the menu-bar band: the #DDDDDD face, black text and the
+   etched bottom rule. The statusbar's internal shadowless GtkFrame border
+   stays flat, so the landed frame rule does not draw the sunken field
+   inside the band; :backdrop stays out of scope. */
+statusbar {
+  background-color: #DDDDDD;
+  color: #000000;
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
+
+statusbar > frame > border {
+  border-style: none;
+  box-shadow: none;
 }

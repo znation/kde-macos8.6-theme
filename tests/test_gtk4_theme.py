@@ -339,6 +339,9 @@ for radio in (False, True):
     def test_action_bar(self):
         self.assert_infobar(("actionbar > revealer > box",))
 
+    def test_status_bar(self):
+        self.assert_infobar(("statusbar",))
+
     def test_rubberband(self):
         self.assert_rubberband(("rubberband",))
 

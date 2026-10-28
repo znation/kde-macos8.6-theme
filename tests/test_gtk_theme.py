@@ -258,6 +258,14 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_action_bar(self):
         self.assert_infobar(("actionbar > revealer > box",))
 
+    def test_status_bar(self):
+        self.assert_infobar(("statusbar",))
+
+    def test_status_bar_frame_border_is_flat(self):
+        self.assert_rule(
+            "statusbar > frame > border", {"border-style": "none", "box-shadow": "none"}
+        )
+
     def test_rubberband(self):
         self.assert_rubberband((".rubberband", "rubberband"))
         # A later .view rule would win the cascade again.
