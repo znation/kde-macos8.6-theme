@@ -1,6 +1,12 @@
 """Guard that every ``tests/test*.py`` module actually contributes tests.
 
-``make check`` runs ``python3 -m unittest discover -s tests -p 'test*.py'``.
+``make check`` discovers its modules with the filename glob in the Makefile's
+``CHECK_PATTERN ?=`` (default ``test*.py``) and runs them through the parallel
+coordinator ``tools/check_parallel.py``, whose worker runs each module the
+same way ``unittest discover -s tests -p 'test*.py'`` imports it; the same
+discovery semantics therefore decide both the coordinator's and the serial
+fallback's (`make check CHECK_PARALLEL=0`) module set.
+
 Discovery imports every module the pattern matches, but a matched module that
 defines no :class:`unittest.TestCase` yields an empty suite and is silently
 skipped: the run stays green while the file's tests, if the author meant it to

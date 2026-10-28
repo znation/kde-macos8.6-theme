@@ -198,6 +198,18 @@ CHECK_PATTERN ?= test*.py
 # resolve as they do under `discover`.
 CHECK_TESTS ?=
 
+# Without a value (the default) the discovery run goes through the parallel
+# coordinator `tools/check_parallel.py`: each matched module becomes one
+# worker process, `python -m unittest -v <module>` from tests/ with the same
+# interpreter as every other `check` path, and a bounded number of workers
+# run at a time (one per core by default, bounded by the module count). A
+# value of `0` restores the serial `unittest discover` run, and a positive
+# integer bounds the worker count. The guard refuses a value that is neither,
+# with a diagnostic naming CHECK_PARALLEL; the same empty/whitespace handling
+# as the other guards keeps an environment value's leading whitespace from
+# turning `0 ` into a refusal.
+CHECK_PARALLEL ?=
+
 # PYTHON is a make variable a caller can override (`make check
 # PYTHON=python3.12`) or leave to the environment, but `?=` keeps an empty
 # environment value. An empty value leaves the `check` recipe line starting
@@ -252,6 +264,16 @@ require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$
 # so fails the same check. $(1) names the target.
 require_check_pattern = set -- "$(CHECK_PATTERN)"; original="$$1"; value="$(strip $(CHECK_PATTERN))"; if [ -z "$$value" ] && [ -z "$$original" ] && [ -r "/proc/$$PPID/cmdline" ]; then original="$$(tr '\0' '\n' < "/proc/$$PPID/cmdline" | sed -n 's/^CHECK_PATTERN=//p' | tail -n 1)"; fi; case "$$value" in '') echo "$(1): CHECK_PATTERN must name a test-module glob, not an empty or whitespace-only value: '$$original'" >&2; exit 2;; esac; if [ -z "$$(find tests -type f -name "$$value" -name 'test*.py' | head -n 1)" ]; then echo "$(1): CHECK_PATTERN must match at least one test module (tests/test*.py): '$$original'" >&2; exit 2; fi
 
+# CHECK_PARALLEL tunes only how the discovered modules run: an empty value
+# (the default, also from the environment) means one worker per core, `0`
+# means the serial `unittest discover` path, and a positive integer bounds
+# the worker count. Anything else -- a negative number, a spelled-out value,
+# trailing text -- names no worker count and would reach the coordinator's
+# own type check as argparse's exit-2 usage error, which names the option but
+# not the variable that filled it. Refuse such a value here, naming
+# CHECK_PARALLEL, before the run starts. $(1) names the target.
+require_check_parallel = set -- "$(CHECK_PARALLEL)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in ''|0) ;; *[!0-9]*) echo "$(1): CHECK_PARALLEL must be a worker count (a nonnegative integer; 0 runs the suite serially): '$$1'" >&2; exit 2;; esac
+
 # The CHECK_TESTS recipe runs `cd tests` before it invokes the interpreter, so
 # a relative PYTHON path (`PYTHON=./.venv/bin/python`) would resolve against
 # tests/ and fail to start -- even though the discovery recipe, which runs
@@ -269,7 +291,12 @@ check:
 	@$(call require_check_tests,check)
 ifeq ($(strip $(CHECK_TESTS)),)
 	@$(call require_check_pattern,check)
+	@$(call require_check_parallel,check)
+ifneq ($(strip $(CHECK_PARALLEL)),0)
+	$(PYTHON) tools/check_parallel.py -p '$(strip $(CHECK_PATTERN))'$(if $(strip $(CHECK_PARALLEL)), --workers $(strip $(CHECK_PARALLEL)),)
+else
 	$(PYTHON) -m unittest discover -s tests -v -p '$(strip $(CHECK_PATTERN))'
+endif
 else
 	cd tests && $(PYTHON_RUN) -m unittest -v $(CHECK_TESTS)
 endif
@@ -301,6 +328,7 @@ help:
 	@echo "Variables (make VAR=value TARGET):"
 	@echo "  CHECK_PATTERN=glob  test modules 'check' discovers (default test*.py)"
 	@echo "  CHECK_TESTS=spec    test modules/classes/methods to run instead of discovering"
+	@echo "  CHECK_PARALLEL=n    parallel worker count for check (default: one per core); 0 runs the modules serially"
 	@echo "  PYTHON=path         Python 3.10+ interpreter for every target that runs Python (default python3)"
 	@echo "  RENDER_OUTPUT=path  PNG file 'render' writes (default render.png)"
 	@echo "  XDG_DATA_HOME=path  absolute data home to install into (default under HOME)"

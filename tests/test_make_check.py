@@ -1,7 +1,8 @@
-"""`make check`'s narrowing variables: CHECK_PATTERN, CHECK_TESTS and PYTHON.
+"""`make check`'s narrowing variables: CHECK_PATTERN, CHECK_TESTS, CHECK_PARALLEL and PYTHON.
 
 `make check` defaults to the whole suite and accepts a narrowing glob
-(`CHECK_PATTERN`), named specs (`CHECK_TESTS`) or a different interpreter
+(`CHECK_PATTERN`), named specs (`CHECK_TESTS`), a worker count for the
+parallel coordinator (`CHECK_PARALLEL`) or a different interpreter
 (`PYTHON`); the Makefile validates each before it runs the suite. These tests
 pin that wiring with `make -n` and the guards' refusals. The install and
 uninstall behaviour lives in ``test_theme_install.py`` and `make help` in
@@ -266,6 +267,97 @@ class TestCheckPattern(unittest.TestCase):
             env=env,
         )
         assert_succeeded(self, result)
+
+
+class TestCheckParallel(unittest.TestCase):
+    """CHECK_PARALLEL tunes how the discovered modules run.
+
+    The empty default sends the discovered modules through the parallel
+    coordinator `tools/check_parallel.py`; `0` restores the serial
+    `unittest discover` run; a positive integer bounds the worker count.
+    The guard refuses a value that is none of those, naming
+    CHECK_PARALLEL, before anything runs.
+    """
+
+    def _dry_run(self, *extra, env=None):
+        if env is None:
+            env = theme_install.make_env(
+                "CHECK_PATTERN", "CHECK_TESTS", "CHECK_PARALLEL"
+            )
+        result = theme_install.run_make(["-n", "check", *extra], env=env)
+        assert_succeeded(self, result)
+        return result.stdout
+
+    def test_the_default_runs_through_the_parallel_coordinator(self):
+        output = self._dry_run()
+        self.assertIn("tools/check_parallel.py -p 'test*.py'", output)
+        self.assertNotIn("unittest discover", output)
+
+    def test_zero_restores_the_serial_discovery_run(self):
+        output = self._dry_run("CHECK_PARALLEL=0")
+        self.assertIn("unittest discover -s tests -v -p 'test*.py'", output)
+        self.assertNotIn("check_parallel.py", output)
+
+    def test_a_worker_count_bounds_the_coordinator(self):
+        self.assertIn(
+            "tools/check_parallel.py -p 'test*.py' --workers 3",
+            self._dry_run("CHECK_PARALLEL=3"),
+        )
+
+    def test_an_environment_value_with_leading_whitespace_is_accepted(self):
+        # The guard strips leading whitespace, so a value that arrived with
+        # whitespace (`CHECK_PARALLEL=' 2'` from the environment) is the
+        # worker count 2, not a refusal; the recipe hands the stripped value
+        # to the coordinator.
+        env = theme_install.make_env(
+            "CHECK_PATTERN", "CHECK_TESTS", "CHECK_PARALLEL"
+        )
+        env["CHECK_PARALLEL"] = " 2"
+        self.assertIn(
+            "tools/check_parallel.py -p 'test*.py' --workers 2",
+            self._dry_run(env=env),
+        )
+
+    def _assert_refused(self, value):
+        env = theme_install.make_env(
+            "CHECK_PATTERN", "CHECK_TESTS", "CHECK_PARALLEL"
+        )
+        env["CHECK_PARALLEL"] = value
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_PARALLEL must be a worker count", result.stderr)
+        self.assertIn(f": '{value}'", result.stderr)
+
+    def test_a_non_numeric_value_is_refused(self):
+        self._assert_refused("x")
+
+    def test_a_negative_value_is_refused(self):
+        # `-2` is not a worker count, and a recipe line starting with a
+        # value make would read as a flag must be refused for the same
+        # reason the other guards refuse option-like values.
+        self._assert_refused("-2")
+
+    def test_a_trailing_garbage_value_is_refused(self):
+        self._assert_refused("2 workers")
+
+    def test_a_whitespace_only_value_means_the_empty_default(self):
+        # The guard strips leading whitespace like the other guards, and the
+        # recipe consumes `$(strip $(CHECK_PARALLEL))`, so a whitespace-only
+        # environment value is the empty default: the parallel coordinator
+        # with an unbounded worker count, not a refusal.
+        env = theme_install.make_env(
+            "CHECK_PATTERN", "CHECK_TESTS", "CHECK_PARALLEL"
+        )
+        env["CHECK_PARALLEL"] = " "
+        self.assertIn(
+            "tools/check_parallel.py -p 'test*.py'", self._dry_run(env=env)
+        )
+
+    def test_a_trailing_whitespace_value_is_refused(self):
+        # Only leading whitespace is stripped (the same asymmetry the other
+        # guards document: it mirrors make's command-line trimming), so a
+        # trailing space is not a worker count and is refused.
+        self._assert_refused("0 ")
 
 
 class TestPythonInterpreter(unittest.TestCase):

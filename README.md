@@ -207,7 +207,11 @@ as the reset; if the opt-in GTK selection `make apply-gtk` published still names
 `make remove-gtk` as the reset. Neither warning edits the user's configuration. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`, or to
-one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. Every
+one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. By
+default the discovered modules run in parallel through `tools/check_parallel.py`, which runs
+each module as one worker process and prints the modules' outputs in module order;
+`make check CHECK_PARALLEL=0` restores the serial `unittest discover` run, and
+`make check CHECK_PARALLEL=n` bounds the worker count (default: one per core). Every
 target that runs a Python tool requires Python 3.10 or newer (the fidelity tool uses
 `int.bit_count()`) and refuses an older `PYTHON` with a diagnostic naming the target; `make help`
 lists the same `PYTHON` floor.
