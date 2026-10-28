@@ -296,11 +296,7 @@ class TestFirefoxLibraryHeaderChrome(FirefoxChromeTestCase):
     def test_header_rules_are_the_sheet_recipe(self):
         # Each arm equals its REQUIRED_RULES entry byte-for-byte, and
         # every declaration is !important-pinned.
-        for arm in HEADER_FACE_ARMS + HEADER_HOVER_ARMS:
-            with self.subTest(selector=arm):
-                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
-                for value in self.rules[arm].values():
-                    self.assertTrue(value.endswith("!important"))
+        self.assert_arms_match_required(HEADER_FACE_ARMS + HEADER_HOVER_ARMS)
 
     def test_header_face_is_the_raised_button(self):
         # The face arms re-derive the landed raised push button's
@@ -402,11 +398,7 @@ class TestFirefoxLibraryToolbarChrome(FirefoxChromeTestCase):
     def test_toolbar_and_menubar_rules_match_the_required_rules(self):
         # Each of the three arms equals its REQUIRED_RULES entry
         # byte-for-byte, and every declaration ends !important.
-        for arm in TOOLBAR_RULES:
-            with self.subTest(selector=arm):
-                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
-                for value in self.rules[arm].values():
-                    self.assertTrue(value.endswith("!important"))
+        self.assert_arms_match_required(TOOLBAR_RULES)
 
     def test_toolbar_band_is_scoped_to_the_library_toolbar(self):
         band = element("toolbar", "placesToolbar")
@@ -489,11 +481,7 @@ class TestFirefoxLibraryDownloadsChrome(FirefoxChromeTestCase):
     def test_downloads_rules_match_the_required_rules(self):
         # Each of the five arms equals its REQUIRED_RULES entry
         # byte-for-byte, and every declaration ends !important.
-        for arm in DOWNLOADS_RULES + CLEAR_BUTTON_RULES:
-            with self.subTest(selector=arm):
-                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
-                for value in self.rules[arm].values():
-                    self.assertTrue(value.endswith("!important"))
+        self.assert_arms_match_required(DOWNLOADS_RULES + CLEAR_BUTTON_RULES)
 
     def test_downloads_list_rules_scoped_to_the_places_views_box(self):
         views_box = element(
@@ -641,11 +629,7 @@ class TestFirefoxLibraryDetailsPaneChrome(FirefoxChromeTestCase):
     def test_details_pane_rules_match_the_required_rules(self):
         # Each of the nine arms equals its REQUIRED_RULES entry
         # byte-for-byte, and every declaration ends !important.
-        for arm in DETAILS_RULES:
-            with self.subTest(selector=arm):
-                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
-                for value in self.rules[arm].values():
-                    self.assertTrue(value.endswith("!important"))
+        self.assert_arms_match_required(DETAILS_RULES)
 
     def test_details_pane_rules_scoped_to_the_details_pane(self):
         # The places.xhtml details pane: window#places > vbox#detailsPane

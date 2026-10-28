@@ -850,3 +850,18 @@ class FirefoxChromeTestCase(
         cls.colours, cls.rules, cls.selectors = parse_css(
             cls.text, source=SHEET_PATH
         )
+
+    def assert_arms_match_required(self, arms):
+        """Assert each selector in *arms* equals its REQUIRED_RULES entry.
+
+        The four Library chrome suites that pin a byte-recipe group call
+        this once per group with the group's selectors: each arm must
+        match the shared REQUIRED_RULES table byte-for-byte and every
+        declaration value must be ``!important``-pinned, one subTest per
+        arm.
+        """
+        for arm in arms:
+            with self.subTest(selector=arm):
+                self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
+                for value in self.rules[arm].values():
+                    self.assertTrue(value.endswith("!important"))
