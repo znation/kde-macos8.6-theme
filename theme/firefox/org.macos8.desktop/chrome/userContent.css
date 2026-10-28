@@ -1,11 +1,11 @@
 /* org.macos8.desktop Firefox content, standalone userContent.css
 
    Provenance exception: no reference screenshot in macos8.6-screenshots/
-   shows Firefox's content-area downloads page (about:downloads), so this
-   sheet samples no reference pixel. Its field and row palette are the shared
-   Platinum palette (#FFFFFF white, #000000 black, #999999 grey and the
-   #CCCCFF selection), and its geometry adapts the desktop theme's line-edit
-   field and list-item row.
+   shows Firefox's about:downloads, about:config, about:preferences,
+   about:support or about:networking pages, so this sheet samples no reference
+   pixel directly. Their paint adapts the shared Platinum palette and this
+   theme's fields, rows, buttons, check boxes, radio circles and etched bands.
+   The surface-specific provenance and reference pins follow below.
 
    No reference shows Firefox's about:downloads list field; its white face,
    square 1px black outline and sunken #999999 top-left shadow adapt
