@@ -384,11 +384,23 @@
    tests/test_desktoptheme_button_reference.py::TestButtonReference and
    the same :disabled-guarded flat hover, a :disabled button keeping
    Firefox's disabled paint. The #categories sidebar of .category divs,
-   the #host field, the #autorefcheck checkbox, the #sectionTitle
+   the #host field and the #autorefcheck checkbox are the recorded
+   natural subjects of a later plan and are painted by the appended
+   rules: the rows reuse the landed about:preferences nav-row values
+   (the pinned #CCCCFF selection of test_selection_background and the
+   list-row border-radius: 0, the row selected by the [selected]
+   attribute only, which aboutNetworking.js flips and never a class),
+   the field reuses the landed line-edit recipe (widgets/lineedit.svg,
+   pinned by tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference), and the checkbox reuses the landed
+   about:preferences check-box face and its shipped check-mark data URI
+   (the #DDDDDD face with the inset 1px 1px #FFFFFF, inset -1px -1px
+   #888888 bevel, whose provenance the landing checkbox paragraph
+   records; a checked box, #autorefcheck:checked, overlays the shipped
+   glyph; #autorefcheck's stock --checkbox-size sizing from
+   in-content/common-shared.css stays Firefox's). The #sectionTitle
    heading, the four hrs and the about-logging link paragraph stay
-   Firefox's (the sidebar, field and checkbox are the natural subjects of
-   a later plan; this is decided here so no design question is left
-   open). The page loads top-level in a tab like the landed
+   Firefox's. The page loads top-level in a tab like the landed
    about:support. A headless run of this ESR on 2026-10-27 with a
    temporary profile whose userContent.css held an
    @-moz-document url("about:networking") recolour rule painting body
@@ -691,5 +703,56 @@
     background-color: #CCCCFF !important;
     color: #000000 !important;
     box-shadow: none !important;
+  }
+
+  /* The sidebar rows, the DNS-lookup field and the autorefresh checkbox
+     are the recorded natural subjects of a later plan: the rows take the
+     landed about:preferences nav-row paint, the field the landed line
+     edit and the checkbox the landed preferences check box face with its
+     shipped check-mark glyph. */
+  #categories > .category {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  #categories > .category:hover,
+  #categories > .category:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #categories > .category[selected],
+  #categories > .category[selected]:hover,
+  #categories > .category[selected]:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  /* The DNS-lookup field: the Platinum line edit (see the header's
+     provenance paragraph). */
+  #host {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  /* The autorefresh checkbox: the landed preferences check box face and
+     its shipped check-mark glyph (see the header's provenance
+     paragraph). */
+  #autorefcheck {
+    appearance: none !important;
+    background-color: #DDDDDD !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888 !important;
+  }
+
+  #autorefcheck:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
   }
 }

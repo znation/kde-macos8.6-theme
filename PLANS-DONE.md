@@ -5,6 +5,128 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Platinum content: paint about:networking's category sidebar rows, the DNS-lookup host field and the autorefresh checkbox as the landed nav-row, line-edit and check-box recipes (planned 2026-10-27 by the plan role; extends the landed about:networking plan in PLANS-DONE.md, whose header paragraph records these three surfaces as "the natural subjects of a later plan"; independent of the queued GTK path-bar plan — it touches only the Firefox sheet and its tests) — done 2026-10-27 by the feature role
+
+**Goal.** The landed about:networking plan painted the page's ten `.main-content` tables and four buttons and recorded that `#categories` (its eight `.category` rows), the DNS-lookup tool's `#host` text field and the autorefresh `#autorefcheck` checkbox stay Firefox's, naming them "the natural subjects of a later plan; this is decided here so no design question is left open". This is that later plan: the same `@-moz-document url("about:networking")` body gains four more rule groups — the sidebar rows as the landed about:preferences nav-row paint (flat transparent rest, flat `#CCCCFF` black-text hover/active and selected faces, square corners), `#host` as the landed Platinum line edit, and `#autorefcheck` as the landed preferences check box face with the shipped check-mark data URI — reusing only values the sheet and tests already pin, so no new constant and no new hex beyond the landed `#888888` checkbox-bevel arm is introduced, and no landed rule text changes.
+
+**Verified facts (checked 2026-10-27, installed Firefox ESR 153.5.1).** `chrome/toolkit/content/global/aboutNetworking.html` is the light-DOM page at about:networking (the landed paragraph's established `attachShadow` count 0): `div#categories` holds eight `div.category.category-no-icon` children each wrapping `span.category-name`, the first carrying `selected="true"`; `aboutNetworking.js` (line ~358–360 of that file) flips the selection only through the `selected` attribute — `current_button.removeAttribute("selected"); button.setAttribute("selected", "true")` — never a class, so the row handle is `#categories > .category[selected]`. The stock row paint comes from `chrome/toolkit/skin/classic/global/in-content/common-shared.css`: `#categories > .category` is a button-like row (`border: var(--button-border)`, `border-radius: var(--border-radius-small)`, `transition: background-color 150ms`), `:hover` and `:hover:active` paint `--button-background-color-hover`/`-active` faces with hover accent colours, and `#categories > .category[selected], #categories > .category.selected` recolour the text to `--color-accent-primary` while `[selected]:not(:hover)` clears the background — a keyboard `:focus-visible` outline stays stock. `#dnslookuptool` holds `input[type="text"]#host` between its label and `#dnsLookupButton` (already painted), and `#refreshDiv` holds `input#autorefcheck[type="checkbox"]` with its l10n `span` beside it; `common-shared.css`'s `html|input:where([type="checkbox"], [type="radio"])` block sizes both native inputs `height/width: var(--checkbox-size)`, so the box keeps that stock size under `appearance: none` and no metric is added. The landed sheet body the plan extends is the file's last `@-moz-document url("about:networking")` block; `tests/test_firefox_content_theme.py` presses it through `SheetCase` (`self.rules`, `self.selectors`, `self.bodies`), the module register `REQUIRED_NETWORKING_RULES`/`NETWORKING_SELECTORS`, and `FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")`. `tests/support/selector_matching.py`'s matcher (docstring, `matches`) supports tag/id/class/attribute selectors and `:hover` only — no `:checked` — so the `:checked` and `:hover:active` arms stay pinned by selector text and the exact-register test exactly as the landed `:nth-child(2n)` zebra arm already is.
+
+**Grounding (platform adaptation, steward clarification 2026-10-25).** No reference screenshot shows Firefox's about:networking (established by the landed paragraph) — these rules sample no reference pixel: the sidebar rows reuse the landed about:preferences nav-row values (transparent rest, flat `#CCCCFF` hover/active/selected, black text, radius 0) whose `#CCCCFF` is the pinned `[Colors:Selection]` of `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_selection_background` and whose squareness extends the landed list-row `border-radius: 0` of the sheet's own downloads/list recipes; `#host` reuses the landed line-edit field byte-recipe (`#FFFFFF` face, black text, square `1px solid #000000`, `inset 1px 1px #999999` — `FIELD_RULE` in the test register, grounded in `widgets/lineedit.svg` and pinned by `tests/test_desktoptheme_lineedit.py::TestLineEdit` and `TestLineEditReference`); `#autorefcheck` reuses the landed about:preferences check-box face (`#DDDDDD` face, square `1px solid #000000`, `inset 1px 1px #FFFFFF, inset -1px -1px #888888`, whose raised bevel owns the Kvantum check-box provenance) and its checked arm's shipped check-mark data URI, pinned by `tests/test_firefox_content_theme.py`'s `CHECKBOX_FACE_RULE`/`CHECKBOX_GLYPH_RULE`. The `#categories`, `.category`, `[selected]`, `input#autorefcheck`, `input[type="text"]#host`, `:hover`/`:hover:active`/`:checked` arms and the stock `--checkbox-size` sizing are Firefox-required; the sidebar keeps Firefox's non-selected-row stock hover cleared only where our paint lands, and the `:focus-visible` outline stays Firefox's.
+
+**Approach.** In `theme/firefox/org.macos8.desktop/chrome/userContent.css`, inside the landed `@-moz-document url("about:networking")` body, after the `#dnsLookupButton:hover:not(:disabled)` rule (the body's last), append a comment naming the three reused recipes and the recorded later-plan decision, then exactly the rule blocks shown — the sidebar's rest, hover and selected rules, the `#host` rule and the `#autorefcheck` face and `:checked` rules — and nothing else:
+
+```css
+  /* The sidebar rows, the DNS-lookup field and the autorefresh checkbox
+     are the recorded natural subjects of a later plan: the rows take the
+     landed about:preferences nav-row paint, the field the landed line
+     edit and the checkbox the landed preferences check box face with its
+     shipped check-mark glyph. */
+  #categories > .category {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  #categories > .category:hover,
+  #categories > .category:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #categories > .category[selected],
+  #categories > .category[selected]:hover,
+  #categories > .category[selected]:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  /* The DNS-lookup field: the Platinum line edit (see the header's
+     provenance paragraph). */
+  #host {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  /* The autorefresh checkbox: the landed preferences check box face and
+     its shipped check-mark glyph (see the header's provenance
+     paragraph). */
+  #autorefcheck {
+    appearance: none !important;
+    background-color: #DDDDDD !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888 !important;
+  }
+
+  #autorefcheck:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+  }
+```
+
+The data URI's text is byte-for-byte the landed about:preferences checked-arm's `background-image` value (verified against the sheet's `#mainPrefPane checkbox:not([disabled])[checked] .checkbox-check` rule). Our `!important` arms beat the stock `common-shared.css` declarations, and within our arms specificity settles it: the `[selected]` and `:hover`/`:hover:active` pseudo-classes outrank the plain rest arm, so a selected row stays `#CCCCFF` under hover and press and the stock hover face never shows through.
+
+In the same sheet's header comment, rewrite the landed about:networking section's "stay Firefox's" sentence — replacing `The #categories sidebar of .category divs, the #host field, the #autorefcheck checkbox, the #sectionTitle heading, the four hrs and the about-logging link paragraph stay Firefox's (the sidebar, field and checkbox are the natural subjects of a later plan; this is decided here so no design question is left open).` — with one paragraph naming: the sidebar rows, the `#host` field and the `#autorefcheck` checkbox are the recorded natural subjects of a later plan and are painted by the appended rules — the rows reuse the landed about:preferences nav-row values (the pinned `#CCCCFF` selection of `test_selection_background` and the list-row `border-radius: 0`, selected-by-attribute only in `aboutNetworking.js`), the field reuses the landed line-edit recipe (`widgets/lineedit.svg`, `tests/test_desktoptheme_lineedit.py::TestLineEdit` and `TestLineEditReference`), and the checkbox reuses the landed about:preferences check-box face and its shipped check-mark data URI (`#DDDDDD` face with the `inset 1px 1px #FFFFFF, inset -1px -1px #888888` bevel, whose provenance the landing checkbox paragraph records; `#autorefcheck`'s stock `--checkbox-size` sizing stays Firefox's); keep the phrases `#categories`, `#host`, `#autorefcheck`, `in-content/common-shared.css` and the `[selected]`-attribute statement, keep the closing note that `#sectionTitle`, the four hrs and the about-logging link paragraph stay Firefox's, and leave the landed headless sentence (`"headless"`, `"URL match"`) untouched.
+
+In `tests/test_firefox_content_theme.py`, extend the networking register after `NETWORKING_BUTTONS_HOVER` —
+
+```python
+NETWORKING_CATEGORY = "#categories > .category"
+NETWORKING_CATEGORY_HOVER = (
+    "#categories > .category:hover",
+    "#categories > .category:hover:active",
+)
+NETWORKING_CATEGORY_SELECTED = (
+    "#categories > .category[selected]",
+    "#categories > .category[selected]:hover",
+    "#categories > .category[selected]:hover:active",
+)
+NETWORKING_HOST = "#host"
+NETWORKING_CHECK = "#autorefcheck"
+NETWORKING_CHECK_CHECKED = NETWORKING_CHECK + ":checked"
+
+NETWORKING_CATEGORY_RULE = {
+    "background-color": "transparent !important",
+    "color": f"{BLACK} !important",
+    "border-radius": "0 !important",
+}
+NETWORKING_ROW_HIGHLIGHT = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+}
+NETWORKING_CHECK_RULE = {
+    "appearance": "none !important",
+    "background-color": f"{FACE} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK} !important",
+}
+NETWORKING_CHECK_CHECKED_RULE = {
+    "background-image": "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E\") !important",
+    "background-repeat": "no-repeat !important",
+    "background-position": "center !important",
+}
+```
+
+then extend `REQUIRED_NETWORKING_RULES` with `NETWORKING_CATEGORY: NETWORKING_CATEGORY_RULE`, each `NETWORKING_CATEGORY_HOVER` and `NETWORKING_CATEGORY_SELECTED` arm mapped to `NETWORKING_ROW_HIGHLIGHT`, `NETWORKING_HOST: FIELD_RULE`, `NETWORKING_CHECK: NETWORKING_CHECK_RULE` and `NETWORKING_CHECK_CHECKED: NETWORKING_CHECK_CHECKED_RULE`, and extend `NETWORKING_SELECTORS` in sheet order after `*NETWORKING_BUTTONS_HOVER` with `(NETWORKING_CATEGORY, *NETWORKING_CATEGORY_HOVER, *NETWORKING_CATEGORY_SELECTED, NETWORKING_HOST, NETWORKING_CHECK, NETWORKING_CHECK_CHECKED)` so `test_parsed_rules_are_exactly_the_networking_rules` keeps passing against the appended rules; make sure `required` mapping registration ordering matches `NETWORKING_SELECTORS` so there is one expectation per parsed selector.
+
+In `tests/test_firefox_content_theme.py::TestFirefoxNetworkingTheme`:
+
+- extend `test_networking_rules_scope_to_the_main_content_div`'s docstring pinning note (`:nth-child(2n)`, the comma-list arms and now the `:checked` and `:hover:active` arms are outside the matcher's subset and pinned by their selector text and the exact-register test) and add: with `categories = element("div", "categories")`, `element("div", None, classes=("category", "category-no-icon"), parent=categories)` matches `NETWORKING_CATEGORY` idle, `NETWORKING_CATEGORY_HOVER[0]` only with `hover=True` (never idle), and `NETWORKING_CATEGORY_SELECTED[0]` only with `attrs={"selected": "true"}`; the same `.category` row under `element("div", "othersidebar")` matches none of the three selectors, and a plain `element("button", "category-http")` with no `#categories` parent matches none either; `element("input", "host", attrs={"type": "text"}, parent=element("div", "dnslookuptool", parent=main_content))` matches `NETWORKING_HOST` while an `element("input")` without that id under `.main-content` does not; the existing `FORBIDDEN_PAGE_CHROME` loop over `self.selectors` needs no change.
+- extend `test_networking_rules_use_the_pinned_palette`: the allowed set and the body-wide `set(HEX.findall(body))` assertion both gain `ETCH_DARK` (the checkbox bevel's dark arm, byte-equal to the landed preferences `.checkbox-check` declarations), keeping the rest of the assertion untouched.
+- add `test_checked_glyph_uri_pins_the_checkmarks_glyph` for the `#autorefcheck:checked` arm — move the landed `TestFirefoxPreferencesCheckboxTheme` decode body (data-URI prefix strip, `unquote`, `xml.etree.ElementTree.fromstring`, the width/height/`d`/fill/stroke/width/linecap/linejoin assertions and the `#`-absence check) into a module-level helper `decodes_to_the_shipped_checkmark(value)` placed beside `at_rule_bodies`, call it from the new networking test against `self.rules[NETWORKING_CHECK_CHECKED]["background-image"]`, and refactor `TestFirefoxPreferencesCheckboxTheme::test_checked_glyph_uri_pins_the_checkmarks_glyph` to call the same helper — so the landed preferences test changes no assertions and both pages pin the same glyph through one function.
+- extend `test_header_names_networking_provenance`'s token tuple: it keeps every landed token (including `"a later plan"`, still satisfied by the rewritten sentence) and gains `"in-content/common-shared.css"`, `"#autorefcheck:checked"`... (match the actual rule text chosen), `"about:preferences"` (the nav-row and check-box recipe source) and `"aboutNetworking.js"` (already present) — name the exact added tokens in the implementation so `assert_header_names` stays honest.
+
+No other test asserts the sheet body rule count per at-rule: `TestFirefoxContentTheme::test_sheet_has_the_downloads_config_preferences_support_and_networking_at_rules` asserts only the five-body set and `stripped.count("@") == 5`, unchanged because this plan appends inside an existing body; `test_networking_rules_match_the_required_rules` and `test_parsed_rules_are_exactly_the_networking_rules` need no source edits (they iterate the register).
+
+In `docs/invariants.md`, in the `## firefox` table's about:networking row (the row whose guarantee names the ten tables and four buttons): extend the guarantee sentence to add that the page's `#categories` sidebar rows (selected by attribute) take the landed nav-row paint — transparent rest, flat `#CCCCFF` black-text hover/active and selected, square corners — the DNS-lookup `#host` field the landed line-edit paint and the `#autorefcheck` checkbox the landed preferences check-box face with its shipped check-mark glyph, and trim the stay-Firefox list to `#sectionTitle`, the four hrs, the about-logging link paragraph and page chrome; extend the row's provenance exception with one sentence naming the reused recipes and their pinned tests (`TestReferenceAnchors.test_selection_background`, `TestLineEdit`/`TestLineEditReference`, the checkboxes' `CHECKBOX_FACE_RULE`/`CHECKBOX_GLYPH_RULE`) and the Firefox-required `[selected]`-attribute selection from `aboutNetworking.js` and the stock `--checkbox-size` sizing; keep the landed headless sentence, and trim no landed row. `tests/support/invariants.py`'s register stays in step with the row's test column (the networking class is already registered).
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userContent.css`, `tests/test_firefox_content_theme.py`, `docs/invariants.md`.
+
 ### Platinum GTK path bar: paint the file chooser's breadcrumb buttons as the Platinum tabs in GTK 3 and GTK 4 (planned 2026-10-27 by the plan role; independent of the stack-switcher plan, which landed while this entry waited — it touches the same three landed files, so all anchors below are rule texts and symbol names, not line numbers) — done 2026-10-27 by the feature role
 
 **Goal.** The landed GTK sheets give the generic `button` the raised Platinum push-button paint and `button:active, button:checked` a sunken bevel, and a file chooser's path bar — the breadcrumb strip `GtkFileChooserWidget` shows above the file list — falls through to exactly those rules: every unpressed breadcrumb gets the generic raised face, and the current folder's `GtkToggleButton` sits `:checked` for the chooser's whole lifetime, so the breadcrumb strip paints its home entry *permanently sunken* while a queued stack window's own header strip would paint the same strip's active entry as the raised, flat-merged `tab:checked` face. This plan paints the path bar's buttons with the landed tab recipe byte-for-byte in both toolkits — the same decision the landed stack-switcher plan made for that widget — so the unpressed breadcrumbs read as raised tabs, the current folder as the flat checked tab, and no new constant, no new hex and no edit to any landed rule is introduced.

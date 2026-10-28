@@ -165,6 +165,28 @@ def at_rule_bodies(text):
     return bodies
 
 
+def decodes_to_the_shipped_checkmark(value):
+    """Assert *value* is the data URI of the shipped checkmarks.svg glyph."""
+    match = re.search(r'url\("([^"]+)"\)', value)
+    assert match is not None, value
+    payload = match.group(1)
+    prefix = "data:image/svg+xml,"
+    assert payload.startswith(prefix), payload
+    svg = unquote(payload[len(prefix):])
+    root = xml.etree.ElementTree.fromstring(svg)
+    assert root.get("width") == "16"
+    assert root.get("height") == "16"
+    paths = list(root)
+    assert len(paths) == 1
+    assert paths[0].get("d") == "M 3.5 8.5 L 6.5 11.5 L 12.5 5.5"
+    assert paths[0].get("fill") == "none"
+    assert paths[0].get("stroke") == "rgb(0, 0, 0)"
+    assert paths[0].get("stroke-width") == "2"
+    assert paths[0].get("stroke-linecap") == "square"
+    assert paths[0].get("stroke-linejoin") == "miter"
+    assert "#" not in svg
+
+
 class TestAtRuleBodies(unittest.TestCase):
     """Pin the ``@-moz-document`` body scanner's token handling."""
 
@@ -438,6 +460,44 @@ NETWORKING_BUTTONS = (
 NETWORKING_BUTTONS_HOVER = tuple(
     arm + ":hover:not(:disabled)" for arm in NETWORKING_BUTTONS
 )
+NETWORKING_CATEGORY = "#categories > .category"
+NETWORKING_CATEGORY_HOVER = (
+    "#categories > .category:hover",
+    "#categories > .category:hover:active",
+)
+NETWORKING_CATEGORY_SELECTED = (
+    "#categories > .category[selected]",
+    "#categories > .category[selected]:hover",
+    "#categories > .category[selected]:hover:active",
+)
+NETWORKING_HOST = "#host"
+NETWORKING_CHECK = "#autorefcheck"
+NETWORKING_CHECK_CHECKED = NETWORKING_CHECK + ":checked"
+
+NETWORKING_CATEGORY_RULE = {
+    "background-color": "transparent !important",
+    "color": f"{BLACK} !important",
+    "border-radius": "0 !important",
+}
+NETWORKING_ROW_HIGHLIGHT = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+}
+NETWORKING_CHECK_RULE = {
+    "appearance": "none !important",
+    "background-color": f"{FACE} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": f"inset 1px 1px {WHITE}, inset -1px -1px {ETCH_DARK} !important",
+}
+# The landed about:preferences checked-arm glyph, byte-for-byte (the
+# module's own CHECKBOX_GLYPH_URI): the plan spells the URI inline and this
+# constant is its byte-equal spelling.
+NETWORKING_CHECK_CHECKED_RULE = {
+    "background-image": CHECKBOX_GLYPH_URI,
+    "background-repeat": "no-repeat !important",
+    "background-position": "center !important",
+}
 
 REQUIRED_NETWORKING_RULES = {
     NETWORKING_LIST: FIELD_RULE,
@@ -447,6 +507,18 @@ REQUIRED_NETWORKING_RULES = {
     NETWORKING_HEADER_HOVER: BUTTON_HOVER_RULE,
     **{selector: BUTTON_RULE for selector in NETWORKING_BUTTONS},
     **{selector: BUTTON_HOVER_RULE for selector in NETWORKING_BUTTONS_HOVER},
+    NETWORKING_CATEGORY: NETWORKING_CATEGORY_RULE,
+    **{
+        selector: NETWORKING_ROW_HIGHLIGHT
+        for selector in NETWORKING_CATEGORY_HOVER
+    },
+    **{
+        selector: NETWORKING_ROW_HIGHLIGHT
+        for selector in NETWORKING_CATEGORY_SELECTED
+    },
+    NETWORKING_HOST: FIELD_RULE,
+    NETWORKING_CHECK: NETWORKING_CHECK_RULE,
+    NETWORKING_CHECK_CHECKED: NETWORKING_CHECK_CHECKED_RULE,
 }
 
 NETWORKING_SELECTORS = (
@@ -458,6 +530,12 @@ NETWORKING_SELECTORS = (
     NETWORKING_HEADER_HOVER,
     *NETWORKING_BUTTONS,
     *NETWORKING_BUTTONS_HOVER,
+    NETWORKING_CATEGORY,
+    *NETWORKING_CATEGORY_HOVER,
+    *NETWORKING_CATEGORY_SELECTED,
+    NETWORKING_HOST,
+    NETWORKING_CHECK,
+    NETWORKING_CHECK_CHECKED,
 )
 
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
@@ -816,28 +894,9 @@ class TestFirefoxPreferencesCheckboxTheme(SheetCase):
 
     def test_checked_glyph_uri_pins_the_checkmarks_glyph(self):
         """Decoding the data URI yields the shipped checkmarks.svg glyph."""
-        value = self.rules[CHECKBOX_GLYPH]["background-image"]
-        match = re.search(r'url\("([^"]+)"\)', value)
-        self.assertIsNotNone(match)
-        payload = match.group(1)
-        prefix = "data:image/svg+xml,"
-        self.assertTrue(payload.startswith(prefix))
-        svg = unquote(payload[len(prefix):])
-        root = xml.etree.ElementTree.fromstring(svg)
-        self.assertEqual(root.get("width"), "16")
-        self.assertEqual(root.get("height"), "16")
-        paths = list(root)
-        self.assertEqual(len(paths), 1)
-        self.assertEqual(
-            paths[0].get("d"),
-            "M 3.5 8.5 L 6.5 11.5 L 12.5 5.5",
+        decodes_to_the_shipped_checkmark(
+            self.rules[CHECKBOX_GLYPH]["background-image"]
         )
-        self.assertEqual(paths[0].get("fill"), "none")
-        self.assertEqual(paths[0].get("stroke"), "rgb(0, 0, 0)")
-        self.assertEqual(paths[0].get("stroke-width"), "2")
-        self.assertEqual(paths[0].get("stroke-linecap"), "square")
-        self.assertEqual(paths[0].get("stroke-linejoin"), "miter")
-        self.assertNotIn("#", svg)
 
     def test_header_names_checkbox_provenance(self):
         self.assert_header_names(
@@ -1301,11 +1360,12 @@ class TestFirefoxNetworkingTheme(SheetCase):
         self.assertEqual(self.selectors, list(NETWORKING_SELECTORS))
 
     def test_networking_rules_scope_to_the_main_content_div(self):
-        """The field, header and button arms match nodes in .main-content.
+        """The field, header, button, sidebar, host and check arms match.
 
-        The zebra arm's ``:nth-child(2n)`` and the comma-list cell and
-        button arms are outside the matcher's subset, so they are pinned by
-        their selector text and by
+        The zebra arm's ``:nth-child(2n)``, the comma-list cell and
+        button arms and now the ``:checked`` and ``:hover:active`` arms
+        are outside the matcher's subset, so they are pinned by their
+        selector text and by
         ``test_parsed_rules_are_exactly_the_networking_rules`` instead of a
         fixture match.
         """
@@ -1337,6 +1397,76 @@ class TestFirefoxNetworkingTheme(SheetCase):
         for arm in NETWORKING_BUTTONS:
             with self.subTest(arm=arm):
                 self.assertFalse(matches(arm, chrome_button))
+        categories = element("div", "categories")
+        row = element(
+            "div",
+            None,
+            classes=("category", "category-no-icon"),
+            parent=categories,
+        )
+        self.assertTrue(matches(NETWORKING_CATEGORY, row))
+        self.assertTrue(
+            matches(
+                NETWORKING_CATEGORY_HOVER[0],
+                element(
+                    "div",
+                    None,
+                    classes=("category", "category-no-icon"),
+                    hover=True,
+                    parent=categories,
+                ),
+            )
+        )
+        self.assertFalse(matches(NETWORKING_CATEGORY_HOVER[0], row))
+        self.assertTrue(
+            matches(
+                NETWORKING_CATEGORY_SELECTED[0],
+                element(
+                    "div",
+                    None,
+                    classes=("category", "category-no-icon"),
+                    attrs={"selected": "true"},
+                    parent=categories,
+                ),
+            )
+        )
+        self.assertFalse(matches(NETWORKING_CATEGORY_SELECTED[0], row))
+        other_row = element(
+            "div",
+            None,
+            classes=("category", "category-no-icon"),
+            parent=element("div", "othersidebar"),
+        )
+        for selector in (
+            NETWORKING_CATEGORY,
+            *NETWORKING_CATEGORY_HOVER,
+            *NETWORKING_CATEGORY_SELECTED,
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, other_row))
+        orphan = element("button", "category-http")
+        for selector in (
+            NETWORKING_CATEGORY,
+            *NETWORKING_CATEGORY_HOVER,
+            *NETWORKING_CATEGORY_SELECTED,
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, orphan))
+        host = element(
+            "input",
+            "host",
+            attrs={"type": "text"},
+            parent=element(
+                "div", "dnslookuptool", parent=main_content
+            ),
+        )
+        self.assertTrue(matches(NETWORKING_HOST, host))
+        self.assertFalse(
+            matches(
+                NETWORKING_HOST,
+                element("input", None, parent=main_content),
+            )
+        )
         for selector in self.selectors:
             with self.subTest(selector=selector):
                 for token in FORBIDDEN_PAGE_CHROME:
@@ -1351,6 +1481,7 @@ class TestFirefoxNetworkingTheme(SheetCase):
             TROUGH,
             SELECTION,
             BUTTON_SHADOW,
+            ETCH_DARK,
         }
         seen = set()
         for selector, expected in REQUIRED_NETWORKING_RULES.items():
@@ -1368,7 +1499,22 @@ class TestFirefoxNetworkingTheme(SheetCase):
         body = self.bodies["about:networking"]
         self.assertEqual(
             set(HEX.findall(body)),
-            {WHITE, BLACK, GREY, FACE, TROUGH, SELECTION, BUTTON_SHADOW},
+            {
+                WHITE,
+                BLACK,
+                GREY,
+                FACE,
+                TROUGH,
+                SELECTION,
+                BUTTON_SHADOW,
+                ETCH_DARK,
+            },
+        )
+
+    def test_checked_glyph_uri_pins_the_checkmarks_glyph(self):
+        """Decoding the #autorefcheck data URI yields the shipped glyph."""
+        decodes_to_the_shipped_checkmark(
+            self.rules[NETWORKING_CHECK_CHECKED]["background-image"]
         )
 
     def test_header_names_networking_provenance(self):
@@ -1399,6 +1545,10 @@ class TestFirefoxNetworkingTheme(SheetCase):
                 "#categories",
                 "#host",
                 "#autorefcheck",
+                "#autorefcheck:checked",
+                "in-content/common-shared.css",
+                "about:preferences",
+                "aboutNetworking.js",
                 "#sectionTitle",
                 "a later plan",
                 "top-level in a tab",
