@@ -128,7 +128,10 @@
    GTK-required. A status bar band reuses the same menu-bar band with the
    same etched bottom rule, and on GTK 3 its shadowless internal frame
    border stays flat; no reference screenshot shows a GTK status bar, and
-   the statusbar node name is GTK-required. */
+   the statusbar node name is GTK-required. A stack switcher's page buttons
+   paint as the landed tab recipe byte-for-byte; no reference screenshot shows
+   a GTK stack switcher, and the stackswitcher and button node names are
+   GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -330,6 +333,34 @@ notebook > header > tabs > tab.reorderable-page:checked {
 tab:checked:hover, tab.reorderable-page:checked:hover,
 notebook > header > tabs > tab:checked:hover,
 notebook > header > tabs > tab.reorderable-page:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* A stack switcher's page buttons draw as the landed tab recipe, the active
+   page's button included; :backdrop stays out of scope. */
+stackswitcher > button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+stackswitcher > button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+stackswitcher > button:checked,
+stackswitcher > button:checked:hover {
   background-color: #DDDDDD;
   background-image: none;
   border: 1px solid #000000;
