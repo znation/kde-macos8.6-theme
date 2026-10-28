@@ -19,7 +19,7 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 `make install` copies eight artifacts into an absolute `${XDG_DATA_HOME}` (the XDG default
 `$HOME/.local/share` when it is unset, empty, or relative; `make install` and `make uninstall`
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
-absolute path, and refuse a `DESTDIR`, `XDG_DATA_HOME` or `HOME` carrying a character that is
+absolute path, and refuse a `DESTDIR`, `XDG_DATA_HOME`, `HOME` or `FLOCK_TIMEOUT` carrying a character that is
 shell syntax inside the double-quoted recipe words such a value is expanded into -- a double
 quote, `$`, a backtick or a backslash -- before running any recipe, while a space or an
 apostrophe stays legal): the

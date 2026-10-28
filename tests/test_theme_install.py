@@ -458,7 +458,10 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
     level, before any recipe of any target runs, so a refused run must not
     create the data home -- or this test's canary file -- and its diagnostic
     must name the variable and the value. A space or an apostrophe is inert
-    there and stays legal (`TestWhitespaceInInstallPaths`).
+    there and stays legal (`TestWhitespaceInInstallPaths`). The guarded
+    variables are the install paths (`DESTDIR`, `XDG_DATA_HOME`, `HOME`), the
+    lock timeout (`FLOCK_TIMEOUT`, whose value reaches the digit guard's
+    `set -- "$(FLOCK_TIMEOUT)"` word) and the Firefox profile path.
     """
 
     # The guard reads each value after make's own expansion, so a `$` arrives
@@ -534,6 +537,15 @@ class TestShellUnsafeInstallPaths(unittest.TestCase):
                         shown_value,
                     ),
                 )
+
+    def test_each_metacharacter_is_refused_in_FLOCK_TIMEOUT(self):
+        # FLOCK_TIMEOUT is pasted into the digit guard's double-quoted word
+        # `set -- "$(FLOCK_TIMEOUT)"` (and passed on from there to `flock
+        # -w`), so each metacharacter must be refused at make level before
+        # that guard's own quoting can be escaped.
+        for char, make_value, shown_value in self.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused("FLOCK_TIMEOUT", make_value, shown_value)
 
 
 class TestShellUnsafeFirefoxProfile(unittest.TestCase):

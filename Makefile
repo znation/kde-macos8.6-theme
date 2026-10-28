@@ -39,10 +39,11 @@ require_data_home = if [ -z "$(filter /%,$(XDG_DATA_HOME_ENV))" ] && [ -z "$(fil
 # The data home doubles as the install/uninstall lock (see `install` below).
 DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 
-# DESTDIR, XDG_DATA_HOME, HOME and FIREFOX_PROFILE reach recipe shells pasted
-# into double-quoted recipe words (`install -d "$(DATA_HOME)"`, the staging
-# paths, the lock path, install-firefox/remove-firefox's `--profile
-# "$(FIREFOX_PROFILE)"`). Inside double quotes exactly four characters are
+# DESTDIR, XDG_DATA_HOME, HOME, FLOCK_TIMEOUT and FIREFOX_PROFILE reach recipe
+# shells pasted into double-quoted recipe words (`install -d "$(DATA_HOME)"`,
+# the staging paths, the lock path, the lock timeout guard's
+# `set -- "$(FLOCK_TIMEOUT)"`, install-firefox/remove-firefox's
+# `--profile "$(FIREFOX_PROFILE)"`). Inside double quotes exactly four characters are
 # shell syntax: a
 # double quote closes the recipe's own quoting, and `$`, a backtick and a
 # backslash open an expansion or an escape, so the words after any of them run
@@ -55,7 +56,10 @@ DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 # behaviour, outside the shell route this guard closes.
 shell_unsafe_chars = \ " $$ `
 shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$(1))))
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE COLOR_SCHEME COLOR_SCHEME_ID,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
+# FLOCK_TIMEOUT is in the list before `FLOCK_TIMEOUT ?= 60` is read: the
+# guard evaluates its default as still undefined (empty, harmless), while an
+# environment or command-line value is already expanded and checked here.
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT COLOR_SCHEME COLOR_SCHEME_ID,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
 
 # The theme tree `make install` copies from. A test overrides it on the command
 # line to point the symlink guard below at a scratch package tree.
@@ -428,7 +432,11 @@ FLOCK_CONFLICT_EXIT := 75
 # value above 2**63 - 1 otherwise reaches flock and fails with its own
 # "invalid timeout value" or "cannot set up timer" message that never names
 # the variable -- after `install` has already created the data home. Refuse
-# first with a diagnostic that names FLOCK_TIMEOUT. Leading zeros are stripped
+# first with a diagnostic that names FLOCK_TIMEOUT. A value carrying a
+# recipe-shell metacharacter is refused earlier still, at make level by the
+# guard above, because this guard pastes the value into the double-quoted word
+# `set -- "$(FLOCK_TIMEOUT)"` where it would run as shell syntax
+# (TestShellUnsafeInstallPaths). Leading zeros are stripped
 # before the length check, so a valid value written with them is not refused as
 # too large. The remaining digits are compared by length, then (at 19 digits)
 # as text, where equal-length decimal strings sort by value, so the guard never
