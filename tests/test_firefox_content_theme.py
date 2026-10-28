@@ -420,6 +420,46 @@ SUPPORT_SELECTORS = (
     *SUPPORT_BUTTONS_HOVER,
 )
 
+# The about:networking rules. The sheet's arms are the landed about:support
+# arms byte-for-byte over this page's selectors (.main-content table and the
+# four button ids); the register keys the parsed selectors, which are the
+# comma-list cell and button arms split per arm by parse_css.
+NETWORKING_LIST = ".main-content table"
+NETWORKING_ZEBRA = NETWORKING_LIST + " tr:nth-child(2n)"
+NETWORKING_TH = NETWORKING_LIST + " th"
+NETWORKING_TD = NETWORKING_LIST + " td"
+NETWORKING_HEADER_HOVER = NETWORKING_TH + ":hover"
+NETWORKING_BUTTONS = (
+    "#refreshButton",
+    "#clearHTTPCache",
+    "#clearDNSCache",
+    "#dnsLookupButton",
+)
+NETWORKING_BUTTONS_HOVER = tuple(
+    arm + ":hover:not(:disabled)" for arm in NETWORKING_BUTTONS
+)
+
+REQUIRED_NETWORKING_RULES = {
+    NETWORKING_LIST: FIELD_RULE,
+    NETWORKING_ZEBRA: {"background-color": f"{TROUGH} !important"},
+    NETWORKING_TH: SUPPORT_TH_RULE,
+    NETWORKING_TD: SUPPORT_CELL_RULE,
+    NETWORKING_HEADER_HOVER: BUTTON_HOVER_RULE,
+    **{selector: BUTTON_RULE for selector in NETWORKING_BUTTONS},
+    **{selector: BUTTON_HOVER_RULE for selector in NETWORKING_BUTTONS_HOVER},
+}
+
+NETWORKING_SELECTORS = (
+    NETWORKING_LIST,
+    NETWORKING_ZEBRA,
+    NETWORKING_TH,
+    NETWORKING_TD,
+    NETWORKING_TH,
+    NETWORKING_HEADER_HOVER,
+    *NETWORKING_BUTTONS,
+    *NETWORKING_BUTTONS_HOVER,
+)
+
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
 
 
@@ -451,7 +491,7 @@ class TestFirefoxContentTheme(SheetCase):
         first_line = self.text.removeprefix("\ufeff").splitlines()[0]
         self.assertEqual(first_line, MARKER)
 
-    def test_sheet_has_the_downloads_config_preferences_and_support_at_rules(
+    def test_sheet_has_the_downloads_config_preferences_support_and_networking_at_rules(
         self,
     ):
         stripped = strip_comments(self.text).strip()
@@ -462,9 +502,10 @@ class TestFirefoxContentTheme(SheetCase):
                 "about:config",
                 "about:preferences",
                 "about:support",
+                "about:networking",
             },
         )
-        self.assertEqual(stripped.count("@"), 4)
+        self.assertEqual(stripped.count("@"), 5)
         for selector in REQUIRED_RULES:
             with self.subTest(selector=selector):
                 self.assertIn(selector, self.bodies["about:downloads"])
@@ -1243,6 +1284,128 @@ class TestFirefoxConfigTheme(SheetCase):
                 "#show-all",
                 "#warningButton",
                 "platform colour adaptation 2026-10-26",
+            )
+        )
+
+
+class TestFirefoxNetworkingTheme(SheetCase):
+    AT_RULE_URL = "about:networking"
+
+    def test_networking_rules_match_the_required_rules(self):
+        for selector, expected in REQUIRED_NETWORKING_RULES.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+
+    def test_parsed_rules_are_exactly_the_networking_rules(self):
+        self.assertEqual(set(self.rules), set(REQUIRED_NETWORKING_RULES))
+        self.assertEqual(self.selectors, list(NETWORKING_SELECTORS))
+
+    def test_networking_rules_scope_to_the_main_content_div(self):
+        """The field, header and button arms match nodes in .main-content.
+
+        The zebra arm's ``:nth-child(2n)`` and the comma-list cell and
+        button arms are outside the matcher's subset, so they are pinned by
+        their selector text and by
+        ``test_parsed_rules_are_exactly_the_networking_rules`` instead of a
+        fixture match.
+        """
+        main_content = element("div", None, classes=("main-content",))
+        table = element("table", None, parent=main_content)
+        header = element("th", None, parent=table)
+        self.assertTrue(matches(NETWORKING_LIST, table))
+        self.assertFalse(
+            matches(
+                NETWORKING_LIST,
+                element("table", None, parent=element("div", "other")),
+            )
+        )
+        self.assertTrue(matches(NETWORKING_TH, header))
+        self.assertTrue(
+            matches(
+                NETWORKING_HEADER_HOVER,
+                element("th", None, hover=True, parent=table),
+            )
+        )
+        self.assertFalse(matches(NETWORKING_HEADER_HOVER, header))
+        self.assertIn(":nth-child(2n)", NETWORKING_ZEBRA)
+        self.assertIn(NETWORKING_TD, self.text)
+        for arm in NETWORKING_BUTTONS:
+            with self.subTest(arm=arm):
+                self.assertTrue(matches(arm, element("button", arm[1:])))
+                self.assertIn(arm + ":hover:not(:disabled)", self.text)
+        chrome_button = element("button", "PlacesToolbar")
+        for arm in NETWORKING_BUTTONS:
+            with self.subTest(arm=arm):
+                self.assertFalse(matches(arm, chrome_button))
+        for selector in self.selectors:
+            with self.subTest(selector=selector):
+                for token in FORBIDDEN_PAGE_CHROME:
+                    self.assertNotIn(token, selector)
+
+    def test_networking_rules_use_the_pinned_palette(self):
+        allowed = {
+            BLACK,
+            WHITE,
+            GREY,
+            FACE,
+            TROUGH,
+            SELECTION,
+            BUTTON_SHADOW,
+        }
+        seen = set()
+        for selector, expected in REQUIRED_NETWORKING_RULES.items():
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertEqual(declarations, expected)
+                self.assertTrue(declarations)
+            for name, value in declarations.items():
+                with self.subTest(selector=selector, property=name):
+                    self.assertIn("!important", value)
+                    for token in HEX.findall(value):
+                        seen.add(token)
+                        self.assertIn(token, allowed)
+        self.assertTrue(seen)
+        body = self.bodies["about:networking"]
+        self.assertEqual(
+            set(HEX.findall(body)),
+            {WHITE, BLACK, GREY, FACE, TROUGH, SELECTION, BUTTON_SHADOW},
+        )
+
+    def test_header_names_networking_provenance(self):
+        self.assert_header_names(
+            (
+                "No reference shows Firefox's about:networking",
+                "aboutNetworking.html",
+                "aboutNetworking.js",
+                "attachShadow",
+                "an .html document",
+                ".main-content",
+                "#refreshButton",
+                "#clearHTTPCache",
+                "#clearDNSCache",
+                "#dnsLookupButton",
+                "aboutNetworking.css",
+                "in-content/common.css",
+                "widgets/lineedit.svg",
+                "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+                "test_view_background_alternate",
+                "widgets/tabbar.svg",
+                "tests/test_desktoptheme_tabbar.py::TestTabBar",
+                "TestTabBarReference",
+                "test_selection_background",
+                "widgets/button.svg",
+                "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+                ":disabled",
+                "#categories",
+                "#host",
+                "#autorefcheck",
+                "#sectionTitle",
+                "a later plan",
+                "top-level in a tab",
+                "headless",
+                "@-moz-document url(\"about:networking\")",
+                "declaration checks do",
+                "platform colour adaptation 2026-10-27",
             )
         )
 

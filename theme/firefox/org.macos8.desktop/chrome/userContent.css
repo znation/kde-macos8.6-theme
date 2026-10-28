@@ -352,6 +352,49 @@
    rule painting body red and #contents table green rendered both,
    confirming the URL match and this sheet's reach; declaration checks do
    not establish rendered table pixels.
+
+   No reference shows Firefox's about:networking page; its .main-content
+   tables and four page buttons adapt this theme's Platinum controls
+   (platform colour adaptation 2026-10-27). In the installed Firefox
+   ESR 153.5.1, chrome/toolkit/content/global/aboutNetworking.html is
+   the page loaded at about:networking — an .html document, not .xhtml
+   like aboutSupport.xhtml — and aboutNetworking.js builds its tbody
+   rows, both light DOM (grep -c attachShadow returns 0 for each), so
+   every node these rules touch is reachable from a document-level rule;
+   div.main-content holds exactly ten <table> elements (one each in
+   #http, #sockets, #websockets, #altsvc and #networkid, three in #dns
+   and two in #dnslookuptool), each table > thead > tr > th plus a
+   JS-filled tbody, and the stock paint comes from the imported
+   chrome://global/skin/in-content/common.css plus aboutNetworking.css.
+   Each of the ten tables is the Platinum sunken list field — the #FFFFFF
+   face, square 1px #000000 outline and inset 1px 1px #999999 top-left
+   shadow of widgets/lineedit.svg, pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference — with the #EEEEEE alternate row of the pinned
+   [Colors:View] BackgroundAlternate trough
+   (test_view_background_alternate); each th header cell is the raised
+   #DDDDDD header face of the landed about:support column headers
+   (widgets/tabbar.svg's raised tab face, pinned by
+   tests/test_desktoptheme_tabbar.py::TestTabBar and TestTabBarReference)
+   and a hovered th takes the flat #CCCCFF black-text hover (the pinned
+   [Colors:Selection], test_selection_background); each of the four
+   buttons — #refreshButton in the .header, #clearHTTPCache,
+   #clearDNSCache and #dnsLookupButton — is the landed #DDDDDD push
+   button with the widgets/button.svg white/#AAAAAA bevel pinned by
+   tests/test_desktoptheme_button_reference.py::TestButtonReference and
+   the same :disabled-guarded flat hover, a :disabled button keeping
+   Firefox's disabled paint. The #categories sidebar of .category divs,
+   the #host field, the #autorefcheck checkbox, the #sectionTitle
+   heading, the four hrs and the about-logging link paragraph stay
+   Firefox's (the sidebar, field and checkbox are the natural subjects of
+   a later plan; this is decided here so no design question is left
+   open). The page loads top-level in a tab like the landed
+   about:support. A headless run of this ESR on 2026-10-27 with a
+   temporary profile whose userContent.css held an
+   @-moz-document url("about:networking") recolour rule painting body
+   red and .main-content table green rendered both, confirming the URL
+   match and this sheet's reach; declaration checks do not establish
+   rendered table pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -591,6 +634,60 @@
   #verify-place-integrity-button:hover:not(:disabled),
   #place-database-stats-toggle:hover:not(:disabled),
   #support-printing-clear-settings-button:hover:not(:disabled) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* about:networking tables and buttons adaptation 2026-10-27 (see the
+   header's provenance paragraph) */
+@-moz-document url("about:networking") {
+  .main-content table {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  .main-content table tr:nth-child(2n) {
+    background-color: #EEEEEE !important;
+  }
+
+  .main-content table th,
+  .main-content table td {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .main-content table th {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  .main-content table th:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #refreshButton,
+  #clearHTTPCache,
+  #clearDNSCache,
+  #dnsLookupButton {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #refreshButton:hover:not(:disabled),
+  #clearHTTPCache:hover:not(:disabled),
+  #clearDNSCache:hover:not(:disabled),
+  #dnsLookupButton:hover:not(:disabled) {
     background-color: #CCCCFF !important;
     color: #000000 !important;
     box-shadow: none !important;
