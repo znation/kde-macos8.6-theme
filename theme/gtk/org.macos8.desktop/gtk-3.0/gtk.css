@@ -528,6 +528,33 @@ frame > border, .frame {
   padding: 0;
 }
 
+/* No reference screenshot shows a GTK color chooser. Square corners adapt
+ * the existing frame > border, .frame recipe (border-radius: 0).
+ * Qualified stock GTK corner selectors also reset their overlay nodes.
+ * Recorded 2026-10-28 by the feature role. */
+colorswatch,
+colorswatch.top,
+colorswatch.bottom,
+colorswatch.left,
+colorswatch.right,
+colorswatch:first-child:not(.top),
+colorswatch:last-child:not(.bottom),
+colorswatch#add-color-button,
+colorswatch#add-color-button:only-child,
+colorswatch#editor-color-sample,
+colorswatch overlay,
+colorswatch.top overlay,
+colorswatch.bottom overlay,
+colorswatch.left overlay,
+colorswatch.right overlay,
+colorswatch:first-child:not(.top) overlay,
+colorswatch:last-child:not(.bottom) overlay,
+colorswatch#add-color-button overlay,
+colorswatch#add-color-button:only-child overlay,
+colorswatch#editor-color-sample overlay {
+  border-radius: 0;
+}
+
 /* Views paint the white content field with black text. */
 .view, textview text, list {
   background-color: #FFFFFF;
