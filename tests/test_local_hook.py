@@ -217,7 +217,7 @@ class TestGitFailures(unittest.TestCase):
                 "\udcff\udcfe",
             )
 
-    def test_success_returns_the_stripped_stdout(self):
+    def test_success_preserves_path_whitespace(self):
         with mock.patch.object(
             local_hook_git.subprocess,
             "run",
@@ -227,7 +227,7 @@ class TestGitFailures(unittest.TestCase):
         ):
             self.assertEqual(
                 local_hook_git._git("rev-parse", "--git-path", "hooks"),
-                "/hooks",
+                " /hooks ",
             )
 
 
@@ -285,6 +285,26 @@ class TestGitDiscovery(unittest.TestCase):
         with _in_directory(repo):
             hooks = local_hook_git.hooks_dir()
         self.assertEqual(shared.resolve(), hooks)
+
+    def test_whitespace_in_core_hooks_path_survives_install_and_uninstall(self):
+        repo = make_repo(self)
+        configured = " team-hooks \t"
+        self._git(repo, "config", "core.hooksPath", configured)
+        expected = repo / configured / local_hook.HOOK_NAME
+        trimmed = repo / configured.strip() / local_hook.HOOK_NAME
+
+        assert_succeeded(self, run_tool(repo, "install"))
+        self.assertEqual(local_hook.HOOK_SCRIPT.encode(), expected.read_bytes())
+        self.assertFalse(trimmed.exists())
+        assert_succeeded(self, run_tool(repo, "uninstall"))
+        self.assertFalse(expected.exists())
+
+    def test_top_level_preserves_a_trailing_space_in_the_repository_name(self):
+        repo = make_repo(self)
+        renamed = repo / "checkout "
+        self._git(repo, "init", "-q", str(renamed))
+        with _in_directory(renamed):
+            self.assertEqual(renamed.resolve(), local_hook_git.top_level())
 
     def test_a_linked_worktree_uses_the_common_hooks_directory(self):
         repo = make_repo(self)

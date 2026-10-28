@@ -18,7 +18,7 @@ class LocalHookError(Exception):
 
 
 def _git(*args: str) -> str:
-    """Run ``git *args*`` in the current directory; return its stripped stdout.
+    """Run ``git *args*`` and remove its terminating output newline.
 
     A missing git, a timeout, an unrunnable git, or a non-zero exit becomes a
     `LocalHookError` whose message is git's own diagnostic where there is one.
@@ -55,7 +55,9 @@ def _git(*args: str) -> str:
             detail
             or f"git {' '.join(args)} exited {result.returncode}"
         )
-    return result.stdout.strip()
+    # Spaces and tabs at either end can belong to a path (notably a
+    # relative core.hooksPath). Remove Git's record terminator only.
+    return result.stdout.removesuffix("\n")
 
 
 def hooks_dir() -> Path:
