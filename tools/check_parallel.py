@@ -24,13 +24,14 @@ The guarantees the serial run gave each worker are restated here:
   cleanup below runs and kills every still-running group: an interrupted
   coordinator leaves no workers behind;
 - the exit status is 0 when every module passed, or exited 5 *and its log
-  carries unittest's ``NO TESTS RAN`` summary* -- a pattern-matched module
-  that collects no tests contributes nothing to the serial ``unittest
-  discover`` run either, so it does not fail this one; an exit 5 without
-  that printed summary (a module that died of its own ``os._exit(5)``) is
-  a skipped run, not an empty one, and fails the run like any other
-  nonzero status; 1 when a module failed or timed out, and 2 for usage
-  errors.
+  carries unittest's ``NO TESTS RAN`` summary beside no verbose per-test
+  line* -- a pattern-matched module that collects no tests contributes
+  nothing to the serial ``unittest discover`` run either, so it does not
+  fail this one; an exit 5 without that printed summary, or with a test
+  that verifiably started (a module that died of its own ``os._exit(5)``,
+  whether it printed the markers itself or not), is a skipped run, not an
+  empty one, and fails the run like any other nonzero status; 1 when a
+  module failed or timed out, and 2 for usage errors.
 
 `make check` runs this tool by default; `make check CHECK_PARALLEL=0` keeps
 the serial `unittest discover` path, and `CHECK_PARALLEL=n` bounds the worker
@@ -105,6 +106,14 @@ _NO_TESTS_RAN = 5
 # evidence -- a module could die with its own ``os._exit(5)`` and skip its
 # tests -- so the log must carry this summary before the run passes.
 _NO_TESTS_RAN_MARKERS = ("Ran 0 tests", "NO TESTS RAN")
+# The summary alone is not proof either: the verbose runner writes one
+# ``test ... (...) ... `` line per test before running it and flushes it,
+# so a run that really collected no tests never leaves one in its log
+# while a run whose test started always does -- a log carrying the
+# summary beside such a line shows a test that printed the markers
+# itself before dying of its own exit 5.
+# A test docstring adds its first line between the identity and ` ... `.
+_TEST_STARTED = re.compile(r"\)\s(?:[^\n]*\s)?\.\.\.\s")
 
 # unittest discovery loads a file as a test module only when its basename is
 # a valid Python identifier ending in .py (TestLoader's VALID_MODULE_NAME),
@@ -379,8 +388,10 @@ def _print_results(
                 f"timed out after {timeout:.0f}s (process group killed)"
             )
             timed_out += 1
-        elif statuses[module] == _NO_TESTS_RAN and all(
-            marker in log_text for marker in _NO_TESTS_RAN_MARKERS
+        elif (
+            statuses[module] == _NO_TESTS_RAN
+            and all(marker in log_text for marker in _NO_TESTS_RAN_MARKERS)
+            and not _TEST_STARTED.search(log_text)
         ):
             # unittest exits 5 (NO TESTS RAN) for a module whose run
             # collected no tests. The serial discover run gets nothing from
@@ -388,12 +399,25 @@ def _print_results(
             # too; the section says so instead of a bare `exit 5`.
             verdict = "ran no tests (unittest's NO TESTS RAN, exit 5)"
             no_tests += 1
-        elif statuses[module] == _NO_TESTS_RAN:
+        elif statuses[module] == _NO_TESTS_RAN and not all(
+            marker in log_text for marker in _NO_TESTS_RAN_MARKERS
+        ):
             # The status alone is not evidence: a module can die of its
             # own exit 5 (a test calling ``os._exit(5)``) with its tests
             # never finished, while the serial discover run fails. Only
             # unittest's printed summary proves the run was empty.
             verdict = "exit 5 but the log shows no unittest NO TESTS RAN summary"
+            failed += 1
+        elif statuses[module] == _NO_TESTS_RAN:
+            # The summary alone is not proof either: a started test always
+            # leaves its verbose line (see _TEST_STARTED), so a log
+            # carrying the markers beside one shows a module whose test
+            # printed the summary itself before dying of its own exit 5 --
+            # the serial discover run fails it, so this run fails too.
+            verdict = (
+                "exit 5 but the log shows a started test beside "
+                "unittest's NO TESTS RAN summary"
+            )
             failed += 1
         else:
             verdict = f"exit {statuses[module]}"

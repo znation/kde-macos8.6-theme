@@ -471,9 +471,15 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 31
+NO_FAKE_BASELINE = 32
 
 NO_FAKE_REPRODUCTIONS = (
+    Reproduction(
+        "check-parallel-forged-empty-summary",
+        ("accepts a forged empty-run summary from a started test",),
+        "tests/test_check_parallel.py::TestCoordinator"
+        "::test_a_forged_no_tests_ran_summary_fails_the_run",
+    ),
     Reproduction(
         "check-parallel-stray-file-discovery",
         ("a stray file matching a broad pattern",),

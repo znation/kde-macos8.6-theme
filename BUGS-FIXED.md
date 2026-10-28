@@ -5,6 +5,21 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The parallel coordinator accepts a forged empty-run summary from a started test (found by the bugfix role 2026-10-28) — fixed 2026-10-28 by the bugfix role
+
+A test printing `Ran 0 tests` and `NO TESTS RAN`, flushing stdout and calling
+`os._exit(5)` makes the coordinator pass despite its verbose log showing a
+started test. Reproduced by
+`TestCoordinator::test_a_forged_no_tests_ran_summary_fails_the_run`.
+
+The empty-run verdict now also requires the absence of the verbose per-test
+marker. A contradictory log fails with a diagnostic naming the started test
+and empty-run summary. The regression failed with the original acceptance
+condition (exit 0) and passed with the guard (exit 1); the coordinator module's
+tests pass, including genuine empty modules and bare exit-5 failures.
+
+**Validation gap:** no-fake — Confirmation needed a scratch test module that prints the empty-run markers, flushes stdout and exits 5 after its verbose test line has been written.
+
 ### The parallel coordinator prints the next section's header onto a worker log that never ends its last line — fixed 2026-10-27 by the bugfix role
 
 - Symptom: a worker that dies mid-print (an `os._exit(1)` inside a test, with
