@@ -137,6 +137,25 @@ class TestCoordinator(unittest.TestCase):
         self.assertNotIn("test_a_test_b.TestOther", package_section)
         self.assertNotIn("test_a.test_b.TestOk", top_section)
 
+    def test_a_module_with_no_tests_does_not_fail_the_run(self):
+        # unittest exits 5 (NO TESTS RAN) when a module's run collects no
+        # tests, on Python 3.12 and later. The serial discover run gets
+        # nothing from such a module and still passes, so the parallel run
+        # passes too: the section says `ran no tests` instead of failing
+        # with a bare `exit 5` while the other modules' results stand.
+        tests_dir = self._project(
+            {"test_empty.py": "import unittest\n", "test_ok.py": OK_MODULE}
+        )
+        result = self._run("--tests-dir", tests_dir, "--workers", "2")
+        assert_succeeded(self, result)
+        self.assertIn(
+            "===== test_empty: ran no tests (unittest's NO TESTS RAN, "
+            "exit 5) =====",
+            result.stdout,
+        )
+        self.assertIn("===== test_ok: exit 0 =====", result.stdout)
+        self.assertIn("Ran 1 test in", result.stdout)
+
     def test_a_failing_module_fails_the_run_with_its_output(self):
         tests_dir = self._project(
             {"test_ok_one.py": OK_MODULE, "test_bad_two.py": FAILING_MODULE}

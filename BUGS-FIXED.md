@@ -5,6 +5,39 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The parallel coordinator fails a pattern-matched module that collects no tests as `exit 5`, so the same tree passes `make check CHECK_PARALLEL=0` and fails the default run (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+**Symptom:** `tools/check_parallel.py` reported a worker with a bare
+`exit 5` verdict and failed the whole run whenever a pattern-matched
+test module collected no tests. On Python 3.12 and later, `python -m
+unittest -v <module>` on such a module exits 5 (NO TESTS RAN), but the
+serial `unittest discover` path that `make check CHECK_PARALLEL=0` keeps
+gets nothing from that module and passes — so one tree could pass the
+serial run and fail the parallel default. The suite's package-module
+guard keeps a test-less package's `__init__.py` out of the workers
+(docs/invariants.md), but a test-less *file* module still matched the
+pattern and still became a worker, so the exit-5 path stayed reachable.
+Latent: no module in the repo's `tests/` collects zero tests today, so
+today's check was unaffected.
+
+**Reproduce:** a scratch tests directory holding `test_empty.py`
+(just `import unittest`) and `test_ok.py` (one passing test): the
+parallel coordinator printed `===== test_empty: exit 5 =====`, the
+summary `check: 2 modules, 1 module failed`, and exited 1, while
+`python -m unittest discover -s <that dir>` exited 0 on the same tree.
+
+**Fix:** `_print_results` now treats a worker's exit status 5 as its own
+outcome — the section reads `ran no tests (unittest's NO TESTS RAN,
+exit 5)` and the run passes, matching the serial run, where a
+test-less module contributes nothing. Any other nonzero status still
+fails the run, and the failure summary notes how many modules ran no
+tests when the run failed for another reason.
+
+**Validation gap:** no-fake — the repo's `tests/` holds no pattern-matched
+module that collects no tests, so the real suite could not surface the
+divergence; a scratch directory with a test-less module reproduced it,
+and that fixture now pins the ran-no-tests outcome.
+
 ### The parallel coordinator derives each worker log from the module's _-joined stem, so two modules sharing one _-joined log stem write one file and each result section prints the other module's output (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom:** `tools/check_parallel.py` named each worker's log after the

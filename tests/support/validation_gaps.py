@@ -471,7 +471,7 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 28
+NO_FAKE_BASELINE = 29
 
 NO_FAKE_REPRODUCTIONS = (
     Reproduction(
@@ -491,6 +491,12 @@ NO_FAKE_REPRODUCTIONS = (
         ("two modules sharing one _-joined log stem",),
         "tests/test_check_parallel.py::TestCoordinator"
         "::test_modules_with_the_same_log_stem_get_distinct_logs",
+    ),
+    Reproduction(
+        "check-parallel-testless-module",
+        ("a pattern-matched module that collects no tests",),
+        "tests/test_check_parallel.py::TestCoordinator"
+        "::test_a_module_with_no_tests_does_not_fail_the_run",
     ),
     Reproduction(
         "firefox-content-at-rule-escaped-quote",

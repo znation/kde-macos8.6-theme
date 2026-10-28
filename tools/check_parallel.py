@@ -23,8 +23,11 @@ The guarantees the serial run gave each worker are restated here:
   ``KeyboardInterrupt`` (the machinery of ``tools/process_group.py``), so the
   cleanup below runs and kills every still-running group: an interrupted
   coordinator leaves no workers behind;
-- the exit status is 0 only when every module exited 0, 1 when a module
-  failed or timed out, and 2 for usage errors.
+- the exit status is 0 when every module passed, or exited 5 -- unittest's
+  NO TESTS RAN -- because a pattern-matched module that collects no tests
+  contributes nothing to the serial ``unittest discover`` run either, so it
+  does not fail this one; 1 when a module failed or timed out, and 2 for
+  usage errors.
 
 `make check` runs this tool by default; `make check CHECK_PARALLEL=0` keeps
 the serial `unittest discover` path, and `CHECK_PARALLEL=n` bounds the worker
@@ -35,8 +38,8 @@ Usage::
     python3 tools/check_parallel.py [-p PATTERN] [--tests-dir DIR]
         [--workers N] [--timeout S]
 
-Exit status: 0 when every module passed, 1 when one failed or timed out, 2
-usage error.
+Exit status: 0 when every module passed or ran no tests, 1 when one failed
+or timed out, 2 usage error.
 """
 
 from __future__ import annotations
@@ -91,6 +94,9 @@ _REAP_SECONDS = 5.0
 # to terminate: a worker mid-`make` cannot relay a SIGTERM to its own
 # children, and the module's fate (timeout) is already decided.
 _KILL_SIGNAL = 9
+# unittest's exit status for a worker whose run collected no tests
+# (NO TESTS RAN; Python 3.12 and later).
+_NO_TESTS_RAN = 5
 
 # unittest discovery loads a file as a test module only when its basename is
 # a valid Python identifier ending in .py (TestLoader's VALID_MODULE_NAME),
@@ -346,6 +352,7 @@ def _print_results(
     failed = 0
     timed_out = 0
     not_finished = 0
+    no_tests = 0
     for module in modules:
         if module not in statuses:
             verdict = "did not finish"
@@ -355,6 +362,13 @@ def _print_results(
                 f"timed out after {timeout:.0f}s (process group killed)"
             )
             timed_out += 1
+        elif statuses[module] == _NO_TESTS_RAN:
+            # unittest exits 5 (NO TESTS RAN) for a module whose run
+            # collected no tests. The serial discover run gets nothing from
+            # such a module and still passes, so the parallel run passes
+            # too; the section says so instead of a bare `exit 5`.
+            verdict = "ran no tests (unittest's NO TESTS RAN, exit 5)"
+            no_tests += 1
         else:
             verdict = f"exit {statuses[module]}"
             failed += statuses[module] != 0
@@ -369,6 +383,8 @@ def _print_results(
             summary.append(f"{_plural(timed_out, 'module')} timed out")
         if not_finished:
             summary.append(f"{_plural(not_finished, 'module')} not finished")
+        if no_tests:
+            summary.append(f"{_plural(no_tests, 'module')} ran no tests")
         print("check: " + ", ".join(summary))
         return 1
     return 0
