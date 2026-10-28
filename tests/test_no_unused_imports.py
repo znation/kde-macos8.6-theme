@@ -157,6 +157,41 @@ class TestNoUnusedImports(unittest.TestCase):
         self.assertEqual(len(findings), 1, findings)
         self.assertIn("pkg/mod.py:1: unused import os", findings[0])
 
+    def test_an_all_insert_call_keeps_the_named_alias(self):
+        findings = self._findings(
+            self,
+            {
+                "pkg/mod.py": (
+                    "import os as platform\n"
+                    "import sys\n"
+                    "__all__ = []\n"
+                    '__all__.insert(0, "platform")\n'
+                )
+            },
+        )
+        self.assertEqual(findings, ["pkg/mod.py:2: unused import sys"])
+
+    def test_export_calls_on_other_receivers_keep_the_flag(self):
+        for receiver in ("exports", "holder.__all__"):
+            for method, arguments in (
+                ("append", '"os"'),
+                ("extend", '["os"]'),
+                ("insert", '0, "os"'),
+            ):
+                with self.subTest(receiver=receiver, method=method):
+                    findings = self._findings(
+                        self,
+                        {
+                            "pkg/mod.py": (
+                                "import os\n"
+                                f"{receiver}.{method}({arguments})\n"
+                            )
+                        },
+                    )
+                    self.assertEqual(
+                        findings, ["pkg/mod.py:1: unused import os"]
+                    )
+
     def test_an_augassign_to_another_name_keeps_the_flag(self):
         # Only an augmented assignment whose target is `__all__` re-exports:
         # growing a plain list honours no import, so the flag stays.
