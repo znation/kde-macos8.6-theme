@@ -128,6 +128,38 @@ def discover_modules(tests_dir: str, pattern: str) -> list[str]:
     return names
 
 
+def _log_paths(modules: list[str], scratch: str) -> dict[str, str]:
+    """Map each module to a unique log path under *scratch*.
+
+    The dotted module name becomes one ``_``-joined stem, but two distinct
+    modules can share it -- a package's ``test_a.test_b`` module and a
+    top-level ``test_a_test_b.py`` both give ``test_a_test_b`` -- and two
+    workers opening one log file would truncate and interleave each other's
+    output while the result sections print that one file twice. A later
+    collision therefore takes a ``_<n>`` suffix, checked against every
+    module's natural stem and every already-assigned suffix, so no third
+    module's own natural log name is ever claimed.
+    """
+    reserved = {f"{module.replace('.', '_')}.log" for module in modules}
+    names: dict[str, str] = {}
+    for module in modules:
+        natural = f"{module.replace('.', '_')}.log"
+        if natural not in names.values():
+            names[module] = natural
+            continue
+        suffix = 2
+        while True:
+            candidate = f"{natural[:-len('.log')]}_{suffix}.log"
+            suffix += 1
+            if candidate not in reserved:
+                reserved.add(candidate)
+                names[module] = candidate
+                break
+    return {
+        module: os.path.join(scratch, name) for module, name in names.items()
+    }
+
+
 class _NeverStarted:
     """Stand-in for a worker whose process could not be started.
 
@@ -409,10 +441,7 @@ def main(argv: list[str] | None = None) -> int:
         f"{_plural(workers, 'worker')}"
     )
     scratch = tempfile.mkdtemp(prefix="check-parallel-")
-    log_paths = {
-        module: os.path.join(scratch, f"{module.replace('.', '_')}.log")
-        for module in modules
-    }
+    log_paths = _log_paths(modules, scratch)
     try:
         with exit_on_termination():
             statuses = _supervise(

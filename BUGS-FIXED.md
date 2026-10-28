@@ -5,6 +5,39 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The parallel coordinator derives each worker log from the module's _-joined stem, so two modules sharing one _-joined log stem write one file and each result section prints the other module's output (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+**Symptom:** `tools/check_parallel.py` named each worker's log after the
+module's dotted name with every dot replaced by an underscore, and two
+distinct modules can collapse to the same stem: a package's
+`test_a.test_b` module and a top-level `test_a_test_b.py` both give
+`test_a_test_b.log`. Both workers would open that one file for writing
+(truncating and interleaving each other's output), and the result sections
+would print the same file twice, so one module's section showed another
+module's run — a passing module could be reported with a failed module's
+traceback or a failed module's output could be hidden entirely. Latent: no
+pair of modules in the repo's `tests/` collapses to one stem today, so
+today's check was unaffected.
+
+**Reproduce:** a scratch tests directory holding a `test_a/` package
+(`__init__.py` plus `test_b.py` defining `TestOk.test_ok`) and a top-level
+`test_a_test_b.py` defining `TestOther.test_also`: both modules match the
+default `test*.py` pattern, both ran as workers, and the
+`===== test_a.test_b =====` section printed `test_also
+(test_a_test_b.TestOther.test_also)` — the other module's output.
+
+**Fix:** `_log_paths` now assigns each module a unique log path under the
+scratch directory. A module whose natural `_-joined` stem is unclaimed keeps
+it; a later collision takes a `_<n>` suffix, checked against every module's
+natural stem and every already-assigned suffix so a third module's own
+natural log name (`test_a_test_b_2.log`) is never claimed. Discovery order
+is sorted, so the names are stable across runs.
+
+**Validation gap:** no-fake — the repo's `tests/` holds no pair of modules
+whose names collapse to one log stem, so the real suite could not surface
+the collision; a scratch directory with such a pair reproduced it, and that
+fixture now pins the unique-log guarantee.
+
 ### The test-suite coordinator's module discovery never runs a package's own module, so tests defined in the package's __init__.py silently don't run (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom:** `tools/check_parallel.py`'s `discover_modules` documented that it

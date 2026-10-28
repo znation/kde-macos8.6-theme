@@ -59,6 +59,14 @@ FAILING_MODULE = (
     "    def test_fails(self):\n"
     "        self.assertTrue(False)\n"
 )
+OTHER_MODULE = (
+    "import unittest\n"
+    "\n"
+    "\n"
+    "class TestOther(unittest.TestCase):\n"
+    "    def test_also(self):\n"
+    "        self.assertTrue(True)\n"
+)
 
 
 def _write_module(tests_dir, name, source):
@@ -101,6 +109,33 @@ class TestCoordinator(unittest.TestCase):
         )
         self.assertIn("exit 0", result.stdout)
         self.assertIn("Ran 1 test in", result.stdout)
+
+    def test_modules_with_the_same_log_stem_get_distinct_logs(self):
+        # A package's `test_a.test_b` module and a top-level
+        # `test_a_test_b.py` both match the default pattern, and both dotted
+        # names collapse to one _-joined log stem (`test_a_test_b`): two
+        # workers opening one log file truncate and interleave each other's
+        # output while the result sections print that one file twice, so
+        # each module gets a uniquely named log and its own section prints
+        # only its own output.
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        package = os.path.join(tests_dir, "test_a")
+        os.mkdir(package)
+        _write_module(package, "__init__.py", "")
+        _write_module(package, "test_b.py", OK_MODULE)
+        _write_module(tests_dir, "test_a_test_b.py", OTHER_MODULE)
+        result = self._run("--tests-dir", tests_dir, "--workers", "2")
+        assert_succeeded(self, result)
+        package_section = result.stdout[
+            result.stdout.index("===== test_a.test_b:")
+            :result.stdout.index("===== test_a_test_b:")
+        ]
+        top_section = result.stdout[result.stdout.index("===== test_a_test_b:") :]
+        self.assertIn("test_a.test_b.TestOk", package_section)
+        self.assertIn("test_a_test_b.TestOther", top_section)
+        self.assertNotIn("test_a_test_b.TestOther", package_section)
+        self.assertNotIn("test_a.test_b.TestOk", top_section)
 
     def test_a_failing_module_fails_the_run_with_its_output(self):
         tests_dir = self._project(
@@ -362,6 +397,38 @@ class TestDiscovery(unittest.TestCase):
         self.assertEqual(
             ["test_ok"],
             check_parallel.discover_modules(tests_dir, "test*.py"),
+        )
+
+
+    def test_modules_sharing_one_log_stem_get_unique_paths(self):
+        # The dotted module name becomes one _-joined log stem, and two
+        # distinct modules can share it: the package module `test_a.test_b`
+        # and the top-level `test_a_test_b.py` both give `test_a_test_b`,
+        # so the coordinator must not derive the log path from the stem
+        # alone.
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        package = os.path.join(tests_dir, "test_a")
+        os.mkdir(package)
+        _write_module(package, "__init__.py", "")
+        _write_module(package, "test_b.py", OK_MODULE)
+        _write_module(tests_dir, "test_a_test_b.py", OTHER_MODULE)
+        modules = check_parallel.discover_modules(tests_dir, "test*.py")
+        self.assertEqual(["test_a.test_b", "test_a_test_b"], modules)
+        paths = check_parallel._log_paths(modules, "/scratch")
+        self.assertEqual(2, len(set(paths.values())))
+
+    def test_a_disambiguated_log_never_claims_another_modules_name(self):
+        # The `_2` suffix must not collide with a third module's own natural
+        # stem: `test_a_test_b_2` keeps its natural log, and the later
+        # colliding module takes the next free suffix.
+        paths = check_parallel._log_paths(
+            ["test_a.test_b", "test_a_test_b_2", "test_a_test_b"],
+            "/scratch",
+        )
+        self.assertEqual(3, len(set(paths.values())))
+        self.assertTrue(
+            paths["test_a_test_b_2"].endswith("test_a_test_b_2.log")
         )
 
 
