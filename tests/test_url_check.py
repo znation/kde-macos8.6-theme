@@ -8,7 +8,7 @@ with no raw whitespace or control characters.
 import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from tools.url_check import is_absolute_url
+from tools.url_check import is_absolute_url, url_problem
 
 
 class TestAbsoluteUrlSchemeShape(unittest.TestCase):
@@ -293,6 +293,64 @@ class TestPathQueryFragmentCharacters(unittest.TestCase):
             "https://example.test/a#f<b>",
         ):
             self.assertFalse(is_absolute_url(url), repr(url))
+
+
+class TestUrlProblemNamesTheFix(unittest.TestCase):
+    """Each failure mode returns its own diagnostic, not the generic one.
+
+    ``url_problem``'s contract is that the failures are returned separately
+    because the fix differs: a malformed scheme needs a source, a raw control
+    character needs percent-encoding, an empty authority needs a host, and so
+    on. Blaming the scheme for the latter cases sends the reader after the
+    wrong thing. The boolean tests above prove every URL is rejected; these
+    pin the message each branch returns, so a regression that swaps two
+    diagnostics (or folds one into the generic scheme message) fails here.
+    """
+
+    CASES = (
+        # (url, distinctive needle in the returned problem).
+        # No (or a malformed) scheme: the citation needs a source.
+        ("example.test/x", "must be an absolute URL with a valid scheme"),
+        ("ht!tp://example.test/x", "must be an absolute URL with a valid scheme"),
+        # A raw space or control character: percent-encode it.
+        ("https://example.test/a b.png",
+         "must not contain whitespace or control characters"),
+        ("https://example.test/a\x01b.png",
+         "must not contain whitespace or control characters"),
+        # A character no userinfo allows before the host (the space form is
+        # caught earlier, by the whitespace check).
+        ("https://user\\name@host/x",
+         "must use only userinfo characters before '@'"),
+        # A bracketed host is held to its RFC 3986 form, each defect its own
+        # message.
+        ("https://[::1/x", "must close the bracketed host with ']'"),
+        ("https://[::1]80/x", "must put only a port after the bracketed host"),
+        ("https://[::1]:8x0/x",
+         "must put only digits in the port after the bracketed host"),
+        ("https://[not-an-ip]/x",
+         "must bracket an IPv6 or IPvFuture address"),
+        ("https://exa[mple]/x", "must not put '[' or ']' in a host"),
+        # An unbracketed host's port and reg-name each have their message.
+        ("https://host:abc/x", "must put only digits in the port"),
+        ("https://host<x>/x", "must use only reg-name characters in the host"),
+        # Only file:// may name no host.
+        ("https:///x.png", "must name a host between the scheme and the path"),
+        # The path, query and fragment each hold the reader to their own
+        # character set.
+        ("https://example.test/%", "must use only path characters"),
+        ("https://example.test/a?q=<b>", "must use only query characters"),
+        ("https://example.test/a#f<b>", "must use only fragment characters"),
+    )
+
+    def test_well_formed_url_has_no_problem(self):
+        self.assertIsNone(url_problem("https://example.test/x.png"))
+
+    def test_each_failure_returns_its_own_diagnostic(self):
+        for url, needle in self.CASES:
+            with self.subTest(url=url):
+                problem = url_problem(url)
+                self.assertIsNotNone(problem, url)
+                self.assertIn(needle, problem, url)
 
 
 class TestAuthorityPorts(unittest.TestCase):
