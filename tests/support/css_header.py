@@ -9,8 +9,8 @@ sites are ``FirefoxChromeTestCase`` (serving the provenance tests of
 ``tests/test_firefox_theme_shell.py``, ``tests/test_firefox_theme_panels.py``,
 ``tests/test_firefox_theme_popups.py``,
 ``tests/test_firefox_theme_page_info.py`` and
-``tests/test_firefox_theme_library.py``) and ``SheetCase`` in
-``tests/test_firefox_content_theme.py``.
+``tests/test_firefox_theme_library.py``) and ``FirefoxContentTestCase`` in
+``tests/support/firefox_content_cases.py``.
 """
 
 from __future__ import annotations

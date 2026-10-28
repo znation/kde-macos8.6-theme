@@ -12,7 +12,7 @@ from pathlib import Path
 
 from support import containment
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
-from test_firefox_content_theme import MARKER as CONTENT_MARKER
+from support.firefox_content_cases import MARKER as CONTENT_MARKER
 from tools import firefox_user_js, install_firefox
 
 SHEET_PATH = Path(repo_root.ROOT) / install_firefox.SHEET
