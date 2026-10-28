@@ -267,6 +267,46 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             "statusbar > frame > border", {"border-style": "none", "box-shadow": "none"}
         )
 
+    def test_app_notification_band(self):
+        roots = (
+            ".app-notification",
+            ".app-notification.frame",
+            ".app-notification:backdrop",
+            ".app-notification.frame:backdrop",
+        )
+        self.assert_infobar(roots)
+        expected = {
+            "background-color": FACE,
+            "background-image": "none",
+            "color": BLACK,
+            "border": "0",
+            "border-bottom": f"1px solid {ETCH_DARK}",
+            "border-radius": "0",
+            "box-shadow": f"inset 0 -1px {WHITE}",
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        for selector in roots:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+                sheet = gtk_css.strip_comments(self.css)
+                block = next(
+                    body for selectors, body in re.findall(r"([^{}]+)\{([^{}]*)\}", sheet)
+                    if selector in {arm.strip() for arm in selectors.split(",")}
+                )
+                self.assertLess(block.index("border: 0;"), block.index("border-bottom:"))
+        self.assertEqual(
+            {selector for selector in self.rules if ".app-notification" in selector},
+            set(roots) | {".app-notification > border", ".app-notification.frame > border"},
+        )
+
+    def test_app_notification_frame_border(self):
+        for selector in (".app-notification > border", ".app-notification.frame > border"):
+            with self.subTest(selector=selector):
+                self.assertEqual(
+                    self.rules[selector], {"border-style": "none", "box-shadow": "none"}
+                )
+
     def test_path_bar_tabs(self):
         forms = {
             "base": (".path-bar > button",),

@@ -928,6 +928,30 @@ statusbar > frame > border {
   box-shadow: none;
 }
 
+/* No reference screenshot shows a GTK application notification. Reuse the
+   infobar face, text and etched edge, with the frame/statusbar square,
+   shadowless treatment; the app-notification class is a GTK 3 hook. */
+.app-notification,
+.app-notification.frame,
+.app-notification:backdrop,
+.app-notification.frame:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  color: #000000;
+  border: 0;
+  border-bottom: 1px solid #888888;
+  border-radius: 0;
+  box-shadow: inset 0 -1px #FFFFFF;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification > border,
+.app-notification.frame > border {
+  border-style: none;
+  box-shadow: none;
+}
+
 /* A file chooser's path bar draws its breadcrumb buttons — the folder toggles,
    the slider arrows and the Other Locations button alike — as the landed tab
    recipe, the current folder's checked tab included; :backdrop stays out of
