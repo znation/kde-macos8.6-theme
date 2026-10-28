@@ -407,6 +407,25 @@
    red and .main-content table green rendered both, confirming the URL
    match and this sheet's reach; declaration checks do not establish
    rendered table pixels.
+
+   No reference shows Firefox's about:telemetry page; its furniture — the
+   #categories sidebar rows, the .category-subsection rows, the #search
+   section-filter field, the #stores store menu and the #ping-picker panel —
+   is painted by an @-moz-document url("about:telemetry") body whose rules
+   aboutTelemetry.js outweigh (selection is the .category.selected class,
+   subsections are JS-added), the rows, field, menu and panel reusing the
+   landed about:networking/about:preferences recipes (the #CCCCFF selection
+   of test_selection_background, the line-edit recipe of
+   widgets/lineedit.svg with
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference, the pane button/menulist byte-recipes
+   PANE_MENULIST_RULE and PANE_MENULIST_HOVER_RULE, and the sheet's white
+   face and black square outline for the panel, whose rounded shadowed
+   stock shape is Firefox's own light-scheme paint and no reference
+   screenshot shows this page) — a platform colour adaptation 2026-10-27;
+   the sections' data payloads and the #sectionTitle heading and other
+   page chrome stay Firefox's — the payloads being the recorded natural
+   subjects of a later plan.
 */
 
 @-moz-document url("about:downloads") {
@@ -754,5 +773,67 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M 3.5 8.5 L 6.5 11.5 L 12.5 5.5' fill='none' stroke='rgb(0, 0, 0)' stroke-width='2' stroke-linecap='square' stroke-linejoin='miter'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: center !important;
+  }
+}
+
+/* about:telemetry page furniture adaptation 2026-10-27 (see the header's
+   provenance paragraph) */
+@-moz-document url("about:telemetry") {
+  #categories > .category {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-radius: 0 !important;
+  }
+
+  #categories > .category:hover,
+  #categories > .category:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #categories > .category.selected,
+  #categories > .category.selected:hover,
+  #categories > .category.selected:hover:active {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #categories .category-subsection {
+    color: #000000 !important;
+  }
+
+  #categories .category-subsection.selected {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+  }
+
+  #search {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #stores {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #stores:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #ping-picker {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
 }

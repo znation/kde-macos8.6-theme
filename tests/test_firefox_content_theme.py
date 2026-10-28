@@ -539,6 +539,68 @@ NETWORKING_SELECTORS = (
     NETWORKING_CHECK_CHECKED,
 )
 
+TELEMETRY_ROW = "#categories > .category"
+TELEMETRY_ROW_HOVER = (
+    "#categories > .category:hover",
+    "#categories > .category:hover:active",
+)
+TELEMETRY_ROW_SELECTED = (
+    "#categories > .category.selected",
+    "#categories > .category.selected:hover",
+    "#categories > .category.selected:hover:active",
+)
+TELEMETRY_SUBSECTION = "#categories .category-subsection"
+TELEMETRY_SUBSECTION_SELECTED = TELEMETRY_SUBSECTION + ".selected"
+TELEMETRY_SEARCH = "#search"
+TELEMETRY_STORES = "#stores"
+TELEMETRY_STORES_HOVER = TELEMETRY_STORES + ":hover"
+TELEMETRY_PING_PANEL = "#ping-picker"
+
+TELEMETRY_ROW_RULE = {
+    "background-color": "transparent !important",
+    "color": f"{BLACK} !important",
+    "border-radius": "0 !important",
+}
+TELEMETRY_ROW_HIGHLIGHT = {
+    "background-color": f"{SELECTION} !important",
+    "color": f"{BLACK} !important",
+}
+TELEMETRY_SUBSECTION_RULE = {"color": f"{BLACK} !important"}
+TELEMETRY_PING_PANEL_RULE = {
+    "background-color": f"{WHITE} !important",
+    "color": f"{BLACK} !important",
+    "border": f"1px solid {BLACK} !important",
+    "border-radius": "0 !important",
+    "box-shadow": "none !important",
+}
+
+REQUIRED_TELEMETRY_RULES = {
+    TELEMETRY_ROW: TELEMETRY_ROW_RULE,
+    **{selector: TELEMETRY_ROW_HIGHLIGHT for selector in TELEMETRY_ROW_HOVER},
+    **{
+        selector: TELEMETRY_ROW_HIGHLIGHT
+        for selector in TELEMETRY_ROW_SELECTED
+    },
+    TELEMETRY_SUBSECTION: TELEMETRY_SUBSECTION_RULE,
+    TELEMETRY_SUBSECTION_SELECTED: TELEMETRY_ROW_HIGHLIGHT,
+    TELEMETRY_SEARCH: FIELD_RULE,
+    TELEMETRY_STORES: PANE_MENULIST_RULE,
+    TELEMETRY_STORES_HOVER: PANE_MENULIST_HOVER_RULE,
+    TELEMETRY_PING_PANEL: TELEMETRY_PING_PANEL_RULE,
+}
+
+TELEMETRY_SELECTORS = (
+    TELEMETRY_ROW,
+    *TELEMETRY_ROW_HOVER,
+    *TELEMETRY_ROW_SELECTED,
+    TELEMETRY_SUBSECTION,
+    TELEMETRY_SUBSECTION_SELECTED,
+    TELEMETRY_SEARCH,
+    TELEMETRY_STORES,
+    TELEMETRY_STORES_HOVER,
+    TELEMETRY_PING_PANEL,
+)
+
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
 
 
@@ -570,7 +632,7 @@ class TestFirefoxContentTheme(SheetCase):
         first_line = self.text.removeprefix("\ufeff").splitlines()[0]
         self.assertEqual(first_line, MARKER)
 
-    def test_sheet_has_the_downloads_config_preferences_support_and_networking_at_rules(
+    def test_sheet_has_the_downloads_config_preferences_support_networking_and_telemetry_at_rules(
         self,
     ):
         stripped = strip_comments(self.text).strip()
@@ -582,9 +644,10 @@ class TestFirefoxContentTheme(SheetCase):
                 "about:preferences",
                 "about:support",
                 "about:networking",
+                "about:telemetry",
             },
         )
-        self.assertEqual(stripped.count("@"), 5)
+        self.assertEqual(stripped.count("@"), 6)
         for selector in REQUIRED_RULES:
             with self.subTest(selector=selector):
                 self.assertIn(selector, self.bodies["about:downloads"])
@@ -1556,6 +1619,176 @@ class TestFirefoxNetworkingTheme(SheetCase):
                 "headless",
                 "@-moz-document url(\"about:networking\")",
                 "declaration checks do",
+                "platform colour adaptation 2026-10-27",
+            )
+        )
+
+
+class TestFirefoxTelemetryTheme(SheetCase):
+    AT_RULE_URL = "about:telemetry"
+
+    def test_telemetry_rules_match_the_required_rules(self):
+        for selector, expected in REQUIRED_TELEMETRY_RULES.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+
+    def test_parsed_rules_are_exactly_the_telemetry_rules(self):
+        self.assertEqual(set(self.rules), set(REQUIRED_TELEMETRY_RULES))
+        self.assertEqual(self.selectors, list(TELEMETRY_SELECTORS))
+
+    def test_telemetry_rules_scope_to_page_furniture(self):
+        """The row, subsection, field, store and panel arms match.
+
+        ``:hover`` is the matcher's only pseudo-class, so the ``:hover:active``
+        row arms are pinned by their selector text and by
+        ``test_parsed_rules_are_exactly_the_telemetry_rules`` instead of a
+        fixture match, as the networking scope test pins its
+        ``:hover:active`` arm.
+        """
+        categories = element("div", "categories")
+        row = element(
+            "div",
+            None,
+            classes=("category", "category-no-icon"),
+            parent=categories,
+        )
+        self.assertTrue(matches(TELEMETRY_ROW, row))
+        self.assertFalse(matches(TELEMETRY_ROW_HOVER[0], row))
+        self.assertTrue(
+            matches(
+                TELEMETRY_ROW_HOVER[0],
+                element(
+                    "div",
+                    None,
+                    classes=("category", "category-no-icon"),
+                    hover=True,
+                    parent=categories,
+                ),
+            )
+        )
+        self.assertIn(TELEMETRY_ROW_HOVER[1], self.text)
+        selected_row = element(
+            "div",
+            None,
+            classes=("category", "category-no-icon", "selected"),
+            parent=categories,
+        )
+        self.assertTrue(matches(TELEMETRY_ROW_SELECTED[0], selected_row))
+        self.assertTrue(
+            matches(
+                TELEMETRY_ROW_SELECTED[1],
+                element(
+                    "div",
+                    None,
+                    classes=("category", "category-no-icon", "selected"),
+                    hover=True,
+                    parent=categories,
+                ),
+            )
+        )
+        self.assertIn(TELEMETRY_ROW_SELECTED[2], self.text)
+        self.assertFalse(matches(TELEMETRY_ROW_HOVER[0], selected_row))
+        subsection = element(
+            "div", None, classes=("category-subsection",), parent=selected_row
+        )
+        self.assertTrue(matches(TELEMETRY_SUBSECTION, subsection))
+        self.assertFalse(matches(TELEMETRY_SUBSECTION_SELECTED, subsection))
+        selected_subsection = element(
+            "div",
+            None,
+            classes=("category-subsection", "selected"),
+            parent=selected_row,
+        )
+        self.assertTrue(matches(TELEMETRY_SUBSECTION_SELECTED, selected_subsection))
+        other_row = element(
+            "div",
+            None,
+            classes=("category", "category-no-icon"),
+            parent=element("div", "othersidebar"),
+        )
+        for selector in (
+            TELEMETRY_ROW,
+            *TELEMETRY_ROW_HOVER,
+            *TELEMETRY_ROW_SELECTED,
+            TELEMETRY_SUBSECTION,
+            TELEMETRY_SUBSECTION_SELECTED,
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, other_row))
+        span_row = element("span", None, classes=("category",))
+        for selector in (
+            TELEMETRY_ROW,
+            *TELEMETRY_ROW_HOVER,
+            *TELEMETRY_ROW_SELECTED,
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, span_row))
+        search = element(
+            "input",
+            "search",
+            attrs={"type": "text"},
+            parent=element("div", "sectionFilters"),
+        )
+        self.assertTrue(matches(TELEMETRY_SEARCH, search))
+        self.assertFalse(matches(TELEMETRY_SEARCH, element("input")))
+        stores = element("select", "stores")
+        self.assertTrue(matches(TELEMETRY_STORES, stores))
+        self.assertTrue(
+            matches(TELEMETRY_STORES_HOVER, element("select", "stores", hover=True))
+        )
+        self.assertFalse(matches(TELEMETRY_STORES_HOVER, stores))
+        for selector in self.selectors:
+            with self.subTest(selector=selector):
+                for token in FORBIDDEN_PAGE_CHROME:
+                    self.assertNotIn(token, selector)
+
+    def test_telemetry_rules_use_the_pinned_palette(self):
+        allowed = {
+            BLACK,
+            WHITE,
+            GREY,
+            FACE,
+            TROUGH,
+            SELECTION,
+            BUTTON_SHADOW,
+            ETCH_DARK,
+        }
+        seen = set()
+        for selector, expected in REQUIRED_TELEMETRY_RULES.items():
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertEqual(declarations, expected)
+                self.assertTrue(declarations)
+            for name, value in declarations.items():
+                with self.subTest(selector=selector, property=name):
+                    self.assertIn("!important", value)
+                    for token in HEX.findall(value):
+                        seen.add(token)
+                        self.assertIn(token, allowed)
+        self.assertTrue(seen)
+        body = self.bodies["about:telemetry"]
+        self.assertLessEqual(set(HEX.findall(body)), allowed)
+
+    def test_header_names_telemetry_provenance(self):
+        self.assert_header_names(
+            (
+                "No reference shows Firefox's about:telemetry",
+                "aboutTelemetry.js",
+                ".category.selected",
+                "common-shared.css",
+                "#search",
+                "#stores",
+                "#ping-picker",
+                "test_selection_background",
+                "widgets/lineedit.svg",
+                "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+                "TestLineEditReference",
+                "PANE_MENULIST_RULE",
+                "PANE_MENULIST_HOVER_RULE",
+                "no reference",
+                "#sectionTitle",
+                "a later plan",
+                "@-moz-document url(\"about:telemetry\")",
                 "platform colour adaptation 2026-10-27",
             )
         )
