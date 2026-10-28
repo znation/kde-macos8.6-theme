@@ -1,8 +1,10 @@
 """Validate the Firefox Platinum sheet's Library window paints.
 
 The two places trees that frame the Library window's folder list and
-content list, and the Library toolbar's search box, for the standalone
-``userChrome.css``.
+content list, the content tree's column-header band, the Library toolbar
+band and its menu titles with the toolbar's search box, the downloads list
+with its Clear button, and the details pane's fields, rows and tag
+selector, for the standalone ``userChrome.css``.
 """
 
 from __future__ import annotations
