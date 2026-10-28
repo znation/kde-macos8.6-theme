@@ -556,6 +556,25 @@ TELEMETRY_STORES = "#stores"
 TELEMETRY_STORES_HOVER = TELEMETRY_STORES + ":hover"
 TELEMETRY_PING_PANEL = "#ping-picker"
 
+# The payload arms reuse the landed support/networking table byte-recipes
+# (FIELD_RULE, the #EEEEEE zebra of TROUGH, SUPPORT_TH_RULE,
+# SUPPORT_CELL_RULE and BUTTON_HOVER_RULE) and the landed push-button
+# recipes over this page's selectors (.main-content table, the histogram
+# boxes, their bars and copy buttons and the raw-JSON viewer); the register
+# keys the parsed selectors, which are the comma-list cell and button arms
+# split per arm by parse_css.
+TELEMETRY_TABLE = ".main-content table"
+TELEMETRY_ZEBRA = TELEMETRY_TABLE + " tr:nth-child(2n)"
+TELEMETRY_TH = TELEMETRY_TABLE + " th"
+TELEMETRY_TD = TELEMETRY_TABLE + " td"
+TELEMETRY_HEADER_HOVER = TELEMETRY_TH + ":hover"
+TELEMETRY_HISTOGRAM = ".histogram"
+TELEMETRY_BAR_INNER = ".bar-inner"
+TELEMETRY_COPY = ".copy-node"
+TELEMETRY_COPY_HOVER = TELEMETRY_COPY + ":hover"
+TELEMETRY_JSON_BUTTON = "#payload-json-viewer"
+TELEMETRY_JSON_BUTTON_HOVER = TELEMETRY_JSON_BUTTON + ":hover"
+
 TELEMETRY_ROW_RULE = {
     "background-color": "transparent !important",
     "color": f"{BLACK} !important",
@@ -573,6 +592,13 @@ TELEMETRY_PING_PANEL_RULE = {
     "border-radius": "0 !important",
     "box-shadow": "none !important",
 }
+# Flat histogram adaptation (2026-10-28) of the ten-row progress gradient;
+# the selection colour is pinned by TestReferenceAnchors.test_selection_background.
+TELEMETRY_BAR_INNER_RULE = {
+    "background-color": f"{SELECTION} !important",
+    "border": "0 !important",
+    "border-radius": "0 !important",
+}
 
 REQUIRED_TELEMETRY_RULES = {
     TELEMETRY_ROW: TELEMETRY_ROW_RULE,
@@ -587,6 +613,17 @@ REQUIRED_TELEMETRY_RULES = {
     TELEMETRY_STORES: PANE_MENULIST_RULE,
     TELEMETRY_STORES_HOVER: PANE_MENULIST_HOVER_RULE,
     TELEMETRY_PING_PANEL: TELEMETRY_PING_PANEL_RULE,
+    TELEMETRY_TABLE: FIELD_RULE,
+    TELEMETRY_ZEBRA: {"background-color": f"{TROUGH} !important"},
+    TELEMETRY_TH: SUPPORT_TH_RULE,
+    TELEMETRY_TD: SUPPORT_CELL_RULE,
+    TELEMETRY_HEADER_HOVER: BUTTON_HOVER_RULE,
+    TELEMETRY_HISTOGRAM: TELEMETRY_PING_PANEL_RULE,
+    TELEMETRY_BAR_INNER: TELEMETRY_BAR_INNER_RULE,
+    TELEMETRY_COPY: BUTTON_RULE,
+    TELEMETRY_COPY_HOVER: BUTTON_HOVER_RULE,
+    TELEMETRY_JSON_BUTTON: BUTTON_RULE,
+    TELEMETRY_JSON_BUTTON_HOVER: BUTTON_HOVER_RULE,
 }
 
 TELEMETRY_SELECTORS = (
@@ -599,6 +636,18 @@ TELEMETRY_SELECTORS = (
     TELEMETRY_STORES,
     TELEMETRY_STORES_HOVER,
     TELEMETRY_PING_PANEL,
+    TELEMETRY_TABLE,
+    TELEMETRY_ZEBRA,
+    TELEMETRY_TH,
+    TELEMETRY_TD,
+    TELEMETRY_TH,
+    TELEMETRY_HEADER_HOVER,
+    TELEMETRY_HISTOGRAM,
+    TELEMETRY_BAR_INNER,
+    TELEMETRY_COPY,
+    TELEMETRY_JSON_BUTTON,
+    TELEMETRY_COPY_HOVER,
+    TELEMETRY_JSON_BUTTON_HOVER,
 )
 
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
@@ -1637,7 +1686,7 @@ class TestFirefoxTelemetryTheme(SheetCase):
         self.assertEqual(self.selectors, list(TELEMETRY_SELECTORS))
 
     def test_telemetry_rules_scope_to_page_furniture(self):
-        """The row, subsection, field, store and panel arms match.
+        """The row, subsection, field, store, panel and payload arms match.
 
         ``:hover`` is the matcher's only pseudo-class, so the ``:hover:active``
         row arms are pinned by their selector text and by
@@ -1737,6 +1786,64 @@ class TestFirefoxTelemetryTheme(SheetCase):
             matches(TELEMETRY_STORES_HOVER, element("select", "stores", hover=True))
         )
         self.assertFalse(matches(TELEMETRY_STORES_HOVER, stores))
+        main = element("div", "main", classes=("main-content",))
+        data = element("div", None, classes=("data",), parent=main)
+        table = element("table", None, parent=data)
+        self.assertTrue(matches(TELEMETRY_TABLE, table))
+        self.assertFalse(
+            matches(
+                TELEMETRY_TABLE,
+                element("table", None, parent=element("div", "other")),
+            )
+        )
+        header = element("th", None, parent=table)
+        self.assertTrue(matches(TELEMETRY_TH, header))
+        self.assertTrue(matches(TELEMETRY_TD, element("td", None, parent=table)))
+        self.assertTrue(
+            matches(
+                TELEMETRY_HEADER_HOVER,
+                element("th", None, hover=True, parent=table),
+            )
+        )
+        self.assertFalse(matches(TELEMETRY_HEADER_HOVER, header))
+        # The zebra arm's :nth-child(2n) is outside the matcher's subset,
+        # as the support scope test records, so it is pinned by text.
+        self.assertIn(":nth-child(2n)", TELEMETRY_ZEBRA)
+        histogram = element("div", None, classes=("histogram",))
+        self.assertTrue(matches(TELEMETRY_HISTOGRAM, histogram))
+        bar = element("div", None, classes=("bar",), parent=histogram)
+        bar_inner = element("div", None, classes=("bar-inner",), parent=bar)
+        for selector in (
+            TELEMETRY_TABLE,
+            TELEMETRY_ZEBRA,
+            TELEMETRY_TH,
+            TELEMETRY_TD,
+            TELEMETRY_HEADER_HOVER,
+            TELEMETRY_HISTOGRAM,
+            TELEMETRY_BAR_INNER,
+            TELEMETRY_COPY,
+            TELEMETRY_COPY_HOVER,
+            TELEMETRY_JSON_BUTTON,
+            TELEMETRY_JSON_BUTTON_HOVER,
+        ):
+            with self.subTest(selector=selector):
+                self.assertFalse(matches(selector, bar))
+        self.assertTrue(matches(TELEMETRY_BAR_INNER, bar_inner))
+        self.assertFalse(matches(TELEMETRY_BAR_INNER, bar))
+        copy_button = element("button", None, classes=("copy-node",))
+        self.assertTrue(matches(TELEMETRY_COPY, copy_button))
+        self.assertFalse(matches(TELEMETRY_COPY_HOVER, copy_button))
+        self.assertTrue(
+            matches(
+                TELEMETRY_COPY_HOVER,
+                element("button", None, classes=("copy-node",), hover=True),
+            )
+        )
+        self.assertTrue(matches(TELEMETRY_JSON_BUTTON, element("button", "payload-json-viewer")))
+        other_button = element("button", "other")
+        self.assertFalse(matches(TELEMETRY_JSON_BUTTON, other_button))
+        self.assertFalse(matches(TELEMETRY_JSON_BUTTON_HOVER, other_button))
+        self.assertFalse(matches(TELEMETRY_JSON_BUTTON, copy_button))
         for selector in self.selectors:
             with self.subTest(selector=selector):
                 for token in FORBIDDEN_PAGE_CHROME:
@@ -1787,7 +1894,14 @@ class TestFirefoxTelemetryTheme(SheetCase):
                 "PANE_MENULIST_HOVER_RULE",
                 "no reference",
                 "#sectionTitle",
-                "a later plan",
+                ".main-content table",
+                ".histogram",
+                ".bar-inner",
+                ".copy-node",
+                "#payload-json-viewer",
+                "widgets/bar_meter_horizontal.svg",
+                "TestProgressBar",
+                "BUTTON_RULE",
                 "@-moz-document url(\"about:telemetry\")",
                 "platform colour adaptation 2026-10-27",
             )

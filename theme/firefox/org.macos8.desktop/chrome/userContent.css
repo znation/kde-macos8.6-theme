@@ -423,9 +423,31 @@
    face and black square outline for the panel, whose rounded shadowed
    stock shape is Firefox's own light-scheme paint and no reference
    screenshot shows this page) — a platform colour adaptation 2026-10-27;
-   the sections' data payloads and the #sectionTitle heading and other
-   page chrome stay Firefox's — the payloads being the recorded natural
-   subjects of a later plan.
+   the #sectionTitle heading and other page chrome stay Firefox's.
+
+   No reference shows the page's data payloads either; the JS-built
+   .main-content tables reuse the landed about:support/about:networking
+   arms byte-for-byte (the sunken white table field of FIELD_RULE, the
+   #EEEEEE zebra of TROUGH, the raised #DDDDDD th band of SUPPORT_TH_RULE,
+   the cleared cell borders of SUPPORT_CELL_RULE and the flat #CCCCFF
+   th:hover of BUTTON_HOVER_RULE), the .histogram box reuses the landed
+   #ping-picker panel values (the sheet's white face and square 1px solid
+   #000000 outline, no shadow), each bar's .bar-inner reuses the
+   Platinum progress fill as a flat adaptation (2026-10-28):
+   tests/test_desktoptheme_progressbar.py::TestProgressBar pins the
+   ten-row gradient in widgets/bar_meter_horizontal.svg; this histogram
+   instead uses the flat #CCCCFF selection fill with border: 0 and
+   border-radius: 0, its colour pinned by
+   tests/test_colorscheme_reference.py::TestReferenceAnchors.
+   test_selection_background — and the .copy-node and #payload-json-viewer
+   buttons reuse the landed push-button recipes BUTTON_RULE and
+   BUTTON_HOVER_RULE (grounded in widgets/button.svg and
+   aboutsystem_betawiki.png, pinned by
+   tests/test_desktoptheme_button.py::TestButton and TestButtonReference);
+   the stock row hover (rgba(0,0,0,.05)), #raw-payload-data's stock
+   black-on-white text (aboutTelemetry.css paints no pre colour and the
+   page face is white) and the copy button's reveal-on-hover geometry stay
+   Firefox's — a platform colour adaptation 2026-10-27.
 */
 
 @-moz-document url("about:downloads") {
@@ -834,6 +856,68 @@
     color: #000000 !important;
     border: 1px solid #000000 !important;
     border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* The sections' data payloads (see the header's provenance
+     paragraph). */
+  .main-content table {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  .main-content table tr:nth-child(2n) {
+    background-color: #EEEEEE !important;
+  }
+
+  .main-content table th,
+  .main-content table td {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .main-content table th {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  .main-content table th:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  .histogram {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .bar-inner {
+    background-color: #CCCCFF !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .copy-node,
+  #payload-json-viewer {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  .copy-node:hover,
+  #payload-json-viewer:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
     box-shadow: none !important;
   }
 }
