@@ -400,6 +400,13 @@ def _print_results(
             failed += statuses[module] != 0
         print(f"===== {module}: {verdict} =====")
         sys.stdout.write(log_text)
+        if log_text and not log_text.endswith("\n"):
+            # A worker that died mid-print (an `os._exit` inside a test,
+            # with the verbose runner's partial `... ` line the last thing
+            # it wrote) leaves a log whose last line never ends; the next
+            # section's header printed verbatim after it would glue the two
+            # onto one line and the sections stop being diffable.
+            sys.stdout.write("\n")
     if failed or timed_out or not_finished:
         summary = [f"{_plural(len(modules), 'module')}"]
         if failed:

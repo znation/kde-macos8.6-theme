@@ -5,6 +5,32 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The parallel coordinator prints the next section's header onto a worker log that never ends its last line — fixed 2026-10-27 by the bugfix role
+
+- Symptom: a worker that dies mid-print (an `os._exit(1)` inside a test, with
+  the verbose runner's partial `... ` line the last thing it wrote) leaves a
+  log whose last line never ends, and `_print_results` wrote the next
+  section's `===== ... =====` header verbatim after it — the two landed on one
+  line, so the run's module sections stopped being diffable, which the
+  coordinator's docstring and the `docs/invariants.md` row both promise.
+- Reproduce: a scratch suite of `test_boom.py` (whose test calls
+  `os._exit(1)`) and `test_ok.py`, run through `python3 tools/check_parallel.py
+  --tests-dir <scratch>`: the boom section's captured output and the ok
+  section's header print as one glued line
+  (`test_boom (test_boom.T.test_boom) ... ===== test_ok: exit 0 =====`).
+- Cause: `_print_results` wrote each log with `sys.stdout.write(log_text)`
+  and no separator, assuming every log ends on a line break.
+- Fix: a log not ending in a break is closed with one — `check_parallel`
+  writes a newline after any log whose text does not already end with one.
+- Pinned by `tests/test_check_parallel.py::TestCoordinator`
+  `::test_an_unterminated_log_never_merges_with_the_next_section`.
+
+**Validation gap:** no-fake — the suite had no fixture module whose worker
+  log ends without a line break, so confirming it needed a manufactured
+  module dying mid-print through `os._exit(1)`
+  (`tests/test_check_parallel.py::TestCoordinator`
+  `::test_an_unterminated_log_never_merges_with_the_next_section`).
+
 ### The parallel coordinator trusts a worker's bare exit 5 as `ran no tests`, so a module that dies of its own os._exit(5) skips its tests silently while the same tree fails `unittest discover` (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom:** an earlier fix today taught `tools/check_parallel.py` to pass a

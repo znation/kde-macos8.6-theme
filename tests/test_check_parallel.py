@@ -185,6 +185,35 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("===== test_ok: exit 0 =====", result.stdout)
         self.assertIn("1 module failed", result.stdout)
 
+    def test_an_unterminated_log_never_merges_with_the_next_section(self):
+        # A worker that dies mid-print (an `os._exit(1)` inside a test, with
+        # the verbose runner's `... ` partial line the last thing it wrote)
+        # leaves a log whose last line never ends. The next section's header
+        # printed verbatim after it would glue the two onto one line, and the
+        # run's sections stop being diffable, so a log not ending in a break
+        # is closed with one.
+        tests_dir = self._project(
+            {
+                "test_boom.py": (
+                    "import os, unittest\n"
+                    "\n"
+                    "\n"
+                    "class TestBoom(unittest.TestCase):\n"
+                    "    def test_boom(self):\n"
+                    "        os._exit(1)\n"
+                ),
+                "test_ok.py": OK_MODULE,
+            }
+        )
+        result = self._run("--tests-dir", tests_dir, "--workers", "2")
+        assert_failed(self, result)
+        self.assertIn("===== test_boom: exit 1 =====", result.stdout)
+        self.assertIn("===== test_ok: exit 0 =====", result.stdout)
+        # The later section's header starts a line of its own: the
+        # unterminated boom log never runs into it.
+        self.assertIn("\n===== test_ok: exit 0 =====", result.stdout)
+        self.assertIn("1 module failed", result.stdout)
+
     def test_a_failing_module_fails_the_run_with_its_output(self):
         tests_dir = self._project(
             {"test_ok_one.py": OK_MODULE, "test_bad_two.py": FAILING_MODULE}
