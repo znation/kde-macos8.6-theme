@@ -359,6 +359,67 @@ REQUIRED_PREFERENCES_RULES = {
     PANE_MENULIST_OPEN: PANE_MENULIST_HOVER_RULE,
 }
 
+# The about:support rules. The sheet's field, header and button arms are the
+# byte-recipes of this module's shared arms (FIELD_RULE for the field,
+# BUTTON_RULE and BUTTON_HOVER_RULE for the raised header and push-button
+# faces); the register keys the parsed selectors, which are the comma-list
+# cell and button arms split per arm by parse_css.
+SUPPORT_LIST = "#contents table"
+SUPPORT_ZEBRA = SUPPORT_LIST + " tr:nth-child(2n)"
+SUPPORT_TH = SUPPORT_LIST + " th"
+SUPPORT_TD = SUPPORT_LIST + " td"
+SUPPORT_HEADER_HOVER = SUPPORT_TH + ":hover"
+SUPPORT_BUTTONS = (
+    "#copy-raw-data-to-clipboard",
+    "#copy-to-clipboard",
+    ".action-box button",
+    "#profile-dir-button",
+    "#enumerate-database-button",
+    "#verify-place-integrity-button",
+    "#place-database-stats-toggle",
+    "#support-printing-clear-settings-button",
+)
+SUPPORT_BUTTONS_HOVER = tuple(
+    arm + ":hover:not(:disabled)" for arm in SUPPORT_BUTTONS
+)
+
+# The sheet's comma-list cell rule restates th before the header rule
+# repaints it, so parse_css merges both blocks into th's five declarations.
+SUPPORT_CELL_RULE = {
+    "border": "0 !important",
+    "border-radius": "0 !important",
+}
+SUPPORT_TH_RULE = {
+    "border": "0 !important",
+    "border-radius": "0 !important",
+    "background-color": f"{FACE} !important",
+    "color": f"{BLACK} !important",
+    "box-shadow": (
+        f"inset 1px 1px {WHITE}, inset -1px -1px {BUTTON_SHADOW} !important"
+    ),
+}
+
+REQUIRED_SUPPORT_RULES = {
+    SUPPORT_LIST: FIELD_RULE,
+    SUPPORT_ZEBRA: {"background-color": f"{TROUGH} !important"},
+    SUPPORT_TH: SUPPORT_TH_RULE,
+    SUPPORT_TD: SUPPORT_CELL_RULE,
+    SUPPORT_HEADER_HOVER: BUTTON_HOVER_RULE,
+    **{selector: BUTTON_RULE for selector in SUPPORT_BUTTONS},
+    **{selector: BUTTON_HOVER_RULE for selector in SUPPORT_BUTTONS_HOVER},
+}
+
+SUPPORT_SELECTORS = (
+    SUPPORT_LIST,
+    SUPPORT_ZEBRA,
+    SUPPORT_TH,
+    SUPPORT_TD,
+    SUPPORT_TH,
+    SUPPORT_HEADER_HOVER,
+    *SUPPORT_BUTTONS,
+    *SUPPORT_BUTTONS_HOVER,
+)
+
 FORBIDDEN_PAGE_CHROME = ("body", "h1", "hgroup", "main-content-title")
 
 
@@ -390,13 +451,20 @@ class TestFirefoxContentTheme(SheetCase):
         first_line = self.text.removeprefix("\ufeff").splitlines()[0]
         self.assertEqual(first_line, MARKER)
 
-    def test_sheet_has_the_downloads_config_and_preferences_at_rules(self):
+    def test_sheet_has_the_downloads_config_preferences_and_support_at_rules(
+        self,
+    ):
         stripped = strip_comments(self.text).strip()
         self.assertEqual(
             set(self.bodies),
-            {"about:downloads", "about:config", "about:preferences"},
+            {
+                "about:downloads",
+                "about:config",
+                "about:preferences",
+                "about:support",
+            },
         )
-        self.assertEqual(stripped.count("@"), 3)
+        self.assertEqual(stripped.count("@"), 4)
         for selector in REQUIRED_RULES:
             with self.subTest(selector=selector):
                 self.assertIn(selector, self.bodies["about:downloads"])
@@ -987,6 +1055,146 @@ class TestFirefoxPreferencesFieldsTheme(SheetCase):
                 ":not([disabled])",
                 ":user-invalid",
                 "sub-dialog",
+                "platform colour adaptation 2026-10-27",
+            )
+        )
+
+
+class TestFirefoxSupportTheme(SheetCase):
+    AT_RULE_URL = "about:support"
+
+    def test_support_rules_match_the_required_rules(self):
+        for selector, expected in REQUIRED_SUPPORT_RULES.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+
+    def test_parsed_rules_are_exactly_the_support_rules(self):
+        self.assertEqual(set(self.rules), set(REQUIRED_SUPPORT_RULES))
+        self.assertEqual(self.selectors, list(SUPPORT_SELECTORS))
+
+    def test_support_table_rules_scope_to_the_contents_div(self):
+        """The field, header and hover arms match nodes inside #contents.
+
+        The zebra arm's ``:nth-child(2n)`` and the comma-list cell arm are
+        outside the matcher's subset, so they are pinned by their selector
+        text and by ``test_parsed_rules_are_exactly_the_support_rules``
+        instead of a fixture match.
+        """
+        contents = element("div", "contents")
+        table = element("table", None, parent=contents)
+        header = element("th", None, classes=("column",), parent=table)
+        self.assertTrue(matches(SUPPORT_LIST, table))
+        self.assertFalse(
+            matches(
+                SUPPORT_LIST,
+                element("table", None, parent=element("div", "other")),
+            )
+        )
+        self.assertTrue(matches(SUPPORT_TH, header))
+        self.assertTrue(
+            matches(
+                SUPPORT_HEADER_HOVER,
+                element(
+                    "th", None, classes=("column",), hover=True, parent=table,
+                ),
+            )
+        )
+        self.assertFalse(matches(SUPPORT_HEADER_HOVER, header))
+        self.assertIn(":nth-child(2n)", SUPPORT_ZEBRA)
+        self.assertIn(SUPPORT_TH, self.text)
+        self.assertIn(SUPPORT_TD, self.text)
+        for selector in self.selectors:
+            with self.subTest(selector=selector):
+                for token in FORBIDDEN_PAGE_CHROME:
+                    self.assertNotIn(token, selector)
+
+    def test_support_buttons_scope_to_the_page_ids(self):
+        """The button arms name the page's ten ids and the .action-box arm.
+
+        The comma-list face selector is outside the matcher's subset, so the
+        scope check matches each arm's own compound and pins the hover's
+        ``:not(:disabled)`` guard by text.
+        """
+        for arm in SUPPORT_BUTTONS:
+            with self.subTest(arm=arm):
+                self.assertIn(arm, self.text)
+                self.assertIn(arm + ":hover:not(:disabled)", self.text)
+        action_box = element("div", "box-container", classes=("action-box",))
+        self.assertTrue(matches(
+            ".action-box button", element("button", None, parent=action_box)
+        ))
+        self.assertTrue(matches(
+            "#copy-to-clipboard", element("button", "copy-to-clipboard")
+        ))
+        self.assertFalse(matches(
+            "#copy-raw-data-to-clipboard", element("button", "copy-to-clipboard")
+        ))
+        chrome_button = element("button", "PlacesToolbar")
+        self.assertFalse(matches("#copy-to-clipboard", chrome_button))
+        self.assertFalse(
+            matches(".action-box button", element("button", None))
+        )
+
+    def test_support_rules_use_the_pinned_palette(self):
+        allowed = {
+            BLACK,
+            WHITE,
+            GREY,
+            FACE,
+            TROUGH,
+            SELECTION,
+            BUTTON_SHADOW,
+        }
+        seen = set()
+        for selector, expected in REQUIRED_SUPPORT_RULES.items():
+            declarations = self.rules[selector]
+            with self.subTest(selector=selector):
+                self.assertEqual(declarations, expected)
+                self.assertTrue(declarations)
+            for name, value in declarations.items():
+                with self.subTest(selector=selector, property=name):
+                    self.assertIn("!important", value)
+                    for token in HEX.findall(value):
+                        seen.add(token)
+                        self.assertIn(token, allowed)
+        self.assertTrue(seen)
+        body = self.bodies["about:support"]
+        self.assertEqual(
+            set(HEX.findall(body)),
+            {WHITE, BLACK, GREY, FACE, TROUGH, SELECTION, BUTTON_SHADOW},
+        )
+
+    def test_header_names_support_provenance(self):
+        self.assert_header_names(
+            (
+                "No reference shows Firefox's about:support",
+                "aboutSupport.xhtml",
+                "aboutSupport.js",
+                "attachShadow",
+                "#copy-raw-data-to-clipboard",
+                "#clear-startup-cache-button",
+                "#place-database-stats-toggle",
+                ".action-box",
+                "th class=\"column\"",
+                "th class=\"name\"",
+                "#codec-table",
+                "widgets/lineedit.svg",
+                "tests/test_desktoptheme_lineedit.py::TestLineEdit",
+                "test_view_background_alternate",
+                "widgets/tabbar.svg",
+                "tests/test_desktoptheme_tabbar.py::TestTabBar",
+                "TestTabBarReference",
+                "test_selection_background",
+                "widgets/button.svg",
+                "tests/test_desktoptheme_button_reference.py::TestButtonReference",
+                ":disabled",
+                "about:logins",
+                "about:addons",
+                "::part",
+                "top-level in a tab",
+                "headless",
+                "@-moz-document url(\"about:support\")",
+                "declaration checks do",
                 "platform colour adaptation 2026-10-27",
             )
         )

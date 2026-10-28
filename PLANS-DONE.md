@@ -5,6 +5,115 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Firefox Platinum content: paint about:support's tables, column-header cells and buttons as the Platinum sunken list field, raised headers and push buttons (planned 2026-10-27 by the plan role; independent of the waiting Library parts 5/6 and 6/6 — those touch `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/support/firefox_chrome_cases.py`, `tests/test_firefox_theme_library.py` and only trim/append in `docs/invariants.md`, while this plan touches `theme/firefox/org.macos8.desktop/chrome/userContent.css` and `tests/test_firefox_content_theme.py` and only appends its own new row in `docs/invariants.md`, so either order merges; no other content surface or page waits behind it) — done 2026-10-27 by the feature role
+
+**Amendment 2026-10-27 by the feature role:** the planned
+`REQUIRED_SUPPORT_RULES` mapping keyed the comma-list cell and button
+selectors whole, but the sheet test's parser (`parse_css`) splits a
+selector list into its per-arm selectors and merges the two blocks that
+paint `th`, so the register keys `#contents table th` as the merged
+five-declaration face, `#contents table td` as the cleared cell, the
+eight button ids individually, and pins the selector-list order with a
+`SUPPORT_SELECTORS` tuple; the `:nth-child(2n)` zebra and comma-list
+arms are outside the matcher's subset and are pinned by text. The landed
+at-rule enumeration test is renamed
+`test_sheet_has_the_downloads_config_preferences_and_support_at_rules`
+for the fourth URL. The sheet block is byte-for-byte the planned one.
+
+**Goal.** After the landed content adaptations (about:downloads, about:config, the about:preferences series), the troubleshooting page Firefox builds at `about:support` is stock: its tables keep `chrome/toolkit/skin/classic/global/in-content/info-pages.css`'s hairline-bordered `--table-*` paint and rounded `var(--border-radius-small)` corners, and its ten buttons keep the stock button face. This plan repaints the page as the Platinum window body's content: each `#contents` table as the landed sunken list field with `#EEEEEE` alternate rows, each `th` header cell as the Library content-tree's raised column-header face, and every page button as the landed Platinum push button. The page body, its `h1`/`h2` section headings, the loaded-about paragraphs, the pre-existing `.action-box` card, the codec table's supported/unsupported washes and the `tree`, `details` and generated sub-table helpers stay Firefox's.
+
+**Verified facts (checked 2026-10-27 against the installed Firefox ESR 153.5.1, browser/toolkit `omni.ja`).**
+- `chrome/toolkit/content/global/aboutSupport.xhtml` is the page loaded at `about:support` (its `aboutSupport.js` self-references `about:support` in its error paths) — one light-DOM HTML document: `grep -c attachShadow` returns 0 for both `aboutSupport.xhtml` and `aboutSupport.js`, so every node the rules touch is reachable from a document-level rule (unlike `about:logins` and `about:addons`, whose rows and search fields live in shadow roots with no `::part`, so they are out of this plan — recorded here so the next plan run does not re-open them).
+- The markup defines exactly ten `<button id="…">` elements: `#copy-raw-data-to-clipboard` and `#copy-to-clipboard` in the page header, `#reset-box-button`, `#restart-in-safe-mode-button` and `#clear-startup-cache-button` inside `.action-box`, and `#profile-dir-button`, `#enumerate-database-button`, `#verify-place-integrity-button`, `#place-database-stats-toggle` and `#support-printing-clear-settings-button` inside `#contents`. Its tables are plain `<table>` elements inside `div#contents` (26 `<table>` tags statically — most rows are built by `aboutSupport.js`'s `$.new` helper with no row classes — with 59 `th class="column"` header cells plus four `th class="name"`/`th class="value"`), and and `chrome/toolkit/skin/classic/global/aboutSupport.css` styles `#codec-table`'s cells with green/cream supported/unsupported washes painted on the `td`s themselves.
+- `info-pages.css` (the page's imported skin base) paints `table { background-color: var(--table-background-color); … border-radius: var(--border-radius-small); border-spacing: 0; }`, `th { background-color: var(--table-header-background-color); border: 1px solid var(--table-border-color); }` and `td { border: 1px solid var(--table-border-color); }` — rules the sheet must override per arm; `body.wide-container` paints no background of its own, so `body` stays Firefox's and this plan paints no page-background rule (the landed about:config and about:downloads precedents likewise paint widget faces only).
+
+**Grounding (platform adaptation, steward clarification 2026-10-25).** No reference screenshot in `macos8.6-screenshots/` shows any Firefox surface, so this page samples no reference pixel: the face, outline and sunken shadow adapt `widgets/lineedit.svg`'s line-edit recipe, pinned by `tests/test_desktoptheme_lineedit.py::TestLineEdit` and `TestLineEditReference` (grounded in `macos8.6-screenshots/firstboot_betawiki.png`); the `#EEEEEE` alternate rows reuse the pinned `[Colors:View] BackgroundAlternate` trough, re-derived by `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_view_background_alternate`; the `th` header face and bevel copy the landed Library column-header recipe byte-for-byte, whose raise is `widgets/tabbar.svg`'s raised tab face, pinned by `tests/test_desktoptheme_tabbar.py::TestTabBar` and `TestTabBarReference`; the `#CCCCFF` selected/hover wash reuses the pinned `[Colors:Selection]`, re-derived by `TestReferenceAnchors.test_selection_background`; and the push-button face/bevel is the shared `widgets/button.svg` recipe, pinned by `tests/test_desktoptheme_button.py::TestButton` and `tests/test_desktoptheme_button_reference.py::TestButtonReference`.
+
+**Approach.** In `theme/firefox/org.macos8.desktop/chrome/userContent.css`, after the landed `@-moz-document url("about:preferences")` block (the file's last control adaptation), add the block comment `/* about:support tables and buttons adaptation 2026-10-27 (see the header's provenance paragraph) */` and then exactly this block:
+
+```css
+@-moz-document url("about:support") {
+  #contents table {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #contents table tr:nth-child(2n) {
+    background-color: #EEEEEE !important;
+  }
+
+  #contents table th,
+  #contents table td {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #contents table th {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #contents table th:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #copy-raw-data-to-clipboard,
+  #copy-to-clipboard,
+  .action-box button,
+  #profile-dir-button,
+  #enumerate-database-button,
+  #verify-place-integrity-button,
+  #place-database-stats-toggle,
+  #support-printing-clear-settings-button {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #copy-raw-data-to-clipboard:hover:not(:disabled),
+  #copy-to-clipboard:hover:not(:disabled),
+  .action-box button:hover:not(:disabled),
+  #profile-dir-button:hover:not(:disabled),
+  #enumerate-database-button:hover:not(:disabled),
+  #verify-place-integrity-button:hover:not(:disabled),
+  #place-database-stats-toggle:hover:not(:disabled),
+  #support-printing-clear-settings-button:hover:not(:disabled) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+```
+
+The zebra arm lands beneath the codec table's own `td` washes, so `#codec-table`'s supported/unsupported cells keep their status colours while their outer face and outline become the field's; the header paragraph states this. The last two `th`-adjacent cells (`th.name`/`th.value`) take the same header face, so the whole palette paints one raised header run.
+
+In `tests/test_firefox_content_theme.py`: insert module constants and a `REQUIRED_SUPPORT_RULES` dict after the landed `REQUIRED_PREFERENCES_RULES` dict and before `class SheetCase` — `SUPPORT_LIST = "#contents table"`, `SUPPORT_ZEBRA = SUPPORT_LIST + " tr:nth-child(2n)"`, `SUPPORT_CELL = SUPPORT_LIST + " th, " + SUPPORT_LIST + " td"`, `SUPPORT_HEADER = SUPPORT_LIST + " th"`, `SUPPORT_HEADER_HOVER = SUPPORT_HEADER + ":hover"`, `SUPPORT_BUTTONS` (the eight-arm id/`.action-box button` face selector above), `SUPPORT_BUTTONS_HOVER` (its `:hover:not(:disabled)` companion) — with dict values copied from the landed `FIELD_RULE`, `BUTTON_RULE` and `BUTTON_HOVER_RULE` shared arms so the new arms are byte-identical to the landed recipes; the `SUPPORT_ZEBRA` value is `"background-color": f"{TROUGH} !important"` as `CONFIG_ODD` already records, and the `SUPPORT_CELL` value is `{"border": "0 !important", "border-radius": "0 !important"}`.
+
+Then add `class TestFirefoxSupportTheme(SheetCase)` after the landed preferences field/menulist class, with at least: `test_support_rules_match_the_required_rules` (each arm equals its `REQUIRED_SUPPORT_RULES` entry byte-for-byte and the at-rule register gains the `about:support` body — extend whichever landed test enumerates the sheet's `@-moz-document` bodies, currently `test_sheet_has_the_downloads_config_and_preferences_at_rules`, to name the fourth URL); `test_support_table_rules_scope_to_the_contents_div` (via `support.selector_matching`'s `element`/`matches`: the selectors match a `table`/`th`/`tr` inside `#contents` and carry no token from `FORBIDDEN_PAGE_CHROME`, keeping the landed `body`/`h1` guard intact); `test_support_buttons_scope_to_the_page_ids` (the face selector matches `element("button", "copy-to-clipboard")` and the `.action-box` arm, not a chrome-scope element — and its hover arm excludes a `:disabled` button); `test_support_rules_use_the_pinned_palette` (every hex in `{BLACK, WHITE, GREY, FACE, TROUGH, SELECTION}` plus `BUTTON_SHADOW` resolves to the constants' pinned values and introduces no token outside the pre-existing sheet member set); and `test_header_names_support_provenance` (pattern: the landed `test_header_names_preferences_provenance`) asserting the new header paragraph carries the strings named below.
+
+In the same file extend no other class's assertions: none of the landed selectors or arms change.
+
+The header comment gains exactly one paragraph, after the landed about:preferences paragraph and before the closing `*/`, naming: `aboutSupport.xhtml`/`aboutSupport.js`'s light-DOM markup (the ten ids and the `th` classes as verified above), the recipes and pinned tests from the grounding list, the sentence that the codec table's status washes survive beneath the field Zebra, the sentences that the page body, headings, `.action-box` card and generated helper tables stay Firefox's, the note that `about:logins` and `about:addons` are shadow-DOM pages this document-level sheet cannot reach, the applicability sentence (the page loads top-level in a tab like the landed about:config, and the implementer performs the same headless ESR run with a temporary profile and a `@-moz-document url("about:support")` recolour rule the sheet's about:downloads paragraph records, stating what it showed), and the sheet's standard "declaration checks do not establish rendered pixels" close.
+
+In `docs/invariants.md`, in the `## firefox` table: append exactly one row after the last firefox row with the guarantee in one sentence (the `#contents` tables are the `#FFFFFF` sunken list field with square `1px` `#000000` outline, the `#999999` top-left shadow and `#EEEEEE` alternate rows, their `th` cells the raised `#DDDDDD` header face with the flat `#CCCCFF` hover, and the page's ten buttons plus `.action-box`'s buttons the Platinum push button with that hover while disabled buttons keep Firefox's paint) and the test column naming `tests/test_firefox_content_theme.py::TestFirefoxSupportTheme`; trim no landed row (this plan closes no other surface).
+
+**Files touched.** `theme/firefox/org.macos8.desktop/chrome/userContent.css`, `tests/test_firefox_content_theme.py`, `docs/invariants.md`.
+
+**Acceptance criteria.**
+- The sheet gains exactly the seven rule blocks above inside one new `@-moz-document url("about:support")` block after the about:preferences block, introducing no hex outside the pre-existing sheet member set (`{#DDDDDD, #000000, #888888, #999999, #FFFFFF, #AAAAAA, #CCCCFF, #EEEEEE}`), changing no landed rule's text, and introducing no `body`/`h1`-scoped selector (`FORBIDDEN_PAGE_CHROME` stays green).
+- `TestFirefoxSupportTheme`'s tests pass; the `REQUIRED_SUPPORT_RULES` entries and the extended at-rule enumeration test pass without edits to any landed arm.
+- The header gains exactly one paragraph after the about:preferences paragraph and before `*/`, carrying the provenance strings above (pinned by `test_header_names_support_provenance`), with the headless-run sentence stating what the run showed.
+- `docs/invariants.md` gains exactly one appended row after the last `## firefox` row with `TestFirefoxSupportTheme` in its test column and no landed row's wording changed; `tests/support/invariants.py`'s register stays in step.
+- `make check` passes.
+
 ### Firefox Platinum chrome: Library window series, part 6/6: paint the details pane's bookmark fields, folder dropdown and tag selector as the Platinum line edits, push-button menulist and sunken list field (planned 2026-10-27 by the plan role; "requires part 5/6 landed" — this part appends after and edits the tail of part 5's downloads-view paint, and it narrows the stock stay-Firefox sentences that parts 1, 2 and 4 land and part 5 keeps; this is the series' last part and nothing waits behind it) — done 2026-10-27 by the feature role
 
 **Goal.** After the landed parts, the Library window's details pane is still Firefox's: the bookmark fields, the folder dropdown and the tag selector read as the platform skin, not Platinum. In `chrome/browser/content/browser/places/places.xhtml` (read 2026-10-27 from the installed Firefox ESR 153.5.1's `browser/omni.ja`), `vbox#detailsPane` holds `vbox#itemsCountBox` and `vbox#infoBox`, and `#infoBox` embeds the bookmark editor's `#editBookmarkPanelContent` markup: labels, `html:input#editBMPanel_namePicker`, `html:input#editBMPanel_locationField`, an `hbox.editBMPanel_folderRow` holding `menulist#editBMPanel_folderMenuList.folder-icon` and `button#editBMPanel_foldersExpander.expander-down.panel-button`, `vbox#editBMPanel_folderTreeRow` holding `button#editBMPanel_newFolderButton`, `html:input#editBMPanel_tagsField` (an autocomplete input with `#editBMPanel_tagsAutocomplete` and `button#editBMPanel_tagsSelectorExpander`), `div#editBMPanel_tagsSelectorRow` holding `richlistbox#editBMPanel_tagsSelector`, and `html:input#editBMPanel_keywordField`. The same ids live in `browser.xhtml`'s `#editBookmarkPanel`, whose landed sheet section already paints its copies with `#editBookmarkPanel`-prefixed rules, and a grep of the omni's chrome markup (`*.xhtml`/`*.html`) finds a `detailsPane` element only in places.xhtml — so the Library rules must scope through `#detailsPane` and cannot touch the panel's copies. `chrome/browser/skin/classic/browser/places/organizer-shared.css` owns the pane's layout (`#detailsPane` `min-height: 16em`/`padding: 5px`, the `#editBookmarkPanelContent` grid, `#editBMPanel_tagsSelector` `margin: 4px`); `editBookmarkPanel.css`'s expander, field and focus paints are all `#editBookmarkPanel`-scoped, so the Library's expander buttons keep the toolkit's global button face; and `chrome/toolkit/skin/classic/global/global-shared.css`, `button.css`, `menulist.css` and `richlistbox.css` supply the stock field, button, menulist and listbox faces. Paint the four fields as this sheet's Platinum line edit, the folder menulist as its Platinum push-button menulist and the tags selector as its Platinum sunken list field — the byte-recipes the landed `#editBookmarkPanel` field and menulist rules and the landed `#placesList`/`#contentAreaDownloadsView #downloadsListBox:not(:empty)` list-field rules carry (platform colour adaptations), with square rows and a flat `#CCCCFF` selected row in the tag selector and no hover rule anywhere (the landed field and list recipes have none). The pane's remaining anatomy stays Firefox's, the same choice the landed bookmark editor's section makes for these widgets: the two expander buttons, the New Folder button, the folder tree, the labels and caption labels, `#itemsCountBox`, `#editBMPanel_itemsCountText`, the tags autocomplete panel, the menulist's popup list and the stock margins.

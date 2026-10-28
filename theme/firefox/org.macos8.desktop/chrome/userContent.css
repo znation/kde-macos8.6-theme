@@ -301,6 +301,57 @@
    ships no hover state. Geometry (min-height, padding, margin, font)
    stays Firefox's. Declaration checks do not establish rendered field
    or menulist pixels.
+
+   No reference shows Firefox's about:support troubleshooting page; its
+   #contents tables and ten page buttons adapt this theme's Platinum
+   controls (platform colour adaptation 2026-10-27). In the installed
+   Firefox ESR 153.5.1, chrome/toolkit/content/global/aboutSupport.xhtml is
+   the page loaded at about:support and aboutSupport.js builds its rows,
+   both light DOM (grep -c attachShadow returns 0 for each), so every node
+   these rules touch is reachable from a document-level rule; the markup
+   defines exactly ten <button id> elements — #copy-raw-data-to-clipboard
+   and #copy-to-clipboard in the page header, #reset-box-button,
+   #restart-in-safe-mode-button and #clear-startup-cache-button inside
+   .action-box, and #profile-dir-button, #enumerate-database-button,
+   #verify-place-integrity-button, #place-database-stats-toggle and
+   #support-printing-clear-settings-button inside #contents — with 26
+   <table> elements inside div#contents, 59 th class="column" header cells
+   plus four th class="name"/th class="value" cells, and
+   chrome/toolkit/skin/classic/global/aboutSupport.css painting
+   #codec-table's supported/unsupported washes on the tds themselves. Each
+   #contents table is the Platinum sunken list field — the #FFFFFF face,
+   square 1px #000000 outline and inset 1px 1px #999999 top-left shadow of
+   widgets/lineedit.svg, pinned by
+   tests/test_desktoptheme_lineedit.py::TestLineEdit and
+   TestLineEditReference — with the #EEEEEE alternate row of the pinned
+   [Colors:View] BackgroundAlternate trough
+   (test_view_background_alternate) beneath the codec table's own td
+   washes, so #codec-table's supported/unsupported status colours survive
+   while its outer face and outline become the field's; each th header cell
+   is the raised #DDDDDD header face of the landed Library content-tree
+   column headers (widgets/tabbar.svg's raised tab face, pinned by
+   tests/test_desktoptheme_tabbar.py::TestTabBar and TestTabBarReference)
+   and the four name/value cells take the same face so one header run;
+   a hovered th and every enabled page button, the .action-box buttons
+   included, take the flat #CCCCFF black-text hover (the pinned
+   [Colors:Selection], test_selection_background), the buttons being the
+   landed #DDDDDD push button with the widgets/button.svg white/#AAAAAA
+   bevel pinned by
+   tests/test_desktoptheme_button_reference.py::TestButtonReference while
+   a :disabled button keeps Firefox's disabled paint. The page body,
+   its h1/h2 headings, the loaded-about paragraphs and the .action-box
+   card stay Firefox's. The `#contents table` selector matches all 26
+   tables aboutSupport.js builds inside div#contents — the Application
+   Basics details table and every generated helper sub-table — so they
+   all take the field, zebra and header paint above;
+   about:logins and about:addons are shadow-DOM pages with no ::part, so
+   this document-level sheet cannot reach them (out of scope here).
+   The page loads top-level in a tab like the landed about:config. A
+   headless run of this ESR on 2026-10-27 with a temporary profile whose
+   userContent.css held an @-moz-document url("about:support") recolour
+   rule painting body red and #contents table green rendered both,
+   confirming the URL match and this sheet's reach; declaration checks do
+   not establish rendered table pixels.
 */
 
 @-moz-document url("about:downloads") {
@@ -478,6 +529,68 @@
 
   #mainPrefPane menulist:not([disabled]):hover,
   #mainPrefPane menulist[open="true"]:not([disabled]) {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* about:support tables and buttons adaptation 2026-10-27 (see the
+   header's provenance paragraph) */
+@-moz-document url("about:support") {
+  #contents table {
+    background-color: #FFFFFF !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #999999 !important;
+  }
+
+  #contents table tr:nth-child(2n) {
+    background-color: #EEEEEE !important;
+  }
+
+  #contents table th,
+  #contents table td {
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  #contents table th {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #contents table th:hover {
+    background-color: #CCCCFF !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+  }
+
+  #copy-raw-data-to-clipboard,
+  #copy-to-clipboard,
+  .action-box button,
+  #profile-dir-button,
+  #enumerate-database-button,
+  #verify-place-integrity-button,
+  #place-database-stats-toggle,
+  #support-printing-clear-settings-button {
+    background-color: #DDDDDD !important;
+    color: #000000 !important;
+    border: 1px solid #000000 !important;
+    border-radius: 0 !important;
+    box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA !important;
+  }
+
+  #copy-raw-data-to-clipboard:hover:not(:disabled),
+  #copy-to-clipboard:hover:not(:disabled),
+  .action-box button:hover:not(:disabled),
+  #profile-dir-button:hover:not(:disabled),
+  #enumerate-database-button:hover:not(:disabled),
+  #verify-place-integrity-button:hover:not(:disabled),
+  #place-database-stats-toggle:hover:not(:disabled),
+  #support-printing-clear-settings-button:hover:not(:disabled) {
     background-color: #CCCCFF !important;
     color: #000000 !important;
     box-shadow: none !important;
