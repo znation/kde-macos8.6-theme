@@ -267,6 +267,31 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             "statusbar > frame > border", {"border-style": "none", "box-shadow": "none"}
         )
 
+    def test_path_bar_tabs(self):
+        forms = {
+            "base": (".path-bar > button",),
+            "hover": (".path-bar > button:hover",),
+            "checked": (".path-bar > button:checked",),
+            "checked+hover": (".path-bar > button:checked:hover",),
+        }
+        for state, _selectors, checked in TAB_STATES:
+            if state not in forms:
+                continue
+            expected = {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+            }
+            if checked:
+                expected["border-bottom-color"] = FACE
+                expected["box-shadow"] = "none"
+            else:
+                expected["box-shadow"] = RAISED_BEVEL
+            for selector in forms[state]:
+                with self.subTest(state=state, selector=selector):
+                    self.assert_rule(selector, expected)
+
     def test_stack_switcher_tabs(self):
         forms = {
             "base": ("stackswitcher > button",),

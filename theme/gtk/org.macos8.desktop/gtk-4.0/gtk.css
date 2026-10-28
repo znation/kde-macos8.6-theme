@@ -118,7 +118,10 @@
    the statusbar node name is GTK-required. A stack switcher's page buttons
    paint as the landed tab recipe byte-for-byte; no reference screenshot shows
    a GTK stack switcher, and the stackswitcher and button node names are
-   GTK-required. */
+   GTK-required. A file chooser's path bar paints its buttons as the landed
+   tab recipe byte-for-byte; no reference screenshot shows a GTK path bar,
+   and the path-bar and linked classes and the pathbar, scrolledwindow,
+   viewport and box node names are GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -870,3 +873,34 @@ statusbar {
   border-bottom: 1px solid #888888;
   box-shadow: inset 0 -1px #FFFFFF;
 }
+
+/* A file chooser's path bar draws its breadcrumb buttons — the folder toggles,
+   the slider arrows and the Other Locations button alike — as the landed tab
+   recipe, the current folder's checked tab included; :backdrop stays out of
+   scope. */
+pathbar > scrolledwindow > viewport > box > button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+pathbar > scrolledwindow > viewport > box > button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
+pathbar > scrolledwindow > viewport > box > button:checked,
+pathbar > scrolledwindow > viewport > box > button:checked:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-bottom-color: #DDDDDD;
+  border-radius: 0;
+  box-shadow: none;
+}
+
