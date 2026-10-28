@@ -60,6 +60,7 @@ if __package__:
         _restore_termination,
         exit_on_termination,
     )
+    from tools.diagnostics import plural
     from tools.repo_root import ROOT
 else:  # run directly: python3 tools/check_parallel.py
     from argument_parsing import EscapingArgumentParser, positive_int
@@ -71,6 +72,7 @@ else:  # run directly: python3 tools/check_parallel.py
         _restore_termination,
         exit_on_termination,
     )
+    from diagnostics import plural
     from repo_root import ROOT
 
 # How often the supervisor wakes to reap finished workers and start queued
@@ -280,7 +282,7 @@ def _supervise(
 
 def _plural(count: int, noun: str) -> str:
     """Return *count* and *noun* with a plural only when it reads as one."""
-    return f"{count} {noun}" if count == 1 else f"{count} {noun}s"
+    return f"{count} {plural(count, noun)}"
 
 
 def _print_results(

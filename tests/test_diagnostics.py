@@ -342,5 +342,23 @@ class TestReportNote(unittest.TestCase):
                     diagnostics.report_note(**kwargs)
 
 
+class TestPlural(unittest.TestCase):
+    def test_pluralizes_only_when_the_count_is_not_one(self):
+        # check_references prints the bare word and check_parallel the
+        # '<count> <noun>' phrase; both must agree that zero reads as more
+        # than one ('0 problems', '1 module failed', '2 workers').
+        for count, expected in ((0, "problems"), (1, "problem"), (2, "problems")):
+            with self.subTest(count=count):
+                self.assertEqual(diagnostics.plural(count, "problem"), expected)
+
+    def test_non_str_noun_raises_naming_type(self):
+        # Same type contract as the error reporters.
+        with self.assertRaisesRegex(
+            ValueError,
+            r"^plural\(\) requires str: singular must be str, not int$",
+        ):
+            diagnostics.plural(2, 7)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -42,6 +42,19 @@ def _require_str(helper: str, parameter: str, value: object) -> None:
         )
 
 
+def plural(count: int, singular: str) -> str:
+    """Return *singular*, pluralized with ``s`` unless *count* is one.
+
+    Count-bearing diagnostics read as broken English when a single item is
+    followed by ``(s)``; the wording lives here so the tools that print a
+    count (``tools/check_references.py`` for the bare word,
+    ``tools/check_parallel.py`` for the ``<count> <noun>`` phrase) cannot
+    disagree about where the ``s`` goes.
+    """
+    _require_str("plural", "singular", singular)
+    return singular if count == 1 else singular + "s"
+
+
 def report_error(tool: str, message: str) -> int:
     """Print ``tool: error: <escaped message>`` to stderr and return 2.
 

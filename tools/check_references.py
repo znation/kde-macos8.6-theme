@@ -27,13 +27,13 @@ import sys
 
 try:
     from tools.check_references_selftest import run_self_test
-    from tools.diagnostics import report_error
+    from tools.diagnostics import report_error, plural
     from tools.reference_validation import SOURCES_NAME, check_references
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
 except ImportError:  # run directly: python3 tools/check_references.py
     from check_references_selftest import run_self_test
-    from diagnostics import report_error
+    from diagnostics import report_error, plural
     from reference_validation import SOURCES_NAME, check_references
     from repo_root import ROOT
     from terminal import escape_controls
@@ -57,16 +57,6 @@ def _self_test() -> int:
     return run_self_test(check_references, main, SOURCES_NAME)
 
 
-def _plural(count: int, singular: str) -> str:
-    """Return *singular*, pluralized with ``s`` when *count* is not one.
-
-    Both count-bearing diagnostics this module prints (the unknown-argument
-    error and the problem summary) read as broken English when a single item
-    is followed by ``(s)``; this picks the form from the actual count.
-    """
-    return singular if count == 1 else singular + "s"
-
-
 def main(argv: list[str] | None = None) -> int:
     """Run the checker; *argv* is the argument list without a program name.
 
@@ -84,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     if args:
         status = report_error(
             TOOL,
-            f"unknown {_plural(len(args), 'argument')}: {' '.join(args)}",
+            f"unknown {plural(len(args), 'argument')}: {' '.join(args)}",
         )
         print(USAGE, end="", file=sys.stderr)
         return status
@@ -100,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
             # raw ESC byte when it is printed.
             print(escape_controls(problem), file=sys.stderr)
         print(
-            f"{len(problems)} {_plural(len(problems), 'problem')} "
+            f"{len(problems)} {plural(len(problems), 'problem')} "
             "in the reference set",
             file=sys.stderr,
         )
