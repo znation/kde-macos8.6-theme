@@ -52,8 +52,12 @@ MENU_STOCK_BOTTOM_BORDER = 3
 # Provenance names repeated across the section suites' comment headers: a
 # themed section that borrows the viewitem artwork names both the artwork
 # and the desktoptheme tests pinning it, and the same two entries recur in
-# every such header. Twelve call sites, one in each of the two shell button
-# headers and one per other viewitem-derived section.
+# every such header. Twelve call sites: eight in the shell suite's
+# provenance header (the downloads-panel buttons, app menu, toolbar
+# overflow panel, unified extensions panel, site-information panel,
+# protections panel, permission popup and trust panel), one in the panels
+# suite (the bookmark editor), one in the popups suite (the notification
+# popup) and two in the page-info suite (the window and its tree).
 VIEWITEM_REFERENCES = (
     "widgets/viewitem.svg",
     "tests/test_desktoptheme_viewitem.py::TestViewItem",
