@@ -278,6 +278,74 @@ class TestNoUnusedImports(unittest.TestCase):
             ],
         )
 
+    def test_an_import_root_mid_dotted_reexport_keeps_the_source_import(self):
+        # ``tests/support/tmp_dir.py`` is reachable three ways, and the
+        # import-root mid form is the one the real tree exercises: a tests
+        # module imports ``from support.tmp_dir import make_tmp_dir``, whose
+        # resolved module names the mid candidate of the deeper file, never
+        # its repository dotted name (``tests.support.tmp_dir``) or its bare
+        # stem. This synthetic twin pins that form by name, so dropping the
+        # middle candidate fails here instead of only in the whole-tree
+        # assertion.
+        files = {
+            "pkg/tests_support/tmp_dir.py": (
+                "from .names import make_tmp_dir\n"
+            ),
+            "pkg/tests_support/names.py": "make_tmp_dir = object()\n",
+            "pkg/user.py": (
+                "from tests_support.tmp_dir import make_tmp_dir\n\n"
+                "value = make_tmp_dir\n"
+            ),
+        }
+        self.assertEqual(self._findings(self, files), [])
+        # The consumer's import is what keeps tmp_dir's re-export alive:
+        # without it the mid candidate blesses nothing and the dead import
+        # is flagged.
+        self.assertEqual(
+            self._findings(
+                self,
+                {
+                    "pkg/tests_support/tmp_dir.py": (
+                        "from .names import make_tmp_dir\n"
+                    ),
+                    "pkg/tests_support/names.py": "make_tmp_dir = object()\n",
+                },
+            ),
+            ["pkg/tests_support/tmp_dir.py:1: unused import make_tmp_dir"],
+        )
+
+    def test_a_bare_sibling_stem_reexport_keeps_the_source_import(self):
+        # A directly run tool imports a sibling by its bare stem
+        # (``from atomic_write import write_bytes_atomically``), so the
+        # scanner must also accept the stem candidate or the sibling's own
+        # re-export looks dead. Two directory levels separate the stem from
+        # the mid form (``nested.atomic_write``) and the dotted name, and a
+        # package-only scan never resolves a bare-stem module any other
+        # way, so only the stem keeps this import.
+        files = {
+            "pkg/nested/atomic_write.py": (
+                "from .ints import is_plain_int\n"
+            ),
+            "pkg/nested/ints.py": "is_plain_int = object()\n",
+            "pkg/user.py": (
+                "from atomic_write import is_plain_int\n\n"
+                "plain = is_plain_int\n"
+            ),
+        }
+        self.assertEqual(self._findings(self, files), [])
+        self.assertEqual(
+            self._findings(
+                self,
+                {
+                    "pkg/nested/atomic_write.py": (
+                        "from .ints import is_plain_int\n"
+                    ),
+                    "pkg/nested/ints.py": "is_plain_int = object()\n",
+                },
+            ),
+            ["pkg/nested/atomic_write.py:1: unused import is_plain_int"],
+        )
+
     def test_findings_are_sorted_by_path_then_line(self):
         # The findings feed the tree-clean assertion's failure message, so
         # a module's offenders must list in line order: ast.walk visits
