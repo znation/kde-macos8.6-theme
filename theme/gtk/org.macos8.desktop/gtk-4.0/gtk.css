@@ -904,3 +904,26 @@ pathbar > scrolledwindow > viewport > box > button:checked:hover {
   box-shadow: none;
 }
 
+/* A file chooser's places sidebar takes the flat menu-bar face and drops
+   the stock grey right border; its new-bookmark row drops the stock link
+   blue. */
+.sidebar {
+  background-color: #DDDDDD;
+  color: #000000;
+  border: none;
+}
+
+.sidebar:backdrop {
+  background-color: #DDDDDD;
+  color: #000000;
+}
+
+placessidebar.sidebar:not(separator):dir(ltr),
+placessidebar.sidebar:not(separator):dir(rtl) {
+  border: none;
+}
+
+placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row {
+  color: #000000;
+}
+

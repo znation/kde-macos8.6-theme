@@ -370,6 +370,20 @@ for radio in (False, True):
                 with self.subTest(state=state, selector=selector):
                     self.assert_rule(selector, expected)
 
+    def test_places_sidebar(self):
+        self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
+        self.assert_rule(".sidebar:backdrop", {"background-color": FACE, "color": BLACK})
+        self.assert_rule(
+            "placessidebar.sidebar:not(separator):dir(ltr)", {"border": "none"}
+        )
+        self.assert_rule(
+            "placessidebar.sidebar:not(separator):dir(rtl)", {"border": "none"}
+        )
+        self.assert_rule(
+            "placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row",
+            {"color": BLACK},
+        )
+
     def test_stack_switcher_tabs(self):
         forms = {
             "base": ("stackswitcher > button",),

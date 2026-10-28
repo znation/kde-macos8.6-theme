@@ -922,3 +922,29 @@ statusbar > frame > border {
   box-shadow: none;
 }
 
+/* A file chooser's places sidebar takes the flat menu-bar face with black
+   text in backdrop, and its rows keep the landed selection and drop
+   the stock link blue. */
+.sidebar {
+  background-color: #DDDDDD;
+  color: #000000;
+}
+
+.sidebar:backdrop {
+  background-color: #DDDDDD;
+  color: #000000;
+}
+
+placessidebar row:backdrop {
+  color: #000000;
+}
+
+placessidebar row.activatable:selected:backdrop {
+  background-color: #CCCCFF;
+  color: #000000;
+}
+
+placessidebar row.sidebar-new-bookmark-row {
+  color: #000000;
+}
+

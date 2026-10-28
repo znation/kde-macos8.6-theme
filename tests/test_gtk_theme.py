@@ -292,6 +292,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 with self.subTest(state=state, selector=selector):
                     self.assert_rule(selector, expected)
 
+    def test_places_sidebar(self):
+        self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
+        self.assert_rule(".sidebar:backdrop", {"background-color": FACE, "color": BLACK})
+        self.assert_rule("placessidebar row:backdrop", {"color": BLACK})
+        self.assert_rule(
+            "placessidebar row.activatable:selected:backdrop",
+            {"background-color": SELECTION, "color": BLACK},
+        )
+        self.assert_rule("placessidebar row.sidebar-new-bookmark-row", {"color": BLACK})
+
     def test_stack_switcher_tabs(self):
         forms = {
             "base": ("stackswitcher > button",),
