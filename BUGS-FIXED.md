@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The test-suite coordinator's module discovery returns modules `unittest discover` would never import, so a stray file matching a broad pattern becomes a corrupt module name and a spurious failed run (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+**Symptom:** `tools/check_parallel.py`'s `discover_modules` documented
+"exactly as ``unittest discover`` does" but gated a file only on the
+pattern match. Real discovery first gates every file on unittest's
+``VALID_MODULE_NAME`` (a valid Python identifier ending in .py), then on
+the pattern. Two divergences followed: under a pattern not ending in
+.py (such as ``-p 'test*'``) a stray ``testaux.pyz`` was returned with
+its name corrupted to ``testaux.`` by the ``entry[:-len('.py')]`` slice,
+and ``python -m unittest -v testaux.`` fails to import it, so one stray
+file turned into a spurious failed `make check`-style run (exit 1,
+"1 module failed"); under the default ``test*.py`` pattern a hyphenated
+``test-x.py`` was returned as the module ``test-x``, which real discovery
+skips entirely and which our worker then runs as an import of nothing.
+The repo's own `tests/` held no such file, so today's check was
+unaffected — the bug was latent in the coordinator's discovery, not in
+its supervision.
+
+**Reproduce:** a scratch tests directory holding a passing `test_ok.py`,
+a `testaux.pyz` and a `test-x.py`: `python -m unittest discover -s
+<dir> -p 'test*'` loads only `test_ok`, while `discover_modules(dir,
+'test*')` returned `['test-x', 'test_ok', 'testaux.']` and feeding
+``testaux.`` to a worker failed the run. Pinned by the new
+`TestDiscovery.test_files_unittest_cannot_load_are_skipped`, which fails
+against the unfixed discovery and passes after.
+
+**Cause:** the file branch of the scan checked only
+`fnmatch.fnmatch(entry, pattern)` before slicing off ``.py``; it now also
+requires unittest's ``VALID_MODULE_NAME`` gate (`[_a-zA-Z]\w*\.py$`, the
+same regex `TestLoader._find_test_path` applies before matching) so only
+loadable module files are returned.
+
+**Validation gap:** no-fake — the repo's `tests/` contains no file that
+matches ``test*`` without being a loadable module, so the real suite
+could not distinguish the two discovery behaviors; a scratch directory
+with a `testaux.pyz` and a `test-x.py` reproduced it, and that fixture
+now pins the gate.
+
 ### The `@-moz-document` body scanner treats a backslash as an ordinary character, so an escaped quote in a body value merges every later rule into that body (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom:** in `tests/test_firefox_content_theme.py`, `at_rule_bodies` scanned a

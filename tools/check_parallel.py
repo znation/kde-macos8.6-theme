@@ -44,6 +44,7 @@ from __future__ import annotations
 import argparse
 import fnmatch
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -91,14 +92,20 @@ _REAP_SECONDS = 5.0
 # children, and the module's fate (timeout) is already decided.
 _KILL_SIGNAL = 9
 
+# unittest discovery loads a file as a test module only when its basename is
+# a valid Python identifier ending in .py (TestLoader's VALID_MODULE_NAME),
+# checked before the pattern match; discovery mirrors that gate here.
+_VALID_MODULE_NAME = re.compile(r"[_a-zA-Z]\w*\.py$")
+
 
 def discover_modules(tests_dir: str, pattern: str) -> list[str]:
     """Return the dotted module names ``unittest discover`` would import.
 
-    Discovery matches each filename against *pattern* and recurses into a
-    subdirectory only when it is a package (one holding ``__init__.py``),
-    exactly as ``unittest discover`` does; the returned names are the dotted
-    paths discovery would import, in sorted order.
+    Discovery gates each filename on unittest's ``VALID_MODULE_NAME`` (a
+    valid Python identifier ending in .py), matches it against *pattern*,
+    and recurses into a subdirectory only when it is a package (one holding
+    ``__init__.py``), exactly as ``unittest discover`` does; the returned
+    names are the dotted paths discovery would import, in sorted order.
     """
     names: list[str] = []
 
@@ -108,7 +115,9 @@ def discover_modules(tests_dir: str, pattern: str) -> list[str]:
             if os.path.isdir(path):
                 if os.path.isfile(os.path.join(path, "__init__.py")):
                     visit(path, f"{prefix}{entry}.")
-            elif fnmatch.fnmatch(entry, pattern):
+            elif _VALID_MODULE_NAME.match(entry) and fnmatch.fnmatch(
+                entry, pattern
+            ):
                 names.append(f"{prefix}{entry[:-len('.py')]}")
 
     visit(tests_dir, "")

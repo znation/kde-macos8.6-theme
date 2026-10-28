@@ -471,9 +471,15 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
 # The number of ``no-fake`` records the archive holds with ledger coverage. A
 # new record must name its fixture and reproducing test, and raise this by one
 # in the same change instead of landing uncovered.
-NO_FAKE_BASELINE = 25
+NO_FAKE_BASELINE = 26
 
 NO_FAKE_REPRODUCTIONS = (
+    Reproduction(
+        "check-parallel-stray-file-discovery",
+        ("a stray file matching a broad pattern",),
+        "tests/test_check_parallel.py::TestDiscovery"
+        "::test_files_unittest_cannot_load_are_skipped",
+    ),
     Reproduction(
         "firefox-content-at-rule-escaped-quote",
         ("escaped quote in a body value",),

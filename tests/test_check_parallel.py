@@ -344,6 +344,27 @@ class TestDiscovery(unittest.TestCase):
         )
 
 
+    def test_files_unittest_cannot_load_are_skipped(self):
+        # unittest discovery gates every file on VALID_MODULE_NAME (a valid
+        # Python identifier ending in .py) before the pattern match, so a
+        # stray testaux.pyz under a broad pattern is not the module
+        # "testaux.", and a hyphenated test-x.py under the default pattern is
+        # not the module "test-x": discovery skips both, and a worker fed
+        # either name would import nothing or fail the run.
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        _write_module(tests_dir, "test_ok.py", OK_MODULE)
+        _write_module(tests_dir, "testaux.pyz", "not python\n")
+        _write_module(tests_dir, "test-x.py", OK_MODULE)
+        self.assertEqual(
+            ["test_ok"], check_parallel.discover_modules(tests_dir, "test*")
+        )
+        self.assertEqual(
+            ["test_ok"],
+            check_parallel.discover_modules(tests_dir, "test*.py"),
+        )
+
+
 class TestScriptEntryPoint(unittest.TestCase):
     """The CLI still runs end to end as ``python3 tools/check_parallel.py``."""
 
