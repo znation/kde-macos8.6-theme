@@ -27,6 +27,16 @@ A third mistake is guarded: ``discover`` recurses into a subdirectory only
 when it is a package (one holding ``__init__.py``), so a ``test*.py`` file
 inside a plain subdirectory is never imported either. The third check walks
 the same tree and fails naming each such file.
+
+A fourth mistake is guarded: ``discover`` imports a package's own
+``__init__.py`` and loads the tests it defines, but the parallel coordinator's
+worker set holds only the file modules the pattern matches (a worker run on a
+test-less package exits 5, ``NO TESTS RAN``, so the coordinator cannot simply
+add every package), which static discovery cannot tell apart. The fourth
+check loads every package ``__init__.py`` the way ``discover`` does and fails
+naming one that collects cases or defines ``load_tests``, so a package's
+tests move into a ``test_*.py`` module instead of silently running only under
+the serial path.
 """
 
 from __future__ import annotations
@@ -239,6 +249,46 @@ def skipped_test_modules(directory):
     return sorted(_skipped_test_modules(directory, "", False))
 
 
+def package_names(directory, prefix=""):
+    """Return the sorted dotted names of every package under *directory*.
+
+    ``discover`` imports a package's own ``__init__.py`` module before it
+    recurses, whatever the pattern matches, so these names are the modules
+    the serial path runs from a package ``__init__.py`` while the
+    coordinator's worker set holds only file modules. Hidden names are not
+    importable module names, so they are skipped the way discovery's
+    ``VALID_MODULE_NAME`` gate skips a hidden file.
+    """
+    names = []
+    for entry in sorted(os.listdir(directory)):
+        full = os.path.join(directory, entry)
+        if entry.startswith("."):
+            continue
+        if os.path.isdir(full) and _is_package(full):
+            names.append(prefix + entry)
+            names.extend(package_names(full, prefix + entry + "."))
+    return names
+
+
+def test_bearing_packages(directory):
+    """Return the package names under *directory* whose ``__init__`` runs tests.
+
+    ``discover`` loads each package ``__init__.py`` with the same loader as
+    any module (calling ``load_tests`` instead of recursing when it is
+    defined), so a package ``__init__.py`` that collects cases or defines
+    ``load_tests`` runs under the serial path but not under the default
+    parallel path; the guard fails naming each such package.
+    """
+    loader = unittest.defaultTestLoader
+    found = []
+    for name in package_names(directory):
+        module = importlib.import_module(name)
+        collects = loader.loadTestsFromModule(module).countTestCases() > 0
+        if collects or hasattr(module, "load_tests"):
+            found.append(name)
+    return found
+
+
 @contextlib.contextmanager
 def probe_module(directory, filename, source):
     """Import a *source* probe module from *directory*, undoing it on exit.
@@ -335,6 +385,42 @@ class TestSuiteDiscovery(unittest.TestCase):
             "__init__.py to every directory between tests/ and the file (or "
             "move the file into tests/): " + ", ".join(skipped),
         )
+
+    def test_no_package_init_collects_tests_or_load_tests(self):
+        # Discovery imports each package's own __init__.py and loads the
+        # tests it defines, but the coordinator's worker set holds only the
+        # file modules the pattern matches (a worker on a test-less package
+        # exits 5, `NO TESTS RAN`, and static discovery cannot tell which
+        # packages bear tests), so the moment a package __init__.py collects
+        # cases the serial and parallel paths run different tests. Hold
+        # every package to file-module tests.
+        names = package_names(TESTS_DIR)
+        # Without this, a broken directory listing would make the assertion
+        # below pass vacuously (no packages checked, nothing reported).
+        self.assertIn("support", names)
+        self.assertIn("svg_assertions", names)
+        bearing = test_bearing_packages(TESTS_DIR)
+        self.assertEqual(
+            bearing,
+            [],
+            "these packages' __init__.py modules collect test cases or define "
+            "load_tests, so `unittest discover` runs them but `make check`'s "
+            "parallel coordinator (one worker per file module) never does; "
+            "move each package's tests into a test_*.py module: "
+            + ", ".join(bearing),
+        )
+
+    def test_a_package_init_that_collects_tests_is_reported(self):
+        # Prove the guard bites: a package whose __init__.py defines a
+        # TestCase is exactly what
+        # test_no_package_init_collects_tests_or_load_tests must catch;
+        # `discover` runs the probe's test while the parallel coordinator's
+        # worker set does not include the package itself.
+        tmp = str(make_tmp_dir(self))
+        with probe_package(
+            tmp, "guard_probe_pkg", {"__init__.py": PROBE_TEST_MODULE_SOURCE}
+        ):
+            self.assertEqual(test_bearing_packages(tmp), ["guard_probe_pkg"])
 
     def test_discovery_pattern_matches_the_makefile_default(self):
         # `make check` discovers with the Makefile's CHECK_PATTERN; this

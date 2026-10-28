@@ -106,6 +106,10 @@ def discover_modules(tests_dir: str, pattern: str) -> list[str]:
     and recurses into a subdirectory only when it is a package (one holding
     ``__init__.py``), exactly as ``unittest discover`` does; the returned
     names are the dotted paths discovery would import, in sorted order.
+    Real discovery also imports each package's own ``__init__.py`` module
+    (loading the tests it defines); this scan returns file modules only, and
+    the suite-structure guard ``tests/test_suite_discovery.py`` holds tests
+    out of package ``__init__.py`` files so the two paths run the same tests.
     """
     names: list[str] = []
 

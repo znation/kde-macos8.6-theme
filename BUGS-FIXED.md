@@ -5,6 +5,44 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The test-suite coordinator's module discovery never runs a package's own module, so tests defined in the package's __init__.py silently don't run (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
+
+**Symptom:** `tools/check_parallel.py`'s `discover_modules` documented that it
+returns "the dotted module names ``unittest discover`` would import" and that
+discovery recurses into packages "exactly as ``unittest discover`` does", but
+it only recursed: real discovery (``TestLoader._find_test_path``) also imports
+each package's own module before recursing and loads the tests its
+``__init__.py`` defines. The parallel coordinator therefore never ran a
+package as its own worker, so tests defined in a package ``__init__.py`` ran
+under the serial `make check CHECK_PARALLEL=0` path but silently did not run
+under the default parallel path, and an import error in a package
+``__init__.py`` would not fail the parallel run either. Latent: no package in
+the repo's `tests/` defines tests in its `__init__.py` today, so today's
+check was unaffected.
+
+**Reproduce:** a scratch tests directory holding a `pkgx/` package whose
+`__init__.py` defines a test and whose `test_ok.py` defines another:
+``python -m unittest discover -s <dir> -p 'test*.py'`` runs 2 tests while
+`discover_modules(dir, 'test*.py')` returned `['pkgx.test_ok']`, so the
+coordinator spawned a worker only for the file module.
+
+**Why the fix is a guard, not a wider module set:** returning every package
+would spawn a worker for each, and a worker run on a test-less package exits
+5 (``NO TESTS RAN``) — the first full `make check` with that change failed on
+`support`, `svg_assertions` and a probe package — while static discovery
+cannot tell which packages bear tests. The suite-structure guard
+(`tests/test_suite_discovery.py`) already pins the other three
+"discovery silently skips it" mistakes, so it gained the fourth:
+`test_no_package_init_collects_tests_or_load_tests` loads every package
+``__init__.py`` the way discovery does and fails naming one that collects
+cases or defines ``load_tests``, with
+`test_a_package_init_that_collects_tests_is_reported` proving it bites.
+
+**Validation gap:** no-fake — the repo's `tests/` holds no package whose
+`__init__.py` defines tests, so the real suite could not distinguish the two
+discovery behaviors; a scratch directory with such a package reproduced it,
+and that fixture now pins the guard.
+
 ### The test-suite coordinator's module discovery returns modules `unittest discover` would never import, so a stray file matching a broad pattern becomes a corrupt module name and a spurious failed run (found by the bugfix role 2026-10-27) — fixed 2026-10-27 by the bugfix role
 
 **Symptom:** `tools/check_parallel.py`'s `discover_modules` documented
