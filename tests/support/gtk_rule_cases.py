@@ -194,6 +194,10 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         ):
             self.assert_rule(selector, ROW_SELECTED)
 
+    def test_row_selection_backdrop(self, selectors):
+        for selector in selectors:
+            self.assert_rule(selector, ROW_SELECTED)
+
     def test_tab_states(self):
         for state, selectors, checked in TAB_STATES:
             expected = {

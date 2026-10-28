@@ -41,7 +41,10 @@
    row in widgets/listitem.svg: a hovered row stays the view background and a
    selected row is its flat #CCCCFF fill with square corners and black text.
    No reference screenshot shows a GTK widget, so the row geometry is this
-   theme's adaptation and the node and class names are GTK-required. The
+   theme's adaptation and the node and class names are GTK-required.
+   A selected row keeps the flat #CCCCFF selection in an unfocused window
+   through :backdrop arms, because the stock sheets' own backdrop arms would
+   otherwise grey or blue it. The
    tree-view and column header rules adapt the same reference-grounded
    Platinum push button: a #DDDDDD face with the raised bevel and one black
    line between columns and under the header row, and no right line after the
@@ -569,6 +572,13 @@ treeview.view:selected, treeview.view:selected:hover,
 list row.activatable:selected, list row.activatable:selected:hover,
 columnview.view:selected, columnview.view:selected:hover,
 listview > row.activatable:selected, listview > row.activatable:selected:hover {
+  background-color: #CCCCFF;
+  color: #000000;
+  border-radius: 0;
+}
+
+treeview.view:selected:backdrop, list row.activatable:selected:backdrop,
+columnview.view:selected:backdrop, listview > row.activatable:selected:backdrop {
   background-color: #CCCCFF;
   color: #000000;
   border-radius: 0;

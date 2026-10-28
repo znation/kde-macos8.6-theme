@@ -292,6 +292,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 with self.subTest(state=state, selector=selector):
                     self.assert_rule(selector, expected)
 
+    def test_row_selection_backdrop(self):
+        super().test_row_selection_backdrop((
+            "treeview.view:selected:backdrop",
+            "list row.activatable:selected:backdrop",
+        ))
+        self.assertGreater(
+            self.css.index("list row.activatable:selected:backdrop"),
+            self.css.index("list row.activatable:selected:"),
+        )
+
     def test_places_sidebar(self):
         self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
         self.assert_rule(".sidebar:backdrop", {"background-color": FACE, "color": BLACK})
