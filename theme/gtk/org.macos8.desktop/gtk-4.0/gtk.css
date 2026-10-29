@@ -990,6 +990,8 @@ link:visited, button.link:visited > label {
 calendar > grid > label.day-number:selected {
   background-color: #CCCCFF;
   color: #000000;
+  /* No GTK calendar appears in the reference; reuse the square frame edge. */
+  border-radius: 0;
 }
 calendar > grid > label.day-number.other-month {
   color: #888888;

@@ -22,6 +22,7 @@ from support.gtk_css import HEX, parse_css, strip_comments
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
+    CALENDAR_SELECTED_DAY,
     COMBO_ARROW,
     ENTRY_PROGRESS_GTK4,
     ETCH_DARK,
@@ -324,10 +325,21 @@ for radio in (False, True):
             self.assertGreater(link, self.css.index("\n" + rule), rule)
 
     def test_calendar(self):
-        self.assert_calendar(
-            ("calendar > grid > label.day-number:selected",),
-            ("calendar > grid > label.day-number.other-month",),
+        selected = "calendar > grid > label.day-number:selected"
+        self.assert_rule(
+            selected, {**CALENDAR_SELECTED_DAY, "border-radius": "0"}
         )
+        self.assert_rule(
+            "calendar > grid > label.day-number.other-month",
+            {"color": "#888888"},
+        )
+        self._assert_inactive_grey_from_scheme()
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(
+                    self.rules[selected]["border-radius"],
+                    self.rules[frame]["border-radius"],
+                )
 
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))

@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 calendars: square selected-day corners (planned 2026-10-29 by the plan role) — done 2026-10-29 by the feature role
+
+**Goal.** Keep the selected calendar day square when the sheet is imported over the library style through `make apply-gtk`. The existing calendar plan shipped colors; the current `calendar > grid > label.day-number:selected` rule has no radius, while the installed library declares 9px for that selector.
+
+**Approach.** Add `border-radius: 0` to that existing rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`. Reuse the sheet's `frame > border, .frame` zero radius. Keep this scoped to the selected day; marked `:checked` days, header buttons, calendar framing and GTK 3 are separate surfaces. Document in a nearby comment that this is a platform adaptation, recorded 2026-10-29 by the feature role when implemented.
+
+**Files touched.** The GTK 4 sheet; `tests/test_gtk4_theme.py` (`TestGtk4Theme.test_calendar`); `docs/invariants.md` (GTK calendar guarantee). The shared `GtkSheetRuleCases.assert_calendar` expects the existing color-only dictionary: replace its call in the GTK 4 test with an exact selected-rule assertion using `CALENDAR_SELECTED_DAY` plus the zero radius, retain the other-month assertion and `_assert_inactive_grey_from_scheme()` check, and compare the radius with both frame selectors. Import `CALENDAR_SELECTED_DAY` from `support.gtk_theme_spec`; keep the shared helper and GTK 3 caller intact.
+
+**Acceptance criteria.** The selected-day declaration is exactly the existing background and text colors plus `border-radius: 0`, with a regression assertion tied to both frame radii. Existing other-month palette coverage remains. Record that no reference screenshot shows a GTK calendar: geometry adapts the existing square frame treatment, and the stock selector and 9px radius come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`. Document the supported user-stylesheet import path and that declaration checks do not prove rendered pixels. `make check` passes. No new artwork, palette values or dependencies.
+
 ### Separate PNG header validation from chunk collection (planned 2026-10-29 by the organize role) — done 2026-10-29 by the feature role
 
 **Goal.** Give PNG header and decode-limit checks a dedicated module, keeping chunk ordering and payload collection in `stream.py`.
