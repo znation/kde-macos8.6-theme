@@ -481,26 +481,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         self.assert_frame(("frame > border", ".frame"))
 
     def test_color_swatch_corners(self):
-        roots = (
-            "colorswatch",
-            "colorswatch.top",
-            "colorswatch.bottom",
-            "colorswatch.left",
-            "colorswatch.right",
-            "colorswatch:first-child:not(.top)",
-            "colorswatch:last-child:not(.bottom)",
-            "colorswatch#add-color-button",
-            "colorswatch#add-color-button:only-child",
-            "colorswatch#editor-color-sample",
-        )
-        expected = set(roots) | {root + " overlay" for root in roots}
-        self.assertEqual(
-            {selector for selector in self.rules if "colorswatch" in selector},
-            expected,
-        )
-        for selector in sorted(expected):
-            with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+        self.assert_color_swatch_corners(" overlay")
 
     def test_scrollbar(self):
         self.assert_rule(
