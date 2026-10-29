@@ -104,4 +104,14 @@ recorded here to keep the scope deliberate.
 
 **Acceptance.** The test asserts that selectors containing `emoji-picker` are exactly `popover.emoji-picker emoji`, its complete parsed declaration dictionary is `{"border-radius": "0"}`, and its radius matches both `frame > border` and `.frame`. Describe this as declaration coverage without rendered-pixel claims. Run `make check`.
 
+### Platinum GTK 4 assistant: square sidebar step-label corners (planned 2026-10-29 by the plan role)
+
+**Goal.** Make GTK 4 assistant sidebar step labels use the existing square Platinum frame treatment.
+
+**Grounding.** Searches for `assistant` and `wizard` in the GTK 4 sheet, its tests and the plan queue found no treatment; the archive's Setup Assistant palette-provenance entry concerns a reference image, not GTK assistant labels. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` gives `window.assistant .sidebar > label` a 9px radius; its `.highlight` rule changes background paint without replacing that radius. No reference screenshot shows this GTK assistant sidebar surface. Zero radius reuses `frame > border, .frame` as a platform adaptation, not a sampled assistant metric.
+
+**Approach and files.** Add `window.assistant .sidebar > label { border-radius: 0; }` beside the frame adaptations in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment naming the missing reference surface and reused frame treatment. Keep the library name out of CSS comments because `TestGtk4Theme.test_stands_alone` rejects its substring. Add `TestGtk4Theme.test_assistant_step_label_corners` in `tests/test_gtk4_theme.py`, following `test_emoji_completion_row_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md` naming the missing surface, stock library/resource selector, reused radius, new test and supported `make apply-gtk` user-import override path. Limit implementation to these three files; sidebar paint, step highlighting, padding and GTK 3 are outside this plan.
+
+**Acceptance.** The new test asserts that selectors containing `assistant` are exactly `window.assistant .sidebar > label`, its complete parsed declaration dictionary is `{"border-radius": "0"}`, and its radius matches both `frame > border` and `.frame`. State that this is declaration coverage without rendered-pixel claims. Run `make check`.
+
 ## Done
