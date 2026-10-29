@@ -96,7 +96,7 @@ recorded here to keep the scope deliberate.
 
 ### Platinum GTK 4 flow boxes: square item corners (planned 2026-10-29 by the plan role; independent of the queued assistant labels) — done 2026-10-29 by the feature role
 
-### Platinum GTK 4 calendars: use the Platinum outer border (planned 2026-10-29 by the plan role)
+### Platinum GTK 4 calendars: use the Platinum outer border (planned 2026-10-29 by the plan role) — done 2026-10-29 by the feature role
 
 **Goal.** Replace the GTK 4 calendar's stock translucent outer outline with the existing Platinum frame's opaque black border when loaded through `make apply-gtk`'s user stylesheet import. The finished calendar plans cover day colors and corners; the original calendar plan explicitly excludes the outer border.
 

@@ -351,6 +351,16 @@ for radio in (False, True):
                     self.rules[frame]["border-radius"],
                 )
 
+    def test_calendar_outer_border(self):
+        calendar = "calendar"
+        self.assert_rule(calendar, {"border": "1px solid #000000"})
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(
+                    self.rules[calendar]["border"],
+                    self.rules[frame]["border"],
+                )
+
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
         for message_type in (".info", ".question", ".warning", ".error"):

@@ -998,6 +998,11 @@ calendar > grid > label.day-number:selected {
 calendar > grid > label.day-number:checked {
   border-radius: 0;
 }
+/* No GTK calendar appears in the reference; its outer edge reuses the opaque
+   black Platinum frame border (recorded 2026-10-29 by the feature role). */
+calendar {
+  border: 1px solid #000000;
+}
 calendar > grid > label.day-number.other-month {
   color: #888888;
 }
