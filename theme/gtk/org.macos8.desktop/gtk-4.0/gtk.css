@@ -563,6 +563,13 @@ frame > border, .frame {
   padding: 0;
 }
 
+/* No reference screenshot shows a GTK emoji picker. Square cell corners
+ * adapt frame > border, .frame border-radius: 0 above. Recorded
+ * 2026-10-29 by the feature role. */
+popover.emoji-picker emoji {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows GTK emoji completion. Square suggestion-row
  * corners adapt frame > border, .frame border-radius: 0 above. Recorded
  * 2026-10-29 by the feature role. */

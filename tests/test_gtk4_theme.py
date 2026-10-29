@@ -593,6 +593,18 @@ for radio in (False, True):
             with self.subTest(frame=frame):
                 self.assertEqual(row["border-radius"], self.rules[frame]["border-radius"])
 
+    def test_emoji_picker_cell_corners(self):
+        expected = {"popover.emoji-picker emoji"}
+        self.assertEqual(
+            {selector for selector in self.rules if "emoji-picker" in selector},
+            expected,
+        )
+        cell = self.rules["popover.emoji-picker emoji"]
+        self.assertEqual(cell, {"border-radius": "0"})
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(cell["border-radius"], self.rules[frame]["border-radius"])
+
     def test_pill_button_corners(self):
         expected = {
             "menubutton.pill > button",
