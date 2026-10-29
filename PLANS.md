@@ -94,16 +94,6 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Split the parallel check coordinator by responsibility (planned 2026-10-29 by the organize role)
-
-**Goal.** Make `tools/check_parallel.py` a small CLI coordinator by separating discovery and log naming, worker lifecycle, and result interpretation into focused modules.
-
-**Why.** `tools/check_parallel.py` combines filesystem discovery, log assignment, worker supervision, result interpretation, and CLI parsing. These responsibilities have separate invariants and are easier to maintain when directly inspectable.
-
-**Target structure and files.** Keep `tools/check_parallel.py` for argument parsing and `main`; move `discover_modules` and `_log_paths` into `tools/check_parallel_discovery.py`; move `_NeverStarted`, `_Worker`, `_spawn`, `_kill_group`, `_reap`, and `_supervise` into `tools/check_parallel_workers.py`; move `_plural` and `_print_results` with the no-tests verdict constants into `tools/check_parallel_results.py`. Update tests to import and patch extracted helpers at their defining modules. Update the tooling row in `docs/invariants.md` to identify guarantees by module. Do not leave forwarding aliases.
-
-**Acceptance.** Discovery order, worker limits, collision handling, timeout and signal cleanup, empty-run proof, output formatting, exit codes, package imports, and direct-script execution remain covered. The existing coordinator tests exercise the extracted modules, and `make check` passes.
-
 ### Platinum GTK 4 emoji picker: square cell corners (planned 2026-10-29 by the plan role; independent of the queued check-coordinator split) — done 2026-10-29 by the feature role
 
 **Goal.** Give GTK 4 emoji-picker cells square corners consistent with the existing Platinum frame adaptation.
