@@ -64,9 +64,7 @@ def exclusive_flock(
                 fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
                 break
             except OSError as exc:
-                if exc.errno == errno.EINTR:
-                    continue
-                if exc.errno not in (errno.EACCES, errno.EAGAIN):
+                if exc.errno not in (errno.EINTR, errno.EACCES, errno.EAGAIN):
                     raise error(
                         f"cannot lock {directory} {artifact}: {exc}"
                     ) from exc
@@ -75,7 +73,8 @@ def exclusive_flock(
                         f"gave up after {timeout:g}s waiting for "
                         f"{holder}; nothing was changed"
                     )
-                time.sleep(POLL_SECONDS)
+                if exc.errno != errno.EINTR:
+                    time.sleep(POLL_SECONDS)
         yield
     finally:
         # Closing the descriptor releases the lock even when the body raised.

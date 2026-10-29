@@ -111,6 +111,29 @@ class TestExclusiveFlock(unittest.TestCase):
         # the lock in a state where the directory can be locked again.
         self.assertTrue(self.acquire())
 
+    def test_repeated_interruptions_still_honor_the_deadline(self):
+        with (
+            mock.patch("tools.file_lock.time.monotonic", side_effect=[0, 1, 2]),
+            mock.patch.object(
+                fcntl, "flock",
+                side_effect=[
+                    OSError(errno.EINTR, "first interrupt"),
+                    OSError(errno.EINTR, "second interrupt"),
+                    AssertionError("retried after the deadline"),
+                ],
+            ) as flock,
+            mock.patch("tools.file_lock.time.sleep") as sleep,
+            mock.patch("tools.file_lock.os.close", wraps=os.close) as close,
+        ):
+            with self.assertRaisesRegex(
+                LockRefused, "gave up after 2s waiting for another test run"
+            ):
+                self.acquire(timeout=2)
+            self.assertEqual(flock.call_count, 2)
+            sleep.assert_not_called()
+            close.assert_called_once_with(flock.call_args.args[0])
+        self.assertTrue(self.acquire())
+
     def test_the_lock_is_released_when_the_body_raises(self):
         """A raising body still releases the lock for the next run."""
         with self.assertRaises(RuntimeError):
