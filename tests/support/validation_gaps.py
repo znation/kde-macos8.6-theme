@@ -345,8 +345,9 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
     ),
     UnclearInvariant(
         "icon-placeholder-art",
-        ('placeholder icons',),
-        "tests/test_icon_theme.py::TestIndex",
+        ("icon theme",),
+        "tests/test_icon_theme.py::TestIndex"
+        "::test_placeholder_register_matches_the_icon_art",
         "The icon theme names its original placeholder artwork, ships exactly "
         "the tracked icons, and declares each icon's size directory.",
     ),

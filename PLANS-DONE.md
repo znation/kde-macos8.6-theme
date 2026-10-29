@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding) — done 2026-10-29 by the feature role
+
+**Goal.** Treat the existing original generic icon/logo artwork as temporary, respecting the user's renewed placeholder decision.
+
+**Approach and files.** Add `PLACEHOLDER:` comments and matching PLACEHOLDERS.md rows for SVG artwork under `theme/icons/org.macos8.desktop`; use the existing `tests/support/placeholders.py` register contract. Include the generic startup logo if separately embedded in Splash.qml, with a QML comment and row. Keep the original generic drawings; replace any Apple logo or extracted artwork encountered with a simple original outlined square using existing palette/size values. Update `tests/test_icon_theme.py::test_placeholder_register_matches_the_icon_art` and final-art descriptions to assert populated matching tracking instead of emptiness; preserve shape tests for unchanged generic art. Update `tests/test_splash_logo.py` if its tracking changes. Read and update the icons/splash sections of `docs/invariants.md`. Pixel-matched control chrome and licensed fonts remain governed by their existing provenance; this plan addresses illustrative icons/logos.
+
+**Acceptance.** Existing placeholder checks cover the registered icon/logo stand-ins and detect a missing row or marker. Documentation describes these illustrations as temporary and leaves replacement work subject to user approval. Run `make check`.
+
 ### Platinum graphics: replace the reference-cropped wallpaper (planned 2026-10-29 by the director role; independent of UI branding and icon tracking) — done 2026-10-29 by the feature role
 
 **Goal.** Ship an original placeholder wallpaper instead of pixels extracted from the reference desktop.

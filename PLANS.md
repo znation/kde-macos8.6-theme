@@ -16,15 +16,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Acceptance.** Keep discovery order, worker limits, log collision handling, timeout and signal cleanup, empty-run proof, output formatting, and exit codes unchanged. The tests cover the moved behavior at its new module paths, `python3 tools/check_parallel.py` still works directly, a source/test/docs search finds no stale helper references on `check_parallel`, and `make check` passes. Limit this to the four production modules, the existing coordinator test module, and the matching invariants row.
 
 
-### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding)
-
-**Goal.** Treat the existing original generic icon/logo artwork as temporary, respecting the user's renewed placeholder decision.
-
-**Approach and files.** Add `PLACEHOLDER:` comments and matching PLACEHOLDERS.md rows for SVG artwork under `theme/icons/org.macos8.desktop`; use the existing `tests/support/placeholders.py` register contract. Include the generic startup logo if separately embedded in Splash.qml, with a QML comment and row. Keep the original generic drawings; replace any Apple logo or extracted artwork encountered with a simple original outlined square using existing palette/size values. Update `tests/test_icon_theme.py::test_placeholder_register_matches_the_icon_art` and final-art descriptions to assert populated matching tracking instead of emptiness; preserve shape tests for unchanged generic art. Update `tests/test_splash_logo.py` if its tracking changes. Read and update the icons/splash sections of `docs/invariants.md`. Pixel-matched control chrome and licensed fonts remain governed by their existing provenance; this plan addresses illustrative icons/logos.
-
-**Acceptance.** Existing placeholder checks cover the registered icon/logo stand-ins and detect a missing row or marker. Documentation describes these illustrations as temporary and leaves replacement work subject to user approval. Run `make check`. Wallpaper is tracked by its independent sibling plan, so no dependency is needed.
-
-
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
@@ -144,5 +135,4 @@ _None yet._
 **Approach and files.** Add `PLACEHOLDER:` comments and matching PLACEHOLDERS.md rows for SVG artwork under `theme/icons/org.macos8.desktop`; use the existing `tests/support/placeholders.py` register contract. Include the generic startup logo if separately embedded in Splash.qml, with a QML comment and row. Keep the original generic drawings; replace any Apple logo or extracted artwork encountered with a simple original outlined square using existing palette/size values. Update `tests/test_icon_theme.py::test_placeholder_register_matches_the_icon_art` and final-art descriptions to assert populated matching tracking instead of emptiness; preserve shape tests for unchanged generic art. Update `tests/test_splash_logo.py` if its tracking changes. Read and update the icons/splash sections of `docs/invariants.md`. Pixel-matched control chrome and licensed fonts remain governed by their existing provenance; this plan addresses illustrative icons/logos.
 
 **Acceptance.** Existing placeholder checks cover the registered icon/logo stand-ins and detect a missing row or marker. Documentation describes these illustrations as temporary and leaves replacement work subject to user approval. Run `make check`. Wallpaper is tracked by its independent sibling plan, so no dependency is needed.
-
 ## Done
