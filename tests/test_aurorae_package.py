@@ -31,7 +31,7 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(metadata["KPackageStructure"], "KWin/Aurorae")
         plugin = kplugin(metadata, METADATA)
         self.assertEqual(plugin["Id"], AURORAE_ID)
-        self.assertEqual(plugin["Name"], "Mac OS 8.6")
+        self.assertEqual(plugin["Name"], "Platinum")
         self.assertEqual(plugin["License"], "GPL-2.0-or-later")
 
     def test_metadata_desktop_names_the_theme(self):
@@ -40,7 +40,7 @@ class TestMetadata(unittest.TestCase):
         # contain a `metadata.desktop`, and reads its `Name` for the visible
         # name. Without it the decoration is never offered in System Settings.
         parser = read_kde_config(METADATA_DESKTOP)
-        self.assertEqual(parser.get("Desktop Entry", "Name"), "Mac OS 8.6")
+        self.assertEqual(parser.get("Desktop Entry", "Name"), "Platinum")
 
     def test_metadata_desktop_matches_metadata_json(self):
         # metadata.json and metadata.desktop describe the same package to two

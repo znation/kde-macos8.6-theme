@@ -29,7 +29,7 @@ def _metadata():
         "KPackageStructure": "Plasma/Theme",
         "KPlugin": {
             "Id": "org.example.desktop",
-            "Name": "Mac OS 8.6",
+            "Name": "Platinum",
             "Description": "An example package",
             "License": "GPL-2.0-or-later",
             "Version": "0.1.0",

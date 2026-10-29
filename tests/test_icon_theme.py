@@ -261,7 +261,7 @@ class TestIndex(unittest.TestCase):
         self.parser = read_kde_config(INDEX)
 
     def test_names_the_theme_and_inherits_breeze(self):
-        self.assertEqual(self.parser.get("Icon Theme", "Name"), ICON_ID)
+        self.assertEqual(self.parser.get("Icon Theme", "Name"), "Platinum")
         self.assertEqual(self.parser.get("Icon Theme", "Inherits"), "breeze")
 
     def test_comment_names_the_final_platinum_art(self):
@@ -269,7 +269,7 @@ class TestIndex(unittest.TestCase):
         # in System Settings must not still call these icons placeholders.
         self.assertEqual(
             self.parser.get("Icon Theme", "Comment"),
-            "Mac OS 8.6 Platinum icon theme",
+            "Platinum icon theme",
         )
 
     def test_every_shipped_icon_lives_in_a_declared_size_directory(self):

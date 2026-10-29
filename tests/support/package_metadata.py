@@ -200,7 +200,7 @@ class PackageMetadata:
         # Indexing Id/Name directly would raise a bare KeyError naming only
         # the key, with neither the file nor the expected value; report both
         # so a metadata.json that drops a field is diagnosable.
-        for key, expected in (("Id", self.PACKAGE_ID), ("Name", "Mac OS 8.6")):
+        for key, expected in (("Id", self.PACKAGE_ID), ("Name", "Platinum")):
             self.assertEqual(
                 self._plugin_field(key, expected),
                 expected,

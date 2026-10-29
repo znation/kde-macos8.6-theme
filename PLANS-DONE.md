@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum UI branding: neutral package labels (planned 2026-10-29 by the director role; independent of the graphics plans below) — done 2026-10-29 by the feature role
+
+**Goal.** Display Platinum branding in theme selection metadata, with no Apple product names in theme-owned display strings.
+
+**Approach and files.** Updated the listed JSON and INI metadata display fields and scheme name, preserving compatibility package IDs and filenames. Added `tests/test_ui_branding.py`; adjusted existing icon and scheme expectations, documented the legacy `MacOS8` CLI ID, and recorded the metadata guarantee in `docs/invariants.md`.
+
+**Acceptance.** Metadata labels display Platinum; descriptions are checked for forbidden names. Compatibility IDs remain unchanged.
+
 ### Platinum UI branding: neutral startup text (planned 2026-10-29 by the director role; independent of neutral package labels) — done 2026-10-29 by the feature role
 
 **Goal.** Replace the startup splash's visible `Mac OS 8.6` text with `Platinum`.

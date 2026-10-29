@@ -128,7 +128,7 @@ class TestStructure(unittest.TestCase):
         # product name the package metadata files also carry.
         self.assertEqual(
             self.parser.get("General", "Name"),
-            "Mac OS 8.6",
+            "Platinum",
             "General/Name",
         )
 

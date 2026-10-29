@@ -7,10 +7,10 @@
             }
         ],
         "Category": "",
-        "Description": "Mac OS 8.6 Platinum window decoration for Plasma 6",
+        "Description": "Platinum window decoration for Plasma 6",
         "Id": "org.macos8.desktop",
         "License": "GPL-2.0-or-later",
-        "Name": "Mac OS 8.6",
+        "Name": "Platinum",
         "Version": "0.1.0"
     }
 }

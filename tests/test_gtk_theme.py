@@ -146,7 +146,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
 
         entry = parser["Desktop Entry"]
         self.assertEqual(entry["Type"], "X-GNOME-Metatheme")
-        self.assertEqual(entry["Name"], "Mac OS 8.6 Platinum")
+        self.assertEqual(entry["Name"], "Platinum")
         self.assertEqual(entry["Encoding"], "UTF-8")
         self.assertEqual(
             entry["Comment"],
@@ -154,7 +154,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         )
 
         metatheme = parser["X-GNOME-Metatheme"]
-        self.assertEqual(metatheme["Name"], "Mac OS 8.6 Platinum")
+        self.assertEqual(metatheme["Name"], "Platinum")
         self.assertEqual(metatheme["GtkTheme"], THEME_ID)
 
     def test_theme_colours(self):

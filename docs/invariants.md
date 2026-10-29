@@ -253,6 +253,7 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
+| Theme selection metadata displays Platinum and excludes Apple product names while compatibility IDs remain stable. | `tests/test_ui_branding.py` | none |
 | The global theme's `contents/defaults` selects the color scheme, desktop theme, icon theme, window decoration, wallpaper, Kvantum widget style and the `Lato` font family. | `tests/test_lookandfeel.py::TestDefaults` | Lato is a Charcoal substitute and the point sizes are KDE defaults; monospace keeps the user's fixed font. |
 | The desktop layout's panel, widget order, clock format and desktop icons match the reference. | `tests/test_lookandfeel_layout.py::TestLayout` | none |
 

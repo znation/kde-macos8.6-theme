@@ -95,7 +95,7 @@ sheets without the block); a run that cannot take that lock within its bounded
 wait exits 2 with a diagnostic. Restart Firefox to pick up the change; setting
 `browser.tabs.inTitlebar=0` makes Firefox use the KWin-drawn Aurorae frame.
 
-Plasma lists the color scheme as `MacOS8` (KDE derives the scheme ID from the filename before the
+System Settings displays the color scheme as `Platinum`; its legacy CLI ID remains `MacOS8` (KDE derives the scheme ID from the filename before the
 first dot and resolves an applied ID back to `<ID>.colors`). Select it in System Settings or with
 `plasma-apply-colorscheme MacOS8`; because the filename stem is exactly `MacOS8`, the scheme
 resolves again on the next start.

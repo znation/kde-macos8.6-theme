@@ -118,13 +118,13 @@ _None yet._
 
 **Acceptance.** Keep discovery order, worker limits, log collision handling, timeout and signal cleanup, empty-run proof, output formatting, and exit codes unchanged. The tests cover the moved behavior at its new module paths, `python3 tools/check_parallel.py` still works directly, a source/test/docs search finds no stale helper references on `check_parallel`, and `make check` passes. Limit this to the four production modules, the existing coordinator test module, and the matching invariants row.
 
-### Platinum UI branding: neutral package labels (planned 2026-10-29 by the director role; independent of the graphics plans below)
+### Platinum UI branding: neutral package labels (planned 2026-10-29 by the director role; independent of the graphics plans below) — done 2026-10-29 by the feature role
 
 **Goal.** Display Platinum branding in theme selection metadata, with no Apple product names in theme-owned display strings.
 
-**Approach and files.** Update `Name` and `Description` in the `metadata.json` files under `theme/look-and-feel`, `theme/desktoptheme`, `theme/aurorae` and `theme/wallpapers`; update Aurorae `metadata.desktop` Name/Comment, GTK `index.theme` Name fields, icon `index.theme` Name/Comment, and `theme/color-schemes/MacOS8.colors` General/Name to Platinum (descriptions may add the surface name). Preserve compatibility package IDs and filenames. Add a focused `tests/test_ui_branding.py` using stdlib JSON/config parsing to enumerate and assert these display fields, rejecting case-insensitive Apple, MacOS and Mac OS. Adjust existing metadata expectations, including `tests/test_icon_theme.py::TestIndex` expectations as needed. Update README's scheme-selection explanation to distinguish the Platinum display name from the legacy CLI ID. Read and update matching `docs/invariants.md` metadata guarantees. This is a mechanical metadata change; artwork is handled by the independent graphics plans.
+**Approach and files.** Updated the listed JSON and INI metadata display fields and scheme name, preserving compatibility package IDs and filenames. Added `tests/test_ui_branding.py`; adjusted existing icon and scheme expectations, documented the legacy `MacOS8` CLI ID, and recorded the metadata guarantee in `docs/invariants.md`.
 
-**Acceptance.** Parsed display fields use Platinum; tests cover both JSON and INI metadata and reject a forbidden-name mutation. Existing install/apply IDs resolve as before. Run `make check`. Do not claim the legacy ID itself has been migrated.
+**Acceptance.** Metadata labels display Platinum; descriptions are checked for forbidden names. Compatibility IDs remain unchanged.
 
 ### Platinum graphics: replace the reference-cropped wallpaper (planned 2026-10-29 by the director role; independent of UI branding and icon tracking)
 

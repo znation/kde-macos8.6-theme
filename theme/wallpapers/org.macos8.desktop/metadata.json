@@ -6,10 +6,10 @@
                 "Name": "kde-macos8.6-theme"
             }
         ],
-        "Description": "Mac OS 8.6 default desktop pattern",
+        "Description": "Platinum desktop wallpaper",
         "Id": "org.macos8.desktop",
         "License": "GPL-2.0-or-later",
-        "Name": "Mac OS 8.6",
+        "Name": "Platinum",
         "Version": "0.1.0"
     }
 }

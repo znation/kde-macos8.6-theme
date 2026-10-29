@@ -1,6 +1,6 @@
 [Icon Theme]
-Name=org.macos8.desktop
-Comment=Mac OS 8.6 Platinum icon theme
+Name=Platinum
+Comment=Platinum icon theme
 Inherits=breeze
 
 Directories=32x32/devices,32x32/mimetypes,32x32/places,16x16/places,22x22/places,16x16/actions,22x22/actions,16x16/devices,16x16/mimetypes,22x22/devices,22x22/mimetypes
