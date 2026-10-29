@@ -118,14 +118,6 @@ _None yet._
 
 **Acceptance.** Keep discovery order, worker limits, log collision handling, timeout and signal cleanup, empty-run proof, output formatting, and exit codes unchanged. The tests cover the moved behavior at its new module paths, `python3 tools/check_parallel.py` still works directly, a source/test/docs search finds no stale helper references on `check_parallel`, and `make check` passes. Limit this to the four production modules, the existing coordinator test module, and the matching invariants row.
 
-### Platinum UI branding: neutral package labels (planned 2026-10-29 by the director role; independent of the graphics plans below) — done 2026-10-29 by the feature role
-
-**Goal.** Display Platinum branding in theme selection metadata, with no Apple product names in theme-owned display strings.
-
-**Approach and files.** Updated the listed JSON and INI metadata display fields and scheme name, preserving compatibility package IDs and filenames. Added `tests/test_ui_branding.py`; adjusted existing icon and scheme expectations, documented the legacy `MacOS8` CLI ID, and recorded the metadata guarantee in `docs/invariants.md`.
-
-**Acceptance.** Metadata labels display Platinum; descriptions are checked for forbidden names. Compatibility IDs remain unchanged.
-
 ### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding)
 
 **Goal.** Treat the existing original generic icon/logo artwork as temporary, respecting the user's renewed placeholder decision.
