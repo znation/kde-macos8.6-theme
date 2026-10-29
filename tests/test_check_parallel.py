@@ -188,6 +188,32 @@ class TestCoordinator(unittest.TestCase):
     def test_a_forged_no_tests_ran_summary_fails_the_run(self):
         self._assert_forged_summary_fails("")
 
+    def test_an_exit_5_with_only_one_empty_run_marker_fails(self):
+        # An import can terminate before unittest prints a verbose test
+        # line. Even then, either summary marker alone is insufficient
+        # evidence that unittest completed an empty run.
+        for marker in ("Ran 0 tests in 0.000s", "NO TESTS RAN"):
+            with self.subTest(marker=marker):
+                tests_dir = self._project(
+                    {
+                        "test_partial.py": (
+                            "import os\n"
+                            f"print({marker!r}, flush=True)\n"
+                            "os._exit(5)\n"
+                        ),
+                        "test_ok.py": OK_MODULE,
+                    }
+                )
+                result = self._run("--tests-dir", tests_dir, "--workers", "2")
+                assert_failed(self, result)
+                self.assertIn(
+                    "===== test_partial: exit 5 but the log shows no unittest "
+                    "NO TESTS RAN summary =====",
+                    result.stdout,
+                )
+                self.assertIn("===== test_ok: exit 0 =====", result.stdout)
+                self.assertIn("1 module failed", result.stdout)
+
     def test_a_forged_summary_with_a_test_docstring_fails_the_run(self):
         self._assert_forged_summary_fails('        """An ordinary test description."""\n')
 
