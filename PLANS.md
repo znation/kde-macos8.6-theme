@@ -99,15 +99,7 @@ _None yet._
 _None yet._
 
 
-### Platinum GTK 4 banners: replace the tinted message face (planned 2026-10-28 by the plan role; independent of the queued GTK 4 toasts)
-
-**Goal.** Give the libadwaita banner message surface the existing Platinum message band's grey face and black text, including its inactive background. Keep this to container color: spacing, sidebar edge shadows, child-button styling, inactive child dimming and reveal animation remain toolkit behavior.
-
-**Grounding.** Searches of `theme/gtk`, `tests/test_gtk4_theme.py`, this queue and related archive headings found no GTK banner treatment. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` paints `banner > revealer > widget` with a 30% mixture of `--banner-color` and the window background, reducing it to 15% on `:backdrop`; sidebar variants use sidebar background tokens. `/org/gnome/Adwaita/ui/adw-banner.ui` supplies the revealer and internal gizmo with label and button children. No reference screenshot shows a GTK banner. This is a platform adaptation: take `background-color: #DDDDDD` and `color: #000000` directly from the existing GTK 4 `infobar > revealer > box` rule. The face is pinned to a lossless reference by `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_menu_bar_face`; retain that coverage. Do not claim a sampled banner geometry or introduce one.
-
-**Approach and files.** Beside the infobar rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add one grouped rule for `banner > revealer > widget, banner > revealer > widget:backdrop` containing exactly those two declarations. The supported libadwaita application path is the existing `make apply-gtk` user stylesheet import, whose user priority overrides library theme rules, including their more specific sidebar variants. Add a dated CSS provenance comment naming the missing reference surface and reused infobar colors; avoid the literal substring `adwaita` in that comment because the sheet's raw-text test rejects it. Put the full library/resource attribution in a new `## gtk` row in `docs/invariants.md`. Add `test_banner_surface` to `tests/test_gtk4_theme.py::TestGtk4Theme`, using its existing parsed `self.rules`.
-
-**Acceptance.** The new test asserts exact two-property dictionaries for both selectors, compares each value to the parsed infobar rule, and asserts the set of selectors containing `banner` is exactly those two. This keeps the change free of child, padding, shadow, transition and palette-token overrides. Existing `test_infobar` and `test_only_palette_hex_literals` remain green. The invariant names the platform adaptation and user-import scope and describes declaration coverage, not rendered-pixel proof; inactive label/button opacity remains the library's. Run `make check`. Limit implementation to these three files, comfortably below a few hundred lines including tests; it can merge independently of the toast plan.
+_None yet._
 
 ### Platinum GTK 4 cards: square the container corners (planned 2026-10-29 by the plan role; independent of the queued GTK 4 banners)
 

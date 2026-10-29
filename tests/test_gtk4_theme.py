@@ -334,6 +334,25 @@ for radio in (False, True):
         for message_type in (".info", ".question", ".warning", ".error"):
             self.assertNotIn(message_type, self.css, message_type)
 
+    def test_banner_surface(self):
+        selectors = {
+            "banner > revealer > widget",
+            "banner > revealer > widget:backdrop",
+        }
+        self.assertEqual(
+            {selector for selector in self.selectors if "banner" in selector},
+            selectors,
+        )
+        expected = {"background-color": FACE, "color": BLACK}
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+                for prop in expected:
+                    self.assertEqual(
+                        self.rules[selector][prop],
+                        self.rules["infobar > revealer > box"][prop],
+                    )
+
     def test_search_bar(self):
         self.assert_infobar(("searchbar > revealer > box",))
 

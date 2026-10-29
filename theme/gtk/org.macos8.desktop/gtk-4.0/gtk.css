@@ -900,6 +900,14 @@ infobar > revealer > box {
   box-shadow: inset 0 -1px #FFFFFF;
 }
 
+/* No reference screenshot shows a GTK banner. Reuse the infobar face and
+   text colors for its active and inactive surface (2026-10-29 by feature). */
+banner > revealer > widget,
+banner > revealer > widget:backdrop {
+  background-color: #DDDDDD;
+  color: #000000;
+}
+
 /* A search bar and an action bar draw the menu-bar band: the #DDDDDD face,
    black text and the etched bottom rule. The search entry keeps the entry
    field and the close and action buttons keep the button paint; :backdrop
