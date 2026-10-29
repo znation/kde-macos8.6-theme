@@ -73,6 +73,11 @@ def iter_chunks(data: bytes) -> Iterator[tuple[bytes, bytes]]:
                 f"invalid PNG chunk type {chunk_name(ctype)} at offset "
                 f"{pos}: chunk types are four ASCII letters"
             )
+        if not 65 <= ctype[2] <= 90:
+            raise PngError(
+                f"invalid PNG chunk type {chunk_name(ctype)} at offset "
+                f"{pos}: the reserved third letter must be uppercase"
+            )
         payload = data[pos + 8 : pos + 8 + length]
         if len(payload) != length:
             raise PngError(

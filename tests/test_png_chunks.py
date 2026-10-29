@@ -188,6 +188,15 @@ class TestChunkFraming(unittest.TestCase):
                 if ctype.isascii():
                     self.assertIn(repr(ctype.decode("ascii")), message)
 
+    def test_rejects_chunk_type_with_lowercase_reserved_bit(self):
+        # PNG reserves the third chunk-type letter and requires it to be
+        # uppercase. Ignoring this bit accepts malformed ancillary chunks.
+        _, data = solid_rgb(1, 1)
+        malformed = splice_after_ihdr(data, _chunk(b"abca", b""))
+        message = decode_error_message(self, malformed)
+        self.assertIn("invalid PNG chunk type", message)
+        self.assertIn("reserved third letter must be uppercase", message)
+
     def test_rejects_chunk_length_above_the_spec_maximum(self):
         # A chunk length is a 32-bit unsigned field, but the PNG spec caps it
         # at 2**31 - 1; a value with the high bit set cannot be a real payload.

@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### PNG chunk parsing accepts a lowercase reserved type bit — fixed 2026-10-29 by the bugfix role
+
+**Symptom:** PNG chunks with a lowercase third type letter were accepted as valid unknown ancillary chunks.
+
+**Reproduce:** Insert a CRC-valid `abca` chunk after IHDR in a valid PNG and decode it; before the fix, decoding succeeds.
+
+**Cause:** Chunk framing checked that all four bytes were alphabetic but did not enforce PNG's uppercase reserved third letter.
+
+**Validation gap:** none — a regression test reproduced successful decoding before the fix and now checks the parser's rejection.
+
 ### The CI dependency setup requires passwordless sudo in the local runner (found by the ci role 2026-10-29) — fixed 2026-10-29 by the bugfix role
 
 **Symptom:** The workflow's Plasma render-tool installation step tried to use `sudo` when any of its render tools were missing, even where the remaining tools were already available.
