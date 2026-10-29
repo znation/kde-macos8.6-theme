@@ -101,15 +101,7 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 4 cards: square the container corners (planned 2026-10-29 by the plan role; independent of the queued GTK 4 banners)
-
-**Goal.** Give GTK 4 widgets carrying the `card` class square corners, matching the sheet's existing frame treatment. This is one geometry adaptation; card colors, shadows, spacing and interaction paint are outside its scope.
-
-**Grounding.** Searches of `theme/gtk`, `tests/test_gtk4_theme.py`, the queue and related finished plans found card color definitions but no card-corner treatment. The finished "Ship a GTK 4/libadwaita Platinum stylesheet" plan defines card palette names without a `.card` geometry rule. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` assigns `.card` a 12px radius in its Cards group and separately gives `menubutton.card > button` a 12px radius. No reference screenshot shows a GTK card. Use `border-radius: 0` from this project's `frame > border, .frame` rule as an explicitly documented platform adaptation, not a sampled card metric. The existing `make apply-gtk` user stylesheet import supplies the override priority for library applications.
-
-**Approach and files.** Beside the frame rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `.card, menubutton.card > button` with exactly `border-radius: 0`. The first selector covers the class on containers and buttons; the second explicitly covers the menu button's inner paint node. Add a dated provenance comment naming the missing reference surface and reused frame value; avoid the literal substring `adwaita`, which `test_stands_alone` rejects even in comments. Add `test_card_corners` to `tests/test_gtk4_theme.py::TestGtk4Theme`. Add a dated row under `## gtk` in `docs/invariants.md` recording the library resource, platform adaptation, user-import scope and test. Do not extend the rule to the stock Cards group's distinct boxed lists or shortcut keycaps.
-
-**Acceptance.** Using parsed `self.rules`, the new test asserts exact `{"border-radius": "0"}` dictionaries for both selectors, compares their radius with `frame > border` and `.frame`, and asserts the selectors containing `.card` are exactly those two. Existing `test_frame` and `test_stands_alone` remain green. Document this as declaration coverage, not rendered-pixel evidence. Run `make check`. Keep implementation to the three named files and well below a few hundred lines including tests; no banner work is required.
+_None yet._
 
 ### Platinum GTK 4 shortcut keycaps: square the key label corners (planned 2026-10-29 by the plan role; independent of the queued GTK 4 cards)
 

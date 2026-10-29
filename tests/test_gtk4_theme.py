@@ -553,6 +553,21 @@ for radio in (False, True):
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 
+    def test_card_corners(self):
+        expected = {".card", "menubutton.card > button"}
+        self.assertEqual(
+            {selector for selector in self.rules if ".card" in selector},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                for frame in ("frame > border", ".frame"):
+                    self.assertEqual(
+                        self.rules[selector]["border-radius"],
+                        self.rules[frame]["border-radius"],
+                    )
+
     def test_color_swatch_corners(self):
         roots = (
             "colorswatch",
