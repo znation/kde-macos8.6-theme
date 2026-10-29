@@ -581,6 +581,33 @@ for radio in (False, True):
                         self.rules[frame]["border-radius"],
                     )
 
+    def test_boxed_list_corners(self):
+        roots = ("list.boxed-list", "list.content")
+        suffixes = (
+            "",
+            " > row:first-child",
+            " > row:last-child",
+            " > row:first-child.expander row.header",
+            " > row:last-child.expander:not(:checked)",
+            " > row:last-child.expander:not(:checked) row.header",
+            " > row:last-child.expander:checked list.nested",
+            " > row:last-child.expander:checked list.nested > row:last-child",
+        )
+        expected = {root + suffix for root in roots for suffix in suffixes}
+        self.assertEqual(
+            {selector for selector in self.rules
+             if any(root in selector for root in roots)},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                for frame in ("frame > border", ".frame"):
+                    self.assertEqual(
+                        self.rules[selector]["border-radius"],
+                        self.rules[frame]["border-radius"],
+                    )
+
     def test_color_swatch_corners(self):
         self.assert_color_swatch_corners(" > overlay")
 

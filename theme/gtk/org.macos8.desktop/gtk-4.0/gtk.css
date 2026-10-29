@@ -577,6 +577,28 @@ shortcut > .keycap {
   border-radius: 0;
 }
 
+/* No reference screenshot shows a GTK boxed list. Square container and
+ * end-row corners adapt frame > border, .frame border-radius: 0 above.
+ * Recorded 2026-10-29 by the feature role. */
+list.boxed-list,
+list.boxed-list > row:first-child,
+list.boxed-list > row:last-child,
+list.boxed-list > row:first-child.expander row.header,
+list.boxed-list > row:last-child.expander:not(:checked),
+list.boxed-list > row:last-child.expander:not(:checked) row.header,
+list.boxed-list > row:last-child.expander:checked list.nested,
+list.boxed-list > row:last-child.expander:checked list.nested > row:last-child,
+list.content,
+list.content > row:first-child,
+list.content > row:last-child,
+list.content > row:first-child.expander row.header,
+list.content > row:last-child.expander:not(:checked),
+list.content > row:last-child.expander:not(:checked) row.header,
+list.content > row:last-child.expander:checked list.nested,
+list.content > row:last-child.expander:checked list.nested > row:last-child {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows a GTK color chooser. Square corners adapt
  * the existing frame > border, .frame recipe (border-radius: 0).
  * Qualified stock GTK corner selectors also reset their overlay nodes.
