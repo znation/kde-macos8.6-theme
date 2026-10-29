@@ -108,4 +108,14 @@ _None yet._
 
 **Acceptance.** Assert that selectors containing `gridview` equal precisely the two selectors above, that each `self.rules` dictionary equals `{"border-radius": "0"}`, and that each radius equals both frame selectors. The qualified file-chooser selector must be covered so its stock 12px radius cannot survive a general-only override. Keep `test_navigation_sidebar_item_corners` passing. Document declaration coverage without rendered-pixel claims. Run `make check`.
 
+### Separate PNG header validation from chunk collection (planned 2026-10-29 by the organize role)
+
+**Goal.** Give PNG header and decode-limit checks a dedicated module, keeping chunk ordering and payload collection in `stream.py`.
+
+**Why.** `tools/png/stream.py` contains two responsibilities: header shape/color-type/transparency/palette/resource validation, used by both the decoder and size-only loader, and stateful chunk order/payload collection, used by the decode pipeline. Its 359 lines are substantially larger than the roughly 200-line median production Python module.
+
+**Target structure and files.** Add `tools/png/header.py` for `CHANNELS`, `MAX_PIXELS`, `validate_max_rows`, `validate_max_cols`, `parse_ihdr`, `check_trns`, `check_plte` and `check_pixel_limit`. Leave `_take_ihdr`, `_take_plte` and `collect_chunks` in `tools/png/stream.py`, importing no header-validation implementation there. Update `tools/png/read.py` and `tools/png/loader.py` to import validation from `header.py` and collection from `stream.py`; update PNG tests that refer to `stream` for validation constants to name `header`. Correct live module docstrings and the tooling invariant references to describe the boundary. Do not change the public `tools.png` facade or validation behavior. Search all source, tests and Markdown for stale live descriptions before finishing; historical bug-fix archive entries retain their original provenance.
+
+**Acceptance.** The decoder and size-only reader resolve shared validators from `tools/png/header.py`; chunk collection remains in `tools/png/stream.py`; existing PNG behavior tests pass through `make check`; no live source/test/docstring or invariant attributes header validation to `stream.py`; `git diff --check` passes.
+
 ## Done
