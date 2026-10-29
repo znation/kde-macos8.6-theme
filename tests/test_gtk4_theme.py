@@ -581,6 +581,26 @@ for radio in (False, True):
                         self.rules[frame]["border-radius"],
                     )
 
+    def test_pill_button_corners(self):
+        expected = {
+            "menubutton.pill > button",
+            "button.pill",
+            "menubutton.suggested-action.pill",
+            "menubutton.opaque.pill",
+        }
+        self.assertEqual(
+            {selector for selector in self.rules if ".pill" in selector},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                for reference in ("button", "frame > border", ".frame"):
+                    self.assertEqual(
+                        self.rules[selector]["border-radius"],
+                        self.rules[reference]["border-radius"],
+                    )
+
     def test_video_osd_image_corners(self):
         self.assertEqual(
             {selector for selector in self.rules if "video" in selector},

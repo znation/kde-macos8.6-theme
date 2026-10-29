@@ -591,6 +591,16 @@ shortcut > .keycap {
   border-radius: 0;
 }
 
+/* No reference screenshot shows a GTK pill button. Square corners adapt the
+ * frame > border, .frame and button recipes above. Recorded 2026-10-29 by
+ * the feature role. */
+menubutton.pill > button,
+button.pill,
+menubutton.suggested-action.pill,
+menubutton.opaque.pill {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows a GTK boxed list. Square container and
  * end-row corners adapt frame > border, .frame border-radius: 0 above.
  * Recorded 2026-10-29 by the feature role. */
