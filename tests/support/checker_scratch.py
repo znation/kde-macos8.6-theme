@@ -121,6 +121,21 @@ class Scratch:
             os.path.join("theme", "wallpapers", "org.macos8.desktop", "metadata.json"),
             '{"placeholder": "PLACEHOLDER: original neutral stand-in pending user-approved artwork."}\n',
         )
+        for relative, marker in (
+            (
+                "theme/icons/org.macos8.desktop/16x16/actions/go-next-symbolic.svg",
+                "original submenu-arrow illustration pending user-approved artwork.",
+            ),
+            (
+                "theme/icons/org.macos8.desktop/16x16/places/folder.svg",
+                "original generic folder illustration pending user-approved artwork.",
+            ),
+            (
+                "theme/look-and-feel/org.macos8.desktop/contents/splash/images/macos-logo.svg",
+                "original geometric startup logo pending user-approved artwork.",
+            ),
+        ):
+            self._write(relative, f"<!-- PLACEHOLDER: {marker} -->\n")
 
     def write_invariants(self, text):
         """Replace the scratch invariants register with *text*."""

@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    The Mac OS face from the startup splash. Traced by eye from the logo
-    rectangle (x=107..132, y=45..65) of the 240x180 reference thumbnail
-    macos8.6-screenshots/boot2_betawiki.png; the two fills are the blues
-    sampled from that rectangle.
+    Original geometric startup mark placeholder.
+    PLACEHOLDER: original geometric startup logo pending user-approved artwork.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="26" height="21" viewBox="0 0 26 21">
   <rect id="face" x="0" y="0" width="26" height="21" rx="5" fill="#4C65CB"/>

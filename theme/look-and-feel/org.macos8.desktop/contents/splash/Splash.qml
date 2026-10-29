@@ -7,7 +7,7 @@
 import QtQuick
 
 /*
-    Mac OS 8.6 Platinum startup splash.
+    Platinum startup splash.
 
     The artwork is authored on the 240x180 grid of the reference thumbnail
     `macos8.6-screenshots/boot2_betawiki.png`; `unit` scales that grid by whole

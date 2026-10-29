@@ -5,6 +5,8 @@ from __future__ import annotations
 import unittest
 
 from support.splash_fixtures import LOGO
+from support.placeholders import REGISTER, cross_check
+from support.repo_root import ROOT
 from support.svg_case import SvgCase
 
 from svg_assertions import (  # noqa: E402
@@ -21,6 +23,12 @@ from svg_assertions import (  # noqa: E402
 
 class TestLogo(SvgCase, unittest.TestCase):
     SVG_PATH = LOGO
+
+    def test_logo_is_tracked_as_a_placeholder(self):
+        found, registered = cross_check(ROOT, REGISTER)
+        relative = "theme/look-and-feel/org.macos8.desktop/contents/splash/images/macos-logo.svg"
+        self.assertIn(relative, registered)
+        self.assertIn(relative, found)
 
     def test_logo_svg(self):
         # The logo is the look-and-feel package's only shipped SVG, so it gets

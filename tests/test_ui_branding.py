@@ -39,7 +39,14 @@ class TestUiBranding(unittest.TestCase):
             parser.read(ROOT / path)
             for key in keys:
                 value = parser.get(section, key)
-                self.assertEqual(value, "Platinum" if key == "Name" else "Platinum window decoration for Plasma 6" if key == "Comment" and path.endswith("metadata.desktop") else "Platinum icon theme")
+                expected = (
+                    "Platinum"
+                    if key == "Name"
+                    else "Platinum window decoration for Plasma 6"
+                    if key == "Comment" and path.endswith("metadata.desktop")
+                    else "Platinum icon theme with original placeholder artwork"
+                )
+                self.assertEqual(value, expected)
                 self.assertIsNone(FORBIDDEN.search(value))
 
 

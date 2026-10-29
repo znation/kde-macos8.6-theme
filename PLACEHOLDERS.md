@@ -15,3 +15,6 @@ tracking and replace the reference-cropped wallpaper.
 | Placeholder | Stands in for |
 | --- | --- |
 | `theme/wallpapers/org.macos8.desktop/metadata.json` | original neutral stand-in pending user-approved artwork. |
+| `theme/look-and-feel/org.macos8.desktop/contents/splash/images/macos-logo.svg` | original geometric startup logo pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/places/folder.svg` | original generic folder illustration pending user-approved artwork. |
+| `theme/icons/org.macos8.desktop/16x16/actions/go-next-symbolic.svg` | original submenu-arrow illustration pending user-approved artwork. |

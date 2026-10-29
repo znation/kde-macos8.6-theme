@@ -1,9 +1,8 @@
 """Validate the org.macos8.desktop icon theme package.
 
-The package ships our own final Platinum-style art for the icons a default Mac
-OS 8.6 desktop shows; these tests pin the theme's identity, the per-size SVG
-shape and Platinum palette of every icon, the placeholder register (empty now
-that the art is final), and the install/uninstall lifecycle.
+The package ships original Platinum-style icon placeholders; these tests pin
+the theme's identity, per-size SVG shape and palette, placeholder tracking,
+and the install/uninstall lifecycle.
 """
 
 from __future__ import annotations
@@ -264,12 +263,10 @@ class TestIndex(unittest.TestCase):
         self.assertEqual(self.parser.get("Icon Theme", "Name"), "Platinum")
         self.assertEqual(self.parser.get("Icon Theme", "Inherits"), "breeze")
 
-    def test_comment_names_the_final_platinum_art(self):
-        # The art is final (see PLACEHOLDERS.md), so the description KDE shows
-        # in System Settings must not still call these icons placeholders.
+    def test_comment_names_platinum_icon_art(self):
         self.assertEqual(
             self.parser.get("Icon Theme", "Comment"),
-            "Platinum icon theme",
+            "Platinum icon theme with original placeholder artwork",
         )
 
     def test_every_shipped_icon_lives_in_a_declared_size_directory(self):
@@ -294,9 +291,7 @@ class TestIndex(unittest.TestCase):
         )
 
     def test_placeholder_register_matches_the_icon_art(self):
-        # Every shipped icon is final art, so neither side lists one: the
-        # register's rows for these icons and the icons carrying a
-        # `PLACEHOLDER:` marker are both empty and must stay equal.
+        # Every shipped SVG illustration is a tracked placeholder.
         register = _read_icon_text(PLACEHOLDERS)
         registered = {icon for icon in SHIPPED_ICONS if _icon_path(icon) in register}
         marked = set()
@@ -304,6 +299,7 @@ class TestIndex(unittest.TestCase):
             if "PLACEHOLDER:" in _read_icon_text(os.path.join(PACKAGE, icon)):
                 marked.add(icon)
         self.assertEqual(registered, marked)
+        self.assertTrue(marked)
 
 
 class TestIcons(unittest.TestCase):

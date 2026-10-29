@@ -344,11 +344,11 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         URL_CHECK_GUARANTEE,
     ),
     UnclearInvariant(
-        "icon-final-art",
+        "icon-placeholder-art",
         ('placeholder icons',),
         "tests/test_icon_theme.py::TestIndex",
-        "The icon theme names our own final Platinum art, ships exactly the "
-        "tracked icons, and declares each icon's size directory.",
+        "The icon theme names its original placeholder artwork, ships exactly "
+        "the tracked icons, and declares each icon's size directory.",
     ),
     UnclearInvariant(
         "palette-anchor",

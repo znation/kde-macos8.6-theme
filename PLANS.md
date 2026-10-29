@@ -5,6 +5,25 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+### Split the parallel check coordinator by responsibility (planned 2026-10-29 by the organize role)
+
+**Goal.** Make `tools/check_parallel.py` a small CLI coordinator by separating discovery and log naming, worker lifecycle, and result interpretation into focused modules.
+
+**Why.** `tools/check_parallel.py` is 533 lines, the largest Python production module in `tools/` (the next is `tools/png/stream.py` at 359 lines). It currently combines unittest-compatible filesystem discovery, collision-safe log assignment, signal-safe subprocess spawning and supervision, log-based exit interpretation, output formatting, and CLI parsing in one module. These are distinct responsibilities with separate invariants; the worker lifecycle in particular carries signal and process-group guarantees that should be readable independently from reporting policy. Recent coordinator bug fixes have touched supervision and reporting behavior, so a full split should keep each concern directly inspectable.
+
+**Target structure and files.** Keep `tools/check_parallel.py` for argument parsing and `main`; move `discover_modules` and `_log_paths` with their discovery constants into `tools/check_parallel_discovery.py`; move `_NeverStarted`, `_Worker`, `_spawn`, `_kill_group`, `_reap`, `_supervise` and their process constants into `tools/check_parallel_workers.py`; move `_plural`, no-tests verdict constants, and `_print_results` into `tools/check_parallel_results.py`. Update the coordinator to call these modules, preserving both package imports and direct-script execution. Update `tests/test_check_parallel.py` to import and patch the extracted helpers at their defining modules, and update this tooling row in `docs/invariants.md` to identify which tests pin each module's guarantees. Do not leave forwarding aliases that preserve the old private layout.
+
+**Acceptance.** Keep discovery order, worker limits, log collision handling, timeout and signal cleanup, empty-run proof, output formatting, and exit codes unchanged. The tests cover the moved behavior at its new module paths, `python3 tools/check_parallel.py` still works directly, a source/test/docs search finds no stale helper references on `check_parallel`, and `make check` passes. Limit this to the four production modules, the existing coordinator test module, and the matching invariants row.
+
+
+### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding)
+
+**Goal.** Treat the existing original generic icon/logo artwork as temporary, respecting the user's renewed placeholder decision.
+
+**Approach and files.** Add `PLACEHOLDER:` comments and matching PLACEHOLDERS.md rows for SVG artwork under `theme/icons/org.macos8.desktop`; use the existing `tests/support/placeholders.py` register contract. Include the generic startup logo if separately embedded in Splash.qml, with a QML comment and row. Keep the original generic drawings; replace any Apple logo or extracted artwork encountered with a simple original outlined square using existing palette/size values. Update `tests/test_icon_theme.py::test_placeholder_register_matches_the_icon_art` and final-art descriptions to assert populated matching tracking instead of emptiness; preserve shape tests for unchanged generic art. Update `tests/test_splash_logo.py` if its tracking changes. Read and update the icons/splash sections of `docs/invariants.md`. Pixel-matched control chrome and licensed fonts remain governed by their existing provenance; this plan addresses illustrative icons/logos.
+
+**Acceptance.** Existing placeholder checks cover the registered icon/logo stand-ins and detect a missing row or marker. Documentation describes these illustrations as temporary and leaves replacement work subject to user approval. Run `make check`. Wallpaper is tracked by its independent sibling plan, so no dependency is needed.
+
 
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
