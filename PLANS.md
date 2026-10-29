@@ -104,4 +104,14 @@ recorded here to keep the scope deliberate.
 
 **Acceptance.** The new test asserts that selectors containing `assistant` are exactly `window.assistant .sidebar > label`, its complete parsed declaration dictionary is `{"border-radius": "0"}`, and its radius matches both `frame > border` and `.frame`. State that this is declaration coverage without rendered-pixel claims. Run `make check`.
 
+### Platinum GTK 4 flow boxes: square item corners (planned 2026-10-29 by the plan role; independent of the queued assistant labels)
+
+**Goal.** Give general GTK 4 flow-box items square Platinum corners, extending the existing navigation-sidebar-specific treatment to ordinary flow boxes.
+
+**Grounding.** Searches for `flowbox` and `flow.box` in the GTK 4 sheet, its tests, the queue and archive found the completed navigation-sidebar adaptation, but no general flow-box corner rule or plan. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` gives `flowbox > flowboxchild` a 9px radius in a grouped rule with `gridview > child`; its focus and selection rules do not replace that radius. No reference screenshot shows this GTK flow-box surface. Reuse `frame > border, .frame`'s zero radius as a platform adaptation rather than a sampled flow-box metric.
+
+**Approach and files.** Add `flowbox > flowboxchild { border-radius: 0; }` beside the frame adaptations in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment naming the missing reference surface and reused frame treatment. Put the full library/resource attribution in documentation because `TestGtk4Theme.test_stands_alone` rejects the library-name substring in CSS comments. Add `TestGtk4Theme.test_flowbox_item_corners` in `tests/test_gtk4_theme.py`, following `test_emoji_completion_row_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md`, naming the stock selector/resource, frame source, new test and supported `make apply-gtk` user-import override path. Limit implementation to these three files. Grid views, GTK 3, item spacing, focus outlines and selection paint are outside this plan.
+
+**Acceptance.** Assert `self.rules["flowbox > flowboxchild"] == {"border-radius": "0"}` and that its radius matches both frame selectors. Assert selectors beginning `flowbox` are exactly that one selector; avoid substring collection, which would capture the existing `.navigation-sidebar > flowboxchild` rule. Keep `test_navigation_sidebar_item_corners` passing. Document declaration coverage without rendered-pixel claims. Run `make check`.
+
 ## Done
