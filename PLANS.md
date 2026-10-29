@@ -126,14 +126,6 @@ _None yet._
 
 **Acceptance.** Metadata labels display Platinum; descriptions are checked for forbidden names. Compatibility IDs remain unchanged.
 
-### Platinum graphics: replace the reference-cropped wallpaper (planned 2026-10-29 by the director role; independent of UI branding and icon tracking)
-
-**Goal.** Ship an original placeholder wallpaper instead of pixels extracted from the reference desktop.
-
-**Approach and files.** In `tools/make_wallpaper.py`, replace `tile_from_reference` and its reference loading with a deterministic solid RGB tile using the existing palette's neutral `#CCCCCC`; retain the existing supported output dimensions, PNG writer and output containment checks. Record that no placeholder-wallpaper reference exists and this is an intentional original stand-in using the theme's neutral palette, not a fidelity match. Regenerate `theme/wallpapers/org.macos8.desktop/contents/images/`. Mark the wallpaper metadata with a `PLACEHOLDER:` comment-equivalent string field and register it in PLACEHOLDERS.md using the existing checker-supported JSON convention. Update `tests/test_make_wallpaper.py`, `tests/test_wallpaper.py`, README's generation/install description and the wallpaper section of `docs/invariants.md`; remove reference-crop fidelity requirements for this artwork.
-
-**Acceptance.** Tests re-derive the neutral palette value from its existing lossless reference anchor, verify generated pixels and dimensions, and prove generation succeeds with reference loading unavailable. Output containment tests still pass. The generated wallpaper is tracked as a placeholder and uses no copied image pixels. Run `make check`. This deliberately supersedes wallpaper pixel fidelity, per PRINCIPLES.md.
-
 ### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding)
 
 **Goal.** Treat the existing original generic icon/logo artwork as temporary, respecting the user's renewed placeholder decision.

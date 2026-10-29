@@ -117,6 +117,10 @@ class Scratch:
         self._originals = {}
         self._write(INVARIANTS_REGISTER, self.invariants_text)
         self._write(PLACEHOLDERS_REGISTER, self.placeholders_text)
+        self._write(
+            os.path.join("theme", "wallpapers", "org.macos8.desktop", "metadata.json"),
+            '{"placeholder": "PLACEHOLDER: original neutral stand-in pending user-approved artwork."}\n',
+        )
 
     def write_invariants(self, text):
         """Replace the scratch invariants register with *text*."""

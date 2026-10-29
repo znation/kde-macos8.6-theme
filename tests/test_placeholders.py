@@ -113,10 +113,10 @@ class TestHelpers(unittest.TestCase):
             path = tmp / "theme" / rel
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(template.format(token=TOKEN) + "\n", encoding="utf-8")
-            # An SVG's marker drops its comment terminator; a JSON marker keeps
-            # the closing quote of the string it lives in.
+            # Comment formats return text to the comment terminator; JSON
+            # markers return the string value without JSON quoting.
             expected[os.path.join("theme", rel)] = (
-                'stands in"}' if rel.endswith(".json") else "stands in"
+                "stands in"
             )
         self.assertEqual(markers(tmp), expected)
 
@@ -332,9 +332,8 @@ class TestRepositoryRegister(unittest.TestCase):
     """Cross-check the shipped theme against its register."""
 
     def test_register_and_markers_name_the_same_assets(self):
-        # The register may be empty: the icon theme's art is now final, so
-        # `found` and `entries` are both empty. The cross-check still
-        # fails if a new placeholder appears without a row (or vice versa).
+        # The cross-check fails if a placeholder appears without a row or a
+        # row names an unmarked asset.
         found, entries = cross_check(ROOT, REGISTER)
         self.assertEqual(set(found), set(entries))
 

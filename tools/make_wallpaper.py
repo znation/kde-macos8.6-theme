@@ -1,21 +1,15 @@
-"""Generate the Mac OS 8.6 wallpaper package's images from the reference desktop.
+"""Generate the Platinum wallpaper package's original neutral placeholder.
 
-The retail desktop screenshot ``desktop_betawiki.png`` shows the default desktop
-pattern as a 128x128 tile anchored at screen (0, 0). This tool cuts one clean
-tile out of a stretch of bare desktop and writes it tiled to full-screen PNGs,
+The tool writes a 128x128 solid ``#CCCCCC`` tile tiled to full-screen PNGs,
 one per resolution, under the wallpaper package's ``contents/images/``. Plasma
 picks the image nearest the screen size, so a matching screen shows the tile 1:1.
 
 Run ``python3 tools/make_wallpaper.py`` from anywhere; the output is
 deterministic, so re-running rewrites identical bytes.
 
-The reference screenshot is a repository file, and a checked-in symlink can
-point anywhere on the machine. A reference that resolves outside the
-repository is refused by name before it is decoded, so a private file's pixels
-cannot be copied into the wallpaper package. The images directory the
-generator writes into is a repository path as well, so one that resolves
-outside the repository (a checked-in symlink) is refused by name before
-anything is written: the wallpaper images stay in the wallpaper package.
+The images directory the generator writes into is a repository path; one that
+resolves outside the repository (a checked-in symlink) is refused by name
+before anything is written.
 
 Exit status: 0 when every image was written (and for ``--help``/``-h``), 2 for
 a usage error, a reference or images directory that resolves outside the
@@ -29,27 +23,21 @@ import sys
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.containment import require_within_repo
-    from tools.diagnostics import report_error
     from tools.generated_files import write_generated_files
-    from tools.png import Image, PngError, read_png
     from tools.png.write import encode_png
     from tools.ints import is_plain_int
     from tools.repo_root import ROOT
 else:  # run directly: python3 tools/make_wallpaper.py
     from argument_parsing import EscapingArgumentParser
-    from containment import require_within_repo
-    from diagnostics import report_error
     from generated_files import write_generated_files
-    from png import Image, PngError, read_png
     from png.write import encode_png
     from ints import is_plain_int
     from repo_root import ROOT
 
 TOOL = "make_wallpaper"
-REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"
-TILE_ORIGIN = (0, 128)
 TILE_SIZE = 128
+TILE_ORIGIN = (0, 128)  # legacy test fixture coordinates; generation does not read them
+REFERENCE = "macos8.6-screenshots/desktop_betawiki.png"
 RESOLUTIONS = (
     (1024, 768),
     (1280, 800),
@@ -67,24 +55,7 @@ RESOLUTIONS = (
 PACKAGE_DIR = "theme/wallpapers/org.macos8.desktop"
 
 
-def tile_from_reference(image: Image) -> bytes:
-    """Return the 128x128 RGB block of *image* at ``TILE_ORIGIN``."""
-    if not isinstance(image, Image):
-        raise ValueError(
-            f"tile_from_reference image must be an Image, not "
-            f"{type(image).__name__}"
-        )
-    x0, y0 = TILE_ORIGIN
-    if x0 + TILE_SIZE > image.width or y0 + TILE_SIZE > image.height:
-        raise ValueError(
-            f"the {TILE_SIZE}x{TILE_SIZE} tile at {TILE_ORIGIN} does not fit "
-            f"in the {image.width}x{image.height} image"
-        )
-    rows = []
-    for y in range(y0, y0 + TILE_SIZE):
-        start = (y * image.width + x0) * 3
-        rows.append(bytes(image.rgb[start : start + TILE_SIZE * 3]))
-    return b"".join(rows)
+TILE_RGB = bytes((0xCC, 0xCC, 0xCC)) * (TILE_SIZE * TILE_SIZE)
 
 
 def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
@@ -128,28 +99,13 @@ def main(argv: list[str] | None = None) -> int:
     """
     parser = EscapingArgumentParser(
         prog=TOOL,
-        description=(
-            "Regenerate the wallpaper package's images from the reference "
-            "desktop screenshot."
-        ),
+        description="Regenerate the original neutral placeholder wallpaper images.",
         epilog=(
             "exit status: 0 when every image was written, "
             "2 on a usage or read/write error"
         ),
     )
     parser.parse_args(argv)
-    reference = ROOT / REFERENCE
-    try:
-        # The reference screenshot is a repository file, and a checked-in
-        # symlink can point anywhere on the machine. Reading it through such a
-        # symlink would decode a private file and copy its pixels into the
-        # wallpaper package, which the next commit would publish. The shared
-        # guard refuses a repository path that resolves outside the repository
-        # before the image is decoded.
-        require_within_repo(reference, ROOT)
-        tile = tile_from_reference(read_png(reference))
-    except (PngError, ValueError) as exc:
-        return report_error(TOOL, str(exc))
     images = ROOT / PACKAGE_DIR / "contents" / "images"
     # The images directory is a repository path, and a checked-in symlink
     # can point anywhere on the machine: writing through it would put the
@@ -160,7 +116,7 @@ def main(argv: list[str] | None = None) -> int:
     files = [
         (
             images / f"{width}x{height}.png",
-            encode_png(width, height, tiled_rgb(tile, width, height)),
+            encode_png(width, height, tiled_rgb(TILE_RGB, width, height)),
         )
         for width, height in RESOLUTIONS
     ]

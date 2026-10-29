@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum graphics: replace the reference-cropped wallpaper (planned 2026-10-29 by the director role; independent of UI branding and icon tracking) — done 2026-10-29 by the feature role
+
+**Goal.** Ship an original placeholder wallpaper instead of pixels extracted from the reference desktop.
+
+**Approach and files.** In `tools/make_wallpaper.py`, replaced reference extraction and loading with a deterministic solid RGB tile using the existing palette's neutral `#CCCCCC`; retained supported output dimensions, the PNG writer and output containment checks. Regenerated `theme/wallpapers/org.macos8.desktop/contents/images/`. Marked the wallpaper metadata with a `PLACEHOLDER:` description and registered it in PLACEHOLDERS.md. Updated `tests/test_make_wallpaper.py`, `tests/test_wallpaper.py`, README's wallpaper descriptions and the wallpaper section of `docs/invariants.md`; removed reference-crop fidelity requirements for this artwork.
+
+**Acceptance.** Tests derive `#CCCCCC` from the lossless `aboutsystem_betawiki.png` anchor at (23,29), verify generated pixels and dimensions, and verify generation works without a reference file. Output containment checks remain. The generated wallpaper is tracked as an original placeholder and uses no copied image pixels. This supersedes wallpaper pixel fidelity, per PRINCIPLES.md.
+
 ### Platinum UI branding: neutral package labels (planned 2026-10-29 by the director role; independent of the graphics plans below) — done 2026-10-29 by the feature role
 
 **Goal.** Display Platinum branding in theme selection metadata, with no Apple product names in theme-owned display strings.

@@ -23,9 +23,9 @@ from support.tmp_dir import make_tmp_dir
 from tools import atomic_write, make_wallpaper, png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
 
+SMALL_RESOLUTIONS = ((130, 3), (5, 2))
 TILE = make_wallpaper.TILE_SIZE
 X0, Y0 = make_wallpaper.TILE_ORIGIN
-SMALL_RESOLUTIONS = ((130, 3), (5, 2))
 
 
 @functools.lru_cache(maxsize=16)
@@ -34,7 +34,9 @@ def gradient(width, height):
     return bytes((i * 5 + i // 251) % 256 for i in range(width * height * 3))
 
 
+@unittest.skip("reference tile extraction was removed")
 class TestTileFromReferenceBounds(unittest.TestCase):
+    @unittest.skip("wallpaper generation no longer reads a reference tile")
     def image(self, width, height):
         """Return a zero-filled *width* x *height* image."""
         return png.Image(width, height, bytes(width * height * 3))
@@ -140,10 +142,8 @@ class ContainmentCase(WallpaperCase):
 
 
 class TestMain(WallpaperCase):
-    def test_writes_one_tiled_image_per_resolution_from_the_reference_tile(self):
+    def test_writes_one_neutral_image_per_resolution_without_a_reference(self):
         width, height = X0 + TILE, Y0 + TILE
-        rgb = self.write_reference(width, height)
-        tile = make_wallpaper.tile_from_reference(png.Image(width, height, rgb))
         status, err = self.run_main()
         self.assertEqual((status, err), (0, ""))
         self.assertEqual(
@@ -154,7 +154,7 @@ class TestMain(WallpaperCase):
             with self.subTest(size=(w, h)):
                 image = png.read_png(self.images / f"{w}x{h}.png")
                 self.assertEqual((image.width, image.height), (w, h))
-                self.assertEqual(image.rgb, make_wallpaper.tiled_rgb(tile, w, h))
+                self.assertEqual(image.rgb, bytes((204, 204, 204)) * w * h)
 
     def test_rerun_rewrites_identical_bytes(self):
         self.write_reference(X0 + TILE, Y0 + TILE)
@@ -191,6 +191,7 @@ class TestMain(WallpaperCase):
         self.assertIn("cannot create", err)
         self.assertIn(str(self.images), err)
 
+    @unittest.skip("the original placeholder has no reference input")
     def test_missing_reference_exits_2_naming_it_and_writes_nothing(self):
         status, err = self.run_main()
         self.assertEqual(status, 2)
@@ -198,6 +199,7 @@ class TestMain(WallpaperCase):
         self.assertIn(make_wallpaper.REFERENCE, err)
         self.assertFalse(self.images.exists())
 
+    @unittest.skip("the original placeholder has no reference input")
     def test_a_control_character_in_the_reference_path_is_escaped(self):
         # A checkout path can carry a control character, and read_png embeds
         # the path in its error message. The tool must route that message
@@ -212,6 +214,7 @@ class TestMain(WallpaperCase):
         self.assertNotIn("\x1b", err)
         self.assertIn("\\u001b", err)
 
+    @unittest.skip("the original placeholder has no reference input")
     def test_reference_too_small_for_the_tile_exits_2_and_writes_nothing(self):
         self.write_reference(TILE, TILE)
         status, err = self.run_main()
@@ -220,6 +223,7 @@ class TestMain(WallpaperCase):
         self.assertFalse(self.images.exists())
 
 
+@unittest.skip("the original placeholder has no reference input")
 class TestReferenceContainment(ContainmentCase):
     """The reference screenshot is a repository file; a symlink out of it is refused.
 

@@ -20,6 +20,7 @@ descriptions, instead of the last row silently replacing the first.
 from __future__ import annotations
 
 import os
+import json
 import re
 
 from support import containment
@@ -105,6 +106,22 @@ def _marker_text(path, root):
     ``OSError``, a block, or an unbounded read aborting the check.
     """
     text = _read_text(path, root)
+    if path.endswith(".json"):
+        try:
+            value = json.loads(text)
+        except json.JSONDecodeError:
+            pass
+        else:
+            pending = [value]
+            while pending:
+                item = pending.pop()
+                if isinstance(item, dict):
+                    pending.extend(item.values())
+                elif isinstance(item, list):
+                    pending.extend(item)
+                elif isinstance(item, str) and TOKEN in item:
+                    return item.split(TOKEN, 1)[1].strip()
+            return None
     for line in text.split("\n"):
         index = line.find(TOKEN)
         if index == -1:

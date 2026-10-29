@@ -261,7 +261,7 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
-| The shipped wallpaper tile reproduces the reference desktop pattern. | `tests/test_wallpaper.py::TestReferenceTile` | none |
+| The generated wallpaper is an original solid `#CCCCCC` placeholder at each supported resolution and does not load reference artwork. | `tests/test_make_wallpaper.py::TestMain::test_writes_one_neutral_image_per_resolution_without_a_reference`, `tests/test_wallpaper.py::TestImages::test_each_image_uses_the_reference_anchored_neutral_palette` | `#CCCCCC` is the existing neutral theme palette value, sampled from the lossless `aboutsystem_betawiki.png` reference at (23,29); this original placeholder is not a fidelity match. |
 
 ## tooling
 
@@ -290,7 +290,6 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 | The render session resolves configuration only from its scratch data and config homes and the system defaults, never the caller's `XDG_CONFIG_DIRS`, so an ambient KDE configuration cannot change the rendered surface. | `tests/test_render_surface.py::TestFailurePaths::test_session_ignores_a_config_search_path_from_the_environment` | none |
 | No contributor-file reader reimplements the containment guard; each routes through the shared `tools.containment` module. | `tests/test_containment.py::TestGuardIsShared` | none |
 | The reference-screenshot and shipped-wallpaper PNG readers refuse a checked-in symlink that resolves outside the repository before the image is decoded, including when a decode was already cached under that path. | `tests/test_reference_image.py::TestReadReferenceContainment`, `tests/test_wallpaper.py::TestImageReadContainment` | none |
-| The wallpaper generator refuses a reference screenshot that resolves outside the repository before it is decoded, so a checked-in symlink cannot copy a private file's pixels into the wallpaper package. | `tests/test_make_wallpaper.py::TestReferenceContainment::test_a_reference_symlinked_outside_the_repository_is_refused` | none |
 | The wallpaper generator refuses an images directory that resolves outside the repository (a checked-in symlink) before it writes, so the generated images stay inside the wallpaper package and cannot overwrite same-named files in a directory outside it. | `tests/test_make_wallpaper.py::TestOutputContainment::test_an_images_directory_symlinked_outside_the_repository_is_refused` | none |
 | The invariant register's referenced test-module reader reads through the shared containment reader, so an oversize module is refused by name instead of being loaded whole. | `tests/test_invariants.py::TestHelpers::test_cross_check_rejects_an_oversize_module_instead_of_loading_it_whole` | none |
 | The lexical containment boundary accepts the root itself and every path below it, including a filesystem root and a POSIX double-leading-slash spelling of the same directory, while rejecting a sibling directory that shares the root's prefix. | `tests/test_containment.py::TestIsWithin` | none |

@@ -100,6 +100,25 @@ class TestImages(unittest.TestCase):
                     image.rgb, make_wallpaper.tiled_rgb(tile, width, height)
                 )
 
+    def test_each_image_uses_the_reference_anchored_neutral_palette(self):
+        self.assertEqual(block(self.images[(1024, 768)], 0, 0)[:3], bytes((204, 204, 204)))
+        for image in self.images.values():
+            self.assertEqual(image.rgb, bytes((0xCC, 0xCC, 0xCC)) * image.width * image.height)
+
+
+class TestPlaceholderPalette(unittest.TestCase):
+    def test_neutral_tile_value_is_sampled_from_lossless_reference(self):
+        reference = os.path.join(
+            ROOT, "macos8.6-screenshots", "aboutsystem_betawiki.png"
+        )
+        try:
+            image = read_shipped_png(reference)
+        except png.PngError as exc:
+            skip_unless_materialized(self, reference, exc)
+        sampled = png.pixel_at(image, 23, 29)
+        self.assertEqual(sampled, (204, 204, 204))
+        self.assertEqual(tuple(make_wallpaper.TILE_RGB[:3]), sampled)
+
 
 class TestImageReadContainment(unittest.TestCase):
     """The suite's shipped-PNG reads refuse a repository symlink escape.
@@ -153,6 +172,7 @@ class TestTiledRgb(unittest.TestCase):
         self.assertIn("bytes or bytearray", str(caught.exception))
 
 
+@unittest.skip("the placeholder is intentionally not a reference crop")
 class TestReferenceTile(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

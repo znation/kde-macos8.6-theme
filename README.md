@@ -38,8 +38,7 @@ into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
 `icons/`, the `org.macos8.desktop` Kvantum widget style into
 `themes/org.macos8.desktop/Kvantum/`, and the `org.macos8.desktop` Lato font
 package into `fonts/org.macos8.desktop/` (Lato Regular and Bold under the SIL
-OFL 1.1; the global theme selects it for the general, menu, toolbar, smallest-readable and window-title fonts at KDE default sizes, monospaced text keeps the user's fixed font, and menus and window titles use Lato until a Chicago-style face lands). Applying the global theme selects that wallpaper: the retail 128x128 desktop
-pattern, shipped at fixed resolutions so it renders 1:1 when the screen matches one.
+OFL 1.1; the global theme selects it for the general, menu, toolbar, smallest-readable and window-title fonts at KDE default sizes, monospaced text keeps the user's fixed font, and menus and window titles use Lato until a Chicago-style face lands). Applying the global theme selects the original neutral `#CCCCCC` wallpaper placeholder, shipped at fixed resolutions.
 
 The `org.macos8.desktop` Kvantum widget style is selected by the global theme
 (`widgetStyle=kvantum`). Kvantum is a separate engine the theme cannot install, so when it is absent
@@ -256,13 +255,11 @@ capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal numbe
 ## Generating the wallpaper
 
 `python3 tools/make_wallpaper.py` rewrites the wallpaper package's images in
-theme/wallpapers/org.macos8.desktop/contents/images/ from the reference desktop screenshot
-(`macos8.6-screenshots/desktop_betawiki.png`, which needs its Git LFS image materialized). The
-output is deterministic, so re-running it rewrites identical bytes. It refuses a reference
-screenshot that resolves outside the repository — a checked-in symlink — with a diagnostic
-naming the path, so a private file's pixels cannot be copied into the package. It refuses an
-images directory that resolves outside the repository the same way, so the generated images
-stay inside the wallpaper package.
+theme/wallpapers/org.macos8.desktop/contents/images/ as a solid `#CCCCCC` tile, an original
+neutral placeholder rather than a crop of the reference desktop. The output is deterministic,
+so re-running it rewrites identical bytes. It refuses an images directory that resolves outside
+the repository — a checked-in symlink — so the generated images stay inside the wallpaper
+package. `PLACEHOLDERS.md` tracks this temporary artwork.
 
 ## Reference screenshots
 
