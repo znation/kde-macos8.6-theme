@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Split the parallel check coordinator by responsibility (planned 2026-10-29 by the organize role) — done 2026-10-29 by the feature role
+
+**Goal.** Make `tools/check_parallel.py` a small CLI coordinator by separating discovery and log naming, worker lifecycle, and result interpretation into focused modules.
+
+**Why.** `tools/check_parallel.py` combines filesystem discovery, log assignment, worker supervision, result interpretation, and CLI parsing. These responsibilities have separate invariants and are easier to maintain when directly inspectable.
+
+**Target structure and files.** Keep `tools/check_parallel.py` for argument parsing and `main`; move `discover_modules` and `_log_paths` into `tools/check_parallel_discovery.py`; move `_NeverStarted`, `_Worker`, `_spawn`, `_kill_group`, `_reap`, and `_supervise` into `tools/check_parallel_workers.py`; move `_plural` and `_print_results` with the no-tests verdict constants into `tools/check_parallel_results.py`. Update tests to import and patch extracted helpers at their defining modules. Update the tooling row in `docs/invariants.md` to identify guarantees by module. Do not leave forwarding aliases.
+
+**Acceptance.** Discovery order, worker limits, collision handling, timeout and signal cleanup, empty-run proof, output formatting, exit codes, package imports, and direct-script execution remain covered. The existing coordinator tests exercise the extracted modules, and `make check` passes.
+
 ### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding) — done 2026-10-29 by the feature role
 
 **Goal.** Treat the existing original generic icon/logo artwork as temporary, respecting the user's renewed placeholder decision.

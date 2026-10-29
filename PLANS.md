@@ -5,17 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Split the parallel check coordinator by responsibility (planned 2026-10-29 by the organize role)
-
-**Goal.** Make `tools/check_parallel.py` a small CLI coordinator by separating discovery and log naming, worker lifecycle, and result interpretation into focused modules.
-
-**Why.** `tools/check_parallel.py` is 533 lines, the largest Python production module in `tools/` (the next is `tools/png/stream.py` at 359 lines). It currently combines unittest-compatible filesystem discovery, collision-safe log assignment, signal-safe subprocess spawning and supervision, log-based exit interpretation, output formatting, and CLI parsing in one module. These are distinct responsibilities with separate invariants; the worker lifecycle in particular carries signal and process-group guarantees that should be readable independently from reporting policy. Recent coordinator bug fixes have touched supervision and reporting behavior, so a full split should keep each concern directly inspectable.
-
-**Target structure and files.** Keep `tools/check_parallel.py` for argument parsing and `main`; move `discover_modules` and `_log_paths` with their discovery constants into `tools/check_parallel_discovery.py`; move `_NeverStarted`, `_Worker`, `_spawn`, `_kill_group`, `_reap`, `_supervise` and their process constants into `tools/check_parallel_workers.py`; move `_plural`, no-tests verdict constants, and `_print_results` into `tools/check_parallel_results.py`. Update the coordinator to call these modules, preserving both package imports and direct-script execution. Update `tests/test_check_parallel.py` to import and patch the extracted helpers at their defining modules, and update this tooling row in `docs/invariants.md` to identify which tests pin each module's guarantees. Do not leave forwarding aliases that preserve the old private layout.
-
-**Acceptance.** Keep discovery order, worker limits, log collision handling, timeout and signal cleanup, empty-run proof, output formatting, and exit codes unchanged. The tests cover the moved behavior at its new module paths, `python3 tools/check_parallel.py` still works directly, a source/test/docs search finds no stale helper references on `check_parallel`, and `make check` passes. Limit this to the four production modules, the existing coordinator test module, and the matching invariants row.
-
-
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
@@ -105,28 +94,15 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-_None yet._
-
-
-_None yet._
-
-_None yet._
-
-_None yet._
-
-_None yet._
-
-_None yet._
-
 ### Split the parallel check coordinator by responsibility (planned 2026-10-29 by the organize role)
 
 **Goal.** Make `tools/check_parallel.py` a small CLI coordinator by separating discovery and log naming, worker lifecycle, and result interpretation into focused modules.
 
-**Why.** `tools/check_parallel.py` is 533 lines, the largest Python production module in `tools/` (the next is `tools/png/stream.py` at 359 lines). It currently combines unittest-compatible filesystem discovery, collision-safe log assignment, signal-safe subprocess spawning and supervision, log-based exit interpretation, output formatting, and CLI parsing in one module. These are distinct responsibilities with separate invariants; the worker lifecycle in particular carries signal and process-group guarantees that should be readable independently from reporting policy. Recent coordinator bug fixes have touched supervision and reporting behavior, so a full split should keep each concern directly inspectable.
+**Why.** `tools/check_parallel.py` combines filesystem discovery, log assignment, worker supervision, result interpretation, and CLI parsing. These responsibilities have separate invariants and are easier to maintain when directly inspectable.
 
-**Target structure and files.** Keep `tools/check_parallel.py` for argument parsing and `main`; move `discover_modules` and `_log_paths` with their discovery constants into `tools/check_parallel_discovery.py`; move `_NeverStarted`, `_Worker`, `_spawn`, `_kill_group`, `_reap`, `_supervise` and their process constants into `tools/check_parallel_workers.py`; move `_plural`, no-tests verdict constants, and `_print_results` into `tools/check_parallel_results.py`. Update the coordinator to call these modules, preserving both package imports and direct-script execution. Update `tests/test_check_parallel.py` to import and patch the extracted helpers at their defining modules, and update this tooling row in `docs/invariants.md` to identify which tests pin each module's guarantees. Do not leave forwarding aliases that preserve the old private layout.
+**Target structure and files.** Keep `tools/check_parallel.py` for argument parsing and `main`; move `discover_modules` and `_log_paths` into `tools/check_parallel_discovery.py`; move `_NeverStarted`, `_Worker`, `_spawn`, `_kill_group`, `_reap`, and `_supervise` into `tools/check_parallel_workers.py`; move `_plural` and `_print_results` with the no-tests verdict constants into `tools/check_parallel_results.py`. Update tests to import and patch extracted helpers at their defining modules. Update the tooling row in `docs/invariants.md` to identify guarantees by module. Do not leave forwarding aliases.
 
-**Acceptance.** Keep discovery order, worker limits, log collision handling, timeout and signal cleanup, empty-run proof, output formatting, and exit codes unchanged. The tests cover the moved behavior at its new module paths, `python3 tools/check_parallel.py` still works directly, a source/test/docs search finds no stale helper references on `check_parallel`, and `make check` passes. Limit this to the four production modules, the existing coordinator test module, and the matching invariants row.
+**Acceptance.** Discovery order, worker limits, collision handling, timeout and signal cleanup, empty-run proof, output formatting, exit codes, package imports, and direct-script execution remain covered. The existing coordinator tests exercise the extracted modules, and `make check` passes.
 
 ### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding)
 

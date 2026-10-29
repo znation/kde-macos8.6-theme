@@ -30,7 +30,12 @@ from support.process_assertions import assert_failed, assert_succeeded
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
 
-from tools import check_parallel, process_group
+from tools import (
+    check_parallel,
+    check_parallel_discovery,
+    check_parallel_workers,
+    process_group,
+)
 
 # A passing one-test module and variants the coordinator's outcomes need.
 OK_MODULE = (
@@ -445,8 +450,10 @@ class TestSpawnDefenses(unittest.TestCase):
         # A _NeverStarted worker has pid 0, and os.killpg(0, ...) signals the
         # coordinator's own process group -- under `make check`, make's
         # jobserver. The guard must reach no signal at all.
-        with mock.patch.object(check_parallel.os, "killpg") as killpg:
-            check_parallel._kill_group(check_parallel._NeverStarted())
+        with mock.patch.object(check_parallel_workers.os, "killpg") as killpg:
+            check_parallel_workers._kill_group(
+                check_parallel_workers._NeverStarted()
+            )
         killpg.assert_not_called()
 
     def _spawn_while_popen_signals(self, number, raises):
@@ -475,11 +482,11 @@ class TestSpawnDefenses(unittest.TestCase):
         self.addCleanup(kill_child)
         log_path = str(make_tmp_dir(self) / "spawn.log")
         with mock.patch.object(
-            check_parallel.subprocess, "Popen", side_effect=popen_then_signal
+            check_parallel_workers.subprocess, "Popen", side_effect=popen_then_signal
         ):
             with self.assertRaises(raises) as caught:
                 with process_group.exit_on_termination():
-                    check_parallel._spawn(
+                    check_parallel_workers._spawn(
                         "test_probe",
                         [sys.executable, "-c", "import time; time.sleep(60)"],
                         str(ROOT),
@@ -532,7 +539,7 @@ class TestDiscovery(unittest.TestCase):
             _write_module(tests_dir, name, OK_MODULE)
         self.assertEqual(
             ["test_a", "test_b"],
-            check_parallel.discover_modules(tests_dir, "test*.py"),
+            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
     def test_non_package_directories_are_not_recursed(self):
@@ -550,7 +557,7 @@ class TestDiscovery(unittest.TestCase):
         _write_module(package, "test_shown.py", OK_MODULE)
         self.assertEqual(
             ["shown_pkg.test_shown"],
-            check_parallel.discover_modules(tests_dir, "test*.py"),
+            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
 
@@ -567,11 +574,11 @@ class TestDiscovery(unittest.TestCase):
         _write_module(tests_dir, "testaux.pyz", "not python\n")
         _write_module(tests_dir, "test-x.py", OK_MODULE)
         self.assertEqual(
-            ["test_ok"], check_parallel.discover_modules(tests_dir, "test*")
+            ["test_ok"], check_parallel_discovery.discover_modules(tests_dir, "test*")
         )
         self.assertEqual(
             ["test_ok"],
-            check_parallel.discover_modules(tests_dir, "test*.py"),
+            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
 
@@ -588,16 +595,16 @@ class TestDiscovery(unittest.TestCase):
         _write_module(package, "__init__.py", "")
         _write_module(package, "test_b.py", OK_MODULE)
         _write_module(tests_dir, "test_a_test_b.py", OTHER_MODULE)
-        modules = check_parallel.discover_modules(tests_dir, "test*.py")
+        modules = check_parallel_discovery.discover_modules(tests_dir, "test*.py")
         self.assertEqual(["test_a.test_b", "test_a_test_b"], modules)
-        paths = check_parallel._log_paths(modules, "/scratch")
+        paths = check_parallel_discovery._log_paths(modules, "/scratch")
         self.assertEqual(2, len(set(paths.values())))
 
     def test_a_disambiguated_log_never_claims_another_modules_name(self):
         # The `_2` suffix must not collide with a third module's own natural
         # stem: `test_a_test_b_2` keeps its natural log, and the later
         # colliding module takes the next free suffix.
-        paths = check_parallel._log_paths(
+        paths = check_parallel_discovery._log_paths(
             ["test_a.test_b", "test_a_test_b_2", "test_a_test_b"],
             "/scratch",
         )
