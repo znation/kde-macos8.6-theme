@@ -382,6 +382,14 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("matches no test module", result.stderr)
         self.assertIn("test_none*.py", result.stderr)
 
+    def test_pattern_control_characters_are_escaped_in_diagnostic(self):
+        tests_dir = self._project({"test_one.py": OK_MODULE})
+        pattern = "missing\x1b[31m*.py"
+        result = self._run("--tests-dir", tests_dir, "-p", pattern)
+        assert_failed(self, result)
+        self.assertIn(r"missing\u001b[31m*.py", result.stderr)
+        self.assertNotIn("\x1b", result.stderr)
+
     def test_a_missing_tests_directory_is_refused(self):
         result = self._run("--tests-dir", os.path.join(str(make_tmp_dir(self)), "absent"))
         assert_failed(self, result)

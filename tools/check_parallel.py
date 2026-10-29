@@ -70,6 +70,7 @@ if __package__:
     )
     from tools.diagnostics import plural
     from tools.repo_root import ROOT
+    from tools.terminal import escape_controls
 else:  # run directly: python3 tools/check_parallel.py
     from argument_parsing import EscapingArgumentParser, positive_int
     from process_group import (
@@ -82,6 +83,7 @@ else:  # run directly: python3 tools/check_parallel.py
     )
     from diagnostics import plural
     from repo_root import ROOT
+    from terminal import escape_controls
 
 # How often the supervisor wakes to reap finished workers and start queued
 # ones. Workers are processes that run for seconds, so a 50ms poll adds
@@ -495,21 +497,23 @@ def main(argv: list[str] | None = None) -> int:
         tests_dir = os.path.join(str(ROOT), tests_dir)
     if not os.path.isdir(tests_dir):
         print(
-            f"check: --tests-dir must name a directory: {options.tests_dir}",
+            "check: --tests-dir must name a directory: "
+            f"{escape_controls(options.tests_dir)}",
             file=sys.stderr,
         )
         return 2
     modules = discover_modules(tests_dir, options.pattern)
     if not modules:
         print(
-            f"check: -p '{options.pattern}' matches no test module in "
-            f"{tests_dir}",
+            f"check: -p '{escape_controls(options.pattern)}' matches no test module in "
+            f"{escape_controls(tests_dir)}",
             file=sys.stderr,
         )
         return 2
     workers = options.workers or min(len(modules), os.cpu_count() or 1)
     print(
-        f"check: -p '{options.pattern}', {_plural(len(modules), 'module')}, "
+        f"check: -p '{escape_controls(options.pattern)}', "
+        f"{_plural(len(modules), 'module')}, "
         f"{_plural(workers, 'worker')}"
     )
     scratch = tempfile.mkdtemp(prefix="check-parallel-")
