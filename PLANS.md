@@ -117,4 +117,14 @@ _None yet._
 
 _None yet._
 
+### Platinum GTK 4 pill buttons: square painted corners (planned 2026-10-29 by the plan role)
+
+**Goal.** Extend the existing square-button treatment to GTK 4 pill buttons, including the painted menu-button wrapper.
+
+**Grounding.** Searches of `theme/gtk`, `tests/test_gtk4_theme.py` and plan headings in `PLANS.md` and `PLANS-DONE.md` found no pill-button treatment or plan. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` gives `menubutton.pill > button` and `button.pill` a 9999px radius, and separately gives `menubutton.suggested-action.pill` and `menubutton.opaque.pill` that radius. No reference screenshot shows a GTK pill button; zero radius adapts the sheet's existing `button` and `frame > border, .frame` treatment, as a platform adaptation rather than a sampled pill metric.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add one grouped rule for those four exact selectors declaring only `border-radius: 0`, beside the frame adaptations. Add a dated comment naming the absent reference surface and existing square-button source; keep the library name out of CSS comments because `TestGtk4Theme.test_stands_alone` rejects its substring. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_pill_button_corners` following `test_card_corners`. In `docs/invariants.md` under `## gtk`, record the missing surface, source selectors and library resource, the reused radius, and `make apply-gtk`'s user-import override path. Keep padding, size, color, focus and circular-button treatment outside this change.
+
+**Acceptance.** Assert that selectors containing `.pill` are exactly the four named above, each complete parsed declaration dictionary is `{"border-radius": "0"}`, and each radius equals `button`, `frame > border` and `.frame`. Describe these as declaration checks without claiming rendered-pixel evidence. Run `make check`. Implementation stays within the three named files and comfortably below a few hundred changed lines including tests; the four selectors form one corner treatment for the same control variant.
+
 ## Done
