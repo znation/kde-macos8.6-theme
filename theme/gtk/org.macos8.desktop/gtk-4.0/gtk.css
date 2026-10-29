@@ -1020,3 +1020,11 @@ placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row {
   color: #000000;
 }
 
+/* No GTK navigation-sidebar reference is available; adapt its item corners
+   to the square frame treatment (2026-10-29). */
+.navigation-sidebar > row,
+.navigation-sidebar > child,
+.navigation-sidebar > flowboxchild {
+  border-radius: 0;
+}
+

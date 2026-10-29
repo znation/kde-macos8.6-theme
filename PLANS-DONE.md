@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 navigation sidebars: square item corners (planned 2026-10-29 by the plan role; independent of the queued separate boxed rows) — done 2026-10-29 by the feature role
+
+**Goal.** Give navigation-sidebar list and grid items square corners, including unselected items. This is one corner treatment across the toolkit's three item node forms; it does not require the separate boxed-row plan.
+
+**Grounding.** Searches of the GTK 4 sheet, its tests, queued plans and related archive headings found no navigation-sidebar item corner override. The completed places-sidebar plan covers the band and row colors and leaves stock geometry; generic selected list rows already declare zero radius. The Navigation Sidebar group in `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` gives `.navigation-sidebar > row`, `.navigation-sidebar > child` and `.navigation-sidebar > flowboxchild` a 9px radius. No reference screenshot shows this GTK navigation surface. Reuse `frame > border, .frame`'s zero radius as a documented platform adaptation, not a sampled sidebar metric.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add one grouped rule declaring exactly `border-radius: 0` for those three selectors beside the existing sidebar rules. Include a dated provenance comment naming the missing surface and frame source; keep the library resource attribution in the documentation because `test_stands_alone` rejects the substring `adwaita` in CSS. Add `TestGtk4Theme.test_navigation_sidebar_item_corners` in `tests/test_gtk4_theme.py`, following `test_card_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md`, naming the resource, frame adaptation, test and `make apply-gtk` user-import scope; qualify the existing places-sidebar row's stock-geometry statement to acknowledge this GTK 4 corner exception. Leave spacing, colors, shadows, drag indicators and GTK 3 outside this change.
+
+**Acceptance.** Each of the three selectors has exactly `{"border-radius": "0"}` in `self.rules`, and its radius equals both frame selectors. Assert the set of selectors beginning `.navigation-sidebar > ` equals those three forms; do not collect the existing `placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row` color rule. Keep `test_places_sidebar` passing. Document declaration coverage rather than rendered-pixel evidence. Run `make check`; limit implementation to the three named files and a few hundred changed lines including tests.
+
 ### Platinum GTK 4 boxed lists: square joined-list corners (planned 2026-10-29 by the plan role; independent of the queued GTK 4 shortcut keycaps) — done 2026-10-29 by the feature role
 
 **Goal.** Square the joined boxed-list container and its end-row paint, including expanded and collapsed end rows. Treat this as one corner adaptation; container and child corners must agree.

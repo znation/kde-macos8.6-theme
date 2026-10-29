@@ -581,6 +581,26 @@ for radio in (False, True):
                         self.rules[frame]["border-radius"],
                     )
 
+    def test_navigation_sidebar_item_corners(self):
+        expected = {
+            ".navigation-sidebar > row",
+            ".navigation-sidebar > child",
+            ".navigation-sidebar > flowboxchild",
+        }
+        self.assertEqual(
+            {selector for selector in self.rules
+             if selector.startswith(".navigation-sidebar > ")},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                for frame in ("frame > border", ".frame"):
+                    self.assertEqual(
+                        self.rules[selector]["border-radius"],
+                        self.rules[frame]["border-radius"],
+                    )
+
     def test_boxed_list_corners(self):
         roots = ("list.boxed-list", "list.content")
         suffixes = (
