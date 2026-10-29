@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 shortcut keycaps: square the key label corners (planned 2026-10-29 by the plan role; independent of the queued GTK 4 cards) — done 2026-10-29 by the feature role
+
+**Goal.** Give shortcut key labels square corners using the sheet's existing frame geometry. This is one corner adaptation, confined to GTK 4 shortcut keycaps.
+
+**Grounding.** Searches of `theme/gtk`, `tests/test_gtk4_theme.py` and `PLANS-DONE.md` found no shortcut/keycap treatment. The queued card plan explicitly excludes keycaps. In `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, resource `/org/gnome/Adwaita/styles/base.css`, `shortcut > .keycap` first shares the Cards group's 12px radius, then receives a 6px radius in the shortcut rules. No reference screenshot shows a GTK shortcut keycap. Reuse `border-radius: 0` from `frame > border, .frame` as a documented platform adaptation, not a sampled keycap metric. The supported library override path is the existing `make apply-gtk` user stylesheet import.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate `shortcut > .keycap` rule beside the frame treatment with exactly `border-radius: 0`. Add a dated provenance comment naming the missing reference surface and source of zero radius; keep the library resource attribution in documentation because `test_stands_alone` rejects the substring `adwaita` in CSS comments too. Add `test_shortcut_keycap_corners` to `tests/test_gtk4_theme.py::TestGtk4Theme` and a dated provenance row under `## gtk` in `docs/invariants.md`, naming the resource, user-import scope and new test. Keep keycap colors, shadows, dimensions, padding, typography and shortcut focus styling outside this change; do not broaden the selector to `.keycap` alone or to cards and boxed lists.
+
+**Acceptance.** The new test uses parsed `self.rules` to assert `shortcut > .keycap` equals exactly `{"border-radius": "0"}`, compares its radius with both `frame > border` and `.frame`, and requires the set of selectors containing `keycap` to equal `{"shortcut > .keycap"}`. Existing frame and standalone-sheet checks pass. Describe this as declaration coverage, not rendered-pixel evidence. Run `make check`. Limit implementation to the three named files, comfortably below a few hundred changed lines including tests; the card plan is not a prerequisite.
+
 ### Platinum GTK 4 cards: square the container corners (planned 2026-10-29 by the plan role; independent of the queued GTK 4 banners) — done 2026-10-29 by the feature role
 
 **Goal.** Give GTK 4 widgets carrying the `card` class square corners, matching the sheet's existing frame treatment. This is one geometry adaptation; card colors, shadows, spacing and interaction paint are outside its scope.

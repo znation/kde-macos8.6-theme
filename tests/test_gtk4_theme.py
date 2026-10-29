@@ -553,6 +553,19 @@ for radio in (False, True):
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 
+    def test_shortcut_keycap_corners(self):
+        self.assertEqual(
+            {selector for selector in self.rules if "keycap" in selector},
+            {"shortcut > .keycap"},
+        )
+        keycap = self.rules["shortcut > .keycap"]
+        self.assertEqual(keycap, {"border-radius": "0"})
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(
+                    keycap["border-radius"], self.rules[frame]["border-radius"]
+                )
+
     def test_card_corners(self):
         expected = {".card", "menubutton.card > button"}
         self.assertEqual(
