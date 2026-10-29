@@ -128,7 +128,7 @@ GTK 4 calendar adaptation (recorded 2026-10-29 by the feature role):
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
-| The GTK 4 selected calendar day declares exactly the selected fill and black text plus `border-radius: 0`, matching both frame selectors; other-month text remains inactive grey. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_calendar` | No reference screenshot shows a GTK calendar. The zero radius adapts the sheet's square frame treatment. The stock selector and 9px radius come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`. `make apply-gtk`'s GTK 4 user stylesheet import is the supported override path. Declaration checks do not prove rendered pixels. |
+| The GTK 4 selected calendar day declares exactly the selected fill and black text plus `border-radius: 0`, matching both frame selectors; marked days declare exactly `border-radius: 0` and match the same frame selectors; other-month text remains inactive grey. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_calendar`, `tests/test_gtk4_theme.py::TestGtk4Theme::test_calendar_marked_day_corners` | No reference screenshot shows a GTK calendar. The zero radii adapt the sheet's square frame treatment. The stock marked-day selector and 9px radius come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`. `make apply-gtk`'s GTK 4 user stylesheet import is the supported override path. Declaration checks do not prove rendered pixels. |
 
 GTK 4 flow-box adaptation (recorded 2026-10-29 by the feature role):
 

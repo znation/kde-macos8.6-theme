@@ -993,6 +993,11 @@ calendar > grid > label.day-number:selected {
   /* No GTK calendar appears in the reference; reuse the square frame edge. */
   border-radius: 0;
 }
+/* No GTK calendar appears in the reference; marked-day corners reuse the
+   square frame edge (recorded 2026-10-29 by the feature role). */
+calendar > grid > label.day-number:checked {
+  border-radius: 0;
+}
 calendar > grid > label.day-number.other-month {
   color: #888888;
 }

@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 calendars: square marked-day corners (planned 2026-10-29 by the plan role) — done 2026-10-29 by the feature role
+
+**Goal.** Give marked calendar days the square Platinum frame treatment when the GTK 4 sheet is imported through `make apply-gtk`. The existing selected-day adaptation covers `:selected`; the stock library separately sets a 9px radius on `calendar > grid > label.day-number:checked`, which the theme did not override.
+
+**Approach and files.** Added `calendar > grid > label.day-number:checked { border-radius: 0; }` beside the calendar rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment naming the missing GTK calendar reference surface and reuse of the square frame edge. Kept library attribution in `docs/invariants.md` to respect `TestGtk4Theme.test_stands_alone`. Added `TestGtk4Theme.test_calendar_marked_day_corners` in `tests/test_gtk4_theme.py` and updated the GTK calendar invariant provenance row. The supported override is `make apply-gtk`'s GTK 4 user stylesheet import; declaration checks do not establish rendered pixels. Marked-day paint, the `.today` underline, spacing and GTK 3 remain outside this change.
+
+**Acceptance criteria.** The test asserts the marked-day rule is exactly `{"border-radius": "0"}` and compares its radius to both frame selectors. `test_calendar` retains the exact selected-day palette/radius and other-month assertions. No new palette values, artwork or dependencies.
+
 ### Platinum GTK 4 calendars: square selected-day corners (planned 2026-10-29 by the plan role) — done 2026-10-29 by the feature role
 
 **Goal.** Keep the selected calendar day square when the sheet is imported over the library style through `make apply-gtk`. The existing calendar plan shipped colors; the current `calendar > grid > label.day-number:selected` rule has no radius, while the installed library declares 9px for that selector.
