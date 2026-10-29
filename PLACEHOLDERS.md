@@ -7,11 +7,11 @@ comment marker naming what it stands in for; `tests/support/placeholders.py`
 cross-checks this table against those markers, so a new placeholder added
 without a row fails `make check`.
 
-There are no placeholders left: the icon theme's art is now final
-non-infringing Platinum-style art (see the "Mac OS 8.6 Platinum icon theme:
-replace the placeholder art with final non-infringing art" entry under
-PLANS-DONE.md's `## Done`). Add a row here in the same change that adds a new
-placeholder.
+**Decision 2026-10-29, recorded by the director role:** The user requires original
+placeholder graphics for now. This supersedes the earlier designation of the icon
+art as final. The queued Platinum graphics plans in PLANS.md restore per-asset
+tracking and replace the reference-cropped wallpaper; the table below has not yet
+been reconciled with that decision. Add rows and markers together during that work.
 
 | Placeholder | Stands in for |
 | --- | --- |

@@ -10,6 +10,14 @@ and will tune it to this project.
 - Keep each file focused on one responsibility, and small enough to read in one sitting.
 - Every behavior change ships with a test.
 - Small, complete, and correct beats big and half-done: one focused change per tick.
+- Present the theme as "Platinum" using oblique references and original placeholder graphics
+  for now. Keep Apple graphical assets, logos, and Apple trademarked names or phrases
+  (including "MacOS", "Mac OS" and "Apple") out of theme-owned UI labels and artwork.
+  Track placeholder artwork in PLACEHOLDERS.md until the user approves replacement work.
+  Reference screenshots serve as measurement evidence, never as shipped graphical assets;
+  this constraint takes precedence over pixel fidelity. Historical provenance and internal
+  compatibility identifiers are distinct from UI branding; give selectors neutral display names.
+  (Directed by the user 2026-10-29; recorded by the director role.)
 - Ground each visual value in the reference screenshots: sample palette and metric values from a
   lossless image, pin each with a test that re-derives that pixel, and record the provenance of
   any platform-required value the reference set does not show (including KDE, GTK and Firefox).

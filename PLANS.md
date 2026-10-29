@@ -22,10 +22,11 @@ initial prompt asks for
 `widgets/containment-controls.svg` panel resize and slider handles, plus
 `dialogs/background.svg`); the Aurorae window decoration (frame, close, zoom and
 collapse boxes); the desktop wallpaper package; the `org.macos8.desktop` icon theme (our own
-final, non-infringing 32x32 Platinum-style art for the desktop's hard-disk, folder, document,
+32x32 Platinum-style art for the desktop's hard-disk, folder, document,
 Trash and full-Trash icons, plus the menu bar's kicker logo `start-here-kde-symbolic` and the
 `go-next-symbolic` submenu arrow, our own marks rather than Apple's;
-`PLACEHOLDERS.md` records no remaining placeholders); the `org.macos8.desktop` Kvantum widget
+the 2026-10-29 user decision supersedes its final-art status and queues placeholder tracking
+below); the `org.macos8.desktop` Kvantum widget
 style (Platinum palette and core-control art); the
 `org.macos8.desktop` Lato font package (Lato Regular and Bold, the Debian copyright file
 carrying the upstream SIL OFL 1.1 body, and the provenance record; installed by `make install`,
@@ -126,5 +127,37 @@ _None yet._
 **Target structure and files.** Keep `tools/check_parallel.py` for argument parsing and `main`; move `discover_modules` and `_log_paths` with their discovery constants into `tools/check_parallel_discovery.py`; move `_NeverStarted`, `_Worker`, `_spawn`, `_kill_group`, `_reap`, `_supervise` and their process constants into `tools/check_parallel_workers.py`; move `_plural`, no-tests verdict constants, and `_print_results` into `tools/check_parallel_results.py`. Update the coordinator to call these modules, preserving both package imports and direct-script execution. Update `tests/test_check_parallel.py` to import and patch the extracted helpers at their defining modules, and update this tooling row in `docs/invariants.md` to identify which tests pin each module's guarantees. Do not leave forwarding aliases that preserve the old private layout.
 
 **Acceptance.** Keep discovery order, worker limits, log collision handling, timeout and signal cleanup, empty-run proof, output formatting, and exit codes unchanged. The tests cover the moved behavior at its new module paths, `python3 tools/check_parallel.py` still works directly, a source/test/docs search finds no stale helper references on `check_parallel`, and `make check` passes. Limit this to the four production modules, the existing coordinator test module, and the matching invariants row.
+
+### Platinum UI branding: neutral package labels (planned 2026-10-29 by the director role; independent of the graphics plans below)
+
+**Goal.** Display Platinum branding in theme selection metadata, with no Apple product names in theme-owned display strings.
+
+**Approach and files.** Update `Name` and `Description` in the `metadata.json` files under `theme/look-and-feel`, `theme/desktoptheme`, `theme/aurorae` and `theme/wallpapers`; update Aurorae `metadata.desktop` Name/Comment, GTK `index.theme` Name fields, icon `index.theme` Name/Comment, and `theme/color-schemes/MacOS8.colors` General/Name to Platinum (descriptions may add the surface name). Preserve compatibility package IDs and filenames. Add a focused `tests/test_ui_branding.py` using stdlib JSON/config parsing to enumerate and assert these display fields, rejecting case-insensitive Apple, MacOS and Mac OS. Adjust existing metadata expectations, including `tests/test_icon_theme.py::TestIndex` expectations as needed. Update README's scheme-selection explanation to distinguish the Platinum display name from the legacy CLI ID. Read and update matching `docs/invariants.md` metadata guarantees. This is a mechanical metadata change; artwork is handled by the independent graphics plans.
+
+**Acceptance.** Parsed display fields use Platinum; tests cover both JSON and INI metadata and reject a forbidden-name mutation. Existing install/apply IDs resolve as before. Run `make check`. Do not claim the legacy ID itself has been migrated.
+
+### Platinum UI branding: neutral startup text (planned 2026-10-29 by the director role; independent of neutral package labels)
+
+**Goal.** Replace the startup splash's visible `Mac OS 8.6` text with `Platinum`.
+
+**Approach and files.** Change the Text item's `text` in `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml`. Update the corresponding assertions in `tests/test_splash_qml.py` and `tests/support/splash_fixtures.py` if they pin that label; assert the shipped Text strings contain no Apple product name. Read the splash section of `docs/invariants.md` and update its label guarantee. Keep layout, metrics and logo outside this text change.
+
+**Acceptance.** Tests pin the visible Platinum label and reject the previous text. Run `make check`. This can merge independently of metadata and wallpaper changes.
+
+### Platinum graphics: replace the reference-cropped wallpaper (planned 2026-10-29 by the director role; independent of UI branding and icon tracking)
+
+**Goal.** Ship an original placeholder wallpaper instead of pixels extracted from the reference desktop.
+
+**Approach and files.** In `tools/make_wallpaper.py`, replace `tile_from_reference` and its reference loading with a deterministic solid RGB tile using the existing palette's neutral `#CCCCCC`; retain the existing supported output dimensions, PNG writer and output containment checks. Record that no placeholder-wallpaper reference exists and this is an intentional original stand-in using the theme's neutral palette, not a fidelity match. Regenerate `theme/wallpapers/org.macos8.desktop/contents/images/`. Mark the wallpaper metadata with a `PLACEHOLDER:` comment-equivalent string field and register it in PLACEHOLDERS.md using the existing checker-supported JSON convention. Update `tests/test_make_wallpaper.py`, `tests/test_wallpaper.py`, README's generation/install description and the wallpaper section of `docs/invariants.md`; remove reference-crop fidelity requirements for this artwork.
+
+**Acceptance.** Tests re-derive the neutral palette value from its existing lossless reference anchor, verify generated pixels and dimensions, and prove generation succeeds with reference loading unavailable. Output containment tests still pass. The generated wallpaper is tracked as a placeholder and uses no copied image pixels. Run `make check`. This deliberately supersedes wallpaper pixel fidelity, per PRINCIPLES.md.
+
+### Platinum graphics: restore original-art placeholder tracking (planned 2026-10-29 by the director role; independent of wallpaper and UI branding)
+
+**Goal.** Treat the existing original generic icon/logo artwork as temporary, respecting the user's renewed placeholder decision.
+
+**Approach and files.** Add `PLACEHOLDER:` comments and matching PLACEHOLDERS.md rows for SVG artwork under `theme/icons/org.macos8.desktop`; use the existing `tests/support/placeholders.py` register contract. Include the generic startup logo if separately embedded in Splash.qml, with a QML comment and row. Keep the original generic drawings; replace any Apple logo or extracted artwork encountered with a simple original outlined square using existing palette/size values. Update `tests/test_icon_theme.py::test_placeholder_register_matches_the_icon_art` and final-art descriptions to assert populated matching tracking instead of emptiness; preserve shape tests for unchanged generic art. Update `tests/test_splash_logo.py` if its tracking changes. Read and update the icons/splash sections of `docs/invariants.md`. Pixel-matched control chrome and licensed fonts remain governed by their existing provenance; this plan addresses illustrative icons/logos.
+
+**Acceptance.** Existing placeholder checks cover the registered icon/logo stand-ins and detect a missing row or marker. Documentation describes these illustrations as temporary and leaves replacement work subject to user approval. Run `make check`. Wallpaper is tracked by its independent sibling plan, so no dependency is needed.
 
 ## Done
