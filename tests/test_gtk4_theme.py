@@ -593,6 +593,18 @@ for radio in (False, True):
             with self.subTest(frame=frame):
                 self.assertEqual(row["border-radius"], self.rules[frame]["border-radius"])
 
+    def test_flowbox_item_corners(self):
+        expected = {"flowbox > flowboxchild"}
+        self.assertEqual(
+            {selector for selector in self.rules if selector.startswith("flowbox")},
+            expected,
+        )
+        item = self.rules["flowbox > flowboxchild"]
+        self.assertEqual(item, {"border-radius": "0"})
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(item["border-radius"], self.rules[frame]["border-radius"])
+
     def test_assistant_step_label_corners(self):
         expected = {"window.assistant .sidebar > label"}
         self.assertEqual(
