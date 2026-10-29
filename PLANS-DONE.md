@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 split buttons: square the container corners (planned 2026-10-29 by the plan role; independent of the queued separate boxed rows) — done 2026-10-29 by the feature role
+
+**Goal.** Give the split-button container square corners to match its existing square child buttons, without changing its action or dropdown behavior.
+
+**Grounding.** Searches of `theme/gtk`, `tests/test_gtk4_theme.py`, `PLANS.md` and `PLANS-DONE.md` found no `splitbutton` rule or plan. The GTK 4 sheet's `button` rule already declares `border-radius: 0`. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` gives `splitbutton` a 9px radius; its direction-specific child rules square the joining edges. No reference screenshot shows a GTK split button. Reuse the sheet's `frame > border, .frame` zero radius as a documented platform adaptation rather than claiming a sampled split-button metric.
+
+**Approach and files.** Add `splitbutton { border-radius: 0; }` beside the frame adaptations in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment identifying the missing reference surface and frame source. Avoid the substring `adwaita` in CSS comments because `TestGtk4Theme.test_stands_alone` rejects it. Add `TestGtk4Theme.test_split_button_container_corners` in `tests/test_gtk4_theme.py`, following `test_card_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md` naming the library resource and `make apply-gtk` user-import scope. Keep colors, shadows, separator paint, child spacing, direction-specific joins and focus treatment outside this change.
+
+**Acceptance.** Assert that the parsed selector set containing `splitbutton` is exactly `{"splitbutton"}`, that its complete `self.rules` dictionary is `{"border-radius": "0"}`, and that its radius matches both frame selectors and the existing `button` rule. Document declaration coverage, without claiming rendered-pixel evidence. Run `make check`. Limit implementation to the three named files and well below a few hundred changed lines including tests; this container adaptation is one independently mergeable change.
+
 ### Platinum GTK 4 separate boxed rows: square row and expander corners (planned 2026-10-29 by the plan role; independent of the queued joined boxed-list corners) — done 2026-10-29 by the feature role
 
 **Goal.** Square separate boxed rows and their expander child paint as one coherent corner adaptation. This complements the joined boxed-list plan, which explicitly excludes `list.boxed-list-separate`; neither implementation requires the other.

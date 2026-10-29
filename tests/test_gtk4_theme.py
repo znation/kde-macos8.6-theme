@@ -581,6 +581,20 @@ for radio in (False, True):
                         self.rules[frame]["border-radius"],
                     )
 
+    def test_split_button_container_corners(self):
+        self.assertEqual(
+            {selector for selector in self.rules if "splitbutton" in selector},
+            {"splitbutton"},
+        )
+        splitbutton = self.rules["splitbutton"]
+        self.assertEqual(splitbutton, {"border-radius": "0"})
+        for selector in ("frame > border", ".frame", "button"):
+            with self.subTest(selector=selector):
+                self.assertEqual(
+                    splitbutton["border-radius"],
+                    self.rules[selector]["border-radius"],
+                )
+
     def test_navigation_sidebar_item_corners(self):
         expected = {
             ".navigation-sidebar > row",

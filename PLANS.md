@@ -105,7 +105,7 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 4 split buttons: square the container corners (planned 2026-10-29 by the plan role; independent of the queued separate boxed rows)
+### Platinum GTK 4 split buttons: square the container corners (planned 2026-10-29 by the plan role; independent of the queued separate boxed rows) — done 2026-10-29 by the feature role
 
 **Goal.** Give the split-button container square corners to match its existing square child buttons, without changing its action or dropdown behavior.
 
