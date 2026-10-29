@@ -28,18 +28,23 @@ jobs:
       - name: Install the Plasma render tools
         run: |
           set -e
-          sudo apt-get update
-          # The names below are grounded on the Ubuntu runners' release (all
-          # four packages record 200 on launchpad.net/ubuntu/noble/amd64/):
-          # `dbus` provides dbus-run-session, `kwin-wayland` kwin_wayland,
-          # and `plasma-workspace` both plasmawindowed and
-          # plasma-apply-colorscheme; `spectacle` is the screenshot tool.
-          sudo apt-get install -y --no-install-recommends \
-            dbus kwin-wayland plasma-workspace spectacle
-          # Newer Debian-family releases split dbus-run-session out of the
-          # 'dbus' package; cover that layout too.
-          command -v dbus-run-session >/dev/null || \
-            sudo apt-get install -y --no-install-recommends dbus-daemon
+          if command -v dbus-run-session >/dev/null && \
+             command -v spectacle >/dev/null; then
+            : # The render tools are already available in this runner.
+          else
+            sudo apt-get update
+            # The names below are grounded on the Ubuntu runners' release (all
+            # four packages record 200 on launchpad.net/ubuntu/noble/amd64/):
+            # `dbus` provides dbus-run-session, `kwin-wayland` kwin_wayland,
+            # and `plasma-workspace` both plasmawindowed and
+            # plasma-apply-colorscheme; `spectacle` is the screenshot tool.
+            sudo apt-get install -y --no-install-recommends \
+              dbus kwin-wayland plasma-workspace spectacle
+            # Newer Debian-family releases split dbus-run-session out of the
+            # 'dbus' package; cover that layout too.
+            command -v dbus-run-session >/dev/null || \
+              sudo apt-get install -y --no-install-recommends dbus-daemon
+          fi
           for tool in dbus-run-session kwin_wayland plasmawindowed \
                       plasma-apply-colorscheme spectacle; do
             command -v "$tool" >/dev/null \

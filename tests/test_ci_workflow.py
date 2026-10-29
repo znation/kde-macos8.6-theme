@@ -57,6 +57,14 @@ class TestCiWorkflow(unittest.TestCase):
             "no step catches a tool that survives the install unpackaged",
         )
 
+    def test_workflow_skips_package_install_when_render_tools_exist(self):
+        workflow = self.read_workflow()
+        self.assertRegex(
+            workflow,
+            r"if command -v dbus-run-session >/dev/null && \\\s*"
+            r"command -v spectacle >/dev/null; then",
+        )
+
     def test_workflow_checks_the_python_floor_and_development_version(self):
         workflow = self.read_workflow()
         matrix = re.search(
