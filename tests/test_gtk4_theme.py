@@ -616,7 +616,30 @@ for radio in (False, True):
         expected = {root + suffix for root in roots for suffix in suffixes}
         self.assertEqual(
             {selector for selector in self.rules
-             if any(root in selector for root in roots)},
+             if any(selector == root or selector.startswith(root + " ")
+                    for root in roots)},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                for frame in ("frame > border", ".frame"):
+                    self.assertEqual(
+                        self.rules[selector]["border-radius"],
+                        self.rules[frame]["border-radius"],
+                    )
+
+    def test_separate_boxed_row_corners(self):
+        expected = {
+            "list.boxed-list-separate > row",
+            "list.boxed-list-separate > row.expander row.header",
+            "list.boxed-list-separate > row.expander:not(:checked) row.header",
+            "list.boxed-list-separate > row.expander.expander:checked list.nested",
+            "list.boxed-list-separate > row.expander.expander:checked list.nested > row:last-child",
+        }
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "list.boxed-list-separate" in selector},
             expected,
         )
         for selector in sorted(expected):

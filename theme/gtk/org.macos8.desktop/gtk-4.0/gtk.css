@@ -599,6 +599,17 @@ list.content > row:last-child.expander:checked list.nested > row:last-child {
   border-radius: 0;
 }
 
+/* No reference screenshot shows GTK separate boxed rows. Square row and
+ * expander corners adapt frame > border, .frame border-radius: 0 above.
+ * Recorded 2026-10-29 by the feature role. */
+list.boxed-list-separate > row,
+list.boxed-list-separate > row.expander row.header,
+list.boxed-list-separate > row.expander:not(:checked) row.header,
+list.boxed-list-separate > row.expander.expander:checked list.nested,
+list.boxed-list-separate > row.expander.expander:checked list.nested > row:last-child {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows a GTK color chooser. Square corners adapt
  * the existing frame > border, .frame recipe (border-radius: 0).
  * Qualified stock GTK corner selectors also reset their overlay nodes.
