@@ -379,7 +379,13 @@ def _print_results(
                 with open(
                     log_paths[module], encoding="utf-8", errors="replace"
                 ) as log:
-                    log_text = log.read()
+                    # Worker output is controlled by the test module, which
+                    # can contain arbitrary strings. Keep line breaks for
+                    # readable tracebacks, but render other terminal controls
+                    # visibly before replaying the captured log.
+                    log_text = "\n".join(
+                        escape_controls(line) for line in log.read().split("\n")
+                    )
             except OSError:
                 log_text = ""
         if module not in statuses:

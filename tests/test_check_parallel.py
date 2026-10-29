@@ -301,6 +301,22 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("AssertionError", result.stdout)
         self.assertIn("1 module failed", result.stdout)
 
+    def test_worker_terminal_controls_are_escaped_before_replay(self):
+        tests_dir = self._project(
+            {
+                "test_output.py": (
+                    "import unittest\n"
+                    "class TestOutput(unittest.TestCase):\n"
+                    "    def test_output(self):\n"
+                    "        print('before\\x1b[2Jafter')\n"
+                )
+            }
+        )
+        result = self._run("--tests-dir", tests_dir, "--workers", "1")
+        assert_succeeded(self, result)
+        self.assertNotIn("\x1b", result.stdout)
+        self.assertIn(r"before\u001b[2Jafter", result.stdout)
+
     def test_a_timeout_kills_the_workers_whole_process_group(self):
         # The fixture records its spawned child's pid, sleeps past the
         # timeout, and is killed on the group; the child must be dead too,
