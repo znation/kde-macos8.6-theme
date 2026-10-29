@@ -348,8 +348,9 @@ UNCLEAR_INVARIANT_REPRODUCTIONS = (
         ("icon theme",),
         "tests/test_icon_theme.py::TestIndex"
         "::test_placeholder_register_matches_the_icon_art",
-        "The icon theme names its original placeholder artwork, ships exactly "
-        "the tracked icons, and declares each icon's size directory.",
+        "The icon theme names its original placeholder artwork, registers and "
+        "marks every shipped SVG illustration, ships exactly the tracked "
+        "icons, and declares each icon's size directory.",
     ),
     UnclearInvariant(
         "palette-anchor",

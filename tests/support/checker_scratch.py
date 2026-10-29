@@ -21,6 +21,12 @@ from support.repo_root import ROOT
 
 INVARIANTS_REGISTER = os.path.join("docs", "invariants.md")
 PLACEHOLDERS_REGISTER = "PLACEHOLDERS.md"
+SCRATCH_PLACEHOLDER_ASSETS = (
+    "theme/wallpapers/org.macos8.desktop/metadata.json",
+    "theme/icons/org.macos8.desktop/16x16/actions/go-next-symbolic.svg",
+    "theme/icons/org.macos8.desktop/16x16/places/folder.svg",
+    "theme/look-and-feel/org.macos8.desktop/contents/splash/images/macos-logo.svg",
+)
 
 # ``apply(scratch)`` mutates the scratch copy; ``diagnostic`` is the substring
 # the checker's AssertionError must match (None for an acceptance boundary);
@@ -86,6 +92,12 @@ class Scratch:
                 (root / "theme" / name).mkdir(parents=True, exist_ok=True)
         invariants_text = _read_register(INVARIANTS_REGISTER)
         placeholders_text = _read_register(PLACEHOLDERS_REGISTER)
+        placeholders_text = "\n".join(
+            line
+            for line in placeholders_text.splitlines()
+            if not line.startswith("| `")
+            or any(f"`{asset}`" in line for asset in SCRATCH_PLACEHOLDER_ASSETS)
+        ) + "\n"
         scratch = cls(root, invariants_text, placeholders_text)
         scratch.reset()
         return scratch

@@ -298,8 +298,8 @@ class TestIndex(unittest.TestCase):
         for icon in SHIPPED_ICONS:
             if "PLACEHOLDER:" in _read_icon_text(os.path.join(PACKAGE, icon)):
                 marked.add(icon)
-        self.assertEqual(registered, marked)
-        self.assertTrue(marked)
+        self.assertEqual(registered, set(SHIPPED_ICONS))
+        self.assertEqual(marked, set(SHIPPED_ICONS))
 
 
 class TestIcons(unittest.TestCase):

@@ -81,9 +81,9 @@ def _apply_row_without_file(scratch):
 
 
 def _apply_row_without_marker(scratch):
-    scratch.write_repo_file(FOLDER_ICON, "<svg/>\n")
+    scratch.write_repo_file(USER_TRASH_ICON, "<svg/>\n")
     scratch.write_placeholders(
-        _append_row(scratch.placeholders_text, FOLDER_ICON, "a plain icon")
+        _append_row(scratch.placeholders_text, USER_TRASH_ICON, "a plain icon")
     )
 
 
