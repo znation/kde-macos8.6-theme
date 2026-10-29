@@ -54,15 +54,54 @@ DATA_HOME := $(DESTDIR)$(XDG_DATA_HOME)
 # `O'Brien's root`). A value that itself carries make's `$( )` is expanded by
 # make while this guard reads it -- make's documented recursive-variable
 # behaviour, outside the shell route this guard closes.
+#
+# A control byte is not shell syntax, but it is not inert either: the guard's
+# own diagnostic pastes `<$(value)>` raw, and `require_flock_timeout` and
+# `require_data_home` echo guarded values back at run time -- a byte like
+# 0x1b, the terminal escape, reached the operator's terminal inside those
+# words, where it mangles or forges the printed text instead of naming a
+# value (the same terminal hazard tools/terminal.py's escape_controls guards
+# against for the Python diagnostics; TestShellUnsafeControlCharacters pins
+# the refusal). Refuse every C0 byte and DEL in a guarded value, before any
+# branch of the guard is echoed; the refused value is not echoed back,
+# because the diagnostic pastes values raw. Make word-splits a foreach list
+# on blank characters, so five bytes -- tab (0x09), newline (0x0a), VT
+# (0x0b), FF (0x0c) and CR (0x0d) -- drop out of the awk-generated list
+# itself: VT, FF and CR are refused by explicit findstring tests against
+# single-byte variables below, and tab and newline stay legal -- neither
+# rewrites already-printed terminal text (a tab is inert spacing and a
+# newline only starts a new line), and a metacharacter beside either is
+# still refused above. The bytes are built by `awk` and `printf`, not
+# written literally, so the Makefile text stays printable ASCII.
 shell_unsafe_chars = \ " $$ `
-shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$(1))))
+shell_unsafe_in = $(strip $(foreach c,$(shell_unsafe_chars),$(findstring $(c),$($(1)))))
+# The awk list leaves out the five blank bytes; tab and newline are the two
+# legal residuals, and the three generated alone into scalar variables below
+# are refused by the explicit tests in control_char_in -- a blank byte inside
+# the foreach list would be word-split away, but findstring reads a scalar
+# variable without splitting it. The blank-byte hits are concatenated OUTSIDE
+# the strip: a lone CR, VT or FF hit is blank to make too, and strip would
+# erase it, so only the non-blank hits are stripped.
+control_chars = $(shell awk 'BEGIN { for (i = 1; i <= 31; i++) if (i != 9 && i != 10 && i != 11 && i != 12 && i != 13) printf "%c ", i; printf "%c ", 127 }')
+vt_byte := $(shell printf '\013')
+ff_byte := $(shell printf '\014')
+cr_byte := $(shell printf '\015')
+control_char_in = $(strip $(foreach c,$(control_chars),$(findstring $(c),$($(1)))))$(findstring $(vt_byte),$($(1)))$(findstring $(ff_byte),$($(1)))$(findstring $(cr_byte),$($(1)))
+# The two refusal branches, control bytes first: the metacharacter branch's
+# diagnostic echoes the value, so it only ever sees a value the control-byte
+# branch has already cleared of terminal bytes. The check functions take the
+# variable NAME (a single `$(call ...)` argument, so the value's own commas
+# cannot split it away from the test) and read the value by indirection.
+control_refusal = $(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(1)) contains a control character -- a byte in the 0x01-0x1f or 0x7f range, e.g. an escape byte; it would reach a recipe or a diagnostic echo raw, where it mangles or forges the terminal text instead of naming a value; the value is not echoed back for the same reason; pass a printable path, timeout or scheme name)
+metachar_refusal = $(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(1)) contains a shell metacharacter ('$(call shell_unsafe_in,$(1))' in '$($(1))'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash)
+refuse_unsafe_value = $(if $(call control_char_in,$(1)),$(control_refusal),$(if $(call shell_unsafe_in,$(1)),$(metachar_refusal),))
 # FLOCK_TIMEOUT is in the list before `FLOCK_TIMEOUT ?= 60` is read: the
 # guard evaluates its default as still undefined (empty, harmless), while an
 # environment or command-line value is already expanded and checked here.
 # RENDER_OUTPUT ?= render.png sits further down with the `render` target for
 # the same reason: its default is empty here, and `render` pastes the value
 # into the double-quoted word `-- "$(RENDER_OUTPUT)"`.
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID,$(if $(call shell_unsafe_in,$($(v))),$(error $(subst XDG_DATA_HOME_ENV,XDG_DATA_HOME,$(v)) contains a shell metacharacter ('$(call shell_unsafe_in,$($(v)))' in '<$($(v))>'); the value is expanded into double-quoted recipe words, where it would run as shell syntax instead of naming a path; pass a path without ", $$, a backtick or a backslash),))
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID,$(call refuse_unsafe_value,$(v)))
 
 # PYTHON is expanded into recipe words unquoted -- a value may carry
 # arguments (`/usr/bin/python3 -X dev`), so the words cannot be
@@ -86,8 +125,13 @@ define newline
 
 endef
 py_extra_unsafe_chars = ' ; | & < > $(open_paren) $(close_paren)
-py_unsafe_in = $(strip $(call shell_unsafe_in,$(1)) $(foreach c,$(py_extra_unsafe_chars),$(findstring $(c),$(1))) $(if $(findstring $(newline),$(1)),newline))
-$(if $(call py_unsafe_in,$(PYTHON)),$(error PYTHON contains a shell metacharacter ('$(call py_unsafe_in,$(PYTHON))' in '<$(PYTHON)>'); the value is expanded unquoted into recipe words, where it would run as shell syntax instead of naming an interpreter; pass an interpreter command without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
+# py_unsafe_in takes the variable NAME like the other checks, because
+# shell_unsafe_in reads its value by indirection. Check control bytes first:
+# the metacharacter diagnostic echoes PYTHON raw, so it must only handle
+# printable values.
+py_unsafe_in = $(strip $(call shell_unsafe_in,$(1)) $(foreach c,$(py_extra_unsafe_chars),$(findstring $(c),$($(1)))) $(if $(findstring $(newline),$($(1))),newline))
+$(if $(call control_char_in,PYTHON),$(call control_refusal,PYTHON))
+$(if $(call py_unsafe_in,PYTHON),$(error PYTHON contains a shell metacharacter ('$(call py_unsafe_in,PYTHON)' in '<$(PYTHON)>'); the value is expanded unquoted into recipe words, where it would run as shell syntax instead of naming an interpreter; pass an interpreter command without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
 
 # The theme tree `make install` copies from. A test overrides it on the command
 # line to point the symlink guard below at a scratch package tree.

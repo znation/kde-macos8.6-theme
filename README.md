@@ -21,11 +21,15 @@ Open work is tracked in PLANS.md (planned features), BUGS.md (known bugs), and Q
 refuse with a diagnostic when that default cannot be resolved because `HOME` is unset or not an
 absolute path, and refuse a `DESTDIR`, `XDG_DATA_HOME`, `HOME`, `FLOCK_TIMEOUT` or `RENDER_OUTPUT` carrying a character that is
 shell syntax inside the double-quoted recipe words such a value is expanded into -- a double
-quote, `$`, a backtick or a backslash -- before running any recipe, while a space or an
-apostrophe stays legal; and refuse a `PYTHON` carrying a character that is shell syntax at the
-unquoted position its value is expanded into -- those four plus an apostrophe, a semicolon, a
-pipe, an ampersand, a parenthesis, a redirection character or a newline, while a space stays
-legal because a value may carry interpreter arguments): the
+quote, `$`, a backtick or a backslash -- before running any recipe (a value carrying any other
+control byte -- 0x01-0x1f or 0x7f, tab and newline excepted -- such as 0x1b, the terminal
+escape, is refused instead of echoed back, since those diagnostics print the raw value on its
+way to a terminal), while a space or an apostrophe stays legal; and refuse a `PYTHON` carrying
+a character that is shell syntax at the unquoted position its value is expanded into -- those
+four plus an apostrophe, a semicolon, a pipe, an ampersand, a parenthesis, a redirection
+character or a newline, while a space stays legal because a value may carry interpreter
+arguments), and refuse a `PYTHON` carrying a control byte before the unquoted
+shell-syntax diagnostic can echo it): the
 color scheme
 `theme/color-schemes/MacOS8.colors` into `color-schemes/`, the `org.macos8.desktop` global theme
 into `plasma/look-and-feel/`, the `org.macos8.desktop` desktop theme into
@@ -88,7 +92,8 @@ profile under `$HOME/.mozilla/firefox` (from `installs.ini`, then `profiles.ini`
 profile path reaches the recipe shells pasted into a double-quoted word, so the
 Makefile refuses a `FIREFOX_PROFILE` carrying a character that is shell syntax
 inside it -- a double quote, `$`, a backtick or a backslash -- before running
-any recipe, while a space or an apostrophe stays legal.
+any recipe (a control-byte value is refused without its bytes echoing into the
+diagnostic), while a space or an apostrophe stays legal.
 The two targets serialize on a lock over the profile directory, so a concurrent
 install and removal cannot leave a preference block without its sheets (or the
 sheets without the block); a run that cannot take that lock within its bounded

@@ -8,7 +8,8 @@ whitespace (its recipe words are quoted), refuses a `FIREFOX_PROFILE` that
 reaches a recipe shell as shell syntax (`TestShellUnsafeFirefoxProfile`),
 that an empty or relative data home
 falls back to the XDG default, and that an invalid `FLOCK_TIMEOUT` is refused
-before the lock is taken. `make check`'s variables live in
+before the lock is taken. A guarded value carrying a control byte is refused
+without its bytes being echoed (`TestShellUnsafeControlCharacters`). `make check`'s variables live in
 ``test_make_check.py`` and `make help` in ``test_make_help.py``.
 """
 
@@ -861,6 +862,135 @@ class TestShellUnsafeRenderOutput(unittest.TestCase):
         )
         assert_succeeded(self, result)
         self.assertIn('-- "my render.png"', result.stdout)
+
+
+class TestShellUnsafeControlCharacters(unittest.TestCase):
+    """A guarded value carrying a control byte must be refused, not echoed.
+
+    A control byte is not shell syntax inside a double-quoted recipe word, but
+    the guard's own diagnostic pastes the refused value raw, and
+    `require_flock_timeout` echoes a refused `FLOCK_TIMEOUT` back at run time:
+    before this refusal, `make help` with a `DESTDIR` carrying a terminal
+    escape byte beside a metacharacter printed the raw 0x1b byte into the
+    operator's terminal inside the diagnostic's quoted value, and a real
+    `make install FLOCK_TIMEOUT='ab<ESC>'` echoed it from the digit guard's
+    (`install: FLOCK_TIMEOUT must be ... 'ab<ESC>'"`). The guard now refuses
+    a value carrying a control byte before any recipe and before any branch
+    of its own diagnostic runs, so it does not echo the value back: neither
+    stderr nor stdout may carry the byte.
+    """
+
+    def _assert_control_refused(self, variable, byte, env_value=None):
+        """Drive both targets with a control byte in *variable*; both refuse.
+
+        The value reaches the guard either through a command-line assignment
+        or, when *env_value* is given, through the environment
+        (`XDG_DATA_HOME_ENV` keeps the raw environment value; a command-line
+        one overrides the `?=` fallback). The refusal names the variable, and
+        the terminal byte must reach neither stdout nor stderr: the guard
+        never echoes a value that carries one.
+        """
+        terms = theme_install.make_env(variable)
+        args = []
+        if env_value is None:
+            args.append(f"{variable}={byte}")
+        else:
+            terms[variable] = env_value
+        for target in ("install", "uninstall"):
+            with self.subTest(target=target, variable=variable):
+                result = theme_install.run_make([target, *args], env=terms)
+                assert_failed(self, result)
+                self.assertIn(
+                    f"{variable} contains a control character", result.stderr
+                )
+                output = result.stdout + result.stderr
+                self.assertNotIn(byte, output)
+
+    def test_an_escape_byte_beside_a_metacharacter_is_refused_without_echoing_it(self):
+        # The regression: the metacharacter branch fired first and echoed the
+        # value, so the escape byte inside it reached the terminal raw.
+        tmp = make_tmp_dir(self)
+        self._assert_control_refused(
+            "DESTDIR", f"/x\x1b[0;31m; touch {tmp}/canary; echo \""
+        )
+        self.assertFalse((tmp / "canary").exists(), tmp)
+
+    def test_an_escape_byte_alone_is_refused_in_XDG_DATA_HOME(self):
+        # Through the environment, the route `XDG_DATA_HOME_ENV` keeps raw:
+        tmp = make_tmp_dir(self)
+        self._assert_control_refused(
+            "XDG_DATA_HOME",
+            "/abs/\x1bhome",
+            env_value=f"{tmp}/\x1bscratch home",
+        )
+
+    def test_an_escape_byte_in_FLOCK_TIMEOUT_is_refused_before_the_digit_guard_echoes_it(self):
+        # A `FLOCK_TIMEOUT` that fails the digit guard used to be echoed
+        # verbatim by the guard's own refusal, control byte and all:
+        self._assert_control_refused("FLOCK_TIMEOUT", "ab\x1b")
+
+    def test_del_is_refused_in_DESTDIR(self):
+        self._assert_control_refused("DESTDIR", "/x\x7fdel")
+
+    def test_a_carriage_return_beside_a_metacharacter_is_refused_without_echoing_it(self):
+        # CR (0x0d) is blank to make, so the awk-generated foreach list
+        # dropped it and the control-byte branch passed: the metacharacter
+        # branch then fired and echoed the value raw, pasting the CR into the
+        # operator's terminal inside the diagnostic's quoted value.
+        tmp = make_tmp_dir(self)
+        self._assert_control_refused(
+            "DESTDIR", f"/x\r; touch {tmp}/canary; echo \""
+        )
+        self.assertFalse((tmp / "canary").exists(), tmp)
+
+    def test_a_carriage_return_in_FLOCK_TIMEOUT_is_refused_before_the_digit_guard_echoes_it(self):
+        # The objection's repro: a CR rode through the guard and the digit
+        # guard's refusal echoed it verbatim, letting the value's tail forge
+        # what looks like the operator's own terminal output. (A command-line
+        # assignment's LEADING CR is stripped by make's own parsing, so the
+        # reachable byte sits mid-value; via the environment even a leading
+        # CR arrives.)
+        self._assert_control_refused("FLOCK_TIMEOUT", "ab\r<attacker text>")
+
+    def test_each_make_blank_control_byte_is_refused_in_FLOCK_TIMEOUT(self):
+        # VT (0x0b) and FF (0x0c) are also blank to make's word splitter, so
+        # the foreach list dropped them too; each of the three is refused by
+        # an explicit findstring test against a single-byte variable, driven
+        # here through the digit guard's echo sink.
+        for name, byte in (("VT", "\x0b"), ("FF", "\x0c"), ("CR", "\r")):
+            with self.subTest(byte=name):
+                self._assert_control_refused("FLOCK_TIMEOUT", f"ab{byte}")
+
+    def test_a_tab_stays_legal_and_a_metacharacter_beside_a_tab_is_refused(self):
+        # The two documented residuals: a tab byte is invisible to the byte
+        # scan (make word-splits it away) and stays legal, while a
+        # metacharacter beside one is still refused.
+        result = theme_install.run_make(
+            ["-n", "install", "XDG_DATA_HOME=/abs/tab\thome"]
+        )
+        assert_succeeded(self, result)
+        _assert_both_targets_refused(
+            self,
+            theme_install.make_env("XDG_DATA_HOME"),
+            ['XDG_DATA_HOME=/abs/tab\thome"; touch injected'],
+            ["contains a shell metacharacter"],
+        )
+
+    def test_a_path_with_an_apostrophe_still_passes_the_control_scan(self):
+        """A printable path, even one with an apostrophe, is still legal."""
+        # The control-byte scan reads an apostrophe as just another printable
+        # byte: a `make install` dry run with a value the whole guard passes
+        # still reaches recipes, so a `-n` run succeeds and creates nothing.
+        tmp = make_tmp_dir(self)
+        result = theme_install.run_make(
+            ["-n", "install", f"XDG_DATA_HOME={tmp}/dotted 1.0.1-a's root"],
+            env=theme_install.make_env("XDG_DATA_HOME"),
+        )
+        assert_succeeded(self, result)
+        self.assertFalse(os.path.exists(tmp / "dotted 1.0.1-a's root"), tmp)
+
+    def test_python_escape_and_metacharacter_are_refused_without_echoing_escape(self):
+        self._assert_control_refused("PYTHON", "python3\x1b[2J; touch CANARY")
 
 
 class TestXdgDataHomeDefault(unittest.TestCase):
