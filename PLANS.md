@@ -126,14 +126,6 @@ _None yet._
 
 **Acceptance.** Parsed display fields use Platinum; tests cover both JSON and INI metadata and reject a forbidden-name mutation. Existing install/apply IDs resolve as before. Run `make check`. Do not claim the legacy ID itself has been migrated.
 
-### Platinum UI branding: neutral startup text (planned 2026-10-29 by the director role; independent of neutral package labels)
-
-**Goal.** Replace the startup splash's visible `Mac OS 8.6` text with `Platinum`.
-
-**Approach and files.** Change the Text item's `text` in `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml`. Update the corresponding assertions in `tests/test_splash_qml.py` and `tests/support/splash_fixtures.py` if they pin that label; assert the shipped Text strings contain no Apple product name. Read the splash section of `docs/invariants.md` and update its label guarantee. Keep layout, metrics and logo outside this text change.
-
-**Acceptance.** Tests pin the visible Platinum label and reject the previous text. Run `make check`. This can merge independently of metadata and wallpaper changes.
-
 ### Platinum graphics: replace the reference-cropped wallpaper (planned 2026-10-29 by the director role; independent of UI branding and icon tracking)
 
 **Goal.** Ship an original placeholder wallpaper instead of pixels extracted from the reference desktop.

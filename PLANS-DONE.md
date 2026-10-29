@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum UI branding: neutral startup text (planned 2026-10-29 by the director role; independent of neutral package labels) — done 2026-10-29 by the feature role
+
+**Goal.** Replace the startup splash's visible `Mac OS 8.6` text with `Platinum`.
+
+**Approach and files.** Change the Text item's `text` in `theme/look-and-feel/org.macos8.desktop/contents/splash/Splash.qml`. Update the corresponding assertions in `tests/test_splash_qml.py` and `tests/support/splash_fixtures.py` if they pin that label; assert the shipped Text strings contain no Apple product name. Read the splash section of `docs/invariants.md` and update its label guarantee. Keep layout, metrics and logo outside this text change.
+
+**Acceptance.** Tests pin the visible Platinum label and reject the previous text. Run `make check`. This can merge independently of metadata and wallpaper changes.
+
 ### Platinum GTK 4 emoji completion: square suggestion-row corners (planned 2026-10-29 by the plan role; independent of the queued pill buttons) — done 2026-10-29 by the feature role
 
 **Goal.** Give GTK 4 emoji-completion suggestion rows square corners consistent with the existing Platinum frame treatment.

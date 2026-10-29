@@ -147,16 +147,24 @@ class TestSplashQml(unittest.TestCase):
             "anchors.horizontalCenter: panel.horizontalCenter", wordmark
         )
 
-    def test_wordmark_shows_the_reference_label_at_its_grid_size(self):
+    def test_wordmark_shows_the_platinum_label_at_its_grid_size(self):
         # Where the wordmark sits and what colour it is are pinned, but not the
         # label it draws or the size it draws it at. `test_wordmark_colour_
         # matches_reference` samples one of its glyph pixels and the position
         # test pins that pixel's location, yet a changed `text` or a dropped
         # `font.pixelSize` (Text would then fall back to the application's
         # default font, at a different size) would leave every other test
-        # green. Pin the label and the reference-grid size together.
+        # green. Pin the Platinum label, reject product branding in Text
+        # strings, and keep the reference-grid size together.
         wordmark = object_source(read_qml(), "wordmark")
-        self.assertIn('text: "Mac OS 8.6"', wordmark)
+        self.assertIn('text: "Platinum"', wordmark)
+        text_values = re.findall(r'\btext:\s*"([^"]*)"', read_qml())
+        self.assertTrue(text_values)
+        self.assertFalse(
+            any(re.search(r"apple|mac\s*os|macos", value, re.IGNORECASE)
+                for value in text_values),
+            text_values,
+        )
         self.assertIn("font.pixelSize: 12 * root.unit", wordmark)
 
     def test_reference_colours_are_painted(self):
