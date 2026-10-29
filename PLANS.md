@@ -94,16 +94,6 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 4 emoji picker: square cell corners (planned 2026-10-29 by the plan role; independent of the queued check-coordinator split) — done 2026-10-29 by the feature role
-
-**Goal.** Give GTK 4 emoji-picker cells square corners consistent with the existing Platinum frame adaptation.
-
-**Grounding.** Searches for `emoji` in the GTK sheets, `tests/test_gtk4_theme.py`, `PLANS.md` and `PLANS-DONE.md` found the finished emoji-completion-row treatment, whose plan explicitly excludes picker cells. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` gives `popover.emoji-picker emoji` a 9px radius; its focus, hover and active rules change background paint without replacing that radius. The reference set supplies no GTK emoji-picker surface. Zero radius reuses `frame > border, .frame` as a platform adaptation, not a sampled picker metric.
-
-**Approach and files.** Add `popover.emoji-picker emoji { border-radius: 0; }` beside the frame adaptations in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment naming the missing reference surface and reused frame treatment. Keep the library name out of CSS comments because `TestGtk4Theme.test_stands_alone` rejects its substring. Add `TestGtk4Theme.test_emoji_picker_cell_corners` in `tests/test_gtk4_theme.py`, following `test_emoji_completion_row_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md` naming the missing surface, stock library/resource selector, reused radius, test and supported `make apply-gtk` user-import override path. Limit implementation to these three files; cell paint, spacing, glyph sizing and completion rows are outside this plan.
-
-**Acceptance.** The test asserts that selectors containing `emoji-picker` are exactly `popover.emoji-picker emoji`, its complete parsed declaration dictionary is `{"border-radius": "0"}`, and its radius matches both `frame > border` and `.frame`. Describe this as declaration coverage without rendered-pixel claims. Run `make check`.
-
 ### Platinum GTK 4 assistant: square sidebar step-label corners (planned 2026-10-29 by the plan role)
 
 **Goal.** Make GTK 4 assistant sidebar step labels use the existing square Platinum frame treatment.

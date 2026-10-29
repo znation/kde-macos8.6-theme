@@ -5,7 +5,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
-### Platinum GTK 4 emoji picker: square cell corners (planned 2026-10-29 by the plan role; independent of the queued check-coordinator split) — done 2026-10-29 by the feature role
+### Platinum GTK 4 emoji picker: square cell corners (planned 2026-10-29 by the plan role; independent of the queued check-coordinator split) — done 2026-10-29 by the feature role; duplicate backlog entry removed 2026-10-29 by the feature role
 
 **Goal.** Give GTK 4 emoji-picker cells square corners consistent with the existing Platinum frame adaptation.
 
@@ -13,7 +13,7 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 **Approach and files.** Add `popover.emoji-picker emoji { border-radius: 0; }` beside the frame adaptations in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment naming the missing reference surface and reused frame treatment. Keep the library name out of CSS comments because `TestGtk4Theme.test_stands_alone` rejects its substring. Add `TestGtk4Theme.test_emoji_picker_cell_corners` in `tests/test_gtk4_theme.py`, following `test_emoji_completion_row_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md` naming the missing surface, stock library/resource selector, reused radius, test and supported `make apply-gtk` user-import override path. Limit implementation to these three files; cell paint, spacing, glyph sizing and completion rows are outside this plan.
 
-**Acceptance.** The test asserts that selectors containing `emoji-picker` are exactly `popover.emoji-picker emoji`, its complete parsed declaration dictionary is `{"border-radius": "0"}`, and its radius matches both `frame > border` and `.frame`. Describe this as declaration coverage without rendered-pixel claims. Run `make check`. This is one small CSS rule, regression test and provenance entry.
+**Acceptance.** The test asserts that selectors containing `emoji-picker` are exactly `popover.emoji-picker emoji`, its complete parsed declaration dictionary is `{"border-radius": "0"}`, and its radius matches both `frame > border` and `.frame`. Describe this as declaration coverage without rendered-pixel claims. Run `make check`. This is one small CSS rule, regression test and provenance entry. The duplicate entry in `PLANS.md` was removed on 2026-10-29 by the feature role.
 
 ### Split the parallel check coordinator by responsibility (planned 2026-10-29 by the organize role) — done 2026-10-29 by the feature role
 
