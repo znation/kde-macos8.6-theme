@@ -12,7 +12,8 @@ font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimm
 by the clean role; validation scope clarified 2026-10-25 by the steward role; Firefox artifact
 and content-surface status updated 2026-10-26 by the steward role; install-firefox
 file list corrected 2026-10-27 by the steward role; shipped-SVG count updated
-2026-10-27 by the feature role):** The
+2026-10-27 by the feature role; Firefox content scope refreshed
+2026-10-29 by the steward role):** The
 initial prompt asks for
 "the UI of MacOS 8.6, getting as close as possible to pixel-perfect theming." Shipped so far
 (directories under `theme/`): the `MacOS8` color scheme; the `org.macos8.desktop` global theme
@@ -37,7 +38,8 @@ profile preference written, only by the opt-in `install-firefox` target); and th
 fidelity tooling.
 The live reference-comparison gate in `tests/test_render_surface.py` checks Aurorae window-chrome
 regions when its render prerequisites are available (README.md, "Fidelity checking").
-Firefox's `tests/test_firefox_theme_*.py` modules check stylesheet declarations;
+Firefox's `tests/test_firefox_theme_*.py` and `tests/test_firefox_content_*.py` modules
+check stylesheet declarations and selector behavior;
 those checks do not establish rendered Firefox pixels. Keep this distinction when assessing
 progress toward pixel-perfect application chrome. README.md describes the reference set as the
 source of truth for "menu bar, window chrome, widget metrics, icons and colour palette". The
@@ -82,10 +84,13 @@ applications keep their own chrome unless the opt-in GTK targets or the Firefox 
 install are used (the GTK entries have landed, and Firefox chrome is part 1/2, which has
 landed, while its profile install is part 2/2, which has landed). Firefox work since that
 series landed as single-surface chrome plans (the downloads-panel and all-tabs rows, the
-sidebar frame, the menu-bar title box, the tab faces and the app-menu rows), and it now
-reaches a content page: the `userContent.css` sheet paints the about:downloads
-list (part 1/2), and its opt-in profile install as part 2/2 has also landed. That is an
-extension of the
+sidebar frame, the menu-bar title box, the tab faces and the app-menu rows). The
+`userContent.css` sheet now styles surfaces within six internal pages:
+about:downloads, about:config, about:preferences, about:support, about:networking
+and about:telemetry. These include preferences navigation and controls, support
+tables and buttons, and telemetry navigation, tables and histograms; this is
+surface coverage, not a claim of complete page theming. The opt-in profile install
+copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
