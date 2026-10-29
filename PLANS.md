@@ -98,16 +98,6 @@ _None yet._
 
 ### Platinum GTK 4 flow boxes: square item corners (planned 2026-10-29 by the plan role; independent of the queued assistant labels) — done 2026-10-29 by the feature role
 
-### Platinum GTK 4 grid views: square item corners (planned 2026-10-29 by the plan role; independent of the queued flow-box corners)
-
-**Goal.** Give GTK 4 grid-view items square Platinum corners, including the file chooser's more-specific item treatment.
-
-**Grounding.** Searches for grid-view selectors in the sheet and tests found no explicit grid-item rule. Related archive entries cover white view backgrounds and navigation-sidebar items, not general grid-item corners; the queued flow-box plan explicitly excludes grid views. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` gives `gridview > child` a 9px radius and `filechooser gridview > child` a 12px radius. No reference screenshot shows this GTK grid-view surface. Reuse `frame > border, .frame`'s zero radius as a documented platform adaptation.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a grouped `gridview > child, filechooser gridview > child` rule declaring exactly `border-radius: 0` beside the frame adaptations. Include a dated comment identifying the missing reference surface and reused frame treatment; keep the library/resource attribution in documentation because `TestGtk4Theme.test_stands_alone` rejects the library-name substring in CSS. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_gridview_item_corners` following `test_emoji_completion_row_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md` naming both stock selectors and radii, the resource, frame source, new test and supported `make apply-gtk` user-import override path. This is one corner treatment across general and file-chooser grid items; it requires no flow-box change. Limit implementation to these three files; spacing, selection paint, focus outlines and GTK 3 are outside this plan.
-
-**Acceptance.** Assert that selectors containing `gridview` equal precisely the two selectors above, that each `self.rules` dictionary equals `{"border-radius": "0"}`, and that each radius equals both frame selectors. The qualified file-chooser selector must be covered so its stock 12px radius cannot survive a general-only override. Keep `test_navigation_sidebar_item_corners` passing. Document declaration coverage without rendered-pixel claims. Run `make check`.
-
 ### Separate PNG header validation from chunk collection (planned 2026-10-29 by the organize role)
 
 **Goal.** Give PNG header and decode-limit checks a dedicated module, keeping chunk ordering and payload collection in `stream.py`.

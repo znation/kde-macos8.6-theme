@@ -570,6 +570,13 @@ flowbox > flowboxchild {
   border-radius: 0;
 }
 
+/* No reference screenshot shows GTK grid views. Square item corners adapt
+ * frame > border, .frame border-radius: 0 above. Recorded
+ * 2026-10-29 by the feature role. */
+gridview > child, filechooser gridview > child {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows the GTK assistant sidebar. Square step-label
  * corners adapt frame > border, .frame border-radius: 0 above. Recorded
  * 2026-10-29 by the feature role. */

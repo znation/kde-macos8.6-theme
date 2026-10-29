@@ -605,6 +605,22 @@ for radio in (False, True):
             with self.subTest(frame=frame):
                 self.assertEqual(item["border-radius"], self.rules[frame]["border-radius"])
 
+    def test_gridview_item_corners(self):
+        expected = {"gridview > child", "filechooser gridview > child"}
+        self.assertEqual(
+            {selector for selector in self.rules if "gridview" in selector},
+            expected,
+        )
+        for selector in sorted(expected):
+            with self.subTest(selector=selector):
+                item = self.rules[selector]
+                self.assertEqual(item, {"border-radius": "0"})
+                for frame in ("frame > border", ".frame"):
+                    with self.subTest(frame=frame):
+                        self.assertEqual(
+                            item["border-radius"], self.rules[frame]["border-radius"]
+                        )
+
     def test_assistant_step_label_corners(self):
         expected = {"window.assistant .sidebar > label"}
         self.assertEqual(

@@ -130,6 +130,12 @@ GTK 4 flow-box adaptation (recorded 2026-10-29 by the feature role):
 | --- | --- | --- |
 | GTK 4 `flowbox > flowboxchild` declares exactly `border-radius: 0`, matching both frame selectors; it is the only selector beginning `flowbox`. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_flowbox_item_corners` | No reference screenshot shows a GTK flow box. The zero radius adapts `frame > border, .frame`. The stock selector and 9px radius come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`. `make apply-gtk`'s GTK 4 user stylesheet import is the supported override path. This is declaration coverage, not rendered-pixel evidence. |
 
+GTK 4 grid-view adaptation (recorded 2026-10-29 by the feature role):
+
+| Guarantee | Test | Provenance exception |
+| --- | --- | --- |
+| GTK 4 `gridview > child` and `filechooser gridview > child` declare exactly `border-radius: 0`, matching both frame selectors. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_gridview_item_corners` | No reference screenshot shows a GTK grid view. The zero radius adapts `frame > border, .frame`. The stock selectors and 9px and 12px radii come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`. `make apply-gtk`'s GTK 4 user stylesheet import is the supported override path. This is declaration coverage, not rendered-pixel evidence. |
+
 GTK 4 assistant step-label adaptation (recorded 2026-10-29 by the feature role):
 
 | Guarantee | Test | Provenance exception |
