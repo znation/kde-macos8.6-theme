@@ -581,6 +581,20 @@ for radio in (False, True):
                         self.rules[frame]["border-radius"],
                     )
 
+    def test_video_osd_image_corners(self):
+        self.assertEqual(
+            {selector for selector in self.rules if "video" in selector},
+            {"video image.osd"},
+        )
+        video_image = self.rules["video image.osd"]
+        self.assertEqual(video_image, {"border-radius": "0"})
+        for selector in ("frame > border", ".frame"):
+            with self.subTest(selector=selector):
+                self.assertEqual(
+                    video_image["border-radius"],
+                    self.rules[selector]["border-radius"],
+                )
+
     def test_split_button_container_corners(self):
         self.assertEqual(
             {selector for selector in self.rules if "splitbutton" in selector},

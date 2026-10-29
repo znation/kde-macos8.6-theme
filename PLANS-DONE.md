@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 video overlays: square the OSD image corners (planned 2026-10-29 by the plan role; independent of the queued split-button container) — done 2026-10-29 by the feature role
+
+**Goal.** Give GTK 4 video's OSD image square corners consistent with the theme's frame treatment.
+
+**Grounding.** Searches of `theme/gtk`, `tests/test_gtk4_theme.py`, `PLANS.md` and `PLANS-DONE.md` found no video overlay rule or plan. The GtkVideo group in `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` sets `video image.osd` to a 32px radius and a 64px minimum width and height. No reference screenshot shows a GTK video OSD image. The proposed zero radius is a platform adaptation from the sheet's `frame > border, .frame`, not a sampled video metric.
+
+**Approach and files.** Added `video image.osd { border-radius: 0; }` beside the frame adaptations in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment naming the missing reference surface and frame source. The library resource attribution is in `docs/invariants.md` because `TestGtk4Theme.test_stands_alone` rejects the substring `adwaita` in CSS. Added `TestGtk4Theme.test_video_osd_image_corners` in `tests/test_gtk4_theme.py`. Added a dated provenance row under `## gtk` in `docs/invariants.md` naming the resource, frame adaptation, test and `make apply-gtk` user-import scope. Preserved stock minimum dimensions, image content, colors, spacing and playback behavior; GTK 3 is outside this change.
+
+**Acceptance.** The test asserts that the parsed selectors containing `video` are exactly `{"video image.osd"}` and that this rule's complete declaration dictionary is `{"border-radius": "0"}`. It asserts that its radius equals both existing frame selectors. Provenance records declaration coverage without claiming rendered-pixel evidence. `make check` is the required verification.
+
 ### Platinum GTK 4 split buttons: square the container corners (planned 2026-10-29 by the plan role; independent of the queued separate boxed rows) — done 2026-10-29 by the feature role
 
 **Goal.** Give the split-button container square corners to match its existing square child buttons, without changing its action or dropdown behavior.

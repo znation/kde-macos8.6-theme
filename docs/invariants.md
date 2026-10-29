@@ -133,6 +133,12 @@ GTK 4 boxed-list adaptation (recorded 2026-10-29 by the feature role):
 | GTK 4 `.navigation-sidebar > row`, `> child` and `> flowboxchild` declare exactly `border-radius: 0`, matching both frame selectors. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_navigation_sidebar_item_corners` | No reference screenshot shows this GTK navigation surface. The zero radius adapts `frame > border, .frame`; the Navigation Sidebar group in `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` supplies the stock selectors and 9px radius. `make apply-gtk`'s GTK 4 user stylesheet import is the supported override path. This is declaration coverage, not rendered-pixel evidence (recorded 2026-10-29 by the feature role). |
 | GTK 4 `splitbutton` declares exactly `border-radius: 0`, matching both frame selectors and `button`. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_split_button_container_corners` | No reference screenshot shows a GTK split button. The zero radius reuses the sheet's frame treatment; `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` supplies the stock `splitbutton` container radius. The supported library override path is `make apply-gtk`'s GTK 4 user stylesheet import. These are declaration checks, not rendered-pixel evidence (recorded 2026-10-29 by the feature role). |
 
+GTK 4 video overlay adaptation (recorded 2026-10-29 by the feature role):
+
+| Guarantee | Test | Provenance exception |
+| --- | --- | --- |
+| GTK 4 `video image.osd` declares exactly `border-radius: 0`, matching both frame selectors. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_video_osd_image_corners` | No reference screenshot shows a GTK video OSD image. The zero radius adapts the sheet's `frame > border, .frame` treatment. GtkVideo in `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` supplies the stock selector and radius. The supported library override path is `make apply-gtk`'s GTK 4 user stylesheet import. These are declaration checks, not rendered-pixel evidence. |
+
 GTK 4 shortcut keycap adaptation (recorded 2026-10-29 by the feature role):
 
 | Guarantee | Test | Provenance exception |

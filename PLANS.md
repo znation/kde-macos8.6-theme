@@ -115,14 +115,6 @@ _None yet._
 
 **Acceptance.** Assert that the parsed selector set containing `splitbutton` is exactly `{"splitbutton"}`, that its complete `self.rules` dictionary is `{"border-radius": "0"}`, and that its radius matches both frame selectors and the existing `button` rule. Document declaration coverage, without claiming rendered-pixel evidence. Run `make check`. Limit implementation to the three named files and well below a few hundred changed lines including tests; this container adaptation is one independently mergeable change.
 
-### Platinum GTK 4 video overlays: square the OSD image corners (planned 2026-10-29 by the plan role; independent of the queued split-button container)
-
-**Goal.** Give GTK 4 video's OSD image square corners consistent with the theme's frame treatment.
-
-**Grounding.** Searches of `theme/gtk`, `tests/test_gtk4_theme.py`, `PLANS.md` and `PLANS-DONE.md` found no video overlay rule or plan. The GtkVideo group in `/org/gnome/Adwaita/styles/base.css` in the installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` sets `video image.osd` to a 32px radius and a 64px minimum width and height. No reference screenshot shows a GTK video OSD image. The proposed zero radius is a platform adaptation from the sheet's `frame > border, .frame`, not a sampled video metric.
-
-**Approach and files.** Add `video image.osd { border-radius: 0; }` beside the frame adaptations in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment naming the missing reference surface and frame source. Keep the library resource attribution in `docs/invariants.md` because `TestGtk4Theme.test_stands_alone` rejects the substring `adwaita` in CSS. Add `TestGtk4Theme.test_video_osd_image_corners` in `tests/test_gtk4_theme.py`, following `test_card_corners`. Add a dated provenance row under `## gtk` in `docs/invariants.md` naming the resource, frame adaptation, test and `make apply-gtk` user-import scope. Preserve stock minimum dimensions, image content, colors, spacing and playback behavior; exclude GTK 3.
-
-**Acceptance.** Assert that the parsed selectors containing `video` are exactly `{"video image.osd"}` and that this rule's complete declaration dictionary is `{"border-radius": "0"}`. Assert that its radius equals both existing frame selectors. Record declaration coverage without claiming rendered-pixel evidence. Run `make check`. Keep implementation to the three named files and well below a few hundred changed lines including tests; this single-node adaptation needs no sibling plan.
+_None yet._
 
 ## Done

@@ -563,6 +563,13 @@ frame > border, .frame {
   padding: 0;
 }
 
+/* No reference screenshot shows a GTK video OSD image. Square corners adapt
+ * frame > border, .frame border-radius: 0 above.
+ * Recorded 2026-10-29 by the feature role. */
+video image.osd {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows a GTK split button. Square container corners
  * adapt frame > border, .frame border-radius: 0 above.
  * Recorded 2026-10-29 by the feature role. */
