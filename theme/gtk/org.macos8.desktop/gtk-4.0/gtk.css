@@ -563,6 +563,13 @@ frame > border, .frame {
   padding: 0;
 }
 
+/* No reference screenshot shows the GTK assistant sidebar. Square step-label
+ * corners adapt frame > border, .frame border-radius: 0 above. Recorded
+ * 2026-10-29 by the feature role. */
+window.assistant .sidebar > label {
+  border-radius: 0;
+}
+
 /* No reference screenshot shows a GTK emoji picker. Square cell corners
  * adapt frame > border, .frame border-radius: 0 above. Recorded
  * 2026-10-29 by the feature role. */

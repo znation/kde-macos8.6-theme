@@ -593,6 +593,20 @@ for radio in (False, True):
             with self.subTest(frame=frame):
                 self.assertEqual(row["border-radius"], self.rules[frame]["border-radius"])
 
+    def test_assistant_step_label_corners(self):
+        expected = {"window.assistant .sidebar > label"}
+        self.assertEqual(
+            {selector for selector in self.rules if "assistant" in selector},
+            expected,
+        )
+        step_label = self.rules["window.assistant .sidebar > label"]
+        self.assertEqual(step_label, {"border-radius": "0"})
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(
+                    step_label["border-radius"], self.rules[frame]["border-radius"]
+                )
+
     def test_emoji_picker_cell_corners(self):
         expected = {"popover.emoji-picker emoji"}
         self.assertEqual(
