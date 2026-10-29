@@ -468,6 +468,18 @@ popover > contents, popover > arrow {
   box-shadow: none;
 }
 
+/* No reference screenshot shows a GTK toast. Reuse the popover surface
+   and window text; platform adaptation 2026-10-29 by the feature role. */
+toast, toast:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  color: #000000;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: none;
+  text-shadow: none;
+}
+
 popover.menu modelbutton:hover, popover.menu modelbutton:selected {
   background-color: #CCCCFF;
 }

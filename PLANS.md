@@ -93,15 +93,6 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 4 libadwaita toasts: square and recolor the message surface (planned 2026-10-28 by the plan role; independent of the queued GTK 3 application notifications)
-
-**Goal.** Give libadwaita's toast container a square Platinum grey face with black text and an outline. This is one container treatment, independent of the GTK 3 notification band; toast buttons, custom title contents, placement and animation are outside its scope.
-
-**Grounding.** Searches of `theme/gtk`, the GTK tests, this queue and `PLANS-DONE.md` found no GTK toast implementation or finished plan. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` styles `toast` with a `#505053` background, white text, a drop shadow and `150px` radius; its `toast:dir(ltr)` / `toast:dir(rtl)` rules adjust padding. No reference screenshot shows a libadwaita toast. Record this platform adaptation explicitly: reuse the existing GTK 4 `popover > contents, popover > arrow` face, outline, zero radius and shadow reset, with black text from `window, .background`. The face is reference-pinned by `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_menu_bar_face`; retain the existing palette/reference coverage rather than calling toast geometry sampled. The `toast` node comes from the named libadwaita resource.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the popover rules, add `toast, toast:backdrop` with exactly `background-color: #DDDDDD`, `background-image: none`, `color: #000000`, `border: 1px solid #000000`, `border-radius: 0`, `box-shadow: none` and `text-shadow: none`. Include a dated provenance comment naming the missing reference surface and reused recipe. Leave stock spacing and directional padding in place; add no descendant overrides or new assets. Add coverage to `tests/test_gtk4_theme.py::TestGtk4Theme` and one matching row under `## gtk` in `docs/invariants.md`. No dependency on the queued GTK 3 implementation is needed.
-
-**Acceptance.** Add `test_toast_surface` asserting exact parsed declaration dictionaries for both selectors and that the set of selectors containing `toast` is exactly those two. Check the shared face, outline, radius and shadow declarations against the parsed existing popover rule, and the text color against `window`, so the adaptation stays tied to its stated source. Existing `test_popover` and `test_only_palette_hex_literals` remain green. The sheet's raw-text test rejects the substring `adwaita` even in comments: call the surface a GTK toast in the CSS comment and put the full library/resource attribution in the invariant. The invariant must name the resource and adaptation and describe these as declaration checks, not rendered-pixel evidence. Run `make check`. Keep the change to these three files and comfortably below a few hundred lines including tests.
 
 ### Platinum GTK 4 banners: replace the tinted message face (planned 2026-10-28 by the plan role; independent of the queued GTK 4 toasts)
 

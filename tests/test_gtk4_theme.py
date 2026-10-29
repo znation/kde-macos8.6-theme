@@ -475,6 +475,35 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"background-color": SELECTION})
 
+    def test_toast_surface(self):
+        selectors = {"toast", "toast:backdrop"}
+        self.assertEqual(
+            {selector for selector in self.selectors if "toast" in selector},
+            selectors,
+        )
+        expected = {
+            "background-color": FACE,
+            "background-image": "none",
+            "color": BLACK,
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": "none",
+            "text-shadow": "none",
+        }
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+                for popover in ("popover > contents", "popover > arrow"):
+                    for prop in (
+                        "background-color", "border", "border-radius", "box-shadow"
+                    ):
+                        self.assertEqual(
+                            self.rules[selector][prop], self.rules[popover][prop]
+                        )
+                self.assertEqual(
+                    self.rules[selector]["color"], self.rules["window"]["color"]
+                )
+
     def test_dropdown_arrow(self):
         self.assert_rule("dropdown arrow", COMBO_ARROW)
 
