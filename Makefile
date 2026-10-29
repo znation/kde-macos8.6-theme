@@ -269,8 +269,9 @@ require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.ver
 # nor the typo'd value, while CHECK_PATTERN's equally typo'd glob is already
 # refused by require_check_pattern. List every unknown spec, quoting none of
 # the known ones, so the diagnostic names exactly what is wrong. $(1) names
-# the target.
-require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac; unknown=; for spec in $$value; do module=$${spec%%.*}; if [ ! -f "tests/$$module.py" ]; then unknown="$$unknown $$spec"; fi; done; if [ -n "$$unknown" ]; then echo "$(1): CHECK_TESTS must name test modules in tests/, but these specs name no tests/<module>.py file:$$unknown" >&2; exit 2; fi
+# the target. Specs are Python dotted names separated by whitespace; validate
+# that alphabet before the value reaches its unquoted unittest recipe position.
+require_check_tests = set -- "$(CHECK_TESTS)"; value="$$1"; while :; do case "$$value" in [[:space:]]*) value=$${value\#?};; *) break;; esac; done; case "$$value" in -*) echo "$(1): CHECK_TESTS must name test modules, classes or methods, not an option-like value: '$$1'" >&2; exit 2;; esac; case "$$value" in *[!a-zA-Z0-9_.[:space:]]*) echo "$(1): CHECK_TESTS may contain only dotted test names and whitespace: '$$1'" >&2; exit 2;; esac; unknown=; for spec in $$value; do module=$${spec%%.*}; if [ ! -f "tests/$$module.py" ]; then unknown="$$unknown $$spec"; fi; done; if [ -n "$$unknown" ]; then echo "$(1): CHECK_TESTS must name test modules in tests/, but these specs name no tests/<module>.py file:$$unknown" >&2; exit 2; fi
 
 # CHECK_PATTERN is the filename glob `check` hands to `unittest discover -p`,
 # so an empty value (`?=` keeps one from the environment), a whitespace-only

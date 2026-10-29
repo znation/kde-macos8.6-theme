@@ -200,6 +200,16 @@ class TestCheckPattern(unittest.TestCase):
         assert_failed(self, result)
         self.assertIn("CHECK_TESTS must name", result.stderr)
 
+    def test_shell_syntax_in_tests_variable_is_refused(self):
+        # CHECK_TESTS is expanded unquoted in the unittest recipe. Reject
+        # punctuation before that recipe can interpret it as shell syntax.
+        env = theme_install.make_env("CHECK_TESTS")
+        env["CHECK_TESTS"] = "test_byteops;touch"
+        result = theme_install.run_make(["check"], env=env)
+        assert_failed(self, result)
+        self.assertIn("CHECK_TESTS may contain only dotted test names", result.stderr)
+        self.assertIn("test_byteops;touch", result.stderr)
+
     def test_option_like_tests_variable_after_leading_whitespace_is_refused(self):
         # The guard strips leading whitespace before it looks for the leading
         # `-`, so `'  -x test_byteops'` is refused even though its first
