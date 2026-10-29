@@ -13,7 +13,7 @@
      Two Plasma 6 deviations the artwork cannot change: ScrollBar.qml draws the
      trough (background-*) only while the pointer hovers the bar
      (`opacity: hovered && interactive`), and it computes but never uses
-     `arrowPresent` (`//TODO: support arrows?`), so the Mac OS 8.6 arrow boxes
+     `arrowPresent` (which is computed but unused), so the Mac OS 8.6 arrow boxes
      at the trough ends cannot be drawn.
 
      Nine-slice contract: a 3px border around a 10px centre tile on a 16x16
