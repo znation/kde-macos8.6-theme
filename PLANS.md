@@ -96,6 +96,12 @@ recorded here to keep the scope deliberate.
 
 ### Platinum GTK 4 flow boxes: square item corners (planned 2026-10-29 by the plan role; independent of the queued assistant labels) — done 2026-10-29 by the feature role
 
-_None yet._
+### Platinum GTK 4 calendars: square marked-day corners (planned 2026-10-29 by the plan role)
+
+**Goal.** Give marked calendar days the square Platinum frame treatment when the GTK 4 sheet is imported through `make apply-gtk`. The existing selected-day adaptation covers `:selected`; the stock library separately sets a 9px radius on `calendar > grid > label.day-number:checked`, which the theme does not override.
+
+**Approach and files.** Add `calendar > grid > label.day-number:checked { border-radius: 0; }` beside the calendar rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`. Add a dated comment naming the missing GTK calendar reference surface and reuse of `frame > border, .frame` geometry. Put the library attribution in documentation rather than CSS comments to respect `TestGtk4Theme.test_stands_alone`. Add `TestGtk4Theme.test_calendar_marked_day_corners` in `tests/test_gtk4_theme.py`, beside `test_calendar`. Add a dated provenance row to the GTK calendar adaptation in `docs/invariants.md`: no reference screenshot shows this surface; zero radius adapts the existing square frame recipe; the stock selector and 9px radius come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`. Record the supported user-stylesheet import path and the limits of declaration checks. These three files are the implementation scope; marked-day paint, the `.today` underline, spacing and GTK 3 are outside it.
+
+**Acceptance criteria.** The new test asserts the marked-day rule is exactly `{"border-radius": "0"}` and compares its radius to both frame selectors. Retain `test_calendar`'s exact selected-day palette/radius and other-month assertions, so a day that is both marked and selected keeps the selected treatment. Document this as a platform adaptation without claiming sampled calendar geometry or rendered-pixel coverage. `make check` passes. No new palette values, artwork or dependencies.
 
 ## Done
