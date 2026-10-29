@@ -1,6 +1,6 @@
 """Tests for the PNG decoder's malformed image data and limits.
 
-``tools/png/read.py``'s inflate guards, ``tools/png/stream.py``'s header and
+``tools/png/read.py``'s inflate guards, ``tools/png/header.py``'s header and
 pixel-limit checks, ``tools/png/trns.py``'s tRNS length rules and
 ``tools/png/expand.py``'s palette guard all reject
 malformed input; the decoders run them in pipeline order: stream validation,
@@ -39,7 +39,7 @@ from support.png_fixtures import (  # noqa: E402
     png_with_idat,
 )
 from tools import png
-from tools.png import chunks, expand, stream
+from tools.png import chunks, expand, header
 
 
 class TestMalformedImageData(unittest.TestCase):
@@ -187,7 +187,7 @@ class TestMalformedImageData(unittest.TestCase):
         )
         message = decode_error_message(self, data)
         self.assertIn("100000x100000", message)
-        self.assertIn(str(stream.MAX_PIXELS), message)
+        self.assertIn(str(header.MAX_PIXELS), message)
 
     def test_rejects_non_png(self):
         with self.assertRaises(png.PngError):
@@ -442,7 +442,7 @@ class TestPlteColorTypeValidation(unittest.TestCase):
 class TestToRgbUnsupportedColorType(unittest.TestCase):
     """``to_rgb`` names a color type it has no expansion for.
 
-    ``decode_png`` rejects a color type outside ``stream.CHANNELS`` before
+    ``decode_png`` rejects a color type outside ``header.CHANNELS`` before
     calling ``to_rgb``, so the four types it handles (0, 2, 3 and 4;
     ``decode_png`` expands type 6 itself) are the only ones a real PNG can
     reach it with. The helper's final guard is the contract that keeps a

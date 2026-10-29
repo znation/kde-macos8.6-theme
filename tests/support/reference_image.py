@@ -20,7 +20,7 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support.repo_root import ROOT
 
 from tools import png  # noqa: E402
-from tools.png.stream import validate_max_cols, validate_max_rows  # noqa: E402
+from tools.png.header import validate_max_cols, validate_max_rows  # noqa: E402
 
 # Decoded references, keyed by (absolute path, alpha flag, max_cols). A
 # reference is a read-only Git LFS asset that cannot change during a run, so a

@@ -1,4 +1,4 @@
-"""Tests for ``tools/png/stream.py``'s chunk framing, through ``decode_png``.
+"""Tests for ``tools/png/stream.py``'s chunk ordering, through ``decode_png``.
 
 The PNG stream is a sequence of length/type/payload/CRC chunks. These tests
 pin the container layer: that a valid image may split its zlib stream across
@@ -6,8 +6,9 @@ several IDAT chunks or carry unknown ancillary chunks, and that the decoder
 rejects malformed framing -- unknown critical chunks, bad chunk types,
 oversized lengths, bad or truncated CRCs, a missing, duplicated or
 out-of-position IHDR, non-consecutive IDAT chunks, a PLTE or tRNS chunk after
-the image data, a non-empty IEND payload, a missing PLTE/IEND and unsupported
-IHDR fields.
+the image data, a non-empty IEND payload and a missing PLTE/IEND. Header-field
+validation lives in ``tools/png/header.py`` and is covered by
+``test_png_malformed``.
 Scanline decoding lives in ``test_png_decode``; the malformed-image-data
 and resource-limit rejections live in ``test_png_malformed``.
 

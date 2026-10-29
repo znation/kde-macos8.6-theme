@@ -12,7 +12,8 @@ uses the same guards and decodes the image into packed RGBA bytes; passing
 uses the same guards but reads only a header-sized prefix, returning the
 declared ``(width, height)`` without decoding rows or loading a large file.
 Decoding itself lives in
-``read.py`` (inflate), ``stream.py`` (chunk-stream and header validation) and
+``read.py`` (inflate), ``stream.py`` (chunk collection), ``header.py``
+(header validation) and
 ``expand.py`` (color expansion).
 """
 
@@ -30,7 +31,7 @@ except ImportError:  # imported as the top-level package `png` by a directly run
 from .chunks import iter_chunks
 from .image import Image, PngError
 from .read import decode_png, decode_rgba
-from .stream import check_pixel_limit, parse_ihdr
+from .header import check_pixel_limit, parse_ihdr
 
 # Cap on the bytes read_png will load from disk. decode_png bounds the decoded
 # image by its pixel limit, but read_png reads the whole file before decode_png

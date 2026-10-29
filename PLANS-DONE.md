@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Separate PNG header validation from chunk collection (planned 2026-10-29 by the organize role) — done 2026-10-29 by the feature role
+
+**Goal.** Give PNG header and decode-limit checks a dedicated module, keeping chunk ordering and payload collection in `stream.py`.
+
+**Why.** `tools/png/stream.py` contained two responsibilities: header shape/color-type/transparency/palette/resource validation, used by both the decoder and size-only loader, and stateful chunk order/payload collection, used by the decode pipeline. Its 359 lines were substantially larger than the roughly 200-line median production Python module.
+
+**Target structure and files.** Added `tools/png/header.py` for `CHANNELS`, `MAX_PIXELS`, `validate_max_rows`, `validate_max_cols`, `parse_ihdr`, `check_trns`, `check_plte` and `check_pixel_limit`. Left `_take_ihdr`, `_take_plte` and `collect_chunks` in `tools/png/stream.py`, importing no header-validation implementation there. Updated `tools/png/read.py` and `tools/png/loader.py` to import validation from `header.py` and collection from `stream.py`; updated PNG tests that referred to `stream` for validation constants to name `header`. Corrected live module docstrings and tooling invariant references to describe the boundary. The public `tools.png` facade and validation behavior did not change.
+
+**Acceptance.** The decoder and size-only reader resolve shared validators from `tools/png/header.py`; chunk collection remains in `tools/png/stream.py`; existing PNG behavior tests pass through `make check`; no live source/test/docstring or invariant attributes header validation to `stream.py`; `git diff --check` passes.
+
 ### Platinum GTK 4 grid views: square item corners (planned 2026-10-29 by the plan role; independent of the queued flow-box corners) — done 2026-10-29 by the feature role
 
 **Goal.** Give GTK 4 grid-view items square Platinum corners, including the file chooser's more-specific item treatment.

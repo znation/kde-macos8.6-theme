@@ -30,7 +30,7 @@ from support.png_fixtures import (  # noqa: E402
     with_ihdr_byte,
 )
 from tools import png  # noqa: E402
-from tools.png import loader, stream  # noqa: E402
+from tools.png import header, loader  # noqa: E402
 
 
 class TestReadPng(unittest.TestCase):
@@ -188,7 +188,7 @@ class TestReadPng(unittest.TestCase):
             )
         decode.assert_not_called()
         self.assertIn(str(path), message)
-        self.assertIn(str(stream.MAX_PIXELS), message)
+        self.assertIn(str(header.MAX_PIXELS), message)
 
     def test_read_png_size_rejects_a_png_whose_ihdr_is_not_first(self):
         # The size read trusts the first chunk only when it is IHDR. With an

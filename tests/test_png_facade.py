@@ -2,8 +2,7 @@
 
 The codec's pieces are split by concern across ``image.py``, ``loader.py``,
 ``read.py``, ``expand.py``, ``stream.py`` and ``write.py``, and the package's
-``__init__.py`` re-exports the
-public names so
+``__init__.py`` re-exports the public names so
 a consumer imports them from ``tools.png`` regardless of which submodule
 defines them. Nothing pinned that contract: a rename in a submodule, or a name
 dropped from ``__all__``, left the facade quietly wrong while every direct
@@ -17,7 +16,7 @@ import unittest
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from tools import png  # noqa: E402
-from tools.png import image, loader, read, write  # noqa: E402
+from tools.png import header, image, loader, read, stream, write  # noqa: E402
 
 # The public interface the facade's docstring documents and ``__all__``
 # advertises, each with the submodule object it must re-export.
@@ -36,6 +35,21 @@ PUBLIC_NAMES = {
 
 
 class TestFacade(unittest.TestCase):
+    def test_header_validation_and_chunk_collection_have_separate_modules(self):
+        self.assertIn(0, header.CHANNELS)
+        self.assertGreater(header.MAX_PIXELS, 0)
+        for name in (
+            "validate_max_rows",
+            "validate_max_cols",
+            "parse_ihdr",
+            "check_trns",
+            "check_plte",
+            "check_pixel_limit",
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(getattr(header, name).__module__, header.__name__)
+        self.assertEqual(stream.collect_chunks.__module__, stream.__name__)
+
     def test_all_advertises_the_public_names(self):
         # `from tools.png import *` exposes exactly `__all__`, so a name in the
         # docstring but missing here (or vice versa) is an inconsistent public
