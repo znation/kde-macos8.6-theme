@@ -29,6 +29,9 @@ jobs:
         run: |
           set -e
           if command -v dbus-run-session >/dev/null && \
+             command -v kwin_wayland >/dev/null && \
+             command -v plasmawindowed >/dev/null && \
+             command -v plasma-apply-colorscheme >/dev/null && \
              command -v spectacle >/dev/null; then
             : # The render tools are already available in this runner.
           else

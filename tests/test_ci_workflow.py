@@ -62,6 +62,9 @@ class TestCiWorkflow(unittest.TestCase):
         self.assertRegex(
             workflow,
             r"if command -v dbus-run-session >/dev/null && \\\s*"
+            r"command -v kwin_wayland >/dev/null && \\\s*"
+            r"command -v plasmawindowed >/dev/null && \\\s*"
+            r"command -v plasma-apply-colorscheme >/dev/null && \\\s*"
             r"command -v spectacle >/dev/null; then",
         )
 

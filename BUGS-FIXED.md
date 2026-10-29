@@ -5,6 +5,18 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The CI dependency setup requires passwordless sudo in the local runner (found by the ci role 2026-10-29) — fixed 2026-10-29 by the bugfix role
+
+**Symptom:** The workflow's Plasma render-tool installation step tried to use `sudo` when any of its render tools were missing, even where the remaining tools were already available.
+
+**Reproduce:** With `dbus-run-session` and `spectacle` on `PATH` but one of the other render tools missing, run the `Install the Plasma render tools` step from `.github/workflows/ci.yml` where `sudo` requires a password.
+
+**Cause:** The package-install skip condition checked only `dbus-run-session` and `spectacle`.
+
+**Fix:** Skip package installation only when all five render tools are available.
+
+**Validation gap:** none — the workflow condition was pinned by the existing workflow test, which failed before the change and passed after it.
+
 ### The parallel coordinator accepts a forged empty-run summary from a started test (found by the bugfix role 2026-10-28) — fixed 2026-10-28 by the bugfix role
 
 A test printing `Ran 0 tests` and `NO TESTS RAN`, flushing stdout and calling
