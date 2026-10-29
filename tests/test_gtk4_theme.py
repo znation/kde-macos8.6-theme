@@ -581,6 +581,18 @@ for radio in (False, True):
                         self.rules[frame]["border-radius"],
                     )
 
+    def test_emoji_completion_row_corners(self):
+        expected = {"emoji-completion-row"}
+        self.assertEqual(
+            {selector for selector in self.rules if "emoji-completion-row" in selector},
+            expected,
+        )
+        row = self.rules["emoji-completion-row"]
+        self.assertEqual(row, {"border-radius": "0"})
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(row["border-radius"], self.rules[frame]["border-radius"])
+
     def test_pill_button_corners(self):
         expected = {
             "menubutton.pill > button",

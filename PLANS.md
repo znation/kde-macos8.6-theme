@@ -108,16 +108,6 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 4 emoji completion: square suggestion-row corners (planned 2026-10-29 by the plan role; independent of the queued pill buttons)
-
-**Goal.** Give GTK 4 emoji-completion suggestion rows square corners consistent with the existing Platinum frame treatment.
-
-**Grounding.** Searches for `emoji` in `theme/gtk`, `tests/test_gtk4_theme.py` and `PLANS.md`, and related headings in `PLANS-DONE.md`, found no existing treatment or plan. The installed `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` resource `/org/gnome/Adwaita/styles/base.css` gives `emoji-completion-row` a 9px radius; its focus, hover and active rules supply background paint without replacing that radius. No reference screenshot shows GTK emoji completion. Zero radius reuses `frame > border, .frame` as a platform adaptation rather than a sampled emoji metric.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `emoji-completion-row { border-radius: 0; }` beside the frame adaptations, with a dated comment naming the absent reference surface and the reused frame treatment. Keep the library name out of CSS comments because `TestGtk4Theme.test_stands_alone` rejects its substring. Add `TestGtk4Theme.test_emoji_completion_row_corners` in `tests/test_gtk4_theme.py`, following `test_card_corners`. In `docs/invariants.md` under `## gtk`, record the missing surface, library/resource selector provenance, reused radius, test, and `make apply-gtk` user-import override path. Limit this plan to suggestion-row corners; emoji-picker cells are an independently implementable surface, and paint, spacing and glyph sizing are outside this change.
-
-**Acceptance.** Assert that the sheet's selectors containing `emoji-completion-row` are exactly the bare selector, that its complete parsed declaration dictionary is `{"border-radius": "0"}`, and that its radius equals both `frame > border` and `.frame`. Record these as declaration checks without claiming rendered-pixel evidence. Run `make check`. Implementation is limited to the three named files and a small rule, test and provenance entry.
-
 ### Split the parallel check coordinator by responsibility (planned 2026-10-29 by the organize role)
 
 **Goal.** Make `tools/check_parallel.py` a small CLI coordinator by separating discovery and log naming, worker lifecycle, and result interpretation into focused modules.
