@@ -5,6 +5,8 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+_None yet._
+
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
@@ -95,14 +97,6 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 recorded here to keep the scope deliberate.
 
 _None yet._
-
-### Platinum GTK 4 switches: clear inherited track padding (planned 2026-10-29 by the plan role; independent of the queued scale focus transition)
-
-**Goal.** Give the GTK 4 switch an explicit zero-padding track through the supported `make apply-gtk` user stylesheet import, rather than retaining the installed base stylesheet's 3px inset around the Platinum thumb.
-
-**Approach and files.** Add `padding: 0` to the existing `switch` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`. Add a dated adaptation comment: no reference screenshot shows a GTK switch; zero internal spacing keeps the thumb against the track, reusing the existing desktop-theme switch recipe rather than introducing a sampled metric. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_track_padding` beside `test_switch`, calling `self.assert_rule("switch", {"padding": "0"})`; retain the existing shared switch assertions. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee and test, with provenance for the overridden `switch { padding: 3px; }` from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution in the invariant document, outside CSS, to respect `test_stands_alone`.
-
-**Acceptance criteria.** Removing the declaration, restoring `3px` or applying zero padding solely to checked switches fails the new test. Existing `test_switch` assertions pass. Documentation identifies the missing GTK switch reference and zero padding as a platform adaptation; declaration tests do not claim rendered size or pixel fidelity. Limit implementation to these three files and track padding; track dimensions, colors, thumb styling, focus, GTK 3 and artwork are outside scope. No new dependency. `make check` passes.
 
 ### Separate Firefox profile transaction rollback from the installer (planned 2026-10-29 by the organize role)
 

@@ -1045,6 +1045,10 @@ scale.marks-after:not(.marks-before):disabled > trough > slider {
 }
 
 switch {
+  /* No reference screenshot shows a GTK switch (adaptation 2026-10-29);
+     zero internal spacing keeps
+     the thumb against the track, reusing the desktop-theme switch recipe. */
+  padding: 0;
   background-color: #EEEEEE;
   background-image: none;
   border: 1px solid #000000;

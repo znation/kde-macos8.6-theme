@@ -1035,6 +1035,9 @@ for radio in (False, True):
             glyph="switch > image",
         )
 
+    def test_switch_track_padding(self):
+        self.assert_rule("switch", {"padding": "0"})
+
     def test_scale(self):
         self.assert_scale(
             trough="scale > trough",
