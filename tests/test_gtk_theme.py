@@ -117,6 +117,30 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             cls.css, source=str(CSS.relative_to(ROOT))
         )
 
+    def assert_dotted_focus_outline(self, selector, anchor="button:focus"):
+        """Assert *selector* carries the sheet's dotted focus outline.
+
+        The GTK 3 sheet gives every focusable control the same
+        ``1px dotted`` outline; thirteen ``:focus`` selectors copy
+        ``button:focus`` (or a sibling rule passed as *anchor*), and each
+        test below pins the literal declarations and the copy through this
+        helper. The scale and button focus tests stay inline because each
+        ties additional properties to other rules.
+        """
+        self.assert_rule(
+            selector,
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules[selector][property_name],
+                self.rules[anchor][property_name],
+            )
+
     def test_theme_read_refuses_a_symlink_escape(self):
         """A checked-in symlink must not feed a private file to a diagnostic."""
         with tempfile.TemporaryDirectory() as tmp:
@@ -200,20 +224,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_notebook_tab_focus_outline(self):
-        selector = "notebook > header > tabs > tab:focus"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("notebook > header > tabs > tab:focus")
 
     def test_tree_header(self):
         self.assert_tree_header(("treeview.view header button",))
@@ -236,20 +247,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         )
 
     def test_expander_title_focus_outline(self):
-        selector = "expander > title:focus"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("expander > title:focus")
 
     def test_submenu_arrow(self):
         self.assert_submenu_arrow(("menu menuitem arrow",), sized=True)
@@ -301,19 +299,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             )
 
     def test_calendar_focus_outline(self):
-        self.assert_rule(
-            "calendar:focus",
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules["calendar:focus"][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("calendar:focus")
 
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
@@ -447,68 +433,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         self.assertNotIn("dndtarget", self.css)
 
     def test_list_row_focus_outline(self):
-        selector = "list row:focus"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("list row:focus")
 
     def test_treeview_focus_outline(self):
-        selector = "treeview.view:focus"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("treeview.view:focus")
 
     def test_iconview_focus_outline(self):
-        selector = "iconview:focus"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("iconview:focus")
 
     def test_flowbox_child_focus_outline(self):
-        selector = "flowbox > flowboxchild:focus"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("flowbox > flowboxchild:focus")
 
     def test_places_sidebar(self):
         self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
@@ -974,19 +908,7 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         )
 
     def test_switch_focus_outline(self):
-        self.assert_rule(
-            "switch:focus",
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules["switch:focus"][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("switch:focus")
 
     def test_scale(self):
         self.assert_scale(
@@ -1033,66 +955,18 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         )
 
     def test_checkbutton_focus_outline(self):
-        self.assert_rule(
-            "checkbutton:focus",
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules["checkbutton:focus"][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("checkbutton:focus")
 
     def test_entry_focus_outline(self):
-        self.assert_rule(
-            "entry:focus",
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules["entry:focus"][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("entry:focus")
 
     def test_horizontal_spinbutton_focus_outline(self):
-        selector = "spinbutton:focus:not(.vertical)"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
-        )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["button:focus"][property_name],
-            )
+        self.assert_dotted_focus_outline("spinbutton:focus:not(.vertical)")
 
     def test_vertical_spinbutton_focus_outline(self):
-        selector = "spinbutton.vertical:focus"
-        self.assert_rule(
-            selector,
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
+        self.assert_dotted_focus_outline(
+            "spinbutton.vertical:focus", anchor="spinbutton:focus:not(.vertical)"
         )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules[selector][property_name],
-                self.rules["spinbutton:focus:not(.vertical)"][property_name],
-            )
 
     def test_linked_members_strip_their_trailing_border(self):
         for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
@@ -1138,19 +1012,9 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         )
 
     def test_radiobutton_focus_outline(self):
-        self.assert_rule(
-            "radiobutton:focus",
-            {
-                "outline": f"1px dotted {BLACK}",
-                "outline-offset": "0",
-                "-gtk-outline-radius": "0",
-            },
+        self.assert_dotted_focus_outline(
+            "radiobutton:focus", anchor="checkbutton:focus"
         )
-        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
-            self.assertEqual(
-                self.rules["radiobutton:focus"][property_name],
-                self.rules["checkbutton:focus"][property_name],
-            )
 
     def test_menubar_titles(self):
         self.assert_menubar_titles("menubar > menuitem")
