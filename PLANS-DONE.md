@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 push buttons: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued push-button focus color) — done 2026-10-29 by the feature role
+
+**Goal.** Remove inherited focus-outline animation from GTK 4 push buttons through the supported `make apply-gtk` user stylesheet import.
+
+**Approach and files.** Add `transition: none` to the existing base `button` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated adaptation comment naming the missing GTK push-button focus-motion reference and reuse of the immediate scale focus policy. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_button_focus_transition` following `test_checkbutton_focus_transition`: assert `{"transition": "none"}` on `button` and equality with `scale > trough > slider`. Under `## gtk` in `docs/invariants.md`, record this declaration guarantee and test. Attribute the stock button's 200ms outline-color, outline-width, outline-offset, background and box-shadow transitions to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep the library name outside CSS for `test_stands_alone`.
+
+**Acceptance criteria.** The base button declares `transition: none`, covering focus entry and exit; removing or changing it fails the new test. The shorthand also disables inherited background and box-shadow transitions, which the invariant must acknowledge. Existing button face, bevel and state declaration tests pass. Documentation names the missing reference surface and reused motion policy without claiming rendered motion evidence. Scope is these three files, with no new palette value, geometry, artwork or dependency. This can merge independently of the queued push-button focus-color plan. `make check` passes.
+
 ### Platinum GTK 4 push buttons: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued check-button focus color) — done 2026-10-29 by the feature role
 
 **Goal.** Give keyboard-focused GTK 4 push buttons an opaque black Platinum outline through the supported `make apply-gtk` user stylesheet import.

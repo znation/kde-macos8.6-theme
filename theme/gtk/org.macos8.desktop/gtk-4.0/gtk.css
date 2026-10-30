@@ -257,6 +257,9 @@ button {
   border: 1px solid #000000;
   border-radius: 0;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  /* No reference screenshot shows GTK push-button focus motion; reuse the
+   * immediate scale focus policy. Recorded 2026-10-29 by the feature role. */
+  transition: none;
 }
 
 button:hover {
