@@ -280,6 +280,21 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_calendar(self):
         self.assert_calendar(("calendar:selected",), ("calendar:indeterminate",))
 
+    def test_calendar_focus_outline(self):
+        self.assert_rule(
+            "calendar:focus",
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules["calendar:focus"][property_name],
+                self.rules["button:focus"][property_name],
+            )
+
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
         for message_type in (".info", ".question", ".warning", ".error"):

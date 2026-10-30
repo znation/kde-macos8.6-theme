@@ -1008,6 +1008,14 @@ calendar:indeterminate {
   color: #888888;
 }
 
+/* No GTK calendar keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners. */
+calendar:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 /* An infobar draws the menu-bar band: the #DDDDDD face, black text and the
    etched bottom rule. The info, question, warning and error type classes all
    take this band; no reference screenshot shows a GTK infobar, and the type
