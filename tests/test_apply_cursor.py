@@ -1,10 +1,10 @@
-"""Tests for tools/apply_cursor.py and the cursor Makefile targets.
+"""Tests for tools/apply_cursor.py, tools/cursor_link.py and cursor targets.
 
 The tool runs in-process with ``HOME``, ``XDG_DATA_HOME`` and
 ``XDG_CONFIG_HOME`` pointed at a temp root, and the selector is a shell stub on
-``PATH`` that records its argv. The link, the selection, the foreign-path
-refusals and the removal are pinned without touching a real ``~/.icons`` or
-Plasma configuration. The Makefile tests drive the public targets through
+``PATH`` that records its argv. Cursor link policy in ``tools/cursor_link.py``
+and command selection/removal are pinned without touching a real ``~/.icons``
+or Plasma configuration. The Makefile tests drive the public targets through
 ``theme_install``, whose children run under the suite's timeout.
 """
 

@@ -29,6 +29,7 @@ import sys
 from pathlib import Path
 
 if __package__:
+    from tools import cursor_link
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import read_text
@@ -43,6 +44,7 @@ if __package__:
     from tools.repo_root import ROOT
     from tools.required_command import run_required
 else:  # run directly: python3 tools/apply_cursor.py
+    import cursor_link
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from containment import read_text
@@ -58,7 +60,7 @@ else:  # run directly: python3 tools/apply_cursor.py
     from required_command import run_required
 
 TOOL = "apply_cursor"
-CURSOR_THEME = "org.macos8.desktop"
+CURSOR_THEME = cursor_link.CURSOR_THEME
 SELECT_TOOL = "plasma-apply-cursortheme"
 COMMAND_TIMEOUT = 60.0
 # The wait for the data-home lock matches make install/uninstall's own
@@ -67,8 +69,7 @@ COMMAND_TIMEOUT = 60.0
 LOCK_TIMEOUT = 60.0
 
 
-class CursorError(Exception):
-    """A refused path or unusable environment, reported as an error by name."""
+CursorError = cursor_link.CursorError
 
 
 def _note(message: str) -> None:
@@ -96,7 +97,7 @@ def resolve_homes(env: dict[str, str]) -> tuple[Path, Path, Path]:
 
 def installed_theme(data_home: Path) -> Path:
     """Return the installed icon-theme directory that carries the cursor."""
-    return data_home / "icons" / CURSOR_THEME
+    return cursor_link.installed_theme(data_home)
 
 
 def _require_installed(data_home: Path) -> Path:
@@ -106,19 +107,12 @@ def _require_installed(data_home: Path) -> Path:
     cursor theme too, so both it and ``cursors/left_ptr`` must be regular files
     before the link claims to expose a theme.
     """
-    theme = installed_theme(data_home)
-    for path in (theme / "index.theme", theme / "cursors" / "left_ptr"):
-        if not path.is_file():
-            raise CursorError(
-                f"installed cursor theme is missing {path}; run "
-                "make install INSTALL_PACKAGES=icon-theme"
-            )
-    return theme
+    return cursor_link.require_installed(data_home)
 
 
 def _link_target(home: Path) -> Path:
     """Return the Xcursor-path link that exposes the installed theme."""
-    return home / ".icons" / CURSOR_THEME
+    return cursor_link.link_target(home)
 
 
 def _install_link(home: Path, theme: Path) -> None:
@@ -128,27 +122,7 @@ def _install_link(home: Path, theme: Path) -> None:
     is already ours, so a repeat install changes nothing; any other symlink,
     directory or file is refused without being touched.
     """
-    icons = home / ".icons"
-    target = _link_target(home)
-    if os.path.lexists(icons) and not icons.is_dir():
-        raise CursorError(f"{icons} exists but is not a directory")
-    if target.is_symlink():
-        link = os.readlink(target)
-        if link == str(theme):
-            return
-        raise CursorError(
-            f"{target} is a symlink to {link}, not our installed theme; "
-            "leaving it untouched"
-        )
-    if os.path.lexists(target):
-        raise CursorError(
-            f"{target} exists and is not our symlink; leaving it untouched"
-        )
-    try:
-        icons.mkdir(parents=True, exist_ok=True)
-        os.symlink(str(theme), str(target))
-    except OSError as exc:
-        raise CursorError(f"cannot create {target}: {exc}") from exc
+    cursor_link.install_link(home, theme)
 
 
 def _select(env: dict[str, str]) -> int:
@@ -236,18 +210,8 @@ def _cursor_theme_setting(config_home: Path) -> str | None:
 
 def _remove(home: Path, data_home: Path, config_home: Path) -> int:
     """Unlink only our Xcursor-path symlink; leave every foreign path alone."""
-    target = _link_target(home)
-    theme = installed_theme(data_home)
-    if target.is_symlink():
-        link = os.readlink(target)
-        if link == str(theme):
-            try:
-                target.unlink()
-            except OSError as exc:
-                raise CursorError(f"cannot remove {target}: {exc}") from exc
-        else:
-            _note(f"{target} is not our symlink; leaving it untouched")
-    elif os.path.lexists(target):
+    target, foreign = cursor_link.remove_link(home, data_home)
+    if foreign:
         _note(f"{target} is not our symlink; leaving it untouched")
     if _cursor_theme_setting(config_home) == CURSOR_THEME:
         _note(
