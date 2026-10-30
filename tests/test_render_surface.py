@@ -497,6 +497,19 @@ class TestFailurePaths(StubTools):
         argv = record.read_text(encoding="utf-8")
         self.assertTrue(argv.startswith("[] install XDG_DATA_HOME="), argv)
 
+    def test_install_ignores_makefiles_from_the_environment(self):
+        marker = self.root / "makefiles-executed"
+        injected_makefile = self.root / "injected.mk"
+        injected_makefile.write_text(
+            f"$(shell touch '{marker}')\n", encoding="utf-8"
+        )
+        self.stub("make", f'exec "{self.real_make}" "$@"')
+        with mock.patch.dict(os.environ, {"MAKEFILES": str(injected_makefile)}):
+            self.run_main()
+        self.assertFalse(
+            marker.exists(), "caller-controlled MAKEFILES ran during the render install"
+        )
+
     def test_install_ignores_a_destdir_from_the_outer_make_command_line(self):
         # `make DESTDIR=/stage render` exports the command-line variable through
         # MAKEFLAGS as well as the environment, so dropping DESTDIR alone leaves

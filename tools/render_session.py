@@ -44,6 +44,7 @@ _DROPPED_ENVIRONMENT = (
     "DISPLAY",
     "DESTDIR",
     "MAKEFLAGS",
+    "MAKEFILES",
     "XDG_CONFIG_DIRS",
 )
 
