@@ -98,12 +98,4 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 4 calendars: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued disabled day-number foreground)
-
-**Goal.** Suppress the inherited calendar-label outline transition so the declared black keyboard-focus indicator takes effect immediately through the supported GTK 4 user stylesheet import. The existing `TestGtk4Theme.test_calendar_focus_outline` pins the focused endpoint, but the sheet supplies no transition override.
-
-**Approach and files.** Beside the calendar rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `calendar > grid > label { transition: none; }`. Target the base label rather than `:focus` so both entering and leaving focus use the override. Add a dated adaptation comment: no reference screenshot supplies calendar motion evidence; immediate focus is a theme adaptation to avoid interpolation of the pinned outline. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_calendar_focus_transition` asserting that exact one-property rule, and retain `test_calendar_focus_outline`'s exact endpoint assertions. Update the dedicated calendar adaptation row in `docs/invariants.md` with the new test, the supported `make apply-gtk` import path and this provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares transitions of outline-color, outline-width and outline-offset lasting 200ms on `calendar > grid > label`; this plan chooses `none` rather than claiming a screenshot-derived timing. Keep library attribution in the invariant, as required by `test_stands_alone`.
-
-**Acceptance criteria.** Removing the base-label override, narrowing it to focused labels or restoring a timed transition fails the new declaration test. Existing focus-outline and calendar paint assertions still pass. Documentation distinguishes declaration checks from rendered motion evidence. Limit changes to these three files and calendar-label transitions; preserve outline endpoints, day colors, geometry and GTK 3 behavior. No new assets, dependencies or screenshot measurements are needed. `make check` passes.
-
 ## Done

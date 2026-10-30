@@ -405,6 +405,9 @@ for radio in (False, True):
         self.assertEqual(self.rules[focus]["outline-color"], BLACK)
         self.assertTrue(self.rules["calendar"]["border"].endswith(BLACK))
 
+    def test_calendar_focus_transition(self):
+        self.assert_rule("calendar > grid > label", {"transition": "none"})
+
     def test_calendar_header_separator(self):
         header = "calendar > header"
         infobar = "infobar > revealer > box"

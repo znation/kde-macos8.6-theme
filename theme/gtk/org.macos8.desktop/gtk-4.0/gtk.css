@@ -1001,6 +1001,11 @@ calendar > grid > label.day-number:selected {
 }
 /* No GTK calendar appears in the reference; reuse the opaque black frame
    token for keyboard focus (recorded 2026-10-29 by the feature role). */
+/* No reference supplies calendar motion evidence; disable outline interpolation
+   so the pinned focus indicator changes immediately (2026-10-29). */
+calendar > grid > label {
+  transition: none;
+}
 calendar > grid > label:focus {
   outline-color: #000000;
   outline-width: 2px;
