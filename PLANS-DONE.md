@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 flow-box children: declare a focused outline (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** Give focused GTK 3 flow-box children an explicit Platinum outline. The GTK 3 sheet and its tests have no `flowboxchild` rule; the finished GTK 4 flow-box plan covers corners and explicitly excludes focus outlines.
+
+**Approach and files.** Beside the list-row and tree-view focus rules in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `flowbox > flowboxchild:focus` declaring `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0`. Include a dated adaptation comment naming the missing GTK flow-box keyboard-focus reference and reuse of `button:focus`'s outline policy. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_flowbox_child_focus_outline` following `test_list_row_focus_outline`: use `assert_rule` and `BLACK` to pin the three declarations, and compare each property with `button:focus`. Add a dated declaration-guarantee and provenance row under `## gtk` in `docs/invariants.md`. Node provenance: `/usr/share/gir-1.0/Gtk-3.0.gir`, inspected 2026-10-29, documents `flowbox` with direct `flowboxchild` nodes. Property provenance: `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` supplies the universal outline recipe and names `flowbox flowboxchild:selected` with an outline offset. Put library attribution in documentation rather than CSS to preserve the standalone-sheet check.
+
+**Acceptance criteria.** The named focus selector explicitly declares a 1px dotted black outline, zero offset and square GTK outline corners; changing or removing a declaration fails the new test. Record the values as platform adaptations, not screenshot measurements. Existing list-row and tree-view focus tests pass. Declaration coverage does not establish rendered focus pixels or keyboard traversal behavior. Limit implementation to the three named files, without new artwork or dependencies; selection paint and spacing are outside this plan. This plan can merge independently of the notebook-tab plan. `make check` passes.
+
 ### Platinum GTK 3 tree views: declare a focused outline (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Give `treeview.view:focus` an explicit Platinum outline alongside the existing tree-view selection paint. The sheet declares a focused list-row outline but no tree-view focus outline.

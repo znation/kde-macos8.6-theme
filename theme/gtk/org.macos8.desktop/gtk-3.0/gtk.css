@@ -648,6 +648,14 @@ treeview.view:focus {
   -gtk-outline-radius: 0;
 }
 
+/* No GTK flow-box keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners (adaptation 2026-10-29). */
+flowbox > flowboxchild:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 treeview.view.expander, expander title > arrow {
   min-width: 16px;
   min-height: 16px;
