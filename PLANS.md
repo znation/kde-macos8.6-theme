@@ -165,7 +165,7 @@ spin-button's inner transparent text node `.osd spinbutton:not(.vertical)
 entry`, its button row `.osd spinbutton:not(.vertical) button(:hover/:
 backdrop/:disabled)` and its dir/last-child radius arms, and the vertical
 `.osd spinbutton.vertical button:first-child` family. (2) In
-`tests/test_gtk_theme.py`, add `TestGtkTheme.test_osd_entry_fields` beside
+`tests/test_gtk_theme.py`, add `TestGtkTheme::test_osd_entry_fields` beside
 `test_osd_overlay_bands`: build two expected dictionaries by extending the
 landed `ENTRY_FIELD` spec with `background-image: none`, `text-shadow: none`
 and `-gtk-icon-shadow: none` (so the reuse is visible in the code, not a
