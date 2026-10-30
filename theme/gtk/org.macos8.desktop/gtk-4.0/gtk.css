@@ -1485,32 +1485,50 @@ placessidebar .navigation-sidebar > row.sidebar-new-bookmark-row {
 }
 
 /* Linked groups share one black border between members; the stock GTK 4
-   scheme sources the selector spellings (2026-10-29). */
+   scheme sources the selector spellings (2026-10-29); the menubutton,
+   colorbutton, fontbutton and tabbutton member spellings added
+   2026-10-30 come from the same stock source. */
 .linked:not(.vertical) > button,
 .linked:not(.vertical) > entry,
 .linked:not(.vertical) > spinbutton:not(.vertical),
-.linked:not(.vertical) > dropdown > button {
+.linked:not(.vertical) > dropdown > button,
+.linked:not(.vertical) > menubutton > button,
+.linked:not(.vertical) > colorbutton > button,
+.linked:not(.vertical) > fontbutton > button,
+.linked:not(.vertical) > tabbutton > button {
   border-right-style: none;
 }
 
 .linked:not(.vertical) > button:last-child,
 .linked:not(.vertical) > entry:last-child,
 .linked:not(.vertical) > spinbutton:not(.vertical):last-child,
-.linked:not(.vertical) > dropdown > button:last-child {
+.linked:not(.vertical) > dropdown > button:last-child,
+.linked:not(.vertical) > menubutton > button:last-child,
+.linked:not(.vertical) > colorbutton > button:last-child,
+.linked:not(.vertical) > fontbutton > button:last-child,
+.linked:not(.vertical) > tabbutton > button:last-child {
   border-right-style: solid;
 }
 
 .linked.vertical > button,
 .linked.vertical > entry,
 .linked.vertical > spinbutton:not(.vertical),
-.linked.vertical > dropdown > button {
+.linked.vertical > dropdown > button,
+.linked.vertical > menubutton > button,
+.linked.vertical > colorbutton > button,
+.linked.vertical > fontbutton > button,
+.linked.vertical > tabbutton > button {
   border-bottom-style: none;
 }
 
 .linked.vertical > button:last-child,
 .linked.vertical > entry:last-child,
 .linked.vertical > spinbutton:not(.vertical):last-child,
-.linked.vertical > dropdown > button:last-child {
+.linked.vertical > dropdown > button:last-child,
+.linked.vertical > menubutton > button:last-child,
+.linked.vertical > colorbutton > button:last-child,
+.linked.vertical > fontbutton > button:last-child,
+.linked.vertical > tabbutton > button:last-child {
   border-bottom-style: solid;
 }
 

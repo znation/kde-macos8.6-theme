@@ -1391,7 +1391,9 @@ for radio in (False, True):
         for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
                                 (".linked.vertical", "border-bottom-style")):
             for member in ("button", "entry", "spinbutton:not(.vertical)",
-                           "dropdown > button"):
+                           "dropdown > button", "menubutton > button",
+                           "colorbutton > button", "fontbutton > button",
+                           "tabbutton > button"):
                 self.assert_rule(
                     f"{css_class} > {member}",
                     {side: "none"},
@@ -1402,7 +1404,11 @@ for radio in (False, True):
                                 (".linked.vertical", "border-bottom-style")):
             for member in ("button:last-child", "entry:last-child",
                            "spinbutton:not(.vertical):last-child",
-                           "dropdown > button:last-child"):
+                           "dropdown > button:last-child",
+                           "menubutton > button:last-child",
+                           "colorbutton > button:last-child",
+                           "fontbutton > button:last-child",
+                           "tabbutton > button:last-child"):
                 self.assert_rule(
                     f"{css_class} > {member}",
                     {side: "solid"},
