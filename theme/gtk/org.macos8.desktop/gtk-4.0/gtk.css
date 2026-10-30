@@ -965,6 +965,11 @@ scale.vertical > trough > slider {
   min-height: 12px;
 }
 
+/* 2026-10-29: no GTK scale reference; parent interaction reuses the thumb face. */
+scale:hover > trough > slider, scale:active > trough > slider {
+  background-color: #DDDDDD;
+}
+
 /* 2026-10-29: no disabled-scale reference; preserve its Platinum palette. */
 scale:disabled {
   filter: none;

@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 scales: preserve the thumb face on parent hover (planned 2026-10-29 by the plan role; independent of the queued disabled scale opacity) — done 2026-10-29 by the feature role
+
+**Goal.** Keep the existing Platinum thumb face when the scale parent is hovered or active. The sheet covers `slider:hover` and `slider:active`, but not `scale:hover > trough > slider` or `scale:active > trough > slider`; the finished meters-and-sliders plan specifies the child states only.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate grouped rule for `scale:hover > trough > slider, scale:active > trough > slider` declaring only `background-color: #DDDDDD`. Add a dated adaptation comment explaining that the parent interaction states reuse the existing thumb face, with no GTK scale reference screenshot available. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_parent_interaction_face`, calling `assert_rule` for each selector with exactly `{"background-color": FACE}`. Retain `test_scale` for the base and child-state paint. Add a focused row in `docs/invariants.md` naming these tests and the adaptation source: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares these parent-state selectors with `background-color: white`; the replacement reuses `SCALE_THUMB`'s `FACE` in `tests/support/gtk_theme_spec.py`. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
+
+**Acceptance criteria.** Both parent-state selectors match the stock selectors' specificity, permitting the later user stylesheet imported by `make apply-gtk` to override their white face. Removing either selector or changing its declaration fails the new test. Documentation names the missing reference surface and chosen-value source and claims declaration coverage rather than rendered pixel fidelity. Limit implementation to the three named files and the parent-state thumb background: trough/highlight interaction paint, disabled effects, marked scales, geometry and GTK 3 remain separate work. No new palette value, asset or dependency. `make check` passes.
+
 ### Platinum GTK 4 scales: preserve disabled palette opacity (planned 2026-10-29 by the plan role; independent of the queued progress trough thickness) — done 2026-10-29 by the feature role
 
 **Goal.** Prevent the stock whole-scale disabled opacity filter from fading the theme's declared Platinum palette. The current sheet styles the disabled slider face and border but has no `scale:disabled` filter override; the finished meters-and-sliders plan covers those paints, not this filter.
