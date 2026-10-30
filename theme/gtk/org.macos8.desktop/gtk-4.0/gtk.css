@@ -267,6 +267,13 @@ button:active, button:checked {
   box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
 }
 
+/* No reference screenshot shows GTK push-button keyboard focus; reuse the
+ * scale focus black. The inherited outline geometry is GTK-required.
+ * Recorded 2026-10-29 by the feature role. */
+button:focus:focus-visible {
+  outline-color: #000000;
+}
+
 entry, spinbutton:not(.vertical), spinbutton.vertical > text {
   background-color: #FFFFFF;
   border: 1px solid #000000;

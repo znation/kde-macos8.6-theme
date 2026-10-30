@@ -96,14 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 push buttons: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued check-button focus color)
-
-**Goal.** Give keyboard-focused GTK 4 push buttons an opaque black Platinum outline through the supported `make apply-gtk` user stylesheet import.
-
-**Approach and files.** After the button state rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `button:focus:focus-visible { outline-color: #000000; }`, with a dated comment naming the missing GTK push-button keyboard-focus reference and reuse of the existing scale focus black. Keep inherited outline geometry and motion. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_button_focus_outline_color` following `test_scale_focus_outline_color`: assert the complete selector with `{"outline-color": BLACK}` and equality with `scale:focus:focus-visible > trough > slider`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and platform adaptation. Attribute the stock selector's accent/transparent mixed outline color, 2px width and -2px offset to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep the library name outside CSS for `test_stands_alone`.
-
-**Acceptance criteria.** The declaration test pins the focused button's opaque black outline color and its equality with the scale focus token. The new focus rule contains only `outline-color`; existing button face, bevel and state declaration tests pass. The invariant names the missing reference surface and reused color without claiming screenshot-derived focus geometry or rendered pixels. `make check` passes. Scope is one CSS rule, its regression test and provenance, with no new dependency or artwork.
-
 ### Platinum GTK 4 push buttons: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued push-button focus color)
 
 **Goal.** Remove inherited focus-outline animation from GTK 4 push buttons through the supported `make apply-gtk` user stylesheet import.
