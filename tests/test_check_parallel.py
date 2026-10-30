@@ -365,6 +365,30 @@ class TestCoordinator(unittest.TestCase):
             output.getvalue(),
         )
 
+    def test_summary_combines_failed_timed_out_and_unfinished_modules(self):
+        failed_log = make_tmp_dir(self) / "failed.log"
+        failed_log.write_text("failure detail\n", encoding="utf-8")
+        timeout_log = make_tmp_dir(self) / "timeout.log"
+        timeout_log.write_text("partial output\n", encoding="utf-8")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_failed", "test_timeout", "test_unfinished"],
+                {"test_failed": 1, "test_timeout": None},
+                {"test_failed": str(failed_log), "test_timeout": str(timeout_log)},
+                2,
+            )
+        self.assertEqual(1, status)
+        rendered = output.getvalue()
+        self.assertIn("test_failed: exit 1", rendered)
+        self.assertIn("test_timeout: timed out after 2s (process group killed)", rendered)
+        self.assertIn("test_unfinished: did not finish", rendered)
+        self.assertIn(
+            "check: 3 modules, 1 module failed, 1 module timed out, "
+            "1 module not finished",
+            rendered,
+        )
+
     def test_worker_terminal_controls_are_escaped_before_replay(self):
         tests_dir = self._project(
             {
