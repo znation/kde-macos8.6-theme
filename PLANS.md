@@ -108,12 +108,4 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 3 scales: declare a focused outline (planned 2026-10-29 by the plan role; independent of the GTK 4 overlay breadth plan)
-
-**Goal.** Give focused GTK 3 scales an explicit Platinum outline. The standalone sheet defines scale trough, thumb, orientation and disabled paint but contains no focus rule; this plan establishes a declaration guarantee rather than claiming that GTK currently renders no focus feedback.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `scale:focus { outline: 1px dotted #000000; outline-offset: 0; -gtk-outline-radius: 0; }` beside the scale rules. Add a dated adaptation comment: no reference shows GTK scale focus; reuse the sheet's `.rubberband, rubberband` black dotted 1px treatment, with zero offset and square corners following its square scale geometry. GTK 3 uses `:focus`; do not copy GTK 4's `:focus-visible` selector. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_scale_focus_outline`, using `assert_rule` for these declarations and `BLACK` for the color. Parse the existing rubberband border to assert the same width, style and color, and compare the zero radius with `scale trough`'s `border-radius`. Under `## gtk` in `docs/invariants.md`, record this guarantee and test, the missing focus reference surface and these adaptation sources. The installed GTK 3 resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29, supplies `outline-width`, `outline-style`, `outline-offset` and `-gtk-outline-radius` in its universal rule; cite it for toolkit property provenance, keeping library paths outside CSS.
-
-**Acceptance criteria.** The focused scale explicitly declares the dotted black 1px outline, zero offset and zero GTK outline radius; deleting or changing a declaration fails the new test. The adaptation is documented without presenting its geometry as screenshot measurements. Existing `TestGtkTheme.test_scale` paint and sizing coverage passes. Limit implementation to the three named files; do not change thumb dimensions, margins, disabled paint or other widgets' focus rules. Declaration coverage does not establish rendered focus pixels or keyboard traversal behavior. `make check` passes.
-
 ## Done

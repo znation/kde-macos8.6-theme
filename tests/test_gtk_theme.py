@@ -723,6 +723,19 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
             disabled="scale slider:disabled",
         )
 
+    def test_scale_focus_outline(self):
+        self.assert_rule(
+            "scale:focus",
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        width, style, color = self.rules[".rubberband"]["border"].split()
+        self.assertEqual((width, style, color), ("1px", "dotted", BLACK))
+        self.assertEqual(self.rules["scale trough"]["border-radius"], "0")
+
     def test_menubar_titles(self):
         self.assert_menubar_titles("menubar > menuitem")
 

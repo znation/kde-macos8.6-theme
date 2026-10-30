@@ -823,6 +823,14 @@ scale slider:disabled {
   box-shadow: none;
 }
 
+/* GTK 3 has no reference scale-focus surface; reuse the dotted black
+   rubberband outline and square scale geometry as a Platinum adaptation. */
+scale:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 switch {
   background-color: #EEEEEE;
   background-image: none;
