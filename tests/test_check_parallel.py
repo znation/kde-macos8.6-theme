@@ -127,6 +127,68 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("partial worker output", output.getvalue())
         self.assertIn("1 module not finished", output.getvalue())
 
+    def test_a_flooded_log_prints_a_bounded_tail_with_a_hidden_byte_note(self):
+        """A log past the printed section's cap keeps only its tail.
+
+        A worker killed at its timeout while flooding its log can leave a
+        file far larger than the tail worth reading: the section reads only
+        the last window, opens it on a line break, and names the hidden
+        bytes on a leading note line instead of loading and echoing the
+        whole flood (whose MemoryError would never be the OSError the
+        unreadable-log case catches, killing the whole results report).
+        """
+        log_path = make_tmp_dir(self) / "worker.log"
+        log_path.write_bytes(b"x" * 100_000 + b"\n" + b"tail line\n" + b"Ran 1 test in 0.001s\n\nOK\n")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+            )
+        text = output.getvalue()
+        self.assertEqual(0, status)
+        # The flood is gone from the printout: a window cut at 64 KiB falls
+        # inside the x-run, and everything through the flood line's break
+        # (the partial line the window opens on) is dropped with it.
+        self.assertNotIn("x" * 65_536, text)
+        self.assertNotIn("x" * 55_000, text)
+        self.assertLess(len(text), 100_000)
+        # The truncation is named, not silent, and the log's own tail survives.
+        self.assertIn(
+            "===== test_ok: exit 0 =====\ncheck: ",
+            text,
+        )
+        self.assertIn("earlier log bytes hidden; showing the last ", text)
+        self.assertIn("tail line\n", text)
+        self.assertIn("Ran 1 test in 0.001s", text)
+        self.assertIn("\nOK\n", text)
+
+    def test_a_flooded_log_keeps_its_end_of_log_summary_verdict(self):
+        """The exit-5 summary check still sees unittest's end-of-log summary.
+
+        unittest prints its ``Ran 0 tests``/``NO TESTS RAN`` summary at the
+        very end of the worker log, so the bounded tail window always holds
+        both markers: a flooded log must not misreport a genuinely empty run
+        as one without an exit-5 verdict.
+        """
+        log_path = make_tmp_dir(self) / "worker.log"
+        log_path.write_bytes(
+            # A realistic flood: the summary follows the flood's own line
+            # break, as unittest's summary always ends a line it started.
+            b"x" * 100_000
+            + b"\n"
+            + b"Ran 0 tests in 0.000s\n\nNO TESTS RAN\n"
+        )
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_ok"], {"test_ok": 5}, {"test_ok": str(log_path)}, 10
+            )
+        self.assertEqual(0, status)
+        self.assertIn(
+            "===== test_ok: ran no tests (unittest's NO TESTS RAN, exit 5) =====",
+            output.getvalue(),
+        )
+
     def test_invalid_utf8_in_worker_log_is_replaced(self):
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_bytes(b"worker output: \xff\n")
