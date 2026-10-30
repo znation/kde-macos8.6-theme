@@ -771,6 +771,15 @@ progressbar > trough {
   min-width: 10px;
 }
 
+/* No reference shows an oriented GTK progress trough; reuse the base minimum. (2026-10-29) */
+progressbar.horizontal > trough {
+  min-height: 10px;
+}
+
+progressbar.vertical > trough {
+  min-width: 10px;
+}
+
 progressbar > trough > progress {
   background-color: #CCCCFF;
   background-image: none;

@@ -30,6 +30,7 @@ from support.gtk_theme_spec import (
     MENUBUTTON_ARROWS,
     VISITED_LINK,
     MENU_CHECK,
+    PROGRESSBAR_TROUGH,
     RAISED_BEVEL,
     ROW_HOVER,
     ROW_SELECTED,
@@ -897,6 +898,19 @@ for radio in (False, True):
             progress="progressbar > trough > progress",
             disabled="progressbar > trough > progress:disabled",
         )
+
+    def test_progressbar_oriented_trough_thickness(self):
+        horizontal = "progressbar.horizontal > trough"
+        vertical = "progressbar.vertical > trough"
+        expected = {
+            horizontal: {"min-height": self.rules["progressbar > trough"]["min-height"]},
+            vertical: {"min-width": self.rules["progressbar > trough"]["min-width"]},
+        }
+        self.assertEqual(expected[horizontal]["min-height"], PROGRESSBAR_TROUGH["min-height"])
+        self.assertEqual(expected[vertical]["min-width"], PROGRESSBAR_TROUGH["min-width"])
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], declarations)
 
     def test_progressbar_directional_corners(self):
         self.assert_rule("progressbar > trough > progress", {"border-radius": "0"})
