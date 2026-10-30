@@ -104,4 +104,12 @@ _None yet._
 
 **Acceptance criteria.** `spinbutton:focus-within` declares opaque black; removing or changing the declaration fails the new test. Existing spin-button field declarations and tests pass. The invariant identifies the missing reference surface and reused focus policy, and states that geometry and transitions remain inherited and declaration tests do not establish rendered focus pixels. Scope is these three files; spin-button motion, geometry, palette tokens and artwork are separate work. This plan and the waiting entry-transition plan may merge in either order. `make check` passes.
 
+### Platinum GTK 4 spin buttons: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued spin-button focus color)
+
+**Goal.** Make GTK 4 spin-button focus-outline changes immediate on focus entry and exit through the supported `make apply-gtk` user stylesheet import, matching the entry and scale focus-motion policy.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate base `spinbutton { transition: none; }` rule beside the entry-field rules. Target the outer node for both orientations, rather than the vertical text child or the grouped field-paint selectors. Add a dated adaptation comment naming the missing GTK spin-button focus-motion reference and reuse of the immediate scale-focus policy. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_spinbutton_focus_transition` following `test_entry_focus_transition`: assert the base spinbutton declaration and equality with `scale > trough > slider`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee and test. Attribute the inherited 200ms outline-color, outline-width and outline-offset transitions to the stock `spinbutton, entry` rule in `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep library attribution outside CSS for `test_stands_alone`.
+
+**Acceptance criteria.** Base `spinbutton` declares `transition: none` in focused and unfocused states; removing or changing it fails the new test. Existing entry and spin-button field tests pass. The invariant names the missing reference surface and reused motion policy, and states that declaration tests do not establish rendered motion. Scope is these three files; focus color and outline geometry are separate work. This plan and the queued spin-button focus-color plan may merge in either order. `make check` passes.
+
 ## Done
