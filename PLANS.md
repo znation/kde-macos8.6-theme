@@ -96,4 +96,12 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 4 progress bars: keep directional fill corners square (planned 2026-10-29 by the plan role; independent of the queued disabled progress-bar colors)
+
+**Goal.** Preserve the sheet's square progress fill when GTK attaches `.left`, `.right`, `.top` or `.bottom`. The existing base fill rule has less specificity than the installed directional corner rules; the finished meters-and-sliders plan specifies only the base radius.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the progress-bar fill rule, add one grouped rule for `progressbar > trough > progress.left`, `progressbar > trough > progress.right`, `progressbar > trough > progress.top` and `progressbar > trough > progress.bottom`, declaring only `border-radius: 0`. These selectors match the specificity of the stock directional rules; the supported user stylesheet import supplies the later override. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_progressbar_directional_corners`, checking each selector with `assert_rule` and exact dictionary equality against `{"border-radius": "0"}`; also compare the value with the base fill's radius. Keep `test_progressbar` intact. Add a focused row under `## gtk` in `docs/invariants.md` naming both tests and the provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, assigns 99px corner longhands to these four directional selectors. No reference screenshot shows a GTK directional progress fill; zero radius reuses the existing square-fill adaptation, rather than introducing a measured GTK metric. Keep library attribution in documentation to satisfy `test_stands_alone`.
+
+**Acceptance criteria.** Each directional selector declares exactly the zero-radius shorthand, overriding its stock corner longhands through `make apply-gtk`'s user stylesheet import; removing a selector or changing its radius fails the new test. Existing base progress-bar declarations remain covered by `test_progressbar`. Documentation distinguishes declaration coverage from rendered-pixel evidence and names the missing reference surface and value source. Limit implementation to these three files and directional fill corners; disabled filters, minimum sizes, OSD variants and GTK 3 are separate work. No new asset, palette value or dependency. `make check` passes.
+
 ## Done
