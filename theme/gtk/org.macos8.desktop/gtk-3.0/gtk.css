@@ -387,6 +387,14 @@ notebook > header > tabs > tab.reorderable-page:checked:hover {
   box-shadow: none;
 }
 
+/* No GTK 3 notebook keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners. */
+notebook > header > tabs > tab:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 /* A stack switcher's page buttons draw as the landed tab recipe, the active
    page's button included; :backdrop stays out of scope. */
 stackswitcher > button {

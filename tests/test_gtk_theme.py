@@ -198,6 +198,22 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {"background-color": FACE, "border": f"1px solid {BLACK}"},
         )
 
+    def test_notebook_tab_focus_outline(self):
+        selector = "notebook > header > tabs > tab:focus"
+        self.assert_rule(
+            selector,
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules[selector][property_name],
+                self.rules["button:focus"][property_name],
+            )
+
     def test_tree_header(self):
         self.assert_tree_header(("treeview.view header button",))
 

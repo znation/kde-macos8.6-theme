@@ -96,7 +96,7 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 3 notebook tabs: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued horizontal spin-button outline plan)
+### Platinum GTK 3 notebook tabs: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued horizontal spin-button outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Give focused GTK 3 notebook tab nodes an explicit Platinum outline. The existing notebook tab paint rules declare no focus outline; the completed notebook focus-color and transition plans target GTK 4.
 
