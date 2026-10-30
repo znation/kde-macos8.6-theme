@@ -96,14 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 check buttons: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued notebook focus color)
-
-**Goal.** Make the `checkbutton` keyboard-focus outline change immediately through the supported `make apply-gtk` user stylesheet import, following the existing calendar and scale focus policy.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside `check, radio`, add `checkbutton { transition: none; }` with a dated adaptation comment naming the missing GTK check-button focus-motion reference and reuse of immediate scale focus. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_checkbutton_focus_transition`, following `test_scale_focus_transition`: use `assert_rule("checkbutton", {"transition": "none"})` and compare the declaration to `scale > trough > slider`. Under `## gtk` in `docs/invariants.md`, record this declaration guarantee, test, missing reference surface, reused policy and supported import path. Attribute the stock `checkbutton` outline-color, outline-width and outline-offset 200ms transitions to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep the library name out of CSS for `test_stands_alone`.
-
-**Acceptance criteria.** The base `checkbutton` selector declares `transition: none`, covering focus entry and exit; removing or changing that declaration fails the new test. Documentation describes declaration coverage without claiming rendered motion evidence. Limit implementation to these three files and the parent node's transition; child `check`/`radio` paint and transitions, focus color and geometry, GTK 3 and notebook rules remain outside scope. No new palette value, artwork or dependency. This plan can merge independently of the queued notebook focus-color plan. `make check` passes.
-
 ### Platinum GTK 4 notebook tabs: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued notebook focus transition) — done 2026-10-29 by the feature role
 
 **Goal.** Give the selected tab of a keyboard-focused notebook the existing opaque black Platinum focus color through the supported `make apply-gtk` user stylesheet import.

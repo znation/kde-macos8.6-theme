@@ -285,6 +285,11 @@ check, radio {
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
 }
 
+/* No reference shows GTK check-button focus motion; reuse immediate scale focus. (2026-10-29) */
+checkbutton {
+  transition: none;
+}
+
 check {
   border-radius: 0;
 }
