@@ -104,4 +104,12 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 3 overlay scrollbar thumbs: declare a reference-derived minimum (planned 2026-10-29 by the plan role; independent of the GTK 4 overlay breadth plan)
+
+**Goal.** Give GTK 3 overlay thumbs an explicit minimum when the theme disables their steppers. The GTK 3 sheet currently gives `scrollbar slider` borders and paint but no minimum dimensions; the finished GTK 4 breadth work does not cover this sheet. This is a declaration guarantee, not a claim about current rendered allocation.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `scrollbar.overlay-indicator slider { min-width: 12px; min-height: 12px; }`. Add a dated adaptation comment: the reference set has no GTK overlay scrollbar; reuse the ordinary 16px reference band minus the scrollbar's and slider's two 1px borders, as in GTK 4. Keep ordinary GTK 3 sizing and the overlay stepper policy intact. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_overlay_scrollbar_thumb_minimum` using `assert_rule` for the new selector. Add `TestScrollbarStepperReference.test_overlay_thumb_minimum_matches_reference`: sample the black boundaries at x=200, y=462 and y=477 and the intervening `TROUGH` pixels from `setup_emaculation.png`; derive `band = bottom - top + 1`, parse the sheet with the existing guarded `gtk_css.read_theme_text` and `parse_css`, assert both scrollbar and slider borders are `1px solid {BLACK}`, and compare both new minima with `f"{band - 4}px"`. Under `## gtk` in `docs/invariants.md`, record this minimum-size guarantee and both tests; identify the missing GTK overlay reference surface and the existing GTK 4 reference-band calculation as the adaptation source.
+
+**Acceptance criteria.** The overlay selector explicitly declares both 12px minima; deleting either declaration or changing its value fails the declaration and reference-derived checks. The reference test re-derives the band from lossless pixels rather than asserting a standalone size constant. Existing ordinary scrollbar and stepper tests pass. Limit implementation to these three files; introduce no visibility policy or rendered-geometry claim. `make check` passes.
+
 ## Done
