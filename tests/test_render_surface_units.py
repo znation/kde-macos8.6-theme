@@ -16,8 +16,9 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
-from support.cli_fixtures import call_main  # noqa: E402
+from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: E402
 from tools import render_session, render_surface  # noqa: E402
+from tools.render_session import checkbox_dialog_client  # noqa: E402
 
 
 class TestArguments(unittest.TestCase):
@@ -74,24 +75,70 @@ class TestArguments(unittest.TestCase):
     def test_requires_an_output_path(self):
         self.assert_usage_error()
 
+    def test_rejects_an_applet_with_the_checkbox_dialog(self):
+        # The dialog render opens its own kdialog client; a plasmoid id
+        # combined with it would silently draw nothing.
+        self.assertIn(
+            "--checkbox-dialog",
+            self.assert_usage_error("out.png", "--checkbox-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_checkbox_dialog(self):
+        # The gate byte-compares the dialog capture at 480x360; any other
+        # size moves the KDialog window the comparison crops assume.
+        stderr = self.assert_usage_error(
+            "out.png", "--checkbox-dialog", "--width", "320"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_the_checkbox_dialog_requires_kdialog(self):
+        # The default applet render cannot need every tool the dialog mode
+        # needs, so the dialog requirement is refused per mode: with kdialog
+        # absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--checkbox-dialog")
+        )
+
 
 class TestSessionSetup(unittest.TestCase):
     def test_creates_the_scratch_layout_and_removes_it(self):
         with render_session.Session.create() as session:
             root = session.root
             self.assertTrue(root.name.startswith("render-surface-"))
-            for directory in (session.runtime, session.config, session.data):
+            for directory in (session.runtime, session.config, session.data, session.home):
                 with self.subTest(directory=directory.name):
                     self.assertTrue(directory.is_dir())
-                    self.assertEqual(root, directory.parent)
             self.assertEqual(0o700, stat.S_IMODE(session.runtime.stat().st_mode))
             self.assertEqual(session.root / "surface.png", session.surface)
+
+    def test_links_the_scratch_homes_themes_for_the_kvantum_lookups(self):
+        # Kvantum searches its theme under the literal
+        # `$HOME/.local/share/themes/` path, which no `XDG_DATA_HOME` a
+        # throwaway install targets satisfies: the session links the two, so
+        # a Qt client in the session reads the installed theme directory.
+        with render_session.Session.create() as session:
+            error, themes = render_session.link_kvantum_themes(session)
+            self.assertIsNone(error)
+            self.assertTrue(themes.is_symlink())
+            self.assertEqual(str(session.data / "themes"), os.readlink(themes))
+            # A session is linked once, so a second call is refused with the
+            # first link still in place: the CLI reports it to the caller
+            # rather than overwrite a working session link.
+            second, link = render_session.link_kvantum_themes(session)
+            self.assertIsInstance(second, FileExistsError)
+            self.assertTrue(link.is_symlink())
+
+    def test_the_settings_and_scripts_paths_are_reported(self):
+        with render_session.Session.create() as session:
             self.assertEqual(session.root / "install.log", session.install_log)
             self.assertEqual(session.root / "render.log", session.render_log)
-        self.assertFalse(root.exists())
 
     def test_environment_points_at_the_scratch_homes(self):
         with render_session.Session.create() as session:
+            self.assertEqual(
+                str(session.home), session.environment["HOME"]
+            )
             self.assertEqual(
                 str(session.runtime), session.environment["XDG_RUNTIME_DIR"]
             )
@@ -159,35 +206,35 @@ class TestSessionScript(unittest.TestCase):
     rather than as the renderer's own bug.
     """
 
-    def test_applies_the_scheme_before_opening_the_applet(self):
+    def test_applies_the_scheme_before_opening_the_client(self):
         script = render_session.session_script()
         # The installed scheme id, applied inside the session; `|| exit 1`
         # aborts the session on a failed apply instead of capturing an
-        # unthemed window. The applet opens before the settle sleep, so the
+        # unthemed window. The client opens before the settle sleep, so the
         # sleep is the wait for it to paint.
         self.assertIn(
             f"plasma-apply-colorscheme {render_session.COLOR_SCHEME} || exit 1",
             script,
         )
-        self.assertLess(script.index("plasmawindowed"), script.index("sleep"))
+        self.assertLess(script.index('"$@"'), script.index("sleep"))
 
-    def test_captures_to_the_third_positional_argument_with_spectacle(self):
+    def test_captures_to_the_capture_positional_with_spectacle(self):
         # `-b` runs without a GUI, `-n` suppresses the notification, `-f`
         # captures the full screen, and `-o` writes the surface path that the
-        # session command passes as the third positional parameter.
+        # session command passes as the second positional parameter.
         self.assertIn(
-            'spectacle -b -n -f -o "$3"', render_session.session_script()
+            'spectacle -b -n -f -o "$capture"', render_session.session_script()
         )
 
-    def test_stops_the_applet_and_exits_with_the_capture_status(self):
+    def test_stops_the_client_and_exits_with_the_capture_status(self):
         script = render_session.session_script()
-        self.assertIn('kill "$applet"', script)
+        self.assertIn('kill "$client"', script)
         self.assertIn("exit $status", script)
-        # The applet is stopped before the session exits, so no applet
-        # outlives the capture. Match the applet kill exactly: the earlier
+        # The client is stopped before the session exits, so no client
+        # outlives the capture. Match the client kill exactly: the earlier
         # liveness check also spells `kill`.
         self.assertLess(
-            script.index('kill "$applet"'), script.index("exit $status")
+            script.index('kill "$client"'), script.index("exit $status")
         )
 
 
@@ -195,7 +242,7 @@ class TestSessionCommand(unittest.TestCase):
     def test_carries_the_geometry_the_script_and_the_surface_path(self):
         with render_session.Session.create() as session:
             command = render_session.session_command(
-                session, "a b", 2.5, 64, 48, 9.5
+                session, ["plasmawindowed", "a b"], 2.5, 64, 48, 9.5
             )
             self.assertEqual(session.render_log, command.log)
             self.assertEqual(9.5, command.timeout)
@@ -218,9 +265,26 @@ class TestSessionCommand(unittest.TestCase):
             )
             self.assertIn(str(session.surface), command.argv[-1])
             self.assertIn(render_session.session_script(), command.argv[-1])
-            # The applet is a positional parameter, so its space cannot become
-            # shell syntax.
-            self.assertIn("'a b' 2.5", command.argv[-1])
+            # The client words are positional parameters of the in-session
+            # `sh -c`, so their space cannot become shell syntax.
+            self.assertIn("'a b'", command.argv[-1])
+
+    def test_carries_the_checkbox_dialog_client_words(self):
+        with render_session.Session.create() as session:
+            command = render_session.session_command(
+                session,
+                list(checkbox_dialog_client(session)),
+                2.5,
+                480,
+                360,
+                9.5,
+            )
+            self.assertIn("kdialog", command.argv[-1])
+            # The dontagain config file lands in the scratch config home, so
+            # the client never writes the caller's configuration.
+            self.assertIn(
+                f"{session.config / 'kde-dontagain'}:widgets", command.argv[-1]
+            )
 
 
 class TestSessionThemeSources(unittest.TestCase):

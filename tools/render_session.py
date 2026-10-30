@@ -8,6 +8,12 @@ that starts KWin, opens the applet and captures the surface.
 
 The scratch root is created by :meth:`Session.create` and removed by the
 context manager, whether the render succeeds or fails.
+
+The scratch session also gets a ``HOME`` of its own: Kvantum searches its
+theme under ``$HOME/.local/share/themes/`` with that literal path, so the
+scratch home links ``.local/share/themes`` to the scratch data home's
+``themes/``, which ``make install`` populates. Without that link Kvantum
+can find no theme and draws its compiled-in default instead.
 """
 
 from __future__ import annotations
@@ -33,6 +39,7 @@ else:  # run directly: python3 tools/render_surface.py
 # `[kdeglobals][KDE] widgetStyle` default unapplied.
 CONFIG_FILES = ("kwinrc", "plasmarc")
 COLOR_SCHEME = "MacOS8"
+KVANTUM_THEME = "org.macos8.desktop"
 SOCKET = "render-surface"
 INSTALL_TIMEOUT = 60.0
 
@@ -57,6 +64,7 @@ class Session:
     runtime: Path
     config: Path
     data: Path
+    home: Path
     surface: Path
     install_log: Path
     render_log: Path
@@ -69,10 +77,19 @@ class Session:
         try:
             runtime = root / "rt"
             config = root / "cfg"
+            home = root / "home"
+            home.mkdir()
             data = root / "data"
             for directory in (runtime, config, data):
                 directory.mkdir()
             runtime.chmod(0o700)
+            # `KVANTUM_THEME` reaches the session only through the literal
+            # `HOME`-joined path documented in the README, so link the scratch
+            # home's themes into the scratch data home the install targets.
+            data_themes = data / "themes"
+            kvantum_themes = home / ".local" / "share" / "themes"
+            if data_themes.is_dir() and not kvantum_themes.exists():
+                kvantum_themes.symlink_to(data_themes)
             surface = root / "surface.png"
 
             # DESTDIR must not reach the install: the theme has to land in the
@@ -89,6 +106,7 @@ class Session:
                 XDG_RUNTIME_DIR=str(runtime),
                 XDG_CONFIG_HOME=str(config),
                 XDG_DATA_HOME=str(data),
+                HOME=str(home),
             )
         except BaseException:
             shutil.rmtree(root, ignore_errors=True)
@@ -98,6 +116,7 @@ class Session:
             runtime=runtime,
             config=config,
             data=data,
+            home=home,
             surface=surface,
             install_log=root / "install.log",
             render_log=root / "render.log",
@@ -125,30 +144,50 @@ class SessionCommand:
 
 
 def session_script() -> str:
-    """Return the ``sh -c`` script that opens the applet, settles and captures.
+    """Return the ``sh -c`` script that opens the client, settles and captures.
 
-    The positional parameters are the applet id, the settle seconds and the
-    output path, so ``sh`` receives them after the script and never parses
-    them as shell syntax. The script fails the session if the backgrounded
-    applet is no longer running after the settle; without that check
+    The positional parameters are the settle seconds, the capture path and
+    the client argv itself, so ``sh`` receives them after the script and
+    never parses them as shell syntax: the client words are passed through
+    ``shlex``-joined child ``sh -c`` argv, each a separate positional word
+    of this script. The script fails the session if the backgrounded
+    client is no longer running after the settle; without that check
     ``spectacle`` would still publish a capture of an empty session.
     """
-    # `plasmawindowed` runs in the background, so its exit status would
-    # otherwise be lost: if it cannot start or crashes during the settle wait,
+    # The client runs in the background, so its exit status would otherwise
+    # be lost: if it cannot start or crashes during the settle wait,
     # `spectacle` still captures the empty session and reports success,
     # publishing a render of no window. The liveness check therefore runs
-    # before the capture and fails the session with a log line naming
-    # `plasmawindowed` instead.
+    # before the capture and fails the session with a log line naming the
+    # client's first word instead.
     return (
         f"plasma-apply-colorscheme {COLOR_SCHEME} || exit 1; "
-        'plasmawindowed "$1" & applet=$!; '
-        'sleep "$2"; '
-        'if ! kill -0 "$applet" 2>/dev/null; then '
-        'echo "plasmawindowed exited before the capture" >&2; exit 1; fi; '
-        'spectacle -b -n -f -o "$3"; status=$?; '
-        'kill "$applet" 2>/dev/null; '
+        'settle="$1"; capture="$2"; shift 2; '
+        '"$@" & client=$!; '
+        'sleep "$settle"; '
+        'if ! kill -0 "$client" 2>/dev/null; then '
+        'echo "$1 exited before the capture" >&2; exit 1; fi; '
+        'spectacle -b -n -f -o "$capture"; status=$?; '
+        'kill "$client" 2>/dev/null; '
         "exit $status"
     )
+
+
+def link_kvantum_themes(session: Session) -> tuple[OSError | None, Path]:
+    """Link the scratch home's ``themes`` onto the data home's.
+
+    Kvantum searches its theme themes under the literal
+    ``$HOME/.local/share/themes/`` path the README records, which the scratch
+    ``XDG_DATA_HOME`` does not satisfy: the session home is linked so the
+    engine reads the same theme directory ``make install`` populated.
+    """
+    themes = session.home / ".local" / "share" / "themes"
+    try:
+        (session.home / ".local" / "share").mkdir(parents=True, exist_ok=False)
+        themes.symlink_to(session.data / "themes")
+    except OSError as exc:
+        return exc, themes
+    return None, themes
 
 
 def install_theme(session: Session) -> tuple[int | None, Path]:
@@ -163,14 +202,51 @@ def install_theme(session: Session) -> tuple[int | None, Path]:
     return status, session.install_log
 
 
-def write_session_configs(session: Session) -> None:
+def write_session_configs(session: Session, files: tuple[str, ...] = CONFIG_FILES) -> None:
     """Write the global theme's config defaults into the scratch config home."""
-    write_configs(session.config, CONFIG_FILES)
+    write_configs(session.config, files)
+
+
+def write_kvantum_selection(session: Session) -> None:
+    """Select ``KVANTUM_THEME`` in the scratch config home for Qt clients.
+
+    Plasma applets draw through the desktop theme, but every other Qt
+    client (``kdialog`` and friends) reads ``widgetStyle=kvantum`` from
+    ``kdeglobals``, then the Kvantum engine reads its selected theme name
+    from this file. Without the name the engine falls back to its
+    compiled-in default theme.
+    """
+    directory = session.config / "Kvantum"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "kvantum.kvconfig").write_text(
+        f"[General]\ntheme={KVANTUM_THEME}\n", encoding="utf-8"
+    )
+
+
+def checkbox_dialog_client(session: Session) -> tuple[str, ...]:
+    """Return the Qt client argv the widget gate renders.
+
+    A ``kdialog`` warning whose ``--dontagain`` check box is a real
+    ``QCheckBox``: the engine draws its indicator through this theme's
+    ``checkbox-*`` art and ``check_size``, the pixels the widget gate
+    byte-compares. The ``--dontagain`` config file lands in the scratch
+    config home, never the caller's.
+    """
+    dontagain = session.config / "kde-dontagain"
+    return (
+        "kdialog",
+        "--title",
+        "Test",
+        "--warningyesno",
+        "Delete?",
+        "--dontagain",
+        f"{dontagain}:widgets",
+    )
 
 
 def session_command(
     session: Session,
-    applet: str,
+    client: list[str] | tuple[str, ...],
     settle: float,
     width: int,
     height: int,
@@ -183,9 +259,9 @@ def session_command(
             "-c",
             session_script(),
             "sh",
-            applet,
             str(settle),
             str(session.surface),
+            *client,
         ]
     )
     return SessionCommand(

@@ -37,6 +37,34 @@ cannot be steered to the art's size, re-derive the `comboarrow` art at the size 
 draws and record the smaller cell's deviation from the reference's 12x12 so the same direction
 does not silently ship resampled art.
 
+### A rendered kdialog push button paints two black rows the shipped button frame does not contain (found by the bugfix role 2026-10-30)
+
+The dialog render this run (the checkbox gate's `--checkbox-dialog` render, a kdialog warning at
+480x360) draws its Yes button, a 24px-tall raised `PanelButtonCommand` frame at x=157..234,
+y=207..230, with the shipped frame bands — outline `#000000`, highlight `#FFFFFF`, `#DDDDDD`
+face, `#AAAAAA` shadow (rows 208/229, columns 158/233) match the frame slices the Kvantum suites
+derive — plus **two interior black rows the shipped art cannot produce**: rows 209 and 228 are
+`#000000` across the interior (x=158..234), where the `button-normal` interior slice is a flat
+`#DDDDDD` canvas and `button-normal-top`/`-left` are the 2px outline/highlight bands only.
+
+Reproduce with `RENDER_OUTPUT=x.png make render --checkbox-dialog`, then dump x=158..234 at
+y=209 and y=228 against the shipped `button-normal` interior and `button-normal-top` slices.
+
+**Observed output:** row 209 and row 228 read `000…000` across the interior; the shipped
+interior art is flat face (`tests/test_kvantum_button_reference.py` stays green, so the art is
+right and only the rendered pixel rows differ). The reference's raised popup-button bevel adds
+no such rows.
+
+**Suspected cause:** the engine stretches or repeats the 2px frame bands (`frame.top=2`,
+`frame.bottom=2` in `[PanelButtonCommand]`) into the interior instead of filling it from the
+interior slice, or the interior art probe mis-fits by two rows — review upstream
+`Kvantum.cpp`'s `CE_PushButton` / frame-drawing against those margins.
+
+**Needs review by bugfix:** decide first whether the black rows are a Kvantum drawing choice the
+art should match (re-deriving `button-normal` with the black end rows and recording the missing
+reference surface) or a steered config fix (`frame.top`/`frame.bottom`); then pin the rendered
+button's band runs in the dialog render the way the checkbox cell is pinned.
+
 ### The item view's frame art never reaches the screen: rendered lists draw the GenericFrame `common` frame instead of the reference's sunken field (found by the render pass 2026-10-29)
 
 A rendered list (kdialog's `--menu` and `--checklist` dialogs, KFind's results) draws its field
@@ -66,38 +94,5 @@ field therefore only exists in the art.
 **Needs review by bugfix:** decide whether the generic frame (or the list's own frame) should
 carry the reference's sunken field, and pin the rendered list field's border runs, not just the
 `itemview` slices.
-
-### The live render gate byte-compares only Aurorae window chrome, so `make check` stays green on widgets the engine draws wrongly (found by the steward role 2026-10-30)
-
-The declared check's only rendered-pixel comparisons live in
-`tests/test_render_surface.py::TestRender`, and they cover the Aurorae frame only: the title-bar
-strip, the close, collapse and zoom boxes and the three border strips byte-compared against the
-references, plus one body-face pixel at (300, 200). Nothing in the suite compares an engine-drawn
-Kvantum widget's pixels with a reference — the Kvantum suites (`tests/test_kvantum_combobox_reference.py`
-and its siblings) compare the *shipped art* against the reference cells, not the *rendered* widget —
-so whatever the engine does to that art on screen is invisible to the check. This is one structural
-risk behind a run of same-shaped bugs, each found only by a manual render pass and never by a test:
-the fixed resampled check box indicator (BUGS-FIXED, found by the render pass 2026-10-29), and the
-two needs-review Kvantum bugs above (the squashed combo indicator, the unmapped item-view frame).
-The append-per-bug pattern confirms the shape: when each render bug is fixed, its armor is a handful
-of newly byte-compared strips (the title-band entry above plans exactly rows 22-26 next), so the
-gate grows strip by strip and the next resampled, squashed or unmapped widget stays as invisible to
-`make check` as this run's bugs were.
-
-**Reproduce:** run `make check` on a tree with the two needs-review Kvantum bugs unfixed — it passes
-while the rendered dialog window draws the squashed arrow and the raised list frame; the two
-entries' throwaway-session commands above produce the contradicting pixels.
-
-**Observed output:** the two entries' dumps above (combo indicator bands 1/2/3/4 against the
-reference's 1/3/5/7; list frame `#000000` then `#FFFFFF` against the reference's `#999999`,
-`#000000`, `#FFFFFF`) alongside a green `make check`.
-
-**Suspected cause:** the reference surface the gate byte-compares (one 320x240 window captured by
-`TestRender`) contains no populated Kvantum widgets, only the Aurorae-decorated empty window body,
-so the widget interiors fall outside every strip; whether the fix is a wider populated capture (for
-example a second session with a combobox, a checkbox and a list, whose widget cells are byte-compared
-the way the title bar is) or a cheaper substitute, and how a session keeps it cheap, is the review
-question — the render session already exists (`tools/render.py`), so this plans as infrastructure,
-not as a per-widget fix.
 
 ## Fixed

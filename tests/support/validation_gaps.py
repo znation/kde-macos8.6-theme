@@ -677,8 +677,12 @@ NO_FAKE_REPRODUCTIONS = (
 # render's size bound is pinned offline by the new test. Plus the Aurorae
 # title-edge band fixed 2026-10-30, whose band and one-row gap were only
 # visible in a real ``kwin_wayland`` render; the gap the rc's
-# ``TitleEdgeBottom`` must leave is pinned offline by the rc metrics test. A
-# new record must name an offline test instead of raising this.
+# ``TitleEdgeBottom`` must leave is pinned offline by the rc metrics test.
+# Plus the Aurorae-only live render gate fixed 2026-10-30: confirming the
+# widget pixels the engine drew needed a real ``kwin_wayland`` ``kdialog``
+# render, and the dialog render that suite now runs in ``make check`` pins
+# the rendered checkbox cell against the shipped art. A new record must name
+# an offline test instead of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
@@ -723,12 +727,18 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_aurorae_rc.py::TestRc"
         "::test_layout_metrics_match_reference",
     ),
+    Reproduction(
+        "live-render-gate-aurorae-only",
+        ("live render gate byte-compares only Aurorae window chrome",),
+        "tests/test_render_surface.py::TestCheckboxDialogRender"
+        "::test_draws_the_check_box_cell_1_to_1",
+    ),
 )
 
 # The number of ``real-run-needed`` records the archive holds with ledger
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 7
+REAL_RUN_NEEDED_BASELINE = 8
 
 # The three ``no-repro`` records the archive held when the ledger landed. Each
 # failure was not deterministic when filed; its test now reproduces it every run.

@@ -46,8 +46,12 @@ if __package__:
     from tools.render_output import output_problem, publish
     from tools.render_session import (
         Session,
+        CONFIG_FILES,
+        checkbox_dialog_client,
         install_theme,
+        link_kvantum_themes,
         session_command,
+        write_kvantum_selection,
         write_session_configs,
     )
     from tools.repo_root import ROOT
@@ -67,8 +71,12 @@ else:  # run directly: python3 tools/render_surface.py
     from render_output import output_problem, publish
     from render_session import (
         Session,
+        CONFIG_FILES,
+        checkbox_dialog_client,
         install_theme,
+        link_kvantum_themes,
         session_command,
+        write_kvantum_selection,
         write_session_configs,
     )
     from repo_root import ROOT
@@ -82,6 +90,10 @@ REQUIRED_TOOLS = (
     "plasmawindowed",
     "spectacle",
 )
+# The default applet, which `--checkbox-dialog` refuses to combine with.
+_DEFAULT_APPLET = "org.kde.plasma.calculator"
+# The dialog capture's size, the size the widget gate byte-compares.
+_DIALOG_CAPTURE = (480, 360)
 
 
 def _capture_is_unpainted(rgb: bytes) -> bool:
@@ -94,6 +106,17 @@ def _capture_is_unpainted(rgb: bytes) -> bool:
     later fails pixel comparisons for no visible reason.
     """
     return not any(rgb)
+
+
+def _dialog_config_files() -> tuple[str, ...]:
+    """Config files the dialog render applies, unlike the applet render.
+
+    Plasma applets draw through the desktop theme, so the applet render
+    leaves the ``[kdeglobals] [KDE] widgetStyle`` default unapplied. A
+    ``kdialog`` client draws through the widget style, so the dialog render
+    applies the ``kdeglobals`` section of the global theme's defaults too.
+    """
+    return CONFIG_FILES + ("kdeglobals",)
 
 
 def _render(args: argparse.Namespace) -> int:
@@ -119,16 +142,36 @@ def _render(args: argparse.Namespace) -> int:
             reason = "timed out" if status is None else f"exited {status}"
             return report_failure(TOOL, f"make install {reason}", install_log)
 
+        problem, path = link_kvantum_themes(session)
+        if problem is not None:
+            return report_error(
+                TOOL, f"cannot link {path}: {problem}"
+            )
+
         try:
-            write_session_configs(session)
+            write_session_configs(
+                session,
+                files=_dialog_config_files() if args.checkbox_dialog else CONFIG_FILES,
+            )
         except (OSError, UnicodeDecodeError, ValueError) as exc:
             return report_failure(
                 TOOL, f"cannot write the session config: {exc}"
             )
 
+        if args.checkbox_dialog:
+            client = list(checkbox_dialog_client(session))
+            try:
+                write_kvantum_selection(session)
+            except OSError as exc:
+                return report_failure(
+                    TOOL, f"cannot write the Kvantum selection: {exc}"
+                )
+        else:
+            client = ["plasmawindowed", args.applet]
+
         command = session_command(
             session,
-            args.applet,
+            client,
             args.settle,
             args.width,
             args.height,
@@ -220,20 +263,29 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--applet",
         type=_applet,
-        default="org.kde.plasma.calculator",
-        help="plasmoid id to open (default org.kde.plasma.calculator)",
+        default=_DEFAULT_APPLET,
+        help=f"plasmoid id to open (default {_DEFAULT_APPLET})",
+    )
+    parser.add_argument(
+        "--checkbox-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog warning box whose dontagain check box the Kvantum "
+            "engine draws with the theme's checkbox art, and capture it at "
+            "the 480x360 size the widget gate byte-compares"
+        ),
     )
     parser.add_argument(
         "--width",
         type=positive_int("--width"),
-        default=320,
-        help="output width in pixels (default 320)",
+        default=None,
+        help="output width in pixels (default 320, or 480 with --checkbox-dialog)",
     )
     parser.add_argument(
         "--height",
         type=positive_int("--height"),
-        default=240,
-        help="output height in pixels (default 240)",
+        default=None,
+        help="output height in pixels (default 240, or 360 with --checkbox-dialog)",
     )
     parser.add_argument(
         "--settle",
@@ -251,6 +303,23 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     args = parser.parse_args(argv)
+    if args.checkbox_dialog:
+        if args.applet != _DEFAULT_APPLET:
+            parser.error(
+                "--checkbox-dialog opens its own kdialog client: do not "
+                "combine it with --applet"
+            )
+        if args.width is not None or args.height is not None:
+            parser.error(
+                "--checkbox-dialog captures at 480x360, the size the widget "
+                "gate byte-compares: do not combine it with --width/--height"
+            )
+        args.width, args.height = _DIALOG_CAPTURE
+    else:
+        if args.width is None:
+            args.width = 320
+        if args.height is None:
+            args.height = 240
     if args.timeout <= args.settle:
         # The session sleeps for --settle before it asks for the capture, so a
         # timeout at or below it always kills the session first: the run would
@@ -262,7 +331,10 @@ def main(argv: list[str] | None = None) -> int:
             "it can capture"
         )
 
-    missing = report_missing_tool(TOOL, REQUIRED_TOOLS)
+    requirements = (
+        REQUIRED_TOOLS + (("kdialog",) if args.checkbox_dialog else ())
+    )
+    missing = report_missing_tool(TOOL, requirements)
     if missing is not None:
         return missing
     problem = output_problem(Path(args.output).absolute())

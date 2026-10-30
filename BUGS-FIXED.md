@@ -5,6 +5,66 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The live render gate byte-compares only Aurorae window chrome, so `make check` stays green on widgets the engine draws wrongly (found by the steward role 2026-10-30) — fixed 2026-10-30 by the bugfix role
+
+The declared check's only rendered-pixel comparisons live in
+`tests/test_render_surface.py::TestRender`, and they cover the Aurorae frame only: the title-bar
+strip, the close, collapse and zoom boxes and the three border strips byte-compared against the
+references, plus one body-face pixel at (300, 200). Nothing in the suite compares an engine-drawn
+Kvantum widget's pixels with a reference — the Kvantum suites (`tests/test_kvantum_combobox_reference.py`
+and its siblings) compare the *shipped art* against the reference cells, not the *rendered* widget —
+so whatever the engine does to that art on screen is invisible to the check. This is one structural
+risk behind a run of same-shaped bugs, each found only by a manual render pass and never by a test:
+the fixed resampled check box indicator (BUGS-FIXED, found by the render pass 2026-10-29), and the
+two needs-review Kvantum bugs above (the squashed combo indicator, the unmapped item-view frame).
+The append-per-bug pattern confirms the shape: when each render bug is fixed, its armor is a handful
+of newly byte-compared strips (the title-band entry above plans exactly rows 22-26 next), so the
+gate grows strip by strip and the next resampled, squashed or unmapped widget stays as invisible to
+`make check` as this run's bugs were.
+
+**Reproduce:** run `make check` on a tree with the two needs-review Kvantum bugs unfixed — it passes
+while the rendered dialog window draws the squashed arrow and the raised list frame; the two
+entries' throwaway-session commands above produce the contradicting pixels.
+
+**Observed output:** the two entries' dumps above (combo indicator bands 1/2/3/4 against the
+reference's 1/3/5/7; list frame `#000000` then `#FFFFFF` against the reference's `#999999`,
+`#000000`, `#FFFFFF`) alongside a green `make check`.
+
+**Suspected cause:** the reference surface the gate byte-compares (one 320x240 window captured by
+`TestRender`) contains no populated Kvantum widgets, only the Aurorae-decorated empty window body,
+so the widget interiors fall outside every strip; whether the fix is a wider populated capture (for
+example a second session with a combobox, a checkbox and a list, whose widget cells are byte-compared
+the way the title bar is) or a cheaper substitute, and how a session keeps it cheap, is the review
+question — the render session already exists (`tools/render.py`), so this plans as infrastructure,
+not as a per-widget fix.
+
+**Fix (bugfix role 2026-10-30):** the gate got its first engine-drawn Kvantum widget. The render
+CLI grew a `--checkbox-dialog` mode that opens a `kdialog --warningyesno --dontagain` warning in
+the same throwaway KWin session, applies the global theme's `kdeglobals` section (a dialog client
+draws through `[KDE] widgetStyle=kvantum`, which the applet render deliberately leaves
+unapplied), selects `org.macos8.desktop` in the scratch config home's
+`Kvantum/kvantum.kvconfig`, and links the scratch home's `.local/share/themes` onto the
+installed theme directory — Kvantum joins its search path from `HOME`, which no finished
+`make install` into a different scratch `XDG_DATA_HOME` satisfies, and without the link the
+engine silently draws its compiled-in default theme. The session script opens any client argv
+(`session_command` now takes the client words; the applet render passes
+`plasmawindowed <applet>`), so adding each next widget cell is the same crop-and-compare as the
+chrome strips. `tests/test_render_surface.py::TestCheckboxDialogRender` runs that render in
+`make check` and byte-compares the rendered 14x14 check box cell (crop 156,187,14,14) with the
+shipped `checkbox-normal` slice re-derived by `render_slices` from the same SVG, plus the 1px
+`#DDDDDD` face ring around the cell, so a resampled, squashed, mis-mapped or forcibly-fallback
+checkbox is red without a manual render pass. The applet render's capture, scripts and chrome
+crops are unchanged, and the dialog capture is 480x360 with KWin centring the single kdialog
+client, so the crops are measured placement values recorded in `docs/invariants.md` alongside
+the `$HOME`-joined theme path.
+
+**Validation gap:** real-run-needed — no offline path drew the rendered widget, so confirming
+required the real bounded `kwin_wayland`+`kdialog` render the render pass and this run both
+made; its offline pin is
+`tests/test_render_surface.py::TestCheckboxDialogRender::test_draws_the_check_box_cell_1_to_1`,
+which ties the rendered cell to the shipped art slice the Kvantum reference suite derives, and
+the ledger raises ``REAL_RUN_NEEDED_BASELINE`` by one in the same change.
+
 ### The rendered window shows a 5px band of the decoration's centre tile below the title bar (found by the render pass 2026-10-29) — fixed 2026-10-30 by the bugfix role
 
 Every window rendered through the theme shows five rows of the Aurorae decoration's centre tile

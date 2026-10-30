@@ -24,7 +24,10 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
 from support.aurorae_fixtures import PROFILER_ROWS, REFERENCE_ROWS
-from support.cli_fixtures import assert_missing_tool_named, call_main
+from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: F401
+from support.kvantum_fixtures import SVG
+from support.svg_case import parse_svg
+from svg_assertions import render_slices
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
 from tools import render_session, render_surface  # noqa: E402
@@ -84,6 +87,21 @@ COLLAPSE_CANDIDATE = (303, 4, 13, 13)
 COLLAPSE_REFERENCE = (343, 29, 13, 13)
 ZOOM_CANDIDATE = (282, 4, 21, 13)
 ZOOM_REFERENCE = (776, 26, 21, 13)
+# The dialog render's engine-drawn widget gate: `--checkbox-dialog` opens a
+# kdialog warning at the headless KWin session's centre in a 480x360 capture,
+# and its dontagain check box draws the theme's `checkbox-normal` art through
+# `[Session] check_size`. KWin centres the session's only window in the
+# virtual framebuffer, so these crops are measured on this capture size; they
+# assume the session the CLI builds for `--checkbox-dialog` (the same scratch
+# config home, the applied kdeglobals defaults and the Kvantum selection).
+DIALOG_WIDTH = 480
+DIALOG_HEIGHT = 360
+# The rendered check box cell: the shipped 14x14 canvas at 1:1, measured
+# against `tests/test_kvantum_checkbox_reference.py`'s shipped-art slice.
+CHECKBOX_CROP = (156, 187, 14, 14)
+# A 1px face ring around the cell catches resampling bleed: at the engine's
+# native size the cells around the art stay the flat client face.
+CHECKBOX_FACE_RING_CROP = (155, 186, 16, 16)
 
 
 class StubTools(unittest.TestCase):
@@ -416,7 +434,17 @@ class TestFailurePaths(StubTools):
         fixture.write_bytes(
             encode_png(320, 240, bytes([fill]) * (320 * 240 * 3))
         )
-        self.stub("dbus-run-session", f'for a; do :; done; cp "{fixture}" "${{a##* }}"')
+        # The session's argv ends with the shlex-joined `sh -c` line whose
+        # positional parameters are the settle seconds, the surface path and
+        # then the client: the capture stub extracts the surface path between
+        # them, so the fixture lands where spectacle would have written it.
+        self.stub(
+            "dbus-run-session",
+            'for a; do :; done; '
+            "dest=$(printf '%s\\n' \"$a\" | sed -n "
+            "'s/.* sh [^ ]* \\([^ ]*\\) plasmawindowed.*/\\1/p'); "
+            f'cp "{fixture}" "$dest"',
+        )
         return fixture
 
     def test_a_capture_is_copied_to_the_output(self):
@@ -695,6 +723,85 @@ class TestRender(unittest.TestCase):
         ):
             with self.subTest(candidate_crop=candidate_crop):
                 self.assert_strip_pixels_match(candidate_crop, reference_crop)
+
+
+class TestCheckboxDialogRender(unittest.TestCase):
+    """The engine-drawn check box the dialog render captures is the shipped art.
+
+    The chrome strips above byte-compare the Aurorae decoration of an empty
+    applet window; no strip ever compared a pixel the Kvantum engine drew, so
+    a rendered widget could stay wrong -- the resampled check box indicator
+    fixed 2026-10-30 was found only by a manual render pass. The dialog render
+    opens a real QCheckBox (kdialog's ``--dontagain`` box) drawn by the engine
+    with the theme's checkbox art, and this class byte-compares the rendered
+    14x14 cell with the shipped-art slice the Kvantum reference suite derives
+    from the same SVG, plus the flat face ring around it.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.directory = tempfile.mkdtemp(prefix="checkbox-dialog-test-")
+        cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
+        cls.output = os.path.join(cls.directory, "dialog.png")
+        cls._candidate = None
+        # The tool's documented settle default is the paint budget the gate
+        # promises; the dialog window needs it like the applet window does.
+        process = process_runner.start(
+            [sys.executable, SCRIPT, cls.output, "--checkbox-dialog"],
+            capture_output=True,
+            text=True,
+        )
+        cls.stdout, cls.stderr = process_runner.finish(process, timeout=150)
+        cls.returncode = process.returncode
+
+    @classmethod
+    def candidate_image(cls):
+        """Return the dialog render decoded once, reused by every read below."""
+        if cls._candidate is None:
+            cls._candidate = read_png(cls.output)
+        return cls._candidate
+
+    def test_exits_zero(self):
+        self.assertEqual(0, self.returncode, self.stderr)
+
+    def test_writes_a_480x360_png(self):
+        image = self.candidate_image()
+        self.assertEqual((DIALOG_WIDTH, DIALOG_HEIGHT), (image.width, image.height))
+
+    def test_draws_the_check_box_cell_1_to_1(self):
+        # The expected cell is the shipped `checkbox-normal` art itself, at
+        # its canvas size: the engine may neither resample it nor fill it
+        # from a foreign element. A blended band shows up here immediately.
+        slices = render_slices(parse_svg(SVG))
+        expected = dict(slices["checkbox-normal"])
+        image = self.candidate_image()
+        x0, y0, width, height = CHECKBOX_CROP
+        actual = {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+        }
+        self.assertEqual(expected, actual)
+
+    def test_installs_the_check_box_cell_in_a_flat_face_ring(self):
+        # One byte of resampling bleed lands on the 1px ring around the
+        # cell, so the region the cell sits in must equal the flat client
+        # face around the shipped art it byte-compares.
+        slices = render_slices(parse_svg(SVG))
+        art = slices["checkbox-normal"]
+        image = self.candidate_image()
+        x0, y0, width, height = CHECKBOX_FACE_RING_CROP
+        for x in range(width):
+            for y in range(height):
+                expected = (
+                    art[(x - 1, y - 1)]
+                    if 1 <= x <= width - 2 and 1 <= y <= height - 2
+                    else FACE
+                )
+                with self.subTest(x=x, y=y):
+                    self.assertEqual(
+                        expected, hex_colour(pixel_at(image, x0 + x, y0 + y))
+                    )
 
 
 if __name__ == "__main__":
