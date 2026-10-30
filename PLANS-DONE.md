@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 calendars: make keyboard focus opaque black (planned 2026-10-29 by the plan role; independent of the queued marked-day fill) — done 2026-10-29 by the feature role
+
+**Goal.** Replace the calendar label's translucent accent focus outline with opaque Platinum black through `make apply-gtk`'s user stylesheet import. The current calendar rules cover day paint, corners, borders and today markers but have no focus override; related completed calendar plans exclude focus.
+
+**Approach and files.** Beside the calendar rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `calendar > grid > label:focus { outline-color: #000000; outline-width: 2px; outline-offset: -2px; }`. Retain the inherited solid outline style and unfocused behavior. Add a dated CSS comment naming the missing calendar reference and reuse of the black frame token. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_calendar_focus_outline` asserting this exact three-property dictionary, using the existing `BLACK` token and comparing its color with the calendar outer border's color. Update the dedicated GTK 4 calendar adaptation row in `docs/invariants.md` to name the test and provenance. No reference screenshot shows a GTK calendar focus indicator: black reuses the existing reference-grounded palette, while the selector, 2px width and -2px inset retain the platform recipe from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution in the invariant rather than CSS to respect `test_stands_alone`.
+
+**Acceptance criteria.** The new test pins the exact focused-label declarations and their black palette/frame relationship. Existing calendar regression assertions pass, including any marked-day fill change merged independently. Document the supported user stylesheet import and distinguish declaration checks from rendered-pixel evidence. Limit implementation to these three files; do not change unfocused outlines, transitions, day fill, today markers, spacing, GTK 3, artwork or dependencies. `make check` passes.
+
 ### Platinum GTK 4 calendars: give marked days an opaque neutral fill (planned 2026-10-29 by the plan role; independent of the waiting today underline) — done 2026-10-29 by the feature role
 
 **Goal.** Replace the platform's translucent accent fill on marked calendar days with the existing opaque Platinum trough grey, while keeping selected days lavender. The current marked-day rule overrides only `border-radius`; the finished marked-day corner plan explicitly excluded paint.

@@ -380,6 +380,15 @@ for radio in (False, True):
                     self.rules[frame]["border"],
                 )
 
+    def test_calendar_focus_outline(self):
+        focus = "calendar > grid > label:focus"
+        self.assert_rule(
+            focus,
+            {"outline-color": BLACK, "outline-width": "2px", "outline-offset": "-2px"},
+        )
+        self.assertEqual(self.rules[focus]["outline-color"], BLACK)
+        self.assertTrue(self.rules["calendar"]["border"].endswith(BLACK))
+
     def test_calendar_header_separator(self):
         header = "calendar > header"
         infobar = "infobar > revealer > box"

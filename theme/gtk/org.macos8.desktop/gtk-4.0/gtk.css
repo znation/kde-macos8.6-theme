@@ -999,6 +999,13 @@ calendar > grid > label.day-number:selected {
   /* No GTK calendar appears in the reference; reuse the square frame edge. */
   border-radius: 0;
 }
+/* No GTK calendar appears in the reference; reuse the opaque black frame
+   token for keyboard focus (recorded 2026-10-29 by the feature role). */
+calendar > grid > label:focus {
+  outline-color: #000000;
+  outline-width: 2px;
+  outline-offset: -2px;
+}
 /* No GTK calendar appears in the reference; its outer edge reuses the opaque
    black Platinum frame border (recorded 2026-10-29 by the feature role). */
 calendar {
