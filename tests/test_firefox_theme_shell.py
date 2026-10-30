@@ -46,6 +46,15 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, expected)
 
+    def test_root_colors_every_chrome_scrollbar(self):
+        # The :root block recolours every chrome UI scrollbar: scrollbar-color
+        # is inherited, so popups, sidebars and the library scrollbars pick up
+        # the two faces unless an author stylesheet sets its own.
+        self.assertTrue(self.rules[":root"]["scrollbar-color"]
+                        .endswith("!important"))
+        self.assertEqual(self.rules[":root"]["scrollbar-color"],
+                         f"{FACE} {TROUGH} !important")
+
     def test_panel_radius_override_is_scoped_to_menus_and_arrow_panels(self):
         self.assertEqual(
             {selector for selector, declarations in self.rules.items()

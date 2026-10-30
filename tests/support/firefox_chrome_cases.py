@@ -95,6 +95,7 @@ REQUIRED_RULES = {
         "--toolbarbutton-background-color-active": f"{SELECTION} !important",
         "--urlbar-box-background-color-hover": f"{TROUGH} !important",
         "--urlbar-box-background-color-active": f"{SELECTION} !important",
+        "scrollbar-color": f"{FACE} {TROUGH} !important",
     },
     "#navigator-toolbox": {
         "background-color": f"{FACE} !important",

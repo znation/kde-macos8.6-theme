@@ -17,6 +17,7 @@ make install-firefox.
 
 from __future__ import annotations
 
+import re
 import unittest
 
 from support.firefox_content_cases import (
@@ -105,6 +106,23 @@ class TestFirefoxContentTheme(FirefoxContentTestCase):
         for selector, expected in REQUIRED_RULES.items():
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], expected)
+
+    def test_root_colors_the_page_scrollbars(self):
+        # The sheet carries exactly one top-level :root rule whose body is the
+        # pinned two-face scrollbar-color sweep (complement to Firefox 64's
+        # inherited scrollbars styling): every page scrollbar paints a #DDDDDD
+        # thumb over a flat #EEEEEE trough, while every @-moz-document body
+        # stays free of the property so the paint is one top-level sweep.
+        top_level = re.findall(r"(?m)^:root \{$", self.text)
+        self.assertEqual(top_level, [":root {"])
+        self.assertIn(
+            ":root {\n"
+            f"  scrollbar-color: {FACE} {TROUGH} !important;\n"
+            "}\n",
+            self.text,
+        )
+        for url, body in self.bodies.items():
+            self.assertNotIn("scrollbar-color", body, url)
 
     def test_downloads_rules_are_exactly_the_three_list_rules(self):
         self.assertEqual(set(self.rules), set(REQUIRED_RULES))

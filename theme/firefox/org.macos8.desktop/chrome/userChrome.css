@@ -802,6 +802,22 @@ tooltip {
   box-shadow: none !important;
 }
 
+/* Scrollbar colour adaptation 2026-10-30: no collected reference screenshot
+   shows a Firefox scrollbar, so the chrome UI scrollbars take the standard
+   scrollbar-color sweep (CSS Scrollbars Styling Level 1, supported since
+   Firefox 64 — probed as the toolkit's own colour mechanism by
+   `unzip -p /usr/lib/firefox-esr/omni.ja chrome/toolkit/res/scrollbars.css`
+   on 2026-10-30: the native-anonymous `scrollbar`, `thumb`, `scrollbarbutton`
+   and `scrollcorner` parts carry only `-moz-default-appearance:` scrollbar
+   declarations and no brandable class or id). The two faces reuse the
+   desktop-theme scrollbar art pinned by
+   `tests/test_desktoptheme_scrollbar.py::TestScrollbarReference` — the flat
+   trough grounded in `setup_emaculation.png` and the thumb face of the same
+   artwork (`tests/support/platinum_palette.py`'s TROUGH and FACE). The
+   property carries exactly two colours, so the thumb's bevel, the 1px trough
+   and thumb outlines and the step boxes have no equivalent and stay the
+   toolkit's paint; geometry, band width, fade and steppers stay Firefox's.
+*/
 :root {
   --lwt-accent-color: #DDDDDD !important;
   --lwt-text-color: #000000 !important;
@@ -814,6 +830,7 @@ tooltip {
   --toolbarbutton-background-color-active: #CCCCFF !important;
   --urlbar-box-background-color-hover: #EEEEEE !important;
   --urlbar-box-background-color-active: #CCCCFF !important;
+  scrollbar-color: #DDDDDD #EEEEEE !important;
 }
 
 #navigator-toolbox {

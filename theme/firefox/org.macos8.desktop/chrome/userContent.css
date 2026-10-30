@@ -921,3 +921,21 @@
     box-shadow: none !important;
   }
 }
+
+/* Scrollbar colour adaptation 2026-10-30: no collected reference screenshot
+   shows a Firefox scrollbar, so this one top-level `scrollbar-color` rule —
+   the standard property from CSS Scrollbars Styling Level 1, supported since
+   Firefox 64 (probed as the toolkit's own colour mechanism by
+   `unzip -p /usr/lib/firefox-esr/omni.ja chrome/toolkit/res/scrollbars.css`
+   on 2026-10-30) — recolours every page scrollbar's thumb and trough with the
+   two faces of the desktop-theme scrollbar art pinned by
+   `tests/test_desktoptheme_scrollbar.py::TestScrollbarReference`. Because the
+   property is inherited and user-origin important values outrank normal
+   author styles, a page that sets its own scrollbar-color keeps its paint;
+   the thumb's bevel, the trough and thumb outlines and the step boxes have no
+   property equivalent and stay the toolkit's, and the toolkit keeps the
+   scrollbar's geometry.
+*/
+:root {
+  scrollbar-color: #DDDDDD #EEEEEE !important;
+}
