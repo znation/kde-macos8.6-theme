@@ -246,6 +246,14 @@ button:focus {
   -gtk-outline-radius: 0;
 }
 
+/* GTK 3 has no reference check-button focus surface; reuse the dotted black
+   button-focus outline and offset, with square outline corners. */
+checkbutton:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 button:hover {
   background-color: #DDDDDD;
 }
