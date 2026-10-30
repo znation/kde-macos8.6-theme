@@ -96,4 +96,12 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 4 progress bars: preserve the OSD trough paint (planned 2026-10-29 by the plan role; independent of the queued oriented trough thickness)
+
+**Goal.** Keep the grey face, black outline and sunken shadow on an OSD progress trough. The installed base stylesheet's more specific `progressbar.osd > trough` rule makes its background transparent and removes its border and shadow; the finished base meters plan does not cover this variant.
+
+**Approach and files.** Beside the progress rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `progressbar.osd > trough` declaring exactly `background-color: #EEEEEE; border: 1px solid #000000; box-shadow: inset 1px 1px #999999;`. Add a dated comment explaining that no reference screenshot shows an OSD GTK progress trough and its paint reuses the existing base trough adaptation. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_progressbar_osd_trough_paint`: use `assert_rule` plus exact dictionary equality to require those three declarations, using the existing palette constants, and compare their values with the corresponding declarations in `self.rules["progressbar > trough"]`. Keep `test_progressbar` intact. Add a focused row under `## gtk` in `docs/invariants.md` naming both tests and provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares a transparent background, `border-style: none` and `box-shadow: none` for this selector; the chosen paint comes from the existing `PROGRESSBAR_TROUGH` adaptation in `tests/support/gtk_theme_spec.py`. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
+
+**Acceptance criteria.** The OSD selector matches the stock selector's specificity so the supported `make apply-gtk` user stylesheet import supplies the later override; its border shorthand restores the solid outline as well as width and colour. Removing the selector or changing any of its three paint declarations fails the new test. Documentation identifies the missing reference surface and reused value source, and describes declaration coverage rather than rendered-pixel evidence. Limit implementation to these three files and trough paint; OSD sizing, fill rules, corners, transitions and GTK 3 are outside this plan. This can merge independently of the oriented trough thickness plan because it changes different properties. No new palette value, asset or dependency. `make check` passes.
+
 ## Done
