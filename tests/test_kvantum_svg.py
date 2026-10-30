@@ -394,41 +394,47 @@ class TestSvg(unittest.TestCase):
                 with self.subTest(element=element, state=state):
                     self.assertIn(f"{element}-{state}", self.ids)
 
-    def test_indicator_arrows_ship_every_direction_and_state(self):
-        for direction in ARROW_DIRECTIONS:
-            for state in ARROW_STATES:
-                with self.subTest(direction=direction, state=state):
-                    self.assertIn(f"arrow-{direction}-{state}", self.ids)
+    def _assert_arrow_ids(self, variants, variant_label):
+        """Assert every arrow-<variant>-<state> id is shipped.
 
-    def test_indicator_arrows_draw_the_pinned_triangle_and_fill(self):
+        Drives both arrow groups the SVG ships under the `arrow-` prefix:
+        the combo/scrollbar indicator's four directions and the tree
+        expander's minus/plus shapes, labelled by *variant_label*.
+        """
+        for variant in variants:
+            for state in ARROW_STATES:
+                with self.subTest(**{variant_label: variant, "state": state}):
+                    self.assertIn(f"arrow-{variant}-{state}", self.ids)
+
+    def _assert_arrow_paths_painted(self, path_d_by_variant, variant_label):
+        """Assert each arrow element paints exactly path_d_by_variant.
+
+        Every arrow-<variant>-<state> element must hold one path child
+        whose `d` equals path_d_by_variant's *variant* entry and whose
+        fill equals ARROW_FILL's *state* entry.
+        """
         by_id = elements_by_id(self.tree)
-        for direction in ARROW_DIRECTIONS:
+        for variant, path_d in path_d_by_variant.items():
             for state in ARROW_STATES:
                 paths = children_named(
-                    by_id[f"arrow-{direction}-{state}"], "path"
+                    by_id[f"arrow-{variant}-{state}"], "path"
                 )
-                with self.subTest(direction=direction, state=state):
-                    self.assertEqual(len(paths), 1)
-                    self.assertEqual(paths[0].get("d"), ARROW_PATH_D[direction])
-                    self.assertEqual(paths[0].get("fill"), ARROW_FILL[state])
-
-    def test_branch_arrows_ship_every_shape_and_state(self):
-        for shape in BRANCH_ARROW_PATH_D:
-            for state in ARROW_STATES:
-                with self.subTest(shape=shape, state=state):
-                    self.assertIn(f"arrow-{shape}-{state}", self.ids)
-
-    def test_branch_arrows_draw_the_pinned_triangle_and_fill(self):
-        by_id = elements_by_id(self.tree)
-        for shape, path_d in BRANCH_ARROW_PATH_D.items():
-            for state in ARROW_STATES:
-                paths = children_named(
-                    by_id[f"arrow-{shape}-{state}"], "path"
-                )
-                with self.subTest(shape=shape, state=state):
+                with self.subTest(**{variant_label: variant, "state": state}):
                     self.assertEqual(len(paths), 1)
                     self.assertEqual(paths[0].get("d"), path_d)
                     self.assertEqual(paths[0].get("fill"), ARROW_FILL[state])
+
+    def test_indicator_arrows_ship_every_direction_and_state(self):
+        self._assert_arrow_ids(ARROW_DIRECTIONS, "direction")
+
+    def test_indicator_arrows_draw_the_pinned_triangle_and_fill(self):
+        self._assert_arrow_paths_painted(ARROW_PATH_D, "direction")
+
+    def test_branch_arrows_ship_every_shape_and_state(self):
+        self._assert_arrow_ids(tuple(BRANCH_ARROW_PATH_D), "shape")
+
+    def test_branch_arrows_draw_the_pinned_triangle_and_fill(self):
+        self._assert_arrow_paths_painted(BRANCH_ARROW_PATH_D, "shape")
 
     def test_checkbox_and_radio_interiors_draw_the_pinned_shapes(self):
         by_id = elements_by_id(self.tree)
