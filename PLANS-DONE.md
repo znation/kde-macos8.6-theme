@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 spin buttons: pin focus-outline color (planned 2026-10-29 by the plan role; independent of the queued entry focus transition) — done 2026-10-29 by the feature role
+
+**Goal.** Give focused GTK 4 spin buttons an opaque black outline through the supported `make apply-gtk` user stylesheet import, reusing the scale-focus color policy.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate `spinbutton:focus-within { outline-color: #000000; }` rule beside the entry-field rules. Target the outer spinbutton for both orientations, not its vertical text child. Add a dated adaptation comment naming the missing GTK spin-button focus reference and reuse of scale-focus black. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_spinbutton_focus_outline_color` following `test_entry_focus_outline_color`: assert the new selector's black outline and equality with `scale:focus:focus-visible > trough > slider`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee and test. Attribute the stock `spinbutton:focus-within` selector, translucent accent outline and inherited 2px width/-2px offset to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep library attribution outside CSS for `test_stands_alone`.
+
+**Acceptance criteria.** `spinbutton:focus-within` declares opaque black; removing or changing the declaration fails the new test. Existing spin-button field declarations and tests pass. The invariant identifies the missing reference surface and reused focus policy, and states that geometry and transitions remain inherited and declaration tests do not establish rendered focus pixels. Scope is these three files; spin-button motion, geometry, palette tokens and artwork are separate work. This plan and the waiting entry-transition plan may merge in either order. `make check` passes.
+
 ### Platinum GTK 4 entries: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued entry focus color) — done 2026-10-29 by the feature role
 
 **Goal.** Make GTK 4 entry focus-outline changes immediate on focus entry and exit through the supported `make apply-gtk` user stylesheet import, matching the scale-focus motion policy.

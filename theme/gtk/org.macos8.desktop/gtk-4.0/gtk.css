@@ -297,6 +297,12 @@ entry:focus-within {
   outline-color: #000000;
 }
 
+/* No GTK spin-button focus reference; reuse the scale-focus black. The stock
+ * outline geometry remains inherited. Recorded 2026-10-29. */
+spinbutton:focus-within {
+  outline-color: #000000;
+}
+
 check, radio {
   min-height: 14px;
   min-width: 14px;

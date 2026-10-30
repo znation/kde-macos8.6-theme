@@ -432,6 +432,15 @@ for radio in (False, True):
             self.rules[scale_focus]["outline-color"],
         )
 
+    def test_spinbutton_focus_outline_color(self):
+        focus = "spinbutton:focus-within"
+        scale_focus = "scale:focus:focus-visible > trough > slider"
+        self.assert_rule(focus, {"outline-color": BLACK})
+        self.assertEqual(
+            self.rules[focus]["outline-color"],
+            self.rules[scale_focus]["outline-color"],
+        )
+
     def test_checkbutton_focus_outline_color(self):
         focus = "checkbutton:focus:focus-visible"
         scale_focus = "scale:focus:focus-visible > trough > slider"
