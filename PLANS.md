@@ -96,4 +96,66 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 3 scroll areas: clear the stock overshoot edge glows (planned 2026-10-30 by the plan role; independent of the waiting GTK 4 scroll-edge plan — it edits the GTK 3 sheet and `tests/test_gtk_theme.py` while that plan edits the GTK 4 sheet and `tests/test_gtk4_theme.py`, so no file or rule text overlaps)
+
+**Goal.** In GTK 3 applications using the installed Platinum theme (`make apply-gtk` sets `gtk-theme-name=org.macos8.desktop`), the stock theme paints radial over-scroll glows: translucent shade-coloured corner fades ("overshoot", the `overshoot.top`/`.bottom`/`.left`/`.right` child nodes of a scrolled window, drawn with two radial `-gtk-gradient` background images). No collected reference screenshot of Mac OS 8.6 shows any such band; Platinum scroll fields are flat, running to the frame, so the glows must render nothing.
+
+**Verified facts, method and values (checked 2026-10-30).** The stock resource
+`/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` inside
+`/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` (extracted with `gresource`) declares scroll-edge
+painting in exactly eight arms: `scrolledwindow overshoot.top`, `scrolledwindow
+overshoot.bottom`, `scrolledwindow overshoot.left` and `scrolledwindow overshoot.right`
+and the same four with `:backdrop`. Each paints radial gradients on `background-image` and
+is otherwise neutral (`background-color: transparent; border: none; box-shadow: none;`);
+the dark and inverse variants compiled into the same library spell identical selectors with
+different palettes, so the arm set is theme-variant independent. A grep of the extract shows
+no `undershoot` rule anywhere in the GTK 3 stock theme, and a headless runtime probe
+(`broadwayd :21` plus `BROADWAY_DISPLAY=:21`, then a `GtkScrolledWindow` containing a
+`GtkTextView`, 2026-10-30) shows GTK 3 creates no undershoot child windows or nodes — the
+only `undershoot` string in the library binary is the entry-icon name in the `gtkentry`
+rodata — so, unlike the GTK 4 sheet work, there is no undershoot family to neutralize. The
+cascade differs from GTK 4: this GTK 3 sheet is a standalone named theme that imports
+nothing (`tests/test_gtk_theme.py::TestGtkTheme::test_imports_nothing_and_does_not_mention_adwaita`),
+so it is the only theme stylesheet GTK 3 loads and its rules replace the stock arms rather
+than racing them; the arm selectors are still copied verbatim so each rule reads beside the
+stock text it replaces. No palette value is new: every declaration is
+`background-image: none;`. In-sheet comments must not contain the stock library's name —
+`test_imports_nothing_and_does_not_mention_adwaita` rejects it — so the provenance comment
+names "the stock GTK 3 resource in libgtk-3" and the library path, and
+`docs/invariants.md` carries the full provenance.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, directly after
+the `scrollbar.horizontal button.down` rule that ends the scrollbar button block and before
+the `progressbar trough` rule whose rule begins the next section: (1) add a dated comment
+naming the missing reference surface (no collected screenshot in `macos8.6-screenshots/`
+shows a GTK over-scroll glow) and the clearance policy. (2) Add one grouped rule listing
+the eight arm selectors verbatim, comma-separated, declaring exactly `background-image:
+none;` — the sheet-rule parser (`tests/support/gtk_css.py::parse_css` with
+`_split_selector_list`) keys grouped rules per selector, and the GTK 3 built-in defaults
+leave background colour, border and box-shadow neutral, so no further declaration is
+needed. In `tests/test_gtk_theme.py`, add two `TestGtkTheme` tests using the cases'
+`assert_rule` helper: `test_overshoot_glows_cleared` (asserts each of the four direction
+selectors maps to a rule declaring `background-image: none`) and
+`test_overshoot_backdrop_glows_cleared` (asserts the same for the four `:backdrop`
+selectors). The new rules sit beside the landed scrollbar adaptations, so the existing
+scrollbar, thumb-minimum and overlay assertions pass untouched. In `docs/invariants.md`,
+append one row under `## gtk`: no collected screenshot shows a GTK over-scroll glow; the
+eight-arm inventory (including the four `:backdrop` versions and the absence of any
+undershoot arm) comes from the stock `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`
+resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource`, and the
+no-undershoot runtime probe ran headless over broadway on 2026-10-30; the clearance values
+are plain `none` declarations, not measured pixels; the named theme's rules replace the
+stock arms rather than override them; and the declaration checks do not establish rendered
+pixels.
+
+**Acceptance criteria.** All eight stock overshoot arms listed above are matched by
+same-selector rules in the GTK 3 sheet declaring exactly `background-image: none;`, so a
+rendered scrolled window keeps its field flush to the frame with no glow at any edge in
+normal or backdrop state; deleting an arm selector, adding an undeclared property, or
+widening the group to any unsupported selector fails one of the two new tests, and the new
+sheet gains no undershoot rule (GTK 3 paints none). The existing scrollbar, trough and
+overlay assertions pass unchanged. Scope is the three named files; the GTK 4 scroll-edge
+plan, the scrollbar-corner junction and overlay-scrollbar geometry are outside this plan.
+No new palette value, artwork or dependency. `make check` passes.
+
 ## Done
