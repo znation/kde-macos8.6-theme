@@ -28,6 +28,35 @@ from tools import gtk_user_files
 class TestSettingsErrors(ApplyGtkTestCase):
     """A config file that cannot be read or written is a diagnostic by name."""
 
+    def test_apply_and_remove_refuse_symlinked_config_directories(self):
+        self.install_sheet()
+        outside = self.root / "dotfiles" / "gtk-4.0"
+        outside.mkdir(parents=True)
+        settings = outside / "settings.ini"
+        css = outside / "gtk.css"
+        settings.write_text(
+            "[Settings]\ngtk-theme-name=org.macos8.desktop\n", encoding="utf-8"
+        )
+        css.write_text(
+            f"{gtk_user_files.GTK4_CSS_MARKER}\n@import url(\"file:///old\");\n",
+            encoding="utf-8",
+        )
+        link = self.config / "gtk-4.0"
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(outside, target_is_directory=True)
+
+        for args, action in (((), "write"), (("--remove",), "remove")):
+            with self.subTest(action=action):
+                result = self.run_tool(*args)
+                assert_exit_2_without_traceback(self, result)
+                self.assertIn(f"cannot {action} {link}", result.stderr)
+                self.assertIn("symbolic link", result.stderr)
+                self.assertEqual(
+                    "[Settings]\ngtk-theme-name=org.macos8.desktop\n",
+                    settings.read_text(encoding="utf-8"),
+                )
+                self.assertIn("file:///old", css.read_text(encoding="utf-8"))
+
     def test_unreadable_settings_file_is_reported_by_name(self):
         self.install_sheet()
         self.write(

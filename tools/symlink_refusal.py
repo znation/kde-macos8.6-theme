@@ -12,8 +12,8 @@ def refuse_symlink(path: Path, action: str, error: type[Exception]) -> None:
     it manages. Replacing or deleting that link would silently detach the
     config path from the file the user meant to edit, so *path* is refused by
     name before anything is staged; the link and its target are left
-    untouched. A symlinked parent directory is not a symlink at *path* and
-    stays supported.
+    untouched. Callers may also check parent directories when their
+    operation must remain inside a selected configuration root.
 
     *action* names the operation for the diagnostic ("write" or "remove").
     *error* is the caller's own refusal type, so each tool still reports its

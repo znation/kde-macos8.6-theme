@@ -83,6 +83,12 @@ def _note(message: str) -> None:
     report_note(TOOL, message)
 
 
+def _refuse_symlinked_config_dirs(config_home: Path, action: str) -> None:
+    """Keep GTK config operations inside the selected config home."""
+    for version in ("gtk-3.0", "gtk-4.0"):
+        refuse_symlink(config_home / version, action, ConfigError)
+
+
 @contextlib.contextmanager
 def _config_lock(config_home: Path) -> Iterator[None]:
     """Serialize apply and removal on a lock over *config_home*'s directory.
@@ -192,6 +198,7 @@ def _installed_sheets(data_home: Path) -> dict[str, Path] | None:
 
 def _apply(sheets: dict[str, Path], config_home: Path) -> int:
     """Select our GTK themes in both settings files and the user CSS."""
+    _refuse_symlinked_config_dirs(config_home, "write")
     sheet = sheets["gtk-4.0"]
     # Read every settings and user-CSS file before writing any, so an
     # unreadable file leaves every file unmodified instead of applying half
@@ -227,6 +234,7 @@ def _apply(sheets: dict[str, Path], config_home: Path) -> int:
 
 def _remove(config_home: Path) -> int:
     """Clear our selection from both settings files and the user CSS."""
+    _refuse_symlinked_config_dirs(config_home, "remove")
     writes = []
     for version in ("gtk-3.0", "gtk-4.0"):
         path = settings_path(config_home, version)
