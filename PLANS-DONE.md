@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 overlay scrollbars: preserve the hovered trough face (planned 2026-10-29 by the plan role; independent of the queued ordinary thumb face plan) — done 2026-10-29 by the feature role
+
+**Goal.** Keep the hovered overlay-scrollbar trough on the existing opaque Platinum trough color through the supported `make apply-gtk` GTK 4 user stylesheet import.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `scrollbar.overlay-indicator.hovering > range > trough` declaring only `background-color: #EEEEEE`. Add a dated adaptation comment naming the missing GTK overlay-hover reference surface and reusing the ordinary trough color. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_overlay_hover_trough_face`: compare the base trough background with `TROUGH`, then use `assert_rule` to require the overlay-hover selector's background to equal that base value. Under `## gtk` in `docs/invariants.md`, record this declaration guarantee and test. Cite `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29: its same selector declares `background-color: color-mix(in srgb, currentColor 10%, transparent)`. Keep library provenance outside CSS for `test_stands_alone`. Record the missing overlay-hover reference and the reused trough source: the `setup_emaculation.png` band sampled by `TestScrollbarBreadthReference.test_thumb_band_matches_reference`.
+
+**Acceptance criteria.** The overlay-hover selector explicitly declares the base trough's opaque `#EEEEEE`; removing that selector or restoring the stock blend fails the new test. Existing `test_scrollbar` and `TestScrollbarBreadthReference` coverage passes. The invariant names the missing reference surface and reused source and states that declaration checks do not establish rendered pixels. Limit implementation to these three files and this background-color override; overlay geometry, outline and visibility policy remain separate work. This plan can merge independently of the ordinary thumb face plan. `make check` passes.
+
 ### Platinum GTK 4 scrollbars: preserve the ordinary thumb face during interaction (planned 2026-10-29 by the plan role; independent of the queued trough transition plan) — done 2026-10-29 by the feature role
 
 **Goal.** Keep ordinary scrollbar hover and pressed thumbs on the opaque Platinum face through the supported `make apply-gtk` GTK 4 user stylesheet import.

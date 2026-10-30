@@ -816,6 +816,11 @@ scrollbar > range > trough {
   transition: none;
 }
 
+/* Adaptation 2026-10-29: no reference shows GTK overlay-scrollbar hover; reuse the ordinary trough face. */
+scrollbar.overlay-indicator.hovering > range > trough {
+  background-color: #EEEEEE;
+}
+
 scrollbar > range > trough > slider {
   background-color: #DDDDDD;
   background-image: none;

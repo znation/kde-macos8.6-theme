@@ -983,6 +983,14 @@ for radio in (False, True):
             },
         )
 
+    def test_scrollbar_overlay_hover_trough_face(self):
+        base_face = self.rules["scrollbar > range > trough"]["background-color"]
+        self.assertEqual(base_face, TROUGH)
+        self.assert_rule(
+            "scrollbar.overlay-indicator.hovering > range > trough",
+            {"background-color": base_face},
+        )
+
     def test_scrollbar_disabled_thumb_opacity(self):
         self.assert_rule(
             "scrollbar > range > trough > slider:disabled",
