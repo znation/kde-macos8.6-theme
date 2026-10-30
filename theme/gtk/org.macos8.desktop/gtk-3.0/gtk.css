@@ -1275,3 +1275,37 @@ stackswitcher.linked > button:not(:last-child) {
   border-bottom-style: solid;
 }
 
+/* No collected reference screenshot shows a GTK overlay surface — a
+   fullscreen video toolbar, a scale button's value bubble, a touch-selection
+   or magnifier popover — so every stock OSD container takes the landed
+   application-notification recipe: the infobar face, black text and the
+   etched bottom edge, backdrop arms included. The stock container selectors
+   and toolbar.osd padding come from the toolkit resource
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (libgtk-3 3.24.49), probed 2026-10-30; the edge-class arms already square
+   the toolbar. Declaration checks do not establish rendered pixels. */
+.osd .scale-popup,
+.csd popover.background.osd,
+popover.background.osd,
+.csd popover.background.touch-selection,
+.csd popover.background.magnifier,
+popover.background.touch-selection,
+popover.background.magnifier,
+.osd,
+.osd .scale-popup:backdrop,
+popover.background.osd:backdrop,
+popover.background.touch-selection:backdrop,
+popover.background.magnifier:backdrop,
+.osd:backdrop,
+toolbar.osd {
+  background-color: #DDDDDD;
+  background-image: none;
+  color: #000000;
+  border: 0;
+  border-bottom: 1px solid #888888;
+  border-radius: 0;
+  box-shadow: inset 0 -1px #FFFFFF;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+

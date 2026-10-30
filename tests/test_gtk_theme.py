@@ -360,6 +360,49 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     self.rules[selector], {"border-style": "none", "box-shadow": "none"}
                 )
 
+    def test_osd_overlay_bands(self):
+        selectors = (
+            ".osd .scale-popup",
+            ".csd popover.background.osd",
+            "popover.background.osd",
+            ".csd popover.background.touch-selection",
+            ".csd popover.background.magnifier",
+            "popover.background.touch-selection",
+            "popover.background.magnifier",
+            ".osd",
+            ".osd .scale-popup:backdrop",
+            "popover.background.osd:backdrop",
+            "popover.background.touch-selection:backdrop",
+            "popover.background.magnifier:backdrop",
+            ".osd:backdrop",
+            "toolbar.osd",
+        )
+        expected = {
+            "background-color": FACE,
+            "background-image": "none",
+            "color": BLACK,
+            "border": "0",
+            "border-bottom": f"1px solid {ETCH_DARK}",
+            "border-radius": "0",
+            "box-shadow": f"inset 0 -1px {WHITE}",
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if ".osd" in selector
+                or "magnifier" in selector
+                or "touch-selection" in selector
+                or "scale-popup" in selector
+            },
+            set(selectors),
+        )
+
     def test_path_bar_tabs(self):
         forms = {
             "base": (".path-bar > button",),
