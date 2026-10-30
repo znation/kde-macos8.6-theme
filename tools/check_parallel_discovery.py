@@ -16,6 +16,11 @@ def discover_modules(tests_dir: str, pattern: str) -> list[str]:
     def visit(directory: str, prefix: str) -> None:
         for entry in sorted(os.listdir(directory)):
             path = os.path.join(directory, entry)
+            # unittest discovery does not follow package-directory symlinks;
+            # following one here could import contributor-controlled code
+            # from outside the selected test tree.
+            if os.path.islink(path):
+                continue
             if os.path.isdir(path):
                 if os.path.isfile(os.path.join(path, "__init__.py")):
                     visit(path, f"{prefix}{entry}.")

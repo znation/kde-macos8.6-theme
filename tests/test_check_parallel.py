@@ -682,6 +682,18 @@ class TestDiscovery(unittest.TestCase):
             check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
         )
 
+    def test_symlinked_package_directories_are_not_recursed(self):
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        outside = os.path.join(os.path.dirname(tests_dir), "outside_pkg")
+        os.mkdir(outside)
+        _write_module(outside, "__init__.py", "")
+        _write_module(outside, "test_outside.py", OK_MODULE)
+        os.symlink(outside, os.path.join(tests_dir, "linked_pkg"))
+        self.assertEqual(
+            [], check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+        )
+
 
     def test_files_unittest_cannot_load_are_skipped(self):
         # unittest discovery gates every file on VALID_MODULE_NAME (a valid
