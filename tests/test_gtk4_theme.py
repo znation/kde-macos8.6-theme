@@ -38,6 +38,7 @@ from support.gtk_theme_spec import (
     TITLE_BUTTON_IMAGE_STATE,
 )
 from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
+from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
 from support.platinum_palette import (
     BLACK,
     BUTTON_SHADOW,
@@ -340,6 +341,16 @@ for radio in (False, True):
                     self.rules[selected]["border-radius"],
                     self.rules[frame]["border-radius"],
                 )
+
+    def test_calendar_disabled_day_text(self):
+        disabled = "calendar:disabled > grid > label.day-number"
+        selected = "calendar > grid > label.day-number:selected"
+        other_month = "calendar > grid > label.day-number.other-month"
+        self.assert_rule(disabled, {"color": "#888888"})
+        self.assertEqual(self.rules[disabled]["color"], self.rules["label:disabled"]["color"])
+        self._assert_inactive_grey_from_scheme()
+        self.assertGreater(self.css.index(disabled), self.css.index(selected))
+        self.assertGreater(self.css.index(disabled), self.css.index(other_month))
 
     def test_calendar_today_underline(self):
         today = "calendar > grid > label.today"
@@ -1004,6 +1015,16 @@ class TestScrollbarBreadthReference(ReferenceScreenshotMixin, unittest.TestCase)
         self.assertEqual(band, 16)
         _, rules, _ = parse_css(gtk_css.read_theme_text(CSS))
         self.assertEqual(rules["calendar"]["color"], hex_colour(self.pixel(x, top)))
+
+
+class TestCalendarDisabledGreyReference(ReferenceScreenshotMixin, unittest.TestCase):
+    REFERENCE = PROFILER_REFERENCE
+    MAX_ROWS = PROFILER_ROWS
+
+    def test_disabled_day_grey_matches_reference_palette_pixel(self):
+        _, rules, _ = parse_css(gtk_css.read_theme_text(CSS))
+        self.assertEqual(rules["calendar:disabled > grid > label.day-number"]["color"],
+                         hex_colour(self.pixel(241, 103)))
 
 
 if __name__ == "__main__":

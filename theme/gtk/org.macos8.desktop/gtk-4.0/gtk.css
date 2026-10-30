@@ -1023,6 +1023,11 @@ calendar > header {
 calendar > grid > label.day-number.other-month {
   color: #888888;
 }
+/* No GTK calendar appears in the reference; adapt GTK's disabled day-number
+   state and reuse the inactive-text grey (recorded 2026-10-29 by the feature role). */
+calendar:disabled > grid > label.day-number {
+  color: #888888;
+}
 /* No GTK calendar appears in the reference; reuse the inactive-text grey for
    today's marker (recorded 2026-10-29 by the feature role). */
 calendar > grid > label.today {
