@@ -47,6 +47,16 @@ class TestNoUnusedImports(unittest.TestCase):
         self.assertEqual(len(findings), 1, findings)
         self.assertIn("pkg/mod.py:1: unused import os", findings[0])
 
+    def test_scan_is_limited_to_the_requested_directories(self):
+        root = make_tmp_dir(self)
+        self._write(root, "pkg/mod.py", "import os\n")
+        self._write(root, "other/mod.py", "import sys\n")
+
+        self.assertEqual(
+            unused_imports(root, ("pkg",)),
+            ["pkg/mod.py:1: unused import os"],
+        )
+
     def test_an_import_a_statement_reads_is_kept(self):
         findings = self._findings(
             self, {"pkg/mod.py": "import os\n\nvalue = os.sep\n"}
