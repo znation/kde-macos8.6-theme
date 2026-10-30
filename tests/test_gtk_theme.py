@@ -981,6 +981,22 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
                 self.rules["button:focus"][property_name],
             )
 
+    def test_vertical_spinbutton_focus_outline(self):
+        selector = "spinbutton.vertical:focus"
+        self.assert_rule(
+            selector,
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules[selector][property_name],
+                self.rules["spinbutton:focus:not(.vertical)"][property_name],
+            )
+
     def test_radiobutton_focus_outline(self):
         self.assert_rule(
             "radiobutton:focus",
