@@ -98,12 +98,4 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 4 level bars: preserve disabled meter colors (planned 2026-10-29 by the plan role; independent of the queued calendar focus transition)
-
-**Goal.** Prevent the inherited disabled-levelbar opacity filter from attenuating the sheet's declared grey fill, trough and frame through the supported GTK 4 user stylesheet import. The existing `TestGtk4Theme.test_levelbar` pins a disabled block color but does not check the parent filter. This extends the finished level-bar styling with a parent-state override.
-
-**Approach and files.** Beside the level-bar rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `levelbar:disabled { filter: none; }` with a dated adaptation comment: no reference screenshot shows a disabled level meter; preserve the existing opaque palette rather than applying a second dimming operation. Add `TestGtk4Theme.test_levelbar_disabled_filter` in `tests/test_gtk4_theme.py`, using `assert_rule` to require exactly `{"filter": "none"}` on that selector and asserting that the existing disabled filled-block rule still uses `GREY`. Update the level-bar row in `docs/invariants.md` with that test and the GTK 4 exception/provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares `levelbar:disabled { filter: Opacity(var(--disabled-opacity)); }`. The chosen `none` is a platform adaptation preserving existing reference-grounded palette tokens, not a measured disabled-meter appearance. Keep library attribution in documentation rather than CSS to satisfy `test_stands_alone`; name `make apply-gtk`'s user stylesheet import as the supported override path.
-
-**Acceptance criteria.** Removing the parent override or replacing `none` with an opacity filter fails the new test. The existing `test_levelbar` continues to pin the filled, empty, disabled, trough and orientation declarations. Documentation distinguishes declaration checks from rendered-pixel evidence. Limit implementation to these three files and the disabled GTK 4 level-bar filter; no new palette values, geometry, assets, dependencies or GTK 3 changes. `make check` passes.
-
 ## Done

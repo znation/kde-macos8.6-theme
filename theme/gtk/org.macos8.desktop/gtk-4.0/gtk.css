@@ -824,6 +824,11 @@ levelbar > trough > block.filled:disabled {
   background-color: #999999;
 }
 
+/* No reference shows a disabled level meter; keep its palette opaque. (2026-10-29) */
+levelbar:disabled {
+  filter: none;
+}
+
 levelbar > trough > block.empty {
   background-color: transparent;
   background-image: none;

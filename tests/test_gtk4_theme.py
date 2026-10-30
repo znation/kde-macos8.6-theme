@@ -916,6 +916,13 @@ for radio in (False, True):
             vertical="levelbar.vertical > trough > block",
         )
 
+    def test_levelbar_disabled_filter(self):
+        self.assert_rule("levelbar:disabled", {"filter": "none"})
+        self.assert_rule(
+            "levelbar > trough > block.filled:disabled",
+            {"background-color": GREY},
+        )
+
     def test_switch(self):
         self.assert_switch(
             slider="switch > slider",
