@@ -46,11 +46,11 @@ if __package__:
         user_chrome_path,
         user_content_path,
         user_js_path,
-        write_profile_bytes,
         write_profile_text,
     )
     from tools.file_lock import exclusive_flock
     from tools.firefox_user_js import first_line, remove_user_js, set_user_js
+    from tools.firefox_transaction import publish_install
     from tools.repo_root import ROOT
     from tools.symlink_refusal import refuse_symlink
 else:  # run directly: python3 tools/install_firefox.py
@@ -65,11 +65,11 @@ else:  # run directly: python3 tools/install_firefox.py
         user_chrome_path,
         user_content_path,
         user_js_path,
-        write_profile_bytes,
         write_profile_text,
     )
     from file_lock import exclusive_flock
     from firefox_user_js import first_line, remove_user_js, set_user_js
+    from firefox_transaction import publish_install
     from repo_root import ROOT
     from symlink_refusal import refuse_symlink
 
@@ -137,36 +137,6 @@ def _is_our_sheet(text: str, marker: str) -> bool:
     return first_line(text).removeprefix("\ufeff") == marker
 
 
-def _restore_file(path: Path, previous: str | None) -> None:
-    """Put *previous* back at *path*, or remove a file an install created.
-
-    A file that did not exist before the failed install is removed; an
-    existing one is written back through the same atomic write used for the
-    install. A restore failure is reported by path alongside the write
-    failure that caused it.
-    """
-    if previous is None:
-        try:
-            path.unlink(missing_ok=True)
-        except OSError as exc:
-            raise ConfigError(f"cannot restore {path}: {exc}") from exc
-        return
-    write_profile_text(path, previous)
-
-
-def _restore_user_js(path: Path, previous: str | None, published: str) -> None:
-    """Put *previous* back at *path* when the failed write published *published*.
-
-    The atomic writer can publish the new text and still raise (an interrupt
-    delivered after the rename), so the filesystem, not a flag set after the
-    write returns, decides whether the preference block is present. When the
-    read-back is not the text the failed write tried to publish, the write
-    never took effect and the file is left as it was.
-    """
-    if previous != published and read_profile_text(path) == published:
-        _restore_file(path, previous)
-
-
 def _apply(profile: Path) -> int:
     """Install both sheets and the preference into *profile*.
 
@@ -222,30 +192,7 @@ def _apply(profile: Path) -> int:
         chrome_dir.mkdir(parents=True, exist_ok=True)
     except OSError as exc:
         raise ConfigError(f"cannot create {chrome_dir}: {exc}") from exc
-    try:
-        for sheet_path, data, _existing in destinations:
-            write_profile_bytes(sheet_path, data)
-        write_profile_text(js_path, updated_js)
-    except BaseException as exc:
-        # There is no flag to miss: the read-back says whether the user.js
-        # write published before it raised, and any failure or interrupt
-        # after a sheet write starts restores that sheet, including one
-        # delivered after the rename took effect but before the call returned.
-        rollback_errors = []
-        for sheet_path, _data, existing_sheet in destinations:
-            try:
-                _restore_file(sheet_path, existing_sheet)
-            except ConfigError as rollback:
-                rollback_errors.append(str(rollback))
-        try:
-            _restore_user_js(js_path, existing_js, updated_js)
-        except ConfigError as rollback:
-            rollback_errors.append(str(rollback))
-        if rollback_errors:
-            raise ConfigError(
-                f"{exc}; {'; '.join(rollback_errors)}"
-            ) from exc
-        raise
+    publish_install(destinations, js_path, existing_js, updated_js)
     _note(f"installed the Firefox Platinum chrome into {profile}")
     return 0
 

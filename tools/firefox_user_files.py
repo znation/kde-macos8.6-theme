@@ -11,7 +11,8 @@ write below raises it, and so do profile discovery and the install workflow,
 so ``main`` can report one ``install_firefox: error:`` line instead of letting
 a bare ``OSError`` or ``UnicodeDecodeError`` traceback escape. Profile
 discovery lives in ``tools/firefox_profile.py``, the ``user.js`` marker-block
-transform in ``tools/firefox_user_js.py`` and the workflow in
+transform in ``tools/firefox_user_js.py``, transaction recovery in
+``tools/firefox_transaction.py`` and install/remove policy in
 ``tools/install_firefox.py``.
 """
 
