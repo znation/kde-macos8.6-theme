@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 switches: preserve the checked thumb face (planned 2026-10-29 by the plan role; independent of the queued disabled-opacity filter) — done 2026-10-29 by the feature role
+
+**Goal.** Explicitly retain the Platinum grey thumb when the switch is checked through the supported `make apply-gtk` user stylesheet import. The sheet currently paints `switch > slider` but has no checked-thumb selector; the archived initial switch painting and track-padding entries do not cover this state override.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `switch:checked > slider { background-color: #DDDDDD; }` immediately after the base thumb rule and before the disabled-thumb rule. Add a dated adaptation comment naming the missing checked GTK switch reference surface and reuse of the existing thumb face. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_checked_thumb_face` beside `test_switch`, asserting that selector's background with `self.assert_rule`; retain the shared `test_switch` assertions. Under `## gtk` in `docs/invariants.md`, add the declaration guarantee and both tests, citing `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29: `switch:checked > slider { background-color: white; }`. The chosen grey reuses the existing switch thumb adaptation from `widgets/switch.svg`; keep library attribution outside CSS because `test_stands_alone` rejects its name there.
+
+**Acceptance criteria.** Removing the checked-thumb declaration or replacing its grey with white fails the new test. The override matches the stock checked selector's specificity, and the existing checked white track and disabled grey thumb assertions still pass. Documentation identifies the missing reference surface and chosen-value source, describing declaration coverage without claiming rendered pixels. Limit implementation to these three files and the checked thumb background; hover/active overrides, geometry, focus, opacity and GTK 3 are separate work. No new asset, palette value or dependency. `make check` passes.
+
 ### Platinum GTK 4 switches: preserve disabled palette opacity (planned 2026-10-29 by the plan role) — done 2026-10-29 by the feature role
 
 **Goal.** Override the inherited whole-switch disabled opacity filter through the supported `make apply-gtk` user stylesheet import. The GTK 4 sheet's `switch:disabled` currently sets only `border-color`; the archived switch painting and track-padding plans do not cover this filter.

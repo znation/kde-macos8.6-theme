@@ -1080,6 +1080,11 @@ switch > slider {
   min-height: 16px;
 }
 
+switch:checked > slider {
+  /* No reference shows a checked GTK switch; reuse the existing thumb face (2026-10-29). */
+  background-color: #DDDDDD;
+}
+
 switch:disabled > slider {
   background-color: #DDDDDD;
   border: 1px solid #999999;

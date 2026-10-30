@@ -1035,6 +1035,11 @@ for radio in (False, True):
             glyph="switch > image",
         )
 
+    def test_switch_checked_thumb_face(self):
+        self.assert_rule(
+            "switch:checked > slider", {"background-color": "#DDDDDD"}
+        )
+
     def test_switch_disabled_filter(self):
         self.assert_rule("switch:disabled", {"filter": "none"})
 
