@@ -20,7 +20,12 @@ else:
     )
     from terminal import escape_controls
 
-_POLL_SECONDS = 0.05
+# _supervise reaps and respawns between polls, so this interval is also the
+# latency added to every module hand-off; measured 24 instant stub workers:
+# 1.21s wall at 0.05 vs 0.25s at 0.01, flat from 0.01 down (the remainder is
+# real spawn cost). The poll itself is one waitpid(WNOHANG), so a 10ms
+# interval costs no measurable CPU.
+_POLL_SECONDS = 0.01
 _REAP_SECONDS = 5.0
 _KILL_SIGNAL = 9
 
