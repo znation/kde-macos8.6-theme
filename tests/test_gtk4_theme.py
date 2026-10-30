@@ -420,6 +420,14 @@ for radio in (False, True):
     def test_scale_focus_transition(self):
         self.assert_rule("scale > trough > slider", {"transition": "none"})
 
+    def test_notebook_focus_transition(self):
+        notebook_tab = "notebook > header > tabs > tab:checked"
+        self.assert_rule(notebook_tab, {"transition": "none"})
+        self.assertEqual(
+            self.rules[notebook_tab]["transition"],
+            self.rules["scale > trough > slider"]["transition"],
+        )
+
     def test_calendar_header_separator(self):
         header = "calendar > header"
         infobar = "infobar > revealer > box"
