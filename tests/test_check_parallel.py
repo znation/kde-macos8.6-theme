@@ -106,6 +106,17 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("test_ok: worker log could not be read", output.getvalue())
         self.assertIn("1 module failed", output.getvalue())
 
+    def test_invalid_utf8_in_worker_log_is_replaced(self):
+        log_path = make_tmp_dir(self) / "worker.log"
+        log_path.write_bytes(b"worker output: \xff\n")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+            )
+        self.assertEqual(0, status)
+        self.assertIn("worker output: \ufffd", output.getvalue())
+
     def test_every_module_runs_and_output_is_ordered(self):
         # Both modules pass; the coordinator prints one section per module
         # in discovery order even though the alphabetically later module
