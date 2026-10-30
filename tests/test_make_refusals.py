@@ -711,13 +711,62 @@ class TestShellUnsafeCheckVariables(unittest.TestCase):
     back inside quotes (`CHECK_TESTS may contain only dotted test names:
     '<value>'`, `CHECK_PARALLEL must be a worker count ...: '<value>'`), and
     CHECK_PARALLEL additionally reaches the unquoted `--workers` position,
-    CHECK_TESTS the unquoted unittest one. Both recipe guards limit the value
-    first, so a metacharacter cannot reach an unquoted position; a control
-    byte is not shell syntax anywhere, but the guards' quoted echo pasted it
-    raw into the operator's terminal before these parse-time refusals joined
-    the others (`TestShellUnsafeControlCharacters`). The refusal must name
-    the variable, and the byte must reach neither stdout nor stderr.
+    CHECK_TESTS the unquoted unittest one. Both guards paste the value into
+    the double-quoted words `set -- "$(CHECK_TESTS)"` and
+    `set -- "$(CHECK_PARALLEL)"` first, so a double quote, `$`, a backtick
+    or a backslash rewrites the guard line itself and runs as shell syntax
+    before any guard logic: both variables join the shared parse-time
+    refusal for those four metacharacters (TestShellUnsafeThemeRoot pins the
+    same hole in `require_theme_links`). The guards' own alphabet tests keep
+    refusing the wider punctuation (a semicolon, an apostrophe and the like
+    are inert inside double quotes, and the guards echo the shell-copied
+    `$1`, not the raw value); a control byte is refused unecheod by the same
+    shared refusal, which also covers the guards' quoted echo pasting a
+    byte like 0x1b raw into the operator's terminal before it joined the
+    others (`TestShellUnsafeControlCharacters`). The refusal must name the
+    variable, and neither the byte nor the metacharacter may run a recipe.
     """
+
+    def _assert_check_metachar_is_refused(self, variable):
+        """Drive `make check` with a double quote in *variable*; refuse it.
+
+        The value breaks out of `set -- "$(CHECK_TESTS)"` or
+        `set -- "$(CHECK_PARALLEL)"` six characters in, so the injected
+        words run before either guard can refuse anything: without the
+        parse-time refusal the canary file is created and the injected
+        `exit 7` ends the recipe. The refusal happens when make parses the
+        guard call, so nothing runs: the diagnostic is the run's whole
+        output and the canary never appears.
+        """
+        tmp = make_tmp_dir(self)
+        canary = f"{variable.lower()}_guard_canary"
+        result = theme_install.run_captured(
+            [
+                "make",
+                "-f",
+                str(repo_root.ROOT / "Makefile"),
+                "check",
+                f'{variable}=p"; touch {canary}; exit 7; echo "',
+            ],
+            cwd=str(tmp),
+            env=theme_install.make_env(),
+        )
+        assert_failed(self, result)
+        self.assertIn(f"{variable} contains a shell metacharacter", result.stderr)
+        self.assertIn(
+            f'p"; touch {canary}; exit 7; echo "', result.stderr
+        )
+        self.assertFalse((tmp / canary).exists(), tmp)
+        # The injected words never made the recipe shell run: no coordinator
+        # banner or unittest line beside the refusal.
+        self.assertNotIn("NO TESTS RAN", result.stdout + result.stderr)
+        self.assertNotIn("tools/check_parallel.py", result.stdout + result.stderr)
+
+    def test_a_double_quote_in_each_check_narrower_runs_neither_recipe_nor_shell(self):
+        for variable in ("CHECK_TESTS", "CHECK_PARALLEL"):
+            with self.subTest(variable=variable):
+                self._assert_check_metachar_is_refused(variable)
+
 
     def _assert_check_refused(self, variable, byte, env_value=None):
         """Drive `make check` with a control byte in *variable*; refuse it.

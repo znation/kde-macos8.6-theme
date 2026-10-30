@@ -228,9 +228,14 @@ single-quoted `-p` word the value is expanded into cannot escape — or an `INST
 carrying one of those four plus a semicolon, pipe, ampersand, parenthesis, newline or redirection
 character (its value list is expanded unquoted) is refused outright, before any recipe runs, with a
 diagnostic naming the variable and the value, while a space stays legal in either; the
-validators of `CHECK_TESTS` and `CHECK_PARALLEL` name a refused value back in their own
-diagnostics, so a value of either carrying a control byte (0x01-0x1f or 0x7f, tab and newline
-excepted) is refused before any recipe runs, unechoed. By
+validators of `CHECK_TESTS` and `CHECK_PARALLEL` paste the value into their own double-quoted
+guard words first, so a value of either carrying a double quote, `$`, a backtick or a backslash
+is refused by the same shared guard, before any recipe runs and unechoed; a value carrying a
+control byte (0x01-0x1f or 0x7f, tab and newline excepted) is refused the same way, since the
+validators echo a refused value's bounds from the shell-copied argument and a byte like 0x1b
+would otherwise reach the terminal raw. The wider shell punctuation — a semicolon, an apostrophe,
+a pipe and the like — stays inert inside the guards' double quotes and is still refused at run
+time by the guards' own alphabet tests, which name the value back. By
 default the discovered modules run in parallel through `tools/check_parallel.py`, which runs
 each module as one worker process and prints the modules' outputs in module order;
 `make check CHECK_PARALLEL=0` restores the serial `unittest discover` run, and

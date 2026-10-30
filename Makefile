@@ -110,30 +110,25 @@ refuse_unsafe_value = $(if $(call control_char_in,$(1)),$(control_refusal),$(if 
 # THEME_ROOT := theme sits further down with the scheme source: install's
 # symlink guard pastes the value into the double-quoted words of
 # `require_theme_links`, where the same recipe-shell metacharacters run.
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID CHECK_PATTERN THEME_ROOT,$(call refuse_unsafe_value,$(v)))
+# CHECK_TESTS ?= and CHECK_PARALLEL ?= sit further down with the `check`
+# target for the same reason: their run-time guards (`require_check_tests`,
+# `require_check_parallel`) paste the value into the double-quoted words
+# `set -- "$(CHECK_TESTS)"` and `set -- "$(CHECK_PARALLEL)"`, so a value
+# carrying one of the four metacharacters rewrites the guard lines themselves
+# and never reaches the guards' own alphabet refusals -- those keep refusing
+# the wider punctuation (a semicolon, an apostrophe and the like are inert
+# inside the guards' double quotes and refuse the value before it reaches
+# the unquoted unittest or `--workers` positions), so only the four here
+# need the parse-time refusal.
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID CHECK_PATTERN THEME_ROOT CHECK_TESTS CHECK_PARALLEL,$(call refuse_unsafe_value,$(v)))
 
 # CHECK_PATTERN additionally reaches a single-quoted recipe word: `check`
 # pastes it into `-p '$(CHECK_PATTERN)'`, and an apostrophe — inert inside
 # double quotes, so the guard above leaves it — closes that quoting instead.
 # The suite's own test-module filenames contain none, so the `check` recipe
 # never needs it either; a value reaching this diagnostic has already
-# passed the control-byte refusal in the guard above.
+# passed the metacharacter refusal in the guard above.
 $(if $(findstring ',$(CHECK_PATTERN)),$(error CHECK_PATTERN contains an apostrophe ('$(CHECK_PATTERN)'); the value is expanded into the single-quoted `-p '$(CHECK_PATTERN)'` recipe word, where the apostrophe would close the quoting and run the words after it as shell syntax instead of naming a test-module glob; pass a glob without an apostrophe),)
-
-# CHECK_TESTS and CHECK_PARALLEL are echoed back by their run-time guards:
-# require_check_tests' refinement refusals and require_check_parallel's
-# worker-count refusal each print the value, and CHECK_PARALLEL additionally
-# reaches the unquoted `--workers` coordinator position and CHECK_TESTS the
-# unquoted unittest position (each recipe guard limits its value to digits
-# or dotted test names first, so no metacharacter can reach those spots).
-# A value carrying a control byte would be refused mid-recipe and pasted raw
-# into the operator's terminal inside the guard's quoted value, exactly like
-# the FLOCK_TIMEOUT byte the shared refusal was added for, so both are
-# refused at parse time before any recipe runs. Their metacharacter set
-# stays with the recipe guards, whose diagnostics name the value better
-# than the shared one.
-$(if $(call control_char_in,CHECK_TESTS),$(call control_refusal,CHECK_TESTS))
-$(if $(call control_char_in,CHECK_PARALLEL),$(call control_refusal,CHECK_PARALLEL))
 
 # XDG_CONFIG_HOME is never expanded into a recipe word: the uninstall recipe
 # reads it through the shell (`config_home="$${XDG_CONFIG_HOME:-}"`) and,
