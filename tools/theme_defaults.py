@@ -16,11 +16,11 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_atomically
-    from tools.containment import open_regular_binary, require_within_repo
+    from tools.containment import read_capped_bytes, require_within_repo
     from tools.repo_root import ROOT
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
-    from containment import open_regular_binary, require_within_repo
+    from containment import read_capped_bytes, require_within_repo
     from repo_root import ROOT
 
 DEFAULTS = (
@@ -62,13 +62,12 @@ def _read_defaults_text(path: Path) -> str:
     would block or stream forever, so it is refused by name when the opened
     descriptor turns out not to be a regular file.
     """
-    with open_regular_binary(path) as handle:
-        data = handle.read(_MAX_DEFAULTS_BYTES + 1)
-    if len(data) > _MAX_DEFAULTS_BYTES:
-        raise ValueError(
-            f"{path}: is larger than the {_MAX_DEFAULTS_BYTES}-byte limit "
-            "for a defaults file"
-        )
+    data = read_capped_bytes(
+        path,
+        _MAX_DEFAULTS_BYTES,
+        "for a defaults file",
+    )
+    assert data is not None
     try:
         return data.decode("utf-8-sig")
     except UnicodeDecodeError as exc:
