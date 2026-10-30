@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 radio buttons: declare a focused outline (planned 2026-10-29 by the plan role; independent of GTK 4 overlay scrollbar work) — done 2026-10-29 by the feature role
+
+**Goal.** Give focused GTK 3 radio-button parent nodes an explicit Platinum outline. The stylesheet paints child `radio` nodes but has no `radiobutton:focus` rule. The finished check-button focus plan explicitly left this surface out.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside `checkbutton:focus`, add `radiobutton:focus { outline: 1px dotted #000000; outline-offset: 0; -gtk-outline-radius: 0; }`. Target the parent rather than `radio:focus`. Add a dated adaptation comment naming the missing GTK radio-button focus reference surface and reuse of the check-button parent's outline, offset and square outline corners; the circular child indicator retains its existing geometry. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_radiobutton_focus_outline` following `test_checkbutton_focus_outline`: use `assert_rule` and `BLACK` to pin the three declarations and compare each with `checkbutton:focus`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and adaptation source. Cite toolkit property provenance there: `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29, declares outline width/style/offset and `-gtk-outline-radius` in its universal rule and names the parent `radiobutton` in its text-button rules. Keep library names outside CSS for the standalone-sheet check.
+
+**Acceptance criteria.** The focused parent explicitly declares a 1px dotted black outline, zero offset and zero GTK outline radius; removing or changing a declaration fails the new test. Document these values as a platform adaptation rather than screenshot measurements. Existing radio face, checked bullet and indeterminate dash coverage passes. Limit implementation to the three named files. Declaration coverage does not establish rendered focus pixels or keyboard traversal behavior. No new artwork or dependency. `make check` passes.
+
 ### Platinum GTK 4 overlay scrollbar thumbs: retain the ordinary minimum breadth (planned 2026-10-29 by the plan role; independent of the queued ordinary trough margin plan) — done 2026-10-29 by the feature role
 
 **Goal.** Through the supported `make apply-gtk` user stylesheet import, give overlay thumbs the ordinary thumb's 12px transverse minimum in hovering and non-hovering states. The finished 2026-10-24 breadth plan explicitly excluded overlays; stock libadwaita selectors still supply smaller transverse minima.

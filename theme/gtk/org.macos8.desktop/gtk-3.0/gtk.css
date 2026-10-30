@@ -254,6 +254,14 @@ checkbutton:focus {
   -gtk-outline-radius: 0;
 }
 
+/* GTK 3 has no reference radio-button focus surface; reuse the check-button
+   parent's dotted outline, offset and square outline corners. */
+radiobutton:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 button:hover {
   background-color: #DDDDDD;
 }
