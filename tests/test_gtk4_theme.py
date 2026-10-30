@@ -898,6 +898,15 @@ for radio in (False, True):
             disabled="progressbar > trough > progress:disabled",
         )
 
+    def test_progressbar_directional_corners(self):
+        self.assert_rule("progressbar > trough > progress", {"border-radius": "0"})
+        for direction in ("left", "right", "top", "bottom"):
+            with self.subTest(direction=direction):
+                self.assert_rule(
+                    f"progressbar > trough > progress.{direction}",
+                    {"border-radius": "0"},
+                )
+
     def test_progressbar_disabled_filter(self):
         self.assert_rule("progressbar:disabled", {"filter": "none"})
         self.assert_rule(

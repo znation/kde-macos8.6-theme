@@ -780,6 +780,13 @@ progressbar > trough > progress {
   margin: 0;
 }
 
+progressbar > trough > progress.left,
+progressbar > trough > progress.right,
+progressbar > trough > progress.top,
+progressbar > trough > progress.bottom {
+  border-radius: 0;
+}
+
 progressbar > trough > progress:disabled {
   background-color: #999999;
 }
