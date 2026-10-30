@@ -137,7 +137,9 @@
    GTK-required. A file chooser's path bar paints its buttons as the landed
    tab recipe byte-for-byte; no reference screenshot shows a GTK path bar,
    and the path-bar and linked classes and the pathbar, scrolledwindow,
-   viewport and box node names are GTK-required. */
+   viewport and box node names are GTK-required. A linked group shares one
+   black border between its members; no reference screenshot shows a GTK
+   linked group, and the linked class is GTK-required. */
 
 @define-color theme_bg_color #DDDDDD;
 @define-color theme_fg_color #000000;
@@ -1174,5 +1176,41 @@ placessidebar row.activatable:selected:backdrop {
 
 placessidebar row.sidebar-new-bookmark-row {
   color: #000000;
+}
+
+/* Linked groups share one black border between members; the stock GTK 3
+   scheme sources the selector spelling (2026-10-29). */
+.linked:not(.vertical) > button,
+.linked:not(.vertical) > entry,
+.linked:not(.vertical) > spinbutton:not(.vertical),
+.linked:not(.vertical) > combobox > box > button.combo {
+  border-right-style: none;
+}
+
+.linked:not(.vertical) > button:last-child,
+.linked:not(.vertical) > entry:last-child,
+.linked:not(.vertical) > spinbutton:not(.vertical):last-child,
+.linked:not(.vertical) > combobox > box > button.combo:last-child {
+  border-right-style: solid;
+}
+
+.linked.vertical > button,
+.linked.vertical > entry,
+.linked.vertical > spinbutton:not(.vertical),
+.linked.vertical > combobox > box > button.combo {
+  border-bottom-style: none;
+}
+
+.linked.vertical > button:last-child,
+.linked.vertical > entry:last-child,
+.linked.vertical > spinbutton:not(.vertical):last-child,
+.linked.vertical > combobox > box > button.combo:last-child {
+  border-bottom-style: solid;
+}
+
+.path-bar.linked > button:not(:last-child),
+stackswitcher.linked > button:not(:last-child) {
+  border-right-style: solid;
+  border-bottom-style: solid;
 }
 

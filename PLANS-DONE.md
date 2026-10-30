@@ -5,6 +5,81 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 linked groups: share one border between adjacent members (planned 2026-10-29 by the plan role; independent of the waiting vertical spin-button outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** In a GTK 3 container carrying the `linked` class (the groups GTK builds around
+entries-plus-buttons, horizontal spin buttons inside a chained group and combo boxes chained to
+one), the sheet's generic 1px black borders double up: two members meeting edge to edge paint a
+2px black band, while every separate control the sheet draws uses one line. Give linked members
+one shared black border between themselves, without touching the landed recipes that already
+style specific linked containers.
+
+**Verified facts, method and values (checked 2026-10-29).** The stock GTK 3 stylesheet inside
+`/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`
+(extracted with `gresource extract`), shares borders in linked groups: its members
+drop `border-right-style` in horizontal groups (`filechooser .path-bar.linked > button`,
+`.linked:not(.vertical) > combobox > box > button.combo`, `.linked:not(.vertical) >
+spinbutton:not(.vertical)`, `.linked:not(.vertical) > entry`, `.linked > button`) and restore it
+on `:last-child`, and its vertical variants drop `border-bottom-style` over the same members
+(`.linked.vertical > ...`, lines 403-417 of the extract). This plan adopts that selector and
+side-sharing scheme with the sheet's own values: the shared seam stays the landed 1px black
+(`button`'s `border: 1px solid #000000`), and no `border-radius` or `-gtk-outline-radius`
+declarations are needed because every member already declares radius 0. Members keep their
+landed bevels (`button`'s `inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA`) — the seam shows the
+following member's highlight shoulder beside the shared black line, which this plan records as
+the decided adaptation rather than a design question. No reference screenshot in
+`macos8.6-screenshots/` shows a GTK linked group, so this is a platform adaptation; the stock
+resource sources the selector spelling (the `linked` class is GTK-required), while the values are
+the landed button/entry declarations. Two landed GTK 3 recipes already style specific linked
+containers and must win over the new strip: the file chooser's path bar (`.path-bar > button`,
+tab recipe; the `GtkPathBar` node carries the `linked` class with the folder buttons as direct
+children) and the stack switcher (`stackswitcher > button`; its node carries the `linked` class
+per the landed stack-switcher plan's PyGObject probe). The strip selector
+`.linked:not(.vertical) > button` out-ranks `.path-bar > button` on specificity ((0,2,1) vs
+(0,1,1)), so the protection re-asserts the outlines with a higher-specificity rule:
+`.path-bar.linked > button:not(:last-child), stackswitcher.linked > button:not(:last-child)`
+((0,3,1)), which restores `border-right-style` and `border-bottom-style` regardless of the
+block's file position. A focused member's propagated seam color (the stock file re-colors the
+following member's border under `:focus` and `:drop(active)`) and right-to-left direction
+subtleties stay out of scope; no collected screenshot shows either.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`: (1) append one
+sentence to the provenance header comment immediately before the closing `*/`: "A linked group
+shares one black border between its members; no reference screenshot shows a GTK linked group,
+and the linked class is GTK-required." (2) Append, after the `placessidebar
+row.sidebar-new-bookmark-row` rule that ends the file, a `/* Linked groups share one black
+border between members; the stock GTK 3 scheme sources the selector spelling
+(2026-10-29) */` — corrected 2026-10-29 by the feature role: the plan's original
+text named the stock theme inside the CSS, but `test_imports_nothing_and_does_not_mention_adwaita`
+rejects that name in the sheet, so the shipped comment says "the stock GTK 3 scheme"
+and keeps the library name in the invariants row instead
+comment plus the rules: a horizontal strip rule naming `button`, `entry`,
+`spinbutton:not(.vertical)` and `combobox > box > button.combo` under
+`.linked:not(.vertical) >` with `border-right-style: none`, the same selector list with
+`:last-child` restoring `border-right-style: solid`, the same two rules over
+`.linked.vertical >` with `border-bottom-style`, and the protection rule above that restores
+both styles for the path bar and stack switcher members. Keep library names outside the CSS for
+the standalone-sheet check (`TestGtkTheme.test_imports_nothing_and_does_not_mention_adwaita`).
+In `tests/test_gtk_theme.py`, add three `TestGtkTheme` tests: `test_linked_members_strip_their_trailing_border`
+(asserts `border-right-style: none` on the four horizontal strip selectors and
+`border-bottom-style: none` on the four vertical ones), `test_linked_last_member_restores_the_border`
+(asserts both `:last-child` rules) and `test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines`
+(asserts the protection rule's two declarations and that `.path-bar > button` still declares
+`border: 1px solid #000000`, keeping the landed tab recipe intact). In `docs/invariants.md`,
+append a row under `## gtk`: no collected screenshot shows a GTK linked group, so this is a
+platform adaptation with the stock `<...>/Adwaita/gtk-contained.css` resource inspected
+2026-10-29 sourcing the selector scheme; the declaration checks do not establish rendered
+pixels.
+
+**Acceptance criteria.** Every linked member except the last declares its trailing edge
+border-less, and the last declares it solid, so a group paints one black line between members;
+removing a strip rule, flipping a side, or widening the strip to the path bar or stack switcher
+fails one of the three new tests, and the landed path-bar and stack-switcher recipes stay
+byte-for-byte unchanged (pinned by the existing shared `TAB_STATES` case plus the new
+protection test). Scope is the three named files; right-to-left groups, focus-seam color
+propagation, GTK 4 CSS and rendered pixels stay out of scope. No new palette value, artwork or
+dependency. `make check` passes.
+
 ### Platinum GTK 3 vertical spin buttons: declare a focused outline (planned 2026-10-29 by the plan role; independent of every waiting entry — it completes the horizontal spin-button outline plan, done 2026-10-29, which explicitly excluded vertical spin buttons) — done 2026-10-29 by the feature role
 
 **Goal.** Give focused vertical GTK 3 spin-button fields an explicit Platinum outline. The completed plans outline `entry` and `spinbutton:focus:not(.vertical)`; a focused vertical spin button draws no outline at all, because the sheet imports nothing and replaces the stock theme, so Adwaita's universal focus outline never applies (`TestGtkTheme.test_imports_nothing_and_does_not_mention_adwaita` pins the standalone-sheet guarantee).

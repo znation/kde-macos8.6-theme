@@ -997,6 +997,49 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
                 self.rules["spinbutton:focus:not(.vertical)"][property_name],
             )
 
+    def test_linked_members_strip_their_trailing_border(self):
+        for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
+                                (".linked.vertical", "border-bottom-style")):
+            for member in ("button", "entry", "spinbutton:not(.vertical)",
+                           "combobox > box > button.combo"):
+                self.assert_rule(
+                    f"{css_class} > {member}",
+                    {side: "none"},
+                )
+
+    def test_linked_last_member_restores_the_border(self):
+        for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
+                                (".linked.vertical", "border-bottom-style")):
+            for member in ("button:last-child", "entry:last-child",
+                           "spinbutton:not(.vertical):last-child",
+                           "combobox > box > button.combo:last-child"):
+                self.assert_rule(
+                    f"{css_class} > {member}",
+                    {side: "solid"},
+                )
+
+    def test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines(self):
+        self.assert_rule(
+            ".path-bar.linked > button:not(:last-child)",
+            {
+                "border-right-style": "solid",
+                "border-bottom-style": "solid",
+            },
+        )
+        self.assert_rule(
+            "stackswitcher.linked > button:not(:last-child)",
+            {
+                "border-right-style": "solid",
+                "border-bottom-style": "solid",
+            },
+        )
+        self.assert_rule(
+            ".path-bar > button",
+            {
+                "border": f"1px solid {BLACK}",
+            },
+        )
+
     def test_radiobutton_focus_outline(self):
         self.assert_rule(
             "radiobutton:focus",
