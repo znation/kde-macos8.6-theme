@@ -1003,6 +1003,12 @@ calendar > grid > label.day-number:checked {
 calendar {
   border: 1px solid #000000;
 }
+/* No GTK calendar appears in the reference; reuse the infobar's etched edge
+   for the header separator (recorded 2026-10-29 by the feature role). */
+calendar > header {
+  border-bottom: 1px solid #888888;
+  box-shadow: inset 0 -1px #FFFFFF;
+}
 calendar > grid > label.day-number.other-month {
   color: #888888;
 }

@@ -361,6 +361,17 @@ for radio in (False, True):
                     self.rules[frame]["border"],
                 )
 
+    def test_calendar_header_separator(self):
+        header = "calendar > header"
+        infobar = "infobar > revealer > box"
+        self.assert_rule(
+            header,
+            {"border-bottom": "1px solid #888888", "box-shadow": "inset 0 -1px #FFFFFF"},
+        )
+        for prop in ("border-bottom", "box-shadow"):
+            with self.subTest(property=prop):
+                self.assertEqual(self.rules[header][prop], self.rules[infobar][prop])
+
     def test_infobar(self):
         self.assert_infobar(("infobar > revealer > box",))
         for message_type in (".info", ".question", ".warning", ".error"):
