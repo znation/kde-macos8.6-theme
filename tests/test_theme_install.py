@@ -1330,6 +1330,44 @@ class TestShellUnsafeControlCharacters(unittest.TestCase):
         self._assert_control_refused("PYTHON", "python3\x1b[2J; touch CANARY")
 
 
+class TestShellUnsafeXdgConfigHome(unittest.TestCase):
+    """An `XDG_CONFIG_HOME` carrying a control byte is refused unecheod.
+
+    `uninstall`'s trailing diagnostics read the config home through the
+    recipe shell (`config_home="$${XDG_CONFIG_HOME:-}"`) and, when a
+    selection still names our GTK theme after the data-home removals, echo
+    the settings.ini and gtk.css paths under it on stderr. Make interpolates
+    nothing of the value, so the metacharacter refusal cannot see it:
+    shell syntax in the value stays inside the recipe's double quotes and is
+    inert, but the echo still pastes the raw value into the terminal, like
+    the guard echoes the other guarded values. Before the parse-time
+    refusal, an escape byte in the variable rode that echo into the
+    operator's terminal; the byte must now reach neither stdout nor stderr.
+    """
+
+    def test_an_escape_byte_in_XDG_CONFIG_HOME_is_refused_before_uninstall_echoes_it(self):
+        # The realistic path: a marked gtk.css survives the uninstall under
+        # an escape-carrying config home, so the data-home removals leave the
+        # diagnostic block something real to echo. The refusal must fire at
+        # make parse time, naming the variable, and echo nothing of it.
+        tmp = make_tmp_dir(self)
+        config_home = tmp / "cfg\x1b(2Jhome"
+        (config_home / "gtk-4.0").mkdir(parents=True)
+        (config_home / "gtk-4.0" / "gtk.css").write_text(
+            "/* org.macos8.desktop GTK 4 user CSS */\n"
+        )
+        env = theme_install.make_env("XDG_CONFIG_HOME", "XDG_DATA_HOME")
+        env["XDG_CONFIG_HOME"] = str(config_home)
+        env["XDG_DATA_HOME"] = str(tmp / "data home")
+        result = theme_install.run_make(["uninstall"], env=env)
+        assert_failed(self, result)
+        self.assertIn(
+            "XDG_CONFIG_HOME contains a control character", result.stderr
+        )
+        output = result.stdout + result.stderr
+        self.assertNotIn("\x1b", output)
+
+
 class TestXdgDataHomeDefault(unittest.TestCase):
     """An empty or relative $XDG_DATA_HOME must fall back to the XDG default.
 

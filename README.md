@@ -212,7 +212,13 @@ it after the uninstall and falls back to BreezeLight on the next start, so
 `make uninstall` prints a warning naming `plasma-apply-colorscheme BreezeLight`
 as the reset; if the opt-in GTK selection `make apply-gtk` published still names
 `org.macos8.desktop` after the uninstall, it likewise prints a warning naming
-`make remove-gtk` as the reset. Neither warning edits the user's configuration. `make check` runs the test suite, and `make help`
+`make remove-gtk` as the reset. Neither warning edits the user's configuration.
+Because these diagnostics name the settings under `$XDG_CONFIG_HOME`, that
+variable when it carries a control byte (0x01-0x1f or 0x7f, tab and newline
+excepted) is refused at parse time, before any recipe runs and unechoed;
+shell metacharacters stay legal, since the value is not expanded by recipes
+into unquoted words -- the recipes read it through the shell, inside double
+quotes. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`, or to
 one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`.

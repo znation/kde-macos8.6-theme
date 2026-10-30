@@ -135,6 +135,18 @@ $(if $(findstring ',$(CHECK_PATTERN)),$(error CHECK_PATTERN contains an apostrop
 $(if $(call control_char_in,CHECK_TESTS),$(call control_refusal,CHECK_TESTS))
 $(if $(call control_char_in,CHECK_PARALLEL),$(call control_refusal,CHECK_PARALLEL))
 
+# XDG_CONFIG_HOME is never expanded into a recipe word: the uninstall recipe
+# reads it through the shell (`config_home="$${XDG_CONFIG_HOME:-}"`) and,
+# when a selection still names our GTK theme after the data-home removals,
+# echoes the settings.ini and gtk.css paths under it on stderr. Make
+# interpolates nothing of the value, so the metacharacter refusal above
+# could see it only through make's non-existent expansion -- but the echo
+# pastes whatever the value carries raw into the terminal, exactly like the
+# guard echoes the other guarded values. A value carrying a control byte is
+# hence refused at parse time, before any recipe runs, and is not echoed
+# back. A printable value, spaces and apostrophes alike, stays legal.
+$(if $(call control_char_in,XDG_CONFIG_HOME),$(call control_refusal,XDG_CONFIG_HOME))
+
 # PYTHON is expanded into recipe words unquoted -- a value may carry
 # arguments (`/usr/bin/python3 -X dev`), so the words cannot be
 # double-quoted -- and at an unquoted position a wider set of characters is
