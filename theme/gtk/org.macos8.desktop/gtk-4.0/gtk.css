@@ -951,6 +951,11 @@ scale > trough > fill, scale > trough > highlight {
   margin: 0;
 }
 
+/* 2026-10-29: no GTK scale interaction reference; keep the highlight transparent. */
+scale:hover > trough > highlight, scale:active > trough > highlight {
+  background-image: none;
+}
+
 scale > trough > slider {
   background-color: #DDDDDD;
   background-image: none;

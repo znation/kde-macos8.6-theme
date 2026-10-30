@@ -1048,6 +1048,13 @@ for radio in (False, True):
         for selector in ("scale:hover > trough", "scale:active > trough"):
             self.assert_rule(selector, {"background-color": TROUGH})
 
+    def test_scale_parent_interaction_highlight_image(self):
+        for selector in (
+            "scale:hover > trough > highlight",
+            "scale:active > trough > highlight",
+        ):
+            self.assert_rule(selector, {"background-image": "none"})
+
     def test_toolbar_and_menubar(self):
         for selector in (".toolbar", "menubar"):
             self.assert_rule(
