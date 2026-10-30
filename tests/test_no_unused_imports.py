@@ -215,6 +215,15 @@ class TestNoUnusedImports(unittest.TestCase):
         self.assertEqual(len(findings), 1, findings)
         self.assertIn("pkg/mod.py:1: unused import os", findings[0])
 
+    def test_loop_and_walrus_targets_do_not_read_the_imported_name(self):
+        for statement in ("for os in ():\n    pass\n", "(os := None)\n"):
+            with self.subTest(statement=statement):
+                findings = self._findings(
+                    self, {"pkg/mod.py": "import os\n\n" + statement}
+                )
+                self.assertEqual(len(findings), 1, findings)
+                self.assertIn("pkg/mod.py:1: unused import os", findings[0])
+
     def test_a_del_of_the_imported_name_keeps_the_flag(self):
         # `del os` detaches the binding without reading it, so the import
         # it clears stays a finding too.
