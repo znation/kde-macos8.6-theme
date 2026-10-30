@@ -613,6 +613,12 @@ scrollbar slider {
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
 }
 
+/* No GTK overlay scrollbar appears in the reference set; reuse the ordinary 16px band minus the two 1px borders. */
+scrollbar.overlay-indicator slider {
+  min-width: 12px;
+  min-height: 12px;
+}
+
 scrollbar:not(.overlay-indicator) {
   -GtkScrollbar-has-backward-stepper: true;
   -GtkScrollbar-has-forward-stepper: true;

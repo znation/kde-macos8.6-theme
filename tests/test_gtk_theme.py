@@ -525,6 +525,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, expected)
 
+    def test_overlay_scrollbar_thumb_minimum(self):
+        self.assert_rule(
+            "scrollbar.overlay-indicator slider",
+            {"min-width": "12px", "min-height": "12px"},
+        )
+
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar trough",
@@ -761,6 +767,25 @@ class TestScrollbarStepperReference(ReferenceScreenshotMixin, unittest.TestCase)
             ],
             f"1px solid {INACTIVE_OUTLINE}",
         )
+
+    def test_overlay_thumb_minimum_matches_reference(self):
+        top, bottom = 462, 477
+        for y in (top, bottom):
+            self.assertEqual(hex_colour(self.pixel(200, y)), BLACK)
+        for y in range(top + 1, bottom):
+            with self.subTest(y=y):
+                self.assertEqual(hex_colour(self.pixel(200, y)), TROUGH)
+        band = bottom - top + 1
+        css = gtk_css.read_theme_text(CSS)
+        _, rules, _ = parse_css(css, source=str(CSS.relative_to(ROOT)))
+        self.assertEqual(rules["scrollbar"]["border"], f"1px solid {BLACK}")
+        self.assertEqual(rules["scrollbar slider"]["border"], f"1px solid {BLACK}")
+        for dimension in ("min-width", "min-height"):
+            with self.subTest(dimension=dimension):
+                self.assertEqual(
+                    rules["scrollbar.overlay-indicator slider"][dimension],
+                    f"{band - 4}px",
+                )
 
 
 class TestCheckGlyphs(unittest.TestCase):
