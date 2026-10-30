@@ -608,6 +608,16 @@ class TestSpawnDefenses(unittest.TestCase):
             )
         killpg.assert_not_called()
 
+    def test_kill_group_ignores_a_worker_group_that_already_exited(self):
+        process = mock.Mock(pid=123)
+        with mock.patch.object(
+            check_parallel_workers.os, "killpg",
+            side_effect=ProcessLookupError,
+        ) as killpg:
+            check_parallel_workers._kill_group(process)
+
+        killpg.assert_called_once_with(123, check_parallel_workers._KILL_SIGNAL)
+
     def _spawn_while_popen_signals(self, number, raises):
         """Signal the coordinator *number* while Popen returns; spawn a sleeper.
 
