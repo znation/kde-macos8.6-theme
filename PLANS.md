@@ -95,11 +95,3 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 recorded here to keep the scope deliberate.
 
 ## Done
-
-### Platinum GTK 4 calendars: use the Platinum outer border (planned 2026-10-29 by the plan role) — done 2026-10-29 by the feature role
-
-**Goal.** Replace the GTK 4 calendar's stock translucent outer outline with the existing Platinum frame's opaque black border when loaded through `make apply-gtk`'s user stylesheet import. The finished calendar plans cover day colors and corners; the original calendar plan explicitly excludes the outer border.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `calendar { border: 1px solid #000000; }` beside the calendar day rules. Reuse the border from `frame > border, .frame`, without copying their shadow, padding or margin. Add `TestGtk4Theme.test_calendar_outer_border` in `tests/test_gtk4_theme.py`, asserting the exact declaration dictionary and equality with both frame selectors' border values. Update the GTK 4 calendar adaptation row in `docs/invariants.md` and add a dated CSS provenance comment. No reference screenshot shows a GTK calendar: this border adapts the existing frame recipe rather than a calendar measurement. Record the stock `calendar` selector and translucent 1px border source as `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`; keep that library attribution in the invariant row because `test_stands_alone` rejects the library name in CSS.
-
-**Acceptance criteria.** The new test pins `calendar` to exactly `{"border": "1px solid #000000"}` and ties it to the existing frame border. Retain the selected-day, marked-day and other-month regression assertions. Document the supported user stylesheet import and that declaration checks do not establish rendered pixels. Limit implementation to the three named files; header separators, day paint, spacing and GTK 3 are separate surfaces. No new palette values, artwork or dependencies. `make check` passes.
