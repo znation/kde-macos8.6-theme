@@ -381,6 +381,31 @@ class TestInstall(unittest.TestCase):
     def test_refuses_a_foreign_hook_and_leaves_it_alone(self):
         assert_refuses_a_foreign_hook(self, "install")
 
+    def test_fifo_swapped_after_lstat_is_rejected_without_opening_blocking(self):
+        repo, hook = make_repo_with_hook(self)
+        hook.write_bytes(b"regular hook")
+        # Model the lstat/open race: lstat reports a regular file, then the
+        # pathname is replaced by a FIFO before the descriptor open.
+        real_lstat = Path.lstat
+        changed = False
+
+        def swap_after_lstat(path):
+            nonlocal changed
+            result = real_lstat(path)
+            if path == hook and not changed:
+                changed = True
+                hook.unlink()
+                hook.write_bytes(b"regular during check")
+                result = real_lstat(path)
+                hook.unlink()
+                os.mkfifo(hook)
+            return result
+
+        with mock.patch.object(Path, "lstat", swap_after_lstat):
+            with self.assertRaises(local_hook.LocalHookError) as caught:
+                local_hook._existing_hook(hook)
+        self.assertIn("non-regular", str(caught.exception))
+
     def test_refuses_an_oversize_hook_without_reading_it_whole(self):
         # A hook far larger than the read cap cannot be one this tool wrote.
         # The tool must refuse it by name instead of loading the whole file

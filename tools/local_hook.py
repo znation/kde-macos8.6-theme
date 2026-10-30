@@ -24,6 +24,7 @@ unreadable file), a git invocation fails, or the arguments are a usage error.
 from __future__ import annotations
 
 import stat
+import os
 import sys
 from pathlib import Path
 
@@ -93,8 +94,25 @@ def _existing_hook(path: Path) -> bytes | None:
     try:
         # Read at most one byte past the cap: enough to detect an oversize
         # hook without loading the rest of it.
-        with path.open("rb") as handle:
+        # The pathname can change after lstat. O_NONBLOCK prevents a swapped
+        # FIFO from stalling this command; O_NOFOLLOW and fstat keep the open
+        # descriptor bound to a regular, non-symlink hook.
+        flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+        descriptor = os.open(path, flags)
+        try:
+            if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+                raise LocalHookError(
+                    f"refusing to touch a non-regular hook: {path}"
+                )
+            handle = os.fdopen(descriptor, "rb")
+            descriptor = -1
+        finally:
+            if descriptor >= 0:
+                os.close(descriptor)
+        with handle:
             data = handle.read(_MAX_HOOK_BYTES + 1)
+    except LocalHookError:
+        raise
     except OSError as exc:
         raise LocalHookError(f"cannot read {path}: {exc}") from exc
     if len(data) > _MAX_HOOK_BYTES:
