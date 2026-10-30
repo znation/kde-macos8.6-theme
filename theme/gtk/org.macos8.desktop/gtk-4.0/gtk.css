@@ -771,6 +771,13 @@ progressbar > trough {
   min-width: 10px;
 }
 
+/* No reference shows an OSD GTK progress trough; reuse the base paint (2026-10-29). */
+progressbar.osd > trough {
+  background-color: #EEEEEE;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #999999;
+}
+
 /* No reference shows an oriented GTK progress trough; reuse the base minimum. (2026-10-29) */
 progressbar.horizontal > trough {
   min-height: 10px;

@@ -899,6 +899,21 @@ for radio in (False, True):
             disabled="progressbar > trough > progress:disabled",
         )
 
+    def test_progressbar_osd_trough_paint(self):
+        selector = "progressbar.osd > trough"
+        expected = {
+            "background-color": TROUGH,
+            "border": f"1px solid {BLACK}",
+            "box-shadow": f"inset 1px 1px {GREY}",
+        }
+        self.assert_rule(selector, expected)
+        self.assertEqual(self.rules[selector], expected)
+        base = self.rules["progressbar > trough"]
+        self.assertEqual(
+            {name: self.rules[selector][name] for name in expected},
+            {name: base[name] for name in expected},
+        )
+
     def test_progressbar_oriented_trough_thickness(self):
         horizontal = "progressbar.horizontal > trough"
         vertical = "progressbar.vertical > trough"
