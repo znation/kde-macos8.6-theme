@@ -200,6 +200,45 @@ class TestCoordinator(unittest.TestCase):
         self.assertEqual(0, status)
         self.assertIn("worker output: \ufffd", output.getvalue())
 
+    def test_a_window_without_any_line_break_is_shown_whole(self):
+        # A worker killed while writing one continuous line can leave a log
+        # whose whole tail window carries no newline at all: there is no
+        # break to open on, so the note must still account every byte
+        # exactly -- the window is shown whole (65536) and the difference
+        # from the file's size is named -- instead of dropping the tail.
+        log_path = make_tmp_dir(self) / "worker.log"
+        log_path.write_bytes(b"x" * 100_000)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+            )
+        self.assertEqual(0, status)
+        self.assertIn(
+            "check: 34464 earlier log bytes hidden; showing the last 65536",
+            output.getvalue(),
+        )
+        self.assertIn("x" * 65_536, output.getvalue())
+
+    def test_crlf_worker_log_lines_end_before_the_line_breaks(self):
+        # The bounded read replaced a text-mode whole-file read, whose
+        # universal newlines folded CRLF and bare CR into LF. A CRLF
+        # worker log must still read as one line per record after the
+        # switch to the binary bounded read -- not as one line carrying
+        # literal carriage returns.
+        log_path = make_tmp_dir(self) / "worker.log"
+        log_path.write_bytes(b"line one\r\nline two\r\nRan 1 test in 0.001s\n\nOK\n")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_ok"], {"test_ok": 0}, {"test_ok": str(log_path)}, 10
+            )
+        self.assertEqual(0, status)
+        text = output.getvalue()
+        self.assertIn("line one\nline two\n", text)
+        self.assertNotIn("line one\r", text)
+        self.assertNotIn("\u000d", text)
+
     def test_every_module_runs_and_output_is_ordered(self):
         # Both modules pass; the coordinator prints one section per module
         # in discovery order even though the alphabetically later module
