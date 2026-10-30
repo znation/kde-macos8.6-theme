@@ -96,4 +96,12 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 4 progress bars: preserve oriented trough thickness (planned 2026-10-29 by the plan role; independent of the queued directional fill corners)
+
+**Goal.** Preserve the existing 10px trough minimum across horizontal and vertical progress bars. The installed base stylesheet's orientation selectors have higher specificity than the theme's base trough rule and declare an 8px cross-axis minimum. The finished meters-and-sliders plan covers the base rule, not these orientation overrides.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the base progress trough, add `progressbar.horizontal > trough { min-height: 10px; }` and `progressbar.vertical > trough { min-width: 10px; }`. Add a dated adaptation comment explaining that no reference screenshot shows an oriented GTK progress trough and the value reuses the existing base trough minimum. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_progressbar_oriented_trough_thickness`, using `assert_rule` and exact dictionary equality to require those respective single-property declarations, and comparing each value with the corresponding base trough minimum parsed by the existing CSS helpers. Keep `test_progressbar` intact. Add a focused row under `## gtk` in `docs/invariants.md` naming both tests and provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares 8px on these orientation selectors; 10px comes from this theme's existing `PROGRESSBAR_TROUGH` adaptation in `tests/support/gtk_theme_spec.py`, not a measured GTK surface. Keep library attribution in documentation for `test_stands_alone`.
+
+**Acceptance criteria.** Both orientation selectors declare exactly their cross-axis minimum, matching the stock selectors' specificity so the supported `make apply-gtk` user stylesheet import supplies the later override. Removing either selector or changing its value fails the new test. The base trough remains covered by `test_progressbar`; documentation distinguishes declaration coverage from rendered thickness evidence. Limit implementation to these three files and trough cross-axis minimums; fill minimums, long-axis sizing, corners, OSD variants and GTK 3 are outside this plan. No new palette value, asset or dependency. `make check` passes.
+
 ## Done
