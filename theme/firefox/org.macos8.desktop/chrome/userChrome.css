@@ -10,10 +10,10 @@
    Address-bar button hover and pressed/open fills reuse the toolbar state
    mapping through Firefox's urlbar-box tokens (adapted 2026-10-25).
    No reference shows Firefox menus; their zero-radius popup corners follow
-   this sheet's square .tab-background and #urlbar-background convention
+   this sheet's square .tab-background and .urlbar-background convention
    (platform geometry adaptation 2026-10-25).
    No reference shows Firefox arrow panels; their zero-radius bodies follow
-   this sheet's square menus, .tab-background and #urlbar-background
+   this sheet's square menus, .tab-background and .urlbar-background
    (platform geometry adaptation 2026-10-25).
    No reference shows Firefox menu colours; the shared face and black map
    to --panel-background-color and --panel-text-color consumed by
@@ -23,12 +23,18 @@
    border reuse the Platinum menu face and black through that same consumer's
    --panel-background-color, --panel-text-color and --panel-border-color
    tokens (platform colour adaptation 2026-10-25).
-   No reference shows Firefox's optional classic search field; its unfocused
-   white face, square 1px black border and shadow-free paint follow this
-   sheet's #urlbar-background, and its black text follows the shared Platinum
-   foreground (platform adaptation 2026-10-25). Firefox's own
-   chrome/browser/skin/classic/browser/urlbar-searchbar.css paints #searchbar
-   and owns the focused appearance; #searchbar-new stays Firefox's.
+   No reference shows Firefox's toolbar fields; their unfocused white face,
+   square 1px black border and shadow-free paint follow the shared Platinum
+   field recipe (platform adaptation 2026-10-25). Firefox's
+   chrome/browser/skin/classic/browser/urlbar-searchbar.css
+   owns the focused and open appearances. In installed Firefox ESR
+   153.6.0esr (probed against
+   the extracted omni.ja 2026-10-30) the band's markup is class-only:
+   UrlbarInput.mjs's #markup emits <html:div class="urlbar-background"/>
+   and no element carries id="urlbar-background", so the rule keys the class
+   under the two moz-urlbar ids; and the defaults/preferences/firefox.js
+   default browser.search.widget.new=true makes #searchbar-new the toolbar
+   search field, which takes the same unfocused recipe as the address field.
 
    No reference shows Firefox's menu bar; the open title's flat #CCCCFF fill
    comes from widgets/menubaritem.svg's pressed slices with no hover
@@ -894,15 +900,29 @@ tooltip {
   background-color: #EEEEEE !important;
 }
 
-#urlbar-background {
+/* Paint only the unfocused toolbar fields. Provenance exception: no
+   reference shows Firefox's toolbar fields, so both reuse the landed field
+   recipe (platform adaptation 2026-10-25). The band's markup is class-only
+   in the installed Firefox ESR 153.6.0esr — UrlbarInput.mjs's #markup emits
+   <html:div class="urlbar-background"/> and no element carries
+   id="urlbar-background" (probed against the extracted omni.ja 2026-10-30),
+   so the rule keys the class under each id — and the default
+   browser.search.widget.new=true makes #searchbar-new the toolbar search
+   field. Focused and open paints, the results bubble's ground and the field
+   text stay Firefox's. Firefox's
+   chrome/browser/skin/classic/browser/urlbar-searchbar.css owns the focused
+   and open appearances. */
+#urlbar:not([focused], [open]) > .urlbar-background,
+#searchbar-new:not([focused], [open]) > .urlbar-background {
   background-color: #FFFFFF !important;
   border: 1px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
 }
 
-/* Paint only the unfocused classic search field; Firefox owns its focused
-   appearance and the newer #searchbar-new widget. */
+/* Paint only the unfocused classic search field; it is live only for a user
+   who disables the default browser.search.widget.new pref, whose focused
+   appearance stays Firefox's. */
 #searchbar:not(:focus-within) {
   background-color: #FFFFFF !important;
   color: #000000 !important;

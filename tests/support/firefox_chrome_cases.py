@@ -199,7 +199,13 @@ REQUIRED_RULES = {
     ): {
         "background-color": f"{TROUGH} !important",
     },
-    "#urlbar-background": {
+    "#urlbar:not([focused], [open]) > .urlbar-background": {
+        "background-color": f"{WHITE} !important",
+        "border": f"1px solid {BLACK} !important",
+        "border-radius": "0 !important",
+        "box-shadow": "none !important",
+    },
+    "#searchbar-new:not([focused], [open]) > .urlbar-background": {
         "background-color": f"{WHITE} !important",
         "border": f"1px solid {BLACK} !important",
         "border-radius": "0 !important",

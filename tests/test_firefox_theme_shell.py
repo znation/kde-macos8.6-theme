@@ -89,13 +89,26 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             },
         )
 
-    def test_search_field_paint_is_scoped_to_the_unfocused_classic_field(self):
-        selector = "#searchbar:not(:focus-within)"
+    def test_toolbar_field_paint_is_scoped_to_the_unfocused_fields(self):
+        field_selectors = {
+            "#urlbar:not([focused], [open]) > .urlbar-background",
+            "#searchbar-new:not([focused], [open]) > .urlbar-background",
+        }
+        self.assertEqual(
+            {name for name in self.rules if "urlbar-background" in name},
+            field_selectors,
+        )
+        for selector in field_selectors:
+            self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
         self.assertEqual(
             {name for name in self.rules if "searchbar" in name},
-            {selector},
+            {
+                "#searchbar:not(:focus-within)",
+                "#searchbar-new:not([focused], [open]) > .urlbar-background",
+            },
         )
-        self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
+        classic = "#searchbar:not(:focus-within)"
+        self.assertEqual(self.rules[classic], REQUIRED_RULES[classic])
 
     def test_tab_hover_paint_is_scoped_to_unselected_tabs(self):
         hover = (
@@ -276,10 +289,12 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
             "chrome/toolkit/content/global/xul.css",
             "selector; default native anonymous tooltips require UA styling",
             "outside this sheet's guarantee",
-            "No reference shows Firefox's optional classic search field",
+            "No reference shows Firefox's toolbar fields",
             "chrome/browser/skin/classic/browser/urlbar-searchbar.css",
-            "and owns the focused appearance",
-            "#searchbar-new stays Firefox's",
+            "owns the focused and open appearances",
+            "no element carries id=\"urlbar-background\"",
+            "browser.search.widget.new=true",
+            "the same unfocused recipe as the address field",
             "No reference shows Firefox's find field",
             "chrome/toolkit/skin/classic/global/findbar.css",
             "not-found and flash states stay",
