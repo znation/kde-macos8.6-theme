@@ -23,6 +23,7 @@ from __future__ import annotations
 import contextlib
 import io
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -209,6 +210,15 @@ class TestReportFailure(unittest.TestCase):
         status, err = self._report("command failed", log)
         self.assertEqual(status, 1)
         self.assertEqual(err, "apply_theme: error: command failed\n")
+
+    def test_a_log_read_failure_keeps_the_command_error_and_reports_the_log_error(self):
+        log = make_tmp_dir(self) / "cmd.log"
+        log.write_text("available at preflight", encoding="utf-8")
+        with mock.patch.object(Path, "open", side_effect=PermissionError("denied")):
+            status, err = self._report("command failed", log)
+        self.assertEqual(status, 1)
+        self.assertIn("apply_theme: error: command failed\n", err)
+        self.assertIn("  log could not be read: denied\n", err)
 
     def test_an_empty_log_adds_no_tail(self):
         # A command can fail without writing anything -- it never started, or

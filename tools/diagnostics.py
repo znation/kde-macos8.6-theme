@@ -161,8 +161,16 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
         )
     text = f"{tool}: error: {escape_controls(message)}"
     if log is not None and log.is_file():
-        for line in _log_tail_lines(log):
-            text += f"\n  {escape_controls(line)}"
+        try:
+            lines = _log_tail_lines(log)
+        except OSError as exc:
+            # The external process owns the log contents and may remove or
+            # replace it between is_file() and open(). Keep its failure
+            # diagnostic, and make the lost detail visible without a traceback.
+            text += f"\n  log could not be read: {escape_controls(str(exc))}"
+        else:
+            for line in lines:
+                text += f"\n  {escape_controls(line)}"
     print(text, file=sys.stderr)
     return 1
 
