@@ -68,7 +68,7 @@ class TestCiWorkflow(unittest.TestCase):
             r"command -v spectacle >/dev/null; then",
         )
 
-    def test_workflow_checks_the_python_floor_and_development_version(self):
+    def test_workflow_pins_the_python_development_version(self):
         workflow = self.read_workflow()
         matrix = re.search(
             r"^\s+python-version: \[([^\]]+)\]$", workflow, re.MULTILINE
@@ -77,7 +77,9 @@ class TestCiWorkflow(unittest.TestCase):
             matrix, "workflow declares no Python version matrix"
         )
         self.assertEqual(
-            ["3.10", "3.12"], re.findall(r"'([^']+)'", matrix.group(1))
+            ["3.13"],
+            re.findall(r"'([^']+)'", matrix.group(1)),
+            "workflow must pin exactly Python 3.13, the development interpreter",
         )
 
 

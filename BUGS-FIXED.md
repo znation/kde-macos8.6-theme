@@ -5,6 +5,20 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### CI parity cannot run its Python matrix in the local worktree (found by the ci role 2026-10-29) — fixed 2026-10-30 by the feature role
+
+The CI workflow ran `make check` and `make check-references` under a two-version matrix
+(`['3.10', '3.12']`), which no local run could provision: this environment offers only
+Python 3.13.5, and no 3.10/3.12 interpreter, version manager or container runtime is
+installed, so the matrix job stayed unverified in the local worktree (observed:
+`ls /usr/bin/python3.*` → `/usr/bin/python3.13`).
+
+Fixed by the user's 2026-10-30 parity decision, implemented in the "CI runs one interpreter,
+Python 3.13" plan: the workflow now pins the single interpreter `['3.13']` — the development
+version, so `make check` and `make check-references` run under exactly the interpreter CI
+runs — while the Makefile's run-time floor of Python 3.10 or newer keeps its check and the
+workflow no longer exercises a second interpreter (the accepted trade-off).
+
 ### The rendered check box indicator is a resampled 13x13 square, not the reference's crisp 12x12 (found by the render pass 2026-10-29) — fixed 2026-10-30 by the bugfix role
 
 A `QCheckBox`'s indicator (e.g. kdialog's `--dontagain` check box) renders 13x13 with every band

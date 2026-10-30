@@ -319,8 +319,9 @@ material only — the theme does not ship them.
 ## Validating the reference set
 
 `.github/workflows/ci.yml` runs `make check` and `make check-references` on pushes
-and pull requests, on Python 3.10 (the project's floor) and 3.12 with a checkout
-with Git LFS images materialized; its check job also installs the render gate's
+and pull requests, on Python 3.13 with a checkout
+with Git LFS images materialized; the Makefile's targets still require Python
+3.10 or newer at run time. its check job also installs the render gate's
 five Plasma tools (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`,
 `spectacle`, `plasma-apply-colorscheme`), so `make check` runs the rendered-pixel
 gate there too. Run those same commands locally for parity with the workflow's

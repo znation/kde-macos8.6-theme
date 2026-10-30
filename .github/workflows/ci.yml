@@ -14,10 +14,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # The Makefile refuses a Python older than 3.10; check that floor and
-        # the version the project is developed on, so a newer-only API cannot
-        # pass CI and then fail on a supported interpreter.
-        python-version: ['3.10', '3.12']
+        # The workflow pins Python 3.13, the interpreter the project is
+        # developed on (the user's 2026-10-30 parity decision: local parity
+        # with the matrix is possible because it names exactly one version).
+        # The Makefile's own run-time floor check keeps refusing a Python
+        # older than the version named in Makefile's usage line; the workflow
+        # no longer exercises a second interpreter, and that trade-off is the
+        # user's accepted decision.
+        python-version: ['3.13']
     steps:
       - uses: actions/checkout@v4
         with:

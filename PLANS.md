@@ -98,58 +98,6 @@ _None yet._
 
 _None yet._
 
-### CI runs one interpreter, Python 3.13, so local parity is possible (planned 2026-10-30 by the director role; resolves the open BUGS.md entry "CI parity cannot run its Python matrix in the local worktree"; the user directed the simplification on 2026-10-30)
-
-**Goal.** `.github/workflows/ci.yml` currently runs a two-version matrix
-`['3.10', '3.12']`, but the development environment offers only Python 3.13
-(no 3.10/3.12 interpreter or version manager is installed), so no local run
-can reproduce the matrix. The user has decided to simplify CI to a single
-interpreter, Python 3.13 — the version actually used for development — so
-`make check` and `make check-references` locally run the exact matrix CI
-runs.
-
-**Approach.** In `.github/workflows/ci.yml`, replace the matrix list with the
-single value `['3.13']`. Rewrite the matrix comment: it currently justifies
-checking "that floor and the version the project is developed on, so a
-newer-only API cannot pass CI and then fail on a supported interpreter";
-say instead that the workflow pins Python 3.13 (the development
-interpreter, per the user's 2026-10-30 parity decision) while the Makefile's
-own floor check still refuses anything older than 3.10 at run time — the
-workflow no longer exercises a second interpreter, and that trade-off is
-the user's accepted decision. The `actions/setup-python` step, the render-
-tool install step and the two `make` steps stay untouched; do not hand-edit
-`tumwater.json` or anything outside the named files.
-
-Update the pinning test
-`tests/test_ci_workflow.py::TestCIWorkflow::test_workflow_checks_the_python_floor_and_development_version`:
-it currently asserts the parsed matrix equals `['3.10', '3.12']`; change the
-assertion to `['3.13']` and rename the test to match what it now pins,
-`test_workflow_pins_the_python_development_version` (update the `assert`
-message the same way; unittest will fail with a clear regex-mismatch message
-if the matrix or its quoting changes).
-
-Update the README's "Validating the reference set" paragraph, which says the
-workflow runs "on Python 3.10 (the project's floor) and 3.12": it must say
-the workflow runs on Python 3.13 and keep the unchanged statement that the
-Makefile targets require Python 3.10 or newer (that floor and its wording in
-`Makefile`'s `require_python_version` and the "PYTHON=path Python 3.10+"
-usage line stay exactly as they are).
-
-**Closing the bug.** On landing, this makes the BUGS.md entry "CI parity
-cannot run its Python matrix in the local worktree" moot: the workflow no
-declares no second interpreter, so its matrix reproduces locally. Delete the
-entry (including its 2026-10-29 Needs-review note) from BUGS.md and record
-it in BUGS-FIXED.md as closed "— fixed <landing date> by the feature role",
-naming the workflow simplification as the fix.
-
-**Acceptance criteria.** `grep -n "3.10" .github/workflows/ci.yml` and the
-same for `3.12` find nothing, the matrix reads `python-version: ['3.13']`
-under the unchanged `strategy: fail-fast: false` block,
-`test_workflow_pins_the_python_development_version` passes and the old test
-name no longer appears under `tests/`, the README paragraph names 3.13 and
-still mentions the 3.10 Makefile floor, the bug record has moved from
-BUGS.md to BUGS-FIXED.md in the stated form, and `make check` passes.
-
 ### Platinum Firefox toolbar fields on Firefox 153.6: bind the field paint to the class-only urlbar background band and paint the live `#searchbar-new` with the landed field recipe (planned 2026-10-30 by the plan role; independent of the waiting GTK 3 OSD-overlay plan — it rewrites the landed urlbar rule and its field tests in `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/support/firefox_chrome_cases.py` and `tests/test_firefox_theme_shell.py` and edits the `## firefox` invariants row, while that entry appends rules to the GTK 3 sheet, adds a test beside the gtk suite's `test_app_notification_band` and appends a row in the `## gtk` table; no shared file, selector or test)
 
 **Goal.** The landed `#urlbar-background` rule never matches anything in the
