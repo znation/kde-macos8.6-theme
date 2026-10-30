@@ -94,4 +94,14 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+### Platinum GTK 4 calendars: pin the base foreground to black (planned 2026-10-29 by the plan role; independent of the queued keyboard-focus outline)
+
+**Goal.** Give the calendar an explicit opaque Platinum foreground through the supported GTK 4 user stylesheet import. The sheet currently declares the calendar border but no base foreground; the inspected platform rule uses `var(--view-fg-color)`. Selected and other-month days already have explicit text colors.
+
+**Approach and files.** Add `color: #000000` to the existing `calendar` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment explaining that no reference screenshot shows a GTK calendar and that the foreground adapts the sheet's black view text. In `tests/test_gtk4_theme.py`, update `TestGtk4Theme.test_calendar_outer_border`'s exact dictionary to include `color: BLACK`, preserving its frame-border comparisons. Add `TestGtk4Theme.test_calendar_foreground` comparing that color with `.view` and `BASE_COLOURS["view_fg_color"]` (use the actual mapping name in this module), and retain `test_calendar`'s selected/other-month checks. Tie the foreground to the black reference pixel already re-derived by `TestScrollbarBreadthReference.test_thumb_band_matches_reference`, extending that test to assert the calendar color equals the sampled black. Update the dedicated calendar adaptation row in `docs/invariants.md` with these guarantees and tests. Record the missing calendar-text reference and the source of the replaced variable declaration: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution in the invariant to respect `test_stands_alone`.
+
+**Acceptance criteria.** The exact calendar declaration test rejects an omitted or changed foreground; the new foreground test connects it to the existing view palette, and the reference test re-derives its black from a lossless image. Selected black and other-month inactive grey remain pinned by `test_calendar`. Document declaration coverage separately from rendered-pixel evidence and name `make apply-gtk`'s import as the supported platform override. Limit implementation to these three files and this foreground adaptation; focus, fills, geometry, GTK 3 and dependencies are out of scope. `make check` passes.
+
+**Implementation anchors.** The mapping above is `DEFINED_COLOURS`, so compare `DEFINED_COLOURS["view_fg_color"]`. For the reference assertion, parse `CSS` with `parse_css(gtk_css.read_theme_text(CSS))` and compare its `calendar` color with `hex_colour(self.pixel(200, 462))`; this is the existing `SETUP_REFERENCE` black border sample, reused as palette evidence rather than calendar-text evidence.
+
 ## Done
