@@ -999,6 +999,11 @@ scale > trough > slider:disabled {
   box-shadow: none;
 }
 
+/* 2026-10-29: no disabled GTK scale reference; reuse the flat disabled-thumb shadow. */
+scale:disabled > trough > slider {
+  box-shadow: none;
+}
+
 switch {
   background-color: #EEEEEE;
   background-image: none;

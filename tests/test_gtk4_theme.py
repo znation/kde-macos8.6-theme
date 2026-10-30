@@ -1037,6 +1037,9 @@ for radio in (False, True):
     def test_scale_disabled_filter(self):
         self.assert_rule("scale:disabled", {"filter": "none"})
 
+    def test_scale_disabled_parent_shadow(self):
+        self.assert_rule("scale:disabled > trough > slider", {"box-shadow": "none"})
+
     def test_scale_parent_interaction_face(self):
         for selector in (
             "scale:hover > trough > slider",

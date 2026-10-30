@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 scales: preserve the disabled thumb's flat shadow (planned 2026-10-29 by the plan role; independent of the queued parent-hover highlight image) — done 2026-10-29 by the feature role
+
+**Goal.** Preserve the existing shadow-free disabled thumb when the scale parent carries the disabled state. The theme's `scale > trough > slider:disabled` and the stock `scale:disabled > trough > slider` have equal specificity, making their shadow declarations depend on load order. The finished meters-and-sliders plan specifies the child-state recipe; the finished disabled-opacity plan addresses the whole-scale filter.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate `scale:disabled > trough > slider` rule declaring exactly `box-shadow: none`, with a dated adaptation comment naming the missing disabled GTK scale reference and reuse of the existing flat disabled-thumb policy. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_disabled_parent_shadow`, using `assert_rule` on that selector with exactly `{"box-shadow": "none"}`; retain `test_scale` for the existing child-state paint. In `docs/invariants.md`, add a focused `## gtk` row naming both tests and the source inspected 2026-10-29: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` declares `scale:disabled > trough > slider` with `box-shadow: 0 0 0 1px RGB(0 0 6 / 10%), 0 2px 4px transparent`. The replacement comes from the theme's existing `scale > trough > slider:disabled` shadow policy. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
+
+**Acceptance criteria.** The new selector matches the stock parent-state selector, allowing the later user stylesheet imported by `make apply-gtk` to override its shadow. Removing the selector or changing its shadow fails the new test. Documentation names the missing reference surface and chosen-value source and limits its guarantee to declaration coverage. Limit implementation to these three files and this shadow declaration; outline behavior, marked-scale rules, geometry and GTK 3 are separate work. The queued highlight-image plan is independently mergeable. No new palette value, asset or dependency. `make check` passes.
+
 ### Platinum GTK 4 scales: keep the highlight transparent on parent hover (planned 2026-10-29 by the plan role; independent of the queued parent-interaction trough face) — done 2026-10-29 by the feature role
 
 **Goal.** Preserve the existing transparent scale highlight when its parent is hovered or active. The base highlight resets its image, but the stock parent-state selectors have higher specificity and add an image wash. The finished meters-and-sliders plan covers the base recipe; the queued trough-face plan changes a different node and property.
