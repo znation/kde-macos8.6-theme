@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 entries: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued switch outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** Give focused GTK 3 entry fields an explicit Platinum outline. The existing `entry, spinbutton:not(.vertical)` rule paints fields but does not declare entry focus; completed entry-focus color and motion plans target GTK 4.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside the entry-field rule, add a separate `entry:focus { outline: 1px dotted #000000; outline-offset: 0; -gtk-outline-radius: 0; }`. Add a dated adaptation comment naming the missing GTK entry keyboard-focus reference and reuse of `button:focus`'s outline, offset and square outline corners. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_entry_focus_outline` following `test_checkbutton_focus_outline`: use `assert_rule` and `BLACK` to pin the three declarations, then compare each with `button:focus`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and adaptation source. Cite the installed GTK 3 resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29: its universal rule supplies outline width/style/offset and `-gtk-outline-radius`. Keep library names outside CSS for the standalone-sheet check.
+
+**Acceptance criteria.** `entry:focus` explicitly declares a 1px dotted black outline, zero offset and zero GTK outline radius; removing or changing a declaration fails the new test. Document these values as a platform adaptation rather than screenshot measurements. Existing field-paint tests pass. Scope is the three named files; spin-button focus is separate work. No new artwork or dependency. Declaration coverage does not establish rendered focus pixels or keyboard traversal behavior. This and the switch plan may merge in either order. `make check` passes.
+
 ### Platinum GTK 3 switches: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued radio-button outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Give focused GTK 3 switch parent nodes an explicit Platinum outline. The sheet declares switch track and thumb paint but has no `switch:focus` rule; the completed switch-paint plan covers those faces, while the completed switch-focus color plan targets GTK 4.

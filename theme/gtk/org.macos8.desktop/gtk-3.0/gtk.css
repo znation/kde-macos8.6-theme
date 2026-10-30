@@ -278,6 +278,14 @@ entry, spinbutton:not(.vertical) {
   color: #000000;
 }
 
+/* No GTK entry-focus reference exists; reuse button:focus's outline, offset
+   and square outline corners (2026-10-29). */
+entry:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 check, radio {
   min-height: 14px;
   min-width: 14px;

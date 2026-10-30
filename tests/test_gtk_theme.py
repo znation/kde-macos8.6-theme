@@ -787,6 +787,21 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
                 self.rules["button:focus"][property_name],
             )
 
+    def test_entry_focus_outline(self):
+        self.assert_rule(
+            "entry:focus",
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules["entry:focus"][property_name],
+                self.rules["button:focus"][property_name],
+            )
+
     def test_radiobutton_focus_outline(self):
         self.assert_rule(
             "radiobutton:focus",
