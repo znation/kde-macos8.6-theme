@@ -823,6 +823,8 @@ scrollbar > range > trough > slider {
   min-width: 12px;
   min-height: 12px;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  /* Adaptation 2026-10-29: no reference shows GTK scrollbar motion; reuse the immediate scale-focus policy. */
+  transition: none;
 }
 
 /* Adaptation 2026-10-29: no reference shows a disabled GTK scrollbar; retain opaque disabled controls. */

@@ -96,14 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 scrollbar thumbs: make state transitions immediate (planned 2026-10-29 by the plan role; independent of the queued disabled-thumb opacity plan)
-
-**Goal.** Apply scrollbar thumb state changes immediately through the supported `make apply-gtk` GTK 4 user stylesheet import, following the existing immediate scale-focus policy.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `transition: none` to the existing `scrollbar > range > trough > slider` rule. Add a dated adaptation comment: no reference screenshot shows GTK scrollbar motion; reuse the immediate scale-focus policy rather than claiming a measured duration. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_thumb_transition` using `assert_rule` to pin that selector's `transition` to `none`. Under `## gtk` in `docs/invariants.md`, record the guarantee and test, with the stock `transition: all 200ms linear` on that selector from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution outside CSS for `test_stands_alone`.
-
-**Acceptance criteria.** Removing the declaration or restoring the stock transition fails the new test; existing `test_scrollbar` paint and `TestScrollbarBreadthReference` assertions pass. The invariant names the missing motion reference and policy source, and states that declaration coverage does not establish rendered motion. Limit implementation to these three files and the thumb transition: trough transitions, overlay geometry, interaction colors and disabled opacity are separate work. This plan and the queued disabled-thumb opacity plan can merge independently. `make check` passes.
-
 ### Platinum GTK 4 scrollbars: preserve the fine-tune thumb face (planned 2026-10-29 by the plan role; independent of the queued thumb transition plan)
 
 **Goal.** Keep the fine-tune scrollbar thumb on the opaque Platinum face through the supported `make apply-gtk` GTK 4 user stylesheet import, instead of the stock accent tint.

@@ -989,6 +989,12 @@ for radio in (False, True):
             {"opacity": "1"},
         )
 
+    def test_scrollbar_thumb_transition(self):
+        self.assert_rule(
+            "scrollbar > range > trough > slider",
+            {"transition": "none"},
+        )
+
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar > trough",
