@@ -69,9 +69,15 @@ with the face. Patching the installed theme's `checkbox-normal` outline to `#FF0
 `#FF03FF`/`#FD21FD` at the edges — the art is drawn, scaled — so the fix is the canvas size or the
 indicator size, not the element mapping.
 
-**Needs review by bugfix:** decide whether the art should be 12x12 (the reference's box) or the
-indicator size should make Kvantum draw the 14x14 canvas 1:1, and pin the rendered pixels, not
-just the slices.
+**Decision (user, recorded by the director role 2026-10-30): render larger and take the exact
+pixels** — keep the 14x14 canvas and make Kvantum draw it 1:1, not shrink the art to the
+reference's 12x12. Give `[CheckBox]` an explicit `indicator.size` that matches the
+`checkbox-*` canvases (14) in `org.macos8.desktop.kvconfig` so the engine stops resampling, and
+pin the rendered pixels against the art's exact bands (outline `#000000`, highlight `#FAFAFA`,
+shadow `#949494` -- whatever the canvas carries), not just the slices, with a test that re-derives
+the rendered indicator's pixels; note the rendered box stays one pixel larger than the reference's
+12x12 by this choice. Verify with the same throwaway `kdialog --warningyesno --dontagain` render
+that reproduced the bug.
 
 ### The rendered combo box indicator is a squashed 4px-wide arrow, not the reference's centred double arrow (found by the render pass 2026-10-29)
 
