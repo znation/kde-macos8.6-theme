@@ -372,13 +372,18 @@ for radio in (False, True):
 
     def test_calendar_outer_border(self):
         calendar = "calendar"
-        self.assert_rule(calendar, {"border": "1px solid #000000"})
+        self.assert_rule(calendar, {"color": BLACK, "border": "1px solid #000000"})
         for frame in ("frame > border", ".frame"):
             with self.subTest(frame=frame):
                 self.assertEqual(
                     self.rules[calendar]["border"],
                     self.rules[frame]["border"],
                 )
+
+    def test_calendar_foreground(self):
+        self.assertEqual(self.rules["calendar"]["color"], BLACK)
+        self.assertEqual(self.rules["calendar"]["color"], DEFINED_COLOURS["view_fg_color"])
+        self.assertEqual(self.rules["calendar"]["color"], self.rules[".view"]["color"])
 
     def test_calendar_focus_outline(self):
         focus = "calendar > grid > label:focus"
@@ -997,6 +1002,8 @@ class TestScrollbarBreadthReference(ReferenceScreenshotMixin, unittest.TestCase)
                 self.assertEqual(hex_colour(self.pixel(x, y)), TROUGH)
         band = bottom - top + 1
         self.assertEqual(band, 16)
+        _, rules, _ = parse_css(gtk_css.read_theme_text(CSS))
+        self.assertEqual(rules["calendar"]["color"], hex_colour(self.pixel(x, top)))
 
 
 if __name__ == "__main__":

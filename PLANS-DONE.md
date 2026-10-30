@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 calendars: pin the base foreground to black (planned 2026-10-29 by the plan role; independent of the queued keyboard-focus outline) — done 2026-10-29 by the feature role
+
+**Goal.** Give the calendar an explicit opaque Platinum foreground through the supported GTK 4 user stylesheet import. The sheet currently declares the calendar border but no base foreground; the inspected platform rule uses `var(--view-fg-color)`. Selected and other-month days already have explicit text colors.
+
+**Approach and files.** Add `color: #000000` to the existing `calendar` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated comment explaining that no reference screenshot shows a GTK calendar and that the foreground adapts the sheet's black view text. In `tests/test_gtk4_theme.py`, update `TestGtk4Theme.test_calendar_outer_border`'s exact dictionary to include `color: BLACK`, preserving its frame-border comparisons. Add `TestGtk4Theme.test_calendar_foreground` comparing that color with `.view` and `DEFINED_COLOURS["view_fg_color"]`. Tie the foreground to the black reference pixel re-derived by `TestScrollbarBreadthReference.test_thumb_band_matches_reference`; retain `test_calendar`'s selected/other-month checks. Update the dedicated calendar adaptation row in `docs/invariants.md` with these guarantees and tests. Record the missing calendar-text reference and the source of the replaced variable declaration: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution in the invariant to respect `test_stands_alone`.
+
+**Acceptance criteria.** The exact calendar declaration test rejects an omitted or changed foreground; the new foreground test connects it to the existing view palette, and the reference test re-derives its black from a lossless image. Selected black and other-month inactive grey remain pinned by `test_calendar`. Document declaration coverage separately from rendered-pixel evidence and name `make apply-gtk`'s import as the supported platform override. Implementation is limited to these three files and this foreground adaptation; focus, fills, geometry, GTK 3 and dependencies are out of scope. `make check` passes.
+
+**Implementation anchors.** The mapping is `DEFINED_COLOURS`, so the test compares `DEFINED_COLOURS["view_fg_color"]`. The reference assertion parses `CSS` with `parse_css(gtk_css.read_theme_text(CSS))` and compares the calendar color with `hex_colour(self.pixel(200, 462))`; this reuses the existing `SETUP_REFERENCE` black border sample as palette evidence, not calendar-text evidence.
+
 ### Platinum GTK 4 calendars: make keyboard focus opaque black (planned 2026-10-29 by the plan role; independent of the queued marked-day fill) — done 2026-10-29 by the feature role
 
 **Goal.** Replace the calendar label's translucent accent focus outline with opaque Platinum black through `make apply-gtk`'s user stylesheet import. The current calendar rules cover day paint, corners, borders and today markers but have no focus override; related completed calendar plans exclude focus.

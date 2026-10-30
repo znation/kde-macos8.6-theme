@@ -1009,6 +1009,9 @@ calendar > grid > label:focus {
 /* No GTK calendar appears in the reference; its outer edge reuses the opaque
    black Platinum frame border (recorded 2026-10-29 by the feature role). */
 calendar {
+  /* No GTK calendar appears in the reference; adapt the black view text
+     foreground (recorded 2026-10-29 by the feature role). */
+  color: #000000;
   border: 1px solid #000000;
 }
 /* No GTK calendar appears in the reference; reuse the infobar's etched edge
