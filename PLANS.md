@@ -104,4 +104,12 @@ _None yet._
 
 **Acceptance criteria.** Removing the declaration, restoring `3px` or applying zero padding solely to checked switches fails the new test. Existing `test_switch` assertions pass. Documentation identifies the missing GTK switch reference and zero padding as a platform adaptation; declaration tests do not claim rendered size or pixel fidelity. Limit implementation to these three files and track padding; track dimensions, colors, thumb styling, focus, GTK 3 and artwork are outside scope. No new dependency. `make check` passes.
 
+### Separate Firefox profile transaction rollback from the installer (planned 2026-10-29 by the organize role)
+
+**Goal.** Make the boundary between Firefox profile transaction mechanics and install/remove policy explicit. `tools/install_firefox.py` is the largest production Python module (347 lines); it currently combines CLI/profile-lock orchestration, install/remove decisions, and rollback behavior for partially published profile files. In particular, `_restore_file`, `_restore_user_js` and the rollback handler inside `_apply` manage recovery state while `firefox_user_files.py` owns the underlying reads and writes.
+
+**Target structure.** Add `tools/firefox_transaction.py` to own rollback state and handlers: move `_restore_file` and `_restore_user_js` there, and expose one transaction operation that receives the ordered sheet destinations with their prior contents, the `user.js` path/prior/published contents, and the write operation. It publishes the two sheets followed by `user.js`, and on a write exception or interrupt restores published state and combines restoration diagnostics using the existing `ConfigError`. Keep source loading, destination validation, refusal of foreign sheets, profile locking, install/remove policy, and CLI handling in `install_firefox.py`. Keep path resolution and file reads/writes in their existing profile/file modules. Update installer imports and focused transaction tests (currently in `tests/test_install_firefox.py`) to exercise the extracted API; do not change install or rollback behavior.
+
+**Acceptance criteria.** The new module contains the rollback bookkeeping and recovery handler; `install_firefox.py` delegates publication and recovery while retaining validation and policy. Existing failure and interrupt cases continue to verify restoration of old files, removal of newly created files, and combined diagnostics. No stale references to moved helpers remain in source, tests or documentation, and `make check` passes.
+
 ## Done
