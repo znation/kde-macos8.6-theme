@@ -96,4 +96,12 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 4 notebook tabs: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued tab-bar backdrop filter)
+
+**Goal.** Prevent selected notebook tabs from inheriting animated focus outlines through the supported `make apply-gtk` user stylesheet import.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a dedicated `notebook > header > tabs > tab:checked` rule with `transition: none` beside the existing tab-state rules. This matches the selector supplying the outline transition in `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Add a dated adaptation comment naming the absent GTK notebook focus-motion reference and reusing the immediate-focus policy of `scale > trough > slider`. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_notebook_focus_transition`, following `test_scale_focus_transition`: use `assert_rule` to require the declaration and compare it with the scale thumb's parsed transition. Under `## gtk` in `docs/invariants.md`, record the guarantee, test, supported import path and stock resource attribution; keep the library name out of CSS to satisfy `test_stands_alone`.
+
+**Acceptance criteria.** The selected notebook-tab selector explicitly sets `transition: none`; deleting the declaration or restoring a duration fails the new test. Documentation records the missing reference surface and reused policy without claiming screenshot or rendered-motion evidence. Limit implementation to these three files and this transition override; focus colors, outline geometry, tab paint, tabbar nodes and GTK 3 remain outside scope. No new visual value, asset or dependency. `make check` passes.
+
 ## Done
