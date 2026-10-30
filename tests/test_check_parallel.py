@@ -389,6 +389,30 @@ class TestCoordinator(unittest.TestCase):
             rendered,
         )
 
+    def test_summary_counts_empty_module_alongside_a_timeout(self):
+        empty_log = make_tmp_dir(self) / "empty.log"
+        empty_log.write_text(
+            "Ran 0 tests in 0.000s\n\nNO TESTS RAN\n", encoding="utf-8"
+        )
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_empty", "test_timeout"],
+                {"test_empty": 5, "test_timeout": None},
+                {"test_empty": str(empty_log)},
+                3,
+            )
+        self.assertEqual(1, status)
+        rendered = output.getvalue()
+        self.assertIn("test_empty: ran no tests", rendered)
+        self.assertIn(
+            "test_timeout: timed out after 3s (process group killed)", rendered
+        )
+        self.assertIn(
+            "check: 2 modules, 1 module timed out, 1 module ran no tests",
+            rendered,
+        )
+
     def test_worker_terminal_controls_are_escaped_before_replay(self):
         tests_dir = self._project(
             {
