@@ -67,4 +67,37 @@ field therefore only exists in the art.
 carry the reference's sunken field, and pin the rendered list field's border runs, not just the
 `itemview` slices.
 
+### The live render gate byte-compares only Aurorae window chrome, so `make check` stays green on widgets the engine draws wrongly (found by the steward role 2026-10-30)
+
+The declared check's only rendered-pixel comparisons live in
+`tests/test_render_surface.py::TestRender`, and they cover the Aurorae frame only: the title-bar
+strip, the close, collapse and zoom boxes and the three border strips byte-compared against the
+references, plus one body-face pixel at (300, 200). Nothing in the suite compares an engine-drawn
+Kvantum widget's pixels with a reference — the Kvantum suites (`tests/test_kvantum_combobox_reference.py`
+and its siblings) compare the *shipped art* against the reference cells, not the *rendered* widget —
+so whatever the engine does to that art on screen is invisible to the check. This is one structural
+risk behind a run of same-shaped bugs, each found only by a manual render pass and never by a test:
+the fixed resampled check box indicator (BUGS-FIXED, found by the render pass 2026-10-29), and the
+two needs-review Kvantum bugs above (the squashed combo indicator, the unmapped item-view frame).
+The append-per-bug pattern confirms the shape: when each render bug is fixed, its armor is a handful
+of newly byte-compared strips (the title-band entry above plans exactly rows 22-26 next), so the
+gate grows strip by strip and the next resampled, squashed or unmapped widget stays as invisible to
+`make check` as this run's bugs were.
+
+**Reproduce:** run `make check` on a tree with the two needs-review Kvantum bugs unfixed — it passes
+while the rendered dialog window draws the squashed arrow and the raised list frame; the two
+entries' throwaway-session commands above produce the contradicting pixels.
+
+**Observed output:** the two entries' dumps above (combo indicator bands 1/2/3/4 against the
+reference's 1/3/5/7; list frame `#000000` then `#FFFFFF` against the reference's `#999999`,
+`#000000`, `#FFFFFF`) alongside a green `make check`.
+
+**Suspected cause:** the reference surface the gate byte-compares (one 320x240 window captured by
+`TestRender`) contains no populated Kvantum widgets, only the Aurorae-decorated empty window body,
+so the widget interiors fall outside every strip; whether the fix is a wider populated capture (for
+example a second session with a combobox, a checkbox and a list, whose widget cells are byte-compared
+the way the title bar is) or a cheaper substitute, and how a session keeps it cheap, is the review
+question — the render session already exists (`tools/render.py`), so this plans as infrastructure,
+not as a per-widget fix.
+
 ## Fixed
