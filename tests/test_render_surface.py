@@ -64,6 +64,15 @@ RIGHT_BORDER_CANDIDATE = (314, 22, 6, 212)
 RIGHT_BORDER_REFERENCE = (354, 47, 6, 212)
 BOTTOM_BORDER_CANDIDATE = (6, 234, 308, 6)
 BOTTOM_BORDER_REFERENCE = (13, 419, 308, 6)
+# The client work area begins one row below the title bar: the frame's white
+# centre tile shows for exactly that highlight row and the application's
+# content face fills the next rows. The reference screenshot shows the same
+# chrome offset by its window position (top outline y=25): its bottom
+# title-bar rule is y=46, the white highlight row y=47 and the content face
+# from y=48. The rc's unset TitleEdgeBottom default (5) let the tile paint
+# rows 22-26 white and pushed the client down to row 27.
+CLIENT_ROWS_CANDIDATE = (30, 22, 80, 5)
+CLIENT_ROWS_REFERENCE = (30, 47, 80, 5)
 # The title-bar boxes: the 13x13 close and collapse boxes and the 21x13 zoom
 # canvas (its stripe-free gap plus the 13px box). The render puts the window
 # at the capture's origin; aboutsystem's window is at (7, 25), so its close
@@ -660,6 +669,12 @@ class TestRender(unittest.TestCase):
 
     def test_title_bar_matches_the_reference(self):
         self.assert_strip_pixels_match(CANDIDATE_CROP, REFERENCE_CROP)
+
+    def test_first_client_rows_match_the_reference(self):
+        # One white highlight row (the frame's centre tile), then the client;
+        # against the unset TitleEdgeBottom the tile painted five rows white
+        # here and the client sat four rows below the reference's.
+        self.assert_strip_pixels_match(CLIENT_ROWS_CANDIDATE, CLIENT_ROWS_REFERENCE)
 
     def test_title_bar_boxes_match_the_reference(self):
         for candidate_crop, reference_crop, reference_path in (

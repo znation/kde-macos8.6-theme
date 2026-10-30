@@ -67,6 +67,29 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         column = [self.reference_pixel(250, y) for y in range(417, 425)]
         return _black_run_length(column, 417)
 
+    def _title_edge_bottom(self, title_height):
+        """Return the #FFFFFF rows between the title bar and the content.
+
+        The reference's window top outline sits at y=25, so its title band
+        (TitleHeight rows) runs to y=25+title_height-1; the frame's white
+        centre tile shows immediately below the band's bottom rule until the
+        application content paints. That one-row white gap is what the rc's
+        Aurorae TitleEdgeBottom must leave uncovered: without the key the
+        engine's default (5) lets the tile show for five rows and pushes the
+        client below the reference row. The gap ends at the client, so the
+        row after the counted run must be the application content face.
+        """
+        top = self._frame_edges()[2]
+        first = top + title_height
+        whites = 0
+        while self.reference_pixel(250, first + whites) == (255, 255, 255):
+            whites += 1
+        self.assertEqual(
+            (221, 221, 221),
+            self.reference_pixel(250, first + whites),
+        )
+        return whites
+
     def _frame_edges(self):
         """Return the frame's (left, right, top) reference coordinates.
 
@@ -128,6 +151,10 @@ class TestRc(ReferenceImageCase, unittest.TestCase):
         bottom = self._bottom_border_thickness()
         box_w, box_h = self._close_box_size()
         self.assertEqual(int(self.parser.get(layout, "TitleHeight")), title_height)
+        self.assertEqual(
+            int(self.parser.get(layout, "TitleEdgeBottom")),
+            self._title_edge_bottom(title_height),
+        )
         self.assertEqual(int(self.parser.get(layout, "BorderTop")), title_height)
         self.assertEqual(int(self.parser.get(layout, "BorderLeft")), side)
         self.assertEqual(int(self.parser.get(layout, "BorderRight")), side)

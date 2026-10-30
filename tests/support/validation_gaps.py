@@ -674,8 +674,11 @@ NO_FAKE_REPRODUCTIONS = (
 # The five ``real-run-needed`` records the archive held when the ledger landed,
 # plus the check-box indicator resample fixed 2026-10-30, whose confirmation
 # drew the indicator through a real ``kwin_wayland`` ``kdialog`` render; that
-# render's size bound is pinned offline by the new test. A new record must name
-# an offline test instead of raising this.
+# render's size bound is pinned offline by the new test. Plus the Aurorae
+# title-edge band fixed 2026-10-30, whose band and one-row gap were only
+# visible in a real ``kwin_wayland`` render; the gap the rc's
+# ``TitleEdgeBottom`` must leave is pinned offline by the rc metrics test. A
+# new record must name an offline test instead of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
@@ -714,12 +717,18 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_kvantum_checkbox_reference.py::TestCheckBoxReference"
         "::test_config_draws_the_indicator_at_the_canvas_size",
     ),
+    Reproduction(
+        "aurorae-title-edge-bottom-band",
+        ("band of the decoration's centre tile",),
+        "tests/test_aurorae_rc.py::TestRc"
+        "::test_layout_metrics_match_reference",
+    ),
 )
 
 # The number of ``real-run-needed`` records the archive holds with ledger
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 6
+REAL_RUN_NEEDED_BASELINE = 7
 
 # The three ``no-repro`` records the archive held when the ledger landed. Each
 # failure was not deterministic when filed; its test now reproduces it every run.

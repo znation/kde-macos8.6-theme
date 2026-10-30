@@ -16,6 +16,7 @@ ButtonWidth=13
 ButtonHeight=13
 ButtonMarginTop=4
 TitleEdgeTop=0
+TitleEdgeBottom=1
 TitleEdgeLeft=4
 TitleEdgeRight=4
 ButtonSpacing=0

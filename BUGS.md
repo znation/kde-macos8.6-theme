@@ -8,55 +8,6 @@ unclear-invariant).
 
 ## Open
 
-### The rendered window shows a 5px band of the decoration's centre tile below the title bar (found by the render pass 2026-10-29)
-
-Every window rendered through the theme shows five rows of the Aurorae decoration's centre tile
-(`decoration-center`, `#FFFFFF` in the shipped art) between the 22px title bar and the window's
-content. The reference shows one `#FFFFFF` row (the frame's inner highlight) and the content from
-the next row, so each rendered window's content sits four rows lower than the Mac window's. The
-render gate cannot see it: `tests/test_render_surface.py` byte-compares the title-bar strip
-(candidate rows 0-21) and the 6px side and bottom border strips, and the band lies at rows 22-26,
-inside the client area.
-
-Reproduce with `make render` (or the pass's throwaway Qt-widget session:
-`python3 /tmp/wpass/render.py OUT.png --kvantum --command '<app>'`, which installs into a scratch
-data home, writes the theme's kwinrc/kdeglobals, runs `kwin_wayland --virtual` under
-`dbus-run-session` and captures the active window with `spectacle -a`) and read the capture's
-rows 22-26 at any x inside the frame.
-
-**Observed output:** `python3 tools/sample.py render.png 100 24` → `255,255,255  #FFFFFF`, and the
-content starts at row 27; `aboutsystem_betawiki.png` at (107, 48) → `221,221,221  #DDDDDD` (its
-row 47 is the `#FFFFFF` highlight).
-
-**Suspected cause:** the theme's `org.macos8.desktoprc` sets `[Layout] TitleEdgeTop=0` and
-`TitleHeight=22` but omits `TitleEdgeBottom`, so Aurorae's default (5) applies and the client area
-starts at `TitleHeight + 5` = 27 while the frame art paints a 22px title bar; the decoration's
-centre tile shows through the five rows the client does not cover. Measured in the throwaway
-session (client row at which the content starts): `TitleHeight=22` → 27, `TitleHeight=17` → 22,
-`TitleHeight=10` → 22 (the SVG's 22px top-margin hint floors it), `TitleEdgeTop=5` → 32, and
-`TitleEdgeBottom=0` → 22 with the window exactly 5 rows shorter (104 → 99 rows). `BorderTop=6` or
-`27`, `ButtonMarginTop=0`, `BorderSize=None` and a 17px top-margin hint change nothing. Patching
-the installed `decoration-center` tile to `#FF00FF` turns exactly rows 22-26, x=6..122 magenta, so
-the band is the decoration's tile, not the application's background. `docs/invariants.md`'s
-aurorae row and `tests/test_aurorae_rc.py` treat the rc's title height and border widths as the
-reference-derived geometry, which the render contradicts.
-
-**Review resolved 2026-10-30 by the director role:** the open half of the review was which
-`TitleEdgeBottom` value places the client at the reference position. Re-sampling the reference
-settles it: `aboutsystem_betawiki.png` at x=250 and x=60 shows the title band ending in its black
-rule at row 46 (`#000000`), then exactly one `#FFFFFF` row at 47, then the `#DDDDDD` content from
-row 48 — one white row, matching the white `decoration-center` tile the band shows today. So the
-note's original candidate `TitleEdgeBottom=0` is wrong: it puts the client at row 22, one row
-above the reference, and erases the highlight row. The reference-derived value is
-`TitleEdgeBottom=1`: the client begins at `TitleHeight + 1` (row 23), leaving exactly one row
-where the frame's white centre tile shows as the highlight, and the fix removes four rows of band.
-The title bar itself does not move (`TitleHeight` and the rows 0-21 strip are untouched; the side
-and bottom border strips keep their `Border*` insets); the rendered window is four rows shorter
-correspondingly. Fix: add `TitleEdgeBottom=1` to `[Layout]`; pin it in
-`tests/test_aurorae_rc.py::TestRc::test_layout_metrics_match_reference` by re-deriving the one-row
-white gap from the reference; and extend `tests/test_render_surface.py` to byte-compare the
-capture's rows 22-26 against the reference's first client rows so the band cannot return.
-
 ### The rendered combo box indicator is a squashed 4px-wide arrow, not the reference's centred double arrow (found by the render pass 2026-10-29)
 
 A `QComboBox`'s indicator renders as two right-aligned triangles four pixels wide (band widths
