@@ -94,4 +94,12 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+### Platinum GTK 4 switches: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued track transition plan)
+
+**Goal.** Give keyboard-focused switch tracks the existing opaque black Platinum focus color through the supported `make apply-gtk` user stylesheet import. This controls the focus endpoint independently of the queued transition policy.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the switch rules, add `switch:focus:focus-visible { outline-color: #000000; }`. Add a dated adaptation comment naming the missing GTK switch keyboard-focus reference and reuse of the scale focus black. Keep inherited outline width and offset. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_focus_outline_color` beside `test_switch`: call `assert_rule` on the complete focus selector with `{"outline-color": BLACK}` and assert equality with `scale:focus:focus-visible > trough > slider`'s outline color, following `test_scale_focus_outline_color`. In `docs/invariants.md` under `## gtk`, name the new test, missing reference surface, reused scale token and supported import path. Attribute the inherited accent/transparent mix, 2px width and 1px offset to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution outside CSS because `test_stands_alone` rejects its name there.
+
+**Acceptance criteria.** The complete keyboard-focus selector explicitly declares opaque black at the stock selector's specificity. Removing it or changing its color fails the new test. Existing switch paint and geometry assertions pass. Documentation identifies color reuse as a platform adaptation and distinguishes declaration coverage from rendered focus evidence. Limit implementation to these three files and focus outline color; transitions, outline geometry, interaction faces, GTK 3 and artwork are outside scope. No new palette value, asset or dependency. `make check` passes.
+
 ## Done
