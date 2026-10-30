@@ -20,6 +20,7 @@ from __future__ import annotations
 import os
 import contextlib
 import io
+from pathlib import Path
 import signal
 import subprocess
 import sys
@@ -580,6 +581,22 @@ class TestSpawnDefenses(unittest.TestCase):
     and _kill_group are the same primitive for the coordinator's workers, so
     the same behavior is pinned here.
     """
+
+    def test_a_worker_start_error_is_recorded_in_its_log(self):
+        log_path = str(make_tmp_dir(self) / "spawn.log")
+        with mock.patch.object(
+            check_parallel_workers.subprocess, "Popen",
+            side_effect=OSError("executable unavailable"),
+        ):
+            worker = check_parallel_workers._spawn(
+                "test_missing", ["missing-python"], str(ROOT), log_path, 30
+            )
+
+        self.assertEqual(1, worker.process.poll())
+        self.assertEqual(
+            "check: the worker could not be started: executable unavailable\n",
+            Path(log_path).read_text(encoding="utf-8"),
+        )
 
     def test_kill_group_ignores_a_worker_that_never_started(self):
         # A _NeverStarted worker has pid 0, and os.killpg(0, ...) signals the
