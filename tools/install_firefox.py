@@ -8,7 +8,8 @@ exactly those three changes. The profile is named with
 ``installs.ini`` and ``profiles.ini`` under ``$HOME/.mozilla/firefox``.
 Profile discovery lives in ``tools/firefox_profile.py``, the profile files'
 bounded read and atomic write in ``tools/firefox_user_files.py``, and the
-``user.js`` marker-block transform in ``tools/firefox_user_js.py``. The
+``user.js`` marker-block transform in ``tools/firefox_user_js.py``. Install
+publication and rollback live in ``tools/firefox_transaction.py``. The
 bounded-wait profile lock shared with the GTK tools lives in
 ``tools/file_lock.py``.
 
