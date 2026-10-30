@@ -96,14 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 check buttons: pin keyboard-focus outline color (planned 2026-10-29 by the plan role)
-
-**Goal.** Give keyboard-focused GTK 4 check buttons the existing opaque black Platinum focus color through the supported `make apply-gtk` user stylesheet import.
-
-**Approach and files.** Beside the existing `checkbutton` transition rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `checkbutton:focus:focus-visible { outline-color: #000000; }`. Add a dated adaptation comment naming the missing GTK check-button keyboard-focus reference and reuse of the scale focus black. Retain inherited outline width and offset. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_checkbutton_focus_outline_color` following `test_scale_focus_outline_color`: assert the complete focus selector with `{"outline-color": BLACK}` and compare its parsed color to `scale:focus:focus-visible > trough > slider`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test, missing reference surface, reused color and supported import path. Attribute the stock accent/transparent mixed outline color, 2px width and -2px offset to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep the library name out of CSS for `test_stands_alone`.
-
-**Acceptance criteria.** The new declaration test pins opaque black on the focused parent check button and equality with the existing scale focus token; the existing check-button transition test remains green. The invariant identifies this as a platform color adaptation, without claiming screenshot-derived focus geometry or rendered pixels. `make check` passes. This focused color change is independent of notebook focus styling and requires no new assets or dependencies.
-
 ### Platinum GTK 4 push buttons: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued check-button focus color)
 
 **Goal.** Give keyboard-focused GTK 4 push buttons an opaque black Platinum outline through the supported `make apply-gtk` user stylesheet import.

@@ -290,6 +290,13 @@ checkbutton {
   transition: none;
 }
 
+/* No reference screenshot shows GTK check-button keyboard focus; reuse the
+ * scale focus black. The inherited outline geometry is GTK-required.
+ * Recorded 2026-10-29 by the feature role. */
+checkbutton:focus:focus-visible {
+  outline-color: #000000;
+}
+
 check {
   border-radius: 0;
 }
