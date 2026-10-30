@@ -98,4 +98,12 @@ _None yet._
 
 _None yet._
 
+### Platinum GTK 4 level bars: preserve the discrete block cross-size (planned 2026-10-29 by the plan role; independent of the queued block-corner plan)
+
+**Goal.** Keep discrete meters at the existing 10px Platinum block cross-size through `make apply-gtk`'s user stylesheet import. The installed base's discrete orientation selectors have greater specificity than our orientation rules and declare an 8px cross-size. The finished original level-bar plan explicitly excluded discrete rules; this is a narrow extension, independent of the queued corner override.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the level-bar orientation rules, add `levelbar.horizontal.discrete > trough > block { min-height: 10px; }` and `levelbar.vertical.discrete > trough > block { min-width: 10px; }`. These match the base selectors' specificity; the supported user import supplies precedence. Add a dated adaptation comment: no reference screenshot shows a discrete level meter; reuse the existing progress-trough cross-size rather than introducing a new measurement. Keep library attribution in documentation to satisfy `test_stands_alone`. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_levelbar_discrete_cross_size`, using `assert_rule` to require exactly those respective declarations and comparing their values to the existing continuous orientation rules. Keep `GtkSheetRuleCases.assert_levelbar` intact. Update the level-bar row in `docs/invariants.md` to name the new test and record provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares `min-height: 8px` on the horizontal discrete selector and `min-width: 8px` on the vertical discrete selector; the chosen 10px reuses `PROGRESSBAR_TROUGH` in `tests/support/gtk_theme_spec.py`.
+
+**Acceptance criteria.** Removing either discrete selector, changing its cross-size, or introducing unrelated declarations fails the new test. Existing `test_levelbar` still pins continuous geometry and palette. Documentation calls this a platform adaptation verified by declarations, not rendered-meter evidence. Limit implementation to these three files and discrete cross-size: retain the base's along-axis sizing and spacing; corner treatment belongs to the sibling plan. No GTK 3 change or new visual token. `make check` passes.
+
 ## Done
