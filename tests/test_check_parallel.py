@@ -544,6 +544,12 @@ class TestCoordinator(unittest.TestCase):
         assert_failed(self, result)
         self.assertIn("--workers must be at least 1", result.stderr)
 
+    def test_a_non_positive_timeout_is_refused(self):
+        tests_dir = self._project({"test_one.py": OK_MODULE})
+        result = self._run("--tests-dir", tests_dir, "--timeout", "0")
+        assert_failed(self, result)
+        self.assertIn("--timeout must be at least 1", result.stderr)
+
     def test_a_module_that_cannot_be_imported_fails_only_its_module(self):
         # A fixture module with a syntax error makes its worker's unittest
         # exit non-zero; the module is reported as failed with the error,
