@@ -618,6 +618,14 @@ class TestSpawnDefenses(unittest.TestCase):
 
         killpg.assert_called_once_with(123, check_parallel_workers._KILL_SIGNAL)
 
+    def test_reap_ignores_a_worker_that_does_not_exit_within_the_bound(self):
+        process = mock.Mock()
+        process.wait.side_effect = subprocess.TimeoutExpired("worker", 5)
+
+        check_parallel_workers._reap(process)
+
+        process.wait.assert_called_once_with(timeout=check_parallel_workers._REAP_SECONDS)
+
     def _spawn_while_popen_signals(self, number, raises):
         """Signal the coordinator *number* while Popen returns; spawn a sleeper.
 
