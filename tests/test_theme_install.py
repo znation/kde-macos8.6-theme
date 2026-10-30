@@ -912,6 +912,173 @@ class TestShellUnsafePython(unittest.TestCase):
         )
 
 
+class TestShellUnsafeCheckPattern(unittest.TestCase):
+    """A `CHECK_PATTERN` carrying recipe-shell syntax is refused at make level.
+
+    `check` pastes CHECK_PATTERN into double-quoted recipe words (the glob
+    guard's `set -- "$(CHECK_PATTERN)"` and `find ... -name "$value"`), where
+    a double quote, `$`, a backtick or a backslash would run the words after
+    it as shell commands before the guard's own "matches no test module"
+    refusal runs; into the single-quoted `-p '$(CHECK_PATTERN)'` word, where
+    an apostrophe would close that quoting instead. The make-level guard
+    refuses both before any recipe of any target runs, so a refused `check`
+    must not run the suite (or a canary command) at all. The
+    `TestShellUnsafeInstallPaths` class shapes these tests after the path
+    guards; the metacharacter diagnostic reuses `refuse_unsafe_value`.
+    """
+
+    def _assert_refused(self, make_value, shown_value):
+        """Dry-run `check` with *make_value*; make must refuse at parse time.
+
+        A dry run is enough because the guard is a make-level `$(error)`: if
+        it ever stops firing, make proceeds to print the `check` recipe and
+        this run exits 0, failing the assertion.
+        """
+        result = theme_install.run_make(
+            ["-n", "check", f"CHECK_PATTERN={make_value}"],
+            env=theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS"),
+        )
+        assert_failed(self, result)
+        self.assertIn("CHECK_PATTERN contains", result.stderr)
+        self.assertIn(shown_value, result.stderr)
+
+    def test_each_metacharacter_is_refused(self):
+        # The value is expanded into double-quoted recipe words, where each
+        # of the four characters below is shell syntax. Same values as
+        # TestShellUnsafeInstallPaths.HOSTILES (`$` arrives doubled in the
+        # make argument, the other three pass through verbatim).
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_an_apostrophe_is_refused(self):
+        # An apostrophe is inert inside the double-quoted words above, but
+        # `check` also pastes the value into `-p '$(CHECK_PATTERN)'` before
+        # the interpreter runs, where the apostrophe closes that quoting.
+        # The guard refuses it at make level with its own diagnostic naming
+        # that single-quoted word.
+        self._assert_refused(
+            "test_byteops.py'; echo",
+            "test_byteops.py'; echo",
+        )
+
+    def test_a_refused_pattern_runs_no_shell(self):
+        """A refused CHECK_PATTERN must not run any of its injected words.
+
+        Without the guard, `make check CHECK_PATTERN='testX"; touch
+        <canary>; echo "'` ran the touch inside the glob guard's own `find`
+        subshell, before that guard's refusal. The refusal must come first
+        and leave no canary; this case runs `check` for real (not dry) for
+        the same reason.
+        """
+        tmp = make_tmp_dir(self)
+        canary = tmp / "injected"
+        result = theme_install.run_make(
+            ["check", f"CHECK_PATTERN=testX\"; touch '{canary}'; echo \""],
+            env=theme_install.make_env("CHECK_PATTERN", "CHECK_TESTS"),
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "CHECK_PATTERN contains a shell metacharacter", result.stderr
+        )
+        self.assertFalse(canary.exists(), "canary created; the guard escaped")
+
+
+class TestShellUnsafeInstallPackages(unittest.TestCase):
+    """An `INSTALL_PACKAGES` carrying recipe-shell syntax is refused.
+
+    `require_install_packages` expands INSTALL_PACKAGES unquoted (its value
+    is a list of family names), so beyond the double-quoted hostiles a wider
+    set is shell syntax at that position: an apostrophe, semicolon, pipe,
+    ampersand, parenthesis, redirection character or newline. The packaging
+    guard's unknown-family refusal runs inside the shell the payload has
+    already escaped, so the make-level guard refuses the value before it is
+    expanded into any recipe; a space stays legal because the value is a
+    list of names.
+    """
+
+    EXTRA_HOSTILES = (
+        ("'", "x'; y'", "x'; y'"),
+        (";", "x; y", "x; y"),
+        ("|", "x|y", "x|y"),
+        ("&", "x&y", "x&y"),
+        ("(", "x(y", "x(y"),
+        (")", "x)y", "x)y"),
+        ("<", "x<y", "x<y"),
+        (">", "x>y", "x>y"),
+    )
+
+    def _assert_refused(self, make_value, shown_value):
+        """Dry-run `install` with *make_value*; make must refuse at parse time."""
+        result = theme_install.run_make(
+            ["-n", "install", f"INSTALL_PACKAGES={make_value}"],
+            env=theme_install.make_env("INSTALL_PACKAGES"),
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "INSTALL_PACKAGES contains a shell metacharacter", result.stderr
+        )
+        self.assertIn(shown_value, result.stderr)
+
+    def test_the_double_quoted_hostiles_are_refused(self):
+        # The unquoted paste inherits the double-quoted four as well.
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_each_unquoted_metacharacter_is_refused(self):
+        for char, make_value, shown_value in self.EXTRA_HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_a_newline_is_refused(self):
+        # An unquoted newline is a command separator; make carries a
+        # command-line assignment's newline into the value verbatim.
+        self._assert_refused(
+            "color-scheme\nlook-and-feel; echo",
+            "color-scheme\nlook-and-feel; echo",
+        )
+
+    def test_a_refused_family_list_runs_no_shell(self):
+        """A refused INSTALL_PACKAGES must not run any of its injected words.
+
+        Before the guard, `make install INSTALL_PACKAGES='noop; touch
+        <canary'` fired the touch inside `set -- noop; touch ...` before the
+        unknown-family refusal. The refusal must come first and leave no
+        canary and no data home.
+        """
+        tmp = make_tmp_dir(self)
+        canary = tmp / "injected"
+        result = theme_install.run_make(
+            [
+                "install",
+                f"INSTALL_PACKAGES=noop; touch '{canary}'",
+                f"DESTDIR={tmp}",
+            ],
+            env=theme_install.make_env("INSTALL_PACKAGES"),
+        )
+        assert_failed(self, result)
+        self.assertIn(
+            "INSTALL_PACKAGES contains a shell metacharacter", result.stderr
+        )
+        self.assertFalse(canary.exists(), "canary created; the guard escaped")
+        data_home = os.path.join(tmp, installed_paths.XDG_DATA_HOME.lstrip("/"))
+        self.assertFalse(os.path.exists(data_home), data_home)
+
+    def test_a_clean_family_list_runs_the_install_recipe(self):
+        # The guard must not refuse the documented single-family form.
+        result = theme_install.run_make(
+            [
+                "-n",
+                "install",
+                "INSTALL_PACKAGES=look-and-feel",
+            ],
+            env=theme_install.make_env("INSTALL_PACKAGES"),
+        )
+        assert_succeeded(self, result)
+        self.assertIn("look-and-feel", result.stdout)
+
+
 class TestShellUnsafeRenderOutput(unittest.TestCase):
     """A `RENDER_OUTPUT` carrying a recipe-shell metacharacter is refused.
 

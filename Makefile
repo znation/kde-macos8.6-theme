@@ -100,11 +100,25 @@ refuse_unsafe_value = $(if $(call control_char_in,$(1)),$(control_refusal),$(if 
 # environment or command-line value is already expanded and checked here.
 # RENDER_OUTPUT ?= render.png sits further down with the `render` target for
 # the same reason: its default is empty here, and `render` pastes the value
-# into the double-quoted word `-- "$(RENDER_OUTPUT)"`.
+# into the double-quoted word `-- "$(RENDER_OUTPUT)"`. CHECK_PATTERN joins
+# the list for the same reason: `check` pastes it into the double-quoted
+# words `set -- "$(CHECK_PATTERN)"` and `find ... -name "$value"` in the
+# guard that loads the suite. CHECK_PATTERN additionally reaches a
+# single-quoted recipe word (`-p '$(CHECK_PATTERN)'`), so its apostrophe —
+# inert inside double quotes, so this guard leaves it — is refused
+# separately below, where the quoting it closes is different.
 # THEME_ROOT := theme sits further down with the scheme source: install's
 # symlink guard pastes the value into the double-quoted words of
 # `require_theme_links`, where the same recipe-shell metacharacters run.
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID THEME_ROOT,$(call refuse_unsafe_value,$(v)))
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID CHECK_PATTERN THEME_ROOT,$(call refuse_unsafe_value,$(v)))
+
+# CHECK_PATTERN additionally reaches a single-quoted recipe word: `check`
+# pastes it into `-p '$(CHECK_PATTERN)'`, and an apostrophe — inert inside
+# double quotes, so the guard above leaves it — closes that quoting instead.
+# The suite's own test-module filenames contain none, so the `check` recipe
+# never needs it either; a value reaching this diagnostic has already
+# passed the control-byte refusal in the guard above.
+$(if $(findstring ',$(CHECK_PATTERN)),$(error CHECK_PATTERN contains an apostrophe ('$(CHECK_PATTERN)'); the value is expanded into the single-quoted `-p '$(CHECK_PATTERN)'` recipe word, where the apostrophe would close the quoting and run the words after it as shell syntax instead of naming a test-module glob; pass a glob without an apostrophe),)
 
 # PYTHON is expanded into recipe words unquoted -- a value may carry
 # arguments (`/usr/bin/python3 -X dev`), so the words cannot be
@@ -141,6 +155,21 @@ $(if $(call py_unsafe_in,PYTHON),$(error PYTHON contains a shell metacharacter (
 # reaches double-quoted recipe words in `require_theme_links`, so it must carry
 # no recipe-shell metacharacter (the parse-level guard above refuses one).
 THEME_ROOT := theme
+
+# INSTALL_PACKAGES is expanded unquoted into `require_install_packages`'
+# shell words (`set -- $(INSTALL_PACKAGES)`), and PYTHON's refusal above
+# shows the consequence an unquoted position has: an apostrophe, semicolon,
+# pipe, ampersand, parenthesis, redirection character or newline runs the
+# words after it as shell syntax. The family-membership check would refuse
+# any word such a payload leaves behind, but that check runs in the recipe
+# shell the payload has already escaped, so this refusal names the
+# variable, the offending character and the value at make level, before the
+# value is expanded into any recipe. A space stays legal because the value
+# is a list of family names. `INSTALL_PACKAGES ?=` sits below, so the
+# default (`color-scheme ... fonts`) is not yet defined when this guard
+# runs and only a caller's value is checked.
+$(if $(call control_char_in,INSTALL_PACKAGES),$(call control_refusal,INSTALL_PACKAGES))
+$(if $(call py_unsafe_in,INSTALL_PACKAGES),$(error INSTALL_PACKAGES contains a shell metacharacter ('$(call py_unsafe_in,INSTALL_PACKAGES)' in '$(INSTALL_PACKAGES)'); the value is expanded unquoted into the packaging guard's recipe words, where it would run as shell syntax instead of naming artifact families; pass a list of family names without an apostrophe, semicolon, pipe, ampersand, parenthesis, redirection character, newline, backtick, dollar sign, backslash or double quote),)
 
 # The scheme source. A command-line override renames what `install` reads, so
 # `COLOR_SCHEME` reaches double-quoted recipe words below and must carry no

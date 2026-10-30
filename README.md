@@ -215,7 +215,13 @@ as the reset; if the opt-in GTK selection `make apply-gtk` published still names
 `make remove-gtk` as the reset. Neither warning edits the user's configuration. `make check` runs the test suite, and `make help`
 lists the public targets and the variables that tune them; a run can be narrowed to the test
 modules a shell glob matches, e.g. `make check CHECK_PATTERN='test_colorscheme*.py'`, or to
-one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`. By
+one module, class or method with `make check CHECK_TESTS=test_colorscheme.TestAnchors`.
+Both overriding variables are validated before the run: a `CHECK_PATTERN` carrying a recipe-shell
+metacharacter — a double quote, `$`, a backtick or a backslash, and also an apostrophe, which the
+single-quoted `-p` word the value is expanded into cannot escape — or an `INSTALL_PACKAGES`
+carrying one of those four plus a semicolon, pipe, ampersand, parenthesis, newline or redirection
+character (its value list is expanded unquoted) is refused outright, before any recipe runs, with a
+diagnostic naming the variable and the value, while a space stays legal in either. By
 default the discovered modules run in parallel through `tools/check_parallel.py`, which runs
 each module as one worker process and prints the modules' outputs in module order;
 `make check CHECK_PARALLEL=0` restores the serial `unittest discover` run, and
