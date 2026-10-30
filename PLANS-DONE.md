@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 scales: preserve thumb margins during fine tuning (planned 2026-10-29 by the plan role; independent of the queued enabled marked-thumb bevel) — done 2026-10-29 by the feature role
+
+**Goal.** Keep the existing Platinum thumb margin when a scale enters fine-tune mode. The stock horizontal and vertical fine-tune selectors override the base thumb's uniform `-5px` margin with `-5px -8px` and `-8px -5px`, respectively; the theme currently has no fine-tune rule. This is one spacing policy across the two orientations, separate from the queued shadow change.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the orientation rules, add a grouped rule for `scale.horizontal.fine-tune > trough > slider` and `scale.vertical.fine-tune > trough > slider` declaring `margin: -5px`. Add a dated adaptation comment naming the missing fine-tune GTK scale reference and the existing base thumb margin as the value source. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_fine_tune_thumb_margin`, calling `assert_rule(selector, {"margin": "-5px"})` for each complete selector; retain `test_scale` for base geometry. In `docs/invariants.md`, add a focused `## gtk` row naming both tests and recording `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, as the source of the stock orientation-specific overrides. Record the absent reference surface and reuse of the existing `scale > trough > slider` margin; keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
+
+**Acceptance criteria.** Each fine-tune selector explicitly declares the uniform base thumb margin and matches its stock counterpart's specificity, permitting the later imported user stylesheet to override it. Removing either selector or changing its margin fails the new test. Documentation limits the guarantee to thumb margin declarations, without claiming rendered geometry. Limit implementation to these three files and this thumb-margin policy; trough margins, mark layout, focus styling and GTK 3 are outside this change. No new visual token, asset or dependency. `make check` passes.
+
 ### Platinum GTK 4 scales: preserve the enabled marked thumb's raised bevel (planned 2026-10-29 by the plan role; independent of the queued disabled marked-thumb shadow) — done 2026-10-29 by the feature role
 
 **Goal.** Keep enabled one-sided marked thumbs using the existing Platinum inset bevel. The stock marked-scale rule assigns an outline and diagonal drop shadow with greater specificity than the theme's base thumb rule; the finished transform plan handles rotation separately. The waiting disabled marked-thumb plan covers a disjoint state.

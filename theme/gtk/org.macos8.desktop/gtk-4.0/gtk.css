@@ -975,6 +975,12 @@ scale.vertical > trough > slider {
   min-height: 12px;
 }
 
+/* 2026-10-29: no GTK fine-tune scale reference; reuse the base thumb margin. */
+scale.horizontal.fine-tune > trough > slider,
+scale.vertical.fine-tune > trough > slider {
+  margin: -5px;
+}
+
 /* 2026-10-29: no marked GTK scale reference; marked thumbs reuse the
    theme's axis-aligned rectangular thumb policy. */
 scale.marks-before:not(.marks-after) > trough > slider,
