@@ -94,4 +94,12 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+### Platinum GTK 4 switches: preserve the thumb face during interaction (planned 2026-10-29 by the plan role; independent of the queued checked-thumb face)
+
+**Goal.** Keep the existing grey switch thumb on hover and press through the supported `make apply-gtk` user stylesheet import. The base thumb rule lacks interaction selectors; the checked-thumb plan addresses a different state, and the archived initial switch plan does not cover these overrides.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a grouped `switch:hover > slider, switch:active > slider` rule declaring `background-color: #DDDDDD` after the base thumb rule and before the disabled-thumb rule. Add a dated adaptation comment naming the missing GTK switch interaction reference and reuse of the existing `widgets/switch.svg` thumb face. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_interaction_thumb_face` beside `test_switch`, using subtests and `self.assert_rule` to assert the grey background for each selector. Under `## gtk` in `docs/invariants.md`, document the declaration guarantee and test, citing `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29: `switch:hover > slider, switch:active > slider { background: white; }`. Keep library attribution outside CSS, consistent with `test_stands_alone`.
+
+**Acceptance criteria.** Removing either interaction selector or changing its background to white fails the new test. Each selector matches the stock interaction selector's specificity; the existing base and disabled thumb declarations remain covered by `test_switch`. Document the missing reference surface and existing chosen-color source without claiming rendered pixel fidelity. Limit implementation to these three files and thumb interaction background color; track interaction paint, geometry, focus, animation and GTK 3 remain separate work. No new palette value, asset or dependency. `make check` passes.
+
 ## Done
