@@ -223,5 +223,53 @@ class TestSessionCommand(unittest.TestCase):
             self.assertIn("'a b' 2.5", command.argv[-1])
 
 
+class TestSessionThemeSources(unittest.TestCase):
+    """``install_theme`` and ``write_session_configs`` source the session.
+
+    The pipeline tests stub ``make`` or observe only ``kwinrc``'s decoration
+    block through the session, so a wiring mistake in these two calls -- the
+    install staged outside the scratch data home, or ``plasmarc`` or its
+    theme-defaults section dropped -- would be invisible to the offline suite
+    and surface only in the slow real render. These tests drive the two
+    functions directly against a real scratch session.
+    """
+
+    def test_install_theme_installs_the_theme_into_the_scratch_data_home(self):
+        # Run the real `make install` with the session's environment: it is a
+        # fast copy into the scratch data home, so this is the visible result
+        # of the wiring (argv, environment, cwd) rather than a re-derivation.
+        with render_session.Session.create() as session:
+            status, install_log = render_session.install_theme(session)
+            self.assertEqual(0, status)
+            self.assertTrue(install_log.exists(), "the install log is missing")
+            for artifact in (
+                "color-schemes/MacOS8.colors",
+                "aurorae/themes/org.macos8.desktop",
+                "themes/org.macos8.desktop/Kvantum/org.macos8.desktop.kvconfig",
+                "plasma/look-and-feel/org.macos8.desktop",
+                "fonts/org.macos8.desktop",
+                "wallpapers",
+            ):
+                with self.subTest(artifact=artifact):
+                    self.assertTrue(
+                        (session.data / artifact).exists(),
+                        f"{artifact} did not land in the scratch data home",
+                    )
+
+    def test_write_session_configs_writes_both_themed_configs_into_the_config_home(self):
+        with render_session.Session.create() as session:
+            render_session.write_session_configs(session)
+            written = sorted(
+                path.name for path in session.config.iterdir() if path.is_file()
+            )
+            kwinrc = (session.config / "kwinrc").read_text(encoding="utf-8")
+            plasmarc = (session.config / "plasmarc").read_text(encoding="utf-8")
+        # Exactly the two files the session's in-session commands read; extra
+        # files here would also end up in the caller-visible default config.
+        self.assertEqual(["kwinrc", "plasmarc"], written)
+        self.assertIn("theme=__aurorae__svg__org.macos8.desktop", kwinrc)
+        self.assertEqual("[Theme]\nname=org.macos8.desktop\n", plasmarc)
+
+
 if __name__ == "__main__":
     unittest.main()
