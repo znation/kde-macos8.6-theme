@@ -1133,6 +1133,74 @@ class TestShellUnsafeRenderOutput(unittest.TestCase):
         self.assertIn('-- "my render.png"', result.stdout)
 
 
+class TestShellUnsafeCheckVariables(unittest.TestCase):
+    """A `check` narrowing value carrying a control byte is refused unecheod.
+
+    `require_check_tests` and `require_check_parallel` echo a refused value
+    back inside quotes (`CHECK_TESTS may contain only dotted test names:
+    '<value>'`, `CHECK_PARALLEL must be a worker count ...: '<value>'`), and
+    CHECK_PARALLEL additionally reaches the unquoted `--workers` position,
+    CHECK_TESTS the unquoted unittest one. Both recipe guards limit the value
+    first, so a metacharacter cannot reach an unquoted position; a control
+    byte is not shell syntax anywhere, but the guards' quoted echo pasted it
+    raw into the operator's terminal before these parse-time refusals joined
+    the others (`TestShellUnsafeControlCharacters`). The refusal must name
+    the variable, and the byte must reach neither stdout nor stderr.
+    """
+
+    def _assert_check_refused(self, variable, byte, env_value=None):
+        """Drive `make check` with a control byte in *variable*; refuse it.
+
+        The value reaches the refusal either through a command-line
+        assignment or, when *env_value* is given, through the environment.
+        A refusal happens before any recipe unless the parse-time guard misses
+        it, in which case the run-time guard still refuses -- but echoes the
+        byte, which the `assertNotIn` catches.
+        """
+        env = theme_install.make_env(variable)
+        args = []
+        if env_value is None:
+            args.append(f"{variable}={byte}")
+        else:
+            env[variable] = env_value
+        result = theme_install.run_make(["check", *args], env=env)
+        assert_failed(self, result)
+        self.assertIn(
+            f"{variable} contains a control character", result.stderr
+        )
+        output = result.stdout + result.stderr
+        self.assertNotIn(byte, output)
+
+    def test_an_escape_byte_in_each_check_narrower_is_refused_without_echoing_it(self):
+        for variable in ("CHECK_TESTS", "CHECK_PARALLEL"):
+            with self.subTest(variable=variable):
+                self._assert_check_refused(variable, "ab\x1b tests_x")
+
+    def test_an_escape_byte_reaches_the_refusal_through_the_environment(self):
+        # The environment route alongside the command-line one, the way
+        # TestShellUnsafeControlCharacters drives both for the install paths.
+        self._assert_check_refused(
+            "CHECK_TESTS", "tests_x\x1b", env_value="tests_x\x1b"
+        )
+
+    def test_del_is_refused_in_each_check_narrower(self):
+        for variable in ("CHECK_TESTS", "CHECK_PARALLEL"):
+            with self.subTest(variable=variable):
+                self._assert_check_refused(variable, "ab\x7fdel")
+
+    def test_a_refused_check_narrower_runs_no_tests(self):
+        # The refusal happens before the suite could start: the diagnostic is
+        # the run's whole output, with no coordinator banner or unittest line
+        # anywhere beside it.
+        result = theme_install.run_make(
+            ["check", "CHECK_TESTS=ab\x1b tests_x"],
+            env=theme_install.make_env("CHECK_TESTS"),
+        )
+        assert_failed(self, result)
+        self.assertNotIn("NO TESTS RAN", result.stdout + result.stderr)
+        self.assertNotIn("tools/check_parallel.py", result.stdout + result.stderr)
+
+
 class TestShellUnsafeControlCharacters(unittest.TestCase):
     """A guarded value carrying a control byte must be refused, not echoed.
 

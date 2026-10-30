@@ -221,7 +221,10 @@ metacharacter — a double quote, `$`, a backtick or a backslash, and also an ap
 single-quoted `-p` word the value is expanded into cannot escape — or an `INSTALL_PACKAGES`
 carrying one of those four plus a semicolon, pipe, ampersand, parenthesis, newline or redirection
 character (its value list is expanded unquoted) is refused outright, before any recipe runs, with a
-diagnostic naming the variable and the value, while a space stays legal in either. By
+diagnostic naming the variable and the value, while a space stays legal in either; the
+validators of `CHECK_TESTS` and `CHECK_PARALLEL` name a refused value back in their own
+diagnostics, so a value of either carrying a control byte (0x01-0x1f or 0x7f, tab and newline
+excepted) is refused before any recipe runs, unechoed. By
 default the discovered modules run in parallel through `tools/check_parallel.py`, which runs
 each module as one worker process and prints the modules' outputs in module order;
 `make check CHECK_PARALLEL=0` restores the serial `unittest discover` run, and

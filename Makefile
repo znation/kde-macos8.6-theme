@@ -120,6 +120,21 @@ $(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_
 # passed the control-byte refusal in the guard above.
 $(if $(findstring ',$(CHECK_PATTERN)),$(error CHECK_PATTERN contains an apostrophe ('$(CHECK_PATTERN)'); the value is expanded into the single-quoted `-p '$(CHECK_PATTERN)'` recipe word, where the apostrophe would close the quoting and run the words after it as shell syntax instead of naming a test-module glob; pass a glob without an apostrophe),)
 
+# CHECK_TESTS and CHECK_PARALLEL are echoed back by their run-time guards:
+# require_check_tests' refinement refusals and require_check_parallel's
+# worker-count refusal each print the value, and CHECK_PARALLEL additionally
+# reaches the unquoted `--workers` coordinator position and CHECK_TESTS the
+# unquoted unittest position (each recipe guard limits its value to digits
+# or dotted test names first, so no metacharacter can reach those spots).
+# A value carrying a control byte would be refused mid-recipe and pasted raw
+# into the operator's terminal inside the guard's quoted value, exactly like
+# the FLOCK_TIMEOUT byte the shared refusal was added for, so both are
+# refused at parse time before any recipe runs. Their metacharacter set
+# stays with the recipe guards, whose diagnostics name the value better
+# than the shared one.
+$(if $(call control_char_in,CHECK_TESTS),$(call control_refusal,CHECK_TESTS))
+$(if $(call control_char_in,CHECK_PARALLEL),$(call control_refusal,CHECK_PARALLEL))
+
 # PYTHON is expanded into recipe words unquoted -- a value may carry
 # arguments (`/usr/bin/python3 -X dev`), so the words cannot be
 # double-quoted -- and at an unquoted position a wider set of characters is
