@@ -417,6 +417,9 @@ for radio in (False, True):
     def test_calendar_focus_transition(self):
         self.assert_rule("calendar > grid > label", {"transition": "none"})
 
+    def test_scale_focus_transition(self):
+        self.assert_rule("scale > trough > slider", {"transition": "none"})
+
     def test_calendar_header_separator(self):
         header = "calendar > header"
         infobar = "infobar > revealer > box"

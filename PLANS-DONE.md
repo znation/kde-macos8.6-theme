@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 scales: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued keyboard-focus outline color) — done 2026-10-29 by the feature role
+
+**Goal.** Suppress the inherited scale-thumb outline transition on focus entry and exit through the supported GTK 4 user stylesheet import. This is independent of the queued outline-color plan: it controls interpolation rather than the focused endpoint.
+
+**Approach and files.** Add `transition: none` to the existing `scale > trough > slider` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, with a dated adaptation comment identifying the missing GTK scale motion reference and reuse of the immediate calendar-focus policy. Target the base thumb so focus entry and exit use the override. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_focus_transition` using `assert_rule("scale > trough > slider", {"transition": "none"})`, following `test_calendar_focus_transition`. Under `## gtk` in `docs/invariants.md`, record that declaration guarantee, the new test and the supported `make apply-gtk` import path. Attribute the inherited outline-color, outline-width and outline-offset transitions (200ms each) to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution out of CSS to respect `test_stands_alone`; describe `none` as a theme adaptation, not screenshot-derived timing.
+
+**Acceptance criteria.** Removing the base-thumb declaration, narrowing it to focused thumbs or replacing `none` with a timed transition fails the new test. Existing `test_scale` assertions pass. Documentation distinguishes declaration coverage from rendered motion evidence. Limit implementation to these three files and thumb transitions; focus colors and geometry, bevels, spacing, GTK 3 and artwork remain outside this plan. No new dependency. `make check` passes.
+
 ### Platinum GTK 4 scales: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued fine-tune trough offsets) — done 2026-10-29 by the feature role
 
 **Goal.** Give keyboard-focused scale thumbs an opaque black outline using the existing Platinum focus palette. The theme has no scale focus override; the installed stock stylesheet uses a half-transparent accent color for `scale:focus:focus-visible > trough > slider`.

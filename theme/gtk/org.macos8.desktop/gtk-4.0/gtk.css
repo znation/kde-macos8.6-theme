@@ -969,6 +969,8 @@ scale > trough > slider {
   border-radius: 0;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
   margin: -5px;
+  /* 2026-10-29: no GTK scale motion reference; match immediate calendar focus. */
+  transition: none;
 }
 
 scale.horizontal > trough > slider {
