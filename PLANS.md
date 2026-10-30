@@ -102,6 +102,14 @@ recorded here to keep the scope deliberate.
 
 **Acceptance criteria.** Each orientation/state selector explicitly declares the 12px transverse minimum; removing one or restoring its stock 3px/8px value fails the new declaration test and the reference-derived assertion. Existing scrollbar paint, outline and base breadth coverage passes. The invariant states that these are minimum-size declarations, not proof of rendered overlay breadth: inherited trough margins, allocation and overlay visibility remain outside this plan. Preserve toolkit longitudinal minimum-length rules; change no overlay spacing or visibility policy. Limit implementation to these three files. This can merge independently of the ordinary trough margin reset. `make check` passes.
 
+### Platinum GTK 3 check buttons: declare a focused outline (planned 2026-10-29 by the plan role; independent of GTK 4 overlay scrollbar work)
+
+**Goal.** Give focused GTK 3 check-button parent nodes an explicit Platinum outline. The sheet paints child `check` nodes but has no `checkbutton:focus` rule; this establishes a declaration guarantee rather than asserting that rendered focus feedback is absent.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside `check, radio`, add `checkbutton:focus { outline: 1px dotted #000000; outline-offset: 0; -gtk-outline-radius: 0; }`. Add a dated adaptation comment naming the missing GTK check-button focus reference surface and reuse of the existing `button:focus` outline, offset and square outline corners. Target the parent, not `check:focus`, and use GTK 3's `:focus` selector. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_checkbutton_focus_outline` following `test_button_focus_outline`: use `assert_rule` and `BLACK` to pin the three declarations, and compare each to `button:focus`. Under `## gtk` in `docs/invariants.md`, record the guarantee, test, missing reference surface and reused adaptation. Cite toolkit property provenance there: `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29, declares outline width/style/offset and `-gtk-outline-radius` in its universal rule. Keep library names outside CSS for the standalone-sheet test.
+
+**Acceptance criteria.** The focused parent explicitly declares the dotted black 1px outline, zero offset and zero GTK outline radius; removing or changing a declaration fails the new test. Document these values as an adaptation, not screenshot measurements. Existing check, checked and indeterminate child paint coverage passes. Limit implementation to the three named files; radio-button focus is a separate surface outside this plan. Declaration checks do not establish rendered focus pixels or keyboard traversal behavior. `make check` passes.
+
 _None yet._
 
 _None yet._
