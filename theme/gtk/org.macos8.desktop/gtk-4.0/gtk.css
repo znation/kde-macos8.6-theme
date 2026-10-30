@@ -986,16 +986,17 @@ link:visited, button.link:visited > label {
   color: #551A8B;
 }
 
+/* No GTK calendar appears in the reference; marked days reuse the opaque
+   Platinum trough fill and square frame edge (recorded 2026-10-29 by the feature role). */
+calendar > grid > label.day-number:checked {
+  background-color: #EEEEEE;
+  border-radius: 0;
+}
 /* A calendar's selected day takes the selection fill; other months' days grey. */
 calendar > grid > label.day-number:selected {
   background-color: #CCCCFF;
   color: #000000;
   /* No GTK calendar appears in the reference; reuse the square frame edge. */
-  border-radius: 0;
-}
-/* No GTK calendar appears in the reference; marked-day corners reuse the
-   square frame edge (recorded 2026-10-29 by the feature role). */
-calendar > grid > label.day-number:checked {
   border-radius: 0;
 }
 /* No GTK calendar appears in the reference; its outer edge reuses the opaque

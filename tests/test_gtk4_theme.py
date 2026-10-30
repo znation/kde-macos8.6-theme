@@ -353,13 +353,22 @@ for radio in (False, True):
 
     def test_calendar_marked_day_corners(self):
         marked = "calendar > grid > label.day-number:checked"
-        self.assert_rule(marked, {"border-radius": "0"})
+        self.assert_rule(marked, {"border-radius": "0", "background-color": TROUGH})
         for frame in ("frame > border", ".frame"):
             with self.subTest(frame=frame):
                 self.assertEqual(
                     self.rules[marked]["border-radius"],
                     self.rules[frame]["border-radius"],
                 )
+
+    def test_calendar_marked_day_fill(self):
+        marked = "calendar > grid > label.day-number:checked"
+        selected = "calendar > grid > label.day-number:selected"
+        trough = "scrollbar > range > trough"
+        self.assertEqual(self.rules[marked]["background-color"],
+                         self.rules[trough]["background-color"])
+        self.assertEqual(self.rules[selected]["background-color"], SELECTION)
+        self.assertLess(self.css.index(marked), self.css.index(selected))
 
     def test_calendar_outer_border(self):
         calendar = "calendar"
