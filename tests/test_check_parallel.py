@@ -598,6 +598,37 @@ class TestSpawnDefenses(unittest.TestCase):
             Path(log_path).read_text(encoding="utf-8"),
         )
 
+    def test_an_unexpected_popen_error_restores_deferred_signals(self):
+        log_path = str(make_tmp_dir(self) / "spawn.log")
+        termination_handlers = [(signal.SIGTERM, object())]
+        interrupt_handlers = [(signal.SIGINT, object())]
+        with (
+            mock.patch.object(
+                check_parallel_workers.subprocess, "Popen",
+                side_effect=RuntimeError("broken popen wrapper"),
+            ),
+            mock.patch.object(
+                check_parallel_workers, "_defer_signals",
+                side_effect=[termination_handlers, interrupt_handlers],
+            ),
+            mock.patch.object(
+                check_parallel_workers, "_restore_termination"
+            ) as restore,
+            mock.patch.object(
+                check_parallel_workers, "_replay_deferred"
+            ) as replay,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "broken popen wrapper"):
+                check_parallel_workers._spawn(
+                    "test_broken", ["python"], str(ROOT), log_path, 30
+                )
+
+        self.assertEqual(
+            [mock.call(termination_handlers), mock.call(interrupt_handlers)],
+            restore.call_args_list,
+        )
+        replay.assert_called_once_with([])
+
     def test_kill_group_ignores_a_worker_that_never_started(self):
         # A _NeverStarted worker has pid 0, and os.killpg(0, ...) signals the
         # coordinator's own process group -- under `make check`, make's
