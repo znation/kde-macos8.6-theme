@@ -98,13 +98,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     # The documented workflow samples a name in the contributor-supplied
-    # reference directory, and git stores symlinks. Opening a checked-in link
-    # that resolves outside the repository would read a private image and
-    # print its pixels, so refuse such a path before either read. The path is
-    # deliberately not normalized (``..`` is kept, as the OS follows it after
-    # resolving the links before it), and any ancestor that is the checkout
-    # itself, through an alias or not, marks it a repository path. A path
-    # outside the repository (a test's temporary image) is left alone.
+    # reference directory. A checked-in link that escapes the repository
+    # could expose a private image through its pixels, so refuse it before
+    # either read. Include checkout aliases when recognizing repository paths.
     image = Path(os.path.join(os.getcwd(), args.image))
     for ancestor in (image, *image.parents):
         try:
