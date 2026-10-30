@@ -975,6 +975,13 @@ scale.vertical > trough > slider {
   min-height: 12px;
 }
 
+/* 2026-10-29: no marked GTK scale reference; marked thumbs reuse the
+   theme's axis-aligned rectangular thumb policy. */
+scale.marks-before:not(.marks-after) > trough > slider,
+scale.marks-after:not(.marks-before) > trough > slider {
+  transform: none;
+}
+
 /* 2026-10-29: no GTK scale reference; parent interaction reuses the thumb face. */
 scale:hover > trough > slider, scale:active > trough > slider {
   background-color: #DDDDDD;

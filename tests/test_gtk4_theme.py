@@ -1034,6 +1034,13 @@ for radio in (False, True):
             disabled="scale > trough > slider:disabled",
         )
 
+    def test_scale_marked_thumb_transform(self):
+        for selector in (
+            "scale.marks-before:not(.marks-after) > trough > slider",
+            "scale.marks-after:not(.marks-before) > trough > slider",
+        ):
+            self.assert_rule(selector, {"transform": "none"})
+
     def test_scale_disabled_filter(self):
         self.assert_rule("scale:disabled", {"filter": "none"})
 

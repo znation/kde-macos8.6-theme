@@ -96,12 +96,4 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 scales: keep marked thumbs unrotated (planned 2026-10-29 by the plan role; independent of the queued disabled-thumb shadow)
-
-**Goal.** Keep the existing rectangular Platinum thumb aligned to its trough on scales with marks on exactly one side. The stock marked-scale selectors rotate the thumb 45 degrees; the theme has no marked-scale transform override. The finished meters-and-sliders plan supplies the rectangular thumb geometry but does not address this transform.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the scale rules add a grouped rule for `scale.marks-before:not(.marks-after) > trough > slider, scale.marks-after:not(.marks-before) > trough > slider` declaring exactly `transform: none`. Include a dated adaptation comment identifying the missing marked GTK scale reference and reuse of the existing axis-aligned rectangular thumb policy. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_marked_thumb_transform`, calling `assert_rule` for each selector with exactly `{"transform": "none"}`; retain `test_scale` for the base orientation geometry. In `docs/invariants.md`, add a focused `## gtk` row naming both tests and the source inspected 2026-10-29: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` assigns `transform: rotate(45deg)` to these selectors. The replacement follows the existing unrotated horizontal and vertical thumb geometry in the theme. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
-
-**Acceptance criteria.** Both selectors match the stock transform selectors' specificity, allowing the later user stylesheet imported by `make apply-gtk` to override rotation. Removing either selector or changing its transform fails the new test. Documentation names the missing reference surface and chosen-value source and limits the guarantee to declarations, without claiming rendered fidelity. Limit implementation to these three files and the transform override; marked-thumb shadows and mark layout are separate work, and the queued disabled-thumb shadow plan is independently mergeable. No new palette value, asset or dependency. `make check` passes.
-
 ## Done
