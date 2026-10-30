@@ -96,4 +96,12 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 4 calendars: use an opaque today underline (planned 2026-10-29 by the plan role; independent of the queued header separator)
+
+**Goal.** Give today's calendar label an opaque Platinum grey underline through `make apply-gtk`'s GTK 4 user stylesheet import. The sheet currently has no today-marker override; the finished calendar color and marked-day corner plans explicitly excluded it.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the calendar rules, add `calendar > grid > label.today { box-shadow: inset 0 -2px #888888; }` followed by `calendar > grid > label.today:selected { box-shadow: none; }`. Add a dated provenance comment naming the missing GTK calendar reference and reuse of the other-month inactive grey. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_calendar_today_underline` using `assert_rule` to pin both exact one-property dictionaries and tying the underline's grey to the existing other-month rule and `_assert_inactive_grey_from_scheme()`. Update the calendar adaptation row in `docs/invariants.md` to name the new test and explain the metric exception: the selectors, two-pixel inset underline and selected-state suppression come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; the opaque grey adapts the sheet's inactive text token. Keep library attribution out of CSS to respect `test_stands_alone`.
+
+**Acceptance criteria.** The new test pins `inset 0 -2px #888888` for today and `none` for selected today; existing selected-day, marked-day and outer-border tests pass. The invariant records the missing reference surface and source of the retained platform metric, the supported user stylesheet import, and that declaration checks do not establish rendered pixels. Limit implementation to these three files; header paint, spacing, marked-day fill, focus outlines and GTK 3 are outside this plan. No new palette values, artwork or dependencies. `make check` passes.
+
 ## Done
