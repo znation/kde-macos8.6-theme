@@ -804,6 +804,26 @@ scrollbar.horizontal button.down {
   border-left: 1px solid #555555;
 }
 
+/* Adaptation 2026-10-30: no collected reference screenshot in
+   macos8.6-screenshots/ shows a GTK over-scroll glow, but the stock GTK 3
+   resource in libgtk-3 paints a pair of radial shade fades on the four
+   overshoot nodes of a scrolled window, while Platinum scroll fields are
+   flat: the white field runs to the sunken frame with nothing at any edge.
+   One grouped rule below lists the four direction arms and their :backdrop
+   versions verbatim, as the stock resource spells them, and clears each.
+   The stock theme paints no undershoot nodes, so there is no undershoot
+   family to clear. */
+scrolledwindow overshoot.top,
+scrolledwindow overshoot.top:backdrop,
+scrolledwindow overshoot.bottom,
+scrolledwindow overshoot.bottom:backdrop,
+scrolledwindow overshoot.left,
+scrolledwindow overshoot.left:backdrop,
+scrolledwindow overshoot.right,
+scrolledwindow overshoot.right:backdrop {
+  background-image: none;
+}
+
 progressbar trough {
   background-color: #EEEEEE;
   background-image: none;

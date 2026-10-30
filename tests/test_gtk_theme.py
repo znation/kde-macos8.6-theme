@@ -700,6 +700,34 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {"min-width": "12px", "min-height": "12px"},
         )
 
+    def test_overshoot_glows_cleared(self):
+        """The stock radial over-scroll glows render nothing in normal state.
+
+        The stock GTK 3 resource paints two radial ``-gtk-gradient`` images
+        on each of the four ``scrolledwindow overshoot`` nodes; no collected
+        reference screenshot shows a GTK over-scroll glow, and Platinum
+        scroll fields run flat to the sunken frame.
+        """
+        for selector in (
+            "scrolledwindow overshoot.top",
+            "scrolledwindow overshoot.bottom",
+            "scrolledwindow overshoot.left",
+            "scrolledwindow overshoot.right",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"background-image": "none"})
+
+    def test_overshoot_backdrop_glows_cleared(self):
+        """The stock radial over-scroll glows stay cleared in backdrop."""
+        for selector in (
+            "scrolledwindow overshoot.top:backdrop",
+            "scrolledwindow overshoot.bottom:backdrop",
+            "scrolledwindow overshoot.left:backdrop",
+            "scrolledwindow overshoot.right:backdrop",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"background-image": "none"})
+
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar trough",
