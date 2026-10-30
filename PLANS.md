@@ -96,14 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 scrollbar troughs: make state transitions immediate (planned 2026-10-29 by the plan role; independent of the queued fine-tune thumb face plan)
-
-**Goal.** Apply GTK 4 scrollbar trough state changes immediately through the supported `make apply-gtk` user stylesheet import, following the existing thumb transition policy.
-
-**Approach and files.** Add `transition: none` to the existing `scrollbar > range > trough` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`. Add a dated adaptation comment naming the missing GTK scrollbar-trough motion reference and reusing the immediate thumb-state policy rather than claiming a measured duration. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_trough_transition` using `assert_rule` to pin that selector's transition to `none`. Under `## gtk` in `docs/invariants.md`, record the guarantee and test, citing the stock `scrollbar > range > trough { margin: 9px; transition: all 200ms linear; border-radius: 99px; }` rule from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library provenance outside CSS for `test_stands_alone`.
-
-**Acceptance criteria.** Removing the declaration or restoring the stock transition fails the new test. Existing `test_scrollbar`, `test_scrollbar_thumb_transition` and `TestScrollbarBreadthReference` coverage passes. The invariant names the missing reference surface and policy source, and states that declaration coverage does not establish rendered motion. Limit implementation to these three files and trough transition behavior; overlay geometry and interaction colors are separate work. This plan can merge independently of the queued fine-tune thumb face plan. `make check` passes.
-
 ### Platinum GTK 4 scrollbars: preserve the ordinary thumb face during interaction (planned 2026-10-29 by the plan role; independent of the queued trough transition plan)
 
 **Goal.** Keep ordinary scrollbar hover and pressed thumbs on the opaque Platinum face through the supported `make apply-gtk` GTK 4 user stylesheet import.

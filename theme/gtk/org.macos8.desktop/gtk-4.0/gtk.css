@@ -812,6 +812,8 @@ scrollbar > range > trough {
   background-color: #EEEEEE;
   border: 1px solid #000000;
   border-radius: 0;
+  /* Adaptation 2026-10-29: no reference shows GTK scrollbar-trough motion; reuse the immediate thumb-state policy. */
+  transition: none;
 }
 
 scrollbar > range > trough > slider {

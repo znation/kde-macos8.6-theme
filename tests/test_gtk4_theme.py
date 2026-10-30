@@ -1005,6 +1005,12 @@ for radio in (False, True):
             {"transition": "none"},
         )
 
+    def test_scrollbar_trough_transition(self):
+        self.assert_rule(
+            "scrollbar > range > trough",
+            {"transition": "none"},
+        )
+
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar > trough",
