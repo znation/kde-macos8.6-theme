@@ -1066,6 +1066,11 @@ switch:checked {
   background-image: none;
 }
 
+/* No reference shows GTK switch keyboard focus; reuse the scale focus black (2026-10-29). */
+switch:focus:focus-visible {
+  outline-color: #000000;
+}
+
 /* No reference shows GTK switch interaction tracks; reuse the existing track faces (2026-10-29). */
 switch:hover,
 switch:active {

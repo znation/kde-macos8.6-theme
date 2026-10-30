@@ -1038,6 +1038,14 @@ for radio in (False, True):
     def test_switch_track_transition(self):
         self.assert_rule("switch", {"transition": "none"})
 
+    def test_switch_focus_outline_color(self):
+        focus = "switch:focus:focus-visible"
+        self.assert_rule(focus, {"outline-color": BLACK})
+        self.assertEqual(
+            self.rules[focus]["outline-color"],
+            self.rules["scale:focus:focus-visible > trough > slider"]["outline-color"],
+        )
+
     def test_switch_interaction_track_faces(self):
         for selector in ("switch:hover", "switch:active"):
             with self.subTest(selector=selector):
