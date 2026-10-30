@@ -148,9 +148,10 @@ def report_failure(tool: str, message: str, log: Path | None = None) -> int:
     control-character-escaped diagnostic line prefixed with the tool's name,
     the last ``_LOG_TAIL_LINES`` lines of the command's log (each escaped and
     indented) when *log* names a file, and exit status 1. *message* is the
-    unescaped text. ``tools/apply_theme.py``, ``tools/apply_gtk.py`` and
-    ``tools/render_surface.py`` return this result directly as the process exit
-    status.
+    unescaped text. ``tools/apply_theme.py`` and ``tools/render_surface.py``
+    return this result directly as the process exit status. The apply_gtk CLI
+    returns the corresponding status after the selection workflow reports a
+    missing installed sheet.
     """
     _require_str("report_failure", "tool", tool)
     _require_str("report_failure", "message", message)

@@ -1,4 +1,4 @@
-"""Tests for tools/apply_gtk.py's apply and removal workflow.
+"""Tests for the apply_gtk CLI and its GTK selection workflow.
 
 The tool runs in-process with ``XDG_DATA_HOME``, ``XDG_CONFIG_HOME`` and
 ``HOME`` pointed at a temp root, so the settings edit, the libadwaita user

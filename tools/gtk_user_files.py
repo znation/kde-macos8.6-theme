@@ -13,7 +13,8 @@ write below raises it, and so do the staging and workflow modules, so
 ``main`` can report one ``apply_gtk: error:`` line instead of letting a bare
 ``OSError`` or ``UnicodeDecodeError`` traceback escape. The text transforms
 live in ``tools/gtk_settings.py``, the staged publication in
-``tools/gtk_staging.py`` and the selection workflow in ``tools/apply_gtk.py``.
+``tools/gtk_staging.py`` and the selection workflow in
+``tools/gtk_selection.py``.
 """
 
 from __future__ import annotations

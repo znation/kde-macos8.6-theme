@@ -193,7 +193,7 @@ GTK_ID := org.macos8.desktop
 GTK_PACKAGE := theme/gtk/$(GTK_ID)
 GTK_INSTALL_DIR := $(DESTDIR)$(XDG_DATA_HOME)/themes/$(GTK_ID)
 
-# The marker comment `tools/apply_gtk.py` writes as the first line of
+# The marker comment `tools/gtk_selection.py` publishes as the first line of
 # `$XDG_CONFIG_HOME/gtk-4.0/gtk.css`; uninstall's dangling-selection diagnostic
 # recognizes a published GTK user CSS by that literal comment.
 GTK_USER_CSS_MARKER := /* org.macos8.desktop GTK 4 user CSS */
