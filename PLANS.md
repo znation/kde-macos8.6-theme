@@ -96,14 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 scrollbars: retain disabled thumb opacity (planned 2026-10-29 by the plan role; independent of the queued spin-button focus transition)
-
-**Goal.** Keep disabled GTK 4 scrollbar thumbs visible with their existing Platinum face through the supported `make apply-gtk` user stylesheet import.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `scrollbar > range > trough > slider:disabled { opacity: 1; }` beside the scrollbar rules. Add a dated adaptation comment: no reference screenshot shows a disabled GTK scrollbar; full opacity reuses the theme's opaque disabled-control palette policy, retaining the existing thumb paint. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_disabled_thumb_opacity` using `assert_rule` to pin that exact selector's opacity. Under `## gtk` in `docs/invariants.md`, record the guarantee and test, naming the stock `scrollbar > range > trough > slider:disabled { opacity: 0; }` rule in `/org/gnome/Adwaita/styles/base.css` from `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution outside CSS for `test_stands_alone`.
-
-**Acceptance criteria.** The disabled-thumb selector explicitly declares `opacity: 1` for either orientation; removing it or restoring zero fails the new test. Existing `test_scrollbar` paint and breadth assertions pass. The invariant names the missing reference surface and reused opaque-palette policy, and states that declaration coverage does not establish rendered visibility or rule out other inherited effects. Scope is these three files; overlay geometry, interaction colors and motion remain separate work. `make check` passes.
-
 ### Platinum GTK 4 scrollbar thumbs: make state transitions immediate (planned 2026-10-29 by the plan role; independent of the queued disabled-thumb opacity plan)
 
 **Goal.** Apply scrollbar thumb state changes immediately through the supported `make apply-gtk` GTK 4 user stylesheet import, following the existing immediate scale-focus policy.

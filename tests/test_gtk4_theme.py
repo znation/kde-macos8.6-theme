@@ -983,6 +983,12 @@ for radio in (False, True):
             },
         )
 
+    def test_scrollbar_disabled_thumb_opacity(self):
+        self.assert_rule(
+            "scrollbar > range > trough > slider:disabled",
+            {"opacity": "1"},
+        )
+
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar > trough",
