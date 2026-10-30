@@ -78,6 +78,14 @@ def _looks_like_image(path: Path) -> bool:
     return is_image(head)
 
 
+def _undeclared_image_problem(path: Path) -> str:
+    """Describe an undeclared image while keeping its path terminal-safe."""
+    return (
+        f"{escape_controls(str(path))}: image has no entry in "
+        f"{SOURCES_NAME}"
+    )
+
+
 def _read_sources_text(sources: Path) -> tuple[str | None, str | None]:
     """Return ``(text, None)`` for the provenance record, or ``(None, problem)``."""
     try:
@@ -208,10 +216,7 @@ def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
             # than let the set look consistent. Do not open it -- opening a
             # FIFO or device would block.
             if path.suffix.lower() in IMAGE_SUFFIXES:
-                problems.append(
-                    f"{escape_controls(str(path))}: image has no entry in "
-                    f"{SOURCES_NAME}"
-                )
+                problems.append(_undeclared_image_problem(path))
             continue
         # A symlink can point anywhere on the machine, so refuse to read one
         # that resolves outside the reference directory; the declared-entry
@@ -237,9 +242,7 @@ def _check_undeclared(directory: Path, entries: dict[str, int]) -> list[str]:
             )
             continue
         if path.suffix.lower() in IMAGE_SUFFIXES or has_image_bytes:
-            problems.append(
-                f"{escape_controls(str(path))}: image has no entry in {SOURCES_NAME}"
-            )
+            problems.append(_undeclared_image_problem(path))
 
     return problems
 
