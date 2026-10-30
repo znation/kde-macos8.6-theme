@@ -389,6 +389,21 @@ class TestCoordinator(unittest.TestCase):
             rendered,
         )
 
+    def test_summary_counts_multiple_failed_workers_including_a_signal_exit(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_failed", "test_signalled"],
+                {"test_failed": 1, "test_signalled": -9},
+                {},
+                10,
+            )
+        rendered = output.getvalue()
+        self.assertEqual(1, status)
+        self.assertIn("test_failed: exit 1", rendered)
+        self.assertIn("test_signalled: exit -9", rendered)
+        self.assertIn("check: 2 modules, 2 modules failed", rendered)
+
     def test_summary_counts_empty_module_alongside_a_timeout(self):
         empty_log = make_tmp_dir(self) / "empty.log"
         empty_log.write_text(
