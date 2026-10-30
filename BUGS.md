@@ -100,8 +100,13 @@ render's matching row has three.
 `comboarrow` art into a narrower indicator area (about 7px), squashing the triangles; the theme's
 `[ComboBox] indicator.size=12` does not reach the rendered indicator.
 
-**Needs review by bugfix:** make the indicator render at the art's 12x12 cell (or ship art at the
-size Kvantum draws) and pin the rendered arrow's bands.
+**Needs review by bugfix:** first try steering the engine to draw the 12x12 `comboarrow` cell
+1:1 — an explicit `[ComboBox]` `indicator.size` matching the art's canvas, per the same
+direction as the check box's recorded decision — and pin the rendered arrow's centred bands
+(1/3/5/7, 7/5/3/1) with a test that re-derives the pixels from a render. Only if the engine
+cannot be steered to the art's size, re-derive the `comboarrow` art at the size Kvantum actually
+draws and record the smaller cell's deviation from the reference's 12x12 so the same direction
+does not silently ship resampled art.
 
 ### The item view's frame art never reaches the screen: rendered lists draw the GenericFrame `common` frame instead of the reference's sunken field (found by the render pass 2026-10-29)
 

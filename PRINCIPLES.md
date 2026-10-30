@@ -23,3 +23,10 @@ and will tune it to this project.
   any platform-required value the reference set does not show (including KDE, GTK and Firefox).
   For such adaptations, name the missing reference surface and the source of the chosen value.
   (Clarified 2026-10-25 by the steward role for the GTK and Firefox scope approved in QUESTIONS.md.)
+- Ship widget art at exactly the size the engine draws it: first try steering the engine to
+  render at the design's native size (an explicit size setting matching the art's canvas, as in
+  the Kvantum config's `indicator.size`), so shipped art draws 1:1; only when the engine cannot
+  be steered do this the other way round — re-derive the art at the size the engine actually
+  draws and record the resized cell's deviation from the reference. Never leave shipped art
+  somewhere the engine resamples it. (Directed by the user 2026-10-30; recorded by the director
+  role.)
