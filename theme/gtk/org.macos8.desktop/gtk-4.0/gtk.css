@@ -834,6 +834,11 @@ scrollbar > range > trough > slider {
   transition: none;
 }
 
+/* Adaptation 2026-10-29: no reference shows GTK overlay scrollbars; reuse the ordinary thumb bevel without the stock inset outline. */
+scrollbar.overlay-indicator > range > trough > slider {
+  outline: none;
+}
+
 /* Adaptation 2026-10-29: no reference shows GTK scrollbar interaction; retain the reference-grounded base thumb face. */
 scrollbar > range > trough > slider:hover,
 scrollbar > range > trough > slider:active {

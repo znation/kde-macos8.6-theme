@@ -991,6 +991,12 @@ for radio in (False, True):
             {"background-color": base_face},
         )
 
+    def test_scrollbar_overlay_thumb_outline(self):
+        self.assert_rule(
+            "scrollbar.overlay-indicator > range > trough > slider",
+            {"outline": "none"},
+        )
+
     def test_scrollbar_disabled_thumb_opacity(self):
         self.assert_rule(
             "scrollbar > range > trough > slider:disabled",
