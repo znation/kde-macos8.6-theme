@@ -965,6 +965,11 @@ scale.vertical > trough > slider {
   min-height: 12px;
 }
 
+/* 2026-10-29: no disabled-scale reference; preserve its Platinum palette. */
+scale:disabled {
+  filter: none;
+}
+
 scale > trough > slider:hover, scale > trough > slider:active {
   background-color: #DDDDDD;
   background-image: none;

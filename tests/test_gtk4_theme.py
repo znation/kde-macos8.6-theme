@@ -1034,6 +1034,9 @@ for radio in (False, True):
             disabled="scale > trough > slider:disabled",
         )
 
+    def test_scale_disabled_filter(self):
+        self.assert_rule("scale:disabled", {"filter": "none"})
+
     def test_toolbar_and_menubar(self):
         for selector in (".toolbar", "menubar"):
             self.assert_rule(

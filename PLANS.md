@@ -96,12 +96,4 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 scales: preserve disabled palette opacity (planned 2026-10-29 by the plan role; independent of the queued progress trough thickness)
-
-**Goal.** Prevent the stock whole-scale disabled opacity filter from fading the theme's declared Platinum palette. The current sheet styles the disabled slider face and border but has no `scale:disabled` filter override; the finished meters-and-sliders plan covers those paints, not this filter.
-
-**Approach and files.** Beside the scale rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `scale:disabled { filter: none; }` with a dated adaptation comment explaining that it preserves the existing palette for a disabled GTK scale, a surface absent from the reference screenshots. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_disabled_filter`, asserting that selector's declaration dictionary equals exactly `{"filter": "none"}`. Retain `TestGtk4Theme.test_scale` to pin the existing trough, fill and thumb paints. Add a focused row under `## gtk` in `docs/invariants.md` naming both tests and the adaptation source: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares `scale:disabled { filter: Opacity(var(--disabled-opacity)); }`; `none` reuses the opaque-palette policy of `test_progressbar_disabled_filter` and preserves the existing scale palette adaptation in `tests/support/gtk_theme_spec.py`. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
-
-**Acceptance criteria.** The new selector matches the stock filter selector's specificity, allowing the supported `make apply-gtk` user stylesheet import to supply the later override. Removing it or changing `none` fails the new test. Documentation names the missing reference surface and chosen-value source, and limits its claim to filter declaration coverage rather than rendered colors or the absence of other inherited effects. Keep this implementation to the three named files and the whole-scale disabled filter; disabled thumb shadows/outlines, marked scales, hover, geometry and GTK 3 are separate work. No new palette value, asset or dependency. `make check` passes.
-
 ## Done
