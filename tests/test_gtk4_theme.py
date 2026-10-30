@@ -1343,6 +1343,50 @@ for radio in (False, True):
             "menubar > item:selected", {"background-color": SELECTION}
         )
 
+    def test_linked_members_strip_their_trailing_border(self):
+        for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
+                                (".linked.vertical", "border-bottom-style")):
+            for member in ("button", "entry", "spinbutton:not(.vertical)",
+                           "dropdown > button"):
+                self.assert_rule(
+                    f"{css_class} > {member}",
+                    {side: "none"},
+                )
+
+    def test_linked_last_member_restores_the_border(self):
+        for css_class, side in ((".linked:not(.vertical)", "border-right-style"),
+                                (".linked.vertical", "border-bottom-style")):
+            for member in ("button:last-child", "entry:last-child",
+                           "spinbutton:not(.vertical):last-child",
+                           "dropdown > button:last-child"):
+                self.assert_rule(
+                    f"{css_class} > {member}",
+                    {side: "solid"},
+                )
+
+    def test_linked_protection_keeps_the_path_bar_and_stack_switcher_outlines(self):
+        self.assert_rule(
+            "pathbar > scrolledwindow > viewport > box.linked >"
+            " button:not(:last-child)",
+            {
+                "border-right-style": "solid",
+                "border-bottom-style": "solid",
+            },
+        )
+        self.assert_rule(
+            "stackswitcher.linked > button:not(:last-child)",
+            {
+                "border-right-style": "solid",
+                "border-bottom-style": "solid",
+            },
+        )
+        self.assert_rule(
+            "pathbar > scrolledwindow > viewport > box > button",
+            {
+                "border": f"1px solid {BLACK}",
+            },
+        )
+
 
 def _scrollbar_rules(css=CSS):
     """Return the parsed GTK 4 rules for the scrollbar breadth assertion.
@@ -1425,7 +1469,6 @@ class TestScrollbarBreadthReference(ReferenceScreenshotMixin, unittest.TestCase)
         ):
             self.assertEqual(rules[selector]["min-width"], f"{band - 4}px")
         self.assertEqual(rules["calendar"]["color"], hex_colour(self.pixel(x, top)))
-
 
 class TestCalendarDisabledGreyReference(ReferenceScreenshotMixin, unittest.TestCase):
     REFERENCE = PROFILER_REFERENCE
