@@ -1044,6 +1044,10 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"background-color": FACE})
 
+    def test_scale_parent_interaction_trough_face(self):
+        for selector in ("scale:hover > trough", "scale:active > trough"):
+            self.assert_rule(selector, {"background-color": TROUGH})
+
     def test_toolbar_and_menubar(self):
         for selector in (".toolbar", "menubar"):
             self.assert_rule(

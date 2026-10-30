@@ -937,6 +937,11 @@ scale > trough {
   min-width: 6px;
 }
 
+/* 2026-10-29: no GTK scale interaction reference; parent states reuse the trough face. */
+scale:hover > trough, scale:active > trough {
+  background-color: #EEEEEE;
+}
+
 scale > trough > fill, scale > trough > highlight {
   background-color: transparent;
   background-image: none;

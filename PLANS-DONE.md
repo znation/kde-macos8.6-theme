@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 scales: preserve the trough face on parent hover (planned 2026-10-29 by the plan role; independent of the queued parent-interaction thumb face) — done 2026-10-29 by the feature role
+
+**Goal.** Preserve the existing flat Platinum trough background when the scale parent is hovered or active. The current `scale > trough` rule declares the base face but has no parent-state arms; the finished meters-and-sliders plan covers the base trough, not these higher-specificity stock states.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate grouped rule for `scale:hover > trough, scale:active > trough` declaring only `background-color: #EEEEEE`. Add a dated adaptation comment identifying the missing GTK interaction reference and reuse of the existing trough face. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_parent_interaction_trough_face`, calling `assert_rule` for each selector with exactly `{"background-color": TROUGH}`, using the existing imported palette constant. Keep `test_scale` for the base recipe. Add a focused `## gtk` row in `docs/invariants.md` naming both tests and the adaptation source: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares these selectors with `background-color: color-mix(in srgb, currentColor 20%, transparent)`; the replacement reuses `SCALE_TROUGH`'s existing background in `tests/support/gtk_theme_spec.py`. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
+
+**Acceptance criteria.** Both selectors match the stock parent-state selectors' specificity, allowing the later stylesheet imported by `make apply-gtk` to supply the override. Removing either selector or changing its background fails the new test. Documentation names the missing GTK scale interaction reference surface and chosen-value source, and claims declaration coverage rather than rendered pixel fidelity. Limit implementation to the three named files and the trough background; the queued thumb-face plan is independently mergeable, while highlight interaction paint, disabled effects, marked scales, geometry and GTK 3 remain separate work. No new palette value, asset or dependency. `make check` passes.
+
 ### Platinum GTK 4 scales: preserve the thumb face on parent hover (planned 2026-10-29 by the plan role; independent of the queued disabled scale opacity) — done 2026-10-29 by the feature role
 
 **Goal.** Keep the existing Platinum thumb face when the scale parent is hovered or active. The sheet covers `slider:hover` and `slider:active`, but not `scale:hover > trough > slider` or `scale:active > trough > slider`; the finished meters-and-sliders plan specifies the child states only.
