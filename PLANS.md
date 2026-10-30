@@ -94,4 +94,12 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
+### Platinum GTK 4 calendars: etch the header separator (planned 2026-10-29 by the plan role)
+
+**Goal.** Replace the calendar header's stock translucent bottom separator with the existing Platinum infobar edge when the GTK 4 sheet is imported through `make apply-gtk`. The original calendar color plan explicitly excluded the header; the subsequent calendar plans cover day corners and the outer border.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `calendar > header { border-bottom: 1px solid #888888; box-shadow: inset 0 -1px #FFFFFF; }` beside the calendar rules. Copy just these two declarations from `infobar > revealer > box`, preserving its white inner rule above the grey border. Add a dated provenance comment naming the missing GTK calendar reference and the reused infobar edge. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_calendar_header_separator`, asserting the exact two-property dictionary and comparing each value with the infobar rule. Update the GTK 4 calendar adaptation row in `docs/invariants.md`: no reference screenshot shows a GTK calendar header, so this is an adaptation of the existing infobar edge, not a measured calendar. Attribute the stock `calendar > header` selector and translucent 1px bottom border to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` there; keep library attribution out of CSS to respect `test_stands_alone`.
+
+**Acceptance criteria.** The new test pins exactly the border and inset shadow above and ties both to the infobar edge; existing calendar day and outer-border tests remain passing. Document the supported user stylesheet import and that declaration checks do not establish rendered pixels. Limit changes to the three named files; header buttons, spacing, day paint and GTK 3 are outside this plan. No new colors, artwork or dependencies. `make check` passes.
+
 ## Done
