@@ -990,6 +990,15 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"margin": "0"})
 
+    def test_scrollbar_overlay_trough_margins(self):
+        for selector in (
+            "scrollbar.overlay-indicator.horizontal.hovering > range > trough",
+            "scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough",
+            "scrollbar.overlay-indicator.vertical.hovering > range > trough",
+            "scrollbar.overlay-indicator.vertical:not(.hovering) > range > trough",
+        ):
+            self.assert_rule(selector, {"margin": "0"})
+
     def test_scrollbar_overlay_hover_trough_face(self):
         base_face = self.rules["scrollbar > range > trough"]["background-color"]
         self.assertEqual(base_face, TROUGH)

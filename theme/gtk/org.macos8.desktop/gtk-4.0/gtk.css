@@ -822,6 +822,14 @@ scrollbar.vertical:not(.overlay-indicator) > range > trough {
   margin: 0;
 }
 
+/* Adaptation 2026-10-29: no reference shows GTK overlay trough spacing; reuse the ordinary trough's zero-margin policy. */
+scrollbar.overlay-indicator.horizontal.hovering > range > trough,
+scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough,
+scrollbar.overlay-indicator.vertical.hovering > range > trough,
+scrollbar.overlay-indicator.vertical:not(.hovering) > range > trough {
+  margin: 0;
+}
+
 /* Adaptation 2026-10-29: no reference shows GTK overlay-scrollbar hover; reuse the ordinary trough face. */
 scrollbar.overlay-indicator.hovering > range > trough {
   background-color: #EEEEEE;

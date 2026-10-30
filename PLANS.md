@@ -104,12 +104,4 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 overlay scrollbar troughs: suppress inherited margins (planned 2026-10-29 by the plan role; independent of the queued overlay thumb minimum breadth plan)
-
-**Goal.** Through the supported `make apply-gtk` user stylesheet import, remove toolkit spacing around overlay troughs in hovering and non-hovering states. The completed ordinary trough margin reset excludes overlays; the queued thumb breadth plan explicitly leaves spacing separate.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a grouped rule for `scrollbar.overlay-indicator.horizontal.hovering > range > trough`, `scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough`, and the corresponding two vertical selectors, declaring only `margin: 0`. These selectors override the stock base, orientation and non-hovering overlay margins. Add a dated adaptation comment: no reference shows GTK overlay trough spacing; reuse the ordinary trough's zero-margin policy. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_overlay_trough_margins` using `assert_rule` to require zero margins on those four selectors. Under `## gtk` in `docs/invariants.md`, record this declaration guarantee, test and provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, supplies base trough margins of 9px, horizontal top/bottom and vertical left/right margins of 8px, and non-hovering overlay transverse margins of 4px. Keep library provenance outside CSS for `test_stands_alone`.
-
-**Acceptance criteria.** Each orientation/state selector explicitly declares `margin: 0`; removing one or restoring a nonzero margin fails the new test. Existing ordinary margin, thumb paint and breadth tests pass. The invariant names the missing reference surface and the existing ordinary reset as the adaptation source; zero is a platform adaptation, not a sampled metric, and declaration checks do not prove rendered spacing or breadth. Limit implementation to these three files and trough margins; preserve overlay visibility policy and thumb dimensions. This plan can merge independently of the queued overlay thumb minimum breadth plan. `make check` passes.
-
 ## Done
