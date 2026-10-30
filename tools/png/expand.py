@@ -206,11 +206,23 @@ def palette_rgba(
     valid image.
     """
     entries = len(palette) // 3
-    if samples and max(samples) >= entries:
-        index = next(i for i in samples if i >= entries)
-        raise _palette_index_error(index, entries, len(palette))
     alphas = _palette_trns_alphas(trns, entries)
     table = [
         palette[i * 3 : i * 3 + 3] + alphas[i : i + 1] for i in range(entries)
     ]
-    return b"".join(map(table.__getitem__, samples[: rows * width]))
+    expanded_samples = samples[: rows * width]
+    try:
+        # Indexing the table validates samples while the join expands them;
+        # a separate max(samples) pass would traverse every pixel twice.
+        expanded = b"".join(map(table.__getitem__, expanded_samples))
+    except IndexError:
+        index = next(i for i in samples if i >= entries)
+        raise _palette_index_error(index, entries, len(palette)) from None
+    # A row bound skips expansion below the returned image, but those samples
+    # still need validation. Only bounded decodes pay for this tail scan.
+    if len(expanded_samples) < len(samples):
+        tail = samples[len(expanded_samples) :]
+        if tail and max(tail) >= entries:
+            index = next(i for i in samples if i >= entries)
+            raise _palette_index_error(index, entries, len(palette))
+    return expanded
