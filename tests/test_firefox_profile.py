@@ -251,6 +251,19 @@ class TestProfileResolution(FirefoxProfileTestCase):
         )
         self.assertEqual(chosen, self.resolve())
 
+    def test_relative_profile_path_cannot_escape_the_firefox_root(self):
+        outside = self.root / "outside"
+        outside.mkdir()
+        self.firefox_root.mkdir(parents=True)
+        _write(
+            self.firefox_root / "profiles.ini",
+            "[Profile0]\nPath=../../outside\nIsRelative=1\n",
+        )
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve()
+        self.assertIn("escapes its root", str(caught.exception))
+        self.assertIn("../../outside", str(caught.exception))
+
     def test_invalid_is_relative_value_is_reported_with_its_profile_path(self):
         self.firefox_root.mkdir(parents=True)
         profiles = self.firefox_root / "profiles.ini"

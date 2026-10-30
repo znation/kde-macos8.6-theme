@@ -17,10 +17,10 @@ import os
 from pathlib import Path
 
 if __package__:
-    from tools.containment import read_capped_bytes
+    from tools.containment import read_capped_bytes, resolves_within
     from tools.firefox_user_files import ConfigError
 else:  # imported from a directly run tool
-    from containment import read_capped_bytes
+    from containment import read_capped_bytes, resolves_within
     from firefox_user_files import ConfigError
 
 
@@ -81,7 +81,12 @@ def _candidate(
             f"invalid IsRelative value {is_relative!r} for Firefox profile path {value!r}; expected 0 or 1"
         )
     if is_relative != "0":
-        return root / path
+        candidate = root / path
+        if not resolves_within(root, candidate):
+            raise ConfigError(
+                f"relative Firefox profile path escapes its root: {value!r}"
+            )
+        return candidate
     return path
 
 
