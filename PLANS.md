@@ -94,12 +94,4 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 4 switches: preserve disabled palette opacity (planned 2026-10-29 by the plan role)
-
-**Goal.** Override the inherited whole-switch disabled opacity filter through the supported `make apply-gtk` user stylesheet import. The GTK 4 sheet's `switch:disabled` currently sets only `border-color`; the archived switch painting and track-padding plans do not cover this filter.
-
-**Approach and files.** Add `filter: none` to the existing `switch:disabled` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, retaining its border declaration. Add a dated adaptation comment identifying the missing disabled GTK switch reference surface and the choice to preserve the existing palette. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_disabled_filter` beside `test_switch`, calling `self.assert_rule("switch:disabled", {"filter": "none"})`; retain the shared `test_switch` assertions for track and thumb paints. Add a row under `## gtk` in `docs/invariants.md` naming both tests and the source: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares `switch:disabled { filter: Opacity(var(--disabled-opacity)); }`. The chosen `none` reuses the opaque-palette policy already pinned by `test_scale_disabled_filter` and `test_progressbar_disabled_filter`; the switch colors retain their existing desktop-switch provenance. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
-
-**Acceptance criteria.** Removing the filter declaration or changing `none` fails the new test; the existing disabled border and switch paint assertions pass. The selector covers checked and unchecked disabled switches at the stock filter selector's specificity. Documentation names the missing reference surface and the chosen-value source, and describes declaration coverage without claiming rendered-color fidelity or absence of other inherited effects. Limit implementation to these three files and this filter; thumb geometry, hover, focus, other disabled effects and GTK 3 are separate work. No new palette value, asset or dependency. `make check` passes.
-
 ## Done

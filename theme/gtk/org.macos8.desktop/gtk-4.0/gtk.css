@@ -1064,6 +1064,8 @@ switch:checked {
 }
 
 switch:disabled {
+  /* No reference shows a disabled GTK switch; preserve the Platinum palette. */
+  filter: none;
   border-color: #999999;
 }
 
