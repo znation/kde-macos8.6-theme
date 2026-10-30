@@ -292,6 +292,7 @@ URIs and checks black columns 4–11 on rows 7–8 and the surrounding face pixe
 
 | Guarantee | Test | Provenance exception |
 | --- | --- | --- |
+| Both Xcursor writers reject a non-iterable top-level frame collection with a `ValueError` that names `images`, the iterable requirement and the received type. | `tests/test_xcursor.py::TestWriterRejections::test_rejects_a_non_iterable_frame_collection_with_a_named_error` | none |
 | Every import under `tools/` and `tests/` (outside package `__init__.py` facades) names a value its module reads, or is kept by a `# noqa` comment, an `__all__` re-export (any form that names the string: an assignment, or an `append`/`extend`/`insert` call on `__all__`) or another module's import of it, so a refactor cannot leave a silent dead import behind. | `tests/test_no_unused_imports.py::TestNoUnusedImports` | none |
 | The fidelity gate passes only when no pixel differs beyond its tolerance, or within an aggregate budget when one is given. Each pixel's red, green, blue and alpha bytes are compared. | `tests/test_fidelity_cli.py::TestCli` | none |
 | The reference-pixel sampler validates the requested pixel or region against the PNG header's declared size before calling its bounded row decoder, so an out-of-bounds request never reaches that decoder. | `tests/test_sample_cli.py::TestSampleCli::test_out_of_bounds_request_skips_the_row_decode` | none |

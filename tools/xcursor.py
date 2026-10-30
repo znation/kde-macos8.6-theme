@@ -216,6 +216,17 @@ def _assemble(frames) -> bytes:
     )
 
 
+def _image_records(images):
+    """Return an iterator for *images*, naming a malformed top-level input."""
+    try:
+        return iter(images)
+    except TypeError as exc:
+        raise ValueError(
+            f"images must be an iterable of frame records, not "
+            f"{type(images).__name__}"
+        ) from exc
+
+
 def write_cursor(images) -> bytes:
     """Return the Xcursor bytes for *images*.
 
@@ -228,7 +239,10 @@ def write_cursor(images) -> bytes:
     ``bool``), a PNG field that is not ``bytes``/``bytearray``, and a PNG
     whose size disagrees with the record.
     """
-    frames = [_build_payload(index, record) for index, record in enumerate(images)]
+    frames = [
+        _build_payload(index, record)
+        for index, record in enumerate(_image_records(images))
+    ]
     return _assemble(frames)
 
 
@@ -244,5 +258,8 @@ def write_rgba_cursor(images) -> bytes:
     or hotspot is invalid or the pixel buffer is the wrong type or length, and
     when *images* contains no frames.
     """
-    frames = [_rgba_frame(index, record) for index, record in enumerate(images)]
+    frames = [
+        _rgba_frame(index, record)
+        for index, record in enumerate(_image_records(images))
+    ]
     return _assemble(frames)

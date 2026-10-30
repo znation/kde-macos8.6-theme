@@ -236,6 +236,17 @@ class TestWriterRejections(unittest.TestCase):
                     needles=(needle,),
                 )
 
+    def test_rejects_a_non_iterable_frame_collection_with_a_named_error(self):
+        for writer in (xcursor.write_cursor, xcursor.write_rgba_cursor):
+            with self.subTest(writer=writer.__name__):
+                assert_error_names(
+                    self,
+                    ValueError,
+                    writer,
+                    None,
+                    needles=("images", "iterable", "NoneType"),
+                )
+
     def test_rejects_a_zero_dimension(self):
         for name in ("nominal_size", "width", "height"):
             with self.subTest(field=name):
