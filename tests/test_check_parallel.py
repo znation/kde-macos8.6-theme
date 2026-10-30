@@ -114,6 +114,35 @@ class TestCoordinator(unittest.TestCase):
         self.assertEqual(2, result.returncode)
         self.assertEqual("check: error: cannot create a scratch directory: denied\n", result.stderr)
 
+    def test_an_unlistable_test_directory_exits_2_without_a_traceback(self):
+        # Discovery reads a directory the coordinator does not control: a
+        # subdirectory swept away or permission-locked between the isdir
+        # check and the walk, or one hidden by a foreign owner, raises
+        # OSError (PermissionError) from os.listdir. A bare traceback would
+        # abort the run naming neither the directory nor the error; the
+        # shared exit-2 diagnostic names both, and nothing has run, so
+        # neither the module list nor the tree has been touched.
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        unreadable = os.path.join(tests_dir, "gone")
+        os.mkdir(unreadable)
+        _write_module(unreadable, "__init__.py", "")
+        real_listdir = os.listdir
+
+        def guarded_listdir(directory):
+            if os.path.samefile(directory, unreadable):
+                raise PermissionError(13, "Permission denied")
+            return real_listdir(directory)
+
+        with mock.patch(
+            "tools.check_parallel_discovery.os.listdir",
+            side_effect=guarded_listdir,
+        ):
+            result = self._run("--tests-dir", tests_dir)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("check: error: cannot list ", result.stderr)
+        self.assertIn("Permission denied", result.stderr)
+        self.assertEqual("", result.stdout)
+
     def test_missing_worker_status_reports_did_not_finish_and_keeps_log(self):
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_text("partial worker output\n", encoding="utf-8")
@@ -886,6 +915,50 @@ def _gone(pid):
 
 class TestDiscovery(unittest.TestCase):
     """The module discovery mirrors `unittest discover`'s semantics."""
+
+    def test_an_unlistable_subdirectory_is_reported_not_skipped(self):
+        # A package directory whose listing fails must stop discovery:
+        # skipping it would silently drop its modules from the run and let
+        # a module count that never matches the tree pass, so the walk
+        # raises DiscoveryError naming the directory and the underlying
+        # error instead of the bare OSError one would get unwound through
+        # visit.
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        gone = os.path.join(tests_dir, "gone")
+        os.mkdir(gone)
+        _write_module(gone, "__init__.py", "")
+        _write_module(gone, "test_hidden.py", OK_MODULE)
+        real_listdir = os.listdir
+
+        def guarded_listdir(directory):
+            if os.path.samefile(directory, gone):
+                raise PermissionError(13, "Permission denied")
+            return real_listdir(directory)
+
+        with mock.patch(
+            "tools.check_parallel_discovery.os.listdir",
+            side_effect=guarded_listdir,
+        ):
+            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
+                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+        self.assertIn("cannot list ", str(raised.exception))
+        self.assertIn("Permission denied", str(raised.exception))
+
+    def test_a_top_level_list_failure_names_the_selected_directory(self):
+        # The same guard covers the directory the --tests-dir check already
+        # saw pass: a directory swapped out or locked after that check
+        # raises DiscoveryError naming it, not an OSError traceback from
+        # the sorted() walk.
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        with mock.patch(
+            "tools.check_parallel_discovery.os.listdir",
+            side_effect=PermissionError(13, "Permission denied"),
+        ):
+            with self.assertRaises(check_parallel_discovery.DiscoveryError) as raised:
+                check_parallel_discovery.discover_modules(tests_dir, "test*.py")
+        self.assertIn("cannot list ", str(raised.exception))
 
     def test_names_top_level_modules_in_sorted_order(self):
         tests_dir = str(make_tmp_dir(self) / "tests")

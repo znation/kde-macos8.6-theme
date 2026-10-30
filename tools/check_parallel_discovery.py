@@ -9,12 +9,34 @@ import os
 _VALID_MODULE_NAME = __import__("re").compile(r"[_a-zA-Z]\w*\.py$")
 
 
+class DiscoveryError(Exception):
+    """A directory of the test tree could not be listed.
+
+    Raising instead of skipping the directory keeps the run honest: a silently
+    skipped directory would hide its modules from the run and let a worker
+    count that no longer matches the tree pass, while one shared unreadable
+    directory must not abort coordinator startup as a bare traceback that
+    names neither the directory nor the error.
+    """
+
+
 def discover_modules(tests_dir: str, pattern: str) -> list[str]:
-    """Return the dotted module names unittest discovery would import."""
+    """Return the dotted module names unittest discovery would import.
+
+    Any directory of the tree whose listing fails -- a permission error, or
+    a directory removed after :func:`discover_modules` was entered -- raises
+    :class:`DiscoveryError` naming the directory and the error, instead of a
+    bare ``OSError`` traceback. Skipping the failed directory would silently
+    drop its modules from the run.
+    """
     names: list[str] = []
 
     def visit(directory: str, prefix: str) -> None:
-        for entry in sorted(os.listdir(directory)):
+        try:
+            entries = sorted(os.listdir(directory))
+        except OSError as exc:
+            raise DiscoveryError(f"cannot list {directory}: {exc}") from exc
+        for entry in entries:
             path = os.path.join(directory, entry)
             # unittest discovery does not follow package-directory symlinks;
             # following one here could import contributor-controlled code

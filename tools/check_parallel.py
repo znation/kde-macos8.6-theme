@@ -14,7 +14,9 @@ import sys
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser, positive_int
-    from tools.check_parallel_discovery import _log_paths, discover_modules
+    from tools.check_parallel_discovery import (
+        DiscoveryError, _log_paths, discover_modules,
+    )
     from tools.check_parallel_results import _plural, _print_results
     from tools.check_parallel_workers import _supervise
     from tools.diagnostics import create_scratch_directory
@@ -23,7 +25,9 @@ if __package__:
     from tools.terminal import escape_controls
 else:  # run directly: python3 tools/check_parallel.py
     from argument_parsing import EscapingArgumentParser, positive_int
-    from check_parallel_discovery import _log_paths, discover_modules
+    from check_parallel_discovery import (
+        DiscoveryError, _log_paths, discover_modules,
+    )
     from check_parallel_results import _plural, _print_results
     from check_parallel_workers import _supervise
     from diagnostics import create_scratch_directory
@@ -60,7 +64,16 @@ def main(argv: list[str] | None = None) -> int:
         print("check: --tests-dir must name a directory: "
               f"{escape_controls(options.tests_dir)}", file=sys.stderr)
         return 2
-    modules = discover_modules(tests_dir, options.pattern)
+    try:
+        modules = discover_modules(tests_dir, options.pattern)
+    except DiscoveryError as exc:
+        # One unreadable directory (a permission error, or a directory swept
+        # away while discovery walks the tree) must not abort startup as a
+        # bare ``OSError`` traceback: nothing has run and nothing was
+        # changed, so the shared exit-2 diagnostic names the directory and
+        # the error instead of losing the run to a traceback.
+        print(f"check: error: {escape_controls(str(exc))}", file=sys.stderr)
+        return 2
     if not modules:
         print(f"check: -p '{escape_controls(options.pattern)}' matches no test module in "
               f"{escape_controls(tests_dir)}", file=sys.stderr)
