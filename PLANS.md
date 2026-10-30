@@ -96,12 +96,6 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 scales: keep disabled marked thumbs shadow-free (planned 2026-10-29 by the plan role; independent of the queued marked-thumb transform)
-
-**Goal.** Extend the existing flat disabled-thumb policy to scales with marks on exactly one side. The stock marked-scale shadow selectors have greater specificity than the theme's generic child-disabled and parent-disabled overrides. The finished disabled-thumb shadow plan explicitly excludes marked-scale rules; the queued transform plan changes a separate property.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the disabled scale rules, add one grouped rule declaring `box-shadow: none` for four selectors: `scale.marks-before:not(.marks-after) > trough > slider:disabled`, `scale.marks-after:not(.marks-before) > trough > slider:disabled`, `scale.marks-before:not(.marks-after):disabled > trough > slider`, and `scale.marks-after:not(.marks-before):disabled > trough > slider`. Include a dated adaptation comment naming the missing disabled marked GTK scale reference and reuse of the existing flat disabled-thumb policy. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_disabled_marked_thumb_shadow`, checking each selector with `assert_rule(selector, {"box-shadow": "none"})`; retain `test_scale` and `test_scale_disabled_parent_shadow`. In `docs/invariants.md`, add a focused `## gtk` row naming these tests and the source inspected 2026-10-29: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` assigns an outline plus diagonal drop shadow to one-sided marked thumbs and an outline plus transparent diagonal shadow to their `slider:disabled` variants. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
-
-**Acceptance criteria.** Both mark directions have explicit shadow-free declarations for child-disabled and parent-disabled state placement. The child-state selectors match the stock disabled marked selectors' specificity; the parent-state selectors also match that specificity and outrank the stock unqualified marked selectors, permitting the later user stylesheet imported by `make apply-gtk` to override them. Removing a selector or changing its shadow fails the new test. Documentation records the missing reference surface and the existing disabled-thumb policy as the chosen-value source, limiting the guarantee to declarations. Limit implementation to these three files and disabled marked-thumb shadows; enabled shadows, rotation, mark layout and GTK 3 remain separate work. No new visual token, asset or dependency. `make check` passes.
+_None yet._
 
 ## Done

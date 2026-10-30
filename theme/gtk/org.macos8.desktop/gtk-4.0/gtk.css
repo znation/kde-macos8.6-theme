@@ -1011,6 +1011,14 @@ scale:disabled > trough > slider {
   box-shadow: none;
 }
 
+/* 2026-10-29: no disabled marked-scale reference; reuse the flat disabled-thumb shadow. */
+scale.marks-before:not(.marks-after) > trough > slider:disabled,
+scale.marks-after:not(.marks-before) > trough > slider:disabled,
+scale.marks-before:not(.marks-after):disabled > trough > slider,
+scale.marks-after:not(.marks-before):disabled > trough > slider {
+  box-shadow: none;
+}
+
 switch {
   background-color: #EEEEEE;
   background-image: none;

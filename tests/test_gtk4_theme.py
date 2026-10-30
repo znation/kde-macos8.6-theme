@@ -1047,6 +1047,15 @@ for radio in (False, True):
     def test_scale_disabled_parent_shadow(self):
         self.assert_rule("scale:disabled > trough > slider", {"box-shadow": "none"})
 
+    def test_scale_disabled_marked_thumb_shadow(self):
+        for selector in (
+            "scale.marks-before:not(.marks-after) > trough > slider:disabled",
+            "scale.marks-after:not(.marks-before) > trough > slider:disabled",
+            "scale.marks-before:not(.marks-after):disabled > trough > slider",
+            "scale.marks-after:not(.marks-before):disabled > trough > slider",
+        ):
+            self.assert_rule(selector, {"box-shadow": "none"})
+
     def test_scale_parent_interaction_face(self):
         for selector in (
             "scale:hover > trough > slider",
