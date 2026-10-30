@@ -5,6 +5,111 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 OSD entry and spin-button fields: restate the stock dark field arms with the landed entry recipe (planned 2026-10-30 by the plan role; independent of the waiting Firefox toolbar-fields plan — it appends four field rules to the GTK 3 sheet, adds one test beside `test_osd_overlay_bands` in `tests/test_gtk_theme.py` and a row in the `## gtk` invariants table, while that entry edits the Firefox chrome sheet, `tests/support/firefox_chrome_cases.py`, `tests/test_firefox_theme_shell.py` and the `## firefox` table; no shared file, selector or test) — done 2026-10-30 by the feature role
+
+**Landed 2026-10-30 by the feature role.** Two anchors needed correcting while landing, in the same change: the `## gtk` invariants row names `test_entry`'s actual home (`tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_entry`, the shared base class) in the provenance cell, because the register parser resolves Test-cell references only against tests defined in the named module; and `test_osd_overlay_bands`'s scope filter now excludes the restated `.osd entry`/`.osd spinbutton` field arms, which contain `.osd` and entered the filter's container set. Everything else landed as written.
+
+**Goal.** The landed GTK 3 OSD container plan repainted every stock OSD overlay
+container with the light infobar band, but the fields inside them are still
+stock dark: the theme's GTK 3 sheet declares nothing for the `.osd` entry arms
+(grep: the sheet's only `osd` rules are the landed container block), so the
+toolkit's installed resource supplies them — four grouped arms painting
+`entry` and horizontal `spinbutton` fields translucent dark with white text
+and black text-shadows inside a container the theme now draws `#DDDDDD`.
+Restate all four arms to the landed entry recipe, so an OSD field is a
+Platinum field like every other entry.
+
+**Verified facts (probed 2026-10-30, `gresource extract
+/usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, libgtk-3 3.24.49).** The
+resource's four `entry`-overriding OSD field arms, each a grouped
+spinbutton/entry rule: `.osd spinbutton:not(.vertical), .osd entry` (`color:
+white`, `rgba(0,0,0,0.7)` border, `rgba(0,0,0,0.5)` background (a field the
+landed light container band contradicts), `background-clip: padding-box`,
+both text and icon shadows `0 1px black`); its `:focus` sibling (same field,
+`#3584e4` border-colour and an `inset 0 0 0 1px #3584e4` ring); its
+`:backdrop` sibling (same dark field, shadows cleared); its `:disabled`
+sibling (`rgba(71,71,71,0.5)` field, `#919190` text). No collected reference
+screenshot shows a GTK OSD overlay or a field inside one, so this is a
+platform adaptation reusing the landed entry recipe — pinned by `ENTRY_FIELD`
+in `tests/support/gtk_theme_spec.py` (`WHITE` face, `BLACK` square border,
+inset `GREY` etch, `BLACK` text), the landed focus outline pinned by
+`tests/test_gtk_theme.py::TestGtkTheme::test_entry_focus_outline` and
+`...::test_horizontal_spinbutton_focus_outline` (the dotted-outline trio
+`outline: 1px dotted #000000; outline-offset: 0; -gtk-outline-radius: 0;`,
+reused from `button:focus` per the landed header comment), and the disabled
+text grey pinned by `...::test_disabled_text`, whose `DISABLED_TEXT["color"]`
+(`tests/support/gtk_theme_spec.py`, the `ETCH_DARK` value `#888888`) is
+re-derived from the colour scheme's `[Colors:Button] ForegroundInactive`. The
+arm selector sets and state names are GTK-required (they mirror the toolkit
+resource's own grouped rules).
+
+**Approach and files.** (1) In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`,
+append after the landed OSD container block (the `toolbar.osd` grouped rule
+that currently closes the sheet) a dated provenance comment naming the
+missing reference surface, the gresource probe above and the reuse of the
+landed entry recipe, followed by exactly four grouped rules: `.osd
+spinbutton:not(.vertical), .osd entry` declaring `background-color: #FFFFFF;
+background-image: none; border: 1px solid #000000; border-radius: 0;
+box-shadow: inset 1px 1px #999999; color: #000000; text-shadow: none;
+-gtk-icon-shadow: none;` (the landed `ENTRY_FIELD` five declarations verbatim
+plus the stock-normal arm's own `text-shadow` and `-gtk-icon-shadow` shadow
+claims cleared); the same seven declarations on `.osd
+spinbutton:focus:not(.vertical), .osd entry:focus` plus the landed focus trio
+(the border shorthand replaces stock's `#3584e4` border-colour and the
+box-shadow declaration replaces stock's blue inset ring); the same seven on
+`.osd spinbutton:backdrop:not(.vertical), .osd entry:backdrop` (stock's
+backdrop arm repaints the dark field, so it needs the full restatement, not
+just shadow clears); the same seven on `.osd spinbutton:disabled:not(.vertical),
+.osd entry:disabled` with `color: #888888`. Do not touch the landed
+`entry`/`spinbutton:not(.vertical)` rules, their focus rules, the landed
+disabled-text rule or the landed OSD container block — each restated arm is
+the same selector stock declares at higher specificity, so the landed
+base-field rules keep governing outside `.osd`. From the same probe, scope
+notes for later surface plans (recorded here, not this change): the
+spin-button's inner transparent text node `.osd spinbutton:not(.vertical)
+entry`, its button row `.osd spinbutton:not(.vertical) button(:hover/:
+backdrop/:disabled)` and its dir/last-child radius arms, and the vertical
+`.osd spinbutton.vertical button:first-child` family. (2) In
+`tests/test_gtk_theme.py`, add `TestGtkTheme::test_osd_entry_fields` beside
+`test_osd_overlay_bands`: build two expected dictionaries by extending the
+landed `ENTRY_FIELD` spec with `background-image: none`, `text-shadow: none`
+and `-gtk-icon-shadow: none` (so the reuse is visible in the code, not a
+coincidence of literals), the focus dictionary further adding the outline
+trio and the disabled dictionary replacing `color` with the value
+`DISABLED_TEXT["color"]` shares (`#888888`); assert each of the eight
+per-selector keys `tests/support/gtk_css.parse_css` splits out of the four
+grouped rules against the expected dictionary of its arm, and add a scope
+assertion that the set of parsed sheet selectors containing `.osd entry` or
+`.osd spinbutton` equals exactly those eight, so no other OSD entry arm can
+appear untested. (3) In `docs/invariants.md`, in the `## gtk` table, append
+one row: the guarantee — inside a stock OSD container, horizontal entries and
+spin-button fields carry the landed entry field (opaque white face, black
+square border, inset grey etch, black text; disabled text the Inactive grey;
+focus the landed dotted outline) through all four stock state arms instead of
+the toolkit's dark translucent field — with the test column naming
+`tests/test_gtk_theme.py::TestGtkTheme::test_osd_entry_fields` and the tests
+it mirrors (`...::test_entry`, `...::test_entry_focus_outline`,
+`...::test_disabled_text`); the provenance cell records the missing reference
+surface, the gresource probe (libgtk-3 3.24.49,
+`/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, inspected 2026-10-30), the
+reused `ENTRY_FIELD` spec, the GTK-required arm selectors and states, and the
+close-out that declaration checks do not establish rendered pixels. Trim no
+landed row; `tests/test_invariants.py` parses the register.
+
+**Acceptance criteria.** The GTK 3 sheet ends with the four grouped arms whose
+complete parsed dictionaries are exactly the ones above; changing any of the
+eight selectors, deleting an arm, dropping a shadow-clear declaration or
+reintroducing stock's blue focus ring or dark field fails
+`test_osd_entry_fields`; `test_entry`, `test_disabled_text`,
+`test_entry_focus_outline`, `test_horizontal_spinbutton_focus_outline`,
+`test_osd_overlay_bands`, `test_app_notification_band` and the palette
+assertions stay green, and the landed container block keeps its landed text.
+Scope is the GTK 3 sheet, `tests/test_gtk_theme.py`, `docs/invariants.md` and
+nothing else: no GTK 4 rule, no Firefox sheet, no new asset, dependency or
+`!important`; the only colour literals are the landed `#FFFFFF`, `#000000`,
+`#999999` and `#888888`. `make check` passes.
+
 ### Platinum Firefox toolbar fields on Firefox 153.6: bind the field paint to the class-only urlbar background band and paint the live `#searchbar-new` with the landed field recipe (planned 2026-10-30 by the plan role; independent of the waiting GTK 3 OSD-overlay plan — it rewrites the landed urlbar rule and its field tests in `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/support/firefox_chrome_cases.py` and `tests/test_firefox_theme_shell.py` and edits the `## firefox` invariants row, while that entry appends rules to the GTK 3 sheet, adds a test beside the gtk suite's `test_app_notification_band` and appends a row in the `## gtk` table; no shared file, selector or test) — done 2026-10-30 by the feature role
 
 **Goal.** The landed `#urlbar-background` rule never matches anything in the

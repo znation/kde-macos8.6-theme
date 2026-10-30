@@ -24,6 +24,8 @@ from support.gtk_css import HEX, parse_css
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
+    DISABLED_TEXT,
+    ENTRY_FIELD,
     ENTRY_PROGRESS,
     ETCH_DARK,
     LINK,
@@ -395,12 +397,69 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {
                 selector
                 for selector in self.rules
-                if ".osd" in selector
+                if (".osd" in selector
+                    and ".osd entry" not in selector
+                    and ".osd spinbutton" not in selector)
                 or "magnifier" in selector
                 or "touch-selection" in selector
                 or "scale-popup" in selector
             },
             set(selectors),
+        )
+
+    def test_osd_entry_fields(self):
+        """Pin the four restated stock OSD field arms.
+
+        No collected reference screenshot shows a field inside a GTK OSD
+        overlay, so the sheet restates the toolkit resource's four grouped
+        `.osd spinbutton:not(.vertical), .osd entry` arms with the landed
+        entry recipe (``ENTRY_FIELD`` in ``support.gtk_theme_spec.py``) plus
+        the stock arms' own shadow claims, cleared. The arm selectors,
+        states and shadow claims come from gtk-contained.css in
+        /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49).
+        """
+        field = {
+            **ENTRY_FIELD,
+            "background-image": "none",
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        focus = {
+            **field,
+            "outline": f"1px dotted {BLACK}",
+            "outline-offset": "0",
+            "-gtk-outline-radius": "0",
+        }
+        disabled = {**field, "color": DISABLED_TEXT["color"]}
+        expected = {
+            ".osd spinbutton:not(.vertical)": field,
+            ".osd entry": field,
+            ".osd spinbutton:focus:not(.vertical)": focus,
+            ".osd entry:focus": focus,
+            ".osd spinbutton:backdrop:not(.vertical)": field,
+            ".osd entry:backdrop": field,
+            ".osd spinbutton:disabled:not(.vertical)": disabled,
+            ".osd entry:disabled": disabled,
+        }
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], declarations)
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules[".osd entry:focus"][property_name],
+                self.rules["entry:focus"][property_name],
+            )
+        self.assertEqual(
+            self.rules[".osd entry:disabled"]["color"],
+            self.rules["entry:disabled"]["color"],
+        )
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if ".osd entry" in selector or ".osd spinbutton" in selector
+            },
+            set(expected),
         )
 
     def test_path_bar_tabs(self):

@@ -1309,3 +1309,68 @@ toolbar.osd {
   -gtk-icon-shadow: none;
 }
 
+/* No collected reference screenshot shows a field inside a GTK OSD overlay,
+   so those fields keep the toolkit's stock arms: grouped `.osd
+   spinbutton:not(.vertical), .osd entry` rules painting a translucent dark
+   field with white text and black shadows under this sheet's landed light
+   container band. Restate all four stock state arms with the landed entry
+   recipe (the ENTRY_FIELD spec in tests/support/gtk_theme_spec.py, grounded
+   by tests/test_gtk_theme.py::TestGtkTheme::test_entry): the opaque white
+   face, black square border, inset grey etch and black text, the landed
+   dotted focus outline on the focused arms, and the Inactive grey
+   (#888888, re-derived from the colour scheme's [Colors:Button]
+   ForegroundInactive) on the disabled arm's text. The arm selectors and
+   state names come from the toolkit resource gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30; the landed base entry/spin-button rules keep governing
+   outside .osd. Declaration checks do not establish rendered pixels. */
+.osd spinbutton:not(.vertical),
+.osd entry {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:focus:not(.vertical),
+.osd entry:focus {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
+.osd spinbutton:backdrop:not(.vertical),
+.osd entry:backdrop {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd spinbutton:disabled:not(.vertical),
+.osd entry:disabled {
+  background-color: #FFFFFF;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
