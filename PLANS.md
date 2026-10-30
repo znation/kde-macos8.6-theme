@@ -104,4 +104,12 @@ recorded here to keep the scope deliberate.
 
 **Acceptance criteria.** `calendar:focus` explicitly declares a 1px dotted black outline, zero offset and zero GTK outline radius; removing or changing a declaration fails the new test. Existing `test_calendar` selection assertions pass. Document the values as platform adaptations rather than screenshot measurements. Declaration coverage does not establish rendered day-cell focus pixels or keyboard traversal behavior. Limit implementation to the three named files, without new artwork or dependencies. This and the notebook-tab plan may merge in either order. `make check` passes.
 
+### Platinum GTK 3 icon views: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued calendar outline plan)
+
+**Goal.** Declare the Platinum focus outline on GTK 3 `iconview` nodes. The GTK 3 sheet currently has no explicit `iconview:focus` rule.
+
+**Approach and files.** Beside the view rules in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `iconview:focus` with `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0`. Add a dated adaptation comment naming the absent GTK icon-view keyboard-focus reference and the chosen-value source: reuse `button:focus`'s outline, offset and square corners. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_iconview_focus_outline` beside `test_treeview_focus_outline`, using `assert_rule` and `BLACK` to pin those declarations and comparing each with `button:focus`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and adaptation provenance. The installed resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29, names `iconview:selected:focus` and supplies dashed translucent outline defaults through its universal rule; put that library attribution in the invariant rather than the standalone CSS.
+
+**Acceptance criteria.** `iconview:focus` explicitly declares a 1px dotted black outline, zero offset and zero GTK outline radius; removing or changing a declaration fails the new test. Document these as platform adaptations rather than screenshot measurements. Declaration coverage does not establish rendered item-focus pixels or keyboard traversal behavior. Limit implementation to the three named files, without new artwork or dependencies. This and the calendar plan may merge in either order. `make check` passes.
+
 ## Done
