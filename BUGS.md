@@ -21,4 +21,10 @@ before either command can run under those versions. The available interpreter's 
 **Observed output:** `ls /usr/bin/python3.*` → `/usr/bin/python3.13`; `command -v python3.10`
 and `command -v python3.12` produced no paths.
 
+**Progress:** Confirmed this is an interpreter availability gap in the local environment: CI
+provisions both matrix versions with `actions/setup-python`, while this worktree has only
+Python 3.13.5. The repository's workflow already runs both public checks under the matrix.
+
+**Needs review 2026-10-29 by bugfix: `make` will report that Python 3.10 or newer is required if the requested matrix interpreter cannot be launched; otherwise these checks run under that interpreter.**
+
 ## Fixed
