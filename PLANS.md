@@ -96,12 +96,4 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-### Platinum GTK 4 progress bars: preserve disabled colors (planned 2026-10-29 by the plan role; independent of the queued level-bar discrete cross-size)
-
-**Goal.** Prevent the inherited disabled progress-bar opacity filter from dimming the declared Platinum grey fill, trough and frame through `make apply-gtk`'s user stylesheet import. The finished meters-and-sliders plan pins the child fill but does not specify a parent filter override; the finished disabled-levelbar plan covers a different widget.
-
-**Approach and files.** Beside the progress-bar rules in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `progressbar:disabled { filter: none; }` with a dated adaptation comment: no reference screenshot shows a disabled GTK progress bar; preserve the existing opaque palette rather than adding another dimming operation. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_progressbar_disabled_filter`, using `assert_rule` to require exactly `{"filter": "none"}` on that selector and `{"background-color": GREY}` on `progressbar > trough > progress:disabled`. Keep `test_progressbar` and `GtkSheetRuleCases.assert_progressbar` intact. Add a focused progress-bar row under `## gtk` in `docs/invariants.md`, naming the new test and the existing `test_progressbar`, and recording provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares `progressbar:disabled { filter: Opacity(var(--disabled-opacity)); }`; the chosen `none` preserves the existing reference-grounded palette adaptation in `tests/support/gtk_theme_spec.py`. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
-
-**Acceptance criteria.** Removing the parent override or changing it to an opacity filter fails the new test; the existing progress-bar test continues to pin the trough, fill and disabled-fill declarations. Documentation identifies the missing reference surface and describes declaration verification rather than rendered-pixel evidence. Limit implementation to these three files and the disabled GTK 4 progress-bar filter; geometry, corner variants, GTK 3 and level bars remain separate work. No new palette token, asset or dependency. `make check` passes.
-
 ## Done

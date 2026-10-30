@@ -784,6 +784,11 @@ progressbar > trough > progress:disabled {
   background-color: #999999;
 }
 
+/* No reference shows a disabled GTK progress bar; keep its opaque palette. (2026-10-29) */
+progressbar:disabled {
+  filter: none;
+}
+
 entry > progress {
   margin-bottom: 1px;
 }
