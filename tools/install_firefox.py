@@ -180,6 +180,10 @@ def _apply(profile: Path) -> int:
     does not leave half the set behind. A restore that itself fails is
     reported alongside the original error instead of masking it.
     """
+    # The sheet paths are children of chrome/. Refusing only a symlink at
+    # userChrome.css/userContent.css would still let a symlinked directory
+    # redirect their atomic writes outside the selected profile.
+    refuse_symlink(profile / "chrome", "write", ConfigError)
     pending = []
     for source, marker, path_for in SHEETS:
         source_path = Path(ROOT) / source
@@ -256,6 +260,9 @@ def _remove(profile: Path) -> int:
     gone, the completed rewrite is kept. A rewrite back that itself fails is
     reported alongside the original error.
     """
+    # A symlinked chrome/ directory redirects both reads and unlinks outside
+    # the selected profile, even when the sheet paths themselves are regular.
+    refuse_symlink(profile / "chrome", "remove", ConfigError)
     owned = []
     for _source, marker, path_for in SHEETS:
         sheet_path = path_for(profile)

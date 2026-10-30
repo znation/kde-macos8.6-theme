@@ -36,6 +36,22 @@ def _write(path, text):
     path.write_bytes(text.encode("utf-8"))
 
 class TestInstall(FirefoxProfileTestCase):
+    def test_install_refuses_a_symlinked_chrome_directory(self):
+        outside = self.root / "outside-chrome"
+        outside.mkdir()
+        sentinel = outside / "keep.txt"
+        sentinel.write_text("outside profile", encoding="utf-8")
+        self.create_symlink(self.profile / "chrome", outside, target_is_directory=True)
+
+        result = self.run_tool("--profile", str(self.profile))
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot write {self.profile / 'chrome'}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        self.assertEqual("outside profile", sentinel.read_text(encoding="utf-8"))
+        self.assertFalse((outside / "userChrome.css").exists())
+        self.assertFalse((self.profile / "user.js").exists())
+
     def test_install_and_remove_through_a_symlinked_profile_directory(self):
         profile_link = self.root / "linked-profile"
         self.create_symlink(profile_link, self.profile, target_is_directory=True)
@@ -723,6 +739,28 @@ class TestProfileLock(FirefoxProfileTestCase):
 
 
 class TestRemove(FirefoxProfileTestCase):
+    def test_remove_refuses_a_symlinked_chrome_directory(self):
+        outside = self.root / "outside-chrome"
+        outside.mkdir()
+        sheet = outside / "userChrome.css"
+        sheet.write_text(
+            f"{install_firefox.CSS_MARKER}\nbody {{}}\n", encoding="utf-8"
+        )
+        self.create_symlink(self.profile / "chrome", outside, target_is_directory=True)
+        js_text = (
+            firefox_user_js.USER_JS_MARKER + "\n"
+            + firefox_user_js.PREF_LINE + "\n"
+        )
+        _write(self.user_js_path(), js_text)
+
+        result = self.run_tool("--remove", "--profile", str(self.profile))
+
+        self.assertEqual(2, result.returncode)
+        self.assertIn(f"cannot remove {self.profile / 'chrome'}", result.stderr)
+        self.assertIn("symbolic link", result.stderr)
+        self.assertTrue(sheet.is_file())
+        self.assertEqual(js_text, _read(self.user_js_path()))
+
     def install(self):
         result = self.run_tool("--profile", str(self.profile))
         self.assertEqual(0, result.returncode, result.stderr)
