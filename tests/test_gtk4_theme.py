@@ -999,6 +999,15 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"background-color": base_face})
 
+    def test_scrollbar_thumb_interaction_face(self):
+        base_face = self.rules["scrollbar > range > trough > slider"]["background-color"]
+        self.assertEqual(base_face, FACE)
+        for selector in (
+            "scrollbar > range > trough > slider:hover",
+            "scrollbar > range > trough > slider:active",
+        ):
+            self.assert_rule(selector, {"background-color": base_face})
+
     def test_scrollbar_thumb_transition(self):
         self.assert_rule(
             "scrollbar > range > trough > slider",

@@ -829,6 +829,12 @@ scrollbar > range > trough > slider {
   transition: none;
 }
 
+/* Adaptation 2026-10-29: no reference shows GTK scrollbar interaction; retain the reference-grounded base thumb face. */
+scrollbar > range > trough > slider:hover,
+scrollbar > range > trough > slider:active {
+  background-color: #DDDDDD;
+}
+
 /* Adaptation 2026-10-29: no reference shows GTK fine-tune scrollbars; reuse the base thumb face. */
 scrollbar > range.fine-tune > trough > slider,
 scrollbar > range.fine-tune > trough > slider:hover,
