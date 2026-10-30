@@ -1041,6 +1041,13 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"transform": "none"})
 
+    def test_scale_enabled_marked_thumb_shadow(self):
+        for selector in (
+            "scale.marks-before:not(.marks-after):not(:disabled) > trough > slider:not(:disabled)",
+            "scale.marks-after:not(.marks-before):not(:disabled) > trough > slider:not(:disabled)",
+        ):
+            self.assert_rule(selector, {"box-shadow": RAISED_BEVEL})
+
     def test_scale_disabled_filter(self):
         self.assert_rule("scale:disabled", {"filter": "none"})
 

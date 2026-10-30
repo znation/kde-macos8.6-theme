@@ -982,6 +982,12 @@ scale.marks-after:not(.marks-before) > trough > slider {
   transform: none;
 }
 
+/* 2026-10-29: no enabled marked GTK scale reference; reuse the base thumb bevel. */
+scale.marks-before:not(.marks-after):not(:disabled) > trough > slider:not(:disabled),
+scale.marks-after:not(.marks-before):not(:disabled) > trough > slider:not(:disabled) {
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+}
+
 /* 2026-10-29: no GTK scale reference; parent interaction reuses the thumb face. */
 scale:hover > trough > slider, scale:active > trough > slider {
   background-color: #DDDDDD;
