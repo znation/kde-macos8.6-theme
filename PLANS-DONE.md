@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 tree views: declare a focused outline (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** Give `treeview.view:focus` an explicit Platinum outline alongside the existing tree-view selection paint. The sheet declares a focused list-row outline but no tree-view focus outline.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside `list row:focus`, add `treeview.view:focus` with `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0`. Add a dated adaptation comment naming the missing GTK tree-view keyboard-focus reference and reuse of `button:focus`'s outline policy. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_treeview_focus_outline` following `test_list_row_focus_outline`: assert those declarations using `assert_rule` and `BLACK`, and compare the three properties with `button:focus`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and adaptation provenance. The installed GTK 3 resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29, uses `treeview.view:selected:focus` and supplies outline properties through its universal rule. Keep library attribution outside CSS for the standalone-sheet check.
+
+**Acceptance criteria.** The named focus selector explicitly declares the dotted black 1px outline, zero offset and zero GTK outline radius; changing or removing a declaration fails the new test. Existing selection and list-row outline tests pass. Record the values as a platform adaptation, not screenshot measurements. Declaration checks establish neither rendered focus pixels nor keyboard traversal. Scope is the three named files, without new artwork or dependencies. This plan can merge independently of the notebook-tab plan. `make check` passes.
+
 ### Platinum GTK 3 list rows: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued notebook-tab outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Give focused GTK 3 list rows an explicit Platinum outline. The sheet declares list-row hover, selection and backdrop paint, but no list-row focus outline; the completed generic selection plan addresses backdrop paint rather than focus declarations.
