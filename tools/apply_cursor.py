@@ -110,11 +110,6 @@ def _require_installed(data_home: Path) -> Path:
     return cursor_link.require_installed(data_home)
 
 
-def _link_target(home: Path) -> Path:
-    """Return the Xcursor-path link that exposes the installed theme."""
-    return cursor_link.link_target(home)
-
-
 def _install_link(home: Path, theme: Path) -> None:
     """Create ``$HOME/.icons/org.macos8.desktop`` as a link to *theme*.
 
