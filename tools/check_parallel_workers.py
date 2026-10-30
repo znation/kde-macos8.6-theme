@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import time
 
 if __package__:
@@ -11,11 +12,13 @@ if __package__:
         _INTERRUPT_SIGNALS, _TERMINATION_SIGNALS, _defer_signals,
         _replay_deferred, _restore_termination,
     )
+    from tools.terminal import escape_controls
 else:
     from process_group import (
         _INTERRUPT_SIGNALS, _TERMINATION_SIGNALS, _defer_signals,
         _replay_deferred, _restore_termination,
     )
+    from terminal import escape_controls
 
 _POLL_SECONDS = 0.05
 _REAP_SECONDS = 5.0
@@ -123,8 +126,28 @@ def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
                     running.remove(entry)
             while len(running) < workers and queue:
                 module = queue.pop(0)
-                running.append(_spawn(module, [*argv_prefix, module], cwd,
-                                      log_paths[module], timeout))
+                try:
+                    running.append(_spawn(module, [*argv_prefix, module], cwd,
+                                          log_paths[module], timeout))
+                except OSError as exc:
+                    # _spawn opens the log before the worker starts; an open
+                    # that cannot succeed -- a scratch volume that filled
+                    # mid-run, or a log path a sweep removed -- must not get
+                    # out: it would unwind _supervise past every module that
+                    # already finished and kill the run as a traceback with
+                    # no diagnostic. Record the module as never started
+                    # (exit 1, the same status _spawn's own "could not be
+                    # started" note produces) with one stderr diagnostic
+                    # naming the module and the OS error, and keep
+                    # supervising the rest of the run. _print_results reads
+                    # the same path for the section, so the module's verdict
+                    # is its unreadable-log failure.
+                    print(
+                        "check: error: cannot open the worker log for "
+                        f"{escape_controls(module)}: {escape_controls(str(exc))}",
+                        file=sys.stderr,
+                    )
+                    results[module] = 1
             if running:
                 time.sleep(_POLL_SECONDS)
     finally:

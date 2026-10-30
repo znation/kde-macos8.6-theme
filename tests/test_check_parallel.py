@@ -159,6 +159,59 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("exit 0", result.stdout)
         self.assertIn("Ran 1 test in", result.stdout)
 
+    def test_an_unopenable_log_records_its_module_and_keeps_the_run(self):
+        # _spawn opens the worker's log before the worker starts; an open
+        # that fails (a scratch volume that filled mid-run, or a log path a
+        # concurrent sweep removed) used to unwind _supervise as a bare
+        # traceback, losing the report of every module that had already
+        # finished. Now the module is recorded as never started, one stderr
+        # diagnostic names it and the OS error, and the other workers still
+        # run and report.
+        tests_dir = self._project({"test_ok.py": OK_MODULE, "test_two.py": OK_MODULE})
+        missing = make_tmp_dir(self) / "missing-dir"
+        log_paths = {
+            "test_ok": str(missing / "worker.log"),
+            "test_two": str(make_tmp_dir(self) / "worker.log"),
+        }
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            statuses = check_parallel_workers._supervise(
+                ["test_ok", "test_two"],
+                [sys.executable, "-m", "unittest", "-v"],
+                tests_dir,
+                log_paths,
+                60,
+                2,
+            )
+        self.assertEqual(1, statuses["test_ok"])
+        self.assertEqual(0, statuses["test_two"])
+        stderr_text = stderr.getvalue()
+        self.assertIn("cannot open the worker log for test_ok", stderr_text)
+        self.assertIn(str(missing), stderr_text)
+
+    def test_an_unopenable_log_reports_its_module_as_a_failure(self):
+        # End to end through main: the poisoned log path is recorded as the
+        # module's unreadable-log failure and the run exits 1 with the
+        # diagnostic on stderr, never as a traceback killing the run.
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        missing = make_tmp_dir(self) / "missing-dir"
+        with mock.patch.object(
+            check_parallel,
+            "_log_paths",
+            side_effect=lambda modules, scratch: {
+                module: str(missing / f"{module}.log") for module in modules
+            },
+        ):
+            result = self._run("--tests-dir", tests_dir)
+        assert_failed(self, result)
+        self.assertIn(
+            "cannot open the worker log for test_ok", result.stderr
+        )
+        self.assertIn(
+            "===== test_ok: worker log could not be read =====", result.stdout
+        )
+        self.assertNotIn("Traceback", result.stderr)
+
     def test_modules_with_the_same_log_stem_get_distinct_logs(self):
         # A package's `test_a.test_b` module and a top-level
         # `test_a_test_b.py` both match the default pattern, and both dotted
