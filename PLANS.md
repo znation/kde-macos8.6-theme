@@ -98,4 +98,12 @@ _None yet._
 
 _None yet._
 
+### Platinum GTK 4 level bars: keep continuous and discrete block corners square (planned 2026-10-29 by the plan role; independent of the queued disabled meter colors)
+
+**Goal.** Preserve the existing square Platinum meter treatment through `make apply-gtk`'s user stylesheet import. The generic filled/empty block radius declarations do not outrank the installed orientation and discrete endpoint selectors. This extends the finished level-bar plan's corner treatment; the queued disabled-filter plan is independent.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add one grouped rule declaring exactly `border-radius: 0` for these ten selectors: `levelbar.horizontal trough > block`, `levelbar.vertical trough > block`; each orientation's `trough > block.empty` and `trough > block.full`; and each orientation's `.discrete > trough > block:first-child` and `.discrete > trough > block:last-child` (attach `.discrete` to `levelbar.horizontal`/`levelbar.vertical`). Place it after the existing level-bar rules. Add a dated comment naming the missing reference surface: no reference screenshot shows a continuous or discrete level meter; reuse the existing square progress-bar adaptation. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_levelbar_block_corners`, iterating those ten explicit selector strings with `subTest` and `assert_rule` to require exactly the zero-radius declaration. Keep the shared `GtkSheetRuleCases.assert_levelbar` contract intact. Update the level-bar row in `docs/invariants.md` with this test and dated provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, sets 99px continuous radii and orientation-specific 99px discrete endpoint radii. The override matches those selectors' specificity; the supported user import supplies precedence. Keep library attribution in documentation because `test_stands_alone` rejects its name in CSS.
+
+**Acceptance criteria.** The new declaration test fails when an orientation, empty/full variant, or discrete endpoint selector is removed or its radius becomes nonzero. Existing `test_levelbar` continues to pin the palette, trough and block cross-size. Documentation identifies this as a platform adaptation and declaration-level verification, not rendered-pixel evidence. Limit implementation to these three files and block corner overrides; spacing, semantic offset colors, disabled filters and GTK 3 are separate concerns. `make check` passes.
+
 ## Done
