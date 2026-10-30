@@ -816,6 +816,12 @@ scrollbar > range > trough {
   transition: none;
 }
 
+/* Adaptation 2026-10-29: no reference shows GTK trough spacing; reuse the slider margin reset to avoid extra toolkit spacing. */
+scrollbar.horizontal:not(.overlay-indicator) > range > trough,
+scrollbar.vertical:not(.overlay-indicator) > range > trough {
+  margin: 0;
+}
+
 /* Adaptation 2026-10-29: no reference shows GTK overlay-scrollbar hover; reuse the ordinary trough face. */
 scrollbar.overlay-indicator.hovering > range > trough {
   background-color: #EEEEEE;

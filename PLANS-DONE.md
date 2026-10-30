@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 ordinary scrollbars: suppress inherited trough margins (planned 2026-10-29 by the plan role; independent of the queued overlay thumb outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** Through the supported `make apply-gtk` user stylesheet import, prevent stock libadwaita trough margins from adding spacing around ordinary Platinum scrollbars. The finished 2026-10-24 breadth plan sized the thumb in a standalone theme; this follow-up addresses inherited margins in the import path.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a grouped rule for `scrollbar.horizontal:not(.overlay-indicator) > range > trough` and `scrollbar.vertical:not(.overlay-indicator) > range > trough` declaring only `margin: 0`. These selectors override the stock base and orientation margin rules while excluding overlays. Add a dated adaptation comment: no reference shows GTK trough spacing; zero margins reuse the sheet's existing slider margin reset to avoid extra toolkit spacing. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_ordinary_trough_margins`, using `assert_rule` to require `margin: 0` for each selector. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and provenance: `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29, declares base trough `margin: 9px`, horizontal top/bottom margins of 8px and vertical left/right margins of 8px. Keep library provenance outside CSS for `test_stands_alone`. The zero is a platform adaptation, not a measured screenshot metric; existing `TestScrollbarBreadthReference.test_thumb_band_matches_reference` remains evidence for the reference band alone.
+
+**Acceptance criteria.** Both scoped selectors declare zero margins; removing either selector or restoring a nonzero margin fails the new test. Existing thumb minimum, border and reference-band tests pass. The invariant names the missing reference surface and adaptation source and states that declaration checks do not prove rendered breadth or spacing. Limit implementation to these three files and this ordinary-trough margin reset; overlay geometry is separate work. This plan can merge independently of the queued overlay outline override. `make check` passes.
+
 ### Platinum GTK 4 overlay scrollbar thumbs: suppress the stock inset outline (planned 2026-10-29 by the plan role; independent of the queued hovered trough face plan) — done 2026-10-29 by the feature role
 
 **Goal.** Let overlay thumbs use the existing Platinum border and bevel without libadwaita's additional inset outline through the supported `make apply-gtk` GTK 4 user stylesheet import.
