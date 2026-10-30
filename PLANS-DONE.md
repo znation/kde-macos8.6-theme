@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 entries: pin focus-outline color (planned 2026-10-29 by the plan role; independent of the queued push-button focus transition) — done 2026-10-29 by the feature role
+
+**Goal.** Give focused GTK 4 entry fields an opaque black outline through the supported `make apply-gtk` user stylesheet import, reusing the scale-focus color policy.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `entry:focus-within { outline-color: #000000; }` beside the existing entry-field rule. Add a dated adaptation comment naming the missing GTK entry-focus reference surface and reuse of scale-focus black. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_entry_focus_outline_color` following `test_button_focus_outline_color`: assert the new selector's black outline and equality with `scale:focus:focus-visible > trough > slider`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee and test. Attribute the stock `entry:focus-within` selector, translucent accent outline and inherited 2px width/-2px offset to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep the library name outside CSS for `test_stands_alone`.
+
+**Acceptance criteria.** `entry:focus-within` declares opaque black; removing or changing it fails the new test. Existing entry-field declarations and tests pass. The invariant names the missing reference surface and reused focus policy, and states that geometry and transitions remain inherited and declaration tests do not establish rendered focus pixels. Scope is these three files; spin-button focus, entry motion, new geometry, palette tokens and artwork are separate work. This can merge independently of the queued push-button transition plan. `make check` passes.
+
 ### Platinum GTK 4 push buttons: make focus-outline changes immediate (planned 2026-10-29 by the plan role; independent of the queued push-button focus color) — done 2026-10-29 by the feature role
 
 **Goal.** Remove inherited focus-outline animation from GTK 4 push buttons through the supported `make apply-gtk` user stylesheet import.
