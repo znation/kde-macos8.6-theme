@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 scales: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued fine-tune trough offsets) — done 2026-10-29 by the feature role
+
+**Goal.** Give keyboard-focused scale thumbs an opaque black outline using the existing Platinum focus palette. The theme has no scale focus override; the installed stock stylesheet uses a half-transparent accent color for `scale:focus:focus-visible > trough > slider`.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the scale thumb rules, add `scale:focus:focus-visible > trough > slider { outline-color: #000000; }`. Add a dated adaptation comment identifying the missing GTK scale keyboard-focus reference and reuse of the existing calendar focus black. Keep the stock outline width and offset: this task changes color alone. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_focus_outline_color`, using `assert_rule` on the complete selector with `{"outline-color": BLACK}` and checking equality with the calendar focused-label outline color already pinned by `test_calendar_focus_outline`. In `docs/invariants.md` under `## gtk`, name the new test, the absent reference surface and this palette reuse. Attribute the stock selector and its accent/transparent color mix to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep library attribution out of CSS to respect `test_stands_alone`.
+
+**Acceptance criteria.** The complete keyboard-focus selector explicitly declares opaque black at stock specificity, allowing the later user stylesheet import to override the stock accent color. Removing the selector or changing its color fails the new test. Documentation describes declaration coverage, not rendered focus pixels or animation behavior. Limit implementation to these three files and focus outline color; transitions, outline geometry, thumb bevels, fine-tune spacing, GTK 3 and artwork are outside this change. No new dependency. `make check` passes.
+
 ### Platinum GTK 4 scales: remove fine-tune trough offsets (planned 2026-10-29 by the plan role; independent of the queued fine-tune thumb margins) — done 2026-10-29 by the feature role
 
 **Goal.** Keep fine tuning from introducing stock negative trough margins into the Platinum scale adaptation. The installed stock stylesheet declares `margin: -3px 0px` for horizontal fine-tune troughs and `margin: 0px -3px` for vertical ones; the theme has no corresponding override. This is one trough-spacing policy across both orientations, independently mergeable from the waiting thumb-margin plan.

@@ -406,6 +406,14 @@ for radio in (False, True):
         self.assertEqual(self.rules[focus]["outline-color"], BLACK)
         self.assertTrue(self.rules["calendar"]["border"].endswith(BLACK))
 
+    def test_scale_focus_outline_color(self):
+        focus = "scale:focus:focus-visible > trough > slider"
+        self.assert_rule(focus, {"outline-color": BLACK})
+        self.assertEqual(
+            self.rules[focus]["outline-color"],
+            self.rules["calendar > grid > label:focus"]["outline-color"],
+        )
+
     def test_calendar_focus_transition(self):
         self.assert_rule("calendar > grid > label", {"transition": "none"})
 

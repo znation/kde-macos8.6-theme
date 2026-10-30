@@ -981,6 +981,11 @@ scale.vertical > trough > slider {
   min-height: 12px;
 }
 
+/* 2026-10-29: no GTK scale keyboard-focus reference; reuse the calendar focus black. */
+scale:focus:focus-visible > trough > slider {
+  outline-color: #000000;
+}
+
 /* 2026-10-29: no GTK fine-tune scale reference; reuse the base thumb margin. */
 scale.horizontal.fine-tune > trough > slider,
 scale.vertical.fine-tune > trough > slider {
