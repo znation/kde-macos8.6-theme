@@ -106,4 +106,12 @@ _None yet._
 
 _None yet._
 
+### Platinum GTK 3 ordinary scrollbar thumbs: declare a square minimum (planned 2026-10-29 by the plan role; independent of the GTK 4 overlay breadth plan)
+
+**Goal.** Give ordinary GTK 3 thumbs explicit minimum dimensions instead of relying on steppers to size the bar. The completed GTK 4 breadth plan records that GTK 3 already measures 16px across; this plan does not claim to widen it. The completed GTK 3 overlay minimum plan deliberately excluded ordinary sizing. A minimum thumb length is a platform adaptation, not a measured reference thumb length.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `scrollbar:not(.overlay-indicator) slider { min-width: 12px; min-height: 12px; }`. Add a dated adaptation comment: no reference shows GTK thumb minimum-length policy; reuse the existing GTK 3 overlay square minimum, derived from the ordinary reference band's 16px breadth minus the scrollbar and slider borders. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_ordinary_scrollbar_thumb_minimum` using `assert_rule` for that selector. Add `TestScrollbarStepperReference.test_ordinary_thumb_minimum_matches_reference`, reusing the pixel-sampling pattern of `test_overlay_thumb_minimum_matches_reference`: sample `setup_emaculation.png` at x=200, black boundaries y=462 and y=477 and intervening `TROUGH` pixels; derive the band, assert the existing scrollbar and slider borders are each `1px solid {BLACK}`, and compare both new minima with `f"{band - 4}px"`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, these tests, the missing GTK minimum-length surface and the existing overlay minimum as the adaptation source.
+
+**Acceptance criteria.** The ordinary selector declares both minima; removing either or changing its value fails the declaration and reference-derived tests. Existing overlay minimum, scrollbar paint and stepper tests pass. Keep this to the three named files, with no stepper, spacing, visibility or paint changes. Document that the sampled band grounds the transverse size and that choosing the same longitudinal minimum is an adaptation; declaration coverage does not establish rendered thumb allocation. `make check` passes.
+
 ## Done
