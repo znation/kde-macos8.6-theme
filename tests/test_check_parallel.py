@@ -106,6 +106,19 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("test_ok: worker log could not be read", output.getvalue())
         self.assertIn("1 module failed", output.getvalue())
 
+    def test_missing_worker_status_reports_did_not_finish_and_keeps_log(self):
+        log_path = make_tmp_dir(self) / "worker.log"
+        log_path.write_text("partial worker output\n", encoding="utf-8")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_ok"], {}, {"test_ok": str(log_path)}, 10
+            )
+        self.assertEqual(1, status)
+        self.assertIn("===== test_ok: did not finish =====", output.getvalue())
+        self.assertIn("partial worker output", output.getvalue())
+        self.assertIn("1 module not finished", output.getvalue())
+
     def test_invalid_utf8_in_worker_log_is_replaced(self):
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_bytes(b"worker output: \xff\n")
