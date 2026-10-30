@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 add-color action: clear stock background images (planned 2026-10-29 by the plan role; independent of the queued icon-view outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** Stop the GTK 3 color chooser's add-color action inheriting Adwaita background images. The existing swatch rules declare square corners only; the finished corner plan explicitly excludes this action's gradient.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add a separate rule setting only `background-image: none` for `colorswatch#add-color-button overlay`, its `:hover`, `:backdrop` and `:backdrop:hover` arms. Keep the existing grouped corner rule. Add a dated adaptation comment: no reference screenshot shows a GTK color chooser's add-color action; clearing images reuses the sheet's `button` background-image policy. The installed `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, inspected 2026-10-29, supplies gradients on the base and hover arms and `image(...)` on backdrop; record this attribution under `## gtk` in `docs/invariants.md`.
+
+**Tests.** Add `TestGtkTheme.test_add_color_background_images` in `tests/test_gtk_theme.py`, asserting `background-image: none` on the four selectors and comparing with `button`. Adjust `GtkSheetRuleCases.assert_color_swatch_corners` in `tests/support/gtk_rule_cases.py` to accept an optional explicit extra-declarations mapping, defaulting to empty; the GTK 3 caller passes these four selectors with their image declaration. Preserve exact selector-set and dictionary comparisons: the base overlay retains both its corner and image declarations, the three added state arms contain only the image declaration, and the GTK 4 caller keeps its existing strict expectations. Update the corner invariant to describe the GTK 3 exception and add the new declaration guarantee and provenance.
+
+**Acceptance criteria.** Removing any of the four image resets fails the new test; corner checks still reject unexpected swatch selectors or declarations using their explicit expected maps. Limit implementation to the four named files, with no changes to swatch colors, shadows, geometry or GTK 4 CSS. Declaration checks establish no rendered-pixel guarantee. This plan and the icon-view plan may merge in either order. `make check` passes.
+
 ### Platinum GTK 3 icon views: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued calendar outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Declare the Platinum focus outline on GTK 3 `iconview` nodes. The GTK 3 sheet currently has no explicit `iconview:focus` rule.

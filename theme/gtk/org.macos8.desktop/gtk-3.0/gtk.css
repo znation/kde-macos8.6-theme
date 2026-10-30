@@ -613,6 +613,16 @@ colorswatch#editor-color-sample overlay {
   border-radius: 0;
 }
 
+/* No reference screenshot shows a GTK color chooser's add-color action.
+ * Clear its background images using the sheet's button policy.
+ * Recorded 2026-10-29 by the feature role. */
+colorswatch#add-color-button overlay,
+colorswatch#add-color-button overlay:hover,
+colorswatch#add-color-button overlay:backdrop,
+colorswatch#add-color-button overlay:backdrop:hover {
+  background-image: none;
+}
+
 /* Views paint the white content field with black text. */
 .view, textview text, list {
   background-color: #FFFFFF;

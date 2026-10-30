@@ -121,7 +121,7 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     take none.
     """
 
-    def assert_color_swatch_corners(self, overlay_suffix):
+    def assert_color_swatch_corners(self, overlay_suffix, extra_declarations=None):
         """Check square swatch rules using the suite's overlay relationship."""
         roots = (
             "colorswatch",
@@ -136,13 +136,20 @@ class GtkSheetRuleCases(SheetRuleAssertions):
             "colorswatch#editor-color-sample",
         )
         expected = set(roots) | {root + overlay_suffix for root in roots}
+        corner_selectors = expected.copy()
+        extra_declarations = extra_declarations or {}
+        expected.update(extra_declarations)
         self.assertEqual(
             {selector for selector in self.rules if "colorswatch" in selector},
             expected,
         )
         for selector in sorted(expected):
             with self.subTest(selector=selector):
-                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                declarations = (
+                    {"border-radius": "0"} if selector in corner_selectors else {}
+                )
+                declarations.update(extra_declarations.get(selector, {}))
+                self.assertEqual(self.rules[selector], declarations)
 
     def test_headerbar(self):
         for selector in ("headerbar", ".titlebar"):

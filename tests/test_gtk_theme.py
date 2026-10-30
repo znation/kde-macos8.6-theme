@@ -602,7 +602,29 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         self.assert_frame(("frame > border", ".frame"))
 
     def test_color_swatch_corners(self):
-        self.assert_color_swatch_corners(" overlay")
+        selectors = (
+            "colorswatch#add-color-button overlay",
+            "colorswatch#add-color-button overlay:hover",
+            "colorswatch#add-color-button overlay:backdrop",
+            "colorswatch#add-color-button overlay:backdrop:hover",
+        )
+        self.assert_color_swatch_corners(
+            " overlay",
+            {selector: {"background-image": "none"} for selector in selectors},
+        )
+
+    def test_add_color_background_images(self):
+        for selector in (
+            "colorswatch#add-color-button overlay",
+            "colorswatch#add-color-button overlay:hover",
+            "colorswatch#add-color-button overlay:backdrop",
+            "colorswatch#add-color-button overlay:backdrop:hover",
+        ):
+            self.assert_rule(selector, {"background-image": "none"})
+        self.assertEqual(
+            self.rules["colorswatch#add-color-button overlay"]["background-image"],
+            self.rules["button"]["background-image"],
+        )
 
     def test_scrollbar(self):
         self.assert_rule(
