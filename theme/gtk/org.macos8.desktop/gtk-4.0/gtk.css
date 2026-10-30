@@ -846,6 +846,15 @@ levelbar.vertical > trough > block {
   min-width: 10px;
 }
 
+/* No reference shows a discrete level meter; reuse the progress-bar block cross-size. (2026-10-29) */
+levelbar.horizontal.discrete > trough > block {
+  min-height: 10px;
+}
+
+levelbar.vertical.discrete > trough > block {
+  min-width: 10px;
+}
+
 /* No reference screenshot shows a continuous or discrete level meter; reuse the square progress-bar adaptation. (2026-10-29) */
 levelbar.horizontal trough > block,
 levelbar.vertical trough > block,

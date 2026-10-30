@@ -923,6 +923,25 @@ for radio in (False, True):
             {"background-color": GREY},
         )
 
+    def test_levelbar_discrete_cross_size(self):
+        cases = (
+            (
+                "levelbar.horizontal.discrete > trough > block",
+                "min-height",
+                "levelbar.horizontal > trough > block",
+            ),
+            (
+                "levelbar.vertical.discrete > trough > block",
+                "min-width",
+                "levelbar.vertical > trough > block",
+            ),
+        )
+        for selector, dimension, continuous_selector in cases:
+            with self.subTest(selector=selector):
+                expected = {dimension: self.rules[continuous_selector][dimension]}
+                self.assert_rule(selector, expected)
+                self.assertEqual(self.rules[selector], expected)
+
     def test_levelbar_block_corners(self):
         selectors = (
             "levelbar.horizontal trough > block",
