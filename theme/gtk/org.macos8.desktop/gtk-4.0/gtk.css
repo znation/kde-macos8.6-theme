@@ -846,6 +846,20 @@ levelbar.vertical > trough > block {
   min-width: 10px;
 }
 
+/* No reference screenshot shows a continuous or discrete level meter; reuse the square progress-bar adaptation. (2026-10-29) */
+levelbar.horizontal trough > block,
+levelbar.vertical trough > block,
+levelbar.horizontal trough > block.empty,
+levelbar.horizontal trough > block.full,
+levelbar.vertical trough > block.empty,
+levelbar.vertical trough > block.full,
+levelbar.horizontal.discrete > trough > block:first-child,
+levelbar.horizontal.discrete > trough > block:last-child,
+levelbar.vertical.discrete > trough > block:first-child,
+levelbar.vertical.discrete > trough > block:last-child {
+  border-radius: 0;
+}
+
 @keyframes spin {
   to {
     transform: rotate(1turn);

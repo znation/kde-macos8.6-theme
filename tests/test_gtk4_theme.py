@@ -923,6 +923,23 @@ for radio in (False, True):
             {"background-color": GREY},
         )
 
+    def test_levelbar_block_corners(self):
+        selectors = (
+            "levelbar.horizontal trough > block",
+            "levelbar.vertical trough > block",
+            "levelbar.horizontal trough > block.empty",
+            "levelbar.horizontal trough > block.full",
+            "levelbar.vertical trough > block.empty",
+            "levelbar.vertical trough > block.full",
+            "levelbar.horizontal.discrete > trough > block:first-child",
+            "levelbar.horizontal.discrete > trough > block:last-child",
+            "levelbar.vertical.discrete > trough > block:first-child",
+            "levelbar.vertical.discrete > trough > block:last-child",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"border-radius": "0"})
+
     def test_switch(self):
         self.assert_switch(
             slider="switch > slider",
