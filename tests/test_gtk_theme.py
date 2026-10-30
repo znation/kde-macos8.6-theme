@@ -358,6 +358,22 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             self.css.index("list row.activatable:selected:"),
         )
 
+    def test_list_row_focus_outline(self):
+        selector = "list row:focus"
+        self.assert_rule(
+            selector,
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules[selector][property_name],
+                self.rules["button:focus"][property_name],
+            )
+
     def test_places_sidebar(self):
         self.assert_rule(".sidebar", {"background-color": FACE, "color": BLACK})
         self.assert_rule(".sidebar:backdrop", {"background-color": FACE, "color": BLACK})
