@@ -94,12 +94,6 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 4 tab bars: preserve backdrop opacity (planned 2026-10-29 by the plan role; independent of the queued OSD switch-track plan)
-
-**Goal.** Keep tab-bar scrolling content and side actions opaque in inactive windows through the supported `make apply-gtk` user stylesheet import.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add one grouped rule declaring `filter: none` for `tabbar .box:backdrop > scrolledwindow`, `tabbar .box:backdrop > .start-action` and `tabbar .box:backdrop > .end-action`. Add a dated adaptation comment naming the missing GTK tab-bar backdrop reference and reuse of the existing opaque-palette policy in `switch:disabled`. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_tabbar_backdrop_filter`, using `assert_rule` to require `{"filter": "none"}` on each complete selector and comparing that value with `switch:disabled`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and supported import path. Attribute the inherited `filter: opacity(0.5)` to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep library attribution outside CSS because `test_stands_alone` rejects its name there.
-
-**Acceptance criteria.** Each selector explicitly clears the filter at the stock selector's specificity; removing an arm or replacing `none` with an opacity filter fails the new test. Documentation identifies the absent reference surface and reused policy without claiming rendered backdrop evidence. Limit implementation to these three files and this shared backdrop filter: tab paint, geometry, transitions, disabled states and GTK 3 are outside scope. No new palette value, asset or dependency. `make check` passes.
+_None yet._
 
 ## Done

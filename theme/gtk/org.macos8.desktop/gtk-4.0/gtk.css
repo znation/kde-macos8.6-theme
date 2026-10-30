@@ -390,6 +390,14 @@ notebook > header > tabs > tab.reorderable-page:backdrop:checked {
   box-shadow: none;
 }
 
+/* No reference shows GTK tab-bar backdrop content; reuse the opaque-palette
+   policy from disabled switches (2026-10-29). */
+tabbar .box:backdrop > scrolledwindow,
+tabbar .box:backdrop > .start-action,
+tabbar .box:backdrop > .end-action {
+  filter: none;
+}
+
 /* A stack switcher's page buttons draw as the landed tab recipe, the active
    page's button included; :backdrop stays out of scope. */
 stackswitcher > button {

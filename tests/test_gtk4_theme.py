@@ -1081,6 +1081,17 @@ for radio in (False, True):
     def test_switch_disabled_filter(self):
         self.assert_rule("switch:disabled", {"filter": "none"})
 
+    def test_tabbar_backdrop_filter(self):
+        value = self.rules["switch:disabled"]["filter"]
+        for selector in (
+            "tabbar .box:backdrop > scrolledwindow",
+            "tabbar .box:backdrop > .start-action",
+            "tabbar .box:backdrop > .end-action",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"filter": "none"})
+                self.assertEqual(self.rules[selector]["filter"], value)
+
     def test_switch_track_padding(self):
         self.assert_rule("switch", {"padding": "0"})
 
