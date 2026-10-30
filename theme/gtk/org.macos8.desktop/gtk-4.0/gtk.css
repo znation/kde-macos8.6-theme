@@ -824,6 +824,49 @@ scrollbar.vertical:not(.overlay-indicator) > range > trough {
   margin: 0;
 }
 
+/* Adaptation 2026-10-29: no collected reference screenshot shows a GTK
+   scroll-edge band of either family, but the stock GTK 4 scheme paints a
+   shade-coloured fade band on the undershoot nodes of a scrolled window and
+   a pair of radial glows on its overshoot nodes, while Platinum lists are
+   flat: the white field runs to the sunken frame with nothing at the edge.
+   Each mirror arm below names one of those stock undershoot contexts
+   verbatim in a group that clears it, and the four overshoot rules clear
+   the radial glows. The stock reset arms that already paint none in the
+   print tree-view and popover toolbar-view cases stay untouched, because
+   clearing would only repeat what they already declare. */
+scrolledwindow.undershoot-top > undershoot.top,
+scrolledwindow.undershoot-bottom > undershoot.bottom,
+scrolledwindow.undershoot-start:dir(ltr) > undershoot.left,
+scrolledwindow.undershoot-start:dir(rtl) > undershoot.right,
+scrolledwindow.undershoot-end:dir(ltr) > undershoot.right,
+scrolledwindow.undershoot-end:dir(rtl) > undershoot.left,
+columnview ~ undershoot.top,
+treeview.view ~ undershoot.top,
+window.print:not(.ssd-frame) treeview.dialog-action-box ~ undershoot.top,
+dropdown popover.menu .dropdown-searchbar + scrolledwindow:not(.undershoot-top) > undershoot.top,
+combobox popover.menu .dropdown-searchbar + scrolledwindow:not(.undershoot-top) > undershoot.top,
+popover.emoji-picker scrolledwindow.view:not(.undershoot-top) > undershoot.top,
+popover.emoji-picker window.print:not(.ssd-frame) scrolledwindow.dialog-action-box:not(.undershoot-top) > undershoot.top,
+window.print:not(.ssd-frame) popover.emoji-picker scrolledwindow.dialog-action-box:not(.undershoot-top) > undershoot.top,
+popover.emoji-picker scrolledwindow.view:not(.undershoot-bottom) > undershoot.bottom,
+popover.emoji-picker window.print:not(.ssd-frame) scrolledwindow.dialog-action-box:not(.undershoot-bottom) > undershoot.bottom,
+window.print:not(.ssd-frame) popover.emoji-picker scrolledwindow.dialog-action-box:not(.undershoot-bottom) > undershoot.bottom,
+filechooser gridview ~ undershoot.top,
+filechooser placesview > stack > scrolledwindow > undershoot.bottom,
+row.combo popover > contents .combo-searchbar + scrolledwindow > undershoot.top,
+toolbarview.undershoot-top scrolledwindow > undershoot.top,
+toolbarview.undershoot-bottom scrolledwindow > undershoot.bottom {
+  background: none;
+  box-shadow: none;
+}
+
+scrolledwindow > overshoot.top,
+scrolledwindow > overshoot.bottom,
+scrolledwindow > overshoot.left,
+scrolledwindow > overshoot.right {
+  background-image: none;
+}
+
 /* Adaptation 2026-10-29: no reference shows GTK overlay trough spacing; reuse the ordinary trough's zero-margin policy. */
 scrollbar.overlay-indicator.horizontal.hovering > range > trough,
 scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough,

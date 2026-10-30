@@ -788,12 +788,17 @@ for radio in (False, True):
                 self.assertEqual(item["border-radius"], self.rules[frame]["border-radius"])
 
     def test_gridview_item_corners(self):
-        expected = {"gridview > child", "filechooser gridview > child"}
+        expected = {
+            "gridview > child",
+            "filechooser gridview > child",
+            # The filechooser undershoot mirror names the same view substring.
+            "filechooser gridview ~ undershoot.top",
+        }
         self.assertEqual(
             {selector for selector in self.rules if "gridview" in selector},
             expected,
         )
-        for selector in sorted(expected):
+        for selector in sorted(expected - {"filechooser gridview ~ undershoot.top"}):
             with self.subTest(selector=selector):
                 item = self.rules[selector]
                 self.assertEqual(item, {"border-radius": "0"})
@@ -818,7 +823,20 @@ for radio in (False, True):
                 )
 
     def test_emoji_picker_cell_corners(self):
-        expected = {"popover.emoji-picker emoji"}
+        expected = {
+            "popover.emoji-picker emoji",
+            # The undershoot mirrors name the same picker substring.
+            "popover.emoji-picker scrolledwindow.view:not(.undershoot-top) > undershoot.top",
+            "popover.emoji-picker window.print:not(.ssd-frame) "
+            "scrolledwindow.dialog-action-box:not(.undershoot-top) > undershoot.top",
+            "window.print:not(.ssd-frame) popover.emoji-picker "
+            "scrolledwindow.dialog-action-box:not(.undershoot-top) > undershoot.top",
+            "popover.emoji-picker scrolledwindow.view:not(.undershoot-bottom) > undershoot.bottom",
+            "popover.emoji-picker window.print:not(.ssd-frame) "
+            "scrolledwindow.dialog-action-box:not(.undershoot-bottom) > undershoot.bottom",
+            "window.print:not(.ssd-frame) popover.emoji-picker "
+            "scrolledwindow.dialog-action-box:not(.undershoot-bottom) > undershoot.bottom",
+        }
         self.assertEqual(
             {selector for selector in self.rules if "emoji-picker" in selector},
             expected,
@@ -1062,6 +1080,60 @@ for radio in (False, True):
             "scrollbar > range > trough",
             {"transition": "none"},
         )
+
+    def test_undershoot_bands_cleared(self):
+        """Every stock undershoot context is mirrored, clearing its paint."""
+        self.assert_rule(
+            "scrolledwindow.undershoot-top > undershoot.top",
+            {"background": "none", "box-shadow": "none"},
+        )
+        self.assert_rule(
+            "scrolledwindow.undershoot-bottom > undershoot.bottom",
+            {"background": "none", "box-shadow": "none"},
+        )
+        self.assert_rule(
+            "scrolledwindow.undershoot-start:dir(ltr) > undershoot.left",
+            {"background": "none", "box-shadow": "none"},
+        )
+        self.assert_rule(
+            "scrolledwindow.undershoot-start:dir(rtl) > undershoot.right",
+            {"background": "none", "box-shadow": "none"},
+        )
+        self.assert_rule(
+            "scrolledwindow.undershoot-end:dir(ltr) > undershoot.right",
+            {"background": "none", "box-shadow": "none"},
+        )
+        self.assert_rule(
+            "scrolledwindow.undershoot-end:dir(rtl) > undershoot.left",
+            {"background": "none", "box-shadow": "none"},
+        )
+        for selector in (
+            "columnview ~ undershoot.top",
+            "treeview.view ~ undershoot.top",
+            "window.print:not(.ssd-frame) treeview.dialog-action-box ~ undershoot.top",
+            "dropdown popover.menu .dropdown-searchbar "
+            "+ scrolledwindow:not(.undershoot-top) > undershoot.top",
+            "combobox popover.menu .dropdown-searchbar "
+            "+ scrolledwindow:not(.undershoot-top) > undershoot.top",
+            "popover.emoji-picker scrolledwindow.view:not(.undershoot-top) > undershoot.top",
+            "popover.emoji-picker scrolledwindow.view:not(.undershoot-bottom) > undershoot.bottom",
+            "filechooser gridview ~ undershoot.top",
+            "filechooser placesview > stack > scrolledwindow > undershoot.bottom",
+            "row.combo popover > contents .combo-searchbar + scrolledwindow > undershoot.top",
+            "toolbarview.undershoot-top scrolledwindow > undershoot.top",
+            "toolbarview.undershoot-bottom scrolledwindow > undershoot.bottom",
+        ):
+            self.assert_rule(selector, {"background": "none", "box-shadow": "none"})
+
+    def test_overshoot_fades_cleared(self):
+        """Each overshoot direction is mirrored, clearing its radial glows."""
+        for selector in (
+            "scrolledwindow > overshoot.top",
+            "scrolledwindow > overshoot.bottom",
+            "scrolledwindow > overshoot.left",
+            "scrolledwindow > overshoot.right",
+        ):
+            self.assert_rule(selector, {"background-image": "none"})
 
     def test_progressbar(self):
         self.assert_progressbar(
