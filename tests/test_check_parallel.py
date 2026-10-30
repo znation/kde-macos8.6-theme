@@ -342,6 +342,29 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("AssertionError", result.stdout)
         self.assertIn("1 module failed", result.stdout)
 
+    def test_mixed_empty_and_failed_modules_report_both_outcomes(self):
+        empty_log = make_tmp_dir(self) / "empty.log"
+        empty_log.write_text(
+            "Ran 0 tests in 0.000s\n\nNO TESTS RAN\n", encoding="utf-8"
+        )
+        failed_log = make_tmp_dir(self) / "failed.log"
+        failed_log.write_text("failure detail\n", encoding="utf-8")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_empty", "test_failed"],
+                {"test_empty": 5, "test_failed": 1},
+                {"test_empty": str(empty_log), "test_failed": str(failed_log)},
+                10,
+            )
+        self.assertEqual(1, status)
+        self.assertIn("test_empty: ran no tests", output.getvalue())
+        self.assertIn("test_failed: exit 1", output.getvalue())
+        self.assertIn(
+            "check: 2 modules, 1 module failed, 1 module ran no tests",
+            output.getvalue(),
+        )
+
     def test_worker_terminal_controls_are_escaped_before_replay(self):
         tests_dir = self._project(
             {
