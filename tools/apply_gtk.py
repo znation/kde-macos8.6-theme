@@ -41,7 +41,7 @@ if __package__:
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import report_error, report_note
-    from tools.file_lock import exclusive_flock
+    from tools.file_lock import exclusive_flock, installed_data_lock
     from tools.gtk_settings import GTK_ID
     from tools.gtk_selection import (
         apply as _apply,
@@ -53,7 +53,7 @@ else:  # run directly: python3 tools/apply_gtk.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from diagnostics import report_error, report_note
-    from file_lock import exclusive_flock
+    from file_lock import exclusive_flock, installed_data_lock
     from gtk_settings import GTK_ID
     from gtk_selection import (
         apply as _apply,
@@ -104,34 +104,6 @@ def _config_lock(config_home: Path) -> Iterator[None]:
         lock_dir,
         "for the GTK selection",
         f"another apply-gtk/remove-gtk to finish with {config_home}",
-        timeout=LOCK_TIMEOUT,
-        error=ConfigError,
-    ):
-        yield
-
-
-@contextlib.contextmanager
-def _data_lock(data_home: Path) -> Iterator[None]:
-    """Serialize an apply's sheet check and selection with make install/uninstall.
-
-    ``make install`` and ``make uninstall`` hold an exclusive flock on the
-    data home for their whole run (the Makefile's ``run_locked``). An apply
-    checks that both installed sheets exist and then publishes a selection
-    naming them; without this lock an uninstall running concurrently could
-    remove the sheets between the check and the write, and the apply would
-    still report success while the selection named sheets that no longer
-    exist. Locking the data home itself -- the same inode the Makefile locks
-    -- makes an install or uninstall wait for the whole apply, and the
-    re-check under the lock catches sheets an uninstall removed before this
-    run took the lock. The data home already exists here (the sheet check
-    found both sheets under it); a data home that vanishes anyway refuses the
-    lock rather than being created. The timeout and error behavior are the
-    config lock's.
-    """
-    with exclusive_flock(
-        data_home,
-        "for the GTK selection",
-        f"another install or uninstall to finish with {data_home}",
         timeout=LOCK_TIMEOUT,
         error=ConfigError,
     ):
@@ -215,7 +187,12 @@ def main(argv: list[str] | None = None) -> int:
             # uninstall cannot remove the sheets between this check and the
             # selection that names them; the re-check under the lock catches
             # sheets removed before this run took the lock.
-            with _data_lock(data_home):
+            with installed_data_lock(
+                data_home,
+                "for the GTK selection",
+                LOCK_TIMEOUT,
+                error=ConfigError,
+            ):
                 sheets = _installed_sheets(data_home)
                 if sheets is None:
                     return 1

@@ -79,3 +79,27 @@ def exclusive_flock(
     finally:
         # Closing the descriptor releases the lock even when the body raised.
         os.close(descriptor)
+
+
+@contextlib.contextmanager
+def installed_data_lock(
+    data_home: Path,
+    artifact: str,
+    timeout: float,
+    *,
+    error: type[Exception],
+) -> Iterator[None]:
+    """Serialize an installed-artifact check and selection with install runs.
+
+    The Makefile install and uninstall targets hold this same data-home inode
+    for their full run. Callers check their installed files again while this
+    lock is held, so an uninstall cannot invalidate a selection mid-run.
+    """
+    with exclusive_flock(
+        data_home,
+        artifact,
+        f"another install or uninstall to finish with {data_home}",
+        timeout,
+        error=error,
+    ):
+        yield
