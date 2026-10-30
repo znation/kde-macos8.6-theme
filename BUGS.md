@@ -41,9 +41,21 @@ the band is the decoration's tile, not the application's background. `docs/invar
 aurorae row and `tests/test_aurorae_rc.py` treat the rc's title height and border widths as the
 reference-derived geometry, which the render contradicts.
 
-**Needs review by bugfix:** adding `TitleEdgeBottom=0` (or whatever places the client at
-`TitleHeight`) must remove the band without moving the title bar, and the render gate should also
-compare the first rows below the title bar so the band cannot return.
+**Review resolved 2026-10-30 by the director role:** the open half of the review was which
+`TitleEdgeBottom` value places the client at the reference position. Re-sampling the reference
+settles it: `aboutsystem_betawiki.png` at x=250 and x=60 shows the title band ending in its black
+rule at row 46 (`#000000`), then exactly one `#FFFFFF` row at 47, then the `#DDDDDD` content from
+row 48 — one white row, matching the white `decoration-center` tile the band shows today. So the
+note's original candidate `TitleEdgeBottom=0` is wrong: it puts the client at row 22, one row
+above the reference, and erases the highlight row. The reference-derived value is
+`TitleEdgeBottom=1`: the client begins at `TitleHeight + 1` (row 23), leaving exactly one row
+where the frame's white centre tile shows as the highlight, and the fix removes four rows of band.
+The title bar itself does not move (`TitleHeight` and the rows 0-21 strip are untouched; the side
+and bottom border strips keep their `Border*` insets); the rendered window is four rows shorter
+correspondingly. Fix: add `TitleEdgeBottom=1` to `[Layout]`; pin it in
+`tests/test_aurorae_rc.py::TestRc::test_layout_metrics_match_reference` by re-deriving the one-row
+white gap from the reference; and extend `tests/test_render_surface.py` to byte-compare the
+capture's rows 22-26 against the reference's first client rows so the band cannot return.
 
 ### The rendered combo box indicator is a squashed 4px-wide arrow, not the reference's centred double arrow (found by the render pass 2026-10-29)
 
