@@ -96,14 +96,6 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 3 notebook tabs: declare a focused outline (planned 2026-10-29 by the plan role; independent of the queued horizontal spin-button outline plan) — done 2026-10-29 by the feature role
-
-**Goal.** Give focused GTK 3 notebook tab nodes an explicit Platinum outline. The existing notebook tab paint rules declare no focus outline; the completed notebook focus-color and transition plans target GTK 4.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside the notebook tab paint rules, add `notebook > header > tabs > tab:focus` declaring `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0`. This selector also matches a focused tab bearing `.reorderable-page`. Add a dated adaptation comment naming the missing GTK notebook keyboard-focus reference and the source: reuse `button:focus`'s outline, offset and square corners. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_notebook_tab_focus_outline` beside `test_notebook_header`, following `test_checkbutton_focus_outline`: assert the three declarations with `assert_rule` and `BLACK`, then compare each against `button:focus`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and adaptation provenance. The installed GTK 3 resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29, supplies outline width/style/offset and GTK outline radius in its universal rule; these values replace that inherited recipe with the theme's existing button policy. Keep library names outside CSS for the standalone-sheet check.
-
-**Acceptance criteria.** The named notebook tab focus selector explicitly declares a 1px dotted black outline, zero offset and zero GTK outline radius; removing or changing a declaration fails the new test. Existing tab-paint tests pass. Document the values as a platform adaptation rather than screenshot measurements. Declaration tests do not establish rendered focus pixels or keyboard traversal behavior. Scope is the three named files; no new artwork or dependency. This and the horizontal spin-button plan may merge in either order. `make check` passes.
-
 ### Platinum GTK 3 calendars: declare a focused outline (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan)
 
 **Goal.** Declare an explicit Platinum outline for focused GTK 3 calendar nodes. The sheet currently declares selected-day and other-month colors but no `calendar:focus` outline; the completed calendar focus-outline plan targets GTK 4 labels.
