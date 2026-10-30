@@ -28,6 +28,7 @@ def _print_results(modules: list[str], statuses: dict[str, int | None],
     failed = timed_out = not_finished = no_tests = 0
     for module in modules:
         log_text = ""
+        log_error = None
         if module in log_paths:
             try:
                 with open(log_paths[module], encoding="utf-8", errors="replace") as log:
@@ -35,8 +36,11 @@ def _print_results(modules: list[str], statuses: dict[str, int | None],
                         escape_controls(line) for line in log.read().split("\n")
                     )
             except OSError:
-                log_text = ""
-        if module not in statuses:
+                log_error = "worker log could not be read"
+        if log_error is not None:
+            verdict = log_error
+            failed += 1
+        elif module not in statuses:
             verdict = "did not finish"
             not_finished += 1
         elif statuses[module] is None:

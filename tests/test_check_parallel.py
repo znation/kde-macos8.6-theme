@@ -18,6 +18,8 @@ The Makefile wiring (the CHECK_PARALLEL variable and its guard) is pinned in
 from __future__ import annotations
 
 import os
+import contextlib
+import io
 import signal
 import subprocess
 import sys
@@ -93,6 +95,16 @@ class TestCoordinator(unittest.TestCase):
 
     def _run(self, *args):
         return run_main(check_parallel.main, "tools/check_parallel.py", args)
+
+    def test_missing_worker_log_fails_even_when_worker_exited_zero(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            status = check_parallel._print_results(
+                ["test_ok"], {"test_ok": 0}, {"test_ok": "/missing/worker.log"}, 10
+            )
+        self.assertEqual(1, status)
+        self.assertIn("test_ok: worker log could not be read", output.getvalue())
+        self.assertIn("1 module failed", output.getvalue())
 
     def test_every_module_runs_and_output_is_ordered(self):
         # Both modules pass; the coordinator prints one section per module
