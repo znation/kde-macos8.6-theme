@@ -1063,6 +1063,19 @@ switch:checked {
   background-image: none;
 }
 
+/* No reference shows GTK switch interaction tracks; reuse the existing track faces (2026-10-29). */
+switch:hover,
+switch:active {
+  background-color: #EEEEEE;
+  background-image: none;
+}
+
+switch:checked:hover,
+switch:checked:active {
+  background-color: #FFFFFF;
+  background-image: none;
+}
+
 switch:disabled {
   /* No reference shows a disabled GTK switch; preserve the Platinum palette. */
   filter: none;

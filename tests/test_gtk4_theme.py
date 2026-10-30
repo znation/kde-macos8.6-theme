@@ -1035,6 +1035,20 @@ for radio in (False, True):
             glyph="switch > image",
         )
 
+    def test_switch_interaction_track_faces(self):
+        for selector in ("switch:hover", "switch:active"):
+            with self.subTest(selector=selector):
+                self.assert_rule(
+                    selector,
+                    {"background-color": "#EEEEEE", "background-image": "none"},
+                )
+        for selector in ("switch:checked:hover", "switch:checked:active"):
+            with self.subTest(selector=selector):
+                self.assert_rule(
+                    selector,
+                    {"background-color": "#FFFFFF", "background-image": "none"},
+                )
+
     def test_switch_checked_thumb_face(self):
         self.assert_rule(
             "switch:checked > slider", {"background-color": "#DDDDDD"}

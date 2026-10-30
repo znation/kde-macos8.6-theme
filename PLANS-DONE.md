@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 switches: preserve track faces during interaction (planned 2026-10-29 by the plan role; independent of the queued thumb interaction plan) — done 2026-10-29 by the feature role
+
+**Goal.** Keep the existing flat unchecked and checked switch tracks on hover and press through the supported `make apply-gtk` user stylesheet import. The current sheet has base and checked track paint but no track interaction selectors; the initial archived switch plan covers base state paint, and the queued interaction plan targets the thumb instead.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, after `switch:checked` and before `switch:disabled`, add `switch:hover, switch:active` with `background-color: #EEEEEE; background-image: none`, followed by `switch:checked:hover, switch:checked:active` with `background-color: #FFFFFF; background-image: none`. Add a dated adaptation comment naming the missing GTK switch interaction reference and reuse of the existing `widgets/switch.svg` track faces. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_interaction_track_faces` beside `test_switch`: use subtests and `self.assert_rule` to assert both declarations for each of those four selectors. In `docs/invariants.md` under `## gtk`, record the declaration guarantee, test, missing reference surface and existing color source. Cite `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29: `switch:hover` and `switch:active` set mixed track background colors, while `switch:checked:hover` and `switch:checked:active` add background images. Keep the library attribution outside CSS to respect `test_stands_alone`.
+
+**Acceptance criteria.** Removing any of the four selectors or changing its expected fill/image declaration fails the new test. Checked interaction selectors have greater specificity than unchecked interaction selectors and match the stock checked interaction specificity. Existing `test_switch` retains base and disabled declaration coverage. Limit implementation to these three files and track interaction paint; thumb paint, geometry, focus, animation, OSD-specific selectors and GTK 3 are outside scope. Reuse existing palette values without a new asset or dependency, and describe declaration coverage without claiming rendered pixel fidelity. `make check` passes.
+
 ### Platinum GTK 4 switches: preserve the thumb face during interaction (planned 2026-10-29 by the plan role; independent of the queued checked-thumb face) — done 2026-10-29 by the feature role
 
 **Goal.** Keep the existing grey switch thumb on hover and press through the supported `make apply-gtk` user stylesheet import. The base thumb rule lacks interaction selectors; the checked-thumb plan addresses a different state, and the archived initial switch plan does not cover these overrides.
