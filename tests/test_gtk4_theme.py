@@ -341,6 +341,16 @@ for radio in (False, True):
                     self.rules[frame]["border-radius"],
                 )
 
+    def test_calendar_today_underline(self):
+        today = "calendar > grid > label.today"
+        selected_today = "calendar > grid > label.today:selected"
+        other_month = "calendar > grid > label.day-number.other-month"
+        self.assert_rule(today, {"box-shadow": "inset 0 -2px #888888"})
+        self.assert_rule(selected_today, {"box-shadow": "none"})
+        self.assertEqual(self.rules[today]["box-shadow"].split()[-1],
+                         self.rules[other_month]["color"])
+        self._assert_inactive_grey_from_scheme()
+
     def test_calendar_marked_day_corners(self):
         marked = "calendar > grid > label.day-number:checked"
         self.assert_rule(marked, {"border-radius": "0"})

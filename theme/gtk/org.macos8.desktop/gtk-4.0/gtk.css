@@ -1012,6 +1012,14 @@ calendar > header {
 calendar > grid > label.day-number.other-month {
   color: #888888;
 }
+/* No GTK calendar appears in the reference; reuse the inactive-text grey for
+   today's marker (recorded 2026-10-29 by the feature role). */
+calendar > grid > label.today {
+  box-shadow: inset 0 -2px #888888;
+}
+calendar > grid > label.today:selected {
+  box-shadow: none;
+}
 
 /* An infobar draws the menu-bar band: the #DDDDDD face, black text and the
    etched bottom rule. The info, question, warning and error type classes all
