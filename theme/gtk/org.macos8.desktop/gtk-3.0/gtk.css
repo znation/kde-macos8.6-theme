@@ -238,6 +238,14 @@ button {
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
 }
 
+/* GTK 3 has no reference button-focus surface; reuse the dotted black
+   scale-focus outline and offset, with square button corners. */
+button:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 button:hover {
   background-color: #DDDDDD;
 }

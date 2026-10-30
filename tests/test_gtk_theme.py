@@ -736,6 +736,27 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
         self.assertEqual((width, style, color), ("1px", "dotted", BLACK))
         self.assertEqual(self.rules["scale trough"]["border-radius"], "0")
 
+    def test_button_focus_outline(self):
+        self.assert_rule(
+            "button:focus",
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        self.assertEqual(
+            self.rules["button:focus"]["outline"], self.rules["scale:focus"]["outline"]
+        )
+        self.assertEqual(
+            self.rules["button:focus"]["outline-offset"],
+            self.rules["scale:focus"]["outline-offset"],
+        )
+        self.assertEqual(
+            self.rules["button:focus"]["-gtk-outline-radius"],
+            self.rules["button"]["border-radius"],
+        )
+
     def test_menubar_titles(self):
         self.assert_menubar_titles("menubar > menuitem")
 

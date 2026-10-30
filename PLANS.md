@@ -108,12 +108,4 @@ _None yet._
 
 _None yet._
 
-### Platinum GTK 3 buttons: declare a focused outline (planned 2026-10-29 by the plan role; independent of GTK 4 scrollbar work)
-
-**Goal.** Give focused GTK 3 button nodes an explicit Platinum outline. The standalone sheet declares button faces and pressed states but no button focus selector; this establishes a CSS declaration guarantee without claiming that rendered buttons currently lack focus feedback.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, place `button:focus { outline: 1px dotted #000000; outline-offset: 0; -gtk-outline-radius: 0; }` beside the generic button rules. Apply it to button nodes, including specialized button nodes, rather than adding widget-specific variants. Add a dated adaptation comment: the reference set provides no GTK button-focus surface; reuse the existing `scale:focus` dotted black outline and zero offset, with square corners matching `button`'s zero border radius. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_button_focus_outline` using `assert_rule` and `BLACK`; compare the outline and offset to `scale:focus` and the GTK outline radius to `button`'s border radius. Under `## gtk` in `docs/invariants.md`, add the declaration guarantee, test, missing reference surface and adaptation sources. Cite toolkit property provenance there: `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-29, declares outline width/style/offset and `-gtk-outline-radius` in its universal rule. Keep library names outside CSS to preserve the standalone-sheet test.
-
-**Acceptance criteria.** `button:focus` explicitly declares the dotted black 1px outline, zero offset and zero GTK outline radius; removing or changing a declaration fails the new test. The adaptation is documented without calling these screenshot measurements. Existing button face and state coverage passes. Limit implementation to the three named files; leave scale focus declarations and button face geometry intact. Declaration checks do not establish rendered focus pixels or keyboard traversal behavior. `make check` passes.
-
 ## Done
