@@ -870,6 +870,14 @@ switch:checked {
   background-image: none;
 }
 
+/* GTK 3 has no reference switch-focus surface; reuse the dotted black
+   button-focus outline and offset, with square outline corners (2026-10-29). */
+switch:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 switch:disabled {
   border-color: #999999;
 }

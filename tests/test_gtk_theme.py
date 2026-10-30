@@ -713,6 +713,21 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
             glyph="switch image",
         )
 
+    def test_switch_focus_outline(self):
+        self.assert_rule(
+            "switch:focus",
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules["switch:focus"][property_name],
+                self.rules["button:focus"][property_name],
+            )
+
     def test_scale(self):
         self.assert_scale(
             trough="scale trough",
