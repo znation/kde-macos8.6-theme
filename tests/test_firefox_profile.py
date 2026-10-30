@@ -59,10 +59,19 @@ class TestProfileResolution(FirefoxProfileTestCase):
             self.resolve(str(missing))
         self.assertIn(str(missing), str(caught.exception))
 
-    def test_unusable_home_is_refused(self):
+    def test_a_relative_home_is_refused_with_its_value(self):
         with self.assertRaises(firefox_user_files.ConfigError) as caught:
             self.resolve(None, {"HOME": "relative/home"})
-        self.assertIn("HOME", str(caught.exception))
+        message = str(caught.exception)
+        self.assertIn("HOME is not an absolute path ('relative/home')", message)
+        self.assertIn("--profile", message)
+
+    def test_an_unset_home_is_refused_as_unset(self):
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve(None, {})
+        message = str(caught.exception)
+        self.assertIn("HOME is unset", message)
+        self.assertIn("--profile", message)
 
     def test_installs_ini_default_is_the_first_candidate(self):
         profile = self.firefox_root / "Profiles" / "installed.default"

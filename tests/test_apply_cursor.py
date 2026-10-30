@@ -86,14 +86,26 @@ class CursorCase(unittest.TestCase):
 
 class TestHomes(CursorCase):
     def test_absolute_home_is_required(self):
-        for home in (None, "relative/home"):
+        for home, expected in (
+            (None, "HOME is unset; export an absolute HOME"),
+            ("", "HOME is unset; export an absolute HOME"),
+            ("relative/home", "HOME is not an absolute path ('relative/home')"),
+        ):
             with self.subTest(home=home):
                 env = {"XDG_DATA_HOME": str(self.data)}
                 if home is not None:
                     env["HOME"] = home
                 result = self.run_tool(env=env)
                 assert_exit_2_without_traceback(self, result)
-                self.assertIn("HOME", result.stderr)
+                self.assertIn(expected, result.stderr)
+
+    def test_home_value_reaches_the_diagnostic_escaped(self):
+        # HOME can carry a control byte when a caller runs the tool directly
+        # instead of through make's guards; the diagnostic must display it
+        # escaped, never raw.
+        result = self.run_tool(env={"HOME": "home\x1bdir"})
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn("HOME is not an absolute path ('home\\u001bdir')", result.stderr)
 
     def test_data_home_falls_back_to_home(self):
         home, data, config = apply_cursor.resolve_homes(

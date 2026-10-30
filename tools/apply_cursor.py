@@ -87,8 +87,13 @@ def resolve_homes(env: dict[str, str]) -> tuple[Path, Path, Path]:
     """
     home = env.get("HOME", "")
     if not os.path.isabs(home):
+        # Name the received value, so the diagnosis distinguishes an unset
+        # HOME from a relative one; the shell quoting marks the value's
+        # bounds, and report_error's escaping keeps every byte from reaching
+        # a terminal raw.
+        state = "unset" if not home else f"not an absolute path ('{home}')"
         raise CursorError(
-            "HOME is unset or not absolute; export an absolute HOME"
+            f"HOME is {state}; export an absolute HOME"
         )
     home_path = Path(home)
     # ``HOME`` is absolute, so both XDG fallbacks resolve to a path.

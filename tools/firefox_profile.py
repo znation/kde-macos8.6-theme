@@ -160,8 +160,13 @@ def resolve_profile(explicit: str | None, env: dict[str, str]) -> Path:
 
     home = env.get("HOME", "")
     if not os.path.isabs(home):
+        # Name the received value, so the diagnosis distinguishes an unset
+        # HOME from a relative one, alongside the two fixes; report_error's
+        # escaping keeps every byte from reaching a terminal raw.
+        state = "unset" if not home else f"not an absolute path ('{home}')"
         raise ConfigError(
-            "HOME is unset or not absolute and no Firefox profile was named"
+            f"HOME is {state} and no Firefox profile was named; set HOME to "
+            "an absolute path or pass --profile"
         )
     root = Path(home) / ".mozilla" / "firefox"
     candidates = _candidates(root)
