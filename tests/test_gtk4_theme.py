@@ -428,6 +428,14 @@ for radio in (False, True):
             self.rules["scale > trough > slider"]["transition"],
         )
 
+    def test_notebook_focus_outline_color(self):
+        focus = "notebook:focus:focus-visible > header > tabs > tab:checked"
+        self.assert_rule(focus, {"outline-color": BLACK})
+        self.assertEqual(
+            self.rules[focus]["outline-color"],
+            self.rules["scale:focus:focus-visible > trough > slider"]["outline-color"],
+        )
+
     def test_calendar_header_separator(self):
         header = "calendar > header"
         infobar = "infobar > revealer > box"
