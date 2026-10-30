@@ -1040,6 +1040,11 @@ for radio in (False, True):
             "switch:checked > slider", {"background-color": "#DDDDDD"}
         )
 
+    def test_switch_interaction_thumb_face(self):
+        for selector in ("switch:hover > slider", "switch:active > slider"):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"background-color": "#DDDDDD"})
+
     def test_switch_disabled_filter(self):
         self.assert_rule("switch:disabled", {"filter": "none"})
 

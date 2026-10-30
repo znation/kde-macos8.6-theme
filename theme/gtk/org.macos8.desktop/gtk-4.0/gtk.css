@@ -1080,6 +1080,12 @@ switch > slider {
   min-height: 16px;
 }
 
+/* No reference shows GTK switch interaction states; keep the existing thumb face (2026-10-29). */
+switch:hover > slider,
+switch:active > slider {
+  background-color: #DDDDDD;
+}
+
 switch:checked > slider {
   /* No reference shows a checked GTK switch; reuse the existing thumb face (2026-10-29). */
   background-color: #DDDDDD;
