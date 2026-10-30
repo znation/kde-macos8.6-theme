@@ -75,7 +75,12 @@ def _candidate(
     if not value:
         return None
     path = Path(value)
-    if section.get("IsRelative", fallback="1").strip() != "0":
+    is_relative = section.get("IsRelative", fallback="1").strip()
+    if is_relative not in {"0", "1"}:
+        raise ConfigError(
+            f"invalid IsRelative value {is_relative!r} for Firefox profile path {value!r}; expected 0 or 1"
+        )
+    if is_relative != "0":
         return root / path
     return path
 

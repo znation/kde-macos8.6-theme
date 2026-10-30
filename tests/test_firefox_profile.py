@@ -251,6 +251,19 @@ class TestProfileResolution(FirefoxProfileTestCase):
         )
         self.assertEqual(chosen, self.resolve())
 
+    def test_invalid_is_relative_value_is_reported_with_its_profile_path(self):
+        self.firefox_root.mkdir(parents=True)
+        profiles = self.firefox_root / "profiles.ini"
+        _write(
+            profiles,
+            "[Profile0]\nPath=outside.default\nIsRelative=yes\n",
+        )
+        with self.assertRaises(firefox_user_files.ConfigError) as caught:
+            self.resolve()
+        self.assertIn("IsRelative value 'yes'", str(caught.exception))
+        self.assertIn("outside.default", str(caught.exception))
+        self.assertIn("expected 0 or 1", str(caught.exception))
+
     def test_a_malformed_profiles_ini_is_reported_by_name(self):
         # A hand-edited profiles.ini that is not INI at all must be reported
         # by path. The reader's docstring promises a by-name ConfigError;
