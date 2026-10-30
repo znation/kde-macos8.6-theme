@@ -291,6 +291,12 @@ entry {
   transition: none;
 }
 
+/* No GTK spin-button focus-motion reference; reuse the immediate
+ * scale-focus policy. Recorded 2026-10-29 by the feature role. */
+spinbutton {
+  transition: none;
+}
+
 /* No GTK entry-focus reference; reuse the scale-focus black. The stock
  * outline width and offset remain inherited. Recorded 2026-10-29. */
 entry:focus-within {

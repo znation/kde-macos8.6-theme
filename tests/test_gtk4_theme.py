@@ -470,6 +470,13 @@ for radio in (False, True):
             self.rules["scale > trough > slider"]["transition"],
         )
 
+    def test_spinbutton_focus_transition(self):
+        self.assert_rule("spinbutton", {"transition": "none"})
+        self.assertEqual(
+            self.rules["spinbutton"]["transition"],
+            self.rules["scale > trough > slider"]["transition"],
+        )
+
     def test_checkbutton_focus_transition(self):
         self.assert_rule("checkbutton", {"transition": "none"})
         self.assertEqual(
