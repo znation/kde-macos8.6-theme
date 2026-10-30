@@ -564,6 +564,16 @@ paned.vertical > separator {
   margin: 0;
 }
 
+/* No GTK split-pane reference is available; clear the stock images to expose
+ * the reference-grounded etched separator policy. */
+paned > separator,
+paned > separator:selected,
+paned > separator:backdrop,
+paned > separator.wide,
+paned > separator.wide:backdrop {
+  background-image: none;
+}
+
 headerbar separator.titlebutton, .titlebar separator.titlebutton {
   opacity: 0;
 }

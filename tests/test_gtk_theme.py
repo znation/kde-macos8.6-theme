@@ -557,6 +557,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_paned_handle(self):
         self.assert_paned_handles()
 
+    def test_paned_handle_background_images(self):
+        for selector in (
+            "paned > separator",
+            "paned > separator:selected",
+            "paned > separator:backdrop",
+            "paned > separator.wide",
+            "paned > separator.wide:backdrop",
+        ):
+            self.assert_rule(selector, {"background-image": "none"})
+
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 

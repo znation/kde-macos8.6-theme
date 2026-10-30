@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 paned handles: clear stock background images (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** Let the existing etched split-handle background color show through instead of a stock background image. The completed paned-handle plan supplies geometry, colors and `-gtk-icon-source: none`, but the GTK 3 sheet has no paned background-image override; that property is distinct from the icon source.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside the paned orientation rules, add one grouped rule declaring `background-image: none` for `paned > separator`, `paned > separator:selected`, `paned > separator:backdrop`, `paned > separator.wide` and `paned > separator.wide:backdrop`. These match the image-bearing stock selectors without changing the etched geometry. Add a dated adaptation comment naming the missing GTK split-pane reference and reusing the existing etched separator policy; keep library names outside CSS. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_paned_handle_background_images` next to `test_paned_handle`, using `assert_rule` to require `background-image: none` on each named selector. Under `## gtk` in `docs/invariants.md`, record the new GTK 3 declaration guarantee and test, with provenance: inspected 2026-10-29, `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` supplies grey images on the base, backdrop and wide handles and a blue image on `:selected`; the clearing value exposes the theme's existing reference-grounded etch, whose colors are pinned by `tests/test_desktoptheme_line.py::TestLineReference`. No reference screenshot shows a GTK split pane.
+
+**Acceptance criteria.** Each named selector explicitly clears its background image, and removing or changing a declaration fails the new test. Existing `test_paned_handle` and separator checks pass. Keep scope to the three named files, with no new palette value, geometry, artwork or dependency. Document that declaration checks establish neither rendered pixels nor keyboard behavior. GTK 4 is outside this focused change. `make check` passes.
+
 ### Platinum GTK 3 expanders: declare a focused title outline (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Give GTK 3 expander titles an explicit Platinum focus outline; the existing expander rules paint disclosure arrows without declaring a focused title outline.
