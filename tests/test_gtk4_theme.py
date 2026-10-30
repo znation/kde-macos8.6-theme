@@ -91,6 +91,13 @@ DEFINED_COLOURS = {
     "scrollbar_outline_color": BLACK,
 }
 
+# The scale slider anchors the sheet's focus colour and its transition policy:
+# every control that states an outline colour or a transition repeats the
+# value the scale states, and these suites keep those two selectors as one.
+SCALE_FOCUS = "scale:focus:focus-visible > trough > slider"
+SCALE_SLIDER = "scale > trough > slider"
+
+
 class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
     def test_mixed_indicators_draw_black_dashes(self):
         # Isolate GTK 4 from the GTK 3 introspection used by the other suite.
@@ -406,8 +413,24 @@ for radio in (False, True):
         self.assertEqual(self.rules[focus]["outline-color"], BLACK)
         self.assertTrue(self.rules["calendar"]["border"].endswith(BLACK))
 
+    def assert_scale_focus_outline(self, focus):
+        """Assert *focus* states the black outline the scale focus states."""
+        self.assert_rule(focus, {"outline-color": BLACK})
+        self.assertEqual(
+            self.rules[focus]["outline-color"],
+            self.rules[SCALE_FOCUS]["outline-color"],
+        )
+
+    def assert_scale_slider_transition(self, selector):
+        """Assert *selector* keeps the no-transition the scale slider keeps."""
+        self.assert_rule(selector, {"transition": "none"})
+        self.assertEqual(
+            self.rules[selector]["transition"],
+            self.rules[SCALE_SLIDER]["transition"],
+        )
+
     def test_scale_focus_outline_color(self):
-        focus = "scale:focus:focus-visible > trough > slider"
+        focus = SCALE_FOCUS
         self.assert_rule(focus, {"outline-color": BLACK})
         self.assertEqual(
             self.rules[focus]["outline-color"],
@@ -415,89 +438,43 @@ for radio in (False, True):
         )
 
     def test_button_focus_outline_color(self):
-        focus = "button:focus:focus-visible"
-        scale_focus = "scale:focus:focus-visible > trough > slider"
-        self.assert_rule(focus, {"outline-color": BLACK})
-        self.assertEqual(
-            self.rules[focus]["outline-color"],
-            self.rules[scale_focus]["outline-color"],
-        )
+        self.assert_scale_focus_outline("button:focus:focus-visible")
 
     def test_entry_focus_outline_color(self):
-        focus = "entry:focus-within"
-        scale_focus = "scale:focus:focus-visible > trough > slider"
-        self.assert_rule(focus, {"outline-color": BLACK})
-        self.assertEqual(
-            self.rules[focus]["outline-color"],
-            self.rules[scale_focus]["outline-color"],
-        )
+        self.assert_scale_focus_outline("entry:focus-within")
 
     def test_spinbutton_focus_outline_color(self):
-        focus = "spinbutton:focus-within"
-        scale_focus = "scale:focus:focus-visible > trough > slider"
-        self.assert_rule(focus, {"outline-color": BLACK})
-        self.assertEqual(
-            self.rules[focus]["outline-color"],
-            self.rules[scale_focus]["outline-color"],
-        )
+        self.assert_scale_focus_outline("spinbutton:focus-within")
 
     def test_checkbutton_focus_outline_color(self):
-        focus = "checkbutton:focus:focus-visible"
-        scale_focus = "scale:focus:focus-visible > trough > slider"
-        self.assert_rule(focus, {"outline-color": BLACK})
-        self.assertEqual(
-            self.rules[focus]["outline-color"],
-            self.rules[scale_focus]["outline-color"],
-        )
+        self.assert_scale_focus_outline("checkbutton:focus:focus-visible")
 
     def test_calendar_focus_transition(self):
         self.assert_rule("calendar > grid > label", {"transition": "none"})
 
     def test_scale_focus_transition(self):
-        self.assert_rule("scale > trough > slider", {"transition": "none"})
+        self.assert_rule(SCALE_SLIDER, {"transition": "none"})
 
     def test_button_focus_transition(self):
-        self.assert_rule("button", {"transition": "none"})
-        self.assertEqual(
-            self.rules["button"]["transition"],
-            self.rules["scale > trough > slider"]["transition"],
-        )
+        self.assert_scale_slider_transition("button")
 
     def test_entry_focus_transition(self):
-        self.assert_rule("entry", {"transition": "none"})
-        self.assertEqual(
-            self.rules["entry"]["transition"],
-            self.rules["scale > trough > slider"]["transition"],
-        )
+        self.assert_scale_slider_transition("entry")
 
     def test_spinbutton_focus_transition(self):
-        self.assert_rule("spinbutton", {"transition": "none"})
-        self.assertEqual(
-            self.rules["spinbutton"]["transition"],
-            self.rules["scale > trough > slider"]["transition"],
-        )
+        self.assert_scale_slider_transition("spinbutton")
 
     def test_checkbutton_focus_transition(self):
-        self.assert_rule("checkbutton", {"transition": "none"})
-        self.assertEqual(
-            self.rules["checkbutton"]["transition"],
-            self.rules["scale > trough > slider"]["transition"],
-        )
+        self.assert_scale_slider_transition("checkbutton")
 
     def test_notebook_focus_transition(self):
-        notebook_tab = "notebook > header > tabs > tab:checked"
-        self.assert_rule(notebook_tab, {"transition": "none"})
-        self.assertEqual(
-            self.rules[notebook_tab]["transition"],
-            self.rules["scale > trough > slider"]["transition"],
+        self.assert_scale_slider_transition(
+            "notebook > header > tabs > tab:checked"
         )
 
     def test_notebook_focus_outline_color(self):
-        focus = "notebook:focus:focus-visible > header > tabs > tab:checked"
-        self.assert_rule(focus, {"outline-color": BLACK})
-        self.assertEqual(
-            self.rules[focus]["outline-color"],
-            self.rules["scale:focus:focus-visible > trough > slider"]["outline-color"],
+        self.assert_scale_focus_outline(
+            "notebook:focus:focus-visible > header > tabs > tab:checked"
         )
 
     def test_calendar_header_separator(self):
@@ -1279,12 +1256,7 @@ for radio in (False, True):
         self.assert_rule("switch", {"transition": "none"})
 
     def test_switch_focus_outline_color(self):
-        focus = "switch:focus:focus-visible"
-        self.assert_rule(focus, {"outline-color": BLACK})
-        self.assertEqual(
-            self.rules[focus]["outline-color"],
-            self.rules["scale:focus:focus-visible > trough > slider"]["outline-color"],
-        )
+        self.assert_scale_focus_outline("switch:focus:focus-visible")
 
     def test_switch_interaction_track_faces(self):
         for selector in ("switch:hover", "switch:active"):
