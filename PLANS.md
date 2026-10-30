@@ -150,4 +150,114 @@ name no longer appears under `tests/`, the README paragraph names 3.13 and
 still mentions the 3.10 Makefile floor, the bug record has moved from
 BUGS.md to BUGS-FIXED.md in the stated form, and `make check` passes.
 
+### Platinum Firefox toolbar fields on Firefox 153.6: bind the field paint to the class-only urlbar background band and paint the live `#searchbar-new` with the landed field recipe (planned 2026-10-30 by the plan role; independent of the waiting GTK 3 OSD-overlay plan — it rewrites the landed urlbar rule and its field tests in `theme/firefox/org.macos8.desktop/chrome/userChrome.css`, `tests/support/firefox_chrome_cases.py` and `tests/test_firefox_theme_shell.py` and edits the `## firefox` invariants row, while that entry appends rules to the GTK 3 sheet, adds a test beside the gtk suite's `test_app_notification_band` and appends a row in the `## gtk` table; no shared file, selector or test)
+
+**Goal.** The landed `#urlbar-background` rule never matches anything in the
+currently installed Firefox ESR 153.6.0esr, so the address field draws stock
+today, and the toolbar search field that Firefox actually shows —
+`<html:moz-urlbar id="searchbar-new">` under the default
+`browser.search.widget.new=true` — has never been painted. Bind the field
+paint to the band Firefox really renders (a class-only `.urlbar-background`
+div under each urlbar host) and give the live search widget the same
+unfocused Platinum field recipe.
+
+**Verified facts (probed 2026-10-30, installed Firefox 153.6.0esr,
+`/usr/lib/firefox-esr/browser/omni.ja`).** The urlbar background div comes
+from `chrome/browser/content/browser/urlbar/UrlbarInput.mjs`'s `#markup`
+template as `<html:div class="urlbar-background"/>` — class only, no id —
+and a grep over the fully extracted `omni.ja` chrome tree found no element
+with `id="urlbar-background"` (the id is assigned nowhere in
+`UrlbarInput.mjs` or any member), so the landed `#urlbar-background`
+selector matches nothing in this Firefox. The band's stock paint lives in
+`chrome/browser/skin/classic/browser/urlbar-searchbar.css`:
+`.urlbar-background` (appended after the focused colour-scheme arms)
+draws `background-color: var(--urlbar-background-background-color)`, a
+token-formed border and `var(--urlbar-background-border-radius)`, its
+`.urlbar:is([focused], [open]) > &` sibling paints focus/open variants, and
+`.urlbar[breakout-extend] > &` re-draws the band as the results bubble's
+ground (box-shadow breakout). Both toolbar fields are the same widget:
+`browser.xhtml` says `<html:moz-urlbar id="urlbar" class="urlbar" ...
+sap-name="urlbar">` (the address field) and
+`<html:moz-urlbar id="searchbar-new" class="urlbar" ...
+sap-name="searchbar">` (the search field, around line 6585), while
+`defaults/preferences/firefox.js` line 273 pins
+`pref("browser.search.widget.new", true)` — under that default
+`urlbar-searchbar.css`'s `@media -moz-pref("browser.search.widget.new")`
+block holds `#searchbar { display: none }` and the landed
+`#searchbar:not(:focus-within)` recipe is dead code here (it stays live
+for a user who turns the pref off, so the plan keeps that rule and its
+test entry untouched). The `SmartbarInput.mjs` markup also carries a
+`class="urlbar-background"` div under a smartbar host, which is why the
+new selector binds the class to the two `moz-urlbar` ids instead of the
+bare class. No collected reference screenshot shows Firefox chrome, so
+this reuses the landed field recipe's provenance exception: white face and
+black 1px square border from the landed `#urlbar-background` declarations,
+pinned palette from `tests/support/platinum_palette.py` (`WHITE`, `BLACK`).
+
+**Approach and files.** (1) In
+`theme/firefox/org.macos8.desktop/chrome/userChrome.css`, replace the
+landed `#urlbar-background` rule (before the `.urlbarView-row` block) and
+its "Paint only the unfocused classic search field" companion comment with
+one dated provenance comment — no reference shows Firefox's toolbar
+fields; the id wound up class-only in Firefox ESR 153.6 (`UrlbarInput.mjs`
+markup, checked against the extracted `omni.ja` on 2026-10-30); the default
+search widget is `#searchbar-new`; the recipe reuses the landed field recipe
+— followed by exactly one grouped rule:
+`#urlbar:not([focused], [open]) > .urlbar-background, #searchbar-new:not([focused], [open]) > .urlbar-background`
+declaring the landed four declarations — `background-color: #FFFFFF
+!important; border: 1px solid #000000 !important; border-radius: 0
+!important; box-shadow: none !important;`. The `:not([focused], [open])`
+guard keeps Firefox's focus ring and the open results bubble's ground
+paint (the landed results-row work deliberately left the bubble's own
+paint alone); no `color` declaration — the field text stays Firefox's, as
+it did under the landed `#urlbar-background` rule, and the classic
+`#searchbar:not(:focus-within)` rule keeps its color line. Rewrite the
+sheet header's search-field provenance paragraph (ending
+"`#searchbar-new` stays Firefox's."): record the 153.6 id-to-class change,
+the default pref with the `omni.ja` members named above, and that the
+live `#searchbar-new` now takes the same unfocused recipe; change the
+header's three "`#urlbar-background`" convention mentions (menu corners,
+arrow panels, search field) to the class form. (2) In
+`tests/support/firefox_chrome_cases.py`, delete the `"#urlbar-background"`
+entry from `REQUIRED_RULES` and add the two new selector keys with the same
+four-`!important` declaration dictionary; keep the
+`"#searchbar:not(:focus-within)"` entry. `parse_css` splits the grouped
+selector list, so both keys see the same rule. (3) In
+`tests/test_firefox_theme_shell.py`, replace
+`test_search_field_paint_is_scoped_to_the_unfocused_classic_field` with a
+scope test that asserts the set of parsed selectors containing
+`urlbar-background` equals exactly the two new keys, that each equals
+`REQUIRED_RULES`, and that the `searchbar` set equals
+`{"#searchbar:not(:focus-within)", "#searchbar-new:not([focused], [open])
+> .urlbar-background"}` so the classic rule is still there once; update
+`test_header_names_provenance_and_preference`'s expected strings
+(`"#searchbar-new stays Firefox's"` and the surrounding phrases) to the new
+header wording.
+(4) In `docs/invariants.md`, in the `## firefox` table's standing
+`userChrome.css` row: replace the sentence that leaves "the newer
+`#searchbar-new` widget [to] stay Firefox's" with one stating both toolbar
+fields wear the landed white face/square black border unfocused, focused
+and open states stay Firefox's, and the classic `#searchbar` keeps its
+landed rule for users who disable the default pref; add a dated
+provenance text to that row's provenance cell recording the 2026-10-30
+probe above (the class-only markup, the default pref, the dead landed
+selector found) and the close-out that declaration checks do not
+establish rendered pixels; update the test-name cell, which still names
+`test_search_field_paint_is_scoped_to_the_unfocused_classic_field`, to the
+replacement test.
+
+**Acceptance criteria.** The sheet carries no `#urlbar-background` selector
+and carries exactly the two new field selectors with the four landed
+declarations; `REQUIRED_RULES` holds both; changing either selector,
+deleting the rule or unguarding the focus/open states fails the replacement
+scope test; `test_search_field_paint_is_scoped_to_the_unfocused_classic_field`
+no longer exists under that name (its replacement pins the new scope);
+`test_palette_is_exact`, `test_selectors_are_not_universal`, the classic
+search-field entries in `REQUIRED_RULES` and landed `.urlbarView-*` tests
+stay green. Scope is the four files named above and nothing else: no GTK
+sheet, no new asset, no new palette literal beyond the landed `#FFFFFF` and
+`#000000`, no dependency, no `!important` beyond the landed declarations.
+The classic `#searchbar:not(:focus-within)` rule keeps its landed text.
+`make check` passes.
+
 ## Done
