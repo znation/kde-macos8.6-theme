@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 scrollbars: preserve the fine-tune thumb face (planned 2026-10-29 by the plan role; independent of the queued thumb transition plan) — done 2026-10-29 by the feature role
+
+**Goal.** Keep the fine-tune scrollbar thumb on the opaque Platinum face through the supported `make apply-gtk` GTK 4 user stylesheet import, instead of the stock accent tint.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a grouped rule for `scrollbar > range.fine-tune > trough > slider` and its `:hover` and `:active` variants, declaring only `background-color: #DDDDDD`. Add a dated adaptation comment: no reference screenshot shows GTK scrollbar fine-tune mode; reuse the existing reference-grounded base thumb face. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_fine_tune_thumb_face` using `assert_rule` for each selector and comparing its background color with the base thumb rule and `FACE`. Under `## gtk` in `docs/invariants.md`, record the guarantee and test, naming the stock grouped selectors' `color-mix(in srgb, var(--accent-color) 60%, transparent)` background from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution outside CSS for `test_stands_alone`.
+
+**Acceptance criteria.** The fine-tune base, hover and active selectors explicitly declare the base thumb's opaque face for either orientation; removing a selector or restoring the accent blend fails the new test. Existing `test_scrollbar`, disabled-opacity and `TestScrollbarBreadthReference` coverage passes. The invariant names the missing reference surface and reused face source, and states that declaration coverage does not establish rendered pixels. Limit implementation to these three files and fine-tune background color; ordinary hover/active colors, overlay geometry and transitions are separate work. This plan can merge independently of the queued thumb transition plan. `make check` passes.
+
 ### Platinum GTK 4 scrollbar thumbs: make state transitions immediate (planned 2026-10-29 by the plan role; independent of the queued disabled-thumb opacity plan) — done 2026-10-29 by the feature role
 
 **Goal.** Apply scrollbar thumb state changes immediately through the supported `make apply-gtk` GTK 4 user stylesheet import, following the existing immediate scale-focus policy.

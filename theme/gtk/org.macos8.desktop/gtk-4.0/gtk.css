@@ -827,6 +827,13 @@ scrollbar > range > trough > slider {
   transition: none;
 }
 
+/* Adaptation 2026-10-29: no reference shows GTK fine-tune scrollbars; reuse the base thumb face. */
+scrollbar > range.fine-tune > trough > slider,
+scrollbar > range.fine-tune > trough > slider:hover,
+scrollbar > range.fine-tune > trough > slider:active {
+  background-color: #DDDDDD;
+}
+
 /* Adaptation 2026-10-29: no reference shows a disabled GTK scrollbar; retain opaque disabled controls. */
 scrollbar > range > trough > slider:disabled {
   opacity: 1;

@@ -989,6 +989,16 @@ for radio in (False, True):
             {"opacity": "1"},
         )
 
+    def test_scrollbar_fine_tune_thumb_face(self):
+        base_face = self.rules["scrollbar > range > trough > slider"]["background-color"]
+        self.assertEqual(base_face, FACE)
+        for selector in (
+            "scrollbar > range.fine-tune > trough > slider",
+            "scrollbar > range.fine-tune > trough > slider:hover",
+            "scrollbar > range.fine-tune > trough > slider:active",
+        ):
+            self.assert_rule(selector, {"background-color": base_face})
+
     def test_scrollbar_thumb_transition(self):
         self.assert_rule(
             "scrollbar > range > trough > slider",
