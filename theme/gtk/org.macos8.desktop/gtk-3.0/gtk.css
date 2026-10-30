@@ -1033,6 +1033,13 @@ calendar:indeterminate {
   color: #888888;
 }
 
+/* No reference screenshot shows a GTK calendar outer border. Reuse the
+   Platinum frame border; GTK 3's stock calendar selector and border property
+   are required for this adaptation. Recorded 2026-10-29 by the feature role. */
+calendar {
+  border: 1px solid #000000;
+}
+
 /* No GTK calendar keyboard-focus reference exists; reuse button:focus's
    dotted outline, offset and square corners. */
 calendar:focus {

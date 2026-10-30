@@ -292,6 +292,14 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_calendar(self):
         self.assert_calendar(("calendar:selected",), ("calendar:indeterminate",))
 
+    def test_calendar_outer_border(self):
+        self.assert_rule("calendar", {"border": f"1px solid {BLACK}"})
+        for selector in ("frame > border", ".frame"):
+            self.assertEqual(
+                self.rules["calendar"]["border"],
+                self.rules[selector]["border"],
+            )
+
     def test_calendar_focus_outline(self):
         self.assert_rule(
             "calendar:focus",

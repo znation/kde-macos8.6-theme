@@ -106,14 +106,6 @@ recorded here to keep the scope deliberate.
 
 **Acceptance criteria.** Removing either descendant declaration fails the focused test. Limit implementation to the three named files; preserve tooltip face, border, spacing and GTK 4 CSS. Tests establish declarations, not rendered text pixels. This plan and the add-color plan may merge in either order. `make check` passes.
 
-### Platinum GTK 3 calendars: declare the Platinum outer border (planned 2026-10-29 by the plan role; independent of the queued tooltip descendant-text plan)
-
-**Goal.** Give GTK 3 calendars an explicit opaque black outer border. The existing calendar rules cover selected and other-month days and keyboard focus; the original calendar plan explicitly excluded the border, and the completed outer-border plan targets GTK 4 only.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `calendar { border: 1px solid #000000; }` beside the calendar rules. Reuse just the border from `frame > border, .frame`. Add a dated adaptation comment and a row under `## gtk` in `docs/invariants.md`: no reference screenshot shows a GTK calendar outer border; the value comes from the existing Platinum frame, while the calendar selector and border property follow the installed GTK 3 Adwaita resource. Inspected 2026-10-29, `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` declares `calendar { color: black; border: 1px solid #cdc7c2; }`. This is an explicit standalone-theme declaration, not a claim that this sheet imports Adwaita.
-
-**Tests.** Add `TestGtkTheme.test_calendar_outer_border` in `tests/test_gtk_theme.py`, asserting the exact `calendar` declaration dictionary and equality with the border values of both `frame > border` and `.frame`. Keep the existing `test_calendar` and `test_calendar_focus_outline` coverage. Record the new test in the invariant row; declaration tests do not establish rendered pixels.
-
-**Acceptance criteria.** Removing the new rule or changing its border width, style or color fails the focused test. Limit implementation to the three named files; keep header separators, arrow paint, day paint, spacing and GTK 4 CSS outside this change. No new palette values, artwork or dependencies. This plan and the tooltip plan may merge in either order. `make check` passes.
+_None yet._
 
 ## Done
