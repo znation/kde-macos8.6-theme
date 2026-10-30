@@ -106,6 +106,13 @@ class TestCoordinator(unittest.TestCase):
         self.assertIn("test_ok: worker log could not be read", output.getvalue())
         self.assertIn("1 module failed", output.getvalue())
 
+    def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
+        tests_dir = self._project({"test_ok.py": OK_MODULE})
+        with mock.patch("tools.diagnostics.tempfile.mkdtemp", side_effect=OSError("denied")):
+            result = self._run("--tests-dir", tests_dir)
+        self.assertEqual(2, result.returncode)
+        self.assertEqual("check: error: cannot create a scratch directory: denied\n", result.stderr)
+
     def test_missing_worker_status_reports_did_not_finish_and_keeps_log(self):
         log_path = make_tmp_dir(self) / "worker.log"
         log_path.write_text("partial worker output\n", encoding="utf-8")

@@ -11,13 +11,13 @@ import argparse
 import os
 import shutil
 import sys
-import tempfile
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser, positive_int
     from tools.check_parallel_discovery import _log_paths, discover_modules
     from tools.check_parallel_results import _plural, _print_results
     from tools.check_parallel_workers import _supervise
+    from tools.diagnostics import create_scratch_directory
     from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
     from tools.terminal import escape_controls
@@ -26,6 +26,7 @@ else:  # run directly: python3 tools/check_parallel.py
     from check_parallel_discovery import _log_paths, discover_modules
     from check_parallel_results import _plural, _print_results
     from check_parallel_workers import _supervise
+    from diagnostics import create_scratch_directory
     from process_group import exit_on_termination
     from repo_root import ROOT
     from terminal import escape_controls
@@ -67,7 +68,10 @@ def main(argv: list[str] | None = None) -> int:
     workers = options.workers or min(len(modules), os.cpu_count() or 1)
     print(f"check: -p '{escape_controls(options.pattern)}', "
           f"{_plural(len(modules), 'module')}, {_plural(workers, 'worker')}")
-    scratch = tempfile.mkdtemp(prefix="check-parallel-")
+    scratch_path = create_scratch_directory("check", "check-parallel-")
+    if scratch_path is None:
+        return 2
+    scratch = str(scratch_path)
     log_paths = _log_paths(modules, scratch)
     try:
         with exit_on_termination():
