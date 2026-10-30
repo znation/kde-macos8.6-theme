@@ -210,6 +210,12 @@ GTK 4 toast adaptation (recorded 2026-10-29 by the feature role):
 | --- | --- | --- |
 | GTK 4 `toast` and `toast:backdrop` use a square `#DDDDDD` face, black text and a 1px black outline with no background image, box shadow or text shadow. The rules add no spacing or descendant overrides. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_toast_surface` | No reference screenshot shows a libadwaita toast. The surface reuses `popover > contents, popover > arrow` and the text reuses `window`; the face is reference-pinned by `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_menu_bar_face`. The `toast` node and stock rounded, shadowed dark surface come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`. These are declaration checks, not rendered-pixel evidence. |
 
+GTK 4 scale trough adaptation (recorded 2026-10-29 by the feature role):
+
+| Guarantee | Test | Provenance exception |
+| --- | --- | --- |
+| GTK 4 horizontal and vertical fine-tune scale troughs explicitly declare `margin: 0`. | `tests/test_gtk4_theme.py::TestGtk4Theme::test_scale_fine_tune_trough_margin` | No reference screenshot shows a GTK fine-tune scale. The zero external spacing is a platform adaptation. The overridden stock selectors and their `-3px 0px` and `0px -3px` margins come from `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. The supported libadwaita user stylesheet import has user priority; this declaration check does not establish rendered geometry. |
+
 GTK 3 application notifications (recorded 2026-10-28 by the feature role):
 
 | Guarantee | Test | Provenance exception |

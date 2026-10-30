@@ -96,14 +96,4 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
-_None yet._
-
-### Platinum GTK 4 scales: remove fine-tune trough offsets (planned 2026-10-29 by the plan role; independent of the queued fine-tune thumb margins)
-
-**Goal.** Keep fine tuning from introducing stock negative trough margins into the Platinum scale adaptation. The installed stock stylesheet declares `margin: -3px 0px` for horizontal fine-tune troughs and `margin: 0px -3px` for vertical ones; the theme has no corresponding override. This is one trough-spacing policy across both orientations, independently mergeable from the waiting thumb-margin plan.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside `scale > trough`, add a grouped rule for `scale.horizontal.fine-tune > trough` and `scale.vertical.fine-tune > trough` declaring `margin: 0`. Add a dated adaptation comment naming the missing fine-tune GTK scale reference and the decision to use zero external trough spacing instead of the stock negative offsets. Zero is an explicit platform adaptation, not a sampled reference metric. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scale_fine_tune_trough_margin`, calling `assert_rule(selector, {"margin": "0"})` for each complete selector. In `docs/invariants.md`, add a focused `## gtk` row naming the new test, the missing reference surface and the zero-spacing policy; attribute the displaced selectors and margins to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution out of CSS because `test_stands_alone` rejects its name there.
-
-**Acceptance criteria.** Both complete orientation-specific fine-tune trough selectors explicitly declare zero margin, matching the stock selectors' specificity for the supported later user-stylesheet import. Removing either selector or changing its margin fails the new test. The invariant documents declaration coverage without claiming rendered geometry. Limit implementation to these three files and trough margins; thumb margins remain the separate queued plan, while mark spacing, scale padding, focus styling and GTK 3 are outside this change. No new asset or dependency. `make check` passes.
-
 ## Done

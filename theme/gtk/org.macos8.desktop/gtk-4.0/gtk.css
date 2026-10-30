@@ -937,6 +937,12 @@ scale > trough {
   min-width: 6px;
 }
 
+/* 2026-10-29: no GTK fine-tune scale reference; keep external trough spacing at zero. */
+scale.horizontal.fine-tune > trough,
+scale.vertical.fine-tune > trough {
+  margin: 0;
+}
+
 /* 2026-10-29: no GTK scale interaction reference; parent states reuse the trough face. */
 scale:hover > trough, scale:active > trough {
   background-color: #EEEEEE;

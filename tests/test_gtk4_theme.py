@@ -1041,6 +1041,13 @@ for radio in (False, True):
         ):
             self.assert_rule(selector, {"margin": "-5px"})
 
+    def test_scale_fine_tune_trough_margin(self):
+        for selector in (
+            "scale.horizontal.fine-tune > trough",
+            "scale.vertical.fine-tune > trough",
+        ):
+            self.assert_rule(selector, {"margin": "0"})
+
     def test_scale_marked_thumb_transform(self):
         for selector in (
             "scale.marks-before:not(.marks-after) > trough > slider",
