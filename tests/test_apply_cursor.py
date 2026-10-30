@@ -31,7 +31,7 @@ from support.process_assertions import (
 from support.recorded_lines import recorded_lines
 from support.tmp_dir import make_tmp_dir
 from support.unlink_failure import unlink_failing_for
-from tools import apply_cursor, required_command
+from tools import apply_cursor, diagnostics, required_command
 
 
 class CursorCase(unittest.TestCase):
@@ -233,7 +233,7 @@ class TestSelection(CursorCase):
         self.install_theme()
         self.stub_selector()
         with mock.patch.object(
-            apply_cursor.tempfile, "mkdtemp", side_effect=OSError("no space left")
+            diagnostics.tempfile, "mkdtemp", side_effect=OSError("no space left")
         ):
             result = self.run_tool()
         assert_exit_2_without_traceback(self, result)

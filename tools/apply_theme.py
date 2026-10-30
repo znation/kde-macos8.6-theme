@@ -28,18 +28,25 @@ from __future__ import annotations
 import os
 import shutil
 import sys
-import tempfile
 from pathlib import Path
 
 if __package__:
     from tools.argument_parsing import EscapingArgumentParser
-    from tools.diagnostics import report_error, report_missing_tool, report_note
+    from tools.diagnostics import (
+        create_scratch_directory,
+        report_missing_tool,
+        report_note,
+    )
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
     from tools.required_command import run_required
 else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
-    from diagnostics import report_error, report_missing_tool, report_note
+    from diagnostics import (
+        create_scratch_directory,
+        report_missing_tool,
+        report_note,
+    )
     from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
     from required_command import run_required
@@ -181,10 +188,9 @@ def _select_kvantum_theme(scratch: Path, env: dict[str, str]) -> int:
 
 def _apply() -> int:
     """Run the required steps, then the best-effort selections."""
-    try:
-        scratch = Path(tempfile.mkdtemp(prefix="apply-theme-"))
-    except OSError as exc:
-        return report_error(TOOL, f"cannot create a scratch directory: {exc}")
+    scratch = create_scratch_directory(TOOL, "apply-theme-")
+    if scratch is None:
+        return 2
     try:
         env = _session_env()
         for argv in STEPS:

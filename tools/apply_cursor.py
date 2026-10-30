@@ -27,7 +27,6 @@ import contextlib
 import os
 import shutil
 import sys
-import tempfile
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -35,7 +34,12 @@ if __package__:
     from tools import xdg_homes
     from tools.argument_parsing import EscapingArgumentParser
     from tools.containment import read_text
-    from tools.diagnostics import report_error, report_missing_tool, report_note
+    from tools.diagnostics import (
+        create_scratch_directory,
+        report_error,
+        report_missing_tool,
+        report_note,
+    )
     from tools.file_lock import exclusive_flock
     from tools.process_group import exit_on_termination
     from tools.repo_root import ROOT
@@ -44,7 +48,12 @@ else:  # run directly: python3 tools/apply_cursor.py
     import xdg_homes
     from argument_parsing import EscapingArgumentParser
     from containment import read_text
-    from diagnostics import report_error, report_missing_tool, report_note
+    from diagnostics import (
+        create_scratch_directory,
+        report_error,
+        report_missing_tool,
+        report_note,
+    )
     from file_lock import exclusive_flock
     from process_group import exit_on_termination
     from repo_root import ROOT
@@ -185,10 +194,9 @@ def _select(env: dict[str, str]) -> int:
     missing = report_missing_tool(TOOL, [SELECT_TOOL])
     if missing is not None:
         return missing
-    try:
-        scratch = Path(tempfile.mkdtemp(prefix="apply-cursor-"))
-    except OSError as exc:
-        return report_error(TOOL, f"cannot create a scratch directory: {exc}")
+    scratch = create_scratch_directory(TOOL, "apply-cursor-")
+    if scratch is None:
+        return 2
     try:
         status = run_required(
             TOOL,

@@ -26,7 +26,7 @@ from support import process_runner, theme_install
 from support.cli_fixtures import assert_missing_tool_named, call_main
 from support.process_assertions import assert_failed, assert_succeeded
 from support.recorded_lines import recorded_lines
-from tools import apply_theme, required_command
+from tools import apply_theme, diagnostics, required_command
 
 
 class StubTools(unittest.TestCase):
@@ -127,7 +127,7 @@ class TestFailurePaths(StubTools):
         # clean up (a full or unwritable TMPDIR). It must be this tool's own
         # exit-2 diagnostic, not a traceback that skips the exit contract.
         with mock.patch.object(
-            apply_theme.tempfile, "mkdtemp", side_effect=OSError("no space left")
+            diagnostics.tempfile, "mkdtemp", side_effect=OSError("no space left")
         ):
             status, stderr = call_main(apply_theme.main)
         self.assertEqual(2, status)

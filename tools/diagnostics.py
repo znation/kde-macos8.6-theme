@@ -24,6 +24,7 @@ import os
 import re
 import shutil
 import sys
+import tempfile
 from collections.abc import Iterable
 from pathlib import Path
 
@@ -69,6 +70,21 @@ def report_error(tool: str, message: str) -> int:
     _require_str("report_error", "message", message)
     print(f"{tool}: error: {escape_controls(message)}", file=sys.stderr)
     return 2
+
+
+def create_scratch_directory(
+    tool: str, prefix: str, *, label: str = "scratch directory"
+) -> Path | None:
+    """Create a scratch directory or report its creation error for *tool*.
+
+    Returns ``None`` after printing the shared exit-2 diagnostic when the
+    temporary directory cannot be created.
+    """
+    try:
+        return Path(tempfile.mkdtemp(prefix=prefix))
+    except OSError as exc:
+        report_error(tool, f"cannot create a {label}: {exc}")
+        return None
 
 
 # Only CR, LF and CRLF end a log line. ``str.splitlines`` also breaks on
