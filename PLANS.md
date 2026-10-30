@@ -5,8 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
 **Scope drift (2026-10-08, steward; rewritten 2026-10-17, steward; shipped-artifact facts
 updated 2026-10-21 by the clean role; plan status re-trimmed 2026-10-22 by the steward role;
 font facts re-trimmed 2026-10-22 by the steward role; landed-plan facts re-trimmed 2026-10-23
@@ -96,15 +94,15 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 3 tooltips: declare black descendant text without shadows (planned 2026-10-29 by the plan role; independent of the queued add-color background-image plan) — done 2026-10-29 by the feature role
+### Platinum GTK 3 vertical spin buttons: declare a focused outline (planned 2026-10-29 by the plan role; independent of every waiting entry — it completes the horizontal spin-button outline plan, done 2026-10-29, which explicitly excluded vertical spin buttons)
 
-**Goal.** Extend the tooltip's existing black-text policy to its descendants and suppress their inherited text shadow. The completed secondary-chrome plan supplied the tooltip face and parent color, but did not declare descendant text treatment.
+**Goal.** Give focused vertical GTK 3 spin-button fields an explicit Platinum outline. The completed plans outline `entry` and `spinbutton:focus:not(.vertical)`; a focused vertical spin button draws no outline at all, because the sheet imports nothing and replaces the stock theme, so Adwaita's universal focus outline never applies (`TestGtkTheme.test_imports_nothing_and_does_not_mention_adwaita` pins the standalone-sheet guarantee).
 
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, immediately after `tooltip.background`, add `tooltip * { color: #000000; text-shadow: none; }`. Add a dated adaptation comment: no reference screenshot shows GTK tooltip text; black reuses the existing tooltip foreground and the shadow reset follows `treeview.view header button`. The installed `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, inspected 2026-10-29, declares white foreground on `tooltip *` and `text-shadow: 0 1px black` on `tooltip`. Record those sources and the missing reference surface under `## gtk` in `docs/invariants.md`.
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, immediately after the `spinbutton:focus:not(.vertical)` rule in the entry/spin-button field block, add a separate `spinbutton.vertical:focus` rule declaring `outline: 1px dotted #000000`, `outline-offset: 0` and `-gtk-outline-radius: 0` — declare it as its own selector rather than widening the landed horizontal one, so the horizontal expectations stay untouched. Add a dated adaptation comment naming the missing GTK vertical spin-button keyboard-focus reference and the reuse of `button:focus`'s outline, offset and square outline corners. In `docs/invariants.md`, append a row under `## gtk`: no collected screenshot shows a focused GTK spin button, so this is a platform adaptation, not a screenshot measurement. Cite the installed `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, inspected 2026-10-29: it styles vertical spin buttons only for `:disabled`, `:backdrop:disabled` and `:drop(active)` (selectors `spinbutton.vertical:disabled`, `spinbutton.vertical:backdrop:disabled`, `spinbutton.vertical:drop(active)`), it declares no vertical focus rule, and its universal rule supplies `outline-color: alpha(currentColor,0.3)`, `outline-style: dashed`, `outline-offset: -3px`, `outline-width: 1px` and `-gtk-outline-radius: 3px` to every node — that resource sources the selector spelling, while the dotted-black values come from the landed horizontal rule. Keep library names outside the CSS for the standalone-sheet check.
 
-**Tests.** Add `TestGtkTheme.test_tooltip_descendant_text` in `tests/test_gtk_theme.py`, asserting the two declarations on `tooltip *`, comparing its foreground with `tooltip` and its shadow reset with `treeview.view header button`. Keep `GtkSheetRuleCases.test_tooltip` and its shared GTK 4 expectations intact; the new selector does not require changing their parent-rule expectations.
+**Tests.** In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_vertical_spinbutton_focus_outline` (pattern: `test_horizontal_spinbutton_focus_outline`): `assert_rule` the three declarations on `spinbutton.vertical:focus` with the `BLACK` constant, then compare each of the three property values against `spinbutton:focus:not(.vertical)` so the two orientations stay equal. Keep `test_horizontal_spinbutton_focus_outline`, `test_entry_focus_outline`, the shared `tests/support/gtk_rule_cases.py` cases and the field-paint expectations unchanged.
 
-**Acceptance criteria.** Removing either descendant declaration fails the focused test. Limit implementation to the three named files; preserve tooltip face, border, spacing and GTK 4 CSS. Tests establish declarations, not rendered text pixels. This plan and the add-color plan may merge in either order. `make check` passes.
+**Acceptance criteria.** `spinbutton.vertical:focus` explicitly declares a 1px dotted black outline, zero offset and zero GTK outline radius; removing the rule or changing any declaration fails the new test, and a change to one de-linked orientation also fails the cross-comparison. Scope is the three named files (`theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, `tests/test_gtk_theme.py`, `docs/invariants.md`); GTK 4 CSS, GTK 3 rendered focus pixels and keyboard traversal stay out of scope. No new palette value, artwork or dependency. `make check` passes.
 
 _None yet._
 
