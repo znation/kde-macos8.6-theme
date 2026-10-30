@@ -728,6 +728,38 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             with self.subTest(selector=selector):
                 self.assert_rule(selector, {"background-image": "none"})
 
+    def test_junction_shares_the_scrollbar_band(self):
+        """The scrollbar corner paints the flat trough band, nothing else.
+
+        The stock GTK 3 resource fills the junction node where a scrolled
+        window's two scrollbars meet with its own grey and draws a trough
+        line through one edge of the band; no collected reference screenshot
+        shows a GTK scrollbar corner, and the junction reads as the same
+        flat band the landed scrollbar rule pins. The stock left-to-right
+        mirror arm only re-slices the now-empty border-image, so the sheet
+        must stop at the two rules and carry no such arm.
+        """
+        self.assertEqual(
+            self.rules["scrolledwindow junction"],
+            {
+                "background-color": TROUGH,
+                "border-color": "transparent",
+                "border-image": "none",
+            },
+        )
+        self.assertNotIn("junction:dir", self.css)
+
+    def test_junction_backdrop_shares_the_scrollbar_band(self):
+        """The scrollbar corner stays the flat trough band in backdrop."""
+        self.assertEqual(
+            self.rules["scrolledwindow junction:backdrop"],
+            {
+                "background-color": TROUGH,
+                "border-color": "transparent",
+                "border-image": "none",
+            },
+        )
+
     def test_progressbar(self):
         self.assert_progressbar(
             trough="progressbar trough",

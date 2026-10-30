@@ -824,6 +824,28 @@ scrolledwindow overshoot.right:backdrop {
   background-image: none;
 }
 
+/* Adaptation 2026-10-30: no collected reference screenshot in
+   macos8.6-screenshots/ shows the corner square a scrolled window paints
+   where its two scrollbars meet, but the stock GTK 3 resource in libgtk-3
+   fills that junction node with its own grey and draws a trough line down
+   one edge of the band through a border-image gradient, while the Platinum
+   scrollbar band is flat, so the junction reads as the same flat #EEEEEE
+   band the scrollbar rule pins, in normal and backdrop state. The stock
+   left-to-right mirror arm only re-slices the border-image; under an empty
+   border-image that slice has nothing to apply to, and the sheet leaves
+   that arm undeclared. */
+scrolledwindow junction {
+  background-color: #EEEEEE;
+  border-color: transparent;
+  border-image: none;
+}
+
+scrolledwindow junction:backdrop {
+  background-color: #EEEEEE;
+  border-color: transparent;
+  border-image: none;
+}
+
 progressbar trough {
   background-color: #EEEEEE;
   background-image: none;
