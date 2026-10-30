@@ -110,19 +110,36 @@ def _config_lock(config_home: Path) -> Iterator[None]:
         yield
 
 
-def _require_home(path: Path | None, variable: str, fallback: str) -> Path:
-    """Return *path*, or refuse naming the unusable XDG *variable*.
+def _state(env: dict[str, str], variable: str) -> str:
+    """Describe the *variable* value *env* carries, for a refusal message."""
+    if variable not in env:
+        return "unset"
+    if not env[variable]:
+        return "empty"
+    return f"not an absolute path ('{env[variable]}')"
+
+
+def _require_home(
+    path: Path | None, env: dict[str, str], variable: str, fallback: str
+) -> Path:
+    """Return *path*, or refuse naming the values that could not resolve.
 
     *fallback* is the ``$HOME``-relative path the XDG spec falls back to,
     included in the diagnostic so the user can see which directory could not
     be resolved. Every caller resolves its path through
     :mod:`tools.xdg_homes` and must refuse rather than guess where to write,
-    so the diagnostic lives here once.
+    so the diagnostic lives here once; the resolver returns ``None`` only
+    when both *variable* and ``HOME`` are unusable, so both received values
+    appear, in shell quoting that marks the bounds of a value (an empty one
+    counts as unset, matching the resolver's own treatment), and
+    ``report_error``'s escaping keeps every byte from reaching a terminal
+    raw.
     """
     if path is None:
         raise ConfigError(
-            f"{variable} is unset or not absolute and HOME cannot provide "
-            f"{fallback}; set {variable} to an absolute path or export an "
+            f"{variable} is {_state(env, variable)} and HOME is "
+            f"{_state(env, 'HOME')}, so the {fallback} fallback cannot "
+            f"be used; set {variable} to an absolute path or export an "
             "absolute HOME"
         )
     return path
@@ -160,20 +177,17 @@ def main(argv: list[str] | None = None) -> int:
             # data home resolves: refusing it would block clearing a
             # selection that is already installed.
             config_home = _require_home(
-                xdg_homes.config_home(env),
-                "XDG_CONFIG_HOME",
-                "$HOME/.config",
+                xdg_homes.config_home(env), env, "XDG_CONFIG_HOME", "$HOME/.config"
             )
             with _config_lock(config_home):
                 status = _remove(config_home)
         else:
             config_home = _require_home(
-                xdg_homes.config_home(env),
-                "XDG_CONFIG_HOME",
-                "$HOME/.config",
+                xdg_homes.config_home(env), env, "XDG_CONFIG_HOME", "$HOME/.config"
             )
             data_home = _require_home(
                 xdg_homes.data_home(env),
+                env,
                 "XDG_DATA_HOME",
                 "$HOME/.local/share",
             )

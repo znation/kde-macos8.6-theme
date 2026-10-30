@@ -358,6 +358,36 @@ class TestHomeResolution(unittest.TestCase):
         assert_failed(self, result)
         self.assertIn("XDG_CONFIG_HOME", result.stderr)
 
+    def test_refusal_names_both_received_values(self):
+        result = self._run_with(
+            {
+                "XDG_DATA_HOME": "relative/data",
+                "XDG_CONFIG_HOME": "/config",
+                "HOME": "relative/home",
+            }
+        )
+        assert_failed(self, result)
+        self.assertIn("XDG_DATA_HOME is not an absolute path ('relative/data')",
+                      result.stderr)
+        self.assertIn("HOME is not an absolute path ('relative/home')",
+                      result.stderr)
+
+    def test_refusal_distinguishes_unset_from_empty_values(self):
+        result = self._run_with(
+            {
+                "XDG_DATA_HOME": "",
+                "XDG_CONFIG_HOME": "/config",
+                "HOME": "",
+            }
+        )
+        assert_failed(self, result)
+        self.assertIn("XDG_DATA_HOME is empty and HOME is empty", result.stderr)
+
+    def test_unset_values_are_reported_as_unset(self):
+        result = self._run_with({"XDG_CONFIG_HOME": "/config"})
+        assert_failed(self, result)
+        self.assertIn("XDG_DATA_HOME is unset and HOME is unset", result.stderr)
+
 
 class TestMakeApplyGtk(ApplyTargetMakeCases, unittest.TestCase):
     TARGET = "apply-gtk"
