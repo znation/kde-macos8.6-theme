@@ -96,7 +96,7 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 3 tooltips: declare black descendant text without shadows (planned 2026-10-29 by the plan role; independent of the queued add-color background-image plan)
+### Platinum GTK 3 tooltips: declare black descendant text without shadows (planned 2026-10-29 by the plan role; independent of the queued add-color background-image plan) — done 2026-10-29 by the feature role
 
 **Goal.** Extend the tooltip's existing black-text policy to its descendants and suppress their inherited text shadow. The completed secondary-chrome plan supplied the tooltip face and parent color, but did not declare descendant text treatment.
 

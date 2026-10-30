@@ -183,7 +183,8 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_no_universal_selector(self):
         for selector in self.selectors:
-            self.assertNotIn("*", selector)
+            if selector != "tooltip *":
+                self.assertNotIn("*", selector)
 
     def test_window_and_background(self):
         for selector in ("window", ".background"):
@@ -216,6 +217,17 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_tree_header(self):
         self.assert_tree_header(("treeview.view header button",))
+
+    def test_tooltip_descendant_text(self):
+        selector = "tooltip *"
+        self.assert_rule(selector, {
+            "color": self.rules["tooltip"]["color"],
+            "text-shadow": "none",
+        })
+        self.assertEqual(
+            self.rules[selector]["text-shadow"],
+            self.rules["treeview.view header button"]["text-shadow"],
+        )
 
     def test_expander_arrows(self):
         self.assert_expander_arrows(

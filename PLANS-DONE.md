@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 tooltips: declare black descendant text without shadows (planned 2026-10-29 by the plan role; independent of the queued add-color background-image plan) — done 2026-10-29 by the feature role
+
+**Goal.** Extend the tooltip's existing black-text policy to its descendants and suppress their inherited text shadow. The completed secondary-chrome plan supplied the tooltip face and parent color, but did not declare descendant text treatment.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, immediately after `tooltip.background`, add `tooltip * { color: #000000; text-shadow: none; }`. Add a dated adaptation comment: no reference screenshot shows GTK tooltip text; black reuses the existing tooltip foreground and the shadow reset follows `treeview.view header button`. The installed `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, inspected 2026-10-29, declares white foreground on `tooltip *` and `text-shadow: 0 1px black` on `tooltip`. Record those sources and the missing reference surface under `## gtk` in `docs/invariants.md`.
+
+**Tests.** Add `TestGtkTheme.test_tooltip_descendant_text` in `tests/test_gtk_theme.py`, asserting the two declarations on `tooltip *`, comparing its foreground with `tooltip` and its shadow reset with `treeview.view header button`. Keep `GtkSheetRuleCases.test_tooltip` and its shared GTK 4 expectations intact; the new selector does not require changing their parent-rule expectations.
+
+**Acceptance criteria.** Removing either descendant declaration fails the focused test. Limit implementation to the three named files; preserve tooltip face, border, spacing and GTK 4 CSS. Tests establish declarations, not rendered text pixels. This plan and the add-color plan may merge in either order. `make check` passes.
+
 ### Platinum GTK 3 add-color action: clear stock background images (planned 2026-10-29 by the plan role; independent of the queued icon-view outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Stop the GTK 3 color chooser's add-color action inheriting Adwaita background images. The existing swatch rules declare square corners only; the finished corner plan explicitly excludes this action's gradient.
