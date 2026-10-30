@@ -14,6 +14,11 @@
 [%General]
 author=The kde-macos8.6-theme project
 comment=Mac OS 8.6 Platinum widget style
+# The engine renders the checkbox and radio indicators' interior art at this
+# size (upstream Kvantum's PM_IndicatorWidth pixel metric, compiled-in default
+# 13), so 14 draws the 14x14 checkbox-* and radio-* canvases 1:1 instead of
+# resampling them and blending the 1px bevel bands.
+check_size=14
 scroll_width=16
 scroll_arrows=true
 composite=true

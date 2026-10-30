@@ -321,6 +321,7 @@ FRAMELESS_SECTIONS = {
 VALUE_KEYS = {
     "%General": {
         "composite": "true",
+        "check_size": "14",
     },
     "PanelButtonCommand": {
         "frame": "true",

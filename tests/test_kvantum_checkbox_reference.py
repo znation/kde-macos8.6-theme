@@ -19,7 +19,9 @@ from __future__ import annotations
 import unittest
 
 from support.aurorae_fixtures import REFERENCE, REFERENCE_ROWS
-from support.kvantum_fixtures import SVG
+from support.kde_config import read as read_kde_config
+from support.kvantum_config_spec import _resolved
+from support.kvantum_fixtures import SVG, KVCONFIG
 from support.platinum_palette import hex_colour
 from support.reference_image import ReferenceScreenshotMixin
 from support.svg_case import parse_svg
@@ -128,6 +130,27 @@ class TestCheckBoxReference(ReferenceScreenshotMixin, unittest.TestCase):
         expected = _raised_box(SHIPPED_SIZE, **self._reference_colours())
         slices = render_slices(parse_svg(SVG))
         self.assertEqual(slices["checkbox-normal"], expected)
+
+    def test_config_draws_the_indicator_at_the_canvas_size(self):
+        # The engine renders `PE_IndicatorCheckBox`'s interior art into the
+        # rect whose side is the global `%General` `check_size` and consults
+        # no section-level size for it: `pixelMetric(PM_IndicatorWidth)` and
+        # `PM_IndicatorHeight` return `tspec_.check_size` for checkbox
+        # options, whose compiled-in default is 13 (upstream 1.1.4,
+        # `styleproject` `PM_IndicatorWidth`/`PE_IndicatorCheckBox` and
+        # `themeconfig/specs.h`). At 13 the 14x14 canvas is resampled and
+        # its 1px bands blend (`000003`/`212121` edges instead of `#000000`,
+        # `FEFEFE` instead of `#FFFFFF`, `949494` instead of `#888888`).
+        # The rendered indicator equals this test's derived raised square
+        # when `check_size` is the canvas side, so pin the config value to
+        # the side re-derived here; the rendered check itself was made in
+        # this run's throwaway `kwin_wayland` `kdialog --dontagain` render,
+        # not in this suite, which has no Qt engine fake.
+        slices = render_slices(parse_svg(SVG))
+        side = 1 + max(x for x, _ in slices["checkbox-normal"])
+        self.assertEqual(side, SHIPPED_SIZE)
+        parser = read_kde_config(KVCONFIG)
+        self.assertEqual(_resolved(parser, "%General", "check_size"), str(SHIPPED_SIZE))
 
 
 if __name__ == "__main__":

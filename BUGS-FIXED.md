@@ -5,6 +5,60 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The rendered check box indicator is a resampled 13x13 square, not the reference's crisp 12x12 (found by the render pass 2026-10-29) — fixed 2026-10-30 by the bugfix role
+
+A `QCheckBox`'s indicator (e.g. kdialog's `--dontagain` check box) renders 13x13 with every band
+blended: the outline `#212121` instead of `#000000`, the top/left highlight `#FAFAFA` instead of
+`#FFFFFF`, the bottom/right shadow `#949494` instead of `#888888`, and the two corners the
+reference leaves as the face colour painted dark (`#030303`, `#010101`). The reference's Get Info
+"Locked" box and the shipped `checkbox-normal` art are crisp 1px bands of
+`#000000`/`#FFFFFF`/`#DDDDDD`/`#888888`; `tests/test_kvantum_checkbox_reference.py` passes, so the
+art is right and only the rendered pixels differ.
+
+Reproduce with a throwaway session: `kdialog --title "Test" --warningyesno "Delete?"
+--dontagain /tmp/kde-dontagain:test`, then dump the indicator region.
+
+**Observed output (2026-10-30 re-run):** the resampled box spans x=12..25 but only y=75..87
+(14 columns, 13 rows): row 75 `030303 2E2E2E 212121 … 121212 010101`; row 76
+`2E2E2E FEFEFE FAFAFA … D7D7D7 111111`; rows 77-85 `212121 FAFAFA DDDDDD … 949494 191919`;
+row 86 `121212 D7D7D7 949494 … 898989 202020`; row 87 `010101 111111 191919 … 1F1F1F 030303`.
+
+**Suspected cause:** the shipped `checkbox-normal` canvas is 14x14 while Kvantum draws the
+indicator at its own computed size (13x13 here), so the art is resampled and its 1px bands blend
+with the face. Patching the installed theme's `checkbox-normal` outline to `#FF00FF` renders it as
+`#FF03FF`/`#FD21FD` at the edges — the art is drawn, scaled — so the fix is the canvas size or the
+indicator size, not the element mapping.
+
+**Decision (user, recorded by the director role 2026-10-30): render larger and take the exact
+pixels** — keep the 14x14 canvas and make Kvantum draw it 1:1, not shrink the art to the
+reference's 12x12.
+
+**Fix (bugfix role 2026-10-30):** `%General check_size=14` in `org.macos8.desktop.kvconfig`. The
+decision's stated knob, `[CheckBox] indicator.size`, is inert for this: upstream 1.1.4 returns
+`tspec_.check_size` from `pixelMetric(PM_IndicatorWidth)`/`PM_IndicatorHeight` for checkbox
+options and renders `PE_IndicatorCheckBox`'s interior art into that rect, consulting no section
+size — the compiled-in default is 13 (`themeconfig/specs.h`), the 13 that resampled the canvas.
+Both keys were rendered in the throwaway session during the fix: `indicator.size=14` and even
+`indicator.size=6`/`indicator.element=checkbox` were all pixel-identical to the broken baseline,
+while `check_size=14` draws the box crisp. The rendered indicator (x=12..25, y=75..88) is the
+reference-derived raised square across all 196 pixels (outline `#000000`, highlight `#FFFFFF`,
+face `#DDDDDD`, shadow `#888888`, the two face-coloured corners) surrounded by the flat window
+face — the canvas at 1:1, the same arrangement `tests/test_kvantum_checkbox_reference.py`
+derives — and the rendered box is the full 14x14 canvas, two pixels larger than the reference's
+12x12 view pixels by the render-larger choice. `check_size` also sizes the radio indicator,
+whose `radio-*` canvases are 14x14 as well, so they render 1:1 from the same pin.
+`tests/test_kvantum_checkbox_reference.py::TestCheckBoxReference::test_config_draws_the_indicator_at_the_canvas_size`
+fails against a config without the pin (`None != "14"`) and pins the value to the canvas side it
+re-derives from the art; `tests/test_kvantum_config.py::TestValueKeys` exhaustively pins
+`check_size=14` through `support.kvantum_config_spec.VALUE_KEYS`.
+
+**Validation gap:** real-run-needed — no offline path drew the indicator, so confirming required a
+real bounded `kwin_wayland`+`kdialog --dontagain` render this run; the offline pin of the same
+bound is
+`tests/test_kvantum_checkbox_reference.py::TestCheckBoxReference::test_config_draws_the_indicator_at_the_canvas_size`,
+which ties the engine's `check_size` knob to the canvas side re-derived from the art, and
+`docs/invariants.md` records the upstream sources the knob's behaviour was read from.
+
 ### PNG chunk parsing accepts a lowercase reserved type bit — fixed 2026-10-29 by the bugfix role
 
 **Symptom:** PNG chunks with a lowercase third type letter were accepted as valid unknown ancillary chunks.

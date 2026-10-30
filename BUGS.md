@@ -45,40 +45,6 @@ reference-derived geometry, which the render contradicts.
 `TitleHeight`) must remove the band without moving the title bar, and the render gate should also
 compare the first rows below the title bar so the band cannot return.
 
-### The rendered check box indicator is a resampled 13x13 square, not the reference's crisp 12x12 (found by the render pass 2026-10-29)
-
-A `QCheckBox`'s indicator (e.g. kdialog's `--dontagain` check box) renders 13x13 with every band
-blended: the outline `#212121` instead of `#000000`, the top/left highlight `#FAFAFA` instead of
-`#FFFFFF`, the bottom/right shadow `#949494` instead of `#888888`, and the two corners the
-reference leaves as the face colour painted dark (`#030303`, `#010101`). The reference's Get Info
-"Locked" box and the shipped `checkbox-normal` art are crisp 1px bands of
-`#000000`/`#FFFFFF`/`#DDDDDD`/`#888888`; `tests/test_kvantum_checkbox_reference.py` passes, so the
-art is right and only the rendered pixels differ.
-
-Reproduce with the pass's throwaway session: `kdialog --title "Test" --warningyesno "Delete?"
---dontagain /tmp/kde-dontagain:test`, then dump x=6..18, y=74..86.
-
-**Observed output:** row 74 `030303 2E2E2E 212121 … 121212 010101`; row 75
-`2E2E2E FEFEFE FAFAFA … D7D7D7 111111`; rows 76-84 `212121 FAFAFA DDDDDD … 949494 191919`;
-`python3 tools/sample.py dontagain.png 14 74` → `33,33,33  #212121` where
-`aboutsystem_betawiki.png` at (38, 382) is `0,0,0  #000000`.
-
-**Suspected cause:** the shipped `checkbox-normal` canvas is 14x14 while Kvantum draws the
-indicator at its own computed size (13x13 here), so the art is resampled and its 1px bands blend
-with the face. Patching the installed theme's `checkbox-normal` outline to `#FF00FF` renders it as
-`#FF03FF`/`#FD21FD` at the edges — the art is drawn, scaled — so the fix is the canvas size or the
-indicator size, not the element mapping.
-
-**Decision (user, recorded by the director role 2026-10-30): render larger and take the exact
-pixels** — keep the 14x14 canvas and make Kvantum draw it 1:1, not shrink the art to the
-reference's 12x12. Give `[CheckBox]` an explicit `indicator.size` that matches the
-`checkbox-*` canvases (14) in `org.macos8.desktop.kvconfig` so the engine stops resampling, and
-pin the rendered pixels against the art's exact bands (outline `#000000`, highlight `#FAFAFA`,
-shadow `#949494` -- whatever the canvas carries), not just the slices, with a test that re-derives
-the rendered indicator's pixels; note the rendered box stays one pixel larger than the reference's
-12x12 by this choice. Verify with the same throwaway `kdialog --warningyesno --dontagain` render
-that reproduced the bug.
-
 ### The rendered combo box indicator is a squashed 4px-wide arrow, not the reference's centred double arrow (found by the render pass 2026-10-29)
 
 A `QComboBox`'s indicator renders as two right-aligned triangles four pixels wide (band widths

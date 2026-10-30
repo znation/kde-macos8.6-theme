@@ -671,10 +671,11 @@ NO_FAKE_REPRODUCTIONS = (
 )
 
 
-# The five ``real-run-needed`` records the archive held when the ledger landed.
-# Each once needed a bounded real run to confirm; its offline test now pins the
-# same bound. A new record must name an offline test instead of raising this.
-REAL_RUN_NEEDED_BASELINE = 5
+# The five ``real-run-needed`` records the archive held when the ledger landed,
+# plus the check-box indicator resample fixed 2026-10-30, whose confirmation
+# drew the indicator through a real ``kwin_wayland`` ``kdialog`` render; that
+# render's size bound is pinned offline by the new test. A new record must name
+# an offline test instead of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
@@ -707,8 +708,18 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_colorscheme_install.py::TestInstall"
         "::test_make_install_names_the_scheme_after_its_source_basename",
     ),
+    Reproduction(
+        "check-box-indicator-resample",
+        ("check box indicator is a resampled",),
+        "tests/test_kvantum_checkbox_reference.py::TestCheckBoxReference"
+        "::test_config_draws_the_indicator_at_the_canvas_size",
+    ),
 )
 
+# The number of ``real-run-needed`` records the archive holds with ledger
+# coverage. A new record must name its offline test, and raise this by one in
+# the same change instead of landing uncovered.
+REAL_RUN_NEEDED_BASELINE = 6
 
 # The three ``no-repro`` records the archive held when the ledger landed. Each
 # failure was not deterministic when filed; its test now reproduces it every run.
