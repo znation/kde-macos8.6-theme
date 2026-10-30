@@ -96,4 +96,12 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 4 notebook tabs: pin keyboard-focus outline color (planned 2026-10-29 by the plan role; independent of the queued notebook focus transition)
+
+**Goal.** Give the selected tab of a keyboard-focused notebook the existing opaque black Platinum focus color through the supported `make apply-gtk` user stylesheet import.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the notebook tab rules, add `notebook:focus:focus-visible > header > tabs > tab:checked { outline-color: #000000; }`. Add a dated adaptation comment naming the missing GTK notebook keyboard-focus reference and reuse of the scale focus black. Keep inherited outline width and offset. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_notebook_focus_outline_color`, following `test_scale_focus_outline_color`: use `assert_rule` on the complete focus selector with `{"outline-color": BLACK}` and compare its parsed color to `scale:focus:focus-visible > trough > slider`. Under `## gtk` in `docs/invariants.md`, record the guarantee, new test, missing reference surface, reused color and supported import path. Attribute the stock accent/transparent mixed outline color, 2px width and -2px offset to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29; keep the library name out of CSS to satisfy `test_stands_alone`.
+
+**Acceptance criteria.** The complete selected-tab keyboard-focus selector explicitly declares opaque black; deleting that declaration or replacing its color fails the new test. Documentation identifies a platform color adaptation and declaration coverage without claiming rendered focus evidence. Limit implementation to these three files and outline color; transitions, outline geometry, tab paint, tabbar nodes and GTK 3 remain outside scope. No new palette value, artwork or dependency. This plan and the queued notebook focus-transition plan can merge in either order. `make check` passes.
+
 ## Done
