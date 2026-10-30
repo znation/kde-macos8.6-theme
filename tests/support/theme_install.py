@@ -21,7 +21,7 @@ from support import containment
 from support import process_runner
 from support import repo_root
 from support.installed_paths import XDG_DATA_HOME
-from support.process_assertions import assert_succeeded
+from support.process_assertions import assert_failed, assert_succeeded
 
 
 def run_captured(argv, **kwargs):
@@ -64,6 +64,22 @@ def run_make(args, env=None):
         cwd=repo_root.ROOT,
         env=env,
     )
+
+
+def assert_both_targets_refused(case, env, args, expected):
+    """Run `install` and `uninstall` with *env*; both must refuse.
+
+    *args* carries the make variable assignments for each target, and *expected*
+    names each substring the diagnostic must carry. `install` and `uninstall`
+    share their guards, so a test that drove only one target would miss a guard
+    wired to the other.
+    """
+    for target in ("install", "uninstall"):
+        with case.subTest(target=target):
+            result = run_make([target, *args], env=env)
+            assert_failed(case, result)
+            for substring in expected:
+                case.assertIn(substring, result.stderr)
 
 
 def _run(target, destdir, extra=(), env=None):
