@@ -666,6 +666,15 @@ treeview.view.expander:checked, expander title > arrow:checked {
   -gtk-icon-source: url("../assets/arrow-down.svg");
 }
 
+/* No GTK 3 expander keyboard-focus reference exists; reuse button:focus's
+   dotted outline, offset and square corners. GTK draws focus on the title
+   node, so keep this rule off the outer expander and disclosure arrow. */
+expander > title:focus {
+  outline: 1px dotted #000000;
+  outline-offset: 0;
+  -gtk-outline-radius: 0;
+}
+
 entry selection, spinbutton selection, label selection, textview text selection {
   background-color: #CCCCFF;
   color: #000000;

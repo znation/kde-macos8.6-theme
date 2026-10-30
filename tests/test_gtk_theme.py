@@ -223,6 +223,22 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             ("treeview.view.expander:checked", "expander title > arrow:checked"),
         )
 
+    def test_expander_title_focus_outline(self):
+        selector = "expander > title:focus"
+        self.assert_rule(
+            selector,
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules[selector][property_name],
+                self.rules["button:focus"][property_name],
+            )
+
     def test_submenu_arrow(self):
         self.assert_submenu_arrow(("menu menuitem arrow",), sized=True)
         self.assert_submenu_arrow(("popover modelbutton arrow.right",), sized=False)

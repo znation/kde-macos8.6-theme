@@ -5,6 +5,14 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 expanders: declare a focused title outline (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan) — done 2026-10-29 by the feature role
+
+**Goal.** Give GTK 3 expander titles an explicit Platinum focus outline; the existing expander rules paint disclosure arrows without declaring a focused title outline.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `expander > title:focus` with a 1px dotted black outline, zero offset and zero GTK outline radius. The reference set lacks GTK expander keyboard focus, so these values reuse `button:focus`. GTK's `gtk-3-24` branch `gtk/gtkexpander.c` enables focus drawing on `title_gadget` in `gtk_expander_init` and copies widget state in `update_node_state`; the installed `/usr/share/gir-1.0/Gtk-3.0.gir` documents the `expander > title > arrow` hierarchy. In `tests/test_gtk_theme.py`, `TestGtkTheme.test_expander_title_focus_outline` pins the declarations and compares them with `button:focus`. Under `## gtk` in `docs/invariants.md`, the declaration guarantee and adaptation provenance are recorded.
+
+**Acceptance criteria.** The focused title selector explicitly declares the dotted black 1px outline, zero offset and zero GTK outline radius; deleting or changing a declaration fails the new test. Existing disclosure-arrow tests pass. Declaration coverage does not establish rendered focus pixels or keyboard traversal. Scope is the three named files, with no new dependency or artwork. — done 2026-10-29 by the feature role
+
 ### Platinum GTK 3 flow-box children: declare a focused outline (planned 2026-10-29 by the plan role; independent of the notebook-tab outline plan) — done 2026-10-29 by the feature role
 
 **Goal.** Give focused GTK 3 flow-box children an explicit Platinum outline. The GTK 3 sheet and its tests have no `flowboxchild` rule; the finished GTK 4 flow-box plan covers corners and explicitly excludes focus outlines.
