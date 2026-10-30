@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import stat
 import unittest
+from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
@@ -70,6 +71,25 @@ class TestWriteAtomically(unittest.TestCase):
         with self.assertRaises(KeyboardInterrupt):
             atomic_write.write_atomically(self.target, fill)
         self.assertEqual([], list(self.directory.iterdir()))
+
+    def test_cleanup_failure_does_not_replace_the_write_failure(self):
+        failure = RuntimeError("write failed")
+        cleanup = PermissionError("cleanup denied")
+        real_unlink = type(self.target).unlink
+
+        def fail_cleanup(path, *args, **kwargs):
+            if path.name.startswith(".target.txt-"):
+                raise cleanup
+            return real_unlink(path, *args, **kwargs)
+
+        def fail_write(handle):
+            raise failure
+
+        with mock.patch.object(type(self.target), "unlink", fail_cleanup):
+            with self.assertRaises(RuntimeError) as caught:
+                atomic_write.write_atomically(self.target, fail_write)
+        self.assertIs(failure, caught.exception)
+        self.assertIs(cleanup, caught.exception.__cause__)
 
     def test_write_bytes_replaces_existing_contents(self):
         self.target.write_bytes(b"a much longer previous body")
