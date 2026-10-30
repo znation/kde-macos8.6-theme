@@ -96,4 +96,74 @@ recorded here to keep the scope deliberate.
 
 _None yet._
 
+### Platinum GTK 3 scrolled windows: paint the scrollbar-corner junction with the scrollbar band (planned 2026-10-30 by the plan role; independent of the waiting GTK 4 linked-group extension plan — it edits the GTK 3 sheet and `tests/test_gtk_theme.py` while that plan edits the GTK 4 sheet and `tests/test_gtk4_theme.py`, and it extends the landed GTK 3 overshoot plan with the corner node that landing explicitly left out, per PLANS-DONE.md's sentence "the scrollbar-corner junction and overlay-scrollbar geometry are outside this plan")
+
+**Goal.** When a GTK 3 scrolled window shows both of its scrollbars at once, the corner node
+between them is unpainted on the Platinum theme: the sheet carries no
+`scrolledwindow junction` rule, so the corner square behind the two scrollbar ends renders as a hole in the
+band while the stock theme paints it to blend the troughs together. The junction must read
+as the flat Platinum scrollbar band in normal and backdrop state, like the rest of the
+band this sheet already declares.
+
+**Verified facts, method and values (checked 2026-10-30).** The stock resource
+`/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` inside
+`/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` (extracted with `gresource` on 2026-10-30) carries exactly
+three junction arms: `scrolledwindow junction` declaring `border-color: transparent;`
+`border-image: linear-gradient(to bottom, #cdc7c2 1px, transparent 1px) 0 0 0 1/0 1px
+stretch;` and `background-color: #cecece;`; `scrolledwindow junction:dir(rtl)` declaring
+only `border-image-slice: 0 1 0 0;`; and `scrolledwindow junction:backdrop` declaring a
+lighter `#d5d0cc` gradient and `background-color: #efedec; transition: 200ms
+ease-out;`. The stock resource carries no undershoot arm, as the landed overshoot plan
+already recorded. The resource `/org/gnome/Adwaita/styles/base.css` inside
+`/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0` (extracted 2026-10-30) carries no junction
+arm at all, so the GTK 4 sheet is untouched — GTK 4 shows no stock junction paint to
+answer. No collected screenshot in `macos8.6-screenshots/` shows the GTK scrollbar corner,
+so every value here is a platform adaptation: the adaptation reuses the landed scrollbar
+band `#EEEEEE` (pinned by the sheet's `scrollbar` rule and the `TROUGH` constant in
+`tests/support/platinum_palette.py`) instead of the stock `#cecece`/`#efedec` paints, and
+clears the stock border-image trough line the same way the landed overshoot clearance
+declares plain `none`. Because the replacement declares `border-image: none`, the stock
+`:dir(rtl)` slice arm has no border-image to slice and holds no visual value — the sheet
+leaves it undeclared and the comment says so; the `:backdrop` arm must be replaced because
+without a rule it keeps the stock backdrop colours and the 200ms transition.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, insert
+directly after the landed overshoot group rules (the block ending in the
+`background-image: none;` group under the `/* Adaptation 2026-10-30: …over-scroll glow… */`
+comment) a dated adaptation comment and two rules: `scrolledwindow junction` and
+`scrolledwindow junction:backdrop`, each declaring exactly `background-color: #EEEEEE;`
+`border-color: transparent;` `border-image: none;`. The comment names what the stock GTK 3
+resource paints on the junction, that no collected reference screenshot shows the corner,
+that the band value is the landed scrollbar band, and that the stock `:dir(rtl)` slice arm
+is left undeclared as inert under a none border-image — keeping library names out of the
+sheet's comments as `tests/test_gtk_theme.py`'s content assertions require. In
+`tests/test_gtk_theme.py`, add two `TestGtkTheme` tests beside the two overshoot tests,
+using the shared `assert_rule` helper (and `TROUGH` from
+`tests/support/platinum_palette.py`): `test_junction_shares_the_scrollbar_band` asserting
+`scrolledwindow junction` carries exactly the three declarations above, and
+`test_junction_backdrop_shares_the_scrollbar_band` asserting the same for
+`scrolledwindow junction:backdrop`; the first test additionally asserts the sheet stops
+at the two-declaration shape by asserting `"junction:dir"` is absent from the sheet text,
+pinning the undeclared RTL arm. Leave every landed assertion unchanged; the rules sit
+beside the overshoot block, so no existing scrollbar, thumb or overlay assertion shifts.
+In `docs/invariants.md`, append one row under `## gtk`: no collected screenshot shows a
+GTK scrollbar corner junction; the three-arm stock inventory (the normal rule, the
+`:dir(rtl)` slice arm and the `:backdrop` rule) comes from the stock
+`/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in
+`/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` and headless-probed
+over broadway on 2026-10-30; the corner reuses the landed `#EEEEEE` scrollbar band
+instead of the stock `#cecece`/`#efedec` paints, a platform adaptation grounded in the
+flat Platinum field the landed scrollbar and overshoot recipes assert; the RTL slice arm stays undeclared because its slice has no
+border-image to apply to; the declaration checks do not establish rendered pixels.
+
+**Acceptance criteria.** Both junction selectors exist in the GTK 3 sheet with exactly the
+three pinned declarations each, so a rendered scrolled window with both scrollbars shows
+the corner as the flat `#EEEEEE` band with no stock trough line or colour change in normal
+or backdrop state; deleting either rule, changing any pinned value, or widening the
+junction block to any further selector (including a `:dir(rtl)` arm) fails one of the two
+new tests or the pinned absence check. The landed scrollbar, overshoot and overlay
+assertions pass byte-for-byte unchanged. Scope is the three named files; overflow-scroll
+overlay geometry, stepper art and GTK 4 (no stock junction arm there) stay outside this
+plan; no new palette value, artwork or dependency. `make check` passes.
+
 ## Done
