@@ -670,6 +670,25 @@ treeview.view:selected:backdrop, list row.activatable:selected:backdrop {
   border-radius: 0;
 }
 
+/* No GTK reference screenshot shows drag-and-drop feedback; the stock
+   toolkit floods a dropped-over header button with its accent fill and a
+   white inset ring in every drag state. The selection fill answers it,
+   as for selected rows (adaptation 2026-10-30). */
+treeview.view button.dnd, treeview.view button.dnd:hover,
+treeview.view button.dnd:active, treeview.view button.dnd:selected,
+treeview.view header.button.dnd, treeview.view header.button.dnd:hover,
+treeview.view header.button.dnd:active, treeview.view header.button.dnd:selected,
+treeview.view header button.dnd, treeview.view header button.dnd:hover,
+treeview.view header button.dnd:active, treeview.view header button.dnd:selected {
+  background-color: #CCCCFF;
+  background-image: none;
+  color: #000000;
+  text-shadow: none;
+  box-shadow: none;
+  border-style: none;
+  border-radius: 0;
+}
+
 /* No GTK list-row keyboard-focus reference exists; reuse button:focus's
    dotted outline, offset and square corners. */
 list row:focus {
