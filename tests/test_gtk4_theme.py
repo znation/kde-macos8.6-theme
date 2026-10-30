@@ -914,6 +914,19 @@ for radio in (False, True):
             {name: base[name] for name in expected},
         )
 
+    def test_progressbar_osd_trough_thickness(self):
+        horizontal = "progressbar.osd.horizontal > trough"
+        vertical = "progressbar.osd.vertical > trough"
+        expected = {
+            horizontal: {"min-height": self.rules["progressbar > trough"]["min-height"]},
+            vertical: {"min-width": self.rules["progressbar > trough"]["min-width"]},
+        }
+        self.assertEqual(expected[horizontal]["min-height"], PROGRESSBAR_TROUGH["min-height"])
+        self.assertEqual(expected[vertical]["min-width"], PROGRESSBAR_TROUGH["min-width"])
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], declarations)
+
     def test_progressbar_oriented_trough_thickness(self):
         horizontal = "progressbar.horizontal > trough"
         vertical = "progressbar.vertical > trough"
