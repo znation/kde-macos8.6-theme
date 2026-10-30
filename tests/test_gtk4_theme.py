@@ -1004,6 +1004,19 @@ for radio in (False, True):
             {"outline": "none"},
         )
 
+    def test_scrollbar_overlay_thumb_breadth(self):
+        slider = self.rules["scrollbar > range > trough > slider"]
+        for selector in (
+            "scrollbar.overlay-indicator.horizontal.hovering > range > trough > slider",
+            "scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough > slider",
+        ):
+            self.assert_rule(selector, {"min-height": slider["min-height"]})
+        for selector in (
+            "scrollbar.overlay-indicator.vertical.hovering > range > trough > slider",
+            "scrollbar.overlay-indicator.vertical:not(.hovering) > range > trough > slider",
+        ):
+            self.assert_rule(selector, {"min-width": slider["min-width"]})
+
     def test_scrollbar_disabled_thumb_opacity(self):
         self.assert_rule(
             "scrollbar > range > trough > slider:disabled",
@@ -1388,6 +1401,20 @@ class TestScrollbarBreadthReference(ReferenceScreenshotMixin, unittest.TestCase)
         band = bottom - top + 1
         self.assertEqual(band, 16)
         _, rules, _ = parse_css(gtk_css.read_theme_text(CSS))
+        slider = rules["scrollbar > range > trough > slider"]
+        trough = rules["scrollbar > range > trough"]
+        self.assertEqual(slider["border"], f"1px solid {BLACK}")
+        self.assertEqual(trough["border"], f"1px solid {BLACK}")
+        for selector in (
+            "scrollbar.overlay-indicator.horizontal.hovering > range > trough > slider",
+            "scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough > slider",
+        ):
+            self.assertEqual(rules[selector]["min-height"], f"{band - 4}px")
+        for selector in (
+            "scrollbar.overlay-indicator.vertical.hovering > range > trough > slider",
+            "scrollbar.overlay-indicator.vertical:not(.hovering) > range > trough > slider",
+        ):
+            self.assertEqual(rules[selector]["min-width"], f"{band - 4}px")
         self.assertEqual(rules["calendar"]["color"], hex_colour(self.pixel(x, top)))
 
 

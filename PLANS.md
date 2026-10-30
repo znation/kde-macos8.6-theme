@@ -94,15 +94,15 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-_None yet._
-
-### Platinum GTK 4 overlay scrollbar thumbs: retain the ordinary minimum breadth (planned 2026-10-29 by the plan role; independent of the queued ordinary trough margin plan)
+### Platinum GTK 4 overlay scrollbar thumbs: retain the ordinary minimum breadth (planned 2026-10-29 by the plan role; independent of the queued ordinary trough margin plan) — done 2026-10-29 by the feature role
 
 **Goal.** Through the supported `make apply-gtk` user stylesheet import, give overlay thumbs the ordinary thumb's 12px transverse minimum in hovering and non-hovering states. The finished 2026-10-24 breadth plan explicitly excluded overlays; stock libadwaita selectors still supply smaller transverse minima.
 
 **Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a group for `scrollbar.overlay-indicator.horizontal.hovering > range > trough > slider` and `scrollbar.overlay-indicator.horizontal:not(.hovering) > range > trough > slider` declaring only `min-height: 12px`; add the corresponding two vertical selectors declaring only `min-width: 12px`. These selectors tie or exceed the stock state specificity. Add a dated adaptation comment: no reference shows GTK overlay scrollbars; reuse the ordinary thumb minimum derived from the reference band minus the existing borders. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_scrollbar_overlay_thumb_breadth` using `assert_rule` for these four selectors, comparing each transverse value to the base slider's corresponding minimum. Extend `TestScrollbarBreadthReference.test_thumb_band_matches_reference` to assert those four values equal `f"{band - 4}px"`, using its existing sampled band, and assert that the base thumb and trough borders are each `1px solid #000000` through `BLACK`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, tests and missing overlay reference surface. Cite the ordinary-band source (`setup_emaculation.png`, x=200, y=462..477) and `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29: non-hovering overlay thumbs have 3px minima in both axes, hovering horizontal thumbs have an 8px minimum height and hovering vertical thumbs an 8px minimum width. Keep library provenance outside CSS for `test_stands_alone`.
 
 **Acceptance criteria.** Each orientation/state selector explicitly declares the 12px transverse minimum; removing one or restoring its stock 3px/8px value fails the new declaration test and the reference-derived assertion. Existing scrollbar paint, outline and base breadth coverage passes. The invariant states that these are minimum-size declarations, not proof of rendered overlay breadth: inherited trough margins, allocation and overlay visibility remain outside this plan. Preserve toolkit longitudinal minimum-length rules; change no overlay spacing or visibility policy. Limit implementation to these three files. This can merge independently of the ordinary trough margin reset. `make check` passes.
+
+_None yet._
 
 ### Platinum GTK 4 overlay scrollbar troughs: suppress inherited margins (planned 2026-10-29 by the plan role; independent of the queued overlay thumb minimum breadth plan)
 
