@@ -717,6 +717,108 @@ class TestShellUnsafeColorScheme(unittest.TestCase):
         self.assertIn("COLOR_SCHEME_ID := my scheme'", output)
 
 
+class TestShellUnsafeThemeRoot(unittest.TestCase):
+    """A `THEME_ROOT` carrying a recipe-shell metacharacter is refused.
+
+    `THEME_ROOT` is a command-line overridable tree root that pushes into
+    double-quoted recipe words: `install`'s symlink guard
+    (`require_theme_links`) runs `[ -L "$(THEME_ROOT)" ]` and
+    `find "$(THEME_ROOT)" ...`, so a double quote, `$`, a backtick or a
+    backslash would run the words after it as shell commands instead of
+    naming a tree -- with a backtick in the value, `make install
+    THEME_ROOT='x`touch canary`'` executes `touch canary` from the recipe
+    shell. The same make-level guard that `TestShellUnsafeInstallPaths`
+    pins for the install paths, `FLOCK_TIMEOUT`, `FIREFOX_PROFILE` and
+    `COLOR_SCHEME` refuses such a value at parse time, before any recipe of
+    any target runs. A space or an apostrophe is inert inside a
+    double-quoted word and stays legal.
+    """
+
+    def _assert_refused(self, make_value, shown_value):
+        """Run `install`/`uninstall` with *make_value*; both must refuse.
+
+        *shown_value* is the text the diagnostic must echo back verbatim.
+        """
+        _assert_both_targets_refused(
+            self,
+            None,
+            (f"THEME_ROOT={make_value}",),
+            (
+                "THEME_ROOT contains a shell metacharacter",
+                shown_value,
+            ),
+        )
+
+    def test_a_hostile_THEME_ROOT_is_refused_without_running_its_shell(self):
+        """A double quote in `THEME_ROOT` cannot escape the symlink guard.
+
+        Before this guard, `make install THEME_ROOT='x"; touch {canary};
+        exit 7; echo "'` broke out of `require_theme_links`' quoted word:
+        the injected words made the recipe shell create the canary and exit
+        before the guard could refuse anything.
+        """
+        tmp = make_tmp_dir(self)
+        canary = "theme_root_guard_canary"
+        result = theme_install.run_captured(
+            [
+                "make",
+                "-f",
+                str(repo_root.ROOT / "Makefile"),
+                "install",
+                f"THEME_ROOT=x\"; touch {canary}; exit 7; echo \"",
+                f"DESTDIR={tmp}",
+                f"XDG_DATA_HOME={tmp}",
+            ],
+            cwd=str(tmp),
+            env=theme_install.make_env(),
+        )
+        assert_failed(self, result)
+        self.assertIn("THEME_ROOT contains a shell metacharacter", result.stderr)
+        self.assertIn("x\"; touch theme_root_guard_canary; exit 7; echo \"", result.stderr)
+        self.assertFalse((tmp / canary).exists(), tmp)
+
+    def test_each_metacharacter_is_refused_in_THEME_ROOT(self):
+        # The guard reads each value after make's own expansion, so the same
+        # HOSTILES pairs `TestShellUnsafeInstallPaths` documents apply: a `$`
+        # arrives doubled in the make argument.
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_an_escape_byte_in_THEME_ROOT_is_refused_without_echoing_it(self):
+        # Control bytes are not shell syntax inside a double-quoted word, but
+        # the metacharacter branch's diagnostic pastes the refused value raw:
+        # the control-byte branch must fire first, as for the other guards
+        # (`TestShellUnsafeControlCharacters`).
+        byte = "\x1b"
+        result = theme_install.run_make(
+            ["install", f"THEME_ROOT=/t{byte}tree"], env=theme_install.make_env()
+        )
+        assert_failed(self, result)
+        self.assertIn("THEME_ROOT contains a control character", result.stderr)
+        output = result.stdout + result.stderr
+        self.assertNotIn(byte, output)
+
+    def test_a_tree_root_with_a_space_or_an_apostrophe_is_still_legal(self):
+        # A space or an apostrophe is inert inside the double-quoted word:
+        # a dry run must print the recipes instead of refusing.
+        result = theme_install.run_captured(
+            [
+                "make",
+                "-f",
+                str(repo_root.ROOT / "Makefile"),
+                "-p",
+                "-n",
+                "install",
+                "THEME_ROOT=theme' spaced tree",
+            ],
+            env=theme_install.make_env(),
+        )
+        assert_succeeded(self, result)
+        output = result.stdout + result.stderr
+        self.assertIn("THEME_ROOT = theme' spaced tree", output)
+
+
 class TestShellUnsafePython(unittest.TestCase):
     """A `PYTHON` carrying recipe-shell syntax at an unquoted spot is refused.
 
