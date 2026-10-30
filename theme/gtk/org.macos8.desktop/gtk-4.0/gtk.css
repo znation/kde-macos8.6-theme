@@ -795,6 +795,48 @@ columnview.view:selected:backdrop, listview > row.activatable:selected:backdrop 
   border-radius: 0;
 }
 
+/* Adaptation 2026-10-30: no collected reference screenshot shows a GTK
+   drag-and-drop state, but the stock GTK 4 scheme paints the drop surfaces
+   with its accent family -- an accent border around the icon view's drop
+   target, accent top and bottom lines on a row drop target, and a full
+   accent fill with white text and an inset white ring on a header button
+   while a column drags over it -- while Platinum's elevation cue is the
+   selection: the pinned #CCCCFF repaints each state and black text replaces
+   the white label. Each rule below names one of the stock painting arms
+   verbatim in a group; the directional arms that hide one of the two row
+   lines carry no colour this adaptation must replace, so they stay
+   undeclared, and the state variants mirror the stock header arm's states so
+   no stock hover, active or selected paint outranks the selection below. */
+iconview > dndtarget:drop(active) {
+  border: 1px solid #CCCCFF;
+}
+
+columnview.view > dndtarget:drop(active),
+treeview.view > dndtarget:drop(active),
+window.print:not(.ssd-frame) treeview.dialog-action-box > dndtarget:drop(active) {
+  border-style: solid none;
+  border-width: 1px;
+  border-color: #CCCCFF;
+}
+
+columnview.view > header > button.dnd,
+columnview.view > header > button.dnd:hover,
+columnview.view > header > button.dnd:active,
+columnview.view > header > button.dnd:selected,
+treeview.view > header > button.dnd,
+treeview.view > header > button.dnd:hover,
+treeview.view > header > button.dnd:active,
+treeview.view > header > button.dnd:selected,
+window.print:not(.ssd-frame) treeview.dialog-action-box > header > button.dnd {
+  background-color: #CCCCFF;
+  background-image: none;
+  color: #000000;
+  text-shadow: none;
+  box-shadow: none;
+  border-style: none;
+  border-radius: 0;
+}
+
 treeview.view.expander, expander {
   min-width: 16px;
   min-height: 16px;

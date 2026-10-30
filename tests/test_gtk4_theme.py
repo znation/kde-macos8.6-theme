@@ -602,6 +602,53 @@ for radio in (False, True):
     def test_rubberband(self):
         self.assert_rubberband(("rubberband",))
 
+    def test_iconview_drop_border(self):
+        self.assert_rule(
+            "iconview > dndtarget:drop(active)",
+            {"border": f"1px solid {SELECTION}"},
+        )
+
+    def test_row_drop_borders(self):
+        expected = {
+            "border-style": "solid none",
+            "border-width": "1px",
+            "border-color": SELECTION,
+        }
+        for selector in (
+            "columnview.view > dndtarget:drop(active)",
+            "treeview.view > dndtarget:drop(active)",
+            "window.print:not(.ssd-frame) treeview.dialog-action-box > dndtarget:drop(active)",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, expected)
+
+    def test_header_drop_indicator(self):
+        expected = {
+            "background-color": SELECTION,
+            "background-image": "none",
+            "color": BLACK,
+            "text-shadow": "none",
+            "box-shadow": "none",
+            "border-style": "none",
+            "border-radius": "0",
+        }
+        for scope in ("columnview.view > header", "treeview.view > header"):
+            for state in ("", ":hover", ":active", ":selected"):
+                with self.subTest(scope=scope, state=state):
+                    self.assert_rule(f"{scope} > button.dnd{state}", expected)
+        self.assert_rule(
+            "window.print:not(.ssd-frame) treeview.dialog-action-box > header > button.dnd",
+            expected,
+        )
+
+    def test_row_drop_directional_arms_undeclared(self):
+        # The stock directional arms only hide one of the two row drop
+        # lines; neither carries a colour the selection replaces, so the
+        # sheet keeps them undeclared. This pin fails if a rule ever
+        # claims one of them by name.
+        self.assertNotIn("drop(active).after", self.css)
+        self.assertNotIn("drop(active).before", self.css)
+
     def test_spin_button_field(self):
         self.assert_spin_button_field(
             ("spinbutton:not(.vertical)", "spinbutton.vertical > text")
