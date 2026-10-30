@@ -94,12 +94,4 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-### Platinum GTK 4 switches: preserve opaque checked tracks in OSD containers (planned 2026-10-29 by the plan role; independent of the queued keyboard-focus outline plan)
-
-**Goal.** Keep checked switch tracks opaque white inside an `.osd` ancestor through the supported `make apply-gtk` user stylesheet import. The inherited `.osd switch:checked` rule supplies a translucent white fill at higher specificity than the theme's base checked-track rule.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside `switch:checked`, add `.osd switch:checked { background-color: #FFFFFF; }`. Add a dated adaptation comment naming the missing GTK OSD switch reference and reuse of the existing checked-track white. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_osd_checked_track_color` beside `test_switch`: use `assert_rule` to require `{"background-color": WHITE}` on the complete `.osd switch:checked` selector and assert equality with `switch:checked`'s background color. In `docs/invariants.md` under `## gtk`, record the declaration guarantee, test and supported import path, and attribute the inherited `RGB(255 255 255/60%)` fill to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution outside CSS because `test_stands_alone` rejects its name there.
-
-**Acceptance criteria.** The ancestor-OSD checked selector explicitly declares opaque white, matching the stock selector's specificity. Removing the rule or replacing white with a translucent value fails the new test. Existing switch interaction and geometry assertions pass. Documentation identifies the missing reference surface and existing checked-track token as the chosen-value source; declaration coverage does not claim rendered OSD evidence. Limit implementation to these three files and this track color; focus, thumb paint, geometry, GTK 3 and artwork are outside scope. No new palette value, asset or dependency. `make check` passes.
-
 ## Done

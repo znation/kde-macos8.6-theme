@@ -1066,6 +1066,11 @@ switch:checked {
   background-image: none;
 }
 
+/* No reference shows GTK OSD switch tracks; keep the checked track opaque using its existing white (2026-10-29). */
+.osd switch:checked {
+  background-color: #FFFFFF;
+}
+
 /* No reference shows GTK switch keyboard focus; reuse the scale focus black (2026-10-29). */
 switch:focus:focus-visible {
   outline-color: #000000;

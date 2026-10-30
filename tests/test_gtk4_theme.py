@@ -1035,6 +1035,14 @@ for radio in (False, True):
             glyph="switch > image",
         )
 
+    def test_switch_osd_checked_track_color(self):
+        selector = ".osd switch:checked"
+        self.assert_rule(selector, {"background-color": WHITE})
+        self.assertEqual(
+            self.rules[selector]["background-color"],
+            self.rules["switch:checked"]["background-color"],
+        )
+
     def test_switch_track_transition(self):
         self.assert_rule("switch", {"transition": "none"})
 
