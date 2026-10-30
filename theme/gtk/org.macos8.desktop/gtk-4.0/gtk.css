@@ -1048,6 +1048,9 @@ switch {
   /* No reference screenshot shows a GTK switch (adaptation 2026-10-29);
      zero internal spacing keeps
      the thumb against the track, reusing the desktop-theme switch recipe. */
+  /* No reference shows switch motion; disable inherited state transitions,
+     following the immediate GTK scale and calendar focus policy (2026-10-29). */
+  transition: none;
   padding: 0;
   background-color: #EEEEEE;
   background-image: none;

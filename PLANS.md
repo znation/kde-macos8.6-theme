@@ -94,14 +94,4 @@ copies this sheet alongside `userChrome.css`. This content work extends the
 2026-10-19 "style Firefox" answer rather than the brief's KDE/Plasma desktop UI, so it is
 recorded here to keep the scope deliberate.
 
-_None yet._
-
-### Platinum GTK 4 switches: make track state changes immediate (planned 2026-10-29 by the plan role; independent of the queued track interaction paint)
-
-**Goal.** Suppress the inherited switch-track outline, background and shadow transitions through the supported `make apply-gtk` user stylesheet import. The queued track interaction plan controls paint endpoints; this entry controls interpolation and can merge independently.
-
-**Approach and files.** Add `transition: none` to the existing base `switch` rule in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, so the declaration applies on state entry and exit. Add a dated adaptation comment identifying the missing GTK switch motion reference and reuse of the immediate-state policy already used for scale and calendar focus. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_switch_track_transition` beside `test_switch`, calling `self.assert_rule("switch", {"transition": "none"})`, following `test_scale_focus_transition`. Under `## gtk` in `docs/invariants.md`, record the declaration guarantee, test and supported import path. Attribute the inherited 200ms outline-color, outline-width, outline-offset, background and box-shadow transitions to `/org/gnome/Adwaita/styles/base.css` in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-29. Keep library attribution outside CSS because `test_stands_alone` rejects its name there.
-
-**Acceptance criteria.** Removing the base transition declaration, replacing `none` with an animated value, or placing it solely on a state selector fails the new test. Existing switch paint and geometry assertions pass. Documentation names the missing reference surface and the existing scale/calendar policy as the chosen-value source; declaration coverage does not claim rendered motion fidelity. Limit implementation to these three files and the track transition; thumb motion, focus endpoint styling, interaction paint, geometry and GTK 3 are outside scope. No new palette value, asset or dependency. `make check` passes.
-
 ## Done

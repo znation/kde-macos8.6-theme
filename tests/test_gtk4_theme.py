@@ -1035,6 +1035,9 @@ for radio in (False, True):
             glyph="switch > image",
         )
 
+    def test_switch_track_transition(self):
+        self.assert_rule("switch", {"transition": "none"})
+
     def test_switch_interaction_track_faces(self):
         for selector in ("switch:hover", "switch:active"):
             with self.subTest(selector=selector):
