@@ -21,7 +21,9 @@ from __future__ import annotations
 
 import os
 import stat
+from collections.abc import Callable
 from pathlib import Path
+from typing import TypeVar
 
 try:
     from tools.image_format import LFS_POINTER_MAGIC, PNG_MAGIC
@@ -46,6 +48,16 @@ _MAX_FILE_BYTES = 512 * 1024 * 1024
 # its CRC: enough for iter_chunks and parse_ihdr to validate the size without
 # reading a single image row.
 _HEADER_PREFIX_BYTES = len(PNG_MAGIC) + 4 + 4 + 13 + 4
+
+_Result = TypeVar("_Result")
+
+
+def _with_decode_path(path: str | Path, operation: Callable[[], _Result]) -> _Result:
+    """Run a PNG decode operation and include its source path in failures."""
+    try:
+        return operation()
+    except PngError as exc:
+        raise PngError(f"cannot decode {path}: {exc}") from exc
 
 
 def _read_png_data(
@@ -133,13 +145,14 @@ def read_png(
     image as before.
     """
     data = _read_png_data(path)
-    try:
+
+    def decode() -> Image:
         if alpha:
             width, height, rgba = decode_rgba(data, max_rows, max_cols)
             return _image_with_alpha(width, height, rgba)
         return decode_png(data, max_rows, max_cols)
-    except PngError as exc:
-        raise PngError(f"cannot decode {path}: {exc}") from exc
+
+    return _with_decode_path(path, decode)
 
 
 def read_rgba(
@@ -154,10 +167,9 @@ def read_rgba(
     left columns. A :class:`PngError` names *path* in its message.
     """
     data = _read_png_data(path)
-    try:
-        return decode_rgba(data, max_rows, max_cols)
-    except PngError as exc:
-        raise PngError(f"cannot decode {path}: {exc}") from exc
+    return _with_decode_path(
+        path, lambda: decode_rgba(data, max_rows, max_cols)
+    )
 
 
 def read_png_size(path: str | Path) -> tuple[int, int]:
@@ -181,20 +193,18 @@ def read_png_size(path: str | Path) -> tuple[int, int]:
         except PngError:
             first = None
         if first is not None and first[0] == b"IHDR":
-            try:
+
+            def read_dimensions() -> tuple[int, int]:
                 width, height, _ = parse_ihdr(first[1])
                 check_pixel_limit(width, height)
-            except PngError as exc:
-                raise PngError(f"cannot decode {path}: {exc}") from exc
-            return width, height
+                return width, height
+
+            return _with_decode_path(path, read_dimensions)
     # Fall back to the full read and the decoder so a file whose first chunk
     # is not IHDR gets the same diagnostic read_png would produce; it rejects
     # before unfiltering.
     data = _read_png_data(path)
-    try:
-        decode_png(data)
-    except PngError as exc:
-        raise PngError(f"cannot decode {path}: {exc}") from exc
+    _with_decode_path(path, lambda: decode_png(data))
     raise PngError(
         f"cannot decode {path}: PNG has no readable IHDR chunk"
     )
