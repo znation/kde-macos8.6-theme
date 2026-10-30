@@ -826,6 +826,27 @@ class TestDiscovery(unittest.TestCase):
             [], check_parallel_discovery.discover_modules(tests_dir, "test*.py")
         )
 
+    def test_a_symlinked_test_module_file_is_not_imported(self):
+        # The islink guard applies to module files as well as package
+        # directories: unittest discover follows a symlinked top-level test
+        # module and would import it where the serial run does, so a link
+        # under the tests directory pointing outside the selected tree must
+        # stay invisible here too.
+        tests_dir = str(make_tmp_dir(self) / "tests")
+        os.mkdir(tests_dir)
+        outside = os.path.join(os.path.dirname(tests_dir), "outside_pkg")
+        os.mkdir(outside)
+        _write_module(outside, "test_outside.py", OK_MODULE)
+        os.symlink(
+            os.path.join(outside, "test_outside.py"),
+            os.path.join(tests_dir, "test_linked.py"),
+        )
+        _write_module(tests_dir, "test_ok.py", OK_MODULE)
+        self.assertEqual(
+            ["test_ok"],
+            check_parallel_discovery.discover_modules(tests_dir, "test*.py"),
+        )
+
 
     def test_files_unittest_cannot_load_are_skipped(self):
         # unittest discovery gates every file on VALID_MODULE_NAME (a valid
