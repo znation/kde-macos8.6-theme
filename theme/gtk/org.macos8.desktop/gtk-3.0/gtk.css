@@ -613,6 +613,12 @@ scrollbar slider {
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
 }
 
+/* No GTK thumb minimum-length policy appears in the reference set; reuse the overlay square minimum from its 16px band minus both 1px borders. */
+scrollbar:not(.overlay-indicator) slider {
+  min-width: 12px;
+  min-height: 12px;
+}
+
 /* No GTK overlay scrollbar appears in the reference set; reuse the ordinary 16px band minus the two 1px borders. */
 scrollbar.overlay-indicator slider {
   min-width: 12px;
