@@ -7,7 +7,10 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
+## Done
+
 ### Platinum GTK 4 scale-popup buttons: restate the stock hover and OSD flat arms with the landed button recipe (planned 2026-10-31 by the plan role; independent of the waiting GTK 4 dimmed-label entry — both touch `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk4_theme.py` and `docs/invariants.md`, but this entry appends two rules at the sheet tail after the landed `.osd scale > trough > slider:disabled` block, adds one test function beside `test_video_osd_image_corners` and appends its own `## gtk` invariants row, while that entry adds a mid-sheet `label.dimmed` rule and its own test and row; no selector, test or table row overlaps, so either merge order leaves the cascade right)
+— done 2026-10-31 by the feature role
 
 **Goal.** Endpoint a GTK 4 scale popup's two buttons so the stock rounded, translucent-dark arms do not repaint the landed square Platinum push-button treatment inside it.
 
@@ -27,7 +30,6 @@ _None yet._
 
 **Acceptance criteria.** Removing either appended rule or any of its selectors or declarations, or renaming a selector to anything but its exact stock twin, fails the new test that pins it. The landed `test_paned_handle` in both suites, `test_paned_handle_background_images`, `test_no_universal_selector` and `test_only_palette_hex_literals` stay green: the appended blocks add no hex literal and no universal selector. No artwork, geometry, metric or dependency changes; the landed paned rules, the landed GTK 3 image group, the scale-popup entry's selectors and every other surface stay outside this plan. Run `make check`. It merges before or after the waiting GTK 4 scale-popup entry in either order.
 
-## Done
 
 ### Platinum GTK 3 secondary labels: declare the inactive-text grey (planned 2026-10-31 by the plan role)
 — done 2026-10-31 by the feature role

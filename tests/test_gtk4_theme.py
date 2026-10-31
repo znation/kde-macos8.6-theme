@@ -926,6 +926,22 @@ for radio in (False, True):
                         self.rules[reference]["border-radius"],
                     )
 
+    def test_scale_popup_buttons(self):
+        """Clear the stock rounded scale-popup button overrides."""
+        self.assertEqual(
+            self.rules[".osd .scale-popup button.flat"],
+            {"border-style": "solid", "border-radius": "0"},
+        )
+        self.assertEqual(
+            self.rules[".scale-popup button:hover"],
+            {"background-color": FACE, "border-radius": "0"},
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "scale-popup" in selector and "button" in selector},
+            {".osd .scale-popup button.flat", ".scale-popup button:hover"},
+        )
+
     def test_video_osd_image_corners(self):
         self.assertEqual(
             {selector for selector in self.rules if "video" in selector},
@@ -1281,7 +1297,8 @@ for radio in (False, True):
             {
                 selector
                 for selector in self.selectors
-                if any(token in selector for token in tokens)
+                if "button" not in selector
+                and any(token in selector for token in tokens)
             },
             set(selectors) | landed,
         )
