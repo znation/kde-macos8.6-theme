@@ -1493,3 +1493,51 @@ toolbar.osd {
   border-radius: 50%;
   box-shadow: none;
 }
+
+/* No collected reference screenshot shows a GTK OSD overlay or a scale
+   thumb inside one, so the toolkit resource's six `.osd scale slider` arms
+   — translucent dark bubbles with white-on-dark text and icon shadows — are
+   restated with the landed plain scale-thumb recipe (SCALE_THUMB in
+   tests/support/gtk_theme_spec.py, pinned by
+   tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_scale and
+   TestGtkTheme::test_scale): the raised #DDDDDD face with its black border,
+   zero radius and white/grey bevel, identical in the base, hover, active and
+   backdrop states, and the landed grey disabled face in both disabled
+   states. The stock arms claim the text-shadow 0 1px black / -gtk-icon-shadow
+   0 1px black pair and an rgba(238,238,236,0.3) outline colour, cleared and
+   restated black the same way the landed .osd entry and check blocks do;
+   stock's background-clip: padding-box is part of its translucent
+   dark-bubble arm, while the landed plain thumb draws without it, so the
+   restated thumb omits it and draws exactly like the plain one. No stock arm
+   sets geometry, so the landed plain scale slider, scale.horizontal slider,
+   scale.vertical slider and scale slider:disabled rules keep governing size,
+   and the stateless arms keep the plain thumb's -5px margin. The arm
+   selectors and states come from gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30. Declaration checks do not establish rendered pixels. */
+
+.osd scale slider,
+.osd scale slider:hover,
+.osd scale slider:active,
+.osd scale slider:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd scale slider,
+.osd scale slider:backdrop {
+  margin: -5px;
+}
+
+.osd scale slider:disabled,
+.osd scale slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+}
