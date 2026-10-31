@@ -29,9 +29,11 @@ render's matching row has three.
 `comboarrow` art into a narrower indicator area (about 7px), squashing the triangles; the theme's
 `[ComboBox] indicator.size=12` does not reach the rendered indicator.
 
-**Needs review by bugfix:** first try steering the engine to draw the 12x12 `comboarrow` cell
-1:1 — an explicit `[ComboBox]` `indicator.size` matching the art's canvas, per the same
-direction as the check box's recorded decision — and pin the rendered arrow's centred bands
+**Decision (user, recorded by the director role 2026-10-30): steer the engine first** — proceed
+with the bugfix review's recommendation: try steering the engine to draw the 12x12 `comboarrow`
+cell 1:1 (an explicit size knob matching the art's canvas; note the check box fix found
+`[CheckBox] indicator.size` inert there, so try the section's size keys against upstream
+`Kvantum.cpp` before trusting `indicator.size`), and pin the rendered arrow's centred bands
 (1/3/5/7, 7/5/3/1) with a test that re-derives the pixels from a render. Only if the engine
 cannot be steered to the art's size, re-derive the `comboarrow` art at the size Kvantum actually
 draws and record the smaller cell's deviation from the reference's 12x12 so the same direction
