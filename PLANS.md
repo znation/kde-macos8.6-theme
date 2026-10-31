@@ -18,6 +18,19 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Each of the four selectors declares `box-shadow: none`; deleting a reset fails the new test. The base overlay retains its zero corner radius, and image and existing label-shadow declarations remain pinned by their tests. Change no chosen-color swatch fills, borders, geometry, drag/drop feedback, generic overlay shadows or GTK 4 CSS. Implementation is limited to the sheet, its test file and the invariant register, and is independently mergeable from the open Kvantum bugs. `make check` passes.
 
+### Platinum GTK 3 add-color action: pin black foregrounds (planned 2026-10-30 by the plan role)
+
+**Goal.** Give the add-color action the sheet's black foreground instead of Adwaita's grey normal and backdrop glyph colors.
+
+**Grounding.** The four `colorswatch#add-color-button overlay` image-reset arms in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` declare no foreground. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-30, declares `color: #2e3436` on base and hover and `color: #929595` on backdrop. Searches of the queue and finished-plan headings found corner, image and shadow plans, but no foreground plan for this action. No collected reference shows this GTK action: black is a platform adaptation reusing the sheet's `window, .background` foreground, not a new screenshot measurement.
+
+**Approach and files.**
+- Add `color: #000000` to the existing four-arm add-color image-reset group in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` (base, `:hover`, `:backdrop`, `:backdrop:hover`). Extend its comment with the missing reference surface, chosen foreground source, stock resource and date. Preserve any landed shadow resets. This property change can merge independently of the waiting box-shadow plan.
+- Add `TestGtkTheme.test_add_color_foregrounds` in `tests/test_gtk_theme.py`, asserting the explicit black foreground on those four selectors and equality with the `window` foreground. Extend the exact dictionaries in `test_color_swatch_corners`, `test_add_color_background_images` and any landed add-color shadow tests to include the foreground while preserving their other assertions. Keep `GtkSheetRuleCases.assert_color_swatch_corners` and its exact selector inventory unchanged.
+- Add a declaration guarantee and dated adaptation provenance beside the swatch rows in `docs/invariants.md`, naming the new test and distinguishing declarations from rendered-pixel coverage.
+
+**Acceptance criteria.** Each of the four arms explicitly declares black; removing that declaration fails the new test. Existing radius, image and landed shadow assertions continue to pass. Do not change swatch fills, borders, geometry, generic overlay foregrounds or GTK 4 CSS. Limit implementation to the sheet, its test file and invariant register; `make check` passes.
+
 ## Done
 
 ### Platinum GTK 3 color buttons: clear the swatch's decorative shadow (planned 2026-10-30 by the plan role)
