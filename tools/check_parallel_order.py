@@ -26,12 +26,15 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_bytes_atomically
+    from tools.containment import read_capped_bytes
 else:  # run directly: python3 tools/check_parallel_order.py
     from atomic_write import write_bytes_atomically
+    from containment import read_capped_bytes
 
 _CACHE_VERSION = 1
 _CACHE_DIR = ("kde-macos8.6-theme",)
 _CACHE_FILE = "check-durations.json"
+_MAX_CACHE_BYTES = 1 << 20
 
 
 def cache_path() -> str:
@@ -51,8 +54,10 @@ def load_durations(path: str) -> dict[str, float]:
     :func:`order_modules`, the same order a host that never had a cache uses.
     """
     try:
-        with open(path, "rb") as source:
-            record = json.loads(source.read())
+        data = read_capped_bytes(
+            path, _MAX_CACHE_BYTES, "duration cache; ignoring it"
+        )
+        record = json.loads(data)
     except (OSError, ValueError):
         return {}
     version = record.get("version") if isinstance(record, dict) else None

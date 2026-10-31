@@ -15,13 +15,16 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
 import sys
 import unittest
 from unittest import mock
+from pathlib import Path
 
 from support.cli_fixtures import run_main
 from support.process_assertions import assert_succeeded
 from support.tmp_dir import make_tmp_dir
+from support.fifo_fixtures import make_fifo
 
 from tools import check_parallel, check_parallel_order, check_parallel_workers
 
@@ -97,6 +100,26 @@ class TestCache(unittest.TestCase):
                 sink.write(contents.encode("utf-8"))
             self.assertEqual({}, check_parallel_order.load_durations(path))
         self.assertEqual({}, check_parallel_order.load_durations("/missing/cache.json"))
+
+    def test_a_fifo_cache_does_not_block_the_coordinator(self):
+        path = make_tmp_dir(self) / "cache.json"
+        make_fifo(self, path)
+        # A timeout bounds this regression test: opening the FIFO normally
+        # blocks forever in the coordinator before any worker can start.
+        result = subprocess.run(
+            [sys.executable, "-c",
+             "from tools.check_parallel_order import load_durations; "
+             "assert load_durations(__import__('sys').argv[1]) == {}",
+             str(path)],
+            cwd=str(Path(__file__).resolve().parents[1]),
+            capture_output=True, text=True, timeout=3,
+        )
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    def test_an_oversize_cache_is_ignored(self):
+        path = make_tmp_dir(self) / "cache.json"
+        path.write_bytes(b" " * (check_parallel_order._MAX_CACHE_BYTES + 1))
+        self.assertEqual({}, check_parallel_order.load_durations(str(path)))
 
     def test_non_numeric_or_invalid_entries_are_ignored(self):
         path = str(make_tmp_dir(self) / "cache.json")
