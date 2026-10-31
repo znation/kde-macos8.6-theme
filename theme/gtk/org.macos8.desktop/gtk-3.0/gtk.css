@@ -1541,3 +1541,114 @@ toolbar.osd {
   border: 1px solid #999999;
   box-shadow: none;
 }
+
+/* No collected reference screenshot shows a GTK OSD overlay or a meter
+   inside one, so the toolkit resource's six `.osd` trough, fill and
+   progress paints — translucent dark bubbles (rgba(0,0,0,0.5)
+   foundations over rgba(0,0,0,0.7) edges, with an rgba(71,71,71,0.5)
+   disabled trough face, an rgba(91,91,90,0.775) bare fill and a
+   transparent disabled fill) — are restated with the landed plain
+   progress-bar and scale recipes (PROGRESSBAR_TROUGH, PROGRESSBAR_PROGRESS,
+   SCALE_TROUGH and SCALE_EMPTY_FILL in tests/support/gtk_theme_spec.py,
+   pinned by tests/support/gtk_rule_cases.py::GtkSheetRuleCases::
+   assert_progressbar and TestGtkTheme::test_scale): the flat #EEEEEE
+   trough face with its 1px black border, zero radius and inset 1px 1px
+   #999999 etch at the landed 10px/6px minimums, the flat #CCCCFF progress
+   fill, the transparent scale fill and highlight face, and the landed
+   #999999 disabled progress fill. The landed sheet declares no disabled
+   trough, fill or highlight arm of its own, so the disabled restatements
+   repeat the landed paints byte-for-byte, keeping both stock states on the
+   landed face. The stock arms claim no geometry, glyph source or
+   box-shadow, so the landed plain progressbar trough, progressbar
+   progress, scale trough, scale fill/highlight and scale slider rules keep
+   governing size and every state an arm does not restate. The arm
+   selectors and states come from gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30. Declaration checks do not establish rendered pixels. */
+
+.osd progressbar trough, progressbar .osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+.osd scale trough, scale .osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+
+.osd scale fill, scale .osd fill,
+.osd scale highlight, scale .osd highlight {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd progressbar progress, progressbar .osd progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd progressbar trough:disabled, progressbar .osd trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+.osd scale trough:disabled, scale .osd trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+
+.osd scale fill:disabled:backdrop, .osd scale fill:disabled,
+scale .osd fill:disabled {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd scale highlight:disabled, scale .osd highlight:disabled {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+
+.osd progressbar progress:disabled, progressbar .osd progress:disabled {
+  background-color: #999999;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}

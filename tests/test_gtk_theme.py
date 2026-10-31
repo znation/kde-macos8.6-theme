@@ -32,7 +32,11 @@ from support.gtk_theme_spec import (
     LINK,
     VISITED_LINK,
     MENU_CHECK,
+    PROGRESSBAR_PROGRESS,
+    PROGRESSBAR_TROUGH,
     RAISED_BEVEL,
+    SCALE_EMPTY_FILL,
+    SCALE_TROUGH,
     SCALE_THUMB,
     SCROLLBAR_STEPPER,
     SCROLLBAR_STEPPER_ACTIVE,
@@ -403,9 +407,13 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 if (".osd" in selector
                     and ".osd check" not in selector
                     and ".osd entry" not in selector
+                    and "fill" not in selector
+                    and "highlight" not in selector
+                    and "progress" not in selector
                     and ".osd radio" not in selector
                     and ".osd scale slider" not in selector
-                    and ".osd spinbutton" not in selector)
+                    and ".osd spinbutton" not in selector
+                    and "trough" not in selector)
                 or "magnifier" in selector
                 or "touch-selection" in selector
                 or "scale-popup" in selector
@@ -512,6 +520,93 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {selector for selector in self.rules
              if ".osd check" in selector or ".osd radio" in selector},
             set(expected),
+        )
+
+    def test_osd_progress_scale(self):
+        """Pin the nine restated stock OSD trough, fill and progress arms.
+
+        No collected reference screenshot shows a meter inside a GTK OSD
+        overlay, so the sheet restates the toolkit resource's six `.osd`
+        trough/fill/progress groups with the landed plain progress-bar and
+        scale recipes (``PROGRESSBAR_TROUGH``, ``PROGRESSBAR_PROGRESS``,
+        ``SCALE_TROUGH`` and ``SCALE_EMPTY_FILL`` in
+        ``support.gtk_theme_spec.py``): the flat ``#EEEEEE`` trough face with
+        its black border, zero radius and ``inset 1px 1px #999999`` etch at
+        the landed minimums, the transparent scale fill and highlight face,
+        and the landed ``#CCCCFF`` progress fill. The disabled groups repeat
+        the landed paints byte-for-byte, and the disabled progress fill is
+        the landed grey (``GREY`` from ``support.platinum_palette``). The
+        arm selectors and states come from gtk-contained.css in
+        /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); the
+        stock arms claim no geometry, glyph source or box-shadow, so the
+        landed plain meter rules keep governing size and every state an arm
+        does not restate.
+        """
+        trough = PROGRESSBAR_TROUGH
+        scale_trough = SCALE_TROUGH
+        fill = SCALE_EMPTY_FILL
+        progress = PROGRESSBAR_PROGRESS
+        disabled_progress = {**PROGRESSBAR_PROGRESS, "background-color": GREY}
+        expected = [
+            (trough, (
+                ".osd progressbar trough",
+                "progressbar .osd trough",
+                ".osd progressbar trough:disabled",
+                "progressbar .osd trough:disabled",
+            )),
+            (scale_trough, (
+                ".osd scale trough",
+                "scale .osd trough",
+                ".osd scale trough:disabled",
+                "scale .osd trough:disabled",
+            )),
+            (fill, (
+                ".osd scale fill",
+                "scale .osd fill",
+                ".osd scale highlight",
+                "scale .osd highlight",
+                ".osd scale fill:disabled:backdrop",
+                ".osd scale fill:disabled",
+                "scale .osd fill:disabled",
+                ".osd scale highlight:disabled",
+                "scale .osd highlight:disabled",
+            )),
+            (progress, (
+                ".osd progressbar progress",
+                "progressbar .osd progress",
+            )),
+            (disabled_progress, (
+                ".osd progressbar progress:disabled",
+                "progressbar .osd progress:disabled",
+            )),
+        ]
+        for declarations, selectors in expected:
+            for selector in selectors:
+                with self.subTest(selector=selector):
+                    self.assertEqual(self.rules[selector], declarations)
+        self.assertEqual(
+            self.rules[".osd progressbar progress:disabled"]["background-color"],
+            self.rules["progressbar progress:disabled"]["background-color"],
+        )
+        self.assertEqual(
+            self.rules["progressbar progress:disabled"]["background-color"],
+            GREY,
+        )
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if ".osd" in selector
+                and (
+                    "trough" in selector
+                    or "fill" in selector
+                    or "highlight" in selector
+                    or "progress" in selector
+                )
+            },
+            {selector
+             for _, selectors in expected
+             for selector in selectors},
         )
 
     def test_osd_scale_slider(self):

@@ -7,9 +7,10 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
-*(Re-filed 2026-10-30 by the plan role: this completed plan was appended at file end into the Done section of this file by its own planning commit 2e55839d, but its implementation never landed — there is no done stamp, no `TestGtkTheme::test_osd_progress_scale` in `tests/test_gtk_theme.py` and no `.osd` trough/fill/progress rule in the GTK 3 sheet — so the entry returns to the work queue; the text below is unchanged.)*
+## Done
 
 ### Platinum GTK 3 OSD progress and scale arms: restate the stock dark trough, fill and progress paints with the landed progress-bar and scale recipes (planned 2026-10-30 by the plan role; independent of the waiting GTK 4 OSD check-and-radio plan — it appends ten restated rules to `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, adds `TestGtkTheme::test_osd_progress_scale` beside `test_osd_check_radio` in `tests/test_gtk_theme.py` and appends one row to the `## gtk` invariants table, while that entry edits the GTK 4 sheet, `tests/test_gtk4_theme.py` and its own row; the only shared documents are `docs/invariants.md`, where each entry appends its own row, and `tests/support/gtk_theme_spec.py`, from which both import static specs and neither edits — no sheet selector, test or suite overlaps)
+— done 2026-10-30 by the feature role
 
 **Goal.** The landed GTK 3 OSD container, field and check/radio plans repainted
 every stock OSD arm in the sheet except the meters: the GTK 3 sheet declares
@@ -68,8 +69,9 @@ button.flat` and the `colorchooser .popover.osd` corners stay out of scope
 (recorded here as later surface plans, not this change).
 
 **Approach and files.** (1) In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`,
-append directly after the landed `.osd radio:disabled` group (the sheet's
-last block) a dated provenance comment naming the missing reference surface,
+append after the landed `.osd scale slider:disabled` group — the
+sheet's last block, where the landed scale-thumb plan put its rule block
+directly after `.osd radio:disabled` — a dated provenance comment naming the missing reference surface,
 this `gresource` probe and the reuse of the `PROGRESSBAR_*`/`SCALE_*`
 recipes, followed by ten restated rules — four base groups matching the
 landed plain progress-bar and scale recipes, split at the recipe boundaries
@@ -229,8 +231,6 @@ Scope is the GTK 3 sheet, `tests/test_gtk_theme.py`, `docs/invariants.md` and
 nothing else: no GTK 4 rule, no Firefox sheet, no new asset, colour literal
 beyond the landed `#EEEEEE`, `#999999`, `#CCCCFF` and `transparent`,
 dependency or `!important`. `make check` passes.
-
-## Done
 
 ### Platinum GTK 4 OSD checks and radios: restate the stock dark indicator arms with the landed check and radio recipes (planned 2026-10-30 by the plan role; independent of the waiting GTK 3 OSD check-and-radio plan — it appends four check-and-radio arm groups to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, adds one test beside `test_osd_container_bands` in `tests/test_gtk4_theme.py` and appends one row to the `## gtk` invariants table, while that entry edits only the GTK 3 sheet and `tests/test_gtk_theme.py`; the shared documents are `docs/invariants.md`, where each entry appends its own row, and `tests/support/gtk_theme_spec.py`, from which both import `CHECK`/`RADIO` and neither edits, plus the shared base case both cite — no sheet selector, test function or suite overlaps)
 — done 2026-10-30 by the feature role
