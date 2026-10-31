@@ -851,25 +851,24 @@ class _DialogRenders:
             shutil.rmtree(directory, ignore_errors=True)
 
 
-class TestCheckboxDialogRender(unittest.TestCase):
-    """The engine-drawn check box the dialog render captures is the shipped art.
+class _DialogGate:
+    """Test scaffolding both dialog render gates share.
 
-    The chrome strips above byte-compare the Aurorae decoration of an empty
-    applet window; no strip ever compared a pixel the Kvantum engine drew, so
-    a rendered widget could stay wrong -- the resampled check box indicator
-    fixed 2026-10-30 was found only by a manual render pass. The dialog render
-    opens a real QCheckBox (kdialog's ``--dontagain`` box) drawn by the engine
-    with the theme's checkbox art, and this class byte-compares the rendered
-    14x14 cell with the shipped-art slice the Kvantum reference suite derives
-    from the same SVG, plus the flat face ring around it.
+    Each gate is a ``unittest.TestCase`` only through its concrete subclass
+    (unittest discovers tests on the subclasses alone) and waits on its own
+    ``_DialogRenders`` render; the two gates differ in the kind key they wait
+    on, in the shipped slice and cell geometry they byte-compare and in the
+    extra widget-specific tests they add below.
     """
+
+    KIND: str
 
     @classmethod
     def setUpClass(cls):
         # Both dialog renders run concurrently (see _DialogRenders); this
         # class waits for its own and leaves the sibling's to its own class.
         cls.stdout, cls.stderr, cls.returncode, cls.directory = (
-            _DialogRenders.ensure("checkbox")
+            _DialogRenders.ensure(cls.KIND)
         )
         cls.output = os.path.join(cls.directory, "dialog.png")
         cls._candidate = None
@@ -888,20 +887,46 @@ class TestCheckboxDialogRender(unittest.TestCase):
         image = self.candidate_image()
         self.assertEqual((DIALOG_WIDTH, DIALOG_HEIGHT), (image.width, image.height))
 
-    def test_draws_the_check_box_cell_1_to_1(self):
-        # The expected cell is the shipped `checkbox-normal` art itself, at
-        # its canvas size: the engine may neither resample it nor fill it
-        # from a foreign element. A blended band shows up here immediately.
-        slices = render_slices(parse_svg(SVG))
-        expected = dict(slices["checkbox-normal"])
-        image = self.candidate_image()
-        x0, y0, width, height = CHECKBOX_CROP
+    def assert_cell_matches(self, slice_name, cell):
+        """Byte-compare the engine-drawn cell at *cell* with the shipped art.
+
+        The expected pixels are the named shipped slice itself, at its canvas
+        size, re-derived from the same SVG the Kvantum reference suites use:
+        the engine may neither resample the art nor fill the cell from a
+        foreign element.
+        """
+        expected = dict(render_slices(parse_svg(SVG))[slice_name])
+        x0, y0, width, height = cell
         actual = {
-            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            (x, y): hex_colour(
+                pixel_at(self.candidate_image(), x0 + x, y0 + y)
+            )
             for x in range(width)
             for y in range(height)
         }
         self.assertEqual(expected, actual)
+
+
+class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
+    """The engine-drawn check box the dialog render captures is the shipped art.
+
+    The chrome strips above byte-compare the Aurorae decoration of an empty
+    applet window; no strip ever compared a pixel the Kvantum engine drew, so
+    a rendered widget could stay wrong -- the resampled check box indicator
+    fixed 2026-10-30 was found only by a manual render pass. The dialog render
+    opens a real QCheckBox (kdialog's ``--dontagain`` box) drawn by the engine
+    with the theme's checkbox art, and this class byte-compares the rendered
+    14x14 cell with the shipped-art slice the Kvantum reference suite derives
+    from the same SVG, plus the flat face ring around it.
+    """
+
+    KIND = "checkbox"
+
+    def test_draws_the_check_box_cell_1_to_1(self):
+        # The candidate cell bytes come straight from the render (see
+        # _DialogGate.assert_cell_matches): a blended band shows up here
+        # immediately.
+        self.assert_cell_matches("checkbox-normal", CHECKBOX_CROP)
 
     def test_installs_the_check_box_cell_in_a_flat_face_ring(self):
         # One byte of resampling bleed lands on the 1px ring around the
@@ -923,7 +948,7 @@ class TestCheckboxDialogRender(unittest.TestCase):
                         expected, hex_colour(pixel_at(image, x0 + x, y0 + y))
                     )
 
-class TestComboboxDialogRender(unittest.TestCase):
+class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
     """The engine-drawn combo box indicator the dialog render captures is 1:1.
 
     The combo render opens a real ``QComboBox`` (kdialog's ``--combobox``)
@@ -935,45 +960,13 @@ class TestComboboxDialogRender(unittest.TestCase):
     so the two gates must hold together.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        # Both dialog renders run concurrently (see _DialogRenders); this
-        # class waits for its own and leaves the sibling's to its own class.
-        cls.stdout, cls.stderr, cls.returncode, cls.directory = (
-            _DialogRenders.ensure("combobox")
-        )
-        cls.output = os.path.join(cls.directory, "dialog.png")
-        cls._candidate = None
-
-    @classmethod
-    def candidate_image(cls):
-        """Return the dialog render decoded once, reused by every read below."""
-        if cls._candidate is None:
-            cls._candidate = read_png(cls.output)
-        return cls._candidate
-
-    def test_exits_zero(self):
-        self.assertEqual(0, self.returncode, self.stderr)
-
-    def test_writes_a_480x360_png(self):
-        image = self.candidate_image()
-        self.assertEqual((DIALOG_WIDTH, DIALOG_HEIGHT), (image.width, image.height))
+    KIND = "combobox"
 
     def test_draws_the_combo_arrow_cell_1_to_1(self):
-        # The expected cell is the shipped `comboarrow-normal` art itself, at
-        # its canvas size: the engine may neither resample the 1/3/5/7 bands
-        # into a narrower indicator area nor fill the cell from a foreign
-        # element. A squashed or blended arrow shows up here immediately.
-        slices = render_slices(parse_svg(SVG))
-        expected = dict(slices["comboarrow-normal"])
-        image = self.candidate_image()
-        x0, y0, width, height = COMBOBOX_CROP
-        actual = {
-            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
-            for x in range(width)
-            for y in range(height)
-        }
-        self.assertEqual(expected, actual)
+        # The candidate cell bytes come straight from the render (see
+        # _DialogGate.assert_cell_matches): a squashed or blended arrow shows
+        # up here immediately.
+        self.assert_cell_matches("comboarrow-normal", COMBOBOX_CROP)
 
 
 if __name__ == "__main__":
