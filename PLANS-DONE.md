@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 color-chooser OSD popover: explicitly square the stock class arm (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
+
+**Goal.** Extend square-corner coverage to GTK's `colorchooser .popover.osd` class arm.
+
+**Grounding.** No collected reference screenshot shows a GTK color-chooser OSD popover; the zero radius adapts the existing `.popover` treatment. GTK's installed `gtk-contained.css` resource declares this class arm at 5px (inspected 2026-10-30).
+
+**Approach and files.** Added the standalone radius reset after the OSD container rules, with dated provenance. Added an exact declaration test and excluded this corner-only selector from the OSD paint inventory. Added the GTK invariant row documenting adaptation provenance; declaration coverage does not establish rendered pixels.
+
+**Acceptance criteria.** The exact radius and parity with `.popover` are tested; the OSD container inventory continues to check its existing paint recipes. No GTK 4, colors, borders, shadows or spacing changed. `make check` passes.
+
 ### Platinum GTK 3 color-chooser OSD popover: explicitly square the stock class arm (planned 2026-10-30 by the plan role — done 2026-10-30 by the feature role)
 
 **Goal.** Extend square-corner coverage to the toolkit's `colorchooser .popover.osd` selector, including a class-based popover without the `popover.background` node spelling.
