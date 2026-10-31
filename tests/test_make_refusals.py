@@ -288,6 +288,110 @@ class TestShellUnsafeColorScheme(unittest.TestCase):
         self.assertIn("COLOR_SCHEME_ID := my scheme'", output)
 
 
+class TestShellUnsafeColorSchemeName(unittest.TestCase):
+    """A `COLOR_SCHEME_NAME` override carrying a metacharacter is refused.
+
+    The Makefile derives `COLOR_SCHEME_NAME` from `COLOR_SCHEME`, but a
+    command-line or environment override bypasses that derivation (a
+    command-line definition precedes parse and survives the makefile's own
+    `:=`), and the name is expanded into double-quoted recipe words: the
+    color scheme's staging copy (`staging=".../.$(COLOR_SCHEME_NAME).staging"`
+    and `mv "$staging" "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"`) and the
+    uninstall's removal (`rm -f "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"`), plus
+    the exported environment the `$(shell)` id derivation reads
+    (`name="$$COLOR_SCHEME_NAME"`). A double quote, `$`, a backtick or a
+    backslash in an override would run the words after it as shell commands
+    or escape the derivation word instead of naming an installed file
+    basename. The parse-time guard `TestShellUnsafeColorScheme` pins for
+    `COLOR_SCHEME` reads the name before any recipe runs, whether the value
+    comes from a command-line assignment or the environment.
+    """
+
+    def _assert_refused(self, make_value, shown_value):
+        """Run `install`/`uninstall` with *make_value*; both must refuse.
+
+        *shown_value* is the text the diagnostic must echo back verbatim.
+        """
+        theme_install.assert_both_targets_refused(
+            self,
+            None,
+            (f"COLOR_SCHEME_NAME={make_value}",),
+            (
+                "COLOR_SCHEME_NAME contains a shell metacharacter",
+                shown_value,
+            ),
+        )
+
+    def test_each_metacharacter_is_refused_in_COLOR_SCHEME_NAME(self):
+        # The guard reads each value after make's own expansion, so the same
+        # HOSTILES pairs `TestShellUnsafeInstallPaths` documents apply: a `$`
+        # arrives doubled in the make argument.
+        for char, make_value, shown_value in TestShellUnsafeInstallPaths.HOSTILES:
+            with self.subTest(char=char):
+                self._assert_refused(make_value, shown_value)
+
+    def test_a_hostile_override_never_runs_its_shell(self):
+        """A double-quote breakout in an override must not run a canary.
+
+        Without the parse-time guard, an override like
+        `x"; touch <canary>; echo "` exited the double-quoted
+        `mv "$staging" "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"` word and ran
+        the middle words when the recipe executed.
+        """
+        tmp = make_tmp_dir(self)
+        canary = tmp / "injected"
+        hostile = f'x"; touch "{canary}"; echo "'
+        self._assert_refused(hostile, hostile)
+        self.assertFalse(canary.exists(), hostile)
+
+    def test_an_escape_byte_in_an_override_is_refused_without_echoing_it(self):
+        # The override reaches recipes through both routes a command-line
+        # definition and the environment offer; the guard's diagnostic must
+        # not echo a value that carries a terminal byte, the way
+        # TestShellUnsafeControlCharacters pins for the install paths.
+        for target in ("install", "uninstall"):
+            with self.subTest(target=target):
+                result = theme_install.run_make(
+                    [target, "COLOR_SCHEME_NAME=ab\x1b[0;31m"],
+                    env=theme_install.make_env("COLOR_SCHEME_NAME"),
+                )
+                assert_failed(self, result)
+                self.assertIn(
+                    "COLOR_SCHEME_NAME contains a control character",
+                    result.stderr,
+                )
+                output = result.stdout + result.stderr
+                self.assertNotIn("\x1b", output)
+
+    def test_an_environment_override_is_refused(self):
+        # The environment route matters because the `$(shell)` id derivation
+        # reads the exported value: make must refuse it before that shell
+        # runs at all.
+        tmp = make_tmp_dir(self)
+        env = theme_install.make_env("COLOR_SCHEME_NAME")
+        hostile = f'z"; touch "{tmp}/canary2"; echo "'
+        env["COLOR_SCHEME_NAME"] = hostile
+        for target in ("install", "uninstall"):
+            with self.subTest(target=target):
+                result = theme_install.run_make([target], env=env)
+                assert_failed(self, result)
+                self.assertIn(
+                    "COLOR_SCHEME_NAME contains a shell metacharacter",
+                    result.stderr,
+                )
+        self.assertFalse((tmp / "canary2").exists(), tmp)
+
+    def test_an_override_with_a_space_or_an_apostrophe_is_still_legal(self):
+        # A space and an apostrophe are inert inside double-quoted recipe
+        # words, and the id derivation reads the name through the exported
+        # environment, not through a quoted shell word. A renamed value
+        # therefore keeps installing under its basename.
+        result = theme_install.run_make(
+            ["-n", "install", "COLOR_SCHEME_NAME=dotted 1.0.1-a's root"]
+        )
+        assert_succeeded(self, result)
+
+
 class TestShellUnsafeThemeRoot(unittest.TestCase):
     """A `THEME_ROOT` carrying a recipe-shell metacharacter is refused.
 

@@ -120,7 +120,20 @@ refuse_unsafe_value = $(if $(call control_char_in,$(1)),$(control_refusal),$(if 
 # inside the guards' double quotes and refuse the value before it reaches
 # the unquoted unittest or `--workers` positions), so only the four here
 # need the parse-time refusal.
-$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_ID CHECK_PATTERN THEME_ROOT CHECK_TESTS CHECK_PARALLEL,$(call refuse_unsafe_value,$(v)))
+# COLOR_SCHEME_NAME joins the list for its override alone: the makefile
+# derives it from COLOR_SCHEME (`export COLOR_SCHEME_NAME :=
+# $(notdir $(COLOR_SCHEME))`, refused there by the TRANSITIVE value the
+# guard reads), but a command-line or environment override bypasses that
+# derivation -- a command-line definition is already set when this guard
+# runs and otherwise survives the makefile's own `:=` -- and the name is
+# expanded into double-quoted recipe words in install_color_scheme and
+# _uninstall, namely `staging=".../.$(COLOR_SCHEME_NAME).staging"` and
+# `mv "$staging" "$(INSTALL_DIR)/$(COLOR_SCHEME_NAME)"`. The derived
+# default is still undefined when this guard runs (it sits further down),
+# so the guard only ever sees a caller's value; the makefile's own value
+# is `COLOR_SCHEME`'s guarded text after `$(notdir)` cuts it, which can
+# only re-arrange punctuation the guard already refused.
+$(foreach v,DESTDIR XDG_DATA_HOME_ENV HOME FIREFOX_PROFILE FLOCK_TIMEOUT RENDER_OUTPUT COLOR_SCHEME COLOR_SCHEME_NAME COLOR_SCHEME_ID CHECK_PATTERN THEME_ROOT CHECK_TESTS CHECK_PARALLEL,$(call refuse_unsafe_value,$(v)))
 
 # CHECK_PATTERN additionally reaches a single-quoted recipe word: `check`
 # pastes it into `-p '$(CHECK_PATTERN)'`, and an apostrophe — inert inside
