@@ -1730,11 +1730,13 @@ progressbar.osd progress {
    specificity and pre-empts exactly the stock arms they restate;
    the grouped `.app-notification button.flat, …, .osd button.flat` arms
    are restated by the flat-button block appended after this one; the
-   `.osd button.destructive-action`, `.osd button.color colorswatch`,
+   `.osd button.color colorswatch`,
    `.osd spinbutton … button` and `colorchooser .popover.osd` button
    arms stay undeclared for their queued surface plans, while the
    `.osd button.suggested-action` arms are restated by the
-   suggested-action block after the flat-button block. The arm
+   suggested-action block after the flat-button block and the
+   `.osd button.destructive-action` arms by the destructive-action
+   block at the sheet tail. The arm
    selectors,
    states and stock claims come from gtk-contained.css in
    /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
@@ -2050,7 +2052,7 @@ popover.background.magnifier button.flat:checked,
    stock's sheet-order win over the hover block for a pressed hovered
    suggested button; the generic `button.suggested-action` and `.flat`
    arms outside `.osd` keep governing outside overlays, and the
-   `.osd button.destructive-action`, `.osd button.color colorswatch`,
+   `.osd button.color colorswatch`,
    `.osd spinbutton … button` and `colorchooser .popover.osd` button
    arms stay undeclared for their queued surface plans. The arm
    selectors, states and stock claims come from gtk-contained.css in
@@ -2113,6 +2115,126 @@ button.suggested-action:disabled {
 button.suggested-action:active, .osd
 button.suggested-action:checked:backdrop, .osd
 button.suggested-action:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK OSD overlay or a
+   destructive-action button inside one, so the toolkit resource's stock
+   `.osd button.destructive-action` arms — the base arm painting a
+   translucent rgba(224, 27, 36, 0.5) red face with a grey eeeeec label
+   behind a `0 1px black` text and icon shadow pair, the `:hover` arm
+   brightening the face to 0.7 opacity with a white label, the
+   `:active`/`:checked` arms going solid grey e01b24 red under a white
+   label, the `:disabled` arm painting grey 919190 text over a
+   translucent rgba(71, 71, 71, 0.5) face and the `:backdrop` arm
+   keeping the base red face under a grey eeeeec label — are restated
+   with the landed plain push-button recipe, the same dictionary the
+   landed plain, flat and suggested-action restatement blocks declare:
+   the raised #DDDDDD face with its 1px solid black border and square
+   corners (zero radius), the `inset 1px 1px #FFFFFF, inset -1px
+   -1px #AAAAAA` bevel, black labels, the cleared
+   `text-shadow`/`-gtk-icon-shadow` pair and a black `outline-color` in
+   the arms whose stock counterparts claim rgba(238, 238, 236, 0.3); the
+   stock red destructive distinction vanishes inside the overlays
+   exactly as the landed plain, flat and suggested-action restatements
+   erased theirs. One stock claim is shared with the suggested-action
+   arms and unique among the landed restatements: every one of the five
+   carries `background-clip: padding-box`, which left standing under the
+   equal-specificity restatement would clip the #DDDDDD face to the
+   padding box, so every restated arm declares `background-clip:
+   border-box` and the face paints exactly like the landed ones — the
+   provenance comment records that cleared claim. The `:hover` and
+   `:backdrop` arms repeat the base recipe byte-equal, recipe
+   `outline-color` included, as the landed plain `button.osd:backdrop`
+   and flat-button backdrop restatements do, to defeat the stock hover's
+   brightened translucent face and white label; the `:active`/`:checked`
+   arms (and the same list's `:active:backdrop`/`:checked:backdrop`
+   parts) swap only `box-shadow` to the landed inverted bevel `inset
+   1px 1px #AAAAAA, inset -1px -1px #FFFFFF`; the `:disabled` arm keeps
+   the base bevel with the Inactive grey (#888888) label and, like the
+   landed disabled arms, claims no `outline-color`. No restated arm sets
+   on-disk geometry, so the stock geometry claims keep governing:
+   `button.osd`'s `min-width: 26px; min-height: 32px` and the
+   `button.osd.image-button` `min-width: 34px` arm above. The five
+   restated blocks keep the stock comma-list spellings in the stock arm
+   order — base, `:hover`, `:disabled`, `:backdrop`, `:active`/`:checked`
+   last — so each appends after its stock twin at equal specificity,
+   pre-empts exactly the stock arms it restates, and the active/checked
+   block keeps stock's sheet-order win over the hover block for a pressed
+   hovered destructive button; the generic `button.destructive-action`
+   and `.flat` arms outside `.osd` keep governing outside overlays, and
+   the `.osd button.color colorswatch`, `.osd spinbutton … button` and
+   `colorchooser .popover.osd` button arms stay undeclared for their
+   queued surface plans. The arm selectors, states and stock claims come
+   from gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (libgtk-3 3.24.49), probed 2026-10-30. Declaration checks do not
+   establish rendered pixels. */
+
+.osd button.destructive-action {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd button.destructive-action:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd button.destructive-action:disabled:backdrop, .osd
+button.destructive-action:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd button.destructive-action:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd button.destructive-action:active:backdrop, .osd
+button.destructive-action:active, .osd
+button.destructive-action:checked:backdrop, .osd
+button.destructive-action:checked {
   background-color: #DDDDDD;
   background-image: none;
   background-clip: border-box;
