@@ -274,13 +274,16 @@ naming the settle wait rather than published as a render. A failed install, rend
 capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal number.
 With `--checkbox-dialog` the render instead opens a `kdialog` warning box whose
 "do not ask again" check box the Kvantum engine draws with the theme's checkbox art
-(`kdialog` must be on `PATH` for that mode too) and captures it as a 480x360 PNG
+(`kdialog` must be on `PATH` in any dialog mode) and captures it as a 480x360 PNG
 whose crop the checkbox gate (`tests/test_render_surface.py::TestCheckboxDialogRender`)
 byte-compares like the chrome strips. `--combobox-dialog` opens a `kdialog` chooser
 whose combo box the engine draws with the theme's `comboarrow` art; the render captures
 it the same way, for the combo arrow gate
-(`tests/test_render_surface.py::TestComboboxDialogRender`). The two dialog modes
-cannot be combined. In both modes the scratch session links its own home's
+(`tests/test_render_surface.py::TestComboboxDialogRender`). `--menu-dialog` opens a
+`kdialog` menu list whose item view the engine frames with the theme's `GenericFrame`
+art, captured at the same 480x360 size; no gate compares its rendered border runs yet
+(BUGS.md tracks adding that pin alongside the dialog-gate coverage work). The three
+dialog modes cannot be combined. In each mode the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
 
