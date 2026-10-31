@@ -26,6 +26,7 @@ from support.gtk_theme_spec import (
     COMBO_ARROW,
     ENTRY_PROGRESS_GTK4,
     ETCH_DARK,
+    INFOBAR,
     LINK,
     MENUBUTTON_ARROWS,
     VISITED_LINK,
@@ -1179,6 +1180,69 @@ for radio in (False, True):
         self.assertEqual(
             {name: self.rules[selector][name] for name in expected},
             {name: base[name] for name in expected},
+        )
+
+    def test_osd_container_bands(self):
+        selectors = (
+            ".osd .scale-popup",
+            ".app-notification",
+            ".rich-list > header",
+            ".osd popover.background > arrow",
+            ".osd popover.background > contents",
+            "popover.background.touch-selection > arrow",
+            "popover.background.touch-selection > contents",
+            "popover.background.magnifier > arrow",
+            "popover.background.magnifier > contents",
+            ".osd",
+            ".osd popover.background",
+            ".toolbar.osd",
+            ".osd popover",
+            "popover.touch-selection",
+            "popover.magnifier",
+            ".osd popover > arrow",
+            ".osd popover > contents",
+            "popover.touch-selection > arrow",
+            "popover.touch-selection > contents",
+            "popover.magnifier > arrow",
+            "popover.magnifier > contents",
+        )
+        expected = {
+            **INFOBAR,
+            "background-image": "none",
+            "border": "0",
+            "border-radius": "0",
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected)
+                infobar = self.rules["infobar > revealer > box"]
+                for prop in INFOBAR:
+                    self.assertEqual(self.rules[selector][prop], infobar[prop])
+
+        landed = {
+            "video image.osd",
+            "progressbar.osd > trough",
+            "progressbar.osd.horizontal > trough",
+            "progressbar.osd.vertical > trough",
+            ".osd switch:checked",
+        }
+        tokens = (
+            "osd",
+            "touch-selection",
+            "magnifier",
+            "scale-popup",
+            "app-notification",
+            "rich-list",
+        )
+        self.assertEqual(
+            {
+                selector
+                for selector in self.selectors
+                if any(token in selector for token in tokens)
+            },
+            set(selectors) | landed,
         )
 
     def test_progressbar_osd_trough_thickness(self):

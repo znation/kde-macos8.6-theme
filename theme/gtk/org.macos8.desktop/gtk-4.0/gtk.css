@@ -1584,3 +1584,51 @@ pathbar > scrolledwindow > viewport > box.linked > button:not(:last-child) {
   border-bottom-style: solid;
 }
 
+/* No collected reference screenshot shows a GTK OSD overlay surface — a
+ * fullscreen video toolbar, a scale button's value bubble, an application
+ * notification, a touch-selection or magnifier popover, a bare .osd
+ * container — so every stock OSD container takes the landed GTK 3 OSD
+ * container recipe: the menu-bar band's opaque #DDDDDD face, black text and
+ * the etched bottom edge. The stock container selectors come from the
+ * toolkit resources /org/gtk/libgtk/theme/Default/Default-light.css in
+ * /usr/lib/x86_64-linux-gnu/libgtk-4.so.1 (libgtk-4 4.18.6) and the platform
+ * style library's base.css resource (both paths and probes recorded in
+ * docs/invariants.md), probed with gresource 2026-10-30; each arm is
+ * restated at its own stock selectors so the sheet wins the
+ * equal-specificity tie by order against both toolkits. The .toolbar.osd
+ * stock padding (13px in the Default resource, 12px in the platform style
+ * library) survives because no arm declares padding.
+ * Declaration checks do not establish rendered pixels.
+ * Recorded 2026-10-30 by the feature role. */
+.osd .scale-popup,
+.app-notification,
+.rich-list > header,
+.osd popover.background > arrow,
+.osd popover.background > contents,
+popover.background.touch-selection > arrow,
+popover.background.touch-selection > contents,
+popover.background.magnifier > arrow,
+popover.background.magnifier > contents,
+.osd,
+.osd popover.background,
+.toolbar.osd,
+.osd popover,
+popover.touch-selection,
+popover.magnifier,
+.osd popover > arrow,
+.osd popover > contents,
+popover.touch-selection > arrow,
+popover.touch-selection > contents,
+popover.magnifier > arrow,
+popover.magnifier > contents {
+  background-color: #DDDDDD;
+  background-image: none;
+  color: #000000;
+  border: 0;
+  border-bottom: 1px solid #888888;
+  border-radius: 0;
+  box-shadow: inset 0 -1px #FFFFFF;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
