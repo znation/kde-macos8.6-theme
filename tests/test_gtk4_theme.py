@@ -22,6 +22,7 @@ from support.gtk_css import HEX, parse_css, strip_comments
 from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
+    BUTTON_BEVEL,
     CALENDAR_SELECTED_DAY,
     CHECK,
     COMBO_ARROW,
@@ -33,6 +34,7 @@ from support.gtk_theme_spec import (
     MENUBUTTON_ARROWS,
     VISITED_LINK,
     MENU_CHECK,
+    INVERTED_BUTTON_BEVEL,
     PROGRESSBAR_PROGRESS,
     PROGRESSBAR_TROUGH,
     RAISED_BEVEL,
@@ -513,6 +515,46 @@ for radio in (False, True):
 
     def test_button_focus_transition(self):
         self.assert_scale_slider_transition("button")
+
+    def test_button_disabled_and_backdrop(self):
+        self.assert_rule(
+            "button:backdrop",
+            {
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": BUTTON_BEVEL,
+                "color": BLACK,
+                "transition": "none",
+            },
+        )
+        for selector in ("button:backdrop:active", "button:backdrop:checked"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": INVERTED_BUTTON_BEVEL,
+                    "color": BLACK,
+                    "transition": "none",
+                },
+            )
+        for selector in (
+            "button:disabled",
+            "button:disabled:active",
+            "button:disabled:checked",
+            "button:backdrop:disabled",
+            "button:backdrop:disabled:active",
+            "button:backdrop:disabled:checked",
+        ):
+            self.assert_rule(
+                selector,
+                {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": BUTTON_BEVEL,
+                    "color": DISABLED_TEXT["color"],
+                },
+            )
 
     def test_entry_focus_transition(self):
         self.assert_scale_slider_transition("entry")

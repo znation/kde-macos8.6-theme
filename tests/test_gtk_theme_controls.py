@@ -18,8 +18,11 @@ from support import gtk_css
 from support.gtk_css import assert_svg_root_first, parse_css
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
+    BUTTON_BEVEL,
+    DISABLED_TEXT,
     ENTRY_PROGRESS,
     ETCH_DARK,
+    INVERTED_BUTTON_BEVEL,
 )
 from support.platinum_palette import (
     BLACK,
@@ -291,6 +294,46 @@ print("mixed check: the inconsistent dash is 8px by 2px on the #DDDDDD face")
             self.rules["button:focus"]["-gtk-outline-radius"],
             self.rules["button"]["border-radius"],
         )
+
+    def test_button_disabled_and_backdrop(self):
+        self.assert_rule(
+            "button:backdrop",
+            {
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": BUTTON_BEVEL,
+                "color": BLACK,
+                "transition": "none",
+            },
+        )
+        for selector in ("button:backdrop:active", "button:backdrop:checked"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": INVERTED_BUTTON_BEVEL,
+                    "color": BLACK,
+                    "transition": "none",
+                },
+            )
+        for selector in (
+            "button:disabled",
+            "button:disabled:active",
+            "button:disabled:checked",
+            "button:backdrop:disabled",
+            "button:backdrop:disabled:active",
+            "button:backdrop:disabled:checked",
+        ):
+            self.assert_rule(
+                selector,
+                {
+                    "background-image": "none",
+                    "border-color": BLACK,
+                    "box-shadow": BUTTON_BEVEL,
+                    "color": DISABLED_TEXT["color"],
+                },
+            )
 
     def test_checkbutton_focus_outline(self):
         self.assert_dotted_focus_outline("checkbutton:focus")

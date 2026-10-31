@@ -2578,3 +2578,49 @@ messagedialog.csd .dialog-action-area button:last-child {
   border-radius: 0;
   -gtk-outline-radius: 0;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a disabled
+   GTK push button or a push button in an unfocused window, so the disabled
+   label reuses the recorded insensitive grey #888888 -- the colour scheme's
+   ForegroundInactive, Kvantum's disabled.text.color and the landed
+   label:disabled grey in this same sheet -- and both states restate the
+   landed `button` raised face and `button:active, button:checked` sunken
+   face. Each selector below is its exact stock twin so the later source
+   order in this sheet decides every tie. The toolkit resource (the libgtk-3
+   theme CSS in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0, probed with
+   gresource, 2026-10-31) declares the surviving residues: button:disabled
+   repainting the face off-white with a greyed label and
+   -gtk-icon-filter: opacity(0.5) -- the icon dimming stays in force, a kept
+   toolkit value -- button:backdrop flattening the bevel with the stock
+   border grey, and the active, checked, backdrop:disabled and backdrop:active
+   compounds with their own off-white and pressed-grey faces. The stock 200ms
+   backdrop transition is restated to none like the GTK 4 sheet's restatement,
+   and stock's backdrop text-shadow and -gtk-icon-shadow resets already match
+   the landed label treatment and stay applied. */
+button:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop:active, button:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  transition: none;
+}
+
+button:disabled,
+button:disabled:active,
+button:disabled:checked,
+button:backdrop:disabled,
+button:backdrop:disabled:active,
+button:backdrop:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}

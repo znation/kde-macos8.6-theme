@@ -1948,3 +1948,48 @@ window.dialog.message.csd .dialog-action-area button:last-child {
   border-radius: 0;
 }
 
+/* Adaptation 2026-10-31: no collected reference screenshot shows a disabled
+   GTK push button or a push button in an unfocused window, so the disabled
+   label reuses the recorded insensitive grey #888888 -- the colour scheme's
+   ForegroundInactive, Kvantum's disabled.text.color and the landed
+   label:disabled grey in this same sheet -- and both states restate the
+   landed `button` raised face and `button:active, button:checked` sunken
+   face. Each selector below is its exact stock twin so the later source
+   order in this sheet decides every tie. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4, probed
+   with gresource, 2026-10-31) declares the surviving residues: button:disabled
+   repainting the face off-white image(#faf9f8) with a greyed #929595 label and
+   -gtk-icon-filter: opacity(0.5) -- the icon dimming stays in force, a kept
+   toolkit value -- button:backdrop flattening the bevel to image(#f6f5f4)
+   with the #d5d0cc border, and the active, checked, backdrop:disabled and
+   backdrop:active compounds with their own off-white and pressed #e9e9e3
+   faces. The stock 200ms backdrop transition is restated to none like the
+   landed `button` group's transition policy. */
+button:backdrop {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop:active, button:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  transition: none;
+}
+
+button:disabled,
+button:disabled:active,
+button:disabled:checked,
+button:backdrop:disabled,
+button:backdrop:disabled:active,
+button:backdrop:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
