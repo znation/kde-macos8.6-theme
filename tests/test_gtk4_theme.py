@@ -346,12 +346,7 @@ for radio in (False, True):
             {"color": "#888888"},
         )
         self._assert_inactive_grey_from_scheme()
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(
-                    self.rules[selected]["border-radius"],
-                    self.rules[frame]["border-radius"],
-                )
+        self.assert_matches_frame(selected, "border-radius")
 
     def test_calendar_disabled_day_text(self):
         disabled = "calendar:disabled > grid > label.day-number"
@@ -376,12 +371,7 @@ for radio in (False, True):
     def test_calendar_marked_day_corners(self):
         marked = "calendar > grid > label.day-number:checked"
         self.assert_rule(marked, {"border-radius": "0", "background-color": TROUGH})
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(
-                    self.rules[marked]["border-radius"],
-                    self.rules[frame]["border-radius"],
-                )
+        self.assert_matches_frame(marked, "border-radius")
 
     def test_calendar_marked_day_fill(self):
         marked = "calendar > grid > label.day-number:checked"
@@ -395,12 +385,7 @@ for radio in (False, True):
     def test_calendar_outer_border(self):
         calendar = "calendar"
         self.assert_rule(calendar, {"color": BLACK, "border": "1px solid #000000"})
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(
-                    self.rules[calendar]["border"],
-                    self.rules[frame]["border"],
-                )
+        self.assert_matches_frame(calendar, "border")
 
     def test_calendar_foreground(self):
         self.assertEqual(self.rules["calendar"]["color"], BLACK)
@@ -431,6 +416,20 @@ for radio in (False, True):
             self.rules[selector]["transition"],
             self.rules[SCALE_SLIDER]["transition"],
         )
+
+    def assert_matches_frame(self, selector, prop):
+        """Assert *selector*'s *prop* value matches each frame arm's.
+
+        The square-corner tests anchor a container's paint to both spellings
+        of the landed frame rule; this drives the paired assertion for each
+        spelling in turn.
+        """
+        for frame in ("frame > border", ".frame"):
+            with self.subTest(frame=frame):
+                self.assertEqual(
+                    self.rules[selector][prop],
+                    self.rules[frame][prop],
+                )
 
     def test_scale_focus_outline_color(self):
         focus = SCALE_FOCUS
@@ -767,13 +766,10 @@ for radio in (False, True):
             {selector for selector in self.rules if "keycap" in selector},
             {"shortcut > .keycap"},
         )
-        keycap = self.rules["shortcut > .keycap"]
-        self.assertEqual(keycap, {"border-radius": "0"})
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(
-                    keycap["border-radius"], self.rules[frame]["border-radius"]
-                )
+        self.assertEqual(
+            self.rules["shortcut > .keycap"], {"border-radius": "0"}
+        )
+        self.assert_matches_frame("shortcut > .keycap", "border-radius")
 
     def test_card_corners(self):
         expected = {".card", "menubutton.card > button"}
@@ -784,11 +780,7 @@ for radio in (False, True):
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                for frame in ("frame > border", ".frame"):
-                    self.assertEqual(
-                        self.rules[selector]["border-radius"],
-                        self.rules[frame]["border-radius"],
-                    )
+                self.assert_matches_frame(selector, "border-radius")
 
     def test_emoji_completion_row_corners(self):
         expected = {"emoji-completion-row"}
@@ -796,11 +788,10 @@ for radio in (False, True):
             {selector for selector in self.rules if "emoji-completion-row" in selector},
             expected,
         )
-        row = self.rules["emoji-completion-row"]
-        self.assertEqual(row, {"border-radius": "0"})
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(row["border-radius"], self.rules[frame]["border-radius"])
+        self.assertEqual(
+            self.rules["emoji-completion-row"], {"border-radius": "0"}
+        )
+        self.assert_matches_frame("emoji-completion-row", "border-radius")
 
     def test_flowbox_item_corners(self):
         expected = {"flowbox > flowboxchild"}
@@ -808,11 +799,10 @@ for radio in (False, True):
             {selector for selector in self.rules if selector.startswith("flowbox")},
             expected,
         )
-        item = self.rules["flowbox > flowboxchild"]
-        self.assertEqual(item, {"border-radius": "0"})
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(item["border-radius"], self.rules[frame]["border-radius"])
+        self.assertEqual(
+            self.rules["flowbox > flowboxchild"], {"border-radius": "0"}
+        )
+        self.assert_matches_frame("flowbox > flowboxchild", "border-radius")
 
     def test_gridview_item_corners(self):
         expected = {
@@ -827,13 +817,8 @@ for radio in (False, True):
         )
         for selector in sorted(expected - {"filechooser gridview ~ undershoot.top"}):
             with self.subTest(selector=selector):
-                item = self.rules[selector]
-                self.assertEqual(item, {"border-radius": "0"})
-                for frame in ("frame > border", ".frame"):
-                    with self.subTest(frame=frame):
-                        self.assertEqual(
-                            item["border-radius"], self.rules[frame]["border-radius"]
-                        )
+                self.assertEqual(self.rules[selector], {"border-radius": "0"})
+                self.assert_matches_frame(selector, "border-radius")
 
     def test_assistant_step_label_corners(self):
         expected = {"window.assistant .sidebar > label"}
@@ -841,13 +826,11 @@ for radio in (False, True):
             {selector for selector in self.rules if "assistant" in selector},
             expected,
         )
-        step_label = self.rules["window.assistant .sidebar > label"]
-        self.assertEqual(step_label, {"border-radius": "0"})
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(
-                    step_label["border-radius"], self.rules[frame]["border-radius"]
-                )
+        self.assertEqual(
+            self.rules["window.assistant .sidebar > label"],
+            {"border-radius": "0"},
+        )
+        self.assert_matches_frame("window.assistant .sidebar > label", "border-radius")
 
     def test_emoji_picker_cell_corners(self):
         expected = {
@@ -868,11 +851,10 @@ for radio in (False, True):
             {selector for selector in self.rules if "emoji-picker" in selector},
             expected,
         )
-        cell = self.rules["popover.emoji-picker emoji"]
-        self.assertEqual(cell, {"border-radius": "0"})
-        for frame in ("frame > border", ".frame"):
-            with self.subTest(frame=frame):
-                self.assertEqual(cell["border-radius"], self.rules[frame]["border-radius"])
+        self.assertEqual(
+            self.rules["popover.emoji-picker emoji"], {"border-radius": "0"}
+        )
+        self.assert_matches_frame("popover.emoji-picker emoji", "border-radius")
 
     def test_pill_button_corners(self):
         expected = {
@@ -936,11 +918,7 @@ for radio in (False, True):
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                for frame in ("frame > border", ".frame"):
-                    self.assertEqual(
-                        self.rules[selector]["border-radius"],
-                        self.rules[frame]["border-radius"],
-                    )
+                self.assert_matches_frame(selector, "border-radius")
 
     def test_boxed_list_corners(self):
         roots = ("list.boxed-list", "list.content")
@@ -964,11 +942,7 @@ for radio in (False, True):
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                for frame in ("frame > border", ".frame"):
-                    self.assertEqual(
-                        self.rules[selector]["border-radius"],
-                        self.rules[frame]["border-radius"],
-                    )
+                self.assert_matches_frame(selector, "border-radius")
 
     def test_separate_boxed_row_corners(self):
         expected = {
@@ -986,11 +960,7 @@ for radio in (False, True):
         for selector in sorted(expected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], {"border-radius": "0"})
-                for frame in ("frame > border", ".frame"):
-                    self.assertEqual(
-                        self.rules[selector]["border-radius"],
-                        self.rules[frame]["border-radius"],
-                    )
+                self.assert_matches_frame(selector, "border-radius")
 
     def test_color_swatch_corners(self):
         self.assert_color_swatch_corners(" > overlay")
