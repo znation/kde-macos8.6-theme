@@ -274,12 +274,12 @@ naming the settle wait rather than published as a render. A failed install, rend
 capture exits 1; a SIGTERM or SIGHUP ends the run with 128 plus the signal number.
 With `--checkbox-dialog` the render instead opens a `kdialog` warning box whose
 "do not ask again" check box the Kvantum engine draws with the theme's checkbox art
-(`kdialog` must be on `PATH` for that mode too), captures it as a 480x360 PNG whose
-crops the checkbox gate (`tests/test_render_surface.py::TestCheckboxDialogRender`)
+(`kdialog` must be on `PATH` for that mode too) and captures it as a 480x360 PNG
+whose crop the checkbox gate (`tests/test_render_surface.py::TestCheckboxDialogRender`)
 byte-compares like the chrome strips. `--combobox-dialog` opens a `kdialog` chooser
-whose combo box the engine draws with the theme's `comboarrow` art and captures it
-the same way, for the combo arrow gate
-(`tests/test_render_surface.py::TestComboboxDialogRender`); the two dialog modes
+whose combo box the engine draws with the theme's `comboarrow` art; the render captures
+it the same way, for the combo arrow gate
+(`tests/test_render_surface.py::TestComboboxDialogRender`). The two dialog modes
 cannot be combined. In both modes the scratch session links its own home's
 `themes/` onto the installed theme directory, because Kvantum looks there under the
 literal `$HOME/.local/share/themes/` path.
@@ -337,7 +337,7 @@ material only — the theme does not ship them.
 `.github/workflows/ci.yml` runs `make check` and `make check-references` on pushes
 and pull requests, on Python 3.13 with a checkout
 with Git LFS images materialized; the Makefile's targets still require Python
-3.10 or newer at run time. its check job also installs the render gate's
+3.10 or newer at run time; its check job also installs the render gate's
 five Plasma tools (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`,
 `spectacle`, `plasma-apply-colorscheme`), so `make check` runs the rendered-pixel
 gate there too; the dialog render the gate runs additionally needs `kdialog`. Run those same commands locally for parity with the workflow's
@@ -408,11 +408,12 @@ produces a candidate render. Where the Plasma render tools are on `PATH`, `make 
 window and byte-compares the title-bar strip (candidate `30,0,80,22` against reference
 `30,25,80,22`), the close, zoom and collapse box regions, and the side and bottom border strips of
 `aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each
-region with the same `crop`/`compare` the fidelity tool uses. The dialog render the same
-suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender`) opens a `kdialog`
-warning box and byte-compares its engine-drawn check box cell with the shipped
-`checkbox-*` canvas the Kvantum suite derives from the same SVG: engine-drawn widget
-pixels are gate-covered too.
+region with the same `crop`/`compare` the fidelity tool uses. The dialog renders the same
+suite runs (`tests/test_render_surface.py::TestCheckboxDialogRender` and
+`::TestComboboxDialogRender`) open a `kdialog` warning box and chooser and byte-compare
+the engine-drawn check box cell with the shipped `checkbox-*` canvas and the engine-drawn
+combo arrow with the shipped `comboarrow-normal` slice, both derived from the same SVG:
+engine-drawn widget pixels are gate-covered too.
 
 ## Invariants
 
