@@ -10,6 +10,7 @@ environment and in-session commands in ``tools/render_session.py``.
 from __future__ import annotations
 
 import os
+import shlex
 import stat
 import unittest
 from unittest import mock
@@ -21,6 +22,7 @@ from tools import apply_theme, render_session, render_surface, render_workflow  
 from tools.render_session import (
     checkbox_dialog_client,
     combobox_dialog_client,
+    menu_dialog_client,
 )  # noqa: E402
 
 
@@ -354,6 +356,29 @@ class TestSessionCommand(unittest.TestCase):
             # in-session script, so a space inside one cannot become shell
             # syntax.
             self.assertIn("'Macintosh HD'", command.argv[-1])
+
+
+    def test_carries_the_menu_dialog_client_words(self):
+        with render_session.Session.create() as session:
+            command = render_session.session_command(
+                session,
+                list(menu_dialog_client(session)),
+                2.5,
+                480,
+                360,
+                9.5,
+            )
+            self.assertIn("kdialog", command.argv[-1])
+            # The whole client suffix serializes exactly as built, with the
+            # prompt kept as one quoted word despite its space.
+            client = list(menu_dialog_client(session))
+            self.assertTrue(command.argv[-1].endswith(shlex.join(client)))
+            self.assertIn("'Pick an item:'", command.argv[-1])
+            # And shell word-splitting of the script's arguments -- what the
+            # script's `"$@"` hands kdialog -- recovers exactly that argv, so
+            # each menu item and its tag is still a separate word.
+            words = shlex.split(command.argv[-1])
+            self.assertEqual(client, words[len(words) - len(client) :])
 
 
 class TestSessionThemeSources(unittest.TestCase):
