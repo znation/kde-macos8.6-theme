@@ -5,15 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 add-color action: pin the black focus outline (planned 2026-10-31 by the plan role)
-
-**Goal.** Give the color chooser's add-color overlay the sheet's solid black focus outline color instead of the stock translucent outline.
-
-**Grounding.** The four-arm add-color overlay group in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` has no `outline-color`. Heading searches in this queue and `PLANS-DONE.md` found background, border, foreground and shadow work; the finished palette-outline plan explicitly excludes add-color overlays. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, declares `outline-color: rgba(46, 52, 54, 0.3)` on the base and hover add-color overlay arms. No collected reference shows this GTK action's focus outline. Black reuses the landed `colorswatch.light`/`colorswatch.dark` outline treatment as a platform adaptation, not a sampled value.
-
-**Approach and files.** Extend the existing base, hover, backdrop and backdrop-hover add-color overlay group in the GTK 3 sheet with `outline-color: #000000` and dated provenance explaining the missing reference surface and stock resource. Preserve toolkit outline width, style, offset and visibility. In `tests/test_gtk_theme.py::TestGtkTheme::test_color_swatch_corners`, add the property to the four existing add-color dictionaries while retaining their other declarations; keep `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` unchanged. Add `TestGtkTheme.test_add_color_outline_colors` checking each explicit arm and equality with the landed `colorswatch.light` outline color. Add a declaration guarantee under `## gtk` in `docs/invariants.md` naming the test and adaptation source. These are the three implementation files; GTK 4 is outside this plan.
-
-**Acceptance criteria.** Each of the four add-color overlay arms declares black outline color. Removing the declaration or changing it fails the new test; the existing corner inventory continues to check exact selector dictionaries. Outline geometry and swatch fills receive no new declarations. The invariant describes declaration coverage without claiming rendered-pixel coverage. `make check` passes.
+_None yet._
 
 ### Platinum GTK 3 palette swatches: use solid black overlay borders (planned 2026-10-31 by the plan role)
 

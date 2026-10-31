@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 add-color action: pin the black focus outline (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Give the color chooser's add-color overlay the sheet's solid black focus outline color instead of the stock translucent outline.
+
+**Grounding.** The four-arm add-color overlay group in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` had no `outline-color`. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, declares a translucent outline on the base and hover add-color overlay arms. No collected reference shows this GTK action's focus outline. Black reuses the landed `colorswatch.light`/`colorswatch.dark` outline treatment as a platform adaptation, not a sampled value.
+
+**Approach and files.** Added `outline-color: #000000` to the base, hover, backdrop and backdrop-hover overlay group in the GTK 3 sheet, preserving toolkit outline geometry. Extended the corner inventory and added `TestGtkTheme.test_add_color_outline_colors` to check each arm and equality with the palette swatch outline. Added the GTK invariant documenting the missing reference and stock resource. The helper inventory remains unchanged; GTK 4 is outside this plan.
+
+**Acceptance criteria.** Each of the four add-color overlay arms declares black outline color; the new test pins the value and the existing corner inventory checks exact selector dictionaries. Outline geometry and swatch fills receive no new declarations. The invariant describes declaration coverage without claiming rendered-pixel coverage. `make check` passes.
+
 ### Platinum GTK 3 palette swatches: pin light and dark focus outline colors (planned 2026-10-30 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Replace the stock translucent outline colors on light and dark palette swatches with the sheet's solid black focus treatment.
