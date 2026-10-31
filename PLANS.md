@@ -7,7 +7,10 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
+## Done
+
 ### Platinum GTK 4 OSD checks and radios: restate the stock dark indicator arms with the landed check and radio recipes (planned 2026-10-30 by the plan role; independent of the waiting GTK 3 OSD check-and-radio plan — it appends four check-and-radio arm groups to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, adds one test beside `test_osd_container_bands` in `tests/test_gtk4_theme.py` and appends one row to the `## gtk` invariants table, while that entry edits only the GTK 3 sheet and `tests/test_gtk_theme.py`; the shared documents are `docs/invariants.md`, where each entry appends its own row, and `tests/support/gtk_theme_spec.py`, from which both import `CHECK`/`RADIO` and neither edits, plus the shared base case both cite — no sheet selector, test function or suite overlaps)
+— done 2026-10-30 by the feature role
 
 **Goal.** The landed GTK 4 OSD container plan (`PLANS-DONE.md`, "Platinum
 GTK 4 OSD overlay containers") repainted every stock OSD overlay container,
@@ -167,5 +170,3 @@ text. Scope is the GTK 4 sheet, `tests/test_gtk4_theme.py`,
 `docs/invariants.md` and nothing else: no GTK 3 rule, no Firefox sheet, no
 new asset, colour literal beyond the landed `#DDDDDD`, `#FFFFFF`,
 `#888888` and `#000000`, dependency or `!important`. `make check` passes.
-
-## Done

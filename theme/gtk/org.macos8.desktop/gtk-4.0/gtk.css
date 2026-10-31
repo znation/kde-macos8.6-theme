@@ -1632,3 +1632,102 @@ popover.magnifier > contents {
   -gtk-icon-shadow: none;
 }
 
+/* No collected reference screenshot shows a check or radio inside a GTK OSD
+ * overlay — a fullscreen video toolbar, a scale button's value bubble, an
+ * application notification, a bare .osd container — so every stock OSD
+ * indicator arm takes the landed check and radio recipes: the raised #DDDDDD
+ * check face with the inset #FFFFFF/#888888 etch, square corners and the
+ * flat #FFFFFF round radio, drawn at the plain indicator rules' 14px
+ * geometry. The stock arm inventory and states come from the toolkit
+ * resources /org/gtk/libgtk/theme/Default/Default-dark.css and
+ * Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+ * (libgtk-4 4.18.6, probed with gresource 2026-10-30): four `.osd`
+ * check-radio arms each — base and :hover, :active, :disabled, no :backdrop
+ * arm — painting translucent dark bubbles, and the platform style
+ * library's base.css resource (1.7.6) carries no `.osd`
+ * check-radio arm at all, only the `.osd popover.menu` transparency
+ * override left untouched here. The recipe values are the landed CHECK and
+ * RADIO specs (tests/support/gtk_theme_spec.py), pinned by the shared
+ * GtkSheetRuleCases::test_check_and_radio; every state group repeats them
+ * byte-for-byte because the stock arms set no geometry, glyph source or
+ * checked spelling, so the plain `check`, `radio` and mixed/checked glyph
+ * rules keep governing inside overlays. The one clearance is
+ * `outline-color: #000000`, replacing the toolkit's accent-tinted focus
+ * ring to match the sheet's landed black focus colour; the stock arms'
+ * leftover `color`, `background-clip: padding-box` and shadow claims stay
+ * undeclared because the shipped glyph assets do not recolour or shadow and
+ * the opaque black border already paints the clip band.
+ * Declaration checks do not establish rendered pixels.
+ * Recorded 2026-10-30 by the feature role. */
+.osd check, .osd radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:hover, .osd radio:hover {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio:hover {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:active, .osd radio:active {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio:active {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:disabled, .osd radio:disabled {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+}
+
+.osd radio:disabled {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+

@@ -23,6 +23,7 @@ from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     CALENDAR_SELECTED_DAY,
+    CHECK,
     COMBO_ARROW,
     ENTRY_PROGRESS_GTK4,
     ETCH_DARK,
@@ -33,6 +34,7 @@ from support.gtk_theme_spec import (
     MENU_CHECK,
     PROGRESSBAR_TROUGH,
     RAISED_BEVEL,
+    RADIO,
     ROW_HOVER,
     ROW_SELECTED,
     TAB_STATES,
@@ -1221,13 +1223,18 @@ for radio in (False, True):
                 for prop in INFOBAR:
                     self.assertEqual(self.rules[selector][prop], infobar[prop])
 
+        arms = {
+            f".osd {node}{state}"
+            for node in ("check", "radio")
+            for state in ("", ":hover", ":active", ":disabled")
+        }
         landed = {
             "video image.osd",
             "progressbar.osd > trough",
             "progressbar.osd.horizontal > trough",
             "progressbar.osd.vertical > trough",
             ".osd switch:checked",
-        }
+        } | arms
         tokens = (
             "osd",
             "touch-selection",
@@ -1243,6 +1250,47 @@ for radio in (False, True):
                 if any(token in selector for token in tokens)
             },
             set(selectors) | landed,
+        )
+
+    def test_osd_check_radio(self):
+        """Pin the four restated stock OSD indicator arms.
+
+        No collected reference screenshot shows a check or radio inside a
+        GTK OSD overlay, so the sheet restates the toolkit resource's four
+        `.osd check`/`.osd radio` arms with the landed plain check and radio
+        recipes (CHECK and RADIO in ``support.gtk_theme_spec.py``) plus one
+        clearance the stock arms claim: a black focus-outline colour in
+        place of the toolkit's accent-tinted ring. The arm selectors and
+        states come from /org/gtk/libgtk/theme/Default/Default-dark.css and
+        Default-light.css in /usr/lib/x86_64-linux-gnu/libgtk-4.so.1
+        (libgtk-4 4.18.6); each arm is byte-for-byte the recipe in every
+        state, because the armed spellings set no geometry, glyph source or
+        checked spelling stock could override.
+        """
+        check = {**CHECK, "outline-color": BLACK}
+        radio = {**RADIO, "outline-color": BLACK}
+        states = ("", ":hover", ":active", ":disabled")
+        expected = {}
+        for state in states:
+            expected[f".osd check{state}"] = check
+            expected[f".osd radio{state}"] = radio
+        parsed = {}
+        for selector in expected:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected[selector])
+            parsed[selector] = self.rules[selector]
+        self.assertEqual(
+            [dict(parsed[f".osd check{state}"]) for state in states],
+            [check] * 4,
+        )
+        self.assertEqual(
+            [dict(parsed[f".osd radio{state}"]) for state in states],
+            [radio] * 4,
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if ".osd check" in selector or ".osd radio" in selector},
+            set(expected),
         )
 
     def test_progressbar_osd_trough_thickness(self):
