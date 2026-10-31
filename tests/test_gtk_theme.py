@@ -120,6 +120,14 @@ def assert_svg_root_first(test, path):
 
 
 class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
+    def assert_osd_selector_count(self, expected, count):
+        """Check the flattened selector inventory for an OSD rule family."""
+        enumerated = {
+            selector for _, selectors in expected for selector in selectors
+        }
+        self.assertEqual(len(enumerated), count, enumerated)
+        return enumerated
+
     @classmethod
     def setUpClass(cls):
         cls.index_text = gtk_css.read_theme_text(INDEX)
@@ -622,10 +630,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 ".osd button.flat:checked",
             )),
         ]
-        enumerated = {
-            selector for _, selectors in expected for selector in selectors
-        }
-        self.assertEqual(len(enumerated), 24, enumerated)
+        enumerated = self.assert_osd_selector_count(expected, 24)
         for declarations, selectors in expected:
             for selector in selectors:
                 with self.subTest(selector=selector):
@@ -744,10 +749,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 ".osd button:disabled",
             )),
         ]
-        enumerated = {
-            selector for _, selectors in expected for selector in selectors
-        }
-        self.assertEqual(len(enumerated), 37, enumerated)
+        enumerated = self.assert_osd_selector_count(expected, 37)
         for declarations, selectors in expected:
             for selector in selectors:
                 with self.subTest(selector=selector):
@@ -836,10 +838,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 ".osd button.suggested-action:disabled",
             )),
         ]
-        enumerated = {
-            selector for _, selectors in expected for selector in selectors
-        }
-        self.assertEqual(len(enumerated), 9, enumerated)
+        enumerated = self.assert_osd_selector_count(expected, 9)
         for declarations, selectors in expected:
             for selector in selectors:
                 with self.subTest(selector=selector):
@@ -919,10 +918,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 ".osd button.destructive-action:disabled",
             )),
         ]
-        enumerated = {
-            selector for _, selectors in expected for selector in selectors
-        }
-        self.assertEqual(len(enumerated), 9, enumerated)
+        enumerated = self.assert_osd_selector_count(expected, 9)
         for declarations, selectors in expected:
             for selector in selectors:
                 with self.subTest(selector=selector):
