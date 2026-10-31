@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 separator labels: declare the inactive-text grey (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Give GTK 3 text labels carrying the `separator` class an explicit muted Platinum foreground.
+
+**Grounding.** Searches found no `label.separator` selector in the GTK 3 sheet or its tests and no separator-label plan heading in this queue or `PLANS-DONE.md`. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-31, groups `label.separator` with `.dim-label` and header subtitles under `opacity: 0.55; text-shadow: none;`. No reference screenshot shows GTK separator labels; adapt the existing inactive-text `#888888` at full opacity, following the finished GTK 3 secondary-label treatment.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add a separate `label.separator` rule beside the disabled-text group with exactly `color: #888888; opacity: 1; text-shadow: none;`. Include a dated adaptation comment naming the missing reference surface, installed resource and reused inactive-text palette. This explicit foreground applies in active and backdrop windows. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_separator_label_foreground`, call `assert_disabled_text(("label.separator",))`, assert the exact dictionary `{**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}`, and assert one occurrence in `self.selectors`. The constant and helper already exist. Add one row under `## gtk` in `docs/invariants.md` naming the new test, adaptation provenance and declaration-only coverage.
+
+**Acceptance criteria.** Removing the selector or changing any of its three declarations fails the new test; retain the existing inactive-text reference checks. Existing disabled-text and separator geometry tests pass. Do not change graphical separator nodes, spacing, artwork or GTK 4. Run `make check`. This three-file change is independently mergeable from the queued GTK 3 header-subtitle plan: keep their selectors and tests separate.
+
 ### Platinum GTK 3 header subtitles: declare the inactive-text grey (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Give GTK 3 header subtitles an explicit muted Platinum foreground in active and backdrop windows.
