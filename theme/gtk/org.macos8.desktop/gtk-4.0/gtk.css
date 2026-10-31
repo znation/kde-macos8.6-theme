@@ -2126,3 +2126,59 @@ button.suggested-action:disabled, button.suggested-action:disabled:active, butto
 button.suggested-action:focus:focus-visible {
   outline-color: #000000;
 }
+
+/* 2026-10-31: no collected reference screenshot shows a GTK destructive-action
+   button at all (the GTK scope's standing adaptation premise), so the plain
+   `button.destructive-action` family is restated with the landed push-button
+   recipe of this same sheet, byte-equal to the plain suggested-action
+   restatement above apart from the class token, including the erased
+   destructive colour distinction. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
+   probed with gresource, 2026-10-31) declares a stock red gradient family with
+   white text whose selectors each carry one class more than the landed
+   `button`, `button:hover`, `button:active, button:checked`,
+   `button:focus:focus-visible` and `button:disabled…` groups, so they would
+   win the cascade; each restated selector here is the exact stock twin and
+   sits later in source order, so it wins every tie. The base arm restates
+   `transition: none` because the stock base's 300ms outline animation
+   outranks the landed `button` group's lower-specificity transition policy,
+   and the plain `button:disabled` `-gtk-icon-filter: opacity(0.5)` dimming
+   stays in force here because no restated arm names the property. */
+button.destructive-action {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  transition: none;
+}
+
+button.destructive-action:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action:active, button.destructive-action:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action:disabled, button.destructive-action:disabled:active, button.destructive-action:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action:focus:focus-visible {
+  outline-color: #000000;
+}
+
