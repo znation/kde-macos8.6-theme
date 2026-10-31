@@ -702,6 +702,17 @@ row:selected colorswatch {
   box-shadow: 0 0 0 2px #000000;
 }
 
+/* No reference screenshot shows a GTK palette swatch selection mark.
+ * Keep the installed GTK 3 resource's contrasting base foregrounds solid
+ * in backdrop (platform adaptation 2026-10-31). */
+colorswatch.light overlay:backdrop {
+  color: #000000;
+}
+
+colorswatch.dark overlay:backdrop {
+  color: #FFFFFF;
+}
+
 /* Views paint the white content field with black text. */
 .view, textview text, list {
   background-color: #FFFFFF;

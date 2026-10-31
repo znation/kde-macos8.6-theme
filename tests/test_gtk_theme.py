@@ -1445,6 +1445,8 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 },
                 "colorswatch.light": {"outline-color": BLACK},
                 "colorswatch.dark": {"outline-color": BLACK},
+                "colorswatch.light overlay:backdrop": {"color": BLACK},
+                "colorswatch.dark overlay:backdrop": {"color": WHITE},
                 "row:selected colorswatch": {
                     "box-shadow": f"0 0 0 2px {BLACK}"
                 },
@@ -1458,6 +1460,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             BLACK, self.rules["frame > border"]["border"].split()[-1]
         )
         self.assert_rule("button.color colorswatch:only-child", {"box-shadow": "none"})
+
+    def test_color_swatch_backdrop_foregrounds(self):
+        self.assert_rule("colorswatch.light overlay:backdrop", {"color": BLACK})
+        self.assert_rule("colorswatch.dark overlay:backdrop", {"color": WHITE})
+        for selector in (
+            "colorswatch#add-color-button overlay:backdrop",
+            "colorswatch#add-color-button overlay:backdrop:hover",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"color": BLACK})
 
     def test_color_swatch_outline_colors(self):
         for selector in ("colorswatch.light", "colorswatch.dark"):
