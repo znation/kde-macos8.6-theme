@@ -10,6 +10,7 @@ import os
 import stat
 import unittest
 from pathlib import Path
+from typing import get_type_hints
 from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
@@ -377,6 +378,11 @@ class TestWriteAtomicFdopen(unittest.TestCase):
         self.assertEqual(1, len(closed))
 
 class TestTiledRgbValidation(unittest.TestCase):
+    def test_tile_annotation_matches_accepted_buffer_types(self):
+        self.assertEqual(
+            get_type_hints(make_wallpaper.tiled_rgb)["tile"], bytes | bytearray
+        )
+
     def test_invalid_dimensions_are_rejected(self):
         tile = bytes(make_wallpaper.TILE_SIZE * make_wallpaper.TILE_SIZE * 3)
         cases = (0, -1, True, False, 1.0, "1", None)

@@ -58,7 +58,7 @@ PACKAGE_DIR = "theme/wallpapers/org.macos8.desktop"
 TILE_RGB = bytes((0xCC, 0xCC, 0xCC)) * (TILE_SIZE * TILE_SIZE)
 
 
-def tiled_rgb(tile: bytes, width: int, height: int) -> bytes:
+def tiled_rgb(tile: bytes | bytearray, width: int, height: int) -> bytes:
     """Return a *width* x *height* RGB image where pixel (x, y) is tile[y % 128][x % 128]."""
     for name, value in (("width", width), ("height", height)):
         if not is_plain_int(value) or value < 1:
