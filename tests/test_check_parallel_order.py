@@ -105,6 +105,10 @@ class TestCache(unittest.TestCase):
                     "test_nan_float": float("nan"),
                     "test_pos_inf": float("inf"),
                     "test_neg_inf": float("-inf"),
+                    # bool is an int subclass in Python, but JSON booleans
+                    # are not measured wall durations and must not affect
+                    # the worker queue order.
+                    "test_bool": True,
                 }},
                 sink,
             )

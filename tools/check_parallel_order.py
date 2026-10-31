@@ -62,7 +62,8 @@ def load_durations(path: str) -> dict[str, float]:
         return {}
     durations: dict[str, float] = {}
     for module, seconds in entries.items():
-        if not isinstance(module, str) or not isinstance(seconds, (int, float)):
+        if (not isinstance(module, str) or isinstance(seconds, bool)
+                or not isinstance(seconds, (int, float))):
             continue
         if not math.isfinite(seconds) or seconds < 0:
             continue
