@@ -23,6 +23,16 @@ _None yet._
 
 **Acceptance criteria.** The corner helper checks exact dictionaries: the base overlay has its existing radius and image reset plus the two shadow resets; the three state overlays have the image and two shadow resets. Removing either shadow reset from the group fails the new test. The implementation changes only these label-shadow declarations, their provenance, tests and invariant. `make check` passes. This is independently mergeable from the queued color-button swatch-shadow work: the selectors and properties differ, and either merge order must retain both tests' explicit mapping additions.
 
+
+### Platinum GTK 3 add-color action: declare the neutral button face (planned 2026-10-31 by the plan role)
+
+**Goal.** Give the color chooser's add-color action an explicit Platinum grey face after its stock gradient is removed.
+
+**Grounding.** The four `colorswatch#add-color-button overlay` reset arms in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` declare `background-image: none` but no background color. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, supplies gradients on base/hover and an `image(...)` backdrop fill. Searches of this queue and `PLANS-DONE.md` found image, shadow, border, foreground and outline work, but no explicit add-color face plan. No collected reference shows this GTK action: reuse the landed `button` face `#DDDDDD` as a platform adaptation, rather than claim a new screenshot measurement.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `background-color: #DDDDDD` to the existing four-arm add-color overlay group and extend its dated provenance comment with the missing reference surface, stock resource and landed button source. In `tests/test_gtk_theme.py::TestGtkTheme.test_color_swatch_corners`, extend the four add-color dictionaries with `background-color: FACE`, retaining the other explicit declarations. Add `test_add_color_background_colors` checking each arm's value and equality with `self.rules["button"]["background-color"]`; retain `test_add_color_background_images`. Keep `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` unchanged. Add a declaration guarantee naming the new test under `## gtk` in `docs/invariants.md`, recording the platform adaptation without claiming rendered pixels.
+
+**Acceptance criteria.** Base, hover, backdrop and backdrop-hover add-color overlay arms explicitly declare the landed button face and retain their image resets. Removing or changing a face declaration fails the new test; the exact corner inventory passes with the extended dictionaries. Chosen-color swatches receive no fill declarations, and the implementation adds no geometry or GTK 4 changes. Preserve shadow declarations if the preceding label-shadow plan has merged: this plan owns only background color and its test, so either merge order retains both additions. `make check` passes. This is one grouped CSS declaration with tests and provenance, sized for one implementation run.
 ### Platinum GTK 3 selected-row swatches: use a black selection ring (planned 2026-10-31 by the plan role)
 — done 2026-10-31 by the feature role
 
