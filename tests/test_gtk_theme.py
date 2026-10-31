@@ -45,6 +45,7 @@ from support.gtk_theme_spec import (
     SCROLLBAR_STEPPER_ARROWS,
     TAB_STATES,
     RADIO,
+    TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
 )
 from support.platinum_palette import (
@@ -1315,11 +1316,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
 
     def test_title_buttons(self):
         for scope in ("headerbar", ".titlebar"):
-            for control, asset in (
-                ("close", "window-close.svg"),
-                ("maximize", "window-maximize.svg"),
-                ("minimize", "window-minimize.svg"),
-            ):
+            for control, asset in TITLE_BUTTON_ASSETS:
                 self.assert_title_button(
                     f"{scope} button.titlebutton.{control}", asset
                 )

@@ -253,6 +253,11 @@ TITLE_BUTTON_IMAGE = {
     "min-height": "16px",
     "min-width": "16px",
 }
+TITLE_BUTTON_ASSETS = (
+    ("close", "window-close.svg"),
+    ("maximize", "window-maximize.svg"),
+    ("minimize", "window-minimize.svg"),
+)
 # GTK 4's default sheet gives the image a circular background on these states,
 # so each needs its own transparent rule to outrank that default.
 TITLE_BUTTON_IMAGE_STATE = {"background-color": "transparent"}

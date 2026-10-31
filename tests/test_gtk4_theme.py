@@ -43,6 +43,7 @@ from support.gtk_theme_spec import (
     SCALE_THUMB,
     SCALE_TROUGH,
     TAB_STATES,
+    TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
     TITLE_BUTTON_IMAGE_STATE,
 )
@@ -686,11 +687,7 @@ for radio in (False, True):
 
     def test_title_buttons(self):
         for scope in ("headerbar", ".titlebar"):
-            for control, asset in (
-                ("close", "window-close.svg"),
-                ("maximize", "window-maximize.svg"),
-                ("minimize", "window-minimize.svg"),
-            ):
+            for control, asset in TITLE_BUTTON_ASSETS:
                 self.assert_title_button(
                     f"{scope} windowcontrols button.{control}", asset
                 )
