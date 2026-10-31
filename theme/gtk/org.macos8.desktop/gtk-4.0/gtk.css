@@ -2034,3 +2034,18 @@ button:checked:hover, button:checked:active {
   box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
   color: #000000;
 }
+
+/* 2026-10-31: no collected reference screenshot shows a hovered GTK push
+   button, so the stock hover recolour of the button's glyphs is cleared to
+   keep the landed face unchanged: stock brightens every icon inside a
+   hovered button with `-gtk-icon-filter: brightness(1.2)`, and the sheet
+   declared no hover value for the property, so that clause survived under
+   the landed `button:hover` face group. The selector here is the exact
+   stock twin and sits later in source order, so it wins the tie; the landed
+   `button` and `button:hover` groups above stay the face source, and the
+   kept-toolkit `-gtk-icon-filter: opacity(0.5)` dimming on `button:disabled`
+   stays untouched. Stock selectors probed from Default-light.css in
+   libgtk-4 4.18.6 with gresource on 2026-10-31. */
+button:hover {
+  -gtk-icon-filter: none;
+}

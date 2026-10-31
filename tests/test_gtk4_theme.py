@@ -561,6 +561,15 @@ for radio in (False, True):
         for selector in ("button:checked:hover", "button:checked:active"):
             self.assert_rule(selector, expected)
 
+    def test_button_hover_icon_filter(self):
+        # No reference screenshot shows a hovered GTK push button; stock
+        # brightens every icon inside one, so the tail arm clears the filter
+        # while the landed `button:hover` face group stays the face source.
+        self.assert_rule(
+            "button:hover",
+            {"background-color": FACE, "-gtk-icon-filter": "none"},
+        )
+
     def test_entry_focus_transition(self):
         self.assert_scale_slider_transition("entry")
 
