@@ -1435,7 +1435,17 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     "border-color": SELECTION,
                     "box-shadow": f"inset 0 0 0 2px {BLACK}, inset 0 0 0 1px {SELECTION}",
                 },
+                "colorswatch.light": {"outline-color": BLACK},
+                "colorswatch.dark": {"outline-color": BLACK},
             },
+        )
+
+    def test_color_swatch_outline_colors(self):
+        for selector in ("colorswatch.light", "colorswatch.dark"):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, {"outline-color": BLACK})
+        self.assertEqual(
+            BLACK, self.rules["frame > border"]["border"].split()[-1]
         )
 
     def test_color_swatch_drop_target(self):

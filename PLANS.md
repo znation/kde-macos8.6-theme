@@ -5,21 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 palette swatches: pin light and dark focus outline colors (planned 2026-10-30 by the plan role)
-
-### Platinum GTK 3 palette swatches: pin light and dark focus outline colors (planned 2026-10-30 by the plan role)
-
-**Goal.** Replace the stock translucent outline colors on light and dark palette swatches with the sheet's solid black focus treatment.
-
-**Grounding.** The GTK 3 sheet has no `colorswatch.light` or `colorswatch.dark` outline-color declaration; related queue and archive heading searches found no plan for these outlines. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-30, declares `rgba(255, 255, 255, 0.6)` on `colorswatch.dark` and `rgba(0, 0, 0, 0.6)` on `colorswatch.light`. No collected reference shows this GTK focus surface. Solid black adapts the sheet's existing black outline colors and frame-border token; it is not a new screenshot measurement.
-
-**Approach and files.**
-- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside the swatch rules, group `colorswatch.light` and `colorswatch.dark` with exactly `outline-color: #000000`. Record the missing reference surface, stock resource and dated adaptation provenance. Retain toolkit outline style, width, offset and focus visibility; this changes color only and leaves the overlay's contrast-dependent checkmark foreground alone.
-- In `tests/test_gtk_theme.py::TestGtkTheme`, add `test_color_swatch_outline_colors` asserting each selector's exact declaration dictionary using `BLACK`, and tying that token to the existing `frame > border` border color. Extend `test_color_swatch_corners`'s explicit extra-declarations mapping with these two selectors, retaining the queued drop-target declarations if present. Keep `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` strict and unchanged.
-- Add a row under `## gtk` in `docs/invariants.md` naming the test and dated provenance. Describe declaration coverage, without claiming rendered-pixel validation.
-
-**Acceptance criteria.** Removing either arm or changing its outline color fails the new test. The exact swatch inventory rejects extra properties on these arms. Existing swatch tests and `make check` pass. Implementation fits the three named files; GTK 4 and add-color overlay outlines are outside this scope. This plan can merge independently of the queued active drop-target plan.
-
 ## Done
 
 ### Platinum GTK 3 color buttons: clear the swatch's decorative shadow (planned 2026-10-30 by the plan role)

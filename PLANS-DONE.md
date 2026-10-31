@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 palette swatches: pin light and dark focus outline colors (planned 2026-10-30 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Replace the stock translucent outline colors on light and dark palette swatches with the sheet's solid black focus treatment.
+
+**Grounding.** The GTK 3 sheet had no `colorswatch.light` or `colorswatch.dark` outline-color declaration. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-30, declares `rgba(255, 255, 255, 0.6)` on `colorswatch.dark` and `rgba(0, 0, 0, 0.6)` on `colorswatch.light`. No collected reference shows this GTK focus surface. Solid black adapts the sheet's existing black focus treatment and frame-border token; it is not a screenshot measurement.
+
+**Approach and files.** Added one grouped `colorswatch.light`/`.dark` rule setting only `outline-color: #000000`, preserving toolkit outline style, width, offset and focus visibility. Added an exact declaration test tied to `frame > border`, admitted both selectors through the strict swatch inventory, and documented declaration coverage and provenance in `docs/invariants.md`. GTK 4 and add-color overlay outlines remain outside this plan.
+
+**Acceptance criteria.** Removing either arm or changing its outline color fails the new test. The exact swatch inventory rejects extra properties on these arms. `make check` passes. The implementation changes only the named three files and can merge independently of other swatch plans.
+
 ### Platinum GTK 3 palette swatches: recolor the active drop target (planned 2026-10-30 by the plan role; independent of the queued add-color border plan) — done 2026-10-31 by the feature role
 
 **Goal.** Replace the stock green drop-target indicator on light and dark palette swatches with the sheet's Platinum selection lavender and black edging, preserving the chosen color.
