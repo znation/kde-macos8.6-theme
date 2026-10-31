@@ -56,9 +56,8 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
                          f"{FACE} {TROUGH} !important")
 
     def test_panel_radius_override_is_scoped_to_menus_and_arrow_panels(self):
-        self.assertEqual(
-            {selector for selector, declarations in self.rules.items()
-             if "--panel-border-radius" in declarations},
+        self.assert_token_scoped_to(
+            "--panel-border-radius",
             {"menupopup", 'panel[type="arrow"]'},
         )
 
@@ -66,9 +65,8 @@ class TestFirefoxChromeShell(FirefoxChromeTestCase):
         for token in ("--panel-background-color", "--panel-text-color",
                       "--panel-border-color"):
             with self.subTest(token=token):
-                self.assertEqual(
-                    {selector for selector, declarations in self.rules.items()
-                     if token in declarations},
+                self.assert_token_scoped_to(
+                    token,
                     {"menupopup", 'panel[type="arrow"]'},
                 )
         for token in ("--panel-background", "--panel-color"):

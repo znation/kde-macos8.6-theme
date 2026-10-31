@@ -37,11 +37,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
         self.assertEqual(set(self.rules[radius]), {"border-radius"})
         self.assertIn(":hover", hover)
         self.assertIn(":not([disabled])", hover)
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--panel-menuitem-border-radius" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--panel-menuitem-border-radius")
 
         panel = element("panel", "identity-popup")
         multi_view = element(
@@ -157,11 +153,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
                 self.assertIn(":hover", selector)
                 self.assertIn(":not([disabled])", selector)
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--panel-menuitem-border-radius" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--panel-menuitem-border-radius")
 
         panel = element("panel", "protections-popup")
         multi_view = element(
@@ -316,11 +308,7 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
         self.assertEqual(set(self.rules[radius]), {"border-radius"})
         self.assertIn(":hover", hover)
         self.assertIn(":not([disabled])", hover)
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--panel-menuitem-border-radius" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--panel-menuitem-border-radius")
 
         panel = element("panel", "trustpanel-popup")
         multi_view = element(
@@ -570,16 +558,8 @@ class TestFirefoxPopupRows(FirefoxChromeTestCase):
         ):
             with self.subTest(token=token):
                 self.assertIn(token, self.rules[primary])
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--button-border-radius" in declarations},
-            {primary},
-        )
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--border-radius-medium" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--button-border-radius", {primary})
+        self.assert_token_scoped_to("--border-radius-medium")
 
         panel = element(
             "panel", "notification-popup", attrs={"type": "arrow"}

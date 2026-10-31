@@ -216,11 +216,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
         for selector in (row, button, hover, selected):
             with self.subTest(selector=selector):
                 self.assertEqual(self.rules[selector], REQUIRED_RULES[selector])
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--panel-menuitem-border-radius" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--panel-menuitem-border-radius")
         self.assertIn(":not([selected])", hover)
         self.assertIn(":hover", hover)
         self.assertEqual(self.rules[hover]["background-color"],
@@ -247,11 +243,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
         self.assertIn(":hover", hover)
         self.assertIn(":not(.panel-header .subviewbutton)", radius)
         self.assertEqual(set(self.rules[radius]), {"border-radius"})
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--panel-menuitem-border-radius" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--panel-menuitem-border-radius")
 
         panel = element("panel", "appMenu-popup")
         main_view = element(
@@ -330,11 +322,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
         for selector in hover_rows:
             self.assertIn(":hover", selector)
             self.assertIn(":not([disabled])", selector)
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--panel-menuitem-border-radius" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--panel-menuitem-border-radius")
 
         panel = element("panel", "widget-overflow")
         main_view = element(
@@ -434,11 +422,7 @@ class TestFirefoxPanelRows(FirefoxChromeTestCase):
             self.assertIn(
                 ":not(#unified-extensions-discover-extensions)", selector
             )
-        self.assertEqual(
-            {name for name, declarations in self.rules.items()
-             if "--panel-menuitem-border-radius" in declarations},
-            set(),
-        )
+        self.assert_token_scoped_to("--panel-menuitem-border-radius")
 
         panel = element("panel", "unified-extensions-panel")
         view = element(

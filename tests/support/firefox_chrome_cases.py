@@ -876,3 +876,19 @@ class FirefoxChromeTestCase(
                 self.assertEqual(self.rules[arm], REQUIRED_RULES[arm])
                 for value in self.rules[arm].values():
                     self.assertTrue(value.endswith("!important"))
+
+    def assert_token_scoped_to(self, token, expected=()):
+        """Assert the rules whose declarations carry *token* are just *expected*.
+
+        The Firefox chrome suites use this sweep to pin the scoping of a CSS
+        variable override: *token* is matched against every rule's
+        declaration values, and the override must not leak outside the
+        selectors in *expected*. Eleven call sites in the popup, panel and
+        shell suites replace the identical four-line ``assertEqual`` sweep,
+        eight of them expecting no rule at all.
+        """
+        self.assertEqual(
+            {name for name, declarations in self.rules.items()
+             if token in declarations},
+            set(expected),
+        )
