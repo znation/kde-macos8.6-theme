@@ -1421,7 +1421,16 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     for selector in selectors
                 },
                 "button.color colorswatch:only-child": {"box-shadow": "none"},
+                "colorswatch overlay:hover": {"box-shadow": "none"},
             },
+        )
+
+    def test_color_swatch_hover_shadow(self):
+        expected = {"box-shadow": "none"}
+        self.assert_rule("colorswatch overlay:hover", expected)
+        self.assertEqual(
+            self.rules["colorswatch overlay:hover"],
+            self.rules["button.color colorswatch:only-child"],
         )
 
     def test_color_button_swatch_shadow(self):

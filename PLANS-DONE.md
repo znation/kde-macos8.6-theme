@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 palette swatches: clear the hover overlay bevel (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
+
+**Goal.** Keep the ordinary color swatch overlay flat on hover by clearing its decorative inset shadow, while retaining the chosen color.
+
+**Grounding.** No collected reference shows a GTK palette swatch hover state. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected on 2026-10-30, declares an inset highlight and dark edge shadow for `colorswatch overlay:hover`; the stock backdrop-hover arm clears its shadow. Choosing `none` is a platform adaptation reusing that stock shadow reset.
+
+**Approach and files.** Added `colorswatch overlay:hover { box-shadow: none; }` after the existing swatch rules with a dated provenance comment. Extended `test_color_swatch_corners`'s explicit selector mapping and added `test_color_swatch_hover_shadow`, which requires the exact declaration and equality with the color-button swatch shadow reset. Added a GTK invariant row describing the platform adaptation and declaration coverage. The new CSS rule changes no fill, border, opacity, foreground, geometry or outline; GTK 4 and drag-indicator shadows are unchanged.
+
+**Acceptance criteria.** Removing or changing the hover reset fails its test; the exact swatch inventory still passes. The new rule declares no fill, border, opacity, foreground, geometry or outline. Existing add-color and color-button shadow tests pass; GTK 4 stays outside this change. This is independent of the queued OSD popover corner rule and fits one implementation run in the three named files. `make check` passes.
+
 ### Platinum GTK 3 color-chooser OSD popover: explicitly square the stock class arm (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
 
 **Goal.** Extend square-corner coverage to GTK's `colorchooser .popover.osd` class arm.

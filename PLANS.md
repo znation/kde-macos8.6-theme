@@ -5,19 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 palette swatches: clear the hover overlay bevel (planned 2026-10-30 by the plan role)
-
-**Goal.** Keep the ordinary color swatch overlay flat on hover by clearing its decorative inset shadow, while retaining the chosen color.
-
-**Grounding.** Queue and archive searches found corner coverage and add-color/color-button shadow resets, but no ordinary hover-overlay reset. The finished corner plan explicitly left hover shadows toolkit-controlled. The current GTK 3 sheet has no `colorswatch overlay:hover` rule. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-30, declares `colorswatch overlay:hover { box-shadow: inset 0 1px rgba(255, 255, 255, 0.4), inset 0 -1px rgba(0, 0, 0, 0.2); }`; its backdrop-hover and disabled overlay arms already clear shadows. No collected reference shows a GTK palette swatch hover state. Choosing `none` is a platform adaptation reusing the stock backdrop-hover treatment, consistent with the landed swatch shadow resets, rather than a new screenshot measurement.
-
-**Approach and files.**
-- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add a separate `colorswatch overlay:hover { box-shadow: none; }` after the existing swatch rules, with a dated comment naming the missing reference surface and resource above. Change no other declarations; keep drag-indicator shadows toolkit-controlled (their state selectors have higher specificity).
-- In `tests/test_gtk_theme.py::TestGtkTheme`, add `test_color_swatch_hover_shadow` requiring exact dictionary equality with `{"box-shadow": "none"}` for that selector and equality with the existing color-button swatch reset. Extend `test_color_swatch_corners`'s `extra_declarations` mapping with precisely that selector and dictionary, so `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` continues checking its exact selector inventory. Do not weaken the shared helper or GTK 4 expectations.
-- Add a row under `## gtk` in `docs/invariants.md` naming the new test, adaptation source and date. Describe declaration coverage without claiming rendered pixels.
-
-**Acceptance criteria.** Removing or changing the hover reset fails its test; the exact swatch inventory still passes. The new rule declares no fill, border, opacity, foreground, geometry or outline. Existing add-color and color-button shadow tests pass; GTK 4 stays outside this change. This is independent of the queued OSD popover corner rule and fits one implementation run in the three named files. `make check` passes.
-
 ### Platinum GTK 3 add-color action: use a black border (planned 2026-10-30 by the plan role)
 
 **Goal.** Give the color chooser's add-color action a neutral black border through normal, hover and backdrop states, replacing the stock warm-grey edges.
