@@ -91,6 +91,35 @@ class _UnreapableProcess:
         raise AssertionError("the stand-in was asked to kill a process")
 
 
+class _TimedOutCommunicate:
+    """A `Popen` stand-in whose pipes time out and then reach EOF.
+
+    `finish` kills a child that outlives its timeout and waits for the pipes
+    a second time. A descendant that escaped the process group holds the
+    write ends, so that second wait can time out too; this stand-in raises
+    on the first `communicate`, returns captured output on the second, and
+    records every bound it was handed, so a test can see whether `finish`
+    bounded the second wait. Its `pid` is -1, which no process can have: if
+    the group kill were ever to reach the real `_kill_process_group`,
+    `os.getpgid` would fail with ESRCH and the stand-in's own `kill` would
+    raise instead of signalling anything.
+    """
+
+    def __init__(self):
+        self.pid = -1
+        self.args = ["fake-child"]
+        self.communicate_bounds = []
+
+    def communicate(self, timeout=None):
+        self.communicate_bounds.append(timeout)
+        if len(self.communicate_bounds) == 1:
+            raise subprocess.TimeoutExpired(self.args, timeout or 0)
+        return (b"out", b"err")
+
+    def kill(self):
+        raise AssertionError("the stand-in was asked to kill a process")
+
+
 class _StillRunning:
     """A `Popen` stand-in whose child has not exited while the pidfile is read."""
 
@@ -444,6 +473,45 @@ class TestSubprocessTimeout(unittest.TestCase):
             "the cleanup's reap wait was not bounded",
         )
         self.assertIn("not released", stderr.getvalue())
+
+    def test_finish_bounds_the_second_pipe_wait_by_the_reap_timeout(self):
+        """`finish`'s second pipe wait must use the reap bound, not the budget.
+
+        A child that outlives its timeout is SIGKILLed with its group before
+        `finish` waits for the pipes a second time. Normally the killed child
+        closes its pipes and the second wait reaches EOF at once, but a
+        descendant that escaped the group still holds the write ends, and
+        waiting for the caller's whole budget again would double the
+        worst-case stall: a 60s SUBPROCESS_TIMEOUT would cost 120s. The
+        second wait must be bounded by the reap bound -- or by the caller's
+        budget when that is smaller -- with the caller's budget still reported
+        to the test and whatever the bounded wait captured handed over as
+        the exception's output.
+        """
+        fake = _TimedOutCommunicate()
+        with unittest.mock.patch.object(
+            process_runner, "_kill_process_group"
+        ) as kill:
+            with self.assertRaises(subprocess.TimeoutExpired) as caught:
+                process_runner.finish(fake, timeout=60.0)
+        kill.assert_called_once_with(fake)
+        self.assertEqual(
+            fake.communicate_bounds,
+            [60.0, process_runner.REAP_TIMEOUT],
+            "the second pipe wait did not use the reap bound",
+        )
+        self.assertEqual(caught.exception.output, b"out")
+        self.assertEqual(caught.exception.stderr, b"err")
+
+        smaller = _TimedOutCommunicate()
+        with unittest.mock.patch.object(process_runner, "_kill_process_group"):
+            with self.assertRaises(subprocess.TimeoutExpired):
+                process_runner.finish(smaller, timeout=2.0)
+        self.assertEqual(
+            smaller.communicate_bounds,
+            [2.0, 2.0],
+            "a smaller caller budget was not kept as the bound",
+        )
 
 
 if __name__ == "__main__":

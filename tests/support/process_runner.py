@@ -21,9 +21,10 @@ import time
 # stalling `make check` forever.
 SUBPROCESS_TIMEOUT = 60
 
-# Bound on the reap that follows a group kill. A child that was just SIGKILLed
-# normally dies at once; one stuck in uninterruptible I/O (a hung network or
-# FUSE mount) is not released until the kernel lets go, which may be forever.
+# Bound on the reap that follows a group kill, in `running` and in the
+# second `communicate` of `finish`. A child that was just SIGKILLed normally
+# dies at once; one stuck in uninterruptible I/O (a hung network or FUSE
+# mount) is not released until the kernel lets go, which may be forever.
 # The cleanup that kills such a child must not wait on it without a bound.
 REAP_TIMEOUT = 5.0
 
@@ -92,8 +93,10 @@ def finish(process, timeout=None):
     with every process in its group, so a hung `make install` cannot leave its
     `flock`/inner-`make` descendants running after the test has failed. A
     descendant that escaped the group and still holds the pipes is not waited
-    on: the timeout is reported instead of blocking the suite. The constant is
-    read at call time, so a test can patch it.
+    on for the caller's whole budget again: the second `communicate` waits
+    only as long as the reap bound, and the caller's *timeout* is reported
+    when even that yields no EOF. The constants are read at call time, so a
+    test can patch them.
     """
     if timeout is None:
         timeout = SUBPROCESS_TIMEOUT
@@ -101,8 +104,16 @@ def finish(process, timeout=None):
         return process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         _kill_process_group(process)
+        # The direct child has just been SIGKILLed, so its pipes normally
+        # reach EOF at once. A descendant that left the process group still
+        # holds the pipe write ends, though; waiting on them for the caller's
+        # full budget again would double the worst-case stall (a 60s
+        # SUBPROCESS_TIMEOUT would cost 120s). The reap bound is the same
+        # killed-child wait `running`'s `_reap` uses, and when the caller's
+        # budget is smaller it bounds the total instead.
+        bounded = min(REAP_TIMEOUT, timeout)
         try:
-            stdout, stderr = process.communicate(timeout=timeout)
+            stdout, stderr = process.communicate(timeout=bounded)
         except subprocess.TimeoutExpired:
             # A descendant left the process group (for example by calling
             # setsid) and still holds the pipes. The direct child is dead;
