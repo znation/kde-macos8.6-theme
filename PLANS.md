@@ -15,6 +15,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Each of the four add-color overlay arms declares black outline color. Removing the declaration or changing it fails the new test; the existing corner inventory continues to check exact selector dictionaries. Outline geometry and swatch fills receive no new declarations. The invariant describes declaration coverage without claiming rendered-pixel coverage. `make check` passes.
 
+### Platinum GTK 3 palette swatches: use solid black overlay borders (planned 2026-10-31 by the plan role)
+
+**Goal.** Replace the ordinary palette swatch overlay's translucent border colors with the sheet's solid black frame color, retaining the landed lavender drop-target border.
+
+**Grounding.** The GTK 3 sheet resets swatch corners, hover shadows, drop-target colors and focus outlines but does not declare ordinary overlay border colors. Searches of the queue and related swatch headings in `PLANS-DONE.md` found no ordinary overlay-border plan; the finished add-color border work targets the separate ID-qualified action. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, sets translucent black borders on the base overlay, light/dark hover, backdrop/backdrop-hover and disabled arms. No collected reference shows this GTK palette border; black adapts the landed `frame > border` color, not a sampled swatch pixel.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add a grouped rule declaring only `border-color: #000000` for `colorswatch overlay`, `colorswatch.light overlay:hover`, `colorswatch.dark overlay:hover`, `colorswatch overlay:backdrop`, `colorswatch overlay:backdrop:hover` and `colorswatch:disabled overlay`, with dated missing-surface and resource provenance. Keep the more-specific landed light/dark drop-target declarations lavender; retain toolkit border width/style and chosen swatch fills. In `tests/test_gtk_theme.py::TestGtkTheme.test_color_swatch_corners`, extend the explicit `extra_declarations` mapping for these six selectors, preserving existing declarations. Keep `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` unchanged. Add `TestGtkTheme.test_color_swatch_border_colors` requiring black on each arm and equality with the `frame > border` token, and checking the existing light/dark drop-target border declarations remain selection lavender. Add a row under `docs/invariants.md`'s `## gtk` naming this test and the platform adaptation. These are three implementation files; this can merge independently of the queued add-color outline plan.
+
+**Acceptance criteria.** Removing one of the six border declarations or changing its color fails the new test; the strict swatch inventory still checks exact dictionaries. The drop-target test continues to require lavender borders and the landed inset edges. No new fill, border width/style, geometry, foreground or outline declarations are introduced by this work. The invariant claims declaration coverage, not rendered-pixel coverage. GTK 4 is outside this plan. `make check` passes.
+
 ## Done
 
 ### Platinum GTK 3 color buttons: clear the swatch's decorative shadow (planned 2026-10-30 by the plan role)
