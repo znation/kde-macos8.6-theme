@@ -82,7 +82,8 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         Only the opaque members of the stock family are restated; no
         restated selector carries `.flat`, so the stock transparent-face
         colour-class family keeps governing whole (recorded 2026-10-31
-        by the feature role).
+        by the feature role). (2026-10-31: the colour-class members are
+        since restated by test_action_class_flat_arms.)
         """
         face = {
             "background-color": FACE,
@@ -145,6 +146,11 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
                 selector
                 for selector in self.rules
                 if selector.startswith("button.suggested-action")
+                # 2026-10-31: the colour-class members are since restated
+                # by test_action_class_flat_arms; the plain opaque keys
+                # carry no flat token, so this filter stays inside this
+                # family.
+                and ".flat" not in selector
             },
             expected,
         )
@@ -239,7 +245,8 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
         opaque members of the stock family are restated; no restated
         selector carries `.flat`, so the stock transparent-face
         colour-class family keeps governing whole (recorded 2026-10-31
-        by the feature role).
+        by the feature role). (2026-10-31: the colour-class members are
+        since restated by test_action_class_flat_arms.)
         """
         face = {
             "background-color": FACE,
@@ -302,9 +309,96 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
                 selector
                 for selector in self.rules
                 if selector.startswith("button.destructive-action")
+                # 2026-10-31: the colour-class members are since restated
+                # by test_action_class_flat_arms; the plain opaque keys
+                # carry no flat token, so this filter stays inside this
+                # family.
+                and ".flat" not in selector
             },
             expected,
         )
+
+    def test_action_class_flat_arms(self):
+        """The plain colour-class `.flat` arms restate the landed face.
+
+        A GTK 3 push button carrying the `flat` class beside
+        `suggested-action` or `destructive-action` outside an overlay
+        draws the landed push-button face in every armed state, erasing
+        the stock transparent face with its blue or red label: the
+        twenty selectors extend the landed plain push-button recipes the
+        same way `test_flat_button_plain_arms` extends the plain ones —
+        every restated dictionary carries the `background-color` claim
+        the stock transparent faces force, and the disabled arms
+        re-declare the face colour beside the landed disabled dictionary
+        and claim no `outline-color`. No `transition` is restated: the
+        plain flat family's `transition: none` claims already hold at
+        equal-or-higher class counts (recorded 2026-10-31 by the
+        feature role; probed from gtk-contained.css in libgtk-3 3.24.49
+        with gresource the same day).
+        """
+        face = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        sunken = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        disabled = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+        }
+        for action_class in ("suggested-action", "destructive-action"):
+            with self.subTest(action_class=action_class):
+                prefix = f"button.{action_class}.flat"
+                self.assert_rule(prefix, face)
+                for state in (":active", ":checked"):
+                    self.assert_rule(f"{prefix}{state}", sunken)
+                self.assert_rule(f"{prefix}:backdrop", face)
+                for state in (":backdrop:active", ":backdrop:checked"):
+                    self.assert_rule(f"{prefix}{state}", sunken)
+                for state in (
+                    ":disabled",
+                    ":backdrop:disabled",
+                    ":backdrop:disabled:active",
+                    ":backdrop:disabled:checked",
+                ):
+                    self.assert_rule(f"{prefix}{state}", disabled)
+                expected = {
+                    prefix,
+                    f"{prefix}:active",
+                    f"{prefix}:checked",
+                    f"{prefix}:backdrop",
+                    f"{prefix}:backdrop:active",
+                    f"{prefix}:backdrop:checked",
+                    f"{prefix}:disabled",
+                    f"{prefix}:backdrop:disabled",
+                    f"{prefix}:backdrop:disabled:active",
+                    f"{prefix}:backdrop:disabled:checked",
+                }
+                self.assertEqual(
+                    {
+                        selector
+                        for selector in self.rules
+                        if selector.startswith(prefix)
+                    },
+                    expected,
+                )
 
     def _run_gtk_child(self, program, *paths):
         """Run the GTK 3 pixel *program* in a fresh child interpreter.

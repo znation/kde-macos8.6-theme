@@ -2177,7 +2177,9 @@ popover.background.magnifier button.flat:checked,
    suggested button; the generic `button.suggested-action` and `.flat`
    arms outside `.osd` keep governing outside overlays (2026-10-31: the
    opaque members are since restated at the sheet tail; the `.flat`
-   members are still stock), and the
+   members since too — the generic arms by the landed plain flat
+   restatement and the colour-class `…-action.flat` members by the
+   landed colour-class restatement at the sheet tail), and the
    `.osd button.color colorswatch`,
    `.osd spinbutton … button` and `colorchooser .popover.osd` button
    arms stay undeclared for their queued surface plans. The arm
@@ -2299,7 +2301,10 @@ button.suggested-action:checked {
    hovered destructive button; the generic `button.destructive-action`
    and `.flat` arms outside `.osd` keep governing outside overlays
    (2026-10-31: the opaque plain members are since restated at the
-   sheet tail; the `.flat` members are still stock), and
+   sheet tail; the `.flat` members since too — the generic arms by the
+   landed plain flat restatement and the colour-class `…-action.flat`
+   members by the landed colour-class restatement at the sheet tail),
+   and
    the `.osd button.color colorswatch`, `.osd spinbutton … button` and
    `colorchooser .popover.osd` button arms stay undeclared for their
    queued surface plans. The arm selectors, states and stock claims come
@@ -2735,10 +2740,11 @@ button:hover {
    the backdrop forms and the disabled forms — in the stock comma-list
    pairings so sheet order decides every intra-family tie exactly as
    stock spells them; no appended selector carries `.flat`, so the
-   stock `.flat` colour-class family keeps governing whole. The rest of
-   the stock family (the transparent `.flat` variants, a plain
-   `button.destructive-action` red mirror) stays out as its own
-   candidate plan. No geometry, artwork, padding or dependency change;
+   stock `.flat` colour-class family keeps governing whole (2026-10-31:
+   the colour-class members are since restated at the sheet tail by the
+   landed colour-class family plan). The rest of the stock family (the
+   transparent `.flat` variants, a plain `button.destructive-action`
+   red mirror) stays out as its own candidate plan. No geometry, artwork, padding or dependency change;
    no other rule in the sheet is touched. Declaration checks do not
    establish rendered pixels. */
 
@@ -2884,10 +2890,12 @@ button.suggested-action:disabled:active, button.suggested-action:disabled:checke
    pairings so sheet order decides every intra-family tie exactly as
    stock spells them and a pressed hovered destructive button wins the
    later press arm; no appended selector carries `.flat`, so the stock
-   `.flat` colour-class family keeps governing whole. The rest of the
-   stock family (the transparent `.flat` variants) stays out as its own
-   candidate plan, covered for both action classes by the queued GTK 3
-   flat colour-class family plan. No geometry, artwork, padding or
+   `.flat` colour-class family keeps governing whole (2026-10-31: the
+   colour-class members are since restated at the sheet tail by the
+   landed colour-class family plan). The rest of the stock family (the
+   transparent `.flat` variants) stays out as its own candidate plan,
+   covered for both action classes by the landed GTK 3 flat
+   colour-class family plan. No geometry, artwork, padding or
    dependency change; no other rule in the sheet is touched.
    Declaration checks do not establish rendered pixels. */
 
@@ -3084,6 +3092,177 @@ button.flat:disabled {
 }
 
 button.flat:disabled:active, button.flat:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK
+   flat action button at all (the GTK scope's standing adaptation
+   premise), so the plain suggested-action and destructive-action
+   `.flat` members outside the overlays are restated with the landed
+   push-button recipe — the face and bevel dictionaries the landed
+   plain suggested-action and destructive-action restatements above and
+   the landed plain `button.flat` family all declare, erasing the last
+   stock colour distinction the flat family holds. Probed from
+   gtk-contained.css in libgtk-3 3.24.49 with gresource on 2026-10-31:
+   the stock colour-class `.flat` singles claim transparent faces with
+   blue or red labels and translucent labels in the disabled and
+   backdrop triples, and the flat members mixed into the opaque comma
+   lists take those class claims one token above the plain family's
+   arms, so rest, backdrop, disabled and pressed-backdrop colour-class
+   flats keep stock's transparent face and coloured label while hover
+   and press resolve to the plain family's state arms. Each appended
+   selector is the exact stock twin at equal class count sitting later
+   in source order, so source order pre-empts it exactly as the landed
+   opaque restatements pre-empted the opaque families; the press and
+   pressed-backdrop pairs sit at three class tokens, one above the
+   stock `.flat` members and the plain family's state arms, so no base
+   arm's source order can lift the raised bevel back over a pressed
+   flat; the disabled and disabled-backdrop singles tie their stock
+   members and win by later source; and the disabled arms re-declare
+   the face colour beside the landed disabled dictionary and claim no
+   `outline-color`, as every landed disabled arm does. No `transition`
+   is restated here: the plain family's `transition: none` claims
+   already hold at equal-or-higher class counts and the stock
+   colour-class arms claim none of their own. No restated arm sets
+   on-disk geometry. Declaration checks do not establish rendered
+   pixels. */
+
+button.suggested-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:active, button.suggested-action.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:backdrop:active,
+button.suggested-action.flat:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action.flat:backdrop:disabled:active,
+button.suggested-action.flat:backdrop:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:active, button.destructive-action.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:backdrop:active,
+button.destructive-action.flat:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.destructive-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat:backdrop:disabled:active,
+button.destructive-action.flat:backdrop:disabled:checked {
   background-color: #DDDDDD;
   background-image: none;
   border-color: #000000;
