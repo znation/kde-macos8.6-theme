@@ -66,4 +66,45 @@ field therefore only exists in the art.
 carry the reference's sunken field, and pin the rendered list field's border runs, not just the
 `itemview` slices.
 
+### The live dialog gates byte-compare one widget cell each, so the other engine-drawn widgets in the two captures stay unpinned (found by the steward role 2026-10-30)
+
+The live render gate compares engine-drawn Kvantum widget pixels in
+precisely three regions, each added when its bug was fixed: the checkbox
+cell `CHECKBOX_CROP` (156, 187, 14x14) and its 1px face ring in the
+`--checkbox-dialog` capture, and the combo-arrow cell `COMBOBOX_CROP`
+(316, 178, 12x12) in the `--combobox-dialog` capture
+(`tests/test_render_surface.py`); the gate's other byte-compares are the
+rendered window chrome strips and boxes. Every other engine-drawn widget
+pixel in those two populated 480x360 captures — the push buttons and any
+further widget `kdialog` draws there — is never compared, so coverage grows
+only when a render pass finds a bug by eye, never from an enumeration of
+what the captures draw. Both Open records sit in exactly this unpinned
+space: the Yes button's two interior black rows are drawn inside the
+`--checkbox-dialog` capture the gate already runs, and the `--menu` field's
+GenericFrame frame is an engine-drawn region no gate watches — `make check`
+stays green on both. A future regression in any other engine-drawn widget
+outside the three regions lands unobserved the same way.
+
+Reproduce: patch the installed theme's `button-normal` interior slice to a
+marker colour (the inspection the Open button record's field used on
+`common-normal-*`), rebuild the render with
+`RENDER_OUTPUT=x.png make render --checkbox-dialog`, and run
+`tests/test_render_surface.py`'s dialog-render classes — no assertion
+fails, because no compared crop overlaps the button (the check box cell
+sits at y=187..200, the button at y=207..230).
+
+**Suspected cause:** infrastructure, not a per-widget fix: the two session
+renders already exist in `tools/render_surface.py` and are cheap to rerun,
+so the gap is that the gates compare call-chosen single crops instead of
+deriving the set of engine-drawn widget regions from the captures and
+comparing each region against the shipped art slice its widget maps to.
+
+**Needs review by bugfix:** decide what enumerates the regions — extend
+the two existing dialog gates with one byte-comparison per engine-drawn
+widget region of each capture (the shape `test_draws_the_check_box_cell_1_to_1`
+and `test_draws_the_combo_arrow_cell_1_to_1` already use), or add one gate
+that walks the capture — and pin the regions the two Open records name so
+their fixes land with a rendered-pixel assertion; `make check` owns the
+renders, so no new session infrastructure is proposed.
+
 ## Fixed
