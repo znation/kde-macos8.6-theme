@@ -123,6 +123,22 @@ def assert_refuses_a_foreign_hook(case, command):
     case.assertEqual(foreign, hook.read_bytes())
 
 
+def assert_refuses_an_oversize_hook(case, command):
+    """Assert *command* rejects an oversized hook and preserves its bytes.
+
+    ``install`` and ``uninstall`` share the capped-read refusal; both tests
+    use this fixture and verify the hook remains intact.
+    """
+    repo, hook = make_repo_with_hook(case)
+    oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
+    hook.write_bytes(oversize)
+    result = run_tool(repo, command)
+    assert_exit_2_without_traceback(case, result)
+    case.assertIn(str(hook), result.stderr)
+    case.assertIn("larger than", result.stderr)
+    case.assertEqual(oversize, hook.read_bytes())
+
+
 def write_fake_make(bindir, record, exit_status=0):
     """Write an executable ``make`` that records its cwd and argv, then exits."""
     bindir.mkdir(parents=True, exist_ok=True)
@@ -411,14 +427,7 @@ class TestInstall(unittest.TestCase):
         # The tool must refuse it by name instead of loading the whole file
         # into memory; a multi-gigabyte hook would otherwise raise MemoryError
         # (which is not an OSError) and escape as a traceback.
-        repo, hook = make_repo_with_hook(self)
-        oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
-        hook.write_bytes(oversize)
-        result = run_tool(repo, "install")
-        assert_exit_2_without_traceback(self, result)
-        self.assertIn(str(hook), result.stderr)
-        self.assertIn("larger than", result.stderr)
-        self.assertEqual(oversize, hook.read_bytes())
+        assert_refuses_an_oversize_hook(self, "install")
 
     def test_refuses_a_dangling_symlinked_hook_without_writing_through(self):
         repo, hook = make_repo_with_hook(self)
@@ -573,13 +582,7 @@ class TestUninstall(unittest.TestCase):
         assert_refuses_a_foreign_hook(self, "uninstall")
 
     def test_refuses_an_oversize_hook(self):
-        repo, hook = make_repo_with_hook(self)
-        oversize = b"#!/bin/sh\n" + b"x" * local_hook._MAX_HOOK_BYTES
-        hook.write_bytes(oversize)
-        result = run_tool(repo, "uninstall")
-        assert_exit_2_without_traceback(self, result)
-        self.assertIn("larger than", result.stderr)
-        self.assertEqual(oversize, hook.read_bytes())
+        assert_refuses_an_oversize_hook(self, "uninstall")
 
     def test_refuses_a_symlinked_hook(self):
         repo, hook = make_repo_with_hook(self)
