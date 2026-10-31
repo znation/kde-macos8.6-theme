@@ -3,7 +3,9 @@
 The GTK 3, GTK 4 and Firefox sheet tests read their stylesheet into the same
 ``@define-color`` map, selector declarations and selector list with
 :func:`parse_css`, so a change to the parsing rules is checked against all
-three rather than re-derived in each.
+three rather than re-derived in each. The suites that assert the shipped
+``-gtk-icon-source`` glyph assets also load them through gdk-pixbuf's
+sniffer-sensitive order via :func:`assert_svg_root_first`.
 """
 
 from __future__ import annotations
@@ -282,6 +284,24 @@ def _collapse_whitespace(text):
             pending_space = False
         parts.append(char)
     return "".join(parts)
+
+
+def assert_svg_root_first(test, path):
+    """Assert *path* puts its SVG root before any provenance comment.
+
+    GTK loads a ``-gtk-icon-source`` SVG through gdk-pixbuf, whose sniffer
+    only recognizes a file whose ``<svg`` root sits near the start; a comment
+    before the root leaves the glyph blank. An XML declaration is optional
+    and accepted, but the provenance comment belongs inside the root. The
+    asset is contributor-supplied, and ``assertRegex`` echoes the text it was
+    given when it fails, so the file is read through the shared guarded
+    reader: a checked-in symlink that escapes the repository is refused
+    before its private target's text reaches the diagnostic.
+    """
+    test.assertRegex(
+        read_theme_text(path),
+        r"^\s*(?:<\?xml[^>]*\?>\s*)?<svg\b",
+    )
 
 
 def parse_css(text, source=None):

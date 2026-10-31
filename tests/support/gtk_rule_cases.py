@@ -6,7 +6,10 @@ control rules the two GTK suites both satisfy. The Platinum spec values they
 assert live in the sibling ``tests/support/gtk_theme_spec.py``.
 
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
-:class:`GtkSheetRuleCases` holds the control rules the two GTK suites share.
+:class:`GtkSheetRuleCases` holds the control assertions the two GTK suites
+share, and :class:`GtkSharedControlCases` holds the control test cases each
+suite runs once against its own parsed sheet (suite-level test classes
+inherit it so those cases do not repeat per split-out module).
 GTK 3 and GTK 4 spell the same nodes differently, so the link, calendar,
 infobar, progress-bar, level-bar, scale, switch, spin-button field,
 menu-separator, menu-bar-title, frame, tree-header, expander-arrow,
@@ -105,10 +108,10 @@ class SheetRuleAssertions:
 
 
 class GtkSheetRuleCases(SheetRuleAssertions):
-    """The control rules the GTK 3 and GTK 4 sheets must both satisfy.
+    """The control assertions the GTK 3 and GTK 4 sheets must both satisfy.
 
-    Both suites inherit these cases and run them against their own parsed
-    ``self.rules``. Selectors and values that differ between the sheets
+    The suites run theirs against their own parsed ``self.rules``. Selectors
+    and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
     that owns them. GTK 3 and GTK 4 spell the same nodes differently, so the
     link, calendar, infobar, progress-bar, level-bar, scale, switch,
@@ -120,6 +123,34 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     alike in both, so ``assert_separators`` and ``assert_paned_handles``
     take none.
     """
+
+    def assert_row_selection_backdrop(self, selectors):
+        for selector in selectors:
+            self.assert_rule(selector, ROW_SELECTED)
+
+    def assert_dotted_focus_outline(self, selector, anchor="button:focus"):
+        """Assert *selector* carries the sheet's dotted focus outline.
+
+        The GTK 3 sheet gives every focusable control the same
+        ``1px dotted`` outline; thirteen ``:focus`` selectors copy
+        ``button:focus`` (or a sibling rule passed as *anchor*), and each
+        badge pins the literal declarations and the copy through this
+        helper. The scale and button focus tests stay inline because each
+        ties additional properties to other rules.
+        """
+        self.assert_rule(
+            selector,
+            {
+                "outline": f"1px dotted {BLACK}",
+                "outline-offset": "0",
+                "-gtk-outline-radius": "0",
+            },
+        )
+        for property_name in ("outline", "outline-offset", "-gtk-outline-radius"):
+            self.assertEqual(
+                self.rules[selector][property_name],
+                self.rules[anchor][property_name],
+            )
 
     def assert_color_swatch_corners(self, overlay_suffix, extra_declarations=None):
         """Check square swatch rules using the suite's overlay relationship."""
@@ -150,100 +181,6 @@ class GtkSheetRuleCases(SheetRuleAssertions):
                 )
                 declarations.update(extra_declarations.get(selector, {}))
                 self.assertEqual(self.rules[selector], declarations)
-
-    def test_headerbar(self):
-        for selector in ("headerbar", ".titlebar"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-color": FACE,
-                    "background-image": "none",
-                    "border": f"1px solid {BLACK}",
-                    "border-radius": "0",
-                    "box-shadow": "none",
-                    "min-height": "22px",
-                    "padding": "0 4px",
-                },
-            )
-        self.assert_rule("headerbar", {"border-width": "0 0 1px 0"})
-        for selector in ("headerbar:backdrop", ".titlebar:backdrop"):
-            self.assert_rule(
-                selector,
-                {
-                    "background-color": FACE,
-                    "background-image": "none",
-                    "border-color": INACTIVE_OUTLINE,
-                    "box-shadow": "none",
-                    "color": GREY,
-                },
-            )
-
-    def test_button(self):
-        self.assert_rule(
-            "button",
-            {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-                "box-shadow": BUTTON_BEVEL,
-            },
-        )
-        self.assert_rule("button:hover", {"background-color": FACE})
-        for selector in ("button:active", "button:checked"):
-            self.assert_rule(selector, {"box-shadow": INVERTED_BUTTON_BEVEL})
-
-    def test_entry(self):
-        self.assert_rule("entry", ENTRY_FIELD)
-
-    def test_check_and_radio(self):
-        self.assert_rule("check", CHECK)
-        self.assert_rule("radio", RADIO)
-        self.assert_rule("check:checked", CHECK_GLYPH)
-        self.assert_rule("radio:checked", RADIO_GLYPH)
-        self.assert_rule("check:indeterminate", MIXED_GLYPH)
-        self.assert_rule("radio:indeterminate", MIXED_GLYPH)
-
-    def test_combobox_arrow(self):
-        self.assert_rule("combobox arrow", COMBO_ARROW)
-
-    def test_tooltip(self):
-        self.assert_rule("tooltip", TOOLTIP)
-        self.assert_rule("tooltip.background", TOOLTIP_BACKGROUND)
-
-    def test_row_hover(self):
-        for selector in ("treeview.view:hover", "list row.activatable:hover"):
-            self.assert_rule(selector, ROW_HOVER)
-
-    def test_row_selection(self):
-        for selector in (
-            "treeview.view:selected",
-            "treeview.view:selected:hover",
-            "list row.activatable:selected",
-            "list row.activatable:selected:hover",
-        ):
-            self.assert_rule(selector, ROW_SELECTED)
-
-    def test_row_selection_backdrop(self, selectors):
-        for selector in selectors:
-            self.assert_rule(selector, ROW_SELECTED)
-
-    def test_tab_states(self):
-        for state, selectors, checked in TAB_STATES:
-            expected = {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-            }
-            if checked:
-                expected["border-bottom-color"] = FACE
-                expected["box-shadow"] = "none"
-            else:
-                expected["box-shadow"] = RAISED_BEVEL
-            for selector in selectors:
-                with self.subTest(state=state, selector=selector):
-                    self.assert_rule(selector, expected)
 
     def assert_progressbar(self, trough, progress, disabled):
         """Assert the shared progress-bar spec against this sheet's selectors."""
@@ -439,3 +376,102 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         top = geometry["normal-hint-top-margin"][3]
         left = geometry["normal-hint-left-margin"][2]
         self.assert_rule(selector, {"padding": f"{top}px {left}px"})
+
+
+class GtkSharedControlCases(GtkSheetRuleCases):
+    """The control test cases the two GTK suites run against their own sheets.
+
+    Each suite-level class inherits these cases once, so a suite like the
+    GTK 3 theme's ``TestGtkTheme`` runs them exactly once however many
+    module-level split-out classes share its assertions; the other split
+    classes subclass :class:`GtkSheetRuleCases` directly.
+    """
+
+    def test_headerbar(self):
+        for selector in ("headerbar", ".titlebar"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "background-image": "none",
+                    "border": f"1px solid {BLACK}",
+                    "border-radius": "0",
+                    "box-shadow": "none",
+                    "min-height": "22px",
+                    "padding": "0 4px",
+                },
+            )
+        self.assert_rule("headerbar", {"border-width": "0 0 1px 0"})
+        for selector in ("headerbar:backdrop", ".titlebar:backdrop"):
+            self.assert_rule(
+                selector,
+                {
+                    "background-color": FACE,
+                    "background-image": "none",
+                    "border-color": INACTIVE_OUTLINE,
+                    "box-shadow": "none",
+                    "color": GREY,
+                },
+            )
+
+    def test_button(self):
+        self.assert_rule(
+            "button",
+            {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+                "box-shadow": BUTTON_BEVEL,
+            },
+        )
+        self.assert_rule("button:hover", {"background-color": FACE})
+        for selector in ("button:active", "button:checked"):
+            self.assert_rule(selector, {"box-shadow": INVERTED_BUTTON_BEVEL})
+
+    def test_entry(self):
+        self.assert_rule("entry", ENTRY_FIELD)
+
+    def test_check_and_radio(self):
+        self.assert_rule("check", CHECK)
+        self.assert_rule("radio", RADIO)
+        self.assert_rule("check:checked", CHECK_GLYPH)
+        self.assert_rule("radio:checked", RADIO_GLYPH)
+        self.assert_rule("check:indeterminate", MIXED_GLYPH)
+        self.assert_rule("radio:indeterminate", MIXED_GLYPH)
+
+    def test_combobox_arrow(self):
+        self.assert_rule("combobox arrow", COMBO_ARROW)
+
+    def test_tooltip(self):
+        self.assert_rule("tooltip", TOOLTIP)
+        self.assert_rule("tooltip.background", TOOLTIP_BACKGROUND)
+
+    def test_row_hover(self):
+        for selector in ("treeview.view:hover", "list row.activatable:hover"):
+            self.assert_rule(selector, ROW_HOVER)
+
+    def test_row_selection(self):
+        for selector in (
+            "treeview.view:selected",
+            "treeview.view:selected:hover",
+            "list row.activatable:selected",
+            "list row.activatable:selected:hover",
+        ):
+            self.assert_rule(selector, ROW_SELECTED)
+
+        for state, selectors, checked in TAB_STATES:
+            expected = {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+            }
+            if checked:
+                expected["border-bottom-color"] = FACE
+                expected["box-shadow"] = "none"
+            else:
+                expected["box-shadow"] = RAISED_BEVEL
+            for selector in selectors:
+                with self.subTest(state=state, selector=selector):
+                    self.assert_rule(selector, expected)

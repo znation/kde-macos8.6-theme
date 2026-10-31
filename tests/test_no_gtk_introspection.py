@@ -1,7 +1,7 @@
 """Pin that the suite's own Python process imports no GTK introspection.
 
 The GTK pixel suites run their GTK work inside child interpreters
-(``tests/test_gtk_theme.py`` via its ``-c`` programs,
+(``tests/test_gtk_theme_controls.py`` via its ``-c`` programs,
 ``tests/test_gtk4_theme.py`` via ``subprocess.run``): an in-process
 ``import gi`` leaves GLib's C worker threads in the suite process. Those
 threads never appear in ``threading.active_count()``, but every later
@@ -69,7 +69,7 @@ class TestNoGtkIntrospection(unittest.TestCase):
             "suite process, which poisons every later tests/support/"
             "snippet_child.py os.fork FIFO guard (Python 3.12+ deprecates "
             "forking a multi-threaded process): move the GTK work into a "
-            "child interpreter, as tests/test_gtk_theme.py and "
+            "child interpreter, as tests/test_gtk_theme_controls.py and "
             "tests/test_gtk4_theme.py do",
         )
 

@@ -19,7 +19,7 @@ from unittest import mock
 
 from support import gtk_css
 from support.gtk_css import HEX, parse_css, strip_comments
-from support.gtk_rule_cases import GtkSheetRuleCases
+from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS,
     CALENDAR_SELECTED_DAY,
@@ -107,7 +107,7 @@ SCALE_FOCUS = "scale:focus:focus-visible > trough > slider"
 SCALE_SLIDER = "scale > trough > slider"
 
 
-class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
+class TestGtk4Theme(GtkSharedControlCases, unittest.TestCase):
     def test_header_subtitle_foreground(self):
         selectors = ("headerbar .subtitle", "windowtitle .subtitle")
         self.assert_disabled_text(selectors)
@@ -605,7 +605,7 @@ for radio in (False, True):
                     self.assert_rule(selector, expected)
 
     def test_row_selection_backdrop(self):
-        super().test_row_selection_backdrop((
+        self.assert_row_selection_backdrop((
             "treeview.view:selected:backdrop",
             "list row.activatable:selected:backdrop",
             "columnview.view:selected:backdrop",
