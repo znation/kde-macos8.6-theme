@@ -11,8 +11,6 @@ carry the provenance.
 import unittest
 from pathlib import Path
 
-from support import gtk_css
-from support.gtk_css import parse_css
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.platinum_palette import (
     BLACK,
@@ -27,12 +25,7 @@ CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
 
 class TestGtkThemeColorChooser(GtkSheetRuleCases, unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.css, source=str(CSS.relative_to(ROOT))
-        )
+    CSS_PATH = CSS
 
     def test_color_swatch_corners(self):
         selectors = (

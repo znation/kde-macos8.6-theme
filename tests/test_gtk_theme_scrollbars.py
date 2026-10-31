@@ -35,12 +35,7 @@ CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
 
 class TestGtkThemeScrollbars(GtkSheetRuleCases, unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.css, source=str(CSS.relative_to(ROOT))
-        )
+    CSS_PATH = CSS
 
 
 

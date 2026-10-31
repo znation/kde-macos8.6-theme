@@ -1,9 +1,11 @@
 """Reusable GTK and Firefox sheet rule assertions and shared control cases.
 
-The two GTK sheet suites and the Firefox sheet suite each parse their own
-stylesheet; these classes hold the rule assertion all three use and the
-control rules the two GTK suites both satisfy. The Platinum spec values they
-assert live in the sibling ``tests/support/gtk_theme_spec.py``.
+The seven GTK sheet rule-cases classes parse their shipped stylesheet
+through :class:`GtkSheetRuleCases`'s shared ``setUpClass``; the Firefox
+sheet suite parses its own sheet, and these classes hold the rule
+assertion all three use and the control rules the two GTK suites both
+satisfy. The Platinum spec values they assert live in the sibling
+``tests/support/gtk_theme_spec.py``.
 
 :class:`SheetRuleAssertions` holds the rule assertion all three suites use.
 :class:`GtkSheetRuleCases` holds the control assertions the two GTK suites
@@ -23,10 +25,13 @@ spelled alike in both, so their assertions take none.
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from support import gtk_css
 from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import MENUBARITEM_SVG
+from support.gtk_css import parse_css
+from support.repo_root import ROOT
 from support.gtk_theme_spec import (
     BUTTON_BEVEL,
     CALENDAR_SELECTED_DAY,
@@ -108,9 +113,15 @@ class SheetRuleAssertions:
 
 
 class GtkSheetRuleCases(SheetRuleAssertions):
-    """The control assertions the GTK 3 and GTK 4 sheets must both satisfy.
+    """The shared sheet setup and the control assertions the GTK sheets satisfy.
 
-    The suites run theirs against their own parsed ``self.rules``. Selectors
+    A rule-cases class binds the setup to its shipped sheet with a
+    ``CSS_PATH`` class attribute and inherits the parse; the six classes that
+    carry no other class state set it alone, and the index-reader in
+    tests/test_gtk_theme.py overrides this setup and chains to it with
+    ``super`` (the one suite whose ``setUpClass`` loads a second file).
+
+    Suites run their sheet's own parsed ``self.rules``. Selectors
     and values that differ between the sheets
     (window, notebook header, scrollbar, popover, toolbar) stay in the suite
     that owns them. GTK 3 and GTK 4 spell the same nodes differently, so the
@@ -123,6 +134,22 @@ class GtkSheetRuleCases(SheetRuleAssertions):
     alike in both, so ``assert_separators`` and ``assert_paned_handles``
     take none.
     """
+
+    @classmethod
+    def setUpClass(cls):
+        """Parse the sheet at ``cls.CSS_PATH`` onto cls.css/colours/rules/selectors.
+
+        The seven GTK sheet classes each parse one shipped ``gtk.css`` into
+        the same four class attributes: ``cls.css`` (the sheet text) and
+        ``cls.colours``, ``cls.rules`` and ``cls.selectors`` (the parsed
+        maps). This setup reads the file once per class and names it to
+        ``parse_css`` by its repository-root-relative path, spelled exactly
+        as the seven per-suite setups it replaces spelled it.
+        """
+        cls.css = gtk_css.read_theme_text(cls.CSS_PATH)
+        cls.colours, cls.rules, cls.selectors = parse_css(
+            cls.css, source=str(Path(cls.CSS_PATH).relative_to(ROOT))
+        )
 
     def assert_row_selection_backdrop(self, selectors):
         for selector in selectors:

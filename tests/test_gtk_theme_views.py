@@ -13,8 +13,6 @@ import re
 import unittest
 from pathlib import Path
 
-from support import gtk_css
-from support.gtk_css import parse_css
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     MENU_CHECK,
@@ -42,12 +40,7 @@ MENU_SCROLL_DOWN = (
 
 
 class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.css, source=str(CSS.relative_to(ROOT))
-        )
+    CSS_PATH = CSS
 
     def test_path_bar_tabs(self):
         forms = {

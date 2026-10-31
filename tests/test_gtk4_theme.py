@@ -248,12 +248,7 @@ for radio in (False, True):
             self.skipTest("GTK 4 introspection or an X11 display is missing")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
-    @classmethod
-    def setUpClass(cls):
-        cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.css, source=str(CSS.relative_to(ROOT))
-        )
+    CSS_PATH = CSS
 
     def test_theme_colours(self):
         self.assertEqual(self.colours, DEFINED_COLOURS)

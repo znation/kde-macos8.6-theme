@@ -19,7 +19,7 @@ from pathlib import Path
 from unittest import mock
 
 from support import gtk_css
-from support.gtk_css import HEX, assert_svg_root_first, parse_css
+from support.gtk_css import HEX, assert_svg_root_first
 from support.gtk_rule_cases import GtkSharedControlCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
@@ -49,13 +49,12 @@ CSS = THEME_DIR / "gtk-3.0" / "gtk.css"
 
 
 class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
+    CSS_PATH = CSS
+
     @classmethod
     def setUpClass(cls):
         cls.index_text = gtk_css.read_theme_text(INDEX)
-        cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.css, source=str(CSS.relative_to(ROOT))
-        )
+        super().setUpClass()
 
 
 

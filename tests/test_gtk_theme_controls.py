@@ -14,8 +14,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from support import gtk_css
-from support.gtk_css import assert_svg_root_first, parse_css
+from support.gtk_css import assert_svg_root_first
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BUTTON_BEVEL,
@@ -62,12 +61,7 @@ ICON_GO_NEXT = (
 
 
 class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.css = gtk_css.read_theme_text(CSS)
-        cls.colours, cls.rules, cls.selectors = parse_css(
-            cls.css, source=str(CSS.relative_to(ROOT))
-        )
+    CSS_PATH = CSS
 
 
 
