@@ -1456,6 +1456,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         expected = {"box-shadow": f"0 0 0 2px {BLACK}"}
         self.assertEqual(1, self.selectors.count("row:selected colorswatch"))
         self.assert_rule("row:selected colorswatch", expected)
+        self.assertEqual(1, self.selectors.count("row:selected colorswatch"))
         self.assertEqual(
             BLACK, self.rules["frame > border"]["border"].split()[-1]
         )
