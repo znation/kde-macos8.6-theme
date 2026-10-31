@@ -2049,3 +2049,25 @@ button:checked:hover, button:checked:active {
 button:hover {
   -gtk-icon-filter: none;
 }
+
+/* 2026-10-31: no collected reference screenshot shows a GTK icon view or
+   content-view container, so a container carrying GTK's `content-view`
+   class keeps the landed white view field: the sheet named the class
+   nowhere, so stock's grey fill reached the container. The base rule below
+   restates the field of the landed `.view, list` group above
+   (background-color and color), and a hovered content view keeps its glyphs
+   as drawn because stock brightens them with
+   `-gtk-icon-filter: brightness(1.2)` on a separate `.content-view:hover`
+   arm (stock declares no `.content-view:backdrop` compound, so none is
+   restated here). Each selector below is the exact stock twin and sits
+   later in source order, so it wins the tie; the stock `.content-view
+   .tile` members keep their own selectors. Stock selectors probed from
+   Default-light.css in libgtk-4 4.18.6 with gresource on 2026-10-31. */
+.content-view {
+  background-color: #FFFFFF;
+  color: #000000;
+}
+
+.content-view:hover {
+  -gtk-icon-filter: none;
+}

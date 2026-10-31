@@ -217,6 +217,9 @@ class TestGtkTheme(GtkSharedControlCases, unittest.TestCase):
             self.assertEqual(self.rules[selector], expected)
             self.assertEqual(self.selectors.count(selector), 1)
 
+    def test_content_view_hover(self):
+        self.assert_rule(".content-view:hover", {"-gtk-icon-effect": "none"})
+
     def test_links(self):
         self.assert_links(
             ("button:link", "button:visited"),

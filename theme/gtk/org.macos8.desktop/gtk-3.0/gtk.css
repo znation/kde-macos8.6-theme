@@ -2661,3 +2661,22 @@ button, button:hover {
 button:hover {
   -gtk-icon-effect: none;
 }
+
+/* 2026-10-31: no collected reference screenshot shows a GTK icon view or
+   content-view container, so hovering one keeps the Platinum glyphs as
+   drawn: the libgtk-3 theme CSS in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49, probed with
+   gresource 2026-10-31; the base and backdrop groups are already restated
+   by the landed `.content-view, .content-view:backdrop` rule above, so
+   only the hover axis survives here) declares
+   `.content-view:hover { -gtk-icon-effect: highlight; }`, which this
+   sheet never declared, so hovering an icon view asked the toolkit to
+   highlight the item icons on a property axis separate from the shadows
+   the landed push-button clearance above clears. The clearance reuses
+   this sheet's established `none` convention for stock interaction
+   recolours, the selector is the exact stock twin and sits later in
+   source order, so it wins the tie, and stock's `*:disabled` dimming
+   stays a kept toolkit value. */
+.content-view:hover {
+  -gtk-icon-effect: none;
+}

@@ -48,6 +48,7 @@ from support.gtk_theme_spec import (
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
     TITLE_BUTTON_IMAGE_STATE,
+    VIEW_BACKGROUND,
 )
 from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
 from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
@@ -371,6 +372,10 @@ for radio in (False, True):
 
     def test_view_background(self):
         self.assert_view_background((".view", "list"))
+
+    def test_content_view_field_and_hover(self):
+        self.assert_rule(".content-view", VIEW_BACKGROUND)
+        self.assert_rule(".content-view:hover", {"-gtk-icon-filter": "none"})
 
     def test_links(self):
         self.assert_links(
