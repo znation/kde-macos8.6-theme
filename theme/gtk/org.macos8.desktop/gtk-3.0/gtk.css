@@ -1728,10 +1728,12 @@ progressbar.osd progress {
    `min-width: 34px` arm stay undeclared. The restatements keep the stock
    selector spellings, so each appends after its stock twin at equal
    specificity and pre-empts exactly the stock arms they restate;
-   the `.osd button.flat`, `.osd button.suggested-action`,
-   `.osd button.destructive-action`, `.osd button.color colorswatch`,
-   `.osd spinbutton … button` and `colorchooser .popover.osd` button arms
-   stay undeclared for their queued surface plans. The arm selectors,
+   the grouped `.app-notification button.flat, …, .osd button.flat` arms
+   are restated by the flat-button block appended after this one; the
+   `.osd button.suggested-action`, `.osd button.destructive-action`,
+   `.osd button.color colorswatch`, `.osd spinbutton … button` and
+   `colorchooser .popover.osd` button arms stay undeclared for their
+   queued surface plans. The arm selectors,
    states and stock claims come from gtk-contained.css in
    /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
    2026-10-30; the landed base `button`, `button:hover` and
@@ -1867,6 +1869,133 @@ popover.background.magnifier button:backdrop, .osd button:backdrop {
   border: 1px solid #000000;
   border-radius: 0;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+/* No collected reference screenshot shows a GTK OSD overlay or a flat
+   button inside one, so the toolkit resource's stock flat junior-button
+   arms under this sheet's landed light container band — the grouped
+   `.app-notification button.flat, …, .osd button.flat` family painting
+   transparent faces and borders over the band with a `0 1px black`
+   label screen (the base arm's duplicate `box-shadow` and
+   `text-shadow` keys lose to their last values), the `:hover` and
+   `:active`/`:checked` arms painting translucent dark bubbles with
+   `color: white` labels and a rgba(238, 238, 236, 0.3) `outline-color`,
+   the `:disabled` arm painting grey 919190 text (its duplicate
+   `background-image`, `border-color` and `box-shadow` keys likewise
+   lose to their last transparent values) and the `:backdrop` arm
+   painting a transparent face — are restated with the landed plain
+   push-button recipe, the same tests/support/gtk_rule_cases.py
+   ::GtkSheetRuleCases::test_button dictionary the landed
+   `.app-notification button, …, .osd button` block above declares: the
+   raised #DDDDDD face with its 1px solid black border and square
+   corners (zero radius), the `inset 1px 1px #FFFFFF, inset -1px -1px
+   #AAAAAA` bevel, black labels, the cleared
+   `text-shadow`/`-gtk-icon-shadow` pair and a black `outline-color`;
+   stock's `background-clip: padding-box` belongs only to the
+   translucent dark-bubble arms and stays omitted, so a flat button
+   inside an overlay draws exactly like the plain one. The `:hover`
+   arm repeats the base recipe byte-equal to defeat the stock hover's
+   translucent dark bubble and white label; the `:active`/`:checked`
+   arms swap only `box-shadow` to the landed inverted bevel
+   `inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF`; the `:disabled`
+   arm keeps the base bevel with the Inactive grey (#888888) label
+   and, like the landed disabled arms, claims no `outline-color`
+   because its stock counterpart claims none; the `:backdrop` arm
+   repeats the base recipe byte-equal, recipe `outline-color`
+   included, as the landed plain-button backdrop restatement does. No
+   restated arm sets on-disk geometry, so the stock geometry claims
+   keep governing: `button.osd`'s `min-width: 26px; min-height: 32px`
+   and the `button.osd.image-button` `min-width: 34px` arm above, and
+   the undeclared stock `.osd .scale-popup button.flat` pointer arm
+   (`border-style: none; border-radius: 5px`, a (0,3,1) spelling that
+   outranks every restated arm inside a scale popup) queued for its
+   surface plan. The five restated blocks keep the stock comma-list
+   spellings in the stock arm order — base, `:hover`, `:disabled`,
+   `:backdrop`, `:active`/`:checked` last — so each appends after its
+   stock twin at equal specificity, pre-empts exactly the stock arms
+   it restates, and the active/checked block keeps stock's sheet-order
+   win over the hover block for a pressed hovered flat button; the
+   stock flat-versus-raised distinction vanishes inside the overlays.
+   The arm selectors, states and stock claims come from
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (libgtk-3 3.24.49), probed 2026-10-30; the landed plain `button`,
+   `button:hover` and `button:active`/`button:checked` rules keep
+   governing outside overlays. Declaration checks do not establish
+   rendered pixels. */
+
+.app-notification button.flat, popover.background.touch-selection
+button.flat, popover.background.magnifier button.flat,
+.osd button.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button.flat:hover,
+popover.background.touch-selection button.flat:hover,
+popover.background.magnifier button.flat:hover, .osd button.flat:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button.flat:disabled,
+popover.background.touch-selection button.flat:disabled,
+popover.background.magnifier button.flat:disabled,
+.osd button.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button.flat:backdrop,
+popover.background.touch-selection button.flat:backdrop,
+popover.background.magnifier button.flat:backdrop,
+.osd button.flat:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button.flat:active,
+popover.background.touch-selection button.flat:active,
+popover.background.magnifier button.flat:active,
+.app-notification button.flat:checked,
+popover.background.touch-selection button.flat:checked,
+popover.background.magnifier button.flat:checked,
+.osd button.flat:active, .osd button.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
   color: #000000;
   outline-color: #000000;
   text-shadow: none;

@@ -372,6 +372,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 ".app-notification button:checked",
                 ".app-notification button:disabled",
                 ".app-notification button:backdrop",
+                ".app-notification button.flat",
+                ".app-notification button.flat:hover",
+                ".app-notification button.flat:active",
+                ".app-notification button.flat:checked",
+                ".app-notification button.flat:disabled",
+                ".app-notification button.flat:backdrop",
             },
         )
 
@@ -490,6 +496,102 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             set(expected),
         )
 
+    def test_osd_flat_button(self):
+        """Pin the 24 restated stock OSD flat-button arms.
+
+        No collected reference screenshot shows a GTK OSD overlay or a
+        flat button inside one, so the sheet restates the toolkit
+        resource's grouped ``.app-notification button.flat, …, .osd
+        button.flat`` arms with the landed plain push-button recipe (the
+        base ``button`` dictionary ``test_osd_button`` pins):
+        the raised ``#DDDDDD`` face with its 1px black border and zero
+        radius, ``BUTTON_BEVEL``, and black labels; the ``:hover`` and
+        ``:backdrop`` arms repeat the base recipe byte-equal; the active
+        and checked arms swap only ``box-shadow`` to
+        ``INVERTED_BUTTON_BEVEL``; the disabled arms keep
+        ``BUTTON_BEVEL`` with the Inactive grey (``ETCH_DARK``) and no
+        ``outline-color``, as the landed disabled arms also claim none.
+        The arm selectors and states come from gtk-contained.css in
+        /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); no
+        restated arm sets on-disk geometry, so the stock
+        ``button.osd`` minimums and the stock ``.osd .scale-popup
+        button.flat`` pointer arm keep governing; the restated blocks
+        keep the stock arm order, so the active/checked arm keeps
+        stock's sheet-order win over the hover arm.
+        """
+        recipe = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        active = {**recipe, "box-shadow": INVERTED_BUTTON_BEVEL}
+        disabled = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "color": ETCH_DARK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        expected = [
+            (recipe, (
+                ".app-notification button.flat",
+                "popover.background.touch-selection button.flat",
+                "popover.background.magnifier button.flat",
+                ".osd button.flat",
+                ".app-notification button.flat:hover",
+                "popover.background.touch-selection button.flat:hover",
+                "popover.background.magnifier button.flat:hover",
+                ".osd button.flat:hover",
+                ".app-notification button.flat:backdrop",
+                "popover.background.touch-selection button.flat:backdrop",
+                "popover.background.magnifier button.flat:backdrop",
+                ".osd button.flat:backdrop",
+            )),
+            (disabled, (
+                ".app-notification button.flat:disabled",
+                "popover.background.touch-selection button.flat:disabled",
+                "popover.background.magnifier button.flat:disabled",
+                ".osd button.flat:disabled",
+            )),
+            (active, (
+                ".app-notification button.flat:active",
+                "popover.background.touch-selection button.flat:active",
+                "popover.background.magnifier button.flat:active",
+                ".app-notification button.flat:checked",
+                "popover.background.touch-selection button.flat:checked",
+                "popover.background.magnifier button.flat:checked",
+                ".osd button.flat:active",
+                ".osd button.flat:checked",
+            )),
+        ]
+        enumerated = {
+            selector for _, selectors in expected for selector in selectors
+        }
+        self.assertEqual(len(enumerated), 24, enumerated)
+        for declarations, selectors in expected:
+            for selector in selectors:
+                with self.subTest(selector=selector):
+                    self.assertEqual(self.rules[selector], declarations)
+        self.assertEqual(
+            # "button" and "flat" as bare tokens: the shipped sheet's only
+            # button.flat spellings are these 24 restated arms; the stock
+            # `.osd .scale-popup button.flat` pointer arm is undeclared
+            # until its queued surface plan.
+            {selector
+             for selector in self.rules
+             if "button" in selector and "flat" in selector},
+            enumerated,
+        )
+
     def test_osd_button(self):
         """Pin the 37 restated stock OSD push-button arms.
 
@@ -592,9 +694,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {selector
              for selector in self.rules
              # "button" as a bare token: a spinbutton is a field, not a
-             # button, so its node spelling never counts toward the scan.
+             # button, so its node spelling never counts toward the scan;
+             # a flat button node carries the flat-style arms, not the
+             # plain ones, and is pinned by test_osd_flat_button.
              if "button" in selector
              and "spinbutton" not in selector
+             and "flat" not in selector
              and any(token in selector for token in osd_like)},
             enumerated,
         )
