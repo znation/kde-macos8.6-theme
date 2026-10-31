@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 placeholder text: declare the inactive-text grey (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Give entry and spinbutton placeholder hints an explicit muted Platinum foreground.
+
+**Grounding.** Searches of the shipped GTK 4 sheet and its tests found no placeholder selector; heading searches of this queue and `PLANS-DONE.md` found no placeholder-text plan. The installed `/org/gnome/Adwaita/styles/base.css` resource in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, extracted with `gresource` on 2026-10-31, groups `entry > text > placeholder` and `spinbutton > text > placeholder` with selectors declaring `opacity: var(--dim-opacity)`. This standalone sheet does not import that resource. No reference screenshot shows GTK placeholder hints; reuse the existing inactive-text `#888888` at full opacity as a platform adaptation, rather than deriving a new composited colour.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, beside the disabled-text group, add a separate group for exactly `entry > text > placeholder, spinbutton > text > placeholder` declaring `color: #888888; opacity: 1;`. Add a dated comment naming the missing reference surface, selector provenance and existing inactive-text palette source. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_placeholder_foreground`, using `assert_disabled_text` for both selectors, exact dictionary assertions against `{**DISABLED_TEXT, "opacity": "1"}`, and one occurrence per selector. Import `DISABLED_TEXT` from `support.gtk_theme_spec` if it is not already imported. The helper ties the foreground to the colour scheme; retain the existing inactive-text reference coverage. Add one row under `## gtk` in `docs/invariants.md` naming the test, adaptation provenance and declaration-only coverage.
+
+**Acceptance criteria.** Removing either selector or changing either declaration fails the new test; existing disabled-text and entry-field assertions pass. No geometry, artwork, entered-text, GTK 3 or secondary-label changes are included. Run `make check`. This three-file change is independently mergeable from the waiting GTK 4 secondary-label plan: the selectors differ, and either merge order must preserve both tests and a single shared import.
+
 ### Platinum GTK 4 secondary labels: declare the inactive-text grey (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Give GTK 4 secondary labels carrying `.dim-label` an explicit Platinum muted foreground.
