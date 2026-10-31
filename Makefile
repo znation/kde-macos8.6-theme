@@ -357,6 +357,13 @@ require_python = set -- "$(PYTHON)"; value="$$1"; while :; do case "$$value" in 
 # message. $(1) names the target.
 require_python_version = $(PYTHON) -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 3)' 2>/dev/null || { echo "$(1): PYTHON must be Python 3.10 or newer (the fidelity tool uses int.bit_count()): '$(PYTHON)'" >&2; exit 2; }
 
+# The three opt-in apply targets (`apply`, `apply-gtk`, `apply-cursor`) share
+# one refusal line: each acts on the running Plasma session, and a DESTDIR
+# staged-tree has no business there. One snippet keeps the three refusals in
+# lockstep -- wording, exit status, echoed value -- the way require_python
+# shares its guard. $(1) names the target.
+refuse_destdir = if [ -n "$$DESTDIR" ]; then echo "$(1): DESTDIR must be empty (applying a staged tree to the running Plasma session is wrong): '$$DESTDIR'" >&2; exit 2; fi
+
 # CHECK_TESTS names tests instead of discovering them, so a value beginning
 # (after leading whitespace) with `-` would reach `unittest` as an option --
 # `-x` aborts on the first failure and `-k` filters by pattern -- silently
@@ -494,7 +501,7 @@ render:
 # the Kvantum widget theme when kvantummanager is available, then asks KWin to
 # reconfigure. The startup splash changes only on the next login.
 apply:
-	@if [ -n "$$DESTDIR" ]; then echo "apply: DESTDIR must be empty (applying a staged tree to the running Plasma session is wrong): '$$DESTDIR'" >&2; exit 2; fi
+	@$(call refuse_destdir,apply)
 	@$(call require_python,apply)
 	@$(call require_python_version,apply)
 	$(MAKE) --no-print-directory install
@@ -504,7 +511,7 @@ apply:
 # them in the user's GTK 3 and GTK 4 settings and libadwaita user CSS. A
 # non-empty DESTDIR is refused first for the same reason as `apply`.
 apply-gtk:
-	@if [ -n "$$DESTDIR" ]; then echo "apply-gtk: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$$DESTDIR'" >&2; exit 2; fi
+	@$(call refuse_destdir,apply-gtk)
 	@$(call require_python,apply-gtk)
 	@$(call require_python_version,apply-gtk)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=gtk
@@ -523,7 +530,7 @@ remove-gtk:
 # plasma-apply-cursortheme. A non-empty DESTDIR is refused for the same reason
 # as `apply`: the selection is for the running session, not a staged tree.
 apply-cursor:
-	@if [ -n "$$DESTDIR" ]; then echo "apply-cursor: DESTDIR must be empty (applying a staged tree to the running session is wrong): '$$DESTDIR'" >&2; exit 2; fi
+	@$(call refuse_destdir,apply-cursor)
 	@$(call require_python,apply-cursor)
 	@$(call require_python_version,apply-cursor)
 	$(MAKE) --no-print-directory install INSTALL_PACKAGES=icon-theme
