@@ -1429,7 +1429,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                     for selector in selectors
                 },
                 "button.color colorswatch:only-child": {"box-shadow": "none"},
-                "row:selected colorswatch": {"box-shadow": "0 0 0 2px #000000"},
+                "row:selected colorswatch": {"box-shadow": f"0 0 0 2px {BLACK}"},
                 "colorswatch overlay:hover": {"box-shadow": "none"},
                 "colorswatch overlay": {"border-color": BLACK},
                 "colorswatch.light overlay:hover": {"border-color": BLACK},
@@ -1449,14 +1449,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 "colorswatch.dark": {"outline-color": BLACK},
                 "colorswatch.light overlay:backdrop": {"color": BLACK},
                 "colorswatch.dark overlay:backdrop": {"color": WHITE},
-                "row:selected colorswatch": {
-                    "box-shadow": f"0 0 0 2px {BLACK}"
-                },
             },
         )
 
     def test_selected_row_color_swatch_ring(self):
         expected = {"box-shadow": f"0 0 0 2px {BLACK}"}
+        self.assertEqual(1, self.selectors.count("row:selected colorswatch"))
         self.assert_rule("row:selected colorswatch", expected)
         self.assertEqual(
             BLACK, self.rules["frame > border"]["border"].split()[-1]

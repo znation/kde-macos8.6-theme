@@ -5,16 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Consolidate the GTK 3 selected-row swatch ring declaration (planned 2026-10-31 by the plan role)
-
-**Goal.** Give the selected-row swatch ring one authoritative CSS block, test mapping entry and invariant row, avoiding competing edit sites for the same adaptation.
-
-**Grounding.** `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` contains two identical `row:selected colorswatch` blocks; `TestGtkTheme.test_color_swatch_corners` repeats that dictionary key, and `docs/invariants.md` records the ring twice. Queue and archive searches found completed ring styling plans, but no consolidation plan. `tests/support/gtk_css.py::parse_css` merges repeated declarations into `rules` while retaining occurrences in its returned selector list, so existing value assertions do not expose the repeated block.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, retain the earlier ring block, which follows the color-button shadow reset, and remove the later identical block and its redundant comment. In `tests/test_gtk_theme.py::TestGtkTheme.test_color_swatch_corners`, retain one `row:selected colorswatch` mapping using `BLACK`. Extend `test_selected_row_color_swatch_ring` to assert `self.selectors.count("row:selected colorswatch") == 1` alongside its existing exact shadow assertion; use the parser's existing list, without changing the parser or adding a general duplicate-selector ban. In `docs/invariants.md` under `## gtk`, consolidate the two ring rows, preserving the missing-reference statement, installed GTK resource provenance, stock 2px geometry, black frame-border source, test links and declaration-coverage limitation; state the single-declaration guarantee.
-
-**Acceptance criteria.** One ring selector occurrence remains in the GTK 3 sheet and one corresponding mapping key remains in `test_color_swatch_corners`. The ring still declares `box-shadow: 0 0 0 2px #000000` and the color-button shadow reset remains present. Temporarily duplicating the retained block fails the extended ring test even though the parsed shadow value is identical; removing that temporary mutation restores the check. The consolidated invariant names the test and preserves adaptation provenance. No palette, geometry, GTK 4 or parser behavior changes are included. `make check` passes. This is one maintenance improvement across three files, independently mergeable from add-color face work.
-
 ### Platinum GTK 3 content-view fields: declare the white base and backdrop (planned 2026-10-31 by the plan role)
 
 **Goal.** Give GTK 3 containers carrying the `content-view` class an explicit Platinum white content field with black text, including when their window loses focus.
