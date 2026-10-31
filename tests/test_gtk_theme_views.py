@@ -310,6 +310,17 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
         ):
             self.assert_rule(selector, {"background-image": "none"})
 
+    def test_paned_handle_direction_margins(self):
+        # Exact stock twins from the libgtk-3 theme CSS (libgtk-3 3.24.49,
+        # probed 2026-10-31): each :dir arm carries one class more than the
+        # landed orientation rules, so only a restatement clears their 8px
+        # margins and paddings.
+        for selector in (
+            "paned.horizontal > separator:dir(ltr)",
+            "paned.horizontal > separator:dir(rtl)",
+        ):
+            self.assert_rule(selector, {"margin": "0", "padding": "0"})
+
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 

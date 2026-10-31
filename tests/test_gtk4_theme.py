@@ -886,6 +886,23 @@ for radio in (False, True):
     def test_paned_handle(self):
         self.assert_paned_handles()
 
+    def test_paned_handle_stock_clearances(self):
+        # Exact stock twins from Default-light.css (libgtk-4 4.18.6, probed
+        # 2026-10-31) so sheet order decides every tie like the landed
+        # image clearances do, plus the :dir margins the landed orientation
+        # rules cannot outrank because each :dir arm carries one class more.
+        for selector in (
+            "paned > separator",
+            "paned > separator:selected",
+            "paned > separator.wide",
+        ):
+            self.assert_rule(selector, {"background-image": "none"})
+        for selector in (
+            "paned.horizontal > separator:dir(ltr)",
+            "paned.horizontal > separator:dir(rtl)",
+        ):
+            self.assert_rule(selector, {"margin": "0", "padding": "0"})
+
     def test_frame(self):
         self.assert_frame(("frame > border", ".frame"))
 

@@ -2624,3 +2624,17 @@ button:backdrop:disabled:checked {
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
   color: #888888;
 }
+
+/* 2026-10-31: no collected reference screenshot shows a GTK split pane, so
+   the paned handles keep the landed etched pair and the image clearance
+   above on base, selected, backdrop, wide and wide-backdrop handles. The
+   direction residue the landed rules cannot outrank is restated here: the
+   stock 8px direction margins, probed from the libgtk-3 theme CSS in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49) with
+   gresource on 2026-10-31, win the margin and padding cascade because each
+   :dir arm carries one class more than the landed orientation rules, so
+   they are reset to those rules' own margin and padding. */
+paned.horizontal > separator:dir(ltr), paned.horizontal > separator:dir(rtl) {
+  margin: 0;
+  padding: 0;
+}

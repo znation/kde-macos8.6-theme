@@ -1993,3 +1993,23 @@ button:backdrop:disabled:checked {
   color: #888888;
 }
 
+
+/* 2026-10-31: no collected reference screenshot shows a GTK split pane, so
+   the paned handles stay the reference-grounded etched pair pinned by
+   tests/test_desktoptheme_line.py::TestLineReference. The toolkit
+   resource's remaining paned arms are restated here: the stock grey grip
+   images on the base, selected and wide handles lose to background-image:
+   none (each selector is the exact stock twin, so sheet order decides the
+   tie like the landed image clearances do), and the stock 8px direction
+   margins the landed orientation rules cannot outrank — each :dir arm
+   carries one class more — are reset to those rules' own margin and
+   padding. Stock selectors probed from Default-light.css in libgtk-4
+   4.18.6 with gresource on 2026-10-31. */
+paned > separator, paned > separator:selected, paned > separator.wide {
+  background-image: none;
+}
+
+paned.horizontal > separator:dir(ltr), paned.horizontal > separator:dir(rtl) {
+  margin: 0;
+  padding: 0;
+}
