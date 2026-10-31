@@ -90,6 +90,14 @@ class TestSetThemeName(unittest.TestCase):
         )
 
 
+class TestRejectLineSeparators(unittest.TestCase):
+    def test_theme_name_rejects_line_separators(self):
+        for separator in ("\n", "\r", "\v", "\f", "\x1c", "\x85", "\u2028"):
+            with self.subTest(separator=repr(separator)):
+                with self.assertRaisesRegex(ValueError, "single line"):
+                    set_theme_name("[Settings]\n", f"safe{separator}gtk-font-name=Injected")
+
+
 class TestRemoveThemeName(unittest.TestCase):
     def test_removal_preserves_a_leading_bom(self):
         text, removed = remove_theme_name(

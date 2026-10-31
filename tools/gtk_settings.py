@@ -99,6 +99,8 @@ def set_theme_name(text: str, value: str) -> str:
     ``[Settings]`` section one is appended. A leading UTF-8 BOM is kept for
     matching but written back, as GTK accepts a BOM-prefixed file.
     """
+    if any(ending in value for ending in _ENDINGS):
+        raise ValueError("GTK theme name must be a single line")
     had_bom, body = _split_bom(text)
     lines = _split_lines(body)
     header = None
