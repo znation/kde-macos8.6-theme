@@ -337,15 +337,15 @@ material only — the theme does not ship them.
 
 ## Validating the reference set
 
-`.github/workflows/ci.yml` runs `make check` and `make check-references` on pushes
-and pull requests, on Python 3.13 with a checkout
-with Git LFS images materialized; the Makefile's targets still require Python
-3.10 or newer at run time; its check job also installs the render gate's
-five Plasma tools (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`,
-`spectacle`, `plasma-apply-colorscheme`) and the `kdialog` client the
-gate's checkbox and combobox dialog renders open, so `make check` runs the
-rendered-pixel gate, both dialog renders included, there too. Run those same commands locally for parity with the workflow's
-check steps.
+`.github/workflows/ci.yml` runs `make check` and `make check-references` on
+pushes and pull requests, on Python 3.13 with a checkout with Git LFS images
+materialized; the Makefile's targets still require Python 3.10 or newer at run
+time. Its check job also installs the render gate's five Plasma tools
+(`dbus-run-session`, `kwin_wayland`, `plasmawindowed`, `spectacle`,
+`plasma-apply-colorscheme`) and the `kdialog` client the gate's checkbox and
+combobox dialog renders open, so `make check` runs the rendered-pixel gate,
+both dialog renders included, there too. Run those same commands locally for
+parity with the workflow's check steps.
 
 `sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run
 `python3 tools/check_references.py`: it fails if the record and the files on disk disagree (a
