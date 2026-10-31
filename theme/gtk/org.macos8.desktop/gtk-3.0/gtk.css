@@ -659,6 +659,15 @@ colorswatch overlay:hover {
   box-shadow: none;
 }
 
+/* No reference screenshot shows a GTK palette swatch drop target. Reuse
+ * Platinum selection lavender and the black frame border; retain GTK's
+ * stock 2px/1px inset geometry (adaptation 2026-10-31). */
+colorswatch:drop(active).light overlay,
+colorswatch:drop(active).dark overlay {
+  border-color: #CCCCFF;
+  box-shadow: inset 0 0 0 2px #000000, inset 0 0 0 1px #CCCCFF;
+}
+
 /* Views paint the white content field with black text. */
 .view, textview text, list {
   background-color: #FFFFFF;

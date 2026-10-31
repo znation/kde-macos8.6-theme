@@ -1427,7 +1427,34 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 },
                 "button.color colorswatch:only-child": {"box-shadow": "none"},
                 "colorswatch overlay:hover": {"box-shadow": "none"},
+                "colorswatch:drop(active).light overlay": {
+                    "border-color": SELECTION,
+                    "box-shadow": f"inset 0 0 0 2px {BLACK}, inset 0 0 0 1px {SELECTION}",
+                },
+                "colorswatch:drop(active).dark overlay": {
+                    "border-color": SELECTION,
+                    "box-shadow": f"inset 0 0 0 2px {BLACK}, inset 0 0 0 1px {SELECTION}",
+                },
             },
+        )
+
+    def test_color_swatch_drop_target(self):
+        expected = {
+            "border-color": SELECTION,
+            "box-shadow": f"inset 0 0 0 2px {BLACK}, inset 0 0 0 1px {SELECTION}",
+        }
+        for selector in (
+            "colorswatch:drop(active).light overlay",
+            "colorswatch:drop(active).dark overlay",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, expected)
+        self.assertEqual(
+            SELECTION,
+            self.rules["list row.activatable:selected"]["background-color"],
+        )
+        self.assertEqual(
+            BLACK, self.rules["frame > border"]["border"].split()[-1]
         )
 
     def test_add_color_border_colors(self):

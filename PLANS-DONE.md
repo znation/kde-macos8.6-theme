@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 palette swatches: recolor the active drop target (planned 2026-10-30 by the plan role; independent of the queued add-color border plan) — done 2026-10-31 by the feature role
+
+**Goal.** Replace the stock green drop-target indicator on light and dark palette swatches with the sheet's Platinum selection lavender and black edging, preserving the chosen color.
+
+**Grounding.** The installed Adwaita GTK 3 resource sets green borders and two inset shadows on the light and dark drop-target overlays. No collected reference shows this GTK swatch state. The colors reuse the sheet's selection fill and frame border; inset widths follow the stock resource.
+
+**Approach and files.** Added the two GTK 3 drop-target rules with lavender border and black/lavender inset edges, a test for exact declarations and token relationships, and an explicit swatch-inventory allowance. Added the GTK invariant with the missing-reference and toolkit adaptation provenance.
+
+**Acceptance criteria.** Both selectors require the expected colors and inset widths; the exact swatch inventory rejects undeclared additions on the arms. `make check` passes.
+
 ### Platinum GTK 3 add-color action: use a black border (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
 
 **Goal.** Give the color chooser's add-color action a neutral black border through normal, hover and backdrop states, replacing the stock warm-grey edges.

@@ -5,20 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
-### Platinum GTK 3 palette swatches: recolor the active drop target (planned 2026-10-30 by the plan role; independent of the queued add-color border plan)
-
-**Goal.** Replace the stock green drop-target indicator on light and dark palette swatches with the sheet's Platinum selection lavender and black edging, preserving the chosen color.
-
-**Grounding.** Selector searches found no `:drop(active)` override in the GTK 3 sheet or its tests; queue and archive heading searches found swatch corner and hover work, whose scopes leave drag indicators alone. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected with `gresource` on 2026-10-30, sets green borders and two inset shadows on `colorswatch:drop(active).light overlay` and `colorswatch:drop(active).dark overlay`. No collected reference shows a GTK swatch drop target. The proposed colors adapt the sheet's existing selection fill and black frame border; the 2px/1px inset geometry comes from those stock GTK arms, not a screenshot measurement.
-
-**Approach and files.**
-- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, after the swatch hover rule, group those two exact stock drop-target selectors and declare `border-color: #CCCCFF` and `box-shadow: inset 0 0 0 2px #000000, inset 0 0 0 1px #CCCCFF`. Record the missing reference surface, color sources, stock geometry source and date in the comment. These arms retain the stock specificity advantage over ordinary hover and backdrop rules. Keep chosen-color fills, checkerboards, opacity and dimensions toolkit-controlled; GTK 4 is outside this task.
-- In `tests/test_gtk_theme.py::TestGtkTheme`, add `test_color_swatch_drop_target` requiring exactly those two declarations on each arm, constructing expectations with `SELECTION` and `BLACK`. Tie the border color to the existing selected-row fill and the black inset token to the frame-border recipe. Extend `test_color_swatch_corners`'s explicit `extra_declarations` mapping with the two selectors, preserving independently landed add-color properties. Keep `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` strict; no helper relaxation is needed.
-- Add a row under `## gtk` in `docs/invariants.md` naming the new test and dated adaptation provenance, describing declaration coverage rather than rendered pixels.
-
-**Acceptance criteria.** Removing either selector or changing either declared color or inset width fails the new test. The exact swatch inventory accepts the new arms and rejects extra fill or geometry declarations on them. Existing swatch corner, hover and add-color tests pass. The three named implementation files suffice for one run; this can merge independently of the queued add-color border change. `make check` passes.
+### Platinum GTK 3 palette swatches: pin light and dark focus outline colors (planned 2026-10-30 by the plan role)
 
 ### Platinum GTK 3 palette swatches: pin light and dark focus outline colors (planned 2026-10-30 by the plan role)
 
