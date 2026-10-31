@@ -42,6 +42,22 @@ class TestArguments(unittest.TestCase):
         self.assertEqual((320, 240), (args.width, args.height))
         self.assertIs(render_workflow.render, render_surface.render)
 
+    def test_cli_delegates_the_settle_and_timeout_to_the_workflow(self):
+        # render() reads args.settle and args.timeout to build the session
+        # command and its supervision timeout, so a non-default value must
+        # reach it parsed, not fall back to the parser defaults.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--settle", "1.25", "--timeout", "33"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual(1.25, args.settle)
+        self.assertEqual(33.0, args.timeout)
+
     def test_cli_delegates_the_menu_dialog_capture_size(self):
         # A plain --menu-dialog run captures at the 480x360 the widget gate
         # byte-compares, not the applet's 320x240 default.
@@ -373,6 +389,20 @@ class TestSessionCommand(unittest.TestCase):
             # The client words are positional parameters of the in-session
             # `sh -c`, so their space cannot become shell syntax.
             self.assertIn("'a b'", command.argv[-1])
+            # After `sh -c <script> sh`, the positional parameters carry the
+            # settle seconds first, the capture path second and the client
+            # words from the third on: the script reads `settle="$1"` and
+            # `capture="$2"`, so a dropped or swapped value here would sleep
+            # on the surface path or put the client where the capture goes.
+            self.assertEqual(
+                [
+                    "2.5",
+                    str(session.surface),
+                    "plasmawindowed",
+                    "a b",
+                ],
+                shlex.split(command.argv[-1])[4:],
+            )
 
     def test_carries_the_checkbox_dialog_client_words(self):
         with render_session.Session.create() as session:
