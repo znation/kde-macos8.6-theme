@@ -5,8 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
 ### Platinum GTK 3 secondary labels: declare the inactive-text grey (planned 2026-10-31 by the plan role)
 
 **Goal.** Give GTK 3 secondary labels carrying `dim-label` an explicit Platinum muted foreground rather than the ordinary inherited text colour.
