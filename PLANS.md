@@ -5,7 +5,157 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Platinum GTK 3 OSD scale thumbs: restate the stock `.osd scale slider` arms with the landed scale-slider recipes (planned 2026-10-30 by the plan role; independent of any meter restatement that merges first — it restates only slider-node selectors, neither entry styles the other's selectors, both entries extend `test_osd_overlay_bands`'s scope filter and append at the sheet's tail with append-only edits, and any merge order leaves the cascade correct, as the approach spells)
+
+**Goal.** The landed GTK 3 OSD container, field and check/radio plans repainted
+the sheets' other OSD arms, but a scale thumb inside a Platinum OSD overlay
+still paints the toolkit's translucent dark bubble: the GTK 3 sheet declares
+nothing for `.osd scale slider` (grep: its `osd` selectors are the container
+band, the `.osd entry`/`.osd spinbutton` field arms and the `.osd check`/
+`.osd radio` arms, nothing else). Restate the toolkit resource's six stock
+`.osd scale slider` arms with the landed scale-thumb recipes — the raised
+`#DDDDDD` face and bevel, the grey disabled face — so a thumb inside an OSD
+overlay draws like the plain raised thumbs everywhere else.
+
+**Verified facts (probed 2026-10-30, `gresource extract
+/usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, libgtk-3 3.24.49;
+exhaustive scan of every `osd`+`slider` rule in the resource).** The resource
+carries exactly six `.osd scale slider` arms — base, `:hover`, `:active`,
+`:disabled`, `:backdrop`, `:backdrop:disabled` — each a one-selector rule;
+the base/hover/active/disabled/backdrop arms re-declare `border-color` and
+`background-color` part-way through, and `tests/support/gtk_css.py::parse_css`
+merges rules sharing a selector key, so the effective paints are: base
+`background-color #353535` (last-wins over `transparent`),
+`background-image image(rgba(53,53,53,0.9))`, `border-color rgba(0,0,0,0.7)`,
+`box-shadow inset 0 1px rgba(255,255,255,0.1)`, `text-shadow 0 1px black`,
+`-gtk-icon-shadow 0 1px black`, `outline-color rgba(238,238,236,0.3)`,
+`background-clip padding-box`; hover swaps the image to
+`image(rgba(83,83,83,0.9))` and to white text; active paints
+`image(rgba(0,0,0,0.7))` and clears all three shadows; disabled paints
+`image(rgba(71,71,71,0.5))` with `#919190` text and shadows none; backdrop
+repeats the base paints with every shadow cleared and no outline claim;
+backdrop:disabled claims only `background-color #353535`. No stock `.osd`
+slider arm sets geometry (no `min-*`, no margin) and none claim a color on
+hover-only nodes beyond the dark-thumb text/icon pair; the landed plain
+`scale slider`, `scale.horizontal slider`, `scale.vertical slider` and
+`scale slider:disabled` rules keep governing size and every state an arm does
+not restate. No collected reference screenshot shows a GTK OSD scale, so this
+is a platform adaptation reusing the landed recipes — `SCALE_THUMB` in
+`tests/support/gtk_theme_spec.py` and the plain sheet rules it drives, pinned
+by `tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_scale` (the
+slider group) and `TestGtkTheme::test_scale` in `tests/test_gtk_theme.py` —
+with stock's arm selectors and state names GTK-required (they spell the
+toolkit resource's rules). The `.osd .scale-popup button.flat` arms and the
+stock `progressbar.osd` thin-bar trio stay out of scope; leave them for their
+queued surface plans.
+
+**Approach and files.** (1) In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`,
+append immediately after the final rule of the sheet's `.osd` overlay section
+(after the `.osd radio:disabled` group as the sheet stands now; when the
+meter restatement has merged, after its final block) a dated provenance
+comment naming the missing reference surface, this `gresource` probe, the
+reuse of the plain-slider recipes (the fields plan cleared the stock
+`text-shadow 0 1px black`/`-gtk-icon-shadow 0 1px black` pair, and the
+check/radio plan restated stock's translucent `outline-color` as
+`outline-color: #000000` — clear the same pair and restate the same
+outline), and the note that stock's `background-clip: padding-box` is part of
+its translucent dark-bubble arm, while the landed plain thumb draws without
+it, so the restated thumb omits it and draws exactly like the plain one.
+Then append five rules spelling six selectors — the base/hover/active/
+backdrop raised face, the margin only on the stateless arms stock leaves to
+the plain base rule, and the disabled metal in every disabled state (a rule
+with no state matches every state, so the appended base arm and the plain
+`scale slider:disabled` arm tie at equal specificity on the shared
+properties and the later base would paint an enabled face over a disabled
+thumb — the appended `:disabled` arm outranks both at three-state-classes
+and frees the disabled face; the dedicated `:backdrop:disabled` selector
+doesn't carry its own colour, but stock declares the arm and keeping it
+keeps the arm list complete):
+
+```css
+.osd scale slider,
+.osd scale slider:hover,
+.osd scale slider:active,
+.osd scale slider:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #999999;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd scale slider,
+.osd scale slider:backdrop {
+  margin: -5px;
+}
+.osd scale slider:disabled,
+.osd scale slider:backdrop:disabled {
+  background-color: #DDDDDD;
+  border: 1px solid #999999;
+  box-shadow: none;
+}
+```
+
+(2) In `tests/test_gtk_theme.py`, add `TestGtkTheme::test_osd_scale_slider`
+beside `test_osd_check_radio`: add `SCALE_THUMB` to the existing
+`support.gtk_theme_spec` import list (`BLACK`, `FACE` and `GREY` are already
+imported from `support.platinum_palette`); build one expected raised-face
+dictionary (`{**SCALE_THUMB, "outline-color": BLACK, "text-shadow": "none",
+"-gtk-icon-shadow": "none"}`), one expected base dictionary (`{**face,
+"margin": "-5px"}`) and one expected disabled dictionary
+(`{"background-color": FACE, "border": f"1px solid {GREY}",
+"box-shadow": "none"}`); assert each of the six selectors
+`tests/support/gtk_css.py::parse_css` splits out of the five rules against
+its recipe dictionary; cross-check the dictionary carries (
+`self.rules[".osd scale slider:disabled"] == self.rules["scale
+slider:disabled"]`, and `self.rules[".osd scale slider"] == {**self.rules
+["scale slider"], "outline-color": BLACK, "text-shadow": "none",
+"-gtk-icon-shadow": "none"}`, both false-tolerance pin the same claim
+`assert_scale` pins); and add the scope assertion that the set of parsed
+sheet selectors containing `.osd scale slider` equals exactly those six.
+In the same change, extend `test_osd_overlay_bands`'s existing scope filter
+— which already excludes the restated `.osd entry`, `.osd spinbutton`,
+`.osd check` and `.osd radio` selectors — to exclude selectors containing
+`.osd scale slider` the same way, or the new arms fail that landed test's
+selector scan. (Anchoring precedent: the fields, check/radio and meter plans
+all hit exactly this filter and recorded the correction.) (3) In
+`docs/invariants.md`, in the `## gtk` table, append one row: the guarantee —
+every stock GTK 3 OSD scale thumb draws the landed raised `#DDDDDD` face
+with its black border, zero radius, white/grey bevel and the plain thumb's
+`-5px` margin, and the landed grey disabled face in both disabled states,
+identical across hover, active, disabled and backdrop — with the test column
+naming `tests/test_gtk_theme.py::TestGtkTheme::test_osd_scale_slider` (the
+register parser resolves the column only against tests defined in the named
+module, so cite the shared base cases `assert_scale` in
+`tests/support/gtk_rule_cases.py` and `TestGtkTheme::test_scale` in the
+provenance cell, not the test column); the provenance cell records the
+missing reference surface, the gresource probe (libgtk-3 3.24.49
+`gtk-contained.css`, probed 2026-10-30), the reused `SCALE_THUMB` spec and
+its pinning tests, the GTK-required six-arm spellings, the cleared text/icon
+shadow pair, the restated black outline, the omitted `background-clip`, the
+plain rules' governing geometry, the untouched `.osd .scale-popup
+button.flat` arms, and the close-out that declaration checks do not
+establish rendered pixels. Trim no landed row; `tests/test_invariants.py`
+parses the register.
+
+**Acceptance criteria.** The GTK 3 sheet carries the five rules parsing to
+exactly those six selectors at the three dictionaries above; changing any of
+the six selectors, deleting a rule, dropping the base's `margin: -5px` or
+the disabled arm's `border`, changing the disabled border away from the
+plain disabled rule's `1px solid #999999`, or letting stock keep its dark
+translucent bubbles fails `test_osd_scale_slider`; `test_osd_overlay_bands`
+(with its extended filter), `test_osd_entry_fields`, `test_osd_check_radio`,
+`test_scale`, `test_switch_focus`, `test_only_palette_hex_literals`,
+`test_no_universal_selector`, `test_icon_sources_point_at_shipped_assets`
+and `test_no_status_or_translucent_shade_roles` stay green, and the landed
+container, field and check/radio rules keep their landed text. Scope is the
+GTK 3 sheet, `tests/test_gtk_theme.py`, `docs/invariants.md` and nothing
+else: no GTK 4 rule, no Firefox sheet, no new asset, colour literal beyond
+the landed `#DDDDDD`, `#999999`, `#FFFFFF`, `#000000` and `transparent`,
+dependency or `!important`. `make check` passes.
 
 ## Done
 
