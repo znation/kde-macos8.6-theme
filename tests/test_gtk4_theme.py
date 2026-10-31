@@ -329,6 +329,12 @@ for radio in (False, True):
             ("label:disabled", "text:disabled", "spinbutton.vertical > text:disabled")
         )
 
+    def test_dim_label_foreground(self):
+        selector = ".dim-label"
+        self.assert_disabled_text((selector,))
+        self.assert_rule(selector, {**DISABLED_TEXT, "opacity": "1"})
+        self.assertEqual(strip_comments(self.css).count(selector), 1)
+
     def test_view_background(self):
         self.assert_view_background((".view", "list"))
 
