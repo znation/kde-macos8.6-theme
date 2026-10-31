@@ -5,8 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
-
 ### Platinum GTK 3 OSD checks and radios: restate the stock dark indicator arms with the landed check and radio recipes (planned 2026-10-30 by the plan role; independent of the waiting GTK 4 OSD overlay-container plan — it appends five check-and-radio arm groups to the GTK 3 sheet, adds one test beside `test_osd_entry_fields` in `tests/test_gtk_theme.py` and appends one row to the `## gtk` invariants table, while that entry appends one grouped rule to the GTK 4 sheet, adds one test in `tests/test_gtk4_theme.py` and appends its own row; the only shared document is `docs/invariants.md`, and each entry appends its own row — no shared selector, test or suite)
 
 **Goal.** The landed GTK 3 OSD container plan repainted every stock OSD
