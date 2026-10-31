@@ -575,6 +575,77 @@ for radio in (False, True):
             {"background-color": FACE, "-gtk-icon-filter": "none"},
         )
 
+    def test_suggested_action_plain_arms(self):
+        # No reference screenshot shows a GTK suggested-action button; the
+        # tail arms restate the landed plain push-button recipe, so every
+        # checked relationship below anchors the landed face constants.
+        self.assert_rule(
+            "button.suggested-action",
+            {
+                "background-color": FACE,
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": BUTTON_BEVEL,
+                "color": BLACK,
+                "outline-color": BLACK,
+                "transition": "none",
+            },
+        )
+        self.assert_rule(
+            "button.suggested-action:hover",
+            {
+                "background-color": FACE,
+                "background-image": "none",
+                "border-color": BLACK,
+                "box-shadow": BUTTON_BEVEL,
+                "color": BLACK,
+                "outline-color": BLACK,
+            },
+        )
+        sunken = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+        }
+        for selector in ("button.suggested-action:active", "button.suggested-action:checked"):
+            self.assert_rule(selector, sunken)
+        insensitive = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+        }
+        for selector in (
+            "button.suggested-action:disabled",
+            "button.suggested-action:disabled:active",
+            "button.suggested-action:disabled:checked",
+        ):
+            self.assert_rule(selector, insensitive)
+        self.assert_rule(
+            "button.suggested-action:focus:focus-visible",
+            {"outline-color": BLACK},
+        )
+        self.assertEqual(
+            self.rules["button.suggested-action:focus:focus-visible"]["outline-color"],
+            self.rules["button:focus:focus-visible"]["outline-color"],
+        )
+        expected_selectors = {
+            "button.suggested-action",
+            "button.suggested-action:hover",
+            "button.suggested-action:active",
+            "button.suggested-action:checked",
+            "button.suggested-action:disabled",
+            "button.suggested-action:disabled:active",
+            "button.suggested-action:disabled:checked",
+            "button.suggested-action:focus:focus-visible",
+        }
+        self.assertEqual(
+            {selector for selector in self.rules if selector.startswith("button.suggested-action")},
+            expected_selectors,
+        )
+
     def test_entry_focus_transition(self):
         self.assert_scale_slider_transition("entry")
 
