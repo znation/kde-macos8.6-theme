@@ -16,8 +16,6 @@ from pathlib import Path
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     MENU_CHECK,
-    RAISED_BEVEL,
-    TAB_STATES,
     TITLE_BUTTON_ASSETS,
     TITLE_BUTTON_IMAGE,
 )
@@ -49,23 +47,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             "checked": (".path-bar > button:checked",),
             "checked+hover": (".path-bar > button:checked:hover",),
         }
-        for state, _selectors, checked in TAB_STATES:
-            if state not in forms:
-                continue
-            expected = {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-            }
-            if checked:
-                expected["border-bottom-color"] = FACE
-                expected["box-shadow"] = "none"
-            else:
-                expected["box-shadow"] = RAISED_BEVEL
-            for selector in forms[state]:
-                with self.subTest(state=state, selector=selector):
-                    self.assert_rule(selector, expected)
+        self.assert_tab_faces(forms)
 
     def test_row_selection_backdrop(self):
         self.assert_row_selection_backdrop((
@@ -143,23 +125,7 @@ class TestGtkThemeViews(GtkSheetRuleCases, unittest.TestCase):
             "checked": ("stackswitcher > button:checked",),
             "checked+hover": ("stackswitcher > button:checked:hover",),
         }
-        for state, _selectors, checked in TAB_STATES:
-            if state not in forms:
-                continue
-            expected = {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-            }
-            if checked:
-                expected["border-bottom-color"] = FACE
-                expected["box-shadow"] = "none"
-            else:
-                expected["box-shadow"] = RAISED_BEVEL
-            for selector in forms[state]:
-                with self.subTest(state=state, selector=selector):
-                    self.assert_rule(selector, expected)
+        self.assert_tab_faces(forms)
 
     def test_rubberband(self):
         self.assert_rubberband((".rubberband", "rubberband"))

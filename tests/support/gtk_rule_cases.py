@@ -155,6 +155,38 @@ class GtkSheetRuleCases(SheetRuleAssertions):
         for selector in selectors:
             self.assert_rule(selector, ROW_SELECTED)
 
+    def assert_tab_faces(self, forms=None):
+        """Assert each tab state's Platinum notebook-face rule.
+
+        Every selected tab state (``base``, ``hover``, ``checked``,
+        ``checked+hover``, ``backdrop``, ``backdrop+checked`` in
+        :data:`TAB_STATES`) carries the same face: the raised bevel on the
+        unselected states, and on the checked states a bottom border merged
+        into the face with the bevel dropped. When *forms* is given, it
+        maps a subset of those state names to the selectors to check for
+        each — the suites' path-bar and stack-switcher tabs spell their own
+        selectors and skip the states their widget lacks; without it every
+        :data:`TAB_STATES` selector is checked, as the plain tabs are
+        spelled alike in both sheets.
+        """
+        for state, selectors, checked in TAB_STATES:
+            if forms is not None and state not in forms:
+                continue
+            expected = {
+                "background-color": FACE,
+                "background-image": "none",
+                "border": f"1px solid {BLACK}",
+                "border-radius": "0",
+            }
+            if checked:
+                expected["border-bottom-color"] = FACE
+                expected["box-shadow"] = "none"
+            else:
+                expected["box-shadow"] = RAISED_BEVEL
+            for selector in (forms[state] if forms is not None else selectors):
+                with self.subTest(state=state, selector=selector):
+                    self.assert_rule(selector, expected)
+
     def assert_dotted_focus_outline(self, selector, anchor="button:focus"):
         """Assert *selector* carries the sheet's dotted focus outline.
 
@@ -487,18 +519,4 @@ class GtkSharedControlCases(GtkSheetRuleCases):
         ):
             self.assert_rule(selector, ROW_SELECTED)
 
-        for state, selectors, checked in TAB_STATES:
-            expected = {
-                "background-color": FACE,
-                "background-image": "none",
-                "border": f"1px solid {BLACK}",
-                "border-radius": "0",
-            }
-            if checked:
-                expected["border-bottom-color"] = FACE
-                expected["box-shadow"] = "none"
-            else:
-                expected["box-shadow"] = RAISED_BEVEL
-            for selector in selectors:
-                with self.subTest(state=state, selector=selector):
-                    self.assert_rule(selector, expected)
+        self.assert_tab_faces()
