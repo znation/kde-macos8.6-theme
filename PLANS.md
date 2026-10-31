@@ -5,15 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 4 vertical spinbutton placeholder: cover the nested text node (planned 2026-10-31 by the plan role)
-
-**Goal.** Extend the finished GTK 4 placeholder treatment to the vertical spinbutton's nested placeholder node.
-
-**Grounding.** The finished “Platinum GTK 4 placeholder text” plan in `PLANS-DONE.md` explicitly prescribed `entry > text > placeholder` and `spinbutton > text > placeholder`; the shipped sheet and `TestGtk4Theme.test_placeholder_foreground` contain those selectors. Neither matches `spinbutton.vertical > text > text > placeholder`, which the installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1` groups with dimmed placeholders (inspected 2026-10-31). Searches of the queue, archive and those implementation files found no vertical-placeholder treatment. This is a follow-up to that finished plan, not a repeat of its direct-child selectors.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add `spinbutton.vertical > text > text > placeholder` to the existing placeholder declaration group, reusing exactly `color: #888888; opacity: 1;`. Expand its dated adaptation comment to name the installed resource and nested node: the reference set has no GTK vertical-spinbutton placeholder surface, so the value comes from the existing inactive-text palette. In `tests/test_gtk4_theme.py`, extend `TestGtk4Theme.test_placeholder_foreground`'s selector tuple with that exact selector and require exact dictionaries via `self.rules[selector]` for the group; retain `assert_disabled_text` and single-occurrence assertions. Update the existing placeholder row under `## gtk` in `docs/invariants.md` to identify the nested vertical node, resource provenance and declaration-only coverage.
-
-**Acceptance criteria.** Removing the nested selector or changing its foreground or opacity fails `test_placeholder_foreground`; the existing direct-child selectors remain covered by the same test and scheme-grey helper. Geometry, artwork, entered text and GTK 3 are outside this three-file change. No new palette value or dependency is needed. Run `make check`. This entry can merge independently of the queued GTK 4 separator-label plan.
+_None yet._
 
 ## Done
 

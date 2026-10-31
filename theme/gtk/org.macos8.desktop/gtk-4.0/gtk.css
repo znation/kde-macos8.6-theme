@@ -1368,10 +1368,12 @@ label:disabled, text:disabled, spinbutton.vertical > text:disabled {
   color: #888888;
 }
 
-/* No reference screenshot shows GTK 4 placeholder hints. Reuse the inactive-text
-   grey; the installed GTK 4 base resource dims these selectors, so keep the
-   adapted palette grey at full opacity. (2026-10-31) */
-entry > text > placeholder, spinbutton > text > placeholder {
+/* Adaptation 2026-10-31: no reference shows GTK vertical-spinbutton
+   placeholders. The installed /org/gtk/libgtk/theme/Default/Default-light.css
+   groups the nested node with dimmed placeholders; reuse inactive grey at full
+   opacity. */
+entry > text > placeholder, spinbutton > text > placeholder,
+spinbutton.vertical > text > text > placeholder {
   color: #888888;
   opacity: 1;
 }

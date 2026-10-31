@@ -129,6 +129,7 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
         selectors = (
             "entry > text > placeholder",
             "spinbutton > text > placeholder",
+            "spinbutton.vertical > text > text > placeholder",
         )
         self.assert_disabled_text(selectors)
         expected = {**DISABLED_TEXT, "opacity": "1"}
