@@ -423,6 +423,25 @@ class TestFailurePaths(StubTools):
         self.assertFalse(output.exists())
         self.assert_scratch_removed()
 
+    def test_a_failing_capture_session_exits_1_writes_no_output_and_removes_scratch(self):
+        # A live applet can sit inside a session whose capture command fails
+        # -- spectacle without a usable compositor, an unwritable surface
+        # path -- so the liveness check passes and the script reaches `exit
+        # $status` with the capture command's own non-zero status. Keeping
+        # the client alive pins that arm: the session must exit with the
+        # capture's status and not call it a success, and the tool must
+        # treat it exactly like any other failed session -- the failure and
+        # the capture stub's word on stderr replayed, nothing published,
+        # scratch removed.
+        self.stub_live_session("exec sleep 60")
+        self.stub("spectacle", "echo capture shot down; exit 7")
+        status, stderr, output = self.run_main("--settle", "0")
+        self.assertEqual(1, status)
+        self.assertIn("render session exited 7", stderr)
+        self.assertIn("capture shot down", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_a_capture_of_the_wrong_size_exits_1_and_writes_nothing(self):
         # spectacle can hand back a surface captured at the wrong geometry. The
         # render must refuse it: publishing that PNG would report success for a
