@@ -702,6 +702,11 @@ class TestFailurePaths(StubTools):
 
 REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
               "plasma-apply-colorscheme")
+# The kdialog client the dialog modes open, beside the applet render tools.
+# One literal feeds the gates' skip guard and the guard pins below, so an
+# edit to either the CLI's requirement list or this list cannot drift the
+# skip condition away from the condition the render CLI refuses on.
+DIALOG_REAL_TOOLS = REAL_TOOLS + ("kdialog",)
 
 
 @unittest.skipUnless(
@@ -806,13 +811,31 @@ class TestDialogGateSkipGuards(unittest.TestCase):
     The dialog render CLI refuses with a missing-tool diagnostic when any
     of the five applet-render tools or the kdialog client it opens is
     absent, and the two dialog gates' shared skip guard encodes exactly
-    that condition. This test would fail wherever the guard were removed
-    (``AttributeError`` on ``__unittest_skip__``) or left with a narrower
-    tool list than the CLI refuses on.
+    that condition. These tests fail wherever a guard is removed
+    (``AttributeError`` on ``__unittest_skip__``) and where a guard's tool
+    list drifts from the render CLI's own requirement list, the local
+    literal the guards otherwise all repeat.
     """
 
+    def test_the_skip_guards_encode_the_render_cli_s_refusal_list(self):
+        # The guards above skip on a local tool list, so the list must be
+        # the render CLI's own requirement list: a tool the CLI requires
+        # but a guard omits would make the guard's class run and fail on a
+        # host that lacks it, where the CLI refuses and the sibling table
+        # row says the suite skips. `make` is the only CLI requirement the
+        # guards leave out: it names the command the suite itself runs
+        # under, so it cannot be absent while one of these tests runs.
+        self.assertEqual(
+            {"make"},
+            set(render_surface.REQUIRED_TOOLS) - set(REAL_TOOLS),
+        )
+        self.assertEqual(
+            {"kdialog"},
+            set(DIALOG_REAL_TOOLS) - set(render_surface.REQUIRED_TOOLS),
+        )
+
     def test_both_dialog_gates_skip_only_when_a_tool_is_absent(self):
-        tools = REAL_TOOLS + ("kdialog",)
+        tools = DIALOG_REAL_TOOLS
         expected = not all(shutil.which(tool) for tool in tools)
         for gate in (TestCheckboxDialogRender, TestComboboxDialogRender):
             with self.subTest(gate=gate.__name__):
@@ -949,7 +972,7 @@ def _dialog_gate_guard():
     where its tools are missing would turn `make check` red on a machine
     that merely lacks Plasma, where the sibling applet gate already skips.
     """
-    tools = REAL_TOOLS + ("kdialog",)
+    tools = DIALOG_REAL_TOOLS
     reason = (
         "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle, "
         "plasma-apply-colorscheme and kdialog on PATH"
