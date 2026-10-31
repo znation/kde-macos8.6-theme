@@ -55,7 +55,8 @@ def load_durations(path: str) -> dict[str, float]:
             record = json.loads(source.read())
     except (OSError, ValueError):
         return {}
-    if not isinstance(record, dict) or record.get("version") != _CACHE_VERSION:
+    version = record.get("version") if isinstance(record, dict) else None
+    if isinstance(version, bool) or version != _CACHE_VERSION:
         return {}
     entries = record.get("durations")
     if not isinstance(entries, dict):

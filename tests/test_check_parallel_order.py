@@ -88,7 +88,10 @@ class TestCache(unittest.TestCase):
         )
 
     def test_a_missing_or_malformed_cache_loads_nothing(self):
-        for contents in ("", "not json", "[1, 2]", '{"version": 1}', "{}"):
+        for contents in (
+            "", "not json", "[1, 2]", '{"version": 1}', "{}",
+            '{"version": true, "durations": {"test_ok": 0.5}}',
+        ):
             path = str(make_tmp_dir(self) / "cache.json")
             with open(path, "wb") as sink:
                 sink.write(contents.encode("utf-8"))
