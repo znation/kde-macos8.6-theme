@@ -102,6 +102,9 @@ class TestCache(unittest.TestCase):
                 {"version": 1, "durations": {
                     "test_ok": 0.5, "test_nan": "yesterday",
                     "test_neg": -1, "test_list": [1],
+                    "test_nan_float": float("nan"),
+                    "test_pos_inf": float("inf"),
+                    "test_neg_inf": float("-inf"),
                 }},
                 sink,
             )
