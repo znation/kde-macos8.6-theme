@@ -606,8 +606,39 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             },
             {selector
              for _, selectors in expected
-             for selector in selectors},
+             for selector in selectors}
+            | {"progressbar.osd trough", "progressbar.osd progress"},
         )
+
+    def test_osd_thin_bar(self):
+        """Pin the two restated stock self-class ``.osd`` thin-bar arms.
+
+        No collected reference screenshot shows a GTK OSD overlay, a meter
+        inside one or a self-class ``.osd`` thin bar (a ``progressbar.osd``,
+        the thin Epiphany-style headerbar indicator), so the sheet restates
+        the toolkit resource's stock ``progressbar.osd trough`` and
+        ``progressbar.osd progress`` arms with the landed plain progress-bar
+        recipes (``PROGRESSBAR_TROUGH`` and ``PROGRESSBAR_PROGRESS`` in
+        ``support.gtk_theme_spec.py``), the same reuse the landed GTK 4
+        sheet's ``progressbar.osd > trough`` face makes (pinned by
+        ``TestGtk4Theme::test_progressbar_osd_trough_paint``). The equal
+        specificity restatements append after the toolkit resource, so they
+        pre-empt exactly the stock arms they restate, and the landed
+        ``.osd progressbar trough, progressbar .osd trough`` ancestor arms
+        stay disjoint. The bare ``progressbar.osd`` node arm stays
+        undeclared: its ``3px`` minimum is dominated by the trough's
+        ``10px`` minimum and its transparent node background stays beneath
+        the trough face. The arm selectors and stock claims come from
+        gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+        (libgtk-3 3.24.49); no stock arm claims geometry, so the landed
+        plain rules keep governing every state an arm does not restate.
+        """
+        with self.subTest(selector="progressbar.osd trough"):
+            self.assertEqual(self.rules["progressbar.osd trough"],
+                             PROGRESSBAR_TROUGH)
+        with self.subTest(selector="progressbar.osd progress"):
+            self.assertEqual(self.rules["progressbar.osd progress"],
+                             PROGRESSBAR_PROGRESS)
 
     def test_osd_scale_slider(self):
         """Pin the six restated stock OSD scale thumb arms.

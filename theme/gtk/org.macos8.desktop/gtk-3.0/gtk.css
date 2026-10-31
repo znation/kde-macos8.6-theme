@@ -1652,3 +1652,50 @@ scale .osd fill:disabled {
   box-shadow: none;
   margin: 0;
 }
+
+/* No collected reference screenshot shows a GTK OSD overlay, a meter inside
+   one or a self-class `.osd` thin bar (a `progressbar.osd`, the thin
+   Epiphany-style headerbar indicator), so the toolkit resource's stock
+   `progressbar.osd` trough and progress arms — a transparent trough face with
+   `border-style: none`, `border-radius: 0`, `background-color: transparent`
+   and `box-shadow: none`, and a transparent, borderless progress arm — are
+   restated with the landed plain progress-bar recipes (PROGRESSBAR_TROUGH and
+   PROGRESSBAR_PROGRESS in tests/support/gtk_theme_spec.py, pinned by
+   tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_progressbar,
+   tests/test_gtk_theme.py::TestGtkTheme::test_scale and
+   TestGtkTheme::test_osd_thin_bar), the same reuse the landed GTK 4 sheet's
+   `progressbar.osd > trough` face makes (pinned by
+   tests/test_gtk4_theme.py::TestGtk4Theme::test_progressbar_osd_trough_paint,
+   whose sheet comment reads "No reference shows an OSD GTK progress trough;
+   reuse the base paint (2026-10-29)"). The equal-specificity (0,1,2) restatements
+   append after the toolkit resource, so they pre-empt exactly the stock arms
+   they restate; the landed `.osd progressbar trough, progressbar .osd trough`
+   ancestor arms are untouched and disjoint, because a bar carrying `.osd`
+   itself is not a descendant of an `.osd` element. The bare `progressbar.osd`
+   node arm stays undeclared: its `3px` minimum is dominated by the trough's
+   `10px` minimum and its transparent node background stays beneath the trough
+   face, and the landed `min-height`/`min-width` already fall through to the
+   plain rule today — no stock arm claims geometry — so only the face, border
+   and etch change. The stock arms and their claims come from
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3
+   3.24.49), probed 2026-10-30. Declaration checks do not establish rendered
+   pixels. */
+
+progressbar.osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+
+progressbar.osd progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}

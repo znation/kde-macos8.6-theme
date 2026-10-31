@@ -4,8 +4,12 @@ Planned features, written by the plan loop and implemented by the feature loop.
 Each plan: goal, approach, files touched, acceptance criteria. Move finished plans to Done.
 
 ## Planned
+_None yet._
+
+## Done
 
 ### Platinum GTK 3 OSD thin-bar trio: restate the stock `progressbar.osd` trough and progress arms with the landed base meter recipes (planned 2026-10-30 by the plan role; independent — nothing else waits, and the three BUGS.md `## Open` entries stay needs-review-bugfix behind this plan's only overlaps being append-only sheet lines and one test the landed `test_osd_progress_scale` owns; the parked plans recorded in `PLANS.md` `## Done` — the landed GTK 3 OSD meter entry — explicitly held this trio out of scope for a queued surface plan, and the landed GTK 4 sheet already draws the same widget with the base paint, so this entry only closes the GTK 3 side: it appends two restated rules to `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css` after the landed `.osd progressbar progress:disabled` block at the sheet tail, grows the selector set in `tests/test_gtk_theme.py::TestGtkTheme::test_osd_progress_scale`'s clearance check, adds `TestGtkTheme::test_osd_thin_bar` beside it, and appends one row to the `## gtk` invariants table in `docs/invariants.md` following the row pinned by `test_osd_progress_scale` — no GTK 4 file, selector, test or suite is touched)
+— done 2026-10-30 by the feature role
 
 **Goal.** A self-class `.osd` GTK 3 progress bar (`progressbar.osd`, the thin indicator Epiphany-style headerbars draw) still paints the toolkit resource's stock thin-bar arms: a transparent trough with `border-style: none` and `box-shadow: none` over the landed `#CCCCFF` fill — while the landed GTK 4 sheet reuses the base paint for the same widget (`progressbar.osd > trough` face, pinned by `test_progressbar_osd_trough_paint`) and the landed GTK 3 `.osd progressbar trough, progressbar .osd trough` arms match only bars under an `.osd` ancestor, not a bar that itself carries `.osd`). Restate the two stock widget arms with the landed base meter recipes so a self-class `.osd` bar draws exactly the landed plain progress bar, both toolkits alike.
 
@@ -52,8 +56,6 @@ Size: one sheet block plus one test plus one invariants row — a single impleme
 - `make check` is green.
 
 Size: eleven restated rules plus one test plus one invariants row — a single implementation run's worth of change; the flat/suggested/destructive/colorswatch and spinbutton-button arms are queued separately after this lands.
-
-## Done
 
 ### Platinum GTK 3 OSD progress and scale arms: restate the stock dark trough, fill and progress paints with the landed progress-bar and scale recipes (planned 2026-10-30 by the plan role; independent of the waiting GTK 4 OSD check-and-radio plan — it appends ten restated rules to `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, adds `TestGtkTheme::test_osd_progress_scale` beside `test_osd_check_radio` in `tests/test_gtk_theme.py` and appends one row to the `## gtk` invariants table, while that entry edits the GTK 4 sheet, `tests/test_gtk4_theme.py` and its own row; the only shared documents are `docs/invariants.md`, where each entry appends its own row, and `tests/support/gtk_theme_spec.py`, from which both import static specs and neither edits — no sheet selector, test or suite overlaps)
 — done 2026-10-30 by the feature role
