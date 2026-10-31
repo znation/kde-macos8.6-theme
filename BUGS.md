@@ -31,9 +31,12 @@ no such rows.
 interior slice, or the interior art probe mis-fits by two rows — review upstream
 `Kvantum.cpp`'s `CE_PushButton` / frame-drawing against those margins.
 
-**Needs review by bugfix:** decide first whether the black rows are a Kvantum drawing choice the
-art should match (re-deriving `button-normal` with the black end rows and recording the missing
-reference surface) or a steered config fix (`frame.top`/`frame.bottom`); then pin the rendered
+**Directed by the user 2026-10-30 (recorded by the director role):** the interior black rows are
+not an intentional part of the look, so fix them by steering the engine/config (the
+`[PanelButtonCommand]` frame and `interior.element=button` settings) so the interior paints the
+shipped flat `#DDDDDD` face slice — do not mirror the rows into re-derived `button-normal` art.
+Keep black rows only if the reference screenshots actually show them on a raised popup button's
+interior; sample that surface first and record the provenance if so. Then pin the rendered
 button's band runs in the dialog render the way the checkbox cell is pinned.
 
 ### The item view's frame art never reaches the screen: rendered lists draw the GenericFrame `common` frame instead of the reference's sunken field (found by the render pass 2026-10-29)
