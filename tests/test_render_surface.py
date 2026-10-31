@@ -699,24 +699,19 @@ REAL_TOOLS = ("kwin_wayland", "dbus-run-session", "plasmawindowed", "spectacle",
 class TestRender(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.directory = tempfile.mkdtemp(prefix="render-surface-test-")
-        cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
-        cls.output = os.path.join(cls.directory, "render.png")
-        cls._candidate = None
-        # Run the CLI the way `make render` does, with the tool's documented
-        # settle default (8s), not a tighter one. The session sleeps for that
-        # paint budget and then captures: a loaded host that has not painted
-        # the window within the budget has its all-black capture refused by
-        # the CLI, which names the settle wait instead of leaving the pixel
+        # Run the CLI the way `make render` does, as one of _Renders' three
+        # concurrent sessions, with the tool's documented settle default
+        # (8s), not a tighter one. The session sleeps for that paint budget
+        # and then captures: a loaded host that has not painted the window
+        # within the budget has its all-black capture refused by the CLI,
+        # which names the settle wait instead of leaving the pixel
         # comparisons below to report unexplained failures. The tool's default
         # is the paint budget it promises; the gate must not render below it.
-        process = process_runner.start(
-            [sys.executable, SCRIPT, cls.output],
-            capture_output=True,
-            text=True,
+        cls.stdout, cls.stderr, cls.returncode, cls.directory = _Renders.ensure(
+            "applet"
         )
-        cls.stdout, cls.stderr = process_runner.finish(process, timeout=150)
-        cls.returncode = process.returncode
+        cls.output = os.path.join(cls.directory, "render.png")
+        cls._candidate = None
 
     @classmethod
     def candidate_image(cls):
@@ -792,51 +787,55 @@ class TestRender(unittest.TestCase):
                 self.assert_strip_pixels_match(candidate_crop, reference_crop)
 
 
-class _DialogRenders:
-    """The two dialog gates' render pair, started together and finished once.
+class _Renders:
+    """The module's three render gates' sessions, started together, finished once.
 
-    Every dialog render sleeps the tool's documented settle default before it
+    Every render sleeps the tool's documented settle default before it
     captures -- that budget is the paint budget the gate promises, and the
-    byte-compare gates below must not render below it -- so two back-to-back
-    dialog renders cost the module two settle budgets. The two sessions are
-    independent -- each has its own ``dbus-run-session``, scratch XDG tree
-    (and with it its own ``render-surface`` socket) and capture path -- and
-    the settle is a sleep rather than CPU, so starting both at once and
-    finishing them together costs one budget instead of two. The first
-    dialog gate class to set up records both results;
-    :func:`_remove_directories` removes both scratch directories at
-    interpreter exit, so a run that reaches only one of the two classes
-    still cleans up behind the other.
+    byte-compare gates below must not render below it -- so three
+    back-to-back renders cost the module three settle budgets. The three
+    sessions are independent -- each has its own ``dbus-run-session``,
+    scratch XDG tree (and with it its own ``render-surface`` socket) and
+    capture path -- and the settle is a sleep rather than CPU, so starting
+    all three at once and finishing them together costs one budget instead
+    of three. The first gate class to set up records all three results;
+    :func:`_remove_directories` removes every scratch directory at
+    interpreter exit, so a run that reaches only some of the classes still
+    cleans up behind the others.
     """
 
-    KINDS = (("checkbox", "--checkbox-dialog"), ("combobox", "--combobox-dialog"))
+    KINDS = (
+        ("applet", (), "render.png"),
+        ("checkbox", ("--checkbox-dialog",), "dialog.png"),
+        ("combobox", ("--combobox-dialog",), "dialog.png"),
+    )
     directories: dict[str, str] = {}
     results: dict[str, tuple[str, str, int, str]] = {}
     completed = False
 
     @classmethod
     def ensure(cls, kind):
-        """Finish both dialog renders once and return *kind*'s result."""
+        """Finish all three renders once and return *kind*'s result."""
         if not cls.completed:
             cls.completed = True
-            cls._run_pair()
+            cls._run_all()
             atexit.register(cls._remove_directories)
         return cls.results[kind]
 
     @classmethod
-    def _run_pair(cls):
+    def _run_all(cls):
         started = {}
-        for kind, flag in cls.KINDS:
-            directory = tempfile.mkdtemp(prefix=f"{kind}-dialog-test-")
+        for kind, flags, filename in cls.KINDS:
+            directory = tempfile.mkdtemp(prefix=f"{kind}-render-test-")
             cls.directories[kind] = directory
             started[kind] = process_runner.start(
-                [sys.executable, SCRIPT, os.path.join(directory, "dialog.png"), flag],
+                [sys.executable, SCRIPT, os.path.join(directory, filename), *flags],
                 capture_output=True,
                 text=True,
             )
-        for kind, _ in cls.KINDS:
+        for kind, _, _ in cls.KINDS:
             # The first finish below waits one settle budget while the
-            # second render runs alongside it.
+            # other two renders run alongside it.
             stdout, stderr = process_runner.finish(started[kind], timeout=150)
             cls.results[kind] = (
                 stdout,
@@ -856,7 +855,7 @@ class _DialogGate:
 
     Each gate is a ``unittest.TestCase`` only through its concrete subclass
     (unittest discovers tests on the subclasses alone) and waits on its own
-    ``_DialogRenders`` render; the two gates differ in the kind key they wait
+    ``_Renders`` render; the two gates differ in the kind key they wait
     on, in the shipped slice and cell geometry they byte-compare and in the
     extra widget-specific tests they add below.
     """
@@ -865,10 +864,10 @@ class _DialogGate:
 
     @classmethod
     def setUpClass(cls):
-        # Both dialog renders run concurrently (see _DialogRenders); this
-        # class waits for its own and leaves the sibling's to its own class.
+        # All three renders run concurrently (see _Renders); this class
+        # waits for its own and leaves its siblings' to their own classes.
         cls.stdout, cls.stderr, cls.returncode, cls.directory = (
-            _DialogRenders.ensure(cls.KIND)
+            _Renders.ensure(cls.KIND)
         )
         cls.output = os.path.join(cls.directory, "dialog.png")
         cls._candidate = None
