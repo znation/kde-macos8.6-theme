@@ -1409,7 +1409,15 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         )
         self.assert_color_swatch_corners(
             " overlay",
-            {selector: {"background-image": "none"} for selector in selectors},
+            {
+                **{selector: {"background-image": "none"} for selector in selectors},
+                "button.color colorswatch:only-child": {"box-shadow": "none"},
+            },
+        )
+
+    def test_color_button_swatch_shadow(self):
+        self.assert_rule(
+            "button.color colorswatch:only-child", {"box-shadow": "none"}
         )
 
     def test_add_color_background_images(self):

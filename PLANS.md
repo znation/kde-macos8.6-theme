@@ -5,20 +5,18 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+## Done
+
 ### Platinum GTK 3 color buttons: clear the swatch's decorative shadow (planned 2026-10-30 by the plan role)
+— done 2026-10-30 by the feature role
 
 **Goal.** Remove the stock translucent bottom shadow from the color preview inside a GTK 3 color button, keeping its chosen color and existing square corners.
 
-**Grounding.** The shipped GTK 3 sheet has corner and add-color image resets but no `button.color colorswatch:only-child` rule. The finished corner plan in `PLANS-DONE.md` explicitly left shadows toolkit-controlled; heading searches found no shadow-reset plan. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected with `gresource` on 2026-10-30, declares `button.color colorswatch:only-child { box-shadow: 0 1px rgba(255, 255, 255, 0.769231); }`. Its `.osd` arm and grouped disabled/backdrop/active/checked arms already use `box-shadow: none`. No collected reference shows a GTK color button; use that toolkit-provided flat treatment as a platform adaptation, recording the missing reference surface and resource source rather than claiming a sampled shadow value.
+**Grounding.** The shipped GTK 3 sheet had corner and add-color image resets but no `button.color colorswatch:only-child` rule. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected with `gresource` on 2026-10-30, declares a translucent bottom shadow on the base selector; its `.osd` and state arms clear it with `box-shadow: none`. No collected reference shows a GTK color button, so this is a platform adaptation.
 
-**Approach and files.**
-- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, immediately after the add-color image reset, add a dated provenance comment and `button.color colorswatch:only-child { box-shadow: none; }`. The base rule ties the stock base specificity; the more specific stock state arms already agree. Declare no fill, border, size, opacity, glyph or overlay changes. GTK 4 is outside this task.
-- In `tests/test_gtk_theme.py::TestGtkTheme::test_color_swatch_corners`, extend the existing `extra_declarations` mapping passed to `GtkSheetRuleCases.assert_color_swatch_corners` with this new selector and the exact dictionary `{"box-shadow": "none"}`. The helper in `tests/support/gtk_rule_cases.py` already supports additional selectors and checks the complete swatch-selector set; leave that helper unchanged. Add `test_color_button_swatch_shadow` beside it to pin the new rule's exact dictionary and explain its stock base/state relationship.
-- Add a `## gtk` row in `docs/invariants.md` naming the new test, the shadow reset, missing reference and toolkit provenance; explicitly limit the guarantee to declarations, without asserting rendered-pixel coverage.
+**Approach and files.** Added the base shadow reset after the add-color image reset in the GTK 3 sheet, with a dated provenance comment. Extended the color-swatch corner selector inventory and added an exact declaration test. Added a GTK invariant documenting the missing reference and toolkit resource provenance. No swatch fill or geometry declarations changed.
 
 **Acceptance criteria.** The new selector parses to exactly `{"box-shadow": "none"}`; the existing corner test admits it through its explicit mapping while retaining its exact selector inventory and existing corner/image expectations. The implementation diff adds no swatch color or geometry declaration. The CSS comment and invariant record the missing GTK color-button reference and the stock source of the chosen reset. `make check` passes. This is one CSS rule, a small test extension and an invariant row, independently mergeable from the open Kvantum bugs.
-
-## Done
 
 ### Platinum GTK 3 OSD spinbutton steppers: restate the stock horizontal and vertical `.osd spinbutton … button` arms with the landed flat-and-push-button recipe (planned 2026-10-30 by the plan role; independent of the queued `.osd button.destructive-action` entry ahead of it in this queue — both are append-only edits at the GTK 3 sheet's tail with disjoint selectors (a `spinbutton` carrying selector never carries `destructive-action`), the destructive entry's scope assertion sweeps only `button`-plus-`destructive-action` selectors and its entry states it touches no landed scope enumeration, while this entry's sole landed-scope edit is the `test_osd_entry_fields` sweep extension recorded below, so either merge order leaves the cascade right, neither edits the other's test, and the three BUGS.md `## Open` entries stay needs-review-bugfix))
 — done 2026-10-30 by the feature role

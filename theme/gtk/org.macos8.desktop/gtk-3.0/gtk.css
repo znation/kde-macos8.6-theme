@@ -641,6 +641,13 @@ colorswatch#add-color-button overlay:backdrop:hover {
   background-image: none;
 }
 
+/* No reference screenshot shows a GTK color button swatch. Clear the stock
+ * decorative shadow while preserving the swatch color and geometry.
+ * Recorded 2026-10-30 by the feature role. */
+button.color colorswatch:only-child {
+  box-shadow: none;
+}
+
 /* Views paint the white content field with black text. */
 .view, textview text, list {
   background-color: #FFFFFF;
