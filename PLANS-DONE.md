@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 palette swatches: use solid black overlay borders (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Replace the ordinary palette swatch overlay's translucent border colors with the sheet's solid black frame color, retaining the landed lavender drop-target border.
+
+**Grounding.** The GTK 3 sheet resets swatch corners, hover shadows, drop-target colors and focus outlines but does not declare ordinary overlay border colors. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, sets translucent black borders on the base overlay, light/dark hover, backdrop/backdrop-hover and disabled arms. No collected reference shows this GTK palette border; black adapts the landed `frame > border` color, not a sampled swatch pixel.
+
+**Approach and files.** Added the grouped `border-color: #000000` rule for the six planned selectors in the GTK 3 sheet, with dated missing-surface and resource provenance. Kept the more-specific light/dark drop-target declarations lavender and retained toolkit border width/style and swatch fills. Extended the exact corner inventory and added a border-color test requiring black on each arm, equality with the `frame > border` token, and lavender drop-target borders. Added the GTK invariant row; the shared rule-case helper was unchanged.
+
+**Acceptance criteria.** Removing one of the six border declarations or changing its color fails the new test; the strict swatch inventory still checks exact dictionaries. The drop-target test continues to require lavender borders and the landed inset edges. No new fill, border width/style, geometry, foreground or outline declarations are introduced by this work. The invariant claims declaration coverage, not rendered-pixel coverage. GTK 4 is outside this plan. `make check` passes.
+
 ### Platinum GTK 3 add-color action: pin the black focus outline (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Give the color chooser's add-color overlay the sheet's solid black focus outline color instead of the stock translucent outline.

@@ -661,6 +661,17 @@ colorswatch overlay:hover {
   box-shadow: none;
 }
 
+/* No reference screenshot shows GTK palette swatch borders. Reuse the
+ * sheet's solid black frame border as a platform adaptation (2026-10-31). */
+colorswatch overlay,
+colorswatch.light overlay:hover,
+colorswatch.dark overlay:hover,
+colorswatch overlay:backdrop,
+colorswatch overlay:backdrop:hover,
+colorswatch:disabled overlay {
+  border-color: #000000;
+}
+
 /* No reference screenshot shows a GTK palette swatch drop target. Reuse
  * Platinum selection lavender and the black frame border; retain GTK's
  * stock 2px/1px inset geometry (adaptation 2026-10-31). */

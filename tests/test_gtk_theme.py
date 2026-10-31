@@ -1428,6 +1428,12 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 },
                 "button.color colorswatch:only-child": {"box-shadow": "none"},
                 "colorswatch overlay:hover": {"box-shadow": "none"},
+                "colorswatch overlay": {"border-color": BLACK},
+                "colorswatch.light overlay:hover": {"border-color": BLACK},
+                "colorswatch.dark overlay:hover": {"border-color": BLACK},
+                "colorswatch overlay:backdrop": {"border-color": BLACK},
+                "colorswatch overlay:backdrop:hover": {"border-color": BLACK},
+                "colorswatch:disabled overlay": {"border-color": BLACK},
                 "colorswatch:drop(active).light overlay": {
                     "border-color": SELECTION,
                     "box-shadow": f"inset 0 0 0 2px {BLACK}, inset 0 0 0 1px {SELECTION}",
@@ -1504,6 +1510,29 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             self.rules["colorswatch overlay:hover"],
             self.rules["button.color colorswatch:only-child"],
         )
+
+    def test_color_swatch_border_colors(self):
+        selectors = (
+            "colorswatch overlay",
+            "colorswatch.light overlay:hover",
+            "colorswatch.dark overlay:hover",
+            "colorswatch overlay:backdrop",
+            "colorswatch overlay:backdrop:hover",
+            "colorswatch:disabled overlay",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector]["border-color"], BLACK)
+        self.assertEqual(
+            self.rules[selectors[0]]["border-color"],
+            self.rules["frame > border"]["border"].split()[-1],
+        )
+        for selector in (
+            "colorswatch:drop(active).light overlay",
+            "colorswatch:drop(active).dark overlay",
+        ):
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector]["border-color"], SELECTION)
 
     def test_color_button_swatch_shadow(self):
         self.assert_rule(
