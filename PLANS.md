@@ -15,6 +15,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Removing either selector or changing either declaration fails the new test; existing disabled-text and entry-field assertions pass. No geometry, artwork, entered-text, GTK 3 or secondary-label changes are included. Run `make check`. This three-file change is independently mergeable from the waiting GTK 4 secondary-label plan: the selectors differ, and either merge order must preserve both tests and a single shared import.
 
+### Platinum GTK 4 header subtitles: declare the inactive-text grey (planned 2026-10-31 by the plan role)
+
+**Goal.** Give GTK 4 header subtitles an explicit muted Platinum foreground, complementing the landed `.dim-label` treatment.
+
+**Grounding.** Searches of the GTK 4 sheet and tests found no subtitle selector; searches of this queue and `PLANS-DONE.md` found no subtitle plan. The finished headerbar plan covers frame geometry and backdrop paint, not subtitle text. The installed `/org/gnome/Adwaita/styles/base.css` resource in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, extracted with `gresource` on 2026-10-31, groups `headerbar .subtitle` and `windowtitle .subtitle` with `.dim-label` under `opacity: var(--dim-opacity)`. No reference screenshot shows GTK header subtitles; adapt the existing inactive-text `#888888` at full opacity, using the same palette source as `.dim-label` rather than a new composited colour.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate grouped rule for exactly `headerbar .subtitle, windowtitle .subtitle` with `color: #888888; opacity: 1;`. Place it after the headerbar backdrop rule and add a dated adaptation comment naming the missing reference surface, installed selector source and reused inactive-text palette. This makes the subtitle colour explicit in active and backdrop windows; retain the existing main-title backdrop colour. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_header_subtitle_foreground`, calling `assert_disabled_text` on both selectors, asserting each exact dictionary equals `{**DISABLED_TEXT, "opacity": "1"}`, and checking each selector occurs once in `self.selectors`. Reuse the existing `DISABLED_TEXT` import and helper, which checks the scheme's inactive foreground. Add one row under `## gtk` in `docs/invariants.md` naming the test, adaptation provenance and declaration-only coverage.
+
+**Acceptance criteria.** Removing either selector or changing either declaration fails the new test. Existing headerbar, disabled-text and `.dim-label` assertions pass; keep the existing inactive-text reference anchor coverage. Include no font size, padding, artwork, GTK 3, row subtitle or main-title changes. Run `make check`. This three-file change is independently mergeable from the waiting GTK 4 placeholder plan: selectors and tests are distinct and both reuse the existing shared import.
+
 ## Done
 
 ### Platinum GTK 3 content-view fields: declare the white base and backdrop (planned 2026-10-31 by the plan role)
