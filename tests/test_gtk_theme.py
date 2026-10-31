@@ -491,8 +491,56 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {
                 selector
                 for selector in self.rules
-                if ".osd entry" in selector or ".osd spinbutton" in selector
+                if (".osd entry" in selector or ".osd spinbutton" in selector)
+                and " button" not in selector
             },
+            set(expected),
+        )
+
+    def test_osd_spinbutton_buttons(self):
+        """Pin the twelve OSD spinbutton stepper arms to push-button faces."""
+        base = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        active = {**base, "box-shadow": INVERTED_BUTTON_BEVEL}
+        disabled = {**base, "color": ETCH_DARK}
+        del disabled["outline-color"]
+        horizontal = lambda declarations: declarations
+        vertical = lambda declarations: {
+            **declarations, "background-clip": "border-box"
+        }
+        expected = {
+            ".osd spinbutton:not(.vertical) button": horizontal(base),
+            ".osd spinbutton:not(.vertical) button:dir(rtl)": horizontal(base),
+            ".osd spinbutton:not(.vertical) button:hover": horizontal(base),
+            ".osd spinbutton:not(.vertical) button:backdrop": horizontal(base),
+            ".osd spinbutton:not(.vertical) button:disabled": horizontal(disabled),
+            ".osd spinbutton:not(.vertical) button:dir(ltr):last-child": horizontal(base),
+            ".osd spinbutton:not(.vertical) button:dir(rtl):first-child": horizontal(base),
+            ".osd spinbutton.vertical button:first-child": vertical(base),
+            ".osd spinbutton.vertical button:first-child:hover": vertical(base),
+            ".osd spinbutton.vertical button:first-child:active": vertical(active),
+            ".osd spinbutton.vertical button:first-child:disabled": vertical(disabled),
+            ".osd spinbutton.vertical button:first-child:backdrop": vertical(base),
+        }
+        self.assertEqual(len(expected), 12)
+        for selector, declarations in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], declarations)
+        self.assertEqual(
+            {selector for selector in self.rules
+             if "spinbutton" in selector and " button" in selector
+             and any(token in selector for token in (
+                 ".osd", "app-notification", "touch-selection", "magnifier"
+             ))},
             set(expected),
         )
 

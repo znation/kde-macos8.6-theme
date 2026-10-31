@@ -2246,3 +2246,148 @@ button.destructive-action:checked {
   text-shadow: none;
   -gtk-icon-shadow: none;
 }
+
+/* No collected reference screenshot shows a GTK OSD spinbutton stepper.
+ * GTK 3.24.49's gtk-contained.css resource (extracted from libgtk-3.so.0
+ * with gresource, 2026-10-30) supplies dark translucent
+ * vertical faces and transparent horizontal faces with directional
+ * separators; it also claims a translucent vertical outline, padding-box
+ * clipping, and 5px edge radii. Reuse the landed push-button recipe: the
+ * full black border clears both separator directions, square corners clear
+ * the edge radii, black clears the stock outline, and border-box clears
+ * the vertical clip. */
+.osd spinbutton:not(.vertical) button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:dir(rtl) {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:dir(ltr):last-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton:not(.vertical) button:dir(rtl):first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:active {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+.osd spinbutton.vertical button:first-child:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  background-clip: border-box;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
