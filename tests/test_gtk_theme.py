@@ -24,6 +24,7 @@ from support.gtk_css import HEX, parse_css
 from support.gtk_rule_cases import GtkSheetRuleCases
 from support.gtk_theme_spec import (
     BASE_DEFINED_COLOURS as DEFINED_COLOURS,
+    CHECK,
     DISABLED_TEXT,
     ENTRY_FIELD,
     ENTRY_PROGRESS,
@@ -36,6 +37,7 @@ from support.gtk_theme_spec import (
     SCROLLBAR_STEPPER_ACTIVE,
     SCROLLBAR_STEPPER_ARROWS,
     TAB_STATES,
+    RADIO,
     TITLE_BUTTON_IMAGE,
 )
 from support.platinum_palette import (
@@ -398,7 +400,9 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 selector
                 for selector in self.rules
                 if (".osd" in selector
+                    and ".osd check" not in selector
                     and ".osd entry" not in selector
+                    and ".osd radio" not in selector
                     and ".osd spinbutton" not in selector)
                 or "magnifier" in selector
                 or "touch-selection" in selector
@@ -459,6 +463,52 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 for selector in self.rules
                 if ".osd entry" in selector or ".osd spinbutton" in selector
             },
+            set(expected),
+        )
+
+    def test_osd_check_radio(self):
+        """Pin the ten restated stock OSD indicator arms.
+
+        No collected reference screenshot shows a check or radio inside a GTK
+        OSD overlay, so the sheet restates the toolkit resource's five `.osd`
+        indicator arms with the landed plain check and radio recipes (CHECK
+        and RADIO in ``support.gtk_theme_spec.py``) plus two clearances the
+        stock arms claim: the white-on-dark text and icon shadows, cleared,
+        and a black focus-outline colour in place of the stock
+        rgba(238,238,236,0.3). The arm selectors and states come from
+        gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+        (libgtk-3 3.24.49); each arm is byte-for-byte the recipe in every
+        state, because the armed spellings set no geometry, glyph source or
+        checked spelling stock could override.
+        """
+        clearance = {
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        check = {**CHECK, **clearance}
+        radio = {**RADIO, **clearance}
+        states = ("", ":hover", ":active", ":backdrop", ":disabled")
+        expected = {}
+        for state in states:
+            expected[f".osd check{state}"] = check
+            expected[f".osd radio{state}"] = radio
+        parsed = {}
+        for selector in expected:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], expected[selector])
+            parsed[selector] = self.rules[selector]
+        self.assertEqual(
+            [dict(parsed[f".osd check{state}"]) for state in states],
+            [check] * 5,
+        )
+        self.assertEqual(
+            [dict(parsed[f".osd radio{state}"]) for state in states],
+            [radio] * 5,
+        )
+        self.assertEqual(
+            {selector for selector in self.rules
+             if ".osd check" in selector or ".osd radio" in selector},
             set(expected),
         )
 

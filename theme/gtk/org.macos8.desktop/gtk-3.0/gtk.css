@@ -1374,3 +1374,122 @@ toolbar.osd {
   text-shadow: none;
   -gtk-icon-shadow: none;
 }
+
+/* No collected reference screenshot shows a GTK OSD overlay or a check or
+   radio inside one, so the toolkit resource's five `.osd` indicator arms —
+   translucent dark bubbles with white-on-dark text and icon shadows — are
+   restated with the landed plain check and radio recipes (the CHECK and
+   RADIO specs in tests/support/gtk_theme_spec.py, pinned by
+   tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_check_and_radio):
+   the raised #DDDDDD check face with its etched bevel and square corners and
+   the flat white round radio, black borders, the 14px minimums and 0 4px
+   margins, the stock text and icon shadows cleared, and a black
+   focus-outline colour replacing the stock rgba(238,238,236,0.3). No stock
+   `.osd` indicator arm sets geometry, an -gtk-icon-source or a
+   :checked/:indeterminate spelling and the static shipped glyph assets are
+   never recoloured, so the landed plain check, radio, check:checked,
+   radio:checked and check:indeterminate rules keep governing inside .osd
+   overlays at every state. The arm selectors and state names come from the
+   toolkit resource gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30; the landed base check/radio rules keep governing outside .osd.
+   Declaration checks do not establish rendered pixels. */
+.osd check, .osd radio {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:hover, .osd radio:hover {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:hover {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:active, .osd radio:active {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:active {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:backdrop, .osd radio:backdrop {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:backdrop {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
+
+.osd check:disabled, .osd radio:disabled {
+  min-height: 14px;
+  min-width: 14px;
+  margin: 0 4px;
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #888888;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.osd radio:disabled {
+  background-color: #FFFFFF;
+  border-radius: 50%;
+  box-shadow: none;
+}
