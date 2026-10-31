@@ -1,0 +1,202 @@
+"""Tests for the data-home lock of ``apply_theme``.
+
+An apply holds the data-home flock ``make install``/``make uninstall`` hold
+(the Makefile's ``run_locked``) across its re-selection steps, so a concurrent
+uninstall cannot remove the installed packages between the
+``lookandfeeltool``/``plasma-apply-*`` selections and leave a selection that
+silently falls back with no diagnostic. The workflow, fault and stub cases live
+in ``tests/test_apply_theme.py``; the case base mirrors its ``StubTools``
+setUp.
+"""
+
+from __future__ import annotations
+
+import fcntl
+import os
+import stat
+import threading
+import time
+import unittest
+from unittest import mock
+
+from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
+from support.cli_fixtures import run_main
+from support.process_assertions import assert_failed, assert_succeeded
+from support.tmp_dir import make_tmp_dir
+from tools import apply_theme
+
+
+class ThemeLockCase(unittest.TestCase):
+    """Base with a temp home, data home and stubbed selection tools."""
+
+    def setUp(self):
+        self.root = make_tmp_dir(self)
+        self.home = self.root / "home"
+        self.home.mkdir()
+        self.data = self.root / "data"
+        # The lock is taken on the data home, so it must exist when the apply
+        # runs; ``make install`` creates it before this script runs.
+        self.data.mkdir(parents=True)
+        self.config = self.root / "config"
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+        self.calls = self.root / "calls"
+        for name in apply_theme.REQUIRED_TOOLS:
+            self.stub(name)
+        self.stub("qdbus6")
+        self.stub("kvantummanager")
+        self.env = {
+            "HOME": str(self.home),
+            "XDG_DATA_HOME": str(self.data),
+            "XDG_CONFIG_HOME": str(self.config),
+            "PATH": str(self.bin),
+        }
+        self._thread = None
+        self._stop = None
+        self.observations = []
+
+    def stub(self, name, body="exit 0"):
+        """Write an executable *name* that records its argv, then runs *body*."""
+        path = self.bin / name
+        path.write_text(
+            "#!/bin/sh\n"
+            "name=${0##*/}\n"
+            f'printf \'%s %s\\n\' "$name" "$*" >> "{self.calls}"\n'
+            f"{body}\n",
+            encoding="utf-8",
+        )
+        path.chmod(path.stat().st_mode | stat.S_IXUSR)
+
+    def run_tool(self):
+        with mock.patch.dict(os.environ, self.env, clear=True):
+            return run_main(apply_theme.main, "apply_theme", [])
+
+    def hold_data_lock(self):
+        """Take the data-home lock a concurrent install or uninstall holds."""
+        descriptor = os.open(
+            self.data, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+        )
+        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        self.addCleanup(os.close, descriptor)
+
+    def start_probe(self):
+        """Probe the data-home flock from a daemon thread until it is held.
+
+        Every non-blocking attempt appends ``"unlocked"`` when the flock is
+        free and ``"locked"`` once a run holds it, so an apply that never takes
+        the lock keeps the probe in its ``unlocked`` loop.
+        """
+        observations = self.observations
+        stop = threading.Event()
+        self._stop = stop
+
+        def probe():
+            descriptor = os.open(self.data, os.O_RDONLY)
+            try:
+                while not stop.is_set():
+                    try:
+                        fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        observations.append("unlocked")
+                        fcntl.flock(descriptor, fcntl.LOCK_UN)
+                    except OSError:
+                        observations.append("locked")
+                        return
+                    time.sleep(0.02)
+            finally:
+                os.close(descriptor)
+
+        self._thread = threading.Thread(target=probe, daemon=True)
+        self._thread.start()
+        self.addCleanup(self.stop_probe)
+
+    def stop_probe(self):
+        """Stop the probe thread :meth:`start_probe` started."""
+        if self._stop is not None:
+            self._stop.set()
+            self._thread.join(5.0)
+            self._stop = None
+
+    def wait_until(self, predicate, message, seconds=5.0):
+        """Poll *predicate* until true, or fail the case naming *message*."""
+        deadline = time.monotonic() + seconds
+        while time.monotonic() < deadline and not predicate():
+            time.sleep(0.02)
+        if not predicate():
+            self.fail(f"{message}; saw {self.observations}")
+
+
+class TestDataHomeLock(ThemeLockCase):
+    """An apply serializes on the data-home lock make install/uninstall hold."""
+
+    def test_apply_refuses_while_an_install_or_uninstall_holds_the_data_home_lock(self):
+        self.hold_data_lock()
+
+        with mock.patch.object(apply_theme, "LOCK_TIMEOUT", 0.05):
+            result = self.run_tool()
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("waiting for another install or uninstall", result.stderr)
+        self.assertIn(str(self.data), result.stderr)
+        # No selection step ran: the refusal precedes lookandfeeltool.
+        self.assertFalse(self.calls.exists())
+
+    def test_apply_releases_the_data_home_lock_for_the_next_run(self):
+        result = self.run_tool()
+
+        assert_succeeded(self, result)
+        # After the apply printed its last selection, the data-home lock is
+        # free for the next install, uninstall or apply: a non-blocking
+        # attempt takes it at once.
+        descriptor = os.open(self.data, os.O_RDONLY)
+        try:
+            fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        finally:
+            os.close(descriptor)
+
+    def test_the_selections_run_while_the_data_home_lock_is_held(self):
+        """The lock stays held across the selection steps, not before them.
+
+        A probe that is already watching the data home sees it unlocked, then
+        sees the apply's held lock while the stubbed ``lookandfeeltool`` runs:
+        a selection body executed before the lock (or after the release) keeps
+        the probe's ``unlocked`` observations without any ``locked`` one.
+        """
+        self.start_probe()
+        self.wait_until(
+            lambda: "unlocked" in self.observations,
+            "the probe never observed the unlocked data home",
+        )
+
+        # Each stub sleeps 0.5s, so the selections take over a second; the
+        # probe polls every 20ms and must observe the apply's lock meanwhile.
+        self.stub("lookandfeeltool", "exec /bin/sleep 0.5")
+        result = self.run_tool()
+
+        assert_succeeded(self, result)
+        self.assertIn("locked", self.observations)
+
+    def test_an_unresolvable_data_home_refuses_the_apply(self):
+        """An apply with no resolvable data home cannot serialize at all.
+
+        ``make apply`` runs ``make install`` first, which resolves the same
+        data home, so an env where no absolute path can be resolved cannot have
+        come from a serialized install; the apply refuses by name instead of
+        selecting on top of an unserialized removal.
+        """
+        # An empty XDG_DATA_HOME falls back below HOME, and an empty HOME
+        # resolves no absolute fallback: no data home to serialize on.
+        self.env["HOME"] = ""
+        self.env["XDG_DATA_HOME"] = ""
+
+        result = self.run_tool()
+
+        assert_failed(self, result)
+        self.assertEqual(2, result.returncode)
+        self.assertIn("export an absolute HOME", result.stderr)
+        # The selections never ran: nothing serialized them with install.
+        self.assertFalse(self.calls.exists())
+
+
+if __name__ == "__main__":
+    unittest.main()

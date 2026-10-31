@@ -253,7 +253,11 @@ KWin to reconfigure so the window decoration reloads (when neither `qdbus6` nor 
 it notes that and leaves KWin to reload on its next start). It refuses a non-empty `DESTDIR`, since
 applying a staged tree to the running session is wrong, and it needs `lookandfeeltool`,
 `plasma-apply-colorscheme` and `plasma-apply-desktoptheme`, exiting 2 naming the first one that is
-missing or cannot be started, or reporting the scratch directory it cannot create. The startup
+missing or cannot be started, or reporting the scratch directory it cannot create. The three
+re-selections run under the data-home flock that `make install` and `make uninstall` hold: a run
+that cannot take that lock within its bounded wait exits 2 naming the data home, so a concurrent
+uninstall cannot remove the packages between the apply's selections, and an `HOME` no install could
+have resolved is refused the same way. The startup
 splash is read at login, so a splash change appears only on the next login.
 `make install-local-hook` writes a local-only `post-commit` hook into this clone's git hooks
 directory (the common `.git/hooks` shared by the `.tumwater/worktrees/*` worktrees), so every

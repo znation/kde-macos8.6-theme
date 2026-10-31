@@ -18,9 +18,10 @@ Usage::
     python3 tools/apply_theme.py
 
 Exit status: 0 when the theme was applied, 1 when a required command failed,
-2 for a usage error, a missing external tool, one that cannot be started, or a
-scratch directory that cannot be created, and 128 plus the signal number when
-a SIGTERM or SIGHUP ends the run.
+2 for a usage error, an unusable HOME, a missing external tool, one that cannot
+be started, a scratch directory that cannot be created, or another install or
+uninstall holding the data-home lock past the wait, and 128 plus the signal
+number when a SIGTERM or SIGHUP ends the run.
 """
 
 from __future__ import annotations
@@ -34,9 +35,12 @@ if __package__:
     from tools.argument_parsing import EscapingArgumentParser
     from tools.diagnostics import (
         create_scratch_directory,
+        report_error,
         report_missing_tool,
         report_note,
     )
+    from tools.file_lock import installed_data_lock
+    from tools import xdg_homes
     from tools.process_group import exit_on_termination, run_logged
     from tools.repo_root import ROOT
     from tools.required_command import run_required
@@ -44,9 +48,12 @@ else:  # run directly: python3 tools/apply_theme.py
     from argument_parsing import EscapingArgumentParser
     from diagnostics import (
         create_scratch_directory,
+        report_error,
         report_missing_tool,
         report_note,
     )
+    from file_lock import installed_data_lock
+    import xdg_homes
     from process_group import exit_on_termination, run_logged
     from repo_root import ROOT
     from required_command import run_required
@@ -59,6 +66,10 @@ COLOR_SCHEME = "MacOS8"
 # ``make install`` copies into Kvantum's search path. tests/test_apply_theme.py
 # pins it to that shipped package so the two cannot drift.
 KVANTUM_THEME = "org.macos8.desktop"
+
+
+class ApplyError(Exception):
+    """An apply that cannot run: the data home the selections need is unusable."""
 
 # The commands steps 1-3 need; a missing one is a hard error. qdbus and
 # kvantummanager are not in this list: the KWin reconfigure and the Kvantum
@@ -75,6 +86,10 @@ STEPS = (
     ["plasma-apply-desktoptheme", DTHEME_ID],
 )
 COMMAND_TIMEOUT = 60.0
+# The wait for the data-home lock matches make install/uninstall's own
+# FLOCK_TIMEOUT default, so a holder stopped with SIGSTOP cannot block this
+# run forever either.
+LOCK_TIMEOUT = 60.0
 
 
 def _note(message: str) -> None:
@@ -82,7 +97,7 @@ def _note(message: str) -> None:
     report_note(TOOL, message, err=True)
 
 
-def _session_env() -> dict[str, str]:
+def _session_env(environ: dict[str, str]) -> dict[str, str]:
     """Return ``os.environ`` with the session bus address defaulted if needed.
 
     A non-login shell (the local post-commit hook, for example) may run
@@ -91,7 +106,7 @@ def _session_env() -> dict[str, str]:
     the variable at that socket so the ``plasma-apply-*`` tools can reach the
     running session. Otherwise the environment is returned unchanged.
     """
-    env = dict(os.environ)
+    env = dict(environ)
     if env.get("DBUS_SESSION_BUS_ADDRESS"):
         return env
     runtime = env.get("XDG_RUNTIME_DIR", "")
@@ -186,26 +201,36 @@ def _select_kvantum_theme(scratch: Path, env: dict[str, str]) -> int:
     return 0
 
 
-def _apply() -> int:
+def _apply(data_home: Path, environ: dict[str, str]) -> int:
     """Run the required steps, then the best-effort selections."""
     scratch = create_scratch_directory(TOOL, "apply-theme-")
     if scratch is None:
         return 2
     try:
-        env = _session_env()
-        for argv in STEPS:
-            status = run_required(
-                TOOL,
-                argv,
-                env,
-                scratch / f"{argv[0]}.log",
-                COMMAND_TIMEOUT,
-                ROOT,
-            )
-            if status is not None:
-                return status
-        _select_kvantum_theme(scratch, env)
-        return _reconfigure_kwin(scratch, env)
+        # Hold the data-home lock make install/uninstall hold across the
+        # selections: lookandfeeltool, plasma-apply-* and the best-effort
+        # kvantummanager all read installed packages a concurrent uninstall
+        # can otherwise remove between and after these selections, leaving a
+        # selection that silently falls back with no diagnostic. Taking the
+        # same flock orders apply against uninstall: a theme removed before
+        # this run wins the lock makes the next required step fail loudly.
+        with installed_data_lock(
+            data_home, "for the theme apply", LOCK_TIMEOUT, error=ApplyError
+        ):
+            env = _session_env(environ)
+            for argv in STEPS:
+                status = run_required(
+                    TOOL,
+                    argv,
+                    env,
+                    scratch / f"{argv[0]}.log",
+                    COMMAND_TIMEOUT,
+                    ROOT,
+                )
+                if status is not None:
+                    return status
+            _select_kvantum_theme(scratch, env)
+            return _reconfigure_kwin(scratch, env)
     finally:
         shutil.rmtree(scratch, ignore_errors=True)
 
@@ -220,9 +245,11 @@ def main(argv: list[str] | None = None) -> int:
         ),
         epilog=(
             "exit status: 0 when the theme was applied, 1 when a required "
-            "command failed, 2 usage error, missing external tool, one that "
-            "cannot be started, or a scratch directory that cannot be created, "
-            "and 128 plus the signal number when a SIGTERM or SIGHUP ends the run"
+            "command failed, 2 usage error, an unusable HOME, a missing "
+            "external tool, one that cannot be started, a scratch directory "
+            "that cannot be created, or another install or uninstall holding "
+            "the data-home lock past the wait, and 128 plus the signal number "
+            "when a SIGTERM or SIGHUP ends the run"
         ),
     )
     parser.parse_args(argv)
@@ -231,7 +258,17 @@ def main(argv: list[str] | None = None) -> int:
     if missing is not None:
         return missing
     with exit_on_termination():
-        return _apply()
+        try:
+            data_home = xdg_homes.data_home(dict(os.environ))
+            if data_home is None:
+                raise ApplyError(
+                    "HOME is unset or not an absolute path, so the data home "
+                    "make install and make uninstall serialize on cannot be "
+                    "resolved; export an absolute HOME"
+                )
+            return _apply(data_home, dict(os.environ))
+        except ApplyError as exc:
+            return report_error(TOOL, str(exc))
 
 
 if __name__ == "__main__":

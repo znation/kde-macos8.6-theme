@@ -43,13 +43,26 @@ class StubTools(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
         self.bin = self.root / "bin"
         self.bin.mkdir()
+        self.home = self.root / "home"
+        self.home.mkdir()
+        # The apply holds the flock on the data home its selection reads, so
+        # the data home is a temp directory, never the caller's real one.
+        self.data = self.root / "data"
+        self.data.mkdir(parents=True)
         self.calls = self.root / "calls"
         self.env_log = self.root / "env"
         for name in apply_theme.REQUIRED_TOOLS:
             self.stub(name)
         self.stub("qdbus6")
         self.stub("kvantummanager")
-        patch = mock.patch.dict(os.environ, {"PATH": str(self.bin)})
+        patch = mock.patch.dict(
+            os.environ,
+            {
+                "PATH": str(self.bin),
+                "HOME": str(self.home),
+                "XDG_DATA_HOME": str(self.data),
+            },
+        )
         patch.start()
         self.addCleanup(patch.stop)
 
