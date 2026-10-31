@@ -578,6 +578,8 @@ for radio in (False, True):
         # No reference screenshot shows a GTK suggested-action button; the
         # tail arms restate the landed plain push-button recipe, so every
         # checked relationship below anchors the landed face constants.
+        # (2026-10-31: the colour-class members are since restated by
+        # test_action_class_flat_arms.)
         self.assert_rule(
             "button.suggested-action",
             {
@@ -640,8 +642,15 @@ for radio in (False, True):
             "button.suggested-action:disabled:checked",
             "button.suggested-action:focus:focus-visible",
         }
+        # The `.flat`-suffixed colour-class selectors land through
+        # test_action_class_flat_arms, so they stay out of the plain family
+        # bound here (2026-10-31).
         self.assertEqual(
-            {selector for selector in self.rules if selector.startswith("button.suggested-action")},
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("button.suggested-action") and ".flat" not in selector
+            },
             expected_selectors,
         )
 
@@ -649,6 +658,8 @@ for radio in (False, True):
         # No reference screenshot shows a GTK destructive-action button; the
         # tail arms restate the landed plain push-button recipe, so every
         # checked relationship below anchors the landed face constants.
+        # (2026-10-31: the colour-class members are since restated by
+        # test_action_class_flat_arms.)
         self.assert_rule(
             "button.destructive-action",
             {
@@ -711,10 +722,63 @@ for radio in (False, True):
             "button.destructive-action:disabled:checked",
             "button.destructive-action:focus:focus-visible",
         }
+        # The `.flat`-suffixed colour-class selectors land through
+        # test_action_class_flat_arms, so they stay out of the plain family
+        # bound here (2026-10-31).
         self.assertEqual(
-            {selector for selector in self.rules if selector.startswith("button.destructive-action")},
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("button.destructive-action") and ".flat" not in selector
+            },
             expected_selectors,
         )
+
+    def test_action_class_flat_arms(self):
+        # No reference screenshot shows a GTK flat action button; the tail
+        # arms restate the landed push-button recipe over the stock
+        # transparent colour-class flat family, so every checked
+        # relationship below anchors the landed face constants and the two
+        # family inventories keep the arms to stock's own spellings.
+        face = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+        }
+        sunken = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+        }
+        insensitive = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+        }
+        for prefix in ("button.suggested-action", "button.destructive-action"):
+            with self.subTest(action_class=prefix):
+                self.assert_rule(f"{prefix}.flat", face)
+                for state in (":active", ":checked", ".keyboard-activating"):
+                    self.assert_rule(f"{prefix}.flat{state}", sunken)
+                self.assert_rule(f"{prefix}.flat:disabled", insensitive)
+                self.assertEqual(
+                    {s for s in self.rules if s.startswith(f"{prefix}.flat")},
+                    {
+                        f"{prefix}.flat",
+                        f"{prefix}.flat:active",
+                        f"{prefix}.flat:checked",
+                        f"{prefix}.flat.keyboard-activating",
+                        f"{prefix}.flat:disabled",
+                    },
+                )
 
     def test_flat_button_arms(self):
         # No reference screenshot shows a GTK flat button; the tail arms

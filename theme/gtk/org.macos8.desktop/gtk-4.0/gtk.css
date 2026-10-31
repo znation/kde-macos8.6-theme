@@ -2272,3 +2272,74 @@ button:backdrop.flat:disabled:active, button:backdrop.flat:disabled:checked {
   color: #888888;
 }
 
+/* 2026-10-31: no collected reference screenshot shows a GTK flat action
+   button (the GTK scope's standing adaptation premise), so the colour-class
+   `.flat` members are restated with the landed push-button recipe of this
+   same sheet — part 1/2's generic `button.flat` arms and the landed plain
+   suggested- and destructive-action restatements are the recipe sources.
+   The toolkit resource (/org/gtk/libgtk/theme/Default/Default-light.css
+   inside libgtk-4 4.18.6, probed with gresource, 2026-10-31) declares the
+   colour-class flat claims as four standalone groups — a transparent face
+   with the class's own label colour, reclaimed with translucent labels
+   when disabled — and no hover, press, backdrop or backdrop-first member
+   of either class carries the flat token. Each restated selector below is
+   the exact stock twin and sits later in source order, so it wins every
+   tie over the stock family, whose blue and red label distinction is
+   erased by the landed recipe's black labels. Only the base, pressed and
+   disabled states are restated: stock's colour-class arms claim no motion,
+   part 1/2's `transition: none` keeps the family still at lower class
+   counts, and hover, backdrop, pressed-backdrop and pressed-disabled-
+   backdrop resolve through part 1/2's generic arms and the landed plain
+   disabled and pressed restatements to the same faces. */
+button.suggested-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.suggested-action.flat:active, button.suggested-action.flat:checked, button.suggested-action.flat.keyboard-activating {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.suggested-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.destructive-action.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action.flat:active, button.destructive-action.flat:checked, button.destructive-action.flat.keyboard-activating {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+}
+
+button.destructive-action.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
