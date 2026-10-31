@@ -169,6 +169,23 @@ class TestFailurePaths(StubTools):
         status, stderr = call_main(render_surface.main, str(output), *extra)
         return status, stderr, output
 
+    def test_menu_dialog_launches_its_kdialog_menu_client(self):
+        # The menu mode must reach the session as a KDialog menu client (and
+        # therefore use the dialog's Kvantum configuration path), not fall
+        # through to the default Plasma calculator applet.
+        with mock.patch.object(render_surface, "run_logged", return_value=1) as run:
+            status, stderr, output = self.run_main("--menu-dialog")
+
+        self.assertEqual(1, status)
+        self.assertIn("render session exited 1", stderr)
+        argv = run.call_args.args[0]
+        self.assertIn("kdialog", argv[-1])
+        self.assertIn("--menu", argv[-1])
+        self.assertIn("Alpha", argv[-1])
+        self.assertNotIn("org.kde.plasma.calculator", argv[-1])
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_unusable_scratch_directory_exits_2_without_a_traceback(self):
         # The scratch session is created before the install starts. Creating it
         # can fail (a full or unwritable TMPDIR) before there is anything to
