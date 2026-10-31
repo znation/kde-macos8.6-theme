@@ -52,6 +52,14 @@ class RequiredCommandCase(unittest.TestCase):
 
 
 class TestRunRequired(RequiredCommandCase):
+    def test_an_empty_command_is_rejected_before_starting_a_child(self):
+        with mock.patch.object(required_command, "run_logged") as runner:
+            with self.assertRaisesRegex(
+                ValueError, r"^run_required\(\) requires a non-empty command$"
+            ):
+                self.run_required([])
+        runner.assert_not_called()
+
     def test_success_returns_none_runs_where_asked_and_logs_the_output(self):
         # A real child proves the environment, working directory and log path
         # reach run_logged: the command reports both values through its log.

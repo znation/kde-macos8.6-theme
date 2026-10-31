@@ -44,6 +44,8 @@ def run_required(
     with the log tail. The caller returns the result directly, so a failed
     required command stops the run.
     """
+    if not command:
+        raise ValueError("run_required() requires a non-empty command")
     try:
         status = run_logged(command, env, log, timeout, cwd)
     except OSError as exc:
