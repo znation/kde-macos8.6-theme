@@ -8,37 +8,6 @@ unclear-invariant).
 
 ## Open
 
-### The rendered combo box indicator is a squashed 4px-wide arrow, not the reference's centred double arrow (found by the render pass 2026-10-29)
-
-A `QComboBox`'s indicator renders as two right-aligned triangles four pixels wide (band widths
-1/2/3/4 and 4/3/2/1 with the right edge fixed at x=187), while the reference cell and the shipped
-`comboarrow-normal` art are 7px-wide centred triangles (1/3/5/7 and 7/5/3/1) in a 12x12
-`#DDDDDD` cell. `tests/test_kvantum_combobox_reference.py` passes, so the art is right and only
-the rendered pixels differ.
-
-Reproduce with the pass's throwaway session: `kdialog --title "Test" --combobox "Choose a disk:"
-"Macintosh HD" "Zip Disk"`, then dump x=174..187, y=56..71.
-
-**Observed output:** row 59 one black pixel (x=187), row 60 two (186-187), row 61 three (185-187),
-row 62 four (184-187), two face rows, then 4/3/2/1; the reference's cell
-(`systeminfo_betawiki.png` x=233..244, y=106..117) has 1/3/5/7 and 7/5/3/1 centred bands —
-`tools/sample.py systeminfo_betawiki.png 236 109 --width 5` is five `#000000` pixels where the
-render's matching row has three.
-
-**Suspected cause:** the same resampling as the check box — Kvantum draws the 12x12
-`comboarrow` art into a narrower indicator area (about 7px), squashing the triangles; the theme's
-`[ComboBox] indicator.size=12` does not reach the rendered indicator.
-
-**Decision (user, recorded by the director role 2026-10-30): steer the engine first** — proceed
-with the bugfix review's recommendation: try steering the engine to draw the 12x12 `comboarrow`
-cell 1:1 (an explicit size knob matching the art's canvas; note the check box fix found
-`[CheckBox] indicator.size` inert there, so try the section's size keys against upstream
-`Kvantum.cpp` before trusting `indicator.size`), and pin the rendered arrow's centred bands
-(1/3/5/7, 7/5/3/1) with a test that re-derives the pixels from a render. Only if the engine
-cannot be steered to the art's size, re-derive the `comboarrow` art at the size Kvantum actually
-draws and record the smaller cell's deviation from the reference's 12x12 so the same direction
-does not silently ship resampled art.
-
 ### A rendered kdialog push button paints two black rows the shipped button frame does not contain (found by the bugfix role 2026-10-30)
 
 The dialog render this run (the checkbox gate's `--checkbox-dialog` render, a kdialog warning at

@@ -5,6 +5,61 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The rendered combo box indicator is a squashed 4px-wide arrow, not the reference's centred double arrow (found by the render pass 2026-10-29) — fixed 2026-10-30 by the bugfix role
+**Validation gap:** real-run-needed — only a real bounded KWin render could show the rendered
+indicator's pixels, and no offline test could: the SVG reference suite was green while the
+rendered arrow differed, and the squashed observation itself came from a session that no longer
+exists.
+
+A `QComboBox`'s indicator renders as two right-aligned triangles four pixels wide (band widths
+1/2/3/4 and 4/3/2/1 with the right edge fixed at x=187), while the reference cell and the shipped
+`comboarrow-normal` art are 7px-wide centred triangles (1/3/5/7 and 7/5/3/1) in a 12x12
+`#DDDDDD` cell. `tests/test_kvantum_combobox_reference.py` passes, so the art is right and only
+the rendered pixels differ.
+
+Reproduce with the pass's throwaway session: `kdialog --title "Test" --combobox "Choose a disk:"
+"Macintosh HD" "Zip Disk"`, then dump x=174..187, y=56..71.
+
+**Observed output:** row 59 one black pixel (x=187), row 60 two (186-187), row 61 three (185-187),
+row 62 four (184-187), two face rows, then 4/3/2/1; the reference's cell
+(`systeminfo_betawiki.png` x=233..244, y=106..117) has 1/3/5/7 and 7/5/3/1 centred bands —
+`tools/sample.py systeminfo_betawiki.png 236 109 --width 5` is five `#000000` pixels where the
+render's matching row has three.
+
+**Suspected cause:** the same resampling as the check box — Kvantum draws the 12x12
+`comboarrow` art into a narrower indicator area (about 7px), squashing the triangles; the theme's
+`[ComboBox] indicator.size=12` does not reach the rendered indicator.
+
+**Decision (user, recorded by the director role 2026-10-30): steer the engine first** — proceed
+with the bugfix review's recommendation: try steering the engine to draw the 12x12 `comboarrow`
+cell 1:1 (an explicit size knob matching the art's canvas; note the check box fix found
+`[CheckBox] indicator.size` inert there, so try the section's size keys against upstream
+`Kvantum.cpp` before trusting `indicator.size`), and pin the rendered arrow's centred bands
+(1/3/5/7, 7/5/3/1) with a test that re-derives the pixels from a render. Only if the engine
+cannot be steered to the art's size, re-derive the `comboarrow` art at the size Kvantum actually
+draws and record the smaller cell's deviation from the reference's 12x12 so the same direction
+does not silently ship resampled art.
+
+**Resolution (bugfix, 2026-10-30):** the engine was already set to the art's native size, and
+the squashed render does not reproduce on the current tree. Upstream Kvantum 1.1.4
+(`Kvantum.cpp`, `renderIndicator` and `PE_IndicatorButtonDropDown`) reads `[ComboBox]
+indicator.size` and clamps the drawn arrow's side to it — the knob does reach the rendered
+indicator, unlike the checkbox's section size — with no other section size key in the combo
+path, so the shipped 12 already asks for the 12x12 canvas and no further steering is needed.
+Two real renders through the current render session (`kdialog --combobox "Choose a disk:"
+"Macintosh HD" "Zip Disk"`, 480x360 and 320x240 captures) drew the exact reference cell —
+1/3/5/7 and 7/5/3/1 centred bands, black and `#DDDDDD` only — byte-identical to the shipped
+`comboarrow-normal` slice and to each other; that cell is where KWin centres the 480x360
+dialog's combo arrow (x=316..327, y=178..189), a platform value the reference set does not
+show, measured on that capture. The 2026-10-29 squashed observation predates this session's
+theme-selection plumbing (the `kdeglobals` `widgetStyle` write, the Kvantum selection and the
+`$HOME` themes link that the check box fix landed 2026-10-30), so its capture no longer names
+a live drawing path. The render surface now has a `--combobox-dialog` mode in that session,
+and `tests/test_render_surface.py::TestComboboxDialogRender::test_draws_the_combo_arrow_cell_1_to_1` pins the rendered cell
+against the shipped art in `make check` — a red run with a temporary `indicator.size=6`
+re-sampled the cell and failed the gate, so the pin catches steering the size away from the
+canvas too.
+
 ### The live render gate byte-compares only Aurorae window chrome, so `make check` stays green on widgets the engine draws wrongly (found by the steward role 2026-10-30) — fixed 2026-10-30 by the bugfix role
 
 The declared check's only rendered-pixel comparisons live in

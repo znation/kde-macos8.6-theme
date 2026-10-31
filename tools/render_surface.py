@@ -15,6 +15,7 @@ Usage::
 
     python3 tools/render_surface.py OUTPUT [--applet ID] [--width W]
         [--height H] [--settle SECONDS] [--timeout SECONDS]
+        [--checkbox-dialog | --combobox-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
@@ -48,6 +49,7 @@ if __package__:
         Session,
         CONFIG_FILES,
         checkbox_dialog_client,
+        combobox_dialog_client,
         install_theme,
         link_kvantum_themes,
         session_command,
@@ -73,6 +75,7 @@ else:  # run directly: python3 tools/render_surface.py
         Session,
         CONFIG_FILES,
         checkbox_dialog_client,
+        combobox_dialog_client,
         install_theme,
         link_kvantum_themes,
         session_command,
@@ -90,7 +93,7 @@ REQUIRED_TOOLS = (
     "plasmawindowed",
     "spectacle",
 )
-# The default applet, which `--checkbox-dialog` refuses to combine with.
+# The default applet, which the dialog modes refuse to combine with.
 _DEFAULT_APPLET = "org.kde.plasma.calculator"
 # The dialog capture's size, the size the widget gate byte-compares.
 _DIALOG_CAPTURE = (480, 360)
@@ -148,10 +151,10 @@ def _render(args: argparse.Namespace) -> int:
                 TOOL, f"cannot link {path}: {problem}"
             )
 
+        dialog = args.checkbox_dialog or args.combobox_dialog
         try:
             write_session_configs(
-                session,
-                files=_dialog_config_files() if args.checkbox_dialog else CONFIG_FILES,
+                session, files=_dialog_config_files() if dialog else CONFIG_FILES
             )
         except (OSError, UnicodeDecodeError, ValueError) as exc:
             return report_failure(
@@ -160,14 +163,17 @@ def _render(args: argparse.Namespace) -> int:
 
         if args.checkbox_dialog:
             client = list(checkbox_dialog_client(session))
+        elif args.combobox_dialog:
+            client = list(combobox_dialog_client(session))
+        else:
+            client = ["plasmawindowed", args.applet]
+        if dialog:
             try:
                 write_kvantum_selection(session)
             except OSError as exc:
                 return report_failure(
                     TOOL, f"cannot write the Kvantum selection: {exc}"
                 )
-        else:
-            client = ["plasmawindowed", args.applet]
 
         command = session_command(
             session,
@@ -276,16 +282,25 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     parser.add_argument(
+        "--combobox-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog chooser whose combo box the Kvantum engine draws "
+            "with the theme's comboarrow art, and capture it at the 480x360 "
+            "size the widget gate byte-compares"
+        ),
+    )
+    parser.add_argument(
         "--width",
         type=positive_int("--width"),
         default=None,
-        help="output width in pixels (default 320, or 480 with --checkbox-dialog)",
+        help="output width in pixels (default 320, or 480 with a --*-dialog)",
     )
     parser.add_argument(
         "--height",
         type=positive_int("--height"),
         default=None,
-        help="output height in pixels (default 240, or 360 with --checkbox-dialog)",
+        help="output height in pixels (default 240, or 360 with a --*-dialog)",
     )
     parser.add_argument(
         "--settle",
@@ -303,16 +318,30 @@ def main(argv: list[str] | None = None) -> int:
         ),
     )
     args = parser.parse_args(argv)
-    if args.checkbox_dialog:
+    dialog_flags = [
+        flag
+        for flag, given in (
+            ("--checkbox-dialog", args.checkbox_dialog),
+            ("--combobox-dialog", args.combobox_dialog),
+        )
+        if given
+    ]
+    if len(dialog_flags) > 1:
+        parser.error(
+            "the dialog modes open one kdialog client each: give one of "
+            f"{', '.join(dialog_flags)}, not both"
+        )
+    if dialog_flags:
+        flag = dialog_flags[0]
         if args.applet != _DEFAULT_APPLET:
             parser.error(
-                "--checkbox-dialog opens its own kdialog client: do not "
-                "combine it with --applet"
+                f"{flag} opens its own kdialog client: do not combine it "
+                "with --applet"
             )
         if args.width is not None or args.height is not None:
             parser.error(
-                "--checkbox-dialog captures at 480x360, the size the widget "
-                "gate byte-compares: do not combine it with --width/--height"
+                f"{flag} captures at 480x360, the size the widget gate "
+                "byte-compares: do not combine it with --width/--height"
             )
         args.width, args.height = _DIALOG_CAPTURE
     else:
@@ -331,8 +360,8 @@ def main(argv: list[str] | None = None) -> int:
             "it can capture"
         )
 
-    requirements = (
-        REQUIRED_TOOLS + (("kdialog",) if args.checkbox_dialog else ())
+    requirements = REQUIRED_TOOLS + (
+        ("kdialog",) if args.checkbox_dialog or args.combobox_dialog else ()
     )
     missing = report_missing_tool(TOOL, requirements)
     if missing is not None:

@@ -244,6 +244,27 @@ def checkbox_dialog_client(session: Session) -> tuple[str, ...]:
     )
 
 
+def combobox_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the Qt client argv the combo arrow gate renders.
+
+    A ``kdialog`` chooser with a real ``QComboBox``: the engine draws its
+    indicator through this theme's ``comboarrow-*`` art and
+    ``[ComboBox] indicator.size``, the pixels the widget gate byte-compares.
+    The session argument is taken for symmetry with the other dialog client
+    and for future clients that write scratch config files; the combo dialog
+    itself needs none.
+    """
+    return (
+        "kdialog",
+        "--title",
+        "Test",
+        "--combobox",
+        "Choose a disk:",
+        "Macintosh HD",
+        "Zip Disk",
+    )
+
+
 def session_command(
     session: Session,
     client: list[str] | tuple[str, ...],

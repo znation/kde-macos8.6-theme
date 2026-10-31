@@ -102,6 +102,11 @@ CHECKBOX_CROP = (156, 187, 14, 14)
 # A 1px face ring around the cell catches resampling bleed: at the engine's
 # native size the cells around the art stay the flat client face.
 CHECKBOX_FACE_RING_CROP = (155, 186, 16, 16)
+# The rendered combo box indicator: the shipped 12x12 canvas at 1:1, measured
+# against `tests/test_kvantum_combobox_reference.py`'s reference cell. The
+# combo dialog is the session's only window like the checkbox dialog, so the
+# crop is measured on the same 480x360 capture.
+COMBOBOX_CROP = (316, 178, 12, 12)
 
 
 class StubTools(unittest.TestCase):
@@ -802,6 +807,65 @@ class TestCheckboxDialogRender(unittest.TestCase):
                     self.assertEqual(
                         expected, hex_colour(pixel_at(image, x0 + x, y0 + y))
                     )
+
+
+class TestComboboxDialogRender(unittest.TestCase):
+    """The engine-drawn combo box indicator the dialog render captures is 1:1.
+
+    The combo render opens a real ``QComboBox`` (kdialog's ``--combobox``)
+    drawn by the engine with this theme's ``comboarrow-*`` art through
+    ``[ComboBox] indicator.size``, and byte-compares the rendered 12x12 cell
+    with the shipped-art slice. The squashed 4px-wide arrow this gate guards
+    against was the very render bug the check box cell alone could not see;
+    the render pass found the combo arrow while the check box one was fixed,
+    so the two gates must hold together.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.directory = tempfile.mkdtemp(prefix="combobox-dialog-test-")
+        cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
+        cls.output = os.path.join(cls.directory, "dialog.png")
+        cls._candidate = None
+        # The tool's documented settle default is the paint budget the gate
+        # promises; the dialog window needs it like the applet window does.
+        process = process_runner.start(
+            [sys.executable, SCRIPT, cls.output, "--combobox-dialog"],
+            capture_output=True,
+            text=True,
+        )
+        cls.stdout, cls.stderr = process_runner.finish(process, timeout=150)
+        cls.returncode = process.returncode
+
+    @classmethod
+    def candidate_image(cls):
+        """Return the dialog render decoded once, reused by every read below."""
+        if cls._candidate is None:
+            cls._candidate = read_png(cls.output)
+        return cls._candidate
+
+    def test_exits_zero(self):
+        self.assertEqual(0, self.returncode, self.stderr)
+
+    def test_writes_a_480x360_png(self):
+        image = self.candidate_image()
+        self.assertEqual((DIALOG_WIDTH, DIALOG_HEIGHT), (image.width, image.height))
+
+    def test_draws_the_combo_arrow_cell_1_to_1(self):
+        # The expected cell is the shipped `comboarrow-normal` art itself, at
+        # its canvas size: the engine may neither resample the 1/3/5/7 bands
+        # into a narrower indicator area nor fill the cell from a foreign
+        # element. A squashed or blended arrow shows up here immediately.
+        slices = render_slices(parse_svg(SVG))
+        expected = dict(slices["comboarrow-normal"])
+        image = self.candidate_image()
+        x0, y0, width, height = COMBOBOX_CROP
+        actual = {
+            (x, y): hex_colour(pixel_at(image, x0 + x, y0 + y))
+            for x in range(width)
+            for y in range(height)
+        }
+        self.assertEqual(expected, actual)
 
 
 if __name__ == "__main__":

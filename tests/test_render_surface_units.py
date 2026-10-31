@@ -18,7 +18,10 @@ from support import repo_root  # noqa: F401  (puts the repository root on sys.pa
 from support import tmp_dir
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: E402
 from tools import render_session, render_surface  # noqa: E402
-from tools.render_session import checkbox_dialog_client  # noqa: E402
+from tools.render_session import (
+    checkbox_dialog_client,
+    combobox_dialog_client,
+)  # noqa: E402
 
 
 class TestArguments(unittest.TestCase):
@@ -90,6 +93,33 @@ class TestArguments(unittest.TestCase):
             "out.png", "--checkbox-dialog", "--width", "320"
         )
         self.assertIn("480x360", stderr)
+
+    def test_rejects_two_dialog_modes(self):
+        # Each dialog mode opens its own kdialog client; two flags cannot
+        # pick one client, so the CLI refuses the combination by name.
+        stderr = self.assert_usage_error(
+            "out.png", "--checkbox-dialog", "--combobox-dialog"
+        )
+        self.assertIn("--checkbox-dialog", stderr)
+        self.assertIn("--combobox-dialog", stderr)
+
+    def test_rejects_an_applet_with_the_combobox_dialog(self):
+        self.assertIn(
+            "--combobox-dialog",
+            self.assert_usage_error("out.png", "--combobox-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_combobox_dialog(self):
+        stderr = self.assert_usage_error(
+            "out.png", "--combobox-dialog", "--height", "240"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_the_combobox_dialog_requires_kdialog(self):
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--combobox-dialog")
+        )
 
     def test_the_checkbox_dialog_requires_kdialog(self):
         # The default applet render cannot need every tool the dialog mode
@@ -285,6 +315,22 @@ class TestSessionCommand(unittest.TestCase):
             self.assertIn(
                 f"{session.config / 'kde-dontagain'}:widgets", command.argv[-1]
             )
+
+    def test_carries_the_combobox_dialog_client_words(self):
+        with render_session.Session.create() as session:
+            command = render_session.session_command(
+                session,
+                list(combobox_dialog_client(session)),
+                2.5,
+                480,
+                360,
+                9.5,
+            )
+            self.assertIn("kdialog", command.argv[-1])
+            # The chooser's items travel as separate positional words of the
+            # in-session script, so a space inside one cannot become shell
+            # syntax.
+            self.assertIn("'Macintosh HD'", command.argv[-1])
 
 
 class TestSessionThemeSources(unittest.TestCase):

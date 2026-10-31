@@ -681,8 +681,13 @@ NO_FAKE_REPRODUCTIONS = (
 # Plus the Aurorae-only live render gate fixed 2026-10-30: confirming the
 # widget pixels the engine drew needed a real ``kwin_wayland`` ``kdialog``
 # render, and the dialog render that suite now runs in ``make check`` pins
-# the rendered checkbox cell against the shipped art. A new record must name
-# an offline test instead of raising this.
+# the rendered checkbox cell against the shipped art. Plus the combo arrow
+# resample fixed 2026-10-30: the squashed observation came from a pass session
+# that the theme-selection plumbing predates, so only a fresh real
+# ``kwin_wayland`` render could say what the engine now draws, and the dialog
+# render that suite now runs in ``make check`` pins the rendered combo arrow
+# cell against the shipped art. A new record must name an offline test instead
+# of raising this.
 
 REAL_RUN_NEEDED_REPRODUCTIONS = (
     Reproduction(
@@ -733,12 +738,18 @@ REAL_RUN_NEEDED_REPRODUCTIONS = (
         "tests/test_render_surface.py::TestCheckboxDialogRender"
         "::test_draws_the_check_box_cell_1_to_1",
     ),
+    Reproduction(
+        "combo-arrow-indicator-resample",
+        ("combo box indicator is a squashed",),
+        "tests/test_render_surface.py::TestComboboxDialogRender"
+        "::test_draws_the_combo_arrow_cell_1_to_1",
+    ),
 )
 
 # The number of ``real-run-needed`` records the archive holds with ledger
 # coverage. A new record must name its offline test, and raise this by one in
 # the same change instead of landing uncovered.
-REAL_RUN_NEEDED_BASELINE = 8
+REAL_RUN_NEEDED_BASELINE = 9
 
 # The three ``no-repro`` records the archive held when the ledger landed. Each
 # failure was not deterministic when filed; its test now reproduces it every run.
