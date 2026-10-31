@@ -5,16 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 secondary labels: declare the inactive-text grey (planned 2026-10-31 by the plan role)
-
-**Goal.** Give GTK 3 secondary labels carrying `dim-label` an explicit Platinum muted foreground rather than the ordinary inherited text colour.
-
-**Grounding.** Searches for `dim-label` in the GTK sheets, GTK tests, planned and finished plans and invariants found no matching capability. The installed GTK 3 resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-31, groups `.dim-label` with subtitle and separator selectors and declares `opacity: 0.55; text-shadow: none;`. This standalone theme does not load that sheet. No reference screenshot shows GTK secondary labels; adapt the existing `DISABLED_TEXT` grey (`#888888`, the colour scheme's ForegroundInactive) at full opacity instead of introducing a composited colour. The existing `assert_disabled_text` helper verifies that grey against the colour scheme and its reference anchor.
-
-**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add a separate `.dim-label` rule beside the disabled-text rule with exactly `color: #888888; opacity: 1; text-shadow: none;`. Add a dated adaptation comment identifying the missing reference surface and reuse of the disabled-text palette. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_dim_label_foreground`, calling `self.assert_disabled_text((".dim-label",))` and asserting the exact dictionary `{**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}`. Add one row under `## gtk` in `docs/invariants.md` naming the new test, the resource provenance and the declaration-only scope. No helper change is needed.
-
-**Acceptance criteria.** Removing the selector or changing any of its three declarations fails the new test; the foreground stays tied to the existing inactive-text reference check. Existing disabled-text and view-background tests pass. GTK 4, subtitle and separator selectors, geometry and artwork are outside this plan. Run `make check`. This three-file change is independently mergeable from the waiting GTK 3 content-view plan.
-
 ### Platinum GTK 3 add-color action: declare the neutral button face (planned 2026-10-31 by the plan role)
 
 **Goal.** Give the color chooser's add-color action an explicit Platinum grey face after its stock gradient is removed.
@@ -36,6 +26,17 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Acceptance criteria.** Removing the label selector or changing either declaration fails the new test; introducing a generic `.dimmed` rule also fails it. Retain the helper's colour-scheme check and existing palette reference tests. This three-file change adds no metric, artwork or dependency; GTK 3 and non-label dimmed nodes are outside its scope. Run `make check`. It can merge independently of the waiting nested-placeholder plan, using a separate selector and test.
 
 ## Done
+
+### Platinum GTK 3 secondary labels: declare the inactive-text grey (planned 2026-10-31 by the plan role)
+— done 2026-10-31 by the feature role
+
+**Goal.** Give GTK 3 secondary labels carrying `dim-label` an explicit Platinum muted foreground rather than the ordinary inherited text colour.
+
+**Grounding.** Searches for `dim-label` in the GTK sheets, GTK tests, planned and finished plans and invariants found no matching capability. The installed GTK 3 resource `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected 2026-10-31, groups `.dim-label` with subtitle and separator selectors and declares `opacity: 0.55; text-shadow: none;`. This standalone theme does not load that sheet. No reference screenshot shows GTK secondary labels; adapt the existing `DISABLED_TEXT` grey (`#888888`, the colour scheme's ForegroundInactive) at full opacity instead of introducing a composited colour. The existing `assert_disabled_text` helper verifies that grey against the colour scheme and its reference anchor.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add a separate `.dim-label` rule beside the disabled-text rule with exactly `color: #888888; opacity: 1; text-shadow: none;`. Add a dated adaptation comment identifying the missing reference surface and reuse of the disabled-text palette. In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_dim_label_foreground`, calling `self.assert_disabled_text((".dim-label",))` and asserting the exact dictionary `{**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}`. Add one row under `## gtk` in `docs/invariants.md` naming the new test, the resource provenance and the declaration-only scope. No helper change is needed.
+
+**Acceptance criteria.** Removing the selector or changing any of its three declarations fails the new test; the foreground stays tied to the existing inactive-text reference check. Existing disabled-text and view-background tests pass. GTK 4, subtitle and separator selectors, geometry and artwork are outside this plan. Run `make check`. This three-file change is independently mergeable from the waiting GTK 3 content-view plan.
 
 ### Platinum GTK 3 content-view fields: declare the white base and backdrop (planned 2026-10-31 by the plan role)
 — done 2026-10-31 by the feature role

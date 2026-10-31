@@ -1176,6 +1176,16 @@ label.separator {
   text-shadow: none;
 }
 
+/* No reference screenshot shows GTK secondary (dim) labels; reuse the
+   inactive-text #888888 palette. The installed GTK 3 theme resource groups
+   .dim-label with subtitle and separator selectors under opacity: 0.55
+   (probed 2026-10-31); keep the Platinum grey fully visible. */
+.dim-label {
+  color: #888888;
+  opacity: 1;
+  text-shadow: none;
+}
+
 /* Links take the scheme's link blue and visited purple; a link button has no face. */
 button:link, button:visited {
   background-color: transparent;

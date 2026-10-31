@@ -290,6 +290,15 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         )
         self.assertEqual(self.selectors.count(selector), 1)
 
+    def test_dim_label_foreground(self):
+        selector = ".dim-label"
+        self.assert_disabled_text((selector,))
+        self.assertEqual(
+            self.rules[selector],
+            {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"},
+        )
+        self.assertEqual(self.selectors.count(selector), 1)
+
     def test_header_subtitle_foreground(self):
         selectors = (".titlebar:not(headerbar) .subtitle", "headerbar .subtitle")
         self.assert_disabled_text(selectors)
