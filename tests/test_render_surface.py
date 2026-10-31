@@ -8,6 +8,7 @@ this module drives the workflow through the public CLI.
 
 from __future__ import annotations
 
+import atexit
 import errno
 import os
 import shlex
@@ -791,6 +792,65 @@ class TestRender(unittest.TestCase):
                 self.assert_strip_pixels_match(candidate_crop, reference_crop)
 
 
+class _DialogRenders:
+    """The two dialog gates' render pair, started together and finished once.
+
+    Every dialog render sleeps the tool's documented settle default before it
+    captures -- that budget is the paint budget the gate promises, and the
+    byte-compare gates below must not render below it -- so two back-to-back
+    dialog renders cost the module two settle budgets. The two sessions are
+    independent -- each has its own ``dbus-run-session``, scratch XDG tree
+    (and with it its own ``render-surface`` socket) and capture path -- and
+    the settle is a sleep rather than CPU, so starting both at once and
+    finishing them together costs one budget instead of two. The first
+    dialog gate class to set up records both results;
+    :func:`_remove_directories` removes both scratch directories at
+    interpreter exit, so a run that reaches only one of the two classes
+    still cleans up behind the other.
+    """
+
+    KINDS = (("checkbox", "--checkbox-dialog"), ("combobox", "--combobox-dialog"))
+    directories: dict[str, str] = {}
+    results: dict[str, tuple[str, str, int, str]] = {}
+    completed = False
+
+    @classmethod
+    def ensure(cls, kind):
+        """Finish both dialog renders once and return *kind*'s result."""
+        if not cls.completed:
+            cls.completed = True
+            cls._run_pair()
+            atexit.register(cls._remove_directories)
+        return cls.results[kind]
+
+    @classmethod
+    def _run_pair(cls):
+        started = {}
+        for kind, flag in cls.KINDS:
+            directory = tempfile.mkdtemp(prefix=f"{kind}-dialog-test-")
+            cls.directories[kind] = directory
+            started[kind] = process_runner.start(
+                [sys.executable, SCRIPT, os.path.join(directory, "dialog.png"), flag],
+                capture_output=True,
+                text=True,
+            )
+        for kind, _ in cls.KINDS:
+            # The first finish below waits one settle budget while the
+            # second render runs alongside it.
+            stdout, stderr = process_runner.finish(started[kind], timeout=150)
+            cls.results[kind] = (
+                stdout,
+                stderr,
+                started[kind].returncode,
+                cls.directories[kind],
+            )
+
+    @classmethod
+    def _remove_directories(cls):
+        for directory in cls.directories.values():
+            shutil.rmtree(directory, ignore_errors=True)
+
+
 class TestCheckboxDialogRender(unittest.TestCase):
     """The engine-drawn check box the dialog render captures is the shipped art.
 
@@ -806,19 +866,13 @@ class TestCheckboxDialogRender(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.directory = tempfile.mkdtemp(prefix="checkbox-dialog-test-")
-        cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
+        # Both dialog renders run concurrently (see _DialogRenders); this
+        # class waits for its own and leaves the sibling's to its own class.
+        cls.stdout, cls.stderr, cls.returncode, cls.directory = (
+            _DialogRenders.ensure("checkbox")
+        )
         cls.output = os.path.join(cls.directory, "dialog.png")
         cls._candidate = None
-        # The tool's documented settle default is the paint budget the gate
-        # promises; the dialog window needs it like the applet window does.
-        process = process_runner.start(
-            [sys.executable, SCRIPT, cls.output, "--checkbox-dialog"],
-            capture_output=True,
-            text=True,
-        )
-        cls.stdout, cls.stderr = process_runner.finish(process, timeout=150)
-        cls.returncode = process.returncode
 
     @classmethod
     def candidate_image(cls):
@@ -883,19 +937,13 @@ class TestComboboxDialogRender(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.directory = tempfile.mkdtemp(prefix="combobox-dialog-test-")
-        cls.addClassCleanup(shutil.rmtree, cls.directory, ignore_errors=True)
+        # Both dialog renders run concurrently (see _DialogRenders); this
+        # class waits for its own and leaves the sibling's to its own class.
+        cls.stdout, cls.stderr, cls.returncode, cls.directory = (
+            _DialogRenders.ensure("combobox")
+        )
         cls.output = os.path.join(cls.directory, "dialog.png")
         cls._candidate = None
-        # The tool's documented settle default is the paint budget the gate
-        # promises; the dialog window needs it like the applet window does.
-        process = process_runner.start(
-            [sys.executable, SCRIPT, cls.output, "--combobox-dialog"],
-            capture_output=True,
-            text=True,
-        )
-        cls.stdout, cls.stderr = process_runner.finish(process, timeout=150)
-        cls.returncode = process.returncode
 
     @classmethod
     def candidate_image(cls):
