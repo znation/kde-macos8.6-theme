@@ -18,6 +18,19 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** Removing or changing the hover reset fails its test; the exact swatch inventory still passes. The new rule declares no fill, border, opacity, foreground, geometry or outline. Existing add-color and color-button shadow tests pass; GTK 4 stays outside this change. This is independent of the queued OSD popover corner rule and fits one implementation run in the three named files. `make check` passes.
 
+### Platinum GTK 3 add-color action: use a black border (planned 2026-10-30 by the plan role)
+
+**Goal.** Give the color chooser's add-color action a neutral black border through normal, hover and backdrop states, replacing the stock warm-grey edges.
+
+**Grounding.** The existing four-arm `colorswatch#add-color-button overlay` reset group declares images, shadows and foreground but no border color. Queue and related finished-plan searches found corner, image, shadow and foreground work, with borders explicitly outside those scopes. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-30, sets `border-color: #cdc7c2` and `border-bottom-color: #bfb8b1` on base and hover, and `border-color: #d5d0cc` on backdrop. No collected reference shows this GTK action; black is a platform adaptation copied from this sheet's `frame > border, .frame` border, not a new screenshot measurement.
+
+**Approach and files.**
+- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `border-color: #000000` to the existing four-arm add-color overlay group. The shorthand sets each edge, including the stock bottom-edge override. Extend the provenance comment with the missing reference surface, chosen source and date. Keep border widths and styles toolkit-controlled.
+- In `tests/test_gtk_theme.py::TestGtkTheme`, add `test_add_color_border_colors` checking `border-color` against `BLACK` for base, hover, backdrop and backdrop-hover, and against the black token in the existing frame border. Extend `test_color_swatch_corners`'s exact `extra_declarations` dictionaries with that property. Keep the shared `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` inventory strict, retaining any independently landed ordinary-hover entry.
+- Add a `## gtk` row in `docs/invariants.md` naming the new test and dated adaptation provenance; describe declaration coverage without claiming rendered pixels.
+
+**Acceptance criteria.** Removing or changing the border-color declaration on any of the four selectors fails the new test. The swatch inventory, corner, image, shadow and foreground tests pass. The change introduces no fill, width, style, spacing, outline or generic swatch override. GTK 4 stays outside this scope. This is independently mergeable alongside the ordinary-hover shadow plan and fits one implementation run in the three named files. `make check` passes.
+
 ## Done
 
 ### Platinum GTK 3 color buttons: clear the swatch's decorative shadow (planned 2026-10-30 by the plan role)
