@@ -57,6 +57,20 @@ class TestIsImage(unittest.TestCase):
             with self.subTest(format=name):
                 self.assertTrue(image_format.is_image(data))
 
+    def test_accepts_bytearray_signatures(self):
+        for name, data in (
+            ("PNG", PNG),
+            ("JPEG", JPEG),
+            ("GIF", GIF89A),
+            ("WebP", WEBP),
+        ):
+            with self.subTest(format=name):
+                mutable = bytearray(data)
+                self.assertTrue(image_format.is_image(mutable))
+                self.assertEqual(image_format.other_image_format(mutable),
+                                 None if name == "PNG" else name)
+                self.assertEqual(image_format.is_webp(mutable), name == "WebP")
+
     def test_rejects_a_riff_container_that_is_not_webp(self):
         # A RIFF/WAVE payload shares the RIFF prefix but is not an image; the
         # WEBP fourcc at bytes 8-11 is what makes a WebP.
