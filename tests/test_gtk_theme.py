@@ -281,6 +281,14 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_disabled_text(self):
         self.assert_disabled_text(("label:disabled", "entry:disabled", "spinbutton:disabled"))
 
+    def test_header_subtitle_foreground(self):
+        selectors = (".titlebar:not(headerbar) .subtitle", "headerbar .subtitle")
+        self.assert_disabled_text(selectors)
+        expected = {**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], expected)
+            self.assertEqual(self.selectors.count(selector), 1)
+
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))
 

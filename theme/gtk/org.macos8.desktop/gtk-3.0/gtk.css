@@ -177,6 +177,16 @@ headerbar:backdrop, .titlebar:backdrop {
   color: #999999;
 }
 
+/* No reference screenshot shows GTK header subtitles; reuse the inactive-text
+   #888888 palette. The installed GTK 3 theme resource groups these selectors
+   with .dim-label under opacity: 0.55 (probed 2026-10-31); keep the Platinum
+   grey fully visible. */
+.titlebar:not(headerbar) .subtitle, headerbar .subtitle {
+  color: #888888;
+  opacity: 1;
+  text-shadow: none;
+}
+
 headerbar button.titlebutton.close, .titlebar button.titlebutton.close {
   background-color: transparent;
   background-image: url("../assets/window-close.svg");
