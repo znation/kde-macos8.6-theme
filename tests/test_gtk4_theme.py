@@ -143,6 +143,13 @@ class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
         self.assert_rule(selectors[0], {**DISABLED_TEXT, "opacity": "1"})
         self.assertEqual(self.css.count(".dim-label {"), 1)
 
+    def test_dimmed_label_foreground(self):
+        selector = "label.dimmed"
+        self.assert_disabled_text((selector,))
+        self.assert_rule(selector, {**DISABLED_TEXT, "opacity": "1"})
+        self.assertEqual(self.selectors.count(selector), 1)
+        self.assertNotIn(".dimmed", self.selectors)
+
     def test_mixed_indicators_draw_black_dashes(self):
         # Isolate GTK 4 from the GTK 3 introspection used by the other suite.
         result = subprocess.run(

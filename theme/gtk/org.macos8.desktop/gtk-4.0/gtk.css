@@ -1386,6 +1386,16 @@ spinbutton.vertical > text > text > placeholder {
   opacity: 1;
 }
 
+/* Adaptation 2026-10-31: no reference screenshot shows GTK dimmed labels. The
+   installed GTK 4 base resource groups .dimmed with .dim-label under dim
+   opacity, so a label carrying .dimmed otherwise fades away; give it the
+   inactive-text grey at full opacity. Keep the rule on labels alone: other
+   dimmed nodes and images keep their stock treatment. */
+label.dimmed {
+  color: #888888;
+  opacity: 1;
+}
+
 /* Links take the scheme's link blue and visited purple; a link button has no face. */
 button.link {
   background-color: transparent;

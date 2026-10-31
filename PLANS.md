@@ -5,15 +5,7 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 4 dimmed labels: declare the inactive-text grey (planned 2026-10-31 by the plan role)
-
-**Goal.** Give GTK 4 labels carrying the `dimmed` class an explicit muted Platinum foreground.
-
-**Grounding.** Searches of the GTK 4 sheet, `tests/test_gtk4_theme.py`, this queue and related archive headings found no `label.dimmed` treatment. The finished GTK 4 secondary-label plans in `PLANS-DONE.md` explicitly exclude `.dimmed`. The installed `/org/gnome/Adwaita/styles/base.css` resource in `/usr/lib/x86_64-linux-gnu/libadwaita-1.so.0`, inspected 2026-10-31, groups `.dimmed` with `.dim-label` under `opacity: var(--dim-opacity)`. The standalone sheet already adapts `.dim-label` to the inactive-text grey at full opacity; extend that policy specifically to labels, without applying foreground or opacity to arbitrary dimmed containers or images.
-
-**Approach and files.** Add a separate `label.dimmed` rule beside `.dim-label` in `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css` declaring exactly `color: #888888; opacity: 1;`. Its dated adaptation comment must name the missing GTK dimmed-label reference surface, the installed resource above as selector provenance, and the existing inactive-text palette as the colour source. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_dimmed_label_foreground`: call `assert_disabled_text(("label.dimmed",))`, compare `self.rules["label.dimmed"]` to `{**DISABLED_TEXT, "opacity": "1"}`, require one occurrence in `self.selectors`, and assert the generic `.dimmed` selector is absent. The helper and constant already exist. Add a row under `## gtk` in `docs/invariants.md` naming the test, adaptation provenance and declaration-only coverage.
-
-**Acceptance criteria.** Removing the label selector or changing either declaration fails the new test; introducing a generic `.dimmed` rule also fails it. Retain the helper's colour-scheme check and existing palette reference tests. This three-file change adds no metric, artwork or dependency; GTK 3 and non-label dimmed nodes are outside its scope. Run `make check`. It can merge independently of the waiting nested-placeholder plan, using a separate selector and test.
+_None yet._
 
 ## Done
 
