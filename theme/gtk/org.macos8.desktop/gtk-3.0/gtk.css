@@ -1699,3 +1699,176 @@ progressbar.osd progress {
   box-shadow: none;
   margin: 0;
 }
+
+/* No collected reference screenshot shows a GTK OSD overlay or a push
+   button inside one, so the toolkit resource's stock push-button arms
+   under this sheet's landed light container band — the self-class
+   `button.osd` family and the grouped `.app-notification button, …,
+   .osd button` family painting translucent dark bubbles with near-white
+   labels — are restated with the landed plain push-button recipe (pinned
+   by tests/support/gtk_rule_cases.py::GtkSheetRuleCases::test_button):
+   the raised #DDDDDD face with its 1px black border and square corners
+   (zero radius, overriding the stock 5px; the byte-equal dictionaries
+   verbatim in tests/support/gtk_theme_spec.py), the inset
+   `inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA` bevel, and black
+   labels; `:active`/`:checked` arms swap only `box-shadow` to the landed
+   inverted bevel `inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF`;
+   disabled arms keep the base bevel with the Inactive grey (#888888, the
+   sheet's `label:disabled, entry:disabled, spinbutton:disabled` text
+   colour); the stock white-on-dark `text-shadow`/`-gtk-icon-shadow` pair
+   is cleared, and a black `outline-color` replaces the stock
+   rgba(238,238,236,0.3) in the base, hover and active arms whose stock
+   counterparts claim it, while the stock disabled and backdrop arms claim
+   none so those restatements stay without one. Stock's
+   `background-clip: padding-box` belongs only to its translucent
+   dark-bubble arms and stays omitted, so a button inside an overlay
+   draws exactly like the plain one. No restated arm sets on-disk
+   geometry, so the stock geometry claims keep governing: `button.osd`'s
+   `min-width: 26px; min-height: 32px` and the `button.osd.image-button`
+   `min-width: 34px` arm stay undeclared. The restatements keep the stock
+   selector spellings, so each appends after its stock twin at equal
+   specificity and pre-empts exactly the stock arms they restate;
+   the `.osd button.flat`, `.osd button.suggested-action`,
+   `.osd button.destructive-action`, `.osd button.color colorswatch`,
+   `.osd spinbutton … button` and `colorchooser .popover.osd` button arms
+   stay undeclared for their queued surface plans. The arm selectors,
+   states and stock claims come from gtk-contained.css in
+   /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49), probed
+   2026-10-30; the landed base `button`, `button:hover` and
+   `button:active`/`button:checked` rules keep governing outside .osd.
+   Declaration checks do not establish rendered pixels. */
+button.osd {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.osd:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.osd:active, button.osd:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.osd:disabled:backdrop, button.osd:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.osd:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button, .app-notification.frame button,
+.csd popover.background.touch-selection button,
+.csd popover.background.magnifier button,
+popover.background.touch-selection button,
+popover.background.magnifier button, .osd button {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button:hover,
+popover.background.touch-selection button:hover,
+popover.background.magnifier button:hover, .osd button:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button:active,
+popover.background.touch-selection button:active,
+popover.background.magnifier button:active,
+.app-notification button:checked,
+popover.background.touch-selection button:checked,
+popover.background.magnifier button:checked,
+.osd button:active:backdrop, .osd button:active,
+.osd button:checked:backdrop, .osd button:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button:disabled,
+popover.background.touch-selection button:disabled,
+popover.background.magnifier button:disabled,
+.osd button:disabled:backdrop, .osd button:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+.app-notification button:backdrop,
+popover.background.touch-selection button:backdrop,
+popover.background.magnifier button:backdrop, .osd button:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
