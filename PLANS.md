@@ -7,6 +7,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
+### Platinum GTK 4 separator labels: declare the inactive-text grey (planned 2026-10-31 by the plan role)
+
+**Goal.** Give GTK 4 `label.separator` text an explicit muted Platinum foreground, independently of the queued GTK 3 separator-label change.
+
+**Grounding.** Searches found no `label.separator` rule in the GTK 4 sheet or tests and no GTK 4 separator-label heading in this queue or `PLANS-DONE.md`. The installed `/org/gtk/libgtk/theme/Default/Default-light.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-4.so.1`, inspected 2026-10-31, groups `label.separator` with placeholder nodes under `opacity: 0.55; text-shadow: none;`. No reference screenshot shows GTK separator labels; adapt the existing inactive-text `#888888` at full opacity, following `TestGtk4Theme.test_dim_label_foreground` and `test_header_subtitle_foreground`.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, add a separate `label.separator` rule near the header-subtitle rule with exactly `color: #888888; opacity: 1; text-shadow: none;`. Include a dated adaptation comment naming the missing reference surface, the installed resource and the reused inactive-text palette. In `tests/test_gtk4_theme.py`, add `TestGtk4Theme.test_separator_label_foreground`: call `assert_disabled_text(("label.separator",))`, compare `self.rules["label.separator"]` to `{**DISABLED_TEXT, "opacity": "1", "text-shadow": "none"}`, and assert one occurrence in `self.selectors`. The helper and constant already exist. Add one row under `## gtk` in `docs/invariants.md` naming the new test, adaptation provenance and declaration-only coverage.
+
+**Acceptance criteria.** Removing the selector or changing one of its three declarations fails the new test; retain the helper's scheme inactive-grey check and existing reference palette tests. The rule declares the same foreground in active and backdrop windows. Existing graphical-separator tests pass without geometry or artwork changes. Keep GTK 3 unchanged. Run `make check`. This three-file change needs no queued sibling to merge first.
+
 ## Done
 
 ### Platinum GTK 3 content-view fields: declare the white base and backdrop (planned 2026-10-31 by the plan role)
