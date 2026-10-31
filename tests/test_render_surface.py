@@ -281,6 +281,49 @@ class TestFailurePaths(StubTools):
                 self.assertFalse(output.exists())
                 self.assert_scratch_removed()
 
+    def test_a_failed_themes_link_exits_2_and_removes_scratch(self):
+        # The scratch home's themes link is made after `make install`, at the
+        # one place the engine's literal `$HOME/.local/share/themes/` search
+        # path is satisfied. When the link cannot be made (an entry raced in
+        # at the link name), the tool must report its own exit-2 diagnostic
+        # naming the path, not a traceback that skips the scratch cleanup.
+        themes = self.root / "themes"
+        problem = OSError(errno.EEXIST, "File exists")
+
+        def die(session):
+            return problem, themes
+
+        with mock.patch.object(render_workflow, "link_kvantum_themes", die):
+            status, stderr, output = self.run_main()
+        self.assertEqual(2, status)
+        self.assertIn("render_surface: error: cannot link", stderr)
+        self.assertIn(str(themes), stderr)
+        self.assertIn("File exists", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
+    def test_a_failed_kvatum_selection_write_exits_1_and_removes_scratch(self):
+        # A dialog render selects the Kvantum theme in the scratch config
+        # home before the session starts; without the name the engine falls
+        # back to its compiled-in default and the gate would silently compare
+        # the wrong theme's pixels. A selection write that fails there (a
+        # full disk) must become the tool's own exit-1 diagnostic, not a
+        # traceback that skips the scratch cleanup or a render that goes out
+        # carrying an unthemed widget.
+        def die(session):
+            raise OSError(errno.ENOSPC, "No space left on device")
+
+        with mock.patch.object(render_workflow, "write_kvantum_selection", die):
+            status, stderr, output = self.run_main("--menu-dialog")
+        self.assertEqual(1, status)
+        self.assertIn("render_surface: error:", stderr)
+        self.assertIn("cannot write the Kvantum selection", stderr)
+        self.assertIn("No space left on device", stderr)
+        self.assertNotIn("Traceback", stderr)
+        self.assertFalse(output.exists())
+        self.assert_scratch_removed()
+
     def test_install_timeout_exits_1_with_a_timeout_diagnostic(self):
         # A hung `make install` is killed by run_logged, which reports the
         # timeout as None. The diagnostic must name the timeout rather than
