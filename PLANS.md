@@ -170,3 +170,224 @@ text. Scope is the GTK 4 sheet, `tests/test_gtk4_theme.py`,
 `docs/invariants.md` and nothing else: no GTK 3 rule, no Firefox sheet, no
 new asset, colour literal beyond the landed `#DDDDDD`, `#FFFFFF`,
 `#888888` and `#000000`, dependency or `!important`. `make check` passes.
+
+### Platinum GTK 3 OSD progress and scale arms: restate the stock dark trough, fill and progress paints with the landed progress-bar and scale recipes (planned 2026-10-30 by the plan role; independent of the waiting GTK 4 OSD check-and-radio plan — it appends ten restated rules to `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, adds `TestGtkTheme::test_osd_progress_scale` beside `test_osd_check_radio` in `tests/test_gtk_theme.py` and appends one row to the `## gtk` invariants table, while that entry edits the GTK 4 sheet, `tests/test_gtk4_theme.py` and its own row; the only shared documents are `docs/invariants.md`, where each entry appends its own row, and `tests/support/gtk_theme_spec.py`, from which both import static specs and neither edits — no sheet selector, test or suite overlaps)
+
+**Goal.** The landed GTK 3 OSD container, field and check/radio plans repainted
+every stock OSD arm in the sheet except the meters: the GTK 3 sheet declares
+nothing for `.osd progressbar trough` or `.osd scale trough` (grep: the
+sheet's only `osd` selectors are the landed container band, the `.osd entry`/
+`.osd spinbutton` field arms and the ten `.osd check`/`.osd radio` arms), so
+the toolkit resource's six `.osd` trough, fill and progress paints supply
+translucent dark bubbles (`rgba(0,0,0,0.5)` foundations over `rgba(0,0,0,0.7)`
+edges) inside Platinum overlays instead of the landed flat `#EEEEEE` trough
+face and flat `#CCCCFF` progress fill. Restate all six paints with the landed
+progress-bar and scale recipes, so a meter inside a Platinum OSD overlay draws
+like one everywhere else.
+
+**Verified facts (probed 2026-10-30, `gresource extract
+/usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+/org/gtk/libgtk/theme/Adwaita/gtk-contained.css`, libgtk-3 3.24.49; exhaustive
+scan of every rule in the resource whose selector contains `osd` and one of
+`trough`/`fill`/`highlight`/`progress`).** The resource carries exactly six
+such paints: the base trough/fill sibling `.osd progressbar trough,
+progressbar .osd trough, .osd scale fill, scale .osd fill, .osd scale trough,
+scale .osd trough` (`border-color: rgba(0,0,0,0.7)`,
+`background-color: rgba(0,0,0,0.5)`); its `:disabled` sibling at the same six
+selectors (`background-color: rgba(71,71,71,0.5)`); the base
+progress/highlight sibling `.osd progressbar progress, progressbar .osd
+progress, .osd scale highlight, scale .osd highlight` (`border-color:
+rgba(0,0,0,0.7)`); its `:disabled` sibling at the same four selectors
+(`border-color: transparent`); a bare `.osd scale fill` sibling
+(`background-color: rgba(91,91,90,0.775)` — the value fill stock shows over
+the dark trough, distinct from its trough-group paint); and the fill clear
+`.osd scale fill:disabled:backdrop, .osd scale fill:disabled`
+(`border-color: transparent`, `background-color: transparent`). The trough
+and progress paints set no geometry (no `min-*` or `margin`), no
+`-gtk-icon-source`, no `box-shadow`, and no `:backdrop` spelling on a trough
+or progress node — the only `:backdrop` in the whole set rides the fill-clear
+sibling's `:disabled:backdrop`. Both grouped paints carry identical
+declarations across the nodes they couple, so split at the landed recipe
+boundaries, each split selector keeps complete equal dictionaries. No stock
+`.osd` trough/fill/progress paint recolours anything else or shadows —
+nothing is dropped in the restatement, and with no stock arm claiming
+`color` either, the restatement needs no paint, glyph or geometry decision
+beyond the recipes below. No collected reference screenshot shows a GTK OSD
+meter, so this is a platform adaptation reusing the landed recipes —
+`PROGRESSBAR_TROUGH`, `PROGRESSBAR_PROGRESS`, `SCALE_TROUGH` and
+`SCALE_EMPTY_FILL` in `tests/support/gtk_theme_spec.py` (the flat `#EEEEEE`
+trough face with the 1px black border, zero radius and `inset 1px 1px
+#999999` etch at 10px/6px minimums, the flat `#CCCCFF` progress fill and the
+transparent fill/highlight face) — pinned by the landed
+`tests/support/gtk_rule_cases.py::GtkSheetRuleCases::assert_progressbar` and
+`TestGtkTheme::test_scale` in `tests/test_gtk_theme.py`, and the arm
+selectors and state names are GTK-required (they spell the toolkit
+resource's rules). The separate `progressbar.osd` thin-bar trio (bare
+`progressbar.osd { min-width: 3px; min-height: 3px; background-color:
+transparent; }`, its borderless transparent `trough` and borderless
+`progress`), the six `.osd scale slider` dark-thumb arms, `.scale-popup
+button.flat` and the `colorchooser .popover.osd` corners stay out of scope
+(recorded here as later surface plans, not this change).
+
+**Approach and files.** (1) In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`,
+append directly after the landed `.osd radio:disabled` group (the sheet's
+last block) a dated provenance comment naming the missing reference surface,
+this `gresource` probe and the reuse of the `PROGRESSBAR_*`/`SCALE_*`
+recipes, followed by ten restated rules — four base groups matching the
+landed plain progress-bar and scale recipes, split at the recipe boundaries
+stock couples, and five disabled/backdrop groups repeating the same recipes
+byte-for-byte (the landed sheet declares no disabled trough, fill or
+highlight arm of its own, so all stock states keep the landed paints
+unchanged), plus the one landed disabled-progress colour that stock's
+`:disabled` group must not erase:
+
+```css
+.osd progressbar trough, progressbar .osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+.osd scale trough, scale .osd trough {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+.osd scale fill, scale .osd fill,
+.osd scale highlight, scale .osd highlight {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.osd progressbar progress, progressbar .osd progress {
+  background-color: #CCCCFF;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.osd progressbar trough:disabled, progressbar .osd trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 10px;
+  min-width: 10px;
+}
+.osd scale trough:disabled, scale .osd trough:disabled {
+  background-color: #EEEEEE;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #999999;
+  min-height: 6px;
+  min-width: 6px;
+}
+.osd scale fill:disabled:backdrop, .osd scale fill:disabled,
+scale .osd fill:disabled {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.osd scale highlight:disabled, scale .osd highlight:disabled {
+  background-color: transparent;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+.osd progressbar progress:disabled, progressbar .osd progress:disabled {
+  background-color: #999999;
+  background-image: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+}
+```
+
+(that is nine rules — the scale-highlight disabled group is the last of the
+less-than-ten; spell each exactly as above, with the disabled progress
+#999999 matching the landed `progressbar progress:disabled`). Touch no
+landed rule: not the container band, the field arms, the ten check/radio
+arms, the plain `progressbar`/`scale` rules or `MENU_CHECK`; leave the
+`.osd scale slider` arms, the `progressbar.osd` thin-bar trio, `.scale-popup
+button.flat`, `colorchooser .popover.osd` corners and the `button.osd` and
+grouped `.osd button`/flat/suggested-action/destructive-action families for
+later surface plans. (2) In `tests/test_gtk_theme.py`, add
+`TestGtkTheme::test_osd_progress_scale` beside `test_osd_check_radio`: add
+`PROGRESSBAR_PROGRESS`, `PROGRESSBAR_TROUGH`, `SCALE_EMPTY_FILL` and
+`SCALE_TROUGH` to the existing `support.gtk_theme_spec` import list; build
+one expected progress-trough dictionary (`PROGRESSBAR_TROUGH`), one expected
+scale-trough dictionary (`SCALE_TROUGH`), one expected fill/highlight
+dictionary (`SCALE_EMPTY_FILL`), one expected progress dictionary
+(`PROGRESSBAR_PROGRESS`) and one expected disabled-progress dictionary
+(`{**PROGRESSBAR_PROGRESS, "background-color": GREY}` — `GREY` is already
+imported from `support.platinum_palette`); assert each of the twenty-one
+selectors `tests/support/gtk_css.py::parse_css` splits out of the nine
+against its recipe dictionary; assert the per-recipe dictionaries are
+mutually equal and the disabled-progress background colour equals the landed
+`progressbar progress:disabled` rule's `background-color` in `self.rules`
+(the same cross-check `test_osd_entry_fields` makes against `entry:disabled`);
+and add the scope assertion that the set of parsed sheet selectors
+containing `.osd` and one of `trough`, `fill`, `highlight` or `progress`
+equals exactly those twenty-one (`.scale-popup` carries none of the four
+tokens, so the container-band selectors stay outside it). In the same
+change, extend `test_osd_overlay_bands`'s existing scope filter — which
+already excludes the restated `.osd entry`, `.osd spinbutton`, `.osd check`
+and `.osd radio` selectors so they do not enter that test's container set —
+to exclude selectors carrying any of the four meter tokens (`trough`,
+`fill`, `highlight`, `progress`) the same way, or the new arms fail that
+landed test's selector tokens scan. (Anchoring precedent: the landed fields
+and check/radio plans both hit exactly this filter and recorded the
+correction.) (3) In `docs/invariants.md`, in the `## gtk` table, append one
+row: the guarantee — every stock GTK 3 OSD trough, fill and progress paint
+draws the landed flat `#EEEEEE` trough face with its black border, zero
+radius, `#999999` etch and landed minimum, the transparent scale fill and
+highlight face, and the landed `#CCCCFF` progress fill with the `#999999`
+disabled fill, identical in every stock state — with the test column naming
+`tests/test_gtk_theme.py::TestGtkTheme::test_osd_progress_scale` (the
+register parser resolves the column only against tests defined in the named
+module, so cite the shared base cases `assert_progressbar` in
+`tests/support/gtk_rule_cases.py` and `TestGtkTheme::test_scale` in the
+provenance cell, not the test column); the provenance cell records the
+missing reference surface, the gresource probe (libgtk-3 3.24.49
+`gtk-contained.css`, probed 2026-10-30), the reused specs and their pinning
+tests, the GTK-required arm spellings, the geometry the plain rules keep
+governing, the untouched `progressbar.osd` thin-bar trio and `.osd scale
+slider` arms, and the close-out that declaration checks do not establish
+rendered pixels. Trim no landed row; `tests/test_invariants.py` parses the
+register.
+
+**Acceptance criteria.** The GTK 3 sheet carries the nine rules whose
+complete parsed dictionaries are the twenty-one selectors above at exactly
+the five recipe dictionaries; changing any of the twenty-one selectors,
+deleting a rule, dropping a trough's `min-height`/`min-width`, changing the
+disabled-progress fill away from `#999999`, or letting stock keep its
+dark-translucent bubbles fails `test_osd_progress_scale`;
+`test_osd_overlay_bands` (with its extended filter), `test_osd_entry_fields`,
+`test_osd_check_radio`, `test_progressbar`, `test_scale`,
+`test_only_palette_hex_literals`, `test_no_universal_selector`,
+`test_icon_sources_point_at_shipped_assets` and
+`test_no_status_or_translucent_shade_roles` stay green, and the landed
+container, field, check/radio and plain meter rules keep their landed text.
+Scope is the GTK 3 sheet, `tests/test_gtk_theme.py`, `docs/invariants.md` and
+nothing else: no GTK 4 rule, no Firefox sheet, no new asset, colour literal
+beyond the landed `#EEEEEE`, `#999999`, `#CCCCFF` and `transparent`,
+dependency or `!important`. `make check` passes.
