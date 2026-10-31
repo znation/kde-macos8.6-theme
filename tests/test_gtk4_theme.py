@@ -25,6 +25,7 @@ from support.gtk_theme_spec import (
     CALENDAR_SELECTED_DAY,
     CHECK,
     COMBO_ARROW,
+    DISABLED_TEXT,
     ENTRY_PROGRESS_GTK4,
     ETCH_DARK,
     INFOBAR,
@@ -106,6 +107,12 @@ SCALE_SLIDER = "scale > trough > slider"
 
 
 class TestGtk4Theme(GtkSheetRuleCases, unittest.TestCase):
+    def test_dim_label_foreground(self):
+        selectors = (".dim-label",)
+        self.assert_disabled_text(selectors)
+        self.assert_rule(selectors[0], {**DISABLED_TEXT, "opacity": "1"})
+        self.assertEqual(self.css.count(".dim-label {"), 1)
+
     def test_mixed_indicators_draw_black_dashes(self):
         # Isolate GTK 4 from the GTK 3 introspection used by the other suite.
         result = subprocess.run(
