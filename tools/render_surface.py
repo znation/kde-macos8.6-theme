@@ -37,54 +37,20 @@ if __package__:
         plain_number,
         positive_int,
     )
-    from tools.diagnostics import (
-        report_error,
-        report_failure,
-        report_missing_tool,
-    )
-    from tools.png import PngError, read_png
-    from tools.process_group import exit_on_termination, run_logged
-    from tools.render_output import output_problem, publish
-    from tools.render_session import (
-        Session,
-        CONFIG_FILES,
-        checkbox_dialog_client,
-        combobox_dialog_client,
-        menu_dialog_client,
-        install_theme,
-        link_kvantum_themes,
-        session_command,
-        write_kvantum_selection,
-        write_session_configs,
-    )
-    from tools.repo_root import ROOT
+    from tools.diagnostics import report_error, report_missing_tool
+    from tools.process_group import exit_on_termination
+    from tools.render_output import output_problem
+    from tools.render_workflow import render
 else:  # run directly: python3 tools/render_surface.py
     from argument_parsing import (
         EscapingArgumentParser,
         plain_number,
         positive_int,
     )
-    from diagnostics import (
-        report_error,
-        report_failure,
-        report_missing_tool,
-    )
-    from png import PngError, read_png
-    from process_group import exit_on_termination, run_logged
-    from render_output import output_problem, publish
-    from render_session import (
-        Session,
-        CONFIG_FILES,
-        checkbox_dialog_client,
-        combobox_dialog_client,
-        menu_dialog_client,
-        install_theme,
-        link_kvantum_themes,
-        session_command,
-        write_kvantum_selection,
-        write_session_configs,
-    )
-    from repo_root import ROOT
+    from diagnostics import report_error, report_missing_tool
+    from process_group import exit_on_termination
+    from render_output import output_problem
+    from render_workflow import render
 
 TOOL = "render_surface"
 REQUIRED_TOOLS = (
@@ -99,136 +65,6 @@ REQUIRED_TOOLS = (
 _DEFAULT_APPLET = "org.kde.plasma.calculator"
 # The dialog capture's size, the size the widget gate byte-compares.
 _DIALOG_CAPTURE = (480, 360)
-
-
-def _capture_is_unpainted(rgb: bytes) -> bool:
-    """Return whether a capture's RGB plane is entirely black.
-
-    A KWin virtual session that has not painted yet presents an all-black
-    screen, so spectacle captures a correctly sized but empty surface. Such a
-    capture is a render of nothing; refusing it here turns an early capture
-    into one diagnostic naming the settle wait instead of a published PNG that
-    later fails pixel comparisons for no visible reason.
-    """
-    return not any(rgb)
-
-
-def _dialog_config_files() -> tuple[str, ...]:
-    """Config files the dialog render applies, unlike the applet render.
-
-    Plasma applets draw through the desktop theme, so the applet render
-    leaves the ``[kdeglobals] [KDE] widgetStyle`` default unapplied. A
-    ``kdialog`` client draws through the widget style, so the dialog render
-    applies the ``kdeglobals`` section of the global theme's defaults too.
-    """
-    return CONFIG_FILES + ("kdeglobals",)
-
-
-def _render(args: argparse.Namespace) -> int:
-    output = Path(args.output).absolute()
-    try:
-        session = Session.create()
-    except OSError as exc:
-        # Creating the scratch session can fail before it has anything to
-        # clean up (a full or unwritable TMPDIR). Report it as this tool's own
-        # diagnostic instead of letting the OSError escape as a traceback.
-        return report_error(
-            TOOL, f"cannot create a scratch session directory: {exc}"
-        )
-    with session:
-        try:
-            status, install_log = install_theme(session)
-        except OSError as exc:
-            # `make` was found on PATH but cannot be started (a corrupt or
-            # unexecutable binary); report it as this tool's own diagnostic
-            # rather than letting the OSError escape as a traceback.
-            return report_error(TOOL, f"cannot run make: {exc}")
-        if status != 0:
-            reason = "timed out" if status is None else f"exited {status}"
-            return report_failure(TOOL, f"make install {reason}", install_log)
-
-        problem, path = link_kvantum_themes(session)
-        if problem is not None:
-            return report_error(
-                TOOL, f"cannot link {path}: {problem}"
-            )
-
-        dialog = args.checkbox_dialog or args.combobox_dialog or args.menu_dialog
-        try:
-            write_session_configs(
-                session, files=_dialog_config_files() if dialog else CONFIG_FILES
-            )
-        except (OSError, UnicodeDecodeError, ValueError) as exc:
-            return report_failure(
-                TOOL, f"cannot write the session config: {exc}"
-            )
-
-        if args.checkbox_dialog:
-            client = list(checkbox_dialog_client(session))
-        elif args.combobox_dialog:
-            client = list(combobox_dialog_client(session))
-        elif args.menu_dialog:
-            client = list(menu_dialog_client(session))
-        else:
-            client = ["plasmawindowed", args.applet]
-        if dialog:
-            try:
-                write_kvantum_selection(session)
-            except OSError as exc:
-                return report_failure(
-                    TOOL, f"cannot write the Kvantum selection: {exc}"
-                )
-
-        command = session_command(
-            session,
-            client,
-            args.settle,
-            args.width,
-            args.height,
-            args.timeout,
-        )
-        try:
-            status = run_logged(
-                command.argv,
-                session.environment,
-                command.log,
-                command.timeout,
-                ROOT,
-            )
-        except OSError as exc:
-            return report_error(TOOL, f"cannot run dbus-run-session: {exc}")
-        if status is None:
-            return report_failure(
-                TOOL, f"render timed out after {args.timeout:g}s", command.log
-            )
-        if status != 0:
-            return report_failure(TOOL, f"render session exited {status}", command.log)
-
-        try:
-            image = read_png(str(session.surface))
-        except (PngError, OSError) as exc:
-            return report_failure(
-                TOOL, f"capture is not a readable PNG: {exc}", command.log
-            )
-        if (image.width, image.height) != (args.width, args.height):
-            return report_failure(
-                TOOL,
-                f"capture is {image.width}x{image.height}, "
-                f"expected {args.width}x{args.height}",
-                command.log,
-            )
-        if _capture_is_unpainted(image.rgb):
-            return report_failure(
-                TOOL,
-                "capture is entirely black: the window did not paint before "
-                f"the {args.settle:g}s settle; retry with a longer --settle",
-                command.log,
-            )
-        try:
-            publish(session.surface, output)
-        except OSError as exc:
-            return report_failure(TOOL, f"cannot write {output}: {exc}")
-        return 0
 
 
 def _seconds(option: str, minimum: float) -> Callable[[str], float]:
@@ -376,7 +212,7 @@ def main(argv: list[str] | None = None) -> int:
     if problem is not None:
         return report_error(TOOL, f"cannot write {args.output!r}: {problem}")
     with exit_on_termination():
-        return _render(args)
+        return render(args)
 
 
 if __name__ == "__main__":

@@ -477,7 +477,8 @@ check-references:
 # Opt-in: the render needs a Plasma 6 session's tools (kwin_wayland, spectacle,
 # plasmawindowed), so it stays out of `check`. It installs into a scratch data
 # home and leaves the user's configuration alone; tools/render_surface.py
-# documents the steps and exits 2 when a tool is missing.
+# validates and dispatches the render to tools/render_workflow.py, and exits 2
+# when a required tool is missing.
 RENDER_OUTPUT ?= render.png
 
 render:

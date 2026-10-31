@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Split the render workflow from the render CLI (planned 2026-10-31 by the organize role) — done 2026-10-31 by the feature role
+
+**Goal.** Give the headless render workflow its own module so `render_surface.py` owns command-line parsing and dispatch while the render lifecycle has a focused home.
+
+**Why.** `tools/render_surface.py` is the largest production Python module at 383 lines. Its `_render` function spans 107 lines and coordinates scratch-session creation, theme installation, session configuration, client selection, command execution, capture validation and publication. `tools/render_session.py` already owns scratch-session state and launch construction, but workflow-stage error handling remains bundled in the CLI module.
+
+**Target structure and files.** Add `tools/render_workflow.py` for the render lifecycle handler currently implemented by `_render`: it owns the session transitions from created session through installed theme, configured client, captured PNG and publication, including the existing per-stage diagnostics and cleanup through `Session`. Keep argument parsing, argument validation, tool preflight, output preflight and signal wrapper in `tools/render_surface.py`; CLI dispatch delegates validated options and the output path to the new workflow. Keep scratch paths, environment construction, theme installation, client command construction and command logs in `tools/render_session.py`. Update both package imports and direct-script imports. Touch `tools/render_surface.py`, the new `tools/render_workflow.py`, and the render tests (`tests/test_render_surface_units.py`, `tests/test_render_surface.py`, `tests/test_repo_root.py`); preserve the existing public CLI entry point and `make render` invocation.
+
+**Acceptance criteria.** The render workflow module contains no argument parser or CLI preflight, and `render_surface.py` delegates after its existing validations. Existing success, failure, timeout, signal-cleanup, capture-validation, output-preservation and dialog-mode coverage continues through `make check`; add focused unit coverage for the workflow entry point if needed to preserve stage-specific diagnostic checks. Direct execution as `python3 tools/render_surface.py OUTPUT` and package imports both work. Grep source, tests and Markdown for moved names and imports to remove stale references. This is a code-organization change only; command order, diagnostics, exit statuses and published PNG bytes retain their existing behavior.
+
 ### Platinum GTK 4 header subtitles: declare the inactive-text grey (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Give GTK 4 header subtitles an explicit muted Platinum foreground, complementing the landed `.dim-label` treatment.

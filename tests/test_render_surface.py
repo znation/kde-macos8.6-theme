@@ -1,8 +1,9 @@
-"""Tests for the headless Plasma render CLI and its throwaway session.
+"""Tests for the headless Plasma render CLI and throwaway workflow.
 
-``tools/render_surface.py`` parses, launches and publishes, while
-``tools/render_session.py`` owns the scratch session and its command; this
-module drives both through the CLI's success and failure paths.
+``tools/render_surface.py`` parses and validates arguments, while
+``tools/render_workflow.py`` runs the session through capture and publication.
+``tools/render_session.py`` owns scratch-session state and command building;
+this module drives the workflow through the public CLI.
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ from support.svg_case import parse_svg
 from svg_assertions import render_slices
 from support.platinum_palette import FACE, hex_colour
 from support.reference_image import read_reference, skip_unless_materialized
-from tools import render_session, render_surface  # noqa: E402
+from tools import render_session, render_surface, render_workflow  # noqa: E402
 from tools.fidelity_metrics import compare, crop  # noqa: E402
 from tools.png import pixel_at, read_png  # noqa: E402
 from tools.png.write import encode_png  # noqa: E402
@@ -173,7 +174,7 @@ class TestFailurePaths(StubTools):
         # The menu mode must reach the session as a KDialog menu client (and
         # therefore use the dialog's Kvantum configuration path), not fall
         # through to the default Plasma calculator applet.
-        with mock.patch.object(render_surface, "run_logged", return_value=1) as run:
+        with mock.patch.object(render_workflow, "run_logged", return_value=1) as run:
             status, stderr, output = self.run_main("--menu-dialog")
 
         self.assertEqual(1, status)

@@ -403,8 +403,9 @@ along with its red, green and blue bytes, so a transparent candidate cannot pass
 reference. `--max-mae F` and `--max-frac F` set
 aggregate budgets instead: when either is given, a run passes when each given budget is met —
 `--max-mae` bounds the mean absolute error, `--max-frac` bounds the differing-pixel fraction — and
-the default no-differing-pixel gate no longer applies. `make render` (`tools/render_surface.py`)
-produces a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
+the default no-differing-pixel gate no longer applies. `make render` invokes the CLI
+(`tools/render_surface.py`), which dispatches the lifecycle in `tools/render_workflow.py` to
+produce a candidate render. Where the Plasma render tools are on `PATH`, `make check` renders the
 window and byte-compares the title-bar strip (candidate `30,0,80,22` against reference
 `30,25,80,22`), the close, zoom and collapse box regions, and the side and bottom border strips of
 `aboutsystem_betawiki.png` (the zoom box against `systemprofiler_betawiki.png`), cropping each

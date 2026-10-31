@@ -1,9 +1,9 @@
-"""Tests for the render CLI's arguments and its throwaway session units.
+"""Tests for the render CLI and throwaway render workflow units.
 
 The render's end-to-end capture and its failure orchestration live in
 ``tests/test_render_surface.py``, and the output publication in
 ``tests/test_render_output.py``; this module covers the units they are built
-from: ``render_surface.main``'s argument validation and the session setup,
+from: ``render_surface.main``'s argument validation and workflow delegation,
 environment and in-session commands in ``tools/render_session.py``.
 """
 
@@ -17,7 +17,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: E402
-from tools import apply_theme, render_session, render_surface  # noqa: E402
+from tools import apply_theme, render_session, render_surface, render_workflow  # noqa: E402
 from tools.render_session import (
     checkbox_dialog_client,
     combobox_dialog_client,
@@ -25,6 +25,21 @@ from tools.render_session import (
 
 
 class TestArguments(unittest.TestCase):
+    def test_cli_delegates_validated_options_to_render_workflow(self):
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=7) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            status = render_surface.main(("out.png", "--applet", "test.applet"))
+
+        self.assertEqual(7, status)
+        args = workflow.call_args.args[0]
+        self.assertEqual("test.applet", args.applet)
+        self.assertEqual((320, 240), (args.width, args.height))
+        self.assertIs(render_workflow.render, render_surface.render)
+
     def assert_usage_error(self, *argv):
         """Assert a usage error (exit 2) and return its stderr."""
         status, stderr = call_main(render_surface.main, *argv)
