@@ -696,11 +696,97 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
              # "button" as a bare token: a spinbutton is a field, not a
              # button, so its node spelling never counts toward the scan;
              # a flat button node carries the flat-style arms, not the
-             # plain ones, and is pinned by test_osd_flat_button.
+             # plain ones, and is pinned by test_osd_flat_button; a
+             # suggested-action button node carries the suggested-style
+             # arms, also not the plain ones, and is pinned by
+             # test_osd_suggested_action.
              if "button" in selector
              and "spinbutton" not in selector
              and "flat" not in selector
+             and "suggested-action" not in selector
              and any(token in selector for token in osd_like)},
+            enumerated,
+        )
+
+    def test_osd_suggested_action(self):
+        """Pin the nine restated stock OSD suggested-action arms.
+
+        No collected reference screenshot shows a GTK OSD overlay or a
+        suggested-action button inside one, so the sheet restates the
+        toolkit resource's ``.osd button.suggested-action`` arms with
+        the landed plain push-button recipe (the base ``button``
+        dictionary ``test_osd_button`` pins), with one clearance stock's
+        own arms force: every one of the five stock arms claims
+        ``background-clip: padding-box``, which left standing under the
+        equal-specificity restatement would clip the restated face to
+        the padding box, so every restated arm declares
+        ``background-clip: border-box`` and the face paints exactly like
+        the landed plain and flat restatements'. The restated arms are
+        the raised ``#DDDDDD`` face with its 1px black border and zero
+        radius, ``BUTTON_BEVEL``, and black labels; the ``:hover`` and
+        ``:backdrop`` arms repeat the base recipe byte-equal, recipe
+        ``outline-color`` included, as the landed plain and flat
+        backdrop restatements do; the active and checked arms swap only
+        ``box-shadow`` to ``INVERTED_BUTTON_BEVEL``; the disabled arms
+        keep ``BUTTON_BEVEL`` with the Inactive grey (``ETCH_DARK``) and
+        no ``outline-color``, as the landed disabled arms claim none.
+        The arm selectors and states come from gtk-contained.css in
+        /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 (libgtk-3 3.24.49); no
+        restated arm sets on-disk geometry, so the stock ``button.osd``
+        minimums and the ``button.osd.image-button`` minimum-width arm
+        keep governing; the restated blocks keep the stock arm order, so
+        the active/checked arm keeps stock's sheet-order win over the
+        hover arm.
+        """
+        base = {
+            "background-color": FACE,
+            "background-image": "none",
+            "background-clip": "border-box",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        active = {**base, "box-shadow": INVERTED_BUTTON_BEVEL}
+        disabled = {**base, "color": ETCH_DARK}
+        del disabled["outline-color"]
+        expected = [
+            (base, (
+                ".osd button.suggested-action",
+                ".osd button.suggested-action:hover",
+                ".osd button.suggested-action:backdrop",
+            )),
+            (active, (
+                ".osd button.suggested-action:active:backdrop",
+                ".osd button.suggested-action:active",
+                ".osd button.suggested-action:checked:backdrop",
+                ".osd button.suggested-action:checked",
+            )),
+            (disabled, (
+                ".osd button.suggested-action:disabled:backdrop",
+                ".osd button.suggested-action:disabled",
+            )),
+        ]
+        enumerated = {
+            selector for _, selectors in expected for selector in selectors
+        }
+        self.assertEqual(len(enumerated), 9, enumerated)
+        for declarations, selectors in expected:
+            for selector in selectors:
+                with self.subTest(selector=selector):
+                    self.assertEqual(self.rules[selector], declarations)
+        self.assertEqual(
+            # "button" and "suggested-action" as bare tokens: the shipped
+            # sheet's only suggested-action spellings are these nine
+            # restated arms; the generic suggested-action arms outside
+            # .osd stay undeclared in the sheet, so the stock resource
+            # keeps governing outside overlays.
+            {selector
+             for selector in self.rules
+             if "button" in selector and "suggested-action" in selector},
             enumerated,
         )
 
