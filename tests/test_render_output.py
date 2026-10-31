@@ -86,6 +86,23 @@ class TestPublishSourceFailure(unittest.TestCase):
                 ["render.png"], sorted(path.name for path in root.iterdir())
             )
 
+    @unittest.skipUnless(hasattr(os, "mkfifo"), "FIFOs are not supported")
+    def test_a_fifo_source_is_refused_without_waiting_for_a_writer(self):
+        with tempfile.TemporaryDirectory(prefix="render-publish-") as directory:
+            root = Path(directory)
+            source = root / "capture.png"
+            os.mkfifo(source)
+            output = root / "render.png"
+            output.write_bytes(b"previous good render")
+
+            with self.assertRaisesRegex(ValueError, "not a regular file"):
+                render_output.publish(source, output)
+
+            self.assertEqual(b"previous good render", output.read_bytes())
+            self.assertEqual(["capture.png", "render.png"], sorted(
+                path.name for path in root.iterdir()
+            ))
+
 
 class TestPublishFdopen(unittest.TestCase):
     def test_failed_fdopen_closes_descriptor(self):

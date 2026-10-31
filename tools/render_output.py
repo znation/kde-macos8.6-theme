@@ -16,8 +16,10 @@ from pathlib import Path
 
 if __package__:
     from tools.atomic_write import write_atomically
+    from tools.containment import open_regular_binary
 else:  # imported from a directly run tool
     from atomic_write import write_atomically
+    from containment import open_regular_binary
 
 
 def output_problem(output: Path) -> str | None:
@@ -56,7 +58,7 @@ def publish(source: Path, output: Path) -> None:
             f"not {type(output).__name__}"
         )
     def copy_into(destination):
-        with source.open("rb") as origin:
+        with open_regular_binary(source) as origin:
             shutil.copyfileobj(origin, destination)
 
     write_atomically(output, copy_into, prefix=".render-")
