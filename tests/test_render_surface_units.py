@@ -142,6 +142,14 @@ class TestSessionSetup(unittest.TestCase):
             self.assertEqual(0o700, stat.S_IMODE(session.runtime.stat().st_mode))
             self.assertEqual(session.root / "surface.png", session.surface)
 
+    def test_creation_leaves_the_themes_link_to_link_kvantum_themes(self):
+        # `link_kvantum_themes` is the one place the scratch home's themes
+        # link is made, and only after `make install` has populated the data
+        # home's `themes/`: at creation there is nothing to link, so creation
+        # leaves no `.local` tree behind either.
+        with render_session.Session.create() as session:
+            self.assertFalse((session.home / ".local").exists())
+
     def test_links_the_scratch_homes_themes_for_the_kvantum_lookups(self):
         # Kvantum searches its theme under the literal
         # `$HOME/.local/share/themes/` path, which no `XDG_DATA_HOME` a

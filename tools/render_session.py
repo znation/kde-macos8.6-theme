@@ -13,7 +13,10 @@ The scratch session also gets a ``HOME`` of its own: Kvantum searches its
 theme under ``$HOME/.local/share/themes/`` with that literal path, so the
 scratch home links ``.local/share/themes`` to the scratch data home's
 ``themes/``, which ``make install`` populates. Without that link Kvantum
-can find no theme and draws its compiled-in default instead.
+can find no theme and draws its compiled-in default instead. The link is
+made after the theme's scratch install (:func:`link_kvantum_themes`), not
+by :meth:`Session.create`: at creation the data home holds no ``themes/``
+directory yet, so a creation-time link could point at nothing.
 """
 
 from __future__ import annotations
@@ -83,13 +86,6 @@ class Session:
             for directory in (runtime, config, data):
                 directory.mkdir()
             runtime.chmod(0o700)
-            # `KVANTUM_THEME` reaches the session only through the literal
-            # `HOME`-joined path documented in the README, so link the scratch
-            # home's themes into the scratch data home the install targets.
-            data_themes = data / "themes"
-            kvantum_themes = home / ".local" / "share" / "themes"
-            if data_themes.is_dir() and not kvantum_themes.exists():
-                kvantum_themes.symlink_to(data_themes)
             surface = root / "surface.png"
 
             # DESTDIR must not reach the install: the theme has to land in the
@@ -176,10 +172,12 @@ def session_script() -> str:
 def link_kvantum_themes(session: Session) -> tuple[OSError | None, Path]:
     """Link the scratch home's ``themes`` onto the data home's.
 
-    Kvantum searches its theme themes under the literal
+    Kvantum searches its theme under the literal
     ``$HOME/.local/share/themes/`` path the README records, which the scratch
     ``XDG_DATA_HOME`` does not satisfy: the session home is linked so the
-    engine reads the same theme directory ``make install`` populated.
+    engine reads the same theme directory ``make install`` populated. Runs
+    after that install -- at creation the data home holds no ``themes/`` --
+    so this, not :meth:`Session.create`, is the one place the link is made.
     """
     themes = session.home / ".local" / "share" / "themes"
     try:
