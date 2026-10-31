@@ -78,9 +78,23 @@ which this theme maps to `common` (`[GenericFrame] frame.element=common`), so `[
 frame.element=itemview` is never used for a list's border; the theme's reference-grounded sunken
 field therefore only exists in the art.
 
-**Needs review by bugfix:** decide whether the generic frame (or the list's own frame) should
-carry the reference's sunken field, and pin the rendered list field's border runs, not just the
-`itemview` slices.
+**Decided by the user 2026-10-30 (recorded by the director role): the generic frame carries the
+field.** Steer `[GenericFrame] frame.element` from `common` to `itemview`; do not change
+`[ItemView]`, whose frame slices still paint the per-item selection cells through
+`PE_PanelItemViewItem`. Upstream `Kvantum/style/Kvantum.cpp`'s `PE_Frame` resolves a
+`QAbstractScrollArea`'s frame with `getFrameSpec("GenericFrame")`, which is why the shipped
+`itemview` nine-slice never reaches a list's border, and the installed themes' `GenericFrame` →
+`common` mapping is only their own field style, not a binding rule. `common` stays as
+`[TabFrame] interior.element=common`, so the raised tab interior is unchanged; `[StatusBar]`,
+`[TabBarFrame]`, `[GroupBox]`, `[ToolTip]` and `[DockTitle]` disable or override their frame, so
+the remaining `PE_Frame` consumers are the reference's sunken fields (lists, trees, tables, text
+areas, scroll areas) plus the Qt color dialog's `QWellArray` swatches, which no reference
+screenshot shows — record that swatch change as an adaptation. Then pin the rendered list field's
+border runs, not just the `itemview` slices: add a `--menu-dialog` client to
+`tools/render_session.py` (the same `dbus-run-session`/KWin session, no new infrastructure) and
+assert the reference's `#999999`/`#000000`/`#FFFFFF` left and `#000000`/`#FFFFFF` right/bottom runs
+in that capture. Update `SURFACE_CONTROL_CONFIG`'s `GenericFrame` entry, the element test that
+reads it, and the `docs/invariants.md` item-view row in the same change.
 
 ### The live dialog gates byte-compare one widget cell each, so the other engine-drawn widgets in the two captures stay unpinned (found by the steward role 2026-10-30)
 
@@ -115,12 +129,22 @@ so the gap is that the gates compare call-chosen single crops instead of
 deriving the set of engine-drawn widget regions from the captures and
 comparing each region against the shipped art slice its widget maps to.
 
-**Needs review by bugfix:** decide what enumerates the regions — extend
-the two existing dialog gates with one byte-comparison per engine-drawn
-widget region of each capture (the shape `test_draws_the_check_box_cell_1_to_1`
-and `test_draws_the_combo_arrow_cell_1_to_1` already use), or add one gate
-that walks the capture — and pin the regions the two Open records name so
-their fixes land with a rendered-pixel assertion; `make check` owns the
-renders, so no new session infrastructure is proposed.
+**Decided by the user 2026-10-30 (recorded by the director role): explicit per-widget regions,
+no capture walker.** Extend the two existing dialog gates with one byte-comparison or band-run
+assertion per engine-drawn widget region of each capture, in the shape
+`test_draws_the_check_box_cell_1_to_1` and `test_draws_the_combo_arrow_cell_1_to_1` already use:
+the check box and its face ring plus the Yes and No push buttons in the `--checkbox-dialog`
+capture, and the combo arrow, the combo field and the OK button in the `--combobox-dialog`
+capture. For composed frames assert the rendered band rows/columns and the flat interior fill
+against the shipped slices; do not rebuild a nine-slice composer in the test, because it would
+reimplement `renderFrame` and could share its assumptions. A walker that segments regions out of
+the capture is rejected: it would reimplement the widget-to-element mapping that this record
+exists to pin, and the two captures have fixed 480x360 geometry by construction. The item view
+field has no capture yet, so add the `--menu-dialog` client named in the item-view record and pin
+its border runs there. Coverage is now exhaustive over the widgets the dialog clients create, not
+automatic: a new `--*-dialog` mode must add its regions in the same change, and the region table
+must name `tools/render_session.py`'s `checkbox_dialog_client`/`combobox_dialog_client` so that
+requirement is visible where the widgets are constructed. `make check` owns the renders, so no new
+session infrastructure is proposed.
 
 ## Fixed
