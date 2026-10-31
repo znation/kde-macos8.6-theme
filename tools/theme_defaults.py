@@ -162,8 +162,21 @@ def _write_config_atomically(path: Path, content: str) -> None:
     A crash mid-write leaves the previous config (or no file) rather than a
     truncated one that Plasma would read as malformed; see
     :func:`tools.atomic_write.write_atomically`.
+
+    The mode is read with one guarded ``stat``, not an ``exists()`` probe
+    followed by a ``stat()``: a partner writing the same config home (a KWin
+    session's scratch config, saved at exit) can remove the file between the
+    two calls, and an unguarded second lookup would then raise a bare
+    ``FileNotFoundError`` out of the middle of :func:`write_configs`, after
+    some configs were written and before the rest. A file removed before the
+    lookup reads exactly like one that never existed: the write carries the
+    umask's default mode.
     """
-    mode = path.stat().st_mode & 0o777 if path.exists() else None
+    mode: int | None = None
+    try:
+        mode = path.stat().st_mode & 0o777
+    except FileNotFoundError:
+        pass
     write_atomically(
         path,
         lambda destination: destination.write(content.encode("utf-8")),

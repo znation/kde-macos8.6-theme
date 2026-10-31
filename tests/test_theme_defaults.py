@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import pathlib
 import tempfile
 import unittest
 from unittest import mock
@@ -412,6 +413,23 @@ class TestWriteConfigs(unittest.TestCase):
         theme_defaults._write_config_atomically(target, "NEW\n")
         self.assertEqual(0o644, target.stat().st_mode & 0o777)
         self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
+
+    def test_removal_between_the_exists_check_and_the_stat_writes(self):
+        directory = make_tmp_dir(self)
+        target = directory / "kwinrc"
+        target.write_text("ORIGINAL\n", encoding="utf-8")
+        td = theme_defaults
+        # A partner (a KWin session saving its scratch config at exit) removes
+        # the file right after _write_config_atomically's exists()/stat()
+        # probe returns True: exists() already answers True when the file is
+        # gone, so the later stat() raises FileNotFoundError instead of
+        # falling through to the umask-defaulted write a never-present file
+        # would take.
+        target.unlink()
+        with mock.patch.object(pathlib.Path, "exists", lambda self: True):
+            td._write_config_atomically(target, "NEW\n")
+        self.assertEqual("NEW\n", target.read_text(encoding="utf-8"))
+        self.assertEqual({"kwinrc"}, set(os.listdir(directory)))
 
     def test_new_file_mode_respects_umask(self):
         directory = make_tmp_dir(self)
