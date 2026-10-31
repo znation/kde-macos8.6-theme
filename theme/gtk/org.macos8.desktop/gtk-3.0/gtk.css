@@ -1319,6 +1319,16 @@ toolbar.osd {
   -gtk-icon-shadow: none;
 }
 
+/* No collected reference screenshot shows a color-chooser OSD popover.
+   Reuse the sheet's square popover corners for GTK's class-based selector;
+   the stock colorchooser .popover.osd arm declares a 5px radius in
+   gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0, extracted
+   with gresource on 2026-10-30. Declaration checks do not establish rendered
+   pixels. */
+colorchooser .popover.osd {
+  border-radius: 0;
+}
+
 /* No collected reference screenshot shows a field inside a GTK OSD overlay,
    so those fields keep the toolkit's stock arms: grouped `.osd
    spinbutton:not(.vertical), .osd entry` rules painting a translucent dark

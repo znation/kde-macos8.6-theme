@@ -431,7 +431,8 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {
                 selector
                 for selector in self.rules
-                if "button" not in selector
+                if selector != "colorchooser .popover.osd"
+                and "button" not in selector
                 and ((".osd" in selector
                     and ".osd check" not in selector
                     and ".osd entry" not in selector
@@ -447,6 +448,15 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 or "scale-popup" in selector)
             },
             set(selectors),
+        )
+
+    def test_colorchooser_osd_popover_corners(self):
+        self.assertEqual(
+            self.rules["colorchooser .popover.osd"], {"border-radius": "0"}
+        )
+        self.assertEqual(
+            self.rules["colorchooser .popover.osd"]["border-radius"],
+            self.rules[".popover"]["border-radius"],
         )
 
     def test_osd_entry_fields(self):
