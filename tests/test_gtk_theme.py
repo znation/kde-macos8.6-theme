@@ -1449,6 +1449,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             {
                 **{
                     selector: {
+                        "background-color": FACE,
                         "background-image": "none",
                         "box-shadow": "none",
                         "border-color": BLACK,
@@ -1608,6 +1609,24 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
         self.assertEqual(
             self.rules["colorswatch#add-color-button overlay"]["background-image"],
             self.rules["button"]["background-image"],
+        )
+
+    def test_add_color_background_colors(self):
+        for selector in (
+            "colorswatch#add-color-button overlay",
+            "colorswatch#add-color-button overlay:hover",
+            "colorswatch#add-color-button overlay:backdrop",
+            "colorswatch#add-color-button overlay:backdrop:hover",
+        ):
+            self.assert_rule(selector, {"background-color": FACE})
+        self.assertEqual(
+            self.rules["colorswatch#add-color-button overlay"]["background-color"],
+            self.rules["button"]["background-color"],
+        )
+        # Chosen-color swatches carry no fill: their rule clears only the
+        # decorative shadow, so this face applies to the add-color action alone.
+        self.assert_rule(
+            "button.color colorswatch:only-child", {"box-shadow": "none"}
         )
 
     def test_add_color_box_shadows(self):

@@ -647,11 +647,19 @@ colorswatch#editor-color-sample overlay {
  * foreground, frame border and palette-swatch focus outline.
  * The stock base and hover arms also set white text and icon shadows; the
  * backdrop arms clear them. Clear both using the sheet's shadow-free label
- * treatment (adaptation 2026-10-31). */
+ * treatment (adaptation 2026-10-31).
+ * The installed GTK 3 theme resource in
+ * `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0` (extracted with `gresource`
+ * 2026-10-31; its path is recorded in docs/invariants.md) also supplies
+ * gradient fills on base and hover and an `image(...)` backdrop fill; no
+ * collected reference shows this action, so give all four arms the landed
+ * `button` face `#DDDDDD` as a platform adaptation (recorded 2026-10-31 by
+ * the feature role). */
 colorswatch#add-color-button overlay,
 colorswatch#add-color-button overlay:hover,
 colorswatch#add-color-button overlay:backdrop,
 colorswatch#add-color-button overlay:backdrop:hover {
+  background-color: #DDDDDD;
   background-image: none;
   box-shadow: none;
   border-color: #000000;

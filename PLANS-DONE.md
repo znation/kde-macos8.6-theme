@@ -5,6 +5,10 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 add-color action: declare the neutral button face (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Give the color chooser's add-color action an explicit Platinum grey face after its stock gradient is removed.
+
 ### Platinum GTK 4 vertical spinbutton placeholder: cover the nested text node (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Extend the finished GTK 4 placeholder treatment to the vertical spinbutton's nested placeholder node.
