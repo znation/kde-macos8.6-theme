@@ -84,9 +84,20 @@ def _restore_termination(previous: list[tuple[int, object]]) -> None:
 
 
 def _kill_group(process: subprocess.Popen) -> None:
+    """Kill *process*'s group, ignoring a nonpositive pid or gone group."""
+    if process.pid <= 0:
+        return
     try:
         os.killpg(process.pid, signal.SIGKILL)
     except OSError:
+        pass
+
+
+def _reap(process: subprocess.Popen) -> None:
+    """Wait briefly for a killed process without blocking on a wedged kernel."""
+    try:
+        process.wait(timeout=_REAP_TIMEOUT)
+    except subprocess.TimeoutExpired:
         pass
 
 
@@ -142,17 +153,10 @@ def run_logged(
             return None
         finally:
             _kill_group(process)
-            try:
-                process.wait(timeout=_REAP_TIMEOUT)
-            except subprocess.TimeoutExpired:
-                # The child has not been released yet, so there is nothing
-                # more to do: SIGKILL is already sent. Re-raising here would
-                # replace the caller's real outcome -- the None from the
-                # timeout path, or the SystemExit/KeyboardInterrupt the first
-                # wait raised -- with a spurious reap timeout. A child that
-                # exits normally was reaped by the first wait, which returned,
-                # so this second wait cannot time out on that path.
-                pass
+            # The child has not been released yet, so there is nothing more
+            # to do: SIGKILL is already sent. A reap timeout must not replace
+            # the caller's real outcome.
+            _reap(process)
 
 
 @contextlib.contextmanager

@@ -32,6 +32,7 @@ from support.cli_fixtures import run_main
 from support.process_assertions import assert_failed, assert_succeeded
 from support.repo_root import ROOT
 from support.tmp_dir import make_tmp_dir
+from tools import process_group
 
 from tools import (
     check_parallel,
@@ -816,7 +817,7 @@ class TestSpawnDefenses(unittest.TestCase):
         # A _NeverStarted worker has pid 0, and os.killpg(0, ...) signals the
         # coordinator's own process group -- under `make check`, make's
         # jobserver. The guard must reach no signal at all.
-        with mock.patch.object(check_parallel_workers.os, "killpg") as killpg:
+        with mock.patch.object(process_group.os, "killpg") as killpg:
             check_parallel_workers._kill_group(
                 check_parallel_workers._NeverStarted()
             )
@@ -825,12 +826,12 @@ class TestSpawnDefenses(unittest.TestCase):
     def test_kill_group_ignores_a_worker_group_that_already_exited(self):
         process = mock.Mock(pid=123)
         with mock.patch.object(
-            check_parallel_workers.os, "killpg",
+            process_group.os, "killpg",
             side_effect=ProcessLookupError,
         ) as killpg:
             check_parallel_workers._kill_group(process)
 
-        killpg.assert_called_once_with(123, check_parallel_workers._KILL_SIGNAL)
+        killpg.assert_called_once_with(123, signal.SIGKILL)
 
     def test_reap_ignores_a_worker_that_does_not_exit_within_the_bound(self):
         process = mock.Mock()
@@ -838,7 +839,7 @@ class TestSpawnDefenses(unittest.TestCase):
 
         check_parallel_workers._reap(process)
 
-        process.wait.assert_called_once_with(timeout=check_parallel_workers._REAP_SECONDS)
+        process.wait.assert_called_once_with(timeout=5.0)
 
     def _spawn_while_popen_signals(self, number, raises):
         """Signal the coordinator *number* while Popen returns; spawn a sleeper.

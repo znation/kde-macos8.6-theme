@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import subprocess
 import sys
 import time
@@ -10,13 +9,13 @@ import time
 if __package__:
     from tools.process_group import (
         _INTERRUPT_SIGNALS, _TERMINATION_SIGNALS, _defer_signals,
-        _replay_deferred, _restore_termination,
+        _kill_group, _reap, _replay_deferred, _restore_termination,
     )
     from tools.terminal import escape_controls
 else:
     from process_group import (
         _INTERRUPT_SIGNALS, _TERMINATION_SIGNALS, _defer_signals,
-        _replay_deferred, _restore_termination,
+        _kill_group, _reap, _replay_deferred, _restore_termination,
     )
     from terminal import escape_controls
 
@@ -26,8 +25,6 @@ else:
 # real spawn cost). The poll itself is one waitpid(WNOHANG), so a 10ms
 # interval costs no measurable CPU.
 _POLL_SECONDS = 0.01
-_REAP_SECONDS = 5.0
-_KILL_SIGNAL = 9
 
 
 class _NeverStarted:
@@ -93,24 +90,6 @@ def _spawn(module: str, argv: list[str], cwd: str, log_path: str,
             note.write(f"check: the worker could not be started: {exc}\n")
     return _Worker(module, log_path, process,
                    started + timeout, started)
-
-
-def _kill_group(process: subprocess.Popen | _NeverStarted) -> None:
-    """Kill a worker's process group, ignoring an already-gone group."""
-    if process.pid <= 0:
-        return
-    try:
-        os.killpg(process.pid, _KILL_SIGNAL)
-    except OSError:
-        pass
-
-
-def _reap(process: subprocess.Popen | _NeverStarted) -> None:
-    """Wait briefly for a killed worker without blocking on a wedged kernel."""
-    try:
-        process.wait(timeout=_REAP_SECONDS)
-    except subprocess.TimeoutExpired:
-        pass
 
 
 def _supervise(modules: list[str], argv_prefix: list[str], cwd: str,
