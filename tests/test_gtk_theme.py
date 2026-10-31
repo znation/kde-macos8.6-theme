@@ -1423,6 +1423,8 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                         "border-color": BLACK,
                         "color": BLACK,
                         "outline-color": BLACK,
+                        "text-shadow": "none",
+                        "-gtk-icon-shadow": "none",
                     }
                     for selector in selectors
                 },
@@ -1586,6 +1588,17 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             "colorswatch#add-color-button overlay:backdrop:hover",
         ):
             self.assert_rule(selector, {"box-shadow": "none"})
+
+    def test_add_color_label_shadows(self):
+        expected = {"text-shadow": "none", "-gtk-icon-shadow": "none"}
+        for selector in (
+            "colorswatch#add-color-button overlay",
+            "colorswatch#add-color-button overlay:hover",
+            "colorswatch#add-color-button overlay:backdrop",
+            "colorswatch#add-color-button overlay:backdrop:hover",
+        ):
+            with self.subTest(selector=selector):
+                self.assert_rule(selector, expected)
 
     def test_add_color_foregrounds(self):
         selectors = (

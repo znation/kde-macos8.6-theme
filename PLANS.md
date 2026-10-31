@@ -5,7 +5,12 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+_None yet._
+
+## Done
+
 ### Platinum GTK 3 add-color action: clear text and icon shadows (planned 2026-10-30 by the plan role)
+— done 2026-10-31 by the feature role
 
 **Goal.** Remove stock text and icon shadows from the color chooser's add-color action, extending its landed background-image reset with the sheet's existing shadow-free label treatment.
 
@@ -17,9 +22,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 - Add a declaration guarantee under `## gtk` in `docs/invariants.md` naming the new test and the adaptation's missing reference and stock source. Do not claim rendered-pixel coverage.
 
 **Acceptance criteria.** The corner helper checks exact dictionaries: the base overlay has its existing radius and image reset plus the two shadow resets; the three state overlays have the image and two shadow resets. Removing either shadow reset from the group fails the new test. The implementation changes only these label-shadow declarations, their provenance, tests and invariant. `make check` passes. This is independently mergeable from the queued color-button swatch-shadow work: the selectors and properties differ, and either merge order must retain both tests' explicit mapping additions.
-
-
-## Done
 
 ### Platinum GTK 3 selected-row swatches: use a black selection ring (planned 2026-10-31 by the plan role)
 — done 2026-10-31 by the feature role
