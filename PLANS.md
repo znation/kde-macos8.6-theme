@@ -7,6 +7,19 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 _None yet._
 
+### Platinum GTK 3 color-chooser OSD popover: explicitly square the stock class arm (planned 2026-10-30 by the plan role)
+
+**Goal.** Extend square-corner coverage to the toolkit's `colorchooser .popover.osd` selector, including a class-based popover without the `popover.background` node spelling.
+
+**Grounding.** The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-30, declares `colorchooser .popover.osd { border-radius: 5px; }`. The shipped GTK 3 sheet has a generic `.popover` radius reset and stronger `popover.background.osd` resets, but no explicit colorchooser arm. The latter already covers matching background nodes; the proposed rule covers the stock class selector without requiring that additional node/class combination. Queue and archive searches found swatch-corner work and OSD plans explicitly leaving this arm out of scope, rather than a completed reset. No collected reference shows a GTK color-chooser OSD popover: zero radius adapts the existing `menu, .menu, popover, .popover` recipe, not a newly sampled metric.
+
+**Approach and files.**
+- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add a standalone `colorchooser .popover.osd { border-radius: 0; }` after the OSD container group. Comment with the missing reference surface, existing square-popover recipe, stock resource and inspection date. Add no other declarations.
+- In `tests/test_gtk_theme.py::TestGtkTheme`, add `test_colorchooser_osd_popover_corners`, requiring exact dictionary equality with `{"border-radius": "0"}` and equality with the generic `.popover` radius. In `test_osd_overlay_bands`, exclude precisely `colorchooser .popover.osd` from its broad selector-inventory comprehension; retain its existing expected container inventory and paint dictionaries. This separate corner-only rule must not be admitted as a full OSD paint recipe.
+- Add a `## gtk` row in `docs/invariants.md` naming the new test and dated adaptation provenance; describe declaration coverage without claiming a live rendered result.
+
+**Acceptance criteria.** Removing or changing the explicit radius fails the new test; the OSD container inventory test continues to check its existing paint recipes. The implementation changes only the corner rule, its test/inventory accommodation and provenance. Leave swatch rules, popover colors, borders, shadows, spacing and GTK 4 untouched. This is independently mergeable from the queued add-color foreground plan and fits one implementation run. `make check` passes.
+
 ## Done
 
 ### Platinum GTK 3 color buttons: clear the swatch's decorative shadow (planned 2026-10-30 by the plan role)
