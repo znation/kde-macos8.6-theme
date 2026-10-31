@@ -655,6 +655,13 @@ button.color colorswatch:only-child {
   box-shadow: none;
 }
 
+/* No reference screenshot shows a GTK selected-row color swatch. Reuse the
+ * black frame border and GTK's stock 2px selection-ring geometry as a
+ * platform adaptation (2026-10-31). */
+row:selected colorswatch {
+  box-shadow: 0 0 0 2px #000000;
+}
+
 /* No reference screenshot shows a GTK palette swatch hover. Reuse the
  * stock backdrop-hover shadow reset as a platform adaptation (2026-10-30). */
 colorswatch overlay:hover {
