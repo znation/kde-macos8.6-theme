@@ -116,8 +116,8 @@ CORE_CONTROL_CONFIG = {
         "frame.element": "focus",
     },
     "GenericFrame": {
-        "frame.element": "common",
-        "interior.element": "common",
+        "frame.element": "itemview",
+        "interior.element": "itemview",
     },
     "IndicatorArrow": {
         "indicator.element": "arrow",

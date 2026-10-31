@@ -50,6 +50,7 @@ if __package__:
         CONFIG_FILES,
         checkbox_dialog_client,
         combobox_dialog_client,
+        menu_dialog_client,
         install_theme,
         link_kvantum_themes,
         session_command,
@@ -76,6 +77,7 @@ else:  # run directly: python3 tools/render_surface.py
         CONFIG_FILES,
         checkbox_dialog_client,
         combobox_dialog_client,
+        menu_dialog_client,
         install_theme,
         link_kvantum_themes,
         session_command,
@@ -151,7 +153,7 @@ def _render(args: argparse.Namespace) -> int:
                 TOOL, f"cannot link {path}: {problem}"
             )
 
-        dialog = args.checkbox_dialog or args.combobox_dialog
+        dialog = args.checkbox_dialog or args.combobox_dialog or args.menu_dialog
         try:
             write_session_configs(
                 session, files=_dialog_config_files() if dialog else CONFIG_FILES
@@ -165,6 +167,8 @@ def _render(args: argparse.Namespace) -> int:
             client = list(checkbox_dialog_client(session))
         elif args.combobox_dialog:
             client = list(combobox_dialog_client(session))
+        elif args.menu_dialog:
+            client = list(menu_dialog_client(session))
         else:
             client = ["plasmawindowed", args.applet]
         if dialog:
@@ -290,6 +294,7 @@ def main(argv: list[str] | None = None) -> int:
             "size the widget gate byte-compares"
         ),
     )
+    parser.add_argument("--menu-dialog", action="store_true", help="render a KDialog menu list")
     parser.add_argument(
         "--width",
         type=positive_int("--width"),
@@ -323,6 +328,7 @@ def main(argv: list[str] | None = None) -> int:
         for flag, given in (
             ("--checkbox-dialog", args.checkbox_dialog),
             ("--combobox-dialog", args.combobox_dialog),
+            ("--menu-dialog", args.menu_dialog),
         )
         if given
     ]
@@ -361,7 +367,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     requirements = REQUIRED_TOOLS + (
-        ("kdialog",) if args.checkbox_dialog or args.combobox_dialog else ()
+        ("kdialog",) if args.checkbox_dialog or args.combobox_dialog or args.menu_dialog else ()
     )
     missing = report_missing_tool(TOOL, requirements)
     if missing is not None:

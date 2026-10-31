@@ -108,8 +108,8 @@ frame.right=1
 inherits=PanelButtonCommand
 frame=true
 interior=false
-frame.element=common
-interior.element=common
+frame.element=itemview
+interior.element=itemview
 
 [IndicatorArrow]
 inherits=PanelButtonCommand

@@ -52,50 +52,6 @@ been retained.
 for the rendered button; the next pixel probe should identify which pass paints `#000000` at
 (195,209) and (195,228), despite `button-normal` containing only `#DDDDDD` in its interior.**
 
-### The item view's frame art never reaches the screen: rendered lists draw the GenericFrame `common` frame instead of the reference's sunken field (found by the render pass 2026-10-29)
-
-A rendered list (kdialog's `--menu` and `--checklist` dialogs, KFind's results) draws its field
-frame as a raised 2px frame: the `#000000` outline outside, `#FFFFFF` inside on the top/left and
-`#999999` inside on the bottom/right. The reference's item view
-(`setup_emaculation.png`, the field the repo's own test derives: x=22 `#999999`, x=23 `#000000`,
-x=24+ `#FFFFFF`) is a sunken field with the bevel *outside* the outline, and the shipped
-`itemview` frame slices paint exactly that — but they never appear: patching the installed
-theme's `itemview-normal-left`/`-top` slices to marker colours leaves the render unchanged, while
-patching `common-normal-left`/`-top` (the `[GenericFrame]` element) changes the rendered frame's
-pixels.
-
-Reproduce with the pass's throwaway session: `kdialog --title "Test" --menu "Pick an item:"
-"Alpha" a "Beta" b`, then profile row 150 (x=12 `#000000`, x=13+ `#FFFFFF`) and row 200
-(x=266 `#999999`, x=267 `#000000`).
-
-**Observed output:** the rendered field's left/top border is `#000000` then the `#FFFFFF` face,
-and its right/bottom border is `#999999` then `#000000`; the reference's field is `#999999`,
-`#000000`, `#FFFFFF` on the left and `#000000`, `#FFFFFF` on the right
-(`setup_emaculation.png` (22, 250) = `#999999`, (23, 250) = `#000000`, (24, 250) = `#FFFFFF`).
-
-**Suspected cause:** Qt draws a `QAbstractScrollArea`'s frame through the style's generic frame,
-which this theme maps to `common` (`[GenericFrame] frame.element=common`), so `[ItemView]
-frame.element=itemview` is never used for a list's border; the theme's reference-grounded sunken
-field therefore only exists in the art.
-
-**Decided by the user 2026-10-30 (recorded by the director role): the generic frame carries the
-field.** Steer `[GenericFrame] frame.element` from `common` to `itemview`; do not change
-`[ItemView]`, whose frame slices still paint the per-item selection cells through
-`PE_PanelItemViewItem`. Upstream `Kvantum/style/Kvantum.cpp`'s `PE_Frame` resolves a
-`QAbstractScrollArea`'s frame with `getFrameSpec("GenericFrame")`, which is why the shipped
-`itemview` nine-slice never reaches a list's border, and the installed themes' `GenericFrame` →
-`common` mapping is only their own field style, not a binding rule. `common` stays as
-`[TabFrame] interior.element=common`, so the raised tab interior is unchanged; `[StatusBar]`,
-`[TabBarFrame]`, `[GroupBox]`, `[ToolTip]` and `[DockTitle]` disable or override their frame, so
-the remaining `PE_Frame` consumers are the reference's sunken fields (lists, trees, tables, text
-areas, scroll areas) plus the Qt color dialog's `QWellArray` swatches, which no reference
-screenshot shows — record that swatch change as an adaptation. Then pin the rendered list field's
-border runs, not just the `itemview` slices: add a `--menu-dialog` client to
-`tools/render_session.py` (the same `dbus-run-session`/KWin session, no new infrastructure) and
-assert the reference's `#999999`/`#000000`/`#FFFFFF` left and `#000000`/`#FFFFFF` right/bottom runs
-in that capture. Update `SURFACE_CONTROL_CONFIG`'s `GenericFrame` entry, the element test that
-reads it, and the `docs/invariants.md` item-view row in the same change.
-
 ### The live dialog gates byte-compare one widget cell each, so the other engine-drawn widgets in the two captures stay unpinned (found by the steward role 2026-10-30)
 
 The live render gate compares engine-drawn Kvantum widget pixels in

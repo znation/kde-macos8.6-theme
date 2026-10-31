@@ -263,6 +263,11 @@ def combobox_dialog_client(_session: Session) -> tuple[str, ...]:
     )
 
 
+def menu_dialog_client(_session: Session) -> tuple[str, ...]:
+    """Return the list dialog whose QAbstractScrollArea uses GenericFrame."""
+    return ("kdialog", "--title", "Test", "--menu", "Pick an item:", "Alpha", "a", "Beta", "b")
+
+
 def session_command(
     session: Session,
     client: list[str] | tuple[str, ...],

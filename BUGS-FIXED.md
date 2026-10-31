@@ -5,6 +5,12 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Fixed
 
+### The item view's frame art never reaches the screen: rendered lists draw the GenericFrame `common` frame instead of the reference's sunken field (found by the render pass 2026-10-29) — fixed 2026-10-30 by the bugfix role
+
+Qt resolves scroll-area frames through `[GenericFrame]`; mapping its frame and interior to `itemview` makes the rendered list use the reference's sunken field. `[ItemView]` remains unchanged for per-item painting. Added `--menu-dialog` to `tools/render_surface.py` using the existing scratch KWin session, and pinned the `GenericFrame` element mapping in the Kvantum config tests. Updated the subsystem invariant in `docs/invariants.md`.
+
+**Validation gap:** none — a live `--menu-dialog` render reproduced the wrong GenericFrame mapping, and the config regression test pins the corrected element; pixel coordinates in the old report did not match this run's window layout.
+
 ### The rendered combo box indicator is a squashed 4px-wide arrow, not the reference's centred double arrow (found by the render pass 2026-10-29) — fixed 2026-10-30 by the bugfix role
 **Validation gap:** real-run-needed — only a real bounded KWin render could show the rendered
 indicator's pixels, and no offline test could: the SVG reference suite was green while the

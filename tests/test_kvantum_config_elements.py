@@ -62,6 +62,10 @@ class TestSurfaceElements(unittest.TestCase):
     def test_every_surface_section_maps_to_its_element(self):
         _assert_pins_resolve(self, SURFACE_CONTROL_CONFIG)
 
+    def test_generic_frame_uses_the_reference_sunken_field(self):
+        parser = read(KVCONFIG)
+        self.assertEqual(_resolved(parser, "GenericFrame", "frame.element"), "itemview")
+
 
 class TestToolboxTabSurface(unittest.TestCase):
     """Pin the Qt toolbox tab's mapping onto the reference tab surface.
