@@ -25,7 +25,7 @@ from unittest import mock
 
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import process_runner
-from support.aurorae_fixtures import PROFILER_ROWS, REFERENCE_ROWS
+from support.aurorae_fixtures import REFERENCE_BOUNDS
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: F401
 from support.kvantum_fixtures import SVG
 from support.svg_case import parse_svg
@@ -46,12 +46,6 @@ REFERENCE = str(
 PROFILER_REFERENCE = str(
     repo_root.ROOT / "macos8.6-screenshots" / "systemprofiler_betawiki.png"
 )
-# The shared decode bounds, which cover every crop below and match the Aurorae
-# readers' bounds so the reference cache decodes each screenshot once.
-REFERENCE_BOUNDS = {
-    REFERENCE: REFERENCE_ROWS,
-    PROFILER_REFERENCE: PROFILER_ROWS,
-}
 # The render's title bar sits at the top of the 320x240 capture (row 0 is the
 # top outline, row 21 the bottom outline); the reference screenshot has the
 # same chrome at y=25..46, so the strips are compared at those offsets.

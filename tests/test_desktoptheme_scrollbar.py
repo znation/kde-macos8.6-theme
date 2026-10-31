@@ -31,7 +31,7 @@ PREFIXES = TROUGH_PREFIXES + THUMB_PREFIXES
 
 # The installer CD window's horizontal scroll bar, sampled for
 # `[Colors:View] BackgroundAlternate`; see
-# `test_colorscheme_reference.REFERENCE_SCROLLBAR`. The shared bound covers
+# `support.desktoptheme_paths.REFERENCE_SCROLLBAR`. The shared bound covers
 # that anchor and this module's bottom rule at y=477, so the screenshot
 # decodes once per run.
 REFERENCE = SETUP_REFERENCE

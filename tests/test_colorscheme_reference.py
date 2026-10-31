@@ -10,43 +10,24 @@ import unittest
 
 from support.colorscheme_fixtures import load_scheme
 from support.desktoptheme_paths import (
-    ARCHIVEORG_MAX_ROWS,
-    ARCHIVEORG_REFERENCE,
-    FIRSTBOOT_MAX_ROWS,
-    FIRSTBOOT_REFERENCE,
-    SETUP_MAX_ROWS,
-    SETUP_REFERENCE,
+    DESKTOP_ANCHOR_ROWS,
+    FIRSTBOOT_ANCHOR_ROWS,
+    REFERENCE_DESKTOP,
+    REFERENCE_FIRSTBOOT,
+    REFERENCE_SCROLLBAR,
+    SCROLLBAR_ANCHOR_ROWS,
 )
 from support.error_assertions import assert_error_names
 from support.reference_image import read_reference, skip_unless_materialized
 
 from tools import png  # noqa: E402
 
-# The retail screenshots the PNG-sourced anchors were sampled from, each
-# shared with the other readers of the same screenshot so the reference cache
-# decodes it once. All are stored with Git LFS, so a clone without them skips
-# the anchors sampled from them rather than failing `make check`.
-#
-# desktop_archiveorg8.6hd.png grounds the menu-bar face, window view, chrome
-# and selection-fill anchors.
-REFERENCE_DESKTOP = ARCHIVEORG_REFERENCE
-# firstboot_betawiki.png is the Setup Assistant's "Introduction" title
-# banner (Colors:Selection): the flat #CCCCFF band at y=61..85, under the
-# #000000 rule at y=59 and the #FFFFFF highlight at y=60.
-REFERENCE_FIRSTBOOT = FIRSTBOOT_REFERENCE
-# setup_emaculation.png is the installer CD window's horizontal scroll bar
-# (Colors:View BackgroundAlternate), a flat #EEEEEE trough.
-REFERENCE_SCROLLBAR = SETUP_REFERENCE
-
-# The deepest anchor row sampled from each reference, plus one, shared with
-# the other readers so each screenshot decodes once. setUpClass decodes only
-# these top rows: unfiltering the rest of a large screenshot is the dominant
-# cost of the decode, and no anchor reads below this. A new anchor below the
-# bound here must raise the matching shared constant, or its pixel read fails
-# the out-of-bounds check in ``pixel``.
-DESKTOP_ANCHOR_ROWS = ARCHIVEORG_MAX_ROWS  # deepest desktop anchor is (470, 300)
-FIRSTBOOT_ANCHOR_ROWS = FIRSTBOOT_MAX_ROWS  # deepest firstboot anchor is (431, 377)
-SCROLLBAR_ANCHOR_ROWS = SETUP_MAX_ROWS  # deepest scrollbar anchor is (200, 477)
+# The retail screenshots the PNG-sourced anchors were sampled from are
+# ``support.desktoptheme_paths``'s shared ``REFERENCE_*`` constants, aliased
+# there so the color-scheme anchors, the widget readers and the render bounds
+# all name one screenshot by one path. All are stored with Git LFS, so a
+# clone without them skips the anchors sampled from them rather than failing
+# `make check`.
 
 
 class TestReferenceAnchors(unittest.TestCase):

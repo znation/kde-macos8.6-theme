@@ -395,8 +395,6 @@ class TestSharedReferenceBounds(unittest.TestCase):
         from support.desktoptheme_paths import (
             ARCHIVEORG_MAX_ROWS,
             ARCHIVEORG_REFERENCE,
-        )
-        from test_colorscheme_reference import (
             DESKTOP_ANCHOR_ROWS,
             REFERENCE_DESKTOP,
         )
@@ -411,14 +409,16 @@ class TestSharedReferenceBounds(unittest.TestCase):
             TestDialogBackgroundReference,
             TestSubmenuArrowReference,
         )
+        # The color-scheme anchor reader uses the same shared constant.
         self.assertEqual(ARCHIVEORG_REFERENCE, REFERENCE_DESKTOP)
         self.assertEqual(ARCHIVEORG_MAX_ROWS, DESKTOP_ANCHOR_ROWS)
 
     def test_readers_share_the_setup_bound(self):
-        from support.desktoptheme_paths import SETUP_MAX_ROWS, SETUP_REFERENCE
-        from test_colorscheme_reference import (
+        from support.desktoptheme_paths import (
             REFERENCE_SCROLLBAR,
             SCROLLBAR_ANCHOR_ROWS,
+            SETUP_MAX_ROWS,
+            SETUP_REFERENCE,
         )
         from test_desktoptheme_scrollbar import TestScrollbarReference
         from test_kvantum_itemview_reference import TestItemViewReference
@@ -429,16 +429,15 @@ class TestSharedReferenceBounds(unittest.TestCase):
             TestScrollbarReference,
             TestItemViewReference,
         )
+        # The color-scheme anchor reader uses the same shared constant.
         self.assertEqual(SETUP_REFERENCE, REFERENCE_SCROLLBAR)
         self.assertEqual(SETUP_MAX_ROWS, SCROLLBAR_ANCHOR_ROWS)
 
     def test_readers_share_the_firstboot_bound(self):
         from support.desktoptheme_paths import (
+            FIRSTBOOT_ANCHOR_ROWS,
             FIRSTBOOT_MAX_ROWS,
             FIRSTBOOT_REFERENCE,
-        )
-        from test_colorscheme_reference import (
-            FIRSTBOOT_ANCHOR_ROWS,
             REFERENCE_FIRSTBOOT,
         )
         from test_desktoptheme_lineedit import TestLineEditReference
@@ -450,9 +449,12 @@ class TestSharedReferenceBounds(unittest.TestCase):
         self.assertEqual(FIRSTBOOT_MAX_ROWS, FIRSTBOOT_ANCHOR_ROWS)
 
     def test_readers_share_the_profiler_bound(self):
-        from support.aurorae_fixtures import PROFILER_REFERENCE, PROFILER_ROWS
+        from support.aurorae_fixtures import (
+            PROFILER_REFERENCE,
+            PROFILER_ROWS,
+            REFERENCE_BOUNDS,
+        )
         from test_desktoptheme_line import TestLineReference
-        from test_render_surface import REFERENCE_BOUNDS
 
         self._assert_reader_shares(
             PROFILER_REFERENCE, PROFILER_ROWS, TestLineReference
@@ -460,10 +462,13 @@ class TestSharedReferenceBounds(unittest.TestCase):
         self.assertEqual(PROFILER_ROWS, REFERENCE_BOUNDS[PROFILER_REFERENCE])
 
     def test_readers_share_the_aboutsystem_bound(self):
-        from support.aurorae_fixtures import REFERENCE, REFERENCE_ROWS
+        from support.aurorae_fixtures import (
+            REFERENCE,
+            REFERENCE_BOUNDS,
+            REFERENCE_ROWS,
+        )
         from test_desktoptheme_dialog import TestDialogBackgroundRaisedReference
         from test_kvantum_checkbox_reference import TestCheckBoxReference
-        from test_render_surface import REFERENCE_BOUNDS
 
         self._assert_reader_shares(
             REFERENCE,

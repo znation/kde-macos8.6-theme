@@ -72,6 +72,14 @@ PROFILER_ROWS = 256
 # windows draw no close/collapse boxes in their title bars).
 INACTIVE_GREY = "#CCCCCC"
 
+# The shared decode bounds for these two screenshots, which cover every
+# crop the render-quality tests make and match the Aurorae readers' bounds
+# so the reference cache decodes each screenshot once.
+REFERENCE_BOUNDS = {
+    REFERENCE: REFERENCE_ROWS,
+    PROFILER_REFERENCE: PROFILER_ROWS,
+}
+
 
 def inactive_fill(active_fill):
     """Map one active box fill onto the inactive/disabled box's fill.

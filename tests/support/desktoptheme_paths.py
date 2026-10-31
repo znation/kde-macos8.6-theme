@@ -106,3 +106,30 @@ FIRSTBOOT_REFERENCE = os.path.join(
     ROOT, "macos8.6-screenshots", "firstboot_betawiki.png"
 )
 FIRSTBOOT_MAX_ROWS = 378
+
+# The same three screenshots under the color-scheme anchor tests' names, so
+# every reader of a screenshot uses one shared constant. These aliases keep
+# the shared decode single: a reader importing its own path constant would
+# end up with one string meaning the screenshot and another decodable
+# constant, and `read_reference` would decode the same file twice.
+#
+# desktop_archiveorg8.6hd.png grounds the menu-bar face, window view, chrome
+# and selection-fill anchors.
+REFERENCE_DESKTOP = ARCHIVEORG_REFERENCE
+# firstboot_betawiki.png is the Setup Assistant's "Introduction" title
+# banner (Colors:Selection): the flat #CCCCFF band at y=61..85, under the
+# #000000 rule at y=59 and the #FFFFFF highlight at y=60.
+REFERENCE_FIRSTBOOT = FIRSTBOOT_REFERENCE
+# setup_emaculation.png is the installer CD window's horizontal scroll bar
+# (Colors:View BackgroundAlternate), a flat #EEEEEE trough.
+REFERENCE_SCROLLBAR = SETUP_REFERENCE
+
+# The deepest anchor row sampled from each reference, plus one, shared with
+# the other readers so each screenshot decodes once. The anchor tests decode
+# only these top rows: unfiltering the rest of a large screenshot is the
+# dominant cost of the decode, and no anchor reads below this. A new anchor
+# below the bound here must raise the matching shared constant, or its pixel
+# read fails the out-of-bounds check in ``pixel``.
+DESKTOP_ANCHOR_ROWS = ARCHIVEORG_MAX_ROWS  # deepest desktop anchor is (470, 300)
+FIRSTBOOT_ANCHOR_ROWS = FIRSTBOOT_MAX_ROWS  # deepest firstboot anchor is (431, 377)
+SCROLLBAR_ANCHOR_ROWS = SETUP_MAX_ROWS  # deepest scrollbar anchor is (200, 477)
