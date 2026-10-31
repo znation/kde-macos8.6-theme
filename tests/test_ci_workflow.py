@@ -36,21 +36,25 @@ class TestCiWorkflow(unittest.TestCase):
     def test_workflow_installs_and_verifies_the_plasma_render_tools(self):
         workflow = self.read_workflow()
         # The render gate (tests/test_render_surface.py::TestRender) silently
-        # skips wherever its five Plasma tools are absent; the workflow must
-        # install and, by name, verify all five, so a skipped render gate can
-        # no longer ride a green job.
+        # skips wherever its five Plasma tools are absent, and the two dialog
+        # dialog gates (TestCheckboxDialogRender and TestComboboxDialogRender)
+        # skip wherever the kdialog client their dialog renders open is
+        # absent. The workflow must install and, by name, verify all six,
+        # so no gate quietly misses the render it byte-compares.
         for tool in (
             "dbus-run-session",
             "kwin_wayland",
             "plasmawindowed",
             "plasma-apply-colorscheme",
             "spectacle",
+            "kdialog",
         ):
             self.assertIn(tool, workflow)
         # (?s) lets the pattern cross the shell line continuations.
         self.assertRegex(workflow, r"(?s)apt-get install.*kwin-wayland")
         self.assertRegex(workflow, r"(?s)apt-get install.*plasma-workspace")
         self.assertRegex(workflow, r"(?s)apt-get install.*spectacle")
+        self.assertRegex(workflow, r"(?s)apt-get install.*kdialog")
         self.assertRegex(
             workflow,
             r"render tool missing after install: \$tool",
@@ -65,7 +69,8 @@ class TestCiWorkflow(unittest.TestCase):
             r"command -v kwin_wayland >/dev/null && \\\s*"
             r"command -v plasmawindowed >/dev/null && \\\s*"
             r"command -v plasma-apply-colorscheme >/dev/null && \\\s*"
-            r"command -v spectacle >/dev/null; then",
+            r"command -v spectacle >/dev/null && \\\s*"
+            r"command -v kdialog >/dev/null; then",
         )
 
     def test_workflow_pins_the_python_development_version(self):

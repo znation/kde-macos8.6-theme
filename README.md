@@ -342,8 +342,9 @@ and pull requests, on Python 3.13 with a checkout
 with Git LFS images materialized; the Makefile's targets still require Python
 3.10 or newer at run time; its check job also installs the render gate's
 five Plasma tools (`dbus-run-session`, `kwin_wayland`, `plasmawindowed`,
-`spectacle`, `plasma-apply-colorscheme`), so `make check` runs the rendered-pixel
-gate there too; the dialog render the gate runs additionally needs `kdialog`. Run those same commands locally for parity with the workflow's
+`spectacle`, `plasma-apply-colorscheme`) and the `kdialog` client the
+gate's checkbox and combobox dialog renders open, so `make check` runs the
+rendered-pixel gate, both dialog renders included, there too. Run those same commands locally for parity with the workflow's
 check steps.
 
 `sources.txt` is the provenance record for the images. After adding or renaming a screenshot, run

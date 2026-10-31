@@ -800,6 +800,25 @@ class TestRender(unittest.TestCase):
                 self.assert_strip_pixels_match(candidate_crop, reference_crop)
 
 
+class TestDialogGateSkipGuards(unittest.TestCase):
+    """Both dialog gates skip wherever their render CLI would refuse on a tool.
+
+    The dialog render CLI refuses with a missing-tool diagnostic when any
+    of the five applet-render tools or the kdialog client it opens is
+    absent, and the two dialog gates' shared skip guard encodes exactly
+    that condition. This test would fail wherever the guard were removed
+    (``AttributeError`` on ``__unittest_skip__``) or left with a narrower
+    tool list than the CLI refuses on.
+    """
+
+    def test_both_dialog_gates_skip_only_when_a_tool_is_absent(self):
+        tools = REAL_TOOLS + ("kdialog",)
+        expected = not all(shutil.which(tool) for tool in tools)
+        for gate in (TestCheckboxDialogRender, TestComboboxDialogRender):
+            with self.subTest(gate=gate.__name__):
+                self.assertEqual(expected, gate.__unittest_skip__)
+
+
 class _Renders:
     """The module's three render gates' sessions, started together, finished once.
 
@@ -919,6 +938,36 @@ class _DialogGate:
         self.assertEqual(expected, actual)
 
 
+def _dialog_gate_guard():
+    """Return the skip guard both dialog render gates share.
+
+    The dialog render CLI needs the same five Plasma tools as the applet
+    render plus the kdialog client it opens (it exits 2 with a
+    missing-tool diagnostic when one is absent), so the two dialog gates
+    skip under the condition the applet gate above's ``skipUnless`` guard
+    uses, extended with kdialog. A gate that failed rather than skipped
+    where its tools are missing would turn `make check` red on a machine
+    that merely lacks Plasma, where the sibling applet gate already skips.
+    """
+    tools = REAL_TOOLS + ("kdialog",)
+    reason = (
+        "needs kwin_wayland, dbus-run-session, plasmawindowed, spectacle, "
+        "plasma-apply-colorscheme and kdialog on PATH"
+    )
+    missing = [tool for tool in tools if shutil.which(tool) is None]
+
+    def decorator(cls):
+        # `unittest.skip` only annotates when its condition fails, so the
+        # guard writes the attributes itself: the skip flag must be
+        # present (False where every tool exists) whatever the host has.
+        cls.__unittest_skip__ = bool(missing)
+        cls.__unittest_skip_why__ = reason
+        return cls
+
+    return decorator
+
+
+@_dialog_gate_guard()
 class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
     """The engine-drawn check box the dialog render captures is the shipped art.
 
@@ -960,6 +1009,8 @@ class TestCheckboxDialogRender(_DialogGate, unittest.TestCase):
                         expected, hex_colour(pixel_at(image, x0 + x, y0 + y))
                     )
 
+
+@_dialog_gate_guard()
 class TestComboboxDialogRender(_DialogGate, unittest.TestCase):
     """The engine-drawn combo box indicator the dialog render captures is 1:1.
 
