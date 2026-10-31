@@ -283,6 +283,14 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
     def test_view_background(self):
         self.assert_view_background((".view", "textview text", "list"))
 
+    def test_content_view_background(self):
+        selectors = (".content-view", ".content-view:backdrop")
+        self.assert_view_background(selectors)
+        expected = {"background-color": "#FFFFFF", "color": "#000000"}
+        for selector in selectors:
+            self.assertEqual(self.rules[selector], expected)
+            self.assertEqual(self.selectors.count(selector), 1)
+
     def test_links(self):
         self.assert_links(
             ("button:link", "button:visited"),
