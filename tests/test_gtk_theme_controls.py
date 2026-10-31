@@ -149,6 +149,80 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             expected,
         )
 
+    def test_destructive_action_plain_arms(self):
+        """The plain `destructive-action` arms restate the landed face.
+
+        The red mirror of `test_suggested_action_plain_arms`: only the
+        opaque members of the stock family are restated; no restated
+        selector carries `.flat`, so the stock transparent-face
+        colour-class family keeps governing whole (recorded 2026-10-31
+        by the feature role).
+        """
+        face = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        sunken = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        disabled = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+        }
+        self.assert_rule("button.destructive-action", face)
+        self.assert_rule("button.destructive-action:hover", face)
+        self.assert_rule("button.destructive-action:active", sunken)
+        self.assert_rule("button.destructive-action:checked", sunken)
+        self.assert_rule("button.destructive-action:backdrop", face)
+        self.assert_rule("button.destructive-action:backdrop:active", sunken)
+        self.assert_rule("button.destructive-action:backdrop:checked", sunken)
+        for selector in (
+            "button.destructive-action:backdrop:disabled",
+            "button.destructive-action:backdrop:disabled:active",
+            "button.destructive-action:backdrop:disabled:checked",
+            "button.destructive-action:disabled",
+            "button.destructive-action:disabled:active",
+            "button.destructive-action:disabled:checked",
+        ):
+            self.assert_rule(selector, disabled)
+        expected = {
+            "button.destructive-action",
+            "button.destructive-action:hover",
+            "button.destructive-action:active",
+            "button.destructive-action:checked",
+            "button.destructive-action:backdrop",
+            "button.destructive-action:backdrop:active",
+            "button.destructive-action:backdrop:checked",
+            "button.destructive-action:backdrop:disabled",
+            "button.destructive-action:backdrop:disabled:active",
+            "button.destructive-action:backdrop:disabled:checked",
+            "button.destructive-action:disabled",
+            "button.destructive-action:disabled:active",
+            "button.destructive-action:disabled:checked",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("button.destructive-action")
+            },
+            expected,
+        )
+
     def _run_gtk_child(self, program, *paths):
         """Run the GTK 3 pixel *program* in a fresh child interpreter.
 

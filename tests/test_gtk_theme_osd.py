@@ -595,14 +595,21 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
                 with self.subTest(selector=selector):
                     self.assertEqual(self.rules[selector], declarations)
         self.assertEqual(
-            # "button" and "destructive-action" as bare tokens: the
-            # shipped sheet's only destructive-action spellings are these
-            # nine restated arms; the generic destructive-action arms
-            # outside .osd stay undeclared in the sheet, so the stock
-            # resource keeps governing outside overlays.
+            # "button", ".osd" and "destructive-action" as bare tokens:
+            # the shipped sheet's only .osd-scoped destructive-action
+            # spellings are these nine restated arms. As of 2026-10-31
+            # the generic opaque destructive-action family is restated
+            # at the sheet-wide tail (pinned by
+            # test_gtk_theme_controls.TestGtkThemeControls
+            # .test_destructive_action_plain_arms), so the whole-sheet
+            # destructive-action scan this assertion once made is gone;
+            # the .flat colour-class members outside .osd still stay
+            # undeclared, so the stock resource keeps governing them.
             {selector
              for selector in self.rules
-             if "button" in selector and "destructive-action" in selector},
+             if "button" in selector
+             and ".osd" in selector
+             and "destructive-action" in selector},
             enumerated,
         )
 
