@@ -42,6 +42,21 @@ class TestArguments(unittest.TestCase):
         self.assertEqual((320, 240), (args.width, args.height))
         self.assertIs(render_workflow.render, render_surface.render)
 
+    def test_cli_delegates_the_menu_dialog_capture_size(self):
+        # A plain --menu-dialog run captures at the 480x360 the widget gate
+        # byte-compares, not the applet's 320x240 default.
+        with (
+            mock.patch.object(render_surface, "report_missing_tool", return_value=None),
+            mock.patch.object(render_surface, "output_problem", return_value=None),
+            mock.patch.object(render_surface, "render", return_value=0) as workflow,
+            mock.patch.object(render_surface, "exit_on_termination"),
+        ):
+            render_surface.main(("out.png", "--menu-dialog"))
+
+        args = workflow.call_args.args[0]
+        self.assertEqual((480, 360), (args.width, args.height))
+        self.assertEqual("org.kde.plasma.calculator", args.applet)
+
     def assert_usage_error(self, *argv):
         """Assert a usage error (exit 2) and return its stderr."""
         status, stderr = call_main(render_surface.main, *argv)
@@ -136,6 +151,41 @@ class TestArguments(unittest.TestCase):
         tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
         assert_missing_tool_named(
             self, render_surface.main, tools, ("out.png", "--combobox-dialog")
+        )
+
+    def test_rejects_an_applet_with_the_menu_dialog(self):
+        # The menu mode opens its own kdialog client; a plasmoid id combined
+        # with it would silently draw nothing.
+        self.assertIn(
+            "--menu-dialog",
+            self.assert_usage_error("out.png", "--menu-dialog", "--applet", "x"),
+        )
+
+    def test_rejects_a_capture_size_with_the_menu_dialog(self):
+        # The gate byte-compares the menu capture at 480x360; any other size
+        # moves the KDialog window the comparison crops assume.
+        stderr = self.assert_usage_error(
+            "out.png", "--menu-dialog", "--height", "240"
+        )
+        self.assertIn("480x360", stderr)
+
+    def test_rejects_two_dialog_modes_names_the_menu_dialog_too(self):
+        # The two-mode refusal lists the flags involved, so a menu mode flag
+        # missing from that list would print a refusal without its name.
+        for left, right in (
+            ("--menu-dialog", "--checkbox-dialog"),
+            ("--menu-dialog", "--combobox-dialog"),
+        ):
+            with self.subTest(left=left, right=right):
+                stderr = self.assert_usage_error("out.png", left, right)
+                self.assertIn(left, stderr)
+                self.assertIn(right, stderr)
+
+    def test_the_menu_dialog_requires_kdialog(self):
+        # With kdialog absent the CLI names it instead of starting a session.
+        tools = render_surface.REQUIRED_TOOLS + ("kdialog",)
+        assert_missing_tool_named(
+            self, render_surface.main, tools, ("out.png", "--menu-dialog")
         )
 
     def test_the_checkbox_dialog_requires_kdialog(self):
