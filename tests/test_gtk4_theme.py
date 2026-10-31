@@ -32,11 +32,14 @@ from support.gtk_theme_spec import (
     MENUBUTTON_ARROWS,
     VISITED_LINK,
     MENU_CHECK,
+    PROGRESSBAR_PROGRESS,
     PROGRESSBAR_TROUGH,
     RAISED_BEVEL,
     RADIO,
     ROW_HOVER,
     ROW_SELECTED,
+    SCALE_EMPTY_FILL,
+    SCALE_TROUGH,
     TAB_STATES,
     TITLE_BUTTON_IMAGE,
     TITLE_BUTTON_IMAGE_STATE,
@@ -1204,6 +1207,16 @@ for radio in (False, True):
             "progressbar.osd.horizontal > trough",
             "progressbar.osd.vertical > trough",
             ".osd switch:checked",
+            ".osd progressbar > trough",
+            ".osd scale > trough",
+            ".osd scale > trough > fill",
+            ".osd scale > trough > highlight",
+            ".osd progressbar > trough > progress",
+            ".osd progressbar > trough:disabled",
+            ".osd scale > trough:disabled",
+            ".osd scale > trough > fill:disabled",
+            ".osd scale > trough > highlight:disabled",
+            ".osd progressbar > trough > progress:disabled",
         } | arms
         tokens = (
             "osd",
@@ -1260,6 +1273,48 @@ for radio in (False, True):
         self.assertEqual(
             {selector for selector in self.rules
              if ".osd check" in selector or ".osd radio" in selector},
+            set(expected),
+        )
+
+    def test_osd_progress_scale(self):
+        progress_trough = PROGRESSBAR_TROUGH
+        scale_trough = SCALE_TROUGH
+        fill = SCALE_EMPTY_FILL
+        progress = PROGRESSBAR_PROGRESS
+        disabled_progress = {**PROGRESSBAR_PROGRESS, "background-color": GREY}
+        expected = {
+            ".osd progressbar > trough": progress_trough,
+            ".osd scale > trough": scale_trough,
+            ".osd scale > trough > fill": fill,
+            ".osd scale > trough > highlight": fill,
+            ".osd progressbar > trough > progress": progress,
+            ".osd progressbar > trough:disabled": progress_trough,
+            ".osd scale > trough:disabled": scale_trough,
+            ".osd scale > trough > fill:disabled": fill,
+            ".osd scale > trough > highlight:disabled": fill,
+            ".osd progressbar > trough > progress:disabled": disabled_progress,
+        }
+        for selector, recipe in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], recipe)
+        self.assertEqual(
+            self.rules[".osd scale > trough > fill"],
+            self.rules[".osd scale > trough > highlight"],
+        )
+        self.assertEqual(
+            self.rules[".osd progressbar > trough > progress:disabled"]["background-color"],
+            self.rules["progressbar > trough > progress:disabled"]["background-color"],
+        )
+        node_names = ("trough", "fill", "highlight", "progress")
+        self.assertEqual(
+            {
+                selector for selector in self.selectors
+                if ".osd" in selector and any(node in selector for node in node_names)
+            } - {
+                "progressbar.osd > trough",
+                "progressbar.osd.horizontal > trough",
+                "progressbar.osd.vertical > trough",
+            },
             set(expected),
         )
 
