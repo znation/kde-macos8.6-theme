@@ -76,6 +76,79 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
     def test_entry_progress(self):
         self.assert_rule("entry progress", ENTRY_PROGRESS)
 
+    def test_suggested_action_plain_arms(self):
+        """The plain `suggested-action` arms restate the landed face.
+
+        Only the opaque members of the stock family are restated; no
+        restated selector carries `.flat`, so the stock transparent-face
+        colour-class family keeps governing whole (recorded 2026-10-31
+        by the feature role).
+        """
+        face = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        sunken = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        disabled = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+        }
+        self.assert_rule("button.suggested-action", face)
+        self.assert_rule("button.suggested-action:hover", face)
+        self.assert_rule("button.suggested-action:active", sunken)
+        self.assert_rule("button.suggested-action:checked", sunken)
+        self.assert_rule("button.suggested-action:backdrop", face)
+        self.assert_rule("button.suggested-action:backdrop:active", sunken)
+        self.assert_rule("button.suggested-action:backdrop:checked", sunken)
+        for selector in (
+            "button.suggested-action:backdrop:disabled",
+            "button.suggested-action:backdrop:disabled:active",
+            "button.suggested-action:backdrop:disabled:checked",
+            "button.suggested-action:disabled",
+            "button.suggested-action:disabled:active",
+            "button.suggested-action:disabled:checked",
+        ):
+            self.assert_rule(selector, disabled)
+        expected = {
+            "button.suggested-action",
+            "button.suggested-action:hover",
+            "button.suggested-action:active",
+            "button.suggested-action:checked",
+            "button.suggested-action:backdrop",
+            "button.suggested-action:backdrop:active",
+            "button.suggested-action:backdrop:checked",
+            "button.suggested-action:backdrop:disabled",
+            "button.suggested-action:backdrop:disabled:active",
+            "button.suggested-action:backdrop:disabled:checked",
+            "button.suggested-action:disabled",
+            "button.suggested-action:disabled:active",
+            "button.suggested-action:disabled:checked",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("button.suggested-action")
+            },
+            expected,
+        )
+
     def _run_gtk_child(self, program, *paths):
         """Run the GTK 3 pixel *program* in a fresh child interpreter.
 

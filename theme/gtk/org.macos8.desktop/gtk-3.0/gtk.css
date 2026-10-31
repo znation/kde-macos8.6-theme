@@ -2173,7 +2173,9 @@ popover.background.magnifier button.flat:checked,
    the stock arms it restates, and the active/checked block keeps
    stock's sheet-order win over the hover block for a pressed hovered
    suggested button; the generic `button.suggested-action` and `.flat`
-   arms outside `.osd` keep governing outside overlays, and the
+   arms outside `.osd` keep governing outside overlays (2026-10-31: the
+   opaque members are since restated at the sheet tail; the `.flat`
+   members are still stock), and the
    `.osd button.color colorswatch`,
    `.osd spinbutton … button` and `colorchooser .popover.osd` button
    arms stay undeclared for their queued surface plans. The arm
@@ -2679,4 +2681,142 @@ button:hover {
    stays a kept toolkit value. */
 .content-view:hover {
   -gtk-icon-effect: none;
+}
+
+/* 2026-10-31: no collected reference screenshot shows a GTK
+   suggested-action button at all (the GTK scope's standing adaptation
+   premise), so a generic push button carrying the `suggested-action`
+   class must draw the landed Platinum push-button face in every armed
+   state instead of the stock blue gradient family — the toolkit's
+   erase-the-colour-distinction adaptation the landed
+   `.osd button.suggested-action` and plain restatements all follow.
+   The libgtk-3 theme CSS in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
+   (libgtk-3 3.24.49, probed with gresource 2026-10-31; this sheet
+   never names upstream themes, so the probed resource's provenance
+   lives in docs/invariants.md) declares ten stock blocks, some mixing
+   `.flat` members into the same comma list: a base arm with a white
+   label, a translucent white `outline-color`, a blue one-line border
+   with a darker bottom edge, a `linear-gradient` blue face and dark
+   `text-shadow`/`-gtk-icon-shadow`; a `:hover` arm with a fresh
+   gradient; an `:active`/`:checked` arm resized to a solid blue
+   `image()` fill; backdrop arms respainted in the blue family; and
+   off-white disabled arms with a light grey blue-family label and
+   lighter labels besides. Only the opaque members are restated here,
+   each with its exact stock-twin selector, so sheet source order
+   decides every intra-family tie exactly as stock spells them and the
+   landed plain `button`, `button:hover`, `button:backdrop...` and
+   `button:disabled...` groups — which these arms out-tie by one class —
+   never reach a suggested button. Every opaque arm reuses this sheet's
+   landed plain push-button recipe as its value source: the `#DDDDDD`
+   face with the `inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA`
+   raised bevel, the `1px solid` black one-line border, black labels,
+   the landed `button:active, button:checked` sunken
+   `inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF` press face, and the
+   `#888888` disabled label (the constants
+   `tests/support/gtk_theme_spec.py` pins as `BUTTON_BEVEL`,
+   `INVERTED_BUTTON_BEVEL` and `DISABLED_TEXT`). A black
+   `outline-color` is restated in every non-disabled arm because the
+   stock family claims a translucent white one there, which would
+   defeat the landed dotted black `button:focus` outline on a
+   keyboard-focused suggested button; the stock disabled arms claim no
+   `outline-color`, so the disabled recipe does not either — the same
+   extension every landed disabled arm gives back.
+   `text-shadow`/`-gtk-icon-shadow` are cleared in every non-disabled
+   arm because the stock family paints dark or white shadows on them;
+   the stock disabled arms already claim `text-shadow: none` and
+   `-gtk-icon-shadow: none`, so the disabled recipe leaves them to
+   stock. No `transition` is restated because the GTK 3 stock base
+   arm, unlike the GTK 4 one, claims none. The nine restated blocks
+   keep stock's arm ordering — base, `:hover`, `:active`/`:checked`,
+   the backdrop forms and the disabled forms — in the stock comma-list
+   pairings so sheet order decides every intra-family tie exactly as
+   stock spells them; no appended selector carries `.flat`, so the
+   stock `.flat` colour-class family keeps governing whole. The rest of
+   the stock family (the transparent `.flat` variants, a plain
+   `button.destructive-action` red mirror) stays out as its own
+   candidate plan. No geometry, artwork, padding or dependency change;
+   no other rule in the sheet is touched. Declaration checks do not
+   establish rendered pixels. */
+
+button.suggested-action {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:active, button.suggested-action:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:backdrop:active,
+button.suggested-action:backdrop:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.suggested-action:backdrop:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action:backdrop:disabled:active,
+button.suggested-action:backdrop:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action:disabled {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.suggested-action:disabled:active, button.suggested-action:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
 }
