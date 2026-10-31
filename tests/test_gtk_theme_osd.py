@@ -302,10 +302,17 @@ class TestGtkThemeOsd(GtkSheetRuleCases, unittest.TestCase):
         self.assertEqual(
             # "button" and "flat" as bare tokens: the shipped sheet's only
             # button.flat spellings are these 24 restated arms plus the
-            # dedicated scale-popup flat-button arm.
+            # dedicated scale-popup flat-button arm. 2026-10-31: the plain
+            # flat colour-class series restates `button.flat` arms at the
+            # sheet tail, so the sweep keeps to the overlay bands by
+            # keeping only prefixed spellings: every overlay arm names
+            # its scope before `button`, and this series' plain flat keys
+            # (generic and future `…-action.flat` twins) start with
+            # `button.flat` or `button.suggested-action.flat`.
             {selector
              for selector in self.rules
-             if "button" in selector and "flat" in selector},
+             if "button" in selector and "flat" in selector
+             and not selector.startswith("button")},
             enumerated | {".osd .scale-popup button.flat"},
         )
 

@@ -2050,8 +2050,10 @@ popover.background.magnifier button:backdrop, .osd button:backdrop {
    gtk-contained.css in /usr/lib/x86_64-linux-gnu/libgtk-3.so.0
    (libgtk-3 3.24.49), probed 2026-10-30; the landed plain `button`,
    `button:hover` and `button:active`/`button:checked` rules keep
-   governing outside overlays. Declaration checks do not establish
-   rendered pixels. */
+   governing outside overlays (2026-10-31: the plain flat colour-class
+   arms are since restated at the sheet tail; this sentence names the
+   plain opaque family it always named). Declaration checks do not
+   establish rendered pixels. */
 
 .app-notification button.flat, popover.background.touch-selection
 button.flat, popover.background.magnifier button.flat,
@@ -2966,6 +2968,123 @@ button.destructive-action:disabled {
 }
 
 button.destructive-action:disabled:active, button.destructive-action:disabled:checked {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK flat
+   button at all (the GTK scope's standing adaptation premise), so the plain
+   flat colour-class arms outside overlays are restated with the landed
+   push-button recipe — the face and bevel dictionaries the landed plain
+   suggested-action and destructive-action restatements and the landed
+   `.app-notification button.flat, …, .osd button.flat` overlay block all
+   declare. Probed from gtk-contained.css in libgtk-3 3.24.49 with gresource
+   on 2026-10-31: the stock plain flat claims group `button.flat` with the
+   held-out titlebutton, sidebar-button and notebook-arrow families, claim
+   transparent faces and borders and cleared `background-image` in every
+   state, hold transparent faces and grey labels in the backdrop and
+   disabled states, and raise no face of their own, so a flat button outside
+   an overlay sits transparent at rest and pops a raised bevel on hover.
+   Each twin below is the exact stock member carrying the same single
+   `flat` class, at equal specificity sitting later in source order, so it
+   pre-empts exactly its stock arm; the stock motion claims are cleared by
+   `transition: none` the way the landed plain backdrop arm cleared it, and
+   the pressed hover arm keeps stock's own arm order so a hovered pressed
+   flat sinks. The disabled arms re-declare the face colour beside the
+   landed disabled dictionary and claim no `outline-color`, as every landed
+   disabled arm does. No restated arm sets on-disk geometry. Declaration
+   checks do not establish rendered pixels. */
+
+button.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+button.flat:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+button.flat:hover:active {
+  transition: none;
+}
+
+button.flat:active, button.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.flat:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  transition: none;
+}
+
+button.flat:backdrop:active, button.flat:backdrop:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  outline-color: #000000;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+}
+
+button.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.flat:backdrop:disabled:active, button.flat:backdrop:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button.flat:disabled:active, button.flat:disabled:checked {
+  background-color: #DDDDDD;
   background-image: none;
   border-color: #000000;
   box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;

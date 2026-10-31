@@ -149,6 +149,89 @@ class TestGtkThemeControls(GtkSheetRuleCases, unittest.TestCase):
             expected,
         )
 
+    def test_flat_button_plain_arms(self):
+        """The plain `button.flat` arms restate the landed face.
+
+        A GTK 3 push button carrying the `flat` class outside the landed
+        overlays draws the landed push-button face in every armed state:
+        every restated dictionary extends the landed plain recipe with the
+        `background-color` claim the stock transparent faces force, and
+        the base, hover and backdrop arms clear the stock motion claims
+        with `transition: none` (recorded 2026-10-31 by the feature role).
+        """
+        face = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+            "transition": "none",
+        }
+        sunken = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "text-shadow": "none",
+            "-gtk-icon-shadow": "none",
+        }
+        disabled = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+        }
+        self.assert_rule("button.flat", face)
+        self.assert_rule("button.flat:hover", face)
+        self.assert_rule("button.flat:backdrop", face)
+        self.assert_rule("button.flat:hover:active", {"transition": "none"})
+        for selector in (
+            "button.flat:active",
+            "button.flat:checked",
+            "button.flat:backdrop:active",
+            "button.flat:backdrop:checked",
+        ):
+            self.assert_rule(selector, sunken)
+        for selector in (
+            "button.flat:disabled",
+            "button.flat:disabled:active",
+            "button.flat:disabled:checked",
+            "button.flat:backdrop:disabled",
+            "button.flat:backdrop:disabled:active",
+            "button.flat:backdrop:disabled:checked",
+        ):
+            self.assert_rule(selector, disabled)
+        expected = {
+            "button.flat",
+            "button.flat:hover",
+            "button.flat:hover:active",
+            "button.flat:active",
+            "button.flat:checked",
+            "button.flat:backdrop",
+            "button.flat:backdrop:active",
+            "button.flat:backdrop:checked",
+            "button.flat:backdrop:disabled",
+            "button.flat:backdrop:disabled:active",
+            "button.flat:backdrop:disabled:checked",
+            "button.flat:disabled",
+            "button.flat:disabled:active",
+            "button.flat:disabled:checked",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("button.flat")
+            },
+            expected,
+        )
+
     def test_destructive_action_plain_arms(self):
         """The plain `destructive-action` arms restate the landed face.
 
