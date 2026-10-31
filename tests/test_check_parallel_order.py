@@ -150,7 +150,7 @@ class TestCache(unittest.TestCase):
             )
         # An unset, empty or relative XDG_CACHE_HOME falls back to ~/.cache,
         # as the XDG base directory spec requires.
-        for absent in (None, ""):
+        for absent in (None, "", "relative/cache"):
             environ = {} if absent is None else {"XDG_CACHE_HOME": absent}
             with mock.patch.dict(os.environ, environ, clear=True):
                 self.assertEqual(
