@@ -15,7 +15,7 @@ Usage::
 
     python3 tools/render_surface.py OUTPUT [--applet ID] [--width W]
         [--height H] [--settle SECONDS] [--timeout SECONDS]
-        [--checkbox-dialog | --combobox-dialog]
+        [--checkbox-dialog | --combobox-dialog | --menu-dialog]
 
 Exit status: 0 when OUTPUT was written, 1 when the render or capture failed,
 2 for a usage error, an unwritable OUTPUT, a missing external tool, a command
@@ -130,7 +130,15 @@ def main(argv: list[str] | None = None) -> int:
             "size the widget gate byte-compares"
         ),
     )
-    parser.add_argument("--menu-dialog", action="store_true", help="render a KDialog menu list")
+    parser.add_argument(
+        "--menu-dialog",
+        action="store_true",
+        help=(
+            "open a KDialog menu list whose item-view frame the Kvantum "
+            "engine draws with the theme's GenericFrame art, and capture it "
+            "at the 480x360 size the widget gate byte-compares"
+        ),
+    )
     parser.add_argument(
         "--width",
         type=positive_int("--width"),
