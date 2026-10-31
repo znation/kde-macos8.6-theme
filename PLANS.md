@@ -15,6 +15,16 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 **Acceptance criteria.** One ring selector occurrence remains in the GTK 3 sheet and one corresponding mapping key remains in `test_color_swatch_corners`. The ring still declares `box-shadow: 0 0 0 2px #000000` and the color-button shadow reset remains present. Temporarily duplicating the retained block fails the extended ring test even though the parsed shadow value is identical; removing that temporary mutation restores the check. The consolidated invariant names the test and preserves adaptation provenance. No palette, geometry, GTK 4 or parser behavior changes are included. `make check` passes. This is one maintenance improvement across three files, independently mergeable from add-color face work.
 
+### Platinum GTK 3 content-view fields: declare the white base and backdrop (planned 2026-10-31 by the plan role)
+
+**Goal.** Give GTK 3 containers carrying the `content-view` class an explicit Platinum white content field with black text, including when their window loses focus.
+
+**Grounding.** The standalone GTK 3 sheet's view group names `.view`, `textview text` and `list`, but not `.content-view`. Searches for `.content-view` in the shipped GTK sheets, tests, invariants, queue and plan archive found no rule or plan. The completed view-background plan covers the other selectors. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, separately declares `.content-view` and `.content-view:backdrop` backgrounds as `#e6e3e0`. No reference screenshot shows this GTK class surface; use the existing white view-field adaptation instead of introducing that toolkit grey.
+
+**Approach and files.** Add a separate `.content-view, .content-view:backdrop` group beside the existing view group in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, declaring exactly `background-color: #FFFFFF; color: #000000;`. Include a dated comment identifying the missing reference surface, installed resource and reuse of the existing view palette. Add `TestGtkTheme.test_content_view_background` in `tests/test_gtk_theme.py`, using the existing `assert_view_background` helper for both selectors and exact dictionary assertions to bound the new rules to those two declarations. Add one row under `## gtk` in `docs/invariants.md` naming this test, the adaptation provenance and its declaration-only coverage. Reuse `WHITE` and `BLACK` through the helper; the reference anchor is `tests/test_colorscheme_reference.py::TestReferenceAnchors.test_window_view_background`.
+
+**Acceptance criteria.** Both explicit selectors declare the existing white field and black text; deleting either rule or changing its fill fails the new test. The existing view, selected-row and tree-header assertions continue to pass. No new palette value, icon effect, geometry, GTK 4 change or render infrastructure is introduced. `make check` passes. This is one content-field improvement across three files, independently mergeable from the queued swatch consolidation.
+
 ## Done
 
 ### Platinum GTK 3 add-color action: clear text and icon shadows (planned 2026-10-30 by the plan role)
