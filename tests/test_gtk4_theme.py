@@ -717,6 +717,80 @@ for radio in (False, True):
             expected_selectors,
         )
 
+    def test_flat_button_arms(self):
+        # No reference screenshot shows a GTK flat button; the tail arms
+        # restate the landed plain push-button recipe over the stock
+        # transparent flat family, so every checked relationship below
+        # anchors the landed face constants and the family inventory keeps
+        # the arms to stock's own spellings.
+        raised = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "border-radius": "0",
+            "box-shadow": BUTTON_BEVEL,
+            "transition": "none",
+        }
+        for selector in ("button.flat", "button.flat:hover"):
+            self.assertEqual(self.rules[selector], raised)
+        sunken = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "transition": "none",
+        }
+        for selector in ("button.flat:active", "button.flat:checked", "button.flat.keyboard-activating"):
+            self.assertEqual(self.rules[selector], sunken)
+        insensitive = {
+            "background-color": FACE,
+            "background-image": "none",
+            "border": f"1px solid {BLACK}",
+            "box-shadow": BUTTON_BEVEL,
+            "color": DISABLED_TEXT["color"],
+        }
+        backdrop = {**raised, "color": BLACK}
+        backdrop_sunken = {
+            **sunken,
+            "color": BLACK,
+        }
+        for selector in (
+            "button.flat:backdrop",
+            "button.flat:disabled",
+            "button.flat:backdrop:disabled",
+            "button:backdrop.flat:disabled",
+            "button:backdrop.flat:disabled:active",
+            "button:backdrop.flat:disabled:checked",
+        ):
+            self.assertEqual(self.rules[selector], insensitive)
+        self.assertEqual(self.rules["button:backdrop.flat"], backdrop)
+        for selector in ("button:backdrop.flat:active", "button:backdrop.flat:checked"):
+            self.assertEqual(self.rules[selector], backdrop_sunken)
+        expected_selectors = {
+            "button.flat",
+            "button.flat:hover",
+            "button.flat:active",
+            "button.flat:checked",
+            "button.flat.keyboard-activating",
+            "button.flat:backdrop",
+            "button.flat:disabled",
+            "button.flat:backdrop:disabled",
+            "button:backdrop.flat",
+            "button:backdrop.flat:active",
+            "button:backdrop.flat:checked",
+            "button:backdrop.flat:disabled",
+            "button:backdrop.flat:disabled:active",
+            "button:backdrop.flat:disabled:checked",
+        }
+        self.assertEqual(
+            {
+                selector
+                for selector in self.rules
+                if selector.startswith("button.flat") or selector.startswith("button:backdrop.flat")
+            },
+            expected_selectors,
+        )
+
     def test_entry_focus_transition(self):
         self.assert_scale_slider_transition("entry")
 

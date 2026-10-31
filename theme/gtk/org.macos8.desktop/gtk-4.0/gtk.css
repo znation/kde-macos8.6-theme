@@ -2182,3 +2182,93 @@ button.destructive-action:focus:focus-visible {
   outline-color: #000000;
 }
 
+/* 2026-10-31: no collected reference screenshot shows a GTK flat button at
+   all (the GTK scope's standing adaptation premise), so the generic
+   `button.flat` family is restated with the landed push-button recipe of
+   this same sheet — the recipe precedent the landed `.osd .scale-popup
+   button.flat` square-border clearance and the landed plain suggested- and
+   destructive-action restatements follow. The toolkit resource
+   (/org/gtk/libgtk/theme/Default/Default-light.css inside libgtk-4 4.18.6,
+   probed with gresource, 2026-10-31) declares a stock transparent-face flat
+   family — a transparent face at rest, a grey hover and pressed fill with a
+   500ms hover transition, and backdrop-first arms that repaint the bevel
+   off-white in an unfocused window — whose selectors each carry one class
+   token more than the landed `button`, `button:hover`,
+   `button:active, button:checked` and `button:backdrop…` groups, so they
+   would win the cascade and stock's transparency would reach every flat
+   arm. Each restated selector here is the exact stock twin and sits later
+   in source order, so it wins every tie; the backdrop arms keep the landed
+   face like every landed plain backdrop arm, since the landed
+   `button:backdrop` group's face policy never varies, and stock's only
+   spare `button:backdrop.flat:not(:disabled)` arm — a toolkit-default icon
+   filter — is not restated. Stock selectors probed from Default-light.css
+   in libgtk-4 4.18.6 with gresource on 2026-10-31. */
+button.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+}
+
+button.flat:hover {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  transition: none;
+}
+
+button.flat:active, button.flat:checked, button.flat.keyboard-activating {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  transition: none;
+}
+
+button.flat:backdrop, button.flat:disabled, button.flat:backdrop:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button:backdrop.flat {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-radius: 0;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop.flat:active, button:backdrop.flat:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+  transition: none;
+}
+
+button:backdrop.flat:disabled {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
+button:backdrop.flat:disabled:active, button:backdrop.flat:disabled:checked {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  box-shadow: inset 1px 1px #FFFFFF, inset -1px -1px #AAAAAA;
+  color: #888888;
+}
+
