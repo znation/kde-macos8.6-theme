@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 add-color action: clear decorative box shadows (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
+
+**Goal.** Remove the stock inset highlight and outer blur from the color chooser's add-color action, complementing its existing background-image reset.
+
+**Grounding.** The GTK 3 sheet's four-arm `colorswatch#add-color-button overlay` image-reset group had no box-shadow reset. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected with `gresource` on 2026-10-30, supplies `inset 0 1px white, 0 1px 2px rgba(0, 0, 0, 0.07)` on the base and hover arms and a transparent inset on backdrop. No collected reference shows this GTK action; `none` is a platform adaptation consistent with the sheet's shadow-free button treatment.
+
+**Approach and files.** Added `box-shadow: none` to the four GTK 3 add-color overlay selectors and expanded the provenance comment. Added tests for all four resets and extended the exact corner and image declarations to preserve their existing guarantees. Added a GTK invariant naming the missing reference, toolkit source and declaration-test limitation.
+
+**Acceptance criteria.** Each selector declares `box-shadow: none`, enforced by `test_add_color_box_shadows`. The existing image and square-corner declarations remain pinned. No swatch fill, border, geometry, drag/drop feedback, generic overlay shadow or GTK 4 CSS changed. `make check` passes.
+
 ### Platinum GTK 4 OSD scale thumbs: replace the stock dark faces with the landed thumb recipe (planned 2026-10-30 by the plan role; follows the landed GTK 4 OSD progress-and-scale arms, which own trough/fill/highlight/progress nodes rather than slider nodes; append at the stylesheet tail) — done 2026-10-30 by the feature role
 
 **Goal.** Make scale thumbs inside Platinum OSD overlays use the existing

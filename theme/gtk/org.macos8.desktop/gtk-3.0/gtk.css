@@ -632,13 +632,15 @@ colorswatch#editor-color-sample overlay {
 }
 
 /* No reference screenshot shows a GTK color chooser's add-color action.
- * Clear its background images using the sheet's button policy.
- * Recorded 2026-10-29 by the feature role. */
+ * The installed GTK 3 theme sheet paints inset and outer shadows on the
+ * base and hover arms and a transparent inset in backdrop; clear them using
+ * the sheet's shadow-free button treatment (adaptation 2026-10-30). */
 colorswatch#add-color-button overlay,
 colorswatch#add-color-button overlay:hover,
 colorswatch#add-color-button overlay:backdrop,
 colorswatch#add-color-button overlay:backdrop:hover {
   background-image: none;
+  box-shadow: none;
 }
 
 /* No reference screenshot shows a GTK color button swatch. Clear the stock

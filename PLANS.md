@@ -5,19 +5,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-### Platinum GTK 3 add-color action: clear decorative box shadows (planned 2026-10-30 by the plan role)
-
-**Goal.** Remove the stock inset highlight and outer blur from the color chooser's add-color action, complementing its existing background-image reset.
-
-**Grounding.** The GTK 3 sheet's four-arm `colorswatch#add-color-button overlay` image-reset group has no box-shadow reset. Heading searches in this queue and `PLANS-DONE.md` found image, corner and label-shadow work, but no plan for this action's box shadows. The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, inspected with `gresource` on 2026-10-30, supplies `inset 0 1px white, 0 1px 2px rgba(0, 0, 0, 0.07)` on the base and hover arms and a transparent inset on backdrop. No collected reference shows this GTK action; use `none` as a platform adaptation, consistent with the sheet's color-button swatch shadow reset, rather than claiming a sampled value.
-
-**Approach and files.**
-- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `box-shadow: none` to the existing group for `colorswatch#add-color-button overlay`, `:hover`, `:backdrop` and `:backdrop:hover`, and extend its provenance comment with the missing reference surface, toolkit source and date. Preserve existing image and any landed text/icon-shadow resets.
-- In `tests/test_gtk_theme.py`, add `TestGtkTheme.test_add_color_box_shadows` asserting the reset on those four selectors. Extend the explicit declaration mapping in `test_color_swatch_corners` and the exact expectations in `test_add_color_background_images` to admit the new property while preserving their existing assertions. If the finished label-shadow plan's tests are present, extend their exact dictionaries as well. `GtkSheetRuleCases.assert_color_swatch_corners` already accepts extra declarations; keep its exact selector inventory and dictionary checks.
-- Add a GTK declaration guarantee and dated adaptation provenance to `docs/invariants.md` beside the existing swatch guarantees. State that declaration tests do not establish rendered pixels.
-
-**Acceptance criteria.** Each of the four selectors declares `box-shadow: none`; deleting a reset fails the new test. The base overlay retains its zero corner radius, and image and existing label-shadow declarations remain pinned by their tests. Change no chosen-color swatch fills, borders, geometry, drag/drop feedback, generic overlay shadows or GTK 4 CSS. Implementation is limited to the sheet, its test file and the invariant register, and is independently mergeable from the open Kvantum bugs. `make check` passes.
-
 ### Platinum GTK 3 add-color action: pin black foregrounds (planned 2026-10-30 by the plan role)
 
 **Goal.** Give the add-color action the sheet's black foreground instead of Adwaita's grey normal and backdrop glyph colors.
