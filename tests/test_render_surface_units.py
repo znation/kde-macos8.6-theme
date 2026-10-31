@@ -17,7 +17,7 @@ from unittest import mock
 from support import repo_root  # noqa: F401  (puts the repository root on sys.path)
 from support import tmp_dir
 from support.cli_fixtures import assert_missing_tool_named, call_main  # noqa: E402
-from tools import render_session, render_surface  # noqa: E402
+from tools import apply_theme, render_session, render_surface  # noqa: E402
 from tools.render_session import (
     checkbox_dialog_client,
     combobox_dialog_client,
@@ -342,14 +342,16 @@ class TestSessionCommand(unittest.TestCase):
 
 
 class TestSessionThemeSources(unittest.TestCase):
-    """``install_theme`` and ``write_session_configs`` source the session.
+    """``install_theme``, ``write_session_configs`` and the Kvantum selection
+    source the session.
 
     The pipeline tests stub ``make`` or observe only ``kwinrc``'s decoration
-    block through the session, so a wiring mistake in these two calls -- the
-    install staged outside the scratch data home, or ``plasmarc`` or its
-    theme-defaults section dropped -- would be invisible to the offline suite
-    and surface only in the slow real render. These tests drive the two
-    functions directly against a real scratch session.
+    block through the session, so a wiring mistake in these three calls -- the
+    install staged outside the scratch data home, ``plasmarc`` or its
+    theme-defaults section dropped, or a Kvantum selection with the wrong
+    theme id -- would be invisible to the offline suite and surface only in
+    the slow real render. These tests drive the functions directly against a
+    real scratch session.
     """
 
     def test_install_theme_installs_the_theme_into_the_scratch_data_home(self):
@@ -387,6 +389,52 @@ class TestSessionThemeSources(unittest.TestCase):
         self.assertEqual(["kwinrc", "plasmarc"], written)
         self.assertIn("theme=__aurorae__svg__org.macos8.desktop", kwinrc)
         self.assertEqual("[Theme]\nname=org.macos8.desktop\n", plasmarc)
+
+    def test_write_kvantum_selection_names_the_theme_for_qt_clients(self):
+        # kdialog and other Qt clients style through the engine, which reads
+        # the selected theme name from this file; without it the scratch
+        # render shows the engine's compiled-in default theme, and the
+        # pipeline tests (which read only kwinrc) would stay green.
+        with render_session.Session.create() as session:
+            render_session.write_kvantum_selection(session)
+            selection = (
+                session.config / "Kvantum" / "kvantum.kvconfig"
+            ).read_text(encoding="utf-8")
+        self.assertEqual("[General]\ntheme=org.macos8.desktop\n", selection)
+
+    def test_write_kvantum_selection_overwrites_a_stale_selection(self):
+        # The scratch config home starts empty, but the function still has to
+        # cope with an existing Kvantum directory and file in one call, so a
+        # stale selection cannot survive a rewritten session.
+        with render_session.Session.create() as session:
+            directory = session.config / "Kvantum"
+            directory.mkdir()
+            (directory / "kvantum.kvconfig").write_text(
+                "[General]\ntheme=Another\n", encoding="utf-8"
+            )
+            render_session.write_kvantum_selection(session)
+            selection = (
+                directory / "kvantum.kvconfig"
+            ).read_text(encoding="utf-8")
+        self.assertEqual("[General]\ntheme=org.macos8.desktop\n", selection)
+
+    def test_the_session_selection_names_the_theme_id_the_cli_pins(self):
+        # The session's Kvantum selection and `make apply`'s best-effort
+        # selection are two modules each holding the theme id: a drift
+        # between them would leave `make render` on the engine's compiled-in
+        # default while `make apply` selects the real theme, with the
+        # scratch session's reference gates comparing against the wrong
+        # engine output. The id must also be the shipped package directory
+        # `make install` copies, which tests/test_apply_theme.py pins from
+        # the apply side.
+        self.assertEqual(
+            render_session.KVANTUM_THEME, apply_theme.KVANTUM_THEME
+        )
+        self.assertTrue(
+            (apply_theme.ROOT / "theme" / "kvantum" / render_session.KVANTUM_THEME)
+            .is_dir(),
+            "the session's Kvantum id is not the shipped package directory",
+        )
 
 
 if __name__ == "__main__":
