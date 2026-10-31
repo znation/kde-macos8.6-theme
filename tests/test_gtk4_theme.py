@@ -551,6 +551,16 @@ for radio in (False, True):
                 },
             )
 
+    def test_button_checked_hover_and_active(self):
+        expected = {
+            "background-image": "none",
+            "border-color": BLACK,
+            "box-shadow": INVERTED_BUTTON_BEVEL,
+            "color": BLACK,
+        }
+        for selector in ("button:checked:hover", "button:checked:active"):
+            self.assert_rule(selector, expected)
+
     def test_entry_focus_transition(self):
         self.assert_scale_slider_transition("entry")
 

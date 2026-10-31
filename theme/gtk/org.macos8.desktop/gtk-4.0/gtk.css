@@ -2013,3 +2013,24 @@ paned.horizontal > separator:dir(ltr), paned.horizontal > separator:dir(rtl) {
   margin: 0;
   padding: 0;
 }
+
+
+/* 2026-10-31: no collected reference screenshot shows a GTK push button in a
+   checked-and-hovered state, so the stock hover and press repaints of a
+   checked button are restated with the landed sunken face pinned by the
+   landed `button:active, button:checked` group. Stock declares
+   `button:checked:hover` and `button:checked:active` with rounded off-white
+   faces and no bevel; those outrank the landed one-pseudo-class group, and
+   Eastern-flavoured hovering a checked toggle-type button would flip the
+   theme's square sunken face to stock's rounded one. Each selector here is
+   the exact stock twin and sits later in source order, so it decides every
+   tie — including the equal-specificity backdrop checked hover, consistent
+   with the landed disabled/backdrop policy that backdrop never varies the
+   face. Stock selectors probed from Default-light.css in libgtk-4 4.18.6
+   with gresource on 2026-10-31. */
+button:checked:hover, button:checked:active {
+  background-image: none;
+  border-color: #000000;
+  box-shadow: inset 1px 1px #AAAAAA, inset -1px -1px #FFFFFF;
+  color: #000000;
+}
