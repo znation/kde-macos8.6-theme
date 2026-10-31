@@ -5,6 +5,67 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 4 OSD scale thumbs: replace the stock dark faces with the landed thumb recipe (planned 2026-10-30 by the plan role; follows the landed GTK 4 OSD progress-and-scale arms, which own trough/fill/highlight/progress nodes rather than slider nodes; append at the stylesheet tail) — done 2026-10-30 by the feature role
+
+**Goal.** Make scale thumbs inside Platinum OSD overlays use the existing
+raised thumb and flat disabled thumb. The GTK 4 sheet currently has no
+`.osd scale > trough > slider` rules. The related finished GTK 3 OSD scale
+thumb plan covers GTK 3 only; the landed GTK 4 meter implementation leaves
+thumbs out of scope.
+
+**Evidence and provenance.** Probed 2026-10-30 with `gresource extract` from
+`/usr/lib/x86_64-linux-gnu/libgtk-4.so.1`, both
+`/org/gtk/libgtk/theme/Default/Default-light.css` and
+`/org/gtk/libgtk/theme/Default/Default-dark.css` declare four OSD slider
+arms: base, `:hover`, `:active`, `:disabled`. They claim text colour,
+border colour, background colour/image/clip, a base accent outline colour,
+and an active `box-shadow: none`. Their final face is `#353535` in the
+light resource and `#262626` in the dark resource. No collected screenshot
+shows a GTK OSD scale thumb: record this as a platform adaptation reusing
+`SCALE_THUMB` in `tests/support/gtk_theme_spec.py` and the disabled recipe
+in `GtkSheetRuleCases.assert_scale` (`tests/support/gtk_rule_cases.py`),
+already exercised by `TestGtk4Theme.test_scale`. No new visual token or
+bitmap is needed; the GTK-required arm spellings come from those resources.
+
+**Approach and files.** Limit implementation to these three files:
+
+- `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`: append a dated provenance
+  comment and four rules at the current tail. Base, hover and active arms
+  declare the complete `SCALE_THUMB` paint plus `color: #000000`,
+  `outline-color: #000000` and `background-clip: border-box`. The disabled
+  arm uses that same dictionary with `border: 1px solid #999999` and
+  `box-shadow: none`. Explicit `background-image: none` and the full border
+  shorthand clear the stock image and border colour. Keep margin,
+  orientation minimums and transition inherited from the existing base
+  slider rules; do not repeat or change geometry. Black text/outline reuse
+  the existing GTK palette and scale focus policy; border-box reuses the
+  ordinary CSS background coverage rather than the stock padding-box claim.
+- `tests/test_gtk4_theme.py`: import `SCALE_THUMB` and add
+  `TestGtk4Theme.test_osd_scale_thumbs`. Assert complete parsed dictionaries
+  for the four selectors with shared palette constants and `SCALE_THUMB`;
+  cross-check the disabled border and shadow against
+  `scale > trough > slider:disabled`. Assert the set of selectors containing
+  both `.osd` and the `slider` node is exactly these four. Extend
+  `test_osd_container_bands`'s `landed` set with these four selectors.
+  Update the landed `test_osd_progress_scale` to exclude slider-node
+  selectors from its trough/fill/highlight/progress inventory: thumbs have
+  a trough ancestor but belong to this dedicated test. Its inventory is
+  of meter paints, not thumb paints.
+- `docs/invariants.md`: append a GTK row naming the new test, the four
+  declaration guarantees, missing OSD-thumb reference surface, resource
+  provenance and reused recipes. State that declaration checks do not
+  establish rendered pixels.
+
+**Acceptance criteria.** The four new arms match those dictionaries;
+removing an arm or restoring a dark image, translucent border, accent
+outline or active flat shadow fails the new test. Existing plain-thumb
+geometry, focus, marked-thumb and disabled-shadow tests remain green.
+The container selector inventory and the landed meter inventory
+accept the new arms without weakening their own coverage. No GTK 3,
+Firefox, assets or shared specs change. `make check` passes. This is one
+implementation run: four CSS rules, one test with scope adjustments and
+one invariants row.
+
 ### Platinum GTK 4 OSD progress and scale arms: restate the stock dark trough, fill and progress paints with the landed progress-bar and scale recipes (planned 2026-10-30 by the plan role; independent of the waiting GTK 3 OSD progress-and-scale plan — it appends ten restated rules to `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, adds `TestGtk4Theme::test_osd_progress_scale` beside `test_osd_check_radio` in `tests/test_gtk4_theme.py` and appends one row to the `## gtk` invariants table, while that entry edits the GTK 3 sheet, `tests/test_gtk_theme.py` and its own row; the only shared documents are `docs/invariants.md`, where each entry appends its own row, and `tests/support/gtk_theme_spec.py`, from which both import static specs and neither edits — no sheet selector, test function or suite overlaps; the landed GTK 3 OSD scale-thumb plan, `PLANS-DONE.md` entry "Platinum GTK 3 OSD scale thumbs", records the convention both meter plans follow: append-only edits at the sheet tail, so any merge order leaves the cascade correct) — done 2026-10-30 by the feature role
 
 **Goal.** The landed GTK 4 OSD container plan (`PLANS-DONE.md`, "Platinum

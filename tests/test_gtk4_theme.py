@@ -39,6 +39,7 @@ from support.gtk_theme_spec import (
     ROW_HOVER,
     ROW_SELECTED,
     SCALE_EMPTY_FILL,
+    SCALE_THUMB,
     SCALE_TROUGH,
     TAB_STATES,
     TITLE_BUTTON_IMAGE,
@@ -1217,6 +1218,10 @@ for radio in (False, True):
             ".osd scale > trough > fill:disabled",
             ".osd scale > trough > highlight:disabled",
             ".osd progressbar > trough > progress:disabled",
+            ".osd scale > trough > slider",
+            ".osd scale > trough > slider:hover",
+            ".osd scale > trough > slider:active",
+            ".osd scale > trough > slider:disabled",
         } | arms
         tokens = (
             "osd",
@@ -1309,12 +1314,45 @@ for radio in (False, True):
         self.assertEqual(
             {
                 selector for selector in self.selectors
-                if ".osd" in selector and any(node in selector for node in node_names)
+                if ".osd" in selector
+                and "slider" not in selector
+                and any(node in selector for node in node_names)
             } - {
                 "progressbar.osd > trough",
                 "progressbar.osd.horizontal > trough",
                 "progressbar.osd.vertical > trough",
             },
+            set(expected),
+        )
+
+    def test_osd_scale_thumbs(self):
+        """Pin the four OSD scale-thumb arms to the ordinary thumb recipes."""
+        enabled = {
+            **SCALE_THUMB,
+            "color": BLACK,
+            "outline-color": BLACK,
+            "background-clip": "border-box",
+        }
+        disabled = {
+            **enabled,
+            "border": f"1px solid {GREY}",
+            "box-shadow": "none",
+        }
+        expected = {
+            ".osd scale > trough > slider": enabled,
+            ".osd scale > trough > slider:hover": enabled,
+            ".osd scale > trough > slider:active": enabled,
+            ".osd scale > trough > slider:disabled": disabled,
+        }
+        for selector, recipe in expected.items():
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector], recipe)
+        plain_disabled = self.rules["scale > trough > slider:disabled"]
+        self.assertEqual(disabled["border"], plain_disabled["border"])
+        self.assertEqual(disabled["box-shadow"], plain_disabled["box-shadow"])
+        self.assertEqual(
+            {selector for selector in self.rules
+             if ".osd" in selector and "slider" in selector},
             set(expected),
         )
 
