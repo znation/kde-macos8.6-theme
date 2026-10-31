@@ -39,6 +39,19 @@ Keep black rows only if the reference screenshots actually show them on a raised
 interior; sample that surface first and record the provenance if so. Then pin the rendered
 button's band runs in the dialog render the way the checkbox cell is pinned.
 
+**Progress (2026-10-30 by bugfix):** reproduced with
+`python3 tools/render_surface.py OUTPUT --checkbox-dialog`: the Yes button rows 209 and 228
+remain `#000000` across the interior, while row 210 is `#DDDDDD`. Setting Kvantum's
+`normal_default_pushbutton=true` did not change those pixels. Kvantum 1.1.4 source shows
+`CE_PushButtonBevel` renders a second `button-default` frame/interior pass for a default
+`QPushButton`; adding `button-default-*` slices to the theme SVG also left the output unchanged,
+so the exact state lookup or other drawing pass still needs to be identified. No workaround has
+been retained.
+
+**Needs review 2026-10-30 by bugfix: inspect Kvantum's frame and default-indicator element lookup
+for the rendered button; the next pixel probe should identify which pass paints `#000000` at
+(195,209) and (195,228), despite `button-normal` containing only `#DDDDDD` in its interior.**
+
 ### The item view's frame art never reaches the screen: rendered lists draw the GenericFrame `common` frame instead of the reference's sunken field (found by the render pass 2026-10-29)
 
 A rendered list (kdialog's `--menu` and `--checklist` dialogs, KFind's results) draws its field
