@@ -5,6 +5,19 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+### Platinum GTK 3 palette swatches: retain solid backdrop selection marks (planned 2026-10-31 by the plan role)
+
+**Goal.** Keep the contrasting selection mark on an ordinary palette swatch solid when its GTK 3 window loses focus.
+
+**Grounding.** The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, declares white on `colorswatch.dark overlay` and black on `colorswatch.light overlay`, then replaces each with a 50%-alpha foreground on its `:backdrop` arm. The shipped sheet declares neither backdrop foreground. Searches of this queue and related archive headings found corner, border, shadow, drop-target and outline work, but no ordinary swatch backdrop-foreground plan. No collected reference shows this GTK palette surface; retaining the toolkit's contrasting base foreground in backdrop is a platform adaptation, not a sampled selection-mark pixel.
+
+**Approach and files.**
+- In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, beside the swatch rules, add `colorswatch.light overlay:backdrop { color: #000000; }` and `colorswatch.dark overlay:backdrop { color: #FFFFFF; }`. Add a dated provenance comment naming the missing reference surface and the installed resource's base foregrounds as the source. These selectors tie the corresponding stock backdrop arms and win by sheet order. Keep the more-specific add-color ID foreground governing that action.
+- In `tests/test_gtk_theme.py::TestGtkTheme`, extend `test_color_swatch_corners`'s extra-declaration mapping with these two exact dictionaries. Add `test_color_swatch_backdrop_foregrounds` requiring both declarations using the existing `BLACK` and `WHITE` constants, and asserting that the add-color backdrop and backdrop-hover foregrounds remain black. Keep `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` strict.
+- Add a GTK row to `docs/invariants.md` naming the tests, missing reference surface and stock base-foreground provenance. Describe declaration coverage, without claiming rendered-pixel coverage.
+
+**Acceptance criteria.** Removing either selector or changing its foreground fails the new test. The corner inventory admits exactly the two new foreground dictionaries alongside its existing declarations. This change adds no fill, opacity, geometry, glyph artwork, border, shadow or outline declarations, and no GTK 4 changes. Existing add-color foreground and swatch tests pass. `make check` passes. This is one foreground-state adjustment across three files; it can merge independently of the queued selected-row ring plan, which changes the swatch node's shadow rather than its overlay foreground.
+
 ### Platinum GTK 3 add-color action: clear text and icon shadows (planned 2026-10-30 by the plan role)
 
 **Goal.** Remove stock text and icon shadows from the color chooser's add-color action, extending its landed background-image reset with the sheet's existing shadow-free label treatment.
