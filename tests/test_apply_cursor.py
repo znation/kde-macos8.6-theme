@@ -214,6 +214,20 @@ class TestInstall(CursorCase):
         assert_exit_2_without_traceback(self, result)
         self.assertIn(str(self.home / ".icons"), result.stderr)
 
+    def test_symlinked_icons_directory_is_refused(self):
+        self.install_theme()
+        self.stub_selector()
+        outside = self.root / "outside-icons"
+        outside.mkdir()
+        os.symlink(str(outside), str(self.home / ".icons"))
+
+        result = self.run_tool()
+
+        assert_exit_2_without_traceback(self, result)
+        self.assertIn(str(self.home / ".icons"), result.stderr)
+        self.assertFalse(os.path.lexists(outside / apply_cursor.CURSOR_THEME))
+        self.assertEqual([], self.recorded())
+
     def test_a_failed_link_creation_is_reported_by_path(self):
         # Creating the symlink can still fail (a read-only ~/.icons, for
         # example). The OSError must become the tool's own exit-2 diagnostic

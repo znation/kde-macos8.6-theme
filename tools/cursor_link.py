@@ -38,6 +38,11 @@ def install_link(home: Path, theme: Path) -> None:
     """Create our Xcursor link, refusing to replace a foreign path."""
     icons = home / ".icons"
     target = link_target(home)
+    if icons.is_symlink():
+        raise CursorError(
+            f"{icons} is a symbolic link; refusing to create the cursor link "
+            "outside HOME"
+        )
     if os.path.lexists(icons) and not icons.is_dir():
         raise CursorError(f"{icons} exists but is not a directory")
     if target.is_symlink():
