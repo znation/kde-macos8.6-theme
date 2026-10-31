@@ -1350,6 +1350,42 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 f"{scope} button.titlebutton image", TITLE_BUTTON_IMAGE
             )
 
+    def test_message_dialog_header_band(self):
+        # The message dialog's title band repaints the landed headerbar.
+        # The band restates the landed headerbar, .titlebar group plus its
+        # headerbar-only 1px bottom border, the backdrop band restates the
+        # landed headerbar:backdrop, .titlebar:backdrop group, and the
+        # dialog body corners go square; tying through the landed groups'
+        # dictionaries keeps the bands in step with any future header
+        # change.
+        self.assert_rule(
+            "messagedialog .titlebar",
+            {**self.rules["headerbar"], "border-width": "0 0 1px 0"},
+        )
+        self.assert_rule(
+            "messagedialog .titlebar:backdrop",
+            self.rules["headerbar:backdrop"],
+        )
+        self.assert_rule(
+            "messagedialog.csd.background",
+            {"border-radius": "0"},
+        )
+
+    def test_message_dialog_action_area(self):
+        # The stock toolkit resource re-pads the message dialog's action
+        # buttons to 10px 14px and rounds the end buttons' bottom corners
+        # to 7px with -gtk-outline-radius; the sheet restates the stock
+        # button base padding and square corners on both end arms.
+        self.assert_rule(
+            "messagedialog.csd .dialog-action-area button",
+            {"padding": "4px 9px"},
+        )
+        for arm in ("first-child", "last-child"):
+            self.assert_rule(
+                f"messagedialog.csd .dialog-action-area button:{arm}",
+                {"border-radius": "0", "-gtk-outline-radius": "0"},
+            )
+
     def test_menu(self):
         for selector in ("menu", ".menu", "popover", ".popover"):
             self.assert_rule(

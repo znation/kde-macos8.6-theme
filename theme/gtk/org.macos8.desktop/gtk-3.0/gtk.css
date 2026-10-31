@@ -2528,3 +2528,53 @@ button.destructive-action:checked {
   background-color: #DDDDDD;
   border-radius: 0;
 }
+
+/* Adaptation 2026-10-31: no collected reference screenshot shows a GTK message
+   dialog, so the dialog is a platform adaptation like the sheets' other band
+   restatements. The GTK 3 toolkit resource (the libgtk-3 theme CSS, probed
+   with gresource, 2026-10-31) declares a messagedialog .titlebar arm of
+   min-height 20px, an off-white face, no border and 7px top radii that carries
+   one class and element more than the landed headerbar, .titlebar group and so
+   repaints the dialog's title band, a 9px-corner csd.background arm, and csd
+   action-area button arms that re-pad to 10px 14px and round the end buttons
+   to 7px with -gtk-outline-radius. Each twin below restates the stocked-out
+   values from the landed header and button groups in this same sheet: the band
+   takes the headerbar values plus the headerbar-only 1px bottom border, the
+   backdrop band the landed inactive header values, the body corners and action
+   buttons square, and the action buttons the stock button base padding the
+   landed button group leaves in force. Stock's shared-edge side tricks on the
+   action buttons (border-right-style/border-bottom-style and the
+   :first-child border-left-style) already match the landed
+   .linked:not(.vertical) > button shared-border recipe and stay untouched. */
+messagedialog .titlebar {
+  background-color: #DDDDDD;
+  background-image: none;
+  border: 1px solid #000000;
+  border-width: 0 0 1px 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 22px;
+  padding: 0 4px;
+}
+
+messagedialog .titlebar:backdrop {
+  background-color: #DDDDDD;
+  background-image: none;
+  border-color: #555555;
+  box-shadow: none;
+  color: #999999;
+}
+
+messagedialog.csd.background {
+  border-radius: 0;
+}
+
+messagedialog.csd .dialog-action-area button {
+  padding: 4px 9px;
+}
+
+messagedialog.csd .dialog-action-area button:first-child,
+messagedialog.csd .dialog-action-area button:last-child {
+  border-radius: 0;
+  -gtk-outline-radius: 0;
+}

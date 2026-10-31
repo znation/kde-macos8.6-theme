@@ -5,7 +5,12 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
+_None yet._
+
+## Done
+
 ### Platinum GTK message dialogs: restate the stock title-band, background-corner and action-arm relics (planned 2026-10-31 by the plan role)
+— done 2026-10-31 by the feature role
 
 **Goal.** A GTK message dialog must paint the landed Platinum header band, square body corners and square action buttons instead of the stock toolkit resources' off-white `#f6f5f4` rounded title band, `9px` body corners and `7px`-rounded padded action buttons.
 
@@ -28,8 +33,6 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 **Scope boundary.** The stocks' other plain-button residues stay out: `button:checked:hover` and `button:checked:active` (a GTK 4-only compound the landed `button:checked` sunken bevel loses to), the `-gtk-icon-filter: brightness(1.2)` on stock's GTK 4 `button:hover`, GTK 3's plain-button base `text-shadow`/`-gtk-icon-shadow` (white label shadows the landed `button` group never cleared), the flat/`titlebutton`/`sidebar-button` variants, the `button.suggested-action` and `button.destructive-action` disabled/backdrop variants, and the `notebook > header > tabs > arrow` twins the stock groups share with the lifted selectors — each a candidate plan of its own. BUGS.md's two `[blocked: needs review]` entries stay with the bugfix role.
 
 **Acceptance criteria.** Deleting any appended group, renaming a selector so it is not its byte-equal stock twin, or changing any of the restated values fails the new test in the affected suite; the disabled-group dictionaries stay tied to the landed face by reusing `RAISED_BEVEL` and `DISABLED_TEXT`, so a change to either convention must be mirrored here or the tests fail. The landed `test_button_focus_outline_color`, `test_button_focus_transition`, `test_osd_button`, `test_scale_popup_buttons`, `test_no_universal_selector` and `test_only_palette_hex_literals` stay green: every appended value (`none`, `#000000`, `#888888`, the two inset bevels, `transition: none`) reuses literals already in each sheet and no selector names a universal token. No artwork, metric or dependency change; OSD and overlay bands, dialogs, panels and every other surface stay outside this plan. Run `make check`. Both sheet edits append tail-created groups after the scale-popup block, so the entry merges before or after the waiting message-dialog entry in either order.
-
-## Done
 
 ### Platinum GTK 4 scale-popup buttons: restate the stock hover and OSD flat arms with the landed button recipe (planned 2026-10-31 by the plan role; independent of the waiting GTK 4 dimmed-label entry — both touch `theme/gtk/org.macos8.desktop/gtk-4.0/gtk.css`, `tests/test_gtk4_theme.py` and `docs/invariants.md`, but this entry appends two rules at the sheet tail after the landed `.osd scale > trough > slider:disabled` block, adds one test function beside `test_video_osd_image_corners` and appends its own `## gtk` invariants row, while that entry adds a mid-sheet `label.dimmed` rule and its own test and row; no selector, test or table row overlaps, so either merge order leaves the cascade right)
 — done 2026-10-31 by the feature role
