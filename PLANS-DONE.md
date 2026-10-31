@@ -5,6 +5,19 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 selected-row swatches: use a black selection ring (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
+
+**Goal.** Give an ordinary color swatch inside a selected GTK 3 list row a black selection ring consistent with the sheet's frame edging, retaining the toolkit's indicator geometry and chosen swatch color.
+
+**Grounding.** The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, declares `row:selected colorswatch { box-shadow: 0 0 0 2px #ffffff; }`. Selector searches found no corresponding rule in the shipped GTK 3 sheet and no selected-row swatch ring plan in this queue or `PLANS-DONE.md`. The landed overlay-border, hover-shadow, drop-target and focus-outline work addresses other selectors. No collected reference shows this GTK selected-row swatch surface: black reuses the sheet's `frame > border` color, and the ring geometry comes from the installed toolkit resource, as a platform adaptation.
+
+**Approach and files (completed).**
+- Add `row:selected colorswatch { box-shadow: 0 0 0 2px #000000; }` beside the swatch rules in `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, with a dated comment naming the missing reference and toolkit resource. Retain the separate `button.color colorswatch:only-child` shadow reset, whose greater specificity continues to govern color-button swatches; this plan targets ordinary swatches in selected rows.
+- In `tests/test_gtk_theme.py::TestGtkTheme`, extend `test_color_swatch_corners`'s explicit extra-declaration mapping for the new selector, leaving `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners` strict. Add `test_selected_row_color_swatch_ring` requiring the exact new declaration dictionary, comparing its color to the existing frame-border token, and retaining an assertion that the color-button shadow is `none`.
+- Add a GTK row in `docs/invariants.md` linking the new test and corner inventory, recording the missing reference surface, black token source and stock 2px ring geometry. Describe declaration coverage without claiming rendered-pixel coverage.
+
+**Acceptance criteria.** Removing the new selector or changing its ring width or color fails the new test; the strict swatch inventory admits exactly the new declaration alongside its existing entries. The rule declares only the shadow, with zero offsets, zero blur and 2px spread; chosen fills, overlay drop-target edges and focus outlines retain their existing declarations. The implementation adds no swatch fill, overlay shadow, border, outline, spacing or GTK 4 changes. Existing color-button, hover-overlay and drop-target tests remain green. `make check` passes. This is one CSS rule, a small test extension and one invariant row, independently mergeable from the open Kvantum bugs.
+
 ### Platinum GTK 3 palette swatches: use solid black overlay borders (planned 2026-10-31 by the plan role) — done 2026-10-31 by the feature role
 
 **Goal.** Replace the ordinary palette swatch overlay's translucent border colors with the sheet's solid black frame color, retaining the landed lavender drop-target border.

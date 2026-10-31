@@ -1444,7 +1444,17 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
                 },
                 "colorswatch.light": {"outline-color": BLACK},
                 "colorswatch.dark": {"outline-color": BLACK},
+                "row:selected colorswatch": {
+                    "box-shadow": f"0 0 0 2px {BLACK}"
+                },
             },
+        )
+
+    def test_selected_row_color_swatch_ring(self):
+        expected = {"box-shadow": f"0 0 0 2px {BLACK}"}
+        self.assert_rule("row:selected colorswatch", expected)
+        self.assertEqual(
+            BLACK, self.rules["frame > border"]["border"].split()[-1]
         )
 
     def test_color_swatch_outline_colors(self):

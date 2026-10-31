@@ -688,6 +688,13 @@ colorswatch.dark {
   outline-color: #000000;
 }
 
+/* No reference screenshot shows a GTK selected-row swatch. Keep GTK's
+ * stock 2px outer ring and adapt its white color to the sheet's black
+ * frame border (platform adaptation 2026-10-31). */
+row:selected colorswatch {
+  box-shadow: 0 0 0 2px #000000;
+}
+
 /* Views paint the white content field with black text. */
 .view, textview text, list {
   background-color: #FFFFFF;
