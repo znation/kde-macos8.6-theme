@@ -5,7 +5,15 @@ Each plan: goal, approach, files touched, acceptance criteria. Move finished pla
 
 ## Planned
 
-_None yet._
+### Platinum GTK 3 selected-row swatches: use a black selection ring (planned 2026-10-31 by the plan role)
+
+**Goal.** Give a color swatch inside a selected row a black selection ring, retaining the toolkit's indicator geometry and chosen swatch color.
+
+**Grounding.** The installed `/org/gtk/libgtk/theme/Adwaita/gtk-contained.css` resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-31, declares `row:selected colorswatch { box-shadow: 0 0 0 2px #ffffff; }`. The GTK 3 sheet and its swatch tests have no matching rule. Searches of this queue and `PLANS-DONE.md` found no selected-row swatch-ring plan; the landed hover reset concerns the overlay node. No collected reference shows this GTK selection surface: black adapts the sheet's `frame > border` color, and the 2px unblurred outer ring comes from the installed GTK resource, rather than a screenshot measurement.
+
+**Approach and files.** In `theme/gtk/org.macos8.desktop/gtk-3.0/gtk.css`, add `row:selected colorswatch { box-shadow: 0 0 0 2px #000000; }` beside the swatch rules with dated missing-surface and toolkit provenance. In `tests/test_gtk_theme.py::TestGtkTheme.test_color_swatch_corners`, admit this selector with its exact declaration through `extra_declarations`, retaining existing entries and the strict helper `tests/support/gtk_rule_cases.py::GtkSheetRuleCases.assert_color_swatch_corners`. Add `TestGtkTheme.test_selected_row_color_swatch_ring` asserting that exact shadow and tying its color to the existing frame-border token. Add a declaration-coverage row under `docs/invariants.md`'s `## gtk` naming the test and adaptation. These three implementation files fit one run; this builds on the landed ordinary overlay-border work and sets a shadow on the swatch node, preserving the border on its overlay.
+
+**Acceptance criteria.** Removing the selector or changing its shadow fails the dedicated test; the strict swatch inventory rejects additional properties on this arm. The rule declares only the shadow, with zero offsets, zero blur and 2px spread; chosen fills, overlay drop-target edges and focus outlines retain their existing declarations. GTK 4 is outside this plan. The invariant describes declaration coverage without claiming rendered-pixel fidelity. `make check` passes.
 
 ## Done
 
