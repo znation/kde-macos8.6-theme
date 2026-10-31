@@ -5,6 +5,16 @@ only grows: search it with grep, or read one entry by its line range. Never read
 
 ## Done
 
+### Platinum GTK 3 add-color action: pin black foregrounds (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
+
+**Goal.** Give the add-color action the sheet's black foreground instead of the toolkit's grey normal and backdrop glyph colors.
+
+**Grounding.** The four `colorswatch#add-color-button overlay` image-reset arms now declare the sheet's black foreground. The installed GTK 3 theme resource in `/usr/lib/x86_64-linux-gnu/libgtk-3.so.0`, extracted with `gresource` on 2026-10-30, declares `color: #2e3436` on base and hover and `color: #929595` on backdrop. No collected reference shows this GTK action: black is a platform adaptation reusing the sheet's `window` foreground.
+
+**Approach and files.** Added `color: #000000` to the existing four-arm add-color reset group and documented the missing surface and foreground source. Extended `test_color_swatch_corners` and `test_add_color_background_images` to include foreground, and added `test_add_color_foregrounds` to assert all four states and equality with the `window` foreground. Added a GTK invariant recording the toolkit claims and adaptation provenance.
+
+**Acceptance criteria.** Each of the four arms explicitly declares black; removing that declaration fails the new test. Existing radius, image and landed shadow assertions continue to pass. No swatch fills, borders, geometry, generic overlay foregrounds or GTK 4 CSS changed. `make check` passes.
+
 ### Platinum GTK 3 add-color action: clear decorative box shadows (planned 2026-10-30 by the plan role) — done 2026-10-30 by the feature role
 
 **Goal.** Remove the stock inset highlight and outer blur from the color chooser's add-color action, complementing its existing background-image reset.

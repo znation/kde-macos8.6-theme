@@ -1407,7 +1407,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             " overlay",
             {
                 **{
-                    selector: {"background-image": "none", "box-shadow": "none"}
+                    selector: {"background-image": "none", "box-shadow": "none", "color": BLACK}
                     for selector in selectors
                 },
                 "button.color colorswatch:only-child": {"box-shadow": "none"},
@@ -1427,7 +1427,7 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             "colorswatch#add-color-button overlay:backdrop:hover",
         ):
             self.assert_rule(
-                selector, {"background-image": "none", "box-shadow": "none"}
+                selector, {"background-image": "none", "box-shadow": "none", "color": BLACK}
             )
         self.assertEqual(
             self.rules["colorswatch#add-color-button overlay"]["background-image"],
@@ -1442,6 +1442,18 @@ class TestGtkTheme(GtkSheetRuleCases, unittest.TestCase):
             "colorswatch#add-color-button overlay:backdrop:hover",
         ):
             self.assert_rule(selector, {"box-shadow": "none"})
+
+    def test_add_color_foregrounds(self):
+        selectors = (
+            "colorswatch#add-color-button overlay",
+            "colorswatch#add-color-button overlay:hover",
+            "colorswatch#add-color-button overlay:backdrop",
+            "colorswatch#add-color-button overlay:backdrop:hover",
+        )
+        for selector in selectors:
+            with self.subTest(selector=selector):
+                self.assertEqual(self.rules[selector]["color"], BLACK)
+        self.assertEqual(self.rules[selectors[0]]["color"], self.rules["window"]["color"])
 
     def test_scrollbar(self):
         self.assert_rule(
